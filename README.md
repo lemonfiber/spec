@@ -142,3 +142,5 @@ Documentation is [CC BY-SA 4.0](LICENSE.md). Code in sibling repos is the
   </a>
   &nbsp;&middot;&nbsp;<a href="https://discord.gg/daQmY23ym"><img alt="Discord" src=".github/discord.svg" height="20"></a>
 </p>
+
+<!-- ci verify -->
