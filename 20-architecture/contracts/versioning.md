@@ -33,7 +33,7 @@ compatible only if every consumer ignores unknown fields, and a field becoming
 optional is compatible only in one direction.
 
 A monotonic integer states the only thing that matters: **can this parser read
-this file?** Yes or no. Each `cli` release declares the set it supports.
+this file?** Yes or no. Each `lemonfiber` release declares the set it supports.
 
 ## The compatibility check
 
@@ -41,7 +41,7 @@ this file?** Yes or no. Each `cli` release declares the set it supports.
 flowchart TD
     load[Load manifest] --> sv{schema_version<br/>supported?}
     sv -->|No| refuse[Refuse — name both versions]
-    sv -->|Yes| mcv{stack requires a<br/>newer cli?}
+    sv -->|Yes| mcv{stack requires a<br/>newer lemonfiber?}
     mcv -->|Yes| refuse2[Refuse — name required version]
     mcv -->|No| validate[Validate contents]
     validate -->|violations| report[Report all, with locations]
@@ -84,7 +84,7 @@ failure that looks like corruption.
 
 ## Supported window
 
-`cli` supports the current `schema_version` and **one** predecessor. That gives
+`lemonfiber` supports the current `schema_version` and **one** predecessor. That gives
 one release cycle of overlap for anyone maintaining a fork, without carrying
 parser variants indefinitely.
 
@@ -122,7 +122,7 @@ pattern-matching output shapes.
 | **ARCH-R4** | A stack declaring a `min_cli_version` above the running binary MUST be refused, naming the required version. |
 | **ARCH-R5** | Unsupported schema, insufficient binary version, and content violations MUST produce distinct messages. |
 | **ARCH-R6** | The embedded stack's `schema_version` MUST be validated at build time. |
-| **ARCH-R7** | `cli` MUST support the current `schema_version` and exactly one predecessor. |
+| **ARCH-R7** | `lemonfiber` MUST support the current `schema_version` and exactly one predecessor. |
 | **ARCH-R8** | Adding a permitted enum value MUST increment `schema_version`. |
 | **ARCH-R9** | Machine-readable output MUST carry an `api_version`. |
 | **ARCH-R10** | Configuration written by a newer binary MUST be refused, never modified. |

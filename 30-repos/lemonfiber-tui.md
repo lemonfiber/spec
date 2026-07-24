@@ -1,4 +1,4 @@
-# `cli` — TUI specification
+# `lemonfiber` — TUI specification
 
 **Status:** Accepted
 
@@ -169,6 +169,6 @@ rendered in the terminal** (`D6-R4`), issue a password reset.
 
 ## Related
 
-- [cli.md](cli.md) — the repo overall
-- [cli-reference.md](cli-reference.md) — the non-interactive equivalents
+- [lemonfiber.md](lemonfiber.md) — the repo overall
+- [lemonfiber-reference.md](lemonfiber-reference.md) — the non-interactive equivalents
 - [B3](../10-functional/features/b-running/b3-dashboard.md) · [B4](../10-functional/features/b-running/b4-logs.md) · [G3](../10-functional/features/g-ux/g3-accessibility.md)

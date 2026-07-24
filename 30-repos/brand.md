@@ -14,9 +14,9 @@ Published as `@lemonfiber/brand`.
 
 The single source of the brand: SVG marks, tokens as CSS + JSON, and the detailed
 usage docs. Pull assets from here rather than re-drawing or re-exporting — that is
-the repo's whole purpose, and the reason it's a repo rather than a folder in `cli`.
+the repo's whole purpose, and the reason it's a repo rather than a folder in `lemonfiber`.
 
-`cli`'s web UI consumes it as a pinned npm dependency
+`lemonfiber`'s web UI consumes it as a pinned npm dependency
 ([contract](../20-architecture/contracts/design-tokens.md)); the marks are also
 referenced where the web UI shows a logo.
 
@@ -84,10 +84,10 @@ AA. A recolour that looks fine and fails a meter is caught here, not in the web 
 
 ## Publishing
 
-A tagged release publishes `@lemonfiber/brand` to the registry. `cli` bumps its
+A tagged release publishes `@lemonfiber/brand` to the registry. `lemonfiber` bumps its
 pinned dependency deliberately (cite `GOV-R12`) to pick up a brand change — the
 [token contract](../20-architecture/contracts/design-tokens.md#versioning) keeps
-brand and binary decoupled, so a recolour never surprises a shipped `cli`.
+brand and binary decoupled, so a recolour never surprises a shipped `lemonfiber`.
 
 ## Governing aesthetic change
 
@@ -104,7 +104,7 @@ aesthetics are requirements.
 | **REPO-R29** | The marks MUST be licensed proprietary; tokens and docs MUST be openly licensed, with the split stated in the README. |
 | **REPO-R30** | CI MUST verify `tokens.css` and `tokens.json` hold identical values. |
 | **REPO-R31** | CI MUST run the contrast check and fail on a body pairing below WCAG AA. |
-| **REPO-R32** | A release MUST publish `@lemonfiber/brand`, and `cli` MUST consume a pinned version. |
+| **REPO-R32** | A release MUST publish `@lemonfiber/brand`, and `lemonfiber` MUST consume a pinned version. |
 | **REPO-R33** | Aesthetic changes within the rules MAY cite `GOV-R12`; changes to the rules MUST be `DES-R` changes. |
 
 ## Related

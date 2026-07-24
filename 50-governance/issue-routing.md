@@ -9,7 +9,7 @@ Which repository an issue belongs in, and how it gets there.
 ## The problem
 
 Four repos, and a reporter who reasonably doesn't know the split. Someone whose
-VPN check reports a leak files against `cli` — but if the check is behaving as
+VPN check reports a leak files against `lemonfiber` — but if the check is behaving as
 specified and the *specification* is wrong, the issue belongs here.
 
 Misrouted issues are not merely untidy: they sit in a queue nobody who can act on
@@ -32,17 +32,17 @@ That single question resolves most cases:
 
 | Symptom | Repo | Because |
 |---------|------|---------|
-| Command crashes | `cli` | Nothing specifies crashing |
+| Command crashes | `lemonfiber` | Nothing specifies crashing |
 | Wizard asks something answerable only by an expert | `spec` | Contradicts [A2-R5](../10-functional/features/a-getting-started/a2-setup-wizard.md) — but if the spec permits it, the spec is wrong |
 | Service won't start | `media-stack` | Compose or manifest defect |
 | Homebrew formula installs the wrong version | `homebrew-tap` | Release engineering |
 | "It should also do X" | `spec` | A feature request is a spec change |
-| Error message unhelpful | `cli` if it violates [G4](../10-functional/features/g-ux/g4-error-model.md); `spec` if G4 doesn't cover it |
+| Error message unhelpful | `lemonfiber` if it violates [G4](../10-functional/features/g-ux/g4-error-model.md); `spec` if G4 doesn't cover it |
 | VPN provider unsupported | `spec` | Capability model change first |
 
 ## Feature requests always start here
 
-A feature request is a proposed spec change. Filing it against `cli` invites the
+A feature request is a proposed spec change. Filing it against `lemonfiber` invites the
 sequence the [lifecycle](change-lifecycle.md) exists to prevent: someone
 implements it, then writes the spec to match.
 

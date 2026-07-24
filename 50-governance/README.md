@@ -11,7 +11,7 @@ advice.
 
 ## The constitutional rule
 
-> **The spec is canonical. No change lands in `cli`, `media-stack` or
+> **The spec is canonical. No change lands in `lemonfiber`, `media-stack` or
 > `homebrew-tap` unless it references something in this repository, and that
 > reference already exists on `main` here.**
 
@@ -56,12 +56,12 @@ Spec references appear in exactly two places, and **never in code comments**:
 ```
   commit / PR body  ──cites──▶  spec requirement ID
                                       ▲
-  source code  ──links──▶  cli/.docs/ ─┘
+  source code  ──links──▶  lemonfiber/.docs/ ─┘
 ```
 
 1. **Commits and PRs** cite requirement IDs directly. This is provenance for the
    change.
-2. **Code** links to `cli/.docs/` pages; those pages cite requirement IDs. This is
+2. **Code** links to `lemonfiber/.docs/` pages; those pages cite requirement IDs. This is
    documentation of the system.
 
 Code comments carry **no requirement IDs, no ticket references, no phase

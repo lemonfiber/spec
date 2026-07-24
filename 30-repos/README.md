@@ -15,19 +15,19 @@ flowchart TD
     spec[spec<br/>canonical]
 
     subgraph impl[Implementation]
-        cli[cli<br/>Rust binary]
+        lemonfiber[lemonfiber<br/>Rust binary]
         stack[media-stack<br/>Compose + manifest]
         tap[homebrew-tap<br/>generated formula]
     end
 
-    stack -->|submodule, pinned| cli
-    cli -->|release CI generates| tap
+    stack -->|submodule, pinned| lemonfiber
+    lemonfiber -->|release CI generates| tap
     spec -.->|governs all| impl
 ```
 
 | Repo | Spec | Language | What's specific about it |
 |------|------|----------|--------------------------|
-| `cli` | [cli.md](cli.md) · [cli-tui.md](cli-tui.md) · [cli-reference.md](cli-reference.md) | Rust | Three surfaces, one core; the submodule; the build |
+| `lemonfiber` | [lemonfiber.md](lemonfiber.md) · [lemonfiber-tui.md](lemonfiber-tui.md) · [lemonfiber-reference.md](lemonfiber-reference.md) | Rust | Three surfaces, one core; the submodule; the build |
 | `media-stack` | [media-stack.md](media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 
@@ -39,20 +39,20 @@ governance (`GOV-R2`) and quality (`Q-R1`).
 
 ## The relationships that matter
 
-**`media-stack` → `cli` (submodule).** `cli` embeds a pinned tag of `media-stack`
+**`media-stack` → `lemonfiber` (submodule).** `lemonfiber` embeds a pinned tag of `media-stack`
 and validates its `schema_version` at build time (`ARCH-R6`). They version
 independently; the pin says exactly which stack a given binary ships
 ([versioning](../20-architecture/contracts/versioning.md)).
 
-**`cli` → `homebrew-tap` (generation).** `cli`'s release CI regenerates the
-formula. The tap is downstream of every `cli` release and is otherwise inert.
+**`lemonfiber` → `homebrew-tap` (generation).** `lemonfiber`'s release CI regenerates the
+formula. The tap is downstream of every `lemonfiber` release and is otherwise inert.
 
 **Everything ← `spec` (governance).** No change to any of the three lands without
 citing this repository ([50-governance](../50-governance/)).
 
 ## The one property to remember per repo
 
-- **`cli`** — logic cannot render. The core crate has no UI dependency, so a
+- **`lemonfiber`** — logic cannot render. The core crate has no UI dependency, so a
   surface can never grow behaviour of its own.
 - **`media-stack`** — it runs without lemonfiber. Plain `docker compose` works,
   which is what makes adopting the tool reversible.

@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 
-The interface between `brand` and `cli`'s web UI. The web UI's visual language
+The interface between `brand` and `lemonfiber`'s web UI. The web UI's visual language
 comes entirely from these tokens; it hardcodes no colour, size, or spacing.
 
 **Satisfies:** [G1-R2](../../10-functional/features/g-ux/g1-interface-tiers.md),
@@ -19,16 +19,16 @@ editing Rust-adjacent frontend source in a different repo — the same coupling 
 [stack manifest](stack-manifest.md) exists to avoid, in a different guise.
 
 Tokens make the brand **data the web UI consumes**, exactly as the manifest makes
-the stack data the CLI consumes. `brand` owns the values; `cli` consumes them at
+the stack data the CLI consumes. `brand` owns the values; `lemonfiber` consumes them at
 build time.
 
 ## Consumption: npm, build-time
 
-`brand` publishes `@lemonfiber/brand`. `cli`'s `web-ui` takes it as a build
+`brand` publishes `@lemonfiber/brand`. `lemonfiber`'s `web-ui` takes it as a build
 dependency and compiles the tokens into the embedded assets:
 
 ```jsonc
-// cli/crates/lemonfiber/web-ui/package.json
+// lemonfiber/crates/lemonfiber/web-ui/package.json
 "dependencies": { "@lemonfiber/brand": "0.2.0" }
 ```
 
@@ -37,7 +37,7 @@ dependency and compiles the tokens into the embedded assets:
 .header { background: var(--lf-color-paper); color: var(--lf-color-ink); }
 ```
 
-The version is pinned. A brand release is a deliberate `cli` dependency bump
+The version is pinned. A brand release is a deliberate `lemonfiber` dependency bump
 (cite `GOV-R12`), never a floating pull — the same discipline as pinned image
 tags (`E1-R1`), for the same reason.
 
@@ -89,7 +89,7 @@ These are contract obligations, not brand preferences — the web UI relies on t
 |------|-----|
 | Every token exists in both `tokens.css` and `tokens.json` | The TUI reads JSON; drift between the two breaks colour mapping |
 | Token names are stable within a major version | Renaming a token is a breaking change to every consumer |
-| Removing or renaming a token bumps the major version | `cli` pins a version; a silent removal breaks its build |
+| Removing or renaming a token bumps the major version | `lemonfiber` pins a version; a silent removal breaks its build |
 | Every text/surface colour pair used for body copy meets **WCAG AA** | [G3-R3](../../10-functional/features/g-ux/g3-accessibility.md) requires it; see [accessibility](../../60-brand/accessibility.md) |
 | The ink theme redefines every surface token the paper theme defines | A half-themed token renders an unreadable pairing in dark mode |
 
@@ -99,7 +99,7 @@ not a matter of taste.
 
 ## Versioning
 
-Tokens follow semver, independent of `cli`, `stack_version`, and `schema_version`
+Tokens follow semver, independent of `lemonfiber`, `stack_version`, and `schema_version`
 ([versioning](versioning.md)):
 
 | Change | Version |
@@ -109,8 +109,8 @@ Tokens follow semver, independent of `cli`, `stack_version`, and `schema_version
 | **Rename or remove a token** | **Major** — breaks consumers |
 | Change what a token *means* | **Major** |
 
-`cli` pinning an exact version means a brand recolour reaches users only when
-`cli` deliberately bumps and rebuilds — brand and binary stay decoupled, and a
+`lemonfiber` pinning an exact version means a brand recolour reaches users only when
+`lemonfiber` deliberately bumps and rebuilds — brand and binary stay decoupled, and a
 brand change can never surprise a shipped binary.
 
 ## What is NOT in this contract
@@ -126,7 +126,7 @@ than by a token schema.
 | ID | Requirement |
 |----|-------------|
 | **ARCH-R36** | The web UI MUST derive all colour, type, spacing and radius from `@lemonfiber/brand` tokens, hardcoding none. |
-| **ARCH-R37** | `cli` MUST depend on an exact, pinned `@lemonfiber/brand` version, never a range. |
+| **ARCH-R37** | `lemonfiber` MUST depend on an exact, pinned `@lemonfiber/brand` version, never a range. |
 | **ARCH-R38** | Tokens MUST be published as both `tokens.css` and `tokens.json`, with identical values. |
 | **ARCH-R39** | Removing or renaming a token MUST be a major version bump. |
 | **ARCH-R40** | Every body-text colour pairing MUST meet WCAG AA, verified by the token contrast check. |

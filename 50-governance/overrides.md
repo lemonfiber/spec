@@ -37,7 +37,7 @@ Three things then happen automatically:
 
 | Date | Repo | PR | Maintainer | Justification |
 |------|------|-----|-----------|---------------|
-| 2026-08-14 | cli | #212 | @… | Embargoed advisory in a transitive dependency; spec follow-up in spec#88 |
+| 2026-08-14 | lemonfiber | #212 | @… | Embargoed advisory in a transitive dependency; spec follow-up in spec#88 |
 
 The record is the entire point. An override that leaves no trace is
 indistinguishable from the rule not existing.

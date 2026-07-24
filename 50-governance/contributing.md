@@ -80,7 +80,7 @@ in a table at the bottom of its feature doc.
 **Don't put requirement IDs in code comments.** Ever. Not as a breadcrumb, not
 "just this once". Provenance in a comment is worthless to the next reader and
 rots the moment the requirement is superseded. IDs go in commits and PRs; code
-links to `cli/.docs/`, and those pages cite the spec.
+links to `lemonfiber/.docs/`, and those pages cite the spec.
 
 See [GOV-R6](canonical-spec.md#the-gov-r-namespace) and the
 [comment policy](../40-quality/code-comments.md).

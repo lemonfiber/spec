@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 
-How Rust is written in `cli`. Every rule here is mechanically enforced or
+How Rust is written in `lemonfiber`. Every rule here is mechanically enforced or
 explicitly marked judgment — a standard that is neither is decoration.
 
 **Satisfies:** the correctness posture of

@@ -28,13 +28,13 @@ Every tool below was chosen to work within that constraint.
 |---------|------|-----------|-------|
 | **Governance gate** | `spec-check` (in-repo) | our own | all repos |
 | **Spec integrity** | `integrity.py` (in-repo) | our own | spec |
-| **Code quality + coverage** | **SonarQube Cloud** | free for public | cli |
-| **SAST** | **CodeQL** | free for public | cli |
+| **Code quality + coverage** | **SonarQube Cloud** | free for public | lemonfiber |
+| **SAST** | **CodeQL** | free for public | lemonfiber |
 | **Secret scanning** | **gitleaks** | OSS | all repos |
-| **Dependency/vuln scanning** | **OSV-Scanner** | OSS | cli, brand, media-stack |
+| **Dependency/vuln scanning** | **OSV-Scanner** | OSS | lemonfiber, brand, media-stack |
 | **Supply-chain posture** | **OpenSSF Scorecard** | free for public | all repos |
-| **Rust licences + advisories** | **cargo-deny** | OSS | cli |
-| **Coverage generation** | **cargo-llvm-cov** | OSS | cli → Sonar |
+| **Rust licences + advisories** | **cargo-deny** | OSS | lemonfiber |
+| **Coverage generation** | **cargo-llvm-cov** | OSS | lemonfiber → Sonar |
 | **Workflow lint** | **actionlint** | OSS | all repos |
 | **Spell check** | **typos** | OSS | all repos |
 | **Link check** | **lychee** | OSS | all repos |
@@ -42,11 +42,11 @@ Every tool below was chosen to work within that constraint.
 | **Dependency updates** | **Renovate** | free for OSS | all repos |
 | **Pre-commit hooks** | **lefthook** | OSS | all repos |
 | **Task runner** | **just** | OSS | all repos |
-| **Changelog** | **git-cliff** | OSS | cli, brand, media-stack |
-| **Release binaries** | **cargo-dist** | OSS | cli |
+| **Changelog** | **git-cliff** | OSS | lemonfiber, brand, media-stack |
+| **Release binaries** | **cargo-dist** | OSS | lemonfiber |
 | **Docs site** | **mdBook** | OSS | spec |
-| **Web lint + format** | **Biome** | OSS | cli (web-ui) |
-| **Web accessibility** | **axe-core / pa11y** | OSS | cli (web-ui) |
+| **Web lint + format** | **Biome** | OSS | lemonfiber (web-ui) |
+| **Web accessibility** | **axe-core / pa11y** | OSS | lemonfiber (web-ui) |
 
 ## Why these, specifically
 

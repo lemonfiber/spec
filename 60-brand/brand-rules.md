@@ -61,7 +61,7 @@ rule:
 | The logo wordmark | lowercase (design) |
 
 So: *"Lemonfiber sets itself up"* in a sentence, but *"run `lemonfiber up tv`"*
-for the command, `@lemonfiber/brand` for the package, `lemonfiber/cli` for the
+for the command, `@lemonfiber/brand` for the package, `lemonfiber/lemonfiber` for the
 repo. When the name is set in `code font`, it is the identifier and stays
 lowercase; in ordinary prose it is capitalised.
 

@@ -10,7 +10,7 @@ The pipeline, the release process, and the checks that gate a merge.
 
 ---
 
-## PR pipeline — `cli`
+## PR pipeline — `lemonfiber`
 
 ```mermaid
 flowchart LR
@@ -73,7 +73,7 @@ redaction protects the operator's secrets; this protects the project's.
 
 ## Release — `cargo-dist`
 
-A tagged release on `cli` triggers the three-platform build:
+A tagged release on `lemonfiber` triggers the three-platform build:
 
 ```mermaid
 flowchart TD

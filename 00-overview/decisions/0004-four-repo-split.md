@@ -26,11 +26,11 @@ Four repos:
 | Repo | Contents | Changes when | Reviewed by |
 |------|----------|--------------|-------------|
 | `spec` | This specification | A decision is made | Reading prose |
-| `cli` | Rust CLI/TUI (the `lemonfiber` binary) | Feature work | Reading Rust + CI |
+| `lemonfiber` | Rust CLI/TUI (the `lemonfiber` binary) | Feature work | Reading Rust + CI |
 | `media-stack` | `compose.yml`, `stack.toml`, service configs, overlays | A service changes | Reading YAML |
 | `homebrew-tap` | Formulae (generated) | Every release | Nothing — it's generated |
 
-`media-stack` enters `cli` as a **git submodule**, embedded at build time —
+`media-stack` enters `lemonfiber` as a **git submodule**, embedded at build time —
 see [ADR-0005](0005-embedded-stack-assets.md).
 
 ## Alternatives considered

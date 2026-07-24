@@ -8,13 +8,13 @@ The mechanical enforcement of [GOV-R2 through GOV-R5](canonical-spec.md#the-gov-
 
 ## What runs, and where
 
-A check runs on every pull request in `cli`, `media-stack` and `homebrew-tap`.
+A check runs on every pull request in `lemonfiber`, `media-stack` and `homebrew-tap`.
 It reads the PR's commits and body, extracts citations, and resolves them against
 this repository.
 
 ```mermaid
 sequenceDiagram
-    participant PR as PR in cli
+    participant PR as PR in lemonfiber
     participant Bot as spec-check
     participant Spec as spec@main
 

@@ -1,4 +1,4 @@
-# Repo: `cli`
+# Repo: `lemonfiber`
 
 **Status:** Accepted
 
@@ -19,7 +19,7 @@ knows about *this* stack.
 ## Layout
 
 ```
-cli/
+lemonfiber/
 ├── Cargo.toml                  workspace
 ├── crates/
 │   ├── lemonfiber/             bin — the only crate that renders
@@ -44,11 +44,11 @@ covers what's specific to building the repo.
 ## `.docs/` — repo-local documentation
 
 Per the [three-layer model](../40-quality/code-comments.md#the-three-documentation-layers),
-`cli` carries its own `.docs/` tree for Rust-specific technical detail that is
+`lemonfiber` carries its own `.docs/` tree for Rust-specific technical detail that is
 **not** a product decision (those live in this spec) and **not** a code comment.
 
 ```
-cli/.docs/
+lemonfiber/.docs/
 ├── 00-index.md
 ├── architecture/       how subsystems are built — render loop, docker split,
 │                       the vpn-port-forwarding push mechanism, …
@@ -146,7 +146,7 @@ load-bearing point:
 
 ## What lives here vs. in the spec
 
-| Here (`cli`) | Spec |
+| Here (`lemonfiber`) | Spec |
 |--------------|------|
 | How the render loop is built | That it must not block (`B3-R4`) |
 | Which crate parses TOML | The manifest contract |
@@ -158,7 +158,7 @@ repo's `.docs/`.
 
 ## Related
 
-- [cli-tui.md](cli-tui.md) — screen-by-screen TUI spec
-- [cli-reference.md](cli-reference.md) — every subcommand and flag
+- [lemonfiber-tui.md](lemonfiber-tui.md) — screen-by-screen TUI spec
+- [lemonfiber-reference.md](lemonfiber-reference.md) — every subcommand and flag
 - [component-model](../20-architecture/component-model.md) · [platform-matrix](../20-architecture/platform-matrix.md)
 - [40-quality](../40-quality/) — how the code is written

@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 
-Code should be readable on its own. Architecture belongs in `cli/.docs/`.
+Code should be readable on its own. Architecture belongs in `lemonfiber/.docs/`.
 Comments are the exception, not the norm — reserved for the few places where
 genuinely non-obvious code needs a *why* the code itself cannot carry.
 
@@ -31,7 +31,7 @@ below rather than silently dropped.
 lemonfiber/spec/          canonical · cross-repo · WHAT and WHY
   47 features, 645 requirements, ADRs
         ▲ cited by
-cli/.docs/                repo-local · Rust-specific HOW
+lemonfiber/.docs/                repo-local · Rust-specific HOW
   architecture/ adr/ conventions/ runbooks/
         ▲ linked from
 src/**/*.rs               why only · 2–4 line blocks · no IDs
@@ -259,7 +259,7 @@ view. Any gate grepping tracked source for banned tokens must scope itself to
 | **Q-R7** | The enforcement gate MUST run against a fixture tree of deliberate violations, and each rule MUST detect its own fixture and no other. |
 | **Q-R8** | Violation fixtures MUST use an extension excluding them from compilation, formatting, linting and coverage. |
 | **Q-R9** | The directive allow-list MUST NOT include any lint- or coverage-suppression form. |
-| **Q-R10** | Architecture and cross-module contracts MUST live in `cli/.docs/`, not in comments. |
+| **Q-R10** | Architecture and cross-module contracts MUST live in `lemonfiber/.docs/`, not in comments. |
 
 ## Portability
 

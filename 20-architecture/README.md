@@ -26,7 +26,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [component-model.md](component-model.md) | Crate layout, the core/UI boundary, Docker access split, async model |
 | [data-flow.md](data-flow.md) | Content pipeline, control flow, observation, seeding |
 | [platform-matrix.md](platform-matrix.md) | The five cross-platform differences that actually bite |
-| [contracts/stack-manifest.md](contracts/stack-manifest.md) | **`stack.toml`** — the cli ↔ media-stack interface, full schema |
+| [contracts/stack-manifest.md](contracts/stack-manifest.md) | **`stack.toml`** — the lemonfiber ↔ media-stack interface, full schema |
 | [contracts/versioning.md](contracts/versioning.md) | Three version streams, compatibility, where skew is caught |
 
 ## The `ARCH-R` namespace
@@ -76,7 +76,7 @@ behaviour of its own, because behaviour lives somewhere that cannot print.
 ## Reading order
 
 - **Implementing across the seam** → [stack-manifest](contracts/stack-manifest.md) → [versioning](contracts/versioning.md)
-- **Working inside `cli`** → [component-model](component-model.md) → [data-flow](data-flow.md)
+- **Working inside `lemonfiber`** → [component-model](component-model.md) → [data-flow](data-flow.md)
 - **Chasing a platform bug** → [platform-matrix](platform-matrix.md)
 - **Orienting** → [system-context](system-context.md)
 

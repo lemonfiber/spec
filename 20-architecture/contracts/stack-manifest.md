@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 
-The interface between `cli` and `media-stack`. Everything lemonfiber knows about
+The interface between `lemonfiber` and `media-stack`. Everything lemonfiber knows about
 the stack comes from this file; it knows nothing about Sonarr that isn't declared
 here.
 

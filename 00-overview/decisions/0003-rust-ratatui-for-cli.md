@@ -60,7 +60,7 @@ apply to the work we're actually doing.
 - Slower compile times than Go; CI matrix builds are the long pole.
 - `tokio` plus borrow-checker friction is real, particularly around sharing
   state between the render loop and background pollers. Mitigated by the
-  message-passing architecture in [lemonfiber spec](../../30-repos/cli.md) — background
+  message-passing architecture in [lemonfiber spec](../../30-repos/lemonfiber.md) — background
   tasks own their data and send snapshots, rather than sharing mutable state.
 - `bollard` is a third-party client, not vendor-maintained. Acceptable: it's
   mature, and our usage is narrow (list, inspect, stats, logs, exec).

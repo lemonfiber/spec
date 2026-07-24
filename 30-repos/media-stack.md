@@ -18,7 +18,7 @@ A **standalone, runnable Compose project**. Cloned and run with plain
 (`F1-R1`). That is the load-bearing property of this repo, not a side effect: it
 is what makes adopting lemonfiber a reversible decision.
 
-`cli` embeds a pinned tag of this repo as a submodule
+`lemonfiber` embeds a pinned tag of this repo as a submodule
 ([ADR-0005](../00-overview/decisions/0005-embedded-stack-assets.md)), but the two
 develop and version independently.
 

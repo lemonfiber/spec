@@ -28,7 +28,7 @@ homebrew-tap/
 ```
 
 A single formula, and it is **written by CI, not by hand**. `cargo-dist` produces
-it on each `cli` release: the version, the per-platform bottle URLs, and their
+it on each `lemonfiber` release: the version, the per-platform bottle URLs, and their
 checksums.
 
 ## The formula
@@ -36,13 +36,13 @@ checksums.
 ```ruby
 class Lemonfiber < Formula
   desc "Self-hosted media automation stack, run in slices"
-  homepage "https://github.com/lemonfiber/cli"
+  homepage "https://github.com/lemonfiber/lemonfiber"
   version "0.4.0"
   license "Hippocratic-3.0"      # license-file in Cargo; see below
 
   on_macos do
     on_arm do
-      url "https://github.com/lemonfiber/cli/releases/download/v0.4.0/lemonfiber-aarch64-apple-darwin.tar.xz"
+      url "https://github.com/lemonfiber/lemonfiber/releases/download/v0.4.0/lemonfiber-aarch64-apple-darwin.tar.xz"
       sha256 "…"
     end
     # x86_64 …
@@ -84,19 +84,19 @@ binary. A binary that overwrites itself out from under the package manager that
 owns it produces a `brew` installation that disagrees with what's on disk
 (`E2-R2`).
 
-Detecting the install method is `cli`'s job; this repo simply must exist and stay
+Detecting the install method is `lemonfiber`'s job; this repo simply must exist and stay
 current for the deferral to have somewhere to point.
 
 ## Maintenance
 
-Effectively none by hand. The release workflow in `cli` opens a PR here (or
+Effectively none by hand. The release workflow in `lemonfiber` opens a PR here (or
 pushes directly) with the regenerated formula. The only human involvement is if
 the generation itself needs changing — and *that* change, like any other, cites a
 spec identifier ([GOV-R2](../50-governance/canonical-spec.md#the-gov-r-namespace)).
 
 Because it's generated, this repo is exempt from the code-review depth the others
 get — there's nothing hand-written to review. It is not exempt from governance:
-a change to the *generator* is a `cli` change and follows the normal lifecycle.
+a change to the *generator* is a `lemonfiber` change and follows the normal lifecycle.
 
 ## Requirements
 
@@ -106,7 +106,7 @@ a change to the *generator* is a `cli` change and follows the normal lifecycle.
 | **REPO-R25** | The formula MUST carry per-platform URLs and checksums for every released target. |
 | **REPO-R26** | The formula's `test` block MUST assert the installed binary reports the expected version. |
 | **REPO-R27** | The tap MUST stay current so `self-update`'s Homebrew deferral has a valid target. |
-| **REPO-R28** | A change to the formula generator MUST follow the normal change lifecycle in `cli`. |
+| **REPO-R28** | A change to the formula generator MUST follow the normal change lifecycle in `lemonfiber`. |
 
 ## Related
 

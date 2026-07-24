@@ -11,7 +11,7 @@ ADR. No component's design depends on the licence choice.
 
 | Repo | Licence |
 |------|---------|
-| `cli` | Hippocratic License 3.0 |
+| `lemonfiber` | Hippocratic License 3.0 |
 | `media-stack` | Hippocratic License 3.0 |
 | `homebrew-tap` | Hippocratic License 3.0 |
 | `spec` | CC BY-SA 4.0 |

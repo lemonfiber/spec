@@ -19,7 +19,7 @@ before the user has anything working is disproportionately expensive.
 `include_dir!`, and materialised to disk on first run.
 
 ```
-cli/
+lemonfiber/
 ├── assets/media-stack/     # git submodule, pinned to a tag
 ├── build.rs                # validates schema_version at COMPILE TIME
 └── src/stack/embedded.rs   # include_dir!("assets/media-stack")

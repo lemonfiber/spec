@@ -1,4 +1,4 @@
-# `cli` — command reference
+# `lemonfiber` — command reference
 
 **Status:** Accepted
 
@@ -142,6 +142,6 @@ so a script pinning `== 1` keeps working across feature additions.
 
 ## Related
 
-- [cli.md](cli.md) · [cli-tui.md](cli-tui.md)
+- [lemonfiber.md](lemonfiber.md) · [lemonfiber-tui.md](lemonfiber-tui.md)
 - [G1](../10-functional/features/g-ux/g1-interface-tiers.md) · [F1](../10-functional/features/f-extensibility/f1-customisation.md)
 - [versioning](../20-architecture/contracts/versioning.md) — the output contract
