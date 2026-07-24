@@ -24,8 +24,8 @@ def title_of(p: pathlib.Path) -> str:
 
 
 def main() -> None:
-    src = pathlib.Path(sys.argv[1])
-    if not src.resolve().is_relative_to(pathlib.Path.cwd()):
+    src = pathlib.Path(sys.argv[1]).resolve()
+    if not src.is_relative_to(pathlib.Path.cwd().resolve()):
         sys.exit("gen_summary: src must be within the working directory")
     lines = ["# Summary", ""]
     root_readme = src / "README.md"
