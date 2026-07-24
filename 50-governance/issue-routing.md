@@ -37,7 +37,7 @@ That single question resolves most cases:
 | Service won't start | `media-stack` | Compose or manifest defect |
 | Homebrew formula installs the wrong version | `homebrew-tap` | Release engineering |
 | "It should also do X" | `spec` | A feature request is a spec change |
-| Error message unhelpful | `lemonfiber` if it violates [G4](../10-functional/features/g-ux/g4-error-model.md); `spec` if G4 doesn't cover it |
+| Error message unhelpful | `lemonfiber` or `spec` | `lemonfiber` if it violates [G4](../10-functional/features/g-ux/g4-error-model.md); `spec` if G4 doesn't cover it |
 | VPN provider unsupported | `spec` | Capability model change first |
 
 ## Feature requests always start here

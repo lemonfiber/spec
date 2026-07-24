@@ -63,6 +63,7 @@ the `torrent` profile and are therefore always co-activated.
 ## Consequences
 
 ### Positive
+
 - `compose.yml` stays readable: one profile per service, and the profile *is* a
   useful description.
 - Adding a form is a `stack.toml` edit — no Rust changes, no compose changes, no
@@ -73,6 +74,7 @@ the `torrent` profile and are therefore always co-activated.
   best-effort.
 
 ### Negative
+
 - The mapping is indirect: reading `compose.yml` alone doesn't tell you what
   `lemonfiber up tv` starts. Mitigated by `lemonfiber forms --explain tv`, which prints the
   closure and the resulting service list (`FR-024`).
@@ -82,6 +84,7 @@ the `torrent` profile and are therefore always co-activated.
   assumed.
 
 ### Neutral
+
 - Forms can overlap freely; a service in an active profile starts once
   regardless of how many active forms reference it.
 

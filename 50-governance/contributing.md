@@ -120,6 +120,7 @@ It will say something close to this:
 >
 > **If this implements something already specified** — find the requirement,
 > add a trailer to your commit, and reopen:
+>
 > ```
 > Spec: A2-R4
 > ```

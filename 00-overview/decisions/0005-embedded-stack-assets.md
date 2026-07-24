@@ -45,6 +45,7 @@ entirely, pointing at a local checkout for development or customisation.
 ## Consequences
 
 ### Positive
+
 - **First run needs no network and no git.** Download one binary, run it, get a
   working stack. This is the single biggest contributor to the setup-time goal.
 - **Version skew becomes a compile error.** `build.rs` validates the contract at
@@ -56,6 +57,7 @@ entirely, pointing at a local checkout for development or customisation.
   point lemonfiber at it, and never rebuild.
 
 ### Negative
+
 - **A stack fix requires a lemonfiber release.** The main cost. Accepted because stack
   changes are infrequent (a pinned image bump, a new service) and `--stack-dir`
   lets urgent cases be worked around immediately.
@@ -66,6 +68,7 @@ entirely, pointing at a local checkout for development or customisation.
   rather than a confusing `include_dir!` failure.
 
 ### Neutral
+
 - Materialised files are user-editable. lemonfiber detects local modifications (by
   hash) and will not silently overwrite them on upgrade — it warns and offers a
   diff (`FR-032`).

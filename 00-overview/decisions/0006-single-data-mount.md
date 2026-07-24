@@ -81,12 +81,14 @@ plainly what was given up.
 ## Consequences
 
 ### Positive
+
 - Imports are instant and free where the filesystem allows it.
 - Torrents seed from the same bytes the library serves.
 - One mount line per service; less to get wrong.
 - Degradation is *detected and reported* rather than silently absorbed.
 
 ### Negative
+
 - Users cannot put downloads and media on different physical disks — a real
   limitation for people with a fast SSD scratch disk and a slow bulk array. The
   honest answer is that they must choose between split disks and hardlinks;
@@ -96,6 +98,7 @@ plainly what was given up.
   automatically.
 
 ### Neutral
+
 - Native-mode Jellyfin uses host paths instead of `/data` — handled by the mode
   switch in [ADR-0007](0007-dual-mode-jellyfin.md).
 
