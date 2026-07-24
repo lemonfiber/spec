@@ -45,6 +45,7 @@ None of those would have surfaced while writing an implementation.
 | [change-lifecycle.md](change-lifecycle.md) | Spec PR first, then implementation. The ordering that makes it real. |
 | [cross-repo-ci.md](cross-repo-ci.md) | What the bot verifies, and what it does when a PR doesn't conform |
 | [contributing.md](contributing.md) | The human-facing guide — what to do, in order |
+| [ai-contributors.md](ai-contributors.md) | The canonical rules for AI agents — referenced by every repo's `AGENTS.md` |
 | [overrides.md](overrides.md) | The maintainer override, its audit trail, and when it's legitimate |
 | [issue-routing.md](issue-routing.md) | Which repo an issue belongs in, and how it moves |
 
