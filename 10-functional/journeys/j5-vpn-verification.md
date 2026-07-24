@@ -64,7 +64,18 @@ transfers.
 exists to eliminate** (`C2-R7`). An untested fail-closed guarantee is not a
 guarantee — it's an assumption wearing a tick mark.
 
-## The port lifecycle
+## Not every provider can do this
+
+The port checks above only apply where the provider offers port forwarding —
+ProtonVPN, PIA, PrivateVPN and Perfect Privacy. On NordVPN, Mullvad, Surfshark
+and most others, there is no forwarded port to check.
+
+On those, the port lines report **`not-applicable`**, and the overall state is
+`verified-no-pf` — green, not amber (`C2-R16`). Nothing is broken; the operator
+bought a product without that feature, and the consequence was stated once when
+they chose it (`A1-R12`).
+
+## The port lifecycle, where it applies
 
 Four things must hold, checked separately because each fails differently (`C2-R4`):
 

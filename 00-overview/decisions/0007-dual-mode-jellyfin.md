@@ -34,7 +34,7 @@ JELLYFIN_MODE=native   # host-installed
 ```
 
 The insight making this cheap: **the only things that actually differ are a URL
-and a path prefix.** Jellyseerr and Homepage need `JELLYFIN_URL`; Jellyfin needs
+and a path prefix.** Seerr and Homepage need `JELLYFIN_URL`; Jellyfin needs
 to find the library.
 
 | | `docker` | `native` |
@@ -52,7 +52,7 @@ lemonfiber's responsibilities:
   (macOS/Windows). On Linux it recommends Docker and explains why.
 - On native mode, add `extra_hosts: ["host.docker.internal:host-gateway"]` for
   native Linux Docker, where that name doesn't otherwise exist.
-- Verify reachability in `doctor` — native mode's failure mode is Jellyseerr
+- Verify reachability in `doctor` — native mode's failure mode is Seerr
   silently unable to see Jellyfin.
 - On Linux Docker mode, detect `/dev/dri` and enable passthrough if present.
 
@@ -83,7 +83,7 @@ lemonfiber's responsibilities:
 - Doubles the Jellyfin-related test matrix.
 
 ### Neutral
-- Jellyseerr, Homepage and Bazarr are unaffected — they consume `JELLYFIN_URL`
+- Seerr, Homepage and Bazarr are unaffected — they consume `JELLYFIN_URL`
   and don't care what's behind it.
 
 ## Revisit if

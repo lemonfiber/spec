@@ -9,7 +9,7 @@
 Answer, with exactly one answer, the question *"what link do I send my partner?"*
 
 The stack presents at least four plausible entry points: Homepage (a dashboard of
-everything), Jellyseerr (where you ask for things), Jellyfin (where you watch),
+everything), Seerr (where you ask for things), Jellyfin (where you watch),
 and lemonfiber's own web UI (where you administer). Without a decision, the
 operator improvises — usually by sending several links with an explanation, which
 is precisely the complexity this product exists to remove.
@@ -22,11 +22,11 @@ Nothing else in the catalogue picks one. This feature does.
 
 | Audience | Front door | Why |
 |----------|-----------|-----|
-| **Household** | **Jellyseerr** | Where you ask for things *and* the link onward to watching. Requires an account they already have. |
+| **Household** | **Seerr** | Where you ask for things *and* the link onward to watching. Requires an account they already have. |
 | **Operator** | **lemonfiber** (TUI or web UI) | Everything operational, one place |
 
-Jellyseerr rather than Jellyfin for the household is the non-obvious call.
-Jellyfin is where they watch, but Jellyseerr is where they *start* — it's the
+Seerr rather than Jellyfin for the household is the non-obvious call.
+Jellyfin is where they watch, but Seerr is where they *start* — it's the
 place a request begins, it links to Jellyfin for playback, and it shows the status
 of what they asked for. Sending someone to Jellyfin leaves them with no way to
 ask for anything.
@@ -55,7 +55,7 @@ bookmark is a support request.
 
 ### Configuration reflected honestly
 
-If Jellyseerr isn't running, there is no household front door, and lemonfiber says
+If Seerr isn't running, there is no household front door, and lemonfiber says
 so rather than pointing at something absent. In a library-only configuration
 Jellyfin becomes the household door — there's nothing to request.
 
@@ -78,7 +78,7 @@ arrive somewhere they can change the stack's behaviour.
 
 | Situation | Behaviour |
 |-----------|-----------|
-| Jellyseerr not in the active form | No household front door. Say so; don't point at Jellyfin as a substitute without explaining the difference. |
+| Seerr not in the active form | No household front door. Say so; don't point at Jellyfin as a substitute without explaining the difference. |
 | Library-only configuration | Jellyfin is the door; invitations reflect that. |
 | Host IP changes | Prefer an mDNS name where available; detect the change and update what's shown. |
 | mDNS unavailable on the network | Fall back to the IP, and note that it may change. |
@@ -94,7 +94,7 @@ arrive somewhere they can change the stack's behaviour.
 | ID | Requirement |
 |----|-------------|
 | **G5-R1** | Exactly one household front door MUST be defined at any time. |
-| **G5-R2** | Jellyseerr MUST be the household front door where a request surface exists. |
+| **G5-R2** | Seerr MUST be the household front door where a request surface exists. |
 | **G5-R3** | In a library-only configuration, Jellyfin MUST be the household front door. |
 | **G5-R4** | Where no household-facing service is running, lemonfiber MUST state that there is no front door rather than substituting one silently. |
 | **G5-R5** | Homepage MUST NOT be presented as a household front door. |

@@ -35,7 +35,7 @@ Forms are named combinations, declared as data in the stack manifest.
 | `music` | lidarr | 1 |
 | `books` | bindery | 1 |
 | `subs` | bazarr | 1 |
-| `media` | jellyfin, jellyseerr, calibre-web-automated, audiobookshelf | 4 |
+| `media` | jellyfin, seerr, calibre-web-automated, audiobookshelf | 4 |
 | `tuning` | recyclarr, unpackerr | 2 |
 | `dash` | homepage | 1 |
 | `proxy` | caddy | 1 |

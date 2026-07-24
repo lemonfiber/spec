@@ -97,7 +97,7 @@ The default posture must be the safe one, because defaults are what people run.
 
 Binding is **two-tier**: administrative surfaces — the \*arrs, download clients,
 and lemonfiber's own control surface — bind to `127.0.0.1`. Household-facing
-surfaces — Jellyfin, Jellyseerr, the book and audiobook readers — bind to the
+surfaces — Jellyfin, Seerr, the book and audiobook readers — bind to the
 LAN, because they are useless if a television cannot reach them.
 
 Nothing binds to all interfaces. Exposing the control surface beyond loopback is
@@ -133,7 +133,7 @@ Named explicitly so they're rejected on purpose rather than forgotten.
 ### Formerly non-goals
 
 Household support was originally out of scope. It isn't: for a partner or
-housemate, **the product is Jellyseerr and Jellyfin**, and they never see
+housemate, **the product is Seerr and Jellyfin**, and they never see
 lemonfiber at all. That audience is now first-class — see
 [D4](../10-functional/features/d-content/d4-request-flow.md),
 [D6](../10-functional/features/d-content/d6-household-identity.md) and

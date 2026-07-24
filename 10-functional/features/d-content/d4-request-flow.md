@@ -10,7 +10,7 @@ Let everyone else in the home ask for something and then watch it, without ever
 encountering lemonfiber.
 
 This is the only feature whose primary audience is not the operator. For a
-partner, a housemate, or a teenager, **the product is Jellyseerr and Jellyfin** —
+partner, a housemate, or a teenager, **the product is Seerr and Jellyfin** —
 they will never see a terminal, a form, or a diagnostic. Their entire experience
 is: search for something, tap request, and later it's there.
 
@@ -22,7 +22,7 @@ stack is judged a failure regardless of how well it's engineered.
 ### One account, one place to ask
 
 A household member signs in with their Jellyfin account — the same credentials
-that let them watch. Jellyseerr authenticates against Jellyfin
+that let them watch. Seerr authenticates against Jellyfin
 ([D1](d1-seed.md)), so there is no second registration.
 
 ### The loop is closed for the requester
@@ -37,7 +37,7 @@ requester's side:
 | Processing | That it's being worked on |
 | Available | That it's ready, and where to watch it |
 
-Jellyseerr sends these. lemonfiber's job is to ensure it's configured to,
+Seerr sends these. lemonfiber's job is to ensure it's configured to,
 because the default of silence is what generates "did you get my request?" —
 which is precisely the interruption the operator installed this to avoid.
 
@@ -56,7 +56,7 @@ requester's next move is to ask the operator in person.
 ### The operator sees household activity
 
 Pending requests, and anything failing to fulfil, surface in lemonfiber's
-dashboard. The operator shouldn't need to open Jellyseerr to know something needs
+dashboard. The operator shouldn't need to open Seerr to know something needs
 attention.
 
 ### The household never touches lemonfiber
@@ -92,10 +92,10 @@ Per request:
 | Series requested where some seasons exist | Support partial requests; don't force re-acquiring what's present. |
 | Requester lacks permission for that content type | The option shouldn't be offered. Never offer then refuse. |
 | Household member removed | Their requests remain visible to the operator with the requester marked as removed. |
-| Jellyseerr unreachable | Surface as a service failure to the operator. The household simply can't request — an outage, but not data loss. |
+| Seerr unreachable | Surface as a service failure to the operator. The household simply can't request — an outage, but not data loss. |
 | Two people request the same thing | Deduplicate; notify both when available. |
 | Item available but Jellyfin hasn't scanned | Trigger a scan before marking available, so "ready" is true when stated. |
-| Requester has no notification target | Status is visible in Jellyseerr regardless; the loop closes on next visit. |
+| Requester has no notification target | Status is visible in Seerr regardless; the loop closes on next visit. |
 
 ## Acceptance criteria
 

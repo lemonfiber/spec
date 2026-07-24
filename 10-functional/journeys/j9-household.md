@@ -45,7 +45,7 @@ decide which of four URLs to send.
 
 ## Ana's half
 
-She opens the link, sets her own password, and lands at **Jellyseerr**.
+She opens the link, sets her own password, and lands at **Seerr**.
 
 That's the front door (`G5-R2`), and choosing it over Jellyfin is the
 non-obvious call. Jellyfin is where she *watches* — but it's where she
@@ -54,12 +54,12 @@ what already exists and have no way to ask for anything; their next move is to
 ask the operator in person, which is precisely the interruption the stack was
 installed to remove.
 
-Jellyseerr is where a request begins, shows its status, and links onward to
+Seerr is where a request begins, shows its status, and links onward to
 playback. One door, and it's the one that closes the loop.
 
 ## One account, not two
 
-Ana's Jellyfin account authenticates her to Jellyseerr as well (`D6-R1`,
+Ana's Jellyfin account authenticates her to Seerr as well (`D6-R1`,
 `D1-R7`). She has one credential for asking and watching.
 
 This is one API call at seed time, and it's the difference between a household
@@ -81,7 +81,7 @@ The failure mode to avoid is silence. A request disappearing into nothing is rea
 as being ignored, and produces the in-person follow-up the system exists to
 prevent (`D4-R2`, `D4-R3`).
 
-Jellyseerr sends these; lemonfiber's job is ensuring it's configured to.
+Seerr sends these; lemonfiber's job is ensuring it's configured to.
 
 ## Getting onto a television
 
@@ -115,7 +115,7 @@ her not knowing the address.
 | Situation | Behaviour |
 |-----------|-----------|
 | Invitation expires unused | Re-issuable without redefining the member (`D6-R13`) |
-| Ana already has a Jellyfin account | Detected; Jellyseerr access granted rather than a duplicate created (`D6-R6`) |
+| Ana already has a Jellyfin account | Detected; Seerr access granted rather than a duplicate created (`D6-R6`) |
 | Client can't find the server | Distinguishes wrong address, wrong network, and server down — three different fixes (`G6-R9`) |
 | Ana's device is on guest Wi-Fi | Named as a likely cause — guest networks isolate clients (`G6-R10`) |
 | Playback buffers | Likely transcoding; points at the quality preset and platform capability (`G6-R6`) |

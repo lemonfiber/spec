@@ -116,7 +116,7 @@ with an embedded API key are the classic leak.
 | Error with several plausible causes | List them by likelihood; don't assert one as certain. |
 | Error in non-interactive mode | Full message to stderr, meaningful exit code, no prompting. |
 | Error containing a file path | Show the full path; abbreviating produces unfindable files. |
-| Error occurring in the household surface | Household-facing wording is Jellyseerr's and Jellyfin's; lemonfiber doesn't rewrite it. |
+| Error occurring in the household surface | Household-facing wording is Seerr's and Jellyfin's; lemonfiber doesn't rewrite it. |
 | Transient error | Retry before reporting; report only if it persists. Distinguish transient from persistent. |
 | Error the operator has already declined to fix | Suppress until it recurs after clearing. |
 | Multiple errors at once | Group by root cause; report the cause first. |

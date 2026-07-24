@@ -48,7 +48,7 @@ Showing the number prevents most of the problem without any policy at all.
 
 Pending requests appear in lemonfiber's dashboard and can be notified
 ([B5](../b-running/b5-notifications.md)). Approval must not require opening
-Jellyseerr — friction there is what turns "approve everything" into the only
+Seerr — friction there is what turns "approve everything" into the only
 workable setting.
 
 ### Declining requires a reason
@@ -95,7 +95,7 @@ Per member: `within-quota`, `near-quota`, `quota-exhausted`, `unlimited`.
 | **D7-R3** | Estimated size MUST be shown before a request is submitted. |
 | **D7-R4** | Estimates MUST be labelled as estimates. |
 | **D7-R5** | A request exceeding remaining quota MUST be blocked at submission, stating the limit and reset time. |
-| **D7-R6** | Pending requests MUST be approvable from lemonfiber without opening Jellyseerr. |
+| **D7-R6** | Pending requests MUST be approvable from lemonfiber without opening Seerr. |
 | **D7-R7** | Declining MUST require a reason, and that reason MUST reach the requester. |
 | **D7-R8** | Long-pending requests MUST remind the operator and MUST expire with the requester informed. |
 | **D7-R9** | Actual size exceeding the estimate MUST NOT retroactively cancel an approved request. |

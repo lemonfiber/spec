@@ -22,7 +22,7 @@ having forgotten where the settings are.
 ### One account per person, covering everything
 
 A household member's Jellyfin account is their identity for both watching
-(Jellyfin) and requesting (Jellyseerr, authenticating against it). One credential,
+(Jellyfin) and requesting (Seerr, authenticating against it). One credential,
 created once.
 
 ### Invitations rather than credential handover
@@ -58,7 +58,7 @@ requested — without opening two web UIs.
 
 ### Removal is complete and honest
 
-Removing someone revokes access to both Jellyfin and Jellyseerr, and states what
+Removing someone revokes access to both Jellyfin and Seerr, and states what
 happens to their watch history and outstanding requests. Partial removal — no
 longer able to watch but requests still arriving — is a confusing state to leave
 behind.
@@ -89,8 +89,8 @@ Per household member:
 | Invitation link intercepted on the LAN | Single-use and short-lived. State that it grants account creation to whoever opens it. |
 | Invitation expires unused | Re-issuable without recreating the account definition. |
 | Invitee sets a weak password | Enforce a minimum; keep the message brief and non-lecturing. |
-| Person already has a Jellyfin account | Detect and offer to grant Jellyseerr access rather than creating a duplicate. |
-| Jellyseerr unavailable at invitation time | Create the Jellyfin account and complete the Jellyseerr link when it returns; report the partial state. |
+| Person already has a Jellyfin account | Detect and offer to grant Seerr access rather than creating a duplicate. |
+| Seerr unavailable at invitation time | Create the Jellyfin account and complete the Seerr link when it returns; report the partial state. |
 | Household member forgets their password | The operator can issue a reset link. They never see or set the password themselves. |
 | Removal with outstanding requests | State what happens to in-flight requests before confirming. |
 | Removal with watch history | Ask whether to retain or delete it; deleting is irreversible. |
@@ -110,11 +110,11 @@ Per household member:
 | **D6-R5** | Library access and any age limit MUST be selectable at invitation time in plain language. |
 | **D6-R6** | An existing Jellyfin account MUST be detected and reused rather than duplicated. |
 | **D6-R7** | Household members MUST be listable with their access, activity and requests in one place. |
-| **D6-R8** | Removal MUST revoke access in both Jellyfin and Jellyseerr. |
+| **D6-R8** | Removal MUST revoke access in both Jellyfin and Seerr. |
 | **D6-R9** | Removal MUST state the effect on watch history and outstanding requests before confirming. |
 | **D6-R10** | The operator MUST be able to issue a password reset without learning the password. |
 | **D6-R11** | Invitations MUST state that access is limited to the home network. |
-| **D6-R12** | An invitation issued while Jellyseerr is unavailable MUST still create the Jellyfin account and complete the link later, reporting the partial state. |
+| **D6-R12** | An invitation issued while Seerr is unavailable MUST still create the Jellyfin account and complete the link later, reporting the partial state. |
 | **D6-R13** | Expired invitations MUST be re-issuable without redefining the member. |
 | **D6-R14** | lemonfiber MUST NOT grant household members any access to lemonfiber itself. |
 

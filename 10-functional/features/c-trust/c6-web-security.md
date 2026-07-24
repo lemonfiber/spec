@@ -10,7 +10,7 @@ Serving a web UI turns lemonfiber into a network service. That web UI can start,
 stop and reconfigure the entire stack, read logs, and reach every credential the
 system holds. It is the most privileged surface in the product.
 
-Meanwhile the household needs Jellyfin and Jellyseerr reachable from the TV and
+Meanwhile the household needs Jellyfin and Seerr reachable from the TV and
 their phones. So "bind everything to loopback" is not achievable, and "bind
 everything to the network" is not acceptable.
 
@@ -24,7 +24,7 @@ before exposure is permitted.
 | Tier | Services | Default binding | Rationale |
 |------|----------|-----------------|-----------|
 | **Admin** | The \*arrs, SABnzbd, qBittorrent, Bindery, Prowlarr, NZBHydra2, lemonfiber's own UI | `127.0.0.1` | Full control over the system. Only the operator needs them. |
-| **Household** | Jellyfin, Jellyseerr, Calibre-Web-Automated, Audiobookshelf, Homepage | LAN | Useless if unreachable from a TV or phone. |
+| **Household** | Jellyfin, Seerr, Calibre-Web-Automated, Audiobookshelf, Homepage | LAN | Useless if unreachable from a TV or phone. |
 
 This is stronger than the common practice of binding everything to `0.0.0.0`,
 which exposes every admin service — most with weak or disabled default

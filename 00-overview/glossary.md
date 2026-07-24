@@ -73,6 +73,16 @@ REST API shape: **Sonarr** (TV), **Radarr** (movies), **Lidarr** (music),
 **Prowlarr** (indexers), **Readarr** (books — *discontinued 2025*). Their shared
 API design is what makes a single `ServarrClient` in lemonfiber viable.
 
+### Seerr
+The media request and discovery front-end for the household — where they ask for
+things, and the link onward to Jellyfin to watch. Authenticates against Jellyfin,
+so a household member has one account rather than two.
+
+**Formerly Jellyseerr.** The project renamed and moved to `seerr-team/seerr`; the
+image is now `ghcr.io/seerr-team/seerr`. Operators adopting an existing setup may
+still be running a `fallenbagel/jellyseerr` container — see
+[A5 Migration](../10-functional/features/a-getting-started/a5-migration.md).
+
 ### Bindery
 The post-Readarr book and audiobook automation tool (MIT). Fills the \*arr role
 for books, but is **not** a Servarr application — it has its own API, and
@@ -103,9 +113,16 @@ lets a torrent keep seeding from `downloads/` while the same bytes appear in
 
 ### Port forwarding (VPN)
 A VPN provider assigning you an inbound port so peers can initiate connections.
-Materially improves torrent performance. ProtonVPN grants it via **NAT-PMP**,
-dynamically — so the port changes and must be pushed into qBittorrent on each
-reconnect.
+Materially improves torrent throughput and seeding.
+
+**Only a minority of providers offer it** — ProtonVPN, Private Internet Access,
+PrivateVPN and Perfect Privacy. NordVPN discontinued it; Mullvad withdrew it in
+2023. This is why lemonfiber models VPN providers by **capability** rather than
+by name, and why its absence is `not-applicable` rather than a failure.
+
+Where granted, it is **dynamic**: the port changes on every reconnect and must be
+pushed into the download client each time, and released when the tunnel drops.
+See [C2](../10-functional/features/c-trust/c2-vpn-verification.md).
 
 ### Fail-open / fail-closed
 A VPN that **fails open** keeps passing traffic when the tunnel drops — leaking

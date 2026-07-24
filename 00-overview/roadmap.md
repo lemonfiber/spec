@@ -100,7 +100,7 @@ Turns config from precious into reproducible ([P6](vision.md#p6--reproducible-ov
 | Root folder registration | Per media type |
 | Prowlarr app sync | Push indexers to each \*arr |
 | Bindery indexer wiring | **Torznab endpoints** — app sync does not cover it (`D1-R15`) |
-| Jellyfin → Jellyseerr identity | One household account, not two (`D1-R7`) |
+| Jellyfin → Seerr identity | One household account, not two (`D1-R7`) |
 | Homepage key injection | Widgets work on first boot |
 | Drift-aware writes | Never revert an operator's manual change (`C9-R3`) |
 | `lemonfiber backup` / `restore` | Quiesced, not a live SQLite copy (`E3-R1`) |

@@ -18,14 +18,14 @@ takes "your VPN is leaking" down with it.
 
 ### Division of labour: lemonfiber alerts, services notify
 
-lemonfiber does **not** reimplement what the stack already does well. Jellyseerr
+lemonfiber does **not** reimplement what the stack already does well. Seerr
 already notifies a requester when their request is approved and when it becomes
 available; the \*arrs have their own connection systems.
 
 | Owner | Events |
 |-------|--------|
 | **lemonfiber** | Problems, and cross-service conditions no single service can see |
-| **Jellyseerr** (configured by lemonfiber) | Household request approved, denied, now available |
+| **Seerr** (configured by lemonfiber) | Household request approved, denied, now available |
 
 lemonfiber's unique contribution is the conditions **nothing else observes**: a
 VPN leak, hardlink degradation, an item downloaded but never imported, a disk
@@ -110,7 +110,7 @@ Per alert condition:
 | Notification would contain a credential | Redact. Same rules as the support bundle. |
 | Alert fires while the stack is intentionally stopped | Suppress operational alerts when the operator stopped things deliberately. |
 | Quiet hours configured | Hold non-critical alerts; critical ones always deliver. |
-| Household member has no notification target | Jellyseerr handles this; lemonfiber does not chase it. |
+| Household member has no notification target | Seerr handles this; lemonfiber does not chase it. |
 | Same condition on multiple services | Group into one alert naming all affected services. |
 | Alert resolves before being read | Still show it in history — a transient VPN drop matters even after recovery. |
 | Operator disables all channels | Permitted. In-app remains, and lemonfiber states that external delivery is off. |
@@ -119,7 +119,7 @@ Per alert condition:
 
 | ID | Requirement |
 |----|-------------|
-| **B5-R1** | lemonfiber MUST NOT duplicate notifications that Jellyseerr or the \*arrs already send to their own users. |
+| **B5-R1** | lemonfiber MUST NOT duplicate notifications that Seerr or the \*arrs already send to their own users. |
 | **B5-R2** | Setup MUST ask notification appetite once, offering presets rather than an event checklist. |
 | **B5-R3** | Every individual event MUST remain configurable after setup. |
 | **B5-R4** | In-app delivery MUST be unconditional and MUST NOT require configuration. |
@@ -139,5 +139,5 @@ Per alert condition:
 - [B3 Dashboard](b3-dashboard.md) — in-app delivery surface
 - [C1 Diagnostics](../c-trust/c1-diagnostics.md) — the checks producing most conditions
 - [C7 Queue health](../c-trust/c7-queue-health.md) · [C8 Provider health](../c-trust/c8-provider-health.md)
-- [D4 Household request flow](../d-content/d4-request-flow.md) — Jellyseerr's side
+- [D4 Household request flow](../d-content/d4-request-flow.md) — Seerr's side
 - [G4 Error model](../g-ux/g4-error-model.md)

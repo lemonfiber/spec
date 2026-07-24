@@ -45,6 +45,22 @@ needed, the rough price band, and the selection criteria that actually matter
 (for a Usenet provider: retention, connections, backbone, whether it's a block
 or unlimited account).
 
+### One selection criterion is called out specifically: VPN port forwarding
+
+For torrents, whether a VPN offers **port forwarding** is the single criterion
+with a lasting functional consequence, and it is the one most operators don't
+know to ask about when subscribing.
+
+Without it, peers cannot initiate connections: downloads still work, but
+throughput is lower and seeding is substantially worse — which matters on private
+trackers where ratio affects standing.
+
+Only a minority of providers offer it, and several have withdrawn it. lemonfiber
+therefore states the criterion at the point of choosing, while the operator can
+still act on it, rather than after they've paid for a year of something that
+cannot do it. Consistent with [A1-R5](#acceptance-criteria), it describes the
+capability rather than recommending vendors.
+
 ### Order is enforced, because it matters
 
 Provider → indexer → protocol config. Configuring an indexer before a provider
@@ -107,6 +123,8 @@ consequences stated.
 | **A1-R9** | If the operator selects torrents without a VPN, lemonfiber MUST warn explicitly and require confirmation, and MUST NOT refuse to proceed. |
 | **A1-R10** | Validation failures MUST distinguish rejected credentials from unreachable services, with a distinct remedy for each — see [G4](../g-ux/g4-error-model.md). |
 | **A1-R11** | Any prerequisite MAY be skipped; skipping MUST disable only the dependent features, and MUST state which. |
+| **A1-R12** | Where torrents are selected, VPN port-forwarding support MUST be stated as a selection criterion **before** the operator is asked for VPN credentials. |
+| **A1-R13** | The consequence of a provider without port forwarding — reduced peer connectivity and seeding — MUST be stated in plain language. |
 
 ## Related
 

@@ -57,15 +57,23 @@ Three genuinely different failures, three different remedies:
 Collapsing these into "validation failed" sends the operator hunting the wrong
 problem, which is worse than no message.
 
-### VPN validation is special-cased
+### VPN validation is special-cased, per provider
 
-The ProtonVPN port-forwarding failure is specific, common, and unrecoverable
-without regenerating credentials: **port forwarding must be enabled when the
-WireGuard config is generated**, and the server must support P2P. If the tunnel
-comes up but no port is granted, lemonfiber states this exact cause first, because it
-is overwhelmingly the likeliest — and because the fix is "go back to your
-provider's dashboard and generate a new config," which the operator will not
-guess.
+Each provider has a characteristic failure that looks like a broken installation
+and is actually a credential problem. None of them explain it at the point of
+failure, and no operator will guess it:
+
+| Provider | Trap | Why it's invisible |
+|----------|------|--------------------|
+| **ProtonVPN** | Port forwarding must be enabled **when the WireGuard config is generated**, and the server must support P2P | The tunnel connects perfectly; only the port is missing. Unrecoverable at runtime — requires new credentials. |
+| **NordVPN** | Credentials are **service credentials** from the dashboard, not the account email and password | The obvious values are rejected with no explanation, so it reads as "my password is wrong" |
+
+Where a provider has a known trap, validation names it as the first candidate
+cause on failure. Where lemonfiber has no specific knowledge of a provider, it
+reports the generic failure without speculating.
+
+Port-forwarding validation only applies where the provider supports it at all —
+see [C2](../c-trust/c2-vpn-verification.md#providers-are-described-by-capability-not-by-name).
 
 ### Re-validation is available on demand
 
@@ -118,7 +126,9 @@ Per credential:
 | **A3-R5** | Leading and trailing whitespace MUST be trimmed from pasted credentials without error. |
 | **A3-R6** | Credentials MUST NOT appear in any log, error message, screen output, or support bundle. |
 | **A3-R7** | Validation MUST time out within a bounded period and report the elapsed time. |
-| **A3-R8** | VPN validation MUST verify that a port was forwarded, and on failure MUST name the config-generation cause first. |
+| **A3-R8** | Where the provider supports port forwarding, VPN validation MUST verify a port was granted, and on failure MUST name that provider's known trap first. |
+| **A3-R14** | Port-forwarding validation MUST be skipped for providers that do not support it, and its absence MUST NOT be reported as a validation failure. |
+| **A3-R15** | Where lemonfiber has no provider-specific knowledge, validation MUST report the generic failure and MUST NOT speculate about the cause. |
 | **A3-R9** | VPN validation MUST report the observed exit country. |
 | **A3-R10** | Validation MUST be re-runnable on demand and MUST participate in [C1 diagnostics](../c-trust/c1-diagnostics.md). |
 | **A3-R11** | Total loss of network connectivity MUST be reported once, not once per credential. |

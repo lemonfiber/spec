@@ -71,7 +71,7 @@ Every service the stack orchestrates is OSI-licensed open source:
 |---------|----------|
 | GPL-3.0 | Prowlarr, Sonarr, Radarr, Lidarr, Bazarr, Calibre-Web(-Automated), Homepage |
 | GPL-2.0 | Jellyfin, SABnzbd, qBittorrent |
-| MIT | Jellyseerr, Gluetun, FlareSolverr, Recyclarr, Unpackerr |
+| MIT | Seerr, Gluetun, FlareSolverr, Recyclarr, Unpackerr |
 | Apache-2.0 | NZBHydra2, Caddy |
 
 **Our licence choice has no effect on theirs, and theirs has none on ours.**

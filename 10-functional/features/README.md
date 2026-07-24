@@ -34,10 +34,10 @@ Two, and they need naming because most features serve only one:
 | Audience | Who | What they touch |
 |----------|-----|-----------------|
 | **Operator** | The person who sets it up and keeps it running | lemonfiber (CLI/TUI/web), occasionally a service admin UI |
-| **Household** | Everyone else in the home | Jellyseerr to request, Jellyfin to watch. **Never lemonfiber.** |
+| **Household** | Everyone else in the home | Seerr to request, Jellyfin to watch. **Never lemonfiber.** |
 
 A household member has exactly **one** account — their Jellyfin login, which
-Jellyseerr authenticates against. The multi-account problem is an operator
+Seerr authenticates against. The multi-account problem is an operator
 problem only.
 
 ---

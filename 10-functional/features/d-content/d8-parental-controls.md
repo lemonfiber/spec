@@ -14,7 +14,7 @@ that exposes everything, or they don't have an account. Both are unacceptable,
 and the practical consequence is that families don't adopt the stack at all.
 
 This is genuinely two restrictions, not one. Jellyfin can limit what is
-*watchable*; Jellyseerr can limit what is *requestable*. Setting one without the
+*watchable*; Seerr can limit what is *requestable*. Setting one without the
 other leaves an obvious hole.
 
 ## Behaviour

@@ -36,7 +36,7 @@ update burden, and cognitive load.
 | **Bindery** | Same, for books and audiobooks | — |
 | **Bazarr** | Finds and downloads subtitles | No automatic subtitles |
 | **Jellyfin** | Plays your library on TVs, phones and browsers | Files on disk, no way to watch them |
-| **Jellyseerr** | Where the household asks for things | Requests come to you in person |
+| **Seerr** | Where the household asks for things | Requests come to you in person |
 | **Calibre-Web-Automated** | Reading and organising your ebook library | — |
 | **Audiobookshelf** | Listening to audiobooks, with progress synced | — |
 | **Recyclarr** | Keeps quality settings in line with community guidance | Tune quality profiles by hand |
@@ -53,7 +53,7 @@ a judgement about severity.
 |-------|---------|----------|
 | **Critical** | Failure has consequences beyond the stack | Gluetun |
 | **Core** | Stack cannot do its job | Prowlarr, download clients, the \*arr for the media type in use |
-| **Important** | Significant capability lost | Jellyfin, Jellyseerr |
+| **Important** | Significant capability lost | Jellyfin, Seerr |
 | **Enhancing** | Quality of life | Bazarr, Recyclarr, Unpackerr, Homepage, FlareSolverr, NZBHydra2 |
 | **Optional** | Off unless asked for | Caddy |
 
@@ -67,7 +67,7 @@ can verify the open-source claim rather than take it on faith.
 
 **Every bundled service is OSI-licensed**: GPL-3.0 (Prowlarr, Sonarr, Radarr,
 Lidarr, Bazarr, Calibre-Web-Automated, Homepage), GPL-2.0 (Jellyfin, SABnzbd,
-qBittorrent), MIT (Jellyseerr, Gluetun, FlareSolverr, Recyclarr, Unpackerr,
+qBittorrent), MIT (Seerr, Gluetun, FlareSolverr, Recyclarr, Unpackerr,
 Bindery, Audiobookshelf), Apache-2.0 (NZBHydra2, Caddy).
 
 ### Inclusion criteria are explicit
@@ -80,12 +80,26 @@ paid tier.
 Stating the criteria makes "why isn't X included?" answerable, and makes
 additions a judgement against a standard rather than a matter of taste.
 
+### Maintenance signals are tracked, not discovered late
+
+Each service records the date of its last upstream release, reviewed whenever a
+pin is bumped. A service going quiet is not itself a problem — a mature
+application may simply not need frequent releases — but it is a signal worth
+holding, because the alternative is discovering an abandoned dependency only when
+it breaks.
+
+| Service | Signal |
+|---------|--------|
+| **Lidarr** | Slowest-moving in the stack; roughly eight months between releases as of mid-2026. Not archived, still functional, and **no viable successor exists** — see exclusions. Retained, watched. |
+
 ### Notable exclusions are recorded
 
 | Not included | Why |
 |--------------|-----|
 | Plex | Not open source |
 | Readarr | Discontinued upstream in 2025; Bindery replaces it |
+| **Melodarr** | Presents itself as an actively maintained Lidarr successor. It is a fork with **two days of commits, no releases, no published image, and no activity since April 2026**. Investigated and rejected — a dead fork is worse than a slow-moving working project. |
+| Beets, Headphones | Beets is a tagger and organiser, not acquisition automation; Headphones is effectively dead. Neither replaces Lidarr. |
 | Autobrr, cross-seed | Substantial sub-projects; deferred |
 | Tdarr | Transcode automation; weak fit without hardware acceleration on two of three platforms |
 | Authelia, Authentik | Admin surfaces are loopback-only, so SSO solves a problem the stack doesn't have |
@@ -119,6 +133,8 @@ additions a judgement against a standard rather than a matter of taste.
 | **F2-R11** | An unknown service MUST be displayed with an unknown description rather than hidden. |
 | **F2-R12** | An upstream licence change away from OSI approval MUST disqualify the service at pin-bump time. |
 | **F2-R13** | Removal of a service MUST record the reason and any replacement. |
+| **F2-R14** | Each service MUST record its last upstream release date, reviewed whenever its pin is bumped. |
+| **F2-R15** | A candidate service's maintenance status MUST be established from its commit and release history, never from its own self-description. |
 
 ## Related
 

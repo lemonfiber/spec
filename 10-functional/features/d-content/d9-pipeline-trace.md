@@ -69,7 +69,7 @@ different cause and remedy.
 
 ### Household members see their own requests
 
-A simplified view via Jellyseerr showing their request's progress. They don't get
+A simplified view via Seerr showing their request's progress. They don't get
 the operator's diagnostic detail, but they aren't left in silence either.
 
 ### It becomes the natural landing point for a stuck item

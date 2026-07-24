@@ -24,7 +24,7 @@ $ lemonfiber seed
   ✓ root folders              /data/media/tv
   ✓ prowlarr app sync         sonarr
   ✓ bazarr                    sonarr, radarr
-  ✓ jellyseerr                jellyfin (identity), sonarr
+  ✓ seerr                jellyfin (identity), sonarr
   ✓ homepage keys written
 
   Seeded in 41s.

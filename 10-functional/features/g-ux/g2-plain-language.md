@@ -84,7 +84,7 @@ Per term or concept:
 | Message would be very long inline | Lead with one sentence; link to depth. |
 | Non-English operator | Out of scope for 1.0; write text that translates cleanly — avoid idiom and cultural reference. |
 | Explanation drifts from behaviour | Explanations live beside the behaviour they describe so they version together. |
-| Household-facing text | Jellyseerr and Jellyfin own their own wording; lemonfiber doesn't rewrite it. |
+| Household-facing text | Seerr and Jellyfin own their own wording; lemonfiber doesn't rewrite it. |
 
 ## Acceptance criteria
 

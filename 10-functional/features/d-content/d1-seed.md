@@ -11,7 +11,7 @@ between two web interfaces.
 
 A working stack requires roughly thirty connections: each \*arr needs both
 download clients registered, each needs root folders, Prowlarr must push indexers
-to every \*arr, Bazarr needs Sonarr and Radarr, Jellyseerr needs Jellyfin plus
+to every \*arr, Bazarr needs Sonarr and Radarr, Seerr needs Jellyfin plus
 Sonarr and Radarr, Homepage needs an API key from all of them. Every one is
 configured by hand, in a different UI, by copying a value from somewhere else.
 
@@ -36,8 +36,8 @@ them — the copying *is* the problem being solved.
 | Prowlarr | Bindery | Indexer endpoints (**manual — see below**) |
 | Root folders | Every \*arr | Per media type, under `/data/media` |
 | Sonarr, Radarr | Bazarr | Subtitle provider wiring |
-| Jellyfin | Jellyseerr | **Identity source** — one household account |
-| Sonarr, Radarr | Jellyseerr | Request fulfilment targets |
+| Jellyfin | Seerr | **Identity source** — one household account |
+| Sonarr, Radarr | Seerr | Request fulfilment targets |
 | Every service | Homepage | API keys for live widgets |
 | Recyclarr | Sonarr, Radarr | Quality profile synchronisation |
 
@@ -48,7 +48,7 @@ them — the copying *is* the problem being solved.
 
 ### Jellyfin as household identity is wired unconditionally
 
-Connecting Jellyseerr's authentication to Jellyfin is one API call and it's the
+Connecting Seerr's authentication to Jellyfin is one API call and it's the
 difference between a household member having one account or two. It is never
 optional.
 
@@ -101,7 +101,7 @@ Per connection:
 | Operator changed a wired value | Preserve it ([C9](../c-trust/c9-drift.md)); report as drift, don't revert. |
 | Download client already registered under a different name | Detect by connection details, not by label. Don't create duplicates. |
 | Seed run before any content exists | Fine. Wiring is independent of content. |
-| Jellyseerr already using local accounts | Report the conflict; switching identity sources affects existing users, so it needs consent. |
+| Seerr already using local accounts | Report the conflict; switching identity sources affects existing users, so it needs consent. |
 | Two \*arrs claiming the same root folder | Refuse and explain — this causes import conflicts later. |
 | Service upgraded with a changed API | Detect the version and report unsupported rather than writing something malformed. |
 | Seed interrupted partway | Safe. Each connection is independent; re-running completes the rest. |
@@ -117,7 +117,7 @@ Per connection:
 | **D1-R4** | Each connection MUST be read back and verified after writing. |
 | **D1-R5** | Unavailable prerequisites MUST produce `skipped`, not `failed`. |
 | **D1-R6** | Partial completion MUST report exactly which connections were not made and why, and MUST be resumable by re-running. |
-| **D1-R7** | Jellyseerr MUST be configured to authenticate against Jellyfin. |
+| **D1-R7** | Seerr MUST be configured to authenticate against Jellyfin. |
 | **D1-R8** | Existing connections MUST be detected by connection details rather than label, to avoid duplicates. |
 | **D1-R9** | Root folders MUST be created when within the data root, and refused with an explanation when outside it. |
 | **D1-R10** | Two \*arrs sharing a root folder MUST be refused with an explanation. |
