@@ -1,5 +1,5 @@
 # Reusable DCO sign-off check. Every commit needs a Signed-off-by matching its
-# author (GOV-R30). Called by each repo.
+# author (GOV-R30). Repos call it; the spec repo self-triggers on PRs.
 name: dco
 on:
   workflow_call:

@@ -1,4 +1,4 @@
-# Reusable gentle stale policy. Repos call it on a schedule.
+# Reusable gentle stale policy. Repos call it; the spec repo self-schedules.
 # Generous grace, easy reopen (OPS-R15).
 name: stale
 on:
