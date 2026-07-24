@@ -1,6 +1,6 @@
-# Reusable security checks: secret scanning and dependency vulnerabilities.
-# Called by each code repo: uses: lemonfiber/spec/.github/workflows/security.yml@main
-# One definition, no drift (Q-R53, Q-R56).
+# Reusable security checks: secret scanning (gitleaks CLI) and dependency
+# vulnerabilities (osv-scanner CLI). Both free for orgs — the gitleaks *action*
+# requires a paid org licence, the CLI does not. Q-R53, Q-R56.
 name: security
 
 on:
@@ -14,17 +14,24 @@ jobs:
   gitleaks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
-      - name: gitleaks
-        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+      - name: gitleaks (CLI)
+        run: |
+          ver="8.30.1"
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_${ver}_linux_x64.tar.gz" | tar xz gitleaks
+          ./gitleaks git --no-banner --redact --exit-code 1 .
 
   osv-scanner:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: OSV-Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
-        with:
-          scan-args: "-r --skip-git ./"
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: OSV-Scanner (CLI)
+        run: |
+          curl -sSfL "https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_linux_amd64" -o osv-scanner
+          chmod +x osv-scanner
+          # exit 128 = no packages found (nothing to scan) -> treat as pass
+          ./osv-scanner scan source --recursive . ; code=$?
+          if [ "$code" = "128" ]; then echo "no package sources; nothing to scan"; exit 0; fi
+          exit $code
