@@ -6,6 +6,7 @@ name: docs
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -14,7 +15,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -32,8 +33,12 @@ jobs:
         run: |
           rm -rf src && mkdir src
           cp README.md src/README.md
+          cp LICENSE.md src/LICENSE.md
+          # README header/footer reference image assets in .github/
+          mkdir -p src/.github
+          cp .github/*.svg .github/*.png src/.github/ 2>/dev/null || true
           for d in 00-overview 10-functional 20-architecture 30-repos \
-                   40-quality 50-governance 60-brand 90-appendix; do
+                   40-quality 50-governance 60-brand 70-operations 90-appendix; do
             [ -d "$d" ] && cp -r "$d" "src/$d"
           done
           python3 scripts/gen_summary.py src
@@ -54,6 +59,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
