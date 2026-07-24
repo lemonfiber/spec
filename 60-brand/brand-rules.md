@@ -49,6 +49,22 @@ Always lowercase, always one word, "fiber" always in a second colour except in
 one-colour reproduction. Set only in **Bricolage Grotesque ExtraBold (800)**, and
 since it ships outlined, never re-set in a text field.
 
+## Capitalisation — prose vs. identifier
+
+The lowercase wordmark is a *design* treatment. In writing, the name follows one
+rule:
+
+| Context | Form |
+|---------|------|
+| **Public-facing prose** — marketing copy, README intros, announcements, descriptions | **Lemonfiber** (capital L) |
+| **The command, binary, package, repository, crate, and any code identifier** | `lemonfiber` (lowercase) |
+| The logo wordmark | lowercase (design) |
+
+So: *"Lemonfiber sets itself up"* in a sentence, but *"run `lemonfiber up tv`"*
+for the command, `@lemonfiber/brand` for the package, `lemonfiber/cli` for the
+repo. When the name is set in `code font`, it is the identifier and stays
+lowercase; in ordinary prose it is capitalised.
+
 ## The don'ts, as requirements
 
 - No tagline, descriptor, or strapline added to the lockup.
@@ -83,6 +99,7 @@ This keeps brand under governance without pretending aesthetics are requirements
 | **DES-R6** | The wordmark MUST be set only in Bricolage Grotesque 800 and MUST NOT be re-typeset from its outlined form. |
 | **DES-R7** | No tagline or descriptor MAY be added to any lockup. |
 | **DES-R8** | A change altering what the brand rules permit MUST follow the normal change lifecycle as a `DES-R` change; a change within the rules MAY cite `GOV-R12`. |
+| **DES-R21** | In public-facing prose the name MUST be written **Lemonfiber** (capital L); the command, binary, package, repository, crate, code identifiers, and the logo wordmark MUST be lowercase `lemonfiber`. |
 
 ## Related
 

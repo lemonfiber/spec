@@ -7,7 +7,7 @@
 
 <h1 align="center">Specification</h1>
 
-The single source of truth for the lemonfiber project: what it is, why it's
+The single source of truth for the Lemonfiber project: what it is, why it's
 built this way, and the standards every repo in the org is held to.
 
 This repo contains **no code**. It spans the three implementation repos and
