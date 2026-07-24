@@ -18,6 +18,31 @@ enough to implement against.
 
 ---
 
+## M0.5 — Governance in force
+
+Before any implementation repo exists, the rules that bind it must. Standing this
+up after code has already landed means retrofitting citations onto history, which
+nobody does.
+
+| Deliverable | Notes |
+|-------------|-------|
+| `50-governance` accepted | Done — the rules themselves |
+| `spec-check` workflow | Citation extraction, merge-base resolution, ordering check |
+| Repo templates | Issue templates, PR template with the `Spec:` trailer, `SECURITY.md` |
+| `OVERRIDES.md` | Append-only override record, initially empty |
+| Spec-side CI | Duplicate-ID, withdrawn-ID reuse, link resolution, affected-repo declaration |
+| Branch protection | Checks required on all four repos |
+
+**Exit criteria:** a PR citing a non-existent identifier is closed with guidance;
+a PR citing a valid one passes; an override is recorded and opens a tracking
+issue.
+
+**Why before M1:** the very first commit to `media-stack` should cite a
+requirement. If governance arrives later, the initial history is exempt by
+accident, and "we'll backfill" never happens.
+
+---
+
 ## M1 — `media-stack` works standalone
 
 No Rust involved. The stack must be usable with bare `docker compose`.

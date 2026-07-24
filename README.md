@@ -34,7 +34,8 @@ freely.
 | **[10-functional](10-functional/)** | The 47-feature catalogue, numbered requirements, and nine user journeys | …you're deciding what to build or verifying it got built |
 | **[20-architecture](20-architecture/)** | System context, component model, platform matrix, inter-repo contracts | …you're implementing across the cli ↔ media-stack seam |
 | **[30-repos](30-repos/)** | Per-repo technical specs | …you're working inside one repo |
-| **[40-quality](40-quality/)** | Code standards, testing, CI/CD, security, definition of done | …you're writing or reviewing a PR |
+| **[40-quality](40-quality/)** | Code standards, comment policy, testing, CI/CD, security | …you're writing or reviewing a PR |
+| **[50-governance](50-governance/)** | How change enters the org. The spec is canonical — **read this before your first PR** | …you're contributing to any repo |
 | **[90-appendix](90-appendix/)** | References, licence rationale | …you're chasing a citation |
 
 ### Fast paths
@@ -44,6 +45,7 @@ freely.
 - **"I'm implementing lemonfiber"** → [cli spec](30-repos/cli.md) → [TUI spec](30-repos/cli-tui.md) → [code standards](40-quality/code-standards.md)
 - **"I'm implementing media-stack"** → [media-stack spec](30-repos/media-stack.md) → [stack manifest contract](20-architecture/contracts/stack-manifest.md)
 - **"Why is it built this way?"** → [decisions/](00-overview/decisions/)
+- **"I want to contribute"** → [contributing](50-governance/contributing.md) — every change must cite a spec identifier that already exists
 
 ---
 
@@ -65,7 +67,8 @@ freely.
 | 10-functional | Accepted | 47 features, 645 requirements, 9 journeys |
 | 20-architecture | **Not written** | System context, contracts, platform matrix |
 | 30-repos | **Not written** | Per-repo technical specs |
-| 40-quality | **Not written** | Standards, testing, CI/CD, security |
+| 40-quality | **Not written** | Standards, comment policy, testing, CI/CD, security |
+| 50-governance | Accepted | Canonical spec rule, change lifecycle, cross-repo CI, contributing |
 
 Links into unwritten sections are deliberate forward references — they record
 what those sections must cover.
@@ -80,11 +83,17 @@ review.
 
 ## Changing this spec
 
-1. Behavioural changes need a new ADR in `00-overview/decisions/`.
-2. Requirements get a **new number**; they are never renumbered, because tests
-   and commits reference them.
+**This repository is canonical.** No change lands in `cli`, `media-stack` or
+`homebrew-tap` unless it cites an identifier that already exists here — enforced
+mechanically. See [50-governance](50-governance/).
+
+1. Contested decisions need a new ADR in `00-overview/decisions/`.
+2. Requirements get a **new number**; they are never renumbered, because commits
+   and CI reference them. A withdrawn requirement is marked withdrawn in place.
 3. Superseding an ADR means writing a new one that links back — never editing
    the old one. The record of *why you changed your mind* is the valuable part.
+4. Requirement IDs belong in commit messages and PR bodies. **Never in code
+   comments** — see the [comment policy](40-quality/code-comments.md).
 
 ## Licence
 
