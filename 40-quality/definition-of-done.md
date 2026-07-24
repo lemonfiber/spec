@@ -32,6 +32,7 @@ A change is done when **all** of these hold:
 
 - [ ] The cited requirements are actually satisfied — not approximately
 - [ ] New behaviour has tests; the [must-cover paths](testing-strategy.md#what-must-be-covered) are covered
+- [ ] Coverage on applicable code is 100% — the gate is green, and any exclusion is annotated in the source, not a silent gap (`Q-R61`, `Q-R62`)
 - [ ] Every new user-facing error carries a remedy (`Q-R16` — it won't compile otherwise)
 - [ ] No `unwrap`/`expect`/`panic` in non-test code (`Q-R12`)
 

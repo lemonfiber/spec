@@ -102,7 +102,9 @@ does not mean the full acquisition path works, because CI has no Usenet account.
 
 ## What MUST be covered
 
-Not coverage percentage — **specific high-consequence paths**:
+A floor **and** a focus. Applicable code is covered 100% ([below](#coverage--100-where-it-applies)),
+and on top of that these specific high-consequence paths are called out — because
+a bare percentage guarantees lines ran, not that the *right* things were asserted:
 
 | Must be tested | Because |
 |----------------|---------|
@@ -114,10 +116,39 @@ Not coverage percentage — **specific high-consequence paths**:
 | Every error carries a remedy | Structural, but assert it (`G4`) |
 | Command construction per platform | The core correctness surface |
 
+## Coverage — 100% where it applies
+
+Coverage **is** a gate — with a scope. Every line of **applicable** code is
+covered, 100%, enforced in CI. "Applicable" is the logic the must-cover list lives
+in: `lemonfiber-core` and command construction — the code that can actually be
+wrong. What is excluded is excluded **explicitly, in the source**, so the number is
+honest rather than inflated to hit a target:
+
+| Excluded from the 100% (annotated in code) | Why |
+|--------------------------------------------|-----|
+| Generated code | Not ours to test |
+| Trivial derivations — `Display`, `Debug`, `From`, plain getters | No branch to be wrong |
+| Rendering — TUI draw code, web templates | Logic is tested; pixels are reviewed |
+| `main.rs` / CLI wiring with no branching | Glue, exercised by the binary itself |
+| Unreachable / exhaustiveness arms, platform stubs not on the runner | Cannot execute in the unit environment |
+| e2e-only paths (real Docker, real VPN) | Gated separately; not counted in unit coverage |
+
+Enforced by `cargo-llvm-cov` with a 100% threshold over the applicable set, and
+surfaced in SonarCloud. A drop below 100% on applicable code **fails the PR**. The
+must-cover list says *what* matters and that the right assertions exist; the gate
+makes sure none of it silently rots uncovered.
+
+The anti-pattern an earlier draft rightly warned about — coverage theater, tests
+that touch trivial getters just to move a number — is avoided not by dropping the
+gate but by **scoping** it: trivial code is excluded in the open, so 100% means
+100% of the code that can hold a bug. Every exclusion is a reviewed line of source,
+not a silent gap.
+
 ## What is deliberately not chased
 
-- **Coverage percentage as a target.** It rewards testing trivial getters and
-  ignores the hard paths. The must-cover list above is the real bar.
+- **A blanket percentage over *all* code.** Chasing a number across generated and
+  trivial code rewards theater; the gate is scoped to applicable code (above), and
+  the must-cover list is the qualitative bar on top of it.
 - **UI pixel/layout tests.** Brittle and low-value; the TUI's *logic* is tested,
   its rendering is reviewed.
 - **Testing the services themselves.** Sonarr's correctness is Sonarr's problem;
@@ -140,8 +171,10 @@ intent.
 | **Q-R25** | VPN state classification MUST be unit-tested against matching and mismatching egress. |
 | **Q-R26** | Secret redaction MUST be tested against known secret patterns. |
 | **Q-R27** | End-to-end tests requiring credentials MUST be gated, and their absence from PR CI stated. |
-| **Q-R28** | The must-cover paths MUST be tested; coverage percentage MUST NOT be a merge gate. |
+| **Q-R28** | The must-cover paths MUST be tested — a passing coverage gate does not substitute for asserting the right behaviour. |
 | **Q-R29** | Secret scanning MUST run over test code as well as production code. |
+| **Q-R61** | Applicable code MUST reach 100% coverage, enforced as a merge gate (`cargo-llvm-cov`) and reported to SonarCloud. |
+| **Q-R62** | The applicable set MUST be defined by explicit, reviewable in-code exclusions (generated, trivial derivations, rendering, CLI wiring, unreachable arms, e2e-only paths); coverage MUST NOT be inflated by testing trivial code to reach the number. |
 
 ## Related
 
