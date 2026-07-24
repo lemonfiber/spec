@@ -13,6 +13,11 @@ built this way, and the standards every repo in the org is held to.
 This repo contains **no code**. It spans the implementation repos and owns every
 cross-cutting decision between them.
 
+<p align="center">
+  <a href="https://github.com/lemonfiber/spec/actions/workflows/integrity.yml"><img alt="integrity" src="https://github.com/lemonfiber/spec/actions/workflows/integrity.yml/badge.svg"></a>
+  <a href="https://github.com/lemonfiber/spec/actions/workflows/docs.yml"><img alt="docs" src="https://github.com/lemonfiber/spec/actions/workflows/docs.yml/badge.svg"></a>
+</p>
+
 ---
 
 ## The org at a glance
