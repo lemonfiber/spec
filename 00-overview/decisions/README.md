@@ -27,6 +27,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0006](0006-single-data-mount.md) | One `/data` mount, subdirectories beneath | Accepted |
 | [0007](0007-dual-mode-jellyfin.md) | Jellyfin supports both Docker and native | Accepted |
 | [0008](0008-hybrid-docker-access.md) | Compose CLI for writes, Docker API for reads | Accepted |
+| [0009](0009-action-pinning.md) | First-party workflows on @main, third-party actions SHA-pinned | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

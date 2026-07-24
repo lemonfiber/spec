@@ -1,13 +1,11 @@
-# Reusable DCO sign-off check. Every commit needs a Signed-off-by matching its
-# author (GOV-R30). Repos call it; the spec repo self-triggers on PRs.
-name: dco
+name: commitlint
 on:
   workflow_call:
   pull_request:
 permissions:
   contents: read
 jobs:
-  dco:
+  commitlint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -21,14 +19,12 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-      - name: Check sign-off
+      - name: Lint commit subjects
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
              && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
-            python3 .spec-canonical/scripts/dco_check.py "$BASE_SHA" "$HEAD_SHA"
-          else
-            echo "no PR range; skipping"
-          fi
+            python3 .spec-canonical/scripts/commit_lint.py "$BASE_SHA" "$HEAD_SHA"
+          else echo "no PR range; skipping"; fi

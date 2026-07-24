@@ -73,6 +73,8 @@ is visible without a separate tracker.
 | **Renovate** | Groups dependency updates, adds the `Spec: GOV-R12` trailer | preset in `.github` |
 | **Stale** | Marks inactive issues/PRs stale, then closes, with a grace period | reusable, in `spec` |
 | **DCO check** | Verifies the sign-off on every commit | reusable, in `spec` |
+| **Commit-lint** | Enforces conventional-commit subjects for a clean changelog | reusable, in `spec` |
+| **Auto-labeler** | Labels PRs by changed path | reusable, in `spec` |
 
 The stale policy is deliberately gentle — a long grace period and an easy reopen —
 because an aggressive stale bot on a young project closes real issues and reads as
@@ -94,6 +96,8 @@ implementation repo. It becomes a requirement first, then work.
 | **OPS-R13** | `spec-change` and `needs-spec` labels MUST exist and MUST reflect the canonical-spec workflow. |
 | **OPS-R14** | Milestones MUST mirror the roadmap. |
 | **OPS-R15** | A stale policy MUST have a generous grace period and an easy reopen path. |
+| **OPS-R21** | PR commit subjects MUST follow the conventional-commit format, enforced by a commit-lint check. |
+| **OPS-R22** | PRs MUST be auto-labelled by changed path. |
 
 ## Related
 
