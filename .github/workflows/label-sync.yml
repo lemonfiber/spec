@@ -1,0 +1,34 @@
+# Reusable label sync. Upserts the canonical label set (70-operations/labels.yml
+# in the spec repo) into the calling repo, so every repo carries the same labels
+# without hand-editing. Additive: it never deletes labels it doesn't know about.
+# OPS-R12.
+name: label-sync
+
+on:
+  workflow_call:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upsert labels from the spec registry
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          curl -sfL https://raw.githubusercontent.com/lemonfiber/spec/main/70-operations/labels.yml -o labels.yml
+          python3 -m pip install --quiet pyyaml
+          python3 - <<'PY'
+          import subprocess, yaml
+          for l in yaml.safe_load(open("labels.yml")):
+              subprocess.run(
+                  ["gh", "label", "create", l["name"],
+                   "--color", str(l["color"]),
+                   "--description", l.get("description", ""),
+                   "--force"],
+                  check=False)
+          PY

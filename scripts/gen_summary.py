@@ -12,7 +12,7 @@ import pathlib, re, sys
 
 SECTION_ORDER = ["00-overview", "10-functional", "20-architecture",
                  "30-repos", "40-quality", "50-governance", "60-brand",
-                 "90-appendix"]
+                 "70-operations", "90-appendix"]
 
 
 def title_of(p: pathlib.Path) -> str:

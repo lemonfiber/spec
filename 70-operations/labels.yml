@@ -1,0 +1,57 @@
+# Canonical label set — the single source, applied to every repo by the
+# label-sync reusable workflow (OPS-R12). Never create labels by hand; add them
+# here and the sync upserts them everywhere. See project-workflow.md.
+- name: bug
+  color: d73a4a
+  description: Behaviour contradicts the spec
+- name: enhancement
+  color: a2eeef
+  description: New or improved behaviour
+- name: documentation
+  color: 0075ca
+  description: Docs only
+- name: question
+  color: d876e3
+  description: A question, not yet actionable
+- name: spec-change
+  color: 5319e7
+  description: Requires or is a spec change first
+- name: needs-spec
+  color: fbca04
+  description: Accepted, but a spec change must land before implementation
+- name: needs-triage
+  color: e99695
+  description: A new issue awaiting maintainer triage
+- name: awaiting-maintainer
+  color: d93f0b
+  description: Green PR with no review — a maintainer needs to act
+- name: dependencies
+  color: 0366d6
+  description: Dependency update (Renovate)
+- name: security
+  color: b60205
+  description: Security-relevant
+- name: breaking-change
+  color: ee0701
+  description: Changes a public contract; needs a major bump
+- name: good first issue
+  color: 7057ff
+  description: Small, well-scoped, newcomer-friendly
+- name: help wanted
+  color: 008672
+  description: Maintainers would welcome a contributor
+- name: blocked
+  color: "000000"
+  description: Waiting on something else
+- name: wontfix
+  color: ffffff
+  description: Considered and declined
+- name: duplicate
+  color: cfd3d7
+  description: Already tracked elsewhere
+- name: brand
+  color: c5def5
+  description: Design system
+- name: governance
+  color: bfd4f2
+  description: The rules of change
