@@ -33,7 +33,7 @@ project should be operable from one page.
 
 | # | Step | Repos | Needed for |
 |---|------|-------|-----------|
-| 6 | Branch protection: PR required, signatures required, **required checks** | all | Governance is enforced, not advisory |
+| 6 | Branch protection: PR + signed commits + **strict** required checks (incl. SonarCloud), linear history, conversation-resolution; `enforce_admins` off | all | Governance is enforced, not advisory; `main` stays green and unstuck |
 | 7 | Add `SONAR_TOKEN` secret | `lemonfiber` | Sonar scan |
 | 8 | Add a token that can push to `homebrew-tap` | `lemonfiber` | Release regenerates the formula |
 | 9 | Add npm publish auth (`NPM_TOKEN`) | `brand` | Publishing `@lemonfiber/brand` |
