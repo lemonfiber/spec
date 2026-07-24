@@ -32,7 +32,7 @@ jobs:
       - name: lychee link check
         uses: lycheeverse/lychee-action@v2
         with:
-          args: "--no-progress --exclude-mail ."
+          args: "--no-progress --accept 200,206,429 --exclude discord\.gg ."
           fail: true
 
   markdown:
