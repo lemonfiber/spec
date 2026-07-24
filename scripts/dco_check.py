@@ -5,6 +5,9 @@ Implements GOV-R29/GOV-R30. Usage: dco_check.py <base_sha> <head_sha>
 import subprocess, sys, re
 
 base, head = sys.argv[1], sys.argv[2]
+_REF = re.compile(r"\A[0-9A-Za-z._/-]{1,255}\Z")
+if not (_REF.match(base) and _REF.match(head)):
+    sys.exit("dco_check: base and head must be valid git refs")
 fmt = "%H%x00%an%x00%ae%x00%b%x01"
 out = subprocess.run(["git", "log", f"--format={fmt}", f"{base}..{head}"],
                      capture_output=True, text=True, check=True).stdout

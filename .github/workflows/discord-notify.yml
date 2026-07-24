@@ -56,4 +56,4 @@ jobs:
                url: (if $u == "" then null else $u end),
                color: $col
              }]}' \
-          | curl -sf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK"
+          | curl -sf --proto '=https' -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK"
