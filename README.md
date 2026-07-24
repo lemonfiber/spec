@@ -74,7 +74,7 @@ trailers and PR bodies — **never in code comments**
 | 00-overview | Accepted | Vision, glossary, roadmap, 8 ADRs |
 | 10-functional | Accepted | 47 features, 645 requirements, 9 journeys |
 | 20-architecture | Accepted | System context, component model, data flow, platform matrix, 2 contracts |
-| 30-repos | **Not written** | Per-repo technical specs |
+| 30-repos | Accepted | cli (+ TUI + reference), media-stack, homebrew-tap |
 | 40-quality | **Partial** | Comment policy accepted; standards, testing, CI/CD, security not written |
 | 50-governance | Accepted | Canonical spec rule, change lifecycle, cross-repo CI, contributing |
 
