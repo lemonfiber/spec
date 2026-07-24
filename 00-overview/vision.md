@@ -70,29 +70,34 @@ serving the newcomer never costs the scripter.
 These are load-bearing. When a decision is contested, resolve it against this list in order.
 
 ### P1 — The filesystem contract is inviolable
+
 Downloads and media live under **one** mount point so hardlinks and atomic moves
 work. Any design that risks breaking this is rejected regardless of other merits.
 Violating it turns every import into a full copy: slow, disk-doubling, and it
 breaks seeding by changing the inode. See [ADR-0006](decisions/0006-single-data-mount.md).
 
 ### P2 — Partial stacks are first-class, not degraded
+
 `lemonfiber up search` is a supported mode with its own docs and tests, not "the full
 stack minus things." No service may hard-depend on a service outside its own
 profile. See [ADR-0002](decisions/0002-profiles-and-forms.md).
 
 ### P3 — The tool proves things rather than assuming them
+
 Where a claim is checkable, check it. Hardlink support: create one and stat it.
 VPN isolation: compare public IPs from inside both containers. Port availability:
 bind it. Assumptions stated in a README are documentation; assertions in
 `doctor` are engineering.
 
 ### P4 — Errors carry remedies
+
 Every user-facing failure names the fix. `Error: hardlinks unsupported` is a
 dead end. `DATA_ROOT is on an exFAT volume, which cannot hardlink — imports will
 copy instead. Move it to an APFS volume, or accept slower imports (Settings →
 Media Management → Copy).` is a tool.
 
 ### P5 — Secure by default, not by configuration
+
 The default posture must be the safe one, because defaults are what people run.
 
 Binding is **two-tier**: administrative surfaces — the \*arrs, download clients,
@@ -107,6 +112,7 @@ Gluetun gets `NET_ADMIN`. Image tags are pinned.
 See [C6](../10-functional/features/c-trust/c6-web-security.md).
 
 ### P6 — Reproducible over precious
+
 `rm -rf` the config directory and rebuild in two minutes via `lemonfiber seed`. State
 that can be regenerated doesn't need to be feared. This is what makes upgrades
 and experimentation safe.

@@ -61,6 +61,7 @@ comparing results. Via bollard this is a clean streamed API call.
 ## Consequences
 
 ### Positive
+
 - Dashboard refreshes are cheap: one API connection, streamed, no process churn.
 - Logs and stats arrive as async streams that map naturally onto tokio tasks
   feeding the render loop.
@@ -70,6 +71,7 @@ comparing results. Via bollard this is a clean streamed API call.
   is testable without a Docker daemon.
 
 ### Negative
+
 - Two Docker access mechanisms to understand and keep working. Real complexity;
   justified by the performance difference on the hot path.
 - `bollard` must negotiate an API version compatible with the user's daemon.
@@ -78,6 +80,7 @@ comparing results. Via bollard this is a clean streamed API call.
   `bollard` handles this, but it's an extra platform-specific path to test.
 
 ### Neutral
+
 - If `bollard` cannot connect but the CLI works, lemonfiber degrades to a
   reduced-functionality mode: control still works, live telemetry is disabled
   with an explanatory banner rather than a crash.

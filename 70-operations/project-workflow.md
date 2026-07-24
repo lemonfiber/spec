@@ -43,6 +43,8 @@ drift). Colour-coded by kind.
 | `question` | type | A question, not yet actionable |
 | `spec-change` | type | Requires or is a spec change first |
 | `needs-spec` | triage | Accepted, but a spec change must land before implementation |
+| `needs-triage` | triage | A new issue awaiting maintainer triage |
+| `awaiting-maintainer` | triage | Green PR with no review — a maintainer needs to act |
 | `dependencies` | type | Dependency update (Renovate) |
 | `security` | type | Security-relevant |
 | `breaking-change` | flag | Changes a public contract; needs a major bump |
@@ -75,6 +77,12 @@ is visible without a separate tracker.
 | **DCO check** | Verifies the sign-off on every commit | reusable, in `spec` |
 | **Commit-lint** | Enforces conventional-commit subjects for a clean changelog | reusable, in `spec` |
 | **Auto-labeler** | Labels PRs by changed path | reusable, in `spec` |
+| **Label sync** | Upserts the canonical label set into every repo | reusable, in `spec` |
+| **Triage** | Labels new issues `needs-triage` and assigns the covering maintainer | per repo → reusable |
+| **Discord notify** | Release, build-log, and maintainer-queue posts | reusable, in `spec` |
+
+Release announcements, public build logging, and the maintainer action queue are
+specified in [notifications.md](notifications.md).
 
 The stale policy is deliberately gentle — a long grace period and an easy reopen —
 because an aggressive stale bot on a young project closes real issues and reads as

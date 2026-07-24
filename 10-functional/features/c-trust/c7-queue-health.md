@@ -33,7 +33,7 @@ Only something watching both sees it.
 | Category | Signal | Typical cause |
 |----------|--------|---------------|
 | **Stalled download** | No progress beyond a threshold | Dead torrent, no seeders, exhausted Usenet retention |
-| **Completed, not imported** | Finished but absent from the library | Permissions, unparseable name, archive not extracted |
+| **Completed, not imported** | Finished but absent from the library | Permissions, unparsable name, archive not extracted |
 | **Repeated import failure** | Same item failing repeatedly | Structural — will not resolve itself |
 | **Waiting indefinitely** | Monitored, never grabbed | No releases match, or indexers are returning nothing |
 | **Orphaned download** | Present on disk, unknown to any \*arr | Manual addition, or the \*arr lost track |

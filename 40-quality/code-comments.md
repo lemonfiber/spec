@@ -236,7 +236,7 @@ every rule passes, **and passes for the wrong reason**.
 
 A green comment gate over an empty tree proves nothing whatsoever, and goes on
 proving nothing right up until the first narratively-commented file merges, at
-which point it is too late to discover the rule was mis-tuned.
+which point it is too late to discover the rule was mistuned.
 
 The gate therefore runs **twice**:
 

@@ -27,17 +27,18 @@ project should be operable from one page.
 | 2 | Register the SSH **signing** key | GitHub → Settings → SSH keys → *signing* | Commit signatures verify |
 | 3 | Install the **Renovate** GitHub App on the org | github.com/apps/renovate | Automated dependency PRs |
 | 4 | Create the org's **SonarQube Cloud** org, linked to GitHub | sonarcloud.io | Code quality + coverage |
+| 5 | Add org secrets `DISCORD_ANNOUNCE_WEBHOOK`, `DISCORD_BUILD_WEBHOOK`, `DISCORD_MAINTAINERS_WEBHOOK` and org variable `DISCORD_RELEASE_ROLE_ID` (visibility: all) | GitHub → Org → Secrets/Variables → Actions | Release, build-log, and maintainer [notifications](notifications.md) |
 
 ### Per-repo (once each)
 
 | # | Step | Repos | Needed for |
 |---|------|-------|-----------|
-| 5 | Branch protection: PR required, signatures required, **required checks** | all | Governance is enforced, not advisory |
-| 6 | Add `SONAR_TOKEN` secret | `lemonfiber` | Sonar scan |
-| 7 | Add a token that can push to `homebrew-tap` | `lemonfiber` | Release regenerates the formula |
-| 8 | Add npm publish auth (`NPM_TOKEN`) | `brand` | Publishing `@lemonfiber/brand` |
-| 9 | Enable **GitHub Pages** (source: Actions) | `spec` | The docs site |
-| 10 | Enable **private vulnerability reporting** | all | Security disclosure path |
+| 6 | Branch protection: PR required, signatures required, **required checks** | all | Governance is enforced, not advisory |
+| 7 | Add `SONAR_TOKEN` secret | `lemonfiber` | Sonar scan |
+| 8 | Add a token that can push to `homebrew-tap` | `lemonfiber` | Release regenerates the formula |
+| 9 | Add npm publish auth (`NPM_TOKEN`) | `brand` | Publishing `@lemonfiber/brand` |
+| 10 | Enable **GitHub Pages** (source: Actions) | `spec` | The docs site |
+| 11 | Enable **private vulnerability reporting** | all | Security disclosure path |
 
 ### The required-checks step, specifically
 
@@ -76,6 +77,6 @@ lives only in someone's memory is a setup step that gets lost.
 
 ## Related
 
-- [releasing.md](releasing.md) — the release secrets (7, 8) in context
+- [releasing.md](releasing.md) — the release secrets (8, 9) in context
 - [40-quality/tooling.md](../40-quality/tooling.md) — the tools these enable
 - [50-governance/cross-repo-ci.md](../50-governance/cross-repo-ci.md) — what the required checks enforce

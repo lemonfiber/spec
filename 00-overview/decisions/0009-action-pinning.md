@@ -50,12 +50,14 @@ current SHA; Renovate advances them too.
 ## Consequences
 
 ### Positive
+
 - Third-party actions are immutable and auditable; OpenSSF Scorecard's
   pinned-dependencies check passes.
 - Our shared CI still has one definition, changed in one place.
 - Renovate keeps the pins at latest, so "pinned" doesn't mean "stale".
 
 ### Negative
+
 - Two mental models for `uses:` refs. Mitigated: the rule is simple (ours =
   `@main`, theirs = SHA) and this ADR records why.
 - A malicious change to *our own* `@main` workflow would propagate immediately.

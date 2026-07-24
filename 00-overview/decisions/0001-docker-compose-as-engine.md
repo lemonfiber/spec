@@ -39,6 +39,7 @@ read, fork, and run **without lemonfiber at all**.
 ## Consequences
 
 ### Positive
+
 - Profiles come free, and they're exactly the primitive [P2](../vision.md#p2--partial-stacks-are-first-class-not-degraded) needs.
 - `media-stack` is independently useful. Someone can clone it and run
   `docker compose --profile tv up` with no Rust toolchain involved. This is a
@@ -49,6 +50,7 @@ read, fork, and run **without lemonfiber at all**.
   paste it into a shell.
 
 ### Negative
+
 - Requires the Compose v2 CLI plugin present on the host. Bundled with Docker
   Desktop, but a separate install on some Linux distros — so a preflight check
   is mandatory (`FR-011`).
@@ -59,6 +61,7 @@ read, fork, and run **without lemonfiber at all**.
   minimum version at startup.
 
 ### Neutral
+
 - lemonfiber becomes, in part, a command builder. That logic is pure and highly
   testable — see the golden-file tests in
   [testing strategy](../../40-quality/testing-strategy.md).

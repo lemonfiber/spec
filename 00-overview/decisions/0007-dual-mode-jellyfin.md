@@ -48,6 +48,7 @@ Native mode is a **subtraction, not a fork**: it drops one service from the
 active profile set. Everything else is byte-identical. There is one compose file.
 
 lemonfiber's responsibilities:
+
 - Detect the platform and **only offer native mode where it buys something**
   (macOS/Windows). On Linux it recommends Docker and explains why.
 - On native mode, add `extra_hosts: ["host.docker.internal:host-gateway"]` for
@@ -68,12 +69,14 @@ lemonfiber's responsibilities:
 ## Consequences
 
 ### Positive
+
 - Each platform gets its best option without forking the design.
 - One compose file, one config tree, one mental model.
 - Switching modes later is an `.env` edit plus a library re-point, not a rebuild.
 - Linux users stop being told about a limitation that doesn't apply to them.
 
 ### Negative
+
 - Native mode puts Jellyfin outside `lemonfiber up/down` — it can start, stop, and
   check health, but lifecycle belongs to the OS service manager. The dashboard
   must render this distinctly rather than pretending it's a container.
@@ -83,6 +86,7 @@ lemonfiber's responsibilities:
 - Doubles the Jellyfin-related test matrix.
 
 ### Neutral
+
 - Seerr, Homepage and Bazarr are unaffected — they consume `JELLYFIN_URL`
   and don't care what's behind it.
 

@@ -46,6 +46,7 @@ apply to the work we're actually doing.
 ## Consequences
 
 ### Positive
+
 - Single static binary per platform; end users install nothing else.
   `cargo-dist` generates macOS (arm64 + x86_64), Linux (gnu + musl), and Windows
   artifacts, plus shell and PowerShell installers and the Homebrew tap.
@@ -57,6 +58,7 @@ apply to the work we're actually doing.
 - No GC pauses in the render loop.
 
 ### Negative
+
 - Slower compile times than Go; CI matrix builds are the long pole.
 - `tokio` plus borrow-checker friction is real, particularly around sharing
   state between the render loop and background pollers. Mitigated by the
@@ -66,6 +68,7 @@ apply to the work we're actually doing.
   mature, and our usage is narrow (list, inspect, stats, logs, exec).
 
 ### Neutral
+
 - Requires `rustup` for contributors. Standard for the ecosystem, and irrelevant
   to end users.
 

@@ -44,6 +44,7 @@ see [ADR-0005](0005-embedded-stack-assets.md).
 ## Consequences
 
 ### Positive
+
 - `media-stack` can be cloned and run with plain `docker compose` by someone who
   has never heard of lemonfiber. This is a real hedge: if lemonfiber stagnates, the stack
   still works.
@@ -54,6 +55,7 @@ see [ADR-0005](0005-embedded-stack-assets.md).
 - The spec is citable and versioned independently of any implementation.
 
 ### Negative
+
 - **Version skew is now possible** — the central risk this split introduces. A
   change spanning lemonfiber and media-stack requires two PRs, and a user could pair
   incompatible versions. Mitigated by the `schema_version` contract in
@@ -64,6 +66,7 @@ see [ADR-0005](0005-embedded-stack-assets.md).
 - Four sets of CI config, licence files, and issue templates to keep aligned.
 
 ### Neutral
+
 - The submodule pin makes "which stack version does lemonfiber v0.4 ship?" precisely
   answerable — arguably better than a monorepo, where the answer is implicit.
 

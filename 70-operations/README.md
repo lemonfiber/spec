@@ -19,6 +19,7 @@ change is decided and gated* (the canonical-spec rule). Operations is the
 | [releasing.md](releasing.md) | The release process — tag → build → publish → formula → changelog → docs |
 | [setup-registry.md](setup-registry.md) | Every one-time manual step to operate the org — secrets, apps, protections |
 | [project-workflow.md](project-workflow.md) | Branching model, the canonical label set, milestones, issue automation |
+| [notifications.md](notifications.md) | Discord release/build/maintainer automation and the maintainer action queue |
 | [maintainers.md](maintainers.md) | Roles, decision-making, and the single maintainers registry that CODEOWNERS derives from |
 
 ## The `OPS-R` namespace

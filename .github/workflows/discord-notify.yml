@@ -1,0 +1,59 @@
+# Reusable Discord notifier. One definition, one audit surface. Every dynamic
+# value is passed through env into jq --arg (never a shell interpolation), and the
+# job no-ops when the webhook secret is absent. OPS-R23, OPS-R24, OPS-R27, OPS-R28.
+name: discord-notify
+
+on:
+  workflow_call:
+    inputs:
+      content:
+        description: Plain text above the embed — used for role pings.
+        type: string
+        default: ""
+      title:
+        type: string
+        required: true
+      body:
+        type: string
+        default: ""
+      url:
+        type: string
+        default: ""
+      color:
+        description: Decimal embed colour.
+        type: string
+        default: "15844367"
+    secrets:
+      webhook:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post to Discord
+        env:
+          WEBHOOK: ${{ secrets.webhook }}
+          CONTENT: ${{ inputs.content }}
+          TITLE: ${{ inputs.title }}
+          BODY: ${{ inputs.body }}
+          URL: ${{ inputs.url }}
+          COLOR: ${{ inputs.color }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "webhook not configured; skipping"
+            exit 0
+          fi
+          jq -n \
+            --arg c "$CONTENT" --arg t "$TITLE" --arg b "$BODY" \
+            --arg u "$URL" --argjson col "${COLOR:-0}" \
+            '{content: $c, embeds: [{
+               title: $t,
+               description: $b,
+               url: (if $u == "" then null else $u end),
+               color: $col
+             }]}' \
+          | curl -sf -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK"
