@@ -16,9 +16,9 @@ clone never fails for lacking one.
 
 | Channel | Audience | Posts | Secret |
 |---------|----------|-------|--------|
-| Announcements | public | A published release, with notes and install line | `DISCORD_ANNOUNCE_WEBHOOK` |
-| Build log | public | Every workflow run, on completion (pass/fail) | `DISCORD_BUILD_WEBHOOK` |
-| Maintainers | maintainers (private) | Items needing a decision: triage, review, main-branch breakage | `DISCORD_MAINTAINERS_WEBHOOK` |
+| `#releases` | public | A published release, with notes and install line | `DISCORD_ANNOUNCE_WEBHOOK` |
+| `#build-log` | public | Every workflow run, on completion (pass/fail) | `DISCORD_BUILD_WEBHOOK` |
+| `#awaiting-maintainer-action` | maintainers (private) | Items needing a decision: triage, review, main-branch breakage | `DISCORD_MAINTAINERS_WEBHOOK` |
 
 Release pings an **opt-in role** rather than `@everyone`: if the org variable
 `DISCORD_RELEASE_ROLE_ID` is set, the announcement mentions it; otherwise it posts
