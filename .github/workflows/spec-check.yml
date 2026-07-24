@@ -1,0 +1,57 @@
+# Reusable governance gate. Every implementation repo calls this:
+#
+#   jobs:
+#     spec-check:
+#       uses: lemonfiber/spec/.github/workflows/spec-check.yml@main
+#
+# Defined once here so the rule has exactly one implementation and cannot drift
+# between repos. See spec 50-governance/cross-repo-ci.md.
+name: spec-check
+
+on:
+  workflow_call:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  spec-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the calling repo (PR)
+        uses: actions/checkout@v4
+
+      - name: Check out the canonical spec
+        uses: actions/checkout@v4
+        with:
+          repository: lemonfiber/spec
+          ref: main
+          path: .spec-canonical
+
+      - name: Gather PR body and commit messages
+        # All untrusted event data is passed via env, never interpolated into
+        # the shell — see the workflow-injection guidance. base/head are SHAs.
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          {
+            printf '%s\n' "$PR_BODY"
+            if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
+               && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+              git log --format='%B' "${BASE_SHA}..${HEAD_SHA}" 2>/dev/null || true
+            fi
+          } > .pr-text.txt
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify citation
+        run: |
+          python3 .spec-canonical/scripts/spec_check.py \
+            --spec-dir .spec-canonical \
+            --text-file .pr-text.txt

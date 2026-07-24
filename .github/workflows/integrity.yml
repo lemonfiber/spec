@@ -1,0 +1,22 @@
+# Spec-side integrity: identifiers resolve, none duplicated, links unbroken.
+# The spec is subject to its own rules (GOV-R11). See 50-governance/.
+name: integrity
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check spec integrity
+        run: python3 scripts/integrity.py
