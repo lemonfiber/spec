@@ -54,10 +54,17 @@ freely.
 | Convention | Meaning |
 |------------|---------|
 | **MUST / SHOULD / MAY** | [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords. `MUST` is a hard requirement; violating it is a bug. |
-| `<feature>-R<n>` | A numbered requirement, e.g. `A2-R4`. Requirements live **inside** their feature — there is no separate requirements tree. IDs are permanent and never reused. |
+| `<feature>-R<n>` | A product requirement, e.g. `A2-R4`. Requirements live **inside** their feature — there is no separate requirements tree. |
+| `GOV-R<n>` | A [governance](50-governance/) rule — how change enters the org. |
+| `Q-R<n>` | A [quality](40-quality/) rule — how code is written. |
 | `J<n>` | A [user journey](10-functional/journeys/). Journeys are the acceptance tests; each names the features it exercises. |
 | `ADR-####` | Architecture Decision Record. Immutable once accepted; superseded rather than edited. |
 | **Status: Draft / Accepted / Superseded** | Every doc carries one at the top. |
+
+All identifiers are **permanent and never reused**. A withdrawn one is marked
+withdrawn in place, because commits and CI reference them. They belong in commit
+trailers and PR bodies — **never in code comments**
+([GOV-R6](50-governance/canonical-spec.md#the-gov-r-namespace)).
 
 ## Spec status
 
@@ -67,7 +74,7 @@ freely.
 | 10-functional | Accepted | 47 features, 645 requirements, 9 journeys |
 | 20-architecture | **Not written** | System context, contracts, platform matrix |
 | 30-repos | **Not written** | Per-repo technical specs |
-| 40-quality | **Not written** | Standards, comment policy, testing, CI/CD, security |
+| 40-quality | **Partial** | Comment policy accepted; standards, testing, CI/CD, security not written |
 | 50-governance | Accepted | Canonical spec rule, change lifecycle, cross-repo CI, contributing |
 
 Links into unwritten sections are deliberate forward references — they record
