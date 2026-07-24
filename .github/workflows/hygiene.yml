@@ -1,0 +1,45 @@
+# Reusable hygiene checks: workflow lint, spelling, links, markdown.
+# Called by each repo:  uses: lemonfiber/spec/.github/workflows/hygiene.yml@main
+# One definition, no drift (Q-R56).
+name: hygiene
+
+on:
+  workflow_call:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: actionlint
+        uses: raven-actions/actionlint@v2
+
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: typos
+        uses: crate-ci/typos@master
+
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: lychee link check
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: "--no-progress --exclude-mail ."
+          fail: true
+
+  markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: "**/*.md"

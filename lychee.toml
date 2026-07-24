@@ -1,0 +1,7 @@
+exclude = [
+  "^https://discord\\.gg/",
+  "\\.docs/",
+]
+exclude_loopback = true
+max_retries = 2
+accept = ["200", "206", "429"]

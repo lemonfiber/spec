@@ -1,1 +1,7 @@
+# mdBook
+/book/
+/src/
+# OS
 .DS_Store
+# scratch
+*.tmp

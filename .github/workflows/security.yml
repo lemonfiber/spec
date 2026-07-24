@@ -1,0 +1,30 @@
+# Reusable security checks: secret scanning and dependency vulnerabilities.
+# Called by each code repo: uses: lemonfiber/spec/.github/workflows/security.yml@main
+# One definition, no drift (Q-R53, Q-R56).
+name: security
+
+on:
+  workflow_call:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+
+  osv-scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@v2.2.2
+        with:
+          scan-args: "-r --skip-git ./"
