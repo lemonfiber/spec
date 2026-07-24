@@ -4,6 +4,9 @@ generated changelog stays clean. Usage: commit_lint.py <base_sha> <head_sha>
 """
 import subprocess, sys, re
 base, head = sys.argv[1], sys.argv[2]
+_REF = re.compile(r"\A[0-9A-Za-z._/-]{1,255}\Z")
+if not (_REF.match(base) and _REF.match(head)):
+    sys.exit("commit_lint: base and head must be valid git refs")
 TYPES = "feat|fix|docs|refactor|test|chore|ci|perf|build|style|revert"
 subject_re = re.compile(rf"^(?:{TYPES})(?:\([a-z0-9.\-]+\))?!?: .+")
 out = subprocess.run(["git", "log", "--format=%H%x00%s", f"{base}..{head}"],

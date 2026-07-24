@@ -20,8 +20,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          curl -sfL https://raw.githubusercontent.com/lemonfiber/spec/main/70-operations/labels.yml -o labels.yml
-          python3 -m pip install --quiet pyyaml
+          curl -sfL --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/lemonfiber/spec/main/70-operations/labels.yml -o labels.yml
+          python3 -m pip install --quiet "pyyaml==6.0.2"
           python3 - <<'PY'
           import subprocess, yaml
           for l in yaml.safe_load(open("labels.yml")):

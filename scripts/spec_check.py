@@ -77,7 +77,12 @@ def main() -> int:
         print(f"::error::spec dir not found: {spec_dir}")
         return 2
 
-    text = pathlib.Path(a.text_file).read_text(encoding="utf-8", errors="ignore")
+    cwd = pathlib.Path.cwd().resolve()
+    text_path = pathlib.Path(a.text_file).resolve()
+    if not text_path.is_relative_to(cwd):
+        print("::error::text-file must be within the working directory")
+        return 2
+    text = text_path.read_text(encoding="utf-8", errors="ignore")
     defined = defined_ids(spec_dir)
     if not defined:
         print("::error::no identifiers found in spec checkout — cannot verify")
