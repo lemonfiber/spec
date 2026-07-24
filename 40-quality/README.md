@@ -9,14 +9,16 @@ covers *how* change enters, this covers *whether it's good enough*.
 
 ## Contents
 
-| Doc | Covers | Status |
-|-----|--------|--------|
-| [code-comments.md](code-comments.md) | Comment policy — mechanical and judgment rules, lexer-based enforcement | **Accepted** |
-| code-standards.md | MSRV, lint policy, error handling, `unsafe` prohibition, module boundaries | Not written |
-| testing-strategy.md | Test pyramid, golden files, fixture discipline, what must be covered | Not written |
-| ci-cd.md | Pipeline stages, three-platform matrix, `cargo-dist` release engineering | Not written |
-| security.md | Threat model, secret handling, supply chain, dependency policy | Not written |
-| definition-of-done.md | What "finished" means before a PR opens | Not written |
+| Doc | Covers |
+|-----|--------|
+| [code-comments.md](code-comments.md) | Comment policy — mechanical and judgment rules, lexer-based enforcement |
+| [code-standards.md](code-standards.md) | MSRV, strict lint policy, typed errors carrying remedies, module boundaries |
+| [testing-strategy.md](testing-strategy.md) | The pyramid, golden files, fixture discipline, the must-cover paths |
+| [ci-cd.md](ci-cd.md) | Pipeline stages, `cargo-deny`, three-platform release via `cargo-dist` |
+| [security.md](security.md) | STRIDE threat model, secret handling, supply chain, secure defaults |
+| [definition-of-done.md](definition-of-done.md) | The single checklist a change is held to before its PR opens |
+
+All Accepted.
 
 ## The `Q-R` namespace
 
