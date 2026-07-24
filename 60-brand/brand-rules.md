@@ -3,7 +3,7 @@
 **Status:** Accepted
 
 The binding constraints — the ones a consumer must not violate. The `brand` repo's
-[`docs/logo-usage.md`](../30-repos/brand.md) carries the full usage guidance; this
+[`.docs/logo-usage.md`](../30-repos/brand.md) carries the full usage guidance; this
 page carries only what is a **requirement**.
 
 ---
@@ -88,4 +88,4 @@ This keeps brand under governance without pretending aesthetics are requirements
 
 - [surface-mapping.md](surface-mapping.md) — where these apply, per surface
 - [accessibility.md](accessibility.md) — the contrast reason behind the amber rule
-- [brand repo docs](../30-repos/brand.md) — full usage guidance
+- [brand repo .docs](../30-repos/brand.md) — full usage guidance

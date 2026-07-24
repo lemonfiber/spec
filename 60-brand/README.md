@@ -14,7 +14,7 @@ themselves.
 Per the [three-layer model](../40-quality/code-comments.md#the-three-documentation-layers),
 brand documentation lives in two places and does not duplicate:
 
-| Here (spec `60-brand/`) | `brand` repo `docs/` |
+| Here (spec `60-brand/`) | `brand` repo `.docs/` |
 |-------------------------|----------------------|
 | Binding rules as requirements (`DES-R`) | Full logo usage, clear-space maths, colour pairings |
 | How brand reaches the three surfaces | The contact sheet, asset index |

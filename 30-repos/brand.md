@@ -28,7 +28,7 @@ brand/
 ├── tokens/
 │   ├── tokens.css      CSS custom properties
 │   └── tokens.json     the same values as data
-├── docs/
+├── .docs/
 │   ├── colour.md       full palette + rules
 │   ├── typography.md
 │   ├── logo-usage.md   clear space, minimums, pairings
@@ -49,7 +49,7 @@ concrete ([licence rationale](../90-appendix/license-rationale.md)):
 |------|---------|-----|
 | `assets/logo/*` | **Proprietary**, all rights reserved | Trademark protection — anyone could otherwise ship a fork under the exact name and mark |
 | `tokens/*` | Open (same as tokens are meant to be embedded) | The web UI embeds them; they must be freely usable |
-| `docs/*` | CC BY-SA 4.0 | Documentation, like the spec |
+| `.docs/*` | CC BY-SA 4.0 | Documentation, like the spec |
 
 This is the standard pattern — Rust, Mozilla and Python all protect marks inside
 open projects. The `LICENSE` file governs the marks; `LICENSE-tokens` governs the
@@ -58,7 +58,7 @@ freely reusable.
 
 ## What the spec owns vs. this repo
 
-| Spec (`60-brand/`, contracts) | This repo (`docs/`) |
+| Spec (`60-brand/`, contracts) | This repo (`.docs/`) |
 |-------------------------------|---------------------|
 | The token schema and versioning | The token files |
 | The accessibility contract + CI check | — |
