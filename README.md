@@ -56,6 +56,7 @@ freely.
 | **MUST / SHOULD / MAY** | [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords. `MUST` is a hard requirement; violating it is a bug. |
 | `<feature>-R<n>` | A product requirement, e.g. `A2-R4`. Requirements live **inside** their feature — there is no separate requirements tree. |
 | `GOV-R<n>` | A [governance](50-governance/) rule — how change enters the org. |
+| `ARCH-R<n>` | An [architectural](20-architecture/) requirement — structural rather than behavioural. |
 | `Q-R<n>` | A [quality](40-quality/) rule — how code is written. |
 | `J<n>` | A [user journey](10-functional/journeys/). Journeys are the acceptance tests; each names the features it exercises. |
 | `ADR-####` | Architecture Decision Record. Immutable once accepted; superseded rather than edited. |
@@ -72,7 +73,7 @@ trailers and PR bodies — **never in code comments**
 |---------|--------|----------|
 | 00-overview | Accepted | Vision, glossary, roadmap, 8 ADRs |
 | 10-functional | Accepted | 47 features, 645 requirements, 9 journeys |
-| 20-architecture | **Not written** | System context, contracts, platform matrix |
+| 20-architecture | Accepted | System context, component model, data flow, platform matrix, 2 contracts |
 | 30-repos | **Not written** | Per-repo technical specs |
 | 40-quality | **Partial** | Comment policy accepted; standards, testing, CI/CD, security not written |
 | 50-governance | Accepted | Canonical spec rule, change lifecycle, cross-repo CI, contributing |
