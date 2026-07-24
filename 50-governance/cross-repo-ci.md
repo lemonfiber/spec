@@ -45,6 +45,20 @@ sequenceDiagram
 Check 3 is what distinguishes this from a regex looking for a plausible string.
 Check 5 is what makes the spec structurally incapable of falling behind.
 
+## Surfacing what a PR cites
+
+Enforcement is only half the loop. Alongside `spec-check`, a **spec-references**
+comment is posted on each PR: it resolves every cited identifier to its defining
+file and lists them as links, with the requirement text, updating the *same*
+sticky comment on each push rather than adding new ones. Where `spec-check` fails a
+*missing* citation, this puts a *present* one one click from its source — for the
+author and the reviewer both. It reads only PR metadata and the spec repo, never
+the PR's code, so it is safe on any PR.
+
+| ID | Requirement |
+|----|-------------|
+| **GOV-R32** | Each PR MUST receive an automated, self-updating comment that links every cited spec identifier to its defining file; it MUST NOT execute untrusted PR code. |
+
 ## The citation format
 
 A `Spec:` trailer on at least one commit:

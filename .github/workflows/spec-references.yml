@@ -1,0 +1,57 @@
+# Reusable: post/update a sticky PR comment linking each cited spec identifier to
+# its defining file. Companion to spec-check (which enforces citations exist).
+# Safe on any PR: it checks out only the spec repo (never the PR's code), reads PR
+# metadata via the API, and passes all event text through env/files — never a
+# shell interpolation. GOV-R32.
+name: spec-references
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: main
+          path: .spec-canonical
+          persist-credentials: false
+
+      - name: Build the comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          {
+            printf '%s\n' "$BODY"
+            gh pr view "$PR" --repo "$GH_REPO" --json commits \
+              --jq '.commits[] | .messageHeadline, .messageBody'
+          } > .pr-text.txt
+          python3 .spec-canonical/scripts/spec_refs.py \
+            --spec-dir .spec-canonical --text-file .pr-text.txt \
+            --spec-url https://github.com/lemonfiber/spec/blob/main > comment.md
+
+      - name: Upsert the sticky comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          id=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+                 --jq 'map(select(.body | startswith("<!-- spec-references -->"))) | .[0].id // empty')
+          if [ -n "$id" ]; then
+            jq -Rs '{body: .}' comment.md | gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" --input - >/dev/null
+            echo "updated spec-references comment $id"
+          else
+            jq -Rs '{body: .}' comment.md | gh api -X POST "repos/$GH_REPO/issues/$PR/comments" --input - >/dev/null
+            echo "created spec-references comment"
+          fi
