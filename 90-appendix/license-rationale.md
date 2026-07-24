@@ -15,6 +15,8 @@ ADR. No component's design depends on the licence choice.
 | `media-stack` | Hippocratic License 3.0 |
 | `homebrew-tap` | Hippocratic License 3.0 |
 | `spec` | CC BY-SA 4.0 |
+| `brand` — marks (`assets/logo/*`) | **Proprietary, all rights reserved** |
+| `brand` — tokens + docs | Hippocratic 3.0 (tokens) / CC BY-SA 4.0 (docs) |
 
 The [Hippocratic License](https://firstdonoharm.dev/) is an *ethical source*
 licence from the Organization for Ethical Source. It grants broad permissions
@@ -62,6 +64,31 @@ builds on it.
 | **GPL-3.0** | Conventional fit for a desktop application, but weaker reciprocity than AGPL and no ethical clause — loses on both axes. |
 | **MIT / Apache-2.0** | Rust ecosystem default and best for adoption. Permits exactly the unrestricted commercial use the Hippocratic choice objects to. |
 | **SSPL / BUSL / Commons Clause** | Also non-OSI, but motivated by commercial moats rather than ethics. Worst of both worlds. |
+
+## The brand marks are proprietary — deliberately
+
+The one component that is **not** open in any form is the logo and marks
+(`brand/assets/logo/*`). This is not a contradiction of the project's values; it
+is the standard pattern for open projects with a protected identity.
+
+**Rust, Mozilla, Python and Docker all do this**: the software is open, the
+trademark is not. Anyone may use, fork and redistribute the code; nobody may ship
+their fork under the original name and logo, because that would let a fork
+impersonate the project. Trademark protection is what keeps "lemonfiber" meaning
+*this* project.
+
+So within `brand`:
+
+- **Marks** (`assets/logo/*`) — proprietary, all rights reserved. Use requires
+  permission.
+- **Tokens** (`tokens/*`) — Hippocratic 3.0, because the web UI embeds them and
+  they must be freely usable by anyone building on or forking the code.
+- **Docs** (`docs/*`) — CC BY-SA 4.0, like the rest of the documentation.
+
+The README states the split at the top so no one mistakes a proprietary mark for a
+freely reusable asset. This keeps the "no proprietary *components*" claim honest:
+the software carries none — the tokens it embeds are open — while the *identity*
+is protected, which is a trademark matter, not a software-freedom one.
 
 ## Note on bundled services
 

@@ -43,9 +43,12 @@ accident, and "we'll backfill" never happens.
 
 ---
 
-## M1 — `media-stack` works standalone
+## M1 — `media-stack` works standalone (with `brand` alongside)
 
-No Rust involved. The stack must be usable with bare `docker compose`.
+No Rust involved. The stack must be usable with bare `docker compose`. The
+`brand` repo — tokens, marks, and its contrast CI — can be finished in parallel
+here, since the web UI that consumes it doesn't arrive until M5 and nothing
+gates on it earlier.
 
 | Deliverable | Notes |
 |-------------|-------|
