@@ -124,6 +124,38 @@ identifier, every outbound request enumerable and disableable — **enforced by 
 test** (`G8-R9`), not by intent. For a tool people run precisely to avoid being
 watched, phoning home would be a security failure, not merely a faux pas.
 
+## Supply-chain posture and its ceilings
+
+The org runs **OpenSSF Scorecard** and **SonarCloud** on every repo. The checks we
+can enforce, we enforce — and stay green:
+
+| Enforced | How |
+|----------|-----|
+| Pinned-Dependencies | Every `uses:` is SHA-pinned ([ADR-0009](../00-overview/decisions/0009-action-pinning.md)); Renovate advances them |
+| Token-Permissions | Minimal, job-scoped `permissions:` on every workflow |
+| SAST | CodeQL (Rust + Actions) and SonarCloud on every PR |
+| Vulnerabilities | OSV-Scanner; zero open SonarCloud vulnerabilities |
+| Dependency-Update-Tool | Renovate on every repo |
+| Dangerous-Workflow | No untrusted input in `run:`; fork PRs never see secrets |
+| Branch-Protection | PR-required, signed commits, strict status checks, linear history, conversation-resolution |
+| Security-Policy / License / Maintained / CI-Tests | Present and green |
+
+Some checks are **structurally capped** for a solo, pre-release, ethical-source
+project. These are documented, not gamed — a low sub-score with a stated reason is
+honest; a padded one is not:
+
+| Capped check | Why | Rises when |
+|--------------|-----|-----------|
+| Code-Review, Contributors | One maintainer, who cannot review their own PRs; admin bypass exists so `main` is never stuck | A second maintainer joins and PRs are reviewed before merge |
+| Signed-Releases | Nothing is released yet | `cargo-dist` at M6 emits SLSA provenance + signed checksums (`Q-R44`, [OPS-R20](../70-operations/releasing.md)) |
+| Fuzzing | No core logic to fuzz yet | `cargo-fuzz` targets land with the manifest/validation core |
+| Packaging | Pre-release | Homebrew + `cargo-dist` publish at M6 |
+| CII-Best-Practices | The badge is a manual registration | Registered at public launch |
+| License | Hippocratic 3.0 is deliberately **not** OSI-approved, so Scorecard may not recognise it | Not a defect — an accepted trade-off ([licence rationale](../90-appendix/license-rationale.md)) |
+
+`enforce_admins` is deliberately off so a solo maintainer is never locked out of
+their own `main`; every such override is recorded ([overrides](../50-governance/overrides.md)).
+
 ## Disclosure
 
 A private path in each repo's `SECURITY.md` (`GOV-R24`). Security fixes are the
@@ -143,6 +175,7 @@ describing the vulnerability must not precede the patch.
 | **Q-R44** | Release artifacts MUST be checksummed and signed. |
 | **Q-R45** | Each repo MUST publish a private security disclosure path. |
 | **Q-R46** | The no-telemetry property MUST be enforced by an automated test. |
+| **Q-R63** | The enforceable OpenSSF Scorecard / SonarCloud checks MUST be kept green; a structurally-capped check MUST be documented with its reason and lift condition, never gamed. |
 
 ## Related
 

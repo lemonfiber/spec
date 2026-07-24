@@ -20,7 +20,7 @@ flowchart LR
 
 | Rule | |
 |------|--|
-| `main` is protected | PR required, signed commits required, checks required |
+| `main` is protected | PR required, signed commits required, strict checks (incl. SonarCloud), linear history, conversation-resolution |
 | No direct pushes to `main` | Except the admin override, recorded ([overrides](../50-governance/overrides.md)) |
 | Branch names | `type/short-description` — `feat/health-gate`, `fix/vpn-port`, `docs/forms` |
 | Branch lifetime | Short. Long-lived feature branches drift; break the work down instead |
