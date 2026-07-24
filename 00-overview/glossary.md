@@ -18,7 +18,10 @@ defined as data in `stack.toml` and rendered by lemonfiber.
 > automate TV," which happens to require the `search`, `usenet`, `torrent`,
 > `tv`, and `subs` profiles.
 
-See [forms model](../10-functional/forms.md).
+Forms **compose**: `lemonfiber up full proxy` starts the union of both closures,
+and a service appearing in several active forms starts exactly once.
+
+See [B1 Forms & partial stacks](../10-functional/features/b-running/b1-forms.md).
 
 ### Profile
 A **Docker Compose profile** — an atomic tag on a service declaring what it *is*.
@@ -69,6 +72,12 @@ The family of .NET automation applications sharing a common codebase, UI, and
 REST API shape: **Sonarr** (TV), **Radarr** (movies), **Lidarr** (music),
 **Prowlarr** (indexers), **Readarr** (books — *discontinued 2025*). Their shared
 API design is what makes a single `ServarrClient` in lemonfiber viable.
+
+### Bindery
+The post-Readarr book and audiobook automation tool (MIT). Fills the \*arr role
+for books, but is **not** a Servarr application — it has its own API, and
+Prowlarr's app sync does not cover it, so it consumes Torznab endpoints instead.
+That asymmetry is specified in [D1](../10-functional/features/d-content/d1-seed.md).
 
 ### Indexer
 A searchable source of release metadata. Usenet indexers return **NZB** files;

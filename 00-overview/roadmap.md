@@ -24,7 +24,7 @@ No Rust involved. The stack must be usable with bare `docker compose`.
 
 | Deliverable | Notes |
 |-------------|-------|
-| `compose.yml` | All 16 services, one atomic profile each, pinned image tags |
+| `compose.yml` | All 19 services, one atomic profile each, pinned image tags |
 | `stack.toml` | Manifest: services, profiles, forms, ports, health endpoints |
 | `.env.example` | Every variable documented inline |
 | Storage overlay | `stacks/compose.storage.nas.yml` |
@@ -54,11 +54,16 @@ keeps it scriptable and testable.
 | Embedded assets | Submodule + `include_dir!` + `--stack-dir` override |
 | Platform detection | macOS / Linux-native / Linux-Desktop / Windows-WSL2 |
 | Compose command builder | Pure function, golden-file tested |
+| Form closure + **composition** | Union of closures, intersected with configured protocols (`B1-R4`, `B1-R5`) |
 | `lemonfiber up/down/restart/ps/logs/pull` | Non-interactive |
 | `.env` read/write | Comment- and order-preserving |
 
 **Exit criteria:** `lemonfiber up tv` matches hand-written `docker compose` exactly;
 golden tests cover every form on every platform.
+
+> **Form composition is in 1.0**, not deferred. `lemonfiber up full proxy` is a
+> set union over profiles — trivial to implement — and it is what makes `proxy`
+> viable as a form rather than a special-cased flag.
 
 ---
 
@@ -91,11 +96,14 @@ Turns config from precious into reproducible ([P6](vision.md#p6--reproducible-ov
 |-------------|-------|
 | `ServarrClient` | Shared API client across Sonarr/Radarr/Lidarr/Prowlarr |
 | API key extraction | Parse each app's `config.xml` |
-| Download client registration | SABnzbd + qBittorrent into every *arr |
+| Download client registration | SABnzbd + qBittorrent into every \*arr and Bindery |
 | Root folder registration | Per media type |
-| Prowlarr app sync | Push indexers to each *arr |
+| Prowlarr app sync | Push indexers to each \*arr |
+| Bindery indexer wiring | **Torznab endpoints** — app sync does not cover it (`D1-R15`) |
+| Jellyfin → Jellyseerr identity | One household account, not two (`D1-R7`) |
 | Homepage key injection | Widgets work on first boot |
-| `lemonfiber backup` / `restore` | Quiesced tarball of `config/` |
+| Drift-aware writes | Never revert an operator's manual change (`C9-R3`) |
+| `lemonfiber backup` / `restore` | Quiesced, not a live SQLite copy (`E3-R1`) |
 
 **Exit criteria:** `rm -rf config && lemonfiber up tv && lemonfiber seed` restores a working
 stack in under 2 minutes. Seed is idempotent — running twice changes nothing.
@@ -143,7 +151,7 @@ Not scheduled. Recorded so they're not rediscovered as novel.
 | Janitorr / Maintainerr | Library pruning; needs a library worth pruning first |
 | Tdarr | Transcode automation; weak fit without HW accel on two platforms |
 | Third-party stack manifests | Would generalise lemonfiber beyond media |
-| `lemonfiber up tv+music` | Union of form closures; additive to ADR-0002 |
+| **Remote access for the household** | Watching from outside the home. Deferred because every candidate mechanism either has a proprietary control plane (Tailscale) or is substantially harder to set up (Headscale). Household features are LAN-only in 1.0. |
 | Keyring-backed secrets | OS keychain instead of plaintext `.env` |
 | GUI | Tauri; only if terminal-first proves to be the barrier |
 

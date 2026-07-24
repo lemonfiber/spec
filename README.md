@@ -31,7 +31,7 @@ freely.
 | Section | Contents | Read this if… |
 |---------|----------|---------------|
 | **[00-overview](00-overview/)** | Vision, glossary, roadmap, and all Architecture Decision Records | …you want the *why* behind any choice |
-| **[10-functional](10-functional/)** | User journeys, the forms model, numbered requirements | …you're deciding what to build or verifying it got built |
+| **[10-functional](10-functional/)** | The 47-feature catalogue, numbered requirements, and nine user journeys | …you're deciding what to build or verifying it got built |
 | **[20-architecture](20-architecture/)** | System context, component model, platform matrix, inter-repo contracts | …you're implementing across the cli ↔ media-stack seam |
 | **[30-repos](30-repos/)** | Per-repo technical specs | …you're working inside one repo |
 | **[40-quality](40-quality/)** | Code standards, testing, CI/CD, security, definition of done | …you're writing or reviewing a PR |
@@ -39,8 +39,9 @@ freely.
 
 ### Fast paths
 
-- **"I want to understand the product"** → [vision](00-overview/vision.md) → [user journeys](10-functional/user-journeys.md) → [forms](10-functional/forms.md)
-- **"I'm implementing lemonfiber"** → [lemonfiber spec](30-repos/cli.md) → [TUI spec](30-repos/cli-tui.md) → [code standards](40-quality/code-standards.md)
+- **"I want to understand the product"** → [vision](00-overview/vision.md) → [journeys](10-functional/journeys/) → [forms](10-functional/features/b-running/b1-forms.md)
+- **"What does it actually do?"** → [feature catalogue](10-functional/features/) — 47 features, 645 requirements
+- **"I'm implementing lemonfiber"** → [cli spec](30-repos/cli.md) → [TUI spec](30-repos/cli-tui.md) → [code standards](40-quality/code-standards.md)
 - **"I'm implementing media-stack"** → [media-stack spec](30-repos/media-stack.md) → [stack manifest contract](20-architecture/contracts/stack-manifest.md)
 - **"Why is it built this way?"** → [decisions/](00-overview/decisions/)
 
@@ -51,24 +52,29 @@ freely.
 | Convention | Meaning |
 |------------|---------|
 | **MUST / SHOULD / MAY** | [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords. `MUST` is a hard requirement; violating it is a bug. |
-| `FR-###` | Functional requirement. Testable, traceable to an acceptance criterion. |
-| `NFR-###` | Non-functional requirement (performance, security, portability). |
+| `<feature>-R<n>` | A numbered requirement, e.g. `A2-R4`. Requirements live **inside** their feature — there is no separate requirements tree. IDs are permanent and never reused. |
+| `J<n>` | A [user journey](10-functional/journeys/). Journeys are the acceptance tests; each names the features it exercises. |
 | `ADR-####` | Architecture Decision Record. Immutable once accepted; superseded rather than edited. |
-| **Status: Draft / Accepted / Superseded** | Every doc carries one in its front matter. |
+| **Status: Draft / Accepted / Superseded** | Every doc carries one at the top. |
 
 ## Spec status
 
-| Section | Status |
-|---------|--------|
-| 00-overview | Accepted |
-| 10-functional | Accepted |
-| 20-architecture | Accepted |
-| 30-repos | Accepted |
-| 40-quality | Accepted |
+| Section | Status | Contents |
+|---------|--------|----------|
+| 00-overview | Accepted | Vision, glossary, roadmap, 8 ADRs |
+| 10-functional | Accepted | 47 features, 645 requirements, 9 journeys |
+| 20-architecture | **Not written** | System context, contracts, platform matrix |
+| 30-repos | **Not written** | Per-repo technical specs |
+| 40-quality | **Not written** | Standards, testing, CI/CD, security |
 
-Nothing here is implemented yet. This is a spec-first project: the spec landed
-before the code deliberately, so that the cli ↔ media-stack contract was
-designed rather than discovered.
+Links into unwritten sections are deliberate forward references — they record
+what those sections must cover.
+
+Nothing here is implemented yet. This is a spec-first project: the functional
+spec landed before the technical one deliberately, so that **every architectural
+decision can be justified against a requirement** rather than alongside one. A
+technical choice citing no requirement is unjustified and should be challenged in
+review.
 
 ---
 

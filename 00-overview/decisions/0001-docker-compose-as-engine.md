@@ -5,7 +5,7 @@
 
 ## Context
 
-lemonfiber needs to start, stop, and inspect ~16 containers with varying subsets
+lemonfiber needs to start, stop, and inspect ~19 containers with varying subsets
 active depending on the selected form. Three broad approaches exist: drive the
 Docker Engine API directly, generate and invoke Compose, or target a heavier
 orchestrator.

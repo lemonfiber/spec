@@ -14,7 +14,7 @@ network throughput, and streaming logs. Two options:
 
 **Shell out for everything.** Every refresh spawns `docker compose ps --format
 json`, plus `docker stats --no-stream`, plus a `docker logs -f` per service.
-Process spawn on Windows costs tens of milliseconds; at 1 Hz across 16 services
+Process spawn on Windows costs tens of milliseconds; at 1 Hz across 19 services
 this is both wasteful and jittery. Streaming logs through subprocess pipes means
 managing child lifetimes, and stats via CLI is a poll rather than a stream.
 

@@ -50,7 +50,7 @@ Three commitments:
 | Commitment | What it means concretely |
 |------------|--------------------------|
 | **No proprietary components** | Every bundled service is OSI-licensed and self-hosted. No Plex, no paid tiers, no phone-home. See [service inventory](../30-repos/media-stack.md#service-inventory). Our own code is [Hippocratic 3.0](../90-appendix/license-rationale.md) — source-available and ethical-source, deliberately *not* OSI-approved. |
-| **Runs in slices** | Named *forms* map to sets of Compose profiles. `search` is 2 containers; `full` is 16. Same config, same data, no separate install. |
+| **Runs in slices** | Named *forms* map to sets of Compose profiles. `search` is 3 containers; `full` is 18. Same config, same data, no separate install. |
 | **Correct by construction** | The setup wizard tests hardlinks rather than assuming them. `doctor` compares public IPs to prove VPN isolation. Ports bind to loopback by default. |
 
 ## Who it's for
@@ -93,9 +93,18 @@ copy instead. Move it to an APFS volume, or accept slower imports (Settings →
 Media Management → Copy).` is a tool.
 
 ### P5 — Secure by default, not by configuration
-Services bind to `127.0.0.1`, not `0.0.0.0`. Only Gluetun gets `NET_ADMIN`.
-Image tags are pinned. Nothing is exposed to the LAN unless explicitly asked for.
 The default posture must be the safe one, because defaults are what people run.
+
+Binding is **two-tier**: administrative surfaces — the \*arrs, download clients,
+and lemonfiber's own control surface — bind to `127.0.0.1`. Household-facing
+surfaces — Jellyfin, Jellyseerr, the book and audiobook readers — bind to the
+LAN, because they are useless if a television cannot reach them.
+
+Nothing binds to all interfaces. Exposing the control surface beyond loopback is
+**refused** unless authentication is configured, rather than warned about. Only
+Gluetun gets `NET_ADMIN`. Image tags are pinned.
+
+See [C6](../10-functional/features/c-trust/c6-web-security.md).
 
 ### P6 — Reproducible over precious
 `rm -rf` the config directory and rebuild in two minutes via `lemonfiber seed`. State
@@ -108,12 +117,27 @@ Named explicitly so they're rejected on purpose rather than forgotten.
 
 | Non-goal | Why |
 |----------|-----|
-| Remote access / reverse tunnels | Orthogonal concern. Tailscale does it better. |
-| Multi-user / multi-tenant | This is a single-household tool. Auth belongs to Jellyfin. |
+| Multi-tenant operation | Several *households* sharing one stack. A single household with several members **is** in scope — see below. |
 | Kubernetes / Podman / Nomad | Compose is correct at this scale. Supporting more engines multiplies the platform matrix by three for no user benefit. |
 | Managing content acquisition policy | lemonfiber wires the tools together. What you point them at is yours. |
 | Being a general Docker manager | Lazydocker exists. lemonfiber knows about *this* stack, and that knowledge is the value. |
 | Windows without WSL2 | Docker Desktop requires it. Supporting Hyper-V-only setups isn't worth the matrix. |
+| Media backup | Configuration is backed up; a terabyte library is a job for a general-purpose backup tool. |
+
+### Deferred, not rejected
+
+| Deferred | Status |
+|----------|--------|
+| **Remote access for the household** | Watching from outside the home. Every candidate mechanism either has a proprietary control plane (Tailscale) or is substantially harder to set up (Headscale) — neither fits alongside "everyone can use it with ease" *and* "everything open source" in 1.0. Household features are **LAN-only**. See [roadmap](roadmap.md#post-10-candidates). |
+
+### Formerly non-goals
+
+Household support was originally out of scope. It isn't: for a partner or
+housemate, **the product is Jellyseerr and Jellyfin**, and they never see
+lemonfiber at all. That audience is now first-class — see
+[D4](../10-functional/features/d-content/d4-request-flow.md),
+[D6](../10-functional/features/d-content/d6-household-identity.md) and
+[J9](../10-functional/journeys/j9-household.md).
 
 ## What success looks like
 
@@ -122,6 +146,8 @@ Named explicitly so they're rejected on purpose rather than forgotten.
 2. `lemonfiber doctor` catches a leaking VPN **before** any torrent traffic flows.
 3. Deleting the config directory and re-running `lemonfiber seed` restores a working
    stack in **under 2 minutes**.
+4. A household member is watching on their own device having received **one
+   link**, with **one account**, and having never encountered lemonfiber.
 4. The same binary and the same commands work on macOS, Linux, and Windows.
 
 ## Related
