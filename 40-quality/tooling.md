@@ -54,9 +54,11 @@ Every tool below was chosen to work within that constraint.
 
 Free for public repos, native GitHub Action, analyses Rust. It ingests the lcov
 `cargo-llvm-cov` produces, so coverage lives there too — no separate Codecov.
-Consistent with [Q-R28](testing-strategy.md), coverage is **reported, never a
-merge gate**; Sonar's quality gate is configured to not fail on coverage
-percentage.
+Per [Q-R61](testing-strategy.md#coverage--100-where-it-applies), coverage on
+**applicable** code is a merge gate: `cargo-llvm-cov` enforces 100% over that set
+locally and in CI, and Sonar surfaces the same number. The scope — not a lax gate —
+is what keeps it honest; the excluded categories are annotated in the source
+([Q-R62](testing-strategy.md)).
 
 Requires a one-time `SONAR_TOKEN` secret, added to the repo after it exists.
 
@@ -140,7 +142,7 @@ Both are one-time and free. Everything else runs from committed config.
 | ID | Requirement |
 |----|-------------|
 | **Q-R51** | Every tool in the pipeline MUST be free for public repositories or open source; no paid tier MAY be required. |
-| **Q-R52** | Code quality and coverage MUST run through SonarQube Cloud; coverage MUST NOT be a merge gate. |
+| **Q-R52** | Code quality and coverage MUST run through SonarQube Cloud, which ingests the `cargo-llvm-cov` report; the applicable-code coverage gate is enforced per Q-R61. |
 | **Q-R53** | SAST (CodeQL), secret scanning (gitleaks), and dependency vulnerability scanning (OSV-Scanner) MUST run in CI. |
 | **Q-R54** | Workflow lint (actionlint), spell check (typos), link check (lychee) and markdown lint MUST run in CI. |
 | **Q-R55** | Dependency-update automation MUST emit the `Spec: GOV-R12` trailer so its PRs pass `spec-check`. |
