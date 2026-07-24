@@ -10,8 +10,8 @@
 The single source of truth for the Lemonfiber project: what it is, why it's
 built this way, and the standards every repo in the org is held to.
 
-This repo contains **no code**. It spans the three implementation repos and
-owns every cross-cutting decision between them.
+This repo contains **no code**. It spans the implementation repos and owns every
+cross-cutting decision between them.
 
 ---
 
@@ -46,6 +46,7 @@ freely.
 | **[40-quality](40-quality/)** | Code standards, comment policy, testing, CI/CD, security | …you're writing or reviewing a PR |
 | **[50-governance](50-governance/)** | How change enters the org. The spec is canonical — **read this before your first PR** | …you're contributing to any repo |
 | **[60-brand](60-brand/)** | Brand rules, surface mapping (web/TUI/CLI), the accessibility contract | …you're building the web UI or touching visuals |
+| **[70-operations](70-operations/)** | Releasing, maintainer setup, branching, labels, maintainers | …you're running the project or cutting a release |
 | **[90-appendix](90-appendix/)** | References, licence rationale | …you're chasing a citation |
 
 ### Fast paths
@@ -69,6 +70,7 @@ freely.
 | `ARCH-R<n>` | An [architectural](20-architecture/) requirement — structural rather than behavioural. |
 | `Q-R<n>` | A [quality](40-quality/) rule — how code is written. |
 | `DES-R<n>` | A [brand](60-brand/) requirement — the checkable visual constraints. |
+| `OPS-R<n>` | An [operations](70-operations/) requirement — running the project. |
 | `REPO-R<n>` | A [per-repo](30-repos/) requirement — one repository's structure or tooling. |
 | `J<n>` | A [user journey](10-functional/journeys/). Journeys are the acceptance tests; each names the features it exercises. |
 | `ADR-####` | Architecture Decision Record. Immutable once accepted; superseded rather than edited. |
@@ -90,6 +92,7 @@ trailers and PR bodies — **never in code comments**
 | 40-quality | Accepted | Comment policy, code standards, testing, CI/CD, security, definition of done |
 | 50-governance | Accepted | Canonical spec rule, change lifecycle, cross-repo CI, contributing |
 | 60-brand | Accepted | Brand rules, surface mapping, accessibility contract |
+| 70-operations | Accepted | Releasing, setup registry, project workflow, maintainers |
 
 The spec is **complete** — every section Accepted. Implementation has not begun;
 this is `M0` on the [roadmap](00-overview/roadmap.md).

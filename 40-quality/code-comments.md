@@ -45,6 +45,13 @@ implementation approach, comments on the code beside them.
 Ruby, their decisions are product decisions, and those belong in the canonical
 spec.
 
+`brand` **does** carry a `.docs/` tree, but of a different kind: it holds the
+brand *usage* documentation (colour, typography, logo usage) — the repo's own
+domain docs, not Rust implementation notes. The convention is the same (repo-local
+docs, dotted, not shipped in the npm package); the content is design rather than
+code. So: `lemonfiber` and `brand` have `.docs/`; `media-stack` and `homebrew-tap`
+don't.
+
 ## Scope
 
 Applies to **Rust production source**: `crates/**/src/**/*.rs`.

@@ -75,6 +75,19 @@ should happen, then fix it.
 Requirement IDs look like `A2-R4`: feature `A2`, fourth requirement. Every one is
 in a table at the bottom of its feature doc.
 
+## Sign your commits off — and cryptographically
+
+Two separate things, both required on `main`:
+
+- **`git commit -s`** adds a DCO `Signed-off-by` line — your assertion that you
+  have the right to submit the work under the repo's licence. A `dco` check
+  enforces it. See [dco.md](dco.md).
+- **Signed commits** (SSH or GPG) prove *who* you are. `main` requires them.
+
+`git config commit.gpgsign true` once, and always commit with `-s`, and both are
+handled. Your contribution ships under the repo's licence (Hippocratic 3.0 for
+code) — inbound equals outbound, no CLA.
+
 ## What not to do
 
 **Don't put requirement IDs in code comments.** Ever. Not as a breadcrumb, not

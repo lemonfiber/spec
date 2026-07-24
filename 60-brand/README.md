@@ -42,6 +42,7 @@ Two reasons it isn't just "a logo folder":
 | [brand-rules.md](brand-rules.md) | The binding constraints — closed palette, amber-as-signal, mark integrity |
 | [surface-mapping.md](surface-mapping.md) | How the brand reaches web, TUI and CLI — and what doesn't apply where |
 | [accessibility.md](accessibility.md) | The contrast contract, with computed per-pairing verdicts |
+| [trademark.md](trademark.md) | The forking & naming policy — fork the code, don't wear the name |
 
 The [token schema](../20-architecture/contracts/design-tokens.md) lives in
 `20-architecture/contracts/` with the other build-time contracts.

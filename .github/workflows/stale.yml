@@ -1,0 +1,30 @@
+# Reusable gentle stale policy. Repos call it on a schedule.
+# Generous grace, easy reopen (OPS-R15).
+name: stale
+on:
+  workflow_call:
+  schedule:
+    - cron: "30 1 * * *"
+permissions:
+  issues: write
+  pull-requests: write
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-stale: 60
+          days-before-close: 14
+          stale-issue-label: stale
+          stale-pr-label: stale
+          exempt-issue-labels: "blocked,help wanted,good first issue,security"
+          exempt-pr-labels: "blocked,security"
+          stale-issue-message: >
+            This has been quiet for a while, so it's marked stale. Comment to keep
+            it open — it'll close in 14 days otherwise. No hard feelings; reopening
+            is one click.
+          stale-pr-message: >
+            This PR has been quiet for a while, so it's marked stale. A comment or
+            push keeps it open.
+          close-issue-message: "Closing as stale. Reopen any time — the context is preserved."

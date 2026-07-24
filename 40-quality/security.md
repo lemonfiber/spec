@@ -94,6 +94,7 @@ configuration (`P3`).
 | **T**ampering | Dependency adds telemetry | Banned and checked (`G8-R11`, `Q-R32`) |
 | **T**ampering | Compromised container image | Pinned tags (`E1-R1`); images from known publishers; digest pinning available |
 | **I**nfo disclosure | Build leaks secrets | No secrets in the build; release artifacts signed with checksums (`Q-R34`) |
+| **T**ampering | A published binary is swapped or rebuilt maliciously | SLSA build provenance + an SBOM per release ([OPS-R20](../70-operations/releasing.md)); a consumer can verify origin |
 
 ### The stack fork boundary
 

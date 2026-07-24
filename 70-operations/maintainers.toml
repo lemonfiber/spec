@@ -1,0 +1,29 @@
+# Maintainership — the single source of truth.
+#
+# One file. Entries are scoped by repo and/or spec domain, so maintainership can
+# be split without splitting the file. Each repo's .github/CODEOWNERS is GENERATED
+# from this by scripts/gen_codeowners.py — never edit CODEOWNERS by hand.
+#
+# scope   : repos this person maintains. "*" = all repos.
+# domains : spec sections or path globs they own. "*" = everything in their repos.
+
+[[maintainer]]
+handle  = "lessevv"
+name    = "Wessel Verheij"
+lead    = true            # project lead; holds the override authority (GOV overrides)
+scope   = ["*"]
+domains = ["*"]
+
+# ── Add domain/repo-scoped maintainers here as the project grows ──────────────
+#
+# [[maintainer]]
+# handle  = "designer"
+# name    = "A Designer"
+# scope   = ["brand"]
+# domains = ["60-brand", "brand/assets/**", "brand/tokens/**"]
+#
+# [[maintainer]]
+# handle  = "rustacean"
+# name    = "A Contributor"
+# scope   = ["lemonfiber"]
+# domains = ["lemonfiber/crates/**"]
