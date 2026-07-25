@@ -23,6 +23,10 @@ crates/
 │   └── main.rs              surface selection
 │
 ├── lemonfiber-core/         lib — all logic, no UI, no terminal
+│   ├── app/                 the one entry point: command in, outcome out
+│   ├── model/               the values surfaces render, and serialise
+│   ├── ports/               the traits the outside world is reached through
+│   ├── adapters/            the only code that talks to Docker, HTTP or processes
 │   ├── stack/               compose command construction, lifecycle
 │   ├── docker/              container state, stats, logs, exec
 │   ├── config/              .env, paths, credential storage
@@ -63,6 +67,51 @@ flowchart TD
 
 The dotted edges are enforced by the dependency graph, not by review: the binary
 crate does not depend on `bollard` at all.
+
+## One entry point, three surfaces
+
+`ARCH-R11` stops a surface from *containing* behaviour. It does not, on its own,
+stop three surfaces from reaching the same behaviour by three different routes —
+and three routes drift, which is how a flag appears in the CLI that the TUI never
+grows and the web UI implements slightly differently.
+
+So there is exactly one way in. A surface turns input into a command, hands it to
+`app`, and renders what comes back:
+
+```rust
+async fn dispatch(cmd: Command, ctx: &Ctx) -> Result<Outcome, Problem>
+```
+
+A keypress, a subcommand and an HTTP route all become the same `Command`. This is
+what makes [REPO-R10](../30-repos/lemonfiber-reference.md)'s "every TUI action has a
+non-interactive equivalent" hold by construction rather than by review, and it is
+why `ARCH-R20`'s "the web API is the interface the TUI consumes" is a fact about
+types rather than a promise.
+
+`--dry-run` is a property of the context, not a parallel code path, which is
+`ARCH-R13` restated structurally: there is no second path to drift into.
+
+`model` holds what `Outcome` is made of — the service states, findings, form
+plans and health summaries a surface renders. They serialise directly, so
+`--json` and the web API are the same values rather than two hand-maintained
+projections of them, and `ARCH-R9`'s `api_version` versions one thing.
+
+## Ports and adapters
+
+Everything outside the process — the Docker daemon, service HTTP APIs, spawned
+processes, the clock — is reached through a trait in `ports`, implemented once in
+`adapters`.
+
+The split is what makes the test pyramid in
+[testing-strategy](../40-quality/testing-strategy.md) achievable rather than
+aspirational: `adapters` is the only code that cannot run in a unit test, and it
+is deliberately thin, holding translation and no decisions. Everything that can
+be wrong sits on the other side of a trait and runs with a fake.
+
+It also makes `ARCH-R14` mechanically checkable rather than a rule someone has to
+remember: once each external dependency has exactly one legitimate home, a test
+can say so. How that test is written is
+[lemonfiber's own concern](../30-repos/lemonfiber.md#docs--repo-local-documentation).
 
 ## Docker access, split by direction
 
@@ -200,6 +249,7 @@ the server runs only when asked (`G1-R5`).
 | **ARCH-R18** | Service clients MUST be selected by manifest `api.kind`, never by hardcoded service name. |
 | **ARCH-R19** | Web assets MUST be embedded in the binary; no runtime toolchain MAY be required. |
 | **ARCH-R20** | The web API MUST be the same interface the TUI consumes. |
+| **ARCH-R42** | Every surface MUST reach behaviour through a single dispatch entry point in `lemonfiber-core`; a surface MUST NOT orchestrate the core's subsystems directly. |
 
 ## Related
 
