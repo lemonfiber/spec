@@ -26,19 +26,56 @@ develop and version independently.
 
 ```
 media-stack/
-├── compose.yml                 all 19 services, one profile each
+├── compose.yml                 stitches the fragments; defines no services
+├── compose/
+│   ├── _common.yml             shared service defaults, via `extends:`
+│   └── <profile>.yml           one fragment per profile — 12 of them
 ├── stack.toml                  the manifest — see contract
 ├── .env.example                every variable documented inline
 ├── stacks/
-│   ├── compose.storage.nas.yml overlay: NAS/copy mode
-│   └── compose.proxy.yml        overlay: Caddy
+│   └── compose.storage.nas.yml overlay: NAS/copy mode
 ├── config/                     seeded config templates
 │   ├── recyclarr/recyclarr.yml
 │   ├── homepage/{services,widgets,settings}.yaml
 │   └── caddy/Caddyfile
+├── scripts/                    the checks CI runs
 ├── README.md                   standalone usage, no lemonfiber
 └── .github/                    CI
 ```
+
+## How `compose.yml` is assembled
+
+Nineteen services in one file is a file nobody reads. `compose.yml` therefore
+defines **no services of its own**: it `include:`s one fragment per profile from
+`compose/`, so the file you open to change television automation is `tv.yml` and
+contains Sonarr and nothing else. The manifest's profile list and the directory
+listing are the same list (`REPO-R34`).
+
+Two mechanical points, both load-bearing:
+
+- **Every `include:` entry carries `project_directory: .`** Without it a
+  fragment's relative paths resolve against `compose/`, and `./config/sonarr`
+  silently becomes `compose/config/sonarr`. With it, every relative path in every
+  fragment is root-relative — one rule, no exceptions. The omission is caught
+  rather than tolerated: the fragment's `extends:` path rebases too, Compose
+  cannot find `compose/_common.yml`, and no model is produced at all.
+- **Shared defaults live in `compose/_common.yml`**, reached through `extends:`
+  rather than YAML anchors, because anchors cannot cross a file boundary. That
+  file is deliberately *not* in the include list, so its template services are
+  copied from and never started.
+
+### Caddy lives in the main project
+
+Caddy is a service in `compose.yml` under the `proxy` profile. Profiles are
+already the off-by-default mechanism, so expressing "optional" a second way as a
+separate file adds nothing and costs something real: a service reachable only via
+`-f` cannot start under bare `docker compose`, and lemonfiber would need a
+hardcoded "this one form takes an extra file" special case — exactly the
+per-service knowledge the manifest contract exists to eliminate (`REPO-R35`,
+`F1-R5`).
+
+An overlay is the right shape only where it modifies services the base project
+already defines, which is what the storage overlay does.
 
 ## The service inventory
 
@@ -143,9 +180,30 @@ lemonfiber when it detects the mode.
 | Manifest validation | The full [contract](../20-architecture/contracts/stack-manifest.md#validation) ruleset |
 | No cross-profile `depends_on` | `B1-R14` |
 | Single-mount lint | `ADR-0006` |
+| Binding tier matches the manifest | `C6-R1`, `C6-R2` |
+| Killswitch routing | `C2-R12` |
 | No floating tags | `E1-R1` |
 | SPDX licence check | Every service OSI-licensed (`F2-R5`) |
 | arm64 + amd64 manifest present | `F2-R6` |
+| Negative tests for each rule above | `REPO-R37` |
+
+### Checked against the resolved model, not the source
+
+The parity checks read what `docker compose config` produces, not the YAML
+(`REPO-R36`). A rule like "one mount beneath the data root" can be evaded a dozen
+ways in source text — through an anchor, an overlay, a variable indirection — but
+there is exactly one resolved model, and it is what Docker runs. Interpolating a
+sentinel into `DATA_ROOT` before resolving turns "is this path beneath the data
+root?" into an unambiguous test on an absolute path.
+
+### The checks are themselves tested
+
+A lint nobody has watched fail is a lint nobody knows works, and a green gate
+over a stack that already complies proves nothing — it goes on proving nothing
+until the first violating change merges. Each rule therefore has a negative test
+that breaks exactly that rule in a throwaway copy of the stack and asserts the
+violation is reported (`REPO-R37`). The same reasoning as the comment policy's
+fixture tree (`Q-R7`), applied to configuration.
 
 CI does **not** boot the stack — that needs real credentials and providers.
 Structural validity is what's checkable in CI; end-to-end runs are an M1 exit
@@ -174,6 +232,12 @@ CI then holds it to every rule above. This is the whole of
 | **REPO-R21** | The VPN port-forwarding up/down command pair MUST push and release the client's listen port. |
 | **REPO-R22** | Port forwarding MUST default off and activate only for capable providers. |
 | **REPO-R23** | Adding a service MUST require only data edits — compose, manifest, forms — and no code change. |
+| **REPO-R34** | `compose.yml` MUST define no services of its own, and MUST assemble the stack from one fragment per profile under `compose/`, each `include:` entry declaring `project_directory: .`. |
+| **REPO-R35** | Every service MUST be reachable through the main Compose project, so that every form starts under bare `docker compose` with no additional `-f` argument. |
+| **REPO-R36** | Manifest ↔ compose checks MUST be performed against the resolved Compose model, never against the source YAML. |
+| **REPO-R37** | Every stack rule enforced in CI MUST have a negative test that breaks the rule and asserts the violation is reported. |
+
+**Affected repos** (`GOV-R7`): `media-stack`.
 
 ## Related
 
