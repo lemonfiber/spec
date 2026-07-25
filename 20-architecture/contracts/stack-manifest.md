@@ -156,7 +156,7 @@ api = { kind = "servarr",  key_source = "config-xml", path = "/config/config.xml
 api = { kind = "sabnzbd",  key_source = "config-ini", path = "/config/sabnzbd.ini" }
 api = { kind = "qbittorrent", key_source = "generated" }
 api = { kind = "seerr",    key_source = "api-settings" }
-api = { kind = "bindery",  key_source = "config-json", path = "/config/config.json" }
+api = { kind = "bindery",  key_source = "api-settings" }
 ```
 
 `kind` selects the client implementation. `servarr` covers Sonarr, Radarr, Lidarr
@@ -180,6 +180,11 @@ store.
 
 **Bindery is deliberately its own kind.** It is not a Servarr application, and
 Prowlarr's app sync does not cover it (`D1-R15`).
+
+It also has no configuration file to read. Bindery keeps everything in SQLite and
+issues a **per-account** API key, which exists only once first-run setup has
+created an account — so the key is retrieved over its own API after
+authenticating, and `path` does not apply.
 
 ## Validation
 
