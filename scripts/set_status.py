@@ -3,24 +3,27 @@
 
 Rewrites the `status` line, and at release appends the embedded `[pins]`. Kept to
 a line edit rather than a re-serialise so the file's comments and layout survive.
+The manifest path is built from a validated version and a constant directory, so
+no free-form input reaches the filesystem.
 
 Usage:
-  set_status.py --manifest <versions/X.toml> --status <state> [--pin name=sha ...]
-Exit 0 = written, 1 = the manifest wasn't shaped as expected, 2 = usage.
+  set_status.py --version X.Y.Z --status <state> [--pin name=sha ...]
+Exit 0 = written, 1 = the manifest is missing or misshapen, 2 = usage.
 """
 from __future__ import annotations
 import argparse, re, sys, pathlib
 
 STATES = {"planned", "staged", "releasable", "released", "yanked"}
+VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
+VERSIONS_DIR = pathlib.Path("70-operations/versions")
 
 
-def within_cwd(raw: str) -> pathlib.Path:
-    """Resolve a CLI-supplied path, refusing anything outside the working tree."""
-    path = pathlib.Path(raw).resolve()
-    if not path.is_relative_to(pathlib.Path.cwd().resolve()):
-        print(f"::error::path escapes the working directory: {raw}")
+def manifest_for(version: str) -> pathlib.Path:
+    """The manifest path for a validated version, built from a constant base."""
+    if not VERSION_RE.match(version):
+        print(f"::error::version must be X.Y.Z, got {version!r}")
         raise SystemExit(2)
-    return path
+    return VERSIONS_DIR / f"{version}.toml"
 
 
 def parse_pins(specs: list[str]) -> list[str]:
@@ -47,12 +50,15 @@ def with_pins(text: str, pairs: list[str]) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--manifest", required=True)
+    ap.add_argument("--version", required=True)
     ap.add_argument("--status", required=True, choices=sorted(STATES))
     ap.add_argument("--pin", action="append", default=[], metavar="name=sha")
     a = ap.parse_args()
 
-    path = within_cwd(a.manifest)
+    path = manifest_for(a.version)
+    if not path.is_file():
+        print(f"::error::no manifest at {path}")
+        return 1
     text, n = re.subn(r"(?m)^status\s*=.*$", f'status  = "{a.status}"',
                       path.read_text(encoding="utf-8"))
     if n != 1:
@@ -61,7 +67,7 @@ def main() -> int:
     if a.pin:
         text = with_pins(text, parse_pins(a.pin))
 
-    within_cwd(a.manifest).write_text(text, encoding="utf-8")
+    path.write_text(text, encoding="utf-8")
     print(f"{path.name}: status={a.status}" + (f", pins={len(a.pin)}" if a.pin else ""))
     return 0
 
