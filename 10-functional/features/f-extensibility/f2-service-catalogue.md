@@ -82,11 +82,22 @@ additions a judgement against a standard rather than a matter of taste.
 
 ### Maintenance signals are tracked, not discovered late
 
-Each service records the date of its last upstream release, reviewed whenever a
-pin is bumped. A service going quiet is not itself a problem — a mature
-application may simply not need frequent releases — but it is a signal worth
-holding, because the alternative is discovering an abandoned dependency only when
-it breaks.
+Each service records the date of its last upstream release in the manifest's
+`last_release` field, reviewed whenever a pin is bumped. A service going quiet is
+not itself a problem — a mature application may simply not need frequent releases
+— but it is a signal worth holding, because the alternative is discovering an
+abandoned dependency only when it breaks.
+
+The recorded date is the latest release **upstream** has published, not the date
+the pinned version shipped. Those diverge precisely when the signal matters: a
+project that released six times since your pin is alive, and one that has
+released nothing since is the case worth noticing. A date ahead of upstream's
+actual latest release is not a stale record but a wrong one, and fails
+validation.
+
+The table below carries only services whose signal needs a judgement recorded
+against it; the dates themselves are manifest data, so they version with the
+stack rather than with this document.
 
 | Service | Signal |
 |---------|--------|
