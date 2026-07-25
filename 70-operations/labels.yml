@@ -43,6 +43,15 @@
 - name: blocked
   color: "000000"
   description: Waiting on something else
+- name: release-blocker
+  color: b60205
+  description: Must be resolved before a staged version can release
+- name: goals-change
+  color: ee0701
+  description: Alters a staged version's locked goals; needs review
+- name: scope:next
+  color: fef2c0
+  description: Out of the current staged version's scope; routed to the next
 - name: wontfix
   color: ffffff
   description: Considered and declined

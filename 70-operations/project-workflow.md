@@ -24,7 +24,7 @@ flowchart LR
 | No direct pushes to `main` | Except the admin override, recorded ([overrides](../50-governance/overrides.md)) |
 | Branch names | `type/short-description` — `feat/health-gate`, `fix/vpn-port`, `docs/forms` |
 | Branch lifetime | Short. Long-lived feature branches drift; break the work down instead |
-| No `develop` branch | Trunk-based; releases are tags off `main` |
+| No `develop` branch | Trunk-based; releases are tags off `main`. The one exception: a `release/<version>` branch for a currently-staged version ([staging.md](staging.md), OPS-R33) |
 | History | Signed commits, no AI attribution, `Spec:` trailer ([governance](../50-governance/)) |
 
 Types mirror the conventional-commit prefixes so branch, commit, and changelog
@@ -51,6 +51,9 @@ drift). Colour-coded by kind.
 | `good first issue` | help | Small, well-scoped, newcomer-friendly |
 | `help wanted` | help | Maintainers would welcome a contributor |
 | `blocked` | status | Waiting on something else |
+| `release-blocker` | status | Must be resolved before a staged version can release ([staging.md](staging.md), OPS-R44) |
+| `goals-change` | flag | Alters a staged version's locked goals; needs review (OPS-R31) |
+| `scope:next` | triage | Out of the current staged version's scope; routed to the next ([staging.md](staging.md), OPS-R42) |
 | `wontfix` | resolution | Considered and declined |
 | `duplicate` | resolution | Already tracked elsewhere |
 | `brand` | area | Design system |
@@ -94,6 +97,17 @@ The stale policy is deliberately gentle — a long grace period and an easy reop
 because an aggressive stale bot on a young project closes real issues and reads as
 hostile.
 
+## Local checks before you push
+
+A contributor should learn a PR is malformed at commit time, not after a CI
+round-trip. Each repo ships a **pre-commit hook** (via the `lefthook` config
+already present) that runs only the fast checks CI would otherwise block on:
+formatting, DCO sign-off, the conventional-commit subject, the presence of a
+`Spec:` citation, and typo/markdown lint. It deliberately does **not** re-run the
+slow gates — the full test suite, the clippy matrix, coverage — which belong in
+CI; duplicating them locally makes the hook slow enough that people disable it.
+The hook is a courtesy that catches the preventable, not a second CI.
+
 ## Feature requests are spec changes
 
 Restating the routing rule ([issue-routing](../50-governance/issue-routing.md))
@@ -104,7 +118,7 @@ implementation repo. It becomes a requirement first, then work.
 
 | ID | Requirement |
 |----|-------------|
-| **OPS-R10** | The project MUST use a trunk-based model: one protected `main`, short-lived branches, PR-only merges. |
+| **OPS-R10** | The project MUST use a trunk-based model: one protected `main`, short-lived branches, PR-only merges. The sole exception is a `release/<version>` branch for a currently-staged version ([staging.md](staging.md), OPS-R33). |
 | **OPS-R11** | Branch and commit types MUST share the conventional-commit vocabulary. |
 | **OPS-R12** | The same canonical label set MUST exist on every repo, applied by automation rather than by hand. |
 | **OPS-R13** | `spec-change` and `needs-spec` labels MUST exist and MUST reflect the canonical-spec workflow. |
@@ -112,9 +126,11 @@ implementation repo. It becomes a requirement first, then work.
 | **OPS-R15** | A stale policy MUST have a generous grace period and an easy reopen path. |
 | **OPS-R21** | PR commit subjects MUST follow the conventional-commit format, enforced by a commit-lint check. |
 | **OPS-R22** | PRs MUST be auto-labelled by changed path. |
+| **OPS-R51** | Each repo MUST ship a pre-commit hook that runs the fast CI-blocking checks locally — formatting, DCO sign-off, conventional-commit subject, a `Spec:` citation, and typo/markdown lint — and MUST NOT duplicate the slow gates (tests, clippy, coverage). |
 
 ## Related
 
 - [releasing.md](releasing.md) — tags off `main`
+- [staging.md](staging.md) — the release train and the OPS-R33 branch exception
 - [50-governance/](../50-governance/) — the PR gate and issue routing
 - [00-overview/roadmap.md](../00-overview/roadmap.md) — the milestones
