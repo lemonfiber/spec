@@ -55,3 +55,21 @@
 - name: governance
   color: bfd4f2
   description: The rules of change
+- name: adapters
+  color: 1d76db
+  description: The code that talks to the outside world (Docker, HTTP, processes)
+- name: core
+  color: 0e8a16
+  description: The logic that renders nothing — lemonfiber-core
+- name: cli
+  color: 6f42c1
+  description: The command-line surface
+- name: manifest
+  color: b08800
+  description: The stack manifest — schema and validation
+- name: stack
+  color: 0b6e4f
+  description: The media stack the tool operates
+- name: ci
+  color: 5a6772
+  description: Pipelines, workflows, and release engineering

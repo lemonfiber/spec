@@ -55,6 +55,12 @@ drift). Colour-coded by kind.
 | `duplicate` | resolution | Already tracked elsewhere |
 | `brand` | area | Design system |
 | `governance` | area | The rules of change |
+| `adapters` | area | The code that talks to the outside world |
+| `core` | area | The logic that renders nothing |
+| `cli` | area | The command-line surface |
+| `manifest` | area | The stack manifest — schema and validation |
+| `stack` | area | The media stack the tool operates |
+| `ci` | area | Pipelines, workflows, and release engineering |
 
 Two labels are project-specific and load-bearing: **`spec-change`** and
 **`needs-spec`** encode the canonical-spec workflow — an issue tagged `needs-spec`
