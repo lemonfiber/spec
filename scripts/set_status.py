@@ -61,7 +61,7 @@ def main() -> int:
     if a.pin:
         text = with_pins(text, parse_pins(a.pin))
 
-    path.write_text(text, encoding="utf-8")
+    within_cwd(a.manifest).write_text(text, encoding="utf-8")
     print(f"{path.name}: status={a.status}" + (f", pins={len(a.pin)}" if a.pin else ""))
     return 0
 
