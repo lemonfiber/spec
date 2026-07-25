@@ -22,24 +22,29 @@ from __future__ import annotations
 import argparse, re, subprocess, sys, tomllib, pathlib
 
 # Same citation grammar the spec's own checks use (spec_check.py).
-CITE = re.compile(r"\b([A-Z]+[0-9]*-R[0-9]+)\b")
-TRAILER = re.compile(r"^\s*Spec:\s*(.+)$", re.M | re.I)
+CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
+TRAILER = re.compile(r"(?im)^[ \t]*Spec:[ \t]*(\S.*)$")
 # A done-marking status row, with an explicit ID range: C1-R1..R12 or C1-R1..C1-R12.
-RANGE = re.compile(r"\b([A-Z]+[0-9]*)-R([0-9]+)\.\.(?:[A-Z]+[0-9]*-)?R?([0-9]+)\b")
+RANGE = re.compile(r"\b([A-Z]+\d*)-R(\d+)\.\.(?:[A-Z]+\d*-)?R?(\d+)\b")
+
+
+def within_cwd(raw: str) -> pathlib.Path:
+    """Resolve a CLI-supplied path, refusing anything outside the working tree."""
+    path = pathlib.Path(raw).resolve()
+    if not path.is_relative_to(pathlib.Path.cwd().resolve()):
+        print(f"::error::path escapes the working directory: {raw}")
+        raise SystemExit(2)
+    return path
 
 
 def cited_ids(repo_paths: dict[str, pathlib.Path]) -> set[str]:
-    """Every requirement ID cited in a `Spec:` trailer on any target repo's main."""
+    """Every requirement ID cited in a `Spec:` trailer on any target repo."""
     found: set[str] = set()
-    for name, path in repo_paths.items():
-        try:
-            log = subprocess.run(
-                ["git", "-C", str(path), "log", "--format=%B"],
-                capture_output=True, text=True, check=True,
-            ).stdout
-        except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-            print(f"::error::cannot read git log for {name} at {path}: {exc}")
-            raise
+    for path in repo_paths.values():
+        log = subprocess.run(
+            ["git", "-C", str(path), "log", "--format=%B"],
+            capture_output=True, text=True, check=True,
+        ).stdout
         for trailer in TRAILER.findall(log):
             found.update(CITE.findall(trailer))
     return found
@@ -53,9 +58,27 @@ def done_ids(status: pathlib.Path) -> set[str]:
             continue
         for prefix, lo, hi in RANGE.findall(line):
             done.update(f"{prefix}-R{n}" for n in range(int(lo), int(hi) + 1))
-        # A range also matches CITE for its first ID; the explicit adds do no harm.
         done.update(CITE.findall(line))
     return done
+
+
+def load_goals(manifest: pathlib.Path) -> list[str]:
+    goals = tomllib.loads(manifest.read_text(encoding="utf-8")).get("goals", [])
+    if not goals:
+        print(f"::error::{manifest} locks no goals")
+        raise SystemExit(2)
+    return goals
+
+
+def parse_repos(specs: list[str]) -> dict[str, pathlib.Path]:
+    repos: dict[str, pathlib.Path] = {}
+    for spec in specs:
+        if "=" not in spec:
+            print(f"::error::--repo wants name=path, got {spec!r}")
+            raise SystemExit(2)
+        name, _, raw = spec.partition("=")
+        repos[name] = within_cwd(raw)
+    return repos
 
 
 def main() -> int:
@@ -65,45 +88,24 @@ def main() -> int:
     ap.add_argument("--status", required=True)
     a = ap.parse_args()
 
-    manifest = pathlib.Path(a.manifest)
-    if not manifest.is_file():
-        print(f"::error::manifest not found: {manifest}")
-        return 2
-    data = tomllib.loads(manifest.read_text(encoding="utf-8"))
-    goals: list[str] = data.get("goals", [])
-    if not goals:
-        print(f"::error::{manifest} locks no goals")
-        return 2
-
-    repo_paths: dict[str, pathlib.Path] = {}
-    for spec in a.repo:
-        if "=" not in spec:
-            print(f"::error::--repo wants name=path, got {spec!r}")
-            return 2
-        name, _, path = spec.partition("=")
-        repo_paths[name] = pathlib.Path(path)
-
-    status = pathlib.Path(a.status)
-    if not status.is_file():
-        print(f"::error::status file not found: {status}")
-        return 2
-
+    manifest = within_cwd(a.manifest)
+    goals = load_goals(manifest)
+    repo_paths = parse_repos(a.repo)
     cited = cited_ids(repo_paths)
-    done = done_ids(status)
+    done = done_ids(within_cwd(a.status))
 
-    unmet: list[str] = []
     print(f"gate: {manifest.name} — {len(goals)} goals across {', '.join(repo_paths) or 'no repos'}\n")
+    unmet: list[str] = []
     for goal in goals:
         c, d = goal in cited, goal in done
-        mark = "✓" if (c and d) else "✗"
-        print(f"  {mark} {goal:12}  cited={'yes' if c else 'NO '}  tracked-done={'yes' if d else 'NO '}")
+        print(f"  {'✓' if c and d else '✗'} {goal:12}  cited={'yes' if c else 'NO '}  tracked-done={'yes' if d else 'NO '}")
         if not (c and d):
             unmet.append(goal)
 
     if unmet:
         print(f"\n::error::not releasable — {len(unmet)} goal(s) unmet: {', '.join(unmet)}")
         return 1
-    print(f"\ngate: releasable — every goal satisfied.")
+    print("\ngate: releasable — every goal satisfied.")
     return 0
 
 
