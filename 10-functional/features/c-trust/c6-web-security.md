@@ -31,6 +31,23 @@ which exposes every admin service — most with weak or disabled default
 authentication — to every device on the network, including ones the operator
 doesn't administer.
 
+### What "LAN" means to a container, stated honestly
+
+The admin tier is exact: `127.0.0.1`, and nothing else resolves to it.
+
+The household tier cannot be, and pretending otherwise would be the dishonesty
+this feature exists to avoid. A published container port takes a host address,
+and the stack has no way to learn which of the host's addresses is the LAN one —
+that varies by machine, changes with DHCP, and is different again on a laptop
+that moves. So the household tier's default is every interface, and the operator
+is told so plainly rather than being sold a precision that isn't there.
+
+What the stack owes in exchange is a single, documented knob that narrows it — a
+publish address the operator can pin to one interface — and a diagnostic that
+reports what is *actually* listening rather than what was intended (`C6-R17`,
+`C6-R13`). "Bound to the LAN" is the intent; "published on every interface unless
+you say otherwise" is the fact, and the fact is what gets written down.
+
 ### Admin exposure requires authentication, enforced by refusal
 
 Binding lemonfiber's own UI beyond loopback is opt-in, and is **refused** unless
@@ -105,7 +122,7 @@ listening, not what was intended.
 |----|-------------|
 | **C6-R1** | Admin services MUST bind to loopback by default. |
 | **C6-R2** | Household-facing services MUST bind to the LAN by default. |
-| **C6-R3** | No service MAY bind to all interfaces by default. |
+| **C6-R3** | No **admin** service MAY bind to all interfaces by default. |
 | **C6-R4** | LAN binding of lemonfiber's UI MUST be refused unless authentication is configured. |
 | **C6-R5** | Removing authentication while LAN-bound MUST immediately revert to loopback. |
 | **C6-R6** | lemonfiber MUST state plainly when it is serving unencrypted HTTP. |
@@ -119,6 +136,10 @@ listening, not what was intended.
 | **C6-R14** | Binding policy MUST apply equally to IPv4 and IPv6. |
 | **C6-R15** | Deliberate exposure of an admin service MUST require explicit acknowledgement and MUST be recorded. |
 | **C6-R16** | Where Docker port publishing bypasses the host firewall, lemonfiber MUST warn. |
+| **C6-R17** | The interface household services publish on MUST be operator-configurable through a single documented setting, and where it defaults to all interfaces that MUST be stated plainly alongside its consequences. |
+
+**Affected repos** (`GOV-R7`): `media-stack` publishes the household tier on a
+configurable address; `lemonfiber` reports the observed binding under `C6-R13`.
 
 ## Related
 

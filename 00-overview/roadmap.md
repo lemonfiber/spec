@@ -52,13 +52,12 @@ gates on it earlier.
 
 | Deliverable | Notes |
 |-------------|-------|
-| `compose.yml` | All 19 services, one atomic profile each, pinned image tags |
+| `compose.yml` + `compose/` | All 19 services, one fragment per profile, one atomic profile each, pinned image tags |
 | `stack.toml` | Manifest: services, profiles, forms, ports, health endpoints |
 | `.env.example` | Every variable documented inline |
 | Storage overlay | `stacks/compose.storage.nas.yml` |
-| Proxy overlay | `stacks/compose.proxy.yml` (Caddy, off by default) |
 | Service configs | `recyclarr/`, `homepage/`, `caddy/` |
-| CI | `docker compose config` validation per form; no-cross-profile-`depends_on` lint |
+| CI | Per-form `docker compose config`; manifest ↔ compose parity; mount, binding, killswitch and tag lints, each with a negative test |
 | `README.md` | Standalone usage without lemonfiber |
 
 **Exit criteria:** every form starts cleanly via raw `docker compose --profile …`;

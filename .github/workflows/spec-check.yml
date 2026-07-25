@@ -6,11 +6,15 @@
 #
 # Defined once here so the rule has exactly one implementation and cannot drift
 # between repos. See spec 50-governance/cross-repo-ci.md.
+#
+# `workflow_call` only. This repo is the source of citations rather than a
+# consumer of them, and a spec PR introducing a requirement cannot cite an
+# identifier that exists on main only once that PR has merged. Citations here are
+# checked by integrity.py, which resolves them against the tree under review.
 name: spec-check
 
 on:
   workflow_call:
-  pull_request:
 
 permissions:
   contents: read
