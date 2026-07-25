@@ -140,29 +140,46 @@ gluetun:
     VPN_TYPE: wireguard
     VPN_PORT_FORWARDING: ${VPN_PORT_FORWARDING:-off}
     VPN_PORT_FORWARDING_PROVIDER: ${VPN_PROVIDER}
-    VPN_PORT_FORWARDING_UP_COMMAND: >-
-      /bin/sh -c 'wget -qO- --post-data
-      "json={\"listen_port\":{{PORT}}}"
-      http://127.0.0.1:8081/api/v2/app/setPreferences'
-    VPN_PORT_FORWARDING_DOWN_COMMAND: >-
-      /bin/sh -c 'wget -qO- --post-data
-      "json={\"listen_port\":0}"
-      http://127.0.0.1:8081/api/v2/app/setPreferences'
+    PORT_FORWARD_ONLY: ${VPN_PORT_FORWARDING:-off}
+    QBT_USERNAME: ${QBITTORRENT_USERNAME:-admin}
+    QBT_PASSWORD: ${QBITTORRENT_PASSWORD:-}
+    VPN_PORT_FORWARDING_UP_COMMAND: /bin/sh /gluetun/push-port.sh {{PORT}}
+    VPN_PORT_FORWARDING_DOWN_COMMAND: /bin/sh /gluetun/push-port.sh 0
 
 qbittorrent:
   network_mode: "service:gluetun"
   depends_on: [gluetun]
 ```
 
-Two things worth stating, both verified against Gluetun's own docs:
+Where the push authenticates, logs in for a session cookie, then sets the port:
+
+```sh
+wget -qO- --keep-session-cookies --save-cookies "$jar" \
+  --post-data "username=$QBT_USERNAME&password=$QBT_PASSWORD" \
+  http://127.0.0.1:8081/api/v2/auth/login | grep -q 'Ok.' || exit 1
+wget -qO- --load-cookies "$jar" --post-data "json={\"listen_port\":$1}" \
+  http://127.0.0.1:8081/api/v2/app/setPreferences
+```
+
+Four things worth stating:
 
 - **The `UP_COMMAND`/`DOWN_COMMAND` pair is how the dynamic forwarded port
   reaches qBittorrent** — on acquire *and* on release. The DOWN command is not
   optional: without it qBittorrent won't re-acquire correctly after a reconnect
   (`C2-R19`).
+- **The push must authenticate.** qBittorrent's WebUI API requires a session,
+  and an unauthenticated `setPreferences` is answered `403 Forbidden`. The port
+  is then granted by the provider and discarded by the stack, with no symptom
+  beyond the peer connectivity that forwarding existed to buy. The credentials
+  live in the operator's environment, and `--keep-session-cookies` is required
+  because the `SID` cookie is a session cookie (`REPO-R38`).
 - **`VPN_PORT_FORWARDING` defaults to `off`** and is enabled only for
   port-forwarding-capable providers. On NordVPN, Mullvad and the rest it stays
   off, and the port machinery simply doesn't run (`C2-R16`).
+- **`PORT_FORWARD_ONLY` is tied to the same switch.** Asking for a port does not
+  constrain which server is selected; without this the tunnel can come up on a
+  server that cannot forward, which presents identically to a credential
+  generated without port forwarding (`REPO-R22`).
 
 ## Storage overlay
 
@@ -236,6 +253,7 @@ CI then holds it to every rule above. This is the whole of
 | **REPO-R35** | Every service MUST be reachable through the main Compose project, so that every form starts under bare `docker compose` with no additional `-f` argument. |
 | **REPO-R36** | Manifest ↔ compose checks MUST be performed against the resolved Compose model, never against the source YAML. |
 | **REPO-R37** | Every stack rule enforced in CI MUST have a negative test that breaks the rule and asserts the violation is reported. |
+| **REPO-R38** | The forwarded-port push MUST authenticate against the download client's API, and where no credentials are configured it MUST say the port was not pushed rather than fail silently. |
 
 **Affected repos** (`GOV-R7`): `media-stack`.
 
