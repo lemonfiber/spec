@@ -61,6 +61,12 @@ forms change. `min_cli_version` lets a stack refuse an older binary.
 id          = "tv"
 name        = "Television"
 description = "Automated television acquisition"
+
+[[profile]]
+id          = "torrent"
+name        = "Torrents"
+description = "Torrent downloading, VPN-isolated"
+protocol    = "torrent"
 ```
 
 | Field | Type | Required | Notes |
@@ -68,6 +74,27 @@ description = "Automated television acquisition"
 | `id` | string | ✔ | Unique. Must match a Compose profile name exactly. |
 | `name` | string | ✔ | Human-facing |
 | `description` | string | ✔ | Shown in form previews |
+| `protocol` | enum | | `usenet` \| `torrent`. Present only on a profile that cannot run without a configured provider. |
+
+### `protocol` — what makes the intersection possible
+
+[B1-R4](../../10-functional/features/b-running/b1-forms.md) requires a closure to
+be intersected with the operator's configured protocols before anything starts.
+Nothing in this contract said *which* profiles that applies to, so the only way
+to satisfy it was for lemonfiber to know the strings `usenet` and `torrent` —
+per-service knowledge in code, which is the one thing this file exists to
+prevent.
+
+`protocol` supplies it as data. A profile that declares one cannot run unless the
+operator has configured that provider; a profile that declares none is never
+narrowed away.
+
+The consequence of getting this wrong is not cosmetic. A torrent profile started
+without a configured VPN brings up the tunnel container with no credentials, and
+the failure mode of a VPN that is not actually protecting anything is the one
+failure in this product with consequences outside the machine.
+
+A fork that renames its profiles keeps working, which was the point.
 
 ## `[[form]]`
 
@@ -206,6 +233,8 @@ Validation reports **every** violation in one pass, each naming its location
 | `license` is a recognised OSI identifier | Service and licence named (`F2-R5`) |
 | `last_release` is `YYYY-MM-DD` and not in the future | Service and value named (`F2-R14`) |
 | `capabilities` within the allow-list | Service and capability named |
+| `protocol` is a permitted value | Profile and value named |
+| At most one profile per `protocol` | Both profiles named |
 | Manifest services match `compose.yml` services exactly | Divergence listed both ways |
 
 That last rule matters more than it looks: a manifest describing a service that
@@ -232,11 +261,13 @@ description = "Finding things"
 id = "usenet"
 name = "Usenet"
 description = "Usenet downloading"
+protocol = "usenet"
 
 [[profile]]
 id = "torrent"
 name = "Torrents"
 description = "Torrent downloading, VPN-isolated"
+protocol = "torrent"
 
 [[profile]]
 id = "tv"
