@@ -72,6 +72,7 @@ An incompatible pairing cannot ship.
 | Change | `schema_version` |
 |--------|------------------|
 | Add an optional field | Unchanged |
+| Add a field whose **absence** the reader must be able to trust | **Increment** |
 | Add a required field | **Increment** |
 | Remove or rename a field | **Increment** |
 | Change a field's type or meaning | **Increment** |
@@ -81,6 +82,36 @@ An incompatible pairing cannot ship.
 Adding an enum value increments deliberately: a stricter parser rejecting an
 unknown `criticality` is correct behaviour, and pretending otherwise produces a
 failure that looks like corruption.
+
+The absence row is subtler and was learned rather than designed. An optional field
+is usually compatible because a reader that ignores it behaves as it always did.
+It is *not* compatible when the reader draws a conclusion from the field being
+**absent** — an older manifest, which simply predates the field, is then
+indistinguishable from a newer one declaring the answer is "none".
+
+## Before the first release candidate
+
+None of the above binds yet.
+
+`schema_version` protects readers, and until a release candidate ships there are
+no readers to protect: the stack is embedded, both repositories move together,
+and the only manifest any binary has ever seen is the one it was built against.
+Incrementing now would buy nothing and cost a predecessor parser to maintain,
+plus a compatibility window to test, for a generation nobody ran.
+
+So until the first release candidate, **the schema changes in place**. Fields are
+added, removed and given new meanings at `schema_version = 1`, and the pairing
+stays honest because the build refuses a stack it cannot read
+([ADR-0005](../../00-overview/decisions/0005-embedded-stack-assets.md)) rather
+than because a number moved.
+
+From the first release candidate the table above binds, and the first breaking
+change after it increments.
+
+This is written down because the alternative is doing it by accident. A required
+field was already added at `schema_version = 1` before this section existed —
+correct in substance, undocumented in intent, and indistinguishable from an
+oversight by anyone reading later.
 
 ## Supported window
 
@@ -126,6 +157,7 @@ pattern-matching output shapes.
 | **ARCH-R8** | Adding a permitted enum value MUST increment `schema_version`. |
 | **ARCH-R9** | Machine-readable output MUST carry an `api_version`. |
 | **ARCH-R10** | Configuration written by a newer binary MUST be refused, never modified. |
+| **ARCH-R43** | Before the first release candidate `schema_version` MUST NOT increment; the schema changes in place, and the build-time refusal is what keeps a pairing honest. |
 
 ## Related
 

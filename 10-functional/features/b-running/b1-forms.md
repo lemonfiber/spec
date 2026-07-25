@@ -135,6 +135,7 @@ change to `lemonfiber` and no release — see
 | **B1-R12** | A form referencing an undeclared profile MUST fail manifest validation at load time. |
 | **B1-R13** | `library` MUST be startable with no third-party accounts configured. |
 | **B1-R14** | No service MAY declare a `depends_on` crossing a profile boundary, except within a profile whose services are always co-activated. |
+| **B1-R15** | Which profiles require a configured provider MUST be declared by the manifest; lemonfiber MUST NOT identify them by name. |
 
 ## Related
 
