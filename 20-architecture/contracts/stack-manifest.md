@@ -110,7 +110,7 @@ bind        = "loopback"
 health      = { kind = "http", path = "/ping", timeout_s = 60 }
 api         = { kind = "servarr", key_source = "config-xml", path = "/config/config.xml" }
 criticality = "core"
-license     = "GPL-3.0"
+license     = "GPL-3.0-only"
 upstream    = "https://github.com/Sonarr/Sonarr"
 describes   = "Watches for new episodes and fetches them"
 without_it  = "Find and download episodes yourself"
@@ -272,13 +272,13 @@ id = "prowlarr"
 name = "Prowlarr"
 profile = "search"
 image = "lscr.io/linuxserver/prowlarr"
-tag = "1.28.1"
+tag = "2.5.2"
 port = 9696
 bind = "loopback"
 health = { kind = "http", path = "/ping", timeout_s = 60 }
 api = { kind = "servarr", key_source = "config-xml", path = "/config/config.xml" }
 criticality = "core"
-license = "GPL-3.0"
+license = "GPL-3.0-only"
 upstream = "https://github.com/Prowlarr/Prowlarr"
 describes = "Holds your indexer accounts in one place and shares them with everything else"
 without_it = "Every app needs indexers configured separately"
@@ -288,11 +288,11 @@ id = "gluetun"
 name = "Gluetun"
 profile = "torrent"
 image = "qmcgaw/gluetun"
-tag = "3.40.0"
+tag = "v3.40.0"
 health = { kind = "container" }
 criticality = "critical"
 license = "MIT"
-upstream = "https://github.com/passteque/gluetun"
+upstream = "https://github.com/qdm12/gluetun"
 describes = "Routes torrent traffic through your VPN and blocks it if the VPN drops"
 without_it = "Your home IP is visible to every peer"
 capabilities = ["NET_ADMIN"]
@@ -308,7 +308,7 @@ bind = "loopback"
 health = { kind = "http", path = "/api/v2/app/version", timeout_s = 60 }
 api = { kind = "qbittorrent", key_source = "none" }
 criticality = "core"
-license = "GPL-2.0"
+license = "GPL-2.0-only"
 upstream = "https://github.com/qbittorrent/qBittorrent"
 describes = "Downloads torrents"
 without_it = "No torrent downloads"
@@ -325,7 +325,7 @@ bind = "loopback"
 health = { kind = "http", path = "/ping", timeout_s = 90 }
 api = { kind = "servarr", key_source = "config-xml", path = "/config/config.xml" }
 criticality = "core"
-license = "GPL-3.0"
+license = "GPL-3.0-only"
 upstream = "https://github.com/Sonarr/Sonarr"
 describes = "Watches for new episodes and fetches them"
 without_it = "Find and download episodes yourself"
