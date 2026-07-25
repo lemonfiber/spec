@@ -154,7 +154,7 @@ process-gated (`B2-R1`), so this is what "started" actually means.
 ```toml
 api = { kind = "servarr",  key_source = "config-xml", path = "/config/config.xml" }
 api = { kind = "sabnzbd",  key_source = "config-ini", path = "/config/sabnzbd.ini" }
-api = { kind = "qbittorrent", key_source = "none" }
+api = { kind = "qbittorrent", key_source = "generated" }
 api = { kind = "seerr",    key_source = "api-settings" }
 api = { kind = "bindery",  key_source = "config-json", path = "/config/config.json" }
 ```
@@ -162,6 +162,21 @@ api = { kind = "bindery",  key_source = "config-json", path = "/config/config.js
 `kind` selects the client implementation. `servarr` covers Sonarr, Radarr, Lidarr
 and Prowlarr, since they share an API shape — which is what makes one client
 sufficient for four services.
+
+`key_source` says where the credential comes from:
+
+| Value | Meaning |
+|-------|---------|
+| `config-xml`, `config-ini`, `config-json` | The service mints it and writes it to `path`; lemonfiber reads it |
+| `api-settings` | Retrieved over the service's own API once authenticated |
+| `generated` | The service offers nothing durable to read, so lemonfiber generates the credential, sets it, and records it for its consumers (`A7-R14`) |
+| `none` | The API needs no credential at all |
+
+`generated` exists because qBittorrent mints only a *temporary* WebUI password
+and asks for it to be replaced. It also has a consumer that is not a service —
+the VPN's forwarded-port push authenticates against the same WebUI API, so the
+recorded value has to reach the stack's environment and not only lemonfiber's own
+store.
 
 **Bindery is deliberately its own kind.** It is not a Servarr application, and
 Prowlarr's app sync does not cover it (`D1-R15`).
@@ -306,7 +321,7 @@ tag = "5.0.3"
 port = 8081
 bind = "loopback"
 health = { kind = "http", path = "/api/v2/app/version", timeout_s = 60 }
-api = { kind = "qbittorrent", key_source = "none" }
+api = { kind = "qbittorrent", key_source = "generated" }
 criticality = "core"
 license = "GPL-2.0-only"
 upstream = "https://github.com/qbittorrent/qBittorrent"

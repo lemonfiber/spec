@@ -27,10 +27,19 @@ Each service generates its own API key on first start and writes it to its
 configuration. lemonfiber reads them directly. The operator never sees or handles
 them — the copying *is* the problem being solved.
 
+**qBittorrent is the exception, and it runs the other way.** It mints a
+*temporary* WebUI password on every start and asks for it to be replaced, so
+there is nothing durable to read. lemonfiber therefore generates the password,
+sets it, and records it where the VPN's forwarded-port push can authenticate with
+it (`D1-R16`). Without that step the tunnel acquires a port on every connect and
+cannot apply it, which reports as healthy and costs the operator the peer
+connectivity port forwarding exists to buy.
+
 ### The wiring graph
 
 | From | To | What |
 |------|-----|------|
+| lemonfiber | qBittorrent | **WebUI password** — generated, set, and recorded for the forwarded-port push |
 | SABnzbd, qBittorrent | Sonarr, Radarr, Lidarr, Bindery | Download client registration with categories |
 | Prowlarr | Sonarr, Radarr, Lidarr | Indexer sync (native app sync) |
 | Prowlarr | Bindery | Indexer endpoints (**manual — see below**) |
@@ -126,6 +135,7 @@ Per connection:
 | **D1-R13** | Interruption MUST leave every completed connection intact and valid. |
 | **D1-R14** | A full seed against a healthy stack SHOULD complete within 60 seconds. |
 | **D1-R15** | Bindery MUST be wired via Torznab endpoints, and the absence of Prowlarr app sync MUST be documented in-product. |
+| **D1-R16** | Seeding MUST replace qBittorrent's temporary WebUI password with a generated one and record it where the forwarded-port push reads it. |
 
 ## Related
 
