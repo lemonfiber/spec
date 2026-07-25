@@ -14,8 +14,11 @@ do I do and what happens?"* The version *model* lives in
 
 ## Each repo releases on its own clock
 
-The four version streams ([versioning](../20-architecture/contracts/versioning.md))
-mean the repos release independently — that's the point of the decoupling.
+The four repos are the independent release **streams** — that's the point of the
+decoupling. (Distinct from the three version *identifiers* the binary and manifest
+carry — `lemonfiber`, `stack_version`, `schema_version` — defined in
+[versioning](../20-architecture/contracts/versioning.md); a "stream" is a repo
+that tags, a "version" is a number it carries.)
 
 | Repo | Release trigger | Produces |
 |------|-----------------|----------|
@@ -140,6 +143,7 @@ Both are documented as manual steps ([Q-R60](../40-quality/tooling.md)), like `S
 
 ## Related
 
+- [staging.md](staging.md) — the spec-led, cross-repo release train this cut sits inside
 - [versioning](../20-architecture/contracts/versioning.md) — the version model this process applies
 - [ci-cd.md](../40-quality/ci-cd.md) — the pipeline stages
 - [tooling.md](../40-quality/tooling.md) — cargo-dist, git-cliff

@@ -1,0 +1,7 @@
+# Copy to <version>.toml and fill in. See README.md for the contract.
+version = "0.0.0"         # the release; matches the eventual tag v<version>
+status  = "planned"       # planned → staged → releasable → released → yanked
+repos   = ["lemonfiber", "media-stack"]   # streams this version cuts; never "brand"
+goals   = []              # locked Accepted requirement IDs, seeded from a milestone (OPS-R30)
+
+# [pins] is written by execute-version (OPS-R35); leave it out while staging.
