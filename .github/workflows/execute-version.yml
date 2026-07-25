@@ -1,0 +1,164 @@
+# Execute a staged (or fast-lane) version — OPS-R34, R35, R36, R50.
+#
+# Gates on every locked goal being satisfied, checks the streams still agree,
+# then tags each target repo (an App-token tag DOES trigger their release.yml,
+# unlike GITHUB_TOKEN), records the pins, flips the manifest to `released` via an
+# auto-merged verified PR, and announces. The drafts the tags produce still need a
+# human to publish (releasing.md step 3). Maintainer-only. dry_run defaults on:
+# the first run of any version verifies without tagging anything.
+name: execute-version
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to execute, e.g. 0.1.0 — its versions/<v>.toml must be staged or releasable."
+        required: true
+      dry_run:
+        description: "Run the gate and compat checks but tag nothing."
+        type: boolean
+        default: true
+permissions:
+  contents: read
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.finish.outputs.released }}
+    steps:
+      - name: Gate to maintainers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          perm=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          case "$perm" in
+            admin|maintain) echo "${ACTOR} is a maintainer (${perm})." ;;
+            *) echo "::error::${ACTOR} lacks maintainer permission (${perm})."; exit 1 ;;
+          esac
+      - name: Validate the version string
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "::error::version must be X.Y.Z, got '${VERSION}'."; exit 1; }
+      - name: Mint the release App token
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          fetch-depth: 0
+      - name: Read the manifest and clone its repos
+        id: read
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          man="70-operations/versions/${VERSION}.toml"
+          [ -f "$man" ] || { echo "::error::no manifest at ${man}"; exit 1; }
+          echo "manifest=${man}" >> "$GITHUB_OUTPUT"
+          python3 - "$man" > repos.txt <<'PY'
+          import sys, tomllib
+          d = tomllib.load(open(sys.argv[1], "rb"))
+          st = d.get("status")
+          if st not in ("staged", "releasable"):
+              sys.exit(f"::error::{sys.argv[1]} is '{st}', not staged/releasable")
+          print("\n".join(d["repos"]))
+          PY
+          while read -r r; do
+            [ -n "$r" ] || continue
+            git clone --quiet --depth 200 \
+              "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${r}.git" "checkouts/${r}"
+          done < repos.txt
+      - name: Gate — every goal satisfied (OPS-R34)
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          args=()
+          while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < repos.txt
+          python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" \
+            "${args[@]}" --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md"
+      - name: Cross-stream compatibility (OPS-R35)
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          stack="checkouts/media-stack/stack.toml"
+          if [ -f "$stack" ]; then
+            mincli=$(grep -m1 -E '^min_cli_version' "$stack" | sed -E 's/.*"(.*)".*/\1/')
+            # The binary version must be >= the stack's declared minimum.
+            if [ "$(printf '%s\n%s\n' "$mincli" "$VERSION" | sort -V | head -1)" != "$mincli" ]; then
+              echo "::error::stack needs cli >= ${mincli}, releasing ${VERSION}"; exit 1
+            fi
+            echo "compat ok: binary ${VERSION} >= min_cli ${mincli}"
+          fi
+          echo "STACK_PIN=$(git -C checkouts/media-stack rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Dry run — stop before tagging
+        if: ${{ inputs.dry_run }}
+        run: echo "::notice title=Dry run::Gate and compat passed. Re-run with dry_run=false to tag and release."
+      - name: Tag the target repos
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          while read -r r; do
+            [ -n "$r" ] || continue
+            sha=$(git -C "checkouts/${r}" rev-parse HEAD)
+            gh api --method POST "repos/${OWNER}/${r}/git/refs" \
+              -f ref="refs/tags/v${VERSION}" -f sha="${sha}"
+            echo "tagged ${r} @ ${sha:0:8} as v${VERSION}"
+          done < repos.txt
+      - name: Record the release in the manifest (auto-merged, verified)
+        id: finish
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          man="70-operations/versions/${VERSION}.toml"
+          python3 scripts/set_status.py --manifest "$man" --status released --pin "media-stack=${STACK_PIN}"
+          # The App bot's own identity, so the DCO sign-off matches the commit author.
+          who=$(gh api /user --jq '{login: .login, id: .id}')
+          login=$(echo "$who" | python3 -c 'import json,sys;print(json.load(sys.stdin)["login"])')
+          uid=$(echo "$who" | python3 -c 'import json,sys;print(json.load(sys.stdin)["id"])')
+          email="${uid}+${login}@users.noreply.github.com"
+          branch="release/${VERSION}-released"
+          base_sha=$(gh api "repos/${OWNER}/spec/git/ref/heads/main" --jq '.object.sha')
+          gh api --method POST "repos/${OWNER}/spec/git/refs" -f ref="refs/heads/${branch}" -f sha="${base_sha}" || true
+          blob_sha=$(gh api "repos/${OWNER}/spec/contents/${man}?ref=${branch}" --jq '.sha')
+          msg=$(printf 'chore(release): %s → released\n\nRecorded by execute-version.\n\nSpec: OPS-R32, OPS-R35\nSigned-off-by: %s <%s>' "$VERSION" "$login" "$email")
+          gh api --method PUT "repos/${OWNER}/spec/contents/${man}" \
+            -f message="$msg" -f branch="$branch" \
+            -f sha="$blob_sha" \
+            -f content="$(base64 < "$man" | tr -d '\n')" \
+            -f "committer[name]=${login}" -f "committer[email]=${email}" \
+            -f "author[name]=${login}" -f "author[email]=${email}"
+          url=$(gh pr create --repo "${OWNER}/spec" --base main --head "$branch" \
+            --title "chore(release): ${VERSION} → released" \
+            --body "Automated manifest transition. Spec: OPS-R32, OPS-R35")
+          gh pr merge "$url" --auto --squash
+          echo "released=true" >> "$GITHUB_OUTPUT"
+  announce:
+    needs: execute
+    if: ${{ needs.execute.outputs.released == 'true' }}
+    uses: lemonfiber/spec/.github/workflows/discord-notify.yml@5c97eb3535dddf1a74c0efae88d759b01dbc8188 # main
+    with:
+      title: "🍋 Release train — ${{ inputs.version }} executed"
+      body: "Tags are cut and drafts are up for review. Publish the drafts to announce."
+      color: "16309767"
+    secrets:
+      webhook: ${{ secrets.DISCORD_ANNOUNCE_WEBHOOK }}
