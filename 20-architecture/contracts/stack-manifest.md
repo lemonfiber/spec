@@ -112,6 +112,7 @@ api         = { kind = "servarr", key_source = "config-xml", path = "/config/con
 criticality = "core"
 license     = "GPL-3.0-only"
 upstream    = "https://github.com/Sonarr/Sonarr"
+last_release = "2026-06-26"
 describes   = "Watches for new episodes and fetches them"
 without_it  = "Find and download episodes yourself"
 media_types = ["tv"]
@@ -131,6 +132,7 @@ media_types = ["tv"]
 | `criticality` | enum | ✔ | `critical` \| `core` \| `important` \| `enhancing` \| `optional` (`F2-R3`) |
 | `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`). |
 | `upstream` | string | ✔ | Project URL, for maintenance review (`F2-R14`) |
+| `last_release` | string | ✔ | `YYYY-MM-DD`. The **latest upstream release**, not the pinned one — an abandonment signal, refreshed when the pin is reviewed (`F2-R14`) |
 | `describes` | string | ✔ | What it does *for the operator* (`F2-R1`) |
 | `without_it` | string | ✔ | Consequence of its absence (`F2-R2`) |
 | `media_types` | array | | Which media types it handles; drives root-folder seeding |
@@ -202,6 +204,7 @@ Validation reports **every** violation in one pass, each naming its location
 | `tag` is not `latest` or otherwise floating | Service named (`E1-R1`) |
 | `bind` present when `port` is | Service named |
 | `license` is a recognised OSI identifier | Service and licence named (`F2-R5`) |
+| `last_release` is `YYYY-MM-DD` and not in the future | Service and value named (`F2-R14`) |
 | `capabilities` within the allow-list | Service and capability named |
 | Manifest services match `compose.yml` services exactly | Divergence listed both ways |
 
