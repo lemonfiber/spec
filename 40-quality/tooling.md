@@ -60,6 +60,11 @@ locally and in CI, and Sonar surfaces the same number. The scope — not a lax g
 is what keeps it honest; the excluded categories are annotated in the source
 ([Q-R62](testing-strategy.md)).
 
+The free plan's own quality gate cannot be raised to this standard, so both the
+coverage gate and a zero-open-issues gate are enforced in CI directly rather than
+by Sonar's gate ([ci-cd](ci-cd.md#sonarcloud--enforced-in-ci-not-by-the-plan-gate),
+`Q-R64`).
+
 Requires a one-time `SONAR_TOKEN` secret, added to the repo after it exists.
 
 ### Renovate over Dependabot — because of governance
