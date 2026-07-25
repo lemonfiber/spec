@@ -1,12 +1,23 @@
 # A PR that passes CI with no review, from a non-maintainer, is flagged for a
-# maintainer; the flag clears when a review lands. OPS-R26, OPS-R27.
+# maintainer; the flag clears when a review lands or the PR closes. Repos call it;
+# the spec repo self-triggers. OPS-R26, OPS-R27.
 name: awaiting-maintainer
 on:
+  workflow_call:
+    secrets:
+      # Named for the repo secret rather than for the input, so the same
+      # reference typechecks whether a caller passed it or this repo self-triggered.
+      DISCORD_MAINTAINERS_WEBHOOK:
+        required: false
   workflow_run:
     workflows: [ci]
     types: [completed]
   pull_request_review:
     types: [submitted]
+  # Fork PRs carry a read-only token under `pull_request`, so the close event has
+  # to run in the base repo's context to be able to edit a label at all.
+  pull_request_target:
+    types: [closed]
 permissions:
   contents: read
 jobs:
@@ -28,12 +39,16 @@ jobs:
           CONCLUSION: ${{ github.event.workflow_run.conclusion }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           REVIEW_STATE: ${{ github.event.review.state }}
-          REVIEW_PR: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          if [ "$EVENT" = "pull_request_target" ]; then
+            gh pr edit "$PR_NUMBER" --remove-label awaiting-maintainer 2>/dev/null || true
+            exit 0
+          fi
           if [ "$EVENT" = "pull_request_review" ]; then
             case "$REVIEW_STATE" in
               approved|changes_requested)
-                gh pr edit "$REVIEW_PR" --remove-label awaiting-maintainer 2>/dev/null || true ;;
+                gh pr edit "$PR_NUMBER" --remove-label awaiting-maintainer 2>/dev/null || true ;;
             esac
             exit 0
           fi
@@ -56,4 +71,6 @@ jobs:
       url: "https://github.com/${{ github.repository }}/pull/${{ needs.toggle.outputs.pr }}"
       color: "14235678"
     secrets:
+      # Empty when a caller passes nothing; discord-notify no-ops on an absent
+      # webhook rather than failing the run.
       webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}
