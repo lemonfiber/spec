@@ -46,12 +46,19 @@ is a saved search, not a memory game:
 | Label | Applied when | Removed when |
 |-------|-------------|--------------|
 | `needs-triage` | An issue is opened or reopened | A maintainer triages it (by hand) |
-| `awaiting-maintainer` | A PR passes CI and has no approving review | The PR is reviewed |
+| `awaiting-maintainer` | A PR passes CI and has no approving review | The PR is reviewed, or the PR closes |
 
 `awaiting-maintainer` skips PRs opened **by a maintainer** — a maintainer's own PR
 is not awaiting one. As non-maintainers begin contributing, their green PRs surface
 automatically. The live queue is
 `is:open label:needs-triage,awaiting-maintainer`.
+
+A closed pull request is not awaiting a maintainer, and neither is a merged one.
+Because the queue is scoped to `is:open`, a flag left behind does not distort the
+queue itself — it survives on the closed PR permanently instead, so any
+label-filtered history reads as though that work shipped unreviewed, and
+reopening restores a flag that no longer describes the PR's state. The label
+therefore clears on closure as well as on review, merged or not.
 
 ## Assignment
 
@@ -73,7 +80,7 @@ and both review-routing and issue-assignment follow it.
 | **OPS-R23** | A published release MUST announce to the public announcement channel, mentioning the opt-in role when `DISCORD_RELEASE_ROLE_ID` is set and never `@everyone`. |
 | **OPS-R24** | Every workflow run MUST post its completion status (pass/fail) to the public build-log channel. |
 | **OPS-R25** | A newly opened issue MUST be labelled `needs-triage` and assigned the covering maintainer from the generated CODEOWNERS. |
-| **OPS-R26** | A PR that passes CI without an approving review MUST be labelled `awaiting-maintainer`, unless its author is a maintainer; the label MUST be removed once the PR is reviewed. |
+| **OPS-R26** | A PR that passes CI without an approving review MUST be labelled `awaiting-maintainer`, unless its author is a maintainer; the label MUST be removed once the PR is reviewed or closed. |
 | **OPS-R27** | Items needing maintainer action MUST post to the private maintainer channel when its webhook is configured. |
 | **OPS-R28** | Every Discord integration MUST be gated on its webhook secret's presence, MUST NOT run in fork-PR context with the secret available, and MUST pass all event-derived text through the environment rather than a shell interpolation. |
 
