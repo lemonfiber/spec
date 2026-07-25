@@ -92,7 +92,7 @@ opens the TUI at a terminal and prints help when piped, never blocking on stdin.
 | `tokio` | Async | Shallow — [component-model](../20-architecture/component-model.md#async-model) |
 | `reqwest` | Service HTTP | Seed clients |
 | `serde` + `toml` | Manifest, config | |
-| `directories` | Platform paths | XDG / `AppData` / `~/Library` |
+| `etcetera` | Platform paths | XDG / `AppData` / `~/Library`; permissive dependencies throughout |
 | `include_dir` | Embed stack + web assets | [ADR-0005](../00-overview/decisions/0005-embedded-stack-assets.md) |
 | `thiserror` | Library errors | `lemonfiber-core` |
 | `color-eyre` | Binary errors | The `lemonfiber` crate only |
@@ -129,7 +129,7 @@ time**, not install time (`ARCH-R19`) — an end user never needs npm.
 | `~/.local/share/lemonfiber/config/` | Per-service config (the `/config` mounts) |
 | `~/.local/share/lemonfiber/backups/` | Backup archives |
 
-Resolved via `directories`, so macOS and Windows get their conventional
+Resolved via `etcetera`, so macOS and Windows get their conventional
 locations. `--stack-dir` overrides the stack path (`F1-R3`).
 
 ## Testing posture
