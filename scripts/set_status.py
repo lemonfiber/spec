@@ -26,7 +26,7 @@ def manifest_for(version: str) -> pathlib.Path:
         sys.exit(f"::error::version must be X.Y.Z, got {version!r}")
     path = (VERSIONS_DIR / f"{version}.toml").resolve()
     if not path.is_relative_to(VERSIONS_DIR.resolve()):
-        sys.exit(f"::error::path escapes {VERSIONS_DIR}")
+        sys.exit(f"::error::path escapes {VERSIONS_DIR}")  # pragma: no cover
     return path
 
 
