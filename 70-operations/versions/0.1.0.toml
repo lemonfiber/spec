@@ -1,0 +1,8 @@
+# The bootstrap release — the baseline the train governs from. Goals are the
+# M2/M3 requirements that ship in 0.1.0 and are provable through both gate halves
+# (cited in a merged commit AND marked ✅ in IMPLEMENTATION-STATUS). The set grows
+# as the tracker's ✅ rows name more of the IDs they satisfy.
+version = "0.1.0"
+status  = "staged"
+repos   = ["lemonfiber", "media-stack"]
+goals   = ["B1-R4", "B1-R5", "C1-R3", "C1-R4", "C1-R5", "C1-R6", "C1-R7", "C1-R8", "C1-R9"]
