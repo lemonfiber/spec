@@ -59,6 +59,20 @@ the PR's code, so it is safe on any PR.
 |----|-------------|
 | **GOV-R32** | Each PR MUST receive an automated, self-updating comment that links every cited spec identifier to its defining file; it MUST NOT execute untrusted PR code. |
 
+## Explaining the non-standard checks
+
+Some checks here surprise a first-time contributor: the citation gate *closes* a
+PR, the DCO check *skips* merge and bot commits, the Sonar gate reads a summary
+comment rather than a status. A rule that reads as arbitrary reads as hostile —
+so a check likely to confuse posts a self-updating explainer comment saying what
+it does and how to satisfy it, through the one shared `explain-check` reusable so
+the wording lives in one place. The explainer is the courtesy that turns a closed
+PR from a rejection into a sequenced next step.
+
+| ID | Requirement |
+|----|-------------|
+| **GOV-R33** | A non-standard or PR-closing check MUST post a self-updating explainer comment describing what it does and how to satisfy it, via the shared reusable; it MUST NOT execute untrusted PR code. |
+
 ## The citation format
 
 A `Spec:` trailer on at least one commit:
