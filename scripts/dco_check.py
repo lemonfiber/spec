@@ -29,8 +29,8 @@ for rec in filter(None, out.split("\x01\n")):
     # unattestable.
     if " " in parents.strip() or is_bot(an, ae):
         continue
-    signoffs = re.findall(r"^Signed-off-by:\s*([^<]+)<([^>]+)>\s*$", body, re.M)
-    if not any(email.lower() == ae.lower() for _, email in signoffs):
+    signoffs = re.findall(r"^Signed-off-by:[^<]*<([^>]+)>\s*$", body, re.M)
+    if not any(email.lower() == ae.lower() for email in signoffs):
         problems.append(f"{sha[:8]} by {an} <{ae}> lacks a matching Signed-off-by")
 
 if problems:
