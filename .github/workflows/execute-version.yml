@@ -1,11 +1,12 @@
-# Execute a staged (or fast-lane) version — OPS-R34, R35, R36, R50.
+# Execute a staged (or fast-lane) version — OPS-R34, R35, R36.
 #
-# Gates on every locked goal being satisfied, checks the streams still agree,
-# then tags each target repo (an App-token tag DOES trigger their release.yml,
-# unlike GITHUB_TOKEN), records the pins, flips the manifest to `released` via an
-# auto-merged verified PR, and announces. The drafts the tags produce still need a
-# human to publish (releasing.md step 3). Maintainer-only. dry_run defaults on:
-# the first run of any version verifies without tagging anything.
+# Gates on every locked goal being satisfied, checks the streams still agree and
+# nothing is blocking, then tags each target repo (an App-token tag DOES trigger
+# their release.yml, unlike GITHUB_TOKEN) and stops. The tags produce draft
+# releases; a human reviews and publishes one, and only then does the manifest
+# flip to released and the announcement fire — release-finalize and
+# release-announce, both on the `release: published` event. Nothing is claimed
+# released before it is. Maintainer-only; dry_run defaults on.
 name: execute-version
 on:
   workflow_dispatch:
@@ -22,8 +23,6 @@ permissions:
 jobs:
   execute:
     runs-on: ubuntu-latest
-    outputs:
-      released: ${{ steps.finish.outputs.released }}
     steps:
       - name: Gate to maintainers
         env:
@@ -140,39 +139,9 @@ jobs:
               -f ref="refs/tags/v${VERSION}" -f sha="${sha}"
             echo "tagged ${r} @ ${sha:0:8} as v${VERSION}"
           done < repos.txt
-      - name: Record the release in the manifest (auto-merged, verified)
-        if: ${{ !inputs.dry_run }}
-        uses: ./.github/actions/manifest-transition
-        with:
-          version: ${{ inputs.version }}
-          status: released
-          pins: media-stack=${{ env.STACK_PIN }}
-          token: ${{ steps.token.outputs.token }}
-      - name: Delete the release branches (OPS-R49)
+      - name: Tagged — publish to finish
         if: ${{ !inputs.dry_run }}
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          OWNER: ${{ github.repository_owner }}
           VERSION: ${{ inputs.version }}
         run: |
-          set -euo pipefail
-          while read -r r; do
-            [ -n "$r" ] || continue
-            gh api --method DELETE "repos/${OWNER}/${r}/git/refs/heads/release/${VERSION}" \
-              && echo "deleted release/${VERSION} in ${r}" \
-              || echo "::warning::no release/${VERSION} branch in ${r}"
-          done < repos.txt
-      - name: Mark released
-        id: finish
-        if: ${{ !inputs.dry_run }}
-        run: echo "released=true" >> "$GITHUB_OUTPUT"
-  announce:
-    needs: execute
-    if: ${{ needs.execute.outputs.released == 'true' }}
-    uses: lemonfiber/spec/.github/workflows/discord-notify.yml@5c97eb3535dddf1a74c0efae88d759b01dbc8188 # main
-    with:
-      title: "🍋 Release train — ${{ inputs.version }} executed"
-      body: "Tags are cut and drafts are up for review. Publish the drafts to announce."
-      color: "16309767"
-    secrets:
-      webhook: ${{ secrets.DISCORD_ANNOUNCE_WEBHOOK }}
+          echo "::notice title=Tagged::v${VERSION} is tagged and the drafts are up. Review and publish the release — publishing flips the manifest to released, records the pins, cleans the branches, and announces to #releases (release-finalize + release-announce)."
