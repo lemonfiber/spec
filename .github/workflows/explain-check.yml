@@ -1,0 +1,53 @@
+# Reusable "explain a check" notice — GOV-R33. One definition, every repo.
+#
+# Some checks in this project are non-standard and surprise first-time
+# contributors: the citation gate closes PRs, the DCO check skips merge/bot
+# commits, the Sonar gate reads a summary comment. A check that is likely to
+# confuse calls this to post a self-updating explainer on the PR — what it does
+# and how to satisfy it — so the rule is discoverable, not folklore. All values
+# reach the API via files, never a shell interpolation.
+name: explain-check
+
+on:
+  workflow_call:
+    inputs:
+      check:
+        description: Short slug — keys the sticky comment so each explainer updates in place.
+        required: true
+        type: string
+      title:
+        required: true
+        type: string
+      body:
+        description: Markdown explaining the check and how to satisfy it.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  explain:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post the explainer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          CHECK: ${{ inputs.check }}
+          TITLE: ${{ inputs.title }}
+          BODY: ${{ inputs.body }}
+        run: |
+          set -euo pipefail
+          marker="<!-- explain:${CHECK} -->"
+          printf '%s\n\n### %s\n\n%s\n' "$marker" "$TITLE" "$BODY" > explain.md
+          id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+            --jq "[.[] | select(.body | contains(\"${marker}\"))] | last | .id // empty" || true)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" -F body=@explain.md >/dev/null
+          else
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -F body=@explain.md >/dev/null
+          fi
+          echo "explainer posted for '${CHECK}'"

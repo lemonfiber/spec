@@ -1,0 +1,33 @@
+# Post explainers for this repo's non-standard checks, via the shared reusable
+# (GOV-R33). Each is a self-updating sticky comment, so a first-time contributor
+# meets the rule where it applies rather than discovering it by being closed.
+name: explain
+on:
+  pull_request:
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  citation:
+    uses: ./.github/workflows/explain-check.yml
+    with:
+      check: citation-gate
+      title: "📎 Why this repo needs a `Spec:` citation"
+      body: |
+        This project is spec-led: every change cites a spec identifier that already
+        exists on `main`, and `spec-check` closes a PR without one — not to reject
+        the work, but to sequence it. Add a `Spec:` trailer to a commit **and** the
+        PR body, each on its own line, e.g. `Spec: OPS-R1`. Routine maintenance
+        (dependencies, formatting, CI) cites `GOV-R12`. Changing behaviour? Open the
+        spec PR first, then cite the new identifier. See 50-governance/contributing.md.
+  dco:
+    uses: ./.github/workflows/explain-check.yml
+    with:
+      check: dco-exemption
+      title: "✍️ DCO sign-off — and what is exempt"
+      body: |
+        Every human commit needs a `Signed-off-by:` line matching its author — add
+        it with `git commit -s`. Merge commits and bot commits are skipped, because
+        GitHub authors them (branch updates, auto-merges) and there is no human to
+        attest. So if the DCO check passes with an unsigned merge commit in the
+        range, that is by design, not a gap. See 50-governance/dco.md.
