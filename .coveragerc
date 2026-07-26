@@ -1,0 +1,14 @@
+# Coverage for the release-train scripts. Line coverage, matching lemonfiber's
+# 100%-on-applicable-code standard (Q-R61). The __main__ guards only run when a
+# script is executed rather than imported for test, so they are excluded.
+[run]
+include =
+    scripts/gate.py
+    scripts/set_status.py
+    scripts/check_stageable.py
+    scripts/tracker_body.py
+    scripts/pr_goals.py
+
+[report]
+exclude_also =
+    if __name__ == .__main__.:
