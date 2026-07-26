@@ -1,6 +1,13 @@
 # Reusable Discord notifier. One definition, one audit surface. Every dynamic
-# value is passed through env into jq --arg (never a shell interpolation), and the
-# job no-ops when the webhook secret is absent. OPS-R23, OPS-R24, OPS-R27, OPS-R28.
+# value is passed through env into json.dumps (never a shell interpolation), and
+# the job no-ops when the webhook secret is absent.
+#
+# A body over Discord's 4096-char embed limit is split at line boundaries. When
+# `thread` is set (a Forum channel, e.g. #releases) the first chunk opens a named
+# thread and the rest post beneath it; the role ping and link ride only that
+# opening message. `allowed_mentions` permits roles but never @everyone (OPS-R23).
+# Text channels (build-log, maintainers) leave `thread` empty and post normally.
+# OPS-R23, OPS-R24, OPS-R27, OPS-R28, OPS-R53.
 name: discord-notify
 
 on:
@@ -23,6 +30,10 @@ on:
         description: Decimal embed colour.
         type: string
         default: "15844367"
+      thread:
+        description: When set, open a Forum thread of this name for the message.
+        type: string
+        default: ""
     secrets:
       webhook:
         required: false
@@ -42,18 +53,80 @@ jobs:
           BODY: ${{ inputs.body }}
           URL: ${{ inputs.url }}
           COLOR: ${{ inputs.color }}
+          THREAD: ${{ inputs.thread }}
         run: |
           if [ -z "$WEBHOOK" ]; then
             echo "webhook not configured; skipping"
             exit 0
           fi
-          jq -n \
-            --arg c "$CONTENT" --arg t "$TITLE" --arg b "$BODY" \
-            --arg u "$URL" --argjson col "${COLOR:-0}" \
-            '{content: $c, embeds: [{
-               title: $t,
-               description: $b,
-               url: (if $u == "" then null else $u end),
-               color: $col
-             }]}' \
-          | curl -sf --proto '=https' -X POST -H "Content-Type: application/json" -d @- "$WEBHOOK"
+          # All values come from env via json.dumps — no shell interpolation of
+          # event data (OPS-R28). Threading falls back to plain posts on failure,
+          # so a misconfigured channel never breaks the notification.
+          python3 - <<'PY'
+          import json, os, time, urllib.request, urllib.error
+
+          WEBHOOK = os.environ["WEBHOOK"]
+          content = os.environ.get("CONTENT", "")
+          title = os.environ["TITLE"]
+          body = os.environ.get("BODY", "")
+          url = os.environ.get("URL", "")
+          color = int(os.environ.get("COLOR") or 0)
+          thread = os.environ.get("THREAD", "")
+          LIMIT = 4000
+          SEP = "&" if "?" in WEBHOOK else "?"
+
+          def chunks(text, limit):
+              out, cur = [], ""
+              for line in text.split("\n"):
+                  while len(line) > limit:               # hard-wrap an overlong line
+                      if cur:
+                          out.append(cur); cur = ""
+                      out.append(line[:limit]); line = line[limit:]
+                  if cur and len(cur) + 1 + len(line) > limit:
+                      out.append(cur); cur = line
+                  else:
+                      cur = f"{cur}\n{line}" if cur else line
+              if cur:
+                  out.append(cur)
+              return out or [""]
+
+          def post(target, payload):
+              req = urllib.request.Request(
+                  target, data=json.dumps(payload).encode("utf-8"),
+                  headers={"Content-Type": "application/json",
+                           "User-Agent": "lemonfiber-release-train (github.com/lemonfiber, 1.0)"},
+                  method="POST")
+              with urllib.request.urlopen(req) as resp:
+                  raw = resp.read()
+              return json.loads(raw) if raw else {}
+
+          parts = chunks(body, LIMIT)
+          head = {"title": title, "description": parts[0], "color": color}
+          if url:
+              head["url"] = url
+          first = {"embeds": [head]}
+          if content:                                    # role ping: opening message only
+              first["content"] = content
+              first["allowed_mentions"] = {"parse": ["roles", "users"]}
+          if thread:
+              first["thread_name"] = thread
+
+          thread_id = None
+          try:
+              # ?wait=true returns the created message, so we learn the thread id
+              msg = post(f"{WEBHOOK}{SEP}wait=true", first)
+              if thread:
+                  thread_id = msg.get("channel_id")
+          except urllib.error.HTTPError:
+              first.pop("thread_name", None)             # not a Forum channel — post plain
+              post(WEBHOOK, first)
+
+          for part in parts[1:]:
+              payload = {"embeds": [{"title": f"{title} (cont.)", "description": part, "color": color}]}
+              target = f"{WEBHOOK}{SEP}thread_id={thread_id}" if thread_id else WEBHOOK
+              try:
+                  post(target, payload)
+              except urllib.error.HTTPError:
+                  post(WEBHOOK, payload)                  # thread unusable — fall back to loose
+              time.sleep(1)
+          PY
