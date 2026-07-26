@@ -1,8 +1,9 @@
 # Flip a version manifest's status via an auto-merged, verified PR — OPS-R32.
-# Shared by stage/track/execute so the signed-commit dance lives in one place.
-# The commit is made through the contents API (GitHub-verified, so it satisfies
-# the signed-commits rule on main) and authored by the App bot whose identity is
-# fetched at runtime (so the DCO sign-off matches the author).
+# Shared by stage/track/finalize so the signed-commit dance lives in one place.
+# The commit is made through the contents API, which marks it verified (so it
+# satisfies the signed-commits rule on main) and fills author/committer from the
+# App token — a [bot] identity, so it's DCO-exempt and needs no sign-off. An
+# installation token has no user behind it, so we never call /user.
 name: manifest-transition
 description: Record a version manifest transition through an auto-merged verified PR.
 inputs:
@@ -37,20 +38,16 @@ runs:
         for p in "${parts[@]}"; do [ -n "$p" ] && pinargs+=(--pin "$p"); done
         python3 scripts/set_status.py --version "$VERSION" --status "$STATUS" "${pinargs[@]}" > "${man}.new"
         mv "${man}.new" "$man"
-        # The App bot's own identity, so the DCO sign-off matches the author.
-        login=$(gh api /user --jq '.login')
-        uid=$(gh api /user --jq '.id')
-        email="${uid}+${login}@users.noreply.github.com"
         branch="release/${VERSION}-${STATUS}"
         base=$(gh api "repos/${OWNER}/spec/git/ref/heads/main" --jq '.object.sha')
         gh api --method POST "repos/${OWNER}/spec/git/refs" -f ref="refs/heads/${branch}" -f sha="$base" || true
         blob=$(gh api "repos/${OWNER}/spec/contents/${man}?ref=${branch}" --jq '.sha')
-        msg=$(printf 'chore(release): %s → %s\n\nRecorded by the release train.\n\nSpec: OPS-R32\nSigned-off-by: %s <%s>' "$VERSION" "$STATUS" "$login" "$email")
+        # Author/committer omitted: GitHub fills them from the token (the App bot,
+        # DCO-exempt) and marks the commit verified.
+        msg=$(printf 'chore(release): %s → %s\n\nRecorded by the release train.\n\nSpec: OPS-R32' "$VERSION" "$STATUS")
         gh api --method PUT "repos/${OWNER}/spec/contents/${man}" \
           -f message="$msg" -f branch="$branch" -f sha="$blob" \
-          -f content="$(base64 < "$man" | tr -d '\n')" \
-          -f "committer[name]=${login}" -f "committer[email]=${email}" \
-          -f "author[name]=${login}" -f "author[email]=${email}"
+          -f content="$(base64 < "$man" | tr -d '\n')"
         url=$(gh pr create --repo "${OWNER}/spec" --base main --head "$branch" \
           --title "chore(release): ${VERSION} → ${STATUS}" \
           --body "Automated manifest transition. Spec: OPS-R32")
