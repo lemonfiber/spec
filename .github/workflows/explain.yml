@@ -1,17 +1,57 @@
 # Post explainers for this repo's non-standard checks, via the shared reusable
-# (GOV-R33). Each is a self-updating sticky comment, so a first-time contributor
-# meets the rule where it applies rather than discovering it by being closed.
+# (GOV-R33) — but only where the advice is needed. A detect job decides whether
+# the contributor already cites a spec id, and whether the PR even contains a
+# merge/bot commit for the DCO exemption to be relevant; the explainer is posted
+# only then, and removed once a PR becomes compliant. Advice where it helps, not
+# noise where it doesn't.
 name: explain
 on:
   pull_request:
-permissions:
-  contents: read
-  pull-requests: write
 jobs:
+  detect:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      citation: ${{ steps.d.outputs.citation }}
+      dco: ${{ steps.d.outputs.dco }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: d
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # A Spec: trailer in the body or any commit means the citation is done.
+          text=$( { printf '%s\n' "$PR_BODY"; git log --format=%B "${BASE}..${HEAD}" 2>/dev/null || true; } )
+          if printf '%s' "$text" | grep -qiE '^[[:space:]]*Spec:[[:space:]]*[A-Za-z]'; then
+            echo "citation=satisfied" >> "$GITHUB_OUTPUT"
+          else
+            echo "citation=needed" >> "$GITHUB_OUTPUT"
+          fi
+          # The DCO exemption is only worth explaining if a merge or bot commit
+          # is actually present in the range.
+          merges=$(git rev-list --merges --count "${BASE}..${HEAD}" 2>/dev/null || echo 0)
+          bots=$(git log --format='%an' "${BASE}..${HEAD}" 2>/dev/null | grep -c '\[bot\]$' || true)
+          if [ "${merges:-0}" -gt 0 ] || [ "${bots:-0}" -gt 0 ]; then
+            echo "dco=relevant" >> "$GITHUB_OUTPUT"
+          else
+            echo "dco=not-relevant" >> "$GITHUB_OUTPUT"
+          fi
   citation:
+    needs: detect
+    permissions:
+      contents: read
+      pull-requests: write
     uses: ./.github/workflows/explain-check.yml
     with:
       check: citation-gate
+      needed: ${{ needs.detect.outputs.citation == 'needed' && 'true' || 'false' }}
       title: "📎 Why this repo needs a `Spec:` citation"
       body: |
         This project is spec-led: every change cites a spec identifier that already
@@ -21,9 +61,14 @@ jobs:
         (dependencies, formatting, CI) cites `GOV-R12`. Changing behaviour? Open the
         spec PR first, then cite the new identifier. See 50-governance/contributing.md.
   dco:
+    needs: detect
+    permissions:
+      contents: read
+      pull-requests: write
     uses: ./.github/workflows/explain-check.yml
     with:
       check: dco-exemption
+      needed: ${{ needs.detect.outputs.dco == 'relevant' && 'true' || 'false' }}
       title: "✍️ DCO sign-off — and what is exempt"
       body: |
         Every human commit needs a `Signed-off-by:` line matching its author — add
