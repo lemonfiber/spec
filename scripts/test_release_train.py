@@ -86,8 +86,9 @@ class GateTests(Workspace):
         self.assertEqual(gate.load_goals(pathlib.Path("70-operations/versions/0.1.0.toml")),
                          ["B1-R4"])
         self.manifest("0.2.0", goals=())
+        empty = pathlib.Path("70-operations/versions/0.2.0.toml")
         with self.assertRaises(SystemExit):
-            gate.load_goals(pathlib.Path("70-operations/versions/0.2.0.toml"))
+            gate.load_goals(empty)
 
     def test_parse_repos_ok_and_bad(self):
         self.repo("checkouts/lf")
@@ -204,7 +205,7 @@ class TrackerAndPrGoalsTests(Workspace):
         # advisory (cites something out of scope)
         self.assertIn('"advisory": true', self._pr("Spec: F1-R3\n")[1])
         # helpers directly
-        self.assertTrue(pr_goals.staged_manifest()["version"] == "0.1.0")
+        self.assertEqual(pr_goals.staged_manifest()["version"], "0.1.0")
         with self.assertRaises(SystemExit):
             pr_goals.within_cwd("/etc/hosts")
 
