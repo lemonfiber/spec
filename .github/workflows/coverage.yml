@@ -19,7 +19,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install coverage.py
-        run: pip install --disable-pip-version-check --only-binary :all: coverage==7.15.2
+        run: |
+          pip install --disable-pip-version-check --only-binary :all: coverage==7.15.2
       - name: Release-train scripts at 100% coverage (Q-R61)
         run: |
           coverage run scripts/test_release_train.py
