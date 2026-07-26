@@ -130,7 +130,8 @@ jobs:
         run: |
           set -euo pipefail
           man="70-operations/versions/${VERSION}.toml"
-          python3 scripts/set_status.py --version "$VERSION" --status released --pin "media-stack=${STACK_PIN}"
+          python3 scripts/set_status.py --version "$VERSION" --status released --pin "media-stack=${STACK_PIN}" > "${man}.new"
+          mv "${man}.new" "$man"
           # The App bot's own identity, so the DCO sign-off matches the commit author.
           who=$(gh api /user --jq '{login: .login, id: .id}')
           login=$(echo "$who" | python3 -c 'import json,sys;print(json.load(sys.stdin)["login"])')
