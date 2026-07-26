@@ -135,9 +135,14 @@ jobs:
           while read -r r; do
             [ -n "$r" ] || continue
             sha=$(git -C "checkouts/${r}" rev-parse HEAD)
-            gh api --method POST "repos/${OWNER}/${r}/git/refs" \
-              -f ref="refs/tags/v${VERSION}" -f sha="${sha}"
-            echo "tagged ${r} @ ${sha:0:8} as v${VERSION}"
+            # Idempotent: a re-run must not fail on an already-created tag.
+            if gh api "repos/${OWNER}/${r}/git/ref/tags/v${VERSION}" >/dev/null 2>&1; then
+              echo "${r} already tagged v${VERSION}"
+            else
+              gh api --method POST "repos/${OWNER}/${r}/git/refs" \
+                -f ref="refs/tags/v${VERSION}" -f sha="${sha}"
+              echo "tagged ${r} @ ${sha:0:8} as v${VERSION}"
+            fi
           done < repos.txt
       - name: Tagged — publish to finish
         if: ${{ !inputs.dry_run }}
