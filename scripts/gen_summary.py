@@ -13,6 +13,7 @@ import pathlib, re, sys
 SECTION_ORDER = ["00-overview", "10-functional", "20-architecture",
                  "30-repos", "40-quality", "50-governance", "60-brand",
                  "70-operations", "90-appendix"]
+README = "README.md"
 
 
 def title_of(p: pathlib.Path) -> str:
@@ -28,18 +29,18 @@ def main() -> None:
     if not src.is_relative_to(pathlib.Path.cwd().resolve()):
         sys.exit("gen_summary: src must be within the working directory")
     lines = ["# Summary", ""]
-    root_readme = src / "README.md"
+    root_readme = src / README
     if root_readme.exists():
-        lines += [f"[lemonfiber](README.md)", ""]
+        lines += ["[lemonfiber](README.md)", ""]
     for name in SECTION_ORDER:
         sec = src / name
         if not sec.is_dir():
             continue
-        readme = sec / "README.md"
+        readme = sec / README
         if readme.exists():
             lines.append(f"- [{title_of(readme)}]({name}/README.md)")
         for p in sorted(sec.rglob("*.md")):
-            if p.name in ("README.md", "SUMMARY.md"):
+            if p.name in (README, "SUMMARY.md"):
                 continue
             depth = len(p.relative_to(sec).parts)
             indent = "  " * depth
