@@ -55,7 +55,9 @@ jobs:
           if [ "$NEEDED" != "true" ]; then
             # The contributor already satisfies this check — remove any stale
             # explainer and post nothing.
-            [ -n "$id" ] && gh api -X DELETE "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" >/dev/null || true
+            if [ -n "$id" ]; then
+              gh api -X DELETE "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" >/dev/null || true
+            fi
             echo "'${CHECK}' already satisfied — no explainer needed"
             exit 0
           fi
