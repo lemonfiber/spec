@@ -67,8 +67,8 @@ other.
 | ID | Requirement |
 |----|-------------|
 | **GOV-R28** | Contributions MUST be licensed inbound under the same licence as the repo they land in; there MUST be no CLA or copyright assignment. |
-| **GOV-R29** | Every commit MUST carry a valid DCO `Signed-off-by` line matching its author. |
-| **GOV-R30** | A `dco` check MUST run on every PR and MUST fail when any commit lacks a valid sign-off. |
+| **GOV-R29** | Every human commit MUST carry a valid DCO `Signed-off-by` line matching its author. Merge commits and bot-authored commits are exempt — GitHub authors them, so there is no human to attest. |
+| **GOV-R30** | A `dco` check MUST run on every PR and MUST fail when any non-exempt commit lacks a valid sign-off. |
 | **GOV-R31** | The inbound licensing terms MUST be stated explicitly, given the licence is not OSI-approved. |
 
 ## Related
