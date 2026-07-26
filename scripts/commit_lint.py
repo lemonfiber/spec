@@ -14,7 +14,7 @@ out = subprocess.run(["git", "log", "--format=%H%x00%s", f"{base}..{head}"],
 bad = []
 for line in filter(None, out.splitlines()):
     sha, _, subj = line.partition("\x00")
-    if subj.startswith("Merge ") or subj.startswith("Revert "):
+    if subj.startswith(("Merge ", "Revert ")):
         continue
     if not subject_re.match(subj):
         bad.append(f"{sha[:8]} {subj}")
