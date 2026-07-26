@@ -102,9 +102,29 @@ jobs:
             echo "compat ok: binary ${VERSION} >= min_cli ${mincli}"
           fi
           echo "STACK_PIN=$(git -C checkouts/media-stack rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Check for release blockers (OPS-R44)
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          { echo spec; cat repos.txt; } > allrepos.txt
+          blockers=0
+          while read -r repo; do
+            [ -n "$repo" ] || continue
+            n=$(gh issue list --repo "${OWNER}/${repo}" --state open \
+              --label release-blocker --label "v${VERSION}" --json number --jq 'length')
+            if [ "$n" -gt 0 ]; then
+              echo "::error::${n} open release-blocker(s) labelled v${VERSION} in ${repo}"
+              blockers=$((blockers + n))
+            fi
+          done < allrepos.txt
+          [ "$blockers" -eq 0 ] || { echo "::error::release blocked — resolve the blockers first."; exit 1; }
+          echo "no release blockers."
       - name: Dry run — stop before tagging
         if: ${{ inputs.dry_run }}
-        run: echo "::notice title=Dry run::Gate and compat passed. Re-run with dry_run=false to tag and release."
+        run: echo "::notice title=Dry run::Gate, compat and blockers passed. Re-run with dry_run=false to tag and release."
       - name: Tag the target repos
         if: ${{ !inputs.dry_run }}
         env:
@@ -128,6 +148,20 @@ jobs:
           status: released
           pins: media-stack=${{ env.STACK_PIN }}
           token: ${{ steps.token.outputs.token }}
+      - name: Delete the release branches (OPS-R49)
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          while read -r r; do
+            [ -n "$r" ] || continue
+            gh api --method DELETE "repos/${OWNER}/${r}/git/refs/heads/release/${VERSION}" \
+              && echo "deleted release/${VERSION} in ${r}" \
+              || echo "::warning::no release/${VERSION} branch in ${r}"
+          done < repos.txt
       - name: Mark released
         id: finish
         if: ${{ !inputs.dry_run }}

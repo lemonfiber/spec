@@ -1,0 +1,82 @@
+# Drift watchdog for the version in flight — OPS-R46.
+#
+# Daily (and on demand): flags a locked goal whose requirement is no longer
+# defined in the spec (withdrawn/removed), or a release branch that has fallen
+# behind main. Opens or updates a single drift issue when anything is found.
+name: watchdog
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint the release App token
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.token.outputs.token }}
+      - name: Detect drift
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, re, subprocess, tomllib, pathlib
+
+          OWNER = os.environ["OWNER"]
+          VERSIONS = pathlib.Path("70-operations/versions")
+          REQ = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.M)
+
+          def gh(*args):
+              return subprocess.run(["gh", *args], capture_output=True, text=True)
+
+          version = None
+          for manifest in sorted(VERSIONS.glob("*.toml")):
+              data = tomllib.loads(manifest.read_text(encoding="utf-8"))
+              if data.get("status") in ("staged", "releasable"):
+                  version = data
+                  break
+          if version is None:
+              print("nothing in flight"); raise SystemExit(0)
+
+          defined = set()
+          for md in pathlib.Path(".").rglob("*.md"):
+              if ".git" in md.parts:
+                  continue
+              defined.update(REQ.findall(md.read_text(encoding="utf-8", errors="ignore")))
+
+          findings = []
+          gone = [g for g in version["goals"] if g not in defined]
+          if gone:
+              findings.append("Goals no longer defined in the spec: " + ", ".join(gone))
+          for repo in version["repos"]:
+              res = gh("api", f"repos/{OWNER}/{repo}/compare/release%2F{version['version']}...main",
+                       "--jq", ".ahead_by")
+              ahead = res.stdout.strip()
+              if ahead.isdigit() and int(ahead) > 0:
+                  findings.append(f"release/{version['version']} in {repo} is {ahead} commits behind main")
+
+          if not findings:
+              print("no drift."); raise SystemExit(0)
+
+          body = "\n".join(f"- {f}" for f in findings)
+          title = f"⚠️ Release {version['version']} drift"
+          found = gh("issue", "list", "--repo", f"{OWNER}/spec", "--state", "open",
+                     "--search", f"{title} in:title", "--json", "number", "--jq", ".[0].number // empty")
+          num = found.stdout.strip()
+          if num:
+              gh("issue", "edit", num, "--repo", f"{OWNER}/spec", "--body", body)
+          else:
+              gh("issue", "create", "--repo", f"{OWNER}/spec", "--title", title, "--body", body)
+          print("::warning::drift detected")
+          print(body)
+          PY
