@@ -39,7 +39,7 @@ def cited_ids(text: str) -> set[str]:
     return ids
 
 
-def main() -> int:
+def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pr-text", required=True)
     a = ap.parse_args()
@@ -48,7 +48,7 @@ def main() -> int:
     version = staged_manifest()
     if version is None:
         print(json.dumps({"staged": None, "cited": sorted(ids)}))
-        return 0
+        return
 
     goals = set(version["goals"])
     in_scope = sorted(ids & goals)
@@ -59,8 +59,7 @@ def main() -> int:
         "out_of_scope": sorted(ids - goals),
         "advisory": bool(ids) and not in_scope,  # cites requirements, none in scope
     }))
-    return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
