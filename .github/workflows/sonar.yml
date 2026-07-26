@@ -1,0 +1,14 @@
+# Gate spec PRs on zero new SonarCloud issues. The scan is SonarCloud Automatic
+# Analysis; this reads its summary and enforces the standard the free-plan gate
+# cannot (Q-R64), via the shared reusable so the rule has one definition.
+name: sonar
+on:
+  pull_request:
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  gate:
+    uses: ./.github/workflows/sonar-gate.yml
+    secrets:
+      sonar-token: ${{ secrets.SONAR_TOKEN }}
