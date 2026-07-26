@@ -1,0 +1,115 @@
+# Track a staged version's progress — OPS-R32, R43, R50.
+#
+# Runs the gate against live repos, refreshes the tracking issue's checklist, and
+# when every goal is satisfied flips the manifest to `releasable` and tells
+# #maintainers. Read-only until that flip; scheduled hourly and on demand.
+name: track
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to track (blank = whichever is in flight)."
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    outputs:
+      became_releasable: ${{ steps.evaluate.outputs.became_releasable }}
+      version: ${{ steps.evaluate.outputs.version }}
+    steps:
+      - name: Mint the release App token
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          fetch-depth: 0
+      - name: Resolve the version in flight
+        id: resolve
+        env:
+          INPUT: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="$INPUT"
+          if [ -z "$version" ]; then
+            version=$(python3 - <<'PY'
+          import pathlib, tomllib
+          for p in sorted(pathlib.Path("70-operations/versions").glob("*.toml")):
+              d = tomllib.load(open(p, "rb"))
+              if d.get("status") in ("staged", "releasable"):
+                  print(d["version"]); break
+          PY
+          )
+          fi
+          if [ -z "$version" ]; then echo "nothing in flight"; exit 0; fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+      - name: Clone the target repos
+        if: ${{ steps.resolve.outputs.version }}
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          python3 - "$VERSION" > repos.txt <<'PY'
+          import sys, tomllib
+          print("\n".join(tomllib.load(open(f"70-operations/versions/{sys.argv[1]}.toml", "rb"))["repos"]))
+          PY
+          while read -r r; do
+            [ -n "$r" ] || continue
+            git clone --quiet --depth 200 \
+              "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${r}.git" "checkouts/${r}"
+          done < repos.txt
+      - name: Evaluate and refresh the tracker
+        id: evaluate
+        if: ${{ steps.resolve.outputs.version }}
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          man="70-operations/versions/${VERSION}.toml"
+          args=()
+          while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < repos.txt
+          # gate exits 1 when not yet releasable — expected, so don't fail the job.
+          python3 scripts/gate.py --manifest "$man" "${args[@]}" \
+            --status checkouts/lemonfiber/IMPLEMENTATION-STATUS.md --format json > result.json || true
+          python3 scripts/tracker_body.py < result.json > body.md
+          num=$(gh issue list --repo "${OWNER}/spec" --state open \
+            --search "Release ${VERSION} — tracker in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$num" ]; then
+            gh issue edit "$num" --repo "${OWNER}/spec" --body-file body.md
+            echo "updated tracker issue #${num}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          releasable=$(python3 -c "import json;print(json.load(open('result.json'))['releasable'])")
+          status=$(grep -m1 -E '^status' "$man" | sed -E 's/.*"(.*)".*/\1/')
+          if [ "$releasable" = "True" ] && [ "$status" = "staged" ]; then
+            echo "became_releasable=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Flip status → releasable (OPS-R32)
+        if: ${{ steps.evaluate.outputs.became_releasable == 'true' }}
+        uses: ./.github/actions/manifest-transition
+        with:
+          version: ${{ steps.evaluate.outputs.version }}
+          status: releasable
+          token: ${{ steps.token.outputs.token }}
+  announce:
+    needs: track
+    if: ${{ needs.track.outputs.became_releasable == 'true' }}
+    uses: lemonfiber/spec/.github/workflows/discord-notify.yml@5c97eb3535dddf1a74c0efae88d759b01dbc8188 # main
+    with:
+      title: "✅ ${{ needs.track.outputs.version }} is releasable"
+      body: "Every locked goal is satisfied. Run execute-version to cut it."
+      color: "3066993"
+    secrets:
+      webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}

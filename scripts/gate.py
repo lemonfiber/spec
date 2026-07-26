@@ -19,7 +19,7 @@ Usage:
 Exit 0 = every goal satisfied (releasable); 1 = goals unmet (named); 2 = usage.
 """
 from __future__ import annotations
-import argparse, re, subprocess, sys, tomllib, pathlib
+import argparse, json, re, subprocess, sys, tomllib, pathlib
 
 # Same citation grammar the spec's own checks use (spec_check.py).
 CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
@@ -81,27 +81,35 @@ def parse_repos(specs: list[str]) -> dict[str, pathlib.Path]:
     return repos
 
 
+def evaluate(goals: list[str], cited: set[str], done: set[str]) -> list[dict]:
+    return [{"id": g, "cited": g in cited, "done": g in done} for g in goals]
+
+
+def render_human(name: str, repos: list[str], results: list[dict]) -> None:
+    print(f"gate: {name} — {len(results)} goals across {', '.join(repos) or 'no repos'}\n")
+    for r in results:
+        ok = r["cited"] and r["done"]
+        print(f"  {'✓' if ok else '✗'} {r['id']:12}  cited={'yes' if r['cited'] else 'NO '}  tracked-done={'yes' if r['done'] else 'NO '}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--repo", action="append", default=[], metavar="name=path")
     ap.add_argument("--status", required=True)
+    ap.add_argument("--format", choices=("human", "json"), default="human")
     a = ap.parse_args()
 
     manifest = within_cwd(a.manifest)
-    goals = load_goals(manifest)
-    repo_paths = parse_repos(a.repo)
-    cited = cited_ids(repo_paths)
-    done = done_ids(within_cwd(a.status))
+    repos = parse_repos(a.repo)
+    results = evaluate(load_goals(manifest), cited_ids(repos), done_ids(within_cwd(a.status)))
+    unmet = [r["id"] for r in results if not (r["cited"] and r["done"])]
 
-    print(f"gate: {manifest.name} — {len(goals)} goals across {', '.join(repo_paths) or 'no repos'}\n")
-    unmet: list[str] = []
-    for goal in goals:
-        c, d = goal in cited, goal in done
-        print(f"  {'✓' if c and d else '✗'} {goal:12}  cited={'yes' if c else 'NO '}  tracked-done={'yes' if d else 'NO '}")
-        if not (c and d):
-            unmet.append(goal)
+    if a.format == "json":
+        print(json.dumps({"version": manifest.stem, "releasable": not unmet, "goals": results}))
+        return 1 if unmet else 0
 
+    render_human(manifest.name, list(repos), results)
     if unmet:
         print(f"\n::error::not releasable — {len(unmet)} goal(s) unmet: {', '.join(unmet)}")
         return 1

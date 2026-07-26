@@ -24,6 +24,13 @@ Release pings an **opt-in role** rather than `@everyone`: if the org variable
 `DISCORD_RELEASE_ROLE_ID` is set, the announcement mentions it; otherwise it posts
 silently. People who want release notifications self-assign the role.
 
+`#releases` is a **Forum** channel, so each release is its own thread — the
+announcement opens it (role ping and link on that first post), and a long
+changelog continues as replies inside the same thread rather than flooding the
+channel. That also makes each release a place to discuss it. `#build-log` and
+`#awaiting-maintainer-action` stay plain text channels; they pass no thread name
+and post normally.
+
 ## Secrets, safety, and forks
 
 The webhook URLs are org-level secrets (`--visibility all`). Two rules keep them
@@ -83,6 +90,7 @@ and both review-routing and issue-assignment follow it.
 | **OPS-R26** | A PR that passes CI without an approving review MUST be labelled `awaiting-maintainer`, unless its author is a maintainer; the label MUST be removed once the PR is reviewed or closed. |
 | **OPS-R27** | Items needing maintainer action MUST post to the private maintainer channel when its webhook is configured. |
 | **OPS-R28** | Every Discord integration MUST be gated on its webhook secret's presence, MUST NOT run in fork-PR context with the secret available, and MUST pass all event-derived text through the environment rather than a shell interpolation. |
+| **OPS-R53** | A notification body over Discord's embed limit MUST be split at line boundaries rather than truncated; where the channel is a Forum, the overflow MUST post as replies within one thread and the role ping MUST ride only the opening message. |
 
 ## Related
 

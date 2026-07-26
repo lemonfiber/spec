@@ -46,7 +46,7 @@ jobs:
         id: token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ vars.RELEASE_APP_ID }}
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_KEY }}
           owner: ${{ github.repository_owner }}
       - name: Check out the spec
@@ -121,38 +121,17 @@ jobs:
             echo "tagged ${r} @ ${sha:0:8} as v${VERSION}"
           done < repos.txt
       - name: Record the release in the manifest (auto-merged, verified)
+        if: ${{ !inputs.dry_run }}
+        uses: ./.github/actions/manifest-transition
+        with:
+          version: ${{ inputs.version }}
+          status: released
+          pins: media-stack=${{ env.STACK_PIN }}
+          token: ${{ steps.token.outputs.token }}
+      - name: Mark released
         id: finish
         if: ${{ !inputs.dry_run }}
-        env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          OWNER: ${{ github.repository_owner }}
-          VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          man="70-operations/versions/${VERSION}.toml"
-          python3 scripts/set_status.py --version "$VERSION" --status released --pin "media-stack=${STACK_PIN}" > "${man}.new"
-          mv "${man}.new" "$man"
-          # The App bot's own identity, so the DCO sign-off matches the commit author.
-          who=$(gh api /user --jq '{login: .login, id: .id}')
-          login=$(echo "$who" | python3 -c 'import json,sys;print(json.load(sys.stdin)["login"])')
-          uid=$(echo "$who" | python3 -c 'import json,sys;print(json.load(sys.stdin)["id"])')
-          email="${uid}+${login}@users.noreply.github.com"
-          branch="release/${VERSION}-released"
-          base_sha=$(gh api "repos/${OWNER}/spec/git/ref/heads/main" --jq '.object.sha')
-          gh api --method POST "repos/${OWNER}/spec/git/refs" -f ref="refs/heads/${branch}" -f sha="${base_sha}" || true
-          blob_sha=$(gh api "repos/${OWNER}/spec/contents/${man}?ref=${branch}" --jq '.sha')
-          msg=$(printf 'chore(release): %s → released\n\nRecorded by execute-version.\n\nSpec: OPS-R32, OPS-R35\nSigned-off-by: %s <%s>' "$VERSION" "$login" "$email")
-          gh api --method PUT "repos/${OWNER}/spec/contents/${man}" \
-            -f message="$msg" -f branch="$branch" \
-            -f sha="$blob_sha" \
-            -f content="$(base64 < "$man" | tr -d '\n')" \
-            -f "committer[name]=${login}" -f "committer[email]=${email}" \
-            -f "author[name]=${login}" -f "author[email]=${email}"
-          url=$(gh pr create --repo "${OWNER}/spec" --base main --head "$branch" \
-            --title "chore(release): ${VERSION} → released" \
-            --body "Automated manifest transition. Spec: OPS-R32, OPS-R35")
-          gh pr merge "$url" --auto --squash
-          echo "released=true" >> "$GITHUB_OUTPUT"
+        run: echo "released=true" >> "$GITHUB_OUTPUT"
   announce:
     needs: execute
     if: ${{ needs.execute.outputs.released == 'true' }}
