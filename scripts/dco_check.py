@@ -17,7 +17,7 @@ for rec in filter(None, out.split("\x01\n")):
     if len(parts) < 4:
         continue
     sha, an, ae, body = parts[0], parts[1], parts[2], parts[3]
-    signoffs = re.findall(r"^Signed-off-by:\s*(.+?)\s*<([^>]+)>\s*$", body, re.M)
+    signoffs = re.findall(r"^Signed-off-by:\s*([^<]+)<([^>]+)>\s*$", body, re.M)
     if not any(email.lower() == ae.lower() for _, email in signoffs):
         problems.append(f"{sha[:8]} by {an} <{ae}> lacks a matching Signed-off-by")
 

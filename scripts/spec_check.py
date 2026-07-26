@@ -20,10 +20,10 @@ from __future__ import annotations
 import argparse, os, re, sys, pathlib
 
 # Identifiers the spec defines.
-REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+[0-9]*-R[0-9]+)\*\*\s*\|", re.M)
+REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.M)
 ADR_FILE = re.compile(r"^0*(\d{3,4})-.*\.md$")
-CITE_ANY = re.compile(r"\b([A-Z]+[0-9]*-R[0-9]+|ADR-\d{3,4})\b")
-SPEC_TRAILER = re.compile(r"^\s*Spec:\s*(.+)$", re.M | re.I)
+CITE_ANY = re.compile(r"\b([A-Z]+\d*-R\d+|ADR-\d{3,4})\b")
+SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.M | re.I)
 
 
 def defined_ids(spec_dir: pathlib.Path) -> set[str]:
