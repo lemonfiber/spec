@@ -1,0 +1,87 @@
+# Reusable PR goal automations — OPS-R39, OPS-R40, OPS-R42.
+#
+# Called by each implementation repo on pull_request. Classifies the PR's cited
+# requirement IDs against whichever version is staged and then: labels an
+# in-scope PR with its version and posts a self-updating goal-advance comment;
+# flags a PR that cites only out-of-scope requirements with `scope:next`. No-ops
+# when nothing is staged. Same-repo PRs only — a fork PR's token cannot label.
+name: goal-automations
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  classify:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: main
+      - name: Gather the PR text
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          {
+            printf '%s\n' "$PR_BODY"
+            gh api "repos/${REPO}/pulls/${PR}/commits" --jq '.[].commit.message'
+          } > pr.txt
+      - name: Classify and act
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          python3 scripts/pr_goals.py --pr-text pr.txt > result.json
+          cat result.json
+          python3 - <<'PY'
+          import json, os, subprocess
+
+          r = json.load(open("result.json"))
+          repo, pr = os.environ["REPO"], os.environ["PR"]
+          MARK = "<!-- goal-automations -->"
+
+          def gh(*args):
+              subprocess.run(["gh", *args], check=False)
+
+          if not r.get("staged"):
+              raise SystemExit(0)
+          version = r["staged"]
+
+          if r["in_scope"]:
+              label = f"v{version}"
+              gh("label", "create", label, "--repo", repo, "--force",
+                 "--color", "0e8a16", "--description", f"Targets release {version}")
+              gh("pr", "edit", pr, "--repo", repo, "--add-label", label)
+              goals = ", ".join(f"`{g}`" for g in r["in_scope"])
+              body = f"{MARK}\n🎯 Advances **{version}** — {goals}."
+          elif r["advisory"]:
+              gh("pr", "edit", pr, "--repo", repo, "--add-label", "scope:next")
+              out = ", ".join(f"`{g}`" for g in r["out_of_scope"])
+              body = f"{MARK}\nℹ️ Cites requirements outside the staged **{version}** scope ({out}); routed to the next version."
+          else:
+              raise SystemExit(0)
+
+          find = subprocess.run(
+              ["gh", "api", f"repos/{repo}/issues/{pr}/comments", "--jq",
+               f'[.[] | select(.body | startswith("{MARK}")) | .id] | first // empty'],
+              capture_output=True, text=True)
+          existing = find.stdout.strip()
+          if existing:
+              gh("api", "--method", "PATCH", f"repos/{repo}/issues/comments/{existing}",
+                 "-f", f"body={body}")
+          else:
+              gh("api", "--method", "POST", f"repos/{repo}/issues/{pr}/comments",
+                 "-f", f"body={body}")
+          PY
