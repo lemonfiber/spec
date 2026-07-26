@@ -3,6 +3,9 @@
 # (cited in a merged commit AND marked ✅ in IMPLEMENTATION-STATUS). The set grows
 # as the tracker's ✅ rows name more of the IDs they satisfy.
 version = "0.1.0"
-status  = "staged"
+status  = "released"
 repos   = ["lemonfiber", "media-stack"]
 goals   = ["B1-R4", "B1-R5", "C1-R3", "C1-R4", "C1-R5", "C1-R6", "C1-R7", "C1-R8", "C1-R9"]
+
+[pins]
+media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"
