@@ -71,7 +71,7 @@ PR from a rejection into a sequenced next step.
 
 | ID | Requirement |
 |----|-------------|
-| **GOV-R33** | A non-standard or PR-closing check MUST post a self-updating explainer comment describing what it does and how to satisfy it, via the shared reusable; it MUST NOT execute untrusted PR code. |
+| **GOV-R33** | A non-standard or PR-closing check MUST post a self-updating explainer comment describing what it does and how to satisfy it, via the shared reusable, **only when the contributor has not already satisfied the check** — and MUST remove the explainer once they do; it MUST NOT execute untrusted PR code. |
 
 ## The citation format
 
