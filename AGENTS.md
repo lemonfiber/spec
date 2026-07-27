@@ -60,4 +60,4 @@ traces to a requirement — a decision citing nothing should be challenged.
 
 - Commits carry **no** AI/Co-Authored-By attribution.
 - Propose before writing; wait for approval before committing.
-- Maintained by NightWorks.io · community on [Discord](https://discord.gg/daQmY23ym).
+- Maintained by NightWorks.io · community on [Discord](https://discord.gg/FYuV9CbTHR).
