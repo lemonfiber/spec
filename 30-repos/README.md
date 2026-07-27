@@ -30,6 +30,7 @@ flowchart TD
 | `lemonfiber` | [lemonfiber.md](lemonfiber.md) · [lemonfiber-tui.md](lemonfiber-tui.md) · [lemonfiber-reference.md](lemonfiber-reference.md) | Rust | Three surfaces, one core; the submodule; the build |
 | `media-stack` | [media-stack.md](media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
+| `website` | [website.md](website.md) | Astro | The org is the motor; roadmap read, not written |
 
 ## The `REPO-R` namespace
 
@@ -58,6 +59,8 @@ citing this repository ([50-governance](../50-governance/)).
   which is what makes adopting the tool reversible.
 - **`homebrew-tap`** — nobody writes it. It's generated, and exists only because
   Homebrew requires a repo of that name.
+- **`website`** — the org is the motor. Roadmap and status are read from the org
+  at build time, never hand-authored, so the page cannot drift from reality.
 
 ## Related
 
