@@ -92,13 +92,17 @@ is protected, which is a trademark matter, not a software-freedom one.
 
 ## Note on bundled services
 
-Every service the stack orchestrates is OSI-licensed open source:
+Every service the stack orchestrates is OSI-licensed open source. The
+authoritative per-service licence is the `license` field on each `[[service]]`
+in [`stack.toml`](../30-repos/media-stack.md#the-service-inventory), which is
+what the manifest contract validates; this table groups all nineteen of them
+using the same SPDX identifiers.
 
 | Licence | Services |
 |---------|----------|
-| GPL-3.0 | Prowlarr, Sonarr, Radarr, Lidarr, Bazarr, Calibre-Web(-Automated), Homepage |
-| GPL-2.0 | Jellyfin, SABnzbd, qBittorrent |
-| MIT | Seerr, Gluetun, FlareSolverr, Recyclarr, Unpackerr |
+| GPL-3.0-only | Prowlarr, Sonarr, Radarr, Lidarr, Bazarr, Calibre-Web-Automated, Audiobookshelf, Homepage |
+| GPL-2.0-only | Jellyfin, SABnzbd, qBittorrent |
+| MIT | Bindery, Seerr, Gluetun, FlareSolverr, Recyclarr, Unpackerr |
 | Apache-2.0 | NZBHydra2, Caddy |
 
 **Our licence choice has no effect on theirs, and theirs has none on ours.**
