@@ -53,7 +53,7 @@ freely.
 | **[50-governance](50-governance/)** | How change enters the org. The spec is canonical — **read this before your first PR** | …you're contributing to any repo |
 | **[60-brand](60-brand/)** | Brand rules, surface mapping (web/TUI/CLI), the accessibility contract | …you're building the web UI or touching visuals |
 | **[70-operations](70-operations/)** | Releasing, maintainer setup, branching, labels, maintainers | …you're running the project or cutting a release |
-| **[90-appendix](90-appendix/)** | References, licence rationale | …you're chasing a citation |
+| **[90-appendix](90-appendix/)** | Licence rationale, colophon, FAQ | …you're chasing a citation |
 
 ### Fast paths
 

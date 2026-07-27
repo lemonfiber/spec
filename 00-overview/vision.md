@@ -49,7 +49,7 @@ Three commitments:
 
 | Commitment | What it means concretely |
 |------------|--------------------------|
-| **No proprietary components** | Every bundled service is OSI-licensed and self-hosted. No Plex, no paid tiers, no phone-home. See [service inventory](../30-repos/media-stack.md#service-inventory). Our own code is [Hippocratic 3.0](../90-appendix/license-rationale.md) — source-available and ethical-source, deliberately *not* OSI-approved. |
+| **No proprietary components** | Every bundled service is OSI-licensed and self-hosted. No Plex, no paid tiers, no phone-home. See [service inventory](../30-repos/media-stack.md#the-service-inventory). Our own code is [Hippocratic 3.0](../90-appendix/license-rationale.md) — source-available and ethical-source, deliberately *not* OSI-approved. |
 | **Runs in slices** | Named *forms* map to sets of Compose profiles. `search` is 3 containers; `full` is 18. Same config, same data, no separate install. |
 | **Correct by construction** | The setup wizard tests hardlinks rather than assuming them. `doctor` compares public IPs to prove VPN isolation. Ports bind to loopback by default. |
 
