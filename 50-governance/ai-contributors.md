@@ -13,6 +13,20 @@ These bind AI agents and the humans directing them equally. Nothing here is
 AI-specific in principle; it is gathered in one place because AI agents need it
 stated explicitly and consistently.
 
+**There is nothing to disclose.** An AI is a tool, like an IDE, a linter or a
+search engine, and this project does not ask which of those you used either. A
+pull request is judged on whether it satisfies the requirement it cites, passes
+the gates, and is code somebody can maintain — none of which is a fact about
+what produced it.
+
+A disclosure rule would imply the code needs a different kind of scrutiny
+because of its provenance, which is the wrong signal to send about the scrutiny
+everything else already gets. It would also be unenforceable, which is the worst
+property a rule can have: obeyed by the careful, ignored by everyone else, and
+leaving reviewers a field they cannot trust in either direction. Review is there
+for a reason. Rule 5 follows from this rather than qualifying it — if provenance
+is not a property of the change, it does not belong in the history.
+
 ---
 
 ## The five rules
