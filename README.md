@@ -16,6 +16,7 @@ cross-cutting decision between them.
 <p align="center">
   <a href="https://github.com/lemonfiber/spec/actions/workflows/integrity.yml"><img alt="integrity" src="https://github.com/lemonfiber/spec/actions/workflows/integrity.yml/badge.svg"></a>
   <a href="https://github.com/lemonfiber/spec/actions/workflows/docs.yml"><img alt="docs" src="https://github.com/lemonfiber/spec/actions/workflows/docs.yml/badge.svg"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/lemonfiber/spec"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/lemonfiber/spec/badge"></a>
 </p>
 
 ---
