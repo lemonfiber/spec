@@ -28,6 +28,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [platform-matrix.md](platform-matrix.md) | The five cross-platform differences that actually bite |
 | [contracts/stack-manifest.md](contracts/stack-manifest.md) | **`stack.toml`** — the lemonfiber ↔ media-stack interface, full schema |
 | [contracts/download-client.md](contracts/download-client.md) | Registering SABnzbd/qBittorrent into a Servarr app — the `fields` schema and per-app category |
+| [contracts/prowlarr-application.md](contracts/prowlarr-application.md) | Registering a Servarr \*arr as a Prowlarr application — the `/api/v1` `fields` schema and per-media sync categories |
 | [contracts/versioning.md](contracts/versioning.md) | Three version identifiers, compatibility, where skew is caught |
 
 ## The `ARCH-R` namespace
