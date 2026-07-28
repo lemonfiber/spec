@@ -27,6 +27,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [data-flow.md](data-flow.md) | Content pipeline, control flow, observation, seeding |
 | [platform-matrix.md](platform-matrix.md) | The five cross-platform differences that actually bite |
 | [contracts/stack-manifest.md](contracts/stack-manifest.md) | **`stack.toml`** — the lemonfiber ↔ media-stack interface, full schema |
+| [contracts/download-client.md](contracts/download-client.md) | Registering SABnzbd/qBittorrent into a Servarr app — the `fields` schema and per-app category |
 | [contracts/versioning.md](contracts/versioning.md) | Three version identifiers, compatibility, where skew is caught |
 
 ## The `ARCH-R` namespace
