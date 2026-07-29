@@ -41,8 +41,8 @@ A question the operator can't answer is not thoroughness; it's abdication.
 |---|------|-----------------|
 | 1 | Welcome | Nothing. States what's about to happen and roughly how long. |
 | 2 | Environment preflight | Detects OS, Docker presence, Compose version, daemon reachability |
-| 3 | Prerequisites | [A1](a1-prerequisites.md) — the account checklist |
-| 4 | Protocols | Usenet, torrents, or neither |
+| 3 | Protocols | Usenet, torrents, or neither |
+| 4 | Prerequisites | [A1](a1-prerequisites.md) — the account checklist, derived from the protocol choice |
 | 5 | Data location | Proposes a default; **empirically tests hardlinks** ([C5](../c-trust/c5-storage.md)) |
 | 6 | Credentials | [A3](a3-credential-validation.md) — validated as entered |
 | 7 | Quality preference | [D2](../d-content/d2-quality-presets.md) — plain language, not custom formats |
