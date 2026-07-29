@@ -64,9 +64,10 @@ minted password are what it then hands to Seerr.
 
 ## Configuring Seerr against Jellyfin
 
-Seerr (Jellyseerr) is initialised by its **first** authenticated call: the first
-account to sign in through Jellyfin becomes Seerr's owner, and the media server
-is set to that Jellyfin at the same time. That single call is the identity wiring.
+Seerr (Jellyseerr) is set up in two steps: sign in through Jellyfin, which on a
+fresh instance creates the owner and sets the media server, and then a finish
+step, which is what actually marks Seerr initialised. The sign-in alone does not
+complete setup, so both are the identity wiring.
 
 1. `GET /api/v1/settings/public` → `{ "initialized": <bool>, … }`. The
    idempotency and consent gate: an already-initialised Seerr is **never**
@@ -88,6 +89,13 @@ is set to that Jellyfin at the same time. That single call is the identity wirin
    `serverType` `2` selects Jellyfin (not Plex or Emby). On the first call this
    creates the Seerr owner from that Jellyfin administrator and points Seerr's
    authentication at Jellyfin.
+3. `POST /api/v1/settings/initialize` — finishes setup, the step that flips
+   `initialized` to true. The session cookie the sign-in set, carried by the
+   transport onto this call, is what authorises it.
+
+Both writes carry `Content-Type: application/json` for their JSON bodies, because
+Seerr's framework only parses a body it is told is JSON and silently drops one it
+is not.
 
 ## Read back, and never override
 
