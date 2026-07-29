@@ -181,7 +181,7 @@ process-gated (`B2-R1`), so this is what "started" actually means.
 ### `api`
 
 ```toml
-api = { kind = "servarr",  key_source = "config-xml", path = "/config/config.xml" }
+api = { kind = "servarr",  key_source = "config-xml", path = "/config/config.xml", version = 3 }
 api = { kind = "sabnzbd",  key_source = "config-ini", path = "/config/sabnzbd.ini" }
 api = { kind = "qbittorrent", key_source = "generated" }
 api = { kind = "seerr",    key_source = "api-settings" }
@@ -195,6 +195,13 @@ sufficient for four services. `jellyfin` is the one media server lemonfiber sets
 an account on rather than reading a key from, so its `key_source` is `generated`
 like qBittorrent's — it mints the administrator password by driving Jellyfin's
 own first-run setup.
+
+`version` is the major version of the service's HTTP API, the `/api/vN` path
+segment. It is **required for `servarr`** and read there, because that one shape
+spans two versions — Sonarr and Radarr answer at `/api/v3`, Lidarr and Prowlarr
+at `/api/v1` — so it is data the manifest carries rather than a guess the client
+makes from a service's name. It is absent for the other kinds, whose one fixed
+version their client already knows.
 
 `key_source` says where the credential comes from:
 
