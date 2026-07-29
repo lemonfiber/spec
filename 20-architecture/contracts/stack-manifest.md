@@ -186,11 +186,15 @@ api = { kind = "sabnzbd",  key_source = "config-ini", path = "/config/sabnzbd.in
 api = { kind = "qbittorrent", key_source = "generated" }
 api = { kind = "seerr",    key_source = "api-settings" }
 api = { kind = "bindery",  key_source = "api-settings" }
+api = { kind = "jellyfin", key_source = "generated" }
 ```
 
 `kind` selects the client implementation. `servarr` covers Sonarr, Radarr, Lidarr
 and Prowlarr, since they share an API shape — which is what makes one client
-sufficient for four services.
+sufficient for four services. `jellyfin` is the one media server lemonfiber sets
+an account on rather than reading a key from, so its `key_source` is `generated`
+like qBittorrent's — it mints the administrator password by driving Jellyfin's
+own first-run setup.
 
 `key_source` says where the credential comes from:
 
