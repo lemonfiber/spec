@@ -38,7 +38,7 @@ the household's own infrastructure.
 
 ### A collector scrapes exporters, a dashboard renders them
 
-A metrics collector scrapes per-service exporters for the *arr apps and the
+A metrics collector scrapes per-service exporters for the \*arr apps and the
 download client on a schedule, retaining the samples so trends survive a restart.
 A dashboard renderer reads that store and presents the series. The operator gets
 queue depth, throughput, error rates and resource use over time, not just an
@@ -110,7 +110,7 @@ is never forced through a UI.
 | ID | Requirement |
 |----|-------------|
 | **K1-R1** | Metrics collection, storage and dashboards MUST use open-source, self-hostable components, and MUST NOT ship operational data to a proprietary or hosted observability plane. |
-| **K1-R2** | A collector MUST scrape per-service exporters for the *arr apps and the download client on a schedule. |
+| **K1-R2** | A collector MUST scrape per-service exporters for the \*arr apps and the download client on a schedule. |
 | **K1-R3** | Scrape targets MUST be file-provisioned as generated configuration, not configured by click-ops. |
 | **K1-R4** | Dashboards MUST be file-provisioned as generated configuration, not saved by hand in the renderer. |
 | **K1-R5** | The tool MUST assert that the collector reports each configured target as up, and MUST NOT treat a running exporter container as a healthy target. |

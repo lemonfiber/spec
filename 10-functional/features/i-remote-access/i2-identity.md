@@ -46,7 +46,7 @@ the app with a session already established.
 
 ### Apps that don't are protected at the proxy
 
-The *arr and administrative apps have no native single-sign-on. They are not left
+The \*arr and administrative apps have no native single-sign-on. They are not left
 to their own local logins, and they are not exposed unauthenticated. Instead the
 bundled reverse proxy enforces forward-authentication in front of them: a request
 for an administrative route is intercepted, checked against the identity provider,

@@ -20,13 +20,13 @@ depends: [D1, C7]
 
 ## Purpose
 
-The *arr apps find releases by polling indexers on an interval — good enough for a
+The \*arr apps find releases by polling indexers on an interval — good enough for a
 library, too slow for a contested release where the first grabbers take the
 freeleech or the only seeded copy. An operator who wants a specific release the
 instant it lands has to watch tracker announce channels by hand, which nobody can
 sustain. Announce-driven grabbing watches the announce channels and feeds in real
 time, matches each new line against filters the operator defines, and pushes the
-matches straight to the download clients and *arr apps the moment they appear —
+matches straight to the download clients and \*arr apps the moment they appear —
 turning a minutes-late poll into a sub-second reaction.
 
 ## Behaviour
@@ -49,7 +49,7 @@ or why none did.
 ### It hands matches to the download path
 
 A matched release is delivered to its destination — a download client directly, or
-the relevant *arr app so the release is imported and tracked like any other grab.
+the relevant \*arr app so the release is imported and tracked like any other grab.
 Which destination a filter uses is part of the filter. Nothing is grabbed that no
 filter selected.
 
@@ -112,9 +112,9 @@ running the wiring proof are each reachable non-interactively.
 | ID | Requirement |
 |----|-------------|
 | **H2-R1** | The announce-watching service MUST be open-source and self-hostable; the tool MUST NOT depend on any hosted or proprietary announce or matching service. |
-| **H2-R2** | The tool MUST wire the indexers, download clients, and the *arr apps via their APIs, and MUST NOT require the operator to copy credentials between web interfaces. |
+| **H2-R2** | The tool MUST wire the indexers, download clients, and the \*arr apps via their APIs, and MUST NOT require the operator to copy credentials between web interfaces. |
 | **H2-R3** | Each announced release MUST be evaluated against the operator's filters in real time, and only filter matches MUST be pushed onward. |
-| **H2-R4** | A matched release MUST be delivered to the destination its filter specifies — a download client or the relevant *arr app. |
+| **H2-R4** | A matched release MUST be delivered to the destination its filter specifies — a download client or the relevant \*arr app. |
 | **H2-R5** | The tool MUST prove the wiring empirically: service health, an accepted-credential check for each download-client connection, and re-processing of a known real announce line through a test filter asserting the expected match decision. |
 | **H2-R6** | A configuration whose test announce line does not produce the expected match decision MUST be reported as unproven, never as ready. |
 | **H2-R7** | A filter MUST be able to cap grabs per time window, and reaching a cap MUST hold further matches rather than breach a tracker's snatch limit. |
@@ -128,7 +128,7 @@ running the wiring proof are each reachable non-interactively.
 
 ## Related
 
-- [D1 Service auto-wiring](../d-content/d1-seed.md) — how indexers, clients, and *arr apps are connected
+- [D1 Service auto-wiring](../d-content/d1-seed.md) — how indexers, clients, and \*arr apps are connected
 - [C7 Queue health & stuck items](../c-trust/c7-queue-health.md) — where grabbed releases are tracked once handed off
 - [H1 Cross-seeding](h1-cross-seed.md) — the complementary way the household maximises the same files
 - [C8 Provider health & quota tracking](../c-trust/c8-provider-health.md) — tracker limits this must respect
