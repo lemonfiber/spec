@@ -405,6 +405,27 @@
       "path": "b-running/b8-autostart.md"
     },
     {
+      "id": "B9",
+      "title": "Open notification back-ends",
+      "area": "B",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M9",
+      "priority": "P2",
+      "labels": [
+        "notifications",
+        "verification"
+      ],
+      "depends": [
+        "B5",
+        "G8"
+      ],
+      "versions": [],
+      "path": "b-running/b9-notification-backends.md"
+    },
+    {
       "id": "C1",
       "title": "Diagnostics",
       "area": "C",
@@ -1387,6 +1408,29 @@
         }
       ],
       "path": "g-ux/g8-privacy.md"
+    },
+    {
+      "id": "G9",
+      "title": "Mobile client handoff",
+      "area": "G",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M8",
+      "priority": "P2",
+      "labels": [
+        "household",
+        "ux",
+        "verification"
+      ],
+      "depends": [
+        "G6",
+        "D6",
+        "I1"
+      ],
+      "versions": [],
+      "path": "g-ux/g9-mobile-handoff.md"
     },
     {
       "id": "H1",
