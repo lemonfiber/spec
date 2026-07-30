@@ -695,6 +695,21 @@
       "path": "c-trust/c9-drift.md"
     },
     {
+      "id": "C10",
+      "title": "Continuous re-verification of VPN isolation and hardlinks",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "tracks": "v2",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [],
+      "path": "c-trust/c10-rfc64.md"
+    },
+    {
       "id": "D1",
       "title": "Service auto-wiring",
       "area": "D",
