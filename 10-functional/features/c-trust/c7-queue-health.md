@@ -6,6 +6,8 @@ area: C
 audience: operator
 status: accepted
 tracks: v1
+labels: [queue, verification]
+depends: [B3, B5, C1, C3, C8, D9]
 ---
 
 # C7 — Queue health & stuck items

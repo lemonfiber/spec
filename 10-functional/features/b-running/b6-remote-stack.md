@@ -6,6 +6,8 @@ area: B
 audience: operator
 status: accepted
 tracks: v1
+labels: [cli, network]
+depends: [B2, C6, G1]
 ---
 
 # B6 — Controlling a stack on another machine

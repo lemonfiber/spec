@@ -6,6 +6,9 @@ area: A
 audience: operator
 status: accepted
 tracks: v1
+milestone: M3
+labels: [security, verification]
+depends: [A1, A7, C2, C8, G4]
 ---
 
 # A3 — Credential validation

@@ -6,6 +6,9 @@ area: E
 audience: operator
 status: accepted
 tracks: v1
+milestone: M6
+labels: [updates]
+depends: [C4, E1, G8]
 ---
 
 # E2 — lemonfiber self-update

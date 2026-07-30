@@ -6,6 +6,8 @@ area: F
 audience: operator
 status: accepted
 tracks: v1
+labels: [extensibility]
+depends: [C9, F2]
 ---
 
 # F1 — Customisation & escape hatches

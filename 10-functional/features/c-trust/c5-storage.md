@@ -6,6 +6,9 @@ area: C
 audience: operator
 status: accepted
 tracks: v1
+milestone: M3
+labels: [storage, verification]
+depends: [A2, A4, C1, D5]
 ---
 
 # C5 — Storage & hardlink management

@@ -6,6 +6,8 @@ area: G
 audience: both
 status: accepted
 tracks: v1
+labels: [cli, ux]
+depends: [C6, D4, D6, G6]
 ---
 
 # G5 — The front door

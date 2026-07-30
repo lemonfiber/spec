@@ -6,6 +6,9 @@ area: C
 audience: operator
 status: accepted
 tracks: v1
+milestone: M4
+labels: [seed, verification]
+depends: [A5, C3, D1, E3, F1]
 ---
 
 # C9 — Config drift detection & seed policy

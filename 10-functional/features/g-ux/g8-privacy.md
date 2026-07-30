@@ -6,6 +6,8 @@ area: G
 audience: both
 status: accepted
 tracks: v1
+labels: [security]
+depends: [A6, A7, C2, C4, E2]
 ---
 
 # G8 — Privacy stance

@@ -6,6 +6,8 @@ area: D
 audience: both
 status: accepted
 tracks: v1
+labels: [household]
+depends: [D4, D5, D6, D8]
 ---
 
 # D7 — Request approval & quotas
