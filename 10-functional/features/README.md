@@ -145,7 +145,7 @@ one product.
 
 ---
 
-# v2 — Ecosystem epoch
+## v2 — Ecosystem epoch
 
 Everything below is `tracks: v2`: authored to the same falsifiable-requirement
 bar, delivered after 1.0, and gated by the same rule (no stubs when 2.0.0 is cut).
