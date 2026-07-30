@@ -1,3 +1,13 @@
+---
+id: A6
+title: Clean uninstall
+kind: feature
+area: A
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # A6 — Clean uninstall
 
 **Status:** Accepted · **Audience:** Operator · **Area:** A — Getting started

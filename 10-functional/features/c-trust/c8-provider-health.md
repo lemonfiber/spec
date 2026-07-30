@@ -1,3 +1,13 @@
+---
+id: C8
+title: Provider health & quota tracking
+kind: feature
+area: C
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # C8 — Provider health & quota tracking
 
 **Status:** Accepted · **Audience:** Operator · **Area:** C — Trust & correctness

@@ -1,3 +1,13 @@
+---
+id: G5
+title: The front door
+kind: feature
+area: G
+audience: both
+status: accepted
+tracks: v1
+---
+
 # G5 — The front door
 
 **Status:** Accepted · **Audience:** Both · **Area:** G — Cross-cutting UX

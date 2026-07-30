@@ -1,3 +1,13 @@
+---
+id: F1
+title: Customisation & escape hatches
+kind: feature
+area: F
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # F1 — Customisation & escape hatches
 
 **Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility

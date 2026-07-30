@@ -1,3 +1,13 @@
+---
+id: D9
+title: '"Where is my show?" pipeline trace'
+kind: feature
+area: D
+audience: both
+status: accepted
+tracks: v1
+---
+
 # D9 — "Where is my show?" pipeline trace
 
 **Status:** Accepted · **Audience:** Both · **Area:** D — Content & household

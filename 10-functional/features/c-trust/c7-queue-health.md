@@ -1,3 +1,13 @@
+---
+id: C7
+title: Queue health & stuck items
+kind: feature
+area: C
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # C7 — Queue health & stuck items
 
 **Status:** Accepted · **Audience:** Operator · **Area:** C — Trust & correctness

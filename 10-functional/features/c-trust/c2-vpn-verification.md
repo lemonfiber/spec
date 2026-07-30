@@ -1,3 +1,13 @@
+---
+id: C2
+title: VPN verification
+kind: feature
+area: C
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # C2 — VPN verification
 
 **Status:** Accepted · **Audience:** Operator · **Area:** C — Trust & correctness

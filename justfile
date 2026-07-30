@@ -9,6 +9,14 @@ ci: integrity typos links
 integrity:
     python3 scripts/integrity.py
 
+# Validate feature frontmatter against the schema.
+check-meta:
+    python3 scripts/check_frontmatter.py
+
+# Regenerate the feature board (index.json + BOARD.md) from frontmatter + manifests.
+board:
+    python3 scripts/gen_board.py
+
 # Spell check.
 typos:
     typos

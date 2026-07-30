@@ -1,3 +1,13 @@
+---
+id: D1
+title: Service auto-wiring
+kind: feature
+area: D
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # D1 — Service auto-wiring
 
 **Status:** Accepted · **Audience:** Operator · **Area:** D — Content & household

@@ -1,3 +1,13 @@
+---
+id: A7
+title: Credential management & rotation
+kind: feature
+area: A
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # A7 — Credential management & rotation
 
 **Status:** Accepted · **Audience:** Operator · **Area:** A — Getting started

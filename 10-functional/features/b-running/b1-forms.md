@@ -1,3 +1,13 @@
+---
+id: B1
+title: Forms & partial stacks
+kind: feature
+area: B
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # B1 — Forms & partial stacks
 
 **Status:** Accepted · **Audience:** Operator · **Area:** B — Running it

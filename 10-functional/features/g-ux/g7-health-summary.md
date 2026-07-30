@@ -1,3 +1,13 @@
+---
+id: G7
+title: Overall health summary
+kind: feature
+area: G
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # G7 — Overall health summary
 
 **Status:** Accepted · **Audience:** Operator · **Area:** G — Cross-cutting UX

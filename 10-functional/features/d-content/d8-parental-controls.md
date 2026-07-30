@@ -1,3 +1,13 @@
+---
+id: D8
+title: Parental controls
+kind: feature
+area: D
+audience: both
+status: accepted
+tracks: v1
+---
+
 # D8 — Parental controls
 
 **Status:** Accepted · **Audience:** Both · **Area:** D — Content & household

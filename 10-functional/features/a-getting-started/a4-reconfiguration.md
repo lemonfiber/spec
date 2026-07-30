@@ -1,3 +1,13 @@
+---
+id: A4
+title: Reconfiguration
+kind: feature
+area: A
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # A4 — Reconfiguration
 
 **Status:** Accepted · **Audience:** Operator · **Area:** A — Getting started

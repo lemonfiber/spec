@@ -1,3 +1,13 @@
+---
+id: E3
+title: Backup & restore
+kind: feature
+area: E
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # E3 — Backup & restore
 
 **Status:** Accepted · **Audience:** Operator · **Area:** E — Maintenance

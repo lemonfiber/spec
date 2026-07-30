@@ -1,3 +1,13 @@
+---
+id: G2
+title: Plain-language layer & in-product help
+kind: feature
+area: G
+audience: both
+status: accepted
+tracks: v1
+---
+
 # G2 — Plain-language layer & in-product help
 
 **Status:** Accepted · **Audience:** Both · **Area:** G — Cross-cutting UX

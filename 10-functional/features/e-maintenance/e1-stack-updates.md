@@ -1,3 +1,13 @@
+---
+id: E1
+title: Stack updates
+kind: feature
+area: E
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # E1 — Stack updates
 
 **Status:** Accepted · **Audience:** Operator · **Area:** E — Maintenance

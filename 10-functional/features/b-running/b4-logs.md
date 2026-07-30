@@ -1,3 +1,13 @@
+---
+id: B4
+title: Log viewing
+kind: feature
+area: B
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # B4 — Log viewing
 
 **Status:** Accepted · **Audience:** Operator · **Area:** B — Running it

@@ -1,3 +1,13 @@
+---
+id: C9
+title: Config drift detection & seed policy
+kind: feature
+area: C
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # C9 — Config drift detection & seed policy
 
 **Status:** Accepted · **Audience:** Operator · **Area:** C — Trust & correctness

@@ -1,3 +1,13 @@
+---
+id: C3
+title: Auto-remediation
+kind: feature
+area: C
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # C3 — Auto-remediation
 
 **Status:** Accepted · **Audience:** Operator · **Area:** C — Trust & correctness

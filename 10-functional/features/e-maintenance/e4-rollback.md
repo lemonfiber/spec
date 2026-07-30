@@ -1,3 +1,13 @@
+---
+id: E4
+title: Rollback
+kind: feature
+area: E
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # E4 — Rollback
 
 **Status:** Accepted · **Audience:** Operator · **Area:** E — Maintenance

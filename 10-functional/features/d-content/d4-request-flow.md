@@ -1,3 +1,13 @@
+---
+id: D4
+title: Household request flow
+kind: feature
+area: D
+audience: household
+status: accepted
+tracks: v1
+---
+
 # D4 — Household request flow
 
 **Status:** Accepted · **Audience:** Household · **Area:** D — Content & household

@@ -1,3 +1,13 @@
+---
+id: A1
+title: Prerequisites & account guidance
+kind: feature
+area: A
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # A1 — Prerequisites & account guidance
 
 **Status:** Accepted · **Audience:** Operator · **Area:** A — Getting started
