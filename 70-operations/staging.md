@@ -125,6 +125,17 @@ stack's `schema_version` and `min_cli_version` against the binary
 exact submodule pins in the manifest, so the release is reproducible from the
 file.
 
+## The epoch gate — a major ships no stubs
+
+A minor proves its own `goals`. A **major** (`X.0.0`) proves its whole **epoch**.
+A manifest that declares `closes_epoch = "vN"` MUST NOT execute unless **every**
+feature tagged `tracks: vN` in the catalogue is `Accepted` **and** marked done in
+the implementation status — the same dual proof as a goal, widened from a
+requirement list to the epoch's entire surface. This is what makes "no major
+version ships with stubs" mechanical rather than aspirational: `1.0.0` cannot tag
+while any `tracks: v1` feature is `Draft` or unbuilt, and `2.0.0` the same for
+`tracks: v2`. A refusal MUST name the incomplete features.
+
 ## Cross-repo orchestration
 
 Today every arrow points *into* `spec`: repos call its reusable checks. The train
@@ -182,6 +193,7 @@ implementing them are built per repo.
 | **OPS-R49** | The orchestrator MUST cut `release/<v>` at staging and delete it at release, merging release-only fixes back to `main` first. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |
 | **OPS-R52** | At most one version MAY be `staged` or `releasable` at a time; `stage-version` MUST refuse while another version is still in flight. Hotfix patches are exempt. |
+| **OPS-R54** | Every version manifest MUST carry an `epoch`. A manifest that declares `closes_epoch = "vN"` (only an `X.0.0` major may) MUST NOT execute unless every feature tagged `tracks: vN` is `Accepted` and marked done, and a refusal MUST name the incomplete features. |
 
 ## Related
 

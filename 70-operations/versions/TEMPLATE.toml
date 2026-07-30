@@ -1,7 +1,9 @@
 # Copy to <version>.toml and fill in. See README.md for the contract.
 version = "0.0.0"         # the release; matches the eventual tag v<version>
+epoch   = "v1"            # which epoch this version belongs to (v1 = A–G, v2 = ecosystem)
 status  = "planned"       # planned → staged → releasable → released → yanked
 repos   = ["lemonfiber", "media-stack"]   # streams this version cuts; never "brand"
 goals   = []              # locked Accepted requirement IDs, seeded from a milestone (OPS-R30)
+# closes_epoch = "v1"     # ONLY on an X.0.0 major: the epoch it completes (epoch-completeness gate)
 
 # [pins] is written by execute-version (OPS-R35); leave it out while staging.

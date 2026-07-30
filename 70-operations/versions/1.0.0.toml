@@ -1,0 +1,15 @@
+# 1.0.0 — the v1 epoch closes. Release engineering (M6): signed multi-platform
+# artifacts, the Homebrew tap, shell/PowerShell installers, real cross-platform
+# testing, and the generated docs site. No new functional requirements — 1.0.0
+# is the completeness bar: every v1 (tracks: v1) feature Accepted AND done.
+#
+version = "1.0.0"
+epoch   = "v1"
+status  = "planned"
+repos   = ["lemonfiber", "media-stack"]
+closes_epoch = "v1"
+goals   = []
+
+# goals stay empty: the epoch-completeness gate (OPS-R) asserts every tracks: v1
+# feature is satisfied, so 1.0.0 needs no per-requirement goal list of its own.
+# [pins] is written by execute-version (OPS-R35); left out while planned.
