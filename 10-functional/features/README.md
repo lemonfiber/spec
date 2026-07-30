@@ -2,9 +2,11 @@
 
 **Status:** Accepted
 
-47 features across 7 areas. This catalogue is the **contract the technical spec
-is written against** — every architecture and implementation decision must trace
-to a feature requirement here, not the other way round.
+**v1** is 47 features across seven areas (A–G) — the contract the technical spec
+is written against, where every architecture and implementation decision must
+trace to a feature requirement here, not the other way round. **v2 — the
+ecosystem epoch** — adds four areas (H–K) plus F3, each tagged `tracks: v2`;
+those features are catalogued below the v1 areas and ship after 1.0.
 
 ## How to read a feature doc
 
@@ -68,11 +70,12 @@ The hardest part of the product, and where most users are lost today.
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | Operator |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | Operator |
 
-> **B7 (remote access for the household) is deferred past 1.0.** It would
-> require a VPN mesh or tunnel; the leading candidate (Tailscale) has a
-> proprietary control plane, which conflicts with the project's open-source
-> commitment. Household features are **LAN-only** in 1.0. See
-> [roadmap](../../00-overview/roadmap.md#post-10-candidates).
+> **B7 (remote access for the household) is deferred past 1.0** — household
+> features are **LAN-only** in 1.0. It returns in **v2 as [I1](i-remote-access/i1-remote-access.md)**,
+> once a self-hosted overlay control plane (Headscale + self-hosted relay) makes
+> it possible without the proprietary control plane that blocked it (Tailscale).
+> See [ADR-0010](../../00-overview/decisions/0010-engine-abstraction-for-v2.md) for the
+> related runtime decision and the [roadmap](../../00-overview/roadmap.md#post-10-candidates).
 
 ## C — Trust & correctness
 
@@ -121,6 +124,7 @@ demands the tool prove things rather than assume them.
 |----|---------|----------|
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | Operator |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | Operator |
+| [F3](f-extensibility/f3-stack-manifests.md) · *v2, draft* | Third-party stack manifests | Operator |
 
 ## G — Cross-cutting UX
 
@@ -138,6 +142,71 @@ one product.
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | Household |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | Operator |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | Both |
+
+---
+
+# v2 — Ecosystem epoch
+
+Everything below is `tracks: v2`: authored to the same falsifiable-requirement
+bar, delivered after 1.0, and gated by the same rule (no stubs when 2.0.0 is cut).
+The through-line is the project's wedge applied outward — not just *wiring* these
+services, but **proving the wire works** (a health check, a valid upstream
+credential, and a synthetic action read back), the thing no adjacent tool does.
+
+Areas **H, I and K are Accepted**. The runtime pillar (**J**) and **F3** are
+**Draft** — proposed and open for comment: they reopen a v1 non-goal
+([ADR-0010](../../00-overview/decisions/0010-engine-abstraction-for-v2.md)) and
+carry the most design risk, so they are not binding until reviewed.
+
+## H — Ecosystem glue
+
+The tools the community bolts on, bundled and — the differentiator — verified.
+
+| ID | Feature | Audience |
+|----|---------|----------|
+| [H1](h-glue/h1-cross-seed.md) | Cross-seeding | Operator |
+| [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | Operator |
+| [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | Operator |
+| [H4](h-glue/h4-subtitles.md) | Subtitles | Both |
+| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | Operator |
+| [H6](h-glue/h6-library-cleanup.md) | Library cleanup | Both |
+| [H7](h-glue/h7-transcoding.md) | Transcoding | Operator |
+| [H8](h-glue/h8-stats.md) | Playback statistics | Both |
+
+## I — Remote access & identity
+
+Reaching the stack from outside the home, and the one-account gate it requires —
+both without a proprietary control plane.
+
+| ID | Feature | Audience |
+|----|---------|----------|
+| [I1](i-remote-access/i1-remote-access.md) | Remote access for the household | Both |
+| [I2](i-remote-access/i2-identity.md) | Household identity & single sign-on | Both |
+
+## J — Runtime & platform · *Draft*
+
+Freeing the stack from a single container runtime, while keeping both proofs
+(VPN egress, hardlinks) passing on every engine ([ADR-0010](../../00-overview/decisions/0010-engine-abstraction-for-v2.md)).
+
+| ID | Feature | Audience |
+|----|---------|----------|
+| [J1](j-runtime/j1-engine-abstraction.md) | Container-engine abstraction | Operator |
+| [J2](j-runtime/j2-podman.md) | Running under Podman | Operator |
+| [J3](j-runtime/j3-native.md) | Running natively, without containers | Operator |
+
+## K — Observability
+
+Open-source-native metrics and monitoring — a second opinion, delivery-confirmed.
+
+| ID | Feature | Audience |
+|----|---------|----------|
+| [K1](k-observability/k1-metrics.md) | Metrics & dashboards | Operator |
+| [K2](k-observability/k2-uptime.md) | Uptime monitoring | Operator |
+
+> **Also v2, as extensions to existing areas:** [F3](f-extensibility/f3-stack-manifests.md)
+> (third-party stack manifests), plus planned additions to
+> [B5](b-running/b5-notifications.md) (open notification back-ends) and
+> [G6](g-ux/g6-client-apps.md) (mobile handoff).
 
 ---
 
