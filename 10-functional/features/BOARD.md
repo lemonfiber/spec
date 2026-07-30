@@ -62,21 +62,21 @@ Generated from feature frontmatter and the version manifests by
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
-| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | — |
-| [F3](f-extensibility/f3-stack-manifests.md) | Third-party stack manifests | F | operator | draft | — |
-| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | — |
-| [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | — |
-| [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | — |
-| [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | — |
-| [H4](h-glue/h4-subtitles.md) | Subtitles | H | both | accepted | — |
-| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | — |
-| [H6](h-glue/h6-library-cleanup.md) | Library cleanup | H | both | accepted | — |
-| [H7](h-glue/h7-transcoding.md) | Transcoding | H | operator | accepted | — |
-| [H8](h-glue/h8-stats.md) | Playback statistics | H | both | accepted | — |
-| [I1](i-remote-access/i1-remote-access.md) | Remote access for the household | I | both | accepted | — |
-| [I2](i-remote-access/i2-identity.md) | Household identity & single sign-on | I | both | accepted | — |
-| [J1](j-runtime/j1-engine-abstraction.md) | Container-engine abstraction | J | operator | draft | — |
-| [J2](j-runtime/j2-podman.md) | Running under Podman | J | operator | draft | — |
-| [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | — |
-| [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | — |
-| [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | — |
+| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `1.5.0` |
+| [F3](f-extensibility/f3-stack-manifests.md) | Third-party stack manifests | F | operator | draft | `1.6.0` |
+| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `1.4.0` |
+| [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `1.1.0` |
+| [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `1.1.0` |
+| [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `1.1.0` |
+| [H4](h-glue/h4-subtitles.md) | Subtitles | H | both | accepted | `1.1.0` |
+| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `1.2.0` |
+| [H6](h-glue/h6-library-cleanup.md) | Library cleanup | H | both | accepted | `1.2.0` |
+| [H7](h-glue/h7-transcoding.md) | Transcoding | H | operator | accepted | `1.2.0` |
+| [H8](h-glue/h8-stats.md) | Playback statistics | H | both | accepted | `1.2.0` |
+| [I1](i-remote-access/i1-remote-access.md) | Remote access for the household | I | both | accepted | `1.3.0` |
+| [I2](i-remote-access/i2-identity.md) | Household identity & single sign-on | I | both | accepted | `1.3.0` |
+| [J1](j-runtime/j1-engine-abstraction.md) | Container-engine abstraction | J | operator | draft | `1.7.0` |
+| [J2](j-runtime/j2-podman.md) | Running under Podman | J | operator | draft | `1.7.0` |
+| [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `1.7.0` |
+| [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `1.5.0` |
+| [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `1.5.0` |

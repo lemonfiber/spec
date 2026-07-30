@@ -422,7 +422,12 @@
         "B5",
         "G8"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.5.0",
+          "status": "planned"
+        }
+      ],
       "path": "b-running/b9-notification-backends.md"
     },
     {
@@ -1183,7 +1188,12 @@
         "F1",
         "F2"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.6.0",
+          "status": "planned"
+        }
+      ],
       "path": "f-extensibility/f3-stack-manifests.md"
     },
     {
@@ -1429,7 +1439,12 @@
         "D6",
         "I1"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.4.0",
+          "status": "planned"
+        }
+      ],
       "path": "g-ux/g9-mobile-handoff.md"
     },
     {
@@ -1452,7 +1467,12 @@
         "C5",
         "D1"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.1.0",
+          "status": "planned"
+        }
+      ],
       "path": "h-glue/h1-cross-seed.md"
     },
     {
@@ -1475,7 +1495,12 @@
         "D1",
         "C7"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.1.0",
+          "status": "planned"
+        }
+      ],
       "path": "h-glue/h2-autobrr.md"
     },
     {
@@ -1497,7 +1522,12 @@
       "depends": [
         "D2"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.1.0",
+          "status": "planned"
+        }
+      ],
       "path": "h-glue/h3-quality-sync.md"
     },
     {
@@ -1519,7 +1549,12 @@
       "depends": [
         "D1"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.1.0",
+          "status": "planned"
+        }
+      ],
       "path": "h-glue/h4-subtitles.md"
     },
     {
@@ -1540,7 +1575,12 @@
       "depends": [
         "C7"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.2.0",
+          "status": "planned"
+        }
+      ],
       "path": "h-glue/h5-queue-selfheal.md"
     },
     {
@@ -1561,7 +1601,12 @@
       "depends": [
         "D5"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.2.0",
+          "status": "planned"
+        }
+      ],
       "path": "h-glue/h6-library-cleanup.md"
     },
     {
@@ -1583,7 +1628,12 @@
       "depends": [
         "C5"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.2.0",
+          "status": "planned"
+        }
+      ],
       "path": "h-glue/h7-transcoding.md"
     },
     {
@@ -1605,7 +1655,12 @@
         "D6",
         "G8"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.2.0",
+          "status": "planned"
+        }
+      ],
       "path": "h-glue/h8-stats.md"
     },
     {
@@ -1630,7 +1685,12 @@
         "G8",
         "I2"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.3.0",
+          "status": "planned"
+        }
+      ],
       "path": "i-remote-access/i1-remote-access.md"
     },
     {
@@ -1654,7 +1714,12 @@
         "D6",
         "A7"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.3.0",
+          "status": "planned"
+        }
+      ],
       "path": "i-remote-access/i2-identity.md"
     },
     {
@@ -1676,7 +1741,12 @@
         "C5",
         "B1"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.7.0",
+          "status": "planned"
+        }
+      ],
       "path": "j-runtime/j1-engine-abstraction.md"
     },
     {
@@ -1699,7 +1769,12 @@
         "C2",
         "C5"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.7.0",
+          "status": "planned"
+        }
+      ],
       "path": "j-runtime/j2-podman.md"
     },
     {
@@ -1721,7 +1796,12 @@
         "J1",
         "C2"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.7.0",
+          "status": "planned"
+        }
+      ],
       "path": "j-runtime/j3-native.md"
     },
     {
@@ -1742,7 +1822,12 @@
         "B3",
         "G7"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.5.0",
+          "status": "planned"
+        }
+      ],
       "path": "k-observability/k1-metrics.md"
     },
     {
@@ -1763,7 +1848,12 @@
         "B5",
         "G7"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "1.5.0",
+          "status": "planned"
+        }
+      ],
       "path": "k-observability/k2-uptime.md"
     }
   ]
