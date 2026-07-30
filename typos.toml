@@ -1,6 +1,7 @@
 [default]
 # Ignore hotkey mockup notation like [e]rror, [s]ervice in TUI examples.
-extend-ignore-re = ["\\[[a-z]\\][a-zA-Z]+"]
+# "UPnP" is a real protocol name; its mixed case trips the tokenizer.
+extend-ignore-re = ["\\[[a-z]\\][a-zA-Z]+", "UPnP"]
 
 [default.extend-words]
 ratatui = "ratatui"

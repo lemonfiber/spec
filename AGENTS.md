@@ -13,7 +13,9 @@ implementation repos and owns every cross-cutting decision. Everything else in
 the org is built *against* this repo, and every change elsewhere must cite an
 identifier that exists here.
 
-Start at [README.md](README.md), then the section you need.
+Start at [README.md](README.md), then the section you need. For the mental model
+in plain language first, read [how-the-spec-works.md](00-overview/how-the-spec-works.md) —
+the whole system explained in five minutes.
 
 ## The load-bearing rule
 
