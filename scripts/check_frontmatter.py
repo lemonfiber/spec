@@ -19,49 +19,57 @@ SCHEMA = json.loads(
 PROPS = SCHEMA["properties"]
 REQUIRED = SCHEMA["required"]
 LABELS = set(PROPS["labels"]["items"]["enum"])
-ID_RE = re.compile(r"^[A-K][0-9]+$")
+ENUM_KEYS = ("kind", "area", "audience", "status", "tracks", "priority")
+ID_RE = re.compile(r"^[A-K]\d+$")
 
 
-def enum(name):
+def _enum(name):
     return set(PROPS[name]["enum"])
+
+
+def _keys(fm, path):
+    out = [f"{path}: missing required key '{k}'" for k in REQUIRED if k not in fm]
+    out += [f"{path}: unknown key '{k}'" for k in fm if k not in PROPS]
+    return out
+
+
+def _enums(fm, path):
+    return [
+        f"{path}: {k} = '{fm[k]}' is not an allowed value"
+        for k in ENUM_KEYS
+        if k in fm and fm[k] not in _enum(k)
+    ]
+
+
+def _identity(fm, path):
+    fid = fm.get("id", "")
+    stem = pathlib.Path(path).stem
+    out = []
+    if fid and not ID_RE.match(fid):
+        out.append(f"{path}: id '{fid}' is malformed")
+    if fid and "area" in fm and fid[:1] != fm["area"]:
+        out.append(f"{path}: id '{fid}' does not match area '{fm['area']}'")
+    if fid and not stem.lower().startswith(fid.lower() + "-"):
+        out.append(f"{path}: id '{fid}' does not match filename '{stem}'")
+    return out
+
+
+def _lists(fm, path):
+    out = [f"{path}: label '{v}' is not in the registry" for v in fm.get("labels", []) if v not in LABELS]
+    out += [f"{path}: depends entry '{v}' is malformed" for v in fm.get("depends", []) if not ID_RE.match(v)]
+    return out
 
 
 def problems_for(path):
     fm = metafm.load(path)
     if fm is None:
         return [f"{path}: no frontmatter block"]
-    out = []
-    for key in REQUIRED:
-        if key not in fm:
-            out.append(f"{path}: missing required key '{key}'")
-    for key in fm:
-        if key not in PROPS:
-            out.append(f"{path}: unknown key '{key}'")
-    for key in ("kind", "area", "audience", "status", "tracks", "priority"):
-        if key in fm and fm[key] not in enum(key):
-            out.append(f"{path}: {key} = '{fm[key]}' is not an allowed value")
-    fid = fm.get("id", "")
-    if fid and not ID_RE.match(fid):
-        out.append(f"{path}: id '{fid}' is malformed")
-    if fid and "area" in fm and fid[:1] != fm["area"]:
-        out.append(f"{path}: id '{fid}' does not match area '{fm['area']}'")
-    stem = pathlib.Path(path).stem
-    if fid and not stem.lower().startswith(fid.lower() + "-"):
-        out.append(f"{path}: id '{fid}' does not match filename '{stem}'")
-    for label in fm.get("labels", []):
-        if label not in LABELS:
-            out.append(f"{path}: label '{label}' is not in the registry")
-    for dep in fm.get("depends", []):
-        if not ID_RE.match(dep):
-            out.append(f"{path}: depends entry '{dep}' is malformed")
-    return out
+    return _keys(fm, path) + _enums(fm, path) + _identity(fm, path) + _lists(fm, path)
 
 
 def main():
     files = sorted(glob.glob("10-functional/features/[a-k]-*/*.md"))
-    problems = []
-    for path in files:
-        problems.extend(problems_for(path))
+    problems = [p for path in files for p in problems_for(path)]
     if problems:
         print("frontmatter: problems found:")
         for line in problems:
