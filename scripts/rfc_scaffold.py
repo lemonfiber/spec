@@ -140,8 +140,10 @@ The proposed behaviour, as submitted:
             f"Accepted.\n\nCloses #{num} on merge.\n\nSpec: GOV-R42"
         ),
     }
-    pathlib.Path("/tmp/rfc_pr.json").write_text(json.dumps(pr), encoding="utf-8")
-    run("gh", "api", f"repos/{repo}/pulls", "--input", "/tmp/rfc_pr.json")
+    subprocess.run(
+        ["gh", "api", f"repos/{repo}/pulls", "--input", "-"],
+        input=json.dumps(pr), text=True, check=True,
+    )
     print(f"scaffolded {path} on {branch}")
     return 0
 
