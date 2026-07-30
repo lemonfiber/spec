@@ -1,3 +1,13 @@
+---
+id: F2
+title: Service catalogue
+kind: feature
+area: F
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # F2 — Service catalogue
 
 **Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility

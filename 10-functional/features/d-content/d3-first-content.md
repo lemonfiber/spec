@@ -1,3 +1,13 @@
+---
+id: D3
+title: First-content walkthrough
+kind: feature
+area: D
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # D3 — First-content walkthrough
 
 **Status:** Accepted · **Audience:** Operator · **Area:** D — Content & household

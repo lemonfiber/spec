@@ -1,3 +1,13 @@
+---
+id: D2
+title: Quality presets in plain language
+kind: feature
+area: D
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # D2 — Quality presets in plain language
 
 **Status:** Accepted · **Audience:** Operator · **Area:** D — Content & household

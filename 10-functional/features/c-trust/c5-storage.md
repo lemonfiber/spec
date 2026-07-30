@@ -1,3 +1,13 @@
+---
+id: C5
+title: Storage & hardlink management
+kind: feature
+area: C
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # C5 — Storage & hardlink management
 
 **Status:** Accepted · **Audience:** Operator · **Area:** C — Trust & correctness

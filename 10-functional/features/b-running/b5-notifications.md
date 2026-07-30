@@ -1,3 +1,13 @@
+---
+id: B5
+title: Notifications & alerting
+kind: feature
+area: B
+audience: both
+status: accepted
+tracks: v1
+---
+
 # B5 — Notifications & alerting
 
 **Status:** Accepted · **Audience:** Both · **Area:** B — Running it

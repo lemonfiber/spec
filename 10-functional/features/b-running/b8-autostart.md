@@ -1,3 +1,13 @@
+---
+id: B8
+title: Autostart & boot persistence
+kind: feature
+area: B
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # B8 — Autostart & boot persistence
 
 **Status:** Accepted · **Audience:** Operator · **Area:** B — Running it

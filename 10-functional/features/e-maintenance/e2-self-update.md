@@ -1,3 +1,13 @@
+---
+id: E2
+title: lemonfiber self-update
+kind: feature
+area: E
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # E2 — lemonfiber self-update
 
 **Status:** Accepted · **Audience:** Operator · **Area:** E — Maintenance

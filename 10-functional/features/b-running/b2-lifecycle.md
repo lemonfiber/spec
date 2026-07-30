@@ -1,3 +1,13 @@
+---
+id: B2
+title: Lifecycle control
+kind: feature
+area: B
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # B2 — Lifecycle control
 
 **Status:** Accepted · **Audience:** Operator · **Area:** B — Running it

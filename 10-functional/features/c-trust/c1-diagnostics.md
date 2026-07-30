@@ -1,3 +1,13 @@
+---
+id: C1
+title: Diagnostics
+kind: feature
+area: C
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # C1 — Diagnostics
 
 **Status:** Accepted · **Audience:** Operator · **Area:** C — Trust & correctness

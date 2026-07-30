@@ -1,3 +1,13 @@
+---
+id: G4
+title: Error & remedy model
+kind: feature
+area: G
+audience: both
+status: accepted
+tracks: v1
+---
+
 # G4 — Error & remedy model
 
 **Status:** Accepted · **Audience:** Both · **Area:** G — Cross-cutting UX

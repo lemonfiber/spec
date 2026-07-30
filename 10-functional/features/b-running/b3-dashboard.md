@@ -1,3 +1,13 @@
+---
+id: B3
+title: Live dashboard
+kind: feature
+area: B
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # B3 — Live dashboard
 
 **Status:** Accepted · **Audience:** Operator · **Area:** B — Running it

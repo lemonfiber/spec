@@ -1,3 +1,13 @@
+---
+id: C6
+title: Web UI security & binding policy
+kind: feature
+area: C
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # C6 — Web UI security & binding policy
 
 **Status:** Accepted · **Audience:** Operator · **Area:** C — Trust & correctness

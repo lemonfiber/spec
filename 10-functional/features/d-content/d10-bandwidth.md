@@ -1,3 +1,13 @@
+---
+id: D10
+title: Bandwidth & scheduling
+kind: feature
+area: D
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # D10 — Bandwidth & scheduling
 
 **Status:** Accepted · **Audience:** Operator · **Area:** D — Content & household

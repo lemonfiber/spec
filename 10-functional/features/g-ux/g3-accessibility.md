@@ -1,3 +1,13 @@
+---
+id: G3
+title: Accessibility
+kind: feature
+area: G
+audience: both
+status: accepted
+tracks: v1
+---
+
 # G3 — Accessibility
 
 **Status:** Accepted · **Audience:** Both · **Area:** G — Cross-cutting UX

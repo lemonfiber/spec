@@ -1,3 +1,13 @@
+---
+id: C4
+title: Support bundle
+kind: feature
+area: C
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # C4 — Support bundle
 
 **Status:** Accepted · **Audience:** Operator · **Area:** C — Trust & correctness

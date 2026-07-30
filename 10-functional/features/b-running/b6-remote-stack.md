@@ -1,3 +1,13 @@
+---
+id: B6
+title: Controlling a stack on another machine
+kind: feature
+area: B
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # B6 — Controlling a stack on another machine
 
 **Status:** Accepted · **Audience:** Operator · **Area:** B — Running it

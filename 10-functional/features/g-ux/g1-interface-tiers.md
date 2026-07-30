@@ -1,3 +1,13 @@
+---
+id: G1
+title: Interface tiers
+kind: feature
+area: G
+audience: both
+status: accepted
+tracks: v1
+---
+
 # G1 — Interface tiers
 
 **Status:** Accepted · **Audience:** Both · **Area:** G — Cross-cutting UX

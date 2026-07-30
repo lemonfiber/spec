@@ -6,7 +6,9 @@
 is written against, where every architecture and implementation decision must
 trace to a feature requirement here, not the other way round. **v2 — the
 ecosystem epoch** — adds four areas (H–K) plus F3, each tagged `tracks: v2`;
-those features are catalogued below the v1 areas and ship after 1.0.
+those features are catalogued below the v1 areas and ship after 1.0. The
+generated [feature board](BOARD.md) lists every feature with the version it ships
+in; [`index.json`](index.json) is the same board for tools.
 
 ## How to read a feature doc
 

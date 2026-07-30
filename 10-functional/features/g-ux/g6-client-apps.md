@@ -1,3 +1,13 @@
+---
+id: G6
+title: Client app guidance
+kind: feature
+area: G
+audience: household
+status: accepted
+tracks: v1
+---
+
 # G6 — Client app guidance
 
 **Status:** Accepted · **Audience:** Household · **Area:** G — Cross-cutting UX

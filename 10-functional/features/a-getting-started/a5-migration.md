@@ -1,3 +1,13 @@
+---
+id: A5
+title: Migration from an existing stack
+kind: feature
+area: A
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # A5 — Migration from an existing stack
 
 **Status:** Accepted · **Audience:** Operator · **Area:** A — Getting started

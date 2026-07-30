@@ -1,3 +1,13 @@
+---
+id: D5
+title: Disk space management
+kind: feature
+area: D
+audience: operator
+status: accepted
+tracks: v1
+---
+
 # D5 — Disk space management
 
 **Status:** Accepted · **Audience:** Operator · **Area:** D — Content & household

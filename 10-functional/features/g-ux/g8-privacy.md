@@ -1,3 +1,13 @@
+---
+id: G8
+title: Privacy stance
+kind: feature
+area: G
+audience: both
+status: accepted
+tracks: v1
+---
+
 # G8 — Privacy stance
 
 **Status:** Accepted · **Audience:** Both · **Area:** G — Cross-cutting UX

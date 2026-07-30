@@ -1,3 +1,13 @@
+---
+id: D6
+title: Household identity & invitations
+kind: feature
+area: D
+audience: both
+status: accepted
+tracks: v1
+---
+
 # D6 — Household identity & invitations
 
 **Status:** Accepted · **Audience:** Both · **Area:** D — Content & household
