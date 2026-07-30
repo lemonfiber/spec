@@ -42,7 +42,7 @@ consumer). They run integrity, hygiene, and the docs build.
 
 ```
 00-overview/     vision, glossary, roadmap, ADRs
-10-functional/   47 features + 645 reqs, 9 journeys — WHAT and WHY
+10-functional/   66 features + 926 reqs, 9 journeys — WHAT and WHY
 20-architecture/ system context, components, contracts (stack.toml, tokens, versioning)
 30-repos/        per-repo specs
 40-quality/      comments, standards, testing, CI/CD, security, tooling, done

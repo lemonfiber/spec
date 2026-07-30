@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 
-**v1** is 47 features across seven areas (A–G) — the contract the technical spec
+**v1** is 48 features across seven areas (A–G) — the contract the technical spec
 is written against, where every architecture and implementation decision must
 trace to a feature requirement here, not the other way round. **v2 — the
 ecosystem epoch** — adds four areas (H–K) plus F3, each tagged `tracks: v2`;
@@ -133,8 +133,8 @@ demands the tool prove things rather than assume them.
 ## G — Cross-cutting UX
 
 These are not screens; they are **properties every other feature must exhibit**.
-G4 and G5 in particular are the connective tissue that makes 47 features read as
-one product.
+G4 and G5 in particular are the connective tissue that makes the whole catalogue
+read as one product.
 
 | ID | Feature | Audience |
 |----|---------|----------|
