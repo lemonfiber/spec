@@ -41,6 +41,10 @@ driven by a single cross-platform binary that sets itself up.
 
 ## How to navigate
 
+> **New here? Read [How this spec works](00-overview/how-the-spec-works.md) first** —
+> the whole system (features, requirements, versions, how change gets in) in plain
+> language, about five minutes. Then use the map below.
+
 Sections are numbered so they sort in reading order. Start at `00`, skip ahead
 freely.
 
