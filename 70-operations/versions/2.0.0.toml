@@ -1,0 +1,14 @@
+# 2.0.0 — the v2 epoch closes. The ecosystem (areas H–K, plus F3) complete and
+# verified to the same bar as v1. No new functional requirements — 2.0.0 is the
+# completeness bar: every v2 (tracks: v2) feature Accepted AND done.
+#
+version = "2.0.0"
+epoch   = "v2"
+status  = "planned"
+repos   = ["lemonfiber", "media-stack"]
+closes_epoch = "v2"
+goals   = []
+
+# goals stay empty: the epoch-completeness gate (OPS-R54) asserts every tracks: v2
+# feature is satisfied, so 2.0.0 needs no per-requirement goal list of its own.
+# [pins] is written by execute-version (OPS-R35); left out while planned.

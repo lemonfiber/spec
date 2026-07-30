@@ -1,0 +1,16 @@
+# M10 — The platform. Third-party stack manifests and a community catalogue: the
+# stack format opened up so contributors can ship their own services against it.
+#
+# F3 is still a Draft feature — these goals are the plan, not a locked set; the
+# version cannot stage (planned → staged) until F3 is Accepted (OPS-R30).
+#
+version = "1.6.0"
+epoch   = "v2"
+status  = "planned"
+repos   = ["lemonfiber"]
+goals   = [
+    "F3-R1", "F3-R2", "F3-R3", "F3-R4", "F3-R5", "F3-R6", "F3-R7",
+    "F3-R8", "F3-R9", "F3-R10", "F3-R11", "F3-R12", "F3-R13", "F3-R14",
+]
+
+# [pins] is written by execute-version (OPS-R35); left out while planned.
