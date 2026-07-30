@@ -21,7 +21,12 @@ links:
 docs:
     rm -rf src && mkdir src && cp README.md src/ && \
         for d in [0-9]*-*; do cp -r "$d" "src/$d"; done && \
-        python3 scripts/strip_frontmatter.py && \
+        find src -type f -name '*.md' -print0 | while IFS= read -r -d '' f; do \
+            if [ "$(head -n 1 "$f")" = "---" ]; then \
+                awk 'NR==1 && $0=="---"{s=1; next} s && $0=="---"{s=0; next} !s' "$f" > "$f.stripped"; \
+                mv "$f.stripped" "$f"; \
+            fi; \
+        done && \
         python3 scripts/gen_summary.py src && mdbook build
 
 # Self-test the governance gate against a sample citation.

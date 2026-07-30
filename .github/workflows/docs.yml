@@ -42,7 +42,13 @@ jobs:
                    40-quality 50-governance 60-brand 70-operations 90-appendix; do
             [ -d "$d" ] && cp -r "$d" "src/$d"
           done
-          python3 scripts/strip_frontmatter.py
+          # Strip YAML frontmatter so mdBook never renders raw metadata.
+          find src -type f -name '*.md' -print0 | while IFS= read -r -d '' f; do
+            if [ "$(head -n 1 "$f")" = "---" ]; then
+              awk 'NR==1 && $0=="---"{s=1; next} s && $0=="---"{s=0; next} !s' "$f" > "$f.stripped"
+              mv "$f.stripped" "$f"
+            fi
+          done
           python3 scripts/gen_summary.py src
 
       - name: Link check the assembled site
