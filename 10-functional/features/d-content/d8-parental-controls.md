@@ -6,6 +6,8 @@ area: D
 audience: both
 status: accepted
 tracks: v1
+labels: [household]
+depends: [D4, D6, D7, G2]
 ---
 
 # D8 — Parental controls

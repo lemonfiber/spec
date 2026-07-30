@@ -6,6 +6,8 @@ area: G
 audience: both
 status: accepted
 tracks: v1
+labels: [ux]
+depends: [B3, B4, G1, G4]
 ---
 
 # G3 — Accessibility

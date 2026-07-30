@@ -6,6 +6,8 @@ area: B
 audience: both
 status: accepted
 tracks: v1
+labels: [notifications]
+depends: [B3, C1, C7, C8, D4, G4]
 ---
 
 # B5 — Notifications & alerting

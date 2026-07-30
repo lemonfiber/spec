@@ -6,6 +6,8 @@ area: D
 audience: operator
 status: accepted
 tracks: v1
+labels: [storage]
+depends: [B5, C5, C7, D2]
 ---
 
 # D5 — Disk space management

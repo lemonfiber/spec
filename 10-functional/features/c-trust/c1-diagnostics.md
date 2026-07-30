@@ -6,6 +6,9 @@ area: C
 audience: operator
 status: accepted
 tracks: v1
+milestone: M3
+labels: [verification]
+depends: [C2, C3, C5, C7, C8, C9, G4, G7]
 ---
 
 # C1 — Diagnostics

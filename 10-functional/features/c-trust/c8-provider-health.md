@@ -6,6 +6,8 @@ area: C
 audience: operator
 status: accepted
 tracks: v1
+labels: [verification]
+depends: [A1, A3, B5, C7]
 ---
 
 # C8 — Provider health & quota tracking

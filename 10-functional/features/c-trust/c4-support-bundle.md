@@ -6,6 +6,8 @@ area: C
 audience: operator
 status: accepted
 tracks: v1
+labels: [verification, security]
+depends: [A7, B4, C1, G8]
 ---
 
 # C4 — Support bundle

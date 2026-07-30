@@ -6,6 +6,8 @@ area: D
 audience: both
 status: accepted
 tracks: v1
+labels: [household, security]
+depends: [C6, D1, D4, D7, D8, G6]
 ---
 
 # D6 — Household identity & invitations

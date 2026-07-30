@@ -6,6 +6,8 @@ area: D
 audience: household
 status: accepted
 tracks: v1
+labels: [household]
+depends: [D1, D6, D7, D8, G6]
 ---
 
 # D4 — Household request flow

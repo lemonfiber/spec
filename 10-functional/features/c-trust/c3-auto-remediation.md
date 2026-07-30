@@ -6,6 +6,8 @@ area: C
 audience: operator
 status: accepted
 tracks: v1
+labels: [verification]
+depends: [C1, C4, C9, G4]
 ---
 
 # C3 — Auto-remediation

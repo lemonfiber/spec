@@ -6,6 +6,8 @@ area: G
 audience: both
 status: accepted
 tracks: v1
+labels: [ux]
+depends: [C1, C3, C4, G2]
 ---
 
 # G4 — Error & remedy model

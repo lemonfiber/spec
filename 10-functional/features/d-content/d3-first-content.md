@@ -6,6 +6,9 @@ area: D
 audience: operator
 status: accepted
 tracks: v1
+milestone: M4
+labels: [ux]
+depends: [A2, C7, D6, D9, G6]
 ---
 
 # D3 — First-content walkthrough
