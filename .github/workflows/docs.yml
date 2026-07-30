@@ -42,6 +42,7 @@ jobs:
                    40-quality 50-governance 60-brand 70-operations 90-appendix; do
             [ -d "$d" ] && cp -r "$d" "src/$d"
           done
+          python3 scripts/strip_frontmatter.py src
           python3 scripts/gen_summary.py src
 
       - name: Link check the assembled site
