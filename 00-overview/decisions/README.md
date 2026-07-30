@@ -28,6 +28,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0007](0007-dual-mode-jellyfin.md) | Jellyfin supports both Docker and native | Accepted |
 | [0008](0008-hybrid-docker-access.md) | Compose CLI for writes, Docker API for reads | Accepted |
 | [0009](0009-action-pinning.md) | First-party workflows on @main, third-party actions SHA-pinned | Accepted |
+| [0010](0010-engine-abstraction-for-v2.md) | A container engine is a v2 detail, not a v1 assumption | Proposed |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
