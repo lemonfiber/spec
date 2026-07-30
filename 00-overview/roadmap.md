@@ -9,6 +9,42 @@ should target a stack that is already known-good, so that debugging is never
 
 ---
 
+## The version train
+
+Releases ship as a serial train of semver versions, each scoped by a manifest in
+[`70-operations/versions/`](../70-operations/versions/) — the single source of
+truth for a version's goals and status; the table below renders that truth.
+There are two **epochs**: **v1** (features A–G) reaching `1.0.0`, then **v2** (the
+ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
+(`x.y.Z`) are hotfixes; a **major closes its epoch and ships no stubs**
+([OPS-R54](../70-operations/staging.md)).
+
+| Version | Epoch | Milestone | Headline | Status |
+|---------|-------|-----------|----------|--------|
+| `0.1.0` | v1 | M2 | Core: manifest, compose driver, CLI | Released |
+| `0.2.0` | v1 | M3 | Setup wizard + doctor | Released |
+| `0.3.0` | v1 | M4/M5 | Backup/restore + read-only dashboard | Staged |
+| `0.4.0` | v1 | M4 | Auto-wiring & seed | Planned |
+| `0.5.0` | v1 | — | Trust checks (VPN, storage, queue, provider) | Planned |
+| `0.6.0` | v1 | M5 | Interactive TUI | Planned |
+| `0.7.0` | v1 | — | Web surface & cross-cutting UX | Planned |
+| `0.8.0` | v1 | — | Household & content | Planned |
+| `0.9.0` | v1 | — | Lifecycle & maintenance | Planned |
+| `1.0.0` | v1 | M6 | Release engineering + epoch completeness | Planned |
+| `1.1.0`–`1.6.0` | v2 | M7–M11 | Ecosystem: glue, remote access & identity, observability, manifests | Planned |
+| `1.7.0`+ | v2 | M12 | Docker-optional runtime | Planned |
+| `2.0.0` | v2 | — | v2 epoch complete | Planned |
+
+### Patch releases (hotfixes)
+
+A patch (`x.y.Z`) fixes an already-released version from its tag, bypassing the
+goal gate — a cited fix plus maintainer authorisation
+([OPS-R37](../70-operations/staging.md)). Patches appear in the
+[changelog](../10-functional/features/e-maintenance/e5-changelog.md) but never
+enter the goal-locked train.
+
+---
+
 ## M0 — Specification ✅
 
 This repo. Decisions recorded, contracts defined, standards set.
@@ -168,19 +204,39 @@ following only the README.
 
 ---
 
-## Post-1.0 candidates
+## v2 — the ecosystem epoch (M7–M12)
+
+After 1.0, the [ecosystem features](../10-functional/features/README.md) (areas
+H–K, plus F3) ship as their own milestones toward `2.0.0`, authored to the same
+bar; `2.0.0` closes the epoch with no stubs ([OPS-R54](../70-operations/staging.md)).
+
+| Milestone | Delivers | Versions |
+|-----------|----------|----------|
+| **M7 — Ecosystem glue** | H1–H8: cross-seed, autobrr, quality-sync, subtitles, queue self-heal, library cleanup, transcoding, stats — bundled and *verified* | `1.1.0`–`1.2.0` |
+| **M8 — Safely reachable** | I1 remote access (self-hosted overlay) + I2 one-account SSO — auth gates remote access | `1.3.0`–`1.4.0` |
+| **M9 — See everything** | K1–K2: metrics/dashboards and uptime monitoring | `1.5.0` |
+| **M10 — The platform** | F3 third-party stack manifests + community catalogue *(Draft)* | `1.6.0` |
+| **M12 — Runs anywhere** | J1–J3 Docker-optional runtime *(Draft)*; lifts the single-engine non-goal ([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)) | `1.7.0`+ |
+
+M11 (client handoff) folds into M8 as polish.
+
+---
+
+## Beyond v2
 
 Not scheduled. Recorded so they're not rediscovered as novel.
 
 | Idea | Note |
 |------|------|
-| Autobrr / cross-seed | Substantial sub-project each |
-| Janitorr / Maintainerr | Library pruning; needs a library worth pruning first |
-| Tdarr | Transcode automation; weak fit without HW accel on two platforms |
-| Third-party stack manifests | Would generalise lemonfiber beyond media |
-| **Remote access for the household** | Watching from outside the home. Deferred because every candidate mechanism either has a proprietary control plane (Tailscale) or is substantially harder to set up (Headscale). Household features are LAN-only in 1.0. |
 | Keyring-backed secrets | OS keychain instead of plaintext `.env` |
 | GUI | Tauri; only if terminal-first proves to be the barrier |
+
+Several former post-1.0 candidates are now **v2** features: autobrr/cross-seed
+([H1](../10-functional/features/h-glue/h1-cross-seed.md), [H2](../10-functional/features/h-glue/h2-autobrr.md)),
+Janitorr/Maintainerr ([H6](../10-functional/features/h-glue/h6-library-cleanup.md)),
+transcoding ([H7](../10-functional/features/h-glue/h7-transcoding.md), open-source
+Unmanic), third-party stack manifests ([F3](../10-functional/features/f-extensibility/f3-stack-manifests.md)),
+and remote access for the household ([I1](../10-functional/features/i-remote-access/i1-remote-access.md)).
 
 ## Explicitly rejected
 

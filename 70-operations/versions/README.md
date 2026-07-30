@@ -9,6 +9,7 @@ and finalised by `execute-version`.
 
 ```toml
 version = "0.2.0"         # the release this manifest describes; matches the tag v0.2.0
+epoch   = "v1"            # the epoch this version belongs to
 status  = "staged"        # planned → staged → releasable → released → yanked
 repos   = ["lemonfiber", "media-stack"]   # streams this version cuts; never "brand"
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs (OPS-R30)
@@ -20,10 +21,22 @@ media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"
 | Field | Meaning |
 |-------|---------|
 | `version` | Semver, matching the eventual `v<version>` tag. |
+| `epoch` | The epoch this version belongs to — `v1` (features A–G) or `v2` (the ecosystem). Minors advance an epoch; a major closes it. |
 | `status` | The lifecycle state ([OPS-R32](../staging.md)); every transition is recorded here. |
 | `repos` | The release streams this version cuts. `brand` releases on its own clock and is never listed. |
 | `goals` | The locked set of `Accepted` requirement IDs the release must satisfy before it ships. |
+| `closes_epoch` | Present **only on an `X.0.0` major**. Names the epoch it completes; the [epoch-completeness gate](../staging.md) then refuses to ship it unless every `tracks:` feature of that epoch is `Accepted` and done. |
 | `pins` | The exact submodule commits embedded, recorded at execute so the release is reproducible from this file alone. |
+
+## Epochs and the no-stub-major rule
+
+The train ships in two **epochs**: `v1` (the A–G product) reaching `1.0.0`, then
+`v2` (the ecosystem) reaching `2.0.0`. Minors (`0.4.0`, `1.3.0`, …) are themed
+slices toward the next major; patches (`x.y.Z`) are hotfixes. A **major closes an
+epoch and MUST NOT ship with stubs** — the epoch-completeness gate asserts every
+feature tagged `tracks: <epoch>` is `Accepted` and implemented before the
+`X.0.0` tag. That is why a major's own `goals` list may be empty: the *epoch*, not
+a per-requirement list, is what it must satisfy.
 
 ## Rules
 

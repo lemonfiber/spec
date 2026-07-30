@@ -25,6 +25,7 @@
 # and a maintainer-channel notice. A release/0.3.0 branch is cut in lemonfiber
 # (OPS-R33), and execute-version ships once the tracker sees every goal satisfied.
 version = "0.3.0"
+epoch   = "v1"
 status  = "staged"
 repos   = ["lemonfiber"]
 goals   = [
