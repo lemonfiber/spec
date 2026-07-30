@@ -1,0 +1,41 @@
+# 0.3.0 — close M4 (seed/maintenance) and open M5 (the TUI).
+#
+# Two threads. First, the maintenance capability M4 still owes: backup and
+# restore (E3) — quiesced captures, never a live SQLite copy — which is what
+# turns a configured stack from precious into reproducible now that seeding
+# already rebuilds the wiring. Second, the first slice of the second surface
+# (M5): a read-only ratatui dashboard (B3) over the same core the CLI drives —
+# health, VPN exit and forwarded port, transfers, queue, storage — the read
+# side before the interactive one.
+#
+# Homepage widget-key injection is the other M4-close deliverable, but it has no
+# requirement of its own: it extends the existing seed (D1-R1 reads each key,
+# D1-R4 reads it back), already satisfied for the *arrs, to write Homepage's
+# config too. It is scope, not a new goal; a future session that wants it tracked
+# should add a dedicated D1 requirement before staging. Bindery via Torznab
+# (D1-R15) stays deferred — its API cannot be pinned without live verification.
+#
+# The dashboard goals are the read-only contract: what it shows, how it stays
+# live when a source drops, and its refresh budget. The full-TUI polish — narrow-
+# terminal degradation and resize reflow (B3-R9/R10), truncation and isolable
+# panels (B3-R12/R13), and the interactive surfaces (form switcher, log viewer,
+# doctor view, wizard-in-TUI) — is the rest of M5, for a later version.
+#
+# Planned, not staged: this locks the intended scope for a future session to pick
+# up. That session runs stage-version to freeze goals and cut the release
+# branches (OPS-R30/OPS-R33); the goals below are editable until then.
+version = "0.3.0"
+status  = "planned"
+repos   = ["lemonfiber"]
+goals   = [
+    # M4 — backup & restore (E3), the maintenance capability that makes a
+    # configured stack reproducible from an archive.
+    "E3-R1", "E3-R2", "E3-R3", "E3-R4", "E3-R5", "E3-R6", "E3-R7",
+    "E3-R8", "E3-R9", "E3-R10", "E3-R11", "E3-R12", "E3-R13", "E3-R14",
+    # M5 — read-only live dashboard (B3): the panels, resilience to a lost
+    # source, and the refresh budget. Layout polish and interactivity follow.
+    "B3-R1", "B3-R2", "B3-R3", "B3-R4", "B3-R5", "B3-R6", "B3-R7",
+    "B3-R8", "B3-R11", "B3-R14", "B3-R15",
+]
+
+# [pins] is written by execute-version (OPS-R35); left out while planned.
