@@ -21,11 +21,11 @@
 # panels (B3-R12/R13), and the interactive surfaces (form switcher, log viewer,
 # doctor view, wizard-in-TUI) — is the rest of M5, for a later version.
 #
-# Planned, not staged: this locks the intended scope for a future session to pick
-# up. That session runs stage-version to freeze goals and cut the release
-# branches (OPS-R30/OPS-R33); the goals below are editable until then.
+# Staged: the goals below are now frozen (OPS-R31) — changing the set needs review
+# and a maintainer-channel notice. A release/0.3.0 branch is cut in lemonfiber
+# (OPS-R33), and execute-version ships once the tracker sees every goal satisfied.
 version = "0.3.0"
-status  = "planned"
+status  = "staged"
 repos   = ["lemonfiber"]
 goals   = [
     # M4 — backup & restore (E3), the maintenance capability that makes a
