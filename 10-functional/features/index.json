@@ -1,0 +1,1355 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "features": [
+    {
+      "id": "A1",
+      "title": "Prerequisites & account guidance",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.2.0",
+          "status": "released"
+        }
+      ],
+      "path": "a-getting-started/a1-prerequisites.md"
+    },
+    {
+      "id": "A2",
+      "title": "Setup wizard",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.2.0",
+          "status": "released"
+        }
+      ],
+      "path": "a-getting-started/a2-setup-wizard.md"
+    },
+    {
+      "id": "A3",
+      "title": "Credential validation",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.2.0",
+          "status": "released"
+        },
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "a-getting-started/a3-credential-validation.md"
+    },
+    {
+      "id": "A4",
+      "title": "Reconfiguration",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "a-getting-started/a4-reconfiguration.md"
+    },
+    {
+      "id": "A5",
+      "title": "Migration from an existing stack",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "a-getting-started/a5-migration.md"
+    },
+    {
+      "id": "A6",
+      "title": "Clean uninstall",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "a-getting-started/a6-uninstall.md"
+    },
+    {
+      "id": "A7",
+      "title": "Credential management & rotation",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "a-getting-started/a7-credential-management.md"
+    },
+    {
+      "id": "B1",
+      "title": "Forms & partial stacks",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.1.0",
+          "status": "released"
+        },
+        {
+          "version": "0.6.0",
+          "status": "planned"
+        }
+      ],
+      "path": "b-running/b1-forms.md"
+    },
+    {
+      "id": "B2",
+      "title": "Lifecycle control",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.6.0",
+          "status": "planned"
+        }
+      ],
+      "path": "b-running/b2-lifecycle.md"
+    },
+    {
+      "id": "B3",
+      "title": "Live dashboard",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.3.0",
+          "status": "staged"
+        },
+        {
+          "version": "0.6.0",
+          "status": "planned"
+        }
+      ],
+      "path": "b-running/b3-dashboard.md"
+    },
+    {
+      "id": "B4",
+      "title": "Log viewing",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.6.0",
+          "status": "planned"
+        }
+      ],
+      "path": "b-running/b4-logs.md"
+    },
+    {
+      "id": "B5",
+      "title": "Notifications & alerting",
+      "area": "B",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "b-running/b5-notifications.md"
+    },
+    {
+      "id": "B6",
+      "title": "Controlling a stack on another machine",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "b-running/b6-remote-stack.md"
+    },
+    {
+      "id": "B8",
+      "title": "Autostart & boot persistence",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "b-running/b8-autostart.md"
+    },
+    {
+      "id": "C1",
+      "title": "Diagnostics",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.1.0",
+          "status": "released"
+        },
+        {
+          "version": "0.2.0",
+          "status": "released"
+        },
+        {
+          "version": "0.6.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c1-diagnostics.md"
+    },
+    {
+      "id": "C2",
+      "title": "VPN verification",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.5.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c2-vpn-verification.md"
+    },
+    {
+      "id": "C3",
+      "title": "Auto-remediation",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.5.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c3-auto-remediation.md"
+    },
+    {
+      "id": "C4",
+      "title": "Support bundle",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.7.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c4-support-bundle.md"
+    },
+    {
+      "id": "C5",
+      "title": "Storage & hardlink management",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.2.0",
+          "status": "released"
+        },
+        {
+          "version": "0.5.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c5-storage.md"
+    },
+    {
+      "id": "C6",
+      "title": "Web UI security & binding policy",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.7.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c6-web-security.md"
+    },
+    {
+      "id": "C7",
+      "title": "Queue health & stuck items",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.5.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c7-queue-health.md"
+    },
+    {
+      "id": "C8",
+      "title": "Provider health & quota tracking",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.5.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c8-provider-health.md"
+    },
+    {
+      "id": "C9",
+      "title": "Config drift detection & seed policy",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.4.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c9-drift.md"
+    },
+    {
+      "id": "D1",
+      "title": "Service auto-wiring",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.4.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d1-seed.md"
+    },
+    {
+      "id": "D2",
+      "title": "Quality presets in plain language",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.4.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d2-quality-presets.md"
+    },
+    {
+      "id": "D3",
+      "title": "First-content walkthrough",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.4.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d3-first-content.md"
+    },
+    {
+      "id": "D4",
+      "title": "Household request flow",
+      "area": "D",
+      "audience": "household",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.8.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d4-request-flow.md"
+    },
+    {
+      "id": "D5",
+      "title": "Disk space management",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.8.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d5-disk-space.md"
+    },
+    {
+      "id": "D6",
+      "title": "Household identity & invitations",
+      "area": "D",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.8.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d6-household-identity.md"
+    },
+    {
+      "id": "D7",
+      "title": "Request approval & quotas",
+      "area": "D",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.8.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d7-approval-quotas.md"
+    },
+    {
+      "id": "D8",
+      "title": "Parental controls",
+      "area": "D",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.8.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d8-parental-controls.md"
+    },
+    {
+      "id": "D9",
+      "title": "\"Where is my show?\" pipeline trace",
+      "area": "D",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.4.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d9-pipeline-trace.md"
+    },
+    {
+      "id": "D10",
+      "title": "Bandwidth & scheduling",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.8.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d10-bandwidth.md"
+    },
+    {
+      "id": "E1",
+      "title": "Stack updates",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "e-maintenance/e1-stack-updates.md"
+    },
+    {
+      "id": "E2",
+      "title": "lemonfiber self-update",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "e-maintenance/e2-self-update.md"
+    },
+    {
+      "id": "E3",
+      "title": "Backup & restore",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.3.0",
+          "status": "staged"
+        },
+        {
+          "version": "0.4.0",
+          "status": "planned"
+        }
+      ],
+      "path": "e-maintenance/e3-backup-restore.md"
+    },
+    {
+      "id": "E4",
+      "title": "Rollback",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "e-maintenance/e4-rollback.md"
+    },
+    {
+      "id": "E5",
+      "title": "Changelog & release notes",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": "M6",
+      "priority": "P2",
+      "labels": [
+        "updates",
+        "verification"
+      ],
+      "depends": [
+        "E1",
+        "E2"
+      ],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "e-maintenance/e5-changelog.md"
+    },
+    {
+      "id": "F1",
+      "title": "Customisation & escape hatches",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "f-extensibility/f1-customisation.md"
+    },
+    {
+      "id": "F2",
+      "title": "Service catalogue",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "status": "planned"
+        }
+      ],
+      "path": "f-extensibility/f2-service-catalogue.md"
+    },
+    {
+      "id": "F3",
+      "title": "Third-party stack manifests",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "tracks": "v2",
+      "milestone": "M10",
+      "priority": "P2",
+      "labels": [
+        "extensibility",
+        "verification",
+        "wiring"
+      ],
+      "depends": [
+        "F1",
+        "F2"
+      ],
+      "versions": [],
+      "path": "f-extensibility/f3-stack-manifests.md"
+    },
+    {
+      "id": "G1",
+      "title": "Interface tiers",
+      "area": "G",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.7.0",
+          "status": "planned"
+        }
+      ],
+      "path": "g-ux/g1-interface-tiers.md"
+    },
+    {
+      "id": "G2",
+      "title": "Plain-language layer & in-product help",
+      "area": "G",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.7.0",
+          "status": "planned"
+        }
+      ],
+      "path": "g-ux/g2-plain-language.md"
+    },
+    {
+      "id": "G3",
+      "title": "Accessibility",
+      "area": "G",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.7.0",
+          "status": "planned"
+        }
+      ],
+      "path": "g-ux/g3-accessibility.md"
+    },
+    {
+      "id": "G4",
+      "title": "Error & remedy model",
+      "area": "G",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.7.0",
+          "status": "planned"
+        }
+      ],
+      "path": "g-ux/g4-error-model.md"
+    },
+    {
+      "id": "G5",
+      "title": "The front door",
+      "area": "G",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.7.0",
+          "status": "planned"
+        }
+      ],
+      "path": "g-ux/g5-front-door.md"
+    },
+    {
+      "id": "G6",
+      "title": "Client app guidance",
+      "area": "G",
+      "audience": "household",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.8.0",
+          "status": "planned"
+        }
+      ],
+      "path": "g-ux/g6-client-apps.md"
+    },
+    {
+      "id": "G7",
+      "title": "Overall health summary",
+      "area": "G",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.7.0",
+          "status": "planned"
+        }
+      ],
+      "path": "g-ux/g7-health-summary.md"
+    },
+    {
+      "id": "G8",
+      "title": "Privacy stance",
+      "area": "G",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": null,
+      "priority": null,
+      "labels": [],
+      "depends": [],
+      "versions": [
+        {
+          "version": "0.7.0",
+          "status": "planned"
+        }
+      ],
+      "path": "g-ux/g8-privacy.md"
+    },
+    {
+      "id": "H1",
+      "title": "Cross-seeding",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M7",
+      "priority": "P1",
+      "labels": [
+        "seed",
+        "storage",
+        "wiring",
+        "verification"
+      ],
+      "depends": [
+        "C5",
+        "D1"
+      ],
+      "versions": [],
+      "path": "h-glue/h1-cross-seed.md"
+    },
+    {
+      "id": "H2",
+      "title": "Announce-driven grabbing",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M7",
+      "priority": "P1",
+      "labels": [
+        "wiring",
+        "queue",
+        "verification",
+        "notifications"
+      ],
+      "depends": [
+        "D1",
+        "C7"
+      ],
+      "versions": [],
+      "path": "h-glue/h2-autobrr.md"
+    },
+    {
+      "id": "H3",
+      "title": "Quality-profile sync",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M7",
+      "priority": "P1",
+      "labels": [
+        "quality",
+        "wiring",
+        "verification",
+        "stats"
+      ],
+      "depends": [
+        "D2"
+      ],
+      "versions": [],
+      "path": "h-glue/h3-quality-sync.md"
+    },
+    {
+      "id": "H4",
+      "title": "Subtitles",
+      "area": "H",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M7",
+      "priority": "P1",
+      "labels": [
+        "subtitles",
+        "wiring",
+        "verification",
+        "quality"
+      ],
+      "depends": [
+        "D1"
+      ],
+      "versions": [],
+      "path": "h-glue/h4-subtitles.md"
+    },
+    {
+      "id": "H5",
+      "title": "Queue self-healing",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M7",
+      "priority": "P2",
+      "labels": [
+        "queue",
+        "verification",
+        "wiring"
+      ],
+      "depends": [
+        "C7"
+      ],
+      "versions": [],
+      "path": "h-glue/h5-queue-selfheal.md"
+    },
+    {
+      "id": "H6",
+      "title": "Library cleanup",
+      "area": "H",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M7",
+      "priority": "P2",
+      "labels": [
+        "storage",
+        "verification",
+        "wiring"
+      ],
+      "depends": [
+        "D5"
+      ],
+      "versions": [],
+      "path": "h-glue/h6-library-cleanup.md"
+    },
+    {
+      "id": "H7",
+      "title": "Transcoding",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M7",
+      "priority": "P3",
+      "labels": [
+        "transcoding",
+        "quality",
+        "verification",
+        "wiring"
+      ],
+      "depends": [
+        "C5"
+      ],
+      "versions": [],
+      "path": "h-glue/h7-transcoding.md"
+    },
+    {
+      "id": "H8",
+      "title": "Playback statistics",
+      "area": "H",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M7",
+      "priority": "P3",
+      "labels": [
+        "stats",
+        "verification",
+        "wiring"
+      ],
+      "depends": [
+        "D6",
+        "G8"
+      ],
+      "versions": [],
+      "path": "h-glue/h8-stats.md"
+    },
+    {
+      "id": "I1",
+      "title": "Remote access for the household",
+      "area": "I",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M8",
+      "priority": "P1",
+      "labels": [
+        "remote-access",
+        "network",
+        "verification",
+        "security"
+      ],
+      "depends": [
+        "C2",
+        "C6",
+        "G8",
+        "I2"
+      ],
+      "versions": [],
+      "path": "i-remote-access/i1-remote-access.md"
+    },
+    {
+      "id": "I2",
+      "title": "Household identity & single sign-on",
+      "area": "I",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M8",
+      "priority": "P1",
+      "labels": [
+        "security",
+        "household",
+        "verification"
+      ],
+      "depends": [
+        "I1",
+        "C6",
+        "D6",
+        "A7"
+      ],
+      "versions": [],
+      "path": "i-remote-access/i2-identity.md"
+    },
+    {
+      "id": "J1",
+      "title": "Container-engine abstraction",
+      "area": "J",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "tracks": "v2",
+      "milestone": "M12",
+      "priority": "P1",
+      "labels": [
+        "runtime",
+        "verification"
+      ],
+      "depends": [
+        "C2",
+        "C5",
+        "B1"
+      ],
+      "versions": [],
+      "path": "j-runtime/j1-engine-abstraction.md"
+    },
+    {
+      "id": "J2",
+      "title": "Running under Podman",
+      "area": "J",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "tracks": "v2",
+      "milestone": "M12",
+      "priority": "P2",
+      "labels": [
+        "runtime",
+        "network",
+        "verification"
+      ],
+      "depends": [
+        "J1",
+        "C2",
+        "C5"
+      ],
+      "versions": [],
+      "path": "j-runtime/j2-podman.md"
+    },
+    {
+      "id": "J3",
+      "title": "Running natively, without containers",
+      "area": "J",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "tracks": "v2",
+      "milestone": "M12",
+      "priority": "P3",
+      "labels": [
+        "runtime",
+        "network",
+        "verification"
+      ],
+      "depends": [
+        "J1",
+        "C2"
+      ],
+      "versions": [],
+      "path": "j-runtime/j3-native.md"
+    },
+    {
+      "id": "K1",
+      "title": "Metrics & dashboards",
+      "area": "K",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M9",
+      "priority": "P2",
+      "labels": [
+        "observability",
+        "verification"
+      ],
+      "depends": [
+        "B3",
+        "G7"
+      ],
+      "versions": [],
+      "path": "k-observability/k1-metrics.md"
+    },
+    {
+      "id": "K2",
+      "title": "Uptime monitoring",
+      "area": "K",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": "M9",
+      "priority": "P2",
+      "labels": [
+        "observability",
+        "verification"
+      ],
+      "depends": [
+        "B5",
+        "G7"
+      ],
+      "versions": [],
+      "path": "k-observability/k2-uptime.md"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "lemonfiber feature frontmatter",
+  "description": "The machine-readable metadata block every feature doc opens with. The canonical source (D8); the human header line is regenerated from it.",
+  "type": "object",
+  "required": ["id", "title", "kind", "area", "audience", "status", "tracks"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[A-K][0-9]+$" },
+    "title": { "type": "string", "minLength": 1 },
+    "kind": { "enum": ["epic", "feature", "chore"] },
+    "area": { "enum": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"] },
+    "audience": { "enum": ["operator", "household", "both"] },
+    "status": { "enum": ["draft", "accepted", "superseded", "withdrawn"] },
+    "tracks": { "enum": ["v1", "v2"] },
+    "milestone": { "type": "string", "pattern": "^M[0-9]+$" },
+    "priority": { "enum": ["P0", "P1", "P2", "P3"] },
+    "labels": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "cli", "tui", "web", "ux",
+          "vpn", "network", "storage", "seed", "quality", "queue",
+          "subtitles", "transcoding", "stats", "notifications", "observability",
+          "updates", "remote-access", "security", "household",
+          "wiring", "verification", "runtime", "extensibility"
+        ]
+      }
+    },
+    "depends": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-K][0-9]+$" }
+    }
+  }
+}
