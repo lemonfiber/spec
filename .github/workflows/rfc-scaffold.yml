@@ -1,0 +1,47 @@
+# Scaffold a Draft feature stub from an approved RFC issue and open its PR.
+# Fires only when a maintainer applies the `rfc:approved` label (GOV-R41). The
+# issue fields are untrusted: passed as environment variables and parsed by
+# scripts/rfc_scaffold.py, never interpolated into a shell (GOV-R43).
+name: rfc-scaffold
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  scaffold:
+    if: github.event.label.name == 'rfc:approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the approver has write access (GOV-R41)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.event.sender.login }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          perm=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          case "$perm" in
+            admin|maintain|write)
+              echo "approver ${ACTOR} has ${perm} access" ;;
+            *)
+              echo "::error::${ACTOR} lacks write access (${perm}); refusing to scaffold"
+              exit 1 ;;
+          esac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Scaffold the Draft and open the PR (GOV-R42/R43)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: python3 scripts/rfc_scaffold.py
