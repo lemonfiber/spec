@@ -71,6 +71,7 @@ The hardest part of the product, and where most users are lost today.
 | [B5](b-running/b5-notifications.md) | Notifications & alerting | Both |
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | Operator |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | Operator |
+| [B9](b-running/b9-notification-backends.md) · *v2* | Open notification back-ends | Both |
 
 > **B7 (remote access for the household) is deferred past 1.0** — household
 > features are **LAN-only** in 1.0. It returns in **v2 as [I1](i-remote-access/i1-remote-access.md)**,
@@ -145,6 +146,7 @@ one product.
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | Household |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | Operator |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | Both |
+| [G9](g-ux/g9-mobile-handoff.md) · *v2* | Mobile client handoff | Both |
 
 ---
 
@@ -206,10 +208,10 @@ Open-source-native metrics and monitoring — a second opinion, delivery-confirm
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | Operator |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | Operator |
 
-> **Also v2, as extensions to existing areas:** [F3](f-extensibility/f3-stack-manifests.md)
-> (third-party stack manifests), plus planned additions to
-> [B5](b-running/b5-notifications.md) (open notification back-ends) and
-> [G6](g-ux/g6-client-apps.md) (mobile handoff).
+> **Also v2, in existing areas:** [F3](f-extensibility/f3-stack-manifests.md)
+> (third-party stack manifests), [B9](b-running/b9-notification-backends.md)
+> (open notification back-ends, extends [B5](b-running/b5-notifications.md)), and
+> [G9](g-ux/g9-mobile-handoff.md) (mobile handoff, extends [G6](g-ux/g6-client-apps.md)).
 
 ---
 

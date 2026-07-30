@@ -62,7 +62,9 @@ Generated from feature frontmatter and the version manifests by
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
+| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | — |
 | [F3](f-extensibility/f3-stack-manifests.md) | Third-party stack manifests | F | operator | draft | — |
+| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | — |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | — |
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | — |
 | [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | — |
