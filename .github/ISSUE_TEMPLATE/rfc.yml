@@ -1,0 +1,60 @@
+name: RFC — propose a spec change
+description: Propose a new or changed requirement. The issue is the source of truth until a maintainer approves it; only an approved RFC becomes a spec PR.
+title: "RFC: "
+labels: ["rfc"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a change. **This issue is the source of truth for your
+        proposal** until a maintainer approves it and the resulting Draft merges —
+        no git needed. A maintainer will discuss it here and, if approved, the
+        automation opens a Draft spec PR linked to this issue.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which feature area does this belong to?
+      options:
+        - "A — Getting started"
+        - "B — Running it"
+        - "C — Trust & correctness"
+        - "D — Content & household"
+        - "E — Maintenance"
+        - "F — Extensibility"
+        - "G — Cross-cutting UX"
+        - "H — Ecosystem glue"
+        - "I — Remote access & identity"
+        - "J — Runtime & platform"
+        - "K — Observability"
+    validations:
+      required: true
+  - type: input
+    id: proposal-title
+    attributes:
+      label: Proposal title
+      description: A short noun phrase naming the capability.
+      placeholder: e.g. Scheduled library scans
+    validations:
+      required: true
+  - type: textarea
+    id: the-problem
+    attributes:
+      label: The problem
+      description: What doesn't work today, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-behaviour
+    attributes:
+      label: Proposed behaviour
+      description: What should the product do? Write it as one or more testable statements (MUST / SHOULD / MAY).
+    validations:
+      required: true
+  - type: textarea
+    id: rationale-alternatives
+    attributes:
+      label: Rationale & alternatives
+      description: Why this, and what did you consider instead?
+    validations:
+      required: false

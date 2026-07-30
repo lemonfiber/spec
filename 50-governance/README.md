@@ -49,6 +49,7 @@ None of those would have surfaced while writing an implementation.
 | [dco.md](dco.md) | Sign-off (DCO) and inbound=outbound licensing |
 | [overrides.md](overrides.md) | The maintainer override, its audit trail, and when it's legitimate |
 | [issue-routing.md](issue-routing.md) | Which repo an issue belongs in, and how it moves |
+| [rfc-process.md](rfc-process.md) | The community RFC flow — issue as source of truth, maintainer approval, auto-scaffolded Draft PR |
 
 ## The two reference paths
 
