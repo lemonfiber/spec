@@ -21,7 +21,7 @@ links:
 docs:
     rm -rf src && mkdir src && cp README.md src/ && \
         for d in [0-9]*-*; do cp -r "$d" "src/$d"; done && \
-        python3 scripts/strip_frontmatter.py src && \
+        python3 scripts/strip_frontmatter.py && \
         python3 scripts/gen_summary.py src && mdbook build
 
 # Self-test the governance gate against a sample citation.
