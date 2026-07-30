@@ -29,7 +29,7 @@ below rather than silently dropped.
 
 ```
 lemonfiber/spec/          canonical · cross-repo · WHAT and WHY
-  47 features, 645 requirements, ADRs
+  66 features, 926 requirements, ADRs
         ▲ cited by
 lemonfiber/.docs/                repo-local · Rust-specific HOW
   architecture/ adr/ conventions/ runbooks/

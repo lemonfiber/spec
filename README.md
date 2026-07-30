@@ -51,7 +51,7 @@ freely.
 | Section | Contents | Read this if… |
 |---------|----------|---------------|
 | **[00-overview](00-overview/)** | Vision, glossary, roadmap, and all Architecture Decision Records | …you want the *why* behind any choice |
-| **[10-functional](10-functional/)** | The 47-feature catalogue, numbered requirements, and nine user journeys | …you're deciding what to build or verifying it got built |
+| **[10-functional](10-functional/)** | The 66-feature catalogue, numbered requirements, and nine user journeys | …you're deciding what to build or verifying it got built |
 | **[20-architecture](20-architecture/)** | System context, component model, platform matrix, inter-repo contracts | …you're implementing across the lemonfiber ↔ media-stack seam |
 | **[30-repos](30-repos/)** | Per-repo technical specs | …you're working inside one repo |
 | **[40-quality](40-quality/)** | Code standards, comment policy, testing, CI/CD, security | …you're writing or reviewing a PR |
@@ -63,7 +63,7 @@ freely.
 ### Fast paths
 
 - **"I want to understand the product"** → [vision](00-overview/vision.md) → [journeys](10-functional/journeys/) → [forms](10-functional/features/b-running/b1-forms.md)
-- **"What does it actually do?"** → [feature catalogue](10-functional/features/) — 47 features, 645 requirements
+- **"What does it actually do?"** → [feature catalogue](10-functional/features/) — 66 features, 926 requirements
 - **"I'm implementing lemonfiber"** → [lemonfiber spec](30-repos/lemonfiber.md) → [TUI spec](30-repos/lemonfiber-tui.md) → [code standards](40-quality/code-standards.md)
 - **"I'm implementing media-stack"** → [media-stack spec](30-repos/media-stack.md) → [stack manifest contract](20-architecture/contracts/stack-manifest.md)
 - **"Why is it built this way?"** → [decisions/](00-overview/decisions/)
@@ -96,8 +96,8 @@ trailers and PR bodies — **never in code comments**
 
 | Section | Status | Contents |
 |---------|--------|----------|
-| 00-overview | Accepted | Vision, glossary, roadmap, 8 ADRs |
-| 10-functional | Accepted | 47 features, 645 requirements, 9 journeys |
+| 00-overview | Accepted | Vision, glossary, roadmap, 10 ADRs |
+| 10-functional | Accepted | 66 features (A–K), 926 requirements, 9 journeys |
 | 20-architecture | Accepted | System context, component model, data flow, platform matrix, 3 contracts |
 | 30-repos | Accepted | lemonfiber (+ TUI + reference), media-stack, brand, homebrew-tap |
 | 40-quality | Accepted | Comment policy, code standards, testing, CI/CD, security, definition of done |
@@ -105,14 +105,15 @@ trailers and PR bodies — **never in code comments**
 | 60-brand | Accepted | Brand rules, surface mapping, accessibility contract |
 | 70-operations | Accepted | Releasing, setup registry, project workflow, maintainers |
 
-The spec is **complete** — every section Accepted. Implementation has not begun;
-this is `M0` on the [roadmap](00-overview/roadmap.md).
+The v1 spec is complete and **v2 — the ecosystem epoch — is specified** (areas
+H–K plus F3; the runtime pillar and stack-manifests are still Draft).
+Implementation is under way: `0.2.0` is released and the
+[version train](00-overview/roadmap.md#the-version-train) runs to 1.0.
 
-Nothing here is implemented yet. This is a spec-first project: the functional
-spec landed before the technical one deliberately, so that **every architectural
-decision can be justified against a requirement** rather than alongside one. A
-technical choice citing no requirement is unjustified and should be challenged in
-review.
+This is a spec-first project: the functional spec landed before the technical one
+deliberately, so that **every architectural decision can be justified against a
+requirement** rather than alongside one. A technical choice citing no requirement
+is unjustified and should be challenged in review.
 
 ---
 

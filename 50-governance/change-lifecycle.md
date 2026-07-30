@@ -2,7 +2,8 @@
 
 **Status:** Accepted
 
-How a change moves from idea to merged code across two repositories.
+How a change moves from idea to merged code across the spec and the
+repositories built against it.
 
 ---
 
@@ -28,6 +29,11 @@ flowchart TD
 
 The important edge is **`review --> impl`**: implementation begins after the spec
 change merges, not alongside it.
+
+A proposal from **outside** the maintainers enters one step earlier, as an
+[RFC issue](rfc-process.md): the issue is the source of truth until a maintainer
+approves it, at which point the automation opens the spec PR above on the
+contributor's behalf. The review, and everything after it, is identical.
 
 ## Why spec-first, rather than together
 
@@ -79,6 +85,15 @@ chore: bump tokio to 1.48
 Spec: GOV-R12
 ```
 
+## The community path — RFCs
+
+The three paths above assume repo access. An idea from **outside** the
+maintainers enters through the [RFC process](rfc-process.md) instead: an issue
+form collects the proposal, a maintainer approves it on the issue, and only then
+does the automation scaffold a Draft and open the spec PR — after which it
+rejoins path 1's review. No git is required of the contributor, and the issue
+remains the source of truth until the Draft merges and becomes Accepted.
+
 ## When implementation reveals the spec is wrong
 
 This will happen, and it's the most interesting case. Implementation surfaces
@@ -122,5 +137,6 @@ since anyone could merge a draft and implement against it in the same breath.
 
 - [canonical-spec.md](canonical-spec.md) — the rule and the `GOV-R` namespace
 - [cross-repo-ci.md](cross-repo-ci.md) — how the ordering is enforced
+- [rfc-process.md](rfc-process.md) — the community front-door that feeds this flow
 - [contributing.md](contributing.md) — the same flow, from a contributor's side
 - [overrides.md](overrides.md)
