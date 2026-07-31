@@ -45,6 +45,27 @@ def load_versions():
     return by_feature
 
 
+def load_version_list():
+    """Every version manifest as a train row, ordered by semver. Unlike the
+    per-feature version membership above, this keeps the epoch-closing majors —
+    which own no per-feature goals (the no-stub-major rule) and so appear in no
+    feature row — so a consumer can render the whole train, majors included."""
+    versions = []
+    for vf in sorted(glob.glob("70-operations/versions/*.toml")):
+        if pathlib.Path(vf).stem == "TEMPLATE":
+            continue
+        data = tomllib.loads(pathlib.Path(vf).read_text(encoding="utf-8"))
+        versions.append({
+            "version": data["version"],
+            "epoch": data.get("epoch"),
+            "status": data.get("status", "planned"),
+            "closes_epoch": data.get("closes_epoch"),
+            "goals": len(data.get("goals", [])),
+        })
+    versions.sort(key=lambda v: [int(part) for part in v["version"].split(".")])
+    return versions
+
+
 def build_rows(feats, by_feature):
     rows = []
     for fid in sorted(feats, key=_order):
@@ -108,7 +129,11 @@ def render_board(rows):
 def main():
     feats = load_features()
     rows = build_rows(feats, load_versions())
-    index = {"generated_by": "scripts/gen_board.py", "features": rows}
+    index = {
+        "generated_by": "scripts/gen_board.py",
+        "versions": load_version_list(),
+        "features": rows,
+    }
     pathlib.Path(f"{FEATDIR}/index.json").write_text(
         json.dumps(index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
