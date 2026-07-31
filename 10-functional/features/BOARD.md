@@ -18,7 +18,7 @@ Generated from feature frontmatter and the version manifests by
 | [A7](a-getting-started/a7-credential-management.md) | Credential management & rotation | A | operator | accepted | `0.9.0` |
 | [B1](b-running/b1-forms.md) | Forms & partial stacks | B | operator | accepted | `0.1.0`, `0.6.0` |
 | [B2](b-running/b2-lifecycle.md) | Lifecycle control | B | operator | accepted | `0.6.0` |
-| [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.3.0`, `0.6.0` |
+| [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.6.0` |
 | [B4](b-running/b4-logs.md) | Log viewing | B | operator | accepted | `0.6.0` |
 | [B5](b-running/b5-notifications.md) | Notifications & alerting | B | both | accepted | `0.9.0` |
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.9.0` |

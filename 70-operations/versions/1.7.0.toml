@@ -1,4 +1,4 @@
-# M12 — Runs anywhere. The Docker-optional runtime: a container-engine abstraction,
+# M15 — Runs anywhere. The Docker-optional runtime: a container-engine abstraction,
 # running under Podman, and running natively without containers — lifting the
 # single-engine non-goal (ADR-0010).
 #

@@ -23,16 +23,16 @@ ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
 |---------|-------|-----------|----------|--------|
 | `0.1.0` | v1 | M2 | Core: manifest, compose driver, CLI | Released |
 | `0.2.0` | v1 | M3 | Setup wizard + doctor | Released |
-| `0.3.0` | v1 | M4/M5 | Backup/restore + read-only dashboard | Staged |
+| `0.3.0` | v1 | M4 | Backup & restore | Staged |
 | `0.4.0` | v1 | M4 | Auto-wiring & seed | Planned |
-| `0.5.0` | v1 | — | Trust checks (VPN, storage, queue, provider) | Planned |
-| `0.6.0` | v1 | M5 | Interactive TUI | Planned |
-| `0.7.0` | v1 | — | Web surface & cross-cutting UX | Planned |
-| `0.8.0` | v1 | — | Household & content | Planned |
-| `0.9.0` | v1 | — | Lifecycle & maintenance | Planned |
-| `1.0.0` | v1 | M6 | Release engineering + epoch completeness | Planned |
-| `1.1.0`–`1.6.0` | v2 | M7–M10 | Ecosystem: glue, remote access & identity, observability, manifests | Planned |
-| `1.7.0`+ | v2 | M12 | Docker-optional runtime | Planned |
+| `0.5.0` | v1 | M5 | Trust checks (VPN, storage, queue, provider) | Planned |
+| `0.6.0` | v1 | M6 | Live TUI: dashboard + interactive surfaces | Planned |
+| `0.7.0` | v1 | M7 | Web surface & cross-cutting UX | Planned |
+| `0.8.0` | v1 | M8 | Household & content | Planned |
+| `0.9.0` | v1 | M9 | Lifecycle & maintenance | Planned |
+| `1.0.0` | v1 | M10 | Release engineering + epoch completeness | Planned |
+| `1.1.0`–`1.6.0` | v2 | M11–M14 | Ecosystem: glue, remote access & identity, observability, manifests | Planned |
+| `1.7.0`+ | v2 | M15 | Docker-optional runtime | Planned |
 | `2.0.0` | v2 | — | v2 epoch complete | Planned |
 
 ### Patch releases (hotfixes)
@@ -83,7 +83,7 @@ accident, and "we'll backfill" never happens.
 
 No Rust involved. The stack must be usable with bare `docker compose`. The
 `brand` repo — tokens, marks, and its contrast CI — can be finished in parallel
-here, since the web UI that consumes it doesn't arrive until M5 and nothing
+here, since the web UI that consumes it doesn't arrive until M7 and nothing
 gates on it earlier.
 
 | Deliverable | Notes |
@@ -151,9 +151,11 @@ misconfigured VPN.
 
 ---
 
-## M4 — Seed
+## M4 — Seed & backup
 
 Turns config from precious into reproducible ([P6](vision.md#p6--reproducible-over-precious)).
+Spans two versions: `0.3.0` (backup & restore — a configured stack captured to
+an archive) and `0.4.0` (auto-wiring & seed — the graph rebuilt from nothing).
 
 | Deliverable | Notes |
 |-------------|-------|
@@ -173,12 +175,32 @@ stack in under 2 minutes. Seed is idempotent — running twice changes nothing.
 
 ---
 
-## M5 — TUI
+## M5 — Trust checks
+
+The P3 trust pillar made real (`0.5.0`): the diagnostics that prove the stack is
+safe to run, beyond the setup-time checks M3 established.
+
+| Deliverable | Notes |
+|-------------|-------|
+| VPN egress proof | Continuous confirmation traffic leaves through the tunnel, not just at setup |
+| Storage & hardlink verification | The data root still links; degraded capability alerted |
+| Queue & provider health | Stuck queues and rotted credentials surfaced as findings |
+| Auto-remediation | Where a fix is safe and unambiguous, offer to apply it |
+
+**Exit criteria:** each trust check catches its failure on a deliberately broken
+stack and states a remedy.
+
+---
+
+## M6 — Live TUI
+
+The second surface (`0.6.0`), ratatui over the same core the CLI drives — the
+read-only dashboard **and** the interactive surfaces over it.
 
 | Deliverable | Notes |
 |-------------|-------|
 | Ratatui event loop | Async, non-blocking; Docker I/O never stalls a frame |
-| Dashboard | Health, VPN IP + forwarded port, transfers, disk, queue depth |
+| Dashboard | Health, VPN IP + forwarded port, transfers, disk, queue depth — the read-only screen |
 | Form switcher | Interactive picker with closure preview |
 | Log viewer | Streamed, filterable, scrollback |
 | Doctor view | Interactive re-run, remedies inline |
@@ -189,7 +211,41 @@ responsive while pulling images.
 
 ---
 
-## M6 — Release engineering
+## M7 — Web surface & UX
+
+A third surface (`0.7.0`): a read-only web view over the same core, plus the
+cross-cutting UX that spans every surface.
+
+**Exit criteria:** the web view renders the same live state the TUI shows,
+read-only, over the core with no surface-specific logic.
+
+---
+
+## M8 — Household & content
+
+Content and household features (`0.8.0`): managing what the stack holds and who
+in the household reaches it.
+
+**Exit criteria:** a household member's request flows end to end, and content
+management acts without reverting an operator's manual choices.
+
+---
+
+## M9 — Lifecycle & maintenance
+
+Living with a running stack (`0.9.0`): reconfiguration, migration, uninstall,
+notifications, remote control, autostart & boot persistence, stack and self
+updates, rollback, and the service catalogue.
+
+**Exit criteria:** every lifecycle operation is reversible or explicitly
+confirmed, and an unattended stack recovers across a reboot.
+
+---
+
+## M10 — Release engineering
+
+Closes v1 (`1.0.0`): the install paths a non-contributor follows, and the epoch
+gate that ships no stubs ([OPS-R54](../70-operations/staging.md)).
 
 | Deliverable | Notes |
 |-------------|-------|
@@ -204,7 +260,7 @@ following only the README.
 
 ---
 
-## v2 — the ecosystem epoch (M7–M12)
+## v2 — the ecosystem epoch (M11–M15)
 
 After 1.0, the [ecosystem features](../10-functional/features/README.md) (areas
 H–K, plus F3) ship as their own milestones toward `2.0.0`, authored to the same
@@ -212,13 +268,11 @@ bar; `2.0.0` closes the epoch with no stubs ([OPS-R54](../70-operations/staging.
 
 | Milestone | Delivers | Versions |
 |-----------|----------|----------|
-| **M7 — Ecosystem glue** | H1–H8: cross-seed, autobrr, quality-sync, subtitles, queue self-heal, library cleanup, transcoding, stats — bundled and *verified* | `1.1.0`–`1.2.0` |
-| **M8 — Safely reachable** | I1 remote access (self-hosted overlay) + I2 one-account SSO — auth gates remote access | `1.3.0`–`1.4.0` |
-| **M9 — See everything** | K1–K2: metrics/dashboards and uptime monitoring | `1.5.0` |
-| **M10 — The platform** | F3 third-party stack manifests + community catalogue *(Draft)* | `1.6.0` |
-| **M12 — Runs anywhere** | J1–J3 Docker-optional runtime *(Draft)*; lifts the single-engine non-goal ([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)) | `1.7.0`+ |
-
-M11 (client handoff) folds into M8 as polish.
+| **M11 — Ecosystem glue** | H1–H8: cross-seed, autobrr, quality-sync, subtitles, queue self-heal, library cleanup, transcoding, stats — bundled and *verified* | `1.1.0`–`1.2.0` |
+| **M12 — Safely reachable** | I1 remote access (self-hosted overlay) + I2 one-account SSO — auth gates remote access; mobile client handoff folds in as polish | `1.3.0`–`1.4.0` |
+| **M13 — See everything** | K1–K2: metrics/dashboards and uptime monitoring | `1.5.0` |
+| **M14 — The platform** | F3 third-party stack manifests + community catalogue *(Draft)* | `1.6.0` |
+| **M15 — Runs anywhere** | J1–J3 Docker-optional runtime *(Draft)*; lifts the single-engine non-goal ([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)) | `1.7.0`+ |
 
 ---
 
