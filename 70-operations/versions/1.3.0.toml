@@ -1,4 +1,4 @@
-# M8 — Safely reachable, first slice. The P1 remote-access pair: a self-hosted
+# M12 — Safely reachable, first slice. The P1 remote-access pair: a self-hosted
 # overlay that reaches the household's stack from outside the home network, gated
 # by one-account single sign-on so remote access is never opened without auth.
 #

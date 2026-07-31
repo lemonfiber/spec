@@ -1,4 +1,4 @@
-# Trust checks — the P3 core made real: VPN egress proof, storage/hardlink verification, queue and provider health, and auto-remediation.
+# M5 — Trust checks. The P3 core made real: VPN egress proof, storage/hardlink verification, queue and provider health, and auto-remediation.
 #
 # 74 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).

@@ -1,12 +1,30 @@
-# Interactive TUI — closes M5: the interactive dashboard, form switcher, lifecycle control, log viewer, and doctor view.
+# Live TUI — closes M6: the whole second surface. The read-only dashboard (its
+# render loop over the already-built model) and the interactive surfaces over it —
+# form switcher, lifecycle control, log viewer, and doctor view.
 #
-# 51 goals, seeded from the roadmap milestone this version serves;
-# frozen at stage-version (OPS-R30).
+# 62 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30). The read-only dashboard goals (B3-R1..R8,
+# R11, R14, R15) moved here from 0.3.0: they are display requirements, not
+# satisfiable without the ratatui surface this version builds.
 version = "0.6.0"
 epoch   = "v1"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [
+    # Read-only dashboard: the panels, resilience to a lost source, and the
+    # refresh budget — the read side, over the model already built on main.
+    "B3-R1",
+    "B3-R2",
+    "B3-R3",
+    "B3-R4",
+    "B3-R5",
+    "B3-R6",
+    "B3-R7",
+    "B3-R8",
+    "B3-R11",
+    "B3-R14",
+    "B3-R15",
+    # Full-TUI polish and the interactive surfaces.
     "B3-R9",
     "B3-R10",
     "B3-R12",

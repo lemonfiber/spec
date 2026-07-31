@@ -1,5 +1,5 @@
 # 1.0.0 — the v1 epoch closes, and the product is released. Its own scoped work is
-# L1 (release engineering, M6): signed multi-platform artifacts, the Homebrew tap,
+# L1 (release engineering, M10): signed multi-platform artifacts, the Homebrew tap,
 # shell/PowerShell installers, real cross-platform testing, and the generated docs
 # site — the deliverable of the release itself, not of any one v1 feature.
 #

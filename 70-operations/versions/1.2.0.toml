@@ -1,4 +1,4 @@
-# M7 — Ecosystem glue, second slice. The P2/P3 self-maintenance: queue self-healing,
+# M11 — Ecosystem glue, second slice. The P2/P3 self-maintenance: queue self-healing,
 # library cleanup, transcoding, and playback statistics — the glue that keeps the
 # stack tidy and observable once the P1 automation of 1.1.0 is in place.
 #
