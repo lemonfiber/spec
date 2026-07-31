@@ -1,6 +1,6 @@
 # Lifecycle & maintenance — reconfiguration, migration, uninstall, credential management, notifications, remote control, autostart, stack and self updates, rollback, customisation and the service catalogue.
 #
-# 171 goals, seeded from the roadmap milestone this version serves;
+# 184 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.9.0"
 epoch   = "v1"
