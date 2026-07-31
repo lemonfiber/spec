@@ -6,3 +6,6 @@
 # scratch
 *.tmp
 .coverage
+# Python bytecode
+__pycache__/
+*.pyc
