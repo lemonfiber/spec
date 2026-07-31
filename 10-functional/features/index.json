@@ -20,7 +20,7 @@
       "epoch": "v1",
       "status": "staged",
       "closes_epoch": null,
-      "goals": 14
+      "goals": 13
     },
     {
       "version": "0.4.0",
@@ -62,7 +62,7 @@
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 184
+      "goals": 185
     },
     {
       "version": "1.0.0",
@@ -1183,6 +1183,10 @@
         },
         {
           "version": "0.4.0",
+          "status": "planned"
+        },
+        {
+          "version": "0.9.0",
           "status": "planned"
         }
       ],
