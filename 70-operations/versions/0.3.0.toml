@@ -25,7 +25,7 @@
 # (OPS-R33), and execute-version ships once the tracker sees every goal satisfied.
 version = "0.3.0"
 epoch   = "v1"
-status  = "staged"
+status  = "released"
 repos   = ["lemonfiber"]
 goals   = [
     # M4 — backup & restore (E3), the maintenance capability that makes a
@@ -37,4 +37,5 @@ goals   = [
     "E3-R8", "E3-R9", "E3-R10", "E3-R11", "E3-R12", "E3-R13", "E3-R14",
 ]
 
-# [pins] is written by execute-version (OPS-R35); left out while planned.
+[pins]
+media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"

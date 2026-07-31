@@ -23,7 +23,7 @@ ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
 |---------|-------|-----------|----------|--------|
 | `0.1.0` | v1 | M2 | Core: manifest, compose driver, CLI | Released |
 | `0.2.0` | v1 | M3 | Setup wizard + doctor | Released |
-| `0.3.0` | v1 | M4 | Backup & restore | Staged |
+| `0.3.0` | v1 | M4 | Backup & restore | Released |
 | `0.4.0` | v1 | M4 | Auto-wiring & seed | Planned |
 | `0.5.0` | v1 | M5 | Trust checks (VPN, storage, queue, provider) | Planned |
 | `0.6.0` | v1 | M6 | Live TUI: dashboard + interactive surfaces | Planned |
