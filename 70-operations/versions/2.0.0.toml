@@ -1,14 +1,17 @@
-# 2.0.0 — the v2 epoch closes. The ecosystem (areas H–K, plus F3) complete and
-# verified to the same bar as v1. No new functional requirements — 2.0.0 is the
-# completeness bar: every v2 (tracks: v2) feature Accepted AND done.
+# 2.0.0 — the v2 epoch closes, and the ecosystem is released. Its own scoped work
+# is L2 (v2 release): the v2 surface shipped through the same signed, multi-platform
+# pipeline as v1, verified to the same bar, with a tested upgrade from a v1 release
+# — the deliverable of the release itself, not of any one v2 feature.
 #
 version = "2.0.0"
 epoch   = "v2"
 status  = "planned"
 repos   = ["lemonfiber", "media-stack"]
 closes_epoch = "v2"
-goals   = []
+goals   = [
+    "L2-R1", "L2-R2", "L2-R3", "L2-R4", "L2-R5", "L2-R6",
+]
 
-# goals stay empty: the epoch-completeness gate (OPS-R54) asserts every tracks: v2
-# feature is satisfied, so 2.0.0 needs no per-requirement goal list of its own.
+# On top of these goals, closes_epoch adds the epoch-completeness gate (OPS-R54):
+# 2.0.0 ships only when L2 is done AND every tracks: v2 feature is satisfied.
 # [pins] is written by execute-version (OPS-R35); left out while planned.

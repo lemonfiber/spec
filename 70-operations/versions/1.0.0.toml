@@ -1,15 +1,18 @@
-# 1.0.0 — the v1 epoch closes. Release engineering (M6): signed multi-platform
-# artifacts, the Homebrew tap, shell/PowerShell installers, real cross-platform
-# testing, and the generated docs site. No new functional requirements — 1.0.0
-# is the completeness bar: every v1 (tracks: v1) feature Accepted AND done.
+# 1.0.0 — the v1 epoch closes, and the product is released. Its own scoped work is
+# L1 (release engineering, M6): signed multi-platform artifacts, the Homebrew tap,
+# shell/PowerShell installers, real cross-platform testing, and the generated docs
+# site — the deliverable of the release itself, not of any one v1 feature.
 #
 version = "1.0.0"
 epoch   = "v1"
 status  = "planned"
 repos   = ["lemonfiber", "media-stack"]
 closes_epoch = "v1"
-goals   = []
+goals   = [
+    "L1-R1", "L1-R2", "L1-R3", "L1-R4", "L1-R5",
+    "L1-R6", "L1-R7", "L1-R8", "L1-R9", "L1-R10",
+]
 
-# goals stay empty: the epoch-completeness gate (OPS-R) asserts every tracks: v1
-# feature is satisfied, so 1.0.0 needs no per-requirement goal list of its own.
+# On top of these goals, closes_epoch adds the epoch-completeness gate (OPS-R54):
+# 1.0.0 ships only when L1 is done AND every tracks: v1 feature is satisfied.
 # [pins] is written by execute-version (OPS-R35); left out while planned.

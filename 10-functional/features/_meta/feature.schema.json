@@ -6,10 +6,10 @@
   "required": ["id", "title", "kind", "area", "audience", "status", "tracks"],
   "additionalProperties": false,
   "properties": {
-    "id": { "type": "string", "pattern": "^[A-K][0-9]+$" },
+    "id": { "type": "string", "pattern": "^[A-L][0-9]+$" },
     "title": { "type": "string", "minLength": 1 },
     "kind": { "enum": ["epic", "feature", "chore"] },
-    "area": { "enum": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"] },
+    "area": { "enum": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"] },
     "audience": { "enum": ["operator", "household", "both"] },
     "status": { "enum": ["draft", "accepted", "superseded", "withdrawn"] },
     "tracks": { "enum": ["v1", "v2"] },
@@ -23,13 +23,13 @@
           "vpn", "network", "storage", "seed", "quality", "queue",
           "subtitles", "transcoding", "stats", "notifications", "observability",
           "updates", "remote-access", "security", "household",
-          "wiring", "verification", "runtime", "extensibility"
+          "wiring", "verification", "runtime", "extensibility", "release"
         ]
       }
     },
     "depends": {
       "type": "array",
-      "items": { "type": "string", "pattern": "^[A-K][0-9]+$" }
+      "items": { "type": "string", "pattern": "^[A-L][0-9]+$" }
     }
   }
 }
