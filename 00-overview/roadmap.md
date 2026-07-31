@@ -31,7 +31,7 @@ ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
 | `0.8.0` | v1 | — | Household & content | Planned |
 | `0.9.0` | v1 | — | Lifecycle & maintenance | Planned |
 | `1.0.0` | v1 | M6 | Release engineering + epoch completeness | Planned |
-| `1.1.0`–`1.6.0` | v2 | M7–M11 | Ecosystem: glue, remote access & identity, observability, manifests | Planned |
+| `1.1.0`–`1.6.0` | v2 | M7–M10 | Ecosystem: glue, remote access & identity, observability, manifests | Planned |
 | `1.7.0`+ | v2 | M12 | Docker-optional runtime | Planned |
 | `2.0.0` | v2 | — | v2 epoch complete | Planned |
 
