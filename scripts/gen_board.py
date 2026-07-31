@@ -23,7 +23,7 @@ def _order(fid):
 
 def load_features():
     feats = {}
-    for path in sorted(glob.glob(f"{FEATDIR}/[a-k]-*/*.md")):
+    for path in sorted(glob.glob(f"{FEATDIR}/[a-l]-*/*.md")):
         fm = metafm.load(path)
         if fm and "id" in fm:
             fm["path"] = path
@@ -106,8 +106,8 @@ def render_board(rows):
         "",
     ]
     for track, label in (
-        ("v1", "v1 — the product (areas A–G)"),
-        ("v2", "v2 — the ecosystem (areas H–K, plus F3)"),
+        ("v1", "v1 — the product (areas A–G, and L1 to release it)"),
+        ("v2", "v2 — the ecosystem (areas H–K, plus F3, and L2 to release it)"),
     ):
         out += [
             f"## {label}",

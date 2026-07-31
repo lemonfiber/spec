@@ -69,7 +69,7 @@
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": "v1",
-      "goals": 0
+      "goals": 10
     },
     {
       "version": "1.1.0",
@@ -125,7 +125,7 @@
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": "v2",
-      "goals": 0
+      "goals": 6
     }
   ],
   "features": [
@@ -1983,6 +1983,53 @@
         }
       ],
       "path": "k-observability/k2-uptime.md"
+    },
+    {
+      "id": "L1",
+      "title": "v1 release engineering",
+      "area": "L",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestone": "M6",
+      "priority": "P1",
+      "labels": [
+        "release",
+        "cli",
+        "verification"
+      ],
+      "depends": [],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "status": "planned"
+        }
+      ],
+      "path": "l-release/l1-release-engineering.md"
+    },
+    {
+      "id": "L2",
+      "title": "v2 release",
+      "area": "L",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v2",
+      "milestone": null,
+      "priority": "P1",
+      "labels": [
+        "release",
+        "verification"
+      ],
+      "depends": [],
+      "versions": [
+        {
+          "version": "2.0.0",
+          "status": "planned"
+        }
+      ],
+      "path": "l-release/l2-v2-release.md"
     }
   ]
 }

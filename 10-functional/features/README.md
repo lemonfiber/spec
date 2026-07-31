@@ -2,11 +2,13 @@
 
 **Status:** Accepted
 
-**v1** is 48 features across seven areas (A–G) — the contract the technical spec
-is written against, where every architecture and implementation decision must
-trace to a feature requirement here, not the other way round. **v2 — the
-ecosystem epoch** — adds four areas (H–K) plus F3, each tagged `tracks: v2`;
-those features are catalogued below the v1 areas and ship after 1.0. The
+**v1** is the seven product areas (A–G) — the contract the technical spec is
+written against, where every architecture and implementation decision must trace
+to a feature requirement here, not the other way round. **v2 — the ecosystem
+epoch** — adds four areas (H–K) plus F3, each tagged `tracks: v2`; those features
+are catalogued below the v1 areas and ship after 1.0. Area **L — Release &
+distribution** spans both: L1 releases v1 (`1.0.0`) and L2 releases v2 (`2.0.0`),
+each the scoped work of shipping an epoch rather than a summary of it. The
 generated [feature board](BOARD.md) lists every feature with the version it ships
 in; [`index.json`](index.json) is the same board for tools.
 
@@ -212,6 +214,17 @@ Open-source-native metrics and monitoring — a second opinion, delivery-confirm
 > (third-party stack manifests), [B9](b-running/b9-notification-backends.md)
 > (open notification back-ends, extends [B5](b-running/b5-notifications.md)), and
 > [G9](g-ux/g9-mobile-handoff.md) (mobile handoff, extends [G6](g-ux/g6-client-apps.md)).
+
+## L — Release & distribution
+
+Turning the built product into something a stranger can install and run. Each
+epoch's major release is its own scoped work — the distribution itself, not the
+features that came before it.
+
+| ID | Feature | Audience | Ships in |
+|----|---------|----------|----------|
+| [L1](l-release/l1-release-engineering.md) | v1 release engineering | Operator | `1.0.0` |
+| [L2](l-release/l2-v2-release.md) | v2 release | Operator | `2.0.0` |
 
 ---
 

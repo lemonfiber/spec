@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-## v1 — the product (areas A–G)
+## v1 — the product (areas A–G, and L1 to release it)
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
@@ -57,8 +57,9 @@ Generated from feature frontmatter and the version manifests by
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | G | household | accepted | `0.8.0` |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.7.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.7.0` |
+| [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
 
-## v2 — the ecosystem (areas H–K, plus F3)
+## v2 — the ecosystem (areas H–K, plus F3, and L2 to release it)
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
@@ -80,3 +81,4 @@ Generated from feature frontmatter and the version manifests by
 | [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `1.7.0` |
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `1.5.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `1.5.0` |
+| [L2](l-release/l2-v2-release.md) | v2 release | L | operator | accepted | `2.0.0` |
