@@ -70,7 +70,10 @@ jobs:
             exit 1
           fi
 
-          count=$(printf '%s' "$body" | grep -oE '\[[0-9]+ New issues\]' \
+          # SonarCloud pluralises the count — "1 New issue", "2 New issues" — so the
+          # trailing `s` is optional; without this, exactly one new issue reads as
+          # inconclusive rather than the one it is.
+          count=$(printf '%s' "$body" | grep -oE '\[[0-9]+ New issues?\]' \
             | grep -oE '[0-9]+' | head -1 || true)
           if [ -z "$count" ]; then
             verdict "### ⚠️ Issue gate — inconclusive · could not read the new-issue count from the SonarCloud summary."
