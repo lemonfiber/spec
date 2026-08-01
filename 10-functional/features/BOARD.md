@@ -44,7 +44,7 @@ Generated from feature frontmatter and the version manifests by
 | [D10](d-content/d10-bandwidth.md) | Bandwidth & scheduling | D | operator | accepted | `0.8.0` |
 | [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.9.0` |
 | [E2](e-maintenance/e2-self-update.md) | lemonfiber self-update | E | operator | accepted | `0.9.0` |
-| [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.3.0`, `0.4.0`, `0.9.0` |
+| [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.3.0`, `0.9.0` |
 | [E4](e-maintenance/e4-rollback.md) | Rollback | E | operator | accepted | `0.9.0` |
 | [E5](e-maintenance/e5-changelog.md) | Changelog & release notes | E | operator | accepted | `0.9.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.9.0` |

@@ -164,7 +164,7 @@ an archive) and `0.4.0` (auto-wiring & seed — the graph rebuilt from nothing).
 | Download client registration | SABnzbd + qBittorrent into every \*arr and Bindery |
 | Root folder registration | Per media type |
 | Prowlarr app sync | Push indexers to each \*arr |
-| Bindery indexer wiring | **Torznab endpoints** — app sync does not cover it (`D1-R15`) |
+| Bindery indexer wiring | **Torznab endpoints** — app sync does not cover it (`D1-R15`); **deferred**, its API cannot be pinned without a live instance to verify against |
 | Jellyfin → Seerr identity | One household account, not two (`D1-R7`) |
 | Homepage key injection | Widgets work on first boot |
 | Drift-aware writes | Never revert an operator's manual change (`C9-R3`) |
