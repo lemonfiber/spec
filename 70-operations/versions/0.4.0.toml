@@ -1,6 +1,6 @@
 # Auto-wiring & seed — closes M4's wiring: the tool reads each service's config, wires them together, and proves the pipeline end to end.
 #
-# 70 goals, seeded from the roadmap milestone this version serves;
+# 68 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.4.0"
 epoch   = "v1"
@@ -21,7 +21,9 @@ goals   = [
     "D1-R12",
     "D1-R13",
     "D1-R14",
-    "D1-R15",
+    # D1-R15 (Bindery via Torznab) stays deferred, as it did for 0.3.0: a niche
+    # fork whose Torznab API cannot be pinned without a live instance to verify
+    # against. It is in no version's goals until it can be built and proved.
     "D1-R16",
     "D2-R1",
     "D2-R2",
@@ -76,7 +78,10 @@ goals   = [
     "C9-R12",
     "C9-R13",
     "C9-R14",
-    "E3-R15",
+    # E3-R15 (a full backup within 60 seconds) is a backup-performance SHOULD,
+    # not a seed goal — it was parked here by mistake. The E3 backup that meets it
+    # shipped in 0.3.0 as a bounded operation over a small configuration, so it
+    # is not carried as a 0.4.0 goal.
 ]
 
 # [pins] is written by execute-version (OPS-R35); left out while planned.
