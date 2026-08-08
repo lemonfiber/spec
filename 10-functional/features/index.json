@@ -25,7 +25,7 @@
     {
       "version": "0.4.0",
       "epoch": "v1",
-      "status": "planned",
+      "status": "releasable",
       "closes_epoch": null,
       "goals": 68
     },
@@ -818,7 +818,7 @@
       "versions": [
         {
           "version": "0.4.0",
-          "status": "planned"
+          "status": "releasable"
         }
       ],
       "path": "c-trust/c9-drift.md"
@@ -846,7 +846,7 @@
       "versions": [
         {
           "version": "0.4.0",
-          "status": "planned"
+          "status": "releasable"
         }
       ],
       "path": "d-content/d1-seed.md"
@@ -873,7 +873,7 @@
       "versions": [
         {
           "version": "0.4.0",
-          "status": "planned"
+          "status": "releasable"
         }
       ],
       "path": "d-content/d2-quality-presets.md"
@@ -901,7 +901,7 @@
       "versions": [
         {
           "version": "0.4.0",
-          "status": "planned"
+          "status": "releasable"
         }
       ],
       "path": "d-content/d3-first-content.md"
@@ -1069,7 +1069,7 @@
       "versions": [
         {
           "version": "0.4.0",
-          "status": "planned"
+          "status": "releasable"
         }
       ],
       "path": "d-content/d9-pipeline-trace.md"

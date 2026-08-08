@@ -4,7 +4,7 @@
 # frozen at stage-version (OPS-R30).
 version = "0.4.0"
 epoch   = "v1"
-status  = "planned"
+status  = "releasable"
 repos   = ["lemonfiber"]
 goals   = [
     "D1-R1",
