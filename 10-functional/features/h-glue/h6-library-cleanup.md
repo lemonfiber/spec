@@ -9,7 +9,7 @@ tracks: v2
 milestone: M7
 priority: P2
 labels: [storage, verification, wiring]
-depends: [D5]
+relates: [D5]
 ---
 
 # H6 — Library cleanup

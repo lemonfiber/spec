@@ -32,100 +32,128 @@
     {
       "version": "0.5.0",
       "epoch": "v1",
-      "status": "planned",
+      "status": "in_progress",
       "closes_epoch": null,
-      "goals": 74
+      "goals": 50
     },
     {
       "version": "0.6.0",
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 62
+      "goals": 46
     },
     {
       "version": "0.7.0",
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 127
+      "goals": 42
     },
     {
       "version": "0.8.0",
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 96
+      "goals": 47
     },
     {
       "version": "0.9.0",
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 185
+      "goals": 41
+    },
+    {
+      "version": "0.10.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 44
+    },
+    {
+      "version": "0.11.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 41
+    },
+    {
+      "version": "0.12.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 55
+    },
+    {
+      "version": "0.13.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 60
+    },
+    {
+      "version": "0.14.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 56
+    },
+    {
+      "version": "0.15.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 55
     },
     {
       "version": "1.0.0",
       "epoch": "v1",
       "status": "planned",
-      "closes_epoch": "v1",
-      "goals": 10
+      "closes_epoch": null,
+      "goals": 17
     },
     {
-      "version": "1.1.0",
+      "version": "2.0.0",
+      "epoch": "v2",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 48
+    },
+    {
+      "version": "2.1.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
       "goals": 56
     },
     {
-      "version": "1.2.0",
+      "version": "2.2.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
       "goals": 59
     },
     {
-      "version": "1.3.0",
+      "version": "2.3.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
       "goals": 29
     },
     {
-      "version": "1.4.0",
+      "version": "2.4.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 12
+      "goals": 26
     },
     {
-      "version": "1.5.0",
+      "version": "2.5.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
       "goals": 40
-    },
-    {
-      "version": "1.6.0",
-      "epoch": "v2",
-      "status": "planned",
-      "closes_epoch": null,
-      "goals": 14
-    },
-    {
-      "version": "1.7.0",
-      "epoch": "v2",
-      "status": "planned",
-      "closes_epoch": null,
-      "goals": 42
-    },
-    {
-      "version": "2.0.0",
-      "epoch": "v2",
-      "status": "planned",
-      "closes_epoch": "v2",
-      "goals": 6
     }
   ],
   "features": [
@@ -143,12 +171,7 @@
         "verification",
         "ux"
       ],
-      "depends": [
-        "A2",
-        "A3",
-        "C8",
-        "G2"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.2.0",
@@ -171,13 +194,7 @@
         "ux",
         "wiring"
       ],
-      "depends": [
-        "A1",
-        "A3",
-        "A4",
-        "G1",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.2.0",
@@ -200,21 +217,15 @@
         "security",
         "verification"
       ],
-      "depends": [
-        "A1",
-        "A7",
-        "C2",
-        "C8",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
+        {
+          "version": "0.13.0",
+          "status": "planned"
+        },
         {
           "version": "0.2.0",
           "status": "released"
-        },
-        {
-          "version": "0.9.0",
-          "status": "planned"
         }
       ],
       "path": "a-getting-started/a3-credential-validation.md"
@@ -232,16 +243,10 @@
       "labels": [
         "ux"
       ],
-      "depends": [
-        "A2",
-        "A5",
-        "C5",
-        "C9",
-        "E4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.13.0",
           "status": "planned"
         }
       ],
@@ -261,16 +266,10 @@
         "ux",
         "storage"
       ],
-      "depends": [
-        "A2",
-        "A4",
-        "C5",
-        "E3",
-        "F1"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.13.0",
           "status": "planned"
         }
       ],
@@ -289,15 +288,10 @@
       "labels": [
         "ux"
       ],
-      "depends": [
-        "A4",
-        "A7",
-        "E3",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.13.0",
           "status": "planned"
         }
       ],
@@ -316,16 +310,10 @@
       "labels": [
         "security"
       ],
-      "depends": [
-        "A3",
-        "A6",
-        "C4",
-        "D1",
-        "G8"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.13.0",
           "status": "planned"
         }
       ],
@@ -345,17 +333,14 @@
         "cli",
         "wiring"
       ],
-      "depends": [
-        "B2",
-        "F2"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.1.0",
           "status": "released"
         },
         {
-          "version": "0.6.0",
+          "version": "0.8.0",
           "status": "planned"
         }
       ],
@@ -374,15 +359,10 @@
       "labels": [
         "cli"
       ],
-      "depends": [
-        "B1",
-        "B3",
-        "B8",
-        "G7"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.6.0",
+          "version": "0.8.0",
           "status": "planned"
         }
       ],
@@ -402,16 +382,14 @@
         "tui",
         "verification"
       ],
-      "depends": [
-        "B2",
-        "B4",
-        "C2",
-        "G1",
-        "G7"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.6.0",
+          "version": "0.5.0",
+          "status": "in_progress"
+        },
+        {
+          "version": "1.0.0",
           "status": "planned"
         }
       ],
@@ -430,15 +408,10 @@
       "labels": [
         "tui"
       ],
-      "depends": [
-        "B3",
-        "C1",
-        "C4",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.6.0",
+          "version": "0.8.0",
           "status": "planned"
         }
       ],
@@ -457,18 +430,11 @@
       "labels": [
         "notifications"
       ],
-      "depends": [
-        "B3",
-        "C1",
-        "C7",
-        "C8",
-        "D4",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
-          "status": "planned"
+          "version": "0.5.0",
+          "status": "in_progress"
         }
       ],
       "path": "b-running/b5-notifications.md"
@@ -487,14 +453,10 @@
         "cli",
         "network"
       ],
-      "depends": [
-        "B2",
-        "C6",
-        "G1"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.15.0",
           "status": "planned"
         }
       ],
@@ -514,15 +476,10 @@
         "updates",
         "cli"
       ],
-      "depends": [
-        "B2",
-        "B5",
-        "C2",
-        "C5"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.15.0",
           "status": "planned"
         }
       ],
@@ -542,13 +499,10 @@
         "notifications",
         "verification"
       ],
-      "depends": [
-        "B5",
-        "G8"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.5.0",
+          "version": "2.5.0",
           "status": "planned"
         }
       ],
@@ -567,16 +521,7 @@
       "labels": [
         "verification"
       ],
-      "depends": [
-        "C2",
-        "C3",
-        "C5",
-        "C7",
-        "C8",
-        "C9",
-        "G4",
-        "G7"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.1.0",
@@ -587,7 +532,7 @@
           "status": "released"
         },
         {
-          "version": "0.6.0",
+          "version": "0.8.0",
           "status": "planned"
         }
       ],
@@ -608,15 +553,10 @@
         "network",
         "verification"
       ],
-      "depends": [
-        "A3",
-        "B5",
-        "B8",
-        "C1"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.5.0",
+          "version": "0.6.0",
           "status": "planned"
         }
       ],
@@ -635,15 +575,10 @@
       "labels": [
         "verification"
       ],
-      "depends": [
-        "C1",
-        "C4",
-        "C9",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.5.0",
+          "version": "0.7.0",
           "status": "planned"
         }
       ],
@@ -663,12 +598,7 @@
         "verification",
         "security"
       ],
-      "depends": [
-        "A7",
-        "B4",
-        "C1",
-        "G8"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.7.0",
@@ -691,19 +621,14 @@
         "storage",
         "verification"
       ],
-      "depends": [
-        "A2",
-        "A4",
-        "C1",
-        "D5"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.2.0",
           "status": "released"
         },
         {
-          "version": "0.5.0",
+          "version": "0.6.0",
           "status": "planned"
         }
       ],
@@ -723,15 +648,10 @@
         "security",
         "web"
       ],
-      "depends": [
-        "A7",
-        "B6",
-        "C1",
-        "D6"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.10.0",
           "status": "planned"
         }
       ],
@@ -751,17 +671,10 @@
         "queue",
         "verification"
       ],
-      "depends": [
-        "B3",
-        "B5",
-        "C1",
-        "C3",
-        "C8",
-        "D9"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.5.0",
+          "version": "0.6.0",
           "status": "planned"
         }
       ],
@@ -780,15 +693,10 @@
       "labels": [
         "verification"
       ],
-      "depends": [
-        "A1",
-        "A3",
-        "B5",
-        "C7"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.5.0",
+          "version": "0.7.0",
           "status": "planned"
         }
       ],
@@ -808,13 +716,7 @@
         "seed",
         "verification"
       ],
-      "depends": [
-        "A5",
-        "C3",
-        "D1",
-        "E3",
-        "F1"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.4.0",
@@ -837,12 +739,7 @@
         "seed",
         "wiring"
       ],
-      "depends": [
-        "A7",
-        "C9",
-        "D2",
-        "E3"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.4.0",
@@ -864,12 +761,7 @@
       "labels": [
         "quality"
       ],
-      "depends": [
-        "C9",
-        "D1",
-        "D5",
-        "G2"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.4.0",
@@ -891,13 +783,7 @@
       "labels": [
         "ux"
       ],
-      "depends": [
-        "A2",
-        "C7",
-        "D6",
-        "D9",
-        "G6"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.4.0",
@@ -919,16 +805,10 @@
       "labels": [
         "household"
       ],
-      "depends": [
-        "D1",
-        "D6",
-        "D7",
-        "D8",
-        "G6"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.11.0",
           "status": "planned"
         }
       ],
@@ -947,15 +827,10 @@
       "labels": [
         "storage"
       ],
-      "depends": [
-        "B5",
-        "C5",
-        "C7",
-        "D2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.12.0",
           "status": "planned"
         }
       ],
@@ -975,17 +850,10 @@
         "household",
         "security"
       ],
-      "depends": [
-        "C6",
-        "D1",
-        "D4",
-        "D7",
-        "D8",
-        "G6"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.11.0",
           "status": "planned"
         }
       ],
@@ -1004,15 +872,10 @@
       "labels": [
         "household"
       ],
-      "depends": [
-        "D4",
-        "D5",
-        "D6",
-        "D8"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.12.0",
           "status": "planned"
         }
       ],
@@ -1031,15 +894,10 @@
       "labels": [
         "household"
       ],
-      "depends": [
-        "D4",
-        "D6",
-        "D7",
-        "G2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.12.0",
           "status": "planned"
         }
       ],
@@ -1059,13 +917,7 @@
         "verification",
         "ux"
       ],
-      "depends": [
-        "B4",
-        "C3",
-        "C7",
-        "D3",
-        "D4"
-      ],
+      "depends": [],
       "versions": [
         {
           "version": "0.4.0",
@@ -1087,15 +939,10 @@
       "labels": [
         "network"
       ],
-      "depends": [
-        "B5",
-        "C2",
-        "C7",
-        "D5"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.12.0",
           "status": "planned"
         }
       ],
@@ -1114,16 +961,10 @@
       "labels": [
         "updates"
       ],
-      "depends": [
-        "A5",
-        "C9",
-        "E2",
-        "E3",
-        "E4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.14.0",
           "status": "planned"
         }
       ],
@@ -1142,14 +983,10 @@
       "labels": [
         "updates"
       ],
-      "depends": [
-        "C4",
-        "E1",
-        "G8"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.14.0",
           "status": "planned"
         }
       ],
@@ -1169,21 +1006,15 @@
         "storage",
         "updates"
       ],
-      "depends": [
-        "A5",
-        "A6",
-        "A7",
-        "E1",
-        "E4"
-      ],
+      "depends": [],
       "versions": [
+        {
+          "version": "0.14.0",
+          "status": "planned"
+        },
         {
           "version": "0.3.0",
           "status": "released"
-        },
-        {
-          "version": "0.9.0",
-          "status": "planned"
         }
       ],
       "path": "e-maintenance/e3-backup-restore.md"
@@ -1201,16 +1032,10 @@
       "labels": [
         "updates"
       ],
-      "depends": [
-        "A4",
-        "C3",
-        "C9",
-        "E1",
-        "E3"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.14.0",
           "status": "planned"
         }
       ],
@@ -1230,13 +1055,10 @@
         "updates",
         "verification"
       ],
-      "depends": [
-        "E1",
-        "E2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.14.0",
           "status": "planned"
         }
       ],
@@ -1255,13 +1077,10 @@
       "labels": [
         "extensibility"
       ],
-      "depends": [
-        "C9",
-        "F2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.15.0",
           "status": "planned"
         }
       ],
@@ -1280,14 +1099,10 @@
       "labels": [
         "extensibility"
       ],
-      "depends": [
-        "B1",
-        "F1",
-        "G2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.15.0",
           "status": "planned"
         }
       ],
@@ -1308,13 +1123,10 @@
         "verification",
         "wiring"
       ],
-      "depends": [
-        "F1",
-        "F2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.6.0",
+          "version": "2.4.0",
           "status": "planned"
         }
       ],
@@ -1336,15 +1148,10 @@
         "web",
         "ux"
       ],
-      "depends": [
-        "B6",
-        "C6",
-        "G3",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.9.0",
           "status": "planned"
         }
       ],
@@ -1363,15 +1170,10 @@
       "labels": [
         "ux"
       ],
-      "depends": [
-        "A1",
-        "D2",
-        "F2",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.9.0",
           "status": "planned"
         }
       ],
@@ -1390,15 +1192,10 @@
       "labels": [
         "ux"
       ],
-      "depends": [
-        "B3",
-        "B4",
-        "G1",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.9.0",
           "status": "planned"
         }
       ],
@@ -1417,16 +1214,11 @@
       "labels": [
         "ux"
       ],
-      "depends": [
-        "C1",
-        "C3",
-        "C4",
-        "G2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
-          "status": "planned"
+          "version": "0.5.0",
+          "status": "in_progress"
         }
       ],
       "path": "g-ux/g4-error-model.md"
@@ -1445,15 +1237,10 @@
         "cli",
         "ux"
       ],
-      "depends": [
-        "C6",
-        "D4",
-        "D6",
-        "G6"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.10.0",
           "status": "planned"
         }
       ],
@@ -1473,15 +1260,10 @@
         "household",
         "ux"
       ],
-      "depends": [
-        "D2",
-        "D6",
-        "D8",
-        "G5"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.11.0",
           "status": "planned"
         }
       ],
@@ -1501,16 +1283,11 @@
         "verification",
         "ux"
       ],
-      "depends": [
-        "B3",
-        "B5",
-        "C1",
-        "G4"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
-          "status": "planned"
+          "version": "0.5.0",
+          "status": "in_progress"
         }
       ],
       "path": "g-ux/g7-health-summary.md"
@@ -1528,16 +1305,10 @@
       "labels": [
         "security"
       ],
-      "depends": [
-        "A6",
-        "A7",
-        "C2",
-        "C4",
-        "E2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.10.0",
           "status": "planned"
         }
       ],
@@ -1558,14 +1329,10 @@
         "ux",
         "verification"
       ],
-      "depends": [
-        "G6",
-        "D6",
-        "I1"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.4.0",
+          "version": "2.4.0",
           "status": "planned"
         }
       ],
@@ -1587,13 +1354,10 @@
         "wiring",
         "verification"
       ],
-      "depends": [
-        "C5",
-        "D1"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.1.0",
+          "version": "2.1.0",
           "status": "planned"
         }
       ],
@@ -1615,13 +1379,10 @@
         "verification",
         "notifications"
       ],
-      "depends": [
-        "D1",
-        "C7"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.1.0",
+          "version": "2.1.0",
           "status": "planned"
         }
       ],
@@ -1643,12 +1404,10 @@
         "verification",
         "stats"
       ],
-      "depends": [
-        "D2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.1.0",
+          "version": "2.1.0",
           "status": "planned"
         }
       ],
@@ -1670,12 +1429,10 @@
         "verification",
         "quality"
       ],
-      "depends": [
-        "D1"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.1.0",
+          "version": "2.1.0",
           "status": "planned"
         }
       ],
@@ -1696,12 +1453,10 @@
         "verification",
         "wiring"
       ],
-      "depends": [
-        "C7"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.2.0",
+          "version": "2.2.0",
           "status": "planned"
         }
       ],
@@ -1722,12 +1477,10 @@
         "verification",
         "wiring"
       ],
-      "depends": [
-        "D5"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.2.0",
+          "version": "2.2.0",
           "status": "planned"
         }
       ],
@@ -1749,12 +1502,10 @@
         "verification",
         "wiring"
       ],
-      "depends": [
-        "C5"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.2.0",
+          "version": "2.2.0",
           "status": "planned"
         }
       ],
@@ -1775,13 +1526,10 @@
         "verification",
         "wiring"
       ],
-      "depends": [
-        "D6",
-        "G8"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.2.0",
+          "version": "2.2.0",
           "status": "planned"
         }
       ],
@@ -1803,15 +1551,10 @@
         "verification",
         "security"
       ],
-      "depends": [
-        "C2",
-        "C6",
-        "G8",
-        "I2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.3.0",
+          "version": "2.3.0",
           "status": "planned"
         }
       ],
@@ -1832,15 +1575,10 @@
         "household",
         "verification"
       ],
-      "depends": [
-        "I1",
-        "C6",
-        "D6",
-        "A7"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.3.0",
+          "version": "2.3.0",
           "status": "planned"
         }
       ],
@@ -1860,14 +1598,10 @@
         "runtime",
         "verification"
       ],
-      "depends": [
-        "C2",
-        "C5",
-        "B1"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.7.0",
+          "version": "2.0.0",
           "status": "planned"
         }
       ],
@@ -1888,14 +1622,10 @@
         "network",
         "verification"
       ],
-      "depends": [
-        "J1",
-        "C2",
-        "C5"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.7.0",
+          "version": "2.0.0",
           "status": "planned"
         }
       ],
@@ -1916,13 +1646,10 @@
         "network",
         "verification"
       ],
-      "depends": [
-        "J1",
-        "C2"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.7.0",
+          "version": "2.0.0",
           "status": "planned"
         }
       ],
@@ -1942,13 +1669,10 @@
         "observability",
         "verification"
       ],
-      "depends": [
-        "B3",
-        "G7"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.5.0",
+          "version": "2.5.0",
           "status": "planned"
         }
       ],
@@ -1968,13 +1692,10 @@
         "observability",
         "verification"
       ],
-      "depends": [
-        "B5",
-        "G7"
-      ],
+      "depends": [],
       "versions": [
         {
-          "version": "1.5.0",
+          "version": "2.5.0",
           "status": "planned"
         }
       ],

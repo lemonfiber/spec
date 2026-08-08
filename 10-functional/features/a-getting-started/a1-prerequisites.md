@@ -8,7 +8,7 @@ status: accepted
 tracks: v1
 milestone: M3
 labels: [verification, ux]
-depends: [A2, A3, C8, G2]
+relates: [A2, A3, C8, G2]
 ---
 
 # A1 — Prerequisites & account guidance

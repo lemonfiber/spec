@@ -35,7 +35,7 @@ idiomatic to the org's other generated-from-truth files (`maintainers.toml`,
 ```toml
 # 70-operations/versions/0.2.0.toml
 version = "0.2.0"
-status  = "staged"        # planned → staged → releasable → released → yanked
+status  = "staged"        # planned → staged → in_progress → releasable → released → yanked
 repos   = ["lemonfiber", "media-stack"]   # the streams this version cuts; brand excluded
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs
 
@@ -53,6 +53,8 @@ Staging writes it, the tracker reads it, the gate checks it, execute flips its
 stateDiagram-v2
     [*] --> planned
     planned --> staged: stage-version — locks goals, cuts release branches
+    staged --> in_progress: work has begun — the version people are building
+    in_progress --> releasable: tracker sees every goal satisfied
     staged --> releasable: tracker sees every goal satisfied
     releasable --> released: execute-version — gate ✓ → tag → draft → publish
     staged --> released: ⚡ fast lane — goals already met

@@ -1,0 +1,52 @@
+# Watching the watcher — metrics, dashboards and uptime monitoring.
+#
+# 40 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
+version = "2.5.0"
+epoch   = "v2"
+status  = "planned"
+repos   = ["lemonfiber"]
+goals   = [
+    "B9-R1",
+    "B9-R2",
+    "B9-R3",
+    "B9-R4",
+    "B9-R5",
+    "B9-R6",
+    "B9-R7",
+    "B9-R8",
+    "B9-R9",
+    "B9-R10",
+    "B9-R11",
+    "B9-R12",
+    "K1-R1",
+    "K1-R2",
+    "K1-R3",
+    "K1-R4",
+    "K1-R5",
+    "K1-R6",
+    "K1-R7",
+    "K1-R8",
+    "K1-R9",
+    "K1-R10",
+    "K1-R11",
+    "K1-R12",
+    "K1-R13",
+    "K1-R14",
+    "K2-R1",
+    "K2-R2",
+    "K2-R3",
+    "K2-R4",
+    "K2-R5",
+    "K2-R6",
+    "K2-R7",
+    "K2-R8",
+    "K2-R9",
+    "K2-R10",
+    "K2-R11",
+    "K2-R12",
+    "K2-R13",
+    "K2-R14",
+]
+
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

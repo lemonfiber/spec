@@ -9,7 +9,7 @@ tracks: v2
 milestone: M7
 priority: P3
 labels: [transcoding, quality, verification, wiring]
-depends: [C5]
+relates: [C5]
 ---
 
 # H7 — Transcoding

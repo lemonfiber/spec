@@ -7,7 +7,7 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [security, web]
-depends: [A7, B6, C1, D6]
+relates: [A7, B6, C1, D6]
 ---
 
 # C6 — Web UI security & binding policy

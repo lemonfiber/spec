@@ -9,7 +9,7 @@ tracks: v2
 milestone: M8
 priority: P1
 labels: [security, household, verification]
-depends: [I1, C6, D6, A7]
+relates: [I1, C6, D6, A7]
 ---
 
 # I2 — Household identity & single sign-on

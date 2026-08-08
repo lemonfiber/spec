@@ -1,0 +1,68 @@
+# Keeping it running — stack updates, self-update, backup and restore, rollback, and the change journal.
+#
+# 56 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
+version = "0.14.0"
+epoch   = "v1"
+status  = "planned"
+repos   = ["lemonfiber"]
+goals   = [
+    "E1-R1",
+    "E1-R2",
+    "E1-R3",
+    "E1-R4",
+    "E1-R5",
+    "E1-R6",
+    "E1-R7",
+    "E1-R8",
+    "E1-R9",
+    "E1-R10",
+    "E1-R11",
+    "E1-R12",
+    "E1-R13",
+    "E1-R14",
+    "E2-R1",
+    "E2-R2",
+    "E2-R3",
+    "E2-R4",
+    "E2-R5",
+    "E2-R6",
+    "E2-R7",
+    "E2-R8",
+    "E2-R9",
+    "E2-R10",
+    "E2-R11",
+    "E2-R12",
+    "E2-R13",
+    "E2-R14",
+    "E3-R5",
+    "E4-R1",
+    "E4-R2",
+    "E4-R3",
+    "E4-R4",
+    "E4-R5",
+    "E4-R6",
+    "E4-R7",
+    "E4-R8",
+    "E4-R9",
+    "E4-R10",
+    "E4-R11",
+    "E4-R12",
+    "E4-R13",
+    "E4-R14",
+    "E5-R1",
+    "E5-R2",
+    "E5-R3",
+    "E5-R4",
+    "E5-R5",
+    "E5-R6",
+    "E5-R7",
+    "E5-R8",
+    "E5-R9",
+    "E5-R10",
+    "E5-R11",
+    "E5-R12",
+    "E5-R13",
+]
+
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

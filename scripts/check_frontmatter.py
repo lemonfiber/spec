@@ -56,7 +56,17 @@ def _identity(fm, path):
 
 def _lists(fm, path):
     out = [f"{path}: label '{v}' is not in the registry" for v in fm.get("labels", []) if v not in LABELS]
-    out += [f"{path}: depends entry '{v}' is malformed" for v in fm.get("depends", []) if not ID_RE.match(v)]
+    for key in ("requires", "relates"):
+        out += [
+            f"{path}: {key} entry '{v}' is malformed"
+            for v in fm.get(key, [])
+            if not ID_RE.match(v)
+        ]
+    # `depends` conflated "cannot be built without" with "worth reading", which is
+    # how features came to be scheduled before the things they need. Split, so the
+    # first can be enforced and the second left alone.
+    if "depends" in fm:
+        out.append(f"{path}: `depends` is retired — use `requires` and `relates`")
     return out
 
 

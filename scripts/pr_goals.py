@@ -27,7 +27,7 @@ def within_cwd(raw: str) -> pathlib.Path:
 def staged_manifest() -> dict | None:
     for manifest in sorted(VERSIONS.glob("*.toml")):
         data = tomllib.loads(manifest.read_text(encoding="utf-8"))
-        if data.get("status") in ("staged", "releasable"):
+        if data.get("status") in ("staged", "in_progress", "releasable"):
             return data
     return None
 

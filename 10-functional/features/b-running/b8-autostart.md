@@ -7,7 +7,8 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [updates, cli]
-depends: [B2, B5, C2, C5]
+requires: [B5]
+relates: [B2, C2, C5]
 ---
 
 # B8 — Autostart & boot persistence

@@ -8,7 +8,7 @@ status: accepted
 tracks: v1
 milestone: M4
 labels: [seed, wiring]
-depends: [A7, C9, D2, E3]
+relates: [A7, C9, D2, E3]
 ---
 
 # D1 — Service auto-wiring

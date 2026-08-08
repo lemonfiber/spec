@@ -8,7 +8,7 @@ status: accepted
 tracks: v1
 milestone: M4
 labels: [quality]
-depends: [C9, D1, D5, G2]
+relates: [C9, D1, D5, G2]
 ---
 
 # D2 — Quality presets in plain language

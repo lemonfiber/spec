@@ -1,0 +1,130 @@
+# Finish a release once its draft is published — OPS-R35, OPS-R52.
+#
+# `execute-version` tags and stops; the drafts it produces are reviewed and
+# published by a person. This is what happens after that: the manifest records
+# what was actually shipped, the stack commit the release embedded is pinned so
+# the version is reproducible rather than merely named, and the roadmap the
+# website serves is regenerated so the public page and the manifest cannot
+# disagree.
+#
+# Until this existed the whole step was manual, and a version left at
+# `releasable` blocks the next one from being staged (OPS-R52) — so forgetting it
+# does not merely leave the record stale, it stops the train.
+#
+# Fired by the binary repo on `release: published`, which is why it is a
+# `repository_dispatch` here rather than a `release` trigger: the event happens
+# there and the record lives here.
+name: release-finalize
+
+on:
+  repository_dispatch:
+    types: [release-published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version that was published, e.g. 0.4.0."
+        required: true
+      stack_pin:
+        description: "The media-stack commit the release embedded. Read from the tag when omitted."
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint the release App token
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.token.outputs.token }}
+          fetch-depth: 0
+
+      - name: Settle the version and the pin
+        id: what
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version || github.event.client_payload.version }}
+          PIN: ${{ inputs.stack_pin || github.event.client_payload.stack_pin }}
+        run: |
+          set -euo pipefail
+          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "::error::version must be X.Y.Z, got '${VERSION}'."; exit 1; }
+          man="70-operations/versions/${VERSION}.toml"
+          [ -f "$man" ] || { echo "::error::no manifest at ${man}"; exit 1; }
+
+          # The stack the release actually embedded, read from the tag itself
+          # rather than from whatever main points at now — a pin that drifts is
+          # worse than no pin, because it claims to be reproducible.
+          pin="$PIN"
+          if [ -z "$pin" ]; then
+            pin=$(gh api "repos/${OWNER}/lemonfiber/contents/assets/media-stack?ref=v${VERSION}" --jq '.sha')
+          fi
+          [ -n "$pin" ] || { echo "::error::could not read the embedded stack commit"; exit 1; }
+          {
+            echo "version=${VERSION}"
+            echo "manifest=${man}"
+            echo "pin=${pin}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Record it as released, with what it shipped
+        env:
+          MANIFEST: ${{ steps.what.outputs.manifest }}
+          PIN: ${{ steps.what.outputs.pin }}
+        run: |
+          python3 - "$MANIFEST" "$PIN" <<'PY'
+          import pathlib, re, sys, tomllib
+
+          manifest, pin = pathlib.Path(sys.argv[1]), sys.argv[2]
+          text = manifest.read_text(encoding="utf-8")
+          status = tomllib.loads(text).get("status")
+          if status == "released":
+              print(f"::notice::{manifest.name} is already released; nothing to record.")
+              raise SystemExit(0)
+
+          text = re.sub(r'^status(\s*)= ".*"$', r'status\1= "released"', text, count=1, flags=re.M)
+          # The pin replaces the placeholder comment where one is there, and is
+          # appended where it is not, so a manifest written either way ends up
+          # with exactly one [pins] table.
+          entry = f'# The stack this release embedded, recorded at publish (OPS-R35).\n[pins]\nmedia-stack = "{pin}"'
+          placeholder = re.compile(r"^# \[pins\] is written by .*$", re.M)
+          text = placeholder.sub(entry, text, count=1) if placeholder.search(text) else (
+              text.rstrip("\n") + "\n\n" + entry + "\n"
+          )
+          manifest.write_text(text, encoding="utf-8")
+          print(f"recorded {manifest.name} as released, pinned to {pin[:8]}")
+          PY
+
+      # The board is what the website's roadmap reads — it fetches
+      # features/index.json directly — so regenerating it is what updates the
+      # public page. There is no second artefact to keep in step.
+      - name: Regenerate the board the website's roadmap reads
+        run: python3 scripts/gen_board.py
+
+      - name: Commit the record
+        env:
+          VERSION: ${{ steps.what.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "lemonfiber-release[bot]"
+          git config user.email "release@lemonfiber.invalid"
+          git add -A
+          git diff --cached --quiet && { echo "::notice::nothing to record."; exit 0; }
+          git commit -m "chore(release): record ${VERSION} as released
+
+          Written by release-finalize when the draft was published: the manifest's
+          status, the stack commit the release embedded, and the roadmap the
+          website serves.
+
+          Spec: OPS-R35"
+          git push

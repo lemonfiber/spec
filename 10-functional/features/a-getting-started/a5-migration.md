@@ -7,7 +7,7 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [ux, storage]
-depends: [A2, A4, C5, E3, F1]
+relates: [A2, A4, C5, E3, F1]
 ---
 
 # A5 — Migration from an existing stack

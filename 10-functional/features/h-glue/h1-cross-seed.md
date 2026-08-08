@@ -9,7 +9,7 @@ tracks: v2
 milestone: M7
 priority: P1
 labels: [seed, storage, wiring, verification]
-depends: [C5, D1]
+relates: [C5, D1]
 ---
 
 # H1 — Cross-seeding

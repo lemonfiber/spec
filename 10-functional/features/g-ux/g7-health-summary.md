@@ -7,7 +7,8 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [verification, ux]
-depends: [B3, B5, C1, G4]
+requires: [B5]
+relates: [B3, C1, G4]
 ---
 
 # G7 — Overall health summary

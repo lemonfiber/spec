@@ -1,0 +1,38 @@
+# Polish — accessibility, and the plugin surface.
+#
+# 26 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
+version = "2.4.0"
+epoch   = "v2"
+status  = "planned"
+repos   = ["lemonfiber"]
+goals   = [
+    "G9-R1",
+    "G9-R2",
+    "G9-R3",
+    "G9-R4",
+    "G9-R5",
+    "G9-R6",
+    "G9-R7",
+    "G9-R8",
+    "G9-R9",
+    "G9-R10",
+    "G9-R11",
+    "G9-R12",
+    "F3-R1",
+    "F3-R2",
+    "F3-R3",
+    "F3-R4",
+    "F3-R5",
+    "F3-R6",
+    "F3-R7",
+    "F3-R8",
+    "F3-R9",
+    "F3-R10",
+    "F3-R11",
+    "F3-R12",
+    "F3-R13",
+    "F3-R14",
+]
+
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

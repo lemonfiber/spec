@@ -9,7 +9,7 @@ tracks: v2
 milestone: M7
 priority: P1
 labels: [subtitles, wiring, verification, quality]
-depends: [D1]
+relates: [D1]
 ---
 
 # H4 — Subtitles

@@ -9,7 +9,7 @@ tracks: v2
 milestone: M12
 priority: P3
 labels: [runtime, network, verification]
-depends: [J1, C2]
+relates: [J1, C2]
 ---
 
 # J3 — Running natively, without containers

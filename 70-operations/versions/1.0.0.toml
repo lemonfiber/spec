@@ -1,18 +1,29 @@
-# 1.0.0 — the v1 epoch closes, and the product is released. Its own scoped work is
-# L1 (release engineering, M10): signed multi-platform artifacts, the Homebrew tap,
-# shell/PowerShell installers, real cross-platform testing, and the generated docs
-# site — the deliverable of the release itself, not of any one v1 feature.
+# **The dashboard.** `lemonfiber` with no subcommand opens a live view of the stack — the capability the whole v1 epoch has been building toward, and the reason this is 1.0.0 rather than another minor. Released through the signed, multi-platform pipeline on all three platforms.
 #
+# 17 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
 version = "1.0.0"
 epoch   = "v1"
 status  = "planned"
-repos   = ["lemonfiber", "media-stack"]
-closes_epoch = "v1"
+repos   = ["lemonfiber"]
 goals   = [
-    "L1-R1", "L1-R2", "L1-R3", "L1-R4", "L1-R5",
-    "L1-R6", "L1-R7", "L1-R8", "L1-R9", "L1-R10",
+    "B3-R1",
+    "B3-R4",
+    "B3-R9",
+    "B3-R10",
+    "B3-R12",
+    "B3-R13",
+    "B3-R14",
+    "L1-R1",
+    "L1-R2",
+    "L1-R3",
+    "L1-R4",
+    "L1-R5",
+    "L1-R6",
+    "L1-R7",
+    "L1-R8",
+    "L1-R9",
+    "L1-R10",
 ]
 
-# On top of these goals, closes_epoch adds the epoch-completeness gate (OPS-R54):
-# 1.0.0 ships only when L1 is done AND every tracks: v1 feature is satisfied.
-# [pins] is written by execute-version (OPS-R35); left out while planned.
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

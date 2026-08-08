@@ -7,7 +7,8 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [verification]
-depends: [A1, A3, B5, C7]
+requires: [B5]
+relates: [A1, A3, C7]
 ---
 
 # C8 — Provider health & quota tracking

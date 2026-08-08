@@ -31,7 +31,7 @@ def in_flight(exclude: str) -> str | None:
         if other.name == exclude:
             continue
         status = tomllib.loads(other.read_text(encoding="utf-8")).get("status")
-        if status in ("staged", "releasable"):
+        if status in ("staged", "in_progress", "releasable"):
             return f"{other.name} is already {status}"
     return None
 

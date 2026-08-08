@@ -7,7 +7,7 @@ audience: both
 status: accepted
 tracks: v1
 labels: [verification, ux]
-depends: [B4, C3, C7, D3, D4]
+relates: [B4, C3, C7, D3, D4]
 ---
 
 # D9 — "Where is my show?" pipeline trace

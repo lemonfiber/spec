@@ -70,7 +70,7 @@ bar, not a per-feature goal list, is what a major satisfies
 | **L2-R3** | The documentation site and the installers MUST cover the v2 features. |
 | **L2-R4** | An upgrade from a v1 release to `2.0.0` MUST be tested and MUST preserve the operator's configuration and data. |
 | **L2-R5** | The release pipeline MUST be reachable non-interactively, with no manual step beyond authorisation required to cut the release. |
-| **L2-R6** | `2.0.0` MUST NOT be cut while any `tracks: v2` feature is not both Accepted and implemented — the epoch-completeness bar ([OPS-R54](../../../70-operations/staging.md)). |
+| **L2-R6** | `2.0.0` MUST deliver the container-engine abstraction — running under Podman, and running natively without containers — and MUST NOT be cut before it does. A major opens its epoch with the capability that justifies the number; the rest of the epoch follows as minors. |
 
 ## Related
 
