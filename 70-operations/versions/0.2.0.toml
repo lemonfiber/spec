@@ -5,6 +5,7 @@
 # trust checks (hardlink, storage, credentials, VPN port-forward).
 version = "0.2.0"
 epoch   = "v1"
+milestone = "M3"   # Setup wizard + doctor
 status  = "released"
 repos   = ["lemonfiber"]
 goals   = ["A1-R1", "A1-R2", "A1-R3", "A1-R4", "A1-R5", "A1-R6", "A1-R7", "A1-R8", "A1-R9", "A1-R10", "A1-R11", "A1-R12", "A1-R13", "A2-R1", "A2-R2", "A2-R3", "A2-R4", "A2-R5", "A2-R6", "A2-R7", "A2-R8", "A2-R9", "A2-R10", "A2-R11", "A2-R12", "A2-R13", "A2-R14", "A2-R15", "A3-R1", "A3-R2", "A3-R3", "A3-R4", "A3-R8", "A3-R10", "C1-R13", "C5-R1", "C5-R2", "C5-R14"]

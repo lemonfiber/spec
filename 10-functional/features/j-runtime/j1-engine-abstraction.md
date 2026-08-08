@@ -6,7 +6,6 @@ area: J
 audience: operator
 status: draft
 tracks: v2
-milestone: M12
 priority: P1
 labels: [runtime, verification]
 relates: [C2, C5, B1]

@@ -6,7 +6,6 @@ area: C
 audience: operator
 status: accepted
 tracks: v1
-milestone: M4
 labels: [seed, verification]
 relates: [A5, C3, D1, E3, F1]
 ---

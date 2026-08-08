@@ -6,7 +6,6 @@ area: H
 audience: operator
 status: accepted
 tracks: v2
-milestone: M7
 priority: P1
 labels: [quality, wiring, verification, stats]
 relates: [D2]

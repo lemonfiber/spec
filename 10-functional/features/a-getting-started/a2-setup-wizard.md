@@ -6,7 +6,6 @@ area: A
 audience: operator
 status: accepted
 tracks: v1
-milestone: M3
 labels: [ux, wiring]
 requires: [G4]
 relates: [A1, A3, A4, G1]

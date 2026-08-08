@@ -6,7 +6,6 @@ area: B
 audience: both
 status: accepted
 tracks: v2
-milestone: M9
 priority: P2
 labels: [notifications, verification]
 requires: [B5]

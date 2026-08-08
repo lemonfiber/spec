@@ -6,7 +6,6 @@ area: H
 audience: operator
 status: accepted
 tracks: v2
-milestone: M7
 priority: P1
 labels: [wiring, queue, verification, notifications]
 relates: [D1, C7]

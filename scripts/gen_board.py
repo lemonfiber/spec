@@ -59,6 +59,7 @@ def load_version_list():
             "version": data["version"],
             "epoch": data.get("epoch"),
             "status": data.get("status", "planned"),
+            "milestone": data.get("milestone"),
             "closes_epoch": data.get("closes_epoch"),
             "goals": len(data.get("goals", [])),
         })
@@ -66,7 +67,46 @@ def load_version_list():
     return versions
 
 
+def milestones_by_version():
+    """Which milestone each version serves, declared once on the manifest.
+
+    The feature files used to carry a `milestone:` of their own, and it disagreed
+    with the roadmap — the television interface was tagged to one milestone while
+    the roadmap called it another, and thirty features carried none at all. A
+    feature belongs to whatever milestone the version shipping it serves, so that
+    is where it is read from and there is nothing left to drift.
+    """
+    by_version = {}
+    for vf in sorted(glob.glob("70-operations/versions/*.toml")):
+        if pathlib.Path(vf).stem == "TEMPLATE":
+            continue
+        data = tomllib.loads(pathlib.Path(vf).read_text(encoding="utf-8"))
+        by_version[data["version"]] = data.get("milestone")
+    return by_version
+
+
+def milestones_of(feature_id, by_feature, by_version):
+    """Every milestone this feature contributes to, in version order.
+
+    A feature is not always one milestone's work. Lifecycle control ships its
+    first requirements with the core CLI and its interactive surface with the
+    television interface, and attributing all of it to whichever came first made
+    the later milestone look empty — which is exactly how a milestone with real
+    work in it came to read as having one item.
+    """
+    seen = []
+    for version in sorted(
+        by_feature.get(feature_id, {}),
+        key=lambda v: [int(part) for part in v.split(".")],
+    ):
+        milestone = by_version.get(version)
+        if milestone and milestone not in seen:
+            seen.append(milestone)
+    return seen
+
+
 def build_rows(feats, by_feature):
+    by_version = milestones_by_version()
     rows = []
     for fid in sorted(feats, key=_order):
         fm = feats[fid]
@@ -82,10 +122,12 @@ def build_rows(feats, by_feature):
             "kind": fm.get("kind", "feature"),
             "status": fm["status"],
             "tracks": fm["tracks"],
-            "milestone": fm.get("milestone"),
+            "milestones": milestones_of(fid, by_feature, by_version),
+            "milestone": next(iter(milestones_of(fid, by_feature, by_version)), None),
             "priority": fm.get("priority"),
             "labels": fm.get("labels", []),
-            "depends": fm.get("depends", []),
+            "requires": fm.get("requires", []),
+            "relates": fm.get("relates", []),
             "versions": versions,
             "path": fm["path"].split("features/", 1)[1],
         })

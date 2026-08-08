@@ -6,7 +6,6 @@ area: D
 audience: operator
 status: accepted
 tracks: v1
-milestone: M4
 labels: [seed, wiring]
 relates: [A7, C9, D2, E3]
 ---
