@@ -70,19 +70,39 @@ jobs:
               | grep -oE '[0-9]+' | head -1 || true
           }
 
-          # SonarCloud edits one comment in place after its analysis finishes, so poll
-          # for it rather than assume it has arrived — and poll until it carries a
-          # count, not merely until a comment exists. A summary is posted before the
-          # analysis behind it is complete, so stopping at the first comment is how a
-          # placeholder gets read as the final word.
+          # The summary has to describe THIS commit. SonarCloud edits one comment in
+          # place, so after a push the previous analysis's comment is still sitting
+          # there with its old count — and a gate that reads the first count it finds
+          # will fail a push that fixed the very issue it is reporting, then pass on a
+          # manual re-run. A re-run as the remedy is the bug wearing a hat.
+          #
+          # So the comment is only believed once it is newer than the commit it is
+          # meant to be about. Both timestamps come from GitHub, so they are
+          # comparable, and ISO-8601 in UTC compares correctly as text.
+          head=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR}" --jq '.head.sha')
+          pushed=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${head}" \
+            --jq '.commit.committer.date')
+          echo "Waiting for a summary of ${head:0:8}, pushed ${pushed}."
+
           body=""
           count=""
           for attempt in $(seq 1 30); do
-            body=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
-              --jq "[.[] | select(.user.login == \"${BOT}\")] | last | .body // empty" || true)
+            latest=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+              --jq "[.[] | select(.user.login == \"${BOT}\")] | last | {body, updated_at} // empty" \
+              || true)
+            body=$(printf '%s' "$latest" | jq -r '.body // empty')
+            written=$(printf '%s' "$latest" | jq -r '.updated_at // empty')
             count=$(count_in "$body")
-            if [ -n "$count" ]; then break; fi
-            echo "Waiting for a SonarCloud summary with a count… (${attempt}/30)"
+            if [ -n "$count" ] && [ -n "$written" ] && [ "$written" \> "$pushed" ]; then
+              echo "Summary written ${written}, after the push."
+              break
+            fi
+            if [ -n "$count" ]; then
+              echo "Ignoring a summary written ${written:-never}, before this push… (${attempt}/30)"
+            else
+              echo "Waiting for a SonarCloud summary with a count… (${attempt}/30)"
+            fi
+            count=""
             sleep 10
           done
 

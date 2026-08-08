@@ -98,6 +98,13 @@ fails looks exactly like a summary that failed, so the real finding hides behind
 noise. Both cases warn instead, in the log and in the verdict comment, which says
 plainly that `Q-R64` is not being enforced until someone fixes the check.
 
+It also waits for a summary of the **commit under test**. SonarCloud edits one
+comment in place, so after a push the previous analysis's comment is still there
+with its old count — and a check that reads the first count it finds fails the
+push that fixed the issue it is reporting, then passes on a manual re-run. A
+re-run as the remedy is the bug wearing a hat, so the comment is believed only
+once it is newer than the commit it describes.
+
 This is the documented cap `Q-R63` calls for. **Reason:** the free plan's gate is
 not configurable. **Lift condition:** a paid plan or self-hosted SonarQube whose
 gate can be set to 100% coverage and zero issues — at which point Sonar's gate and
