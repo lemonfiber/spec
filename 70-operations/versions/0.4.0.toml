@@ -4,7 +4,7 @@
 # frozen at stage-version (OPS-R30).
 version = "0.4.0"
 epoch   = "v1"
-status  = "releasable"
+status  = "released"
 repos   = ["lemonfiber"]
 goals   = [
     "D1-R1",
@@ -84,4 +84,6 @@ goals   = [
     # is not carried as a 0.4.0 goal.
 ]
 
-# [pins] is written by execute-version (OPS-R35); left out while planned.
+# The stack this release embedded, recorded at publish (OPS-R35).
+[pins]
+media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"
