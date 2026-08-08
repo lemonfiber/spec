@@ -5,6 +5,7 @@
 version = "2.2.0"
 epoch   = "v2"
 milestone = "M11"   # Ecosystem glue
+delivers  = "Ecosystem glue: self-healing, cleanup, transcoding, statistics"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

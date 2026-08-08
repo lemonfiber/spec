@@ -5,6 +5,7 @@
 version = "1.0.0"
 epoch   = "v1"
 milestone = "M6"   # Live TUI
+delivers  = "**The dashboard** — a bare `lemonfiber` opens it. Closes v1."
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

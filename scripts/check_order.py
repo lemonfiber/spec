@@ -60,6 +60,18 @@ def _requirements() -> dict[str, list[str]]:
     return wants
 
 
+def _inversion(feature, mine, need, schedule, rank) -> str | None:
+    """What is wrong with this one requirement, where anything is."""
+    theirs = schedule.get(need)
+    if theirs is None:
+        return f"{feature} requires {need}, which no version schedules"
+    if rank[theirs] > rank[mine]:
+        return (
+            f"{feature} ships in {mine} but requires {need}, which lands in {theirs}"
+        )
+    return None
+
+
 def main() -> None:
     schedule, rank, shipped = _released_in()
     problems, historical = [], []
@@ -68,16 +80,8 @@ def main() -> None:
         if mine is None:
             continue
         for need in needs:
-            theirs = schedule.get(need)
-            if theirs is None:
-                problems.append(
-                    f"{feature} requires {need}, which no version schedules"
-                )
-            elif rank[theirs] > rank[mine]:
-                said = (
-                    f"{feature} ships in {mine} but requires {need}, "
-                    f"which lands in {theirs}"
-                )
+            said = _inversion(feature, mine, need, schedule, rank)
+            if said:
                 (historical if mine in shipped else problems).append(said)
     for note in historical:
         print(f"::notice::already shipped, recorded not enforced — {note}")

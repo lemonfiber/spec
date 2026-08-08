@@ -17,7 +17,10 @@ import argparse, re, sys, pathlib
 # A requirement is defined by a table row `| **ID** | text |`; capture the text.
 REQ_DEF_ROW = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|\s*([^|]*)\|", re.M)
 ADR_FILE = re.compile(r"^0*(\d{3,4})-.*\.md$")
-CITE_ANY = re.compile(r"\b([A-Z]+\d*-R\d+|ADR-\d{3,4})\b")
+# Two shapes rather than one alternation inside a group: the alternation made
+# the engine backtrack across the whole token, which is super-linear on a long
+# run of capitals. Each is now anchored on its own literal separator.
+CITE_ANY = re.compile(r"\b(?:[A-Z]{1,4}\d{0,3}-R\d{1,4}|ADR-\d{3,4})\b")
 SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.M | re.I)
 MARKER = "<!-- spec-references -->"
 

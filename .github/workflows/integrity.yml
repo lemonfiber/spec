@@ -24,6 +24,10 @@ jobs:
         run: python3 scripts/integrity.py
       - name: Validate feature frontmatter
         run: python3 scripts/check_frontmatter.py
+      - name: The roadmap's version table matches the manifests
+        run: |
+          python3 scripts/gen_roadmap_table.py
+          git diff --exit-code 00-overview/roadmap.md
       - name: Nothing is scheduled before what it requires
         run: python3 scripts/check_order.py
       - name: Feature board is up to date

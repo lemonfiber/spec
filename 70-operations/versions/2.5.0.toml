@@ -5,6 +5,7 @@
 version = "2.5.0"
 epoch   = "v2"
 milestone = "M13"   # See everything
+delivers  = "See everything — metrics, dashboards, uptime"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [
