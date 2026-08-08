@@ -1,0 +1,56 @@
+# The front door and what guards it — the web UI's security and binding policy, the entry surface, and the privacy stance.
+#
+# 44 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
+version = "0.10.0"
+epoch   = "v1"
+status  = "planned"
+repos   = ["lemonfiber"]
+goals   = [
+    "C6-R1",
+    "C6-R2",
+    "C6-R3",
+    "C6-R4",
+    "C6-R5",
+    "C6-R6",
+    "C6-R7",
+    "C6-R8",
+    "C6-R9",
+    "C6-R10",
+    "C6-R11",
+    "C6-R12",
+    "C6-R13",
+    "C6-R14",
+    "C6-R15",
+    "C6-R16",
+    "C6-R17",
+    "G5-R1",
+    "G5-R2",
+    "G5-R3",
+    "G5-R4",
+    "G5-R5",
+    "G5-R6",
+    "G5-R7",
+    "G5-R8",
+    "G5-R9",
+    "G5-R10",
+    "G5-R11",
+    "G5-R12",
+    "G5-R13",
+    "G8-R1",
+    "G8-R2",
+    "G8-R3",
+    "G8-R4",
+    "G8-R5",
+    "G8-R6",
+    "G8-R7",
+    "G8-R8",
+    "G8-R9",
+    "G8-R10",
+    "G8-R11",
+    "G8-R12",
+    "G8-R13",
+    "G8-R14",
+]
+
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

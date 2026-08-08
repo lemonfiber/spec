@@ -15,7 +15,7 @@ Exit 0 = emitted, 1 = the manifest is missing or misshapen, 2 = usage.
 from __future__ import annotations
 import argparse, re, sys, pathlib
 
-STATES = {"planned", "staged", "releasable", "released", "yanked"}
+STATES = {"planned", "staged", "in_progress", "releasable", "released", "yanked"}
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 VERSIONS_DIR = pathlib.Path("70-operations/versions")
 

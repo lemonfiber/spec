@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to execute, e.g. 0.1.0 — its versions/<v>.toml must be staged or releasable."
+        description: "Version to execute, e.g. 0.1.0 — its versions/<v>.toml must be staged, in_progress or releasable."
         required: true
       dry_run:
         description: "Run the gate and compat checks but tag nothing."
@@ -68,8 +68,8 @@ jobs:
           import sys, tomllib
           d = tomllib.load(open(sys.argv[1], "rb"))
           st = d.get("status")
-          if st not in ("staged", "releasable"):
-              sys.exit(f"::error::{sys.argv[1]} is '{st}', not staged/releasable")
+          if st not in ("staged", "in_progress", "releasable"):
+              sys.exit(f"::error::{sys.argv[1]} is '{st}', not staged/in_progress/releasable")
           print("\n".join(d["repos"]))
           PY
           while read -r r; do

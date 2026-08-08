@@ -86,7 +86,7 @@ bar, not a per-feature goal list, is what a major satisfies
 | **L1-R7** | A documentation site MUST be generated from this specification and published with each release. |
 | **L1-R8** | A non-contributor MUST be able to install and run lemonfiber on all three platforms following only the README. |
 | **L1-R9** | The release pipeline MUST be reachable non-interactively, with no manual step beyond authorisation required to cut a release. |
-| **L1-R10** | `1.0.0` MUST NOT be cut while any `tracks: v1` feature is not both Accepted and implemented — the epoch-completeness bar ([OPS-R54](../../../70-operations/staging.md)). |
+| **L1-R10** | `1.0.0` MUST open the dashboard on a bare invocation — the capability the v1 epoch builds toward — and MUST NOT be cut while any `tracks: v1` feature is not both Accepted and implemented. |
 
 ## Related
 

@@ -1,66 +1,58 @@
-# Live TUI — closes M6: the whole second surface. The read-only dashboard (its
-# render loop over the already-built model) and the interactive surfaces over it —
-# form switcher, lifecycle control, log viewer, and doctor view.
+# Trust checks, part one — VPN egress and killswitch proof, storage and hardlink verification, and queue health with its stuck-item categories.
 #
-# 62 goals, seeded from the roadmap milestone this version serves;
-# frozen at stage-version (OPS-R30). The read-only dashboard goals (B3-R1..R8,
-# R11, R14, R15) moved here from 0.3.0: they are display requirements, not
-# satisfiable without the ratatui surface this version builds.
+# 46 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
 version = "0.6.0"
 epoch   = "v1"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [
-    # Read-only dashboard: the panels, resilience to a lost source, and the
-    # refresh budget — the read side, over the model already built on main.
-    # Full-TUI polish and the interactive surfaces.
-    "B1-R1",
-    "B1-R2",
-    "B1-R3",
-    "B1-R6",
-    "B1-R7",
-    "B1-R8",
-    "B1-R9",
-    "B1-R10",
-    "B1-R11",
-    "B1-R12",
-    "B1-R13",
-    "B1-R14",
-    "B1-R15",
-    "B2-R1",
-    "B2-R2",
-    "B2-R3",
-    "B2-R4",
-    "B2-R5",
-    "B2-R6",
-    "B2-R7",
-    "B2-R8",
-    "B2-R9",
-    "B2-R10",
-    "B2-R11",
-    "B2-R12",
-    "B2-R13",
-    "B2-R14",
-    "B2-R15",
-    "B4-R1",
-    "B4-R2",
-    "B4-R3",
-    "B4-R4",
-    "B4-R5",
-    "B4-R6",
-    "B4-R7",
-    "B4-R8",
-    "B4-R9",
-    "B4-R10",
-    "B4-R11",
-    "B4-R12",
-    "B4-R13",
-    "C1-R1",
-    "C1-R2",
-    "C1-R10",
-    "C1-R11",
-    "C1-R12",
-    "C1-R14",
+    "C2-R1",
+    "C2-R2",
+    "C2-R3",
+    "C2-R4",
+    "C2-R5",
+    "C2-R6",
+    "C2-R7",
+    "C2-R8",
+    "C2-R9",
+    "C2-R10",
+    "C2-R11",
+    "C2-R12",
+    "C2-R13",
+    "C2-R14",
+    "C2-R15",
+    "C2-R16",
+    "C2-R17",
+    "C2-R18",
+    "C2-R19",
+    "C2-R20",
+    "C5-R3",
+    "C5-R4",
+    "C5-R5",
+    "C5-R6",
+    "C5-R7",
+    "C5-R8",
+    "C5-R9",
+    "C5-R10",
+    "C5-R11",
+    "C5-R12",
+    "C5-R13",
+    "C7-R1",
+    "C7-R2",
+    "C7-R3",
+    "C7-R4",
+    "C7-R5",
+    "C7-R6",
+    "C7-R7",
+    "C7-R8",
+    "C7-R9",
+    "C7-R10",
+    "C7-R11",
+    "C7-R12",
+    "C7-R13",
+    "C7-R14",
+    "C7-R15",
 ]
 
-# [pins] is written by execute-version (OPS-R35); left out while planned.
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

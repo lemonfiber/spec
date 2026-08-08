@@ -1,17 +1,60 @@
-# 2.0.0 — the v2 epoch closes, and the ecosystem is released. Its own scoped work
-# is L2 (v2 release): the v2 surface shipped through the same signed, multi-platform
-# pipeline as v1, verified to the same bar, with a tested upgrade from a v1 release
-# — the deliverable of the release itself, not of any one v2 feature.
+# **Running without Docker.** The container engine becomes one implementation behind an abstraction, Podman becomes a first-class alternative, and the stack can run natively with no containers at all. A different product generation, which is why it is a major.
 #
+# 48 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
 version = "2.0.0"
 epoch   = "v2"
 status  = "planned"
-repos   = ["lemonfiber", "media-stack"]
-closes_epoch = "v2"
+repos   = ["lemonfiber"]
 goals   = [
-    "L2-R1", "L2-R2", "L2-R3", "L2-R4", "L2-R5", "L2-R6",
+    "J1-R1",
+    "J1-R2",
+    "J1-R3",
+    "J1-R4",
+    "J1-R5",
+    "J1-R6",
+    "J1-R7",
+    "J1-R8",
+    "J1-R9",
+    "J1-R10",
+    "J1-R11",
+    "J1-R12",
+    "J1-R13",
+    "J1-R14",
+    "J2-R1",
+    "J2-R2",
+    "J2-R3",
+    "J2-R4",
+    "J2-R5",
+    "J2-R6",
+    "J2-R7",
+    "J2-R8",
+    "J2-R9",
+    "J2-R10",
+    "J2-R11",
+    "J2-R12",
+    "J2-R13",
+    "J2-R14",
+    "J3-R1",
+    "J3-R2",
+    "J3-R3",
+    "J3-R4",
+    "J3-R5",
+    "J3-R6",
+    "J3-R7",
+    "J3-R8",
+    "J3-R9",
+    "J3-R10",
+    "J3-R11",
+    "J3-R12",
+    "J3-R13",
+    "J3-R14",
+    "L2-R1",
+    "L2-R2",
+    "L2-R3",
+    "L2-R4",
+    "L2-R5",
+    "L2-R6",
 ]
 
-# On top of these goals, closes_epoch adds the epoch-completeness gate (OPS-R54):
-# 2.0.0 ships only when L2 is done AND every tracks: v2 feature is satisfied.
-# [pins] is written by execute-version (OPS-R35); left out while planned.
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

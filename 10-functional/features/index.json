@@ -32,100 +32,128 @@
     {
       "version": "0.5.0",
       "epoch": "v1",
-      "status": "planned",
+      "status": "in_progress",
       "closes_epoch": null,
-      "goals": 145
+      "goals": 50
     },
     {
       "version": "0.6.0",
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 47
+      "goals": 46
     },
     {
       "version": "0.7.0",
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 85
+      "goals": 42
     },
     {
       "version": "0.8.0",
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 96
+      "goals": 47
     },
     {
       "version": "0.9.0",
       "epoch": "v1",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 171
+      "goals": 41
+    },
+    {
+      "version": "0.10.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 44
+    },
+    {
+      "version": "0.11.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 41
+    },
+    {
+      "version": "0.12.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 55
+    },
+    {
+      "version": "0.13.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 60
+    },
+    {
+      "version": "0.14.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 56
+    },
+    {
+      "version": "0.15.0",
+      "epoch": "v1",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 55
     },
     {
       "version": "1.0.0",
       "epoch": "v1",
       "status": "planned",
-      "closes_epoch": "v1",
-      "goals": 10
+      "closes_epoch": null,
+      "goals": 17
     },
     {
-      "version": "1.1.0",
+      "version": "2.0.0",
+      "epoch": "v2",
+      "status": "planned",
+      "closes_epoch": null,
+      "goals": 48
+    },
+    {
+      "version": "2.1.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
       "goals": 56
     },
     {
-      "version": "1.2.0",
+      "version": "2.2.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
       "goals": 59
     },
     {
-      "version": "1.3.0",
+      "version": "2.3.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
       "goals": 29
     },
     {
-      "version": "1.4.0",
+      "version": "2.4.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
-      "goals": 12
+      "goals": 26
     },
     {
-      "version": "1.5.0",
+      "version": "2.5.0",
       "epoch": "v2",
       "status": "planned",
       "closes_epoch": null,
       "goals": 40
-    },
-    {
-      "version": "1.6.0",
-      "epoch": "v2",
-      "status": "planned",
-      "closes_epoch": null,
-      "goals": 14
-    },
-    {
-      "version": "1.7.0",
-      "epoch": "v2",
-      "status": "planned",
-      "closes_epoch": null,
-      "goals": 42
-    },
-    {
-      "version": "2.0.0",
-      "epoch": "v2",
-      "status": "planned",
-      "closes_epoch": "v2",
-      "goals": 6
     }
   ],
   "features": [
@@ -192,12 +220,12 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.2.0",
-          "status": "released"
+          "version": "0.13.0",
+          "status": "planned"
         },
         {
-          "version": "0.9.0",
-          "status": "planned"
+          "version": "0.2.0",
+          "status": "released"
         }
       ],
       "path": "a-getting-started/a3-credential-validation.md"
@@ -218,7 +246,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.13.0",
           "status": "planned"
         }
       ],
@@ -241,7 +269,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.13.0",
           "status": "planned"
         }
       ],
@@ -263,7 +291,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.13.0",
           "status": "planned"
         }
       ],
@@ -285,7 +313,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.13.0",
           "status": "planned"
         }
       ],
@@ -312,7 +340,7 @@
           "status": "released"
         },
         {
-          "version": "0.6.0",
+          "version": "0.8.0",
           "status": "planned"
         }
       ],
@@ -334,7 +362,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.6.0",
+          "version": "0.8.0",
           "status": "planned"
         }
       ],
@@ -358,6 +386,10 @@
       "versions": [
         {
           "version": "0.5.0",
+          "status": "in_progress"
+        },
+        {
+          "version": "1.0.0",
           "status": "planned"
         }
       ],
@@ -379,7 +411,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.6.0",
+          "version": "0.8.0",
           "status": "planned"
         }
       ],
@@ -402,7 +434,7 @@
       "versions": [
         {
           "version": "0.5.0",
-          "status": "planned"
+          "status": "in_progress"
         }
       ],
       "path": "b-running/b5-notifications.md"
@@ -424,7 +456,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.15.0",
           "status": "planned"
         }
       ],
@@ -447,7 +479,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.15.0",
           "status": "planned"
         }
       ],
@@ -470,7 +502,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.5.0",
+          "version": "2.5.0",
           "status": "planned"
         }
       ],
@@ -500,7 +532,7 @@
           "status": "released"
         },
         {
-          "version": "0.6.0",
+          "version": "0.8.0",
           "status": "planned"
         }
       ],
@@ -524,7 +556,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.5.0",
+          "version": "0.6.0",
           "status": "planned"
         }
       ],
@@ -546,7 +578,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.5.0",
+          "version": "0.7.0",
           "status": "planned"
         }
       ],
@@ -569,7 +601,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.5.0",
+          "version": "0.7.0",
           "status": "planned"
         }
       ],
@@ -596,7 +628,7 @@
           "status": "released"
         },
         {
-          "version": "0.5.0",
+          "version": "0.6.0",
           "status": "planned"
         }
       ],
@@ -619,7 +651,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.10.0",
           "status": "planned"
         }
       ],
@@ -642,7 +674,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.5.0",
+          "version": "0.6.0",
           "status": "planned"
         }
       ],
@@ -664,7 +696,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.5.0",
+          "version": "0.7.0",
           "status": "planned"
         }
       ],
@@ -776,7 +808,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.11.0",
           "status": "planned"
         }
       ],
@@ -798,7 +830,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.12.0",
           "status": "planned"
         }
       ],
@@ -821,7 +853,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.11.0",
           "status": "planned"
         }
       ],
@@ -843,7 +875,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.12.0",
           "status": "planned"
         }
       ],
@@ -865,7 +897,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.12.0",
           "status": "planned"
         }
       ],
@@ -910,7 +942,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.12.0",
           "status": "planned"
         }
       ],
@@ -932,7 +964,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.14.0",
           "status": "planned"
         }
       ],
@@ -954,7 +986,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.14.0",
           "status": "planned"
         }
       ],
@@ -977,12 +1009,12 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.3.0",
-          "status": "released"
+          "version": "0.14.0",
+          "status": "planned"
         },
         {
-          "version": "0.9.0",
-          "status": "planned"
+          "version": "0.3.0",
+          "status": "released"
         }
       ],
       "path": "e-maintenance/e3-backup-restore.md"
@@ -1003,7 +1035,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.14.0",
           "status": "planned"
         }
       ],
@@ -1026,7 +1058,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.14.0",
           "status": "planned"
         }
       ],
@@ -1048,7 +1080,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.15.0",
           "status": "planned"
         }
       ],
@@ -1070,7 +1102,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.9.0",
+          "version": "0.15.0",
           "status": "planned"
         }
       ],
@@ -1094,7 +1126,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.6.0",
+          "version": "2.4.0",
           "status": "planned"
         }
       ],
@@ -1119,7 +1151,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.9.0",
           "status": "planned"
         }
       ],
@@ -1141,7 +1173,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.9.0",
           "status": "planned"
         }
       ],
@@ -1163,7 +1195,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.9.0",
           "status": "planned"
         }
       ],
@@ -1186,7 +1218,7 @@
       "versions": [
         {
           "version": "0.5.0",
-          "status": "planned"
+          "status": "in_progress"
         }
       ],
       "path": "g-ux/g4-error-model.md"
@@ -1208,7 +1240,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.10.0",
           "status": "planned"
         }
       ],
@@ -1231,7 +1263,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.8.0",
+          "version": "0.11.0",
           "status": "planned"
         }
       ],
@@ -1255,7 +1287,7 @@
       "versions": [
         {
           "version": "0.5.0",
-          "status": "planned"
+          "status": "in_progress"
         }
       ],
       "path": "g-ux/g7-health-summary.md"
@@ -1276,7 +1308,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "0.7.0",
+          "version": "0.10.0",
           "status": "planned"
         }
       ],
@@ -1300,7 +1332,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.4.0",
+          "version": "2.4.0",
           "status": "planned"
         }
       ],
@@ -1325,7 +1357,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.1.0",
+          "version": "2.1.0",
           "status": "planned"
         }
       ],
@@ -1350,7 +1382,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.1.0",
+          "version": "2.1.0",
           "status": "planned"
         }
       ],
@@ -1375,7 +1407,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.1.0",
+          "version": "2.1.0",
           "status": "planned"
         }
       ],
@@ -1400,7 +1432,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.1.0",
+          "version": "2.1.0",
           "status": "planned"
         }
       ],
@@ -1424,7 +1456,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.2.0",
+          "version": "2.2.0",
           "status": "planned"
         }
       ],
@@ -1448,7 +1480,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.2.0",
+          "version": "2.2.0",
           "status": "planned"
         }
       ],
@@ -1473,7 +1505,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.2.0",
+          "version": "2.2.0",
           "status": "planned"
         }
       ],
@@ -1497,7 +1529,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.2.0",
+          "version": "2.2.0",
           "status": "planned"
         }
       ],
@@ -1522,7 +1554,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.3.0",
+          "version": "2.3.0",
           "status": "planned"
         }
       ],
@@ -1546,7 +1578,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.3.0",
+          "version": "2.3.0",
           "status": "planned"
         }
       ],
@@ -1569,7 +1601,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.7.0",
+          "version": "2.0.0",
           "status": "planned"
         }
       ],
@@ -1593,7 +1625,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.7.0",
+          "version": "2.0.0",
           "status": "planned"
         }
       ],
@@ -1617,7 +1649,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.7.0",
+          "version": "2.0.0",
           "status": "planned"
         }
       ],
@@ -1640,7 +1672,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.5.0",
+          "version": "2.5.0",
           "status": "planned"
         }
       ],
@@ -1663,7 +1695,7 @@
       "depends": [],
       "versions": [
         {
-          "version": "1.5.0",
+          "version": "2.5.0",
           "status": "planned"
         }
       ],
