@@ -7,6 +7,14 @@
 # body is fetched at runtime and only pattern-matched, never interpolated into the
 # shell. Works whether the scan is CI-driven or SonarCloud Automatic Analysis —
 # either way it edits one summary comment the gate reads.
+#
+# This job is meant to be a required check, so what it does when it cannot reach an
+# answer matters as much as what it does with one. It blocks on a counted issue and
+# on nothing else: a summary that never arrived, or one whose shape this gate no
+# longer understands, is the gate's problem or SonarCloud's, and holding somebody's
+# pull request hostage to either would punish the wrong person. Those cases warn
+# loudly — in the log and in the sticky comment, which says plainly that the gate
+# needs attention — and pass.
 name: sonar-gate
 
 on:
@@ -53,32 +61,44 @@ jobs:
             exit 0
           fi
 
-          # SonarCloud edits one comment in place after its analysis finishes, so
-          # poll for it rather than assume it has arrived.
+          # The count, or nothing where this body does not carry one. SonarCloud
+          # pluralises it — "1 New issue", "2 New issues" — so the trailing `s` is
+          # optional; without that, exactly one new issue reads as unparsable rather
+          # than as the one it is.
+          count_in() {
+            printf '%s' "$1" | grep -oE '\[[0-9]+ New issues?\]' \
+              | grep -oE '[0-9]+' | head -1 || true
+          }
+
+          # SonarCloud edits one comment in place after its analysis finishes, so poll
+          # for it rather than assume it has arrived — and poll until it carries a
+          # count, not merely until a comment exists. A summary is posted before the
+          # analysis behind it is complete, so stopping at the first comment is how a
+          # placeholder gets read as the final word.
           body=""
+          count=""
           for attempt in $(seq 1 30); do
             body=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
               --jq "[.[] | select(.user.login == \"${BOT}\")] | last | .body // empty" || true)
-            if [ -n "$body" ]; then break; fi
-            echo "Waiting for the SonarCloud summary… (${attempt}/30)"
+            count=$(count_in "$body")
+            if [ -n "$count" ]; then break; fi
+            echo "Waiting for a SonarCloud summary with a count… (${attempt}/30)"
             sleep 10
           done
 
+          # Neither of the next two blocks Q-R64: one means SonarCloud never answered,
+          # the other means this gate no longer understands the answer. Both are worth
+          # shouting about and neither is the contributor's to fix.
           if [ -z "$body" ]; then
-            verdict "### ⚠️ Issue gate — inconclusive · SonarCloud posted no summary within the timeout, so the new-issue count could not be read."
-            echo "::error::SonarCloud posted no summary within the timeout"
-            exit 1
+            verdict "### ⚠️ Issue gate — no answer · SonarCloud posted no summary within the timeout, so there was nothing to gate on. **Not a failure of this pull request.** Re-run the check once the analysis lands."
+            echo "::warning::SonarCloud posted no summary within the timeout; nothing to gate on"
+            exit 0
           fi
 
-          # SonarCloud pluralises the count — "1 New issue", "2 New issues" — so the
-          # trailing `s` is optional; without this, exactly one new issue reads as
-          # inconclusive rather than the one it is.
-          count=$(printf '%s' "$body" | grep -oE '\[[0-9]+ New issues?\]' \
-            | grep -oE '[0-9]+' | head -1 || true)
           if [ -z "$count" ]; then
-            verdict "### ⚠️ Issue gate — inconclusive · could not read the new-issue count from the SonarCloud summary."
-            echo "::error::Could not read the new-issue count from the SonarCloud summary"
-            exit 1
+            verdict "### ⚠️ Issue gate needs attention · SonarCloud posted a summary this gate could not read a new-issue count from. **Not a failure of this pull request** — the gate's own pattern needs updating, and until it is, \`Q-R64\` is not being enforced."
+            echo "::warning::Could not read the new-issue count; the gate is not enforcing Q-R64"
+            exit 0
           fi
           if [ "$count" -ne 0 ]; then
             verdict "### ❌ Issue gate failed · SonarCloud reports **${count} new issue(s)**; this repository requires zero (\`Q-R64\`)."

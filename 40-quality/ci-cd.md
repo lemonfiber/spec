@@ -90,6 +90,14 @@ and both checks block the merge:
 | Coverage | `cargo-llvm-cov --fail-under-lines 100` over the applicable set | Any applicable line uncovered (`Q-R61`) |
 | Issues | A step that reads the summary SonarCloud posts on the PR when its analysis finishes | Any open issue — bug, vulnerability or code smell (`Q-R64`) |
 
+The issues check blocks on a **counted** issue and on nothing else. A summary that
+never arrived, and one whose shape the check no longer understands, are the
+analysis's problem or the check's own; blocking a contributor's pull request on
+either would punish the wrong person, and — worse — an unreadable summary that
+fails looks exactly like a summary that failed, so the real finding hides behind the
+noise. Both cases warn instead, in the log and in the verdict comment, which says
+plainly that `Q-R64` is not being enforced until someone fixes the check.
+
 This is the documented cap `Q-R63` calls for. **Reason:** the free plan's gate is
 not configurable. **Lift condition:** a paid plan or self-hosted SonarQube whose
 gate can be set to 100% coverage and zero issues — at which point Sonar's gate and
