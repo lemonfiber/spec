@@ -72,8 +72,8 @@ def _inversion(feature, mine, need, schedule, rank) -> str | None:
     return None
 
 
-def main() -> None:
-    schedule, rank, shipped = _released_in()
+def _gather(schedule, rank, shipped) -> tuple[list[str], list[str]]:
+    """Every inversion, split into what must be fixed and what merely happened."""
     problems, historical = [], []
     for feature, needs in sorted(_requirements().items()):
         mine = schedule.get(feature)
@@ -83,6 +83,12 @@ def main() -> None:
             said = _inversion(feature, mine, need, schedule, rank)
             if said:
                 (historical if mine in shipped else problems).append(said)
+    return problems, historical
+
+
+def main() -> None:
+    schedule, rank, shipped = _released_in()
+    problems, historical = _gather(schedule, rank, shipped)
     for note in historical:
         print(f"::notice::already shipped, recorded not enforced — {note}")
     if problems:
