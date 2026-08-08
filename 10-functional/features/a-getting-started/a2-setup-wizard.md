@@ -7,8 +7,8 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [ux, wiring]
-requires: [G4]
-relates: [A1, A3, A4, G1]
+requires: []
+relates: [A1, A3, A4, G1, G4]
 ---
 
 # A2 — Setup wizard

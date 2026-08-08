@@ -5,6 +5,7 @@
 version = "0.14.0"
 epoch   = "v1"
 milestone = "M9"   # Lifecycle & maintenance
+delivers  = "Keeping it running — updates, backup, rollback, the journal"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

@@ -31,13 +31,20 @@ def load_features():
     return feats
 
 
+VERSION_MANIFESTS = "70-operations/versions/*.toml"
+
+
+def version_manifests():
+    """Every version manifest, TEMPLATE excluded, as parsed data."""
+    for vf in sorted(glob.glob(VERSION_MANIFESTS)):
+        if pathlib.Path(vf).stem != "TEMPLATE":
+            yield tomllib.loads(pathlib.Path(vf).read_text(encoding="utf-8"))
+
+
 def load_versions():
     """feature id -> {version: status}, from each manifest's goals."""
     by_feature = {}
-    for vf in sorted(glob.glob("70-operations/versions/*.toml")):
-        if pathlib.Path(vf).stem == "TEMPLATE":
-            continue
-        data = tomllib.loads(pathlib.Path(vf).read_text(encoding="utf-8"))
+    for data in version_manifests():
         version, status = data["version"], data.get("status", "planned")
         for goal in data.get("goals", []):
             feature = goal.split("-R")[0]
@@ -51,10 +58,7 @@ def load_version_list():
     which own no per-feature goals (the no-stub-major rule) and so appear in no
     feature row — so a consumer can render the whole train, majors included."""
     versions = []
-    for vf in sorted(glob.glob("70-operations/versions/*.toml")):
-        if pathlib.Path(vf).stem == "TEMPLATE":
-            continue
-        data = tomllib.loads(pathlib.Path(vf).read_text(encoding="utf-8"))
+    for data in version_manifests():
         versions.append({
             "version": data["version"],
             "epoch": data.get("epoch"),
@@ -76,13 +80,7 @@ def milestones_by_version():
     feature belongs to whatever milestone the version shipping it serves, so that
     is where it is read from and there is nothing left to drift.
     """
-    by_version = {}
-    for vf in sorted(glob.glob("70-operations/versions/*.toml")):
-        if pathlib.Path(vf).stem == "TEMPLATE":
-            continue
-        data = tomllib.loads(pathlib.Path(vf).read_text(encoding="utf-8"))
-        by_version[data["version"]] = data.get("milestone")
-    return by_version
+    return {data["version"]: data.get("milestone") for data in version_manifests()}
 
 
 def milestones_of(feature_id, by_feature, by_version):

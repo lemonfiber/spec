@@ -5,6 +5,7 @@
 version = "0.5.0"
 epoch   = "v1"
 milestone = "M5"   # Trust checks
+delivers  = "How the product speaks — errors, notifications, health, dashboard data"
 status  = "in_progress"
 repos   = ["lemonfiber"]
 goals   = [

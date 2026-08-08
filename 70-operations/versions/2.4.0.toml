@@ -5,6 +5,7 @@
 version = "2.4.0"
 epoch   = "v2"
 milestone = "M14"   # The platform
+delivers  = "The platform — third-party manifests, catalogue, accessibility"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

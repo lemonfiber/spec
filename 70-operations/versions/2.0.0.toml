@@ -5,6 +5,7 @@
 version = "2.0.0"
 epoch   = "v2"
 milestone = "M15"   # Runs anywhere
+delivers  = "**Runs without Docker** — engine abstraction, Podman, native. Opens v2."
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

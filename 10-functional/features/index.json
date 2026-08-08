@@ -228,14 +228,13 @@
         "ux",
         "wiring"
       ],
-      "requires": [
-        "G4"
-      ],
+      "requires": [],
       "relates": [
         "A1",
         "A3",
         "A4",
-        "G1"
+        "G1",
+        "G4"
       ],
       "versions": [
         {
@@ -696,9 +695,7 @@
       "labels": [
         "verification"
       ],
-      "requires": [
-        "G4"
-      ],
+      "requires": [],
       "relates": [
         "C2",
         "C3",
@@ -706,6 +703,7 @@
         "C7",
         "C8",
         "C9",
+        "G4",
         "G7"
       ],
       "versions": [

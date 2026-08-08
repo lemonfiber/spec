@@ -7,8 +7,8 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [verification]
-requires: [G4]
-relates: [C2, C3, C5, C7, C8, C9, G7]
+requires: []
+relates: [C2, C3, C5, C7, C8, C9, G4, G7]
 ---
 
 # C1 — Diagnostics

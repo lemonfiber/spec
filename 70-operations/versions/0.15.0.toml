@@ -5,6 +5,7 @@
 version = "0.15.0"
 epoch   = "v1"
 milestone = "M9"   # Lifecycle & maintenance
+delivers  = "The last of v1 — remote control, autostart, customisation"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

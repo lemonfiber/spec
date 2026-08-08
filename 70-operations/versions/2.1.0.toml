@@ -5,6 +5,7 @@
 version = "2.1.0"
 epoch   = "v2"
 milestone = "M11"   # Ecosystem glue
+delivers  = "Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

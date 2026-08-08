@@ -5,6 +5,7 @@
 version = "0.4.0"
 epoch   = "v1"
 milestone = "M4"   # Seed & backup
+delivers  = "Auto-wiring, seed, quality, trace and the first-content walk"
 status  = "released"
 repos   = ["lemonfiber"]
 goals   = [
