@@ -42,7 +42,10 @@ def rows() -> list[str]:
 
 def main() -> None:
     text = ROADMAP.read_text(encoding="utf-8")
-    table = re.compile(r"^\| Version \| Epoch \|.*?(?=\n\n)", re.S | re.M)
+    # The header row and every row under it — consecutive lines that start with a
+    # pipe. Written as "the header, then more table lines" rather than "anything
+    # up to a blank line", which reads as a puzzle and behaves like one.
+    table = re.compile(r"^\| Version \| Epoch \|.*(?:\n\|.*)*", re.M)
     if not table.search(text):
         raise SystemExit("::error::no version table found in the roadmap")
     ROADMAP.write_text(table.sub("\n".join(rows()), text, count=1), encoding="utf-8")
