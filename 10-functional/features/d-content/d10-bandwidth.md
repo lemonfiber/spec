@@ -7,7 +7,8 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [network]
-depends: [B5, C2, C7, D5]
+requires: [B5]
+relates: [C2, C7, D5]
 ---
 
 # D10 — Bandwidth & scheduling

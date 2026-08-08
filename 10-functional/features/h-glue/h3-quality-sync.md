@@ -9,7 +9,7 @@ tracks: v2
 milestone: M7
 priority: P1
 labels: [quality, wiring, verification, stats]
-depends: [D2]
+relates: [D2]
 ---
 
 # H3 — Quality-profile sync

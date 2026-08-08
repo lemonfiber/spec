@@ -9,7 +9,7 @@ tracks: v2
 milestone: M7
 priority: P2
 labels: [queue, verification, wiring]
-depends: [C7]
+relates: [C7]
 ---
 
 # H5 — Queue self-healing

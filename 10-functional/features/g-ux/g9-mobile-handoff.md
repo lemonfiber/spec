@@ -9,7 +9,7 @@ tracks: v2
 milestone: M8
 priority: P2
 labels: [household, ux, verification]
-depends: [G6, D6, I1]
+relates: [G6, D6, I1]
 ---
 
 # G9 — Mobile client handoff

@@ -18,15 +18,15 @@ Generated from feature frontmatter and the version manifests by
 | [A7](a-getting-started/a7-credential-management.md) | Credential management & rotation | A | operator | accepted | `0.9.0` |
 | [B1](b-running/b1-forms.md) | Forms & partial stacks | B | operator | accepted | `0.1.0`, `0.6.0` |
 | [B2](b-running/b2-lifecycle.md) | Lifecycle control | B | operator | accepted | `0.6.0` |
-| [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.6.0` |
+| [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.5.0` |
 | [B4](b-running/b4-logs.md) | Log viewing | B | operator | accepted | `0.6.0` |
-| [B5](b-running/b5-notifications.md) | Notifications & alerting | B | both | accepted | `0.9.0` |
+| [B5](b-running/b5-notifications.md) | Notifications & alerting | B | both | accepted | `0.5.0` |
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.9.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.9.0` |
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.2.0`, `0.6.0` |
 | [C2](c-trust/c2-vpn-verification.md) | VPN verification | C | operator | accepted | `0.5.0` |
 | [C3](c-trust/c3-auto-remediation.md) | Auto-remediation | C | operator | accepted | `0.5.0` |
-| [C4](c-trust/c4-support-bundle.md) | Support bundle | C | operator | accepted | `0.7.0` |
+| [C4](c-trust/c4-support-bundle.md) | Support bundle | C | operator | accepted | `0.5.0` |
 | [C5](c-trust/c5-storage.md) | Storage & hardlink management | C | operator | accepted | `0.2.0`, `0.5.0` |
 | [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.7.0` |
 | [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.5.0` |
@@ -52,10 +52,10 @@ Generated from feature frontmatter and the version manifests by
 | [G1](g-ux/g1-interface-tiers.md) | Interface tiers | G | both | accepted | `0.7.0` |
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.7.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.7.0` |
-| [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.7.0` |
+| [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.5.0` |
 | [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.7.0` |
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | G | household | accepted | `0.8.0` |
-| [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.7.0` |
+| [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.5.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.7.0` |
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
 

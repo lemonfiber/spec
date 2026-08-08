@@ -9,7 +9,8 @@ tracks: v2
 milestone: M9
 priority: P2
 labels: [notifications, verification]
-depends: [B5, G8]
+requires: [B5]
+relates: [G8]
 ---
 
 # B9 — Open notification back-ends

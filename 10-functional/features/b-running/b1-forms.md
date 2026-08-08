@@ -8,7 +8,7 @@ status: accepted
 tracks: v1
 milestone: M2
 labels: [cli, wiring]
-depends: [B2, F2]
+relates: [B2, F2]
 ---
 
 # B1 — Forms & partial stacks

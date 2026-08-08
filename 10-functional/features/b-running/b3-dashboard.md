@@ -8,7 +8,8 @@ status: accepted
 tracks: v1
 milestone: M5
 labels: [tui, verification]
-depends: [B2, B4, C2, G1, G7]
+requires: [G7]
+relates: [B2, B4, C2, G1]
 ---
 
 # B3 — Live dashboard

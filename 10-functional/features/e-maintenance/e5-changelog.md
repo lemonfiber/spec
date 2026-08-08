@@ -9,7 +9,7 @@ tracks: v1
 milestone: M6
 priority: P2
 labels: [updates, verification]
-depends: [E1, E2]
+relates: [E1, E2]
 ---
 
 # E5 — Changelog & release notes

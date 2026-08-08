@@ -7,7 +7,7 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [ux]
-depends: [A2, A5, C5, C9, E4]
+relates: [A2, A5, C5, C9, E4]
 ---
 
 # A4 — Reconfiguration

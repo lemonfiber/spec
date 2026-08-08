@@ -8,7 +8,8 @@ status: accepted
 tracks: v1
 milestone: M3
 labels: [vpn, network, verification]
-depends: [A3, B5, B8, C1]
+requires: [B5]
+relates: [A3, B8, C1]
 ---
 
 # C2 — VPN verification

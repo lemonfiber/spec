@@ -9,7 +9,7 @@ tracks: v2
 milestone: M10
 priority: P2
 labels: [extensibility, verification, wiring]
-depends: [F1, F2]
+relates: [F1, F2]
 ---
 
 # F3 — Third-party stack manifests

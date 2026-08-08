@@ -8,7 +8,7 @@ status: accepted
 tracks: v1
 milestone: M4
 labels: [storage, updates]
-depends: [A5, A6, A7, E1, E4]
+relates: [A5, A6, A7, E1, E4]
 ---
 
 # E3 — Backup & restore

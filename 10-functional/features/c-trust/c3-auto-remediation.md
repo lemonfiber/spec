@@ -7,7 +7,8 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [verification]
-depends: [C1, C4, C9, G4]
+requires: [C4, G4]
+relates: [C1, C9]
 ---
 
 # C3 — Auto-remediation

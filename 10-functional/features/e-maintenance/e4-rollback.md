@@ -7,7 +7,7 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [updates]
-depends: [A4, C3, C9, E1, E3]
+relates: [A4, C3, C9, E1, E3]
 ---
 
 # E4 — Rollback

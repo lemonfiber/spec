@@ -9,7 +9,7 @@ tracks: v2
 milestone: M12
 priority: P1
 labels: [runtime, verification]
-depends: [C2, C5, B1]
+relates: [C2, C5, B1]
 ---
 
 # J1 — Container-engine abstraction

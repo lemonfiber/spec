@@ -8,7 +8,8 @@ status: accepted
 tracks: v1
 milestone: M3
 labels: [ux, wiring]
-depends: [A1, A3, A4, G1, G4]
+requires: [G4]
+relates: [A1, A3, A4, G1]
 ---
 
 # A2 — Setup wizard

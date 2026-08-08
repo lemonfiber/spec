@@ -9,7 +9,8 @@ tracks: v2
 milestone: M9
 priority: P2
 labels: [observability, verification]
-depends: [B5, G7]
+requires: [B5]
+relates: [G7]
 ---
 
 # K2 — Uptime monitoring

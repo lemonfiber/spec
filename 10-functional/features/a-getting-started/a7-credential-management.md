@@ -7,7 +7,7 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [security]
-depends: [A3, A6, C4, D1, G8]
+relates: [A3, A6, C4, D1, G8]
 ---
 
 # A7 — Credential management & rotation

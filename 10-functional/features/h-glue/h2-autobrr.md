@@ -9,7 +9,7 @@ tracks: v2
 milestone: M7
 priority: P1
 labels: [wiring, queue, verification, notifications]
-depends: [D1, C7]
+relates: [D1, C7]
 ---
 
 # H2 — Announce-driven grabbing

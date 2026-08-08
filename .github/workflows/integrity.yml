@@ -24,6 +24,8 @@ jobs:
         run: python3 scripts/integrity.py
       - name: Validate feature frontmatter
         run: python3 scripts/check_frontmatter.py
+      - name: Nothing is scheduled before what it requires
+        run: python3 scripts/check_order.py
       - name: Feature board is up to date
         run: |
           python3 scripts/gen_board.py

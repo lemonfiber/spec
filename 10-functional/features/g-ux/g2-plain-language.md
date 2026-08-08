@@ -7,7 +7,7 @@ audience: both
 status: accepted
 tracks: v1
 labels: [ux]
-depends: [A1, D2, F2, G4]
+relates: [A1, D2, F2, G4]
 ---
 
 # G2 — Plain-language layer & in-product help

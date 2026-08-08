@@ -7,7 +7,7 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [extensibility]
-depends: [B1, F1, G2]
+relates: [B1, F1, G2]
 ---
 
 # F2 — Service catalogue

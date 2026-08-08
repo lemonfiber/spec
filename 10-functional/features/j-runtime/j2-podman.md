@@ -9,7 +9,7 @@ tracks: v2
 milestone: M12
 priority: P2
 labels: [runtime, network, verification]
-depends: [J1, C2, C5]
+relates: [J1, C2, C5]
 ---
 
 # J2 — Running under Podman

@@ -8,7 +8,8 @@ status: accepted
 tracks: v1
 milestone: M5
 labels: [tui]
-depends: [B3, C1, C4, G4]
+requires: [G4]
+relates: [B3, C1, C4]
 ---
 
 # B4 — Log viewing

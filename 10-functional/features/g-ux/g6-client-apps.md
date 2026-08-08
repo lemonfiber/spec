@@ -7,7 +7,7 @@ audience: household
 status: accepted
 tracks: v1
 labels: [household, ux]
-depends: [D2, D6, D8, G5]
+relates: [D2, D6, D8, G5]
 ---
 
 # G6 — Client app guidance

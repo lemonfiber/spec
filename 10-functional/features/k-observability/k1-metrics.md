@@ -9,7 +9,7 @@ tracks: v2
 milestone: M9
 priority: P2
 labels: [observability, verification]
-depends: [B3, G7]
+relates: [B3, G7]
 ---
 
 # K1 — Metrics & dashboards

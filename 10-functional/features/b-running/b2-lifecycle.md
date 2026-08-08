@@ -8,7 +8,8 @@ status: accepted
 tracks: v1
 milestone: M2
 labels: [cli]
-depends: [B1, B3, B8, G7]
+requires: [G7]
+relates: [B1, B3, B8]
 ---
 
 # B2 — Lifecycle control

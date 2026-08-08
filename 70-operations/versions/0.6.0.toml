@@ -13,22 +13,7 @@ repos   = ["lemonfiber"]
 goals   = [
     # Read-only dashboard: the panels, resilience to a lost source, and the
     # refresh budget — the read side, over the model already built on main.
-    "B3-R1",
-    "B3-R2",
-    "B3-R3",
-    "B3-R4",
-    "B3-R5",
-    "B3-R6",
-    "B3-R7",
-    "B3-R8",
-    "B3-R11",
-    "B3-R14",
-    "B3-R15",
     # Full-TUI polish and the interactive surfaces.
-    "B3-R9",
-    "B3-R10",
-    "B3-R12",
-    "B3-R13",
     "B1-R1",
     "B1-R2",
     "B1-R3",

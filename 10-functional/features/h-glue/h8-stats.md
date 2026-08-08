@@ -9,7 +9,7 @@ tracks: v2
 milestone: M7
 priority: P3
 labels: [stats, verification, wiring]
-depends: [D6, G8]
+relates: [D6, G8]
 ---
 
 # H8 — Playback statistics

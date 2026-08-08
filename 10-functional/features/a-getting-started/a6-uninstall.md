@@ -7,7 +7,7 @@ audience: operator
 status: accepted
 tracks: v1
 labels: [ux]
-depends: [A4, A7, E3, G4]
+relates: [A4, A7, E3, G4]
 ---
 
 # A6 — Clean uninstall
