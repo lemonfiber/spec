@@ -6,7 +6,6 @@ area: B
 audience: operator
 status: accepted
 tracks: v1
-milestone: M5
 labels: [tui]
 requires: [G4]
 relates: [B3, C1, C4]

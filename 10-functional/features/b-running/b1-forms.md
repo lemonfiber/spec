@@ -6,7 +6,6 @@ area: B
 audience: operator
 status: accepted
 tracks: v1
-milestone: M2
 labels: [cli, wiring]
 relates: [B2, F2]
 ---

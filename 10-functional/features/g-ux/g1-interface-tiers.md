@@ -6,7 +6,6 @@ area: G
 audience: both
 status: accepted
 tracks: v1
-milestone: M5
 labels: [cli, tui, web, ux]
 relates: [B6, C6, G3, G4]
 ---

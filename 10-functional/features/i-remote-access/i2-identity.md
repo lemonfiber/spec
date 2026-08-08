@@ -6,7 +6,6 @@ area: I
 audience: both
 status: accepted
 tracks: v2
-milestone: M8
 priority: P1
 labels: [security, household, verification]
 relates: [I1, C6, D6, A7]

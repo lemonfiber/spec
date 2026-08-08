@@ -6,7 +6,6 @@ area: A
 audience: operator
 status: accepted
 tracks: v1
-milestone: M3
 labels: [verification, ux]
 relates: [A2, A3, C8, G2]
 ---

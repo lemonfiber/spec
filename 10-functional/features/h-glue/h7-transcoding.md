@@ -6,7 +6,6 @@ area: H
 audience: operator
 status: accepted
 tracks: v2
-milestone: M7
 priority: P3
 labels: [transcoding, quality, verification, wiring]
 relates: [C5]

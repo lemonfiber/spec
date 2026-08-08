@@ -4,6 +4,7 @@
 # frozen at stage-version (OPS-R30).
 version = "1.0.0"
 epoch   = "v1"
+milestone = "M6"   # Live TUI
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

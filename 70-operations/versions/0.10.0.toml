@@ -4,6 +4,7 @@
 # frozen at stage-version (OPS-R30).
 version = "0.10.0"
 epoch   = "v1"
+milestone = "M7"   # Web surface & UX
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

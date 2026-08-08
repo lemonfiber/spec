@@ -19,21 +19,30 @@ ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
 (`x.y.Z`) are hotfixes; a **major closes its epoch and ships no stubs**
 ([OPS-R54](../70-operations/staging.md)).
 
-| Version | Epoch | Milestone | Headline | Status |
+| Version | Epoch | Milestone | Delivers | Status |
 |---------|-------|-----------|----------|--------|
 | `0.1.0` | v1 | M2 | Core: manifest, compose driver, CLI | Released |
 | `0.2.0` | v1 | M3 | Setup wizard + doctor | Released |
 | `0.3.0` | v1 | M4 | Backup & restore | Released |
-| `0.4.0` | v1 | M4 | Auto-wiring & seed | Planned |
-| `0.5.0` | v1 | M5 | Trust checks (VPN, storage, queue, provider) | Planned |
-| `0.6.0` | v1 | M6 | Live TUI: dashboard + interactive surfaces | Planned |
-| `0.7.0` | v1 | M7 | Web surface & cross-cutting UX | Planned |
-| `0.8.0` | v1 | M8 | Household & content | Planned |
-| `0.9.0` | v1 | M9 | Lifecycle & maintenance | Planned |
-| `1.0.0` | v1 | M10 | Release engineering + epoch completeness | Planned |
-| `1.1.0`–`1.6.0` | v2 | M11–M14 | Ecosystem: glue, remote access & identity, observability, manifests | Planned |
-| `1.7.0`+ | v2 | M15 | Docker-optional runtime | Planned |
-| `2.0.0` | v2 | — | v2 epoch complete | Planned |
+| `0.4.0` | v1 | M4 | Auto-wiring, seed, quality, trace and the first-content walk | Released |
+| `0.5.0` | v1 | M5 | How the product speaks — errors, notifications, health, dashboard data | In progress |
+| `0.6.0` | v1 | M5 | Trust checks: VPN, storage, queue health | Planned |
+| `0.7.0` | v1 | M5 | Trust checks: providers, support bundle, auto-remediation | Planned |
+| `0.8.0` | v1 | M6 | Live TUI: forms, lifecycle, logs and diagnostics as surfaces | Planned |
+| `0.9.0` | v1 | M7 | Speaking plainly — interface tiers and the plain-language layer | Planned |
+| `0.10.0` | v1 | M7 | The front door, its security, and the privacy stance | Planned |
+| `0.11.0` | v1 | M8 | The household asks — requests, identity, client apps | Planned |
+| `0.12.0` | v1 | M8 | Living within limits — disk, retention, bandwidth | Planned |
+| `0.13.0` | v1 | M9 | Changing your mind — reconfigure, migrate, uninstall, credentials | Planned |
+| `0.14.0` | v1 | M9 | Keeping it running — updates, backup, rollback, the journal | Planned |
+| `0.15.0` | v1 | M9 | The last of v1 — remote control, autostart, customisation | Planned |
+| `1.0.0` | v1 | M6 | **The dashboard** — a bare `lemonfiber` opens it. Closes v1. | Planned |
+| `2.0.0` | v2 | M15 | **Runs without Docker** — engine abstraction, Podman, native. Opens v2. | Planned |
+| `2.1.0` | v2 | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
+| `2.2.0` | v2 | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
+| `2.3.0` | v2 | M12 | Safely reachable — remote access and one account | Planned |
+| `2.4.0` | v2 | M14 | The platform — third-party manifests, catalogue, accessibility | Planned |
+| `2.5.0` | v2 | M13 | See everything — metrics, dashboards, uptime | Planned |
 
 ### Patch releases (hotfixes)
 
@@ -177,7 +186,8 @@ stack in under 2 minutes. Seed is idempotent — running twice changes nothing.
 
 ## M5 — Trust checks
 
-The P3 trust pillar made real (`0.5.0`): the diagnostics that prove the stack is
+The P3 trust pillar made real (`0.5.0`–`0.7.0`): the foundations everything is
+expressed in terms of, then the diagnostics that prove the stack is
 safe to run, beyond the setup-time checks M3 established.
 
 | Deliverable | Notes |
@@ -194,8 +204,10 @@ stack and states a remedy.
 
 ## M6 — Live TUI
 
-The second surface (`0.6.0`), ratatui over the same core the CLI drives — the
-read-only dashboard **and** the interactive surfaces over it.
+The second surface (`0.8.0`, closing at `1.0.0`), ratatui over the same core the
+CLI drives — the read-only dashboard **and** the interactive surfaces over it.
+It is what `1.0.0` delivers, and the reason that release is a major rather than
+another minor.
 
 | Deliverable | Notes |
 |-------------|-------|
@@ -213,7 +225,7 @@ responsive while pulling images.
 
 ## M7 — Web surface & UX
 
-A third surface (`0.7.0`): a read-only web view over the same core, plus the
+A third surface (`0.9.0`–`0.10.0`): a read-only web view over the same core, plus the
 cross-cutting UX that spans every surface.
 
 **Exit criteria:** the web view renders the same live state the TUI shows,
@@ -223,7 +235,7 @@ read-only, over the core with no surface-specific logic.
 
 ## M8 — Household & content
 
-Content and household features (`0.8.0`): managing what the stack holds and who
+Content and household features (`0.11.0`–`0.12.0`): managing what the stack holds and who
 in the household reaches it.
 
 **Exit criteria:** a household member's request flows end to end, and content
@@ -233,7 +245,7 @@ management acts without reverting an operator's manual choices.
 
 ## M9 — Lifecycle & maintenance
 
-Living with a running stack (`0.9.0`): reconfiguration, migration, uninstall,
+Living with a running stack (`0.13.0`–`0.15.0`): reconfiguration, migration, uninstall,
 notifications, remote control, autostart & boot persistence, stack and self
 updates, rollback, and the service catalogue.
 
@@ -244,7 +256,7 @@ confirmed, and an unattended stack recovers across a reboot.
 
 ## M10 — Release engineering
 
-Closes v1 (`1.0.0`): the install paths a non-contributor follows, and the epoch
+Ships with `1.0.0`: the install paths a non-contributor follows, and the epoch
 gate that ships no stubs ([OPS-R54](../70-operations/staging.md)).
 
 | Deliverable | Notes |
@@ -262,19 +274,94 @@ following only the README.
 
 ## v2 — the ecosystem epoch (M11–M15)
 
-After 1.0, the [ecosystem features](../10-functional/features/README.md) (areas
-H–K, plus F3) ship as their own milestones toward `2.0.0`, authored to the same
-bar; `2.0.0` closes the epoch with no stubs ([OPS-R54](../70-operations/staging.md)).
-
-| Milestone | Delivers | Versions |
-|-----------|----------|----------|
-| **M11 — Ecosystem glue** | H1–H8: cross-seed, autobrr, quality-sync, subtitles, queue self-heal, library cleanup, transcoding, stats — bundled and *verified* | `1.1.0`–`1.2.0` |
-| **M12 — Safely reachable** | I1 remote access (self-hosted overlay) + I2 one-account SSO — auth gates remote access; mobile client handoff folds in as polish | `1.3.0`–`1.4.0` |
-| **M13 — See everything** | K1–K2: metrics/dashboards and uptime monitoring | `1.5.0` |
-| **M14 — The platform** | F3 third-party stack manifests + community catalogue *(Draft)* | `1.6.0` |
-| **M15 — Runs anywhere** | J1–J3 Docker-optional runtime *(Draft)*; lifts the single-engine non-goal ([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)) | `1.7.0`+ |
+`1.0.0` closes v1 with the television interface. v2 opens with `2.0.0` and the
+capability that justifies a major: the stack runs without Docker. The rest of the
+epoch follows as minors, authored to the same bar as v1.
 
 ---
+
+## M15 — Runs anywhere
+
+Opens v2 (`2.0.0`). The container engine becomes one implementation behind an
+abstraction rather than an assumption, which lifts the single-engine non-goal
+([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)).
+
+| Deliverable | Notes |
+|-------------|-------|
+| Container-engine abstraction | One port, Docker behind it; nothing above it names an engine |
+| Podman | A first-class alternative, not a compatibility shim |
+| Native, without containers | Services run as processes; the same manifest describes both |
+| Upgrade from v1 | A v1 install moves to `2.0.0` keeping its configuration and data |
+
+**Exit criteria:** the same stack starts, passes doctor and serves media under
+Docker, under Podman, and with no container runtime present.
+
+---
+
+## M11 — Ecosystem glue
+
+`2.1.0`–`2.2.0`. The integrations a mature stack grows into, each one *verified*
+rather than merely wired.
+
+| Deliverable | Notes |
+|-------------|-------|
+| Cross-seeding | H1 — open-source and self-hostable, no proprietary matcher |
+| Announce-driven grabbing | H2 — autobrr, for what the scheduled search misses |
+| Quality-profile sync | H3 — one preset, applied everywhere it means something |
+| Subtitles | H4 — fetched, matched, and checked for the right film |
+| Queue self-healing | H5 — the stalls C7 categorises, fixed where fixing is safe |
+| Library cleanup | H6 — what to remove, proposed and confirmed |
+| Transcoding | H7 — the shape of the library that plays everywhere |
+| Playback statistics | H8 — what the household actually watched |
+
+**Exit criteria:** each integration proves its effect on a live stack, not its
+presence in a configuration file.
+
+---
+
+## M12 — Safely reachable
+
+`2.3.0`. Reaching the stack from outside the house without opening it to the
+world.
+
+| Deliverable | Notes |
+|-------------|-------|
+| Remote access | I1 — a self-hosted overlay, not a port forward |
+| One account | I2 — single sign-on across the services the household touches |
+
+**Exit criteria:** a household member reaches the library from outside with no
+port exposed to the internet, signing in once.
+
+---
+
+## M13 — See everything
+
+`2.5.0`. The stack's own telemetry, for the operator who wants graphs rather
+than a dashboard.
+
+| Deliverable | Notes |
+|-------------|-------|
+| Metrics & dashboards | K1 — exported, not screen-scraped |
+| Uptime monitoring | K2 — the stack notices its own absence |
+
+**Exit criteria:** a deliberate outage appears in the metrics and raises the
+notification the trust checks already know how to send.
+
+---
+
+## M14 — The platform
+
+`2.4.0`. Other people's stacks, and the surface that makes them possible
+*(Draft)*.
+
+| Deliverable | Notes |
+|-------------|-------|
+| Third-party manifests | F3 — a stack lemonfiber did not write, run safely |
+| Community catalogue | Discovery, with the same validation the shipped stack passes |
+| Accessibility | G9 — the interfaces usable by everyone who has to use them |
+
+**Exit criteria:** a stack authored outside this project installs, validates and
+runs with no change to lemonfiber.
 
 ## Beyond v2
 

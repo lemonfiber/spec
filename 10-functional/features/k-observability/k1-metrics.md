@@ -6,7 +6,6 @@ area: K
 audience: operator
 status: accepted
 tracks: v2
-milestone: M9
 priority: P2
 labels: [observability, verification]
 relates: [B3, G7]

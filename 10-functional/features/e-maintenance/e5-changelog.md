@@ -6,7 +6,6 @@ area: E
 audience: operator
 status: accepted
 tracks: v1
-milestone: M6
 priority: P2
 labels: [updates, verification]
 relates: [E1, E2]

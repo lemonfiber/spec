@@ -4,6 +4,7 @@
 # frozen at stage-version (OPS-R30).
 version = "2.4.0"
 epoch   = "v2"
+milestone = "M14"   # The platform
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

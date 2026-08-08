@@ -4,6 +4,7 @@
 # frozen at stage-version (OPS-R30).
 version = "0.5.0"
 epoch   = "v1"
+milestone = "M5"   # Trust checks
 status  = "in_progress"
 repos   = ["lemonfiber"]
 goals   = [

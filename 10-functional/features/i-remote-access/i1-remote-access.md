@@ -6,7 +6,6 @@ area: I
 audience: both
 status: accepted
 tracks: v2
-milestone: M8
 priority: P1
 labels: [remote-access, network, verification, security]
 relates: [C2, C6, G8, I2]

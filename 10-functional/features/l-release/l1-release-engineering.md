@@ -6,7 +6,6 @@ area: L
 audience: operator
 status: accepted
 tracks: v1
-milestone: M6
 priority: P1
 labels: [release, cli, verification]
 ---
