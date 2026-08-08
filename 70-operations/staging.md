@@ -127,6 +127,45 @@ stack's `schema_version` and `min_cli_version` against the binary
 exact submodule pins in the manifest, so the release is reproducible from the
 file.
 
+## What a version number means
+
+A version says how much changed, so the numbers have to describe the product
+rather than the order the work happened to be written in. Three rules keep them
+honest.
+
+**A major carries the capability that justifies it.** Not a stamp on a finished
+backlog — `0.15.0` to `1.0.0` shipping nothing would be a strange thing to
+announce. `1.0.0` opens the dashboard on a bare invocation, which is what the v1
+epoch builds toward. `2.0.0` runs the stack without Docker, which is a different
+product generation. A major that adds no capability is a number nobody can read.
+
+**An epoch's work ships inside its own major.** v2 features used to be scheduled
+as `1.1.0` through `1.7.0` — minor bumps, one of which removed the container
+runtime. Anyone reading the version would have been misled about how much
+changed. v2 is `2.x`, so the epoch boundary and the major boundary agree.
+
+**A version is one theme, not a backlog.** They ranged from nine goals to a
+hundred and eighty-five; the large ones were not releases, they were everything
+left over with a number attached. Each unreleased version is now something you
+can say in a sentence, and its manifest header says it.
+
+## What a feature needs, and what it merely relates to
+
+`requires:` is what a feature cannot meet its own acceptance criteria without —
+a notification channel to notify through, a surface to appear on, an error model
+to word a remedy in. `relates:` is worth reading and not needed to build.
+
+They used to be one field, and sixty-seven features were scheduled before
+something they said they depended on. Fifteen were real; the rest were
+cross-references. The real ones had one cause: capabilities everything else is
+expressed in terms of — notifications, the error model, the health summary —
+were scheduled last, because nothing distinguished "I need this" from "see also".
+
+`scripts/check_order.py` refuses any schedule that ships a feature before
+something it `requires:`. A released version is history rather than a plan, so
+inversions inside one are recorded and never enforced — nothing can be moved
+into or out of something already shipped.
+
 ## The epoch gate — a major ships no stubs
 
 A minor proves its own `goals`. A **major** (`X.0.0`) proves its whole **epoch**.
