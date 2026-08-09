@@ -6,7 +6,7 @@ version = "0.6.0"
 epoch   = "v1"
 milestone = "M5"   # Trust checks
 delivers  = "Trust checks: VPN, storage, queue health"
-status  = "planned"
+status  = "staged"
 repos   = ["lemonfiber"]
 goals   = [
     "C2-R1",
