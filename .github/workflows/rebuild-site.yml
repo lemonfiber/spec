@@ -19,6 +19,10 @@ on:
         required: false
         type: string
         default: "a sibling repository changed"
+    secrets:
+      RELEASE_APP_KEY:
+        description: "Private key of the release App, which is what may reach the website."
+        required: true
 
 permissions:
   contents: read
