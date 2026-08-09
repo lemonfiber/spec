@@ -121,6 +121,40 @@ jobs:
           done < allrepos.txt
           [ "$blockers" -eq 0 ] || { echo "::error::release blocked — resolve the blockers first."; exit 1; }
           echo "no release blockers."
+      - name: The repos declare the version being released (OPS-R35)
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          # A tag is only worth as much as what it points at. cargo-dist releases
+          # the tag whose version the workspace carries, so tagging v0.5.0 over a
+          # workspace still saying 0.4.0 produces a tag nothing will build — which
+          # is exactly what happened once, and cost a deleted tag to undo. Checked
+          # before the dry-run boundary so a dry run catches it too.
+          mismatched=0
+          while read -r r; do
+            [ -n "$r" ] || continue
+            man="checkouts/${r}/Cargo.toml"
+            if [ ! -f "$man" ]; then
+              echo "no Cargo.toml in ${r} — nothing to check."
+              continue
+            fi
+            declared=$(python3 - "$man" <<'PY'
+          import sys, tomllib
+          d = tomllib.load(open(sys.argv[1], "rb"))
+          print(d.get("workspace", {}).get("package", {}).get("version")
+                or d.get("package", {}).get("version") or "")
+          PY
+            )
+            if [ "$declared" != "$VERSION" ]; then
+              echo "::error::${r} declares ${declared:-nothing}, not ${VERSION} — merge the version bump before tagging"
+              mismatched=$((mismatched + 1))
+            else
+              echo "${r} declares ${declared}."
+            fi
+          done < repos.txt
+          [ "$mismatched" -eq 0 ] || exit 1
+
       - name: Dry run — stop before tagging
         if: ${{ inputs.dry_run }}
         run: echo "::notice title=Dry run::Gate, compat and blockers passed. Re-run with dry_run=false to tag and release."

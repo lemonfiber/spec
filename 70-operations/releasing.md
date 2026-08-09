@@ -52,11 +52,27 @@ flowchart TD
 
 Concretely, a maintainer does **three things**; CI does the rest:
 
-1. Ensure `main` is green and the version in `Cargo.toml` is the intended one.
-2. `git tag v0.4.0 && git push --tags`.
-3. Review the drafted GitHub Release and the homebrew-tap PR, then publish.
+1. **Merge the version bump.** The workspace's `Cargo.toml` must already declare
+   the version being released, on `main`, before anything is tagged — `cargo-dist`
+   releases the tag whose version the workspace carries, so a tag cut over a
+   stale one names a version nothing will build. This is a step in its own right
+   rather than a thing to remember while doing the next one, because it is the
+   one part of the sequence whose order matters and whose failure is silent until
+   the release job runs. `execute-version` refuses to tag a repo that declares
+   anything else, so getting it wrong costs a re-run rather than a deleted tag.
+2. **Dispatch `execute-version`** with the version, `dry_run` first. It checks the
+   goal gate, cross-stream compatibility, release blockers and the declared
+   version, then tags every repo the manifest names. A version left at
+   `releasable` blocks the next one from being staged, so this is not optional
+   bookkeeping.
+3. **Review the drafted GitHub Release** and the homebrew-tap PR, then publish.
+   Publishing fires `release-finalize`, which records what shipped, pins the stack
+   commit the release embedded, and regenerates the public roadmap.
 
-Everything between the tag and step 3 is `cargo-dist` and `git-cliff`.
+Everything between step 2 and step 3 is `cargo-dist` and `git-cliff`. A draft is
+published by a person on purpose: it is the one step that reaches the outside
+world, and it is the last place to notice that what was built is not what was
+meant.
 
 ## The version-bump decision
 
