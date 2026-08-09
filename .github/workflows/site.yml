@@ -1,0 +1,19 @@
+# The website mirrors this repository's feature board and roadmap, so it is told
+# when they change rather than waiting for its daily schedule.
+name: site
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/rebuild-site.yml
+    with:
+      because: "the specification changed"
+    secrets: inherit

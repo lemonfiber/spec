@@ -1,0 +1,59 @@
+# Tell the website something changed — one definition, called by every repo it
+# mirrors.
+#
+# The site is a static build that reads the other repositories at build time: the
+# implementation status, the feature board, the releases. So it is only as current
+# as its last build, and until now the only things that rebuilt it were a push to
+# its own repository and a daily schedule. Everything else — a merge here, a
+# release cut, a roadmap moved — sat unpublished for up to a day.
+#
+# Its deploy workflow has always accepted a `rebuild-site` dispatch and said in its
+# own comments that siblings fired one. Nothing did. This is that.
+name: rebuild-site
+
+on:
+  workflow_call:
+    inputs:
+      because:
+        description: "What changed, for the website run's log."
+        required: false
+        type: string
+        default: "a sibling repository changed"
+
+permissions:
+  contents: read
+
+jobs:
+  tell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint a token that can reach the website
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: website
+
+      - name: Ask for a rebuild
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          BECAUSE: ${{ inputs.because }}
+          FROM: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # A failure here must not fail the merge that triggered it: the site
+          # being a few hours stale is a smaller problem than a red main, and the
+          # daily schedule is the backstop either way.
+          if gh api -X POST "repos/${OWNER}/website/dispatches" \
+            -f event_type=rebuild-site \
+            -F "client_payload[from]=${FROM}" \
+            -F "client_payload[sha]=${SHA}" \
+            -F "client_payload[because]=${BECAUSE}"; then
+            echo "::notice title=Site::Asked the website to rebuild — ${BECAUSE}."
+          else
+            echo "::warning::Could not ask the website to rebuild; the daily schedule will catch it."
+          fi
