@@ -6,7 +6,7 @@ version = "0.5.0"
 epoch   = "v1"
 milestone = "M5"   # Trust checks
 delivers  = "How the product speaks — errors, notifications, health, dashboard data"
-status  = "releasable"
+status  = "released"
 repos   = ["lemonfiber"]
 goals   = [
     "G4-R1",
@@ -62,3 +62,6 @@ goals   = [
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
+
+[pins]
+media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"

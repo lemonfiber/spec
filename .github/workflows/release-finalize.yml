@@ -111,15 +111,28 @@ jobs:
       - name: Regenerate the board the website's roadmap reads
         run: python3 scripts/gen_board.py
 
-      - name: Commit the record
+      # Through a pull request, not a push. `main` is protected — pull requests,
+      # signed commits and passing checks — and a workflow that pushed straight
+      # at it could only ever fail, which is what it did the first time this ran
+      # for real. The record is also exactly the kind of change that should be
+      # reviewable: it is what the public roadmap and the release train read.
+      - name: Open the record as a pull request
         env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
           VERSION: ${{ steps.what.outputs.version }}
+          PIN: ${{ steps.what.outputs.pin }}
         run: |
           set -euo pipefail
           git config user.name "lemonfiber-release[bot]"
           git config user.email "release@lemonfiber.invalid"
           git add -A
           git diff --cached --quiet && { echo "::notice::nothing to record."; exit 0; }
+
+          branch="release/record-${VERSION}"
+          git checkout -b "$branch"
+          # Unsigned here on purpose: the branch is not protected, and the squash
+          # merge that lands on `main` is made by GitHub and signed by it, which
+          # is what the protection rule actually asks for. A workflow has no key.
           git commit -m "chore(release): record ${VERSION} as released
 
           Written by release-finalize when the draft was published: the manifest's
@@ -127,4 +140,18 @@ jobs:
           website serves.
 
           Spec: OPS-R35"
-          git push
+          git push --force-with-lease -u origin "$branch"
+
+          gh pr create --title "chore(release): record ${VERSION} as released" \
+            --body "Written by \`release-finalize\` when the ${VERSION} draft was published.
+
+          - the manifest moves to \`released\`
+          - the stack commit the release embedded is pinned (\`${PIN}\`), so the version is reproducible rather than merely named
+          - the board the website's roadmap reads is regenerated
+
+          A version left at \`releasable\` blocks the next one from being staged (OPS-R52), so this wants merging promptly.
+
+          Spec: OPS-R35" \
+            --head "$branch" || echo "::notice::a pull request for ${VERSION} is already open."
+          gh pr merge "$branch" --squash --auto || \
+            echo "::notice::auto-merge unavailable; the record needs merging by hand."
