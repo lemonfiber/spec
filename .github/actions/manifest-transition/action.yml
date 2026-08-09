@@ -1,4 +1,5 @@
-# Flip a version manifest's status via an auto-merged, verified PR — OPS-R32.
+# Flip a version manifest's status via an auto-merged, verified PR — OPS-R32,
+# carrying the generated files that have to move with it.
 # Shared by stage/track/finalize so the signed-commit dance lives in one place.
 # The commit is made through the contents API, which marks it verified (so it
 # satisfies the signed-commits rule on main) and fills author/committer from the
@@ -38,16 +39,32 @@ runs:
         for p in "${parts[@]}"; do [ -n "$p" ] && pinargs+=(--pin "$p"); done
         python3 scripts/set_status.py --version "$VERSION" --status "$STATUS" "${pinargs[@]}" > "${man}.new"
         mv "${man}.new" "$man"
+        # The roadmap table and the feature board are generated from the manifests,
+        # so a status change that does not carry them is a change integrity will
+        # reject — which it did for every transition this action opened until it
+        # regenerated them here. The board is also what the website's roadmap
+        # reads, so leaving it behind would publish a status that no longer holds.
+        python3 scripts/gen_roadmap_table.py
+        python3 scripts/gen_board.py
+
         branch="release/${VERSION}-${STATUS}"
         base=$(gh api "repos/${OWNER}/spec/git/ref/heads/main" --jq '.object.sha')
         gh api --method POST "repos/${OWNER}/spec/git/refs" -f ref="refs/heads/${branch}" -f sha="$base" || true
-        blob=$(gh api "repos/${OWNER}/spec/contents/${man}?ref=${branch}" --jq '.sha')
         # Author/committer omitted: GitHub fills them from the token (the App bot,
         # DCO-exempt) and marks the commit verified.
         msg=$(printf 'chore(release): %s → %s\n\nRecorded by the release train.\n\nSpec: OPS-R32' "$VERSION" "$STATUS")
-        gh api --method PUT "repos/${OWNER}/spec/contents/${man}" \
-          -f message="$msg" -f branch="$branch" -f sha="$blob" \
-          -f content="$(base64 < "$man" | tr -d '\n')"
+        # One commit per file, collapsed by the squash merge. The contents API
+        # writes one path at a time; a file the generators left unchanged is
+        # skipped, so an unchanged board does not produce an empty commit.
+        for path in "$man" 00-overview/roadmap.md 10-functional/features/index.json; do
+          remote=$(gh api "repos/${OWNER}/spec/contents/${path}?ref=${branch}" --jq '.content' | tr -d '\n')
+          local=$(base64 < "$path" | tr -d '\n')
+          [ "$remote" = "$local" ] && { echo "${path} is unchanged."; continue; }
+          blob=$(gh api "repos/${OWNER}/spec/contents/${path}?ref=${branch}" --jq '.sha')
+          gh api --method PUT "repos/${OWNER}/spec/contents/${path}" \
+            -f message="$msg" -f branch="$branch" -f sha="$blob" -f content="$local"
+          echo "wrote ${path}."
+        done
         url=$(gh pr create --repo "${OWNER}/spec" --base main --head "$branch" \
           --title "chore(release): ${VERSION} → ${STATUS}" \
           --body "Automated manifest transition. Spec: OPS-R32")
