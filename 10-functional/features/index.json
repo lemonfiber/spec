@@ -36,7 +36,7 @@
     {
       "version": "0.5.0",
       "epoch": "v1",
-      "status": "in_progress",
+      "status": "releasable",
       "milestone": "M5",
       "closes_epoch": null,
       "goals": 50
@@ -508,7 +508,7 @@
       "versions": [
         {
           "version": "0.5.0",
-          "status": "in_progress"
+          "status": "releasable"
         },
         {
           "version": "1.0.0",
@@ -577,7 +577,7 @@
       "versions": [
         {
           "version": "0.5.0",
-          "status": "in_progress"
+          "status": "releasable"
         }
       ],
       "path": "b-running/b5-notifications.md"
@@ -1683,7 +1683,7 @@
       "versions": [
         {
           "version": "0.5.0",
-          "status": "in_progress"
+          "status": "releasable"
         }
       ],
       "path": "g-ux/g4-error-model.md"
@@ -1780,7 +1780,7 @@
       "versions": [
         {
           "version": "0.5.0",
-          "status": "in_progress"
+          "status": "releasable"
         }
       ],
       "path": "g-ux/g7-health-summary.md"
