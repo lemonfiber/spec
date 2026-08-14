@@ -44,7 +44,7 @@
     {
       "version": "0.6.0",
       "epoch": "v1",
-      "status": "staged",
+      "status": "releasable",
       "milestone": "M5",
       "closes_epoch": null,
       "goals": 46
@@ -751,7 +751,7 @@
       "versions": [
         {
           "version": "0.6.0",
-          "status": "staged"
+          "status": "releasable"
         }
       ],
       "path": "c-trust/c2-vpn-verification.md"
@@ -852,7 +852,7 @@
         },
         {
           "version": "0.6.0",
-          "status": "staged"
+          "status": "releasable"
         }
       ],
       "path": "c-trust/c5-storage.md"
@@ -919,7 +919,7 @@
       "versions": [
         {
           "version": "0.6.0",
-          "status": "staged"
+          "status": "releasable"
         }
       ],
       "path": "c-trust/c7-queue-health.md"
