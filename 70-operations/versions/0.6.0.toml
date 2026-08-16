@@ -6,7 +6,7 @@ version = "0.6.0"
 epoch   = "v1"
 milestone = "M5"   # Trust checks
 delivers  = "Trust checks: VPN, storage, queue health"
-status  = "releasable"
+status  = "released"
 repos   = ["lemonfiber"]
 goals   = [
     "C2-R1",
@@ -57,4 +57,6 @@ goals   = [
     "C7-R15",
 ]
 
-# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
+# The stack this release embedded, recorded at publish (OPS-R35).
+[pins]
+media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"
