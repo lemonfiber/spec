@@ -37,15 +37,24 @@ def within_cwd(raw: str) -> pathlib.Path:
     return path
 
 
+def git(path: pathlib.Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(path), *args],
+        capture_output=True, text=True, check=True,
+    ).stdout
+
+
 def cited_ids(repo_paths: dict[str, pathlib.Path]) -> set[str]:
     """Every requirement ID cited in a `Spec:` trailer on any target repo."""
     found: set[str] = set()
-    for path in repo_paths.values():
-        log = subprocess.run(
-            ["git", "-C", str(path), "log", "--format=%B"],
-            capture_output=True, text=True, check=True,
-        ).stdout
-        for trailer in TRAILER.findall(log):
+    for name, path in repo_paths.items():
+        # A truncated history can only lose citations, and it loses the oldest
+        # first — so the verdict would drift as commits land, and a goal proven
+        # once would come undone by unrelated work.
+        if git(path, "rev-parse", "--is-shallow-repository").strip() != "false":
+            print(f"::error::{name} is a shallow clone — its oldest citations are missing")
+            raise SystemExit(2)
+        for trailer in TRAILER.findall(git(path, "log", "--format=%B")):
             found.update(CITE.findall(trailer))
     return found
 

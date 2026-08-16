@@ -121,6 +121,11 @@ status file proves a human agrees it is complete. Requiring both is defence in
 depth: a citation without a tick is work in flight, a tick without a citation is
 an unauditable claim. A refusal MUST name the unmet goals, never fail blankly.
 
+Citations are read from each target repo's **whole history**, and the gate MUST
+refuse a truncated one rather than read it. A shortened history loses its oldest
+commits first, so a goal proven once would come undone as unrelated work landed —
+and a verdict that changes with the depth of a clone is not a verdict.
+
 Before tagging, execute MUST also verify the streams still agree — the embedded
 stack's `schema_version` and `min_cli_version` against the binary
 ([versioning.md](../20-architecture/contracts/versioning.md)) — and record the

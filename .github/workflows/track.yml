@@ -67,7 +67,10 @@ jobs:
           PY
           while read -r r; do
             [ -n "$r" ] || continue
-            git clone --quiet --depth 200 \
+            # Whole history, no file contents — the same reason the gate needs
+            # it: the tracker's verdict is read from every commit message, and
+            # a truncated one silently changes its mind as work lands.
+            git clone --quiet --filter=blob:none \
               "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${r}.git" "checkouts/${r}"
           done < repos.txt
       - name: Evaluate and refresh the tracker

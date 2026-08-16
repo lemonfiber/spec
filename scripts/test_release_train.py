@@ -107,6 +107,21 @@ class GateTests(Workspace):
         self.assertTrue(results[0]["cited"])
         gate.render_human("m.toml", ["lf"], results)   # exercise the renderer
 
+    def test_shallow_clone_is_refused(self):
+        self.repo("origin/lf", trailer="Spec: B1-R4")
+        subprocess.run(["git", "-C", "origin/lf", "commit", "-q", "--allow-empty",
+                        "-m", "feat: later", "-m", "Spec: C1-R3"],
+                       check=True, capture_output=True)
+        subprocess.run(["git", "clone", "-q", "--depth", "1",
+                        f"file://{pathlib.Path('origin/lf').resolve()}", "checkouts/lf"],
+                       check=True, capture_output=True)
+        repos = gate.parse_repos(["lf=checkouts/lf"])
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), self.assertRaises(SystemExit) as exit:
+            gate.cited_ids(repos)
+        self.assertEqual(exit.exception.code, 2)      # a usage error, not a verdict
+        self.assertIn("shallow", out.getvalue())
+
     def test_main_pass_and_unmet_and_json(self):
         self.repo("checkouts/lf")
         status = self.status_file()
