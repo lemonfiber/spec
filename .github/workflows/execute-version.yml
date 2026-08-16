@@ -74,7 +74,10 @@ jobs:
           PY
           while read -r r; do
             [ -n "$r" ] || continue
-            git clone --quiet --depth 200 \
+            # Whole history, no file contents: the gate reads every commit
+            # message and only the checked-out tree, and a citation it cannot
+            # see reads as work never done.
+            git clone --quiet --filter=blob:none \
               "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${r}.git" "checkouts/${r}"
           done < repos.txt
       - name: Gate — every goal satisfied (OPS-R34)
