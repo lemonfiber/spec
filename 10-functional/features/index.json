@@ -55,7 +55,7 @@
       "status": "planned",
       "milestone": "M5",
       "closes_epoch": null,
-      "goals": 42
+      "goals": 43
     },
     {
       "version": "0.8.0",
