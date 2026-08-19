@@ -1,6 +1,6 @@
 # Trust checks, part two — provider health and quota, the support bundle, and the auto-remediation that acts on what the checks find.
 #
-# 42 goals, seeded from the roadmap milestone this version serves;
+# 43 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.7.0"
 epoch   = "v1"
@@ -23,6 +23,7 @@ goals   = [
     "C3-R12",
     "C3-R13",
     "C3-R14",
+    "C3-R15",
     "C4-R1",
     "C4-R2",
     "C4-R3",

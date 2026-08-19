@@ -68,6 +68,16 @@ declared successful.
 Anything modifying configuration records enough to undo it. A remediation that
 makes things worse must be retractable without a full restore.
 
+Recording it is not the same as being able to use it. A record only the tool can
+read leaves the operator asking for help to reverse something they watched happen
+a minute ago, so the retraction is theirs to ask for, in the same words they asked
+for the repair.
+
+It retracts *that repair*. The same log holds what wiring was seeded and what the
+first run wrote, and somebody undoing the fix they just watched has not asked for
+the stack underneath it to come apart. A repair that changed two things is put back
+whole, since half-undone is a worse state than either side of it.
+
 ### Batch with individual consent
 
 Where several findings are fixable, they can be addressed in one pass — but the
@@ -127,6 +137,7 @@ Per finding:
 | **C3-R12** | Every remediation MUST be logged with finding, action, timestamp and verification outcome. |
 | **C3-R13** | A fix that fails partway MUST report the resulting state precisely. |
 | **C3-R14** | A repeatedly failing fix MUST stop being offered and MUST escalate to a support bundle. |
+| **C3-R15** | An operator MUST be able to retract the most recent remediation, reversing that remediation alone and leaving other recorded changes untouched. |
 
 ## Related
 
