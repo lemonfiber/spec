@@ -55,7 +55,7 @@
       "status": "planned",
       "milestone": "M5",
       "closes_epoch": null,
-      "goals": 43
+      "goals": 44
     },
     {
       "version": "0.8.0",
@@ -965,7 +965,8 @@
       "status": "accepted",
       "tracks": "v1",
       "milestones": [
-        "M4"
+        "M4",
+        "M5"
       ],
       "milestone": "M4",
       "priority": null,
@@ -985,6 +986,10 @@
         {
           "version": "0.4.0",
           "status": "released"
+        },
+        {
+          "version": "0.7.0",
+          "status": "planned"
         }
       ],
       "path": "c-trust/c9-drift.md"
