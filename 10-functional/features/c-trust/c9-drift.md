@@ -103,7 +103,7 @@ Per managed value:
 |-------|---------|
 | `in-sync` | Actual matches expected |
 | `drifted` | Actual differs; lemonfiber's intent unchanged. Operator edit — preserved. |
-| `stale` | Actual matches expected, but lemonfiber's intent changed. Will be updated. |
+| `stale` | Actual matches expected, but lemonfiber's intent changed. Nobody's edit is at stake, so it can be brought up to date on request ([C3](c3-auto-remediation.md)). |
 | `conflicted` | Both changed. Requires a decision. |
 | `adopted` | An operator edit promoted to expected state |
 | `unmanaged` | Never written by lemonfiber; outside its scope entirely |
@@ -143,6 +143,7 @@ Per managed value:
 | **C9-R12** | A full reset to lemonfiber's state MUST be available as an explicit, confirmed action naming what will be lost. |
 | **C9-R13** | Locally modified materialised stack files MUST be detected by content and MUST NOT be overwritten on upgrade without a diff and confirmation. |
 | **C9-R14** | Loss of the expected-state record MUST be reported, with re-baselining offered. |
+| **C9-R15** | A value the service still holds as lemonfiber wrote it, where lemonfiber's intent has since moved on, MUST be bringable up to date on request rather than only reported. |
 
 ## Related
 

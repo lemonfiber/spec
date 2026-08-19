@@ -31,7 +31,7 @@ Generated from feature frontmatter and the version manifests by
 | [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0` |
 | [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.6.0` |
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
-| [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.4.0` |
+| [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.4.0`, `0.7.0` |
 | [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.4.0` |
 | [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.4.0` |
 | [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.4.0` |
