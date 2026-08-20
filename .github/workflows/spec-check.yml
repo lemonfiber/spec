@@ -59,3 +59,14 @@ jobs:
           python3 .spec-canonical/scripts/spec_check.py \
             --spec-dir .spec-canonical \
             --text-file .pr-text.txt
+
+      # Only the implementation repo keeps a tracker; every other caller skips this.
+      - name: The tracker claims only what the spec backs
+        run: |
+          if [ -f IMPLEMENTATION-STATUS.md ]; then
+            python3 .spec-canonical/scripts/status_lint.py \
+              --status IMPLEMENTATION-STATUS.md \
+              --spec .spec-canonical
+          else
+            echo "no IMPLEMENTATION-STATUS.md here — nothing to check"
+          fi
