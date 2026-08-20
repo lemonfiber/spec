@@ -91,6 +91,47 @@ def headings(lines: list[str]) -> list[tuple[int, str, set[str]]]:
     return found
 
 
+def overshooting(status, lines, highest) -> list[str]:
+    """Ranges that claim past the last requirement their feature defines."""
+    return [
+        f"{status}:{number}: claims {feature}-R{last}, but {feature} defines up to "
+        f"R{highest[feature]}"
+        for number, feature, last in claimed_ranges(lines)
+        if feature in highest and last > highest[feature]
+    ]
+
+
+def misnamed(status, lines, by_milestone) -> list[str]:
+    """Headings that leave out a version their milestone ships in.
+
+    Omission is the failure to catch. Every heading that misled named one version
+    and left the rest out — a milestone that ships in two and admits to one reads
+    as though the other's work were somebody else's. Naming an extra version is
+    not an error: a milestone whose groundwork shipped early under another's
+    version should be free to say so.
+    """
+    faults = []
+    for number, milestone, claims in headings(lines):
+        ships_in = by_milestone.get(milestone)
+        if ships_in and (missing := ships_in - claims):
+            faults.append(
+                f"{status}:{number}: {milestone} ships in "
+                f"{', '.join(sorted(ships_in))} but does not name "
+                f"{', '.join(sorted(missing))}"
+            )
+    return faults
+
+
+def unlocked(status, lines, locked) -> list[str]:
+    """Ticks on requirements no version manifest locks."""
+    orphans = sorted(ticked(lines) - locked)
+    return (
+        [f"{status}: marked done but locked by no version: {', '.join(orphans)}"]
+        if orphans
+        else []
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--status", required=True)
@@ -107,38 +148,11 @@ def main() -> int:
         return 2
 
     lines = status.read_text(encoding="utf-8").splitlines()
-    highest = defined(spec)
-    by_milestone, locked = manifests(spec)
-    faults: list[str] = []
-
-    for line_number, feature, last in claimed_ranges(lines):
-        top = highest.get(feature)
-        if top is not None and last > top:
-            faults.append(
-                f"{status}:{line_number}: claims {feature}-R{last}, but {feature} "
-                f"defines up to R{top}"
-            )
-
-    for line_number, milestone, claims in headings(lines):
-        ships_in = by_milestone.get(milestone)
-        if not ships_in:
-            continue
-        # Omission is the failure to catch. Every heading that misled named one
-        # version and left the rest out — a milestone that ships in two and admits
-        # to one reads as though the other's work were somebody else's. Naming an
-        # extra version is not an error: a milestone whose groundwork shipped early
-        # under another's version should be free to say so.
-        if missing := ships_in - claims:
-            faults.append(
-                f"{status}:{line_number}: {milestone} ships in "
-                f"{', '.join(sorted(ships_in))} but does not name "
-                f"{', '.join(sorted(missing))}"
-            )
-
-    if orphans := sorted(ticked(lines) - locked):
-        faults.append(
-            f"{status}: marked done but locked by no version: {', '.join(orphans)}"
-        )
+    faults = [
+        *overshooting(status, lines, defined(spec)),
+        *misnamed(status, lines, manifests(spec)[0]),
+        *unlocked(status, lines, manifests(spec)[1]),
+    ]
 
     for fault in faults:
         print(f"::error::{fault}")
