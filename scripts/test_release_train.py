@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Coverage tests for the release-train scripts — gate, set_status,
-check_stageable, tracker_body, pr_goals.
+check_stageable, tracker_body, pr_goals, status_lint.
 
 Stdlib unittest, no dependencies (the repo has none). The scripts are imported
 and their functions called in-process so coverage sees every branch; git and
@@ -17,6 +17,7 @@ import set_status      # noqa: E402
 import check_stageable # noqa: E402
 import tracker_body    # noqa: E402
 import pr_goals        # noqa: E402
+import status_lint     # noqa: E402
 
 
 def run_main(mod, argv, stdin=""):
@@ -223,6 +224,90 @@ class TrackerAndPrGoalsTests(Workspace):
         self.assertEqual(pr_goals.staged_manifest()["version"], "0.1.0")
         with self.assertRaises(SystemExit):
             pr_goals.within_cwd("/etc/hosts")
+
+
+
+class StatusLintTests(Workspace):
+    """Every way the tracker can claim something the spec does not back."""
+
+    def spec_tree(self, feature="G7", highest=13, milestone="M5", version="0.7.0"):
+        """A spec holding one feature's requirements and one version manifest."""
+        docs = pathlib.Path("10-functional/features")
+        docs.mkdir(parents=True, exist_ok=True)
+        (docs / "f.md").write_text(
+            "\n".join(f"| **{feature}-R{n}** | something |" for n in range(1, highest + 1)),
+            encoding="utf-8")
+        goals = ", ".join(f'"{feature}-R{n}"' for n in range(1, highest + 1))
+        pathlib.Path(f"70-operations/versions/{version}.toml").write_text(
+            f'version = "{version}"\nmilestone = "{milestone}"\ngoals = [{goals}]\n',
+            encoding="utf-8")
+        return pathlib.Path(".")
+
+    def tracker(self, body):
+        pathlib.Path("STATUS.md").write_text(body, encoding="utf-8")
+        return "STATUS.md"
+
+    def lint(self, body):
+        self.spec_tree()
+        return run_main(status_lint, ["--status", self.tracker(body), "--spec", "."])
+
+    def test_a_clean_tracker_passes(self):
+        code, out = self.lint("## M5 — Trust · `0.7.0`\n\n| x | `G7-R1..R13` | ✅ | y |\n")
+        self.assertEqual(code, 0, out)
+        self.assertIn("backed by the spec", out)
+
+    def test_a_range_past_the_last_requirement_is_a_fault(self):
+        # G7 defines thirteen; claiming fourteen mints one and ticks it at once.
+        code, out = self.lint("## M5 — Trust · `0.7.0`\n\n| x | `G7-R1..R14` | ✅ | y |\n")
+        self.assertEqual(code, 1)
+        self.assertIn("defines up to R13", out)
+
+    def test_a_heading_that_omits_one_of_its_versions_is_a_fault(self):
+        code, out = self.lint("## M5 — Trust · `0.9.0`\n\n| x | `G7-R1..R13` | ✅ | y |\n")
+        self.assertEqual(code, 1)
+        self.assertIn("does not name 0.7.0", out)
+
+    def test_naming_an_extra_version_is_allowed(self):
+        # A milestone whose groundwork shipped early under another's version
+        # should be free to say so.
+        code, out = self.lint(
+            "## M5 — Trust · `0.7.0`, and `0.5.0` before it\n\n| x | `G7-R1..R13` | ✅ | y |\n")
+        self.assertEqual(code, 0, out)
+
+    def test_a_tick_no_version_locks_is_a_fault(self):
+        code, out = self.lint("## M5 — Trust · `0.7.0`\n\n| x | `Z9-R1` | ✅ | y |\n")
+        self.assertEqual(code, 1)
+        self.assertIn("locked by no version", out)
+
+    def test_the_template_manifest_is_not_a_version(self):
+        # TEMPLATE.toml is the shape a new manifest is copied from, not a release —
+        # counting its milestone would invent a version nothing ships in.
+        self.spec_tree()
+        pathlib.Path("70-operations/versions/TEMPLATE.toml").write_text(
+            'version = "X.Y.Z"\nmilestone = "M5"\ngoals = ["G7-R1"]\n', encoding="utf-8")
+        code, out = run_main(status_lint, [
+            "--status", self.tracker("## M5 — Trust · `0.7.0`\n\n| x | `G7-R1..R13` | ✅ | y |\n"),
+            "--spec", "."])
+        self.assertEqual(code, 0, out)
+
+    def test_a_heading_for_a_milestone_no_manifest_claims_is_left_alone(self):
+        code, out = self.lint("## M9 — Later · no version yet\n\n| x | `G7-R1..R13` | ✅ | y |\n")
+        self.assertEqual(code, 0, out)
+
+    def test_a_missing_tracker_is_a_usage_error(self):
+        self.spec_tree()
+        code, out = run_main(status_lint, ["--status", "absent.md", "--spec", "."])
+        self.assertEqual(code, 2)
+        self.assertIn("no tracker", out)
+
+    def test_a_spec_without_manifests_is_a_usage_error(self):
+        # The shared fixture always makes the versions directory; this is the one
+        # test about it being absent, so it takes it away again.
+        shutil.rmtree("70-operations")
+        code, out = run_main(
+            status_lint, ["--status", self.tracker("# nothing\n"), "--spec", "."])
+        self.assertEqual(code, 2)
+        self.assertIn("no version manifests", out)
 
 
 if __name__ == "__main__":
