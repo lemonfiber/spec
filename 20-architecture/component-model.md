@@ -25,7 +25,6 @@ crates/
 ├── lemonfiber-core/         lib — all logic, no UI, no terminal
 │   ├── app/                 the one entry point: command in, outcome out
 │   ├── model/               the values surfaces render, and serialise
-│   ├── ports/               the traits the outside world is reached through
 │   ├── adapters/            the only code that talks to Docker, HTTP or processes
 │   ├── stack/               compose command construction, lifecycle
 │   ├── docker/              container state, stats, logs, exec
@@ -33,11 +32,41 @@ crates/
 │   ├── platform/            OS detection and per-platform behaviour
 │   ├── doctor/              checks, findings, remediation
 │   ├── seed/                service API clients, wiring
-│   ├── journal/             change log for rollback
-│   └── error/               the error + remedy model
+│   └── journal/             change log for rollback
+│
+├── lemonfiber-ports/        lib — the traits the outside world is reached
+│                                  through, and the vocabulary that crosses
+│                                  them; re-exported by the core as `ports`
+│
+├── lemonfiber-fixtures/     lib — the fakes for those traits, reachable from
+│                                  both in-crate tests and `tests/`
 │
 └── lemonfiber-manifest/     lib — stack.toml parse + validate
 ```
+
+## The boundary is its own crate
+
+The ports are not a module of `lemonfiber-core`. They are a crate below it, which
+`lemonfiber-core` re-exports as `ports` so call sites are unchanged.
+
+Two reasons, which turn out to be one. The architecture holds that the boundary is
+the stable part and the logic above it is not; a crate makes that something the
+build enforces rather than a sentence in this document, because a port cannot
+reach up into logic that is not among its dependencies.
+
+And the fakes implement these traits. A crate's in-source test modules and its
+integration-test directory are separate compilation units, so a fake defined in
+either is invisible to the other — which is how one port came to be faked twice and
+the filesystem four times. A single fixtures crate resolves that, and it can only
+exist if the traits live somewhere `lemonfiber-core` is not: were the fixtures to
+depend on the core, the resulting development-dependency cycle would build the core
+twice and hand the fake a trait belonging to neither copy under test. That failure
+is silent — it compiles, and the fake simply never matches. `ARCH-R44` and
+`ARCH-R45` exist to keep it impossible rather than merely known.
+
+Which types may cross is decided mechanically, not by taste: a type belongs to the
+boundary only if all of its behaviour can move with it. A type whose methods must
+stay behind is logic wearing a vocabulary's clothes, and it stays in the core.
 
 ## The one boundary that matters
 
@@ -57,7 +86,9 @@ flowchart TD
     cli[cli] --> core[lemonfiber-core]
     tui[tui] --> core
     web[web] --> core
+    core --> ports[lemonfiber-ports]
     core --> manifest[lemonfiber-manifest]
+    ports --> manifest
     core --> docker[(Docker)]
     core --> fs[(Filesystem)]
 
@@ -250,6 +281,8 @@ the server runs only when asked (`G1-R5`).
 | **ARCH-R19** | Web assets MUST be embedded in the binary; no runtime toolchain MAY be required. |
 | **ARCH-R20** | The web API MUST be the same interface the TUI consumes. |
 | **ARCH-R42** | Every surface MUST reach behaviour through a single dispatch entry point in `lemonfiber-core`; a surface MUST NOT orchestrate the core's subsystems directly. |
+| **ARCH-R44** | The ports MUST live in a crate below `lemonfiber-core`, depending on no other crate of the project except `lemonfiber-manifest`. |
+| **ARCH-R45** | Test fakes for the ports MUST have a single home reachable from both in-source and integration tests, and that home MUST NOT depend on `lemonfiber-core`. |
 
 ## Related
 
