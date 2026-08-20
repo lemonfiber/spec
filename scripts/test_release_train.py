@@ -294,6 +294,14 @@ class StatusLintTests(Workspace):
         code, out = self.lint("## M9 — Later · no version yet\n\n| x | `G7-R1..R13` | ✅ | y |\n")
         self.assertEqual(code, 0, out)
 
+    def test_a_path_outside_the_working_tree_is_refused(self):
+        # These paths come from a workflow's inputs, and a check that will read any
+        # file it is pointed at is a way to read any file.
+        self.spec_tree()
+        code, out = run_main(status_lint, ["--status", "/etc/hosts", "--spec", "."])
+        self.assertEqual(code, 2)
+        self.assertIn("escapes the working directory", out)
+
     def test_a_missing_tracker_is_a_usage_error(self):
         self.spec_tree()
         code, out = run_main(status_lint, ["--status", "absent.md", "--spec", "."])

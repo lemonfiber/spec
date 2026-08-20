@@ -35,6 +35,20 @@ VERSION = re.compile(r"`(\d+\.\d+\.\d+)`")
 PREAMBLE = 9
 
 
+def within_cwd(raw: str) -> pathlib.Path:
+    """Resolve a CLI-supplied path, refusing anything outside the working tree.
+
+    The same guard `gate.py` applies, for the same reason: these paths come from a
+    workflow's inputs, and a check that will read any file it is pointed at is a
+    way to read any file.
+    """
+    path = pathlib.Path(raw).resolve()
+    if not path.is_relative_to(pathlib.Path.cwd().resolve()):
+        print(f"::error::path escapes the working directory: {raw}")
+        raise SystemExit(2)
+    return path
+
+
 def defined(spec: pathlib.Path) -> dict[str, int]:
     """The highest requirement number each feature actually defines."""
     highest: dict[str, int] = {}
@@ -138,8 +152,8 @@ def main() -> int:
     parser.add_argument("--spec", required=True)
     args = parser.parse_args()
 
-    status = pathlib.Path(args.status)
-    spec = pathlib.Path(args.spec)
+    status = within_cwd(args.status)
+    spec = within_cwd(args.spec)
     if not status.is_file():
         print(f"::error::no tracker at {status}")
         return 2
