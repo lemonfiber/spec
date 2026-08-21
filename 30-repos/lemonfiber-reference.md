@@ -31,6 +31,7 @@ do anything ([F1-R6](../10-functional/features/f-extensibility/f1-customisation.
 | `lemonfiber up <form…>` | Start a form, or the union of several (`B1-R5`). Health-gated (`B2-R1`). |
 | `lemonfiber down [form]` | Stop everything, or one form's exclusive services |
 | `lemonfiber restart <svc…>` | Restart services without touching the rest |
+| `lemonfiber switch <form…>` | Make these the active set; stops only what falls outside them (`B1-R10`) |
 | `lemonfiber ps` | Service state — honest status, not "Up" (`B2-R10`) |
 | `lemonfiber logs [svc…]` | Stream logs; `--follow`, `--since`, `--severity` |
 | `lemonfiber pull [--check]` | Pull updates; `--check` reports without applying (`E1-R2`) |
@@ -78,7 +79,7 @@ do anything ([F1-R6](../10-functional/features/f-extensibility/f1-customisation.
 |---------|------|
 | `lemonfiber` | TUI at a terminal; help when piped (`G1-R3`) |
 | `lemonfiber ui` | Serve the web UI; loopback by default (`G1-R5`, `C6-R1`) |
-| `lemonfiber forms [--explain <form>]` | List forms; explain a closure (`B1-R7`) |
+| `lemonfiber forms [form…]` | List forms; naming one says what starting it would come to (`B1-R7`) |
 | `lemonfiber status` | One-shot health summary (`G7-R1`) |
 
 ## Exit codes
