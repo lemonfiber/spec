@@ -27,7 +27,7 @@ ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
 | `0.4.0` | v1 | M4 | Auto-wiring, seed, quality, trace and the first-content walk | Released |
 | `0.5.0` | v1 | M5 | How the product speaks — errors, notifications, health, dashboard data | Released |
 | `0.6.0` | v1 | M5 | Trust checks: VPN, storage, queue health | Released |
-| `0.7.0` | v1 | M5 | Trust checks: providers, support bundle, auto-remediation | Staged |
+| `0.7.0` | v1 | M5 | Trust checks: providers, support bundle, auto-remediation | Released |
 | `0.8.0` | v1 | M6 | Live TUI: forms, lifecycle, logs and diagnostics as surfaces | Planned |
 | `0.9.0` | v1 | M7 | Speaking plainly — interface tiers and the plain-language layer | Planned |
 | `0.10.0` | v1 | M7 | The front door, its security, and the privacy stance | Planned |
