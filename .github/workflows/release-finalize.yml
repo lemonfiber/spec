@@ -105,11 +105,25 @@ jobs:
           print(f"recorded {manifest.name} as released, pinned to {pin[:8]}")
           PY
 
-      # The board is what the website's roadmap reads — it fetches
-      # features/index.json directly — so regenerating it is what updates the
-      # public page. There is no second artefact to keep in step.
-      - name: Regenerate the board the website's roadmap reads
-        run: python3 scripts/gen_board.py
+      # Both generated artefacts, because there are two and this workflow used to
+      # know about one. The board is what the website's roadmap reads — it fetches
+      # features/index.json directly. The version table in 00-overview/roadmap.md
+      # is the other, and `integrity` regenerates it and diffs, so leaving it stale
+      # fails the check on this workflow's own pull request.
+      #
+      # That is not hypothetical. The 0.6.0 record sat unmergeable for five days
+      # for exactly this reason, and because the train is serial — nothing stages
+      # while a version is `releasable`, and a version cannot leave `releasable`
+      # until this pull request merges — 0.7.0 was blocked behind one stale row.
+      #
+      # `stage-version` and `track` avoid it by going through
+      # .github/actions/manifest-transition, which runs both. This workflow cannot:
+      # it also writes the stack pin and opens a pull request rather than pushing.
+      # So it runs the same two generators, in the same order, by hand.
+      - name: Regenerate what the status change makes stale
+        run: |
+          python3 scripts/gen_roadmap_table.py
+          python3 scripts/gen_board.py
 
       # Through a pull request, not a push. `main` is protected — pull requests,
       # signed commits and passing checks — and a workflow that pushed straight
@@ -147,7 +161,7 @@ jobs:
 
           - the manifest moves to \`released\`
           - the stack commit the release embedded is pinned (\`${PIN}\`), so the version is reproducible rather than merely named
-          - the board the website's roadmap reads is regenerated
+          - the board the website's roadmap reads, and the version table in the roadmap itself, are regenerated
 
           A version left at \`releasable\` blocks the next one from being staged (OPS-R52), so this wants merging promptly.
 
