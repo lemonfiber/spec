@@ -60,7 +60,7 @@
     {
       "version": "0.8.0",
       "epoch": "v1",
-      "status": "planned",
+      "status": "staged",
       "milestone": "M6",
       "closes_epoch": null,
       "goals": 47
@@ -441,7 +441,7 @@
         },
         {
           "version": "0.8.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "b-running/b1-forms.md"
@@ -473,7 +473,7 @@
       "versions": [
         {
           "version": "0.8.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "b-running/b2-lifecycle.md"
@@ -544,7 +544,7 @@
       "versions": [
         {
           "version": "0.8.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "b-running/b4-logs.md"
@@ -717,7 +717,7 @@
         },
         {
           "version": "0.8.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "c-trust/c1-diagnostics.md"
