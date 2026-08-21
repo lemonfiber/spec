@@ -71,101 +71,44 @@ jobs:
             pin=$(gh api "repos/${OWNER}/lemonfiber/contents/assets/media-stack?ref=v${VERSION}" --jq '.sha')
           fi
           [ -n "$pin" ] || { echo "::error::could not read the embedded stack commit"; exit 1; }
+          # Publishing the same release twice fires this twice. The transition
+          # writes only files whose content changed, so a second run would put no
+          # commit on the branch and then fail opening a pull request with nothing
+          # in it. Cheaper to notice here and do nothing.
+          # An `if`, not `grep ... && recorded=true`: under `set -e` an AND-list
+          # whose last command fails takes the whole step with it, so the ordinary
+          # case — a version not yet released — would exit here.
+          recorded=false
+          if grep -Eq '^status[[:space:]]*=[[:space:]]*"released"' "$man"; then
+            recorded=true
+          fi
           {
             echo "version=${VERSION}"
-            echo "manifest=${man}"
             echo "pin=${pin}"
+            echo "recorded=${recorded}"
           } >> "$GITHUB_OUTPUT"
+          if [ "$recorded" = true ]; then
+            echo "::notice::${VERSION} is already recorded as released; nothing to do."
+          fi
 
+      # Through the shared transition, not by hand. It writes the manifest with
+      # `set_status` (pins included), regenerates the roadmap table and the board
+      # that a status change makes stale, and commits through the contents API —
+      # where GitHub fills in the author from the token and marks the commit
+      # verified.
+      #
+      # That last part is why this is not a `git commit`. `main` requires signed
+      # commits, and a runner has no key, so every record this workflow opened by
+      # hand was unmergeable: 0.7.0's sat blocked until someone amended the commit
+      # to sign it, and 0.6.0's only went in because a rebase happened to re-sign
+      # it. The comment that used to sit here said unsigned was fine because the
+      # squash merge is signed by GitHub — but the rule is checked against the
+      # pull request's own commits, not the merge it produces.
       - name: Record it as released, with what it shipped
-        env:
-          MANIFEST: ${{ steps.what.outputs.manifest }}
-          PIN: ${{ steps.what.outputs.pin }}
-        run: |
-          python3 - "$MANIFEST" "$PIN" <<'PY'
-          import pathlib, re, sys, tomllib
-
-          manifest, pin = pathlib.Path(sys.argv[1]), sys.argv[2]
-          text = manifest.read_text(encoding="utf-8")
-          status = tomllib.loads(text).get("status")
-          if status == "released":
-              print(f"::notice::{manifest.name} is already released; nothing to record.")
-              raise SystemExit(0)
-
-          text = re.sub(r'^status(\s*)= ".*"$', r'status\1= "released"', text, count=1, flags=re.M)
-          # The pin replaces the placeholder comment where one is there, and is
-          # appended where it is not, so a manifest written either way ends up
-          # with exactly one [pins] table.
-          entry = f'# The stack this release embedded, recorded at publish (OPS-R35).\n[pins]\nmedia-stack = "{pin}"'
-          placeholder = re.compile(r"^# \[pins\] is written by .*$", re.M)
-          text = placeholder.sub(entry, text, count=1) if placeholder.search(text) else (
-              text.rstrip("\n") + "\n\n" + entry + "\n"
-          )
-          manifest.write_text(text, encoding="utf-8")
-          print(f"recorded {manifest.name} as released, pinned to {pin[:8]}")
-          PY
-
-      # Both generated artefacts, because there are two and this workflow used to
-      # know about one. The board is what the website's roadmap reads — it fetches
-      # features/index.json directly. The version table in 00-overview/roadmap.md
-      # is the other, and `integrity` regenerates it and diffs, so leaving it stale
-      # fails the check on this workflow's own pull request.
-      #
-      # That is not hypothetical. The 0.6.0 record sat unmergeable for five days
-      # for exactly this reason, and because the train is serial — nothing stages
-      # while a version is `releasable`, and a version cannot leave `releasable`
-      # until this pull request merges — 0.7.0 was blocked behind one stale row.
-      #
-      # `stage-version` and `track` avoid it by going through
-      # .github/actions/manifest-transition, which runs both. This workflow cannot:
-      # it also writes the stack pin and opens a pull request rather than pushing.
-      # So it runs the same two generators, in the same order, by hand.
-      - name: Regenerate what the status change makes stale
-        run: |
-          python3 scripts/gen_roadmap_table.py
-          python3 scripts/gen_board.py
-
-      # Through a pull request, not a push. `main` is protected — pull requests,
-      # signed commits and passing checks — and a workflow that pushed straight
-      # at it could only ever fail, which is what it did the first time this ran
-      # for real. The record is also exactly the kind of change that should be
-      # reviewable: it is what the public roadmap and the release train read.
-      - name: Open the record as a pull request
-        env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          VERSION: ${{ steps.what.outputs.version }}
-          PIN: ${{ steps.what.outputs.pin }}
-        run: |
-          set -euo pipefail
-          git config user.name "lemonfiber-release[bot]"
-          git config user.email "release@lemonfiber.invalid"
-          git add -A
-          git diff --cached --quiet && { echo "::notice::nothing to record."; exit 0; }
-
-          branch="release/record-${VERSION}"
-          git checkout -b "$branch"
-          # Unsigned here on purpose: the branch is not protected, and the squash
-          # merge that lands on `main` is made by GitHub and signed by it, which
-          # is what the protection rule actually asks for. A workflow has no key.
-          git commit -m "chore(release): record ${VERSION} as released
-
-          Written by release-finalize when the draft was published: the manifest's
-          status, the stack commit the release embedded, and the roadmap the
-          website serves.
-
-          Spec: OPS-R35"
-          git push --force-with-lease -u origin "$branch"
-
-          gh pr create --title "chore(release): record ${VERSION} as released" \
-            --body "Written by \`release-finalize\` when the ${VERSION} draft was published.
-
-          - the manifest moves to \`released\`
-          - the stack commit the release embedded is pinned (\`${PIN}\`), so the version is reproducible rather than merely named
-          - the board the website's roadmap reads, and the version table in the roadmap itself, are regenerated
-
-          A version left at \`releasable\` blocks the next one from being staged (OPS-R52), so this wants merging promptly.
-
-          Spec: OPS-R35" \
-            --head "$branch" || echo "::notice::a pull request for ${VERSION} is already open."
-          gh pr merge "$branch" --squash --auto || \
-            echo "::notice::auto-merge unavailable; the record needs merging by hand."
+        if: steps.what.outputs.recorded != 'true'
+        uses: ./.github/actions/manifest-transition
+        with:
+          version: ${{ steps.what.outputs.version }}
+          status: released
+          pins: media-stack=${{ steps.what.outputs.pin }}
+          token: ${{ steps.token.outputs.token }}
