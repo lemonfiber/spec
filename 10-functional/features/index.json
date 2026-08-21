@@ -52,7 +52,7 @@
     {
       "version": "0.7.0",
       "epoch": "v1",
-      "status": "staged",
+      "status": "released",
       "milestone": "M5",
       "closes_epoch": null,
       "goals": 44
@@ -783,7 +783,7 @@
       "versions": [
         {
           "version": "0.7.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "c-trust/c3-auto-remediation.md"
@@ -815,7 +815,7 @@
       "versions": [
         {
           "version": "0.7.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "c-trust/c4-support-bundle.md"
@@ -951,7 +951,7 @@
       "versions": [
         {
           "version": "0.7.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "c-trust/c8-provider-health.md"
@@ -989,7 +989,7 @@
         },
         {
           "version": "0.7.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "c-trust/c9-drift.md"
