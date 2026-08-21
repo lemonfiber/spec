@@ -1,0 +1,96 @@
+# The release train is serial: nothing stages while a version sits at
+# `releasable`, and a version cannot leave `releasable` until the record pull
+# request `release-finalize` opens is merged. So an unmerged record does not
+# merely wait — it stops every version behind it.
+#
+# Nothing said so. The 0.6.0 record sat unmergeable for five days and the only
+# thing that noticed was somebody going to cut 0.7.0 and finding they could not.
+# `stale` does not speak until sixty days, which is not a release-train timescale.
+name: train-stalled
+on:
+  workflow_dispatch:
+  schedule:
+    # Early, daily. A record that has not merged by the next morning is worth a
+    # look; one that has not merged by the next week is a stopped train.
+    - cron: "15 6 * * *"
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  look:
+    runs-on: ubuntu-latest
+    outputs:
+      stalled: ${{ steps.check.outputs.stalled }}
+      summary: ${{ steps.check.outputs.summary }}
+    steps:
+      - name: Find release records that have not merged
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          # Hours a record may go unmerged before this is a stopped train rather
+          # than a pull request somebody is about to press the button on.
+          GRACE_HOURS: "36"
+        run: |
+          set -euo pipefail
+          prs=$(gh pr list --repo "$REPO" --state open --limit 50 \
+            --json number,title,headRefName,createdAt,url)
+          summary=$(GRACE_HOURS="$GRACE_HOURS" python3 - "$prs" <<'PY'
+          import datetime, json, os, sys
+
+          grace = datetime.timedelta(hours=int(os.environ["GRACE_HOURS"]))
+          now = datetime.datetime.now(datetime.timezone.utc)
+          stalled = []
+          for pr in json.loads(sys.argv[1]):
+              if not pr["headRefName"].startswith("release/"):
+                  continue
+              opened = datetime.datetime.fromisoformat(pr["createdAt"])
+              waited = now - opened
+              if waited >= grace:
+                  stalled.append(f"#{pr['number']} {pr['title']} — open {waited.days}d ({pr['url']})")
+          print("\n".join(stalled))
+          PY
+          )
+          if [ -z "$summary" ]; then
+            echo "stalled=false" >> "$GITHUB_OUTPUT"
+            echo "no release record is waiting."
+            exit 0
+          fi
+          echo "stalled=true" >> "$GITHUB_OUTPUT"
+          {
+            echo "summary<<EOF"
+            echo "$summary"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "::warning::the release train is stopped:"
+          echo "$summary"
+
+  say:
+    needs: look
+    if: needs.look.outputs.stalled == 'true'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      title: "The release train is stopped"
+      body: ${{ needs.look.outputs.summary }}
+      # Red: this is not an announcement, it is something being blocked.
+      color: "15158332"
+    secrets:
+      webhook: ${{ secrets.DISCORD_WEBHOOK }}
+
+  # Red on the Actions tab as well as in Discord, because the webhook is optional
+  # and a signal that exists only where a secret is configured is a signal that
+  # can quietly not exist.
+  fail:
+    needs: look
+    if: needs.look.outputs.stalled == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say what is stopped, and fail
+        env:
+          SUMMARY: ${{ needs.look.outputs.summary }}
+        run: |
+          set -euo pipefail
+          echo "$SUMMARY"
+          echo "::error::a release record has not merged; every version behind it is blocked."
+          exit 1
