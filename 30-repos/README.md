@@ -18,14 +18,20 @@ flowchart TD
         lemonfiber[lemonfiber<br/>Rust binary]
         stack[media-stack<br/>Compose + manifest]
         web[lemonfiber-web<br/>the web surface]
-        sdk[sdk-ts<br/>the API client]
+        sdk[sdk-ts<br/>the TypeScript client]
+        sdkphp[sdk-php<br/>the PHP client]
         tap[homebrew-tap<br/>generated formula]
+        brand[brand<br/>design tokens]
+        site[website<br/>the public frontpage]
     end
 
     stack -->|submodule, pinned| lemonfiber
     web -->|submodule, pinned| lemonfiber
     sdk -->|npm, pinned| web
+    lemonfiber -->|contract artefact| sdk
+    lemonfiber -->|contract artefact| sdkphp
     lemonfiber -->|release CI generates| tap
+    brand -->|npm, pinned| site
     spec -.->|governs all| impl
 ```
 
@@ -34,9 +40,12 @@ flowchart TD
 | `lemonfiber` | [lemonfiber.md](lemonfiber.md) · [lemonfiber-tui.md](lemonfiber-tui.md) · [lemonfiber-reference.md](lemonfiber-reference.md) | Rust | Three surfaces, one core; the submodule; the build |
 | `lemonfiber-web` | [lemonfiber-web.md](lemonfiber-web.md) | TypeScript | Two surfaces, one component library; draws the API, implements nothing |
 | `sdk-ts` | [sdk-ts.md](sdk-ts.md) | TypeScript | Published; owns the stream's hard parts so no consumer reimplements them |
+| `sdk-php` | [sdk-php.md](sdk-php.md) | PHP | The same contract, implemented as a peer rather than translated |
 | `media-stack` | [media-stack.md](media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website` | [website.md](website.md) | Astro | The org is the motor; roadmap read, not written |
+| `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
+| `sdk-php` | *(being written)* | PHP | The second consumer of the one generated contract |
 
 ## The `REPO-R` namespace
 
@@ -54,8 +63,12 @@ independently; the pin says exactly which stack a given binary ships
 **`lemonfiber` → `homebrew-tap` (generation).** `lemonfiber`'s release CI regenerates the
 formula. The tap is downstream of every `lemonfiber` release and is otherwise inert.
 
-**Everything ← `spec` (governance).** No change to any of the three lands without
+**Everything ← `spec` (governance).** No change to any of them lands without
 citing this repository ([50-governance](../50-governance/)).
+
+**`lemonfiber` → the SDKs (generation).** `lemonfiber` emits one contract artefact
+from its own `serde` types; `sdk-ts` and `sdk-php` generate their types from it
+and hand-write only behaviour ([ADR-0014](../00-overview/decisions/0014-one-generated-contract-for-every-sdk.md)).
 
 ## The one property to remember per repo
 
