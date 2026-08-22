@@ -225,11 +225,17 @@ responsive while pulling images.
 
 ## M7 — Web surface & UX
 
-A third surface (`0.9.0`–`0.10.0`): a read-only web view over the same core, plus the
-cross-cutting UX that spans every surface.
+A third surface (`0.9.0`–`0.10.0`): a web view over the same core, plus the
+cross-cutting UX that spans every surface. The view is served by `lemonfiber` as a
+JSON API and drawn by a static app kept in its own repo
+([ADR-0011](decisions/0011-web-surface-as-a-fifth-repo.md)).
 
-**Exit criteria:** the web view renders the same live state the TUI shows,
-read-only, over the core with no surface-specific logic.
+**Exit criteria:** the web surface renders the same live state the TUI shows and
+can complete setup, over the core with no surface-specific logic.
+
+Setup is completable from the web surface
+([G1-R14](../10-functional/features/g-ux/g1-interface-tiers.md)), so it writes. The
+C6 goals guarding a writable loopback API are staged in `0.9.0`.
 
 ---
 

@@ -28,7 +28,7 @@ Generated from feature frontmatter and the version manifests by
 | [C3](c-trust/c3-auto-remediation.md) | Auto-remediation | C | operator | accepted | `0.7.0` |
 | [C4](c-trust/c4-support-bundle.md) | Support bundle | C | operator | accepted | `0.7.0` |
 | [C5](c-trust/c5-storage.md) | Storage & hardlink management | C | operator | accepted | `0.2.0`, `0.6.0` |
-| [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0` |
+| [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.9.0` |
 | [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.6.0` |
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
 | [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.4.0`, `0.7.0` |
