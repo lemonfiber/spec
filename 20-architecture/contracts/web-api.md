@@ -134,6 +134,21 @@ fields have quietly changed meaning.
 | **ARCH-R53** | `Origin` and `Host` MUST be checked against the bound address, and a mismatch MUST be refused. |
 | **ARCH-R54** | The client's declared `api_version` MUST be validated against the binary at build time. |
 | **ARCH-R55** | An `api_version` mismatch at run time MUST be refused plainly, naming both versions, rather than rendering a partial view. |
+| **ARCH-R56** | The contract artefact MUST be generated from the types the server serialises, never hand-written. |
+| **ARCH-R57** | Regenerating the contract artefact MUST produce no diff, and CI MUST fail if it does. |
+| **ARCH-R58** | An SDK's contract types MUST be generated from the artefact; hand-written response shapes MUST NOT be used. |
+
+## Shapes are generated; semantics are not
+
+Two SDKs hand-writing this contract would be two sources of truth for it, and a third would
+be a third. So the **shapes** — fields, types, optionality, permitted enum values — are
+generated from the server's own `serde` types into one artefact that every SDK consumes
+([ADR-0014](../../00-overview/decisions/0014-one-generated-contract-for-every-sdk.md)).
+
+Everything above that a schema cannot express stays here, in prose, and every SDK implements
+it and tests it: the heartbeat, resumption that does not present pre-gap values as current,
+the token's placement, and the refusal on mismatch. **This document is normative for what the
+surface means; the artefact is normative for what it looks like.** Neither restates the other.
 
 ## Related
 

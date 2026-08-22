@@ -32,6 +32,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0011](0011-web-surface-as-a-fifth-repo.md) | The web surface is a fifth repo behind the JSON contract | Proposed |
 | [0012](0012-web-assets-embedded-at-build-time.md) | The web surface ships inside the binary, as a pinned submodule | Proposed |
 | [0013](0013-an-sdk-owns-the-api-client.md) | The API gets an SDK, and the SDK gets its own repo | Proposed |
+| [0014](0014-one-generated-contract-for-every-sdk.md) | Every SDK generates its types from one artefact the server emits | Proposed |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
