@@ -52,7 +52,7 @@ Staging writes it, the tracker reads it, the gate checks it, execute flips its
 ```mermaid
 stateDiagram-v2
     [*] --> planned
-    planned --> staged: stage-version — locks goals, cuts release branches
+    planned --> staged: stage-version — locks the goals
     staged --> in_progress: work has begun — the version people are building
     in_progress --> releasable: tracker sees every goal satisfied
     staged --> releasable: tracker sees every goal satisfied
@@ -68,8 +68,8 @@ Every transition MUST be recorded in the manifest, so the file alone answers
 **One version at a time.** Outside hotfixes, the train is serial: at most one
 version is in flight — `staged` or `releasable` — at once. `stage-version`
 refuses while another version is still unreleased, so two minors never compete
-for the same `main`, the same goal pool, or the same release branches. A hotfix
-is exempt: it branches from an already-`released` tag and never enters staging.
+for the same `main` or the same goal pool. A hotfix is exempt: it branches from
+an already-`released` tag and never enters staging.
 
 ## The four lanes
 
@@ -206,11 +206,11 @@ implementing them are built per repo.
 | **Tracker issue** | Staging opens a self-updating issue — goal checklist and burndown — that flips to `releasable` at full coverage |
 | **Release-blocker linkage** | An issue labelled `release-blocker` for a version links to the tracker and blocks execute until closed |
 | **Next-version issue** | Releasing opens the next version's planning issue, seeded from unshipped `Accepted` requirements |
-| **Drift watchdog** | A scheduled check flags a locked goal whose requirement was withdrawn, or a release branch fallen behind `main` |
+| **Drift watchdog** | A scheduled check flags a locked goal whose requirement was withdrawn or superseded |
 | **Submodule bump** | A `media-stack` release opens a `lemonfiber` PR bumping the submodule pin, gated by the `build.rs` compat check |
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
 | **Issue lifecycle** | Releasing closes the issues opened for that version — its tracker, and any drift the watchdog raised |
-| **Branch lifecycle** | The orchestrator cuts `release/<v>` at staging and deletes it at release, merging release-only fixes back first |
+| **Release from the trunk** | A version is tagged on `main`; a hotfix to a shipped version branches from its tag and merges back |
 | **Discord cadence** | Staging and progress milestones (25/50/75/100%) post to `#maintainers`; execute posts to `#releases` |
 
 ## Requirements
@@ -221,7 +221,7 @@ implementing them are built per repo.
 | **OPS-R30** | Staging a version MUST lock its goals as an explicit list of `Accepted` requirement IDs, seeded from the roadmap milestone it serves and editable before the lock; a `Draft` or `Withdrawn` requirement MUST NOT be a goal. |
 | **OPS-R31** | After staging, changing a version's locked goals MUST require review and MUST be announced to the maintainer channel. |
 | **OPS-R32** | A version MUST progress through `planned → staged → releasable → released` (with `yanked` terminal), and each transition MUST be recorded in its manifest. |
-| **OPS-R33** | A `release/<version>` branch MAY exist only for a currently-staged version, in the repos its manifest names (excluding `brand`); it MUST be cut from `main` at staging and deleted at release after fixes are merged back. |
+| **OPS-R33** | A `release/<version>` branch MAY exist only to carry a hotfix to an already-released version; it MUST be cut from that version's tag and deleted once its fixes are merged back to `main`. |
 | **OPS-R34** | `execute-version` MUST refuse unless every locked goal is satisfied — a merged PR cites its ID **and** the implementation-status tracker marks it done — and the refusal MUST name the unmet goals. |
 | **OPS-R35** | Before tagging, execute MUST verify cross-stream compatibility (`schema_version` and `min_cli_version` against the binary) and record the embedded submodule pins in the manifest. |
 | **OPS-R36** | A fast lane MUST allow staging, gating and executing in one operation when the goals are already satisfied; the goal gate MUST still run. |
@@ -234,10 +234,10 @@ implementing them are built per repo.
 | **OPS-R43** | Staging MUST open a self-updating tracking issue — a goal checklist with a burndown — that reflects coverage and flips the version to `releasable` at full coverage. |
 | **OPS-R44** | An issue labelled `release-blocker` for a version MUST link to that version's tracker and MUST block execute until it closes. |
 | **OPS-R45** | Releasing a version MUST open the next version's planning issue, seeded from `Accepted` requirements not yet shipped. |
-| **OPS-R46** | A scheduled check MUST flag a locked goal whose requirement became `Withdrawn` or `Superseded`, or a `release/<v>` branch that has fallen behind `main`. |
+| **OPS-R46** | A scheduled check MUST flag a locked goal whose requirement became `Withdrawn` or `Superseded`. |
 | **OPS-R47** | A `media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep. |
-| **OPS-R49** | The orchestrator MUST cut `release/<v>` at staging and delete it at release, merging release-only fixes back to `main` first. |
+| **OPS-R49** | A version MUST be released from `main`: the tag names a commit on the trunk, and no long-lived release branch is cut. A hotfix to an already-released version MUST branch from that version's tag and MUST be merged back to `main`. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |
 | **OPS-R52** | At most one version MAY be `staged` or `releasable` at a time; `stage-version` MUST refuse while another version is still in flight. Hotfix patches are exempt. |
 | **OPS-R55** | Releasing a version MUST close the issues opened for it — the tracker from `OPS-R43` and any drift issue from `OPS-R46` — so an open issue about a version means something is still owed. |
@@ -246,7 +246,7 @@ implementing them are built per repo.
 ## Related
 
 - [releasing.md](releasing.md) — the tag-triggered mechanics this orchestrates
-- [project-workflow.md](project-workflow.md) — trunk-based model and OPS-R10, which OPS-R33 carves out
+- [project-workflow.md](project-workflow.md) — the trunk-based model and OPS-R10, which releases now follow rather than carve out
 - [notifications.md](notifications.md) — the Discord channels OPS-R50 posts to
 - [../20-architecture/contracts/versioning.md](../20-architecture/contracts/versioning.md) — the version streams the gate checks
 - [../50-governance/change-lifecycle.md](../50-governance/change-lifecycle.md) — the `Accepted` status a goal must hold
