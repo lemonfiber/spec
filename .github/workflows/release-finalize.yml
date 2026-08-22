@@ -125,11 +125,16 @@ jobs:
           VERSION: ${{ steps.what.outputs.version }}
         run: |
           set -euo pipefail
-          for title in "Release ${VERSION} — tracker" "⚠️ Release ${VERSION} drift"; do
+          # Searched on words rather than on the exact title. GitHub's search
+          # tokenises, and the drift issue's title leads with an emoji — a poor
+          # search term, and the one whose absence would silently match nothing.
+          # Every term must appear, so "Release 0.7.0 tracker" cannot reach the
+          # drift issue and vice versa.
+          for words in "Release ${VERSION} tracker" "Release ${VERSION} drift"; do
             gh issue list --repo "${OWNER}/spec" --state open \
-              --search "${title} in:title" --json number --jq '.[].number' \
+              --search "${words} in:title" --json number --jq '.[].number' \
             | while read -r number; do
-                echo "closing #${number} — ${title}"
+                echo "closing #${number} — ${words}"
                 gh issue close "${number}" --repo "${OWNER}/spec" \
                   --comment "${VERSION} is released. Closing what its staging opened."
               done
