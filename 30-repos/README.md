@@ -17,10 +17,12 @@ flowchart TD
     subgraph impl[Implementation]
         lemonfiber[lemonfiber<br/>Rust binary]
         stack[media-stack<br/>Compose + manifest]
+        web[lemonfiber-web<br/>the web surface]
         tap[homebrew-tap<br/>generated formula]
     end
 
     stack -->|submodule, pinned| lemonfiber
+    web -->|submodule, pinned| lemonfiber
     lemonfiber -->|release CI generates| tap
     spec -.->|governs all| impl
 ```
@@ -28,6 +30,7 @@ flowchart TD
 | Repo | Spec | Language | What's specific about it |
 |------|------|----------|--------------------------|
 | `lemonfiber` | [lemonfiber.md](lemonfiber.md) · [lemonfiber-tui.md](lemonfiber-tui.md) · [lemonfiber-reference.md](lemonfiber-reference.md) | Rust | Three surfaces, one core; the submodule; the build |
+| `lemonfiber-web` | [lemonfiber-web.md](lemonfiber-web.md) | TypeScript | Two surfaces, one component library; draws the API, implements nothing |
 | `media-stack` | [media-stack.md](media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website` | [website.md](website.md) | Astro | The org is the motor; roadmap read, not written |
