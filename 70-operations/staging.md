@@ -209,6 +209,7 @@ implementing them are built per repo.
 | **Drift watchdog** | A scheduled check flags a locked goal whose requirement was withdrawn, or a release branch fallen behind `main` |
 | **Submodule bump** | A `media-stack` release opens a `lemonfiber` PR bumping the submodule pin, gated by the `build.rs` compat check |
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
+| **Issue lifecycle** | Releasing closes the issues opened for that version — its tracker, and any drift the watchdog raised |
 | **Branch lifecycle** | The orchestrator cuts `release/<v>` at staging and deletes it at release, merging release-only fixes back first |
 | **Discord cadence** | Staging and progress milestones (25/50/75/100%) post to `#maintainers`; execute posts to `#releases` |
 
@@ -239,6 +240,7 @@ implementing them are built per repo.
 | **OPS-R49** | The orchestrator MUST cut `release/<v>` at staging and delete it at release, merging release-only fixes back to `main` first. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |
 | **OPS-R52** | At most one version MAY be `staged` or `releasable` at a time; `stage-version` MUST refuse while another version is still in flight. Hotfix patches are exempt. |
+| **OPS-R55** | Releasing a version MUST close the issues opened for it — the tracker from `OPS-R43` and any drift issue from `OPS-R46` — so an open issue about a version means something is still owed. |
 | **OPS-R54** | Every version manifest MUST carry an `epoch`. A manifest that declares `closes_epoch = "vN"` (only an `X.0.0` major may) MUST NOT execute unless every feature tagged `tracks: vN` is `Accepted` and marked done, and a refusal MUST name the incomplete features. |
 
 ## Related
