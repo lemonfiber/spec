@@ -74,6 +74,25 @@ Piped or redirected output emits no control sequences, no cursor movement, and n
 repeated progress lines — a 4,000-line progress bar in a log file is a
 frequent and avoidable failure.
 
+### Text from elsewhere cannot take over the terminal
+
+Most of what this product shows, it did not write. A release name comes from an
+indexer, a failure message from a \*arr, a container name from an image somebody
+else built. A terminal is not a text box: a control sequence in the middle of one
+of those is an instruction to the emulator rather than something said. `\x1b[2J`
+clears the screen, `\x1b[H` moves the cursor home, and a carriage return writes
+over the line just printed.
+
+Nothing executes, which is exactly what makes it easy to leave alone. What is lost
+is the screen agreeing with the product — and a diagnosis an operator cannot trust
+to say what happened is a diagnosis that was not worth printing.
+
+It holds on every surface, not only in the log viewer where it was first written
+down, because the text arrives by more roads than one: a service's own words reach
+a failure message as readily as a container's reach a log line. Redaction is not
+this rule — a credential scrubber looks for secrets, and has no opinion about an
+escape.
+
 ### Layout adapts rather than assumes
 
 Content reflows for narrow terminals and small viewports. No horizontal scrolling
@@ -127,6 +146,7 @@ or types slowly. Where a timeout exists it is generous, stated, and extendable.
 | **G3-R12** | Timeouts on prompts MUST be generous, stated, and extendable, or absent. |
 | **G3-R13** | The web UI MUST respect browser text sizing and system high-contrast preferences. |
 | **G3-R14** | Severity in log output MUST be present as text, not only as colour. |
+| **G3-R15** | Text the product did not author MUST NOT be able to alter terminal state, on any surface that shows it. |
 
 ## Related
 
