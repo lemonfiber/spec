@@ -75,3 +75,13 @@ see [ADR-0005](0005-embedded-stack-assets.md).
 - Cross-repo coordination overhead visibly slows development.
 - The independent-usability property of `media-stack` turns out not to matter to
   anyone in practice.
+
+## Since this was accepted
+
+The split held; the count did not. The same reasoning — an artifact with its own
+change rate, review style and release clock earns its own repo — has since been
+applied three more times, by [ADR-0011](0011-web-surface-as-a-fifth-repo.md) for
+the web surface and [ADR-0013](0013-an-sdk-owns-the-api-client.md) for the API
+clients. This ADR records why the project is not a monorepo, which is still true;
+it is not the current inventory of repositories. That lives in
+[30-repos](../../30-repos/README.md).

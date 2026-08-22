@@ -98,14 +98,15 @@ Once staged, the goal set is **frozen**: changing it requires review (a
 `goals-change` label) and is logged to the maintainer channel, so a release's
 scope cannot drift silently after the promise is made.
 
-## Release branches — the trunk-based exception
+## Release branches — the hotfix exception
 
-Trunk-based development ([OPS-R10](project-workflow.md)) is the rule; staged
-releases are its one carve-out. At staging, the orchestrator cuts a
-`release/<version>` branch from `main` in each repo the manifest names (never
-`brand`); the branch collects only release-scoped fixes, and is deleted at
-release after any fixes are merged back to `main`. No `release/*` branch exists
-except for a currently-staged version.
+Trunk-based development ([OPS-R10](project-workflow.md)) is the rule, and
+OPS-R49 keeps it: a version is released from `main`, the tag names a commit on
+the trunk, and staging cuts no branches. The one carve-out is a hotfix to an
+**already-released** version, where `main` has moved on and the fix must reach
+the shipped tag. OPS-R33 confines the branch to that case — cut from the
+version's tag, carrying only the fix, deleted once the fix is merged back to
+`main`. No other `release/*` branch exists.
 
 ## The gate — every goal satisfied
 
@@ -205,7 +206,7 @@ implementing them are built per repo.
 | **Out-of-scope advisory** | During staging, a PR citing outside the locked goals gets a non-blocking advisory routing it to the next version |
 | **Tracker issue** | Staging opens a self-updating issue — goal checklist and burndown — that flips to `releasable` at full coverage |
 | **Release-blocker linkage** | An issue labelled `release-blocker` for a version links to the tracker and blocks execute until closed |
-| **Next-version issue** | Releasing opens the next version's planning issue, seeded from unshipped `Accepted` requirements |
+| **Next-version issue** | Releasing opens the next version's planning issue, seeded from the next `planned` manifest's goals |
 | **Drift watchdog** | A scheduled check flags a locked goal whose requirement was withdrawn or superseded |
 | **Submodule bump** | A `media-stack` release opens a `lemonfiber` PR bumping the submodule pin, gated by the `build.rs` compat check |
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
@@ -220,7 +221,7 @@ implementing them are built per repo.
 | **OPS-R29** | Every release MUST be scoped by a version manifest under `70-operations/versions/`, which is the single source of truth for the version's status, target repos, and locked goals. |
 | **OPS-R30** | Staging a version MUST lock its goals as an explicit list of `Accepted` requirement IDs, seeded from the roadmap milestone it serves and editable before the lock; a `Draft` or `Withdrawn` requirement MUST NOT be a goal. |
 | **OPS-R31** | After staging, changing a version's locked goals MUST require review and MUST be announced to the maintainer channel. |
-| **OPS-R32** | A version MUST progress through `planned → staged → releasable → released` (with `yanked` terminal), and each transition MUST be recorded in its manifest. |
+| **OPS-R32** | A version MUST progress through `planned → staged → releasable → released` — optionally through `in_progress` between `staged` and `releasable`, with `yanked` terminal — and each transition MUST be recorded in its manifest. |
 | **OPS-R33** | A `release/<version>` branch MAY exist only to carry a hotfix to an already-released version; it MUST be cut from that version's tag and deleted once its fixes are merged back to `main`. |
 | **OPS-R34** | `execute-version` MUST refuse unless every locked goal is satisfied — a merged PR cites its ID **and** the implementation-status tracker marks it done — and the refusal MUST name the unmet goals. |
 | **OPS-R35** | Before tagging, execute MUST verify cross-stream compatibility (`schema_version` and `min_cli_version` against the binary) and record the embedded submodule pins in the manifest. |
@@ -233,7 +234,7 @@ implementing them are built per repo.
 | **OPS-R42** | During a staging period, a PR whose citations fall outside the locked goals MUST receive a non-blocking advisory routing it to the next version. |
 | **OPS-R43** | Staging MUST open a self-updating tracking issue — a goal checklist with a burndown — that reflects coverage and flips the version to `releasable` at full coverage. |
 | **OPS-R44** | An issue labelled `release-blocker` for a version MUST link to that version's tracker and MUST block execute until it closes. |
-| **OPS-R45** | Releasing a version MUST open the next version's planning issue, seeded from `Accepted` requirements not yet shipped. |
+| **OPS-R45** | Releasing a version MUST open the next version's planning issue, seeded from the goals of the next `planned` manifest. |
 | **OPS-R46** | A scheduled check MUST flag a locked goal whose requirement became `Withdrawn` or `Superseded`. |
 | **OPS-R47** | A `media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep. |

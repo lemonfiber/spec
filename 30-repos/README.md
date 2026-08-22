@@ -45,7 +45,6 @@ flowchart TD
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website` | [website.md](website.md) | Astro | The org is the motor; roadmap read, not written |
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
-| `sdk-php` | *(being written)* | PHP | The second consumer of the one generated contract |
 
 ## The `REPO-R` namespace
 

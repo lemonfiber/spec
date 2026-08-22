@@ -8,7 +8,7 @@ Which repository an issue belongs in, and how it gets there.
 
 ## The problem
 
-Four repos, and a reporter who reasonably doesn't know the split. Someone whose
+Ten repos, and a reporter who reasonably doesn't know the split. Someone whose
 VPN check reports a leak files against `lemonfiber` — but if the check is behaving as
 specified and the *specification* is wrong, the issue belongs here.
 
@@ -88,7 +88,7 @@ announcing what is being patched must not precede the patch.
 | **GOV-R25** | Issue templates MUST NOT require a reporter to identify the correct repository. |
 
 **GOV-R25** is the one that keeps this from becoming a burden on people trying to
-help. Asking a reporter to understand a four-repo split before filing is asking
+help. Asking a reporter to understand a ten-repo split before filing is asking
 them to do triage — and the predictable outcome is that they don't file at all.
 
 ## Related

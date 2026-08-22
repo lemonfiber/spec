@@ -24,7 +24,7 @@ flowchart LR
 | No direct pushes to `main` | Except the admin override, recorded ([overrides](../50-governance/overrides.md)) |
 | Branch names | `type/short-description` — `feat/health-gate`, `fix/vpn-port`, `docs/forms` |
 | Branch lifetime | Short. Long-lived feature branches drift; break the work down instead |
-| No `develop` branch | Trunk-based; releases are tags off `main`. The one exception: a `release/<version>` branch for a currently-staged version ([staging.md](staging.md), OPS-R33) |
+| No `develop` branch | Trunk-based; releases are tags off `main`. The one exception: a `release/<version>` branch carrying a hotfix to an already-released version ([staging.md](staging.md), OPS-R33) |
 | History | Signed commits, no AI attribution, `Spec:` trailer ([governance](../50-governance/)) |
 
 Types mirror the conventional-commit prefixes so branch, commit, and changelog
@@ -118,7 +118,7 @@ implementation repo. It becomes a requirement first, then work.
 
 | ID | Requirement |
 |----|-------------|
-| **OPS-R10** | The project MUST use a trunk-based model: one protected `main`, short-lived branches, PR-only merges. The sole exception is a `release/<version>` branch for a currently-staged version ([staging.md](staging.md), OPS-R33). |
+| **OPS-R10** | The project MUST use a trunk-based model: one protected `main`, short-lived branches, PR-only merges. The sole exception is a `release/<version>` branch carrying a hotfix to an already-released version ([staging.md](staging.md), OPS-R33). |
 | **OPS-R11** | Branch and commit types MUST share the conventional-commit vocabulary. |
 | **OPS-R12** | The same canonical label set MUST exist on every repo, applied by automation rather than by hand. |
 | **OPS-R13** | `spec-change` and `needs-spec` labels MUST exist and MUST reflect the canonical-spec workflow. |

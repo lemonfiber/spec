@@ -162,7 +162,7 @@ tested for the wrong thing.
 
 ## Branch protection
 
-All four repos: required checks must pass, `spec-check` among them, before merge
+Every repo: required checks must pass, `spec-check` among them, before merge
 (`roadmap M0.5`). The [override](../50-governance/overrides.md) bypasses
 `spec-check` **only**, never the build, tests, or review (`GOV-R19`).
 
@@ -177,7 +177,7 @@ All four repos: required checks must pass, `spec-check` among them, before merge
 | **Q-R34** | Releases MUST build macOS (arm64 + x86_64), Linux (gnu + musl) and Windows, with checksums. |
 | **Q-R35** | The release MUST regenerate the Homebrew formula and produce shell and PowerShell installers. |
 | **Q-R36** | A release smoke test MUST run the binary on all three platforms, not merely build it. |
-| **Q-R37** | All four repos MUST require passing checks before merge; the override MUST bypass only spec-check. |
+| **Q-R37** | Every repository in the org MUST require passing checks before merge; the override MUST bypass only spec-check. |
 | **Q-R64** | Open SonarCloud issues MUST be zero, enforced as a blocking CI check independent of the Sonar plan's own quality gate, since the free plan's gate cannot be configured to this standard (`Q-R63`). |
 
 ## Related
