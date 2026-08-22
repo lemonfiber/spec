@@ -6,7 +6,7 @@ version = "0.8.0"
 epoch   = "v1"
 milestone = "M6"   # Live TUI
 delivers  = "Live TUI: forms, lifecycle, logs and diagnostics as surfaces"
-status  = "releasable"
+status  = "released"
 repos   = ["lemonfiber"]
 goals   = [
     "B1-R1",
@@ -59,3 +59,6 @@ goals   = [
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
+
+[pins]
+media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"
