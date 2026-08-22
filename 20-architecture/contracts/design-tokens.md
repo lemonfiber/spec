@@ -2,7 +2,8 @@
 
 **Status:** Accepted
 
-The interface between `brand` and `lemonfiber`'s web UI. The web UI's visual language
+The interface between `brand` and [`lemonfiber-web`](../../30-repos/lemonfiber-web.md).
+The web surface's visual language
 comes entirely from these tokens; it hardcodes no colour, size, or spacing.
 
 **Satisfies:** [G1-R2](../../10-functional/features/g-ux/g1-interface-tiers.md),
@@ -24,11 +25,13 @@ build time.
 
 ## Consumption: npm, build-time
 
-`brand` publishes `@lemonfiber/brand`. `lemonfiber`'s `web-ui` takes it as a build
-dependency and compiles the tokens into the embedded assets:
+`brand` publishes `@lemonfiber/brand`. `lemonfiber-web` takes it as a build
+dependency and compiles the tokens into the assets it tags
+([ADR-0012](../../00-overview/decisions/0012-web-assets-embedded-at-build-time.md)),
+which `lemonfiber` then embeds:
 
 ```jsonc
-// lemonfiber/crates/lemonfiber/web-ui/package.json
+// lemonfiber-web/package.json
 "dependencies": { "@lemonfiber/brand": "0.2.0" }
 ```
 
@@ -41,9 +44,9 @@ The version is pinned. A brand release is a deliberate `lemonfiber` dependency b
 (cite `GOV-R12`), never a floating pull — the same discipline as pinned image
 tags (`E1-R1`), for the same reason.
 
-The `web-ui` build already runs at release time and is the only non-Rust
-toolchain (`ARCH-R19`); consuming an npm package fits that step and reaches the
-end user embedded, never as a runtime dependency.
+The build runs in `lemonfiber-web`'s own CI, so the npm toolchain stays out of the
+Rust workspace entirely; what `lemonfiber` embeds is the tagged output. The tokens
+reach the end user embedded, never as a runtime dependency.
 
 ## The token surface
 
