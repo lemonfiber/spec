@@ -1,7 +1,7 @@
 # Open a version's staging period — OPS-R30, R32, R33, R43, R49, R50, R52.
 #
 # Validates the version is stageable (planned, goals defined, nothing else in
-# flight), cuts a release branch in each target repo, flips the manifest to
+# flight), flips the manifest to
 # staged, opens the tracking issue, and announces to #maintainers. Maintainer-only.
 name: stage-version
 on:
@@ -52,23 +52,11 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          python3 scripts/check_stageable.py "$VERSION" > repos.txt
-          echo "target repos:"; cat repos.txt
-      - name: Cut release branches (OPS-R33, R49)
-        env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          OWNER: ${{ github.repository_owner }}
-          VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          while read -r r; do
-            [ -n "$r" ] || continue
-            base=$(gh api "repos/${OWNER}/${r}/git/ref/heads/main" --jq '.object.sha')
-            gh api --method POST "repos/${OWNER}/${r}/git/refs" \
-              -f ref="refs/heads/release/${VERSION}" -f sha="$base" \
-              || echo "::warning::release/${VERSION} may already exist in ${r}"
-            echo "cut release/${VERSION} in ${r}"
-          done < repos.txt
+          # The repos it prints were read by the branch-cutting step; nothing
+          # consumes them now, but they are still worth seeing — what a version
+          # covers is the thing this step is confirming.
+          echo "target repos:"
+          python3 scripts/check_stageable.py "$VERSION"
       - name: Flip status → staged (OPS-R32)
         uses: ./.github/actions/manifest-transition
         with:

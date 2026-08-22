@@ -1,8 +1,12 @@
 # Drift watchdog for the version in flight — OPS-R46.
 #
 # Daily (and on demand): flags a locked goal whose requirement is no longer
-# defined in the spec (withdrawn/removed), or a release branch that has fallen
-# behind main. Opens or updates a single drift issue when anything is found.
+# defined in the spec (withdrawn/removed). Opens or updates a single drift issue
+# when anything is found.
+#
+# It used to watch release branches too. It no longer does, because there are none
+# to watch: a version is released from main (OPS-R49), and the warnings that check
+# raised were about branches being abandoned rather than about drift.
 name: watchdog
 on:
   schedule:
@@ -60,13 +64,6 @@ jobs:
           gone = [g for g in version["goals"] if g not in defined]
           if gone:
               findings.append("Goals no longer defined in the spec: " + ", ".join(gone))
-          for repo in version["repos"]:
-              res = gh("api", f"repos/{OWNER}/{repo}/compare/release%2F{version['version']}...main",
-                       "--jq", ".ahead_by")
-              ahead = res.stdout.strip()
-              if ahead.isdigit() and int(ahead) > 0:
-                  findings.append(f"release/{version['version']} in {repo} is {ahead} commits behind main")
-
           if not findings:
               print("no drift."); raise SystemExit(0)
 
