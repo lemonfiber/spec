@@ -51,7 +51,7 @@ Generated from feature frontmatter and the version manifests by
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
 | [G1](g-ux/g1-interface-tiers.md) | Interface tiers | G | both | accepted | `0.9.0` |
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.9.0` |
-| [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.9.0` |
+| [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.5.0` |
 | [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.10.0` |
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | G | household | accepted | `0.11.0` |

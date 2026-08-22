@@ -1,6 +1,6 @@
 # The front door and what guards it — the web UI's security and binding policy, the entry surface, and the privacy stance.
 #
-# 44 goals, seeded from the roadmap milestone this version serves;
+# 45 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.10.0"
 epoch   = "v1"
@@ -26,6 +26,7 @@ goals   = [
     "C6-R15",
     "C6-R16",
     "C6-R17",
+    "G3-R15",
     "G5-R1",
     "G5-R2",
     "G5-R3",
