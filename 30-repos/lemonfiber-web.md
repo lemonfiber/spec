@@ -35,7 +35,7 @@ its own. The contract being avoided is one already published and versioned for s
 
 | From | What | How |
 |---|---|---|
-| `lemonfiber` | State and actions | The [web API](../20-architecture/contracts/web-api.md), at run time |
+| `lemonfiber` | State and actions | Through [`@lemonfiber/sdk-ts`](sdk-ts.md), which speaks the [web API](../20-architecture/contracts/web-api.md) |
 | `brand` | Colour, type, spacing, radii, the logo | [`@lemonfiber/brand`](../20-architecture/contracts/design-tokens.md), at build time |
 
 It hardcodes no colour, size or spacing — those are the brand's to own, and this
@@ -78,6 +78,9 @@ a bundle-size budget, and a content-security policy that permits no external ori
   the interface identical on Linux, Windows and macOS.
 - **Implement behaviour.** If the answer is not in an envelope, the surface does not
   know it.
+- **Talk to the API directly.** Transport, the event stream and version negotiation
+  belong to [`sdk-ts`](sdk-ts.md); this repo renders what the SDK returns
+  ([ADR-0013](../00-overview/decisions/0013-an-sdk-owns-the-api-client.md)).
 - **Invent an action.** Everything it can do, the CLI can do
   ([`ARCH-R48`](../20-architecture/contracts/web-api.md)).
 

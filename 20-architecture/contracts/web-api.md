@@ -137,6 +137,7 @@ fields have quietly changed meaning.
 
 ## Related
 
+- [sdk-ts](../../30-repos/sdk-ts.md) — the TypeScript client implementing this contract
 - [versioning.md](versioning.md) — `api_version` and the envelope it belongs to
 - [design-tokens.md](design-tokens.md) — the other contract `lemonfiber-web` consumes
 - [ADR-0011](../../00-overview/decisions/0011-web-surface-as-a-fifth-repo.md) — why the boundary is a contract
