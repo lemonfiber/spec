@@ -1,14 +1,22 @@
 # Speaking plainly — interface tiers, the plain-language layer, and progressive disclosure.
 #
-# 41 goals, seeded from the roadmap milestone this version serves;
+# 46 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
+#
+# C6-R1, C6-R3, C6-R6, C6-R10 and C6-R12 moved here from 0.10.0 after staging,
+# under OPS-R31 review (ADR-0011).
 version = "0.9.0"
 epoch   = "v1"
 milestone = "M7"   # Web surface & UX
 delivers  = "Speaking plainly — interface tiers and the plain-language layer"
 status  = "staged"
-repos   = ["lemonfiber"]
+repos   = ["lemonfiber", "lemonfiber-web"]
 goals   = [
+    "C6-R1",
+    "C6-R3",
+    "C6-R6",
+    "C6-R10",
+    "C6-R12",
     "G1-R1",
     "G1-R2",
     "G1-R3",

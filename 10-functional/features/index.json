@@ -71,7 +71,7 @@
       "status": "staged",
       "milestone": "M7",
       "closes_epoch": null,
-      "goals": 41
+      "goals": 46
     },
     {
       "version": "0.10.0",
@@ -79,7 +79,7 @@
       "status": "planned",
       "milestone": "M7",
       "closes_epoch": null,
-      "goals": 45
+      "goals": 40
     },
     {
       "version": "0.11.0",
@@ -885,6 +885,10 @@
         {
           "version": "0.10.0",
           "status": "planned"
+        },
+        {
+          "version": "0.9.0",
+          "status": "staged"
         }
       ],
       "path": "c-trust/c6-web-security.md"
