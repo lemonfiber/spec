@@ -68,7 +68,7 @@
     {
       "version": "0.9.0",
       "epoch": "v1",
-      "status": "planned",
+      "status": "staged",
       "milestone": "M7",
       "closes_epoch": null,
       "goals": 41
@@ -1595,7 +1595,7 @@
       "versions": [
         {
           "version": "0.9.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "g-ux/g1-interface-tiers.md"
@@ -1626,7 +1626,7 @@
       "versions": [
         {
           "version": "0.9.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "g-ux/g2-plain-language.md"
@@ -1657,7 +1657,7 @@
       "versions": [
         {
           "version": "0.9.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "g-ux/g3-accessibility.md"
