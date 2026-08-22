@@ -120,6 +120,51 @@ The runtime check remains, because a browser may hold a cached older app. A mism
 refuses plainly and says which versions are involved, rather than rendering a page whose
 fields have quietly changed meaning.
 
+## The details two clients must agree on
+
+A requirement that states an obligation without stating its mechanism gets two
+implementations that both satisfy it and cannot talk to the same server. These are
+the particulars, fixed so that no client has to invent them.
+
+### The token
+
+The header is **`X-Lemonfiber-Token`**. The binary prints the token when it starts
+serving, and a client is given it by its caller — there is no discovery, no file to
+read, and no default.
+
+### The address
+
+There is **no default port**. The binary chooses a free one unless told otherwise and
+prints the whole address; a client is configured with that address rather than
+assembling one.
+
+A host name is accepted only if it resolves to a loopback address. Refusing the word
+`localhost` outright is the wrong trade: it is what an operator types and what a
+printed address may contain. Refusing a name that resolves *off* loopback is the
+protection that matters, and resolving before connecting is what provides it.
+
+### The heartbeat
+
+The server emits a comment line at least every **15 seconds** when nothing else has
+been sent. A client treats the stream as broken once **twice** that has passed in
+silence, which tolerates one missed beat without pretending a dead connection is a
+quiet one.
+
+### Resumption
+
+Every event carries an `id`. A client resuming sends the last one it saw as
+`Last-Event-ID`, and the server replays from after it where it can, or restarts the
+stream where it cannot. Either way everything the client still holds from before the
+gap is stale until replaced — the resumption mechanism does not change what is
+current, only what is retransmitted.
+
+### The payload's type
+
+`data` differs by `kind`, so a client exposes it **typed by its kind** rather than as
+an untyped value. Generated types make this ordinary rather than laborious: the kind
+is the discriminator, and an untyped payload on the public surface means the
+generation has not been used.
+
 ## Requirements
 
 | ID | Requirement |
@@ -137,6 +182,11 @@ fields have quietly changed meaning.
 | **ARCH-R56** | The contract artefact MUST be generated from the types the server serialises, never hand-written. |
 | **ARCH-R57** | Regenerating the contract artefact MUST produce no diff, and CI MUST fail if it does. |
 | **ARCH-R58** | An SDK's contract types MUST be generated from the artefact; hand-written response shapes MUST NOT be used. |
+| **ARCH-R59** | The per-run token MUST be sent in the `X-Lemonfiber-Token` header. |
+| **ARCH-R60** | A client MUST refuse a base address that does not resolve to a loopback address, and MUST NOT refuse a loopback address for being named rather than numeric. |
+| **ARCH-R61** | The event stream MUST emit a heartbeat at least every 15 seconds, and a client MUST treat twice that in silence as a broken stream. |
+| **ARCH-R62** | Every event MUST carry an `id`, and a resuming client MUST send the last one it saw as `Last-Event-ID`. |
+| **ARCH-R63** | A client MUST expose a payload typed by its `kind`, never as an untyped value. |
 
 ## Shapes are generated; semantics are not
 
