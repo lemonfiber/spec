@@ -148,7 +148,7 @@ honest; a padded one is not:
 | Capped check | Why | Rises when |
 |--------------|-----|-----------|
 | Code-Review, Contributors | One maintainer, who cannot review their own PRs | A second maintainer joins and PRs are reviewed before merge |
-| Signed-Releases | Eight pre-releases exist, and each carries checksums but no signature | [`L1-R2`](../10-functional/features/l-release/l1-release-engineering.md) lands at 1.0.0 — every artifact carrying a verifiable signature, with `L1-R4` and `L1-R5` obliging an installer to check it and refuse what does not verify (`Q-R44`, [OPS-R20](../70-operations/releasing.md)) |
+| Signed-Releases | The artifacts **are** attested — `actions/attest` runs on each build and `gh attestation verify` succeeds against every published one — but Scorecard reads the release's assets, and an attestation is not one; it lives in GitHub's attestation store | Provenance appears beside the artifacts, or the check learns to ask the store. [`L1-R2`](../10-functional/features/l-release/l1-release-engineering.md) obliges a verifiable signature at 1.0.0, with `L1-R4` and `L1-R5` obliging an installer to check it (`Q-R44`, [OPS-R20](../70-operations/releasing.md)) |
 | Packaging | Pre-release, and the shell installer is the only one published | The tap publish returns at 1.0.0 (`L1-R3`), which waits on a tap token, alongside the PowerShell installer and a Windows target |
 | CII-Best-Practices | The badge is a manual registration | Registered at public launch |
 | License | Hippocratic 3.0 is deliberately **not** OSI-approved, so Scorecard may not recognise it | Not a defect — an accepted trade-off ([licence rationale](../90-appendix/license-rationale.md)) |
