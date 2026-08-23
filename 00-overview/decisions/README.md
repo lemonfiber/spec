@@ -33,6 +33,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0012](0012-web-assets-embedded-at-build-time.md) | The web surface ships inside the binary, as a pinned submodule | Proposed |
 | [0013](0013-an-sdk-owns-the-api-client.md) | The API gets an SDK, and the SDK gets its own repo | Proposed |
 | [0014](0014-one-generated-contract-for-every-sdk.md) | Every SDK generates its types from one artefact the server emits | Proposed |
+| [0015](0015-docs-site-renders-what-it-does-not-own.md) | The documentation site renders content it does not own | Proposed |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

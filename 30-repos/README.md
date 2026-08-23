@@ -23,6 +23,7 @@ flowchart TD
         tap[homebrew-tap<br/>generated formula]
         brand[brand<br/>design tokens]
         site[website<br/>the public frontpage]
+        docs[website-docs<br/>the documentation site]
     end
 
     stack -->|submodule, pinned| lemonfiber
@@ -32,6 +33,8 @@ flowchart TD
     lemonfiber -->|contract artefact| sdkphp
     lemonfiber -->|release CI generates| tap
     brand -->|npm, pinned| site
+    lemonfiber -->|docs submodule, pinned| docs
+    brand -->|docs submodule, pinned| docs
     spec -.->|governs all| impl
 ```
 
@@ -44,6 +47,7 @@ flowchart TD
 | `media-stack` | [media-stack.md](media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website` | [website.md](website.md) | Astro | The org is the motor; roadmap read, not written |
+| `website-docs` | [website-docs.md](website-docs.md) | Astro | It renders; it does not own — every page pinned to the repo that wrote it |
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 
 ## The `REPO-R` namespace
@@ -62,6 +66,11 @@ independently; the pin says exactly which stack a given binary ships
 **`lemonfiber` → `homebrew-tap` (generation).** `lemonfiber`'s release CI regenerates the
 formula. The tap is downstream of every `lemonfiber` release and is otherwise inert.
 
+**Every repo → `website-docs` (submodules).** The documentation site shows each repo's
+own `.docs/`, README and policy files, pinned to an exact revision and rendered rather
+than copied ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
+The specification is the exception: it is linked to its mdBook, not mirrored.
+
 **Everything ← `spec` (governance).** No change to any of them lands without
 citing this repository ([50-governance](../50-governance/)).
 
@@ -79,6 +88,8 @@ and hand-write only behaviour ([ADR-0014](../00-overview/decisions/0014-one-gene
   Homebrew requires a repo of that name.
 - **`website`** — the org is the motor. Roadmap and status are read from the org
   at build time, never hand-authored, so the page cannot drift from reality.
+- **`website-docs`** — it renders; it does not own. Every page is another repo's
+  file at a revision the site names, so a wrong sentence is fixed where it was written.
 
 ## Related
 

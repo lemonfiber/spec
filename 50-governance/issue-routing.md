@@ -8,7 +8,7 @@ Which repository an issue belongs in, and how it gets there.
 
 ## The problem
 
-Ten repos, and a reporter who reasonably doesn't know the split. Someone whose
+Eleven repos, and a reporter who reasonably doesn't know the split. Someone whose
 VPN check reports a leak files against `lemonfiber` — but if the check is behaving as
 specified and the *specification* is wrong, the issue belongs here.
 
