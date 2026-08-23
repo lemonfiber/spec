@@ -145,6 +145,31 @@ What stays written is what generation cannot say — what an exit code means, an
 command line must be able to do at all. Shapes are generated, obligations are written,
 and [lemonfiber-reference](../30-repos/lemonfiber-reference.md) holds the second half.
 
+## The error-code reference is generated
+
+The same argument reaches past the command line. A code is the stable half of a
+problem — one token, never recycled, and the thing an operator searches for — so the
+page listing what each one means is where that search lands, and a page that claims to
+list every code is making a promise about the crates rather than about itself.
+
+A hand-written list of them cannot keep that promise. Codes are declared beside the
+code that raises them rather than in a central table, which is deliberate: a code and
+its meaning move together, and no release can quietly recycle a number. It also means
+there is nothing to read them off. So a code added beside what raises it costs nothing
+and breaks nothing, and the list goes on saying it is complete while it is not.
+
+So the inventory is read from the declarations themselves — every code the crates
+declare outside their tests — and emitted sorted into an artefact committed beside
+them; a test compares the two, and the generator and the test read through the same
+eyes so neither can be right about a list the other is wrong about. A declaration the
+reader cannot account for fails the build rather than being dropped from the list
+silently, which is the only failure that would make the artefact lie in the direction
+that matters.
+
+What stays written is what generation cannot say: what a code means, and what to do
+about it. Generation fixes the boundary of that document; the words inside it are a
+person's.
+
 ## Ports and adapters
 
 Everything outside the process — the Docker daemon, service HTTP APIs, spawned
@@ -302,6 +327,7 @@ the server runs only when asked (`G1-R5`).
 | **ARCH-R44** | The ports MUST live in a crate below `lemonfiber-core`, depending on no other crate of the project except `lemonfiber-manifest`. |
 | **ARCH-R45** | Test fakes for the ports MUST have a single home reachable from both in-source and integration tests, and that home MUST NOT depend on `lemonfiber-core`. |
 | **ARCH-R68** | The command reference MUST be generated from the types the binary parses and MUST NOT be written by hand; CI MUST fail when the committed artefact and those types disagree. |
+| **ARCH-R69** | The error-code reference MUST be generated from the codes the crates declare and MUST NOT be written by hand; CI MUST fail when the committed artefact and those declarations disagree, or when a declaration cannot be enumerated. |
 
 ## Related
 
