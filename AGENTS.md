@@ -25,9 +25,9 @@ the whole system explained in five minutes.
   withdrawn one. Mark withdrawn ones withdrawn in place.
 - A behavioural change is a new/edited requirement; a contested decision is a new
   **ADR** (immutable — supersede, never edit).
-- Identifiers live in six namespaces: feature (`A2-R4`), `GOV-R`, `ARCH-R`,
-  `REPO-R`, `Q-R`, `DES-R`. They belong in commit messages and PR bodies — **never
-  in code comments** (`GOV-R6`).
+- Identifiers live in seven namespaces: feature (`A2-R4`), `GOV-R`, `ARCH-R`,
+  `REPO-R`, `Q-R`, `DES-R`, `OPS-R`. They belong in commit messages and PR bodies —
+  **never in code comments** (`GOV-R6`).
 
 ## Before you commit
 

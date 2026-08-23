@@ -186,10 +186,10 @@ let port = tunnel.forwarded_port().await?;
 
 ```rust
 // ✓ M7, J4 — one-line summary plus a link out
-/// Re-reads the tunnel's currently forwarded port.
+/// The Compose invocation the named form resolves to.
 ///
-/// See [port lifecycle](../.docs/architecture/vpn-port-forwarding.md).
-pub async fn forwarded_port(&self) -> Result<Option<u16>> {
+/// See [form closure](../.docs/architecture/form-closure.md).
+pub fn invocation(&self, form: &Form) -> Invocation {
 ```
 
 ```rust
