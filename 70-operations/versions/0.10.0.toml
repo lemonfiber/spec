@@ -1,6 +1,6 @@
 # The front door and what guards it — the web UI's security and binding policy, the entry surface, and the privacy stance.
 #
-# 40 goals, seeded from the roadmap milestone this version serves;
+# 62 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
 # C6-R1, C6-R3, C6-R6, C6-R10 and C6-R12 moved to 0.9.0 (ADR-0011).
@@ -51,6 +51,28 @@ goals   = [
     "G8-R12",
     "G8-R13",
     "G8-R14",
+    "ARCH-R46",
+    "ARCH-R47",
+    "ARCH-R48",
+    "ARCH-R49",
+    "ARCH-R50",
+    "ARCH-R51",
+    "ARCH-R52",
+    "ARCH-R53",
+    "ARCH-R54",
+    "ARCH-R55",
+    "ARCH-R56",
+    "ARCH-R57",
+    "ARCH-R58",
+    "ARCH-R59",
+    "ARCH-R60",
+    "ARCH-R61",
+    "ARCH-R62",
+    "ARCH-R63",
+    "ARCH-R64",
+    "ARCH-R65",
+    "ARCH-R66",
+    "ARCH-R67",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
