@@ -26,12 +26,38 @@ different key order.
 |------|-----------|------|
 | [markdownlint.jsonc](markdownlint.jsonc) | each repo's `.markdownlint.jsonc` | Byte-identical, key order included |
 | [typos.toml](typos.toml) | each repo's `typos.toml` | Every entry present; a repo may add more |
+| [hooks/pre-push](hooks/pre-push) | each repo's `.githooks/pre-push` | Byte-identical, where a repo has adopted it |
 | [assets.sha256](assets.sha256) | — | Digests of the brand assets repos carry copies of |
 
 The two configs differ in kind deliberately. A markdown rule that one repo needs
 costs the others nothing, so one file serves everybody. A spelling allowance is
 about a specific tree — the site excludes its Dutch translations, this repo
 allows `UPnP` — so the shared file is a floor rather than a copy.
+
+## The pre-push hook
+
+Twice, a `git checkout` that failed silently left a shell on the trunk, and the
+push that followed sent the trunk over a feature branch — deleting its commits
+and closing its pull request. Neither time was the mistake visible while it
+happened: every command succeeded on its own terms, `git rebase` correctly
+reported "up to date", and the push was a legitimate force-push to a branch that
+legitimately existed.
+
+The hook asks the one question that sequence never did — does what is being
+pushed differ from the trunk at all — and refuses a push straight to `main`
+besides. It permits every ordinary force-push, because a rebased branch is still
+ahead of the trunk; only one that has been *replaced* by the trunk is not.
+
+It is a copy rather than a reference because git reads hooks from the tree it is
+given, the same reason the lint configs are copied. Turn it on once per clone:
+
+```sh
+just hooks    # git config core.hooksPath .githooks
+```
+
+Adoption is per repo and the check below is conditional, so a repo without a copy
+is not failed for it — but a repo that carries one must carry the current one. A
+guard that has quietly drifted is worse than none, because it is trusted.
 
 ## What enforces it
 
