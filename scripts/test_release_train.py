@@ -155,7 +155,7 @@ class SetStatusTests(Workspace):
     def test_main_status_pins_and_missing(self):
         self.manifest("0.1.0")
         code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
-                                          "--pin", "media-stack=abc"])
+                                          "--pin", "lemonfiber-media-stack=abc"])
         self.assertEqual(code, 0)
         self.assertIn('status  = "released"', out)
         self.assertIn("[pins]", out)

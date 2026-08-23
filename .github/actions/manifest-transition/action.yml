@@ -15,7 +15,7 @@ inputs:
     description: New status (staged | releasable | released | yanked).
     required: true
   pins:
-    description: Space-separated name=sha pairs to embed, e.g. "media-stack=abc123".
+    description: Space-separated name=sha pairs to embed, e.g. "lemonfiber-media-stack=abc123".
     required: false
     default: ""
   token:

@@ -11,11 +11,11 @@ and finalised by `execute-version`.
 version = "0.2.0"         # the release this manifest describes; matches the tag v0.2.0
 epoch   = "v1"            # the epoch this version belongs to
 status  = "staged"        # planned → staged → releasable → released → yanked
-repos   = ["lemonfiber", "media-stack"]   # streams this version cuts; never "brand"
+repos   = ["lemonfiber", "lemonfiber-media-stack"]   # streams this version cuts; never "brand"
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs (OPS-R30)
 
 [pins]                    # written at execute (OPS-R35); absent while staged
-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"
+lemonfiber-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"
 ```
 
 | Field | Meaning |

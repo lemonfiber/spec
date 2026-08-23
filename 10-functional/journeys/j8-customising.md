@@ -10,7 +10,7 @@
 ## The journey
 
 ```
-$ git clone https://github.com/lemonfiber/media-stack ~/dev/media-stack
+$ git clone https://github.com/lemonfiber/lemonfiber-media-stack ~/dev/media-stack
 $ vim ~/dev/media-stack/compose.yml        # add a service
 $ vim ~/dev/media-stack/stack.toml         # declare it
 $ lemonfiber up tv --stack-dir ~/dev/media-stack
