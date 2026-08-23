@@ -146,6 +146,12 @@ precisely so it can be argued with, and changing it is itself a spec PR
 What isn't available is quietly ignoring it, because then the rule stops meaning
 anything and the drift it prevents starts happening again.
 
+## Questions
+
+Ask on [Discord](https://discord.nightworks.io), or open an issue. If you're not
+sure which repo an issue belongs in, file it anywhere — routing is a maintainer's
+job rather than a reporter's (**GOV-R25**).
+
 ## Related
 
 - [change-lifecycle.md](change-lifecycle.md) — the full flow

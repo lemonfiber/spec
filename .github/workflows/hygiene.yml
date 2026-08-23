@@ -1,4 +1,4 @@
-# Reusable hygiene checks: workflow lint, spelling, links, markdown.
+# Reusable hygiene checks: workflow lint, spelling, links, invite codes, markdown.
 # Called by each repo:  uses: lemonfiber/spec/.github/workflows/hygiene.yml@main
 # One definition, no drift (Q-R56).
 name: hygiene
@@ -38,8 +38,35 @@ jobs:
       - name: lychee link check
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
-          args: "--no-progress --accept 200,206,429 --exclude discord.gg ."
+          args: "--no-progress --accept 200,206,429 ."
           fail: true
+
+  invite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The escaped dots in INVITE mean this workflow does not match its own text.
+      - name: The community is addressed by name, not by invite code
+        env:
+          INVITE: 'discord\.gg/|discord(app)?\.com/invite/'
+        run: |
+          rc=0
+          git grep -nIE "$INVITE" -- . || rc=$?
+          case "$rc" in
+            0)
+              echo "::error::Address the community as https://discord.nightworks.io (OPS-R56). An invite code can be revoked, and every published link carrying it dies at once."
+              exit 1
+              ;;
+            1)
+              echo "no invite codes in tracked files"
+              ;;
+            *)
+              echo "::error::git grep failed with rc $rc"
+              exit 1
+              ;;
+          esac
 
   markdown:
     runs-on: ubuntu-latest

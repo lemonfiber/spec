@@ -134,9 +134,10 @@ is one of the three audiences the project is designed around.
 
 ### Who makes it?
 
-NightWorks.io, with a community on Discord. It is maintained in the open: the
-specification, the roadmap and the implementation status are all public, and the
-website is generated from them rather than written separately.
+NightWorks.io, with a community on [Discord](https://discord.nightworks.io). It
+is maintained in the open: the specification, the roadmap and the implementation
+status are all public, and the website is generated from them rather than
+written separately.
 
 ## Requirements
 

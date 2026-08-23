@@ -31,6 +31,29 @@ channel. That also makes each release a place to discuss it. `#build-log` and
 `#awaiting-maintainer-action` stay plain text channels; they pass no thread name
 and post normally.
 
+## The public address
+
+The channels above are how the project talks outward. The way *in* is a single
+address — <https://discord.nightworks.io> — a redirect NightWorks controls, and
+the only form any published link takes.
+
+An invite code is not a stable identifier. It can expire, be revoked, or be
+regenerated, and when it is, every link carrying it dies at once: in READMEs, in
+forks, in release notes already published, in repository metadata nobody thinks
+to re-check. The code itself is fine. Publishing it is what makes it fragile.
+
+The redirect moves that fragility somewhere it can be repaired. The invite code
+then exists in exactly one place — whatever the redirect resolves to — and
+replacing it is one edit rather than a sweep of every repository. This has
+already failed once here: five repositories carried a `homepageUrl` pointing at a
+superseded invite long after the documented link had moved on, because metadata
+is not where anyone looks when they update a link.
+
+A link checker cannot catch this. Discord answers *any* invite path with 200,
+including codes that never existed, so a dead invite is indistinguishable from a
+live one over HTTP. The check is therefore on the text rather than the response:
+the shared `hygiene` workflow refuses a tracked file containing an invite code.
+
 ## Secrets, safety, and forks
 
 The webhook URLs are org-level secrets (`--visibility all`). Two rules keep them
@@ -91,6 +114,7 @@ and both review-routing and issue-assignment follow it.
 | **OPS-R27** | Items needing maintainer action MUST post to the private maintainer channel when its webhook is configured. |
 | **OPS-R28** | Every Discord integration MUST be gated on its webhook secret's presence, MUST NOT run in fork-PR context with the secret available, and MUST pass all event-derived text through the environment rather than a shell interpolation. |
 | **OPS-R53** | A notification body over Discord's embed limit MUST be split at line boundaries rather than truncated; where the channel is a Forum, the overflow MUST post as replies within one thread and the role ping MUST ride only the opening message. |
+| **OPS-R56** | Every published reference to the community server — documentation, repository metadata, site data, and issue-template contact links — MUST address it as `https://discord.nightworks.io`, and MUST NOT publish an invite code. CI MUST reject a tracked file containing one. |
 
 ## Related
 
