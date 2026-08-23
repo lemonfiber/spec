@@ -19,6 +19,11 @@ on:
         required: false
         type: string
         default: "a sibling repository changed"
+      site:
+        description: "The repository to rebuild. Named, so a second site calls this rather than copying it."
+        required: false
+        type: string
+        default: website-lemonfiber.app
     secrets:
       RELEASE_APP_KEY:
         description: "Private key of the release App, which is what may reach the website."
@@ -38,7 +43,7 @@ jobs:
           client-id: ${{ vars.RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: website
+          repositories: ${{ inputs.site }}
 
       - name: Ask for a rebuild
         env:
@@ -47,12 +52,13 @@ jobs:
           BECAUSE: ${{ inputs.because }}
           FROM: ${{ github.repository }}
           SHA: ${{ github.sha }}
+          SITE: ${{ inputs.site }}
         run: |
           set -euo pipefail
           # A failure here must not fail the merge that triggered it: the site
           # being a few hours stale is a smaller problem than a red main, and the
           # daily schedule is the backstop either way.
-          if gh api -X POST "repos/${OWNER}/website/dispatches" \
+          if gh api -X POST "repos/${OWNER}/${SITE}/dispatches" \
             -f event_type=rebuild-site \
             -F "client_payload[from]=${FROM}" \
             -F "client_payload[sha]=${SHA}" \
