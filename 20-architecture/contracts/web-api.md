@@ -190,7 +190,7 @@ generation has not been used.
 | **ARCH-R64** | The contract artefact MUST be published with every release, and an SDK MUST vendor it from an exact revision recorded beside the copy. |
 | **ARCH-R65** | Generating an SDK's contract types MUST read the vendored artefact, and MUST NOT reach the network. |
 | **ARCH-R66** | Regenerating an SDK's contract types MUST produce no diff, and CI MUST fail if it does. |
-| **ARCH-R67** | Generation MUST refuse an artefact whose `api_version` the SDK does not implement, and MUST write nothing when it refuses. |
+| **ARCH-R67** | Generation MUST refuse an artefact whose `api_version` the SDK does not implement, naming both versions, and MUST write nothing when it refuses. |
 
 ## Shapes are generated; semantics are not
 
@@ -222,8 +222,9 @@ is what makes the copy verifiable rather than merely present.
 
 Two guards sit either side of the copy. Regenerating from it must produce no diff, so a stale
 generated tree fails CI rather than shipping. And generation refuses an artefact whose
-`api_version` it does not implement, writing nothing when it refuses — types that compile and
-lie are worse than a build that stops.
+`api_version` it does not implement, naming both versions and writing nothing — types that
+compile and lie are worse than a build that stops, and a refusal that does not say which two
+versions disagreed sends somebody looking for what it already knew.
 
 ## Related
 
