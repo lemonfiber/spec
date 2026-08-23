@@ -63,7 +63,31 @@ class Pages(unittest.TestCase):
         self.assertNotIn("60-brand/index.html", gen_redirects.pages(self.root))
 
 
+class Within(unittest.TestCase):
+    def test_a_name_inside_the_directory_resolves(self):
+        with tempfile.TemporaryDirectory() as work:
+            out = pathlib.Path(work)
+            self.assertEqual(
+                gen_redirects.within(out, "a/b.html"), (out / "a" / "b.html").resolve()
+            )
+
+    def test_a_name_that_leaves_the_directory_does_not(self):
+        with tempfile.TemporaryDirectory() as work:
+            self.assertIsNone(gen_redirects.within(pathlib.Path(work), "../out.html"))
+
+
 class Main(unittest.TestCase):
+    def test_it_stops_rather_than_writing_outside_the_output(self):
+        saved = gen_redirects.pages
+        gen_redirects.pages = lambda root: {"../escaped.html": ""}
+        try:
+            with tempfile.TemporaryDirectory() as work:
+                code, _, complaint = run_main([str(pathlib.Path(work) / "redirect")])
+        finally:
+            gen_redirects.pages = saved
+        self.assertEqual(code, 1)
+        self.assertIn("outside", complaint)
+
     def test_it_writes_a_page_that_names_where_the_document_went(self):
         with tempfile.TemporaryDirectory() as work:
             root = pathlib.Path(work) / "spec"

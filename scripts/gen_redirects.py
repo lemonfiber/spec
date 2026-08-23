@@ -81,6 +81,18 @@ def pages(root: pathlib.Path) -> dict[str, str]:
     return found
 
 
+def within(directory: pathlib.Path, name: str) -> pathlib.Path | None:
+    """The path ``name`` names inside ``directory``, or None if it leaves it.
+
+    Every name comes from this repository's own tree, so nothing should ever
+    leave; a name that does is a fault worth stopping on rather than a file
+    worth writing somewhere else.
+    """
+    root = directory.resolve()
+    target = (root / name).resolve()
+    return target if target.is_relative_to(root) else None
+
+
 def main() -> int:
     if len(sys.argv) != 2:
         print("usage: gen_redirects.py <output directory>", file=sys.stderr)
@@ -90,7 +102,10 @@ def main() -> int:
     written = 0
     for name, route in pages(root).items():
         target = f"{SITE}{route}/" if route else SITE
-        page = out / name
+        page = within(out, name)
+        if page is None:
+            print(f"::error::{name} would be written outside {out}", file=sys.stderr)
+            return 1
         page.parent.mkdir(parents=True, exist_ok=True)
         page.write_text(
             PAGE.format(target=html.escape(target), shown=html.escape(target)),
