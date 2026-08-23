@@ -5,6 +5,11 @@ default:
 # Run every check CI runs.
 ci: integrity shared typos links
 
+# Turn on the repository's own git hooks. Once per clone.
+hooks:
+    git config core.hooksPath .githooks
+    @echo "hooks on: .githooks/pre-push"
+
 # The lint configs and brand assets here match the canonical copies in shared/.
 shared:
     python3 scripts/check_shared_files.py --canonical . --repo lemonfiber/spec

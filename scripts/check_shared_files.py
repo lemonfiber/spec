@@ -89,6 +89,22 @@ def assets(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str]:
     return problems
 
 
+def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
+    """The pre-push hook, where a repo has adopted it.
+
+    Conditional rather than required: a repo that has not enabled hooks yet is
+    not failed for it, but one carrying a copy must carry the current one — a
+    guard that has quietly drifted is worse than none, because it is trusted.
+    """
+    got = repo / ".githooks" / "pre-push"
+    if not got.is_file():
+        return []
+    want = canonical / "shared" / "hooks" / "pre-push"
+    if got.read_text(encoding="utf-8") != want.read_text(encoding="utf-8"):
+        return [f".githooks/pre-push differs from the canonical copy; replace it with {want}"]
+    return []
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--canonical", default=".", help="path to a lemonfiber/spec checkout")
@@ -108,6 +124,7 @@ def main() -> int:
         markdownlint(repo, canonical)
         + typos(repo, canonical)
         + assets(repo, canonical, name)
+        + hooks(repo, canonical)
     )
     if problems:
         for problem in problems:
