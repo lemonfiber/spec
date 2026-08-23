@@ -17,13 +17,17 @@ policy that every repo inherits. All of it is under review discipline in the rep
 owns it. A site that needs it *shown* is a different problem from a site that needs it
 *written*.
 
-**The specification already has a home.** It is rendered from this repo by mdBook to
-[lemonfiber.github.io/spec](https://lemonfiber.github.io/spec/), with `integrity.py`
-enforcing that every identifier resolves and every link works. Nothing about a second
-renderer would make the spec more canonical, and the org has already learned what a
-second renderer costs: the marketing site's `/spec` portal is being retired and
-redirected to the mdBook, because two renderings of one document are two things that
-can be stale and only one of them is checked.
+**The specification is the largest thing the org has written, and it is homeless on
+the web.** It is authored here and checked here — `integrity.py` enforces that every
+identifier resolves and every link works — but it has been *published* three times: by
+mdBook to `lemonfiber.github.io/spec`, by a bespoke portal on the marketing site, and
+by neither in a place a reader looking for documentation would think to go. Three
+renderings of one document are three things that can be stale, and a reader who
+searches the documentation for a requirement finds nothing, because the requirement is
+on a different site with a different search box.
+
+The answer is not a fourth renderer. It is **one**: authorship and checking stay here,
+publication moves to the site whose whole job is publication.
 
 **The org has settled this shape once already, in both directions.**
 [ADR-0005](0005-embedded-stack-assets.md) pins the stack as a submodule at a tag.
@@ -61,7 +65,7 @@ symlink. No build fetches anything.**
 | Brand rules | `brand/.docs/` | submodule, pinned; symlinked |
 | Each repo's README | that repo | submodule, pinned; symlinked |
 | Conduct, security, contributing | org `.github` | submodule, pinned; symlinked |
-| **The specification** | `spec` | **not mirrored** — linked to the mdBook |
+| **The specification** | `spec` | submodule, pinned; symlinked |
 | Navigation, landing pages, task guides | here | authored, from the message catalogue |
 
 Four consequences follow, and each one answers an objection.
@@ -77,8 +81,11 @@ generation time for the analogous SDK case, and the reason transfers unchanged: 
 build that reaches out fails differently on a bad day, and cannot be reproduced from a
 tag in a year's time.
 
-**The spec is linked, never copied.** The mdBook stays the specification's single
-home. The docs site sends a reader there and does not pretend to be it.
+**The spec is rendered here, and nowhere else.** `spec` stays the specification's
+single *home* — it is authored there, its identifiers are checked there, and an edit
+link points there. What moves is publication: mdBook retires, the marketing portal
+retires, and both of their URLs redirect to this site. Rendering is not owning, which
+is the property this whole decision turns on.
 
 **Prose is versioned from the first release.** Starlight's versioning is
 configuration, not a rewrite, but retrofitting it means renaming every published URL —
@@ -124,11 +131,14 @@ the instructions that match the release they installed. One repo cannot honour b
 rules, and Starlight's sidebar, search and versioning would have to be rebuilt inside a
 bespoke site that has no use for them.
 
-**Mirror the spec as well, so everything is in one place.** Appealing, and the reason
-the marketing site grew a `/spec` portal in the first place. Rejected because that
-portal is being retired for cause: the spec's identifiers, integrity checks and edit
-links are enforced in `spec`, and a second rendering inherits none of them while
-inheriting every opportunity to disagree.
+**Keep mdBook and link out to the spec.** One less mirror, and the spec's published
+site keeps the checks that surround it. Rejected because linking out is what the
+marketing site's `/spec` portal was built to avoid, and for the reason it was: a
+reader in the documentation searching for `B2-R1` gets nothing, because the
+specification is not in this site's index. The link also leaves the org publishing
+from two domains with two visual languages, and the one the reader was sent to is the
+one nobody styled. Retiring mdBook removes a renderer rather than adding one — the
+count of published renderings goes from three to one.
 
 ## Consequences
 
@@ -147,6 +157,15 @@ inheriting every opportunity to disagree.
 - **The site can never answer a question no repo has answered.** A gap is fixed
   upstream, in the repo that owns the subject, which is slower and is the behaviour
   worth buying.
+- **A rendered page is not a checked page.** `integrity.py` still runs in `spec`, on
+  `spec`, and is what says an identifier resolves. The site renders whatever revision
+  it pinned, including a bad one — which is why the pin is a reviewed diff.
+- **The specification's edit link leaves the site.** A mirrored page is not editable
+  where it is displayed, so its edit link points at the repository that owns it and
+  its footer names the revision it was rendered from.
+- **Two URL sets have to keep working.** `lemonfiber.github.io/spec/…` and the
+  marketing site's `/spec/…` were both indexed. Retiring a renderer means redirecting
+  its URLs, not deleting them.
 
 ## Revisit if
 
@@ -157,3 +176,6 @@ inheriting every opportunity to disagree.
   move fast enough that a rendering closer to a branch tip is worth its cost.
 - Starlight stops accepting symlinked sources in content collections, which would make
   the mechanism, rather than the decision, the thing to redesign.
+- Rendering the specification here starts changing how it is *written* — pages shaped
+  for a documentation reader rather than for a normative document. That would mean the
+  two audiences need two treatments, and the spec should say so.

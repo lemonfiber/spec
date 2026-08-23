@@ -80,7 +80,8 @@ formula. The tap is downstream of every `lemonfiber` release and is otherwise in
 **Every repo → `website-docs.lemonfiber.app` (submodules).** The documentation
 site shows each repo's own `.docs/`, README and policy files, pinned to an exact
 revision and rendered rather than copied ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
-The specification is the exception: it is linked to its mdBook, not mirrored.
+The specification is mirrored the same way, and is published from there rather than
+from a book of its own.
 
 **Everything ← `spec` (governance).** No change to any of them lands without
 citing this repository ([50-governance](../50-governance/)).

@@ -44,7 +44,7 @@ Every tool below was chosen to work within that constraint.
 | **Task runner** | **just** | OSS | all repos |
 | **Changelog** | **git-cliff** | OSS | lemonfiber, brand, lemonfiber-media-stack |
 | **Release binaries** | **cargo-dist** | OSS | lemonfiber |
-| **Docs site** | **mdBook** | OSS | spec |
+| **Docs site** | **Astro Starlight** | OSS | website-docs.lemonfiber.app |
 | **Web lint** | **ESLint** (`typescript-eslint`) | OSS | lemonfiber-web, sdk-ts |
 | **Web format** | **Prettier** | OSS | lemonfiber-web, sdk-ts |
 | **Web accessibility** | **axe-core / pa11y** | OSS | lemonfiber-web |
@@ -99,12 +99,16 @@ that mirror CI locally, so a contributor runs the same commands the pipeline doe
 It matches the CLI's own ergonomics: discoverable, self-documenting, no hidden
 make magic.
 
-### mdBook — the docs site from the spec
+### Astro Starlight — one docs site for the whole org
 
-[Roadmap M6](../00-overview/roadmap.md#m6--release-engineering) calls for a docs
-site generated from this spec. mdBook (Rust, OSS) renders the Markdown to a static
-site, deployed to GitHub Pages — free for public repos. `lychee` link-checks it,
-so the published site never ships a broken link.
+[Roadmap M6](../00-overview/roadmap.md#m6--release-engineering) calls for a published
+docs site. It is `website-docs.lemonfiber.app`, and it renders this specification
+alongside each repo's own documentation rather than restating either
+([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
+Starlight (Astro, OSS) builds it to a static site on GitHub Pages — free for public
+repos — with Pagefind search that runs in the browser and no third-party origin.
+`lychee` and `starlight-links-validator` check every link, authored and mirrored, so
+the published site never ships a broken one.
 
 ### git-cliff — changelog from history
 
@@ -176,7 +180,7 @@ Both are one-time and free. Everything else runs from committed config.
 | **Q-R55** | Dependency-update automation MUST emit the `Spec: GOV-R12` trailer so its PRs pass `spec-check`. |
 | **Q-R56** | Shared CI MUST be reusable workflows sourced from the spec repo, not copied per repo. |
 | **Q-R57** | Pre-commit hooks MUST mirror CI and MUST NOT enforce anything CI does not. |
-| **Q-R58** | The docs site MUST be generated from the spec and link-checked before publish. |
+| **Q-R58** | The docs site MUST render the specification from a pinned revision of `spec`, MUST link-check every page it publishes, authored and mirrored, and MUST be the only published rendering of the specification. |
 | **Q-R59** | A public supply-chain posture check (OpenSSF Scorecard) MUST run on each repo's default branch. |
 | **Q-R60** | Any tool requiring a secret or external app MUST be documented as a one-time manual setup step. |
 
