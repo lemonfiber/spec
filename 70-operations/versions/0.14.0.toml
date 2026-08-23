@@ -1,6 +1,6 @@
 # Keeping it running — stack updates, self-update, backup and restore, rollback, and the change journal.
 #
-# 56 goals, seeded from the roadmap milestone this version serves;
+# 57 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.14.0"
 epoch   = "v1"
@@ -38,6 +38,7 @@ goals   = [
     "E2-R13",
     "E2-R14",
     "E3-R5",
+    "E3-R15",
     "E4-R1",
     "E4-R2",
     "E4-R3",

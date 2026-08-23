@@ -116,7 +116,7 @@
       "status": "planned",
       "milestone": "M9",
       "closes_epoch": null,
-      "goals": 56
+      "goals": 57
     },
     {
       "version": "0.15.0",
