@@ -94,16 +94,44 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          stack="checkouts/lemonfiber-media-stack/stack.toml"
-          if [ -f "$stack" ]; then
-            mincli=$(grep -m1 -E '^min_cli_version' "$stack" | sed -E 's/.*"(.*)".*/\1/')
-            # The binary version must be >= the stack's declared minimum.
-            if [ "$(printf '%s\n%s\n' "$mincli" "$VERSION" | sort -V | head -1)" != "$mincli" ]; then
-              echo "::error::stack needs cli >= ${mincli}, releasing ${VERSION}"; exit 1
-            fi
-            echo "compat ok: binary ${VERSION} >= min_cli ${mincli}"
+          # What ships is the submodule the binary embeds, not whatever the
+          # stack repository's default branch happens to hold. The submodule is
+          # always present, so this cannot pass by finding nothing.
+          git -C checkouts/lemonfiber submodule update --init --depth 1 assets/media-stack
+          stack="checkouts/lemonfiber/assets/media-stack/stack.toml"
+          if [ ! -f "$stack" ]; then
+            echo "::error::the embedded stack carries no stack.toml"
+            exit 1
           fi
-          echo "STACK_PIN=$(git -C checkouts/lemonfiber-media-stack rev-parse HEAD)" >> "$GITHUB_ENV"
+
+          mincli=$(sed -nE 's/^min_cli_version[[:space:]]*=[[:space:]]*"(.*)".*/\1/p' "$stack" | head -1)
+          schema=$(sed -nE 's/^schema_version[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' "$stack" | head -1)
+          if [ -z "$mincli" ] || [ -z "$schema" ]; then
+            echo "::error::the embedded stack declares no min_cli_version or schema_version"
+            exit 1
+          fi
+
+          # The binary version must be >= the stack's declared minimum.
+          if [ "$(printf '%s\n%s\n' "$mincli" "$VERSION" | sort -V | head -1)" != "$mincli" ]; then
+            echo "::error::stack needs cli >= ${mincli}, releasing ${VERSION}"
+            exit 1
+          fi
+
+          # And the binary must read the schema the stack is written in.
+          reads=$(sed -nE 's/^pub const SCHEMA_VERSION: u32 = ([0-9]+);.*/\1/p' \
+            checkouts/lemonfiber/crates/lemonfiber-manifest/src/lib.rs | head -1)
+          if [ -z "$reads" ]; then
+            echo "::error::could not read the binary's schema version"
+            exit 1
+          fi
+          if [ "$schema" != "$reads" ]; then
+            echo "::error::stack is schema ${schema}, binary reads ${reads}"
+            exit 1
+          fi
+
+          echo "compat ok: binary ${VERSION} >= min_cli ${mincli}, schema ${schema}"
+          pin=$(git -C checkouts/lemonfiber/assets/media-stack rev-parse HEAD)
+          echo "STACK_PIN=${pin}" >> "$GITHUB_ENV"
       - name: Check for release blockers (OPS-R44)
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
