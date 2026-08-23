@@ -26,7 +26,8 @@ lemonfiber/
 │   │   ├── src/
 │   │   │   ├── cli/            clap: subcommands, flags, exit codes
 │   │   │   ├── tui/            ratatui: dashboard, wizard, logs, doctor
-│   │   │   ├── web/            axum: JSON API + embedded assets
+│   │   │   ├── api/            axum: the JSON endpoints
+│   │   │   ├── embedded/       serves the built frontend from the binary
 │   │   │   └── main.rs         surface selection
 │   │   └── web-ui/             frontend source; dist/ embedded
 │   ├── lemonfiber-core/        lib — all logic, no UI

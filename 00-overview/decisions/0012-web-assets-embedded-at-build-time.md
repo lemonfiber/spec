@@ -45,7 +45,7 @@ lemonfiber/
 ├── assets/media-stack/     # submodule, pinned      (ADR-0005)
 ├── assets/web/             # submodule, pinned      (this ADR)
 ├── build.rs                # validates schema_version AND api_version, at COMPILE TIME
-└── src/web/embedded.rs     # include_dir!("assets/web")
+└── src/embedded/           # include_dir!("assets/web")
 ```
 
 Three consequences follow, and each one answers an objection:

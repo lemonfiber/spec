@@ -19,7 +19,8 @@ crates/
 ├── lemonfiber/              bin — the only crate that knows about UI
 │   ├── cli/                 clap definitions, non-interactive paths
 │   ├── tui/                 ratatui: dashboard, wizard, logs, doctor views
-│   ├── web/                 JSON API + embedded assets
+│   ├── api/                 axum: the JSON endpoints
+│   ├── embedded/            serves the built frontend from the binary
 │   └── main.rs              surface selection
 │
 ├── lemonfiber-core/         lib — all logic, no UI, no terminal
