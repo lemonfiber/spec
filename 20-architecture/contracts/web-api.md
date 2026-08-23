@@ -165,6 +165,39 @@ an untyped value. Generated types make this ordinary rather than laborious: the 
 is the discriminator, and an untyped payload on the public surface means the
 generation has not been used.
 
+## How an SDK gets the artefact
+
+Generating from the server's types is only half the guarantee. The other half is
+that every SDK generates from the **same** artefact, at a version somebody chose,
+and that nobody can quietly regenerate against something else.
+
+**`lemonfiber` holds it.** `contract/web-api.contract.json` is generated from the
+serialising types and committed. Regenerating produces no diff, or CI fails
+(`ARCH-R57`). Every release publishes it as an asset, so a version of the contract
+is retrievable without cloning a Rust repo.
+
+**An SDK vendors it.** A copy lives in the SDK beside the release tag it came
+from. Two things follow, and both matter:
+
+- **Generation needs no network.** A build that reaches out is a build that fails
+  differently on a bad day, and an SDK that cannot be built offline cannot be
+  built on an air-gapped machine or reproduced from a tag years later.
+- **A contract change arrives as a diff somebody reads.** Vendoring turns "the
+  upstream shape moved" from something discovered at runtime into a reviewable
+  change with a version attached to it.
+
+**Three steps, and only one of them touches the network:**
+
+| Step | What it does |
+|---|---|
+| `contract:sync <tag>` | Fetches that release's artefact and replaces the vendored copy. Deliberate, occasional, and the only networked step. |
+| `contract:generate` | Writes the language's types from the vendored copy. Offline, deterministic, and its output is committed. |
+| CI | Runs `contract:generate` and fails on any diff — the same discipline `lemonfiber` applies to the artefact itself. |
+
+**A version it cannot speak is refused at generation**, not at run time. An SDK
+generating from an artefact whose `api_version` it does not implement would produce
+types that compile and lie; better to stop with both versions named.
+
 ## Requirements
 
 | ID | Requirement |
@@ -187,6 +220,10 @@ generation has not been used.
 | **ARCH-R61** | The event stream MUST emit a heartbeat at least every 15 seconds, and a client MUST treat twice that in silence as a broken stream. |
 | **ARCH-R62** | Every event MUST carry an `id`, and a resuming client MUST send the last one it saw as `Last-Event-ID`. |
 | **ARCH-R63** | A client MUST expose a payload typed by its `kind`, never as an untyped value. |
+| **ARCH-R64** | Every `lemonfiber` release MUST publish the contract artefact as a release asset. |
+| **ARCH-R65** | An SDK MUST vendor the artefact together with the release it came from, and MUST generate its types from the vendored copy without network access. |
+| **ARCH-R66** | An SDK's CI MUST regenerate its types and fail if doing so produces a diff. |
+| **ARCH-R67** | An SDK MUST refuse to generate from an artefact whose `api_version` it does not implement, naming both versions. |
 
 ## Shapes are generated; semantics are not
 
