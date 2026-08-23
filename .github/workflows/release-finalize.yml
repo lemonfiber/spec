@@ -1,11 +1,12 @@
-# Finish a release once its draft is published — OPS-R35, OPS-R45, OPS-R52, OPS-R55.
+# Finish a release once its draft is published — OPS-R35, OPS-R45, OPS-R52,
+# OPS-R55, OPS-R57.
 #
 # `execute-version` tags and stops; the drafts it produces are reviewed and
 # published by a person. This is what happens after that: the manifest records
-# what was actually shipped, the stack commit the release embedded is pinned so
-# the version is reproducible rather than merely named, and the roadmap the
-# website serves is regenerated so the public page and the manifest cannot
-# disagree.
+# what was actually shipped, the day it went out, the stack commit the release
+# embedded is pinned so the version is reproducible rather than merely named, and
+# the roadmap the website serves is regenerated so the public page and the
+# manifest cannot disagree.
 #
 # Until this existed the whole step was manual, and a version left at
 # `releasable` blocks the next one from being staged (OPS-R52) — so forgetting it
@@ -26,6 +27,9 @@ on:
         required: true
       stack_pin:
         description: "The lemonfiber-media-stack commit the release embedded. Read from the tag when omitted."
+        required: false
+      released_on:
+        description: "UTC date the release was published, YYYY-MM-DD. Read from the release when omitted."
         required: false
 
 permissions:
@@ -56,6 +60,7 @@ jobs:
           OWNER: ${{ github.repository_owner }}
           VERSION: ${{ inputs.version || github.event.client_payload.version }}
           PIN: ${{ inputs.stack_pin || github.event.client_payload.stack_pin }}
+          WHEN: ${{ inputs.released_on || github.event.client_payload.released_on }}
         run: |
           set -euo pipefail
           echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
@@ -71,6 +76,17 @@ jobs:
             pin=$(gh api "repos/${OWNER}/lemonfiber/contents/assets/media-stack?ref=v${VERSION}" --jq '.sha')
           fi
           [ -n "$pin" ] || { echo "::error::could not read the embedded stack commit"; exit 1; }
+
+          # The day the release went out, read from the release itself. This runs
+          # on publish, so `published_at` is set and is the moment being recorded;
+          # it is RFC 3339 in UTC, and the manifest keeps the date.
+          when="$WHEN"
+          if [ -z "$when" ]; then
+            when=$(gh api "repos/${OWNER}/lemonfiber/releases/tags/v${VERSION}" --jq '.published_at')
+          fi
+          when="${when%%T*}"
+          printf '%s' "$when" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' \
+            || { echo "::error::could not read the date v${VERSION} was published"; exit 1; }
           # Publishing the same release twice fires this twice. The transition
           # writes only files whose content changed, so a second run would put no
           # commit on the branch and then fail opening a pull request with nothing
@@ -85,6 +101,7 @@ jobs:
           {
             echo "version=${VERSION}"
             echo "pin=${pin}"
+            echo "released_on=${when}"
             echo "recorded=${recorded}"
           } >> "$GITHUB_OUTPUT"
           if [ "$recorded" = true ]; then
@@ -111,6 +128,7 @@ jobs:
           version: ${{ steps.what.outputs.version }}
           status: released
           pins: lemonfiber-media-stack=${{ steps.what.outputs.pin }}
+          released_on: ${{ steps.what.outputs.released_on }}
           token: ${{ steps.token.outputs.token }}
 
       # An open issue about a version should mean something is still owed on it,
