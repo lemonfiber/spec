@@ -126,7 +126,7 @@
       "epoch": "v1",
       "status": "planned",
       "milestone": "M6",
-      "closes_epoch": null,
+      "closes_epoch": "v1",
       "goals": 17
     },
     {

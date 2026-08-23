@@ -6,7 +6,7 @@
 
 ## The rule
 
-Every change to `lemonfiber`, `media-stack` or `homebrew-tap` MUST cite at least one
+Every change to an implementation repo MUST cite at least one
 identifier that exists in this repository on `main` at the time the change merges.
 
 Citable identifiers are:
@@ -54,7 +54,7 @@ pay and large enough to prevent drift accumulating unnoticed.
 
 ## Scope
 
-**In scope:** every commit to `lemonfiber`, `media-stack`, `homebrew-tap`, and this repo.
+**In scope:** every commit to an implementation repo, and to this one.
 
 **In scope but citing `GOV-R`:** dependency bumps, CI configuration, formatting,
 typo fixes, and anything else with no product-behaviour counterpart.

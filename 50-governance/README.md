@@ -4,7 +4,7 @@
 
 How change enters the lemonfiber org, and why the rules are shaped this way.
 
-This section is **binding on all four repos**, including this one. It is not
+This section is **binding on every repo in the org**, including this one. It is not
 advice.
 
 ---

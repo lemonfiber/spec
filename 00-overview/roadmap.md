@@ -76,7 +76,7 @@ nobody does.
 | Repo templates | Issue templates, PR template with the `Spec:` trailer, `SECURITY.md` |
 | `OVERRIDES.md` | Append-only override record, initially empty |
 | Spec-side CI | Duplicate-ID, withdrawn-ID reuse, link resolution, affected-repo declaration |
-| Branch protection | Checks required on all four repos |
+| Branch protection | Checks required on every repo |
 
 **Exit criteria:** a PR citing a non-existent identifier is closed with guidance;
 a PR citing a valid one passes; an override is recorded and opens a tracking

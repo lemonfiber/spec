@@ -4,6 +4,7 @@
 # frozen at stage-version (OPS-R30).
 version = "1.0.0"
 epoch   = "v1"
+closes_epoch = "v1"   # the epoch-completeness gate applies to this one
 milestone = "M6"   # Live TUI
 delivers  = "**The dashboard** — a bare `lemonfiber` opens it. Closes v1."
 status  = "planned"
