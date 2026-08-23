@@ -1,5 +1,10 @@
 {
   "generated_by": "scripts/gen_board.py",
+  "counts": {
+    "features": 68,
+    "requirements": 945,
+    "areas": "A–L"
+  },
   "versions": [
     {
       "version": "0.1.0",

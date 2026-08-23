@@ -5,6 +5,10 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
+**68 features** in areas A–L, **945 requirements**.
+Counted here rather than restated: prose that quotes a number goes stale
+silently, and this file is regenerated from the features themselves.
+
 ## v1 — the product (areas A–G, and L1 to release it)
 
 | ID | Feature | Area | Audience | Status | Ships in |

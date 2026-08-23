@@ -24,12 +24,13 @@ Think of it like an issue tracker that the code is legally bound to, except the
 
 ```
 Area  ─contains─▶  Feature  ─contains─▶  Requirement  ◀─implements─  Code
-(A–K)              (an epic)             (an issue)                  (a PR)
+(A–L)              (an epic)             (an issue)                  (a PR)
 ```
 
 - **Area** — a big theme, a single letter. `A` is getting started, `C` is trust &
   correctness, `H` is ecosystem glue, and so on. Areas `A–G` are the v1 product;
-  `H–K` are the v2 ("ecosystem") additions.
+  `H–K` are the v2 ("ecosystem") additions; `L` is the release engineering that
+  ships each of them.
 - **Feature** — one capability, like an *epic*. `B3` is the live dashboard. Each
   feature is one markdown file with a fixed shape: **Purpose → Behaviour → States
   → Edge cases → Acceptance criteria → Related**.

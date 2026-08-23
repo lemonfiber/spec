@@ -9,12 +9,30 @@ root.
 """
 import json
 import glob
+import re
 import tomllib
 import pathlib
 
 import metafm
 
 FEATDIR = "10-functional/features"
+
+REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.M)
+
+
+def count_requirements(feats):
+    """Requirement rows across the feature files, so the scale is stated once."""
+    total = 0
+    for fm in feats.values():
+        text = pathlib.Path(fm["path"]).read_text(encoding="utf-8")
+        total += len(REQ_DEF.findall(text))
+    return total
+
+
+def area_span(rows):
+    """The first and last area letter in use, as they are written in prose."""
+    areas = sorted({row["area"] for row in rows})
+    return f"{areas[0]}\u2013{areas[-1]}"
 
 
 def _order(fid):
@@ -132,7 +150,7 @@ def build_rows(feats, by_feature):
     return rows
 
 
-def render_board(rows):
+def render_board(rows, counts):
     def ships(row):
         return ", ".join(f"`{v['version']}`" for v in row["versions"]) or "—"
 
@@ -143,6 +161,11 @@ def render_board(rows):
         "",
         "Generated from feature frontmatter and the version manifests by",
         "`scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.",
+        "",
+        f"**{counts['features']} features** in areas {counts['areas']}, "
+        f"**{counts['requirements']} requirements**.",
+        "Counted here rather than restated: prose that quotes a number goes stale",
+        "silently, and this file is regenerated from the features themselves.",
         "",
     ]
     for track, label in (
@@ -169,16 +192,22 @@ def render_board(rows):
 def main():
     feats = load_features()
     rows = build_rows(feats, load_versions())
+    counts = {
+        "features": len(rows),
+        "requirements": count_requirements(feats),
+        "areas": area_span(rows),
+    }
     index = {
         "generated_by": "scripts/gen_board.py",
+        "counts": counts,
         "versions": load_version_list(),
         "features": rows,
     }
     pathlib.Path(f"{FEATDIR}/index.json").write_text(
         json.dumps(index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    pathlib.Path(f"{FEATDIR}/BOARD.md").write_text(render_board(rows), encoding="utf-8")
-    print(f"board: {len(rows)} features -> index.json + BOARD.md")
+    pathlib.Path(f"{FEATDIR}/BOARD.md").write_text(render_board(rows, counts), encoding="utf-8")
+    print(f"board: {counts['features']} features, {counts['requirements']} requirements -> index.json + BOARD.md")
     return 0
 
 
