@@ -25,8 +25,10 @@ One repo cannot honour both rules. Folding this into `website-lemonfiber.app` wo
 also mean rebuilding Starlight's sidebar, search and version switcher inside a bespoke
 site that has no use for them.
 
-It is not folded into `spec` either. The spec is the specification's single home and
-is published from there by mdBook; this site links to it and does not restate it.
+It is not folded into `spec` either. `spec` is where the specification is written and
+checked; this site is where it is read. Publishing it from the repo that authors it
+would mean maintaining a second site, with a second visual language and a second
+search index, for a reader who was already here.
 
 ## The one property to remember
 
@@ -41,10 +43,12 @@ fetched during a build.
 - each repo's `README.md` — its own front door
 - [`.github`](https://github.com/lemonfiber/.github) — conduct, security, contributing
 
-The **specification is not mirrored**. It stays at
-[lemonfiber.github.io/spec](https://lemonfiber.github.io/spec/), where its identifiers
-are checked and its edit links point somewhere real; the site links out to it. This is
-what makes the pages trustworthy: they cannot quietly drift from the repo they
+The **specification is mirrored the same way**, from a pinned revision of
+`spec` — it is the largest body of prose the org has, and a reader
+searching the documentation for a requirement should find it rather than be sent to a
+different domain. It is rendered here and authored there: identifiers are still
+checked by `integrity.py` in `spec`, and a mirrored page's edit link points at `spec`.
+This is what makes the pages trustworthy: they cannot quietly drift from the repo they
 document, because they are that repo's files at a revision the site names on the page.
 
 What *is* written here is the connective tissue — navigation, landing pages, and the
@@ -97,6 +101,8 @@ prose as well as authored prose — this is the only build that sees all of it a
 | **REPO-R49** | Every mirrored page MUST show the upstream revision it was rendered from, and that revision's date. |
 | **REPO-R50** | Every user-facing string authored in this repository MUST come from the message catalogue and MUST NOT be written into a template. |
 | **REPO-R51** | The published site MUST load no font, script, style or tracker from a third party at run time. |
+| **REPO-R52** | The specification MUST be rendered on this site from a pinned revision of `spec`, and MUST NOT be published from any second site. |
+| **REPO-R53** | A URL that a retired rendering of the specification published MUST continue to resolve, by redirect, to the page that replaced it. |
 
 ## Related
 

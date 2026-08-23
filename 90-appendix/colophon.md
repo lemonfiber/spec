@@ -66,7 +66,7 @@ that shells out to Docker, not a framework.
 
 | Project | What it does |
 |---------|--------------|
-| mdBook | Renders this specification into the published docs site. |
+| Astro Starlight | Renders this specification, and each repo's own documentation, into the published docs site. |
 | Astro | Static site generator behind lemonfiber.app. Ships no JavaScript unless a page asks for it. |
 | Bricolage Grotesque | The display and body typeface, served from the site's own origin rather than a font CDN. |
 | JetBrains Mono | The monospace face, for terminal output and identifiers. |
