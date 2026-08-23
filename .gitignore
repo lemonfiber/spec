@@ -1,6 +1,5 @@
-# mdBook
-/book/
-/src/
+# The redirect site, generated
+/redirect/
 # OS
 .DS_Store
 # scratch
