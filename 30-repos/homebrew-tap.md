@@ -7,7 +7,7 @@ touch it.
 
 **Implements:** the Homebrew path of
 [E2](../10-functional/features/e-maintenance/e2-self-update.md) and
-[roadmap M6](../00-overview/roadmap.md#m6--release-engineering).
+[roadmap M10](../00-overview/roadmap.md#m10--release-engineering).
 
 ---
 
@@ -27,9 +27,11 @@ homebrew-tap/
 └── README.md
 ```
 
-A single formula, and it is **written by CI, not by hand**. `cargo-dist` produces
-it on each `lemonfiber` release: the version, the per-platform bottle URLs, and their
-checksums.
+A single formula, and it is **generated output, never hand-written** (`REPO-R24`).
+Generation is a `cargo-dist` publish job that lands with `1.0.0` (`L1-R3`) and needs
+a token that can push here; until then the committed formula is a placeholder and
+`brew` is not an install path. Once it is on, each `lemonfiber` release produces the
+version, the per-platform bottle URLs and their checksums.
 
 ## The formula
 
@@ -70,11 +72,12 @@ specifically here:
 1. `homebrew-core` requires OSI-approved licences, so lemonfiber can **never** be
    in core — only in this tap. That's exactly why the tap exists, so it isn't a
    limitation in practice.
-2. The `license` line uses a non-standard string. `brew audit --strict` will warn;
-   the tap's own CI is configured to accept it, since the tap is ours.
+2. The `license` line uses a non-standard string. `brew audit --strict` will warn,
+   which is acceptable in a tap that is ours; no formula lint runs here yet.
 
-`cargo install lemonfiber` works regardless — the crate uses `license-file`
-rather than a `license` SPDX field, and crates.io accepts that.
+The crates are `publish = false` and the release ships one binary rather than a
+crates.io package, so `cargo install lemonfiber` is not an install path either.
+Building from the repository is (`cargo install --git`).
 
 ## E2's boundary
 
@@ -89,9 +92,9 @@ current for the deferral to have somewhere to point.
 
 ## Maintenance
 
-Effectively none by hand. The release workflow in `lemonfiber` opens a PR here (or
-pushes directly) with the regenerated formula. The only human involvement is if
-the generation itself needs changing — and *that* change, like any other, cites a
+Effectively none by hand. Once the publish job is on, the release workflow in
+`lemonfiber` opens a PR here (or pushes directly) with the regenerated formula. The
+only human involvement is if the generation itself needs changing — and *that* change, like any other, cites a
 spec identifier ([GOV-R2](../50-governance/canonical-spec.md#the-gov-r-namespace)).
 
 Because it's generated, this repo is exempt from the code-review depth the others
@@ -113,4 +116,4 @@ a change to the *generator* is a `lemonfiber` change and follows the normal life
 - [ADR-0004 Four-repo split](../00-overview/decisions/0004-four-repo-split.md)
 - [E2 Self-update](../10-functional/features/e-maintenance/e2-self-update.md)
 - [licence rationale](../90-appendix/license-rationale.md)
-- [roadmap M6](../00-overview/roadmap.md#m6--release-engineering)
+- [roadmap M10](../00-overview/roadmap.md#m10--release-engineering)

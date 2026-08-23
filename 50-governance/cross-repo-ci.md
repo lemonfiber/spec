@@ -8,8 +8,9 @@ The mechanical enforcement of [GOV-R2 through GOV-R5](canonical-spec.md#the-gov-
 
 ## What runs, and where
 
-A check runs on every pull request in `lemonfiber`, `lemonfiber-media-stack` and
-`homebrew-tap`.
+A check runs on every pull request in every repository the org governs. The
+reusable workflow is called from each repo's `ci.yml`, so a repository added later
+inherits it by wiring three lines rather than by being added to a list here.
 It reads the PR's commits and body, extracts citations, and resolves them against
 this repository.
 

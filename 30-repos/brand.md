@@ -2,8 +2,9 @@
 
 **Status:** Accepted
 
-The design system — logo assets, colour/type/space tokens, and usage docs.
-Published as `@lemonfiber/brand`.
+The design system — logo assets, colour/type/space tokens, and usage docs,
+packaged as `@lemonfiber/brand`. Consumers take it as a commit-pinned git
+dependency; nothing is published to a registry yet.
 
 **Implements:** [60-brand](../60-brand/), the
 [design-token contract](../20-architecture/contracts/design-tokens.md).
@@ -16,7 +17,7 @@ The single source of the brand: SVG marks, tokens as CSS + JSON, and the detaile
 usage docs. Pull assets from here rather than re-drawing or re-exporting — that is
 the repo's whole purpose, and the reason it's a repo rather than a folder in `lemonfiber`.
 
-`lemonfiber`'s web UI consumes it as a pinned npm dependency
+`lemonfiber`'s web UI consumes it as a dependency pinned to a commit
 ([contract](../20-architecture/contracts/design-tokens.md)); the marks are also
 referenced where the web UI shows a logo.
 
@@ -75,8 +76,6 @@ contracts, are the spec's; the detailed how is the repo's.**
 | `spec-check` | Governance — every change cites a spec identifier ([GOV](../50-governance/cross-repo-ci.md)) |
 | Token parity | `tokens.css` and `tokens.json` hold identical values (`ARCH-R38`) |
 | **Contrast check** | Every body-text pairing meets WCAG AA (`ARCH-R40`, [baseline](../60-brand/accessibility.md)) |
-| SVG hygiene | Marks are valid, optimised, and outlined where specified |
-| `npm publish` dry-run | The package builds and exports resolve |
 
 The contrast check is the notable one: it computes the ratios in
 [accessibility](../60-brand/accessibility.md) and fails on a body pairing below
@@ -84,8 +83,9 @@ AA. A recolour that looks fine and fails a meter is caught here, not in the web 
 
 ## Publishing
 
-A tagged release publishes `@lemonfiber/brand` to the registry. `lemonfiber` bumps its
-pinned dependency deliberately (cite `GOV-R12`) to pick up a brand change — the
+A tagged release will publish `@lemonfiber/brand` to the registry; no tag has been
+cut, so consumers pin a commit instead. Either way a consumer bumps the pin
+deliberately (cite `GOV-R12`) to pick up a brand change — the
 [token contract](../20-architecture/contracts/design-tokens.md#versioning) keeps
 brand and binary decoupled, so a recolour never surprises a shipped `lemonfiber`.
 

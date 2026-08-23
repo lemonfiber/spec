@@ -7,7 +7,7 @@ repositories** or fully open source — no paid, team, or enterprise tier is
 required, because none is available to an open project on a free org.
 
 **Satisfies:** [ci-cd](ci-cd.md), [security](security.md),
-[roadmap M6](../00-overview/roadmap.md#m6--release-engineering).
+[roadmap M10](../00-overview/roadmap.md#m10--release-engineering).
 
 ---
 
@@ -28,11 +28,11 @@ Every tool below was chosen to work within that constraint.
 |---------|------|-----------|-------|
 | **Governance gate** | `spec-check` (in-repo) | our own | all repos |
 | **Spec integrity** | `integrity.py` (in-repo) | our own | spec |
-| **Code quality + coverage** | **SonarQube Cloud** | free for public | lemonfiber |
-| **SAST** | **CodeQL** | free for public | lemonfiber |
+| **Code quality + coverage** | **SonarQube Cloud** | free for public | all repos |
+| **SAST** | **CodeQL** | free for public | the repos whose language or workflow surface it can analyse |
 | **Secret scanning** | **gitleaks** | OSS | all repos |
-| **Dependency/vuln scanning** | **OSV-Scanner** | OSS | lemonfiber, brand, lemonfiber-media-stack |
-| **Supply-chain posture** | **OpenSSF Scorecard** | free for public | all repos |
+| **Dependency/vuln scanning** | **OSV-Scanner** | OSS | all repos, via the shared `security.yml` |
+| **Supply-chain posture** | **OpenSSF Scorecard** | free for public | each repo that publishes an artefact or the specification; the newest four are outstanding (`Q-R59`) |
 | **Rust licences + advisories** | **cargo-deny** | OSS | lemonfiber |
 | **Coverage generation** | **cargo-llvm-cov** | OSS | lemonfiber → Sonar |
 | **Workflow lint** | **actionlint** | OSS | all repos |
@@ -40,9 +40,9 @@ Every tool below was chosen to work within that constraint.
 | **Link check** | **lychee** | OSS | all repos |
 | **Markdown lint** | **markdownlint** | OSS | all repos |
 | **Dependency updates** | **Renovate** | free for OSS | all repos |
-| **Pre-commit hooks** | **lefthook** | OSS | all repos |
-| **Task runner** | **just** | OSS | all repos |
-| **Changelog** | **git-cliff** | OSS | lemonfiber, brand, lemonfiber-media-stack |
+| **Pre-commit hooks** | **lefthook** | OSS | the repos with a `justfile`; the npm and Composer repos use `core.hooksPath .githooks` |
+| **Task runner** | **just** | OSS | the Rust, spec, stack, brand and site repos; the npm and Composer repos use their own script runner |
+| **Changelog** | **git-cliff** | OSS | lemonfiber, sdk-ts, sdk-php |
 | **Release binaries** | **cargo-dist** | OSS | lemonfiber |
 | **Docs site** | **Astro Starlight** | OSS | website-docs.lemonfiber.app |
 | **Web lint** | **ESLint** (`typescript-eslint`) | OSS | lemonfiber-web, sdk-ts |
@@ -101,7 +101,7 @@ make magic.
 
 ### Astro Starlight — one docs site for the whole org
 
-[Roadmap M6](../00-overview/roadmap.md#m6--release-engineering) calls for a published
+[Roadmap M10](../00-overview/roadmap.md#m10--release-engineering) calls for a published
 docs site. It is `website-docs.lemonfiber.app`, and it renders this specification
 alongside each repo's own documentation rather than restating either
 ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).

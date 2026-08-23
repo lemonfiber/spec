@@ -23,13 +23,14 @@ lemonfiber/
 ├── Cargo.toml                  workspace
 ├── crates/
 │   ├── lemonfiber/             bin — chooses a surface and runs it
-│   │   ├── src/
-│   │   │   ├── cli/            clap: subcommands, flags, exit codes
-│   │   │   ├── tui/            ratatui: dashboard, wizard, logs, doctor
-│   │   │   └── main.rs         surface selection
-│   │   └── web-ui/             frontend source; dist/ embedded
+│   │   ├── cli.rs              clap: subcommands, flags, exit codes
+│   │   ├── dashboard.rs        ratatui: the dashboard and the log viewer
+│   │   ├── ui.rs               binds the socket the web surface is served on
+│   │   └── main.rs             surface selection
 │   ├── lemonfiber-api/         lib — axum: the JSON endpoints, and the frontend served
-│   ├── lemonfiber-core/        lib — all logic, no UI; embeds both pinned submodules
+│   ├── lemonfiber-core/        lib — all logic, no UI
+│   ├── lemonfiber-ports/       lib — the boundary and its vocabulary
+│   ├── lemonfiber-fixtures/    lib — the fakes for those traits
 │   └── lemonfiber-manifest/    lib — stack.toml
 ├── assets/media-stack/         git submodule, embedded at build
 ├── build.rs                    validates submodule schema_version
@@ -114,12 +115,13 @@ So an incompatible stack/binary pairing cannot compile, let alone ship.
 
 | Step | Produces |
 |------|----------|
-| `web-ui` build | `web-ui/dist/` — embedded static assets |
 | `build.rs` | Schema validation; embedded stack |
 | `cargo build` | The binary |
 
-The `web-ui` build is the only non-Rust toolchain, and it runs at **release
-time**, not install time (`ARCH-R19`) — an end user never needs npm.
+The app is built in [`lemonfiber-web`](lemonfiber-web.md)'s own CI and tagged
+there; this repo carries the result as a pinned submodule and embeds it with
+`include_dir!` ([ADR-0012](../00-overview/decisions/0012-web-assets-embedded-at-build-time.md)).
+No Node toolchain enters the Rust build or the operator's machine (`ARCH-R19`).
 
 ## Configuration on disk
 

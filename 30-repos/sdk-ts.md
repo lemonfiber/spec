@@ -2,8 +2,9 @@
 
 **Status:** Accepted
 
-The TypeScript client for lemonfiber's web API. Published as
-`@lemonfiber/sdk-ts`. TypeScript, Hippocratic 3.0.
+The TypeScript client for lemonfiber's web API, packaged as `@lemonfiber/sdk-ts`.
+Consumers take it as a commit-pinned git dependency; registry publication waits on
+a stable major, as it does for [`sdk-php`](sdk-php.md). TypeScript, Hippocratic 3.0.
 
 **Implements:** the client half of the
 [web API contract](../20-architecture/contracts/web-api.md).

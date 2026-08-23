@@ -73,8 +73,9 @@ that shells out to Docker, not a framework.
 
 ## The toolchain
 
-The tools every repository in the organisation runs. The full rationale, and the
-requirement that each be free for public repositories, is in
+The tools this organisation builds on. Which repositories run each — some through
+a shared workflow every repo calls, some wired per repo — and the requirement that
+each be free for public repositories, are in
 [40-quality/tooling.md](../40-quality/tooling.md).
 
 | Project | What it does |
@@ -91,7 +92,7 @@ requirement that each be free for public repositories, is in
 | SonarQube Cloud | Code quality and coverage, fed by `cargo-llvm-cov`. |
 | Renovate | Dependency updates, emitting the trailer that lets its pull requests pass `spec-check`. |
 | git-cliff | Generates release notes from the commit log, so the changelog cannot disagree with what shipped. |
-| cargo-dist | Builds and publishes the signed multi-platform release artefacts and the Homebrew formula. |
+| cargo-dist | Builds and publishes the attested multi-platform release artefacts, and the Homebrew formula once that publish job is on. |
 
 ## Requirements
 
