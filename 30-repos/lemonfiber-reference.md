@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 
-Every subcommand and its non-interactive contract. This is the surface that makes
+What the command line promises, whatever it grows next. This is the surface that makes
 `lemonfiber` scriptable — and the guarantee that the TUI is never the only way to
 do anything ([F1-R6](../10-functional/features/f-extensibility/f1-customisation.md)).
 
@@ -11,76 +11,21 @@ do anything ([F1-R6](../10-functional/features/f-extensibility/f1-customisation.
 
 ---
 
-## Global flags
+## The commands are generated, not listed here
 
-| Flag | Effect |
-|------|--------|
-| `--stack-dir <path>` | Operate an external stack instead of the embedded one (`F1-R3`) |
-| `--json` | Machine-readable output with `api_version` (`F1-R12`, `ARCH-R9`) |
-| `--dry-run` | Print what would happen; change nothing (`F1-R2`) |
-| `--yes` | Assume yes to confirmations — required for unattended runs (`A2-R13`) |
-| `--no-color` | Disable colour; `NO_COLOR` honoured equally (`G3-R2`) |
-| `--stack-host <ctx>` | Operate a remote Docker context (`B6-R4`) |
+Every subcommand and flag is declared once, in the types the binary parses arguments
+with. Repeating them here would be a second description of the same command line, and
+two descriptions do not stay level — which is how a document comes to name commands
+that were renamed away and miss ones that were added.
 
-## Commands
+So the inventory lives where it cannot drift: `reference/commands.md` in the
+[`lemonfiber`](https://github.com/lemonfiber/lemonfiber) repository, generated from
+those declarations and checked against them by CI (`ARCH-R68`). Every command, its
+flags and its help text are there, at the revision that produced them.
 
-### Lifecycle
-
-| Command | Does |
-|---------|------|
-| `lemonfiber up <form…>` | Start a form, or the union of several (`B1-R5`). Health-gated (`B2-R1`). |
-| `lemonfiber down [form]` | Stop everything, or one form's exclusive services |
-| `lemonfiber restart <svc…>` | Restart services without touching the rest |
-| `lemonfiber switch <form…>` | Make these the active set; stops only what falls outside them (`B1-R10`) |
-| `lemonfiber ps` | Service state — honest status, not "Up" (`B2-R10`) |
-| `lemonfiber logs [svc…]` | Stream logs; `--follow`, `--since`, `--severity` |
-| `lemonfiber pull [--check]` | Pull updates; `--check` reports without applying (`E1-R2`) |
-
-### Setup & configuration
-
-| Command | Does |
-|---------|------|
-| `lemonfiber init` | Run setup. Interactive by default; flag-driven for automation |
-| `lemonfiber config get/set <key>` | Read or change one setting (`A4-R1`) |
-| `lemonfiber config show` | Full configuration, secrets redacted |
-| `lemonfiber reconfigure <area>` | Revisit a setup decision (`A4`) |
-| `lemonfiber migrate` | Survey and adopt an existing stack (`A5`) |
-
-### Health & wiring
-
-| Command | Does |
-|---------|------|
-| `lemonfiber doctor [--only <cat>]` | Run checks; `--disruptive` opts into disturbing ones (`C1-R5`) |
-| `lemonfiber doctor --fix` | Apply remediations; report-only without it (`C3-R11`) |
-| `lemonfiber seed` | Wire services together. Idempotent (`D1-R2`) |
-| `lemonfiber support-bundle` | Produce a redacted diagnostic archive (`C4`) |
-
-### Maintenance
-
-| Command | Does |
-|---------|------|
-| `lemonfiber backup` | Quiesced config backup (`E3-R1`) |
-| `lemonfiber restore <archive>` | Restore, whole or per-service (`E3-R6`) |
-| `lemonfiber rollback <change>` | Undo one journaled change (`E4-R2`) |
-| `lemonfiber history` | Browse the change journal (`E4-R11`) |
-| `lemonfiber self-update` | Update the binary, or defer to the package manager (`E2-R1`) |
-| `lemonfiber uninstall` | Tiered removal (`A6`) |
-
-### Household
-
-| Command | Does |
-|---------|------|
-| `lemonfiber invite <name>` | Create an invitation with a link and QR (`D6-R4`) |
-| `lemonfiber household` | List and manage members |
-
-### Interface
-
-| Command | Does |
-|---------|------|
-| `lemonfiber` | TUI at a terminal; help when piped (`G1-R3`) |
-| `lemonfiber ui` | Serve the web UI; loopback by default (`G1-R5`, `C6-R1`) |
-| `lemonfiber forms [form…]` | List forms; naming one says what starting it would come to (`B1-R7`) |
-| `lemonfiber status` | One-shot health summary (`G7-R1`) |
+This document keeps the half that generation cannot produce: what an exit code means,
+what happens when a command needs input and none is coming, what `--json` promises, and
+the obligations below that any version of the command line has to satisfy.
 
 ## Exit codes
 
@@ -106,10 +51,10 @@ context (piped, CI, `--yes` absent where input is needed), commands **fail
 naming the required flag** rather than blocking on stdin (`G1-R13`), exit `6`.
 
 ```
-$ echo | lemonfiber init
+$ echo | lemonfiber setup
 error: setup requires input and stdin is not interactive
   provide answers via flags, or run in a terminal
-  see: lemonfiber init --help
+  see: lemonfiber setup --help
 exit: 6
 ```
 
@@ -146,3 +91,4 @@ so a script pinning `== 1` keeps working across feature additions.
 - [lemonfiber.md](lemonfiber.md) · [lemonfiber-tui.md](lemonfiber-tui.md)
 - [G1](../10-functional/features/g-ux/g1-interface-tiers.md) · [F1](../10-functional/features/f-extensibility/f1-customisation.md)
 - [versioning](../20-architecture/contracts/versioning.md) — the output contract
+- [component-model](../20-architecture/component-model.md) — why the inventory is generated
