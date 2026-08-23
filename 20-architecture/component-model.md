@@ -16,17 +16,21 @@ load-bearing.
 
 ```
 crates/
-├── lemonfiber/              bin — the only crate that knows about UI
+├── lemonfiber/              bin — chooses a surface and runs it
 │   ├── cli/                 clap definitions, non-interactive paths
 │   ├── tui/                 ratatui: dashboard, wizard, logs, doctor views
-│   ├── web/                 JSON API + embedded assets
 │   └── main.rs              surface selection
+│
+├── lemonfiber-api/          lib — axum: the JSON endpoints, and the frontend served
+│   ├── guard.rs             the token, and what a request must say to be answered
+│   └── serve.rs             routes, and the bytes core hands over
 │
 ├── lemonfiber-core/         lib — all logic, no UI, no terminal
 │   ├── app/                 the one entry point: command in, outcome out
 │   ├── model/               the values surfaces render, and serialise
 │   ├── adapters/            the only code that talks to Docker, HTTP or processes
 │   ├── stack/               compose command construction, lifecycle
+│   ├── frontend/            the built web assets, embedded as the stack is
 │   ├── docker/              container state, stats, logs, exec
 │   ├── config/              .env, paths, credential storage
 │   ├── platform/            OS detection and per-platform behaviour
@@ -71,7 +75,9 @@ stay behind is logic wearing a vocabulary's clothes, and it stays in the core.
 ## The one boundary that matters
 
 **`lemonfiber-core` has no UI dependency of any kind.** No ratatui, no clap, no
-terminal, no HTTP server. It cannot print.
+terminal, no HTTP server. It cannot print. The surfaces depend on it and it
+depends on none of them, which is what makes the next sentence hold however many
+surfaces there come to be.
 
 This makes [G1-R2](../10-functional/features/g-ux/g1-interface-tiers.md) —
 *"surfaces are renderings, never capabilities"* — structural rather than
