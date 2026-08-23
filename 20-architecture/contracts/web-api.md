@@ -187,6 +187,10 @@ generation has not been used.
 | **ARCH-R61** | The event stream MUST emit a heartbeat at least every 15 seconds, and a client MUST treat twice that in silence as a broken stream. |
 | **ARCH-R62** | Every event MUST carry an `id`, and a resuming client MUST send the last one it saw as `Last-Event-ID`. |
 | **ARCH-R63** | A client MUST expose a payload typed by its `kind`, never as an untyped value. |
+| **ARCH-R64** | The contract artefact MUST be published with every release, and an SDK MUST vendor it from an exact revision recorded beside the copy. |
+| **ARCH-R65** | Generating an SDK's contract types MUST read the vendored artefact, and MUST NOT reach the network. |
+| **ARCH-R66** | Regenerating an SDK's contract types MUST produce no diff, and CI MUST fail if it does. |
+| **ARCH-R67** | Generation MUST refuse an artefact whose `api_version` the SDK does not implement, and MUST write nothing when it refuses. |
 
 ## Shapes are generated; semantics are not
 
@@ -199,6 +203,27 @@ Everything above that a schema cannot express stays here, in prose, and every SD
 it and tests it: the heartbeat, resumption that does not present pre-gap values as current,
 the token's placement, and the refusal on mismatch. **This document is normative for what the
 surface means; the artefact is normative for what it looks like.** Neither restates the other.
+
+## How the artefact reaches an SDK
+
+An SDK does not ask the server for the contract while it builds. It carries a copy. A build
+that fetched would depend on a host being reachable, and two builds of the same commit could
+produce different types.
+
+So the artefact travels as a **vendored file pinned to an exact revision**. `lemonfiber`
+publishes it with every release; an SDK fetches it once, records the revision it came from
+beside the copy, and every build after that reads only what is on disk. Taking a contract
+change then becomes a deliberate act that arrives as a diff somebody reads, rather than
+something that happens to a build nobody was watching.
+
+The pin is a revision rather than a version number because a revision names exactly one
+artefact: the vendored bytes can always be checked against what that revision served, which
+is what makes the copy verifiable rather than merely present.
+
+Two guards sit either side of the copy. Regenerating from it must produce no diff, so a stale
+generated tree fails CI rather than shipping. And generation refuses an artefact whose
+`api_version` it does not implement, writing nothing when it refuses — types that compile and
+lie are worse than a build that stops.
 
 ## Related
 
