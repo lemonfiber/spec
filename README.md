@@ -112,8 +112,10 @@ trailers and PR bodies — **never in code comments**
 
 The v1 spec is complete and **v2 — the ecosystem epoch — is specified** (areas
 H–K plus F3; the runtime pillar and stack-manifests are still Draft).
-Implementation is under way: `0.2.0` is released and the
-[version train](00-overview/roadmap.md#the-version-train) runs to 1.0.
+Implementation is under way: the
+[version train](00-overview/roadmap.md#the-version-train) runs to 1.0, and
+[releases](https://github.com/lemonfiber/lemonfiber/releases) say where it has
+reached.
 
 This is a spec-first project: the functional spec landed before the technical one
 deliberately, so that **every architectural decision can be justified against a
