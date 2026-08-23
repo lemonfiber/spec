@@ -18,6 +18,10 @@ inputs:
     description: Space-separated name=sha pairs to embed, e.g. "lemonfiber-media-stack=abc123".
     required: false
     default: ""
+  released_on:
+    description: UTC date the release was published, YYYY-MM-DD. Only a transition to released carries one.
+    required: false
+    default: ""
   token:
     description: The release App installation token.
     required: true
@@ -31,13 +35,19 @@ runs:
         VERSION: ${{ inputs.version }}
         STATUS: ${{ inputs.status }}
         PINS: ${{ inputs.pins }}
+        RELEASED_ON: ${{ inputs.released_on }}
       run: |
         set -euo pipefail
         man="70-operations/versions/${VERSION}.toml"
         pinargs=()
         read -ra parts <<< "$PINS"
         for p in "${parts[@]}"; do [ -n "$p" ] && pinargs+=(--pin "$p"); done
-        python3 scripts/set_status.py --version "$VERSION" --status "$STATUS" "${pinargs[@]}" > "${man}.new"
+        dateargs=()
+        if [ -n "$RELEASED_ON" ]; then
+          dateargs+=(--released-on "$RELEASED_ON")
+        fi
+        python3 scripts/set_status.py --version "$VERSION" --status "$STATUS" \
+          "${dateargs[@]}" "${pinargs[@]}" > "${man}.new"
         mv "${man}.new" "$man"
         # The roadmap table and the feature board are generated from the manifests,
         # so a status change that does not carry them is a change integrity will

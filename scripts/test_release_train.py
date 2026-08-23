@@ -8,7 +8,7 @@ manifest fixtures are built in a temporary working directory that mirrors the CI
 layout. Run:  python3 scripts/test_release_train.py
 """
 from __future__ import annotations
-import contextlib, io, os, pathlib, shutil, subprocess, sys, tempfile, unittest
+import contextlib, io, os, pathlib, shutil, subprocess, sys, tempfile, tomllib, unittest
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -167,6 +167,35 @@ class SetStatusTests(Workspace):
             'version = "0.5.0"\nrepos = []\n', encoding="utf-8")   # no status line
         self.assertEqual(run_main(set_status, ["--version", "0.5.0",
                                                "--status", "staged"])[0], 1)
+
+    def test_release_date_is_stamped_above_the_pins(self):
+        self.manifest("0.1.0")
+        code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
+                                          "--released-on", "2026-08-22",
+                                          "--pin", "media-stack=abc"])
+        self.assertEqual(code, 0)
+        self.assertIn('released_on = "2026-08-22"', out)
+        # Above [pins], or a line-wise reader files the date as a pin.
+        self.assertLess(out.index("released_on"), out.index("[pins]"))
+        self.assertEqual(tomllib.loads(out)["released_on"], "2026-08-22")
+
+    def test_a_date_already_there_is_replaced_not_repeated(self):
+        pathlib.Path("70-operations/versions/0.1.0.toml").write_text(
+            'version = "0.1.0"\nstatus  = "released"\nreleased_on = "2020-01-01"\n',
+            encoding="utf-8")
+        code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
+                                          "--released-on", "2026-08-22"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out.count("released_on"), 1)
+        self.assertEqual(tomllib.loads(out)["released_on"], "2026-08-22")
+
+    def test_a_date_is_refused_when_it_cannot_mean_anything(self):
+        self.manifest("0.1.0")
+        with self.assertRaises(SystemExit):
+            set_status.with_released_on('status  = "released"\n', "22-08-2026")
+        # Only a released manifest may carry one.
+        self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "staged",
+                                               "--released-on", "2026-08-22"])[0], 1)
 
 
 class CheckStageableTests(Workspace):
