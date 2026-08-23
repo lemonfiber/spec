@@ -7,6 +7,7 @@ epoch   = "v1"
 milestone = "M4"   # Seed & backup
 delivers  = "Auto-wiring, seed, quality, trace and the first-content walk"
 status  = "released"
+released_on = "2026-08-08"
 repos   = ["lemonfiber"]
 goals   = [
     "D1-R1",

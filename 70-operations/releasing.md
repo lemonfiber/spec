@@ -45,12 +45,13 @@ flowchart TD
     plan --> build[Build matrix:<br/>macOS arm64+x86 · Linux gnu+musl · Windows]
     build --> smoke[Smoke test: run the binary on each OS]
     smoke --> art[Signed artifacts + checksums]
-    art --> rel[GitHub Release]
+    art --> rel["Draft release: installers, artifacts, attestations"]
     art --> tap[Regenerate homebrew-tap formula → PR/push]
     art --> inst[Shell + PowerShell installers]
-    plan --> log[git-cliff: changelog from commits]
-    log --> rel
-    rel --> docs[Docs site rebuilds on main]
+    rel --> log[git-cliff: changelog from commits]
+    log --> body["Release body: the changelog, then the installers"]
+    body --> pub["A maintainer publishes"]
+    pub --> docs[Docs site rebuilds on main]
 ```
 
 Concretely, a maintainer does **three things**; CI does the rest:
@@ -119,6 +120,13 @@ Commits follow a conventional-commit shape and carry `Spec:` trailers, so
 `git-cliff` produces the changelog from history. Nobody maintains
 `CHANGELOG.md` by hand — which also means a commit message is the release note,
 so write it for a reader.
+
+It is generated *after* the build, onto the draft the pipeline leaves, because
+the pipeline is generated code: `cargo-dist` owns `release.yml` and rewrites it
+whole, so the changelog cannot live inside it. The release body ends up as the
+changelog first and `cargo-dist`'s install instructions second — the install
+half is the same every time, and the announcement that fires on publish is the
+body, so what changed is what a reader meets first.
 
 ## Pre-1.0 versioning
 

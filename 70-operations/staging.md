@@ -36,6 +36,7 @@ idiomatic to the org's other generated-from-truth files (`maintainers.toml`,
 # 70-operations/versions/0.2.0.toml
 version = "0.2.0"
 status  = "staged"        # planned → staged → in_progress → releasable → released → yanked
+released_on = "2026-07-30"   # written when the release is published; absent until then
 repos   = ["lemonfiber", "lemonfiber-media-stack"]   # the streams this version cuts; brand excluded
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs
 
@@ -43,9 +44,15 @@ goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs
 lemonfiber-media-stack = "fbdafe0"   # the submodule commit that shipped
 ```
 
-Staging writes it, the tracker reads it, the gate checks it, execute flips its
-`status` and records its `pins`. The full contract is in
-[`versions/README.md`](versions/README.md).
+Staging writes it, the tracker reads it, the gate checks it, and publishing
+flips its `status`, records its `pins` and stamps the date it went out. The full
+contract is in [`versions/README.md`](versions/README.md).
+
+The date belongs on the manifest rather than being looked up from the tag,
+because the manifest is what everything downstream reads. A page that renders the
+train from these files can say *when* each version shipped without reaching for
+the forge, and a version that claims to be released without a date is a record
+that was written by hand.
 
 ## The lifecycle
 
@@ -243,6 +250,7 @@ implementing them are built per repo.
 | **OPS-R52** | At most one version MAY be `staged` or `releasable` at a time; `stage-version` MUST refuse while another version is still in flight. Hotfix patches are exempt. |
 | **OPS-R55** | Releasing a version MUST close the issues opened for it — the tracker from `OPS-R43` and any drift issue from `OPS-R46` — so an open issue about a version means something is still owed. |
 | **OPS-R54** | Every version manifest MUST carry an `epoch`. A manifest that declares `closes_epoch = "vN"` (only an `X.0.0` major may) MUST NOT execute unless every feature tagged `tracks: vN` is `Accepted` and marked done, and a refusal MUST name the incomplete features. |
+| **OPS-R57** | A manifest whose `status` is `released` MUST carry `released_on`, the UTC date its release was published, as `YYYY-MM-DD`. The transition to `released` MUST write it from the publication the transition responds to; it MUST NOT be entered by hand, and no earlier status may carry it. |
 
 ## Related
 
