@@ -39,6 +39,19 @@ project should be operable from one page.
 | 9 | Add npm publish auth (`NPM_TOKEN`) | `brand` | Publishing `@lemonfiber/brand` |
 | 10 | Enable **GitHub Pages** (source: Actions) | `spec` | The docs site |
 | 11 | Enable **private vulnerability reporting** | all | Security disclosure path |
+| 12 | Add `CNAME docs → lemonfiber.github.io` in Cloudflare DNS, proxied; enable **GitHub Pages** (source: Actions) with custom domain `docs.lemonfiber.app` | `website-docs.lemonfiber.app` | [docs.lemonfiber.app](https://docs.lemonfiber.app) resolves and serves |
+
+### The docs site's certificate, specifically
+
+`docs.lemonfiber.app` is proxied by Cloudflare, like the apex, so Cloudflare
+terminates TLS and GitHub's own certificate order does not complete. GitHub Pages
+therefore reports `https_enforced: false` for that repository, and the setting
+cannot be turned on while the record is proxied. HTTPS is served by Cloudflare's
+edge certificate; the origin connection is governed by the zone's SSL/TLS mode,
+which must be **Full** so the hop to GitHub stays encrypted.
+
+Turning the proxy off would let GitHub issue and enforce its own certificate, at
+the cost of moving that hostname off the redirect control plane the apex uses.
 
 ### The required-checks step, specifically
 
