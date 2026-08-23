@@ -75,7 +75,8 @@ lints and coverage rules all assume Rust — and because component review and
 Storybook want a cadence of their own. The contract we would be avoiding is one we
 already ship and version for scripts.
 
-**A submodule, as `media-stack` already is under [ADR-0005](0005-embedded-stack-assets.md).**
+**A submodule, as `lemonfiber-media-stack` already is under
+[ADR-0005](0005-embedded-stack-assets.md).**
 Independent design, one shipped artefact, no runtime contract. Genuinely close, and
 the pattern is proven here. Rejected because the stack is *data* — it has no
 runtime relationship with the binary — whereas the SPA and the API talk to each

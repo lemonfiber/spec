@@ -2,7 +2,8 @@
 
 **Status:** Accepted
 
-The interface between `lemonfiber` and `media-stack`. Everything lemonfiber knows about
+The interface between `lemonfiber` and `lemonfiber-media-stack`. Everything
+lemonfiber knows about
 the stack comes from this file; it knows nothing about Sonarr that isn't declared
 here.
 
@@ -255,7 +256,7 @@ one, and it fails in confusing ways at runtime.
 ## Worked example
 
 The real stack, abridged to one service per profile. The full file lives in
-`media-stack`.
+`lemonfiber-media-stack`.
 
 ```toml
 schema_version  = 1

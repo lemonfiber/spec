@@ -97,7 +97,8 @@ for the full path, real provider credentials that cannot live in CI.
 | Full pipeline (search→import) | Manual, M1 exit criterion |
 
 What can't be automated is stated rather than pretended
-([media-stack CI](../30-repos/media-stack.md#ci) draws the same line): a green CI
+([lemonfiber-media-stack CI](../30-repos/lemonfiber-media-stack.md#ci) draws the
+same line): a green CI
 does not mean the full acquisition path works, because CI has no Usenet account.
 
 ## What MUST be covered

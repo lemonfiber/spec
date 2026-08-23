@@ -42,7 +42,7 @@ flowchart TD
    title, the problem, the proposed behaviour, and rationale — and labels it
    `rfc`. No git, no local tooling.
 2. **Discuss.** The proposal is refined on the issue. The public
-   [RFC page](../30-repos/website.md) surfaces open `rfc` issues alongside the
+   [RFC page](../30-repos/website-lemonfiber.md) surfaces open `rfc` issues alongside the
    repo's `Draft` items as the pre-approval feed, so the community can see and
    weigh in on what is being considered.
 3. **Decide.** A **maintainer** marks the issue `rfc:approved` (to accept) or
@@ -82,4 +82,4 @@ merge, so a malicious proposal is contained to reviewable text.
 - [issue-routing.md](issue-routing.md) — how issues are triaged
 - [contributing.md](contributing.md) — the contributor's path
 - [canonical-spec.md](canonical-spec.md) — the `GOV-R` namespace
-- [../30-repos/website.md](../30-repos/website.md) — where the RFC feed is rendered
+- [../30-repos/website-lemonfiber.md](../30-repos/website-lemonfiber.md) — where the RFC feed is rendered

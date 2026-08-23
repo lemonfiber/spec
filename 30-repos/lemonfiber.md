@@ -101,7 +101,8 @@ opens the TUI at a terminal and prints help when piped, never blocking on stdin.
 
 ## The submodule
 
-`assets/media-stack` is a git submodule pinned to a `media-stack` tag. `build.rs`:
+`assets/media-stack` is a git submodule pinned to a `lemonfiber-media-stack` tag.
+`build.rs`:
 
 1. Fails clearly if the submodule is empty (`git submodule update --init`).
 2. Parses `stack.toml` and fails the build if `schema_version` is unsupported

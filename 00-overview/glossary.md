@@ -27,8 +27,8 @@ See [B1 Forms & partial stacks](../10-functional/features/b-running/b1-forms.md)
 ### Profile
 
 A **Docker Compose profile** — an atomic tag on a service declaring what it *is*.
-Each service in `media-stack` carries exactly one. Profiles are never selected
-directly by users.
+Each service in `lemonfiber-media-stack` carries exactly one. Profiles are never
+selected directly by users.
 
 ### Profile closure
 
@@ -38,9 +38,10 @@ because Sonarr is useless without indexers.
 
 ### Stack manifest
 
-`stack.toml` in the media-stack repo. The **contract** between lemonfiber and
-media-stack: declares services, profiles, forms, ports, health endpoints, and a
-`schema_version`. Everything lemonfiber knows about the stack comes from here.
+`stack.toml` in the lemonfiber-media-stack repo. The **contract** between
+lemonfiber and lemonfiber-media-stack: declares services, profiles, forms, ports,
+health endpoints, and a `schema_version`. Everything lemonfiber knows about the
+stack comes from here.
 
 See [manifest contract](../20-architecture/contracts/stack-manifest.md).
 

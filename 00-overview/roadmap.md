@@ -82,13 +82,13 @@ nobody does.
 a PR citing a valid one passes; an override is recorded and opens a tracking
 issue.
 
-**Why before M1:** the very first commit to `media-stack` should cite a
+**Why before M1:** the very first commit to `lemonfiber-media-stack` should cite a
 requirement. If governance arrives later, the initial history is exempt by
 accident, and "we'll backfill" never happens.
 
 ---
 
-## M1 — `media-stack` works standalone (with `brand` alongside)
+## M1 — `lemonfiber-media-stack` works standalone (with `brand` alongside)
 
 No Rust involved. The stack must be usable with bare `docker compose`. The
 `brand` repo — tokens, marks, and its contrast CI — can be finished in parallel

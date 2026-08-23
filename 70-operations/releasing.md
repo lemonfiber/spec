@@ -23,7 +23,7 @@ that tags, a "version" is a number it carries.)
 | Repo | Release trigger | Produces |
 |------|-----------------|----------|
 | `lemonfiber` | git tag `vX.Y.Z` | Binaries, installers, updated formula, changelog, docs |
-| `media-stack` | git tag `vX.Y.Z` | A pinned stack the binary can embed; `stack_version` moves |
+| `lemonfiber-media-stack` | git tag `vX.Y.Z` | A pinned stack the binary can embed; `stack_version` moves |
 | `lemonfiber-web` | git tag `vX.Y.Z` | A pinned web surface the binary embeds at build time |
 | `sdk-ts` | git tag `vX.Y.Z` | `@lemonfiber/sdk-ts` published to npm |
 | `sdk-php` | git tag `vX.Y.Z` | The PHP client, published to Packagist |
@@ -86,7 +86,7 @@ What moves, and when:
 | A bug fix, no behaviour change | binary **patch** |
 | New behaviour, backward-compatible CLI/flags | binary **minor** |
 | A removed/renamed flag, changed default, dropped `schema_version` support | binary **major** |
-| A service image tag, a new service or form | `media-stack` **minor** (or major if a form's meaning changes) |
+| A service image tag, a new service or form | `lemonfiber-media-stack` **minor** (or major if a form's meaning changes) |
 | A manifest field added-optional | `schema_version` unchanged, `stack_version` minor |
 | A manifest field required/removed/retyped, or a new enum value | **`schema_version` +1** ([why](../20-architecture/contracts/versioning.md#changing-the-schema)) |
 | A token value (recolour) | `brand` **minor** |

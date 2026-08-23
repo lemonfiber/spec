@@ -31,7 +31,7 @@ Every tool below was chosen to work within that constraint.
 | **Code quality + coverage** | **SonarQube Cloud** | free for public | lemonfiber |
 | **SAST** | **CodeQL** | free for public | lemonfiber |
 | **Secret scanning** | **gitleaks** | OSS | all repos |
-| **Dependency/vuln scanning** | **OSV-Scanner** | OSS | lemonfiber, brand, media-stack |
+| **Dependency/vuln scanning** | **OSV-Scanner** | OSS | lemonfiber, brand, lemonfiber-media-stack |
 | **Supply-chain posture** | **OpenSSF Scorecard** | free for public | all repos |
 | **Rust licences + advisories** | **cargo-deny** | OSS | lemonfiber |
 | **Coverage generation** | **cargo-llvm-cov** | OSS | lemonfiber → Sonar |
@@ -42,7 +42,7 @@ Every tool below was chosen to work within that constraint.
 | **Dependency updates** | **Renovate** | free for OSS | all repos |
 | **Pre-commit hooks** | **lefthook** | OSS | all repos |
 | **Task runner** | **just** | OSS | all repos |
-| **Changelog** | **git-cliff** | OSS | lemonfiber, brand, media-stack |
+| **Changelog** | **git-cliff** | OSS | lemonfiber, brand, lemonfiber-media-stack |
 | **Release binaries** | **cargo-dist** | OSS | lemonfiber |
 | **Docs site** | **mdBook** | OSS | spec |
 | **Web lint** | **ESLint** (`typescript-eslint`) | OSS | lemonfiber-web, sdk-ts |

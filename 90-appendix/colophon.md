@@ -14,10 +14,11 @@ the credits cannot drift from what is actually used (GOV-R34).
 
 ## The orchestrated services
 
-The nineteen services `media-stack` composes. Every one is OSI-licensed and runs
+The nineteen services `lemonfiber-media-stack` composes. Every one is
+OSI-licensed and runs
 on the user's own hardware; the licence breakdown is in
 [license-rationale.md](license-rationale.md#note-on-bundled-services), and the
-pinned images are in [`stack.toml`](../30-repos/media-stack.md#the-service-inventory).
+pinned images are in [`stack.toml`](../30-repos/lemonfiber-media-stack.md#the-service-inventory).
 
 | Project | What it does |
 |---------|--------------|
@@ -103,5 +104,5 @@ requirement that each be free for public repositories, is in
 
 - [license-rationale.md](license-rationale.md) — the licence of each of these, and of ours
 - [40-quality/tooling.md](../40-quality/tooling.md) — why each tool is in the pipeline
-- [30-repos/media-stack.md](../30-repos/media-stack.md) — the service inventory and pinned tags
+- [30-repos/lemonfiber-media-stack.md](../30-repos/lemonfiber-media-stack.md) — the service inventory and pinned tags
 - [00-overview/vision.md](../00-overview/vision.md) — the commitment that every bundled service is open

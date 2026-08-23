@@ -18,7 +18,7 @@ commitment of [governance](../50-governance/); consumes [`brand`](brand.md)
 The same floor that made the org multi-repo
 ([ADR-0004](../00-overview/decisions/0004-four-repo-split.md)), plus one thing the
 frontpage cannot give it. The two sites have opposite relationships with time: the
-[frontpage](website.md) reads live org state at build so that it *cannot* lag
+[frontpage](website-lemonfiber.md) reads live org state at build so that it *cannot* lag
 (`REPO-R39`), while documentation must render a **pinned** revision, because a reader
 following instructions needs the instructions that match the release they installed.
 One repo cannot honour both rules. Folding this into `website-lemonfiber.app` would
@@ -102,6 +102,6 @@ prose as well as authored prose — this is the only build that sees all of it a
 
 - [ADR-0015 The documentation site renders content it does not own](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)
 - [ADR-0004 Four-repo split](../00-overview/decisions/0004-four-repo-split.md)
-- [website](website.md) — the frontpage, which reads live state rather than a pin
+- [website-lemonfiber.app](website-lemonfiber.md) — the frontpage, which reads live state rather than a pin
 - [brand](brand.md) — the tokens the site consumes
 - [50-governance](../50-governance/) — the transparency commitment it serves

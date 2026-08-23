@@ -5,10 +5,10 @@
 
 ## Context
 
-Given [ADR-0004](0004-four-repo-split.md), lemonfiber and media-stack are separate
-repos — so lemonfiber needs the stack's files (`compose.yml`, `stack.toml`, service
-configs, overlays) at runtime. How it obtains them determines the first-run
-experience and the failure modes.
+Given [ADR-0004](0004-four-repo-split.md), lemonfiber and lemonfiber-media-stack
+are separate repos — so lemonfiber needs the stack's files (`compose.yml`,
+`stack.toml`, service configs, overlays) at runtime. How it obtains them
+determines the first-run experience and the failure modes.
 
 The first-run experience is the whole product thesis. Any step that can fail
 before the user has anything working is disproportionately expensive.
@@ -53,8 +53,8 @@ entirely, pointing at a local checkout for development or customisation.
   strongest available mitigation for ADR-0004's main downside.
 - Reproducible: a given lemonfiber version always materialises byte-identical stack
   files, making bug reports meaningful.
-- `--stack-dir` preserves full hackability — a power user can fork media-stack,
-  point lemonfiber at it, and never rebuild.
+- `--stack-dir` preserves full hackability — a power user can fork
+  lemonfiber-media-stack, point lemonfiber at it, and never rebuild.
 
 ### Negative
 

@@ -17,7 +17,7 @@ flowchart TB
 
     subgraph host["The operator's machine"]
         lf[lemonfiber<br/>CLI · TUI · web]
-        subgraph stack["media-stack — Docker Compose"]
+        subgraph stack["lemonfiber-media-stack — Docker Compose"]
             idx[Indexers<br/>Prowlarr · NZBHydra2]
             dl[Download clients<br/>SABnzbd · qBittorrent]
             vpn[Gluetun<br/>VPN + killswitch]

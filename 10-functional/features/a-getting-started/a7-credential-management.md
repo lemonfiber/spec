@@ -142,7 +142,7 @@ working system on a schedule the operator didn't choose.
 | **A7-R14** | Where a service mints only a temporary credential, lemonfiber MUST generate a durable replacement, set it on the service, and record it for its consumers. The operator MUST NOT be required to handle it. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber` generates and propagates the
-credential; `media-stack` consumes it from the environment so that the
+credential; `lemonfiber-media-stack` consumes it from the environment so that the
 forwarded-port push keeps working without lemonfiber present.
 
 ## Related

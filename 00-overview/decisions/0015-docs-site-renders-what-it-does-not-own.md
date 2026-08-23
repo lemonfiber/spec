@@ -118,7 +118,7 @@ not change when the payload is prose.
 **Fold the docs into the marketing site.** One Astro build, one deploy, one domain.
 Rejected because the two sites have opposite relationships with time. The frontpage's
 one property is that **the org is the motor** — it reads live org state at build so it
-cannot drift ([REPO-R39](../../30-repos/website.md)). Documentation must do the
+cannot drift ([REPO-R39](../../30-repos/website-lemonfiber.md)). Documentation must do the
 reverse and render a pinned revision, because a reader following instructions needs
 the instructions that match the release they installed. One repo cannot honour both
 rules, and Starlight's sidebar, search and versioning would have to be rebuilt inside a

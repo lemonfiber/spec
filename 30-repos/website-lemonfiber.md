@@ -1,4 +1,4 @@
-# Repo: `website`
+# Repo: `website-lemonfiber.app`
 
 **Status:** Proposed
 
@@ -40,7 +40,7 @@ of reality to drift from.
 ## What's in it
 
 ```
-website/
+website-lemonfiber.app/
 ├── src/lib/github.ts   the motor — build-time fetch + Markdown parse
 ├── src/data/seed.ts    committed fallback snapshot (never truth when live)
 ├── src/data/site.ts    editorial copy; the service / profile / form model
