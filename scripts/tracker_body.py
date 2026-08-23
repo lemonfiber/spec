@@ -5,7 +5,9 @@ Reads `gate.py --format json` and emits a goal checklist with a coverage count,
 so the tracking issue is a live view of when the version can lock.
 """
 from __future__ import annotations
-import json, sys
+
+import json
+import sys
 
 
 def main() -> int:

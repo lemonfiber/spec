@@ -1,0 +1,35 @@
+# The scripts in this repository are the gates. `status_lint` decides whether a
+# tick is backed, `integrity` decides whether an identifier resolves, and
+# `check_shared_files` decides whether a copy has drifted — in this repository and
+# in every other one, through the reusable workflows.
+#
+# Nothing read them. Two of the twenty-two are held at 100% line coverage by
+# `coverage.yml`; the rest had no linter, no type checker and no test, so a
+# mistake in the thing that enforces correctness was the one mistake nothing
+# would catch.
+target-version = "py312"
+
+line-length = 110
+
+[lint]
+# Correctness first — `F` is the half that finds undefined names and unreachable
+# code, `B` the half that finds the mistakes that still run. The rest keep the
+# scripts reading alike, which matters when twenty-two of them are maintained by
+# whoever is passing.
+select = ["E", "W", "F", "B", "I", "SIM", "UP", "RUF", "EXE", "FURB", "ISC"]
+
+ignore = [
+    # The prose here uses typographic dashes and quotes deliberately, and these
+    # scripts quote it back in their messages.
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    # Width is not what these scripts get wrong. They carry long paths, long
+    # regexes and long report lines, and one of them emits a markdown table row
+    # that would say something different if it were broken. The rules worth
+    # having here find undefined names and mistakes that still run.
+    "E501",
+]
+
+[format]
+docstring-code-format = true

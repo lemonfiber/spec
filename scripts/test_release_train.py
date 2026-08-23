@@ -8,16 +8,26 @@ manifest fixtures are built in a temporary working directory that mirrors the CI
 layout. Run:  python3 scripts/test_release_train.py
 """
 from __future__ import annotations
-import contextlib, io, os, pathlib, shutil, subprocess, sys, tempfile, tomllib, unittest
+
+import contextlib
+import io
+import os
+import pathlib
+import shutil
+import subprocess
+import sys
+import tempfile
+import tomllib
+import unittest
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import gate            # noqa: E402
-import set_status      # noqa: E402
-import check_stageable # noqa: E402
-import tracker_body    # noqa: E402
-import pr_goals        # noqa: E402
-import status_lint     # noqa: E402
+import check_stageable  # noqa: E402
+import gate  # noqa: E402
+import pr_goals  # noqa: E402
+import set_status  # noqa: E402
+import status_lint  # noqa: E402
+import tracker_body  # noqa: E402
 
 
 def run_main(mod, argv, stdin=""):
@@ -58,8 +68,8 @@ class Workspace(unittest.TestCase):
 
     def repo(self, path, trailer="Spec: B1-R4, C1-R3"):
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-        run = lambda *a: subprocess.run(["git", "-C", path, *a], check=True,
-                                        capture_output=True)
+        def run(*a):
+            return subprocess.run(["git", "-C", path, *a], check=True, capture_output=True)
         subprocess.run(["git", "init", "-q", path], check=True, capture_output=True)
         run("config", "commit.gpgsign", "false")
         run("config", "user.email", "t@t")
@@ -242,7 +252,7 @@ class TrackerAndPrGoalsTests(Workspace):
 
     def test_pr_goals_scopes(self):
         # nothing staged
-        code, out = self._pr("Spec: B1-R4\n")
+        _, out = self._pr("Spec: B1-R4\n")
         self.assertIn('"staged": null', out)
         # in-scope
         self.manifest("0.1.0", status="staged", goals=("B1-R4",))

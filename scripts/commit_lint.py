@@ -2,7 +2,10 @@
 """Enforce conventional-commit subjects on PR commits (OPS-R11), so the
 generated changelog stays clean. Usage: commit_lint.py <base_sha> <head_sha>
 """
-import subprocess, sys, re
+import re
+import subprocess
+import sys
+
 base, head = sys.argv[1], sys.argv[2]
 _REF = re.compile(r"\A[0-9A-Za-z._/-]{1,255}\Z")
 if not (_REF.match(base) and _REF.match(head)):

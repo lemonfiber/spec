@@ -10,7 +10,13 @@ Usage:  pr_goals.py --pr-text <file>
 Prints a JSON object; exit 0 always (classification, not a gate).
 """
 from __future__ import annotations
-import argparse, json, re, sys, tomllib, pathlib
+
+import argparse
+import json
+import pathlib
+import re
+import sys
+import tomllib
 
 VERSIONS = pathlib.Path("70-operations/versions")
 CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")

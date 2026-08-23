@@ -3,12 +3,17 @@ default:
     @just --list
 
 # Run every check CI runs.
-ci: integrity shared typos links
+ci: integrity shared lint typos links
 
 # Turn on the repository's own git hooks. Once per clone.
 hooks:
     git config core.hooksPath .githooks
     @echo "hooks on: .githooks/pre-push"
+
+# Read the scripts that do the reading. They are the gates, here and in every
+# repo that calls the reusable workflows.
+lint:
+    uvx ruff@0.16.4 check scripts/
 
 # The lint configs and brand assets here match the canonical copies in shared/.
 shared:

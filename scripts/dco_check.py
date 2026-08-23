@@ -2,7 +2,9 @@
 """Verify every commit in base..head carries a Signed-off-by matching its author.
 Implements GOV-R29/GOV-R30. Usage: dco_check.py <base_sha> <head_sha>
 """
-import subprocess, sys, re
+import re
+import subprocess
+import sys
 
 base, head = sys.argv[1], sys.argv[2]
 _REF = re.compile(r"\A[0-9A-Za-z._/-]{1,255}\Z")
@@ -29,7 +31,7 @@ for rec in filter(None, out.split("\x01\n")):
     # unattestable.
     if " " in parents.strip() or is_bot(an, ae):
         continue
-    signoffs = re.findall(r"^Signed-off-by:[^<]*<([^>]+)>\s*$", body, re.M)
+    signoffs = re.findall(r"^Signed-off-by:[^<]*<([^>]+)>\s*$", body, re.MULTILINE)
     if not any(email.lower() == ae.lower() for email in signoffs):
         problems.append(f"{sha[:8]} by {an} <{ae}> lacks a matching Signed-off-by")
 

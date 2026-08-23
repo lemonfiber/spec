@@ -10,10 +10,14 @@ Usage:  check_stageable.py X.Y.Z
 Exit 0 = stageable, non-zero with a named reason otherwise.
 """
 from __future__ import annotations
-import re, sys, tomllib, pathlib
+
+import pathlib
+import re
+import sys
+import tomllib
 
 VERSIONS = pathlib.Path("70-operations/versions")
-REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.M)
+REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.MULTILINE)
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
 

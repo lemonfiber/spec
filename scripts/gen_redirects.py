@@ -97,7 +97,7 @@ def main() -> int:
     if len(sys.argv) != 2:
         print("usage: gen_redirects.py <output directory>", file=sys.stderr)
         return 2
-    root = pathlib.Path(".").resolve()
+    root = pathlib.Path.cwd()
     out = pathlib.Path(sys.argv[1])
     written = 0
     for name, route in pages(root).items():

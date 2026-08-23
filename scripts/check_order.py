@@ -22,8 +22,8 @@ import tomllib
 
 FEATURES = pathlib.Path("10-functional/features")
 VERSIONS = pathlib.Path("70-operations/versions")
-ID = re.compile(r"^id:\s*(\S+)", re.M)
-REQUIRES = re.compile(r"^requires:\s*\[(.*?)\]\s*$", re.M)
+ID = re.compile(r"^id:\s*(\S+)", re.MULTILINE)
+REQUIRES = re.compile(r"^requires:\s*\[(.*?)\]\s*$", re.MULTILINE)
 
 
 def _released_in() -> tuple[dict[str, str], dict[str, int], set[str]]:

@@ -3,7 +3,14 @@
 stood. Stdlib unittest, no dependencies. Run: python3 scripts/test_redirects.py
 """
 from __future__ import annotations
-import io, os, pathlib, sys, tempfile, unittest, contextlib
+
+import contextlib
+import io
+import os
+import pathlib
+import sys
+import tempfile
+import unittest
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
