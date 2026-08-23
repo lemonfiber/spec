@@ -49,7 +49,7 @@ consumer). They run integrity, hygiene, and the docs build.
 50-governance/   the canonical-spec rule and its enforcement
 60-brand/        brand rules, surface mapping, accessibility contract
 90-appendix/     licence rationale, colophon, FAQ
-scripts/         integrity.py, spec_check.py (reusable gate), gen_summary.py
+scripts/         integrity.py, spec_check.py (reusable gate), gen_redirects.py
 ```
 
 ## House style

@@ -9,6 +9,7 @@ include =
     scripts/tracker_body.py
     scripts/pr_goals.py
     scripts/status_lint.py
+    scripts/gen_redirects.py
 
 [report]
 exclude_also =
