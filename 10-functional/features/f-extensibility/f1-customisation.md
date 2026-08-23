@@ -34,8 +34,9 @@ operate.
 
 ### The stack runs without lemonfiber
 
-`media-stack` is a real Compose project. Clone it, set a few variables, run
-`docker compose --profile tv up`, and it works with no Rust binary anywhere
+`lemonfiber-media-stack` is a real Compose project. Clone it, set a few
+variables, run `docker compose --profile tv up`, and it works with no Rust binary
+anywhere
 ([ADR-0001](../../../00-overview/decisions/0001-docker-compose-as-engine.md)).
 
 This is the load-bearing guarantee. Everything else in this feature is

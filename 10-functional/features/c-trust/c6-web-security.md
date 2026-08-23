@@ -150,8 +150,9 @@ listening, not what was intended.
 | **C6-R16** | Where Docker port publishing bypasses the host firewall, lemonfiber MUST warn. |
 | **C6-R17** | The interface household services publish on MUST be operator-configurable through a single documented setting, and where it defaults to all interfaces that MUST be stated plainly alongside its consequences. |
 
-**Affected repos** (`GOV-R7`): `media-stack` publishes the household tier on a
-configurable address; `lemonfiber` reports the observed binding under `C6-R13`.
+**Affected repos** (`GOV-R7`): `lemonfiber-media-stack` publishes the household
+tier on a configurable address; `lemonfiber` reports the observed binding under
+`C6-R13`.
 
 ## Related
 

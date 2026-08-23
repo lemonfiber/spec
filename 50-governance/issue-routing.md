@@ -34,7 +34,7 @@ That single question resolves most cases:
 |---------|------|---------|
 | Command crashes | `lemonfiber` | Nothing specifies crashing |
 | Wizard asks something answerable only by an expert | `spec` | Contradicts [A2-R5](../10-functional/features/a-getting-started/a2-setup-wizard.md) — but if the spec permits it, the spec is wrong |
-| Service won't start | `media-stack` | Compose or manifest defect |
+| Service won't start | `lemonfiber-media-stack` | Compose or manifest defect |
 | Homebrew formula installs the wrong version | `homebrew-tap` | Release engineering |
 | "It should also do X" | `spec` | A feature request is a spec change |
 | Error message unhelpful | `lemonfiber` or `spec` | `lemonfiber` if it violates [G4](../10-functional/features/g-ux/g4-error-model.md); `spec` if G4 doesn't cover it |

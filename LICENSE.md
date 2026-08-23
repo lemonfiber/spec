@@ -17,7 +17,8 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 ---
 
-**Note on sibling repos.** Code in `lemonfiber`, `media-stack`, and `homebrew-tap` is
+**Note on sibling repos.** Code in `lemonfiber`, `lemonfiber-media-stack`, and
+`homebrew-tap` is
 licensed under the **Hippocratic License 3.0**, not CC BY-SA. Creative Commons
 licences are unsuitable for software — Creative Commons themselves
 [recommend against it](https://creativecommons.org/faq/#can-i-apply-a-creative-commons-license-to-software).

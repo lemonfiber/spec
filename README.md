@@ -58,7 +58,7 @@ freely.
 |---------|----------|---------------|
 | **[00-overview](00-overview/)** | Vision, glossary, roadmap, and all Architecture Decision Records | …you want the *why* behind any choice |
 | **[10-functional](10-functional/)** | The 66-feature catalogue, numbered requirements, and nine user journeys | …you're deciding what to build or verifying it got built |
-| **[20-architecture](20-architecture/)** | System context, component model, platform matrix, inter-repo contracts | …you're implementing across the lemonfiber ↔ media-stack seam |
+| **[20-architecture](20-architecture/)** | System context, component model, platform matrix, inter-repo contracts | …you're implementing across the lemonfiber ↔ lemonfiber-media-stack seam |
 | **[30-repos](30-repos/)** | Per-repo technical specs | …you're working inside one repo |
 | **[40-quality](40-quality/)** | Code standards, comment policy, testing, CI/CD, security | …you're writing or reviewing a PR |
 | **[50-governance](50-governance/)** | How change enters the org. The spec is canonical — **read this before your first PR** | …you're contributing to any repo |
@@ -71,7 +71,7 @@ freely.
 - **"I want to understand the product"** → [vision](00-overview/vision.md) → [journeys](10-functional/journeys/) → [forms](10-functional/features/b-running/b1-forms.md)
 - **"What does it actually do?"** → [feature catalogue](10-functional/features/), counted on the [board](10-functional/features/BOARD.md)
 - **"I'm implementing lemonfiber"** → [lemonfiber spec](30-repos/lemonfiber.md) → [TUI spec](30-repos/lemonfiber-tui.md) → [code standards](40-quality/code-standards.md)
-- **"I'm implementing media-stack"** → [media-stack spec](30-repos/media-stack.md) → [stack manifest contract](20-architecture/contracts/stack-manifest.md)
+- **"I'm implementing lemonfiber-media-stack"** → [lemonfiber-media-stack spec](30-repos/lemonfiber-media-stack.md) → [stack manifest contract](20-architecture/contracts/stack-manifest.md)
 - **"Why is it built this way?"** → [decisions/](00-overview/decisions/)
 - **"I want to contribute"** → [contributing](50-governance/contributing.md) — every change must cite a spec identifier that already exists
 
@@ -105,7 +105,7 @@ trailers and PR bodies — **never in code comments**
 | 00-overview | Accepted | Vision, glossary, roadmap, 15 ADRs |
 | 10-functional | Accepted | The [feature board](10-functional/features/BOARD.md) — features, requirements, areas — and 9 journeys |
 | 20-architecture | Accepted | System context, component model, data flow, platform matrix, 3 contracts |
-| 30-repos | Accepted | lemonfiber (+ TUI + reference), lemonfiber-web, sdk-ts, sdk-php, media-stack, brand, website, website-docs, homebrew-tap |
+| 30-repos | Accepted | All eleven repos: `spec`, `lemonfiber` (+ TUI + reference), `lemonfiber-web`, `sdk-ts`, `sdk-php`, `lemonfiber-media-stack`, `brand`, `homebrew-tap`, `website-lemonfiber.app`, `website-docs.lemonfiber.app`, `.github` |
 | 40-quality | Accepted | Comment policy, code standards, testing, CI/CD, security, definition of done |
 | 50-governance | Accepted | Canonical spec rule, change lifecycle, cross-repo CI, contributing |
 | 60-brand | Accepted | Brand rules, surface mapping, accessibility contract |

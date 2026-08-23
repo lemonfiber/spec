@@ -27,17 +27,17 @@ Four repos:
 |------|----------|--------------|-------------|
 | `spec` | This specification | A decision is made | Reading prose |
 | `lemonfiber` | Rust CLI/TUI (the `lemonfiber` binary) | Feature work | Reading Rust + CI |
-| `media-stack` | `compose.yml`, `stack.toml`, service configs, overlays | A service changes | Reading YAML |
+| `lemonfiber-media-stack` | `compose.yml`, `stack.toml`, service configs, overlays | A service changes | Reading YAML |
 | `homebrew-tap` | Formulae (generated) | Every release | Nothing — it's generated |
 
-`media-stack` enters `lemonfiber` as a **git submodule**, embedded at build time —
-see [ADR-0005](0005-embedded-stack-assets.md).
+`lemonfiber-media-stack` enters `lemonfiber` as a **git submodule**, embedded at
+build time — see [ADR-0005](0005-embedded-stack-assets.md).
 
 ## Alternatives considered
 
 | Option | Why it lost |
 |--------|-------------|
-| **Monorepo + separate tap** | The most defensible alternative, and normally I'd favour it. Lost on a specific product goal: `media-stack` must be independently forkable and usable *without lemonfiber* (see ADR-0001). A directory inside a Rust repo signals "implementation detail"; a repo signals "artifact you can use." |
+| **Monorepo + separate tap** | The most defensible alternative, and normally I'd favour it. Lost on a specific product goal: `lemonfiber-media-stack` must be independently forkable and usable *without lemonfiber* (see ADR-0001). A directory inside a Rust repo signals "implementation detail"; a repo signals "artifact you can use." |
 | **Two repos** (`lemonfiber` incl. stack, + tap) | Loses the independent-fork property entirely. |
 | **Five+** (splitting docs from spec, etc.) | No benefit; more coordination overhead. |
 
@@ -45,10 +45,10 @@ see [ADR-0005](0005-embedded-stack-assets.md).
 
 ### Positive
 
-- `media-stack` can be cloned and run with plain `docker compose` by someone who
-  has never heard of lemonfiber. This is a real hedge: if lemonfiber stagnates, the stack
-  still works.
-- Each repo gets CI proportionate to its risk. `media-stack` needs
+- `lemonfiber-media-stack` can be cloned and run with plain `docker compose` by
+  someone who has never heard of lemonfiber. This is a real hedge: if lemonfiber
+  stagnates, the stack still works.
+- Each repo gets CI proportionate to its risk. `lemonfiber-media-stack` needs
   `docker compose config` validation and a lint; `lemonfiber` needs a three-platform
   build matrix. Merged, everything pays the expensive cost.
 - Issues land in the right place without triage.
@@ -57,9 +57,10 @@ see [ADR-0005](0005-embedded-stack-assets.md).
 ### Negative
 
 - **Version skew is now possible** — the central risk this split introduces. A
-  change spanning lemonfiber and media-stack requires two PRs, and a user could pair
-  incompatible versions. Mitigated by the `schema_version` contract in
-  `stack.toml` ([versioning](../../20-architecture/contracts/versioning.md)) and,
+  change spanning lemonfiber and lemonfiber-media-stack requires two PRs, and a
+  user could pair incompatible versions. Mitigated by the `schema_version`
+  contract in `stack.toml`
+  ([versioning](../../20-architecture/contracts/versioning.md)) and,
   because the stack is embedded at build time, largely converted into a
   *compile-time* error rather than a runtime one.
 - Cross-repo changes need coordination. Real cost, accepted.
@@ -73,8 +74,8 @@ see [ADR-0005](0005-embedded-stack-assets.md).
 ## Revisit if
 
 - Cross-repo coordination overhead visibly slows development.
-- The independent-usability property of `media-stack` turns out not to matter to
-  anyone in practice.
+- The independent-usability property of `lemonfiber-media-stack` turns out not
+  to matter to anyone in practice.
 
 ## Since this was accepted
 

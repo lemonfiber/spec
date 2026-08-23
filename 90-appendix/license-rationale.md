@@ -12,7 +12,7 @@ ADR. No component's design depends on the licence choice.
 | Repo | Licence |
 |------|---------|
 | `lemonfiber` | Hippocratic License 3.0 |
-| `media-stack` | Hippocratic License 3.0 |
+| `lemonfiber-media-stack` | Hippocratic License 3.0 |
 | `homebrew-tap` | Hippocratic License 3.0 |
 | `spec` | CC BY-SA 4.0 |
 | `brand` — marks (`assets/logo/*`) | **Proprietary, all rights reserved** |
@@ -94,7 +94,7 @@ is protected, which is a trademark matter, not a software-freedom one.
 
 Every service the stack orchestrates is OSI-licensed open source. The
 authoritative per-service licence is the `license` field on each `[[service]]`
-in [`stack.toml`](../30-repos/media-stack.md#the-service-inventory), which is
+in [`stack.toml`](../30-repos/lemonfiber-media-stack.md#the-service-inventory), which is
 what the manifest contract validates; this table groups all nineteen of them
 using the same SPDX identifiers.
 
@@ -106,9 +106,9 @@ using the same SPDX identifiers.
 | Apache-2.0 | NZBHydra2, Caddy |
 
 **Our licence choice has no effect on theirs, and theirs has none on ours.**
-`media-stack` distributes configuration that *references* public container
-images; it does not link against, embed, or redistribute their code. No copyleft
-obligation propagates in either direction.
+`lemonfiber-media-stack` distributes configuration that *references* public
+container images; it does not link against, embed, or redistribute their code.
+No copyleft obligation propagates in either direction.
 
 ## Documentation licence
 

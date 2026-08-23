@@ -100,8 +100,8 @@ the approximate memory footprint.
 
 ### Forms are data, not code
 
-Adding or changing a form is a manifest edit in `media-stack`. It requires no
-change to `lemonfiber` and no release — see
+Adding or changing a form is a manifest edit in `lemonfiber-media-stack`. It
+requires no change to `lemonfiber` and no release — see
 [ADR-0002](../../../00-overview/decisions/0002-profiles-and-forms.md).
 
 ## States

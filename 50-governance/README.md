@@ -11,9 +11,9 @@ advice.
 
 ## The constitutional rule
 
-> **The spec is canonical. No change lands in `lemonfiber`, `media-stack` or
-> `homebrew-tap` unless it references something in this repository, and that
-> reference already exists on `main` here.**
+> **The spec is canonical. No change lands in `lemonfiber`,
+> `lemonfiber-media-stack` or `homebrew-tap` unless it references something in
+> this repository, and that reference already exists on `main` here.**
 
 Everything else in this section follows from that sentence.
 

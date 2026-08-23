@@ -59,8 +59,8 @@ and it outranks other considerations.
 
 Three enforcement mechanisms:
 
-1. **CI lint** on `media-stack` rejects any service declaring more than one
-   mount under `DATA_ROOT`.
+1. **CI lint** on `lemonfiber-media-stack` rejects any service declaring more
+   than one mount under `DATA_ROOT`.
 2. **Setup wizard** creates a hardlink in the chosen data root and `stat`s it —
    an empirical test, not an assumption ([P3](../vision.md#p3--the-tool-proves-things-rather-than-assuming-them)).
 3. **`lemonfiber doctor`** re-runs that test and reports degradation.

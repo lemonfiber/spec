@@ -1,4 +1,4 @@
-# Repo: `media-stack`
+# Repo: `lemonfiber-media-stack`
 
 **Status:** Accepted
 
@@ -25,7 +25,7 @@ develop and version independently.
 ## Layout
 
 ```
-media-stack/
+lemonfiber-media-stack/
 ├── compose.yml                 stitches the fragments; defines no services
 ├── compose/
 │   ├── _common.yml             shared service defaults, via `extends:`
@@ -255,7 +255,7 @@ CI then holds it to every rule above. This is the whole of
 | **REPO-R37** | Every stack rule enforced in CI MUST have a negative test that breaks the rule and asserts the violation is reported. |
 | **REPO-R38** | The forwarded-port push MUST authenticate against the download client's API, and where no credentials are configured it MUST say the port was not pushed rather than fail silently. |
 
-**Affected repos** (`GOV-R7`): `media-stack`.
+**Affected repos** (`GOV-R7`): `lemonfiber-media-stack`.
 
 ## Related
 

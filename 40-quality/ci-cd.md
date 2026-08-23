@@ -152,10 +152,10 @@ smoke-test job **runs** the binary on macOS, Linux and Windows (`roadmap M6`
 exit). A binary that builds for Windows and panics on first launch has been
 tested for the wrong thing.
 
-## `media-stack` and `homebrew-tap` pipelines
+## `lemonfiber-media-stack` and `homebrew-tap` pipelines
 
-- **`media-stack`** — `spec-check`, then the structural checks in its
-  [repo spec](../30-repos/media-stack.md#ci). No stack boot in CI (no
+- **`lemonfiber-media-stack`** — `spec-check`, then the structural checks in its
+  [repo spec](../30-repos/lemonfiber-media-stack.md#ci). No stack boot in CI (no
   credentials).
 - **`homebrew-tap`** — `spec-check` and `brew audit` (configured to accept the
   non-SPDX licence). Mostly receives generated commits.
