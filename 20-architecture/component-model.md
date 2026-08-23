@@ -127,6 +127,24 @@ plans and health summaries a surface renders. They serialise directly, so
 `--json` and the web API are the same values rather than two hand-maintained
 projections of them, and `ARCH-R9`'s `api_version` versions one thing.
 
+## The command reference is generated
+
+A hand-written list of subcommands is a second description of the command line, and
+the two do not stay level. The list is edited when somebody remembers; the parser is
+edited when somebody ships. Between them the document goes on naming commands that
+were renamed, misses ones that were added, and promises flags that were never built —
+and nothing fails while it happens.
+
+So the reference is emitted from the `clap` declarations themselves, the same ones the
+binary parses arguments with, into an artefact committed beside them; a test compares
+the two. This is the discipline `ARCH-R66` already applies to the contract artefact,
+pointed at the other surface: a rename that forgets the reference fails the build
+rather than reaching a reader.
+
+What stays written is what generation cannot say — what an exit code means, and what a
+command line must be able to do at all. Shapes are generated, obligations are written,
+and [lemonfiber-reference](../30-repos/lemonfiber-reference.md) holds the second half.
+
 ## Ports and adapters
 
 Everything outside the process — the Docker daemon, service HTTP APIs, spawned
@@ -283,6 +301,7 @@ the server runs only when asked (`G1-R5`).
 | **ARCH-R42** | Every surface MUST reach behaviour through a single dispatch entry point in `lemonfiber-core`; a surface MUST NOT orchestrate the core's subsystems directly. |
 | **ARCH-R44** | The ports MUST live in a crate below `lemonfiber-core`, depending on no other crate of the project except `lemonfiber-manifest`. |
 | **ARCH-R45** | Test fakes for the ports MUST have a single home reachable from both in-source and integration tests, and that home MUST NOT depend on `lemonfiber-core`. |
+| **ARCH-R68** | The command reference MUST be generated from the types the binary parses and MUST NOT be written by hand; CI MUST fail when the committed artefact and those types disagree. |
 
 ## Related
 
