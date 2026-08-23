@@ -7,6 +7,7 @@ epoch   = "v1"
 milestone = "M6"   # Live TUI
 delivers  = "Live TUI: forms, lifecycle, logs and diagnostics as surfaces"
 status  = "released"
+released_on = "2026-08-22"
 repos   = ["lemonfiber"]
 goals   = [
     "B1-R1",

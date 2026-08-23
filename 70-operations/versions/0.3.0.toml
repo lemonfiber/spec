@@ -28,6 +28,7 @@ epoch   = "v1"
 milestone = "M4"   # Seed & backup
 delivers  = "Backup & restore"
 status  = "released"
+released_on = "2026-07-31"
 repos   = ["lemonfiber"]
 goals   = [
     # M4 — backup & restore (E3), the maintenance capability that makes a
