@@ -5,11 +5,11 @@ Checks the required keys, enum membership, the id/area/filename agreement, and t
 label registry, and rejects unknown keys. Exit 0 when every feature is valid, 1
 with the violations named. Run from the repo root.
 """
+import glob
 import json
+import pathlib
 import re
 import sys
-import glob
-import pathlib
 
 import metafm
 

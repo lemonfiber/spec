@@ -17,13 +17,17 @@ Usage:
 Exit 0 = pass, 1 = fail (with guidance), 2 = usage error.
 """
 from __future__ import annotations
-import argparse, os, re, sys, pathlib
+
+import argparse
+import pathlib
+import re
+import sys
 
 # Identifiers the spec defines.
-REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.M)
+REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.MULTILINE)
 ADR_FILE = re.compile(r"^0*(\d{3,4})-.*\.md$")
 CITE_ANY = re.compile(r"\b([A-Z]+\d*-R\d+|ADR-\d{3,4})\b")
-SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.M | re.I)
+SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.MULTILINE | re.IGNORECASE)
 
 
 def defined_ids(spec_dir: pathlib.Path) -> set[str]:

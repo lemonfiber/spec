@@ -9,13 +9,13 @@ the proposal text is quoted verbatim inside fenced blocks so it cannot inject
 markdown; and the PR is opened via ``gh api --input`` so no field is ever a command
 argument. The stub is always ``status: draft`` — never Accepted (GOV-R42).
 """
-import os
-import re
 import glob
 import json
+import os
+import pathlib
+import re
 import subprocess
 import sys
-import pathlib
 
 AREA_DIR = {
     "A": "a-getting-started", "B": "b-running", "C": "c-trust", "D": "d-content",
@@ -32,7 +32,7 @@ AREA_NAME = {
 
 def field(body, label):
     match = re.search(
-        rf"^###\s+{re.escape(label)}\s*\n+(.*?)(?=\n###\s|\Z)", body, re.S | re.M
+        rf"^###\s+{re.escape(label)}\s*\n+(.*?)(?=\n###\s|\Z)", body, re.DOTALL | re.MULTILINE
     )
     return match.group(1).strip() if match else ""
 

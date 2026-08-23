@@ -2,11 +2,14 @@
 """Generate a repo's CODEOWNERS from the single maintainers registry (OPS-R17).
 Usage: gen_codeowners.py <repo-name>   ->  prints CODEOWNERS to stdout.
 """
-import sys, tomllib, pathlib
+import pathlib
+import sys
+import tomllib
 
 repo = sys.argv[1]
 reg = pathlib.Path(__file__).resolve().parent.parent / "70-operations" / "maintainers.toml"
-data = tomllib.load(open(reg, "rb"))
+with reg.open("rb") as handle:
+    data = tomllib.load(handle)
 
 lines = [
     "# GENERATED from lemonfiber/spec 70-operations/maintainers.toml — do not edit by hand.",

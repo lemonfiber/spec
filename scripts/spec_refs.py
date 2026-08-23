@@ -12,7 +12,10 @@ Usage:
 Prints the comment markdown (with a stable marker) to stdout.
 """
 from __future__ import annotations
-import argparse, re, sys, pathlib
+
+import argparse
+import pathlib
+import re
 
 # A requirement is defined by a table row `| **ID** | text |`; capture the text.
 #
@@ -20,13 +23,13 @@ import argparse, re, sys, pathlib
 # `\s*`: whitespace is also "not a pipe", so the two overlap and the engine has
 # two ways to split the same characters — which is backtracking, and super-linear
 # on a long row.
-REQ_DEF_ROW = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|([^|]*)\|", re.M)
+REQ_DEF_ROW = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|([^|]*)\|", re.MULTILINE)
 ADR_FILE = re.compile(r"^0*(\d{3,4})-.*\.md$")
 # Two shapes rather than one alternation inside a group: the alternation made
 # the engine backtrack across the whole token, which is super-linear on a long
 # run of capitals. Each is now anchored on its own literal separator.
 CITE_ANY = re.compile(r"\b(?:[A-Z]{1,4}\d{0,3}-R\d{1,4}|ADR-\d{3,4})\b")
-SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.M | re.I)
+SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.MULTILINE | re.IGNORECASE)
 MARKER = "<!-- spec-references -->"
 
 

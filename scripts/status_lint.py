@@ -24,7 +24,12 @@ Usage:
 Exit 0 = every claim backed; 1 = claims that are not (named); 2 = usage.
 """
 from __future__ import annotations
-import argparse, pathlib, re, sys, tomllib
+
+import argparse
+import pathlib
+import re
+import sys
+import tomllib
 
 CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
 RANGE = re.compile(r"\b([A-Z]+\d*)-R(\d+)\.\.(?:[A-Z]+\d*-)?R?(\d+)\b")

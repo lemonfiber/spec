@@ -9,11 +9,15 @@ Verifies:
 Exit 0 = clean, 1 = problems found.
 """
 from __future__ import annotations
-import re, sys, pathlib, collections
+
+import collections
+import pathlib
+import re
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.M)
+REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.MULTILINE)
 REQ_CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
 ADR_FILE = re.compile(r"^0*(\d{3,4})-.*\.md$")
 ADR_CITE = re.compile(r"\bADR-(\d{3,4})\b")

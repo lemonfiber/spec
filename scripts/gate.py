@@ -19,7 +19,14 @@ Usage:
 Exit 0 = every goal satisfied (releasable); 1 = goals unmet (named); 2 = usage.
 """
 from __future__ import annotations
-import argparse, json, re, subprocess, sys, tomllib, pathlib
+
+import argparse
+import json
+import pathlib
+import re
+import subprocess
+import sys
+import tomllib
 
 # Same citation grammar the spec's own checks use (spec_check.py).
 CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
