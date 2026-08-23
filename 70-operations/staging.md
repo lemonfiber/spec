@@ -36,11 +36,11 @@ idiomatic to the org's other generated-from-truth files (`maintainers.toml`,
 # 70-operations/versions/0.2.0.toml
 version = "0.2.0"
 status  = "staged"        # planned → staged → in_progress → releasable → released → yanked
-repos   = ["lemonfiber", "media-stack"]   # the streams this version cuts; brand excluded
+repos   = ["lemonfiber", "lemonfiber-media-stack"]   # the streams this version cuts; brand excluded
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs
 
 [pins]                    # recorded at execute, for reproducibility
-media-stack = "fbdafe0"   # the submodule commit that shipped
+lemonfiber-media-stack = "fbdafe0"   # the submodule commit that shipped
 ```
 
 Staging writes it, the tracker reads it, the gate checks it, execute flips its
@@ -208,7 +208,7 @@ implementing them are built per repo.
 | **Release-blocker linkage** | An issue labelled `release-blocker` for a version links to the tracker and blocks execute until closed |
 | **Next-version issue** | Releasing opens the next version's planning issue, seeded from the next `planned` manifest's goals |
 | **Drift watchdog** | A scheduled check flags a locked goal whose requirement was withdrawn or superseded |
-| **Submodule bump** | A `media-stack` release opens a `lemonfiber` PR bumping the submodule pin, gated by the `build.rs` compat check |
+| **Submodule bump** | A `lemonfiber-media-stack` release opens a `lemonfiber` PR bumping the submodule pin, gated by the `build.rs` compat check |
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
 | **Issue lifecycle** | Releasing closes the issues opened for that version — its tracker, and any drift the watchdog raised |
 | **Release from the trunk** | A version is tagged on `main`; a hotfix to a shipped version branches from its tag and merges back |
@@ -236,7 +236,7 @@ implementing them are built per repo.
 | **OPS-R44** | An issue labelled `release-blocker` for a version MUST link to that version's tracker and MUST block execute until it closes. |
 | **OPS-R45** | Releasing a version MUST open the next version's planning issue, seeded from the goals of the next `planned` manifest. |
 | **OPS-R46** | A scheduled check MUST flag a locked goal whose requirement became `Withdrawn` or `Superseded`. |
-| **OPS-R47** | A `media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
+| **OPS-R47** | A `lemonfiber-media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep. |
 | **OPS-R49** | A version MUST be released from `main`: the tag names a commit on the trunk, and no long-lived release branch is cut. A hotfix to an already-released version MUST branch from that version's tag and MUST be merged back to `main`. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |

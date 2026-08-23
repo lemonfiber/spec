@@ -25,7 +25,7 @@ on:
         description: "Version that was published, e.g. 0.4.0."
         required: true
       stack_pin:
-        description: "The media-stack commit the release embedded. Read from the tag when omitted."
+        description: "The lemonfiber-media-stack commit the release embedded. Read from the tag when omitted."
         required: false
 
 permissions:
@@ -110,7 +110,7 @@ jobs:
         with:
           version: ${{ steps.what.outputs.version }}
           status: released
-          pins: media-stack=${{ steps.what.outputs.pin }}
+          pins: lemonfiber-media-stack=${{ steps.what.outputs.pin }}
           token: ${{ steps.token.outputs.token }}
 
       # An open issue about a version should mean something is still owed on it,

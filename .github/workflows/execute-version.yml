@@ -94,7 +94,7 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          stack="checkouts/media-stack/stack.toml"
+          stack="checkouts/lemonfiber-media-stack/stack.toml"
           if [ -f "$stack" ]; then
             mincli=$(grep -m1 -E '^min_cli_version' "$stack" | sed -E 's/.*"(.*)".*/\1/')
             # The binary version must be >= the stack's declared minimum.
@@ -103,7 +103,7 @@ jobs:
             fi
             echo "compat ok: binary ${VERSION} >= min_cli ${mincli}"
           fi
-          echo "STACK_PIN=$(git -C checkouts/media-stack rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "STACK_PIN=$(git -C checkouts/lemonfiber-media-stack rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Check for release blockers (OPS-R44)
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
