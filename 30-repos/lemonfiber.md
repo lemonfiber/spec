@@ -22,15 +22,14 @@ knows about *this* stack.
 lemonfiber/
 ├── Cargo.toml                  workspace
 ├── crates/
-│   ├── lemonfiber/             bin — the only crate that renders
+│   ├── lemonfiber/             bin — chooses a surface and runs it
 │   │   ├── src/
 │   │   │   ├── cli/            clap: subcommands, flags, exit codes
 │   │   │   ├── tui/            ratatui: dashboard, wizard, logs, doctor
-│   │   │   ├── api/            axum: the JSON endpoints
-│   │   │   ├── embedded/       serves the built frontend from the binary
 │   │   │   └── main.rs         surface selection
 │   │   └── web-ui/             frontend source; dist/ embedded
-│   ├── lemonfiber-core/        lib — all logic, no UI
+│   ├── lemonfiber-api/         lib — axum: the JSON endpoints, and the frontend served
+│   ├── lemonfiber-core/        lib — all logic, no UI; embeds both pinned submodules
 │   └── lemonfiber-manifest/    lib — stack.toml
 ├── assets/media-stack/         git submodule, embedded at build
 ├── build.rs                    validates submodule schema_version
