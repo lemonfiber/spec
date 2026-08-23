@@ -1,6 +1,10 @@
-# Coverage for the release-train scripts. Line coverage, matching lemonfiber's
-# 100%-on-applicable-code standard (Q-R61). The __main__ guards only run when a
-# script is executed rather than imported for test, so they are excluded.
+# Coverage for the scripts that gate a merge. Line coverage, matching
+# lemonfiber's 100%-on-applicable-code standard (Q-R61). The __main__ guards only
+# run when a script is executed rather than imported for test, so they are
+# excluded.
+#
+# The list is what the gate covers, not what the suites happen to import: a
+# script is added here when it has a suite that holds it at 100%.
 [run]
 include =
     scripts/gate.py
@@ -10,6 +14,8 @@ include =
     scripts/pr_goals.py
     scripts/status_lint.py
     scripts/gen_redirects.py
+    scripts/integrity.py
+    scripts/check_shared_files.py
 
 [report]
 exclude_also =

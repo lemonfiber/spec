@@ -1,6 +1,9 @@
-# Gate the release-train scripts at 100% line coverage (Q-R61) — the same
-# standard lemonfiber holds its Rust at. The suite is stdlib unittest (the repo
-# has no Python dependencies); coverage.py is the only CI-only tool.
+# Gate the scripts that decide whether a merge may happen at 100% line coverage
+# (Q-R61) — the same standard lemonfiber holds its Rust at. status_lint,
+# integrity and check_shared_files run inside the reusable workflows every
+# repository calls, so what is covered here is what gates the whole org. The
+# suites are stdlib unittest (the repo has no Python dependencies); coverage.py
+# is the only CI-only tool.
 name: coverage
 on:
   pull_request:
@@ -21,8 +24,11 @@ jobs:
       - name: Install coverage.py
         run: |
           pip install --disable-pip-version-check --only-binary :all: coverage==7.15.2
-      - name: Release-train scripts at 100% coverage (Q-R61)
+      - name: The scripts that gate a merge, at 100% coverage (Q-R61)
         run: |
           coverage run scripts/test_release_train.py
           coverage run --append scripts/test_redirects.py
+          coverage run --append scripts/test_status_lint.py
+          coverage run --append scripts/test_integrity.py
+          coverage run --append scripts/test_shared_files.py
           coverage report --fail-under=100
