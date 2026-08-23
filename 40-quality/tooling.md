@@ -45,8 +45,9 @@ Every tool below was chosen to work within that constraint.
 | **Changelog** | **git-cliff** | OSS | lemonfiber, brand, media-stack |
 | **Release binaries** | **cargo-dist** | OSS | lemonfiber |
 | **Docs site** | **mdBook** | OSS | spec |
-| **Web lint + format** | **Biome** | OSS | lemonfiber (web-ui) |
-| **Web accessibility** | **axe-core / pa11y** | OSS | lemonfiber (web-ui) |
+| **Web lint** | **ESLint** (`typescript-eslint`) | OSS | lemonfiber-web, sdk-ts |
+| **Web format** | **Prettier** | OSS | lemonfiber-web, sdk-ts |
+| **Web accessibility** | **axe-core / pa11y** | OSS | lemonfiber-web |
 
 ## Why these, specifically
 
@@ -111,12 +112,24 @@ Because commits carry structured trailers (`Spec:`) and follow a consistent shap
 a changelog can be generated rather than hand-maintained. git-cliff (Rust, OSS)
 does this at release time alongside `cargo-dist`.
 
-### Biome — one web tool, not two
+### ESLint and Prettier — because the rules that matter are type-aware
 
-When the web UI arrives (M5), Biome (Rust, OSS) lints *and* formats JS/TS/CSS in
-one fast tool, replacing ESLint + Prettier. It matches the project's "one
-formatter, no arguments" posture ([code-standards](code-standards.md)). Paired
-with axe-core / pa11y for the accessibility testing the
+Web work — [`lemonfiber-web`](../30-repos/lemonfiber-web.md) and
+[`sdk-ts`](../30-repos/sdk-ts.md) — lints with ESLint and formats with Prettier.
+
+The rule set doing the work is `typescript-eslint`'s `strictTypeChecked`, which asks
+the type checker rather than reading the syntax tree: a floating promise, an `any`
+crossing a boundary, an `await` on something that was never a promise. Those cannot be
+answered from a parse, so a linter that only parses cannot implement them, however
+fast it is. This is the same bar the Rust side sets with `clippy::pedantic` and
+`-D warnings`, which is why the two repos are held to it identically
+([lemonfiber-web](../30-repos/lemonfiber-web.md)).
+
+Prettier formats and ESLint does not — its formatting rules stay off, so the "one
+formatter, no arguments" posture ([code-standards](code-standards.md)) holds with one
+tool deciding layout rather than two arguing about it.
+
+Paired with axe-core / pa11y for the accessibility testing the
 [contrast contract](../60-brand/accessibility.md) and
 [G3](../10-functional/features/g-ux/g3-accessibility.md) require.
 
