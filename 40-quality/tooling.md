@@ -128,8 +128,18 @@ The tooling is kept consistent across repos by construction, not vigilance:
   are called by three-line wrappers in each repo. One definition each.
 - **Renovate preset** in `.github` is extended, not copied.
 - **`.github` repo** supplies community files org-wide.
+- **`shared/`** in the spec repo holds the files that must be copied because a tool
+  or GitHub reads them from the tree it is given — the two lint configs and the
+  brand assets a README shows. The `shared-files` job in the hygiene gate fails a
+  copy that has drifted from the one here.
 - **lefthook and just** configs are small and per-repo, but mirror the reusable
   CI so they cannot demand something CI doesn't.
+
+The distinction worth keeping straight: a reusable workflow is *not* copied, so it
+cannot drift. A lint config **is** copied, because the gate checks out the calling
+repository and lints that tree — the org's copy never arrives. Those two need
+different machinery, and conflating them is how four different
+`.markdownlint.jsonc` files came to be live at once.
 
 ## What needs a human, once
 

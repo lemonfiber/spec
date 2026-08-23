@@ -1,6 +1,12 @@
-# Reusable hygiene checks: workflow lint, spelling, links, invite codes, markdown.
+# Reusable hygiene checks: workflow lint, spelling, links, invite codes, markdown,
+# and the shared files those tools read.
 # Called by each repo:  uses: lemonfiber/spec/.github/workflows/hygiene.yml@main
 # One definition, no drift (Q-R56).
+#
+# This workflow checks out the calling repository and lints that tree, so the
+# lint configs that govern a run are the calling repo's own copies. The
+# shared-files job is what keeps those copies equal to the canonical ones in
+# lemonfiber/spec/shared.
 name: hygiene
 
 on:
@@ -67,6 +73,41 @@ jobs:
               exit 1
               ;;
           esac
+
+  shared-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Read from `main`, like spec-check and commitlint: a repo is checked
+      # against the canonical copies as they stand, not as its pin remembers them.
+      - name: Check out the canonical copies
+        if: github.repository != 'lemonfiber/spec'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: main
+          path: .spec-canonical
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Every shared file matches its one home
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$REPO" = "lemonfiber/spec" ]; then
+            canonical="."
+          else
+            canonical=".spec-canonical"
+          fi
+          python3 "$canonical/scripts/check_shared_files.py" \
+            --canonical "$canonical" \
+            --repo "$REPO"
 
   markdown:
     runs-on: ubuntu-latest

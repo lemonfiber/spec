@@ -67,7 +67,7 @@ should happen, then fix it.
 
 | Looking for | Go to |
 |-------------|-------|
-| What the product should do | [feature catalogue](../10-functional/features/) — 66 features by area |
+| What the product should do | [feature catalogue](../10-functional/features/) — every feature, by area |
 | Why something is built this way | [decisions](../00-overview/decisions/) — ADRs |
 | A specific behaviour | Search the spec for the behaviour, not the code |
 | Routine maintenance | `GOV-R12` |

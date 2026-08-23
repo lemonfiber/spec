@@ -68,7 +68,7 @@ freely.
 ### Fast paths
 
 - **"I want to understand the product"** → [vision](00-overview/vision.md) → [journeys](10-functional/journeys/) → [forms](10-functional/features/b-running/b1-forms.md)
-- **"What does it actually do?"** → [feature catalogue](10-functional/features/) — 66 features, 926 requirements
+- **"What does it actually do?"** → [feature catalogue](10-functional/features/), counted on the [board](10-functional/features/BOARD.md)
 - **"I'm implementing lemonfiber"** → [lemonfiber spec](30-repos/lemonfiber.md) → [TUI spec](30-repos/lemonfiber-tui.md) → [code standards](40-quality/code-standards.md)
 - **"I'm implementing media-stack"** → [media-stack spec](30-repos/media-stack.md) → [stack manifest contract](20-architecture/contracts/stack-manifest.md)
 - **"Why is it built this way?"** → [decisions/](00-overview/decisions/)
@@ -102,7 +102,7 @@ trailers and PR bodies — **never in code comments**
 | Section | Status | Contents |
 |---------|--------|----------|
 | 00-overview | Accepted | Vision, glossary, roadmap, 10 ADRs |
-| 10-functional | Accepted | 66 features (A–K), 926 requirements, 9 journeys |
+| 10-functional | Accepted | The [feature board](10-functional/features/BOARD.md) — features, requirements, areas — and 9 journeys |
 | 20-architecture | Accepted | System context, component model, data flow, platform matrix, 3 contracts |
 | 30-repos | Accepted | lemonfiber (+ TUI + reference), lemonfiber-web, sdk-ts, sdk-php, media-stack, brand, website, homebrew-tap |
 | 40-quality | Accepted | Comment policy, code standards, testing, CI/CD, security, definition of done |

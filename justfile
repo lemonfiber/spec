@@ -3,7 +3,11 @@ default:
     @just --list
 
 # Run every check CI runs.
-ci: integrity typos links
+ci: integrity shared typos links
+
+# The lint configs and brand assets here match the canonical copies in shared/.
+shared:
+    python3 scripts/check_shared_files.py --canonical . --repo lemonfiber/spec
 
 # Verify identifiers resolve, no dups, links unbroken.
 integrity:
