@@ -1,5 +1,4 @@
 exclude = [
-  "^https://discord\\.gg/",
   "\\.docs/",
 ]
 exclude_loopback = true

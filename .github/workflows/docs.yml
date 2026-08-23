@@ -54,7 +54,7 @@ jobs:
       - name: Link check the assembled site
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
-          args: "--no-progress --accept 200,206,429 --exclude discord.gg src"
+          args: "--no-progress --accept 200,206,429 src"
           fail: true
 
       - name: Build
