@@ -61,12 +61,20 @@ repository rather than for a reader arriving from a search box.
 website-docs.lemonfiber.app/
 ├── .gitmodules            the pins — one per repo whose docs are shown
 ├── vendor/                the submodules themselves, never edited here
-├── src/content/docs/      the collection; mirrored trees enter by symlink
-├── src/content/authored/  this site's own pages — guides, landings, nav copy
-├── src/i18n/en.json       the message catalogue; every authored string
-├── src/components/        Provenance · VersionPicker · RepoBadge · …
-└── astro.config.mjs       Starlight: sidebar, versions, search, one locale
+├── mirrors.json           the route table — which upstream file each page is
+├── src/content/docs/      the collection; this site's own pages, and mirrored
+│                          trees entering by symlink beside them
+├── src/lib/               the mirror loader: routes, provenance, link rewriting
+├── messages/en.json       the message catalogue; every authored string
+├── src/components/        VersionTrain · VersionPill · StatusPill · …
+└── astro.config.ts        Starlight: sidebar, one locale, link validation
 ```
+
+Authored and mirrored pages share one collection rather than sitting in separate
+trees: Starlight's sidebar is built from route, so a split would mean two sources
+for one navigation. A mirrored page is a symlink into `vendor/`, which is what
+makes "this site holds no second copy" (`REPO-R45`) a property of the filesystem
+rather than a habit.
 
 ## How it stays fresh
 

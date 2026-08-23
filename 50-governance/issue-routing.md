@@ -88,7 +88,7 @@ announcing what is being patched must not precede the patch.
 | **GOV-R25** | Issue templates MUST NOT require a reporter to identify the correct repository. |
 
 **GOV-R25** is the one that keeps this from becoming a burden on people trying to
-help. Asking a reporter to understand a ten-repo split before filing is asking
+help. Asking a reporter to understand an eleven-repo split before filing is asking
 them to do triage — and the predictable outcome is that they don't file at all.
 
 ## Related

@@ -138,6 +138,7 @@ can enforce, we enforce — and stay green:
 | Dependency-Update-Tool | Renovate on every repo |
 | Dangerous-Workflow | No untrusted input in `run:`; fork PRs never see secrets |
 | Branch-Protection | PR-required, signed commits, strict status checks, linear history, conversation-resolution |
+| Fuzzing | `cargo-fuzz` targets over the manifest parser and its validation; a smoke run on every PR that touches them, a long run weekly, corpus carried between runs |
 | Security-Policy / License / Maintained / CI-Tests | Present and green |
 
 Some checks are **structurally capped** for a solo, pre-release, ethical-source
@@ -146,15 +147,17 @@ honest; a padded one is not:
 
 | Capped check | Why | Rises when |
 |--------------|-----|-----------|
-| Code-Review, Contributors | One maintainer, who cannot review their own PRs; admin bypass exists so `main` is never stuck | A second maintainer joins and PRs are reviewed before merge |
+| Code-Review, Contributors | One maintainer, who cannot review their own PRs | A second maintainer joins and PRs are reviewed before merge |
 | Signed-Releases | Nothing is released yet | `cargo-dist` at M6 emits SLSA provenance + signed checksums (`Q-R44`, [OPS-R20](../70-operations/releasing.md)) |
-| Fuzzing | No core logic to fuzz yet | `cargo-fuzz` targets land with the manifest/validation core |
 | Packaging | Pre-release | Homebrew + `cargo-dist` publish at M6 |
 | CII-Best-Practices | The badge is a manual registration | Registered at public launch |
 | License | Hippocratic 3.0 is deliberately **not** OSI-approved, so Scorecard may not recognise it | Not a defect — an accepted trade-off ([licence rationale](../90-appendix/license-rationale.md)) |
 
-`enforce_admins` is deliberately off so a solo maintainer is never locked out of
-their own `main`; every such override is recorded ([overrides](../50-governance/overrides.md)).
+`enforce_admins` is on for every repository that carries code or specification,
+so the maintainer meets the same gates as anybody else and `main` cannot be
+written past them. It is off only on `.github`, which holds community health
+files and no gated content. Where a rule is ever set aside, the override is
+recorded ([overrides](../50-governance/overrides.md)).
 
 ## Disclosure
 

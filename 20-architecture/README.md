@@ -32,6 +32,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [contracts/jellyfin-seerr-identity.md](contracts/jellyfin-seerr-identity.md) | Making Jellyfin Seerr's identity source — driving Jellyfin's first-run setup and Seerr's `auth/jellyfin` init |
 | [contracts/versioning.md](contracts/versioning.md) | Three version identifiers, compatibility, where skew is caught |
 | [contracts/web-api.md](contracts/web-api.md) | What the web surface may ask for, how live state arrives, what guards it |
+| [contracts/design-tokens.md](contracts/design-tokens.md) | The `brand` → `lemonfiber-web` interface — the visual language as data the app consumes |
 
 ## The `ARCH-R` namespace
 
