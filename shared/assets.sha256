@@ -1,0 +1,37 @@
+# Brand assets that more than one repository carries a copy of.
+#
+# Each row is: <sha256>  <path in the repo being checked>  <home>
+#
+# The home is where the file is maintained; every other copy is a distribution
+# artefact and must be byte-identical to it. The `shared-files` job in the
+# hygiene gate checks each row whose path exists in the repo it is checking, and
+# skips rows whose home repository is the one being checked (GOV-R12).
+#
+# GitHub renders a README from the repository it lives in, so a repo that shows
+# the mark in its README needs the file in its own tree. The copies cannot be
+# removed; this file is what keeps them honest.
+#
+# `logo.svg` and `logo-on-ink.svg` are the horizontal lockup under the names the
+# READMEs reach for. Renaming them in every README would be churn for no gain,
+# so the home is recorded here instead.
+
+7cfcb617bf89377b9599017acc9663a1d35e823fdba94e8943dc62033948b13d  .github/logo.svg                       brand:assets/logo/lockup-horizontal.svg
+b1d5ef3c2db6fbcf74c71544cffe89065b6b7ddfb81eee82f50826d983042259  .github/logo-on-ink.svg                brand:assets/logo/lockup-horizontal-on-ink.svg
+49644a8c94f0d413a7bff5b2252701362b111086926f41835013ad904a9174c1  .github/discord.svg                    .github:.github/discord.svg
+c1092d6b7340c2b63cd075a1cb3465fcb94b795ac99a51a93368c71b93def56c  .github/nightworks-dark.png            .github:.github/nightworks-dark.png
+e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  .github/nightworks-white.png           .github:.github/nightworks-white.png
+
+# The site serves the same marks from its own tree, because a built page cannot
+# reach into another repository at request time.
+
+7cfcb617bf89377b9599017acc9663a1d35e823fdba94e8943dc62033948b13d  public/brand/lockup-horizontal.svg     brand:assets/logo/lockup-horizontal.svg
+7cfcb617bf89377b9599017acc9663a1d35e823fdba94e8943dc62033948b13d  public/brand/logo.svg                  brand:assets/logo/lockup-horizontal.svg
+b1d5ef3c2db6fbcf74c71544cffe89065b6b7ddfb81eee82f50826d983042259  public/brand/logo-on-ink.svg           brand:assets/logo/lockup-horizontal-on-ink.svg
+7e5a9c84be19327e08b63e8a429db69300072c1ccc63518b564cc8c21bd1e2eb  public/brand/lockup-horizontal-knockout.svg  brand:assets/logo/lockup-horizontal-knockout.svg
+2f5692a931e5c9f1d67d1752eaff8eb2456dde80e5ddb4a2e4b1d31547ab742b  public/brand/mark-small.svg            brand:assets/logo/mark-small.svg
+2f5692a931e5c9f1d67d1752eaff8eb2456dde80e5ddb4a2e4b1d31547ab742b  public/favicon.svg                     brand:assets/logo/mark-small.svg
+9ca10f522ab17f07480534de6ba48f529392813ecb0d2edcf2fa6282e993e5a9  public/brand/wordmark.svg              brand:assets/logo/wordmark.svg
+80d91a5a9b08e868c553da7ef57ed9a0dbc7d8ca741ae3f84f018e90dc2dc671  public/brand/wordmark-mono.svg         brand:assets/logo/wordmark-mono.svg
+49644a8c94f0d413a7bff5b2252701362b111086926f41835013ad904a9174c1  public/brand/discord.svg               .github:.github/discord.svg
+c1092d6b7340c2b63cd075a1cb3465fcb94b795ac99a51a93368c71b93def56c  public/brand/nightworks-dark.png       .github:.github/nightworks-dark.png
+e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  public/brand/nightworks-white.png      .github:.github/nightworks-white.png
