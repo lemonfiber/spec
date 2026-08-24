@@ -6,8 +6,13 @@ import re
 import subprocess
 import sys
 
-base, head = sys.argv[1], sys.argv[2]
+# Kept here rather than shared. The line below is a validation, and a scanner
+# that cannot see it reports the call it guards as unguarded — which it did.
+# A guard worth having is worth keeping where the thing it guards can see it.
 _REF = re.compile(r"\A[0-9A-Za-z._/-]{1,255}\Z")
+
+
+base, head = sys.argv[1], sys.argv[2]
 if not (_REF.match(base) and _REF.match(head)):
     sys.exit("dco_check: base and head must be valid git refs")
 fmt = "%H%x00%an%x00%ae%x00%P%x00%b%x01"

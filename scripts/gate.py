@@ -23,18 +23,16 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
-import re
 import subprocess
 import sys
 import tomllib
 
+from patterns import CITE, RANGE
+from patterns import SPEC_TRAILER as TRAILER
+
+
 # Same citation grammar the spec's own checks use (spec_check.py).
-CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
-TRAILER = re.compile(r"(?im)^[ \t]*Spec:[ \t]*(\S.*)$")
 # A done-marking status row, with an explicit ID range: C1-R1..R12 or C1-R1..C1-R12.
-RANGE = re.compile(r"\b([A-Z]+\d*)-R(\d+)\.\.(?:[A-Z]+\d*-)?R?(\d+)\b")
-
-
 def within_cwd(raw: str) -> pathlib.Path:
     """Resolve a CLI-supplied path, refusing anything outside the working tree."""
     path = pathlib.Path(raw).resolve()
