@@ -40,7 +40,7 @@ Every tool below was chosen to work within that constraint.
 | **Link check** | **lychee** | OSS | all repos |
 | **Markdown lint** | **markdownlint** | OSS | all repos |
 | **Dependency updates** | **Renovate** | free for OSS | all repos |
-| **Pre-commit hooks** | **lefthook** | OSS | configured in six repos, installed in none — see below (`OPS-R51`) |
+| **Pre-commit hooks** | none — git's own | — | `.githooks/`, turned on per clone; see below (`OPS-R51`) |
 | **Pre-push guard** | [`.githooks/pre-push`](../shared/hooks/pre-push) | our own | all eight code repos, via `core.hooksPath` |
 | **Task runner** | **just** | OSS | the Rust, spec, stack, brand and site repos; the npm and Composer repos use their own script runner |
 | **Changelog** | **git-cliff** | OSS | lemonfiber, sdk-ts, sdk-php |
@@ -80,30 +80,40 @@ human intervened — friction the whole point of automation is to avoid.
 A shared Renovate **preset** lives in the `.github` repo; each repo's
 `renovate.json` extends it, so the policy has one home.
 
-### lefthook, and the pre-push guard that displaced it
+### The hooks, and why there is no hook manager
 
-lefthook was chosen for `OPS-R51`: a single Go binary, no Python runtime to
-install, running only the fast checks so CI rejects less and the loop is tighter.
-Six repos carry a `lefthook.yml` written to that brief.
+`OPS-R51` asks for a pre-commit hook running the fast CI-blocking checks. lefthook
+was chosen for it once — a single Go binary, no runtime to install — and six repos
+carried a `lefthook.yml` written to that brief. **None ever installed it.** No
+recipe or package script ran `lefthook install`, so the configs described hooks
+that had never run, and one of them named a `scripts/guards.mjs` that had been
+renamed underneath it.
 
-**None of them has it installed.** No `justfile` recipe, `package.json` script or
-Composer script runs `lefthook install`, so the configs describe hooks that have
-never run. `OPS-R51` is unimplemented across the org, and the `website-docs`
-config names a `scripts/guards.mjs` that was renamed to `.ts` underneath it.
+They could not have been installed alongside the other local hook anyway. The
+pre-push guard needs `core.hooksPath .githooks`, and git then reads that directory
+**only** — anything a manager wrote to `.git/hooks` is ignored. lefthook 2.x
+detects the setting, refuses to install, and offers `--reset-hooks-path`, which
+turns the guard off. The one command that repairs the dead config disables the
+working one.
 
-The one local hook that does run is the pre-push guard —
-[`shared/hooks/pre-push`](../shared/hooks/pre-push), copied to each repo's
-`.githooks/pre-push`. It refuses a push that would leave a branch carrying no
-commit `origin/main` does not, the shape of a mistake that destroyed two branches
-and closed their pull requests in one day, and a push straight to `main`.
+So the hooks are files in `.githooks/`, and there is no manager:
 
-The two mechanisms are **mutually exclusive**, which is the thing to know before
-either is changed. Enabling the guard means `core.hooksPath .githooks`, and git
-then reads that directory *only* — anything lefthook wrote to `.git/hooks` is
-ignored. lefthook 2.x detects the setting, refuses to install, and offers
-`--reset-hooks-path`, which turns the guard off. Satisfying `OPS-R51` therefore
-means a `pre-commit` file in `.githooks/` alongside the guard, not
-`lefthook install`; that work has not been done.
+| file | what it does | shared? |
+|------|--------------|---------|
+| [`pre-push`](../shared/hooks/pre-push) | refuses a push that would leave a branch carrying no commit `origin/main` does not — the shape of a mistake that destroyed two branches and closed their pull requests in one day — and a push straight to `main` | yes, byte-identical |
+| [`commit-msg`](../shared/hooks/commit-msg) | says now what `commitlint`, `dco` and `spec-check` would say after a push: a conventional subject, a sign-off, a `Spec:` citation | yes, byte-identical |
+| `pre-commit` | the fast checks that repository runs — formatting, typos, lint on staged files | no, per repo |
+
+The first two are the same everywhere, so they live in [`shared/`](../shared/) and
+`check_shared_files.py` holds each copy to the original. The third is not: `cargo
+fmt` and `prettier` are not the same command, and pretending otherwise would put a
+tool in a repository that does not have it.
+
+Each skips a check whose tool is absent, so a contributor without `typos`
+installed gets CI's answer rather than a hook that cannot run. None of them
+duplicates a slow gate (`Q-R57`): tests, clippy and coverage stay in `just ci`,
+because a hook that takes a minute is a hook people turn off, and one that is off
+enforces nothing.
 
 Enabling is the hard part regardless, because `core.hooksPath` is per-clone local
 config that no commit can carry. Each repo sets it from a command a contributor

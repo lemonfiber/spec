@@ -100,13 +100,15 @@ def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     to the canonical one — and that hook is one the kernel will not run, because
     the interpreter its first line names has a carriage return on the end.
     """
-    got = repo / ".githooks" / "pre-push"
-    if not got.is_file():
-        return []
-    want = canonical / "shared" / "hooks" / "pre-push"
-    if got.read_bytes() != want.read_bytes():
-        return [f".githooks/pre-push differs from the canonical copy; replace it with {want}"]
-    return []
+    complaints = []
+    for name in ("pre-push", "commit-msg"):
+        got = repo / ".githooks" / name
+        if not got.is_file():
+            continue
+        want = canonical / "shared" / "hooks" / name
+        if got.read_bytes() != want.read_bytes():
+            complaints.append(f".githooks/{name} differs from the canonical copy; replace it with {want}")
+    return complaints
 
 
 def main() -> int:
