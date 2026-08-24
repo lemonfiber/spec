@@ -21,8 +21,9 @@ import pathlib
 import re
 import sys
 
+from patterns import VERSION as VERSION_RE
+
 STATES = {"planned", "staged", "in_progress", "releasable", "released", "yanked"}
-VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 VERSIONS_DIR = pathlib.Path("70-operations/versions")
 

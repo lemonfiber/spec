@@ -15,12 +15,11 @@ import pathlib
 import re
 import sys
 
+from patterns import ADR_CITE, ADR_FILE, REQ_DEF
+from patterns import CITE as REQ_CITE
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.MULTILINE)
-REQ_CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
-ADR_FILE = re.compile(r"^0*(\d{3,4})-.*\.md$")
-ADR_CITE = re.compile(r"\bADR-(\d{3,4})\b")
 LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)#]+)(?:#[^)]*)?\)")
 
 

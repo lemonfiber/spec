@@ -7,6 +7,7 @@
 # script is added here when it has a suite that holds it at 100%.
 [run]
 include =
+    scripts/patterns.py
     scripts/gate.py
     scripts/set_status.py
     scripts/check_stageable.py

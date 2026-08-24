@@ -12,15 +12,13 @@ Exit 0 = stageable, non-zero with a named reason otherwise.
 from __future__ import annotations
 
 import pathlib
-import re
 import sys
 import tomllib
 
+from patterns import REQ_DEF
+from patterns import VERSION as VERSION_RE
+
 VERSIONS = pathlib.Path("70-operations/versions")
-REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.MULTILINE)
-VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
-
-
 def defined_ids() -> set[str]:
     ids: set[str] = set()
     for md in pathlib.Path(".").rglob("*.md"):

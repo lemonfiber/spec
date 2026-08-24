@@ -10,15 +10,12 @@ root.
 import glob
 import json
 import pathlib
-import re
 import tomllib
 
 import metafm
+from patterns import REQ_DEF
 
 FEATDIR = "10-functional/features"
-
-REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.MULTILINE)
-
 
 def count_requirements(feats):
     """Requirement rows across the feature files, so the scale is stated once."""

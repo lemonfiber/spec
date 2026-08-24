@@ -14,15 +14,13 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
-import re
 import sys
 import tomllib
 
+from patterns import CITE
+from patterns import SPEC_TRAILER as TRAILER
+
 VERSIONS = pathlib.Path("70-operations/versions")
-CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
-TRAILER = re.compile(r"(?im)^[ \t]*Spec:[ \t]*(\S.*)$")
-
-
 def within_cwd(raw: str) -> pathlib.Path:
     path = pathlib.Path(raw).resolve()
     if not path.is_relative_to(pathlib.Path.cwd().resolve()):

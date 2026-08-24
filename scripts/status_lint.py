@@ -36,9 +36,8 @@ import tomllib
 # the ceiling below is exactly what goes wrong when a reader of definitions is
 # spelled as a reader of mentions.
 from integrity import REQ_DEF
+from patterns import CITE, RANGE
 
-CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
-RANGE = re.compile(r"\b([A-Z]+\d*)-R(\d+)\.\.(?:[A-Z]+\d*-)?R?(\d+)\b")
 HEADING = re.compile(r"^##\s+(M[0-9.]+)\b")
 VERSION = re.compile(r"`(\d+\.\d+\.\d+)`")
 # How far a heading's prose reaches. A milestone names its versions in the
