@@ -109,12 +109,33 @@ Per term or concept:
 | **G2-R5** | Plain language MUST accompany the domain term, not replace it. |
 | **G2-R6** | Extended explanation MUST be available on request and MUST NOT be mandatory. |
 | **G2-R7** | Explanations MUST be dismissible and disableable. |
-| **G2-R8** | A simplification that produces a false mental model MUST NOT be used. |
+| **G2-R8** | An explanation MUST NOT explain by resemblance, and MUST NOT talk a cost away. |
 | **G2-R9** | Where services use different terms for one concept, the mapping MUST be stated. |
 | **G2-R10** | Error messages MUST follow the same plain-language rules. |
 | **G2-R11** | Text MUST avoid idiom and cultural reference so it translates cleanly. |
 | **G2-R12** | Explanations MUST be versioned alongside the behaviour they describe. |
-| **G2-R13** | A domain term appearing without an explanation MUST be treated as a defect. |
+| **G2-R13** | Every acronym in shipped text MUST resolve to a glossary entry, or to a word declared ordinary and carrying the reason it is. |
+
+### Two of these are stated as properties, and why
+
+`G2-R8` and `G2-R13` used to name the harm rather than the rule. A simplification
+"that produces a false mental model" and a term "treated as a defect" are both
+true things to want and neither is a property of a build: the first asks whether a
+sentence leaves a reader with a wrong picture, which nothing but a reader can
+answer, and the second describes how a team should regard a class of bug rather
+than what the product must be. Both would have sat unsatisfiable for ever, and a
+requirement no gate can read is one that quietly stops being enforced.
+
+They now name what is checkable, and the checks exist: explanation by resemblance
+and cost-dismissal are refused across every glossary entry, and every acronym in
+every shipped string literal must resolve to the glossary or to a declared
+ordinary word carrying its reason.
+
+What is deliberately **not** claimed by either: whether a picture is false is still
+a question for review, and lower-case jargon is still not enforced. A list of known
+jargon words would force no decision — a new word simply would not be on it — so
+the honest position is that the acronym rule is what a gate can hold and the rest
+is what a reviewer must.
 
 ## Related
 
