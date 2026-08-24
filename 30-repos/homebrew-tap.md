@@ -73,7 +73,7 @@ specifically here:
    in core — only in this tap. That's exactly why the tap exists, so it isn't a
    limitation in practice.
 2. The `license` line uses a non-standard string. `brew audit --strict` will warn,
-   which is acceptable in a tap that is ours; no formula lint runs here yet.
+   which is acceptable in a tap that is ours; `brew style` and `ruby -c` run here, through the `formula` check.
 
 The crates are `publish = false` and the release ships one binary rather than a
 crates.io package, so `cargo install lemonfiber` is not an install path either.
