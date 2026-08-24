@@ -36,8 +36,14 @@ jobs:
   tell:
     runs-on: ubuntu-latest
     steps:
+      # Allowed to fail, for the reason the dispatch below is. This step is the
+      # one that broke: a caller pinned a revision naming the site by its old
+      # name, App-token minting does not follow a rename redirect, and the 404
+      # reddened every merge into the calling repository for weeks. The notice
+      # is worth less than the signal it was drowning.
       - name: Mint a token that can reach the website
         id: token
+        continue-on-error: true
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ vars.RELEASE_CLIENT_ID }}
@@ -58,6 +64,10 @@ jobs:
           # A failure here must not fail the merge that triggered it: the site
           # being a few hours stale is a smaller problem than a red main, and the
           # daily schedule is the backstop either way.
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::warning::No token to reach ${OWNER}/${SITE} with — is the App installed there, and is that the repository's current name? The daily schedule will catch it."
+            exit 0
+          fi
           if gh api -X POST "repos/${OWNER}/${SITE}/dispatches" \
             -f event_type=rebuild-site \
             -F "client_payload[from]=${FROM}" \
