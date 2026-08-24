@@ -31,6 +31,12 @@ import re
 import sys
 import tomllib
 
+# The pattern for a requirement *definition* has one home, `integrity.py`, and is
+# imported rather than restated: a second copy is a second thing to change, and
+# the ceiling below is exactly what goes wrong when a reader of definitions is
+# spelled as a reader of mentions.
+from integrity import REQ_DEF
+
 CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
 RANGE = re.compile(r"\b([A-Z]+\d*)-R(\d+)\.\.(?:[A-Z]+\d*-)?R?(\d+)\b")
 HEADING = re.compile(r"^##\s+(M[0-9.]+)\b")
@@ -55,11 +61,22 @@ def within_cwd(raw: str) -> pathlib.Path:
 
 
 def defined(spec: pathlib.Path) -> dict[str, int]:
-    """The highest requirement number each feature actually defines."""
+    """The highest requirement number each feature actually defines.
+
+    Definitions, not mentions. A requirement exists where a table row declares it;
+    everywhere else the identifier is a citation. Reading citations here raised the
+    ceiling to whatever the spec happened to *say* — one line of prose naming
+    `G7-R20` lifted G7 from thirteen to twenty and took the overshoot check with
+    it, silently, for every number in between. `integrity.py` catches stray
+    citations in this repository, so the two gates held each other up; they were
+    never meant to, and `.git` is outside what `integrity.py` reads at all.
+    """
     highest: dict[str, int] = {}
     # Read each ID whole, then split it: the feature prefix is not a fixed width.
     for doc in spec.rglob("*.md"):
-        for ident in CITE.findall(doc.read_text(encoding="utf-8")):
+        if ".git" in doc.parts:
+            continue
+        for ident in REQ_DEF.findall(doc.read_text(encoding="utf-8")):
             feature, _, number = ident.partition("-R")
             highest[feature] = max(highest.get(feature, 0), int(number))
     return highest

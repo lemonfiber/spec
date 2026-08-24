@@ -79,6 +79,16 @@ class Workspace(unittest.TestCase):
         self.requirements(feature, highest)
         self.manifest(version, milestone, [f"{feature}-R{n}" for n in range(1, highest + 1)])
 
+    def mention(self, text):
+        """Prose elsewhere in the spec that names an identifier without defining it.
+
+        An ADR, a roadmap note, a paragraph of reasoning — every one of these
+        cites requirements, and none of them declares one.
+        """
+        docs = pathlib.Path(f"{SPEC}/20-architecture")
+        docs.mkdir(parents=True, exist_ok=True)
+        (docs / "note.md").write_text(text, encoding="utf-8")
+
     def tracker(self, body):
         pathlib.Path(TRACKER).write_text(body, encoding="utf-8")
         return TRACKER
@@ -101,6 +111,15 @@ class Passing(Workspace):
     def test_a_range_stopping_at_the_last_requirement_passes(self):
         # The boundary itself: R13 of thirteen is the last one there is, not one past.
         code, out = self.lint("## M5 — Trust · `0.7.0`\n\n| x | `G7-R13..R13` | ✅ | y |\n")
+        self.assertEqual(code, 0, out)
+
+    def test_a_mention_past_the_last_definition_leaves_an_honest_claim_alone(self):
+        # The ceiling reads definitions. Prose that names `G7-R20` says nothing
+        # about G7's thirteen requirements, in either direction.
+        self.spec_tree()
+        self.mention("A roadmap note that mentions G7-R20 in passing.\n")
+        code, out = run_main(["--status", self.tracker(
+            "## M5 — Trust · `0.7.0`\n\n| x | `G7-R1..R13` | ✅ | y |\n"), "--spec", SPEC])
         self.assertEqual(code, 0, out)
 
     def test_naming_an_extra_version_is_allowed(self):
@@ -170,6 +189,38 @@ class Refusals(Workspace):
         self.assertIn("defines up to R13", out)
         self.assertNotIn("locked by no version", out)
         self.assertIn("1 claim(s) the spec does not back", out)
+
+    def test_a_mention_past_the_last_definition_does_not_raise_the_ceiling(self):
+        """The ceiling is what the spec defines, not what it happens to say.
+
+        Built from citations, one line of prose naming `G7-R20` lifted G7 from
+        thirteen to twenty and took the overshoot check with it — silently, for
+        every number in between. `integrity.py` refuses stray citations in the
+        spec repository, so the hole rarely had anything to feed on; two gates
+        holding each other up is not the same as a gate that works.
+
+        Unticked, so the overshoot is the only thing that can fire and the exit
+        code answers for it alone.
+        """
+        self.spec_tree()
+        self.mention("A roadmap note that mentions G7-R20 in passing.\n")
+        code, out = run_main(["--status", self.tracker(
+            "## M5 — Trust · `0.7.0`\n\n| x | `G7-R1..R14` | ☐ | y |\n"), "--spec", SPEC])
+        self.assertEqual(code, 1, out)
+        self.assertIn("claims G7-R14, but G7 defines up to R13", out)
+        self.assertIn("1 claim(s) the spec does not back", out)
+
+    def test_a_definition_under_dot_git_is_not_read(self):
+        # `integrity.py` and `spec_refs.py` both skip `.git`, so a row there is
+        # vetted by nothing — the one place the two gates cannot cover between them.
+        self.spec_tree()
+        pathlib.Path(f"{SPEC}/.git").mkdir()
+        pathlib.Path(f"{SPEC}/.git/x.md").write_text(
+            "| **G7-R14** | invented |\n", encoding="utf-8")
+        code, out = run_main(["--status", self.tracker(
+            "## M5 — Trust · `0.7.0`\n\n| x | `G7-R1..R14` | ☐ | y |\n"), "--spec", SPEC])
+        self.assertEqual(code, 1, out)
+        self.assertIn("defines up to R13", out)
 
     def test_a_heading_that_omits_one_of_its_versions_is_a_fault(self):
         code, out = self.lint("## M5 — Trust · `0.9.0`\n\n| x | `G7-R1..R13` | ✅ | y |\n")
