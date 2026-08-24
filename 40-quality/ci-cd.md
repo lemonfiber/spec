@@ -179,6 +179,24 @@ Every repo: required checks must pass, `spec-check` among them, before merge
 | **Q-R36** | A release smoke test MUST run the binary on all three platforms, not merely build it. |
 | **Q-R37** | Every repository in the org MUST require passing checks before merge; the override MUST bypass only spec-check. |
 | **Q-R64** | Open SonarCloud issues MUST be zero, enforced as a blocking CI check independent of the Sonar plan's own quality gate, since the free plan's gate cannot be configured to this standard (`Q-R63`). |
+| **Q-R67** | A repository that has not yet reached zero MUST declare what it still carries, in its own workflow, as a number that MUST NOT increase. |
+
+### Reaching zero from a backlog
+
+`Q-R64` names a number the shared gate did not read for months: it counted the
+*new* issues on a pull request, and new is not open, so findings that predated
+the gate were invisible to it. Sixty-one of them accumulated across the fleet
+under checks that were green throughout.
+
+The gate reads both now. New issues on a pull request are the contributor's and
+block immediately. The open total is the repository's, and blocks when it rises
+above the number that repository declares — `allowed-open` in its own
+`sonar.yml`, in the tree, readable without a SonarCloud login.
+
+That declaration is a ratchet and not an exemption. It may only fall, the gate
+says so in its verdict when the true count is below it, and a repository that
+declares its backlog rather than reducing it is failing `Q-R67` whatever the
+check reports.
 
 ## Related
 
