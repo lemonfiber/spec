@@ -49,15 +49,49 @@ besides. It permits every ordinary force-push, because a rebased branch is still
 ahead of the trunk; only one that has been *replaced* by the trunk is not.
 
 It is a copy rather than a reference because git reads hooks from the tree it is
-given, the same reason the lint configs are copied. Turn it on once per clone:
-
-```sh
-just hooks    # git config core.hooksPath .githooks
-```
+given, the same reason the lint configs are copied.
 
 Adoption is per repo and the check below is conditional, so a repo without a copy
 is not failed for it — but a repo that carries one must carry the current one. A
 guard that has quietly drifted is worse than none, because it is trusted.
+
+## Turning it on
+
+Git reads `.git/hooks` unless `core.hooksPath` says otherwise, and that setting is
+per-clone local config. **No commit can carry it**, so every repo has to set it
+from a command a contributor was going to run anyway:
+
+| Repo | Set by | Fires on |
+|------|--------|----------|
+| `lemonfiber`, `lemonfiber-media-stack`, `spec` | the `hooks` recipe, which `just ci` depends on | `just ci` or `just hooks` |
+| `sdk-ts`, `lemonfiber-web`, `website-docs.lemonfiber.app`, `website-lemonfiber.app` | npm's `prepare` script | `npm install` or `npm ci` |
+| `sdk-php` | Composer's `post-install-cmd` and `post-update-cmd` | `composer install` or `composer update` |
+
+Each is `git config core.hooksPath .githooks` under a different name. Run it by
+hand in a clone where it has not happened yet.
+
+## Where it still does not reach
+
+Stated plainly, because a guard half the people believe in is worse than none:
+
+- **A clone nobody has installed dependencies into has no hook.** Cloning and
+  pushing without running `just ci`, `npm ci` or `composer install` is enough to
+  skip it, and nothing in a repository can change that.
+- `npm install <package>` and `npm install --ignore-scripts` do not run `prepare`;
+  neither does `composer install --no-scripts`.
+- A hook manager that writes `.git/hooks` — lefthook, CaptainHook — is inert while
+  `core.hooksPath` is set, because git then reads only the path it names. lefthook
+  2.x refuses to install for exactly that reason and offers `--reset-hooks-path`,
+  which turns this hook **off**. Six repos carry a `lefthook.yml` and `sdk-php` a
+  `captainhook.json`; none of them is installed anywhere, so nothing conflicts
+  today. Satisfying `OPS-R51` means a `pre-commit` file in `.githooks/` next to
+  this one, not `lefthook install`
+  ([tooling](../40-quality/tooling.md#lefthook-and-the-pre-push-guard-that-displaced-it)).
+
+Refusing a push straight to `main` is belt and braces: branch protection already
+enforces it server-side on every repo, for everyone, hook or not. Refusing a push
+that would empty a branch has no server-side equivalent, so it exists only where
+the hook is on.
 
 ## What enforces it
 
