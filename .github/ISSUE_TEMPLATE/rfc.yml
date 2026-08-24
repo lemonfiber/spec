@@ -27,6 +27,7 @@ body:
         - "I — Remote access & identity"
         - "J — Runtime & platform"
         - "K — Observability"
+        - "L — Release & distribution"
     validations:
       required: true
   - type: input

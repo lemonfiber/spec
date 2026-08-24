@@ -59,7 +59,7 @@ flowchart TD
 
 The issue-form fields are written by anyone on the internet. The automation MUST
 treat them as untrusted: fields are read through environment variables, never
-interpolated into a shell; the target area is validated against `A`–`K` and the
+interpolated into a shell; the target area is validated against `A`–`L` and the
 derived filename against a safe pattern before any file is written; and the
 scaffold only ever writes a **Draft** markdown stub for human review — it never
 executes a field's contents. The result is a PR a maintainer reads before it can
@@ -72,7 +72,7 @@ merge, so a malicious proposal is contained to reviewable text.
 | **GOV-R40** | A community proposal MUST be opened as a GitHub issue via the RFC form, and that issue MUST be the source of truth for the proposal until it is approved and merged. |
 | **GOV-R41** | The process MUST NOT create a spec PR from a proposal until a maintainer marks the issue approved, and the automation MUST verify the approver has write access before acting. |
 | **GOV-R42** | On approval, the automation MUST scaffold a requirement or feature at `status: draft` with the next free permanent ID and open a spec PR linking the issue; the scaffold MUST NOT be `Accepted`. |
-| **GOV-R43** | The automation MUST treat the issue-form fields as untrusted: read via environment variables, never interpolated into a shell; the area MUST be validated against `A`–`K` and the filename against a safe pattern before any write; and it MUST NOT execute field contents. |
+| **GOV-R43** | The automation MUST treat the issue-form fields as untrusted: read via environment variables, never interpolated into a shell; the area MUST be validated against `A`–`L` and the filename against a safe pattern before any write; and it MUST NOT execute field contents. |
 | **GOV-R44** | Merging an RFC's PR MUST harden the proposal (Draft → Accepted per the [change lifecycle](change-lifecycle.md)) and close its issue; a declined proposal MUST be closed with no PR. |
 | **GOV-R45** | The public RFC surface MUST render open `rfc` issues and the repo's `Draft` items as one pre-approval feed, so what is under consideration is visible before it binds. |
 
