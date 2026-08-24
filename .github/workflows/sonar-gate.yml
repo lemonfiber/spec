@@ -1,24 +1,51 @@
 # Reusable SonarCloud issue gate — Q-R63, Q-R64. One definition, every repo.
 #
 # The free-plan quality gate cannot require zero issues (Q-R63), so the standard
-# is enforced here: read the summary SonarCloud posts on the PR and fail on any
-# new issue (Q-R64). The verdict is posted back as its own sticky comment, so the
-# result is visible on the PR rather than buried in the run log. The Sonar comment
-# body is fetched at runtime and only pattern-matched, never interpolated into the
-# shell. Works whether the scan is CI-driven or SonarCloud Automatic Analysis —
-# either way it edits one summary comment the gate reads.
+# is enforced here. Q-R64 names the number: *open* issues must be zero. This gate
+# read the *new*-issue count on the pull request and nothing else, and new is not
+# open — so a backlog that predated the gate was never counted by it. Sixty-one
+# findings sat reported and unread across the fleet, under checks that were green
+# the whole time, because nothing asked the question the requirement asks.
+#
+# So it asks both now:
+#
+#   new issues on this pull request  → the contributor's, and blocking
+#   open issues in the project       → the repository's, and blocking on increase
+#
+# The second is a backstop, not the front line. An issue that raises the open
+# count is by definition new on the pull request that brings it, so the first
+# check should catch it first; the second is what notices when it did not — a
+# scan that failed, a rule that changed, a merge that went around. A repository
+# still working a backlog down declares what is left as `allowed-open`, and the
+# gate refuses any number above it. That number can only go down, and it is
+# written in the caller's own workflow where it can be read without a login.
+#
+# The Sonar comment body is fetched at runtime and only pattern-matched, never
+# interpolated into the shell. Works whether the scan is CI-driven or SonarCloud
+# Automatic Analysis — either way it edits one summary comment the gate reads.
 #
 # This job is meant to be a required check, so what it does when it cannot reach an
 # answer matters as much as what it does with one. It blocks on a counted issue and
-# on nothing else: a summary that never arrived, or one whose shape this gate no
-# longer understands, is the gate's problem or SonarCloud's, and holding somebody's
-# pull request hostage to either would punish the wrong person. Those cases warn
-# loudly — in the log and in the sticky comment, which says plainly that the gate
-# needs attention — and pass.
+# on nothing else: a summary that never arrived, one whose shape this gate no
+# longer understands, or an API that would not answer, is the gate's problem or
+# SonarCloud's, and holding somebody's pull request hostage to either would punish
+# the wrong person. Those cases warn loudly — in the log and in the sticky comment,
+# which says plainly that the gate needs attention — and pass.
 name: sonar-gate
 
 on:
   workflow_call:
+    inputs:
+      project:
+        description: "SonarCloud project key. Defaults to <owner>_<repo>, which is what every project here is called."
+        type: string
+        required: false
+        default: ""
+      allowed-open:
+        description: "Open issues this repository still carries. Q-R64 says zero; a repository working a backlog down declares what is left, and the gate refuses any number above it."
+        type: number
+        required: false
+        default: 0
     secrets:
       sonar-token:
         required: false
@@ -39,14 +66,27 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           BOT: sonarqubecloud[bot]
           MARKER: "<!-- lemonfiber:issue-gate -->"
+          PROJECT: ${{ inputs.project }}
+          ALLOWED: ${{ inputs.allowed-open }}
         run: |
           set -euo pipefail
+
+          # What the project is called to SonarCloud. Every project in this
+          # organisation is its repository with the slash replaced, so the caller
+          # only names one that is not.
+          project=${PROJECT:-${GITHUB_REPOSITORY/\//_}}
+
+          # The standing backlog, appended to whatever this gate concludes about
+          # the pull request itself. Reported even when it is zero: the reason a
+          # backlog went unread for months is that nothing ever said the number.
+          standing=""
+          open=""
 
           # Post the verdict as a comment, updating our own previous one in place
           # so a re-run does not stack duplicates. The message is written to a
           # file so its markdown reaches the API verbatim.
           verdict() {
-            printf '%s\n\n%s\n' "$MARKER" "$1" > verdict.md
+            printf '%s\n\n%s%s\n' "$MARKER" "$1" "$standing" > verdict.md
             id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
               --jq "[.[] | select(.body | contains(\"${MARKER}\"))] | last | .id // empty" || true)
             if [ -n "$id" ]; then
@@ -59,6 +99,39 @@ jobs:
           if [ -z "${SONAR_TOKEN:-}" ]; then
             echo "No SONAR_TOKEN — analysis did not run (fork PR); nothing to gate on."
             exit 0
+          fi
+
+          # How many issues stand open against the project, which is the number
+          # Q-R64 is about.
+          #
+          # The token goes in a header rather than `-u`, which would put it in the
+          # process arguments, and never in the URL. Basic with an empty password
+          # is what SonarCloud documents for every token type; Bearer is accepted
+          # for some and not others, and a gate that stops enforcing its rule when
+          # the token is the wrong sort is the failure this whole change is about.
+          #
+          # The status is read separately from the body. Without that, a 401 and a
+          # project with no issues are the same empty answer, and the gate reports
+          # the second while the first is true.
+          auth=$(printf '%s:' "$SONAR_TOKEN" | base64 | tr -d '\n')
+          status=$(curl -sS --max-time 30 -o answer.json -w '%{http_code}' \
+            -H "Authorization: Basic ${auth}" \
+            "https://sonarcloud.io/api/issues/search?componentKeys=${project}&resolved=false&ps=1" \
+            || echo "000")
+          if [ "$status" = "200" ]; then
+            open=$(jq -r '.total // empty' answer.json 2>/dev/null || true)
+          fi
+
+          if [ -z "$open" ]; then
+            standing=$(printf "\n\n> ⚠️ Could not read the open-issue count for \`%s\` (HTTP %s), so the number \`Q-R64\` names is not being enforced on this run. Check the project key and the token." "$project" "$status")
+            echo "::warning::Could not read the open-issue count for ${project} (HTTP ${status}); Q-R64 is not being enforced"
+          elif [ "$open" -gt "$ALLOWED" ]; then
+            standing=$(printf "\n\n> ❌ **%s open issues** against \`%s\`; this repository declares \`allowed-open: %s\`. \`Q-R64\` says zero." "$open" "$project" "$ALLOWED")
+          elif [ "$open" -lt "$ALLOWED" ]; then
+            standing=$(printf "\n\n> 📉 %s open issues against \`%s\`, below the declared \`allowed-open: %s\`. Lower that number in this repository so it cannot go back up." "$open" "$project" "$ALLOWED")
+            echo "::notice::${open} open issues, below the declared allowance of ${ALLOWED}; lower it"
+          else
+            standing=$(printf "\n\n> Open issues against \`%s\`: **%s**." "$project" "$open")
           fi
 
           # The count, or nothing where this body does not carry one. SonarCloud
@@ -108,21 +181,30 @@ jobs:
 
           # Neither of the next two blocks Q-R64: one means SonarCloud never answered,
           # the other means this gate no longer understands the answer. Both are worth
-          # shouting about and neither is the contributor's to fix.
+          # shouting about and neither is the contributor's to fix. The standing
+          # backlog is still reported and still blocking — it is a property of the
+          # repository, not of this pull request's analysis.
           if [ -z "$body" ]; then
             verdict "### ⚠️ Issue gate — no answer · SonarCloud posted no summary within the timeout, so there was nothing to gate on. **Not a failure of this pull request.** Re-run the check once the analysis lands."
             echo "::warning::SonarCloud posted no summary within the timeout; nothing to gate on"
+            if [ -n "$open" ] && [ "$open" -gt "$ALLOWED" ]; then exit 1; fi
             exit 0
           fi
 
           if [ -z "$count" ]; then
             verdict "### ⚠️ Issue gate needs attention · SonarCloud posted a summary this gate could not read a new-issue count from. **Not a failure of this pull request** — the gate's own pattern needs updating, and until it is, \`Q-R64\` is not being enforced."
             echo "::warning::Could not read the new-issue count; the gate is not enforcing Q-R64"
+            if [ -n "$open" ] && [ "$open" -gt "$ALLOWED" ]; then exit 1; fi
             exit 0
           fi
           if [ "$count" -ne 0 ]; then
             verdict "### ❌ Issue gate failed · SonarCloud reports **${count} new issue(s)**; this repository requires zero (\`Q-R64\`)."
             echo "::error::SonarCloud reports ${count} new issue(s); this repo requires zero"
+            exit 1
+          fi
+          if [ -n "$open" ] && [ "$open" -gt "$ALLOWED" ]; then
+            verdict "### ❌ Issue gate failed · No new issues on this pull request, but the project carries more open issues than it declares."
+            echo "::error::${open} open issues against ${project}; this repository declares allowed-open: ${ALLOWED}"
             exit 1
           fi
           verdict "### ✅ Issue gate passed · SonarCloud reports **0 new issues**."
