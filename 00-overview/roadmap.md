@@ -41,7 +41,7 @@ ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
 | `2.1.0` | v2 | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
 | `2.2.0` | v2 | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
 | `2.3.0` | v2 | M12 | Safely reachable — remote access and one account | Planned |
-| `2.4.0` | v2 | M14 | The platform — third-party manifests, catalogue, accessibility | Planned |
+| `2.4.0` | v2 | M14 | The platform — third-party manifests, catalogue, mobile client handoff | Planned |
 | `2.5.0` | v2 | M13 | See everything — metrics, dashboards, uptime | Planned |
 
 ### Patch releases (hotfixes)
@@ -364,7 +364,7 @@ notification the trust checks already know how to send.
 |-------------|-------|
 | Third-party manifests | F3 — a stack lemonfiber did not write, run safely |
 | Community catalogue | Discovery, with the same validation the shipped stack passes |
-| Accessibility | G9 — the interfaces usable by everyone who has to use them |
+| Mobile client handoff | G9 — a household member's phone reaches the library in one step |
 
 **Exit criteria:** a stack authored outside this project installs, validates and
 runs with no change to lemonfiber.

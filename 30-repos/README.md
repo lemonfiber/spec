@@ -29,11 +29,11 @@ flowchart TD
 
     stack -->|submodule, pinned| lemonfiber
     web -->|submodule, pinned| lemonfiber
-    sdk -->|npm, pinned| web
+    sdk -->|pinned| web
     lemonfiber -->|contract artefact| sdk
     lemonfiber -->|contract artefact| sdkphp
     lemonfiber -->|release CI generates| tap
-    brand -->|npm, pinned| site
+    brand -->|values mirrored| site
     lemonfiber -->|docs submodule, pinned| docs
     brand -->|docs submodule, pinned| docs
     gh -.->|inherited by| impl
@@ -45,7 +45,7 @@ flowchart TD
 | `spec` | [../README.md](../README.md) | Markdown | This repository — canonical, and cited by every change to the rest |
 | `lemonfiber` | [lemonfiber.md](lemonfiber.md) · [lemonfiber-tui.md](lemonfiber-tui.md) · [lemonfiber-reference.md](lemonfiber-reference.md) | Rust | Three surfaces, one core; the submodule; the build |
 | `lemonfiber-web` | [lemonfiber-web.md](lemonfiber-web.md) | TypeScript | Two surfaces, one component library; draws the API, implements nothing |
-| `sdk-ts` | [sdk-ts.md](sdk-ts.md) | TypeScript | Published; owns the stream's hard parts so no consumer reimplements them |
+| `sdk-ts` | [sdk-ts.md](sdk-ts.md) | TypeScript | Owns the stream's hard parts so no consumer reimplements them |
 | `sdk-php` | [sdk-php.md](sdk-php.md) | PHP | The same contract, implemented as a peer rather than translated |
 | `lemonfiber-media-stack` | [lemonfiber-media-stack.md](lemonfiber-media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
@@ -75,7 +75,8 @@ independently; the pin says exactly which stack a given binary ships
 ([versioning](../20-architecture/contracts/versioning.md)).
 
 **`lemonfiber` → `homebrew-tap` (generation).** `lemonfiber`'s release CI regenerates the
-formula. The tap is downstream of every `lemonfiber` release and is otherwise inert.
+formula once the Homebrew publish job is enabled at `1.0.0` (`L1-R3`). The tap is
+downstream of every `lemonfiber` release and is otherwise inert.
 
 **Every repo → `website-docs.lemonfiber.app` (submodules).** The documentation
 site shows each repo's own `.docs/`, README and policy files, pinned to an exact
@@ -96,8 +97,9 @@ and hand-write only behaviour ([ADR-0014](../00-overview/decisions/0014-one-gene
   surface can never grow behaviour of its own.
 - **`lemonfiber-media-stack`** — it runs without lemonfiber. Plain
   `docker compose` works, which is what makes adopting the tool reversible.
-- **`homebrew-tap`** — nobody writes it. It's generated, and exists only because
-  Homebrew requires a repo of that name.
+- **`homebrew-tap`** — nobody writes it by hand. It holds a placeholder until the
+  publish job turns it into generated output, and exists only because Homebrew
+  requires a repo of that name.
 - **`website-lemonfiber.app`** — the org is the motor. Roadmap and status are
   read from the org at build time, never hand-authored, so the page cannot
   drift from reality.

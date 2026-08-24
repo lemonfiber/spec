@@ -14,8 +14,8 @@ comes entirely from these tokens; it hardcodes no colour, size, or spacing.
 
 ## Why this is a contract
 
-The web UI ([component-model](../component-model.md#web-ui)) is built at release
-time and embedded in the binary. If it hardcodes `#F0C419`, a brand change means
+The web UI ([component-model](../component-model.md#web-ui)) is built in its own
+repository and embedded in the binary. If it hardcodes `#F0C419`, a brand change means
 editing Rust-adjacent frontend source in a different repo — the same coupling the
 [stack manifest](stack-manifest.md) exists to avoid, in a different guise.
 
@@ -23,16 +23,17 @@ Tokens make the brand **data the web UI consumes**, exactly as the manifest make
 the stack data the CLI consumes. `brand` owns the values; `lemonfiber` consumes them at
 build time.
 
-## Consumption: npm, build-time
+## Consumption: a pinned dependency, at build time
 
-`brand` publishes `@lemonfiber/brand`. `lemonfiber-web` takes it as a build
-dependency and compiles the tokens into the assets it tags
+`brand` is packaged as `@lemonfiber/brand`. `lemonfiber-web` takes it as a build
+dependency, pinned to a commit so a token change lands deliberately, and compiles
+the tokens into the assets it tags
 ([ADR-0012](../../00-overview/decisions/0012-web-assets-embedded-at-build-time.md)),
 which `lemonfiber` then embeds:
 
 ```jsonc
 // lemonfiber-web/package.json
-"dependencies": { "@lemonfiber/brand": "0.2.0" }
+"dependencies": { "@lemonfiber/brand": "github:lemonfiber/brand#<sha>" }
 ```
 
 ```css

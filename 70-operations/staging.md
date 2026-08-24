@@ -8,7 +8,7 @@ first, across repos — and how do we know it is ready?"* It defines the **stagi
 lifecycle**, the **goal lock**, the **readiness gate**, and the automations that
 drive them.
 
-**Satisfies:** [roadmap M6](../00-overview/roadmap.md#m6--release-engineering),
+**Satisfies:** [roadmap M10](../00-overview/roadmap.md#m10--release-engineering),
 extends [releasing.md](releasing.md) and [project-workflow.md](project-workflow.md).
 
 ---

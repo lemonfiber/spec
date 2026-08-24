@@ -73,9 +73,15 @@ would multiply the platform matrix for no user benefit.
 
 ### Can I run it on Kubernetes, Podman or Nomad?
 
-No, and this is deliberate rather than pending. Compose is the correct tool at
-household scale, and supporting more engines would triple the platform matrix
-without making anything better for the people this is for.
+Kubernetes and Nomad, no, and that is deliberate rather than pending: they
+multiply the platform matrix without making anything better at household scale.
+
+Podman is different. It, and a container-free native profile, are v2 features
+([J2](../10-functional/features/j-runtime/j2-podman.md),
+[J3](../10-functional/features/j-runtime/j3-native.md)) behind an engine
+abstraction whose acceptance bar is that the VPN-egress proof and the hardlink
+proof pass unchanged on each engine ([ADR-0010](../00-overview/decisions/0010-engine-abstraction-for-v2.md)).
+Today the tool drives Docker Compose and nothing else.
 
 ### Is it safe to expose to the internet?
 
@@ -121,9 +127,9 @@ them. Only the marks themselves are reserved.
 ### Is it finished?
 
 No. The specification is complete and the binary is in active development. The
-roadmap is published and the implementation status is generated from the code
-rather than written by hand, so both say what is genuinely true at any moment —
-check them before depending on a capability.
+roadmap is published, and a per-deliverable implementation status names the pull
+request that made each claim true, so a claim there is checkable rather than
+asserted — check them before depending on a capability.
 
 ### Can I add a service?
 

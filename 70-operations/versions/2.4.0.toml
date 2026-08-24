@@ -1,11 +1,11 @@
-# Polish — accessibility, and the plugin surface.
+# Polish — mobile client handoff, and the plugin surface.
 #
 # 26 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "2.4.0"
 epoch   = "v2"
 milestone = "M14"   # The platform
-delivers  = "The platform — third-party manifests, catalogue, accessibility"
+delivers  = "The platform — third-party manifests, catalogue, mobile client handoff"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

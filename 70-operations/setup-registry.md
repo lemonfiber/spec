@@ -34,8 +34,8 @@ project should be operable from one page.
 | # | Step | Repos | Needed for |
 |---|------|-------|-----------|
 | 6 | Branch protection: PR + signed commits + **strict** required checks (incl. SonarCloud), linear history, conversation-resolution, `enforce_admins` **on** | all | Governance is enforced, not advisory, and not exempt for the people who wrote it |
-| 7 | Add `SONAR_TOKEN` secret | `lemonfiber` | Sonar scan |
-| 8 | Add a token that can push to `homebrew-tap` | `lemonfiber` | Release regenerates the formula |
+| 7 | Add `SONAR_TOKEN` secret | every repo with a Sonar job | The Sonar scan, and the `Q-R64` issue gate — which warns rather than fails where the secret is missing |
+| 8 | Add a token that can push to `homebrew-tap` | `lemonfiber` | Release regenerates the formula, from `1.0.0` (`L1-R3`) |
 | 9 | Add npm publish auth (`NPM_TOKEN`) | `brand` | Publishing `@lemonfiber/brand` |
 | 10 | Enable **GitHub Pages** (source: Actions) | `spec` | The redirects that stand where the book stood |
 | 11 | Enable **private vulnerability reporting** | all | Security disclosure path |

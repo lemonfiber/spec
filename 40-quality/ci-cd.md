@@ -4,7 +4,7 @@
 
 The pipeline, the release process, and the checks that gate a merge.
 
-**Satisfies:** [roadmap M6](../00-overview/roadmap.md#m6--release-engineering),
+**Satisfies:** [roadmap M10](../00-overview/roadmap.md#m10--release-engineering),
 [E2](../10-functional/features/e-maintenance/e2-self-update.md),
 [GOV-R](../50-governance/cross-repo-ci.md) enforcement.
 
@@ -142,13 +142,13 @@ flowchart TD
 | `install.sh` / `install.ps1` | `curl \| sh`, `irm \| iex` |
 | Signed release | Integrity |
 
-The `web-ui` build runs here, at release time — the only non-Rust toolchain, and
-an end user never sees it (`ARCH-R19`).
+No web build runs here. The app is compiled in `lemonfiber-web`'s CI and carried
+as a pinned submodule, so the Rust build sees files (`ARCH-R19`, [ADR-0012](../00-overview/decisions/0012-web-assets-embedded-at-build-time.md)).
 
 ## Real cross-platform testing
 
 Not "it compiles" — actually run. The release matrix builds all targets; a
-smoke-test job **runs** the binary on macOS, Linux and Windows (`roadmap M6`
+smoke-test job **runs** the binary on macOS, Linux and Windows (`roadmap M10`
 exit). A binary that builds for Windows and panics on first launch has been
 tested for the wrong thing.
 
@@ -157,8 +157,8 @@ tested for the wrong thing.
 - **`lemonfiber-media-stack`** — `spec-check`, then the structural checks in its
   [repo spec](../30-repos/lemonfiber-media-stack.md#ci). No stack boot in CI (no
   credentials).
-- **`homebrew-tap`** — `spec-check` and `brew audit` (configured to accept the
-  non-SPDX licence). Mostly receives generated commits.
+- **`homebrew-tap`** — the shared gates only. It holds one generated file and no
+  formula-specific check yet.
 
 ## Branch protection
 
@@ -185,4 +185,4 @@ Every repo: required checks must pass, `spec-check` among them, before merge
 - [testing-strategy.md](testing-strategy.md) — what the test stages run
 - [security.md](security.md) — why `cargo-deny` and secret scanning matter
 - [50-governance/cross-repo-ci.md](../50-governance/cross-repo-ci.md) — spec-check
-- [roadmap M6](../00-overview/roadmap.md#m6--release-engineering)
+- [roadmap M10](../00-overview/roadmap.md#m10--release-engineering)

@@ -309,7 +309,8 @@ overwriting (`C9-R3`).
 
 An embedded static frontend plus a JSON API, both served from the binary. No
 separate process, no runtime toolchain, no npm at install time — the frontend is
-built at release time and embedded with `include_dir!`.
+built in `lemonfiber-web`'s own CI, tagged there, and carried here as a pinned
+submodule that `include_dir!` embeds.
 
 The API is the same one the TUI consumes, so parity is structural. Binding and
 authentication follow [C6](../10-functional/features/c-trust/c6-web-security.md);

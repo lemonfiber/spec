@@ -94,7 +94,7 @@ configuration (`P3`).
 | **T**ampering | Dependency adds telemetry | Banned and checked (`G8-R11`, `Q-R32`) |
 | **T**ampering | Compromised container image | Pinned tags (`E1-R1`); images from known publishers; digest pinning available |
 | **I**nfo disclosure | Build leaks secrets | No secrets in the build; release artifacts signed with checksums (`Q-R34`) |
-| **T**ampering | A published binary is swapped or rebuilt maliciously | SLSA build provenance + an SBOM per release ([OPS-R20](../70-operations/releasing.md)); a consumer can verify origin |
+| **T**ampering | A published binary is swapped or rebuilt maliciously | SLSA build provenance per release, which a consumer can verify; the SBOM `OPS-R20` also asks for is not produced yet |
 
 ### The stack fork boundary
 
@@ -126,14 +126,15 @@ watched, phoning home would be a security failure, not merely a faux pas.
 
 ## Supply-chain posture and its ceilings
 
-The org runs **OpenSSF Scorecard** and **SonarCloud** on every repo. The checks we
-can enforce, we enforce — and stay green:
+**SonarCloud** runs on every repo. **OpenSSF Scorecard** runs on each repo that
+publishes an artefact or the specification; wiring it to the newest four is
+outstanding (`Q-R59`). The checks we can enforce, we enforce — and stay green:
 
 | Enforced | How |
 |----------|-----|
 | Pinned-Dependencies | Every `uses:` is SHA-pinned ([ADR-0009](../00-overview/decisions/0009-action-pinning.md)); Renovate advances them |
 | Token-Permissions | Minimal, job-scoped `permissions:` on every workflow |
-| SAST | CodeQL (Rust + Actions) and SonarCloud on every PR |
+| SAST | SonarCloud on every PR; CodeQL where a compiled or workflow-heavy repo makes it meaningful |
 | Vulnerabilities | OSV-Scanner; zero open SonarCloud vulnerabilities |
 | Dependency-Update-Tool | Renovate on every repo |
 | Dangerous-Workflow | No untrusted input in `run:`; fork PRs never see secrets |
