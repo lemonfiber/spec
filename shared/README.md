@@ -27,6 +27,7 @@ different key order.
 | [markdownlint.jsonc](markdownlint.jsonc) | each repo's `.markdownlint.jsonc` | Byte-identical, key order included |
 | [typos.toml](typos.toml) | each repo's `typos.toml` | Every entry present; a repo may add more |
 | [hooks/pre-push](hooks/pre-push) | each repo's `.githooks/pre-push` | Byte-identical, where a repo has adopted it |
+| [hooks/commit-msg](hooks/commit-msg) | each repo's `.githooks/commit-msg` | Byte-identical, where a repo has adopted it |
 | [assets.sha256](assets.sha256) | — | Digests of the brand assets repos carry copies of |
 
 The two configs differ in kind deliberately. A markdown rule that one repo needs

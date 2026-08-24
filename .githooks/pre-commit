@@ -1,0 +1,30 @@
+#!/bin/sh
+# The fast checks CI runs, before the commit rather than after the push.
+#
+# Fast only: `typos` reads the tree in about a second and `markdownlint` reads
+# what is staged. The heavy gates — integrity, links, the shared-file check —
+# stay in `just ci`, because a hook that takes a minute is a hook people turn
+# off, and one that is off enforces nothing (OPS-R51, Q-R57).
+#
+# Each is skipped where it is not installed. A contributor without the tool gets
+# CI's answer instead of a hook that cannot run.
+
+set -eu
+
+if command -v typos >/dev/null 2>&1; then
+	typos || {
+		echo "pre-commit: typos found something. Fix it, or run \`typos --write-changes\`." >&2
+		exit 1
+	}
+fi
+
+staged=$(git diff --cached --name-only --diff-filter=ACM -- '*.md')
+if [ -n "$staged" ] && command -v markdownlint-cli2 >/dev/null 2>&1; then
+	# shellcheck disable=SC2086
+	markdownlint-cli2 $staged || {
+		echo "pre-commit: markdownlint refused a staged file." >&2
+		exit 1
+	}
+fi
+
+exit 0
