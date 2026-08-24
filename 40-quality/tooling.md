@@ -40,7 +40,8 @@ Every tool below was chosen to work within that constraint.
 | **Link check** | **lychee** | OSS | all repos |
 | **Markdown lint** | **markdownlint** | OSS | all repos |
 | **Dependency updates** | **Renovate** | free for OSS | all repos |
-| **Pre-commit hooks** | **lefthook** | OSS | the repos with a `justfile`; the npm and Composer repos use `core.hooksPath .githooks` |
+| **Pre-commit hooks** | **lefthook** | OSS | configured in six repos, installed in none — see below (`OPS-R51`) |
+| **Pre-push guard** | [`.githooks/pre-push`](../shared/hooks/pre-push) | our own | all eight code repos, via `core.hooksPath` |
 | **Task runner** | **just** | OSS | the Rust, spec, stack, brand and site repos; the npm and Composer repos use their own script runner |
 | **Changelog** | **git-cliff** | OSS | lemonfiber, sdk-ts, sdk-php |
 | **Release binaries** | **cargo-dist** | OSS | lemonfiber |
@@ -79,12 +80,37 @@ human intervened — friction the whole point of automation is to avoid.
 A shared Renovate **preset** lives in the `.github` repo; each repo's
 `renovate.json` extends it, so the policy has one home.
 
-### lefthook, not pre-commit
+### lefthook, and the pre-push guard that displaced it
 
-A single Go binary, no Python runtime to install. It runs the fast checks —
-`rustfmt`, `clippy`, `typos`, the comment-policy gate — before a push, so CI
-rejects less and the loop is tighter. The hooks mirror CI exactly; nothing is
-enforced locally that CI doesn't also enforce.
+lefthook was chosen for `OPS-R51`: a single Go binary, no Python runtime to
+install, running only the fast checks so CI rejects less and the loop is tighter.
+Six repos carry a `lefthook.yml` written to that brief.
+
+**None of them has it installed.** No `justfile` recipe, `package.json` script or
+Composer script runs `lefthook install`, so the configs describe hooks that have
+never run. `OPS-R51` is unimplemented across the org, and the `website-docs`
+config names a `scripts/guards.mjs` that was renamed to `.ts` underneath it.
+
+The one local hook that does run is the pre-push guard —
+[`shared/hooks/pre-push`](../shared/hooks/pre-push), copied to each repo's
+`.githooks/pre-push`. It refuses a push that would leave a branch carrying no
+commit `origin/main` does not, the shape of a mistake that destroyed two branches
+and closed their pull requests in one day, and a push straight to `main`.
+
+The two mechanisms are **mutually exclusive**, which is the thing to know before
+either is changed. Enabling the guard means `core.hooksPath .githooks`, and git
+then reads that directory *only* — anything lefthook wrote to `.git/hooks` is
+ignored. lefthook 2.x detects the setting, refuses to install, and offers
+`--reset-hooks-path`, which turns the guard off. Satisfying `OPS-R51` therefore
+means a `pre-commit` file in `.githooks/` alongside the guard, not
+`lefthook install`; that work has not been done.
+
+Enabling is the hard part regardless, because `core.hooksPath` is per-clone local
+config that no commit can carry. Each repo sets it from a command a contributor
+already runs — `just ci`, `npm install`/`npm ci`, `composer install` — and a clone
+nobody has installed dependencies into is genuinely unprotected. What is enabled
+where, and where it still does not reach, is in
+[shared/README.md](../shared/README.md#turning-it-on).
 
 ### actionlint would have caught a real bug
 

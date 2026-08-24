@@ -2,8 +2,9 @@
 default:
     @just --list
 
-# Run every check CI runs.
-ci: integrity shared lint typos links
+# Run every check CI runs, and turn the hooks on if they are not already —
+# this is the command run before a push, which is when the hook matters.
+ci: hooks integrity shared lint typos links
 
 # Turn on the repository's own git hooks. Once per clone.
 hooks:
