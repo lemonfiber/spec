@@ -26,6 +26,91 @@ jobs:
       - name: actionlint
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
 
+  # Say what shared revision this repository is actually running. Every caller
+  # pins by SHA, which is right, and it means a fix landing here reaches nobody
+  # until each pin moves — a fix to the site-rebuild notice sat unreached in nine
+  # repositories while one of them failed on every push to main.
+  #
+  # Two things fail, and being merely behind is neither. A pin that is not on this
+  # repository's main names a revision nobody reviewed, or a branch rewritten
+  # under it. A pin a month behind is abandonment. Everything between is a notice,
+  # because a pin is expected to trail a merge and a check that reddens the moment
+  # anything lands here is one people route around.
+  #
+  # Note what this does not catch: a pin days old and dozens of commits behind
+  # reads as healthy here, and that is the shape the site-rebuild failure had.
+  # What ended that was the notice being allowed to fail (`rebuild-site.yml`), not
+  # a check on its age.
+  pins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Compare each pinned shared workflow against the one maintained
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STALE_DAYS: "30"
+        run: |
+          set -euo pipefail
+
+          pins=$(grep -rhoE "lemonfiber/spec/\.github/workflows/[a-z-]+\.yml@[0-9a-f]{40}" \
+            .github/workflows/ 2>/dev/null | grep -oE "[0-9a-f]{40}$" | sort -u || true)
+
+          if [ -z "$pins" ]; then
+            echo "This repository pins no shared workflow."
+            exit 0
+          fi
+
+          faults=0
+          for pin in $pins; do
+            answer=$(gh api "repos/lemonfiber/spec/compare/${pin}...main" \
+              --jq '"\(.status) \(.ahead_by) \(.base_commit.commit.committer.date)"' 2>/dev/null || true)
+            status=$(echo "$answer" | cut -d" " -f1)
+            ahead=$(echo "$answer" | cut -d" " -f2)
+            dated=$(echo "$answer" | cut -d" " -f3)
+
+            # gh prints its own error body on stdout, so a revision that does not
+            # exist arrives here looking like a status. Only the words the API
+            # documents are believed.
+            case "$status" in
+            identical | ahead | behind | diverged) ;;
+            *)
+              echo "::error::${pin} is not a revision of lemonfiber/spec. A pin naming nothing runs nothing that was reviewed."
+              faults=$((faults + 1))
+              continue
+              ;;
+            esac
+
+            case "$status" in
+            identical)
+              echo "${pin:0:8} is current."
+              continue
+              ;;
+            ahead)
+              # `main` is ahead of the pin: the ordinary case, and the one that ages.
+              ;;
+            *)
+              echo "::error::${pin:0:8} is not on lemonfiber/spec main (${status}). It names a revision that was never merged, or a branch rewritten under it."
+              faults=$((faults + 1))
+              continue
+              ;;
+            esac
+
+            age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
+            if [ "$age" -gt "$STALE_DAYS" ]; then
+              echo "::error::${pin:0:8} is ${ahead} commits and ${age} days behind lemonfiber/spec main. Bump it: whatever has been fixed there has not reached this repository."
+              faults=$((faults + 1))
+            else
+              echo "::notice::${pin:0:8} is ${ahead} commits behind lemonfiber/spec main (${age} days). Bump it when convenient."
+            fi
+          done
+
+          if [ "$faults" -gt 0 ]; then
+            echo "${faults} pin(s) need attention."
+            exit 1
+          fi
+
   typos:
     runs-on: ubuntu-latest
     steps:
