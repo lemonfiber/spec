@@ -155,6 +155,42 @@ not a silent gap.
 - **Testing the services themselves.** Sonarr's correctness is Sonarr's problem;
   our *integration* with it is ours.
 
+## A gate is only as true as what it reads
+
+A gate that is wrong is usually not wrong about its rule. It is right about its
+rule and reading something other than what the rule is about, and it passes —
+which is worse than failing, because a green check is evidence to everyone who
+sees it.
+
+The shape recurs. A page claimed to list every error the tool can raise; the
+check that held it to that read a *pinned* copy of the tool, and passed while the
+page was missing two codes that had arrived one commit later. A gate refusing a
+requirement number past the last one defined built its ceiling from every
+*mention* of an identifier rather than every *definition*, so one line of prose
+naming a number that did not exist raised the ceiling and silenced the check
+beneath it. A check counting how far a pinned revision had fallen behind ran
+against a shallow clone, where the answer is one however far behind it is.
+
+None of these could be found by reading the gate. Each is only visible by
+comparing what the gate saw against what was there.
+
+Two rules follow, and they are cheap:
+
+**A gate is made to fail before it is trusted.** Break the thing it exists to
+catch, watch it refuse, put it back. A gate that has only ever passed has not
+been shown to be a gate — and the mutation that proves it also documents what it
+is for, more precisely than its name does.
+
+**A gate is proven where it runs.** A check verified on a developer's machine and
+never watched in CI is verified against a different tree: a different checkout
+depth, a different working directory, a different set of files present. The
+shallow-clone case passed locally, passed in CI, and measured something else in
+both.
+
+And where a claim is checked against a pinned artefact, the claim says so. "Every
+code this tool can raise" and "every code this revision of it can raise" are
+different sentences, and only the second is one a pinned check can hold.
+
 ## Secret hygiene in tests
 
 Test fixtures use obviously-fake credentials. The [secret-scan](ci-cd.md) runs
@@ -176,6 +212,7 @@ intent.
 | **Q-R29** | Secret scanning MUST run over test code as well as production code. |
 | **Q-R61** | Applicable code MUST reach 100% coverage, enforced as a merge gate (`cargo-llvm-cov`) and reported to SonarCloud. |
 | **Q-R62** | The applicable set MUST be defined by explicit, reviewable in-code exclusions (generated, trivial derivations, rendering, CLI wiring, unreachable arms, e2e-only paths); coverage MUST NOT be inflated by testing trivial code to reach the number. |
+| **Q-R66** | A gate MUST be shown to refuse the defect it exists to catch, in the environment it runs in, before it is relied on. |
 
 ## Related
 
