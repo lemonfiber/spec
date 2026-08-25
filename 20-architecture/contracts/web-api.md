@@ -231,6 +231,7 @@ generation has not been used.
 | **ARCH-R70** | A job identifier returned by a long-running action MUST be redeemable: a client MUST be able to learn from the server that the work ended and how it went, without having held a connection open since it started. |
 | **ARCH-R71** | Redeeming a job identifier MUST answer finished work with the equivalent command's machine-readable output and work still in flight with the identical document the accepting reply carried; the two MUST be distinguished by status, never by a shape only this endpoint has. |
 | **ARCH-R72** | A job identifier the run did not issue MUST be refused as absent, and MUST NOT be reported as still in flight. |
+| **ARCH-R73** | The contract artefact MUST NOT describe a schema in a form whose meaning depends on which JSON Schema draft the reader applies, and SDK generation MUST refuse such an artefact, naming where it occurs, rather than generate from the half of it that it reads. |
 
 ## Shapes are generated; semantics are not
 
@@ -260,11 +261,31 @@ The pin is a revision rather than a version number because a revision names exac
 artefact: the vendored bytes can always be checked against what that revision served, which
 is what makes the copy verifiable rather than merely present.
 
-Two guards sit either side of the copy. Regenerating from it must produce no diff, so a stale
-generated tree fails CI rather than shipping. And generation refuses an artefact whose
+Three guards sit either side of the copy. Regenerating from it must produce no diff, so a
+stale generated tree fails CI rather than shipping. Generation refuses an artefact whose
 `api_version` it does not implement, naming both versions and writing nothing — types that
 compile and lie are worse than a build that stops, and a refusal that does not say which two
 versions disagreed sends somebody looking for what it already knew.
+
+The third guard is about the artefact's own legibility, and it is the one nothing suggested
+until it was needed. An artefact can be valid, generated, pinned, regenerated without a diff,
+and still not be read the same way twice — which is worse than being unreadable, because
+nothing stops. A `$ref` beside a constraint is that shape: a draft-07 reader discards what
+accompanies a reference, a 2020-12 reader applies both, and the draft a schema declares says
+nothing about which of the two a generator happens to be.
+
+It reached both SDKs once. A verdict carrying a diagnosis was described as a reference to the
+diagnosis sitting beside the property naming the verdict. The TypeScript generator kept the
+property and dropped the reference, so both such verdicts became a type holding the verdict's
+name and none of the diagnosis — no summary, no meaning, no remedies. The PHP generator kept
+the reference and dropped the property, so both became the diagnosis with nothing to say which
+verdict it belonged to: two verdicts collapsed into one shape, and five arrived as four. Each
+discarded exactly what the other kept, and both produced output that compiled and analysed
+clean, which is why neither side said so.
+
+So the artefact is held to one reading, and a generator meeting a shape that has two refuses it
+rather than choosing. An annotation is not a constraint — a described reference means one thing
+to every reader, and stays ordinary company.
 
 ## Related
 
