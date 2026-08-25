@@ -51,11 +51,12 @@ command's envelope:
 ```
 GET /api/forms         GET /api/status         GET /api/services
 GET /api/checks        GET /api/storage        GET /api/logs?…
-GET /api/requests
+GET /api/requests      GET /api/trace?…        GET /api/stuck
+GET /api/version       GET /api/config?…       GET /api/quality
 ```
 
-Query parameters mirror the command's flags. A command that gains a flag gains a parameter;
-one that gains an endpoint gained a command first.
+Query parameters mirror what the command takes, flag or argument. A command that gains one
+gains a parameter; one that gains an endpoint gained a command first.
 
 ## Live state
 
