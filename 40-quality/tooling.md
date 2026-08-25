@@ -106,9 +106,9 @@ are now watched again, by the two different means below; the rest is not.
 |------|--------------------|----------------------------|------------------|
 | `gitleaks` CLI version | `.github/workflows/security.yml` — `GITLEAKS_VERSION`, read both by the step that downloads it and by the step that checks it | **The step that checks it**, which fails the run once the release it names has been superseded for more than 30 days | Done, but not by Dependabot — see below |
 | `osv-scanner` version | `.github/workflows/security.yml` — the `google/osv-scanner-action/osv-scanner-action` pin | **Dependabot**, under `github-actions` | Done. The action is a container action, so the `uses:` pin is what fixes the scanner version |
-| `python-version:` written inline in workflows | eight sites, all `"3.12"` — seven here, one in `lemonfiber` | **Nobody**, until 3.12 leaves support in Oct 2028 | No Dependabot manager reads it; a scheduled check, or `.python-version` + a linter that reads it |
+| `python-version:` written inline in workflows | nine sites, all `"3.12"` — seven here, one in `lemonfiber`, one in `brand` | **Nobody**, until 3.12 leaves support in Oct 2028 | No Dependabot manager reads it; a scheduled check, or `.python-version` + a linter that reads it |
 | `node-version:` written inline in workflows | **nowhere** — every repo uses `node-version-file: .nvmrc` | n/a | The manager watched nothing; it can simply go |
-| `.nvmrc` | three repos | **Nobody.** `engines: node >=26` in `package.json` is a floor, not a bump | No Dependabot manager reads `.nvmrc` |
+| `.nvmrc` | four repos — `lemonfiber-web`, `sdk-ts`, `website-docs.lemonfiber.app`, `website-lemonfiber.app` | **Nobody.** `engines: node >=26` in `package.json` is a floor, not a bump | No Dependabot manager reads `.nvmrc` |
 | Lockfile maintenance (a weekly refresh with no manifest change) | n/a | **Nobody.** Transitive dependencies drift until a direct bump moves them | No equivalent; `npm update` / `cargo update` on a schedule |
 | Semver ranges pinned to exact versions (`:pinAllExceptPeerDependencies`) | n/a | n/a | No equivalent. Dependabot updates within a range and widens it; it does not pin |
 | The dependency dashboard | n/a | n/a | No equivalent. The closest thing is each repo's Dependabot alerts tab |
