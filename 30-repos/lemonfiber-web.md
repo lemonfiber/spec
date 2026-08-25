@@ -41,6 +41,11 @@ its own. The contract being avoided is one already published and versioned for s
 It hardcodes no colour, size or spacing — those are the brand's to own, and this
 application consumes them as data.
 
+Both are taken at an exact revision, so both are copies that go stale in silence.
+What keeps them from doing so is `Q-R68` and `Q-R69`: the pin is compared against
+what its repository serves, and the lockfile is held to the revision the manifest
+names rather than to whatever a build once resolved.
+
 ## The two surfaces
 
 The application serves two audiences, and the spec marks every feature for one or
@@ -90,3 +95,4 @@ a bundle-size budget, and a content-security policy that permits no external ori
 - [ADR-0012](../00-overview/decisions/0012-web-assets-embedded-at-build-time.md) — how it ships
 - [web-api.md](../20-architecture/contracts/web-api.md) · [design-tokens.md](../20-architecture/contracts/design-tokens.md)
 - [lemonfiber.md](lemonfiber.md) — the binary that serves it
+- [40-quality/tooling.md](../40-quality/tooling.md) — why a pin needs something watching it
