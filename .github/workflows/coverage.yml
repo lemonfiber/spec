@@ -3,7 +3,9 @@
 # integrity and check_shared_files run inside the reusable workflows every
 # repository calls, so what is covered here is what gates the whole org. The
 # suites are stdlib unittest (the repo has no Python dependencies); coverage.py
-# is the only CI-only tool.
+# and PyYAML are the only CI-only tools, and PyYAML is here so the ratchet suite
+# reads the gate's shell out of the committed workflow through a parser rather
+# than testing a string of its own.
 name: coverage
 on:
   pull_request:
@@ -21,9 +23,9 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-      - name: Install coverage.py
+      - name: Install coverage.py and PyYAML
         run: |
-          pip install --disable-pip-version-check --only-binary :all: coverage==7.15.2
+          pip install --disable-pip-version-check --only-binary :all: coverage==7.15.2 pyyaml==6.0.3
       - name: The scripts that gate a merge, at 100% coverage (Q-R61)
         run: |
           coverage run scripts/test_release_train.py
@@ -33,3 +35,8 @@ jobs:
           coverage run --append scripts/test_integrity.py
           coverage run --append scripts/test_shared_files.py
           coverage report --fail-under=100
+      # Not a coverage suite: it runs the ratchet step out of sonar-gate.yml against
+      # a stubbed GitHub and checks what it refuses (Q-R66). The gate it exercises
+      # is shell inside a workflow, so there are no Python lines here to measure.
+      - name: The declared allowance is shown refusing a raise (Q-R66, Q-R67)
+        run: python3 scripts/test_ratchet.py

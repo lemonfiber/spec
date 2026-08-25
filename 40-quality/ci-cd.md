@@ -193,8 +193,15 @@ block immediately. The open total is the repository's, and blocks when it rises
 above the number that repository declares — `allowed-open` in its own
 `sonar.yml`, in the tree, readable without a SonarCloud login.
 
-That declaration is a ratchet and not an exemption. It may only fall, the gate
-says so in its verdict when the true count is below it, and a repository that
+That declaration is a ratchet and not an exemption, and the gate enforces it
+rather than trusting it. A pull request runs the workflow file its own head
+declares, so the diff that brings the issues could raise the number that permits
+them; the gate reads the same declaration on the base branch and refuses any run
+whose number is higher, a first declaration where there was none included. A base
+it cannot read is refused too wherever the run declares anything above zero —
+not knowing whether the ratchet held is not the same as it having held — and zero
+needs no comparison, since no count is below it. The gate also says so in its
+verdict when the true count is below the declaration, and a repository that
 declares its backlog rather than reducing it is failing `Q-R67` whatever the
 check reports.
 

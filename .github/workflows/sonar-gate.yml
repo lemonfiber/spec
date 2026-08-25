@@ -20,6 +20,15 @@
 # gate refuses any number above it. That number can only go down, and it is
 # written in the caller's own workflow where it can be read without a login.
 #
+# "Only down" was a sentence in this comment and nothing else. A pull request
+# runs the workflow file its own head declares, so a diff that brings three new
+# issues could raise `allowed-open` to three in the same breath and this gate
+# would agree. The first step below reads the caller's file on the base branch
+# and compares. A number above what the branch already declares is refused, and
+# a base this gate cannot read is refused too wherever the pull request declares
+# anything above zero — not knowing whether the ratchet held is not the same as
+# it having held. Zero needs no comparison; no count is below it.
+#
 # The Sonar comment body is fetched at runtime and only pattern-matched, never
 # interpolated into the shell. Works whether the scan is CI-driven or SonarCloud
 # Automatic Analysis — either way it edits one summary comment the gate reads.
@@ -42,7 +51,7 @@ on:
         required: false
         default: ""
       allowed-open:
-        description: "Open issues this repository still carries. Q-R64 says zero; a repository working a backlog down declares what is left, and the gate refuses any number above it."
+        description: "Open issues this repository still carries. Q-R64 says zero; a repository working a backlog down declares what is left, and the gate refuses any number above it. Q-R67 makes it a ratchet: this run's value is compared against the same declaration on the base branch and may not exceed it."
         type: number
         required: false
         default: 0
@@ -59,6 +68,88 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
+      # Before the wait for a SonarCloud summary, because this needs no summary
+      # and a workflow file that raises its own ceiling should be told so in
+      # seconds rather than in five minutes.
+      - name: The declared allowance may only fall (Q-R67)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          API: ${{ github.api_url }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          ALLOWED: ${{ inputs.allowed-open }}
+        run: |
+          set -euo pipefail
+
+          # The caller's own workflow file, which is where the allowance is
+          # written. `github.workflow_ref` names the workflow that started this
+          # run — the caller's file, not this one — as owner/repo/path@ref.
+          caller=${WORKFLOW_REF%%@*}
+          caller=${caller#*/}
+          caller=${caller#*/}
+          echo "Allowance declared in ${caller}, compared against ${BASE_REF}."
+
+          # The number this run was invoked with. A pull request run uses the
+          # head merged with its base, so this is the number that would land.
+          #
+          # A value that is not a whole number is refused here rather than left
+          # for the arithmetic below, where every comparison in this job would
+          # fail with a shell error naming nothing a maintainer could act on.
+          declared=$ALLOWED
+          case "$declared" in
+          '' | *[!0-9]*)
+            echo "::error::allowed-open is \"${declared}\". It must be a whole number, and this gate will not guess at one."
+            exit 1
+            ;;
+          esac
+
+          # The same file on the branch this pull request merges into, read at
+          # the branch tip rather than at the base commit the event recorded: a
+          # ratchet that fell after this branch left is still the ceiling now.
+          #
+          # The status is read separately from the body, as it is for the
+          # SonarCloud call below. A 404 body carries no allowance and neither
+          # does a 401, and a gate that reads either as "declares nothing" is a
+          # gate that cannot tell a fall from an outage.
+          status=$(curl -sS --max-time 30 -o base.yml -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.raw" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${API}/repos/${REPO}/contents/${caller}?ref=${BASE_REF}" \
+            || echo "000")
+
+          # Empty only where the file could not be read, which is not what a
+          # file declaring nothing looks like: a caller that declares nothing
+          # takes this input's default, which is zero. Where a file declares the
+          # allowance more than once, the lowest is the one that binds.
+          on_base=""
+          if [ "$status" = "200" ]; then
+            found=$(grep -oE '^[[:space:]]*allowed-open:[^0-9]*[0-9]+' base.yml \
+              | grep -oE '[0-9]+$' | sort -n | head -1 || true)
+            on_base=${found:-0}
+          fi
+
+          if [ -z "$on_base" ]; then
+            if [ "$declared" -eq 0 ]; then
+              echo "::warning::Could not read ${caller} on ${BASE_REF} (HTTP ${status}). This run declares allowed-open: 0 and no count is below zero, so the ratchet is not in question here."
+              exit 0
+            fi
+            echo "::error::Could not read ${caller} on ${BASE_REF} (HTTP ${status}), so this run cannot tell whether allowed-open: ${declared} is a raise. Refusing: not knowing whether the ratchet held is not the same as it having held."
+            exit 1
+          fi
+
+          if [ "$declared" -gt "$on_base" ]; then
+            echo "::error::allowed-open is ${declared} on this pull request and ${on_base} on ${BASE_REF}. That declaration is a ratchet and may only fall (Q-R67)."
+            exit 1
+          fi
+
+          if [ "$declared" -lt "$on_base" ]; then
+            echo "::notice::allowed-open falls from ${on_base} to ${declared}; ${declared} is the ceiling from here."
+          else
+            echo "allowed-open is ${declared} here and ${on_base} on ${BASE_REF}."
+          fi
+
       - name: Enforce zero new SonarCloud issues (Q-R64)
         env:
           GH_TOKEN: ${{ github.token }}
@@ -209,3 +300,21 @@ jobs:
           fi
           verdict "### ✅ Issue gate passed · SonarCloud reports **0 new issues**."
           echo "SonarCloud reports 0 new issues."
+
+  # A caller may invoke this from any event, and only a pull request has the two
+  # things it reads: a SonarCloud summary about a head commit, and a base branch
+  # to compare an allowance against. On anything else the job above does not run
+  # — which on its own is a tick beside a name, and a skipped check and a check
+  # that passed look alike at a glance. This says which one happened.
+  not-a-pull-request:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say that nothing was gated
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          echo "::notice::sonar-gate checked nothing on a ${EVENT} event. It reads a pull request's SonarCloud summary and compares the declared allowance against the base branch, and a ${EVENT} event has neither."
+          printf 'sonar-gate gates pull requests. This run was a %s event, so no new-issue count was read and no allowance was compared.\n' "$EVENT" \
+            >> "$GITHUB_STEP_SUMMARY"
