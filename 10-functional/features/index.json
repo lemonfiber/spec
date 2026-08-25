@@ -84,7 +84,7 @@
       "status": "planned",
       "milestone": "M7",
       "closes_epoch": null,
-      "goals": 64
+      "goals": 65
     },
     {
       "version": "0.11.0",
