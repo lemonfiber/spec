@@ -59,6 +59,29 @@ GET /api/explain?…
 Query parameters mirror what the command takes, flag or argument. A command that gains one
 gains a parameter; one that gains an endpoint gained a command first.
 
+### When a read is refused
+
+The body of a refusal is the error envelope, the same one `--json` renders, so the status is
+the only thing that tells one refusal from another — and they are worth telling apart:
+
+| Refused because | Status |
+|---|---|
+| What the request named, this product does not have | `404` |
+| The request could not be answered as it was asked | `400` |
+| Nothing about the request was wrong; the machine could not answer it | `500` |
+
+The line between the first two is what the request was *for*. A word this product does not
+explain is absent — the word is the whole of what `/api/explain` was asked for, and there is
+no entry — while a parameter left out, given twice, or given a value the surface does not
+offer is a request that could never have been answered as it stands. It is the same line the
+write surface already draws between an action name nothing answers to and an argument it
+cannot take, and the same reading `ARCH-R72` makes of a job name this run never issued.
+
+`500` is reserved rather than incidental. A client told the machine failed will retry, and a
+client told that about a word with no entry retries forever; worse, one that cannot tell the
+two apart has to word a single message that is true of both, which is how "no entry" and "no
+answer" reach an operator as the same sentence.
+
 ## Live state
 
 ```
@@ -234,6 +257,7 @@ generation has not been used.
 | **ARCH-R71** | Redeeming a job identifier MUST answer finished work with the equivalent command's machine-readable output and work still in flight with the identical document the accepting reply carried; the two MUST be distinguished by status, never by a shape only this endpoint has. |
 | **ARCH-R72** | A job identifier the run did not issue MUST be refused as absent, and MUST NOT be reported as still in flight. |
 | **ARCH-R73** | The contract artefact MUST NOT describe a schema in a form whose meaning depends on which JSON Schema draft the reader applies, and SDK generation MUST refuse such an artefact, naming where it occurs, rather than generate from the half of it that it reads. |
+| **ARCH-R74** | A refused read MUST carry a status that distinguishes what the request named and this product does not have, from a request that could not be answered as it was asked, from a failure of the machine; the body MUST be the error envelope in every case, and the status of a failure of the machine MUST NOT be given to either of the others. |
 
 ## Shapes are generated; semantics are not
 
