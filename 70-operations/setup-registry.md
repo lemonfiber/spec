@@ -25,7 +25,7 @@ project should be operable from one page.
 |---|------|-------|-----------|
 | 1 | Verify `info@nightworks.io` as an account email | GitHub → Settings → Emails | Signed-commit attribution shows *Verified* |
 | 2 | Register the SSH **signing** key | GitHub → Settings → SSH keys → *signing* | Commit signatures verify |
-| 3 | Install the **Renovate** GitHub App on the org | github.com/apps/renovate | Automated dependency PRs |
+| 3 | **Uninstall** the **Renovate** GitHub App from the org | GitHub → Org → Settings → GitHub Apps | It is installed, has never opened a pull request, and is no longer read ([ADR-0016](../00-overview/decisions/0016-dependabot-over-renovate.md)) |
 | 4 | Create the org's **SonarQube Cloud** org, linked to GitHub | sonarcloud.io | Code quality + coverage |
 | 5 | Add org secrets `DISCORD_ANNOUNCE_WEBHOOK`, `DISCORD_BUILD_WEBHOOK`, `DISCORD_MAINTAINERS_WEBHOOK` and org variable `DISCORD_RELEASE_ROLE_ID` (visibility: all) | GitHub → Org → Secrets/Variables → Actions | Release, build-log, and maintainer [notifications](notifications.md) |
 
@@ -160,7 +160,7 @@ is documented but not binding. Doing it is what makes governance real
 
 Everything else is committed config and runs on its own: the reusable CI
 workflows, the label set (applied by script), the community health files
-(inherited from `.github`), the Renovate policy preset, the docs build, the
+(inherited from `.github`), the Dependabot config, the docs build, the
 release pipeline. If a step isn't in the table above, it shouldn't need a human.
 
 ## Keeping this honest

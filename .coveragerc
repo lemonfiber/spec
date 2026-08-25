@@ -14,6 +14,7 @@ include =
     scripts/tracker_body.py
     scripts/pr_goals.py
     scripts/status_lint.py
+    scripts/spec_check.py
     scripts/gen_redirects.py
     scripts/integrity.py
     scripts/check_shared_files.py

@@ -2,6 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-07-25
+**Amended by:** [ADR-0016](0016-dependabot-over-renovate.md) — the bot that advances these pins is Dependabot.
 
 ## Context
 

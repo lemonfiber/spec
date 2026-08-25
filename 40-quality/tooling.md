@@ -39,7 +39,7 @@ Every tool below was chosen to work within that constraint.
 | **Spell check** | **typos** | OSS | all repos |
 | **Link check** | **lychee** | OSS | all repos |
 | **Markdown lint** | **markdownlint** | OSS | all repos |
-| **Dependency updates** | **Renovate** | free for OSS | all repos |
+| **Dependency updates** | **Dependabot** | native to GitHub | all repos |
 | **Pre-commit hooks** | none — git's own | — | `.githooks/`, turned on per clone; see below (`OPS-R51`) |
 | **Pre-push guard** | [`.githooks/pre-push`](../shared/hooks/pre-push) | our own | all eight code repos, via `core.hooksPath` |
 | **Task runner** | **just** | OSS | the Rust, spec, stack, brand and site repos; the npm and Composer repos use their own script runner |
@@ -69,16 +69,54 @@ by Sonar's gate ([ci-cd](ci-cd.md#sonarcloud--enforced-in-ci-not-by-the-plan-gat
 
 Requires a one-time `SONAR_TOKEN` secret, added to the repo after it exists.
 
-### Renovate over Dependabot — because of governance
+### Dependabot, and the gate that cites for it
 
 Every dependency bump must cite `GOV-R12` ([canonical-spec](../50-governance/canonical-spec.md)).
-Renovate's commit message and PR body are templatable, so its PRs **carry the
-`Spec: GOV-R12` trailer automatically** and pass `spec-check` unattended.
-Dependabot cannot customise the trailer, so its PRs would fail the gate until a
-human intervened — friction the whole point of automation is to avoid.
+Dependabot cannot write a trailer: `commit-message` sets a prefix and a scope, and
+there is no body, no template and no way to add a line to the pull request. So
+`spec_check.py` **supplies `GOV-R12`** for a pull request GitHub says
+`dependabot[bot]` opened, and then runs the existence check unchanged — the
+identifier still has to exist on `spec@main`, and the run still prints what it
+accepted. The exemption reads `pull_request.user.login` and nothing the pull
+request carries; see [ADR-0016](../00-overview/decisions/0016-dependabot-over-renovate.md).
 
-A shared Renovate **preset** lives in the `.github` repo; each repo's
-`renovate.json` extends it, so the policy has one home.
+`dco` needed no change — `dco_check.py` already exempts a bot-authored commit,
+because GitHub authors it and there is no human to attest.
+
+Each repo carries its own `.github/dependabot.yml`. There is no org-level preset:
+unlike Renovate, Dependabot cannot extend a shared config, so the policy lives in
+one copy per repo and the copies are kept alike by review.
+
+The policy those copies carry: minor and patch bumps travel as one grouped pull
+request per ecosystem, a major is left out of the group so it arrives on its own
+carrying the `major` label, and the `lemonfiber/spec` shared-workflow pins are
+their own group, excluded from the three-day release-age wait — a fixed gate
+reaches its consumers without one. Security updates are exempt from the wait by
+construction and are never grouped, so each vulnerability arrives as its own pull
+request.
+
+### What Dependabot does not watch
+
+Renovate was configured to watch four things by regular expression and three more
+by mechanisms Dependabot has no equivalent of. **Renovate never ran**, so nothing
+here regresses in practice — but the intent was real, and this is what is no
+longer even intended to be watched.
+
+| What | Where it lives now | Who notices it going stale | To bring it back |
+|------|--------------------|----------------------------|------------------|
+| `gitleaks` CLI version | `.github/workflows/security.yml` — `ver="8.30.1"` and the release URL beside it | **Nobody.** A stale scanner finds fewer secrets and stays green doing it. | Call `gitleaks/gitleaks-action` instead of `curl`-ing a release, which puts it under the `github-actions` ecosystem |
+| `osv-scanner` CLI version | `.github/workflows/security.yml` — the `v2.4.0` release URL | **Nobody.** Same shape: fewer advisories, still green. | Call `google/osv-scanner-action` instead of `curl`-ing a release |
+| `python-version:` written inline in workflows | eight sites, all `"3.12"` — seven here, one in `lemonfiber` | **Nobody**, until 3.12 leaves support in Oct 2028 | No Dependabot manager reads it; a scheduled check, or `.python-version` + a linter that reads it |
+| `node-version:` written inline in workflows | **nowhere** — every repo uses `node-version-file: .nvmrc` | n/a | The manager watched nothing; it can simply go |
+| `.nvmrc` | three repos | **Nobody.** `engines: node >=26` in `package.json` is a floor, not a bump | No Dependabot manager reads `.nvmrc` |
+| Lockfile maintenance (a weekly refresh with no manifest change) | n/a | **Nobody.** Transitive dependencies drift until a direct bump moves them | No equivalent; `npm update` / `cargo update` on a schedule |
+| Semver ranges pinned to exact versions (`:pinAllExceptPeerDependencies`) | n/a | n/a | No equivalent. Dependabot updates within a range and widens it; it does not pin |
+| The dependency dashboard | n/a | n/a | No equivalent. The closest thing is each repo's Dependabot alerts tab |
+
+The first three are the ones that matter, and the first two are cheap to fix
+properly: both tools publish a GitHub Action, and moving to it turns an
+unwatched string in a `run:` block into a pinned `uses:` that Dependabot already
+tracks under [ADR-0009](../00-overview/decisions/0009-action-pinning.md).
 
 ### The hooks, and why there is no hook manager
 
@@ -179,7 +217,9 @@ The tooling is kept consistent across repos by construction, not vigilance:
 
 - **Reusable workflows** in the spec repo (`hygiene`, `security`, `spec-check`)
   are called by three-line wrappers in each repo. One definition each.
-- **Renovate preset** in `.github` is extended, not copied.
+- **Dependabot config** is one file per repo. It is the one thing here that *is*
+  copied: Dependabot cannot extend a shared preset, so the copies are kept alike
+  by review rather than by construction ([ADR-0016](../00-overview/decisions/0016-dependabot-over-renovate.md)).
 - **`.github` repo** supplies community files org-wide.
 - **`shared/`** in the spec repo holds the files that must be copied because a tool
   or GitHub reads them from the tree it is given — the two lint configs and the
@@ -205,9 +245,15 @@ names a SHA ([ADR-0009](../00-overview/decisions/0009-action-pinning.md)). An ex
 revision is immutable, which is the point of it and also the failure: nothing about
 a pin changes because the thing it names moved on.
 
-Renovate is what was meant to notice. It is configured on every repo and has opened
+Renovate was what was meant to notice. It was configured on every repo and opened
 no pull request on any of them, so the true answer to "what is watching this pin"
-has been **nothing**, for every pin here, since the first one was written.
+was **nothing**, for every pin here, from the first one written until Dependabot
+replaced it ([ADR-0016](../00-overview/decisions/0016-dependabot-over-renovate.md)).
+
+Dependabot watches the `uses:` pins and the package manifests. It does not watch a
+submodule revision — that stays with the `pins` notice each consuming repo runs —
+and it does not watch a version written inline in a `run:` block, which is the gap
+[above](#what-dependabot-does-not-watch).
 
 Two things went wrong under that within a day of each other, and both passed every
 gate:
@@ -260,14 +306,15 @@ calendar as the only thing looking — which is the state all three exist to end
 
 ## What needs a human, once
 
-Two things can't be scaffolded and must be set in repo settings after creation:
+These can't be scaffolded and must be set by hand after creation:
 
 | Action | Where |
 |--------|-------|
 | Add `SONAR_TOKEN` secret | Each repo running Sonar → Settings → Secrets |
-| Enable the Renovate GitHub App | Org → install Renovate on the repos |
+| Enable Dependabot **security updates** | Each repo → Settings → Advanced Security. Version updates need no toggle — `.github/dependabot.yml` is enough |
+| Uninstall the Renovate GitHub App | Org → Settings → GitHub Apps. It is still installed and no longer read |
 
-Both are one-time and free. Everything else runs from committed config.
+All are one-time and free. Everything else runs from committed config.
 
 ## Requirements
 
@@ -277,7 +324,7 @@ Both are one-time and free. Everything else runs from committed config.
 | **Q-R52** | Code quality and coverage MUST run through SonarQube Cloud, which ingests the `cargo-llvm-cov` report; the applicable-code coverage gate is enforced per Q-R61. |
 | **Q-R53** | SAST (CodeQL), secret scanning (gitleaks), and dependency vulnerability scanning (OSV-Scanner) MUST run in CI. |
 | **Q-R54** | Workflow lint (actionlint), spell check (typos), link check (lychee) and markdown lint MUST run in CI. |
-| **Q-R55** | Dependency-update automation MUST emit the `Spec: GOV-R12` trailer so its PRs pass `spec-check`. |
+| **Q-R55** | A dependency-update bot's pull requests MUST pass `spec-check` unattended; where the bot cannot emit the trailer, the gate MUST supply `GOV-R12` for it, keyed on the pull request's author and on nothing the pull request carries. |
 | **Q-R56** | Shared CI MUST be reusable workflows sourced from the spec repo, not copied per repo. |
 | **Q-R57** | Pre-commit hooks MUST mirror CI and MUST NOT enforce anything CI does not. |
 | **Q-R58** | The docs site MUST render the specification from a pinned revision of `spec`, MUST link-check every page it publishes, authored and mirrored, and MUST be the only published rendering of the specification. |
