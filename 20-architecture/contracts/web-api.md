@@ -49,8 +49,9 @@ Each command that supports `--json` has one endpoint, named for the command, ret
 command's envelope:
 
 ```
-GET /api/status        GET /api/services       GET /api/checks
-GET /api/storage       GET /api/logs?…         GET /api/requests
+GET /api/forms         GET /api/status         GET /api/services
+GET /api/checks        GET /api/storage        GET /api/logs?…
+GET /api/requests
 ```
 
 Query parameters mirror the command's flags. A command that gains a flag gains a parameter;
@@ -88,7 +89,9 @@ surface, and this contract adds the converse: **the web API exposes nothing the 
 do.** An action that exists only here would be a behaviour implemented by a surface.
 
 Long-running actions return a job identifier and report progress on the event stream, so a
-browser tab that closes mid-repair does not orphan the work.
+browser tab that closes mid-repair does not orphan the work. The identifier is **redeemable**
+— see [a job's outcome](#a-jobs-outcome) — because a name that cannot be turned back into an
+outcome makes the reply an acknowledgement rather than an answer.
 
 ## What guards it
 
@@ -158,6 +161,40 @@ stream where it cannot. Either way everything the client still holds from before
 gap is stale until replaced — the resumption mechanism does not change what is
 current, only what is retransmitted.
 
+### A job's outcome
+
+```
+GET /api/jobs/<job>
+```
+
+The other end of the accepting reply. It is not named for a command, because it answers no
+request the command line has: being answered with a name instead of an outcome is the web's
+own arrangement, and this is the half that makes it an answer.
+
+The standing is carried by the **status**, and the body is a document the client already
+parses either way:
+
+| Standing | Status | Body |
+|---|---|---|
+| Still in flight | `202` | the identical envelope the accepting reply carried |
+| Finished | `200` | the equivalent command's machine-readable output |
+| Stopped | `500` | the error envelope the failure renders |
+| Not a name this run issued | `404` | a refusal, not the name repeated back |
+
+Status rather than a field, because the alternative is a shape only this endpoint has — and a
+second serialisation of an outcome the contract already describes is the drift `ARCH-R47`
+exists to prevent.
+
+The stream is not the mechanism. A client that reconnects sends the last id it saw, and a
+client connecting for the first time has none to send, so an event announcing the end reaches
+only a client that was already listening when it happened — which is not the client the
+accepting reply exists to serve. A tab closed mid-repair and reopened holds a name and nothing
+else, and this is what it does with it.
+
+Names do not outlive the run that issued them. Work in flight does not survive the process
+doing it, so a record that outlived the run would describe jobs nothing is running; a name from
+an earlier run is therefore one this run never issued.
+
 ### The payload's type
 
 `data` differs by `kind`, so a client exposes it **typed by its kind** rather than as
@@ -191,6 +228,9 @@ generation has not been used.
 | **ARCH-R65** | Generating an SDK's contract types MUST read the vendored artefact, and MUST NOT reach the network. |
 | **ARCH-R66** | Regenerating an SDK's contract types MUST produce no diff, and CI MUST fail if it does. |
 | **ARCH-R67** | Generation MUST refuse an artefact whose `api_version` the SDK does not implement, naming both versions, and MUST write nothing when it refuses. |
+| **ARCH-R70** | A job identifier returned by a long-running action MUST be redeemable: a client MUST be able to learn from the server that the work ended and how it went, without having held a connection open since it started. |
+| **ARCH-R71** | Redeeming a job identifier MUST answer finished work with the equivalent command's machine-readable output and work still in flight with the identical document the accepting reply carried; the two MUST be distinguished by status, never by a shape only this endpoint has. |
+| **ARCH-R72** | A job identifier the run did not issue MUST be refused as absent, and MUST NOT be reported as still in flight. |
 
 ## Shapes are generated; semantics are not
 
