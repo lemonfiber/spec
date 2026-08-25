@@ -47,6 +47,66 @@ meaningful CLI form, so the CLI offers a point-in-time equivalent.
 Parity is what stops the surfaces diverging into a "real" interface and a
 crippled one — the usual fate of a GUI bolted onto a CLI.
 
+The exceptions are enumerated below rather than left to judgement, because a
+requirement that permits exceptions and does not list them permits everything.
+
+### The exceptions, named
+
+An exception to parity is a claim about the *nature* of an action on a surface. It
+is not a claim about the state of the code, and the two sentences are easy to say
+in the same breath: "a browser cannot do this" and "nobody has built this in the
+browser yet" look alike and mean opposite things. Only the first is an exception.
+The second is a gap, and gaps are tracked where work is tracked.
+
+So an exception names three things — the action, the surface it is unsuited to,
+and the equivalent that surface offers instead. **An action missing from a surface
+and missing from this table is unbuilt, not excepted.** That is the whole use of
+writing the table down: it takes away the option of leaving something out quietly.
+
+| Action | Unsuited to | Why that is intrinsic | The equivalent that surface offers |
+|--------|-------------|-----------------------|-------------------------------------|
+| Serving the web UI (`lemonfiber ui`) | Web | A surface cannot start itself. The request can only reach a server that is already serving — where it means nothing — or it means starting a *second* server, which is a different request. And it would make a running server into an endpoint that mints and hands out a per-run token, reachable from any page the operator happens to visit. | The address bar. Being able to ask is proof it is already running. |
+| A live-refreshing dashboard | CLI | A command ends, and a view that refreshes does not. A command that never ended would not be a command; a script waiting on one would wait forever. | `lemonfiber ps` — the same reading, taken once. The TUI and the web hold it open. |
+| An open event stream | CLI | The same shape one layer down: a stream has no last element, so there is nothing for a command to answer with and exit on. | `lemonfiber logs --follow` streams lines until interrupted; every other reading answers once. |
+| Machine-readable output (`--json`) | TUI, Web | `--json` asks how *this run's* answer is written, which only means something where an answer is written to a pipe. A screen is not a pipe. | The web API **is** the machine-readable form — the identical envelope, byte for byte ([web-api](../../../20-architecture/contracts/web-api.md)). A program wanting an answer from a terminal session uses the CLI, which is in the same binary. |
+
+Four rows is the whole list, and that is the point: almost nothing is genuinely
+unsuited. The pressure this table is under is the temptation to grow it, because
+every unbuilt thing looks like an exception from the side of not having built it.
+
+### Where a surface is poorer, not excepted
+
+Three actions touch a path on the operator's machine — taking a backup, restoring
+one, and writing a support bundle. It is tempting to call these web exceptions,
+and the argument does not survive being made: the server runs **on the host, as
+the operator**, so a path typed into a form is a path the server can read or
+write. Nothing about the operation needs a browser to reach the filesystem.
+
+What a browser genuinely cannot do is *browse* to one — show what a directory
+already holds, or warn that a name is about to overwrite something — and for a
+restore, choosing the wrong archive is not a mistake that can be taken back.
+
+That is a weaker claim than unsuitability and it gets a weaker remedy rather than
+an exemption. The browser offers the archives lemonfiber already knows about,
+takes a typed path for anything else, and states what it is about to overwrite
+before it does. The action is available; only the picker is poorer.
+
+### The terminal interface is not exempt
+
+A dashboard that only reads is a surface missing every action, not a surface whose
+nature is to watch. Nothing about a terminal stops a keypress from starting a
+form, and the operator the TUI exists for — the one on the far end of an SSH
+session, who cannot open a browser — is the one *least* able to reach another
+surface to act on what this one has just told them. A screen that says
+`sonarr: unhealthy` and offers nothing to do about it is the divergence parity
+exists to prevent, arriving one surface earlier than expected.
+
+The counter-argument is that the shell is right there: an operator reading that
+line can simply type the restart. It is true, and it proves too much — by the same
+reasoning the web UI needs no actions either, since the operator could open a
+terminal. Every surface is somebody's only surface, which is why parity is stated
+per surface rather than per person.
+
 ### The default surface fits the situation
 
 Bare `lemonfiber` opens the TUI when attached to a terminal, and prints help when
@@ -97,7 +157,7 @@ exactly the users this exists for.
 | Web UI requested, port in use | Report the conflict and offer another port. |
 | Web UI open while a CLI command runs | Both act on the same state; reflect changes live. Serialise lifecycle operations. |
 | Browser cannot be opened automatically | Print the URL. Never fail because a browser couldn't be launched. |
-| An action has no sensible form on a surface | State the equivalent explicitly rather than silently omitting it. |
+| An action has no sensible form on a surface | State the equivalent explicitly rather than silently omitting it, in [the exceptions table](#the-exceptions-named). Absent from that table means unbuilt. |
 | Very small terminal | Reduce by priority; state that the view is abbreviated. |
 | Screen reader in use | Prefer the web UI, which has real accessibility semantics; the TUI cannot match it ([G3](g3-accessibility.md)). |
 | Session ends mid-operation | Server-side work continues; on return the outcome is visible. |
