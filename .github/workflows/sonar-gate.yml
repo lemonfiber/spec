@@ -205,12 +205,36 @@ jobs:
           # project with no issues are the same empty answer, and the gate reports
           # the second while the first is true.
           auth=$(printf '%s:' "$SONAR_TOKEN" | base64 | tr -d '\n')
-          status=$(curl -sS --max-time 30 -o answer.json -w '%{http_code}' \
+
+          # Whether the project is there at all, asked before any count is believed.
+          #
+          # `api/issues/search` answers a key that does not exist with 200 and
+          # `total: 0` — the same answer a clean project gives. The key defaults to
+          # `<owner>_<repo>`, so a repository whose SonarCloud project is named
+          # anything else has had this arm reading zero and enforcing nothing.
+          # `components/show` is the question that has two answers: 200 where the
+          # project exists, 404 where it does not.
+          found=$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' \
             -H "Authorization: Basic ${auth}" \
-            "https://sonarcloud.io/api/issues/search?componentKeys=${project}&resolved=false&ps=1" \
+            "https://sonarcloud.io/api/components/show?component=${project}" \
             || echo "000")
-          if [ "$status" = "200" ]; then
-            open=$(jq -r '.total // empty' answer.json 2>/dev/null || true)
+
+          if [ "$found" = "200" ]; then
+            # `projects`, not the deprecated `componentKeys`. Probed against the live
+            # API: `projects` answers 200 with the same shape, and `components` — the
+            # other candidate — is refused with 400.
+            status=$(curl -sS --max-time 30 -o answer.json -w '%{http_code}' \
+              -H "Authorization: Basic ${auth}" \
+              "https://sonarcloud.io/api/issues/search?projects=${project}&resolved=false&ps=1" \
+              || echo "000")
+            if [ "$status" = "200" ]; then
+              open=$(jq -r '.total // empty' answer.json 2>/dev/null || true)
+            fi
+          else
+            # `open` is left empty on purpose, so the branch below says nothing was
+            # enforced rather than that nothing was wrong.
+            status="${found}"
+            echo "::error::No SonarCloud project called ${project} (HTTP ${found}). A key that does not resolve answers every count with zero, so Q-R64 was not enforced on this run."
           fi
 
           if [ -z "$open" ]; then
