@@ -38,6 +38,18 @@ updates:
       # First match wins, so the shared gates are claimed before the wildcard.
       shared-workflows:
         patterns: ["lemonfiber/spec*"]
+      # `init`, `analyze`, `autobuild` and `upload-sarif` are one action published
+      # from one repository, and CodeQL refuses a run whose `init` and `analyze`
+      # are different revisions of it. Offered separately, each is a pull request
+      # that cannot pass until its siblings land — which is what happened: two
+      # majors arrived alone and both failed `analyze` on the mismatch.
+      #
+      # Majors are grouped here and for the pages pipeline, and nowhere else. The
+      # judgement is still a judgement; it is one about the action rather than four
+      # that have to be made together and in step.
+      codeql:
+        patterns: ["github/codeql-action*"]
+        update-types: ["major", "minor", "patch"]
       actions:
         patterns: ["*"]
         exclude-patterns: ["lemonfiber/spec*"]
