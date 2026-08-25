@@ -1,0 +1,100 @@
+# Record a SonarCloud disposition where somebody can read it afterwards.
+#
+# `Q-R64` requires zero open issues, and `Q-R67` lets a repo declare an allowance
+# that may only fall. Both assume every open issue is eventually answered — fixed,
+# or judged not to be a defect. The second answer is a judgement, and made through
+# the SonarCloud interface it leaves no trace in the repository: a later reader
+# sees a finding that stopped being open and cannot tell why.
+#
+# So it is made here instead. The reason is typed as an input, travels to the
+# issue as a comment, and the run is the record. Nothing is dispositioned that was
+# not named on purpose, one key at a time.
+#
+# This does not decide anything. Deciding a finding is not a defect is a person's
+# judgement; this is only where that judgement is written down.
+name: sonar-dispose
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "The issue key, from api/issues/search"
+        required: true
+        type: string
+      resolution:
+        description: "How it is being answered"
+        required: true
+        type: choice
+        options:
+          - falsepositive
+          - wontfix
+      because:
+        description: "Why — recorded on the issue and in this run"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say what is about to be answered
+        env:
+          ISSUE: ${{ inputs.issue }}
+          RESOLUTION: ${{ inputs.resolution }}
+          BECAUSE: ${{ inputs.because }}
+        run: |
+          set -euo pipefail
+          printf 'issue      %s\n' "${ISSUE}"
+          printf 'answered   %s\n' "${RESOLUTION}"
+          printf 'because    %s\n' "${BECAUSE}"
+
+      - name: Write the reason onto the issue, then answer it
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          ISSUE: ${{ inputs.issue }}
+          RESOLUTION: ${{ inputs.resolution }}
+          BECAUSE: ${{ inputs.because }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SONAR_TOKEN:-}" ]; then
+            echo "::error::No SONAR_TOKEN, so nothing was answered."
+            exit 1
+          fi
+
+          auth=$(printf '%s:' "${SONAR_TOKEN}" | base64 | tr -d '\n')
+
+          # The comment goes on first. A transition that succeeded with no reason
+          # beside it is the state this workflow exists to avoid, so the order is
+          # the one that cannot leave that behind.
+          status=$(curl -sS --max-time 30 -o comment.json -w '%{http_code}' \
+            -X POST \
+            -H "Authorization: Basic ${auth}" \
+            --data-urlencode "issue=${ISSUE}" \
+            --data-urlencode "text=${BECAUSE}" \
+            "https://sonarcloud.io/api/issues/add_comment" || echo "000")
+
+          if [ "${status}" != "200" ]; then
+            echo "::error::Could not comment on ${ISSUE} (HTTP ${status}); nothing was answered."
+            # The body names the permission that is missing, which is the useful part.
+            cat comment.json || true
+            exit 1
+          fi
+
+          status=$(curl -sS --max-time 30 -o answer.json -w '%{http_code}' \
+            -X POST \
+            -H "Authorization: Basic ${auth}" \
+            --data-urlencode "issue=${ISSUE}" \
+            --data-urlencode "transition=${RESOLUTION}" \
+            "https://sonarcloud.io/api/issues/do_transition" || echo "000")
+
+          if [ "${status}" != "200" ]; then
+            echo "::error::Commented on ${ISSUE} but could not answer it (HTTP ${status})."
+            cat answer.json || true
+            exit 1
+          fi
+
+          echo "${ISSUE} answered ${RESOLUTION}."
