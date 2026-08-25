@@ -90,7 +90,7 @@ each be free for public repositories, are in
 | OSV-Scanner | Dependency vulnerability scanning against the OSV database. |
 | gitleaks | Secret scanning. |
 | SonarQube Cloud | Code quality and coverage, fed by `cargo-llvm-cov`. |
-| Renovate | Dependency updates, emitting the trailer that lets its pull requests pass `spec-check`. |
+| Dependabot | Dependency updates. It cannot emit a trailer, so `spec-check` supplies `GOV-R12` for the pull requests it opens. |
 | git-cliff | Generates release notes from the commit log, so the changelog cannot disagree with what shipped. |
 | cargo-dist | Builds and publishes the attested multi-platform release artefacts, and the Homebrew formula once that publish job is on. |
 

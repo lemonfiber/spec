@@ -132,11 +132,11 @@ outstanding (`Q-R59`). The checks we can enforce, we enforce — and stay green:
 
 | Enforced | How |
 |----------|-----|
-| Pinned-Dependencies | Every `uses:` is SHA-pinned ([ADR-0009](../00-overview/decisions/0009-action-pinning.md)); Renovate advances them |
+| Pinned-Dependencies | Every `uses:` is SHA-pinned ([ADR-0009](../00-overview/decisions/0009-action-pinning.md)); Dependabot advances them |
 | Token-Permissions | Minimal, job-scoped `permissions:` on every workflow |
 | SAST | SonarCloud on every PR; CodeQL where a compiled or workflow-heavy repo makes it meaningful |
 | Vulnerabilities | OSV-Scanner; zero open SonarCloud vulnerabilities |
-| Dependency-Update-Tool | Renovate on every repo |
+| Dependency-Update-Tool | Dependabot on every repo ([ADR-0016](../00-overview/decisions/0016-dependabot-over-renovate.md)) |
 | Dangerous-Workflow | No untrusted input in `run:`; fork PRs never see secrets |
 | Branch-Protection | PR-required, signed commits, strict status checks, linear history, conversation-resolution |
 | Fuzzing | `cargo-fuzz` targets over the manifest parser and its validation; a smoke run on every PR that touches them, a long run weekly, corpus carried between runs |

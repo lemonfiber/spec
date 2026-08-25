@@ -16,7 +16,7 @@ covers *how* change enters, this covers *whether it's good enough*.
 | [testing-strategy.md](testing-strategy.md) | The pyramid, golden files, fixture discipline, the must-cover paths |
 | [ci-cd.md](ci-cd.md) | Pipeline stages, `cargo-deny`, three-platform release via `cargo-dist` |
 | [security.md](security.md) | STRIDE threat model, secret handling, supply chain, secure defaults |
-| [tooling.md](tooling.md) | The external toolchain — SonarQube Cloud, CodeQL, Renovate, and the rest, all free for public repos |
+| [tooling.md](tooling.md) | The external toolchain — SonarQube Cloud, CodeQL, Dependabot, and the rest, all free for public repos |
 | [definition-of-done.md](definition-of-done.md) | The single checklist a change is held to before its PR opens |
 
 All Accepted.

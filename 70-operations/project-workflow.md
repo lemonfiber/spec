@@ -45,7 +45,8 @@ drift). Colour-coded by kind.
 | `needs-spec` | triage | Accepted, but a spec change must land before implementation |
 | `needs-triage` | triage | A new issue awaiting maintainer triage |
 | `awaiting-maintainer` | triage | Green PR with no review — a maintainer needs to act |
-| `dependencies` | type | Dependency update (Renovate) |
+| `dependencies` | type | Dependency update (Dependabot) |
+| `major` | type | A major version bump — arrives on its own, never grouped |
 | `security` | type | Security-relevant |
 | `breaking-change` | flag | Changes a public contract; needs a major bump |
 | `good first issue` | help | Small, well-scoped, newcomer-friendly |
@@ -81,7 +82,7 @@ is visible without a separate tracker.
 |------------|--------------|-------|
 | **Templates** | Route by the "does it behave as specced?" question | `.github` (inherited) |
 | **spec-check** | Non-conforming PRs closed with guidance | reusable, in `spec` |
-| **Renovate** | Groups dependency updates, adds the `Spec: GOV-R12` trailer | preset in `.github` |
+| **Dependabot** | Groups dependency updates; `spec-check` supplies its `GOV-R12` citation | `.github/dependabot.yml`, per repo |
 | **Stale** | Marks inactive issues/PRs stale, then closes, with a grace period | reusable, in `spec` |
 | **DCO check** | Verifies the sign-off on every commit | reusable, in `spec` |
 | **Commit-lint** | Enforces conventional-commit subjects for a clean changelog | reusable, in `spec` |

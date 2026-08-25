@@ -27,7 +27,13 @@
   description: Green PR with no review — a maintainer needs to act
 - name: dependencies
   color: 0366d6
-  description: Dependency update (Renovate)
+  description: Dependency update (Dependabot)
+# Dependabot adds `major`, `minor` or `patch` to a bump, but only where the repo
+# already has that label. Defining `major` alone is what makes a major bump say
+# so without labelling every patch.
+- name: major
+  color: d93f0b
+  description: A major version bump — arrives on its own, never grouped
 - name: security
   color: b60205
   description: Security-relevant

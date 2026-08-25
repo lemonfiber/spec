@@ -8,12 +8,16 @@ Enforces:
   GOV-R2  a citation is present
   GOV-R3  every cited identifier exists on spec@main
 
+One author cannot write a trailer, and the gate cites on its behalf: see
+`by_dependabot` below (Q-R55).
+
 Ordering (GOV-R4) — that a behavioural change's spec PR merged first — is not
 machine-checked here yet; it is verified in review. Hardening this is tracked in
 the spec repo, and any change to this script cites GOV-R11.
 
 Usage:
   spec_check.py --spec-dir <path to spec checkout> --text-file <PR body+commits>
+                [--pr-author <login of whoever opened the pull request>]
 Exit 0 = pass, 1 = fail (with guidance), 2 = usage error.
 """
 from __future__ import annotations
@@ -48,6 +52,29 @@ def cited_ids(text: str) -> set[str]:
     return ids
 
 
+# The account whose pull requests carry no trailer, and the identifier the gate
+# writes for them. Dependabot composes its own commit message and pull request
+# body and offers no way to add a line to either, so its pull requests cite
+# nothing. GOV-R12 is the identifier that governs a dependency update, and the
+# gate supplies it here rather than in the text (Q-R55, ADR-0016).
+#
+# Supplied, not skipped: GOV-R3 still runs, so GOV-R12 must exist on spec@main
+# and the run still prints what it accepted.
+#
+# The trap, for whoever edits this next: this keys on GitHub's record of who
+# opened the pull request, and on nothing else. A label, a title, a branch name
+# and a commit's author are all writable by whoever opened the pull request;
+# `pull_request.user.login` is not. Widening this to any of them turns the gate
+# off for anyone who can type.
+DEPENDABOT = "dependabot[bot]"
+ROUTINE = "GOV-R12"
+
+
+def by_dependabot(pr_author: str) -> bool:
+    """Whether GitHub says Dependabot opened this pull request."""
+    return pr_author == DEPENDABOT
+
+
 GUIDANCE = """
 This change does not cite a spec identifier that exists on spec@main.
 
@@ -70,6 +97,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--spec-dir", required=True)
     ap.add_argument("--text-file", required=True)
+    ap.add_argument("--pr-author", default="", help="login that opened the PR")
     a = ap.parse_args()
 
     spec_dir = pathlib.Path(a.spec_dir)
@@ -89,6 +117,8 @@ def main() -> int:
         return 2
 
     cited = cited_ids(text)
+    if by_dependabot(a.pr_author):
+        cited.add(ROUTINE)
     if not cited:
         print("::error::no `Spec:` citation found")
         print(GUIDANCE)

@@ -55,10 +55,16 @@ jobs:
           python-version: "3.12"
 
       - name: Verify citation
+        # `pull_request.user.login` is GitHub's record of who opened this, not
+        # anything the pull request carries. It is what lets Dependabot — which
+        # cannot write a `Spec:` trailer — be cited for; see spec_check.py.
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
           python3 .spec-canonical/scripts/spec_check.py \
             --spec-dir .spec-canonical \
-            --text-file .pr-text.txt
+            --text-file .pr-text.txt \
+            --pr-author "$PR_AUTHOR"
 
       # Only the implementation repo keeps a tracker; every other caller skips this.
       - name: The tracker claims only what the spec backs
