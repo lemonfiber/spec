@@ -11,7 +11,9 @@
 #   - git submodules. The revisions this repo pins are moved on purpose; the
 #     `pins` job in the hygiene gate is what notices one going stale.
 #   - the tool versions written inline in workflow `run:` blocks. Dependabot has
-#     no regex manager and nothing else watches them — see the spec's
+#     no regex manager, and by its own parser no `docker://` reference either.
+#     `GITLEAKS_VERSION` in security.yml is watched by a step beside the scan
+#     instead; `python-version:` is watched by nothing — see the spec's
 #     40-quality/tooling.md, "What Dependabot does not watch".
 version: 2
 updates:

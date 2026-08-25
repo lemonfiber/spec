@@ -99,13 +99,13 @@ request.
 
 Renovate was configured to watch four things by regular expression and three more
 by mechanisms Dependabot has no equivalent of. **Renovate never ran**, so nothing
-here regresses in practice — but the intent was real, and this is what is no
-longer even intended to be watched.
+here regressed in practice — but the intent was real. The two scanner versions
+are now watched again, by the two different means below; the rest is not.
 
 | What | Where it lives now | Who notices it going stale | To bring it back |
 |------|--------------------|----------------------------|------------------|
-| `gitleaks` CLI version | `.github/workflows/security.yml` — `ver="8.30.1"` and the release URL beside it | **Nobody.** A stale scanner finds fewer secrets and stays green doing it. | Call `gitleaks/gitleaks-action` instead of `curl`-ing a release, which puts it under the `github-actions` ecosystem |
-| `osv-scanner` CLI version | `.github/workflows/security.yml` — the `v2.4.0` release URL | **Nobody.** Same shape: fewer advisories, still green. | Call `google/osv-scanner-action` instead of `curl`-ing a release |
+| `gitleaks` CLI version | `.github/workflows/security.yml` — `GITLEAKS_VERSION`, read both by the step that downloads it and by the step that checks it | **The step that checks it**, which fails the run once the release it names has been superseded for more than 30 days | Done, but not by Dependabot — see below |
+| `osv-scanner` version | `.github/workflows/security.yml` — the `google/osv-scanner-action/osv-scanner-action` pin | **Dependabot**, under `github-actions` | Done. The action is a container action, so the `uses:` pin is what fixes the scanner version |
 | `python-version:` written inline in workflows | eight sites, all `"3.12"` — seven here, one in `lemonfiber` | **Nobody**, until 3.12 leaves support in Oct 2028 | No Dependabot manager reads it; a scheduled check, or `.python-version` + a linter that reads it |
 | `node-version:` written inline in workflows | **nowhere** — every repo uses `node-version-file: .nvmrc` | n/a | The manager watched nothing; it can simply go |
 | `.nvmrc` | three repos | **Nobody.** `engines: node >=26` in `package.json` is a floor, not a bump | No Dependabot manager reads `.nvmrc` |
@@ -113,10 +113,39 @@ longer even intended to be watched.
 | Semver ranges pinned to exact versions (`:pinAllExceptPeerDependencies`) | n/a | n/a | No equivalent. Dependabot updates within a range and widens it; it does not pin |
 | The dependency dashboard | n/a | n/a | No equivalent. The closest thing is each repo's Dependabot alerts tab |
 
-The first three are the ones that matter, and the first two are cheap to fix
-properly: both tools publish a GitHub Action, and moving to it turns an
-unwatched string in a `run:` block into a pinned `uses:` that Dependabot already
-tracks under [ADR-0009](../00-overview/decisions/0009-action-pinning.md).
+Two of the three that matter are now closed. The third, `python-version:`, is
+not, and stays as written above.
+
+### The two scanners, and why they are watched differently
+
+Both tools publish a GitHub Action, and calling one turns an unwatched string in
+a `run:` block into a pinned `uses:` that Dependabot already tracks under
+[ADR-0009](../00-overview/decisions/0009-action-pinning.md). That worked for one
+of them.
+
+**osv-scanner** is called as `google/osv-scanner-action/osv-scanner-action`,
+pinned by SHA. It is a container action, so the pin selects the scanner image as
+well as the action, and Dependabot advances both together. The hand-written
+exit-code arm that treated `128` as "no package sources, nothing to scan" is now
+the scanner's own `--allow-no-lockfiles` flag; the action's entrypoint maps `128`
+to success either way, and warns when the flag is absent.
+
+**gitleaks** cannot be. `gitleaks/gitleaks-action` requires a `GITLEAKS_LICENSE`
+secret for any repository an organisation owns — still true at v3.0.0, and this
+org owns every repository here. The key is free to obtain, but it is a
+registration, a secret each caller of the shared workflow would have to forward,
+and a licence check against a third-party server standing on the critical path of
+a required gate. The action is also not open source: since v2.0.0 it ships under a
+Gitleaks LLC end-user licence agreement, where the CLI stays MIT. `gitleaks/gitleaks`
+itself publishes no action, and Dependabot's `github-actions` parser skips a
+`uses: docker://…` reference, so the published container is no route either.
+
+So the CLI stays fetched by hand, and a step beside the scan reads the latest
+gitleaks release and compares it to the version that just scanned. Being behind is
+a notice for the first month and a failure after it — the same split, for the same
+reason, as `pins` in `hygiene.yml`. An answer that cannot be read after three
+attempts is a failure, not a pass: a watch that says nothing when it could not look
+is the failure it exists to prevent.
 
 ### The hooks, and why there is no hook manager
 
