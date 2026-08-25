@@ -40,3 +40,9 @@ jobs:
       # is shell inside a workflow, so there are no Python lines here to measure.
       - name: The declared allowance is shown refusing a raise (Q-R66, Q-R67)
         run: python3 scripts/test_ratchet.py
+      # The same shape again, on the other step of the same gate: it runs the
+      # issue check with no token and checks that the run says which kind of run
+      # it was and that `Q-R64` went unenforced, rather than going green in
+      # silence (Q-R66).
+      - name: A run with nothing to gate says so (Q-R64, Q-R66)
+        run: python3 scripts/test_no_token.py

@@ -115,9 +115,24 @@ The issue check reads what the analysis already reports rather than asking the
 SonarCloud API for it: SonarCloud posts a summary on the PR when its run
 finishes, and the CI step reads that summary and fails on any open issue — turning
 "Sonar found something" from advisory into blocking without a second credential
-or a separate query. Where the scan did not run — a fork PR without the
-`SONAR_TOKEN` secret — there is no summary to read, and the check does not fail
-for something it could not observe.
+or a separate query. Where the scan did not run there is no summary to read, and
+the check does not fail for something it could not observe.
+
+Two kinds of run reach it that way. A pull request from a fork is given no
+secrets at all. A pull request Dependabot opened reads secrets from the
+Dependabot store rather than the Actions store, and `SONAR_TOKEN` is not in it —
+so a CI-driven scan there receives an empty token and can only fail, on a step
+that has nothing to do with the bump, holding a required check red on every
+dependency update. The scan is skipped on those runs instead, keyed on
+`pull_request.user.login` — the field `Q-R55` already keys on, and the only one
+the pull request's opener cannot write.
+
+Neither run changes what the coverage gate measures: it needs no token and still
+runs, so `Q-R61` is enforced on a dependency update exactly as it is elsewhere.
+Both leave `Q-R64` unenforced, and both say so — in the log, and in the verdict
+the gate writes to the run summary as well as to the pull request. A skipped scan
+reports itself under its own name too, because a step missing from a log reads
+the same as a step that ran and found nothing.
 
 ## Release — `cargo-dist`
 
