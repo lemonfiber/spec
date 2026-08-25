@@ -194,6 +194,70 @@ repository and lints that tree — the org's copy never arrives. Those two need
 different machinery, and conflating them is how four different
 `.markdownlint.jsonc` files came to be live at once.
 
+## A pin is a copy, and a copy goes stale
+
+Anti-drift above covers what the tooling copies. It does not cover what a
+repository pins on purpose, and most of the arrows between these repos are exactly
+that: the stack and the web surface reach `lemonfiber` as submodules at a revision,
+`lemonfiber-web` reaches `lemonfiber` through a client it takes at a revision,
+every repo reaches the docs site the same way, and every `uses:` in every workflow
+names a SHA ([ADR-0009](../00-overview/decisions/0009-action-pinning.md)). An exact
+revision is immutable, which is the point of it and also the failure: nothing about
+a pin changes because the thing it names moved on.
+
+Renovate is what was meant to notice. It is configured on every repo and has opened
+no pull request on any of them, so the true answer to "what is watching this pin"
+has been **nothing**, for every pin here, since the first one was written.
+
+Two things went wrong under that within a day of each other, and both passed every
+gate:
+
+- **The console was drawn through a client from before four of that client's own
+  bugs were fixed**, so all four were live in it. A stale key read as "lemonfiber is
+  not answering" — the client checked `401` and the binary answers `403`, so the page
+  reported the server down and never asked for the one thing that would have fixed
+  it. The event stream never handed over an arrival. A refusal's own sentence was
+  discarded. The vendored contract predated a kind. Somebody building against the
+  console found one of them again by hand, hours after it had been fixed upstream.
+- **The same repository's lockfile named a client it was not built from.**
+  `package-lock.json` sat behind `package.json`; `npm ci` installs what the lockfile
+  names and the build then overwrites it, so the output was right and the record was
+  wrong. That is the worse half. A wrong build fails somewhere eventually; a wrong
+  record is what anybody reading the repository believes in the meantime.
+
+Neither is a check behaving badly — both are the absence of one. A pin is not a
+version any scanner ranks, and a lockfile disagreeing with the manifest beside it is
+not a state the installer has any reason to object to.
+
+So a pin is watched, and what a build resolved is held to what the repository
+declared.
+
+The watching fires on the dependency's own change rather than on a calendar. A
+weekly sweep is a floor, not a first notice, and seven days is long enough for the
+stale copy to be the one somebody installs. And the report names the commits not
+taken rather than counting them: most commits on a client change nothing its
+consumer reaches, so "behind by eleven" reads as an emergency where the list reads
+as a decision.
+
+`OPS-R48` already does this for one pin — when `spec`'s reusable workflows move, an
+automated PR bumps the `@SHA` in every consumer in lockstep — and the hygiene gate's
+`pins` job already reports, in each repo, what shared revision that repo is running.
+Neither is peculiar to the release train or to shared CI. This is the general case
+of both.
+
+Three notifiers carry it between the repos that pin each other. `lemonfiber` tells
+each SDK when the contract artefact it vendors has moved, and fails when an SDK
+could not be told (`contract-moved.yml`). `sdk-ts` tells `lemonfiber-web` on every
+push to its own main (`sdk-moved.yml`). `lemonfiber-web` compares the revision its
+manifest pins against that main and names the commits it has not taken
+(`sdk-drift.yml`). The first two are on their repositories' `main`; the third is not
+yet merged, so the console's pin is watched by the notifier that fires at it before
+it is watched by the check that answers.
+
+The two that dispatch fail rather than report success when they cannot reach the
+repository they are telling. A notifier that cannot notify, quietly, leaves the
+calendar as the only thing looking — which is the state all three exist to end.
+
 ## What needs a human, once
 
 Two things can't be scaffolded and must be set in repo settings after creation:
@@ -219,6 +283,8 @@ Both are one-time and free. Everything else runs from committed config.
 | **Q-R58** | The docs site MUST render the specification from a pinned revision of `spec`, MUST link-check every page it publishes, authored and mirrored, and MUST be the only published rendering of the specification. |
 | **Q-R59** | A public supply-chain posture check (OpenSSF Scorecard) MUST run on each repo's default branch. |
 | **Q-R60** | Any tool requiring a secret or external app MUST be documented as a one-time manual setup step. |
+| **Q-R68** | Where a repository depends on another repository in this org at an exact revision, an automated check MUST report a pin that is behind that dependency's default branch, naming the commits it has not taken. |
+| **Q-R69** | A lockfile or equivalent record of what a build resolved MUST name the same revision as the declaration it resolves, and CI MUST fail where the two disagree. |
 
 ## Related
 
@@ -226,3 +292,4 @@ Both are one-time and free. Everything else runs from committed config.
 - [security.md](security.md) — the supply-chain and secret threats they address
 - [50-governance/cross-repo-ci.md](../50-governance/cross-repo-ci.md) — reusable-workflow anti-drift
 - [30-repos/README.md](../30-repos/README.md) — the `.github` repo
+- [70-operations/staging.md](../70-operations/staging.md) — `OPS-R48`, the one pin the release train fans out itself
