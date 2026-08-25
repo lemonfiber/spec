@@ -40,6 +40,16 @@
 # SonarCloud's, and holding somebody's pull request hostage to either would punish
 # the wrong person. Those cases warn loudly — in the log and in the sticky comment,
 # which says plainly that the gate needs attention — and pass.
+#
+# A run that never had a token is the same shape and was not treated as one. It
+# exited quietly, calling every such run a fork's, and a Dependabot pull request is
+# not a fork's: Dependabot runs read the Dependabot secret store rather than the
+# Actions one, so `SONAR_TOKEN` is empty on them and the scan that would produce a
+# summary is skipped rather than left to fail on an empty token. Such a run still
+# passes — a dependency bump is not where the line on Q-R64 gets held — but it now
+# says which of the two happened, and says that Q-R64 went unenforced, somewhere a
+# reader will find it. Green because it read nothing, and silent about it, is the
+# one outcome this gate must never have.
 name: sonar-gate
 
 on:
@@ -156,6 +166,11 @@ jobs:
           SONAR_TOKEN: ${{ secrets.sonar-token }}
           PR: ${{ github.event.pull_request.number }}
           BOT: sonarqubecloud[bot]
+          # Who opened the pull request, which is what decides whether this run
+          # can read a secret at all — and the one identifier its opener cannot
+          # write, which is why `spec_check.py` keys Q-R55 on the same field.
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          DEPENDABOT: "dependabot[bot]"
           MARKER: "<!-- lemonfiber:issue-gate -->"
           PROJECT: ${{ inputs.project }}
           ALLOWED: ${{ inputs.allowed-open }}
@@ -176,19 +191,42 @@ jobs:
           # Post the verdict as a comment, updating our own previous one in place
           # so a re-run does not stack duplicates. The message is written to a
           # file so its markdown reaches the API verbatim.
+          #
+          # The same verdict goes to the run summary, which needs no permission to
+          # write. A pull request from a fork carries a read-only token, so the
+          # comment is the one place a fork's verdict could never appear — and for
+          # that reason a comment that will not post is reported here and does not
+          # end the run. What the gate concluded is the point; where it landed is not.
           verdict() {
             printf '%s\n\n%s%s\n' "$MARKER" "$1" "$standing" > verdict.md
+            printf '%s%s\n' "$1" "$standing" >> "$GITHUB_STEP_SUMMARY"
             id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
               --jq "[.[] | select(.body | contains(\"${MARKER}\"))] | last | .id // empty" || true)
             if [ -n "$id" ]; then
-              gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" -F body=@verdict.md >/dev/null
+              gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" -F body=@verdict.md >/dev/null \
+                || echo "::warning::Could not update the verdict comment; the verdict is in this run's summary."
             else
-              gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -F body=@verdict.md >/dev/null
+              gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -F body=@verdict.md >/dev/null \
+                || echo "::warning::Could not post the verdict comment; the verdict is in this run's summary."
             fi
           }
 
+          # No token is not one situation, and this reported it as one. A
+          # Dependabot run takes its secrets from the Dependabot store rather than
+          # the Actions store, and the scan is skipped on those pull requests for
+          # that reason; a pull request from a fork is given no secrets at all.
+          # Both leave this gate nothing to read and neither is the contributor's
+          # to fix, so both pass — but they now say which happened and that Q-R64
+          # went unenforced. A check that goes green having read nothing and says
+          # so nowhere cannot be told apart from one that looked and found nothing.
           if [ -z "${SONAR_TOKEN:-}" ]; then
-            echo "No SONAR_TOKEN — analysis did not run (fork PR); nothing to gate on."
+            if [ "$AUTHOR" = "$DEPENDABOT" ]; then
+              verdict "### ⚠️ Issue gate — nothing to gate · The SonarCloud scan is deliberately skipped on \`${DEPENDABOT}\` pull requests: a Dependabot run reads the Dependabot secret store, not the Actions store, so \`SONAR_TOKEN\` is empty here and a scan could only fail on it. No analysis was produced, so **\`Q-R64\` was not enforced on this run** and this green check is not evidence that it holds. Nothing here is a failure of this pull request."
+              echo "::warning::Scan deliberately skipped for a ${DEPENDABOT} pull request; Q-R64 was not enforced on this run"
+              exit 0
+            fi
+            verdict "### ⚠️ Issue gate — nothing to gate · No \`SONAR_TOKEN\` reached this run, so no analysis was produced and **\`Q-R64\` was not enforced on this run**. A pull request from a fork cannot read this repository's secrets, which is the usual reason. Nothing here is a failure of this pull request."
+            echo "::warning::No SONAR_TOKEN reached this run; Q-R64 was not enforced on this run"
             exit 0
           fi
 
