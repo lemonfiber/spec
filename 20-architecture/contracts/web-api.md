@@ -124,6 +124,23 @@ browser tab that closes mid-repair does not orphan the work. The identifier is *
 — see [a job's outcome](#a-jobs-outcome) — because a name that cannot be turned back into an
 outcome makes the reply an acknowledgement rather than an answer.
 
+### Setting up
+
+```
+GET  /api/setup            POST /api/setup/answer     POST /api/setup/next
+POST /api/setup/back       POST /api/setup/apply      POST /api/setup/recover
+```
+
+Named for the walk rather than for a command, because a wizard is one request read many
+times: what it is standing on, an answer to that, and the movement between. `apply` is where
+it stops asking and writes, and `recover` is what an apply that stopped part-way is answered
+with — offered after the report has named what that apply had already written, so the choice
+is made by somebody who has seen it.
+
+These are writes and sit behind the same guard as the actions above. They are named here
+because the first-run walk is where credentials are entered, and an endpoint that takes one
+and is written down nowhere is the one nobody audits.
+
 ## What guards it
 
 A writable API on loopback is reachable from any page the operator happens to visit — a page
@@ -195,12 +212,18 @@ current, only what is retransmitted.
 ### A job's outcome
 
 ```
-GET /api/jobs/<job>
+GET    /api/jobs/<job>
+DELETE /api/jobs/<job>
 ```
 
 The other end of the accepting reply. It is not named for a command, because it answers no
 request the command line has: being answered with a name instead of an outcome is the web's
 own arrangement, and this is the half that makes it an answer.
+
+`DELETE` releases the name. For work with no ending of its own — a guard that holds until the
+data location is lost — a browser has no interruption to send, so letting the name go is its
+Ctrl-C, and what the container engine was already asked to do goes on exactly as it does when
+a terminal is closed.
 
 The standing is carried by the **status**, and the body is a document the client already
 parses either way:
