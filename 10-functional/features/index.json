@@ -73,7 +73,7 @@
     {
       "version": "0.9.0",
       "epoch": "v1",
-      "status": "releasable",
+      "status": "released",
       "milestone": "M7",
       "closes_epoch": null,
       "goals": 46
@@ -893,7 +893,7 @@
         },
         {
           "version": "0.9.0",
-          "status": "releasable"
+          "status": "released"
         }
       ],
       "path": "c-trust/c6-web-security.md"
@@ -1604,7 +1604,7 @@
       "versions": [
         {
           "version": "0.9.0",
-          "status": "releasable"
+          "status": "released"
         }
       ],
       "path": "g-ux/g1-interface-tiers.md"
@@ -1635,7 +1635,7 @@
       "versions": [
         {
           "version": "0.9.0",
-          "status": "releasable"
+          "status": "released"
         }
       ],
       "path": "g-ux/g2-plain-language.md"
@@ -1670,7 +1670,7 @@
         },
         {
           "version": "0.9.0",
-          "status": "releasable"
+          "status": "released"
         }
       ],
       "path": "g-ux/g3-accessibility.md"

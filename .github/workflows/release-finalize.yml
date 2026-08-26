@@ -65,8 +65,32 @@ jobs:
           set -euo pipefail
           echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
             || { echo "::error::version must be X.Y.Z, got '${VERSION}'."; exit 1; }
-          man="70-operations/versions/${VERSION}.toml"
-          [ -f "$man" ] || { echo "::error::no manifest at ${man}"; exit 1; }
+
+          # The version whose goals this shipped, which is not always the tag it
+          # shipped under. A minor whose release run fails part-way is finished by
+          # a patch, and there is no manifest per patch: a patch delivers no goals
+          # of its own, and a manifest for it would be another version the serial
+          # train has to walk past. So a tag with no manifest of its own records
+          # the line it belongs to.
+          #
+          # Until this was here, 0.9.1 arrived, found no 0.9.1.toml and stopped —
+          # leaving 0.9.0 at `staged`, which by OPS-R52 blocks the next version
+          # from being staged at all. The record was not merely stale; the train
+          # was stopped, which is the failure this whole workflow exists to end.
+          line="$VERSION"
+          man="70-operations/versions/${line}.toml"
+          if [ ! -f "$man" ]; then
+            line="${VERSION%.*}.0"
+            man="70-operations/versions/${line}.toml"
+            [ -f "$man" ] || { echo "::error::no manifest for ${VERSION} or its line ${line}"; exit 1; }
+            echo "::notice::${VERSION} is a patch; recording it against ${line}."
+          fi
+          # Said only where they differ, so a manifest recording its own tag is
+          # not given a second name for it.
+          shipped_as=""
+          if [ "$line" != "$VERSION" ]; then
+            shipped_as="$VERSION"
+          fi
 
           # The stack the release actually embedded, read from the tag itself
           # rather than from whatever main points at now — a pin that drifts is
@@ -75,7 +99,11 @@ jobs:
           if [ -z "$pin" ]; then
             pin=$(gh api "repos/${OWNER}/lemonfiber/contents/assets/media-stack?ref=v${VERSION}" --jq '.sha')
           fi
-          [ -n "$pin" ] || { echo "::error::could not read the embedded stack commit"; exit 1; }
+          # Checked to be a commit, not merely present. It arrives from a dispatch
+          # payload on the input path and is written into the manifest verbatim, so
+          # what it is allowed to be is worth saying rather than assuming.
+          printf '%s' "$pin" | grep -Eq '^[0-9a-f]{40}$' \
+            || { echo "::error::the embedded stack commit is not a sha: '${pin}'"; exit 1; }
 
           # The day the release went out, read from the release itself. This runs
           # on publish, so `published_at` is set and is the moment being recorded;
@@ -99,13 +127,14 @@ jobs:
             recorded=true
           fi
           {
-            echo "version=${VERSION}"
+            echo "version=${line}"
+            echo "released_as=${shipped_as}"
             echo "pin=${pin}"
             echo "released_on=${when}"
             echo "recorded=${recorded}"
           } >> "$GITHUB_OUTPUT"
           if [ "$recorded" = true ]; then
-            echo "::notice::${VERSION} is already recorded as released; nothing to do."
+            echo "::notice::${line} is already recorded as released; nothing to do."
           fi
 
       # Through the shared transition, not by hand. It writes the manifest with
@@ -129,6 +158,7 @@ jobs:
           status: released
           pins: lemonfiber-media-stack=${{ steps.what.outputs.pin }}
           released_on: ${{ steps.what.outputs.released_on }}
+          released_as: ${{ steps.what.outputs.released_as }}
           token: ${{ steps.token.outputs.token }}
 
       # An open issue about a version should mean something is still owed on it,

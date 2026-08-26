@@ -12,6 +12,7 @@ version = "0.2.0"         # the release this manifest describes; matches the tag
 epoch   = "v1"            # the epoch this version belongs to
 status  = "staged"        # planned → staged → releasable → released → yanked
 released_on = "2026-07-30"   # UTC date the release was published; written at release (OPS-R57)
+released_as = "0.2.1"     # the tag that carried these goals, where it is not this version's own
 repos   = ["lemonfiber", "lemonfiber-media-stack"]   # streams this version cuts; never "brand"
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs (OPS-R30)
 
@@ -28,6 +29,7 @@ lemonfiber-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"
 | `repos` | The release streams this version cuts. `brand` releases on its own clock and is never listed. |
 | `goals` | The locked set of `Accepted` requirement IDs the release must satisfy before it ships. |
 | `closes_epoch` | Present **only on an `X.0.0` major**. Names the epoch it completes; the [epoch-completeness gate](../staging.md) then refuses to ship it unless every `tracks:` feature of that epoch is `Accepted` and done. |
+| `released_as` | The tag the goals actually shipped under, present **only where it is not this version's own**. A minor whose release run fails part-way is finished by a patch, and the patch is the artefact people install; there is no manifest per patch, because a patch delivers no goals and a manifest for it would be another version the serial train must walk past. Written by the transition to `released` — never typed. |
 | `pins` | The exact submodule commits embedded, recorded at execute so the release is reproducible from this file alone. |
 
 ## Epochs and the no-stub-major rule
@@ -49,6 +51,9 @@ a per-requirement list, is what it must satisfy.
 - The file, not CI history, answers "where is this version": read `status`.
 - The file, not the forge, answers "when did it ship": read `released_on`
   ([OPS-R57](../staging.md)).
+- And what it shipped *as*: read `released_as` where there is one, `version`
+  otherwise. A patch records the line it closed rather than a manifest of its
+  own, so the train stays serial and the record still names the tag.
 
 See [TEMPLATE.toml](TEMPLATE.toml) to start one, and [staging.md](../staging.md)
 for the lifecycle these files move through.
