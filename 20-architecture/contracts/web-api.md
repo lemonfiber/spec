@@ -53,11 +53,17 @@ GET /api/forms         GET /api/status         GET /api/services
 GET /api/checks        GET /api/storage        GET /api/logs?…
 GET /api/requests      GET /api/trace?…        GET /api/stuck
 GET /api/version       GET /api/config?…       GET /api/quality
-GET /api/explain?…
+GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
 gains a parameter; one that gains an endpoint gained a command first.
+
+`/api/bundle/{name}` is the one read that does not answer with an envelope. It answers with
+the bundle itself, because a browser has no path on the host to be told and handing the file
+over is the only form `--out` can take on a screen. The name is resolved beneath the bundles
+directory rather than followed, so one carrying a path, or climbing out of that directory, is
+refused by name.
 
 ### When a read is refused
 
