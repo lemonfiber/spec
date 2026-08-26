@@ -87,9 +87,19 @@ already holds, or warn that a name is about to overwrite something — and for a
 restore, choosing the wrong archive is not a mistake that can be taken back.
 
 That is a weaker claim than unsuitability and it gets a weaker remedy rather than
-an exemption. The browser offers the archives lemonfiber already knows about,
-takes a typed path for anything else, and states what it is about to overwrite
-before it does. The action is available; only the picker is poorer.
+an exemption. The browser offers the archives lemonfiber already knows about and
+states what it is about to overwrite before it does. The action is available;
+only the picker is poorer.
+
+It does not take a typed path for anything else, which this page asked for once
+and no longer does. A name travels as a name and is resolved beneath the backups
+directory, so one carrying a path — or climbing out of that directory — is
+refused by name rather than followed. A surface that accepted one would be a way
+to name any file on the host from a browser, gated by nothing but the per-run
+token, and that is a larger thing to hand out than the convenience is worth. An
+operator whose archive is genuinely somewhere else has a shell, which is where a
+path is an ordinary thing to type and the person typing it can see what is
+around it.
 
 ### The terminal interface is not exempt
 
