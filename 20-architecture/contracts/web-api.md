@@ -9,7 +9,9 @@ The interface between `lemonfiber`, which serves it, and
 [G1-R2](../../10-functional/features/g-ux/g1-interface-tiers.md),
 [G1-R7](../../10-functional/features/g-ux/g1-interface-tiers.md),
 [G1-R12](../../10-functional/features/g-ux/g1-interface-tiers.md),
+[C6-R9](../../10-functional/features/c-trust/c6-web-security.md),
 [C6-R10](../../10-functional/features/c-trust/c6-web-security.md),
+[C6-R11](../../10-functional/features/c-trust/c6-web-security.md),
 [C6-R12](../../10-functional/features/c-trust/c6-web-security.md)
 
 ---
@@ -108,6 +110,57 @@ the same confusion `Reading::Stale` exists to prevent one layer down.
 **A resumed stream does not lie about what it missed.** On reconnect a client may hold values
 gathered before the gap. Those are `Stale` by definition, and must be presented as such
 rather than as current.
+
+## Getting in
+
+```
+POST /api/session
+```
+
+The per-run token answers one question — *is this the machine's own operator* — and it
+answers it by having been printed on the terminal that started the process. That is the
+population loopback already answers for, so while the surface is loopback-bound it is the
+whole of what admission needs to be. It is no use at all to somebody holding a phone, and
+being reachable from a phone is the entire case for binding beyond loopback
+([C6](../../10-functional/features/c-trust/c6-web-security.md)).
+
+So there is a second way in, and exactly one: the operator's own password, exchanged
+**once** for a session. The password is not sent again — verifying it is deliberately
+expensive, and a credential re-sent on every request is a credential with more chances to
+leak.
+
+The request body is `{ "password": … }`. The reply is the envelope, `kind: "admission"`,
+carrying the session's own secret and the moment it stops being one. That secret travels in
+`X-Lemonfiber-Token`, exactly as the per-run token does, so the surface has **one credential
+header** to read and a client has one thing to hold rather than two.
+
+| Refused because | Status |
+|---|---|
+| The password was wrong, or none is configured | `401` |
+| Too many wrong answers lately | `429`, saying how long is left |
+
+`401` here rather than the `403` every other refusal answers with, and the difference is the
+whole reason to distinguish them: `403` means *nothing you can send would help*, which is
+true of a missing token and false of a wrong password. A client that cannot tell the two
+apart cannot know whether offering a login is worth anything.
+
+### The session
+
+A session **expires**, on an absolute clock rather than on use: a window left open all week
+is not evidence that whoever opened it is still there. It is also void the moment the
+password changes — which is what makes changing the password a way to end a session
+somebody else is holding, rather than only a way to stop the next one.
+
+Neither is a rule a client may keep its own version of. The server refuses an expired or
+voided session exactly as it refuses a wrong one, and a client that cached the verdict would
+be a second opinion about who is admitted.
+
+### Wrong answers are counted
+
+Failed answers are rate-limited, and the limit is on the surface rather than on the caller's
+address: there is one password, and choosing a new source address per attempt is the
+ordinary shape of the attack. The refusal says how long is left, so a client waits rather
+than retrying into the limit and extending it.
 
 ## Writing
 
@@ -287,6 +340,9 @@ generation has not been used.
 | **ARCH-R72** | A job identifier the run did not issue MUST be refused as absent, and MUST NOT be reported as still in flight. |
 | **ARCH-R73** | The contract artefact MUST NOT describe a schema in a form whose meaning depends on which JSON Schema draft the reader applies, and SDK generation MUST refuse such an artefact, naming where it occurs, rather than generate from the half of it that it reads. |
 | **ARCH-R74** | A refused read MUST carry a status that distinguishes what the request named and this product does not have, from a request that could not be answered as it was asked, from a failure of the machine; the body MUST be the error envelope in every case, and the status of a failure of the machine MUST NOT be given to either of the others. |
+| **ARCH-R75** | The operator's password MUST be exchanged for a session by one request and MUST NOT be required by any other. |
+| **ARCH-R76** | A session's secret MUST travel in the same header the per-run token does, so the surface reads one credential header. |
+| **ARCH-R77** | A refusal a caller could correct by sending something else MUST be distinguished by status from one nothing they could send would satisfy, and a refusal for too many failed attempts MUST say how long is left. |
 
 ## Shapes are generated; semantics are not
 
