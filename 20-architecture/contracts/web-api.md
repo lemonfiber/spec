@@ -56,10 +56,15 @@ GET /api/checks        GET /api/storage        GET /api/logs?…
 GET /api/requests      GET /api/trace?…        GET /api/stuck
 GET /api/version       GET /api/config?…       GET /api/quality
 GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
+GET /api/front-door
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
 gains a parameter; one that gains an endpoint gained a command first.
+
+`/api/front-door` takes none, because the question takes none: which one address the household
+is given is derived from what the stack runs rather than asked for, so a parameter here would be
+a way for one surface to be told a different door from another.
 
 `/api/bundle/{name}` is the one read that does not answer with an envelope. It answers with
 the bundle itself, because a browser has no path on the host to be told and handing the file
