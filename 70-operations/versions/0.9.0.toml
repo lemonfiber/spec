@@ -9,7 +9,7 @@ version = "0.9.0"
 epoch   = "v1"
 milestone = "M7"   # Web surface & UX
 delivers  = "Speaking plainly — interface tiers and the plain-language layer"
-status  = "staged"
+status  = "releasable"
 repos   = ["lemonfiber", "lemonfiber-web"]
 goals   = [
     "C6-R1",
