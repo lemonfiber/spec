@@ -61,10 +61,11 @@ jobs:
           VERSION: ${{ steps.resolve.outputs.version }}
         run: |
           set -euo pipefail
-          python3 - "$VERSION" > repos.txt <<'PY'
-          import sys, tomllib
-          print("\n".join(tomllib.load(open(f"70-operations/versions/{sys.argv[1]}.toml", "rb"))["repos"]))
-          PY
+          # Where the goals were satisfied, not what the version cuts (OPS-R58).
+          # The tracker's burndown is the gate's verdict, so it has to read the
+          # same repositories the gate will: a tracker counting a goal unmet
+          # because it never looked where the work landed reads as work owed.
+          python3 scripts/manifest_repos.py --version "$VERSION" --for searched > repos.txt
           while read -r r; do
             [ -n "$r" ] || continue
             # Whole history, no file contents — the same reason the gate needs

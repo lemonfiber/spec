@@ -3,6 +3,7 @@ version = "0.0.0"         # the release; matches the eventual tag v<version>
 epoch   = "v1"            # which epoch this version belongs to (v1 = A–G, v2 = ecosystem)
 status  = "planned"       # planned → staged → in_progress → releasable → released → yanked
 repos   = ["lemonfiber", "lemonfiber-media-stack"]   # streams this version cuts; never "brand"
+# satisfied_in = ["lemonfiber", "lemonfiber-web"]   # where the gate searches; omit to mean `repos` (OPS-R58)
 goals   = []              # locked Accepted requirement IDs, seeded from a milestone (OPS-R30)
 # closes_epoch = "v1"     # ONLY on an X.0.0 major: the epoch it completes (epoch-completeness gate)
 

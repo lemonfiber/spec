@@ -14,6 +14,7 @@ status  = "staged"        # planned → staged → releasable → released → y
 released_on = "2026-07-30"   # UTC date the release was published; written at release (OPS-R57)
 released_as = "0.2.1"     # the tag that carried these goals, where it is not this version's own
 repos   = ["lemonfiber", "lemonfiber-media-stack"]   # streams this version cuts; never "brand"
+satisfied_in = ["lemonfiber", "lemonfiber-web"]   # where the goal gate searches; omit to mean `repos`
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs (OPS-R30)
 
 [pins]                    # written at execute (OPS-R35); absent while staged
@@ -27,6 +28,7 @@ lemonfiber-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"
 | `status` | The lifecycle state ([OPS-R32](../staging.md)); every transition is recorded here. |
 | `released_on` | The UTC date the release was published, `YYYY-MM-DD` ([OPS-R57](../staging.md)). Written by the transition to `released`, from the publication that triggered it — never typed. Absent on every earlier status. |
 | `repos` | The release streams this version cuts. `brand` releases on its own clock and is never listed. |
+| `satisfied_in` | The repositories the goal gate searches for `Spec:` citations ([OPS-R58](../staging.md)). Omit it and the streams in `repos` are searched, which is right whenever the two coincide. They do not always. `0.10.0` cuts `lemonfiber` alone and its goals are satisfied across four repositories: `ARCH-R55` is cited in `lemonfiber-web`, and `ARCH-R58` and `ARCH-R67` in the two SDKs, which are rules only an SDK can be held to. Searched where it cuts, its gate calls all three unmet for a reason that is not about the work. `0.9.0` avoided that by putting `lemonfiber-web` in `repos`, and bought a different problem: `execute-version` tags every stream it names, and `lemonfiber-web` publishes on a version tag, so the first release run through the train would have published a build nobody asked for. Naming a repository here does **not** tag it; only `repos` does. |
 | `goals` | The locked set of `Accepted` requirement IDs the release must satisfy before it ships. |
 | `closes_epoch` | Present **only on an `X.0.0` major**. Names the epoch it completes; the [epoch-completeness gate](../staging.md) then refuses to ship it unless every `tracks:` feature of that epoch is `Accepted` and done. |
 | `released_as` | The tag the goals actually shipped under, present **only where it is not this version's own**. A minor whose release run fails part-way is finished by a patch, and the patch is the artefact people install; there is no manifest per patch, because a patch delivers no goals and a manifest for it would be another version the serial train must walk past. Written by the transition to `released` — never typed. |

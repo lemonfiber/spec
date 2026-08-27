@@ -10,6 +10,11 @@ milestone = "M7"   # Web surface & UX
 delivers  = "The front door, its security, and the privacy stance"
 status  = "planned"
 repos   = ["lemonfiber"]
+# Four repositories satisfy these goals and this version cuts one of them.
+# `ARCH-R55` is cited in `lemonfiber-web`, and C6 and G5 both reach that surface;
+# `ARCH-R58` and `ARCH-R67` are the SDKs' own, and `ARCH-R60`, `R65` and `R66`
+# are rules about generation that only an SDK can be held to.
+satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php"]
 goals   = [
     "C6-R2",
     "C6-R4",
