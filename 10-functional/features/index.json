@@ -84,7 +84,7 @@
       "status": "staged",
       "milestone": "M7",
       "closes_epoch": null,
-      "goals": 66
+      "goals": 61
     },
     {
       "version": "0.11.0",
@@ -92,7 +92,7 @@
       "status": "planned",
       "milestone": "M8",
       "closes_epoch": null,
-      "goals": 41
+      "goals": 44
     },
     {
       "version": "0.12.0",
@@ -116,7 +116,7 @@
       "status": "planned",
       "milestone": "M9",
       "closes_epoch": null,
-      "goals": 57
+      "goals": 59
     },
     {
       "version": "0.15.0",
@@ -1715,7 +1715,8 @@
       "status": "accepted",
       "tracks": "v1",
       "milestones": [
-        "M7"
+        "M7",
+        "M8"
       ],
       "milestone": "M7",
       "priority": null,
@@ -1734,6 +1735,10 @@
         {
           "version": "0.10.0",
           "status": "staged"
+        },
+        {
+          "version": "0.11.0",
+          "status": "planned"
         }
       ],
       "path": "g-ux/g5-front-door.md"
@@ -1812,7 +1817,9 @@
       "status": "accepted",
       "tracks": "v1",
       "milestones": [
-        "M7"
+        "M7",
+        "M8",
+        "M9"
       ],
       "milestone": "M7",
       "priority": null,
@@ -1831,6 +1838,14 @@
         {
           "version": "0.10.0",
           "status": "staged"
+        },
+        {
+          "version": "0.11.0",
+          "status": "planned"
+        },
+        {
+          "version": "0.14.0",
+          "status": "planned"
         }
       ],
       "path": "g-ux/g8-privacy.md"

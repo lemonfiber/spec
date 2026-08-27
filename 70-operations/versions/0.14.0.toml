@@ -1,7 +1,12 @@
 # Keeping it running — stack updates, self-update, backup and restore, rollback, and the change journal.
 #
-# 57 goals, seeded from the roadmap milestone this version serves;
+# 59 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
+#
+# G8-R4 and G8-R10 arrive from 0.10.0 (OPS-R31): both constrain an update check,
+# and this version is where one first exists. They are constraints on a subject
+# rather than a subject of their own, so they are met by the E2 work below
+# behaving, not by anything separate.
 version = "0.14.0"
 epoch   = "v1"
 milestone = "M9"   # Lifecycle & maintenance
@@ -66,6 +71,8 @@ goals   = [
     "E5-R11",
     "E5-R12",
     "E5-R13",
+    "G8-R4",
+    "G8-R10",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

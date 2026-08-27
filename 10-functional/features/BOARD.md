@@ -57,10 +57,10 @@ silently, and this file is regenerated from the features themselves.
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.9.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.5.0` |
-| [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.10.0` |
+| [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.10.0`, `0.11.0` |
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | G | household | accepted | `0.11.0` |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.5.0` |
-| [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0` |
+| [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0` |
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
 
 ## v2 — the ecosystem (areas H–K, plus F3, and L2 to release it)

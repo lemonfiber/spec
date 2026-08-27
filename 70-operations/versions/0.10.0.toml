@@ -1,9 +1,23 @@
 # The front door and what guards it — the web UI's security and binding policy, the entry surface, and the privacy stance.
 #
-# 66 goals, seeded from the roadmap milestone this version serves;
+# 61 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
 # C6-R1, C6-R3, C6-R6, C6-R10 and C6-R12 moved to 0.9.0 (ADR-0011).
+#
+# G5-R6, G5-R7 and G8-R13 moved to 0.11.0, and G8-R4 and G8-R10 to 0.14.0
+# (OPS-R31). Each names a subject this milestone does not build: G5-R6 and
+# G5-R7 want an address carried in an invitation, and G8-R13 wants a household
+# member told what the operator can see — invitations and household identity are
+# D6, which 0.11.0 delivers. G8-R4 and G8-R10 constrain an update check that
+# transmits nothing and gives up quietly; there is no updater, `install-updater`
+# is false, and nothing here asks any version endpoint anything. E2 is 0.14.0's.
+#
+# They were seeded from this milestone rather than chosen for it, and a goal
+# whose subject does not exist cannot be met — only ticked, which is the defect
+# these gates exist to catch. What holds them meanwhile is unchanged: a version
+# endpoint arriving in the source is red against the host list, and one arriving
+# in the outbound enumeration must declare what it sends.
 version = "0.10.0"
 epoch   = "v1"
 milestone = "M7"   # Web surface & UX
@@ -36,8 +50,6 @@ goals   = [
     "G5-R3",
     "G5-R4",
     "G5-R5",
-    "G5-R6",
-    "G5-R7",
     "G5-R8",
     "G5-R9",
     "G5-R10",
@@ -47,16 +59,13 @@ goals   = [
     "G8-R1",
     "G8-R2",
     "G8-R3",
-    "G8-R4",
     "G8-R5",
     "G8-R6",
     "G8-R7",
     "G8-R8",
     "G8-R9",
-    "G8-R10",
     "G8-R11",
     "G8-R12",
-    "G8-R13",
     "G8-R14",
     "ARCH-R46",
     "ARCH-R47",
