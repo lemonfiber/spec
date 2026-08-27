@@ -18,10 +18,16 @@ import hashlib
 import pathlib
 import tomllib
 
+# The members of `shared/` this file names. Named here rather than at each use so
+# the accounting below and the checks above cannot come to mean different files.
+MARKDOWNLINT = "markdownlint.jsonc"
+TYPOS = "typos.toml"
+HOOKS = "hooks"
+
 
 def markdownlint(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     """The markdownlint config is copied verbatim, key order included."""
-    want = canonical / "shared" / "markdownlint.jsonc"
+    want = canonical / "shared" / MARKDOWNLINT
     got = repo / ".markdownlint.jsonc"
     if not got.is_file():
         return [f"{got.name} is missing; copy {want} to the repo root"]
@@ -32,8 +38,8 @@ def markdownlint(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
 
 def typos(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     """The typos config is a floor: a repo may add entries, never contradict one."""
-    want_path = canonical / "shared" / "typos.toml"
-    got_path = repo / "typos.toml"
+    want_path = canonical / "shared" / TYPOS
+    got_path = repo / TYPOS
     if not got_path.is_file():
         return [f"typos.toml is missing; copy {want_path} to the repo root"]
     want = tomllib.loads(want_path.read_text(encoding="utf-8"))
@@ -101,14 +107,50 @@ def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     the interpreter its first line names has a carriage return on the end.
     """
     complaints = []
-    for name in ("pre-push", "commit-msg"):
+    # Read from the canonical directory rather than named here. This listed two
+    # hooks, which is what `shared/hooks/` held when it was written; a third
+    # would have been copied into every repository and compared in none, and the
+    # run would have said the copies match.
+    for name in sorted(
+        one.name
+        for one in (canonical / "shared" / HOOKS).iterdir()
+        if one.is_file()
+    ):
         got = repo / ".githooks" / name
         if not got.is_file():
             continue
-        want = canonical / "shared" / "hooks" / name
+        want = canonical / "shared" / HOOKS / name
         if got.read_bytes() != want.read_bytes():
             complaints.append(f".githooks/{name} differs from the canonical copy; replace it with {want}")
     return complaints
+
+
+# Every member of `shared/` that a check above compares, and the ones nothing
+# compares because they are not copies. `README.md` documents the directory and
+# `assets.sha256` is the manifest `assets()` reads rather than a file any repo
+# carries.
+COMPARED = {MARKDOWNLINT, TYPOS, HOOKS}
+NOT_A_COPY = {"README.md", "assets.sha256"}
+
+
+def unaccounted(canonical: pathlib.Path) -> list[str]:
+    """What sits in `shared/` that no check here looks at.
+
+    The checks are named one by one below, which is what this directory held when
+    they were written. A file added since is copied into every repository by
+    whoever adds it and compared in none — and the run still says the copies
+    match, which is true of the ones it looked at and reads as an account of all
+    of them.
+    """
+    held = {one.name for one in (canonical / "shared").iterdir()}
+    missed = sorted(held - COMPARED - NOT_A_COPY)
+    if not missed:
+        return []
+    return [
+        f"shared/{name} is compared by nothing here, so a repository's copy of it "
+        f"may differ and this check will still pass"
+        for name in missed
+    ]
 
 
 def main() -> int:
@@ -126,7 +168,7 @@ def main() -> int:
         print(f"::error::no shared/ directory under {canonical}")
         return 1
 
-    problems = (
+    problems = unaccounted(canonical) + (
         markdownlint(repo, canonical)
         + typos(repo, canonical)
         + assets(repo, canonical, name)
