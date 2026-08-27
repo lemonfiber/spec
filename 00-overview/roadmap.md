@@ -30,7 +30,7 @@ ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
 | `0.7.0` | v1 | M5 | Trust checks: providers, support bundle, auto-remediation | Released |
 | `0.8.0` | v1 | M6 | Live TUI: forms, lifecycle, logs and diagnostics as surfaces | Released |
 | `0.9.0` | v1 | M7 | Speaking plainly — interface tiers and the plain-language layer | Released |
-| `0.10.0` | v1 | M7 | The front door, its security, and the privacy stance | Planned |
+| `0.10.0` | v1 | M7 | The front door, its security, and the privacy stance | Staged |
 | `0.11.0` | v1 | M8 | The household asks — requests, identity, client apps | Planned |
 | `0.12.0` | v1 | M8 | Living within limits — disk, retention, bandwidth | Planned |
 | `0.13.0` | v1 | M9 | Changing your mind — reconfigure, migrate, uninstall, credentials | Planned |
