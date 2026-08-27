@@ -57,6 +57,7 @@ GET /api/requests      GET /api/trace?…        GET /api/stuck
 GET /api/version       GET /api/config?…       GET /api/quality
 GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
 GET /api/front-door
+GET /api/outbound      GET /api/stored
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
