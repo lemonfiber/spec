@@ -101,7 +101,11 @@ def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     the interpreter its first line names has a carriage return on the end.
     """
     complaints = []
-    for name in ("pre-push", "commit-msg"):
+    # Read from the canonical directory rather than named here. This listed two
+    # hooks, which is what `shared/hooks/` held when it was written; a third
+    # would have been copied into every repository and compared in none, and the
+    # run would have said the copies match.
+    for name in sorted(one.name for one in (canonical / "shared" / "hooks").iterdir() if one.is_file()):
         got = repo / ".githooks" / name
         if not got.is_file():
             continue
@@ -109,6 +113,34 @@ def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
         if got.read_bytes() != want.read_bytes():
             complaints.append(f".githooks/{name} differs from the canonical copy; replace it with {want}")
     return complaints
+
+
+# Every member of `shared/` that a check above compares, and the ones nothing
+# compares because they are not copies. `README.md` documents the directory and
+# `assets.sha256` is the manifest `assets()` reads rather than a file any repo
+# carries.
+COMPARED = {"markdownlint.jsonc", "typos.toml", "hooks"}
+NOT_A_COPY = {"README.md", "assets.sha256"}
+
+
+def unaccounted(canonical: pathlib.Path) -> list[str]:
+    """What sits in `shared/` that no check here looks at.
+
+    The checks are named one by one below, which is what this directory held when
+    they were written. A file added since is copied into every repository by
+    whoever adds it and compared in none — and the run still says the copies
+    match, which is true of the ones it looked at and reads as an account of all
+    of them.
+    """
+    held = {one.name for one in (canonical / "shared").iterdir()}
+    missed = sorted(held - COMPARED - NOT_A_COPY)
+    if not missed:
+        return []
+    return [
+        f"shared/{name} is compared by nothing here, so a repository's copy of it "
+        f"may differ and this check will still pass"
+        for name in missed
+    ]
 
 
 def main() -> int:
@@ -126,7 +158,7 @@ def main() -> int:
         print(f"::error::no shared/ directory under {canonical}")
         return 1
 
-    problems = (
+    problems = unaccounted(canonical) + (
         markdownlint(repo, canonical)
         + typos(repo, canonical)
         + assets(repo, canonical, name)

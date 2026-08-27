@@ -237,6 +237,26 @@ class Drifted(Copies):
         self.assertEqual(code, 1)
         self.assertIn(".githooks/pre-push differs from the canonical copy", out)
 
+    def test_a_shared_file_no_check_here_compares(self):
+        """The corpus this file checks is named check by check, and `shared/` is a
+        directory anyone may add to. A file added there is copied into every
+        repository by whoever adds it and compared in none — and the run still
+        says the copies match, which is true of the ones it looked at."""
+        (self.canonical / "shared" / "eslint.json").write_text("{}\n", encoding="utf-8")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("shared/eslint.json is compared by nothing here", out)
+
+    def test_a_hook_added_to_the_shared_directory_is_compared(self):
+        """The hook names were written when there were two. A third is read from
+        the canonical directory rather than waited for."""
+        (self.canonical / "shared" / "hooks" / "pre-commit").write_text(
+            HOOK, encoding="utf-8")
+        self.write(".githooks/pre-commit", HOOK.replace("exit 0", "exit 1"))
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn(".githooks/pre-commit differs from the canonical copy", out)
+
     def test_every_kind_of_drift_is_reported_together(self):
         (self.repo / ".markdownlint.jsonc").unlink()
         self.write("typos.toml", "[default]\nextend-words = {}\n")
