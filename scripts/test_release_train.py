@@ -89,6 +89,65 @@ class Workspace(unittest.TestCase):
         return str(p)
 
 
+class LandedTests(Workspace):
+    """A row may name the commit that finished a goal, and it is checked — OPS-R34."""
+
+    def head_of(self, path):
+        return subprocess.run(["git", "-C", path, "rev-parse", "HEAD"],
+                              capture_output=True, text=True).stdout.strip()
+
+    def rows(self, text, path="checkouts/lf/IMPLEMENTATION-STATUS.md"):
+        p = pathlib.Path(path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text, encoding="utf-8")
+        return p
+
+    def test_a_row_naming_a_commit_in_the_history_carries_its_goals(self):
+        """The whole point: a goal nothing cites, finished by a commit that is there."""
+        self.repo("checkouts/lf", trailer="Spec: B1-R4")
+        sha = self.head_of("checkouts/lf")
+        rows = self.rows(f"| **Z9-R9** | x | ✅ | landed in `{sha}` |\n")
+        landed = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
+        self.assertIn("Z9-R9", landed)
+
+    def test_a_row_naming_a_commit_nobody_has_carries_nothing(self):
+        """What stops this being a way to tick anything by writing eight characters."""
+        self.repo("checkouts/lf")
+        rows = self.rows("| **Z9-R9** | x | ✅ | landed in `deadbeefdeadbeef` |\n")
+        landed = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
+        self.assertEqual(landed, set())
+
+    def test_a_row_that_is_not_done_carries_nothing_however_it_is_written(self):
+        self.repo("checkouts/lf")
+        sha = self.head_of("checkouts/lf")
+        rows = self.rows(f"| **Z9-R9** | x | ☐ | landed in `{sha}` |\n")
+        self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), set())
+
+    def test_a_done_row_with_no_commit_named_carries_nothing_here(self):
+        """The ordinary row. This arm only ever adds; it never stands in for the tick."""
+        self.repo("checkouts/lf")
+        rows = self.rows("| **Z9-R9** | x | ✅ | nothing named |\n")
+        self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), set())
+
+    def test_a_range_on_a_named_row_is_spanned_like_any_other(self):
+        self.repo("checkouts/lf")
+        sha = self.head_of("checkouts/lf")
+        rows = self.rows(f"| **C1-R1..R3** | x | ✅ | landed in `{sha}` |\n")
+        landed = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
+        self.assertEqual(landed, {"C1-R1", "C1-R2", "C1-R3"})
+
+    def test_the_verdict_says_which_arm_satisfied_each_goal(self):
+        """An exception nobody can count is one that spreads."""
+        results = gate.evaluate(["A1-R1", "A1-R2", "A1-R3"], {"A1-R1"}, {"A1-R1", "A1-R2"},
+                                {"A1-R2"})
+        by = {r["id"]: r["by"] for r in results}
+        self.assertEqual(by, {"A1-R1": "trailer", "A1-R2": "landed", "A1-R3": None})
+        self.assertTrue(results[1]["cited"], "a landed goal is cited for the verdict")
+
+    def test_reachable_says_no_for_a_path_that_is_not_a_repository(self):
+        self.assertFalse(gate.reachable(pathlib.Path("nowhere"), "HEAD"))
+
+
 class GateTests(Workspace):
     def test_within_cwd_ok_and_escape(self):
         self.assertTrue(str(gate.within_cwd("70-operations")).endswith("70-operations"))

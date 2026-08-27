@@ -222,6 +222,24 @@ implementing them are built per repo.
 | **Release from the trunk** | A version is tagged on `main`; a hotfix to a shipped version branches from its tag and merges back |
 | **Discord cadence** | Staging and progress milestones (25/50/75/100%) post to `#maintainers`; execute posts to `#releases` |
 
+### When a goal cannot be cited
+
+A merged commit cannot gain a `Spec:` trailer. So a change that closed several
+requirements under one trailer leaves the rest uncitable for ever, and the two ways
+out are both bad: a later commit citing a goal it did not advance is exactly the
+unauditable claim the second arm exists to refuse, and inventing work to carry the
+citation is worse.
+
+A done row may therefore name the commit instead — *landed in `3c595bb`* — and the
+gate checks it: the sha has to resolve to a commit that is an ancestor of a searched
+repository's head, or the row counts for nothing. `git show` is the audit, which is
+the whole reason it is a commit rather than a pull request number. One can be checked
+against the artefact, offline; the other is a question for the forge.
+
+It is reported separately from an ordinary citation, because an exception nobody can
+count is one that spreads. A goal satisfied this way reads `cited=landed` rather than
+`cited=yes`, so how many of them there are is a number somebody can look at.
+
 ## Requirements
 
 | ID | Requirement |
@@ -231,7 +249,7 @@ implementing them are built per repo.
 | **OPS-R31** | After staging, changing a version's locked goals MUST require review and MUST be announced to the maintainer channel. |
 | **OPS-R32** | A version MUST progress through `planned → staged → releasable → released` — optionally through `in_progress` between `staged` and `releasable`, with `yanked` terminal — and each transition MUST be recorded in its manifest. |
 | **OPS-R33** | A `release/<version>` branch MAY exist only to carry a hotfix to an already-released version; it MUST be cut from that version's tag and deleted once its fixes are merged back to `main`. |
-| **OPS-R34** | `execute-version` MUST refuse unless every locked goal is satisfied — a merged PR cites its ID **and** the implementation-status tracker marks it done — and the refusal MUST name the unmet goals. |
+| **OPS-R34** | `execute-version` MUST refuse unless every locked goal is satisfied — a merged PR cites its ID **and** the implementation-status tracker marks it done — and the refusal MUST name the unmet goals. Where no merged commit cites a goal and none can, a done row MAY name the merged commit that finished it instead; the gate MUST verify that commit is in a searched repository's history, MUST report which goals were satisfied that way, and MUST NOT accept a row naming a commit it cannot find. |
 | **OPS-R35** | Before tagging, execute MUST verify cross-stream compatibility (`schema_version` and `min_cli_version` against the binary) and record the embedded submodule pins in the manifest. |
 | **OPS-R36** | A fast lane MUST allow staging, gating and executing in one operation when the goals are already satisfied; the goal gate MUST still run. |
 | **OPS-R37** | A hotfix lane MUST allow a patch release from a released tag that bypasses the goal gate, requiring instead a cited fix or issue and maintainer authorisation. |

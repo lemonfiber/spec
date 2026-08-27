@@ -27,7 +27,7 @@ import subprocess
 import sys
 import tomllib
 
-from patterns import CITE, RANGE
+from patterns import CITE, LANDED, RANGE
 from patterns import SPEC_TRAILER as TRAILER
 
 
@@ -76,6 +76,49 @@ def done_ids(status: pathlib.Path) -> set[str]:
     return done
 
 
+def landed_ids(status: pathlib.Path, repo_paths: dict[str, pathlib.Path]) -> set[str]:
+    """IDs on a ✅ row that names the merged commit which finished them.
+
+    The narrow way out of a real dead end. A merged commit cannot gain a `Spec:`
+    trailer, so a change that closed several requirements under one trailer leaves
+    the rest uncitable for ever — and a later commit citing them without advancing
+    them is precisely the unauditable claim the two arms exist to refuse.
+
+    So a row may name the commit instead, and the naming is **checked**: the sha has
+    to resolve to a commit that is an ancestor of a searched repository's head. A row
+    naming something that is not in the history counts for nothing, which is what
+    keeps this from becoming a way to tick anything by writing eight characters.
+
+    `git show <sha>` is the audit. That is the whole of why it is a commit rather
+    than a pull request number: one can be checked here, offline, against the
+    artefact itself; the other is a question for the forge.
+    """
+    landed: set[str] = set()
+    for line in status.read_text(encoding="utf-8").splitlines():
+        if "✅" not in line:
+            continue
+        shas = LANDED.findall(line)
+        if not shas:
+            continue
+        if not any(reachable(path, sha) for sha in shas for path in repo_paths.values()):
+            print(f"::warning::a row names {shas} as where its goals landed and no "
+                  "searched repository has that commit, so it counts for nothing")
+            continue
+        for prefix, lo, hi in RANGE.findall(line):
+            landed.update(f"{prefix}-R{n}" for n in range(int(lo), int(hi) + 1))
+        landed.update(CITE.findall(line))
+    return landed
+
+
+def reachable(path: pathlib.Path, sha: str) -> bool:
+    """Whether this repository holds that commit, in the history it has now."""
+    try:
+        git(path, "merge-base", "--is-ancestor", sha, "HEAD")
+    except subprocess.CalledProcessError:
+        return False
+    return True
+
+
 def load_goals(manifest: pathlib.Path) -> list[str]:
     goals = tomllib.loads(manifest.read_text(encoding="utf-8")).get("goals", [])
     if not goals:
@@ -95,15 +138,33 @@ def parse_repos(specs: list[str]) -> dict[str, pathlib.Path]:
     return repos
 
 
-def evaluate(goals: list[str], cited: set[str], done: set[str]) -> list[dict]:
-    return [{"id": g, "cited": g in cited, "done": g in done} for g in goals]
+def evaluate(
+    goals: list[str], cited: set[str], done: set[str], landed: set[str] | None = None
+) -> list[dict]:
+    """Each goal's two arms, and which way the first of them was satisfied.
+
+    `landed` is kept apart from `cited` in the result rather than folded into it, so
+    a reader can see which goals rest on the exception. An exception nobody can count
+    is one that spreads.
+    """
+    landed = landed or set()
+    return [
+        {
+            "id": g,
+            "cited": g in cited or g in landed,
+            "by": "trailer" if g in cited else ("landed" if g in landed else None),
+            "done": g in done,
+        }
+        for g in goals
+    ]
 
 
 def render_human(name: str, repos: list[str], results: list[dict]) -> None:
     print(f"gate: {name} — {len(results)} goals across {', '.join(repos) or 'no repos'}\n")
     for r in results:
         ok = r["cited"] and r["done"]
-        print(f"  {'✓' if ok else '✗'} {r['id']:12}  cited={'yes' if r['cited'] else 'NO '}  tracked-done={'yes' if r['done'] else 'NO '}")
+        how = {"trailer": "yes    ", "landed": "landed ", None: "NO     "}[r.get("by")]
+        print(f"  {'✓' if ok else '✗'} {r['id']:12}  cited={how} tracked-done={'yes' if r['done'] else 'NO '}")
 
 
 def main() -> int:
@@ -116,7 +177,13 @@ def main() -> int:
 
     manifest = within_cwd(a.manifest)
     repos = parse_repos(a.repo)
-    results = evaluate(load_goals(manifest), cited_ids(repos), done_ids(within_cwd(a.status)))
+    status = within_cwd(a.status)
+    results = evaluate(
+        load_goals(manifest),
+        cited_ids(repos),
+        done_ids(status),
+        landed_ids(status, repos),
+    )
     unmet = [r["id"] for r in results if not (r["cited"] and r["done"])]
 
     if a.format == "json":
