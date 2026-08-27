@@ -3,10 +3,10 @@
 #
 # `execute-version` tags and stops; the drafts it produces are reviewed and
 # published by a person. This is what happens after that: the manifest records
-# what was actually shipped, the day it went out, the stack commit the release
-# embedded is pinned so the version is reproducible rather than merely named, and
-# the roadmap the website serves is regenerated so the public page and the
-# manifest cannot disagree.
+# what was actually shipped, the day it went out, every submodule commit the
+# release embedded is pinned so the version is reproducible rather than merely
+# named, and the roadmap the website serves is regenerated so the public page and
+# the manifest cannot disagree.
 #
 # Until this existed the whole step was manual, and a version left at
 # `releasable` blocks the next one from being staged (OPS-R52) — so forgetting it
@@ -26,7 +26,7 @@ on:
         description: "Version that was published, e.g. 0.4.0."
         required: true
       stack_pin:
-        description: "The lemonfiber-media-stack commit the release embedded. Read from the tag when omitted."
+        description: "The lemonfiber-media-stack commit the release embedded. Read from the tag when omitted; every other embedded submodule is read from the tag either way."
         required: false
       released_on:
         description: "UTC date the release was published, YYYY-MM-DD. Read from the release when omitted."
@@ -53,7 +53,7 @@ jobs:
           token: ${{ steps.token.outputs.token }}
           fetch-depth: 0
 
-      - name: Settle the version and the pin
+      - name: Settle the version and the pins
         id: what
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
@@ -92,18 +92,50 @@ jobs:
             shipped_as="$VERSION"
           fi
 
-          # The stack the release actually embedded, read from the tag itself
-          # rather than from whatever main points at now — a pin that drifts is
-          # worse than no pin, because it claims to be reproducible.
-          pin="$PIN"
-          if [ -z "$pin" ]; then
-            pin=$(gh api "repos/${OWNER}/lemonfiber/contents/assets/media-stack?ref=v${VERSION}" --jq '.sha')
+          # What the release actually embedded, read from the tag itself rather
+          # than from whatever main points at now — a pin that drifts is worse
+          # than no pin, because it claims to be reproducible.
+          #
+          # Enumerated from the tag's own `.gitmodules` rather than named here.
+          # This step spelled out `assets/media-stack` while that was the only
+          # submodule, and went on recording only that one after ADR-0012 added
+          # `assets/web`: 0.10.0 shipped a manifest that did not say which build
+          # of the web app went out with it. OPS-R35 asks for the pins, plural.
+          gh api -H "Accept: application/vnd.github.raw" \
+            "repos/${OWNER}/lemonfiber/contents/.gitmodules?ref=v${VERSION}" \
+            | python3 scripts/submodule_pins.py > modules.tsv
+
+          recorded_pins=()
+          overrode=false
+          while IFS=$'\t' read -r name where; do
+            # `stack_pin` supplies the stack's commit on the dispatch path; every
+            # other submodule is read from the tag either way.
+            sha=""
+            if [ "$name" = "lemonfiber-media-stack" ]; then
+              sha="$PIN"
+              if [ -n "$sha" ]; then
+                overrode=true
+              fi
+            fi
+            if [ -z "$sha" ]; then
+              sha=$(gh api "repos/${OWNER}/lemonfiber/contents/${where}?ref=v${VERSION}" --jq '.sha')
+            fi
+            # Checked to be a commit, not merely present. One of these arrives
+            # from a dispatch payload, and every one of them is written into the
+            # manifest verbatim, so what a pin is allowed to be is worth saying
+            # rather than assuming.
+            printf '%s' "$sha" | grep -Eq '^[0-9a-f]{40}$' \
+              || { echo "::error::${name}'s pin is not a sha: '${sha}'"; exit 1; }
+            recorded_pins+=("${name}=${sha}")
+          done < modules.tsv
+          # A `stack_pin` that overrode nothing is a caller naming a submodule
+          # this tag does not embed, and silence would drop the commit it meant
+          # to record — which is the defect this whole step exists to end.
+          if [ -n "$PIN" ] && [ "$overrode" = false ]; then
+            echo "::error::v${VERSION} embeds no lemonfiber-media-stack for stack_pin to override"
+            exit 1
           fi
-          # Checked to be a commit, not merely present. It arrives from a dispatch
-          # payload on the input path and is written into the manifest verbatim, so
-          # what it is allowed to be is worth saying rather than assuming.
-          printf '%s' "$pin" | grep -Eq '^[0-9a-f]{40}$' \
-            || { echo "::error::the embedded stack commit is not a sha: '${pin}'"; exit 1; }
+          pins="${recorded_pins[*]}"
 
           # The day the release went out, read from the release itself. This runs
           # on publish, so `published_at` is set and is the moment being recorded;
@@ -129,7 +161,7 @@ jobs:
           {
             echo "version=${line}"
             echo "released_as=${shipped_as}"
-            echo "pin=${pin}"
+            echo "pins=${pins}"
             echo "released_on=${when}"
             echo "recorded=${recorded}"
           } >> "$GITHUB_OUTPUT"
@@ -156,7 +188,7 @@ jobs:
         with:
           version: ${{ steps.what.outputs.version }}
           status: released
-          pins: lemonfiber-media-stack=${{ steps.what.outputs.pin }}
+          pins: ${{ steps.what.outputs.pins }}
           released_on: ${{ steps.what.outputs.released_on }}
           released_as: ${{ steps.what.outputs.released_as }}
           token: ${{ steps.token.outputs.token }}

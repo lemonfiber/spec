@@ -100,3 +100,4 @@ goals   = [
 
 [pins]
 lemonfiber-media-stack = "61db2fd8df06917fa20cfe653b982c1128a114a0"
+lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"

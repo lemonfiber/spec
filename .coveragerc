@@ -10,6 +10,7 @@ include =
     scripts/patterns.py
     scripts/gate.py
     scripts/set_status.py
+    scripts/submodule_pins.py
     scripts/check_stageable.py
     scripts/manifest_repos.py
     scripts/tracker_body.py
