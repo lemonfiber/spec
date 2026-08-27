@@ -29,15 +29,17 @@ $ lemonfiber invite ana
     ○ Films and TV only
     ○ Age-limited  →  [12 ▾]
 
-  ✓ invitation created
+  ✓ ana can sign in — unclaimed until she sets a password, and expires in 48 hours
 
-  Send this link — expires in 48 hours:
-  http://mediabox.local:5055/invite/7f3a…
+  Send this:
+  http://mediabox.local:8096
 
   ▄▄▄▄▄▄▄  ▄ ▄▄  ▄▄▄▄▄▄▄
   █ ▄▄▄ █ ▀█▄▀▄  █ ▄▄▄ █     [QR code]
   █ ███ █ █ ▄▀▄  █ ███ █
   ▀▀▀▀▀▀▀ ▀ ▀ ▀  ▀▀▀▀▀▀▀
+
+  Tell her to sign in as `ana`. She will be asked to set a password.
 ```
 
 Two things the operator never does: **choose someone else's password**, and
