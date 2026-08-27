@@ -44,6 +44,16 @@ ADR_FILE = re.compile(r"^0*(\d{3,4})-.*\.md$")
 # An ADR, cited.
 ADR_CITE = re.compile(r"\bADR-(\d{3,4})\b")
 
+# What a tracker row names where the work landed without a trailer to cite it.
+#
+# A commit cannot gain a `Spec:` trailer after it is merged, so a goal finished by
+# somebody who wrote one trailer for a change closing several requirements has no
+# way to be cited afterwards — and a later commit citing it without advancing it is
+# exactly the unauditable claim the gate exists to refuse. This is the way out, and
+# it is deliberately a **commit** rather than a pull request: a sha can be checked
+# against the repository itself, offline, and `git show` is the audit.
+LANDED = re.compile(r"landed in `([0-9a-f]{7,40})`")
+
 # The trailer a commit or a pull request cites the specification with.
 SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.MULTILINE | re.IGNORECASE)
 
