@@ -22,7 +22,8 @@ version = "0.10.0"
 epoch   = "v1"
 milestone = "M7"   # Web surface & UX
 delivers  = "The front door, its security, and the privacy stance"
-status  = "releasable"
+status  = "released"
+released_on = "2026-08-27"
 repos   = ["lemonfiber"]
 # Five repositories satisfy these goals and this version cuts one of them.
 # `ARCH-R55` is cited in `lemonfiber-web`, and C6 and G5 both reach that surface;
@@ -96,3 +97,6 @@ goals   = [
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
+
+[pins]
+lemonfiber-media-stack = "61db2fd8df06917fa20cfe653b982c1128a114a0"
