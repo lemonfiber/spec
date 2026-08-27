@@ -12,7 +12,10 @@ delivers  = "Speaking plainly — interface tiers and the plain-language layer"
 status  = "released"
 released_on = "2026-08-26"
 released_as = "0.9.1"
-repos   = ["lemonfiber", "lemonfiber-web"]
+repos   = ["lemonfiber"]
+# It cut no `lemonfiber-web` release and was never going to; naming it under
+# `repos` was the only way to let the gate see the G3 work that landed there.
+satisfied_in = ["lemonfiber", "lemonfiber-web"]
 goals   = [
     "C6-R1",
     "C6-R3",

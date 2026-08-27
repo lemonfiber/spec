@@ -64,14 +64,21 @@ jobs:
           man="70-operations/versions/${VERSION}.toml"
           [ -f "$man" ] || { echo "::error::no manifest at ${man}"; exit 1; }
           echo "manifest=${man}" >> "$GITHUB_OUTPUT"
-          python3 - "$man" > repos.txt <<'PY'
+          python3 - "$man" <<'PY'
           import sys, tomllib
-          d = tomllib.load(open(sys.argv[1], "rb"))
-          st = d.get("status")
+          st = tomllib.load(open(sys.argv[1], "rb")).get("status")
           if st not in ("staged", "in_progress", "releasable"):
               sys.exit(f"::error::{sys.argv[1]} is '{st}', not staged/in_progress/releasable")
-          print("\n".join(d["repos"]))
           PY
+          # Two lists, because they answer two questions (OPS-R58). `repos.txt`
+          # is what gets tagged; `searched.txt` is where the gate reads commit
+          # messages. They coincide for most versions and must not be assumed to.
+          python3 scripts/manifest_repos.py --version "$VERSION" --for cut > repos.txt
+          python3 scripts/manifest_repos.py --version "$VERSION" --for searched > searched.txt
+          # Cloned by the union, since a repository may be in either list: one
+          # that is only cut still has to be tagged, and one that is only
+          # searched still has to be read.
+          sort -u repos.txt searched.txt > needed.txt
           while read -r r; do
             [ -n "$r" ] || continue
             # Whole history, no file contents: the gate reads every commit
@@ -79,14 +86,14 @@ jobs:
             # see reads as work never done.
             git clone --quiet --filter=blob:none \
               "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${r}.git" "checkouts/${r}"
-          done < repos.txt
+          done < needed.txt
       - name: Gate — every goal satisfied (OPS-R34)
         env:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           args=()
-          while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < repos.txt
+          while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < searched.txt
           python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" \
             "${args[@]}" --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md"
       - name: Cross-stream compatibility (OPS-R35)
@@ -139,7 +146,7 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          { echo spec; cat repos.txt; } > allrepos.txt
+          { echo spec; cat needed.txt; } > allrepos.txt
           blockers=0
           while read -r repo; do
             [ -n "$repo" ] || continue

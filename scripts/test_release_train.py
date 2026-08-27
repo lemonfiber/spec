@@ -27,6 +27,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import check_stageable  # noqa: E402
 import gate  # noqa: E402
+import manifest_repos  # noqa: E402
 import pr_goals  # noqa: E402
 import set_status  # noqa: E402
 import tracker_body  # noqa: E402
@@ -285,6 +286,55 @@ class CheckStageableTests(Workspace):
         self.manifest("0.2.0", status="releasable")
         self.manifest("0.3.0", status="planned", goals=("B1-R4",))
         self.assertNotEqual(run_main(check_stageable, ["0.3.0"])[0], 0)
+
+    def test_a_version_with_nowhere_to_search_is_refused_at_staging(self):
+        """A manifest that cuts nothing has nowhere for the gate to look either,
+        and staging is the last moment anybody reads this file on purpose."""
+        pathlib.Path("40-quality").mkdir(exist_ok=True)
+        pathlib.Path("40-quality/x.md").write_text("| **Q-R64** | text |\n", encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.6.0.toml").write_text(
+            'version = "0.6.0"\nstatus  = "planned"\nrepos = []\ngoals = ["Q-R64"]\n',
+            encoding="utf-8")
+        self.assertNotEqual(run_main(check_stageable, ["0.6.0"])[0], 0)
+
+
+class ManifestReposTests(Workspace):
+    """What a version cuts and where its goals were satisfied — OPS-R58."""
+
+    def toml(self, name, body):
+        pathlib.Path(f"70-operations/versions/{name}.toml").write_text(body, encoding="utf-8")
+
+    def test_a_manifest_that_says_nothing_is_searched_where_it_cuts(self):
+        """Every manifest written before this existed says nothing, and searching
+        none of them would report every goal unmet for a reason that is not true."""
+        data = {"repos": ["lf", "ms"]}
+        self.assertEqual(manifest_repos.searched(data), ["lf", "ms"])
+        self.assertEqual(manifest_repos.cut(data), ["lf", "ms"])
+
+    def test_where_it_says_the_two_lists_are_different_answers(self):
+        data = {"repos": ["lf"], "satisfied_in": ["lf", "web"]}
+        self.assertEqual(manifest_repos.cut(data), ["lf"], "naming it does not tag it")
+        self.assertEqual(manifest_repos.searched(data), ["lf", "web"])
+
+    def test_an_empty_list_is_not_an_instruction_to_search_nowhere(self):
+        data = {"repos": ["lf"], "satisfied_in": []}
+        self.assertEqual(manifest_repos.searched(data), ["lf"])
+
+    def test_main_prints_each_list_one_per_line(self):
+        self.toml("0.2.0", 'version = "0.2.0"\nrepos = ["lf"]\nsatisfied_in = ["lf", "web"]\n')
+        code, out = run_main(manifest_repos, ["--version", "0.2.0", "--for", "cut"])
+        self.assertEqual((code, out), (0, "lf\n"))
+        code, out = run_main(manifest_repos, ["--version", "0.2.0", "--for", "searched"])
+        self.assertEqual((code, out), (0, "lf\nweb\n"))
+
+    def test_main_refuses_what_it_cannot_answer(self):
+        self.assertEqual(run_main(manifest_repos, ["--version", "9.9.9", "--for", "cut"])[0], 1)
+        with self.assertRaises(SystemExit):
+            manifest_repos.manifest_for("not-semver")
+        # A version that cuts nothing is a manifest somebody has not finished,
+        # said here rather than left for a `while read` over an empty file.
+        self.toml("0.3.0", 'version = "0.3.0"\nrepos = []\n')
+        self.assertEqual(run_main(manifest_repos, ["--version", "0.3.0", "--for", "cut"])[0], 1)
 
 
 class TrackerAndPrGoalsTests(Workspace):

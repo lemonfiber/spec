@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate a version is stageable — OPS-R30, OPS-R52.
+"""Validate a version is stageable — OPS-R30, OPS-R52, OPS-R58.
 
 Refuses unless the version's manifest exists and is `planned`, no other version
 is already `staged`/`releasable` (the train is serial), and every goal is a
@@ -15,6 +15,7 @@ import pathlib
 import sys
 import tomllib
 
+from manifest_repos import cut, searched
 from patterns import REQ_DEF
 from patterns import VERSION as VERSION_RE
 
@@ -55,7 +56,14 @@ def main() -> int:
     if unknown:
         sys.exit(f"::error::goals not defined in the spec: {', '.join(unknown)}")
 
-    print("\n".join(data.get("repos", [])))
+    # Where the gate will look, checked at staging rather than discovered at
+    # release (OPS-R58). A manifest naming a repository nobody can search is a
+    # gate that reports goals unmet for a reason that is not about the work, and
+    # staging is the last moment anybody is looking at this file on purpose.
+    if not searched(data):
+        sys.exit(f"::error::{manifest.name} names nowhere for the gate to search")
+
+    print("\n".join(cut(data)))
     return 0
 
 

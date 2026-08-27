@@ -11,6 +11,7 @@ include =
     scripts/gate.py
     scripts/set_status.py
     scripts/check_stageable.py
+    scripts/manifest_repos.py
     scripts/tracker_body.py
     scripts/pr_goals.py
     scripts/status_lint.py

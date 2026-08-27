@@ -38,6 +38,7 @@ version = "0.2.0"
 status  = "staged"        # planned → staged → in_progress → releasable → released → yanked
 released_on = "2026-07-30"   # written when the release is published; absent until then
 repos   = ["lemonfiber", "lemonfiber-media-stack"]   # the streams this version cuts; brand excluded
+satisfied_in = ["lemonfiber", "lemonfiber-web"]   # where the gate looks for citations; defaults to `repos`
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs
 
 [pins]                    # recorded at execute, for reproducibility
@@ -251,6 +252,7 @@ implementing them are built per repo.
 | **OPS-R55** | Releasing a version MUST close the issues opened for it — the tracker from `OPS-R43` and any drift issue from `OPS-R46` — so an open issue about a version means something is still owed. |
 | **OPS-R54** | Every version manifest MUST carry an `epoch`. A manifest that declares `closes_epoch = "vN"` (only an `X.0.0` major may) MUST NOT execute unless every feature tagged `tracks: vN` is `Accepted` and marked done, and a refusal MUST name the incomplete features. |
 | **OPS-R57** | A manifest whose `status` is `released` MUST carry `released_on`, the UTC date its release was published, as `YYYY-MM-DD`. The transition to `released` MUST write it from the publication the transition responds to; it MUST NOT be entered by hand, and no earlier status may carry it. |
+| **OPS-R58** | A manifest MUST say where the work satisfying its goals landed, and the goal gate MUST search exactly those repositories. Where a manifest does not say, the streams it cuts are what is searched. A repository named there MUST NOT be tagged for being named: what a version *cuts* and where its goals were *satisfied* are separate lists, and a goal satisfied in a repository the gate does not search MUST be reported unmet rather than passed over. |
 
 ## Related
 
