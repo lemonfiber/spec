@@ -1,7 +1,12 @@
 # The household asks — the request flow, identity and invitations, and guidance to a client app.
 #
-# 41 goals, seeded from the roadmap milestone this version serves;
+# 44 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
+#
+# G5-R6, G5-R7 and G8-R13 arrive from 0.10.0 (OPS-R31): each needs the
+# invitation or the household member this version introduces. G5-R7 is already
+# built in two of its three places — after setup and on the dashboard — and what
+# it still owes is the third, an address on an invitation.
 version = "0.11.0"
 epoch   = "v1"
 milestone = "M8"   # Household & content
@@ -50,6 +55,9 @@ goals   = [
     "G6-R11",
     "G6-R12",
     "G6-R13",
+    "G5-R6",
+    "G5-R7",
+    "G8-R13",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
