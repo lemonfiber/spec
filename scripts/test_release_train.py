@@ -209,6 +209,55 @@ class SetStatusTests(Workspace):
         self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "staged",
                                                "--released-on", "2026-08-22"])[0], 1)
 
+    def test_the_tag_a_patch_finished_this_line_under_is_recorded(self):
+        """A minor whose release run fails is finished by a patch, and the record
+        has to name the artefact people actually installed."""
+        self.manifest("0.1.0")
+        code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
+                                          "--released-on", "2026-08-26",
+                                          "--released-as", "0.1.1",
+                                          "--pin", "media-stack=abc"])
+        self.assertEqual(code, 0)
+        read = tomllib.loads(out)
+        self.assertEqual(read["released_as"], "0.1.1")
+        self.assertEqual(read["version"], "0.1.0", "the manifest is still the line's")
+        # In the order the events happened, and above [pins] for the same reason
+        # the date is: a line-wise reader would otherwise file it as a pin.
+        self.assertLess(out.index("released_on"), out.index("released_as"))
+        self.assertLess(out.index("released_as"), out.index("[pins]"))
+
+    def test_the_tag_sits_under_status_where_there_is_no_date(self):
+        """A manifest being corrected by hand carries no date, and the tag still
+        belongs with the status rather than at the end of the goals."""
+        self.manifest("0.1.0")
+        code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
+                                          "--released-as", "0.1.2"])
+        self.assertEqual(code, 0)
+        self.assertLess(out.index("status"), out.index("released_as"))
+        self.assertLess(out.index("released_as"), out.index("repos"))
+
+    def test_a_tag_already_there_is_replaced_not_repeated(self):
+        pathlib.Path("70-operations/versions/0.1.0.toml").write_text(
+            'version = "0.1.0"\nstatus  = "released"\nreleased_as = "0.1.1"\n',
+            encoding="utf-8")
+        code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
+                                          "--released-as", "0.1.2"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out.count("released_as"), 1)
+        self.assertEqual(tomllib.loads(out)["released_as"], "0.1.2")
+
+    def test_a_tag_is_refused_when_it_cannot_mean_anything(self):
+        self.manifest("0.1.0")
+        with self.assertRaises(SystemExit):
+            set_status.with_released_as('status  = "released"\n', "v0.1.1")
+        # Only a released manifest may carry one.
+        self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "staged",
+                                               "--released-as", "0.1.1"])[0], 1)
+        # And a manifest recording its own tag says so by being that version;
+        # asking for it twice means the caller computed the wrong line.
+        self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "released",
+                                               "--released-as", "0.1.0"])[0], 1)
+
 
 class CheckStageableTests(Workspace):
     def test_planned_ok(self):

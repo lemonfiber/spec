@@ -22,6 +22,10 @@ inputs:
     description: UTC date the release was published, YYYY-MM-DD. Only a transition to released carries one.
     required: false
     default: ""
+  released_as:
+    description: The tag the goals actually shipped under, where it is not this version's own — a patch finishing a minor. Empty otherwise.
+    required: false
+    default: ""
   token:
     description: The release App installation token.
     required: true
@@ -36,6 +40,7 @@ runs:
         STATUS: ${{ inputs.status }}
         PINS: ${{ inputs.pins }}
         RELEASED_ON: ${{ inputs.released_on }}
+        RELEASED_AS: ${{ inputs.released_as }}
       run: |
         set -euo pipefail
         man="70-operations/versions/${VERSION}.toml"
@@ -45,6 +50,11 @@ runs:
         dateargs=()
         if [ -n "$RELEASED_ON" ]; then
           dateargs+=(--released-on "$RELEASED_ON")
+        fi
+        # The tag a patch finished this line under. Passed only where there is
+        # one, so an ordinary release is not handed an empty argument to reject.
+        if [ -n "$RELEASED_AS" ]; then
+          dateargs+=(--released-as "$RELEASED_AS")
         fi
         python3 scripts/set_status.py --version "$VERSION" --status "$STATUS" \
           "${dateargs[@]}" "${pinargs[@]}" > "${man}.new"

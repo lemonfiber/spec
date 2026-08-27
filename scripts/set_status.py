@@ -9,9 +9,15 @@ keeps any filesystem write out of this script. The manifest path is built from a
 validated version and a constant directory, so no free-form input is
 dereferenced.
 
+A version's goals do not always ship under that version's own tag. A minor whose
+release run fails part-way is finished by a patch, and the patch is the artefact
+people actually get — so `--released-as` records which tag carried the goals this
+manifest locked. There is no manifest per patch: a patch delivers no goals of its
+own, and one would be a version the train has to walk past.
+
 Usage:
   set_status.py --version X.Y.Z --status <state> [--released-on YYYY-MM-DD]
-                [--pin name=sha ...] > <manifest>
+                [--released-as X.Y.Z] [--pin name=sha ...] > <manifest>
 Exit 0 = emitted, 1 = the manifest is missing or misshapen, 2 = usage.
 """
 from __future__ import annotations
@@ -48,21 +54,44 @@ def parse_pins(specs: list[str]) -> list[str]:
     return pairs
 
 
-def with_released_on(text: str, date: str) -> str:
-    """Stamp the release date under `status`, replacing one already there.
+def stamped(text: str, key: str, value: str, beneath: str) -> str:
+    """Write `key = "value"` under an existing line, replacing one already there.
 
-    Placed beneath `status` rather than appended, so it stays above the `[pins]`
-    table a release also writes — a scalar under a table header belongs to the
-    table, and readers that parse by line would file the date as a pin.
+    Placed beneath a named line rather than appended, so it stays above the
+    `[pins]` table a release also writes — a scalar under a table header belongs
+    to the table, and readers that parse by line would file it as a pin.
+
+    One function for both scalars a release stamps, because the placement rule is
+    the thing that is easy to get wrong and there is no reason for two copies of
+    it to be able to disagree.
     """
-    if not DATE_RE.match(date):
-        sys.exit(f"::error::--released-on wants YYYY-MM-DD, got {date!r}")
-    stamped = f'released_on = "{date}"'
-    text, n = re.subn(r"(?m)^released_on\s*=.*$", stamped, text)
+    line = f'{key} = "{value}"'
+    text, n = re.subn(rf"(?m)^{key}\s*=.*$", line, text)
     if n:
         return text
-    return re.sub(r"(?m)^(status\s*=.*)$", lambda m: f"{m.group(1)}\n{stamped}",
+    return re.sub(rf"(?m)^({beneath}\s*=.*)$", lambda m: f"{m.group(1)}\n{line}",
                   text, count=1)
+
+
+def with_released_on(text: str, date: str) -> str:
+    """Stamp the release date under `status`, replacing one already there."""
+    if not DATE_RE.match(date):
+        sys.exit(f"::error::--released-on wants YYYY-MM-DD, got {date!r}")
+    return stamped(text, "released_on", date, "status")
+
+
+def with_released_as(text: str, tag: str) -> str:
+    """Stamp the tag the goals actually went out under, beneath the date.
+
+    Beneath the date where there is one, so the three lines read in the order the
+    events happened: what state this is in, when it went out, and what it went out
+    as. A manifest carrying no date is one being corrected by hand, and the tag
+    still belongs under `status` rather than at the end of the goals.
+    """
+    if not VERSION_RE.match(tag):
+        sys.exit(f"::error::--released-as wants X.Y.Z, got {tag!r}")
+    dated = re.search(r"(?m)^released_on\s*=", text)
+    return stamped(text, "released_as", tag, "released_on" if dated else "status")
 
 
 def with_pins(text: str, pairs: list[str]) -> str:
@@ -81,11 +110,19 @@ def main() -> int:
     ap.add_argument("--version", required=True)
     ap.add_argument("--status", required=True, choices=sorted(STATES))
     ap.add_argument("--released-on", metavar="YYYY-MM-DD")
+    ap.add_argument("--released-as", metavar="X.Y.Z")
     ap.add_argument("--pin", action="append", default=[], metavar="name=sha")
     a = ap.parse_args()
 
     if a.released_on and a.status != "released":
         sys.exit(f"::error::--released-on belongs to a released manifest, not {a.status!r}")
+    if a.released_as and a.status != "released":
+        sys.exit(f"::error::--released-as belongs to a released manifest, not {a.status!r}")
+    # A manifest whose goals went out under its own tag says so by being that
+    # version. Stamping the name twice would read as though something had been
+    # decided, and the caller that passed it computed the wrong tag.
+    if a.released_as == a.version:
+        sys.exit(f"::error::--released-as {a.version} is this manifest's own version")
 
     path = manifest_for(a.version)
     if not path.is_file():
@@ -98,12 +135,15 @@ def main() -> int:
         return 1
     if a.released_on:
         text = with_released_on(text, a.released_on)
+    if a.released_as:
+        text = with_released_as(text, a.released_as)
     if a.pin:
         text = with_pins(text, parse_pins(a.pin))
 
     sys.stdout.write(text)
     print(f"{path.name}: status={a.status}"
           + (f", released_on={a.released_on}" if a.released_on else "")
+          + (f", released_as={a.released_as}" if a.released_as else "")
           + (f", pins={len(a.pin)}" if a.pin else ""),
           file=sys.stderr)
     return 0
