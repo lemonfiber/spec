@@ -11,7 +11,7 @@ version = "0.11.0"
 epoch   = "v1"
 milestone = "M8"   # Household & content
 delivers  = "The household asks — requests, identity, client apps"
-status  = "planned"
+status  = "staged"
 repos   = ["lemonfiber"]
 goals   = [
     "D4-R1",
