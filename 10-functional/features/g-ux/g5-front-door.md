@@ -85,6 +85,7 @@ arrive somewhere they can change the stack's behaviour.
 | `library-only` | Jellyfin is the household door; no request surface |
 | `none` | No household-facing services; operator-only configuration |
 | `unreachable` | Front door configured but not currently responding |
+| `stranded` | Front door responding, and nothing on the host can say where another device would reach it |
 
 ## Edge cases
 
@@ -97,7 +98,7 @@ arrive somewhere they can change the stack's behaviour.
 | Household member bookmarks Jellyfin directly | Fine. The front door is a starting point, not a gate. |
 | Operator wants a different front door | Configurable, with the consequence stated. |
 | Caddy overlay active | The front door becomes the friendly hostname; invitations use it. |
-| Front door unreachable from a device | Distinguish "service down" from "device can't reach the network". |
+| Front door unreachable from a device | Distinguish "service down" from "device can't reach the network". The host can tell two of these apart and reports them as separate states — `unreachable` where the service is not answering, `stranded` where it is answering and the host has no address to be reached at. It cannot test a particular device, so a door reported `established` that a device still cannot open is that device's side of it, and saying which state the door is in is what lets anybody tell. |
 | Household member finds an admin service | Loopback binding ([C6](../c-trust/c6-web-security.md)) means they can't. If they can, that's a policy violation and MUST be reported. |
 | Multiple households or address ranges | Out of scope; a single LAN is assumed. |
 
