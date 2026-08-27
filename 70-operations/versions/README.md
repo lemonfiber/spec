@@ -18,7 +18,8 @@ satisfied_in = ["lemonfiber", "lemonfiber-web"]   # where the goal gate searches
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs (OPS-R30)
 
 [pins]                    # written at execute (OPS-R35); absent while staged
-lemonfiber-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"
+lemonfiber-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"   # one line per embedded submodule
+lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"
 ```
 
 | Field | Meaning |
@@ -32,7 +33,7 @@ lemonfiber-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"
 | `goals` | The locked set of `Accepted` requirement IDs the release must satisfy before it ships. |
 | `closes_epoch` | Present **only on an `X.0.0` major**. Names the epoch it completes; the [epoch-completeness gate](../staging.md) then refuses to ship it unless every `tracks:` feature of that epoch is `Accepted` and done. |
 | `released_as` | The tag the goals actually shipped under, present **only where it is not this version's own**. A minor whose release run fails part-way is finished by a patch, and the patch is the artefact people install; there is no manifest per patch, because a patch delivers no goals and a manifest for it would be another version the serial train must walk past. Written by the transition to `released` — never typed. |
-| `pins` | The exact submodule commits embedded, recorded at execute so the release is reproducible from this file alone. |
+| `pins` | The exact submodule commits embedded, recorded at execute so the release is reproducible from this file alone. **One line per submodule the tag declares**, named for the repository rather than the path it is mounted at — `lemonfiber-media-stack`, not `assets/media-stack`. The list is enumerated from the tag's own `.gitmodules`, not named in the workflow: `release-finalize` spelled out the one path that existed when it was written, and went on recording only that one after [ADR-0012](../../00-overview/decisions/0012-web-assets-embedded-at-build-time.md) added the web app, so `0.10.0` first shipped a record that did not say which build of the app went out with it. |
 
 ## Epochs and the no-stub-major rule
 

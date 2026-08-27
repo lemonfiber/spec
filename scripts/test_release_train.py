@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Coverage tests for the release-train scripts — gate, set_status,
-check_stageable, tracker_body, pr_goals.
+check_stageable, tracker_body, pr_goals, submodule_pins.
 
 status_lint has its own suite in test_status_lint.py: it gates every
 repository through the spec-check workflow, not only a release.
@@ -30,6 +30,7 @@ import gate  # noqa: E402
 import manifest_repos  # noqa: E402
 import pr_goals  # noqa: E402
 import set_status  # noqa: E402
+import submodule_pins  # noqa: E402
 import tracker_body  # noqa: E402
 
 
@@ -394,6 +395,65 @@ class ManifestReposTests(Workspace):
         # said here rather than left for a `while read` over an empty file.
         self.toml("0.3.0", 'version = "0.3.0"\nrepos = []\n')
         self.assertEqual(run_main(manifest_repos, ["--version", "0.3.0", "--for", "cut"])[0], 1)
+
+
+class SubmodulePinsTests(Workspace):
+    """Every submodule a tag embeds, named as a manifest pins it — OPS-R35.
+
+    The fixture is `lemonfiber`'s own `.gitmodules` at `v0.10.0`, the release
+    whose manifest recorded the stack and said nothing about `assets/web`.
+    """
+
+    #: What `v0.10.0` actually declares.
+    GITMODULES = (
+        '[submodule "assets/media-stack"]\n'
+        "\tpath = assets/media-stack\n"
+        "\turl = https://github.com/lemonfiber/lemonfiber-media-stack.git\n"
+        '[submodule "assets/web"]\n'
+        "\tpath = assets/web\n"
+        "\turl = https://github.com/lemonfiber/lemonfiber-web.git\n"
+    )
+
+    def test_a_tag_with_two_submodules_yields_both(self):
+        """The defect: 0.10.0 embeds the stack and the web app, and the manifest
+        named only the stack because the workflow named the path it knew."""
+        code, out = run_main(submodule_pins, [], stdin=self.GITMODULES)
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "lemonfiber-media-stack\tassets/media-stack\n"
+                              "lemonfiber-web\tassets/web\n")
+
+    def test_a_pin_is_named_for_the_repository_not_the_path(self):
+        """`lemonfiber-media-stack`, which is the naming the manifests already
+        use — the basename of the url, and the name a reader can look up."""
+        for url in ("https://github.com/lemonfiber/lemonfiber-web.git",
+                    "https://github.com/lemonfiber/lemonfiber-web/",
+                    "git@github.com:lemonfiber/lemonfiber-web.git"):
+            self.assertEqual(submodule_pins.named(url), "lemonfiber-web")
+
+    def test_settings_that_are_not_a_submodule_are_passed_over(self):
+        declared = submodule_pins.declared(
+            "# a comment\n" + self.GITMODULES + "\tbranch = main\n\tshallow = true\n")
+        self.assertEqual(declared, [("lemonfiber-media-stack", "assets/media-stack"),
+                                    ("lemonfiber-web", "assets/web")])
+
+    def test_a_value_keeps_no_surrounding_whitespace(self):
+        """Taken to the end of the line and trimmed here, rather than by a lazy
+        pattern closed with a trailing `\\s*$` that backtracks."""
+        self.assertEqual(
+            submodule_pins.declared('[submodule "assets/web"]\n'
+                                    "  path =   assets/web   \n"
+                                    "  url = https://github.com/lemonfiber/lemonfiber-web.git  \n"),
+            [("lemonfiber-web", "assets/web")])
+
+    def test_a_stanza_missing_half_of_itself_is_refused(self):
+        with self.assertRaises(SystemExit) as caught:
+            submodule_pins.declared('[submodule "assets/web"]\n\tpath = assets/web\n')
+        self.assertIn("wants a path and a url", str(caught.exception))
+
+    def test_a_tag_that_declares_nothing_is_refused(self):
+        """Recording no pins at all is the failure being fixed, so it is said
+        rather than left for a `while read` over an empty file."""
+        self.assertEqual(run_main(submodule_pins, [], stdin="")[0], 1)
 
 
 class TrackerAndPrGoalsTests(Workspace):
