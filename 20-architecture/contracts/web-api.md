@@ -57,11 +57,13 @@ GET /api/requests      GET /api/trace?…        GET /api/stuck
 GET /api/version       GET /api/config?…       GET /api/quality
 GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
 GET /api/front-door
-GET /api/outbound      GET /api/stored
+GET /api/outbound      GET /api/stored       GET /api/clients
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
 gains a parameter; one that gains an endpoint gained a command first.
+
+`/api/clients` takes none either, and for a different reason: what to watch on is the same answer on every machine, because the client landscape belongs to the platforms rather than to a stack. It reads nothing and asks nothing of the engine, so it answers where nothing is set up yet — which is when somebody deciding what to tell the house is most likely to ask. Naming a device would let a surface show one row and call it the answer, and the row most worth reading is the one saying a device is poorly served and what to do instead.
 
 `/api/front-door` takes none, because the question takes none: which one address the household
 is given is derived from what the stack runs rather than asked for, so a parameter here would be
