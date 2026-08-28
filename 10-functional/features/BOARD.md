@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**68 features** in areas A–L, **945 requirements**.
+**68 features** in areas A–L, **946 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -36,7 +36,7 @@ silently, and this file is regenerated from the features themselves.
 | [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.6.0` |
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
 | [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.4.0`, `0.7.0` |
-| [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.4.0` |
+| [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.12.0`, `0.4.0` |
 | [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.4.0` |
 | [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.4.0` |
 | [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0` |
