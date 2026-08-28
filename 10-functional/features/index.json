@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 68,
-    "requirements": 945,
+    "requirements": 946,
     "areas": "A–L"
   },
   "versions": [
@@ -100,7 +100,7 @@
       "status": "planned",
       "milestone": "M8",
       "closes_epoch": null,
-      "goals": 55
+      "goals": 56
     },
     {
       "version": "0.13.0",
@@ -1012,7 +1012,8 @@
       "status": "accepted",
       "tracks": "v1",
       "milestones": [
-        "M4"
+        "M4",
+        "M8"
       ],
       "milestone": "M4",
       "priority": null,
@@ -1028,6 +1029,10 @@
         "E3"
       ],
       "versions": [
+        {
+          "version": "0.12.0",
+          "status": "planned"
+        },
         {
           "version": "0.4.0",
           "status": "released"

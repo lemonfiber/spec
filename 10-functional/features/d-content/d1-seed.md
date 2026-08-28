@@ -73,6 +73,18 @@ Connecting Seerr's authentication to Jellyfin is one API call and it's the
 difference between a household member having one account or two. It is never
 optional.
 
+### The fulfilment targets decide what can be asked for
+
+Seerr does not discover the \*arrs; it is told about them. Until it is, a request
+reaches nothing — the household asks, the ask is accepted, and no downloader ever
+hears about it, which is the failure mode this whole feature exists to prevent.
+
+The second half matters as much as the first. Seerr offers what its configured
+targets can deliver, so registering only the \*arrs actually in the stack is what
+makes [D4](d4-request-flow.md)'s promise true: television is not offered where
+Sonarr is not running. Registering one that is absent would offer the household a
+thing that cannot arrive.
+
 ### Idempotent, and drift-aware
 
 Running seed twice changes nothing. Crucially, it does **not** re-assert values
@@ -148,6 +160,7 @@ Per connection:
 | **D1-R14** | A full seed against a healthy stack SHOULD complete within 60 seconds. |
 | **D1-R15** | Bindery MUST be wired via Torznab endpoints, and the absence of Prowlarr app sync MUST be documented in-product. |
 | **D1-R16** | Seeding MUST replace qBittorrent's temporary WebUI password with a generated one and record it where the forwarded-port push reads it. |
+| **D1-R17** | Each \*arr that fulfils requests MUST be registered with the request service as a fulfilment target, and one absent from the stack MUST NOT be. |
 
 ## Related
 
