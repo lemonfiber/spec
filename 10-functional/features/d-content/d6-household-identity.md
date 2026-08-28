@@ -43,16 +43,42 @@ The operator creates an invitation; the household member sets their own password
 
 ```
 $ lemonfiber invite ana
-  ✓ invitation created
+  ✓ ana can sign in — unclaimed until she sets a password, and expires in 48 hours
 
-  Send this link — expires in 48 hours:
-  http://192.168.1.20:8096/invite/7f3a…
+  Send this:
+  http://192.168.1.20:8096
 
   [QR code]
+
+  Tell her to sign in as `ana`. She will be asked to set a password.
 ```
 
-The operator never chooses or transmits someone else's password. The invitee sets
-their own, and the link expires.
+**The link is an address the stack already serves, not a route of its own.** The
+invitation is a state Jellyfin holds, not a page somebody must be running a
+server to answer: `lemonfiber ui` keeps nothing running once the operator closes
+it, so an invitation that only worked while it did would stop working the moment
+the operator went to bed.
+
+**It is Jellyfin's address, which is not always the front door.** Setting a first
+password happens in Jellyfin, and Seerr authenticates against Jellyfin rather
+than holding credentials of its own — so an account with no password yet cannot
+be claimed through Seerr, whichever service `G5` picks as the door. What `G5-R6`
+is for still holds, and is what the operator experiences: one address, chosen by
+lemonfiber, rather than four to choose between. After the account is claimed, the
+household member uses the front door like everyone else.
+
+What `invite` does is create the account (`D6-R12` says so plainly — an
+invitation issued while Seerr is down still creates it), leave it without a
+password, and record that it is unclaimed. The address is the same one the
+household is given for everything else.
+
+That is also what makes it single-use and expiring in the way `D6-R3` asks
+(`D6-R4` covers the QR). It is claimed once, because setting a password is
+something that happens once and cannot be undone by a second arrival; and it
+expires because an account nobody claimed within 48 hours is removed rather than
+left standing as a way in that nobody is watching.
+
+The operator never chooses or transmits someone else's password.
 
 The QR code matters more than it looks: the recipient is usually holding the
 phone they'll watch on, and typing a LAN URL and credentials on a phone keyboard
