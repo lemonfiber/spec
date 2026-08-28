@@ -71,6 +71,23 @@ Pending requests, and anything failing to fulfil, surface in lemonfiber's
 dashboard. The operator shouldn't need to open Seerr to know something needs
 attention.
 
+### A second request is refused, not merged
+
+The request service holds one request per thing, by the person who asked first. A
+second person asking is told it is already coming rather than being added to it, so
+there is no list of requesters to notify when it lands — they find it there, the way
+they would find anything else in the library.
+
+This was written the other way round, as deduplication with every requester notified
+on availability. Nothing in the stack keeps a second requester to notify, and
+lemonfiber cannot add one: it does not handle requests, it configures the service
+that does. A requirement no part of the product can be held to is one that reads as
+met by nobody looking, so it says what actually happens instead.
+
+What is preserved is the part that matters to the person asking: they are answered
+rather than left wondering, and they are not made to wait on a request that silently
+went nowhere.
+
 ### The household never touches lemonfiber
 
 No lemonfiber account, no lemonfiber URL, no awareness that it exists. The
@@ -105,7 +122,7 @@ Per request:
 | Requester lacks permission for that content type | The option shouldn't be offered. Never offer then refuse. |
 | Household member removed | Their requests remain visible to the operator with the requester marked as removed. |
 | Seerr unreachable | Surface as a service failure to the operator. The household simply can't request — an outage, but not data loss. |
-| Two people request the same thing | Deduplicate; notify both when available. |
+| Two people request the same thing | The second is refused as already requested, and told so. They watch it when it lands, like anyone else. |
 | Item available but Jellyfin hasn't scanned | Trigger a scan before marking available, so "ready" is true when stated. |
 | Requester has no notification target | Status is visible in Seerr regardless; the loop closes on next visit. |
 
@@ -122,7 +139,7 @@ Per request:
 | **D4-R7** | "Nothing available at the configured quality" MUST be communicated distinctly from a generic failure. |
 | **D4-R8** | Pending and failing requests MUST surface in lemonfiber's dashboard. |
 | **D4-R9** | Household members MUST NOT require any lemonfiber account or access. |
-| **D4-R10** | Duplicate requests MUST be deduplicated, with all requesters notified on availability. |
+| **D4-R10** | A request for something already requested MUST NOT create a second request, and the person asking MUST be told it is already on its way. |
 | **D4-R11** | Partial series requests MUST be supported without re-acquiring existing content. |
 | **D4-R12** | A library scan MUST complete before a request is reported available. |
 | **D4-R13** | Content a requester lacks permission for MUST NOT be offered. |
