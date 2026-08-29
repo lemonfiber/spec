@@ -188,11 +188,14 @@ api = { kind = "qbittorrent", key_source = "generated" }
 api = { kind = "seerr",    key_source = "api-settings" }
 api = { kind = "bindery",  key_source = "api-settings" }
 api = { kind = "jellyfin", key_source = "generated" }
+api = { kind = "bazarr",   key_source = "config-yaml", path = "/config/config/config.yaml" }
 ```
 
 `kind` selects the client implementation. `servarr` covers Sonarr, Radarr, Lidarr
 and Prowlarr, since they share an API shape — which is what makes one client
-sufficient for four services. `jellyfin` is the one media server lemonfiber sets
+sufficient for four services. `bazarr` is its own, because it is told about the
+\*arrs rather than being one of them, and it is told in a form body whose field
+names are its configuration file's own paths flattened. `jellyfin` is the one media server lemonfiber sets
 an account on rather than reading a key from, so its `key_source` is `generated`
 like qBittorrent's — it mints the administrator password by driving Jellyfin's
 own first-run setup.
@@ -208,10 +211,14 @@ version their client already knows.
 
 | Value | Meaning |
 |-------|---------|
-| `config-xml`, `config-ini`, `config-json` | The service mints it and writes it to `path`; lemonfiber reads it |
+| `config-xml`, `config-ini`, `config-json`, `config-yaml` | The service mints it and writes it to `path`; lemonfiber reads it |
 | `api-settings` | Retrieved over the service's own API once authenticated |
 | `generated` | The service offers nothing durable to read, so lemonfiber generates the credential, sets it, and records it for its consumers (`A7-R14`) |
 | `none` | The API needs no credential at all |
+
+The four file shapes are four shapes, not one with a guess: a reader that sniffed
+the format would be right until a service changed it, and wrong silently. Which
+file a service writes is a fact about that service, so the manifest says it.
 
 `generated` exists because qBittorrent mints only a *temporary* WebUI password
 and asks for it to be replaced. It also has a consumer that is not a service —
