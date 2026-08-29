@@ -67,6 +67,23 @@ connectivity port forwarding exists to buy.
 > Torznab endpoints instead, which works but must be configured explicitly rather
 > than via the same sync path. A real asymmetry, specified rather than glossed.
 
+**This table is a promise, not an illustration** (`D1-R18`). Every row of it is a
+connection the operator is entitled to have made for them, and a row nothing makes
+is a stack that starts, reports healthy, and quietly does not work — because each of
+these is exactly the step whose absence is invisible until somebody asks for
+something and nothing happens.
+
+That is not hypothetical. Two of these rows were declared here and obliged by no
+acceptance criterion, and both turned out never to have worked: the request
+service's identity was refused on every run it ever made, and the download client
+was refused by SABnzbd. Both had passing tests, because a test over a fake proves
+what the author believed the service wanted rather than what it wants. Neither had
+a criterion, so nothing counted them as missing.
+
+A row added to this table therefore arrives already obliged, and one that cannot be
+made yet belongs in the prose as an asymmetry — the way Bindery does above — rather
+than sitting in the table unmade.
+
 ### Jellyfin as household identity is wired unconditionally
 
 Connecting Seerr's authentication to Jellyfin is one API call and it's the
@@ -161,6 +178,7 @@ Per connection:
 | **D1-R15** | Bindery MUST be wired via Torznab endpoints, and the absence of Prowlarr app sync MUST be documented in-product. |
 | **D1-R16** | Seeding MUST replace qBittorrent's temporary WebUI password with a generated one and record it where the forwarded-port push reads it. |
 | **D1-R17** | Each \*arr that fulfils requests MUST be registered with the request service as a fulfilment target, and one absent from the stack MUST NOT be. |
+| **D1-R18** | Every connection named in the wiring graph MUST be made where the services at both ends are in the stack, and each MUST be proven against the service that received it rather than against a stand-in for it. |
 
 ## Related
 
