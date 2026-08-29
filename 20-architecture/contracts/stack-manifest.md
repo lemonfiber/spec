@@ -153,7 +153,7 @@ media_types = ["tv"]
 | `profile` | string | ✔ | **Exactly one** (`B1-R1`). MUST reference a declared profile. |
 | `image` | string | ✔ | Without tag |
 | `tag` | string | ✔ | Explicit version. A floating tag fails validation (`E1-R1`). |
-| `port` | integer | | Primary UI/API port. Omitted for services with no listener. |
+| `port` | integer | | Primary UI/API port — the port the service listens on, which MUST also be the port the stack publishes it on (`F1-R15`). Omitted for services with no listener. |
 | `bind` | enum | ✔ if `port` | `loopback` \| `lan`. Enforces [C6](../../10-functional/features/c-trust/c6-web-security.md)'s two-tier policy. |
 | `health` | table | | See below. Absent means lifecycle waits on container state only. |
 | `api` | table | | How lemonfiber talks to it for [seeding](../../10-functional/features/d-content/d1-seed.md). Absent means no API integration. |
@@ -247,6 +247,7 @@ Validation reports **every** violation in one pass, each naming its location
 | `capabilities` within the allow-list | Service and capability named |
 | `protocol` is a permitted value | Profile and value named |
 | At most one profile per `protocol` | Both profiles named |
+| `port` matches the container port Compose publishes it on | Service and both ports named (`F1-R15`) |
 | Manifest services match `compose.yml` services exactly | Divergence listed both ways |
 
 That last rule matters more than it looks: a manifest describing a service that

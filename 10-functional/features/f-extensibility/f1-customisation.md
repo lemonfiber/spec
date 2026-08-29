@@ -66,6 +66,26 @@ A new service is a compose entry plus a manifest entry plus inclusion in whichev
 forms should carry it. No lemonfiber change, no release
 ([ADR-0002](../../../00-overview/decisions/0002-profiles-and-forms.md)).
 
+### One declared port, and it is the address everybody uses
+
+A service is reached from two directions — from the host, where the operator and
+lemonfiber are, and from inside the stack's own network, where the other services
+are. The manifest declares **one** port, and it has to be right for both, because
+lemonfiber writes one service's address into another when it wires them together.
+
+That holds only while the port a service listens on and the port the stack
+publishes it on are the same number. Where they differ, the manifest cannot say
+which one it means: reading it as the published port gives an address no other
+container can open, and reading it as the listening port gives one the host
+cannot. Neither reading is wrong, which is the problem — so they are required to
+agree, and a manifest where they do not is a validation failure rather than an
+address that works from one direction only.
+
+A service whose own default port is inconvenient is configured to listen on the
+declared one, rather than having the difference papered over by the compose
+mapping. The mapping is then the identity mapping, and the declared port is
+simply true.
+
 ### Everything interactive is also non-interactive
 
 Every action available in the TUI or web UI has a flag-driven equivalent that
@@ -123,6 +143,7 @@ Per managed area:
 | **F1-R12** | Machine-readable output MUST be a versioned, stable interface. |
 | **F1-R13** | A configuration violating internal guidance MUST be reported with its consequence, and MUST NOT be refused. |
 | **F1-R14** | Multiple independent stacks MUST be supportable on one host, with port conflicts detected. |
+| **F1-R15** | A service MUST be reachable on its declared port both from the host and from other services in the stack, and a manifest whose declared port is not the port the service listens on MUST fail validation. |
 
 ## Related
 
