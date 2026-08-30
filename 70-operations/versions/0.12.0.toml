@@ -1,6 +1,6 @@
 # Living within limits — disk space, retention, bandwidth and scheduling.
 #
-# 56 goals, seeded from the roadmap milestone this version serves;
+# 57 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.12.0"
 epoch   = "v1"
@@ -10,6 +10,7 @@ status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [
     "D1-R17",
+    "D1-R18",
     "D5-R1",
     "D5-R2",
     "D5-R3",
