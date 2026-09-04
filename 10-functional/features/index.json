@@ -89,7 +89,7 @@
     {
       "version": "0.11.0",
       "epoch": "v1",
-      "status": "staged",
+      "status": "released",
       "milestone": "M8",
       "closes_epoch": null,
       "goals": 44
@@ -1130,7 +1130,7 @@
       "versions": [
         {
           "version": "0.11.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "d-content/d4-request-flow.md"
@@ -1196,7 +1196,7 @@
       "versions": [
         {
           "version": "0.11.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "d-content/d6-household-identity.md"
@@ -1743,7 +1743,7 @@
         },
         {
           "version": "0.11.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "g-ux/g5-front-door.md"
@@ -1775,7 +1775,7 @@
       "versions": [
         {
           "version": "0.11.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "g-ux/g6-client-apps.md"
@@ -1846,7 +1846,7 @@
         },
         {
           "version": "0.11.0",
-          "status": "staged"
+          "status": "released"
         },
         {
           "version": "0.14.0",
