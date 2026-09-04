@@ -1,6 +1,38 @@
-# A PR that passes CI with no review, from a non-maintainer, is flagged for a
-# maintainer; the flag clears when a review lands or the PR closes. Repos call it;
-# the spec repo self-triggers. OPS-R26, OPS-R27.
+# A PR that passes every required check with no review, from a non-maintainer, is
+# flagged for a maintainer; the flag clears when a review lands or the PR closes.
+# Repos call it; the spec repo self-triggers. OPS-R26, OPS-R27.
+#
+# What this used to ask was whether one workflow called `ci` had concluded
+# `success`, and then it announced "Passed CI with no review". In lemonfiber `ci`
+# supplies eleven of the eighteen checks `main` requires; `check` and `deny` come
+# from `build`, `analyze (rust)` and `analyze (actions)` from `codeql`, `sonar`
+# and `gate / gate` from `sonar`, and `release-workflow` from its own file. So the
+# sentence was false wherever it mattered most: the flag went up, and the private
+# maintainer channel was told a pull request was ready, while the compile was
+# still running or had already failed.
+#
+# Two things had to change together, because either alone leaves it broken:
+#
+#   the question   — every *required* check on the head commit, not one workflow
+#   the moment     — every workflow that supplies one triggers this, so whichever
+#                    finishes last is the one that gets a complete answer
+#
+# The second is why the trigger list below is long, and why each caller's is too.
+# A reusable workflow cannot declare its caller's triggers, so every caller repeats
+# the list in its own file; that is the pre-existing shape, not something added here.
+#
+# The window this must not announce in: between the push and the creation of the
+# other workflows' runs, there is a moment when nothing is pending and nothing has
+# failed, because nothing exists. "No pending and no failing checks" is true then,
+# and announcing on it would reproduce the bug with more steps. So the gate does
+# not ask only about checks. It reads the caller's own `workflow_run` trigger list
+# back out of the caller's own file and requires a *completed, successful run* of
+# each workflow named there at this head commit — a workflow with no run yet is
+# `absent`, which holds, where a check with no run yet is simply not in the list.
+#
+# The list is read rather than passed as an input on purpose. An expectation
+# written down twice is an expectation that will one day be read from the shorter
+# copy; here the trigger list and the wait list are the same eight words.
 name: awaiting-maintainer
 on:
   workflow_call:
@@ -10,7 +42,10 @@ on:
       DISCORD_MAINTAINERS_WEBHOOK:
         required: false
   workflow_run:
-    workflows: [ci]
+    # Every workflow that supplies a check `main` requires here. Keep this equal to
+    # that set: a workflow missing from it never re-evaluates the gate, so the flag
+    # would wait forever on a check that had in fact gone green.
+    workflows: [commitlint, coverage, dco, docs, hygiene, integrity, security, sonar]
     types: [completed]
   pull_request_review:
     types: [submitted]
@@ -29,6 +64,7 @@ jobs:
     outputs:
       flagged: ${{ steps.act.outputs.flagged }}
       pr: ${{ steps.act.outputs.pr }}
+      checks: ${{ steps.act.outputs.checks }}
     steps:
       - name: Toggle label
         id: act
@@ -40,34 +76,170 @@ jobs:
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           REVIEW_STATE: ${{ github.event.review.state }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          # owner/repo/path@ref of the workflow that started this run — the
+          # caller's file, not this one. `sonar-gate.yml` reads a caller's
+          # declaration the same way.
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          LABEL: awaiting-maintainer
         run: |
+          set -euo pipefail
+
+          # --- the two events that clear the flag ---------------------------
+          # Neither reads a check: a closed PR and a reviewed PR are done being
+          # in the queue whatever CI thinks.
           if [ "$EVENT" = "pull_request_target" ]; then
-            gh pr edit "$PR_NUMBER" --remove-label awaiting-maintainer 2>/dev/null || true
+            gh pr edit "$PR_NUMBER" --remove-label "$LABEL" 2>/dev/null || true
             exit 0
           fi
           if [ "$EVENT" = "pull_request_review" ]; then
             case "$REVIEW_STATE" in
-              approved|changes_requested)
-                gh pr edit "$PR_NUMBER" --remove-label awaiting-maintainer 2>/dev/null || true ;;
+            approved | changes_requested)
+              gh pr edit "$PR_NUMBER" --remove-label "$LABEL" 2>/dev/null || true
+              ;;
             esac
             exit 0
           fi
-          [ "$CONCLUSION" = "success" ] || exit 0
-          pr=$(gh api "repos/$GH_REPO/commits/$HEAD_SHA/pulls" --jq '.[0].number' 2>/dev/null || true)
-          [ -n "$pr" ] && [ "$pr" != "null" ] || exit 0
-          assoc=$(gh api "repos/$GH_REPO/pulls/$pr" --jq '.author_association' 2>/dev/null || echo "")
-          case "$assoc" in OWNER|MEMBER|COLLABORATOR) echo "maintainer-authored; skip"; exit 0 ;; esac
-          approved=$(gh api "repos/$GH_REPO/pulls/$pr/reviews" --jq '[.[] | select(.state=="APPROVED")] | length' 2>/dev/null || echo 0)
-          [ "${approved:-0}" -gt 0 ] && exit 0
-          gh pr edit "$pr" --add-label awaiting-maintainer 2>/dev/null || true
-          { echo "flagged=true"; echo "pr=$pr"; } >> "$GITHUB_OUTPUT"
+
+          # --- a workflow finished ------------------------------------------
+          # Its own conclusion is not the question, but a failure is a cheap
+          # answer to it: whatever else is green, this one is not.
+          if [ "$CONCLUSION" != "success" ]; then
+            echo "The run that triggered this concluded ${CONCLUSION:-nothing}; nothing to flag."
+            exit 0
+          fi
+
+          pr=$(gh api "repos/${GH_REPO}/commits/${HEAD_SHA}/pulls" --jq '.[0].number' 2>/dev/null || true)
+          if [ -z "$pr" ] || [ "$pr" = "null" ]; then
+            echo "No pull request at ${HEAD_SHA}."
+            exit 0
+          fi
+
+          assoc=$(gh api "repos/${GH_REPO}/pulls/${pr}" --jq '.author_association' 2>/dev/null || echo "")
+          case "$assoc" in
+          OWNER | MEMBER | COLLABORATOR)
+            echo "#${pr} is maintainer-authored; skip."
+            exit 0
+            ;;
+          esac
+
+          approved=$(gh api "repos/${GH_REPO}/pulls/${pr}/reviews" \
+            --jq '[.[] | select(.state=="APPROVED")] | length' 2>/dev/null || echo 0)
+          if [ "${approved:-0}" -gt 0 ]; then
+            echo "#${pr} is already approved."
+            exit 0
+          fi
+
+          # Every workflow in the trigger list evaluates this, so it runs several
+          # times per commit and re-runs bring it back after that. The label
+          # already being there is what makes the second and every later pass
+          # silent — the announcement below rides on putting it there, not on
+          # finding it there.
+          if gh api "repos/${GH_REPO}/pulls/${pr}" --jq '.labels[].name' 2>/dev/null \
+            | grep -Fxq "$LABEL"; then
+            echo "#${pr} already carries ${LABEL}; nothing to announce."
+            exit 0
+          fi
+
+          # --- has everything that reports actually reported? ----------------
+          # The caller's own trigger list, read back out of the caller's own file
+          # on the default branch — which is the only copy `workflow_run` ever
+          # runs, so it is the copy that decides what triggers this.
+          caller=${WORKFLOW_REF%%@*}
+          caller=${caller#*/}
+          caller=${caller#*/}
+
+          if ! gh api -H "Accept: application/vnd.github.raw" \
+            "repos/${GH_REPO}/contents/${caller}?ref=${DEFAULT_BRANCH}" > caller.yml; then
+            echo "::error::Could not read ${caller} on ${DEFAULT_BRANCH}. This gate waits for the workflows named in that file's workflow_run trigger, and without it cannot tell a finished pull request from one that has not started."
+            exit 1
+          fi
+
+          shape='^[[:space:]]*workflows:[[:space:]]*\[[^]]*\][[:space:]]*$'
+          lines=$(grep -cE "$shape" caller.yml || true)
+          if [ "$lines" != "1" ]; then
+            echo "::error::${caller} on ${DEFAULT_BRANCH} does not declare its workflow_run trigger list as exactly one bracketed line (found ${lines}). This gate waits for the workflows named there and will not guess at the list."
+            exit 1
+          fi
+
+          found=$(sed -n 's/^[[:space:]]*workflows:[[:space:]]*\[\([^]]*\)\][[:space:]]*$/\1/p' caller.yml)
+          read -ra wanted <<< "${found//,/ }"
+          if [ "${#wanted[@]}" -eq 0 ]; then
+            echo "::error::${caller} on ${DEFAULT_BRANCH} names no workflow to wait for. A gate that waits for nothing announces in the gap before anything has started."
+            exit 1
+          fi
+
+          gh api --paginate --slurp \
+            "repos/${GH_REPO}/actions/runs?head_sha=${HEAD_SHA}&per_page=100" > runs.json
+
+          holding=""
+          for wf in "${wanted[@]}"; do
+            state=$(WF="$wf" jq -r '
+              [ .[].workflow_runs[] | select(.name == env.WF) ]
+              | sort_by(.run_started_at)
+              | last
+              | if . == null then "absent"
+                elif .status != "completed" then "running"
+                else (.conclusion // "unknown") end' runs.json)
+            case "$state" in
+            success) echo "${wf}: success" ;;
+            absent) holding="${holding} ${wf}(no run at this commit yet)" ;;
+            running) holding="${holding} ${wf}(still running)" ;;
+            *) holding="${holding} ${wf}(${state})" ;;
+            esac
+          done
+
+          if [ -n "$holding" ]; then
+            echo "Holding:${holding}. Whichever of these finishes last asks again."
+            exit 0
+          fi
+
+          # --- and is every required check green? ----------------------------
+          # The list above is workflows; this is checks, and they are not the same
+          # set. `SonarCloud Code Analysis` is a required context in five repos here
+          # and is posted by an app, not by any workflow. gh reads `isRequired` off
+          # the pull request's own check rollup, so this needs no permission to read
+          # branch protection — which `github.token` is not granted.
+          #
+          # Its exit code is deliberately not the gate: it exits 8 on a pending
+          # check and 1 on a failing one and 1 again on nothing to report, and a
+          # gate resting on that reads "nothing has run yet" as "something failed".
+          # The JSON is the answer; the code is only logged.
+          rc=0
+          gh pr checks "$pr" --required --json name,bucket > checks.json 2>checks.err || rc=$?
+          if [ ! -s checks.json ]; then
+            echo "No required check has reported on #${pr} yet (gh exit ${rc}):"
+            sed 's/^/  /' checks.err
+            exit 0
+          fi
+
+          total=$(jq 'length' checks.json)
+          unready=$(jq -r '
+            [ .[] | select(.bucket != "pass" and .bucket != "skipping") ]
+            | map(.name + " (" + .bucket + ")") | join(", ")' checks.json)
+          if [ "$total" -eq 0 ]; then
+            echo "No required check has reported on #${pr} yet."
+            exit 0
+          fi
+          if [ -n "$unready" ]; then
+            echo "Holding #${pr}: ${unready}."
+            exit 0
+          fi
+
+          gh pr edit "$pr" --add-label "$LABEL"
+          {
+            echo "flagged=true"
+            echo "pr=${pr}"
+            echo "checks=${total}"
+          } >> "$GITHUB_OUTPUT"
+          echo "#${pr}: ${total} required checks, all green, no review. Flagged."
   notify:
     needs: toggle
     if: needs.toggle.outputs.flagged == 'true'
     uses: lemonfiber/spec/.github/workflows/discord-notify.yml@61f5205b9db1699ba58dc007b23924a7e566de76 # main
     with:
       title: "🔔 Awaiting review · ${{ github.event.repository.name }} #${{ needs.toggle.outputs.pr }}"
-      body: "Passed CI with no review — a maintainer needs to take a look."
+      body: "All ${{ needs.toggle.outputs.checks }} required checks passed and no review has landed — a maintainer needs to take a look."
       url: "https://github.com/${{ github.repository }}/pull/${{ needs.toggle.outputs.pr }}"
       color: "14235678"
     secrets:

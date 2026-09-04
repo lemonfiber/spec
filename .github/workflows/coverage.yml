@@ -46,3 +46,9 @@ jobs:
       # silence (Q-R66).
       - name: A run with nothing to gate says so (Q-R64, Q-R66)
         run: python3 scripts/test_no_token.py
+      # The same shape a third time, on the maintainer flag. It announced on one
+      # workflow's conclusion and called it "Passed CI"; what this drives is the
+      # gate declining while a required check is pending, failing, or belongs to
+      # a workflow that has not started at all (OPS-R26, OPS-R27, Q-R66).
+      - name: The maintainer flag is shown refusing to announce (OPS-R26, OPS-R27)
+        run: python3 scripts/test_awaiting_maintainer.py

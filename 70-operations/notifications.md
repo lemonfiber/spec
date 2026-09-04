@@ -76,12 +76,22 @@ is a saved search, not a memory game:
 | Label | Applied when | Removed when |
 |-------|-------------|--------------|
 | `needs-triage` | An issue is opened or reopened | A maintainer triages it (by hand) |
-| `awaiting-maintainer` | A PR passes CI and has no approving review | The PR is reviewed, or the PR closes |
+| `awaiting-maintainer` | Every check the branch requires has passed on the PR and no approving review has landed | The PR is reviewed, or the PR closes |
 
 `awaiting-maintainer` skips PRs opened **by a maintainer** — a maintainer's own PR
 is not awaiting one. As non-maintainers begin contributing, their green PRs surface
 automatically. The live queue is
 `is:open label:needs-triage,awaiting-maintainer`.
+
+"Passes CI" is not a workflow called `ci`. In lemonfiber that workflow supplies
+eleven of the eighteen checks `main` requires; `check` and `deny` come from
+`build`, the CodeQL analyses from `codeql`, `sonar` and `gate / gate` from
+`sonar`, and `release-workflow` from its own file. A flag raised on one
+workflow's conclusion is raised while the compile is still running, and the
+maintainer channel is told a pull request is ready that is not. So the flag is
+raised on the required set and on nothing narrower, and it waits for every
+workflow that supplies a member of that set — otherwise whichever finishes last
+finds nobody asking.
 
 A closed pull request is not awaiting a maintainer, and neither is a merged one.
 Because the queue is scoped to `is:open`, a flag left behind does not distort the
@@ -110,7 +120,7 @@ and both review-routing and issue-assignment follow it.
 | **OPS-R23** | A published release MUST announce to the public announcement channel, mentioning the opt-in role when `DISCORD_RELEASE_ROLE_ID` is set and never `@everyone`. |
 | **OPS-R24** | Every workflow run MUST post its completion status (pass/fail) to the public build-log channel. |
 | **OPS-R25** | A newly opened issue MUST be labelled `needs-triage` and assigned the covering maintainer from the generated CODEOWNERS. |
-| **OPS-R26** | A PR that passes CI without an approving review MUST be labelled `awaiting-maintainer`, unless its author is a maintainer; the label MUST be removed once the PR is reviewed or closed. |
+| **OPS-R26** | A PR on which *every* status check the base branch requires has concluded successfully, without an approving review, MUST be labelled `awaiting-maintainer`, unless its author is a maintainer; the label MUST be removed once the PR is reviewed or closed. The flag MUST NOT be raised while a required check is pending or failing, nor before every workflow that supplies one has run. |
 | **OPS-R27** | Items needing maintainer action MUST post to the private maintainer channel when its webhook is configured. |
 | **OPS-R28** | Every Discord integration MUST be gated on its webhook secret's presence, MUST NOT run in fork-PR context with the secret available, and MUST pass all event-derived text through the environment rather than a shell interpolation. |
 | **OPS-R53** | A notification body over Discord's embed limit MUST be split at line boundaries rather than truncated; where the channel is a Forum, the overflow MUST post as replies within one thread and the role ping MUST ride only the opening message. |
