@@ -58,7 +58,7 @@ GET /api/version       GET /api/config?…       GET /api/quality
 GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
 GET /api/front-door
 GET /api/outbound      GET /api/stored       GET /api/clients
-GET /api/space
+GET /api/space         GET /api/bandwidth
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -72,6 +72,13 @@ to reclaim, because that choice is never a caller's to make. A torrent still see
 with what removing it costs and left with the operator, and something the operator has already
 asked to be left alone is not on offer at any level of fullness — so a narrowing parameter would
 be a way to ask for exactly the two things nothing here will take.
+
+`/api/bandwidth` takes none, and the absence draws the same line the disk's does. What it
+answers with is the account of the line: what it was measured to carry, what the stack is being
+held to, which side of the household's day each download client says it is on, and whether each
+is actually keeping to what it was given. Declaring a limit is the action of the same name, at
+the door changes are asked for — a read that could set one would be a read that changes what
+everybody in the house experiences, which is the distinction the two doors exist to draw.
 
 `/api/front-door` takes none, because the question takes none: which one address the household
 is given is derived from what the stack runs rather than asked for, so a parameter here would be
