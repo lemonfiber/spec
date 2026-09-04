@@ -6,7 +6,7 @@ version = "0.12.0"
 epoch   = "v1"
 milestone = "M8"   # Household & content
 delivers  = "Living within limits — disk, retention, bandwidth"
-status  = "planned"
+status  = "staged"
 repos   = ["lemonfiber"]
 goals   = [
     "D1-R15",

@@ -97,7 +97,7 @@
     {
       "version": "0.12.0",
       "epoch": "v1",
-      "status": "planned",
+      "status": "staged",
       "milestone": "M8",
       "closes_epoch": null,
       "goals": 58
@@ -1031,7 +1031,7 @@
       "versions": [
         {
           "version": "0.12.0",
-          "status": "planned"
+          "status": "staged"
         },
         {
           "version": "0.4.0",
@@ -1162,7 +1162,7 @@
       "versions": [
         {
           "version": "0.12.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "d-content/d5-disk-space.md"
@@ -1227,7 +1227,7 @@
       "versions": [
         {
           "version": "0.12.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "d-content/d7-approval-quotas.md"
@@ -1258,7 +1258,7 @@
       "versions": [
         {
           "version": "0.12.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "d-content/d8-parental-controls.md"
@@ -1323,7 +1323,7 @@
       "versions": [
         {
           "version": "0.12.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "d-content/d10-bandwidth.md"
