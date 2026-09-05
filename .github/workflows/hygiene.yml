@@ -31,16 +31,27 @@ jobs:
   # until each pin moves — a fix to the site-rebuild notice sat unreached in nine
   # repositories while one of them failed on every push to main.
   #
-  # Two things fail, and being merely behind is neither. A pin that is not on this
-  # repository's main names a revision nobody reviewed, or a branch rewritten
-  # under it. A pin a month behind is abandonment. Everything between is a notice,
-  # because a pin is expected to trail a merge and a check that reddens the moment
-  # anything lands here is one people route around.
+  # Three things fail, and being merely behind is none of them. A pin that is not
+  # on this repository's main names a revision nobody reviewed, or a branch
+  # rewritten under it. A pin a month old is abandonment by time. A pin more than
+  # STALE_COMMITS behind is abandonment by distance. Everything between is a
+  # notice, because a pin is expected to trail a merge and a check that reddens
+  # the moment anything lands here is one people route around.
   #
-  # Note what this does not catch: a pin days old and dozens of commits behind
-  # reads as healthy here, and that is the shape the site-rebuild failure had.
-  # What ended that was the notice being allowed to fail (`rebuild-site.yml`), not
-  # a check on its age.
+  # Distance is here because age alone was blind in the direction this repository
+  # actually moves. `brand` and `lemonfiber-media-stack` pinned this file at a
+  # revision 94 commits behind and 13 days old: healthy under a day rule, and old
+  # enough to predate this job, so neither repository ran a pin check at all and
+  # nothing there watched any shared pin. Q-R68 asks for the commits not taken to
+  # be reported, and a count of them is the thing a day cannot stand in for —
+  # 148 commits landed here in the 30 days that rule tolerates.
+  #
+  # STALE_COMMITS is 75 because the fleet's last coordinated fan-out left every
+  # healthy repository 60 commits behind, and the gap that hid the defect above
+  # was 94. The line goes between the state the fleet was deliberately left in and
+  # the state that hid a job that could not run — about a fortnight of this
+  # repository's history at its measured pace, which is the interval the fan-out
+  # runs at (OPS-R48).
   pins:
     runs-on: ubuntu-latest
     steps:
@@ -51,6 +62,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           STALE_DAYS: "30"
+          STALE_COMMITS: "75"
         run: |
           set -euo pipefail
 
@@ -98,8 +110,24 @@ jobs:
             esac
 
             age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
+
+            # Both questions are asked, and both are named in the answer. A pin
+            # can be stale by either without being stale by the other, and which
+            # one fired is what tells a reader whether the pin was forgotten or
+            # merely outrun.
+            broke=""
             if [ "$age" -gt "$STALE_DAYS" ]; then
-              echo "::error::${pin:0:8} is ${ahead} commits and ${age} days behind lemonfiber/spec main. Bump it: whatever has been fixed there has not reached this repository."
+              broke="more than ${STALE_DAYS} days old"
+            fi
+            if [ "$ahead" -gt "$STALE_COMMITS" ]; then
+              if [ -n "$broke" ]; then
+                broke="${broke}, and "
+              fi
+              broke="${broke}more than ${STALE_COMMITS} commits behind"
+            fi
+
+            if [ -n "$broke" ]; then
+              echo "::error::${pin:0:8} is ${ahead} commits and ${age} days behind lemonfiber/spec main, which is ${broke}. Bump it: whatever has been fixed there has not reached this repository."
               faults=$((faults + 1))
             else
               echo "::notice::${pin:0:8} is ${ahead} commits behind lemonfiber/spec main (${age} days). Bump it when convenient."
