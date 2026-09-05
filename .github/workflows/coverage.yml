@@ -52,3 +52,10 @@ jobs:
       # a workflow that has not started at all (OPS-R26, OPS-R27, Q-R66).
       - name: The maintainer flag is shown refusing to announce (OPS-R26, OPS-R27)
         run: python3 scripts/test_awaiting_maintainer.py
+      # And a fourth, on the pin check every repository in the fleet runs. It
+      # judged staleness by age alone, and a pin 94 commits behind but 13 days
+      # old read as healthy — which is how two repositories came to run no pin
+      # check at all. What this drives is that comparison being refused, and the
+      # same one going green once the distance rule is relaxed (Q-R66, Q-R68).
+      - name: A pin near in time and far in commits is shown refused (Q-R68)
+        run: python3 scripts/test_pins.py

@@ -91,7 +91,7 @@ jobs:
         run: echo "::notice::Staged ${VERSION} with ${GOALS} goals."
   announce:
     needs: stage
-    uses: lemonfiber/spec/.github/workflows/discord-notify.yml@61f5205b9db1699ba58dc007b23924a7e566de76 # main
+    uses: lemonfiber/spec/.github/workflows/discord-notify.yml@64fef7db5fe862ff714496947faf2520a485752a # main
     with:
       title: "📦 Staged ${{ inputs.version }}"
       body: "${{ needs.stage.outputs.goals }} goals locked. Tracking issue opened."
