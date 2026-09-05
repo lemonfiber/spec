@@ -84,9 +84,9 @@ automatically. The live queue is
 `is:open label:needs-triage,awaiting-maintainer`.
 
 "Passes CI" is not a workflow called `ci`. In lemonfiber that workflow supplies
-eleven of the eighteen checks `main` requires; `check` and `deny` come from
-`build`, the CodeQL analyses from `codeql`, `sonar` and `gate / gate` from
-`sonar`, and `release-workflow` from its own file. A flag raised on one
+eleven of the nineteen checks `main` requires; `check` and `deny` come from
+`build`, the CodeQL analyses and the open-alert gate from `codeql`, `sonar` and
+`gate / gate` from `sonar`, and `release-workflow` from its own file. A flag raised on one
 workflow's conclusion is raised while the compile is still running, and the
 maintainer channel is told a pull request is ready that is not. So the flag is
 raised on the required set and on nothing narrower, and it waits for every

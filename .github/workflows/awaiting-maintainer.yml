@@ -4,9 +4,9 @@
 #
 # What this used to ask was whether one workflow called `ci` had concluded
 # `success`, and then it announced "Passed CI with no review". In lemonfiber `ci`
-# supplies eleven of the eighteen checks `main` requires; `check` and `deny` come
-# from `build`, `analyze (rust)` and `analyze (actions)` from `codeql`, `sonar`
-# and `gate / gate` from `sonar`, and `release-workflow` from its own file. So the
+# supplies eleven of the nineteen checks `main` requires; `check` and `deny` come
+# from `build`, `analyze (rust)`, `analyze (actions)` and `alerts` from `codeql`,
+# `sonar` and `gate / gate` from `sonar`, and `release-workflow` from its own file. So the
 # sentence was false wherever it mattered most: the flag went up, and the private
 # maintainer channel was told a pull request was ready, while the compile was
 # still running or had already failed.

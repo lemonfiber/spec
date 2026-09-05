@@ -4,7 +4,7 @@
 `awaiting-maintainer.yml` labels a pull request and tells the private maintainer
 channel it is ready. It used to do that on one workflow's conclusion — the one
 called `ci` — and say "Passed CI with no review". In lemonfiber `ci` supplies
-eleven of the eighteen checks `main` requires, so the sentence was false whenever
+eleven of the nineteen checks `main` requires, so the sentence was false whenever
 `build`, `codeql`, `sonar` or `release-workflow` was still running or had already
 failed. A claim nobody has watched fail is a claim nobody knows works, so this
 puts the gate in front of each of those states and checks that it declines.
@@ -45,7 +45,7 @@ LABEL = "awaiting-maintainer"
 
 # A caller's file as the fleet writes it: the trigger list is the wait list, so
 # this fixture is what decides which workflows the gate holds for. lemonfiber's
-# five, which between them supply all eighteen checks its `main` requires.
+# five, which between them supply all nineteen checks its `main` requires.
 CALLER = """name: awaiting-maintainer
 on:
   workflow_run:
