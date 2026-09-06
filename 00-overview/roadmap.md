@@ -252,8 +252,9 @@ management acts without reverting an operator's manual choices.
 ## M9 — Lifecycle & maintenance
 
 Living with a running stack (`0.13.0`–`0.15.0`): reconfiguration, migration, uninstall,
-notifications, remote control, autostart & boot persistence, stack and self
-updates, rollback, and the service catalogue.
+notifications, remote control, autostart & boot persistence, hosting lemonfiber's
+own long-running commands, stack and self updates, rollback, and the service
+catalogue.
 
 **Exit criteria:** every lifecycle operation is reversible or explicitly
 confirmed, and an unattended stack recovers across a reboot.

@@ -74,6 +74,7 @@ The hardest part of the product, and where most users are lost today.
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | Operator |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | Operator |
 | [B9](b-running/b9-notification-backends.md) · *v2* | Open notification back-ends | Both |
+| [B10](b-running/b10-hosting.md) | Hosting long-running commands | Operator |
 
 > **B7 (remote access for the household) is deferred past 1.0** — household
 > features are **LAN-only** in 1.0. It returns in **v2 as [I1](i-remote-access/i1-remote-access.md)**,

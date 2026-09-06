@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 68,
-    "requirements": 947,
+    "features": 69,
+    "requirements": 963,
     "areas": "A–L"
   },
   "versions": [
@@ -124,7 +124,7 @@
       "status": "planned",
       "milestone": "M9",
       "closes_epoch": null,
-      "goals": 55
+      "goals": 71
     },
     {
       "version": "1.0.0",
@@ -681,6 +681,43 @@
         }
       ],
       "path": "b-running/b9-notification-backends.md"
+    },
+    {
+      "id": "B10",
+      "title": "Hosting long-running commands",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "tracks": "v1",
+      "milestones": [
+        "M9"
+      ],
+      "milestone": "M9",
+      "priority": null,
+      "labels": [
+        "cli",
+        "storage",
+        "household"
+      ],
+      "requires": [
+        "C5",
+        "D7",
+        "G4"
+      ],
+      "relates": [
+        "B2",
+        "B5",
+        "B8",
+        "G1"
+      ],
+      "versions": [
+        {
+          "version": "0.15.0",
+          "status": "planned"
+        }
+      ],
+      "path": "b-running/b10-hosting.md"
     },
     {
       "id": "C1",
