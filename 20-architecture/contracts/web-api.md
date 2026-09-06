@@ -59,6 +59,7 @@ GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
 GET /api/front-door
 GET /api/outbound      GET /api/stored       GET /api/clients
 GET /api/space         GET /api/bandwidth
+GET /api/hosting
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -79,6 +80,13 @@ held to, which side of the household's day each download client says it is on, a
 is actually keeping to what it was given. Declaring a limit is the action of the same name, at
 the door changes are asked for — a read that could set one would be a read that changes what
 everybody in the house experiences, which is the distinction the two doors exist to draw.
+
+`/api/hosting` takes none, because what is hosted is a property of the machine rather than
+of the caller. It answers with every long-running command that could be handed to this
+machine's service manager and what became of each — installed or not, running or not, and
+where the words of a command with no terminal are being written. Naming one would let a
+surface show a single row and call it the answer, and the row worth reading is the one
+saying a guarantee the operator believes is in force is not.
 
 `/api/front-door` takes none, because the question takes none: which one address the household
 is given is derived from what the stack runs rather than asked for, so a parameter here would be

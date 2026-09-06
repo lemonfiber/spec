@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**68 features** in areas A–L, **947 requirements**.
+**69 features** in areas A–L, **963 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -27,6 +27,7 @@ silently, and this file is regenerated from the features themselves.
 | [B5](b-running/b5-notifications.md) | Notifications & alerting | B | both | accepted | `0.5.0` |
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
+| [B10](b-running/b10-hosting.md) | Hosting long-running commands | B | operator | accepted | `0.15.0` |
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.2.0`, `0.8.0` |
 | [C2](c-trust/c2-vpn-verification.md) | VPN verification | C | operator | accepted | `0.6.0` |
 | [C3](c-trust/c3-auto-remediation.md) | Auto-remediation | C | operator | accepted | `0.7.0` |

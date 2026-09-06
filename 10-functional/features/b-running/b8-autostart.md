@@ -135,6 +135,7 @@ leaving orphaned login items or services behind.
 
 ## Related
 
+- [B10 Hosting long-running commands](b10-hosting.md) — the same standard applied to lemonfiber's own processes, which this feature does not host
 - [B2 Lifecycle control](b2-lifecycle.md) — restart policies and crash-loop detection
 - [B5 Notifications](b5-notifications.md) — reporting a failed boot
 - [C2 VPN verification](../c-trust/c2-vpn-verification.md) — post-reconnect port re-acquisition
