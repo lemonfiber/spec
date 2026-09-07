@@ -58,6 +58,7 @@ GET /api/version       GET /api/config?…       GET /api/quality
 GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
 GET /api/front-door
 GET /api/outbound      GET /api/stored       GET /api/clients
+GET /api/credentials
 GET /api/space         GET /api/bandwidth
 GET /api/hosting      GET /api/uninstall
 ```
@@ -66,6 +67,17 @@ Query parameters mirror what the command takes, flag or argument. A command that
 gains a parameter; one that gains an endpoint gained a command first.
 
 `/api/clients` takes none either, and for a different reason: what to watch on is the same answer on every machine, because the client landscape belongs to the platforms rather than to a stack. It reads nothing and asks nothing of the engine, so it answers where nothing is set up yet — which is when somebody deciding what to tell the house is most likely to ask. Naming a device would let a surface show one row and call it the answer, and the row most worth reading is the one saying a device is poorly served and what to do instead.
+
+`/api/credentials` takes none, and it is half a word on purpose. What it answers with is
+every credential the stack holds — what each is, what authenticates with it, where the value
+lives and where it stands — and no value, because the shape it is built from has no field one
+could go in. The two things that can be asked of a line of it are not offered here at all:
+printing a credential over this door would put it through a browser's cache, whatever proxy is
+between and the log each of them keeps, and replacing one is a write a request could be forged
+into making against the credential the stack is currently working on. Both are the terminal's,
+in front of the person who typed the confirmation. A parameter narrowing the list would be a
+way to ask about one credential rather than the set, and the answer worth reading is the set —
+the credential worth knowing about is usually the one somebody had forgotten was there.
 
 `/api/space` takes none, and the absence is the point. What it answers with is the account of
 where the disk went and an offer of what could be got back; there is no parameter choosing what
