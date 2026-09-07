@@ -6,7 +6,7 @@ version = "0.13.0"
 epoch   = "v1"
 milestone = "M9"   # Lifecycle & maintenance
 delivers  = "Changing your mind — reconfigure, migrate, uninstall, credentials"
-status  = "planned"
+status  = "staged"
 repos   = ["lemonfiber"]
 goals   = [
     "A3-R5",
