@@ -59,7 +59,7 @@ GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
 GET /api/front-door
 GET /api/outbound      GET /api/stored       GET /api/clients
 GET /api/space         GET /api/bandwidth
-GET /api/hosting
+GET /api/hosting      GET /api/uninstall
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -80,6 +80,16 @@ held to, which side of the household's day each download client says it is on, a
 is actually keeping to what it was given. Declaring a limit is the action of the same name, at
 the door changes are asked for — a read that could set one would be a read that changes what
 everybody in the house experiences, which is the distinction the two doors exist to draw.
+
+`/api/uninstall` takes one, and it is required in spirit rather than in shape: which of the
+four removals is being read. Naming none reads the one that removes nothing, because that is
+the safe reading and the one a browser opening the page has not chosen anything by; a word that
+names none of the four is refused rather than read as whichever the shape would default to,
+since on this subject the default that would hurt is the one that reaches the library. It is a
+read and never a removal — what it answers with is the listing every container, image and path
+a removal would take, and the action of the same name is where an answer to that listing goes.
+The two are one command read the same way twice, so what a browser agrees to is what it was
+shown.
 
 `/api/hosting` takes none, because what is hosted is a property of the machine rather than
 of the caller. It answers with every long-running command that could be handed to this
