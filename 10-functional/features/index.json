@@ -105,7 +105,7 @@
     {
       "version": "0.13.0",
       "epoch": "v1",
-      "status": "planned",
+      "status": "staged",
       "milestone": "M9",
       "closes_epoch": null,
       "goals": 60
@@ -279,7 +279,7 @@
       "versions": [
         {
           "version": "0.13.0",
-          "status": "planned"
+          "status": "staged"
         },
         {
           "version": "0.2.0",
@@ -315,7 +315,7 @@
       "versions": [
         {
           "version": "0.13.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "a-getting-started/a4-reconfiguration.md"
@@ -348,7 +348,7 @@
       "versions": [
         {
           "version": "0.13.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "a-getting-started/a5-migration.md"
@@ -379,7 +379,7 @@
       "versions": [
         {
           "version": "0.13.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "a-getting-started/a6-uninstall.md"
@@ -411,7 +411,7 @@
       "versions": [
         {
           "version": "0.13.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "a-getting-started/a7-credential-management.md"
