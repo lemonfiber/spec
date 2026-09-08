@@ -58,7 +58,7 @@ GET /api/version       GET /api/config?…       GET /api/quality
 GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
 GET /api/front-door
 GET /api/outbound      GET /api/stored       GET /api/clients
-GET /api/credentials
+GET /api/credentials   GET /api/alerts
 GET /api/space         GET /api/bandwidth
 GET /api/hosting      GET /api/uninstall
 ```
