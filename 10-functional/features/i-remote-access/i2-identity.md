@@ -5,7 +5,7 @@ kind: feature
 area: I
 audience: both
 status: accepted
-tracks: v2
+maturity: planned
 priority: P1
 labels: [security, household, verification]
 relates: [I1, C6, D6, A7]

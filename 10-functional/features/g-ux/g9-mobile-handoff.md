@@ -5,7 +5,7 @@ kind: feature
 area: G
 audience: both
 status: accepted
-tracks: v2
+maturity: planned
 priority: P2
 labels: [household, ux, verification]
 relates: [G6, D6, I1]

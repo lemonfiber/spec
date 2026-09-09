@@ -5,7 +5,8 @@ kind: feature
 area: D
 audience: operator
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.12.0
 labels: [network]
 requires: [B5]
 relates: [C2, C7, D5]

@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: draft
-tracks: v2
+maturity: planned
 priority: P2
 labels: [extensibility, verification, wiring]
 relates: [F1, F2]

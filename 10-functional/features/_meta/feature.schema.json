@@ -10,7 +10,7 @@
     "area",
     "audience",
     "status",
-    "tracks"
+    "maturity"
   ],
   "additionalProperties": false,
   "properties": {
@@ -60,11 +60,19 @@
         "withdrawn"
       ]
     },
-    "tracks": {
+    "maturity": {
       "enum": [
-        "v1",
-        "v2"
-      ]
+        "planned",
+        "building",
+        "shipped",
+        "withdrawn"
+      ],
+      "description": "How far the implementation has got. Orthogonal to `status`, which describes the specification: a feature can be `accepted` and unbuilt, or `draft` and half-written in code. Merging the two answers loses whichever question is asked less often."
+    },
+    "shipped": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "The version that shipped it. Present only where `maturity` is `shipped`; the version manifests say what that version locked."
     },
     "priority": {
       "enum": [

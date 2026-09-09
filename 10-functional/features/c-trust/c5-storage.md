@@ -5,7 +5,8 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.6.0
 labels: [storage, verification]
 relates: [A2, A4, C1, D5]
 ---

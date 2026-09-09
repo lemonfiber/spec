@@ -5,7 +5,8 @@ kind: feature
 area: G
 audience: both
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.5.0
 labels: [ux]
 relates: [C1, C3, C4, G2]
 ---

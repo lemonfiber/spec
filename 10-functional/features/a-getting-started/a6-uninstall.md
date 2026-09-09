@@ -5,7 +5,8 @@ kind: feature
 area: A
 audience: operator
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.13.0
 labels: [ux]
 relates: [A4, A7, E3, G4]
 ---
