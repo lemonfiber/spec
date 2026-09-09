@@ -8,178 +8,134 @@
   "versions": [
     {
       "version": "0.1.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M2",
-      "closes_epoch": null,
       "goals": 9
     },
     {
       "version": "0.2.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M3",
-      "closes_epoch": null,
       "goals": 38
     },
     {
       "version": "0.3.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M4",
-      "closes_epoch": null,
       "goals": 13
     },
     {
       "version": "0.4.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M4",
-      "closes_epoch": null,
       "goals": 68
     },
     {
       "version": "0.5.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M5",
-      "closes_epoch": null,
       "goals": 50
     },
     {
       "version": "0.6.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M5",
-      "closes_epoch": null,
       "goals": 46
     },
     {
       "version": "0.7.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M5",
-      "closes_epoch": null,
       "goals": 44
     },
     {
       "version": "0.8.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M6",
-      "closes_epoch": null,
       "goals": 47
     },
     {
       "version": "0.9.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M7",
-      "closes_epoch": null,
       "goals": 46
     },
     {
       "version": "0.10.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M7",
-      "closes_epoch": null,
       "goals": 61
     },
     {
       "version": "0.11.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M8",
-      "closes_epoch": null,
       "goals": 44
     },
     {
       "version": "0.12.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M8",
-      "closes_epoch": null,
       "goals": 58
     },
     {
       "version": "0.13.0",
-      "epoch": "v1",
       "status": "released",
       "milestone": "M9",
-      "closes_epoch": null,
       "goals": 60
     },
     {
       "version": "0.14.0",
-      "epoch": "v1",
       "status": "staged",
       "milestone": "M9",
-      "closes_epoch": null,
       "goals": 59
     },
     {
       "version": "0.15.0",
-      "epoch": "v1",
       "status": "planned",
       "milestone": "M9",
-      "closes_epoch": null,
       "goals": 71
     },
     {
       "version": "1.0.0",
-      "epoch": "v1",
       "status": "planned",
       "milestone": "M6",
-      "closes_epoch": "v1",
       "goals": 17
     },
     {
       "version": "2.0.0",
-      "epoch": "v2",
       "status": "planned",
       "milestone": "M15",
-      "closes_epoch": null,
       "goals": 48
     },
     {
       "version": "2.1.0",
-      "epoch": "v2",
       "status": "planned",
       "milestone": "M11",
-      "closes_epoch": null,
       "goals": 56
     },
     {
       "version": "2.2.0",
-      "epoch": "v2",
       "status": "planned",
       "milestone": "M11",
-      "closes_epoch": null,
       "goals": 59
     },
     {
       "version": "2.3.0",
-      "epoch": "v2",
       "status": "planned",
       "milestone": "M12",
-      "closes_epoch": null,
       "goals": 29
     },
     {
       "version": "2.4.0",
-      "epoch": "v2",
       "status": "planned",
       "milestone": "M14",
-      "closes_epoch": null,
       "goals": 26
     },
     {
       "version": "2.5.0",
-      "epoch": "v2",
       "status": "planned",
       "milestone": "M13",
-      "closes_epoch": null,
       "goals": 40
     }
   ],
@@ -191,7 +147,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.2.0",
       "milestones": [
         "M3"
       ],
@@ -223,7 +180,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.2.0",
       "milestones": [
         "M3"
       ],
@@ -256,7 +214,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.13.0",
       "milestones": [
         "M3",
         "M9"
@@ -295,7 +254,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.13.0",
       "milestones": [
         "M9"
       ],
@@ -327,7 +287,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.13.0",
       "milestones": [
         "M9"
       ],
@@ -360,7 +321,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.13.0",
       "milestones": [
         "M9"
       ],
@@ -391,7 +353,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.13.0",
       "milestones": [
         "M9"
       ],
@@ -423,7 +386,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.8.0",
       "milestones": [
         "M2",
         "M6"
@@ -458,7 +422,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.8.0",
       "milestones": [
         "M6"
       ],
@@ -490,7 +455,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M5",
         "M6"
@@ -529,7 +495,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.8.0",
       "milestones": [
         "M6"
       ],
@@ -561,7 +528,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.5.0",
       "milestones": [
         "M5"
       ],
@@ -594,7 +562,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M9"
       ],
@@ -625,7 +594,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M9"
       ],
@@ -658,7 +628,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M13"
       ],
@@ -689,7 +660,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.13.0",
       "milestones": [
         "M9"
       ],
@@ -726,7 +698,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.8.0",
       "milestones": [
         "M2",
         "M3",
@@ -771,7 +744,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.6.0",
       "milestones": [
         "M5"
       ],
@@ -805,7 +779,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.7.0",
       "milestones": [
         "M5"
       ],
@@ -837,7 +812,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.7.0",
       "milestones": [
         "M5"
       ],
@@ -869,7 +845,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.6.0",
       "milestones": [
         "M3",
         "M5"
@@ -906,7 +883,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.10.0",
       "milestones": [
         "M7"
       ],
@@ -942,7 +920,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.6.0",
       "milestones": [
         "M5"
       ],
@@ -977,7 +956,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.7.0",
       "milestones": [
         "M5"
       ],
@@ -1009,7 +989,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.7.0",
       "milestones": [
         "M4",
         "M5"
@@ -1047,7 +1028,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.12.0",
       "milestones": [
         "M4",
         "M8"
@@ -1084,7 +1066,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.4.0",
       "milestones": [
         "M4"
       ],
@@ -1115,7 +1098,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.4.0",
       "milestones": [
         "M4"
       ],
@@ -1147,7 +1131,8 @@
       "audience": "household",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.11.0",
       "milestones": [
         "M8"
       ],
@@ -1179,7 +1164,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.12.0",
       "milestones": [
         "M8"
       ],
@@ -1211,7 +1197,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.11.0",
       "milestones": [
         "M8"
       ],
@@ -1245,7 +1232,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.12.0",
       "milestones": [
         "M8"
       ],
@@ -1276,7 +1264,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.12.0",
       "milestones": [
         "M8"
       ],
@@ -1307,7 +1296,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.4.0",
       "milestones": [
         "M4"
       ],
@@ -1340,7 +1330,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.12.0",
       "milestones": [
         "M8"
       ],
@@ -1372,7 +1363,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M9"
       ],
@@ -1404,7 +1396,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M9"
       ],
@@ -1434,7 +1427,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M4",
         "M9"
@@ -1472,7 +1466,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M9"
       ],
@@ -1504,7 +1499,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M9"
       ],
@@ -1534,7 +1530,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M9"
       ],
@@ -1563,7 +1560,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M9"
       ],
@@ -1593,7 +1591,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "draft",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M14"
       ],
@@ -1624,7 +1623,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.9.0",
       "milestones": [
         "M7"
       ],
@@ -1658,7 +1658,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.9.0",
       "milestones": [
         "M7"
       ],
@@ -1689,7 +1690,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.10.0",
       "milestones": [
         "M7"
       ],
@@ -1724,7 +1726,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.5.0",
       "milestones": [
         "M5"
       ],
@@ -1755,7 +1758,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.11.0",
       "milestones": [
         "M7",
         "M8"
@@ -1792,7 +1796,8 @@
       "audience": "household",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.11.0",
       "milestones": [
         "M8"
       ],
@@ -1824,7 +1829,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "shipped",
+      "shipped": "0.5.0",
       "milestones": [
         "M5"
       ],
@@ -1857,7 +1863,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M7",
         "M8",
@@ -1899,7 +1906,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M14"
       ],
@@ -1931,7 +1939,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M11"
       ],
@@ -1963,7 +1972,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M11"
       ],
@@ -1995,7 +2005,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M11"
       ],
@@ -2026,7 +2037,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M11"
       ],
@@ -2057,7 +2069,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M11"
       ],
@@ -2087,7 +2100,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M11"
       ],
@@ -2117,7 +2131,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M11"
       ],
@@ -2148,7 +2163,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M11"
       ],
@@ -2179,7 +2195,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M12"
       ],
@@ -2213,7 +2230,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M12"
       ],
@@ -2246,7 +2264,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "draft",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M15"
       ],
@@ -2277,7 +2296,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "draft",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M15"
       ],
@@ -2309,7 +2329,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "draft",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M15"
       ],
@@ -2340,7 +2361,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M13"
       ],
@@ -2370,7 +2392,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M13"
       ],
@@ -2401,7 +2424,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v1",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M6"
       ],
@@ -2429,7 +2453,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "tracks": "v2",
+      "maturity": "planned",
+      "shipped": null,
       "milestones": [
         "M15"
       ],
