@@ -1,6 +1,6 @@
 ---
 id: E2
-title: lemonfiber self-update
+title: Self-update
 kind: feature
 area: E
 audience: operator
@@ -10,7 +10,7 @@ labels: [updates]
 relates: [C4, E1, G8]
 ---
 
-# E2 — lemonfiber self-update
+# E2 — Self-update
 
 **Status:** Accepted · **Audience:** Operator · **Area:** E — Maintenance
 

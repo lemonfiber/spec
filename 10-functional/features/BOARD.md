@@ -62,7 +62,7 @@ code, and the two move independently.
 |----|---------|------|----------|--------|----------|
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.5.0`, `1.0.0` |
 | [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.14.0` |
-| [E2](e-maintenance/e2-self-update.md) | lemonfiber self-update | E | operator | accepted | `0.14.0` |
+| [E2](e-maintenance/e2-self-update.md) | Self-update | E | operator | accepted | `0.14.0` |
 | [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.14.0`, `0.3.0` |
 | [E4](e-maintenance/e4-rollback.md) | Rollback | E | operator | accepted | `0.14.0` |
 | [E5](e-maintenance/e5-changelog.md) | Changelog & release notes | E | operator | accepted | `0.14.0` |
