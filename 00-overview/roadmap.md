@@ -36,13 +36,14 @@ stub** — a release refuses while a feature it locks is not yet built
 | `0.13.0` | M9 | Changing your mind — reconfigure, migrate, uninstall, credentials | Released |
 | `0.14.0` | M9 | Keeping it running — updates, backup, rollback, the journal | Staged |
 | `0.15.0` | M9 | The last of v1 — remote control, autostart, customisation | Planned |
-| `1.0.0` | M6 | **The dashboard** — a bare `lemonfiber` opens it. Closes v1. | Planned |
-| `2.0.0` | M15 | **Runs without Docker** — engine abstraction, Podman, native. Opens v2. | Planned |
-| `2.1.0` | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
-| `2.2.0` | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
-| `2.3.0` | M12 | Safely reachable — remote access and one account | Planned |
-| `2.4.0` | M14 | The platform — third-party manifests, catalogue, mobile client handoff | Planned |
-| `2.5.0` | M13 | See everything — metrics, dashboards, uptime | Planned |
+| `0.16.0` | M14 | Plugins — what one is, how it wires, and what it may stand in for | Planned |
+| `0.17.0` | M14 | Plugins — where they come from, what installing one does, and what it leaves readable | Planned |
+| `0.18.0` | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
+| `0.19.0` | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
+| `0.20.0` | M12 | Safely reachable — remote access and one account | Planned |
+| `0.21.0` | M13 | See everything — metrics, dashboards, uptime | Planned |
+| `0.22.0` | M15 | Runs without Docker — engine abstraction, Podman, native | Planned |
+| `1.0.0` | M6 | The dashboard — a bare `lemonfiber` opens it. Everything specced is built, and the interfaces stop moving. | Planned |
 
 ### Patch releases (hotfixes)
 
@@ -279,17 +280,23 @@ following only the README.
 
 ---
 
-## v2 — the ecosystem (M11–M15)
+## The rest of the way to `1.0.0` (M11–M15)
 
-`1.0.0` finishes v1 with the television interface. v2 opens with `2.0.0` and the
-capability that justifies a major: the stack runs without Docker. The rest
-follows as minors, authored to the same bar as v1.
+These were once sequenced behind a second epoch opening at `2.0.0`. There is no
+second epoch: `1.0.0` means everything specced is built and the interfaces stop
+moving, so everything below is on the way to it rather than after it. They ship as
+minors on the one train, authored to the same bar as everything before them.
+
+The plugin system comes first of them, because it changes the stack manifest and
+introduces the capability vocabulary — every feature after it is then built on the
+shape that ships rather than retrofitted onto it, and the schema has several minors
+of use behind it before `1.0.0` freezes it.
 
 ---
 
 ## M15 — Runs anywhere
 
-Opens v2 (`2.0.0`). The container engine becomes one implementation behind an
+`0.22.0`. The container engine becomes one implementation behind an
 abstraction rather than an assumption, which lifts the single-engine non-goal
 ([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)).
 
@@ -298,7 +305,7 @@ abstraction rather than an assumption, which lifts the single-engine non-goal
 | Container-engine abstraction | One port, Docker behind it; nothing above it names an engine |
 | Podman | A first-class alternative, not a compatibility shim |
 | Native, without containers | Services run as processes; the same manifest describes both |
-| Upgrade from v1 | A v1 install moves to `2.0.0` keeping its configuration and data |
+| Upgrade in place | An existing install moves to `0.22.0` keeping its configuration and data |
 
 **Exit criteria:** the same stack starts, passes doctor and serves media under
 Docker, under Podman, and with no container runtime present.
@@ -307,7 +314,7 @@ Docker, under Podman, and with no container runtime present.
 
 ## M11 — Ecosystem glue
 
-`2.1.0`–`2.2.0`. The integrations a mature stack grows into, each one *verified*
+`0.18.0`–`0.19.0`. The integrations a mature stack grows into, each one *verified*
 rather than merely wired.
 
 | Deliverable | Notes |
@@ -328,7 +335,7 @@ presence in a configuration file.
 
 ## M12 — Safely reachable
 
-`2.3.0`. Reaching the stack from outside the house without opening it to the
+`0.20.0`. Reaching the stack from outside the house without opening it to the
 world.
 
 | Deliverable | Notes |
@@ -343,7 +350,7 @@ port exposed to the internet, signing in once.
 
 ## M13 — See everything
 
-`2.5.0`. The stack's own telemetry, for the operator who wants graphs rather
+`0.21.0`. The stack's own telemetry, for the operator who wants graphs rather
 than a dashboard.
 
 | Deliverable | Notes |
@@ -358,19 +365,23 @@ notification the trust checks already know how to send.
 
 ## M14 — The platform
 
-`2.4.0`. Other people's stacks, and the surface that makes them possible
-*(Draft)*.
+`0.16.0` and `0.17.0`. Other people's stacks, and the surface that makes them
+possible *(Draft)*.
 
 | Deliverable | Notes |
 |-------------|-------|
-| Third-party manifests | F3 — a stack lemonfiber did not write, run safely |
-| Community catalogue | Discovery, with the same validation the shipped stack passes |
+| Plugin manifests and recipes | F3 — declarative data carrying ordered calls, so a first-run flow is data rather than code |
+| Capabilities and substitution | F4 — services declare what they can do and wiring asks for it, which is what lets one stand in for another |
+| The plugin catalogue | F5 — reviewed, signed, and an operator's own source on the same technical terms with unreviewed said plainly |
+| Plugin lifecycle | F6 — rehearse, install, prove, verify the stack around it, and reverse through the journal on either failure |
+| Plugin provenance | F7 — four redundant answers to why did my stack do that |
 | Mobile client handoff | G9 — a household member's phone reaches the library in one step |
 
-**Exit criteria:** a stack authored outside this project installs, validates and
-runs with no change to lemonfiber.
+**Exit criteria:** a plugin authored outside this project installs, proves itself,
+and substitutes for a bundled service with no change to lemonfiber — and removing it
+puts the stack back.
 
-## Beyond v2
+## Beyond `1.0.0`
 
 Not scheduled. Recorded so they're not rediscovered as novel.
 
@@ -379,11 +390,11 @@ Not scheduled. Recorded so they're not rediscovered as novel.
 | Keyring-backed secrets | OS keychain instead of plaintext `.env` |
 | GUI | Tauri; only if terminal-first proves to be the barrier |
 
-Several former post-1.0 candidates are now **v2** features: autobrr/cross-seed
+Several former post-1.0 candidates are scheduled features on the way to `1.0.0`: autobrr/cross-seed
 ([H1](../10-functional/features/h-glue/h1-cross-seed.md), [H2](../10-functional/features/h-glue/h2-autobrr.md)),
 Janitorr/Maintainerr ([H6](../10-functional/features/h-glue/h6-library-cleanup.md)),
 transcoding ([H7](../10-functional/features/h-glue/h7-transcoding.md), open-source
-Unmanic), third-party stack manifests ([F3](../10-functional/features/f-extensibility/f3-stack-manifests.md)),
+Unmanic), and the plugin system ([F3](../10-functional/features/f-extensibility/f3-stack-manifests.md)),
 and remote access for the household ([I1](../10-functional/features/i-remote-access/i1-remote-access.md)).
 
 ## Explicitly rejected

@@ -2,7 +2,7 @@
 #
 # 56 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
-version = "2.1.0"
+version = "0.18.0"
 milestone = "M11"   # Ecosystem glue
 delivers  = "Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles"
 status  = "planned"

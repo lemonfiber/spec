@@ -1,0 +1,66 @@
+# Plugins, part two — the catalogue, the lifecycle, the provenance, and the handoff.
+#
+# G9 joins them because a mobile client is handed a stack it did not configure, which
+# is the same question this version answers for a plugin: what changed here, and who
+# is answerable for it.
+#
+# 49 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
+version = "0.17.0"
+milestone = "M14"   # The platform
+delivers  = "Plugins — where they come from, what installing one does, and what it leaves readable"
+status  = "planned"
+repos   = ["lemonfiber"]
+goals   = [
+    "F5-R1",
+    "F5-R2",
+    "F5-R3",
+    "F5-R4",
+    "F5-R5",
+    "F5-R6",
+    "F5-R7",
+    "F5-R8",
+    "F5-R9",
+    "F5-R10",
+    "F5-R11",
+    "F5-R12",
+    "F6-R1",
+    "F6-R2",
+    "F6-R3",
+    "F6-R4",
+    "F6-R5",
+    "F6-R6",
+    "F6-R7",
+    "F6-R8",
+    "F6-R9",
+    "F6-R10",
+    "F6-R11",
+    "F6-R12",
+    "F6-R13",
+    "F7-R1",
+    "F7-R2",
+    "F7-R3",
+    "F7-R4",
+    "F7-R5",
+    "F7-R6",
+    "F7-R7",
+    "F7-R8",
+    "F7-R9",
+    "F7-R10",
+    "F7-R11",
+    "F7-R12",
+    "G9-R1",
+    "G9-R2",
+    "G9-R3",
+    "G9-R4",
+    "G9-R5",
+    "G9-R6",
+    "G9-R7",
+    "G9-R8",
+    "G9-R9",
+    "G9-R10",
+    "G9-R11",
+    "G9-R12",
+]
+
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

@@ -4,17 +4,27 @@ title: v2 release
 kind: feature
 area: L
 audience: operator
-status: accepted
-maturity: planned
+status: withdrawn
+maturity: withdrawn
 priority: P1
 labels: [release, verification]
 ---
 
 # L2 — v2 release
 
-**Status:** Accepted · **Audience:** Operator · **Area:** L — Release & distribution
+**Status:** Withdrawn · **Audience:** Operator · **Area:** L — Release & distribution
 
 ---
+
+> **Withdrawn.** This feature described the release that opened v2. There are no
+> epochs any more: everything that was sequenced behind `2.0.0` now sequences towards
+> `1.0.0` on one train, and there is no second epoch for a release to open. Its
+> requirements are locked by no version and gate nothing.
+>
+> What it was actually about — that a major ships no stubs — survives in `OPS-R54`,
+> which now says it without epoch vocabulary and says it of every version rather than
+> only of a major. The text below is kept as written, because a withdrawn feature that
+> is deleted leaves a reader of the history with a citation and nothing to read.
 
 ## Purpose
 
