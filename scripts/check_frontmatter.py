@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Validate feature-doc frontmatter against feature.schema.json.
 
-Checks the required keys, enum membership, the id/area/filename agreement, and the
-label registry, and rejects unknown keys. Exit 0 when every feature is valid, 1
-with the violations named. Run from the repo root.
+Checks the required keys, enum membership, the id/area/filename agreement, the
+label registry, and the coupling between `maturity` and `shipped`, and rejects
+unknown keys. Exit 0 when every feature is valid, 1 with the violations named.
+Run from the repo root.
 """
 import glob
 import json
@@ -12,6 +13,7 @@ import re
 import sys
 
 import metafm
+from patterns import VERSION
 
 SCHEMA = json.loads(
     pathlib.Path("10-functional/features/_meta/feature.schema.json").read_text(encoding="utf-8")
@@ -19,7 +21,7 @@ SCHEMA = json.loads(
 PROPS = SCHEMA["properties"]
 REQUIRED = SCHEMA["required"]
 LABELS = set(PROPS["labels"]["items"]["enum"])
-ENUM_KEYS = ("kind", "area", "audience", "status", "tracks", "priority")
+ENUM_KEYS = ("kind", "area", "audience", "status", "maturity", "priority")
 ID_RE = re.compile(r"^[A-L]\d+$")
 
 
@@ -70,11 +72,37 @@ def _lists(fm, path):
     return out
 
 
+def _shipped(fm, path):
+    """`shipped` names the version that shipped it, and only a shipped feature has one.
+
+    The two fields answer one question between them, so a version on a feature
+    nobody has built is not a smaller mistake than a missing one — it is a claim
+    the board would render as fact. `status` is deliberately not consulted here:
+    it describes the specification, and a feature can be `accepted` and unbuilt.
+    """
+    out = []
+    version = fm.get("shipped")
+    if version is None:
+        return out
+    if fm.get("maturity") != "shipped":
+        out.append(f"{path}: shipped = '{version}' on a feature whose maturity is "
+                   f"'{fm.get('maturity')}'")
+    if not VERSION.match(version):
+        out.append(f"{path}: shipped = '{version}' is not a version")
+    return out
+
+
 def problems_for(path):
     fm = metafm.load(path)
     if fm is None:
         return [f"{path}: no frontmatter block"]
-    return _keys(fm, path) + _enums(fm, path) + _identity(fm, path) + _lists(fm, path)
+    return (
+        _keys(fm, path)
+        + _enums(fm, path)
+        + _identity(fm, path)
+        + _lists(fm, path)
+        + _shipped(fm, path)
+    )
 
 
 def main():

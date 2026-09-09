@@ -9,7 +9,6 @@
 # hosts shipped in 0.6.0 and 0.12.0, so the work satisfying these goals lands before
 # the version does, the way G8-R4 and G8-R10 reach 0.14.0 from 0.10.0 (OPS-R31).
 version = "0.15.0"
-epoch   = "v1"
 milestone = "M9"   # Lifecycle & maintenance
 delivers  = "The last of v1 — remote control, autostart, customisation"
 status  = "planned"

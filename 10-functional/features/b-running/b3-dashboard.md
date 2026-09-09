@@ -5,7 +5,7 @@ kind: feature
 area: B
 audience: operator
 status: accepted
-tracks: v1
+maturity: building
 labels: [tui, verification]
 requires: [G7]
 relates: [B2, B4, C2, G1]

@@ -3,7 +3,6 @@
 # (cited in a merged commit AND marked ✅ in IMPLEMENTATION-STATUS). The set grows
 # as the tracker's ✅ rows name more of the IDs they satisfy.
 version = "0.1.0"
-epoch   = "v1"
 milestone = "M2"   # Core: manifest, compose driver, CLI
 delivers  = "Core: manifest, compose driver, CLI"
 status  = "released"

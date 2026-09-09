@@ -5,7 +5,8 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.6.0
 labels: [vpn, network, verification]
 requires: [B5]
 relates: [A3, B8, C1]

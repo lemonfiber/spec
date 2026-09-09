@@ -5,7 +5,7 @@ kind: feature
 area: H
 audience: both
 status: accepted
-tracks: v2
+maturity: planned
 priority: P1
 labels: [subtitles, wiring, verification, quality]
 relates: [D1]

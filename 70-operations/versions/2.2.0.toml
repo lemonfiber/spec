@@ -3,7 +3,6 @@
 # 59 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "2.2.0"
-epoch   = "v2"
 milestone = "M11"   # Ecosystem glue
 delivers  = "Ecosystem glue: self-healing, cleanup, transcoding, statistics"
 status  = "planned"

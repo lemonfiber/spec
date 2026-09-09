@@ -3,8 +3,8 @@
 
 The table used to be prose maintained beside the manifests, and it drifted:
 after the train was renumbered it still named versions that no longer existed.
-Anything a manifest already knows — the epoch, the milestone, what it delivers,
-where it stands — is read from there, so the two cannot disagree again.
+Anything a manifest already knows — the milestone, what it delivers, where it
+stands — is read from there, so the two cannot disagree again.
 """
 
 import pathlib
@@ -23,8 +23,8 @@ SHOWN = {
 
 
 def rows() -> list[str]:
-    out = ["| Version | Epoch | Milestone | Delivers | Status |",
-           "|---------|-------|-----------|----------|--------|"]
+    out = ["| Version | Milestone | Delivers | Status |",
+           "|---------|-----------|----------|--------|"]
     manifests = sorted(
         (p for p in VERSIONS.glob("*.toml") if p.stem != "TEMPLATE"),
         key=lambda p: [int(part) for part in p.stem.split(".")],
@@ -33,9 +33,8 @@ def rows() -> list[str]:
         data = tomllib.loads(path.read_text(encoding="utf-8"))
         status = data.get("status", "planned")
         out.append(
-            f"| `{data['version']}` | {data.get('epoch', '')} | "
-            f"{data.get('milestone', '')} | {data.get('delivers', '')} | "
-            f"{SHOWN.get(status, status)} |"
+            f"| `{data['version']}` | {data.get('milestone', '')} | "
+            f"{data.get('delivers', '')} | {SHOWN.get(status, status)} |"
         )
     return out
 
@@ -45,7 +44,7 @@ def main() -> None:
     # The header row and every row under it — consecutive lines that start with a
     # pipe. Written as "the header, then more table lines" rather than "anything
     # up to a blank line", which reads as a puzzle and behaves like one.
-    table = re.compile(r"^\| Version \| Epoch \|.*(?:\n\|.*)*", re.MULTILINE)
+    table = re.compile(r"^\| Version \| Milestone \|.*(?:\n\|.*)*", re.MULTILINE)
     if not table.search(text):
         raise SystemExit("::error::no version table found in the roadmap")
     ROADMAP.write_text(table.sub("\n".join(rows()), text, count=1), encoding="utf-8")

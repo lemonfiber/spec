@@ -14,8 +14,8 @@ product thesis (guided setup, forms, verification) was proven.
 
 v2 reopens it deliberately. "Run without Docker" is a real, requested capability —
 Docker Desktop's licensing on macOS/Windows, and a preference for a fully
-open-source runtime, are legitimate reasons — and the ecosystem epoch is the
-right place to pay the matrix cost.
+open-source runtime, are legitimate reasons — and the ecosystem is the right
+place to pay the matrix cost.
 
 What makes this non-obvious is that two v1 guarantees are **load-bearing and
 engine-shaped**:

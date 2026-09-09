@@ -3,7 +3,6 @@
 # 46 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.6.0"
-epoch   = "v1"
 milestone = "M5"   # Trust checks
 delivers  = "Trust checks: VPN, storage, queue health"
 status  = "released"

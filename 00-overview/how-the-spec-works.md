@@ -55,18 +55,25 @@ title: Live dashboard
 kind: feature          # epic-level item
 area: B                # component
 audience: operator     # who it's for: operator | household | both
-status: accepted       # draft → accepted → superseded → withdrawn
-tracks: v1             # which epoch: v1 or v2
-milestone: M5          # roadmap milestone
+status: accepted       # the specification: draft → accepted → superseded → withdrawn
+maturity: building     # the implementation: planned → building → shipped | withdrawn
 priority: P1           # P0..P3
 labels: [tui, telemetry, resilience]
-depends: [B2, C2, G7]  # related features
+requires: [B2, C2, G7] # what it cannot meet its acceptance criteria without
+relates: [D1]          # worth reading alongside, and not needed to build it
 ```
 
 `status` is the important one: **Draft** means "proposed, not binding — don't
 build it yet"; **Accepted** means "agreed, cite it and build." That single flag is
 what makes the *request-for-comments* phase possible — Draft items are what the
 community is invited to weigh in on before they become binding.
+
+`maturity` answers the other question — *how far is this built* — and is
+deliberately a separate field, because the two answers move independently: a
+feature can be agreed and unbuilt for a year, or prototyped while its
+specification is still Draft. A `shipped` one also carries `shipped: 0.13.0`, the
+version it went out in. Which milestone a feature belongs to is read from the
+version that ships it rather than written here, so the two cannot disagree.
 
 ## The other kinds of documents
 
@@ -88,9 +95,14 @@ requirement IDs it must satisfy:
 - **Minor** (`0.4.0`, `0.5.0`, …) — a themed slice of features. This is the normal
   unit of release.
 - **Patch** (`x.y.Z`) — a hotfix on an already-released version.
-- **Major** (`1.0.0`, `2.0.0`) — an **epoch** boundary. `1.0.0` is the whole v1
-  product (areas A–G); `2.0.0` is v2 (the ecosystem). A major only ships when its
-  epoch is *complete* — no half-finished features left behind.
+- **Major** (`1.0.0`, `2.0.0`) — a generation boundary, carrying the capability
+  that justifies the number: `1.0.0` opens the dashboard on a bare invocation,
+  `2.0.0` runs the stack without Docker.
+
+No version ships a stub. A release refuses while a feature it locks is not yet
+built ([OPS-R54](../70-operations/staging.md)), which is a rule about every
+version and bites hardest on a major — a major is what people read as a finished
+generation.
 
 A version's goals are **locked** before the work starts, and the release refuses
 to ship until every goal is both cited in a merged PR *and* ticked off as done.

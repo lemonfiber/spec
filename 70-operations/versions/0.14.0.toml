@@ -8,7 +8,6 @@
 # rather than a subject of their own, so they are met by the E2 work below
 # behaving, not by anything separate.
 version = "0.14.0"
-epoch   = "v1"
 milestone = "M9"   # Lifecycle & maintenance
 delivers  = "Keeping it running — updates, backup, rollback, the journal"
 status  = "staged"

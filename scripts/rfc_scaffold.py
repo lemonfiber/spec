@@ -81,7 +81,7 @@ kind: feature
 area: {area}
 audience: operator
 status: draft
-tracks: v2
+maturity: planned
 ---
 
 # {fid} — RFC draft (from #{num})

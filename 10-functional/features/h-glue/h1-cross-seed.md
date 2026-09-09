@@ -5,7 +5,7 @@ kind: feature
 area: H
 audience: operator
 status: accepted
-tracks: v2
+maturity: planned
 priority: P1
 labels: [seed, storage, wiring, verification]
 relates: [C5, D1]

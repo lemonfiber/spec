@@ -5,7 +5,8 @@ kind: feature
 area: B
 audience: both
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.5.0
 labels: [notifications]
 relates: [B3, C1, C7, C8, D4, G4]
 ---

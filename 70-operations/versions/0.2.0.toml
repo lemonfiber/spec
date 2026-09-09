@@ -4,7 +4,6 @@
 # environment preflight, prerequisites guidance, Jellyfin native-mode, and the
 # trust checks (hardlink, storage, credentials, VPN port-forward).
 version = "0.2.0"
-epoch   = "v1"
 milestone = "M3"   # Setup wizard + doctor
 delivers  = "Setup wizard + doctor"
 status  = "released"

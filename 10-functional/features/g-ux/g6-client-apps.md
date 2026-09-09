@@ -5,7 +5,8 @@ kind: feature
 area: G
 audience: household
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.11.0
 labels: [household, ux]
 relates: [D2, D6, D8, G5]
 ---

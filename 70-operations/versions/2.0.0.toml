@@ -3,7 +3,6 @@
 # 48 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "2.0.0"
-epoch   = "v2"
 milestone = "M15"   # Runs anywhere
 delivers  = "**Runs without Docker** — engine abstraction, Podman, native. Opens v2."
 status  = "planned"

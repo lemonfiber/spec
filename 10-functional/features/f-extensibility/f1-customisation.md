@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-tracks: v1
+maturity: planned
 labels: [extensibility]
 relates: [C9, F2]
 ---

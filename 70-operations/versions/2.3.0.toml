@@ -3,7 +3,6 @@
 # 29 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "2.3.0"
-epoch   = "v2"
 milestone = "M12"   # Safely reachable
 delivers  = "Safely reachable — remote access and one account"
 status  = "planned"

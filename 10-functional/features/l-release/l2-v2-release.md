@@ -5,7 +5,7 @@ kind: feature
 area: L
 audience: operator
 status: accepted
-tracks: v2
+maturity: planned
 priority: P1
 labels: [release, verification]
 ---
@@ -18,11 +18,11 @@ labels: [release, verification]
 
 ## Purpose
 
-Ship the ecosystem to the same bar the product was shipped at. `2.0.0` closes the
-v2 epoch the way [L1](l1-release-engineering.md) closed v1: not a summary of the
-minors that delivered the ecosystem features, but the release *of that epoch* —
-the v2 surface distributed, verified, and upgradable, through the one pipeline
-that already exists rather than a second one built alongside it.
+Ship the ecosystem to the same bar the product was shipped at. `2.0.0` finishes
+v2 the way [L1](l1-release-engineering.md) finishes v1: not a summary of the
+minors that delivered the ecosystem features, but the release *of that surface* —
+distributed, verified, and upgradable, through the one pipeline that already
+exists rather than a second one built alongside it.
 
 ## Behaviour
 
@@ -43,14 +43,14 @@ compiled, and documented on the site generated from this specification.
 
 An operator on a v1 release MUST be able to upgrade to `2.0.0` without losing what
 they configured. The upgrade MUST be tested and MUST preserve the operator's
-configuration and data, so moving to the ecosystem epoch is a step forward rather
-than a fresh start.
+configuration and data, so moving to the ecosystem is a step forward rather than
+a fresh start.
 
-### The epoch it closes
+### The no-stub bar it clears
 
-`2.0.0` closes the v2 epoch, and a major ships no stubs: it MUST NOT be cut while
-any `tracks: v2` feature is not both Accepted and implemented. The completeness
-bar, not a per-feature goal list, is what a major satisfies
+`2.0.0` finishes v2, and a major ships no stubs: it MUST NOT be cut while any
+feature it locks is not both Accepted and `shipped`. The bar is measured in
+features rather than in requirements taken one at a time
 ([OPS-R54](../../../70-operations/staging.md)).
 
 ## Edge cases
@@ -59,7 +59,7 @@ bar, not a per-feature goal list, is what a major satisfies
 |-----------|--------------------|
 | A v2 feature runs on two platforms but not the third | The release MUST be blocked until it runs on all three, not shipped as mostly working. |
 | An upgrade from v1 would drop configuration or data | The upgrade MUST be corrected or blocked, never allowed to lose the operator's state silently. |
-| A v2 feature is Accepted but not yet implemented | `2.0.0` MUST NOT ship; the completeness bar is unmet. |
+| A feature `2.0.0` locks is Accepted but not yet built | `2.0.0` MUST NOT ship; the no-stub bar is unmet. |
 
 ## Acceptance criteria
 
@@ -70,10 +70,10 @@ bar, not a per-feature goal list, is what a major satisfies
 | **L2-R3** | The documentation site and the installers MUST cover the v2 features. |
 | **L2-R4** | An upgrade from a v1 release to `2.0.0` MUST be tested and MUST preserve the operator's configuration and data. |
 | **L2-R5** | The release pipeline MUST be reachable non-interactively, with no manual step beyond authorisation required to cut the release. |
-| **L2-R6** | `2.0.0` MUST deliver the container-engine abstraction — running under Podman, and running natively without containers — and MUST NOT be cut before it does. A major opens its epoch with the capability that justifies the number; the rest of the epoch follows as minors. |
+| **L2-R6** | `2.0.0` MUST deliver the container-engine abstraction — running under Podman, and running natively without containers — and MUST NOT be cut before it does. A major opens a generation with the capability that justifies the number; the rest of it follows as minors. |
 
 ## Related
 
 - [L1 v1 release engineering](l1-release-engineering.md) — the pipeline this reuses rather than rebuilds
-- [OPS-R54 Epoch completeness](../../../70-operations/staging.md) — the no-stub-major bar `2.0.0` must clear
+- [OPS-R54 — no version ships a stub](../../../70-operations/staging.md) — the bar `2.0.0` must clear
 - [A5 Migration](../a-getting-started/a5-migration.md) — the state an upgrade must preserve

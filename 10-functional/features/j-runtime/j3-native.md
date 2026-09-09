@@ -5,7 +5,7 @@ kind: feature
 area: J
 audience: operator
 status: draft
-tracks: v2
+maturity: planned
 priority: P3
 labels: [runtime, network, verification]
 relates: [J1, C2]

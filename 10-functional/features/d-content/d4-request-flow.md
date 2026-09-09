@@ -5,7 +5,8 @@ kind: feature
 area: D
 audience: household
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.11.0
 labels: [household]
 relates: [D1, D6, D7, D8, G6]
 ---

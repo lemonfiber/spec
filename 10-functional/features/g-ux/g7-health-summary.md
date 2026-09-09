@@ -5,7 +5,8 @@ kind: feature
 area: G
 audience: operator
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.5.0
 labels: [verification, ux]
 requires: [B5]
 relates: [B3, C1, G4]

@@ -5,7 +5,8 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.7.0
 labels: [verification]
 requires: [C4, G4]
 relates: [C1, C9]

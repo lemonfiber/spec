@@ -5,7 +5,8 @@ kind: feature
 area: B
 audience: operator
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.13.0
 labels: [cli, storage, household]
 requires: [C5, D7, G4]
 relates: [B2, B5, B8, G1]

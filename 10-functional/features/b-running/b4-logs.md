@@ -5,7 +5,8 @@ kind: feature
 area: B
 audience: operator
 status: accepted
-tracks: v1
+maturity: shipped
+shipped: 0.8.0
 labels: [tui]
 requires: [G4]
 relates: [B3, C1, C4]

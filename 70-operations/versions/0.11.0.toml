@@ -8,7 +8,6 @@
 # built in two of its three places — after setup and on the dashboard — and what
 # it still owes is the third, an address on an invitation.
 version = "0.11.0"
-epoch   = "v1"
 milestone = "M8"   # Household & content
 delivers  = "The household asks — requests, identity, client apps"
 status  = "released"

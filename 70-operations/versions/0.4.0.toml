@@ -3,7 +3,6 @@
 # 68 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.4.0"
-epoch   = "v1"
 milestone = "M4"   # Seed & backup
 delivers  = "Auto-wiring, seed, quality, trace and the first-content walk"
 status  = "released"

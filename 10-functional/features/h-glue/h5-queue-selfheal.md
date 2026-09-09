@@ -5,7 +5,7 @@ kind: feature
 area: H
 audience: operator
 status: accepted
-tracks: v2
+maturity: planned
 priority: P2
 labels: [queue, verification, wiring]
 relates: [C7]

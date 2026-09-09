@@ -68,18 +68,18 @@ def load_versions():
 
 
 def load_version_list():
-    """Every version manifest as a train row, ordered by semver. Unlike the
-    per-feature version membership above, this keeps the epoch-closing majors —
-    which own no per-feature goals (the no-stub-major rule) and so appear in no
-    feature row — so a consumer can render the whole train, majors included."""
+    """Every version manifest as a train row, ordered by semver.
+
+    The membership above is keyed by feature, so a version whose goals name
+    nothing the catalogue holds would appear in no row at all. This is read from
+    the manifests directly, so a consumer renders the whole train rather than the
+    part of it the features happen to reach."""
     versions = []
     for data in version_manifests():
         versions.append({
             "version": data["version"],
-            "epoch": data.get("epoch"),
             "status": data.get("status", "planned"),
             "milestone": data.get("milestone"),
-            "closes_epoch": data.get("closes_epoch"),
             "goals": len(data.get("goals", [])),
         })
     versions.sort(key=lambda v: [int(part) for part in v["version"].split(".")])
@@ -134,7 +134,8 @@ def build_rows(feats, by_feature):
             "audience": fm["audience"],
             "kind": fm.get("kind", "feature"),
             "status": fm["status"],
-            "tracks": fm["tracks"],
+            "maturity": fm["maturity"],
+            "shipped": fm.get("shipped"),
             "milestones": milestones_of(fid, by_feature, by_version),
             "milestone": next(iter(milestones_of(fid, by_feature, by_version)), None),
             "priority": fm.get("priority"),
@@ -147,10 +148,26 @@ def build_rows(feats, by_feature):
     return rows
 
 
+MATURITIES = ("shipped", "building", "planned", "withdrawn")
+
+MATURITY_LABEL = {
+    "shipped": "Shipped — built, and out in a version",
+    "building": "Building — work has started, or a version in flight locks it",
+    "planned": "Planned — specified, not yet built",
+    "withdrawn": "Withdrawn — no longer to be built",
+}
+
+
 def render_board(rows, counts):
     def ships(row):
+        """The version a shipped feature went out in, or the versions still
+        carrying its goals. A feature the manifests place in several versions is
+        finished by one of them, and `shipped:` is the one that says which."""
+        if row["shipped"]:
+            return f"`{row['shipped']}`"
         return ", ".join(f"`{v['version']}`" for v in row["versions"]) or "—"
 
+    tally = {m: sum(1 for row in rows if row["maturity"] == m) for m in MATURITIES}
     out = [
         "# Feature board",
         "",
@@ -166,19 +183,24 @@ def render_board(rows, counts):
         "Counted here rather than restated: prose that quotes a number goes stale",
         "silently, and this file is regenerated from the features themselves.",
         "",
+        "Grouped by **maturity**, which says how far the implementation has got — "
+        + ", ".join(f"{tally[m]} {m}" for m in MATURITIES if tally[m])
+        + ".",
+        "**Status** is the other question, about the specification rather than the",
+        "code, and the two move independently.",
+        "",
     ]
-    for track, label in (
-        ("v1", "v1 — the product (areas A–G, and L1 to release it)"),
-        ("v2", "v2 — the ecosystem (areas H–K, plus F3, and L2 to release it)"),
-    ):
+    for maturity in MATURITIES:
+        if not tally[maturity]:
+            continue
         out += [
-            f"## {label}",
+            f"## {MATURITY_LABEL[maturity]}",
             "",
             "| ID | Feature | Area | Audience | Status | Ships in |",
             "|----|---------|------|----------|--------|----------|",
         ]
         for row in rows:
-            if row["tracks"] != track:
+            if row["maturity"] != maturity:
                 continue
             out.append(
                 f"| [{row['id']}]({row['path']}) | {row['title']} | {row['area']} "
