@@ -127,7 +127,7 @@ demands the tool prove things rather than assume them.
 | ID | Feature | Audience |
 |----|---------|----------|
 | [E1](e-maintenance/e1-stack-updates.md) | Stack updates | Operator |
-| [E2](e-maintenance/e2-self-update.md) | lemonfiber self-update | Operator |
+| [E2](e-maintenance/e2-self-update.md) | Self-update | Operator |
 | [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | Operator |
 | [E4](e-maintenance/e4-rollback.md) | Rollback | Operator |
 | [E5](e-maintenance/e5-changelog.md) | Changelog & release notes | Operator |

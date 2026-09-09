@@ -1397,7 +1397,7 @@
     },
     {
       "id": "E2",
-      "title": "lemonfiber self-update",
+      "title": "Self-update",
       "area": "E",
       "audience": "operator",
       "kind": "feature",

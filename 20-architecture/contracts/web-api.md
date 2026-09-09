@@ -106,6 +106,20 @@ a removal would take, and the action of the same name is where an answer to that
 The two are one command read the same way twice, so what a browser agrees to is what it was
 shown.
 
+`/api/update` takes one too, and it names the object rather than narrowing the answer: which
+of the two things that can be moved forward is being read — the services the stack runs, or
+lemonfiber itself. They are one command because moving something forward is one word an
+operator reaches for, and the object is the whole of what tells them apart; `what=stack`
+answers with what each service would move to, how large the step is, and which of the steps
+migrate state and so cannot be walked back, while `what=self` answers with where this copy
+stands and the exact command for whichever tool owns it. Naming none is refused rather than
+answered, and this is where it parts company with the removal above: that one has a reading
+that takes nothing, and here neither object is the smaller case of the other — a page that
+asked about the stack and was handed the binary has been answered a question it did not ask,
+and the two answers do not even resemble each other. Both are reads whichever is named.
+Nothing here replaces the binary at all, and moving the services is the action of the same
+name, where an answer to what the read listed goes.
+
 `/api/hosting` takes none, because what is hosted is a property of the machine rather than
 of the caller. It answers with every long-running command that could be handed to this
 machine's service manager and what became of each — installed or not, running or not, and

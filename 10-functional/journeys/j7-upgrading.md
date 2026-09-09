@@ -11,7 +11,7 @@
 ## The journey
 
 ```
-$ lemonfiber update --check
+$ lemonfiber update stack --check
 
   sonarr      4.0.15 → 4.0.16   patch
   jellyfin   10.10.3 → 10.11.0  minor · release notes ↗
@@ -46,7 +46,7 @@ of twelve changes broke things.
 ## Backup is a precondition, not an offer
 
 ```
-$ lemonfiber update
+$ lemonfiber update stack
 
   Backing up…                     ✓ 41 MB · config-2026-07-24T19-12.tar
   sonarr    4.0.15 → 4.0.16       ✓ healthy in 6s
