@@ -34,7 +34,7 @@ ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
 | `0.11.0` | v1 | M8 | The household asks — requests, identity, client apps | Released |
 | `0.12.0` | v1 | M8 | Living within limits — disk, retention, bandwidth | Released |
 | `0.13.0` | v1 | M9 | Changing your mind — reconfigure, migrate, uninstall, credentials | Released |
-| `0.14.0` | v1 | M9 | Keeping it running — updates, backup, rollback, the journal | Planned |
+| `0.14.0` | v1 | M9 | Keeping it running — updates, backup, rollback, the journal | Staged |
 | `0.15.0` | v1 | M9 | The last of v1 — remote control, autostart, customisation | Planned |
 | `1.0.0` | v1 | M6 | **The dashboard** — a bare `lemonfiber` opens it. Closes v1. | Planned |
 | `2.0.0` | v2 | M15 | **Runs without Docker** — engine abstraction, Podman, native. Opens v2. | Planned |
