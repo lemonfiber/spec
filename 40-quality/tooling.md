@@ -323,15 +323,45 @@ of both.
 Three notifiers carry it between the repos that pin each other. `lemonfiber` tells
 each SDK when the contract artefact it vendors has moved, and fails when an SDK
 could not be told (`contract-moved.yml`). `sdk-ts` tells `lemonfiber-web` on every
-push to its own main (`sdk-moved.yml`). `lemonfiber-web` compares the revision its
-manifest pins against that main and names the commits it has not taken
-(`sdk-drift.yml`). The first two are on their repositories' `main`; the third is not
-yet merged, so the console's pin is watched by the notifier that fires at it before
-it is watched by the check that answers.
+push to its own main (`sdk-moved.yml`). Each consuming repo compares what it holds
+against what the repository it pins serves, and names what it has not taken —
+`contract-drift.yml` in both SDKs, `sdk-drift.yml` in the console.
 
 The two that dispatch fail rather than report success when they cannot reach the
 repository they are telling. A notifier that cannot notify, quietly, leaves the
 calendar as the only thing looking — which is the state all three exist to end.
+
+### Reporting was the half that did not work
+
+The comparison was right from its first run and changed nothing. All three checks
+were red at once, correctly — both SDKs behind the served contract, the console
+behind the client — and stayed red for days with nobody acting on any of them.
+In the Actions list an advisory red and a broken gate are the same red X, and
+telling them apart meant opening the workflow file to read a paragraph saying so.
+The reader who would do that is the one who already knew.
+
+The argument for reporting was that a pin is *meant* to lag: taking a contract
+change is a deliberate act that arrives as a diff somebody reads, so gating would
+refuse every unrelated pull request for the whole stretch between the server
+moving and the consumer catching up. The premise is true and the conclusion is the
+wrong trade. That stretch is not a grace period — it is the interval during which
+the repository ships against a copy it has been told is wrong, and holding it open
+is what the red run was supposed to prevent. The refusal is the point: it puts the
+catch-up in front of the next change rather than behind it.
+
+So the check runs on pull requests, fails them, and is required on the default
+branch (`Q-R68`). What makes that bearable for an author who touched none of it is
+`Q-R70` — the failure names the artefact that drifted and the command that
+regenerates it, in the failure itself. A gate whose remedy the author has to go
+and find is a gate that gets routed around, and "the contract moved" is not an
+instruction.
+
+Where the catch-up needs a decision rather than a command, the gate waits, and
+`Q-R71` requires the waiting to be written in the workflow that would carry it,
+with the reason, the work it waits on, and the date it is looked at again. A
+repository that gates and one that has not got there yet look identical from
+outside unless the second one says so — which is the same failure as the red X,
+one level up.
 
 ## What needs a human, once
 
@@ -359,8 +389,10 @@ All are one-time and free. Everything else runs from committed config.
 | **Q-R58** | The docs site MUST render the specification from a pinned revision of `spec`, MUST link-check every page it publishes, authored and mirrored, and MUST be the only published rendering of the specification. |
 | **Q-R59** | A public supply-chain posture check (OpenSSF Scorecard) MUST run on each repo's default branch. |
 | **Q-R60** | Any tool requiring a secret or external app MUST be documented as a one-time manual setup step. |
-| **Q-R68** | Where a repository depends on another repository in this org at an exact revision, an automated check MUST report a pin that is behind that dependency's default branch, naming the commits it has not taken. |
+| **Q-R68** | Where a repository depends on another repository in this org at an exact revision, an automated check MUST run on every pull request, MUST fail where the pin is behind that dependency's default branch, naming the commits it has not taken, and MUST be a required status check on the default branch. |
 | **Q-R69** | A lockfile or equivalent record of what a build resolved MUST name the same revision as the declaration it resolves, and CI MUST fail where the two disagree. |
+| **Q-R70** | A check required under `Q-R68` MUST name, in the failure itself, the artefact that drifted and the command that brings it current. |
+| **Q-R71** | A repository that cannot yet satisfy `Q-R68` MUST state that in the workflow that would gate it — the reason, the work it waits on, and the date the deferral is reviewed — and the check MUST keep reporting until the gate is turned on. |
 
 ## Related
 
