@@ -1,10 +1,8 @@
-# **The dashboard.** `lemonfiber` with no subcommand opens a live view of the stack — the capability the whole v1 epoch has been building toward, and the reason this is 1.0.0 rather than another minor. Released through the signed, multi-platform pipeline on all three platforms.
+# **The dashboard.** `lemonfiber` with no subcommand opens a live view of the stack — the capability the whole of v1 has been building toward, and the reason this is 1.0.0 rather than another minor. Released through the signed, multi-platform pipeline on all three platforms.
 #
 # 17 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "1.0.0"
-epoch   = "v1"
-closes_epoch = "v1"   # the epoch-completeness gate applies to this one
 milestone = "M6"   # Live TUI
 delivers  = "**The dashboard** — a bare `lemonfiber` opens it. Closes v1."
 status  = "planned"

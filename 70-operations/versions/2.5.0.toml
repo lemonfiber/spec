@@ -3,7 +3,6 @@
 # 40 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "2.5.0"
-epoch   = "v2"
 milestone = "M13"   # See everything
 delivers  = "See everything — metrics, dashboards, uptime"
 status  = "planned"
