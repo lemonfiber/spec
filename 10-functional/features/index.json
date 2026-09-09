@@ -113,7 +113,7 @@
     {
       "version": "0.14.0",
       "epoch": "v1",
-      "status": "planned",
+      "status": "staged",
       "milestone": "M9",
       "closes_epoch": null,
       "goals": 59
@@ -1392,7 +1392,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "e-maintenance/e1-stack-updates.md"
@@ -1422,7 +1422,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "e-maintenance/e2-self-update.md"
@@ -1456,7 +1456,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "planned"
+          "status": "staged"
         },
         {
           "version": "0.3.0",
@@ -1492,7 +1492,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "e-maintenance/e4-rollback.md"
@@ -1522,7 +1522,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "e-maintenance/e5-changelog.md"
@@ -1887,7 +1887,7 @@
         },
         {
           "version": "0.14.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "g-ux/g8-privacy.md"
