@@ -62,6 +62,7 @@ GET /api/credentials   GET /api/alerts
 GET /api/space         GET /api/bandwidth
 GET /api/hosting      GET /api/uninstall
 GET /api/migration
+GET /api/history
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
