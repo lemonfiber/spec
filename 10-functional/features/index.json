@@ -97,46 +97,52 @@
       "goals": 71
     },
     {
-      "version": "1.0.0",
+      "version": "0.16.0",
       "status": "planned",
-      "milestone": "M6",
-      "goals": 17
+      "milestone": "M14",
+      "goals": 36
     },
     {
-      "version": "2.0.0",
+      "version": "0.17.0",
       "status": "planned",
-      "milestone": "M15",
-      "goals": 48
+      "milestone": "M14",
+      "goals": 49
     },
     {
-      "version": "2.1.0",
+      "version": "0.18.0",
       "status": "planned",
       "milestone": "M11",
       "goals": 56
     },
     {
-      "version": "2.2.0",
+      "version": "0.19.0",
       "status": "planned",
       "milestone": "M11",
       "goals": 59
     },
     {
-      "version": "2.3.0",
+      "version": "0.20.0",
       "status": "planned",
       "milestone": "M12",
       "goals": 29
     },
     {
-      "version": "2.4.0",
-      "status": "planned",
-      "milestone": "M14",
-      "goals": 26
-    },
-    {
-      "version": "2.5.0",
+      "version": "0.21.0",
       "status": "planned",
       "milestone": "M13",
       "goals": 40
+    },
+    {
+      "version": "0.22.0",
+      "status": "planned",
+      "milestone": "M15",
+      "goals": 42
+    },
+    {
+      "version": "1.0.0",
+      "status": "planned",
+      "milestone": "M6",
+      "goals": 17
     }
   ],
   "features": [
@@ -647,7 +653,7 @@
       ],
       "versions": [
         {
-          "version": "2.5.0",
+          "version": "0.21.0",
           "status": "planned"
         }
       ],
@@ -1617,7 +1623,7 @@
       ],
       "versions": [
         {
-          "version": "2.4.0",
+          "version": "0.16.0",
           "status": "planned"
         }
       ],
@@ -1632,8 +1638,10 @@
       "status": "draft",
       "maturity": "planned",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
       "priority": "P1",
       "labels": [
         "extensibility",
@@ -1652,7 +1660,12 @@
         "B1",
         "D1"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "0.16.0",
+          "status": "planned"
+        }
+      ],
       "path": "f-extensibility/f4-capabilities.md"
     },
     {
@@ -1664,8 +1677,10 @@
       "status": "draft",
       "maturity": "planned",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
       "priority": "P1",
       "labels": [
         "extensibility",
@@ -1682,7 +1697,12 @@
         "F7",
         "C1"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "0.17.0",
+          "status": "planned"
+        }
+      ],
       "path": "f-extensibility/f5-plugin-catalogue.md"
     },
     {
@@ -1694,8 +1714,10 @@
       "status": "draft",
       "maturity": "planned",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
       "priority": "P1",
       "labels": [
         "extensibility",
@@ -1713,7 +1735,12 @@
         "E3",
         "C9"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "0.17.0",
+          "status": "planned"
+        }
+      ],
       "path": "f-extensibility/f6-plugin-lifecycle.md"
     },
     {
@@ -1725,8 +1752,10 @@
       "status": "draft",
       "maturity": "planned",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
       "priority": "P1",
       "labels": [
         "extensibility",
@@ -1744,7 +1773,12 @@
         "C9",
         "G2"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "0.17.0",
+          "status": "planned"
+        }
+      ],
       "path": "f-extensibility/f7-plugin-provenance.md"
     },
     {
@@ -2057,7 +2091,7 @@
       ],
       "versions": [
         {
-          "version": "2.4.0",
+          "version": "0.17.0",
           "status": "planned"
         }
       ],
@@ -2090,7 +2124,7 @@
       ],
       "versions": [
         {
-          "version": "2.1.0",
+          "version": "0.18.0",
           "status": "planned"
         }
       ],
@@ -2123,7 +2157,7 @@
       ],
       "versions": [
         {
-          "version": "2.1.0",
+          "version": "0.18.0",
           "status": "planned"
         }
       ],
@@ -2155,7 +2189,7 @@
       ],
       "versions": [
         {
-          "version": "2.1.0",
+          "version": "0.18.0",
           "status": "planned"
         }
       ],
@@ -2187,7 +2221,7 @@
       ],
       "versions": [
         {
-          "version": "2.1.0",
+          "version": "0.18.0",
           "status": "planned"
         }
       ],
@@ -2218,7 +2252,7 @@
       ],
       "versions": [
         {
-          "version": "2.2.0",
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -2249,7 +2283,7 @@
       ],
       "versions": [
         {
-          "version": "2.2.0",
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -2281,7 +2315,7 @@
       ],
       "versions": [
         {
-          "version": "2.2.0",
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -2313,7 +2347,7 @@
       ],
       "versions": [
         {
-          "version": "2.2.0",
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -2348,7 +2382,7 @@
       ],
       "versions": [
         {
-          "version": "2.3.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2382,7 +2416,7 @@
       ],
       "versions": [
         {
-          "version": "2.3.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2414,7 +2448,7 @@
       ],
       "versions": [
         {
-          "version": "2.0.0",
+          "version": "0.22.0",
           "status": "planned"
         }
       ],
@@ -2447,7 +2481,7 @@
       ],
       "versions": [
         {
-          "version": "2.0.0",
+          "version": "0.22.0",
           "status": "planned"
         }
       ],
@@ -2479,7 +2513,7 @@
       ],
       "versions": [
         {
-          "version": "2.0.0",
+          "version": "0.22.0",
           "status": "planned"
         }
       ],
@@ -2510,7 +2544,7 @@
       ],
       "versions": [
         {
-          "version": "2.5.0",
+          "version": "0.21.0",
           "status": "planned"
         }
       ],
@@ -2542,7 +2576,7 @@
       ],
       "versions": [
         {
-          "version": "2.5.0",
+          "version": "0.21.0",
           "status": "planned"
         }
       ],
@@ -2583,13 +2617,11 @@
       "area": "L",
       "audience": "operator",
       "kind": "feature",
-      "status": "accepted",
-      "maturity": "planned",
+      "status": "withdrawn",
+      "maturity": "withdrawn",
       "shipped": null,
-      "milestones": [
-        "M15"
-      ],
-      "milestone": "M15",
+      "milestones": [],
+      "milestone": null,
       "priority": "P1",
       "labels": [
         "release",
@@ -2597,12 +2629,7 @@
       ],
       "requires": [],
       "relates": [],
-      "versions": [
-        {
-          "version": "2.0.0",
-          "status": "planned"
-        }
-      ],
+      "versions": [],
       "path": "l-release/l2-v2-release.md"
     }
   ]

@@ -1,0 +1,54 @@
+# Plugins, part one — the manifest, its recipes, and the capabilities wiring asks for.
+#
+# First of the two, and first of what follows 0.15.0, because it changes the stack
+# manifest and introduces the capability vocabulary. Everything sequenced after it is
+# then built on the shape that ships rather than retrofitted onto it, and the schema
+# has several minors of use behind it before 1.0.0 freezes it.
+#
+# 36 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
+version = "0.16.0"
+milestone = "M14"   # The platform
+delivers  = "Plugins — what one is, how it wires, and what it may stand in for"
+status  = "planned"
+repos   = ["lemonfiber"]
+goals   = [
+    "F3-R1",
+    "F3-R2",
+    "F3-R3",
+    "F3-R4",
+    "F3-R5",
+    "F3-R6",
+    "F3-R7",
+    "F3-R8",
+    "F3-R9",
+    "F3-R10",
+    "F3-R11",
+    "F3-R12",
+    "F3-R13",
+    "F3-R14",
+    "F3-R15",
+    "F3-R16",
+    "F3-R17",
+    "F3-R18",
+    "F3-R19",
+    "F3-R20",
+    "F3-R21",
+    "F3-R22",
+    "F4-R1",
+    "F4-R2",
+    "F4-R3",
+    "F4-R4",
+    "F4-R5",
+    "F4-R6",
+    "F4-R7",
+    "F4-R8",
+    "F4-R9",
+    "F4-R10",
+    "F4-R11",
+    "F4-R12",
+    "F4-R13",
+    "F4-R14",
+]
+
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

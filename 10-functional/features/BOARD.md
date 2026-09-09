@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 8 building, 27 planned.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 8 building, 26 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -75,28 +75,33 @@ code, and the two move independently.
 |----|---------|------|----------|--------|----------|
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
-| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `2.5.0` |
+| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.21.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
-| [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests and recipes | F | operator | draft | `2.4.0` |
-| [F4](f-extensibility/f4-capabilities.md) | Capabilities and substitution | F | operator | draft | — |
-| [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | draft | — |
-| [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | draft | — |
-| [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | draft | — |
-| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `2.4.0` |
-| [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `2.1.0` |
-| [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `2.1.0` |
-| [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `2.1.0` |
-| [H4](h-glue/h4-subtitles.md) | Subtitles | H | both | accepted | `2.1.0` |
-| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `2.2.0` |
-| [H6](h-glue/h6-library-cleanup.md) | Library cleanup | H | both | accepted | `2.2.0` |
-| [H7](h-glue/h7-transcoding.md) | Transcoding | H | operator | accepted | `2.2.0` |
-| [H8](h-glue/h8-stats.md) | Playback statistics | H | both | accepted | `2.2.0` |
-| [I1](i-remote-access/i1-remote-access.md) | Remote access for the household | I | both | accepted | `2.3.0` |
-| [I2](i-remote-access/i2-identity.md) | Household identity & single sign-on | I | both | accepted | `2.3.0` |
-| [J1](j-runtime/j1-engine-abstraction.md) | Container-engine abstraction | J | operator | draft | `2.0.0` |
-| [J2](j-runtime/j2-podman.md) | Running under Podman | J | operator | draft | `2.0.0` |
-| [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `2.0.0` |
-| [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `2.5.0` |
-| [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `2.5.0` |
-| [L2](l-release/l2-v2-release.md) | v2 release | L | operator | accepted | `2.0.0` |
+| [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests and recipes | F | operator | draft | `0.16.0` |
+| [F4](f-extensibility/f4-capabilities.md) | Capabilities and substitution | F | operator | draft | `0.16.0` |
+| [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | draft | `0.17.0` |
+| [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | draft | `0.17.0` |
+| [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | draft | `0.17.0` |
+| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
+| [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.18.0` |
+| [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.18.0` |
+| [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `0.18.0` |
+| [H4](h-glue/h4-subtitles.md) | Subtitles | H | both | accepted | `0.18.0` |
+| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `0.19.0` |
+| [H6](h-glue/h6-library-cleanup.md) | Library cleanup | H | both | accepted | `0.19.0` |
+| [H7](h-glue/h7-transcoding.md) | Transcoding | H | operator | accepted | `0.19.0` |
+| [H8](h-glue/h8-stats.md) | Playback statistics | H | both | accepted | `0.19.0` |
+| [I1](i-remote-access/i1-remote-access.md) | Remote access for the household | I | both | accepted | `0.20.0` |
+| [I2](i-remote-access/i2-identity.md) | Household identity & single sign-on | I | both | accepted | `0.20.0` |
+| [J1](j-runtime/j1-engine-abstraction.md) | Container-engine abstraction | J | operator | draft | `0.22.0` |
+| [J2](j-runtime/j2-podman.md) | Running under Podman | J | operator | draft | `0.22.0` |
+| [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.22.0` |
+| [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.21.0` |
+| [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.21.0` |
+
+## Withdrawn — no longer to be built
+
+| ID | Feature | Area | Audience | Status | Ships in |
+|----|---------|------|----------|--------|----------|
+| [L2](l-release/l2-v2-release.md) | v2 release | L | operator | withdrawn | — |
