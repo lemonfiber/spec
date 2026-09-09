@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**69 features** in areas A–L, **963 requirements**.
+**73 features** in areas A–L, **1022 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 8 building, 23 planned.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 8 building, 27 planned.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -78,7 +78,11 @@ code, and the two move independently.
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `2.5.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
-| [F3](f-extensibility/f3-stack-manifests.md) | Third-party stack manifests | F | operator | draft | `2.4.0` |
+| [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests and recipes | F | operator | draft | `2.4.0` |
+| [F4](f-extensibility/f4-capabilities.md) | Capabilities and substitution | F | operator | draft | — |
+| [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | draft | — |
+| [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | draft | — |
+| [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | draft | — |
 | [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `2.4.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `2.1.0` |
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `2.1.0` |
