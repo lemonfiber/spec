@@ -1,17 +1,18 @@
 ---
 id: F3
-title: Third-party stack manifests
+title: Plugin manifests and recipes
 kind: feature
 area: F
 audience: operator
 status: draft
 maturity: planned
-priority: P2
+priority: P1
 labels: [extensibility, verification, wiring]
-relates: [F1, F2]
+requires: [F1, F2]
+relates: [F4, F5, F6, F7, C9, E4]
 ---
 
-# F3 — Third-party stack manifests
+# F3 — Plugin manifests and recipes
 
 **Status:** Draft · **Audience:** Operator · **Area:** F — Extensibility
 
@@ -19,114 +20,157 @@ relates: [F1, F2]
 
 ## Purpose
 
-Let the community contribute service definitions so lemonfiber can orchestrate and
-verify stacks beyond the bundled media set — generalising the tool without turning
-it into a code-execution vector. A contributed stack is declarative data, not a
-program: a service fragment, the wiring to other services, and, uniquely, the
-service's own declared verification probes. Because the manifest also declares the
-proofs, verification itself becomes contributable — and a stack whose declared
-proofs do not pass is simply not installed.
+Say what a plugin **is**, so that everything else about plugins — how they wire, where
+they come from, what installing one does — has a single thing to talk about.
+
+A plugin is declarative data. It describes a service, what that service can do, how it
+connects to the rest of the stack, the secrets it will hold, what it intends to override,
+and the proofs by which it can be judged. It ships no code. That is not a limitation
+lemonfiber tolerates and hopes to lift later; it is the property that lets a stranger's
+contribution be read line by line before it is trusted, and it is why a plugin catalogue
+can exist at all.
+
+The hard case this must survive is the one an operator will actually ask for: **run Plex
+instead of Jellyfin**. Jellyfin is not a container in this stack — it is the identity
+source the request service signs in through, whose admin password lemonfiber mints by
+driving Jellyfin's own first-run setup. A plugin that only described a container would
+substitute nothing. So the manifest carries **recipes**: ordered sequences of HTTP calls
+that capture values, feed them into later calls, branch on what came back and wait when
+something is not ready yet. Recipes are how first-run flows become data.
+
+Where even that is not enough, a plugin **names** one of a fixed set of adapters
+lemonfiber implements. It never supplies one. The bespoke stays first-party, and a plugin
+reuses it by name.
 
 ## Behaviour
 
-### A contributed stack is declarative data
+### A plugin is data, and every part of it is declared
 
-A manifest describes three things and nothing executable by default:
+A manifest declares:
 
-- **The service fragment** — the container/compose description of what runs.
-- **The wiring** — how this service connects to the others in the stack.
-- **The declared proofs** — the health and verification checks lemonfiber should
-  run to decide whether this service is actually working, expressed as data the
-  existing verification engine already knows how to run.
+- **The service** — the container description of what runs, with its image pinned.
+- **The capabilities it claims** — what it can do, in the vocabulary [F4](f4-capabilities.md)
+  owns.
+- **The wiring** — what it connects to, expressed as capabilities asked for rather than
+  services named.
+- **The recipes** — the ordered calls that configure it and the services around it.
+- **The secrets it will hold** — each named in advance.
+- **The overrides it intends** — each bundled thing it will change, named in advance.
+- **The proofs** — the checks by which lemonfiber decides whether it actually worked.
 
-Because a manifest is readable data, a contribution reviews like any other diff:
-a human reads what it declares, line by line, rather than auditing opaque code.
+Nothing a plugin does may fall outside what it declared. A recipe that captures a secret
+the manifest did not name, or changes something the manifest did not list as an override,
+is a validation failure rather than a surprise found later. The declaration is not
+paperwork: it is what lets an operator read the blast radius before installing, and it is
+what makes over-reach detectable rather than merely discouraged.
 
-### Verification is contributable — and gating
+### A recipe is a sequence, not a program
 
-This is the killer property. A manifest carries its *own* proofs, and lemonfiber's
-existing verification engine runs them the same way it runs the bundled ones. A
-manifest that declares proofs which do not pass is **not installed** — declaring a
-check and failing it is a rejection, not a warning. Contributors extend not just
-what the tool can run but what it can *prove*, and the proof is the acceptance
-bar.
+A recipe is an ordered list of calls. Each may:
 
-### It validates against a published schema before anything runs
+- **capture** values out of a response and name them,
+- **substitute** values captured earlier into a later call,
+- **branch** on a status code or a captured value,
+- **wait and retry** a bounded number of times when a service is not ready yet.
 
-Every manifest is validated against a published schema before lemonfiber acts on
-it. A manifest that does not conform is rejected outright — it is never partially
-applied and its declarations are never executed on the strength of hope. The
-catalogue that serves manifests is community-owned and git-hosted, so provenance
-and history are visible.
+There is no arbitrary computation, no loop that does not terminate, no way to reach
+anything the manifest did not declare. A recipe is powerful enough to create an account,
+claim a server and read back a token — which is what a first-run flow is — and no more
+powerful than that. It is Turing-incomplete by construction rather than by convention, so
+"what can this plugin do?" is answerable by reading it.
 
-### The code escape hatch is reserved, opt-in, and sandboxed
+### Where data will not reach, a plugin names an adapter
 
-Some logic pure data cannot express. For those rare cases a code escape hatch is
-*reserved* — but it is opt-in, capability-restricted, sandboxed, and separately
-vetted, never arbitrary native plugins and never executed by default. The default
-posture is that a manifest is inert data; running any contributed logic is a
-deliberate, separately-reviewed exception, not the norm.
+Some flows cannot be honestly expressed as calls and captures. For those a plugin names
+one of a fixed set of **adapters** that lemonfiber implements and ships — the
+Servarr-shaped registration flow, and others as they earn their place. The plugin supplies
+the parameters; lemonfiber supplies the behaviour.
 
-### Supply chain is defended, not assumed
+This keeps the awkward cases in code that is reviewed, tested and covered like the rest of
+the product, while still letting a plugin reach them. A plugin naming an adapter that does
+not exist is a validation failure, and the set of adapters is published rather than
+discovered.
 
-Trust in a contributed stack rests on stated mechanisms, not goodwill: schema
-validation runs in the catalogue's CI so malformed or over-reaching manifests are
-caught before merge; human review reads the diff; and images are signed and
-pinned rather than floating on a mutable tag. An unpinned or unsigned image is a
-finding, not a default-accept.
+### No code, and no route to code
 
-### Every step has a non-interactive equivalent
+Contributed code is not executed, and there is no opt-in that changes that. The earlier
+draft of this feature reserved a sandboxed escape hatch; recipes and named adapters
+replace it, and reserving a code path "for the rare case" is how the rare case becomes the
+common one. Native plugins are not a supported mechanism and never become one.
 
-Fetching a manifest, validating it against the schema, and running its declared
-proofs are all reachable as plain subcommands, so adding a community stack never
-forces the wizard on a scripter.
+### It validates before anything happens
+
+Every manifest is checked against the published schema before lemonfiber acts on it, and a
+manifest that does not conform is refused outright — never partly applied, never applied on
+the strength of the parts that did parse. All violations are reported in one pass, each
+named with its location, so a contributor fixes a manifest once rather than discovering the
+next fault after correcting the last.
+
+### Every step is reachable without a person
+
+Fetching a manifest, validating it, rehearsing it and running its proofs are each plain
+subcommands with meaningful exit statuses. Adding a plugin never requires the wizard.
 
 ## States
 
 | State | Meaning |
 |-------|---------|
 | `schema-valid` | The manifest conforms to the published schema and may be considered |
-| `schema-rejected` | The manifest fails schema validation; refused outright, nothing executed |
-| `proofs-passing` | The manifest's declared proofs ran and passed; the stack is installable |
-| `proofs-failing` | Declared proofs ran and did not pass; the manifest is not installed |
-| `image-unpinned` | A referenced image is unsigned or floating on a mutable tag; flagged, not silently accepted |
-| `code-escape-pending` | The manifest requests the sandboxed code escape hatch; held for separate opt-in vetting |
+| `schema-rejected` | The manifest fails validation; refused outright, nothing applied |
+| `undeclared-reach` | A recipe reaches a secret or an override the manifest did not declare; refused |
+| `adapter-unknown` | The manifest names an adapter this lemonfiber does not implement |
+| `proofs-passing` | The declared proofs ran and passed |
+| `proofs-failing` | The declared proofs ran and did not pass; the plugin is not installed |
+| `proofs-unrunnable` | A declared proof could not be run; reported as unproven, never as passed |
+| `image-unpinned` | A referenced image is unsigned or on a mutable tag; flagged, not accepted |
 
 ## Edge cases
 
 | Situation | Behaviour |
 |-----------|-----------|
-| Malicious or broken manifest | Reject at schema validation; never execute contributed code by default, whatever the manifest claims about itself. |
-| Manifest declares proofs that fail | Do not install it; a declared-but-failing proof is a rejection, not an advisory. |
-| Manifest references an unpinned or untrusted image | Flag the image as unpinned/unsigned and refuse to treat it as trusted; pinning and signing are the bar. |
-| Manifest over-reaches what it may touch | Confine it to what its declared wiring and capabilities permit; an over-reaching manifest is rejected, not accommodated. |
-| Manifest requests the code escape hatch | Route to the sandboxed, capability-restricted, opt-in path with separate vetting; never run it inline as ordinary data. |
-| Catalogue itself is untrusted or unsigned | Trust flows from a signed, git-hosted, community-owned catalogue; an unverifiable source is treated as untrusted. |
-| Manifest's declared proof cannot run at all | Report it as unproven rather than passed; an unrunnable check is not a satisfied one. |
-| A manifest conflicts with a bundled service's wiring | Surface the conflict at validation; do not silently override the bundled topology. |
-| Schema evolves after a manifest was written | Validate against the published schema version; a manifest that no longer conforms is rejected until updated. |
+| A manifest is malformed or malicious | Refuse at schema validation. Nothing in a manifest is executed, whatever it claims about itself. |
+| A recipe captures a secret the manifest did not declare | Refuse the plugin. An undeclared capture is a validation failure, not a warning. |
+| A recipe changes something the manifest did not list as an override | Refuse the plugin, naming what it reached for. |
+| A declared proof fails | Do not install. A declared-and-failing proof is a rejection, not an advisory. |
+| A declared proof cannot be run at all | Report it as unproven. An unrunnable check is not a satisfied one. |
+| A recipe's call never succeeds | Bound the retries, then fail the recipe naming the call and what it last answered. |
+| A recipe branches on a value that was never captured | Refuse at validation rather than at run time; the reference is checkable without running anything. |
+| The manifest names an adapter that does not exist | Refuse, naming the adapter and listing what is available. |
+| A referenced image is unpinned or unsigned | Flag it and refuse to treat it as trusted. Pinning and signing are the bar. |
+| The schema has moved on since the manifest was written | Answer with the capability the manifest asked for that this lemonfiber does not provide, by name, rather than with a version number. |
 
 ## Acceptance criteria
 
 | ID | Requirement |
 |----|-------------|
-| **F3-R1** | A contributed stack MUST be expressed as declarative data — a service fragment, its wiring, and its declared verification probes — not as executable code. |
+| **F3-R1** | A plugin MUST be expressed as declarative data — the service, its capabilities, its wiring, its recipes, its declared secrets and overrides, and its proofs — never as executable code. |
 | **F3-R2** | Every manifest MUST be validated against a published schema before lemonfiber acts on it, and a non-conforming manifest MUST be rejected outright. |
-| **F3-R3** | A manifest's own declared proofs MUST be runnable by the existing verification engine, the same way the bundled proofs are run. |
-| **F3-R4** | A manifest whose declared proofs do not pass MUST NOT be installed. |
+| **F3-R3** | A plugin's declared proofs MUST be runnable by the existing verification engine, the same way the bundled proofs are run. |
+| **F3-R4** | A plugin whose declared proofs do not pass MUST NOT be installed. |
 | **F3-R5** | A declared proof that cannot be run MUST be reported as unproven and MUST NOT be treated as passed. |
-| **F3-R6** | Contributed code MUST NOT be executed by default; any code path MUST be opt-in, capability-restricted, sandboxed, and separately vetted. |
+| **F3-R6** | Contributed code MUST NOT be executed, and no opt-in, sandbox or capability grant may make it executable. |
 | **F3-R7** | Arbitrary native plugins MUST NOT be a supported extension mechanism. |
 | **F3-R8** | Referenced images MUST be signed and pinned; an unpinned or unsigned image MUST be flagged rather than silently accepted. |
 | **F3-R9** | The manifest schema MUST be validated in the catalogue's CI so malformed contributions are caught before merge. |
-| **F3-R10** | A contributed manifest MUST review as a readable diff, with no opaque or obfuscated content required to understand what it does. |
-| **F3-R11** | A manifest MUST NOT reach beyond what its declared wiring and capabilities permit, and one that over-reaches MUST be rejected. |
-| **F3-R12** | The manifest catalogue MUST be community-owned and git-hosted, with provenance verifiable rather than taken on trust. |
-| **F3-R13** | Fetching a manifest, validating it against the schema, and running its declared proofs MUST each be reachable non-interactively. |
-| **F3-R14** | A manifest that conflicts with the bundled topology MUST surface the conflict at validation rather than silently overriding it. |
+| **F3-R10** | A manifest MUST review as a readable diff, with no opaque or obfuscated content required to understand what it does. |
+| **F3-R11** | A plugin MUST NOT reach beyond what its manifest declares, and one that over-reaches MUST be rejected rather than confined. |
+| **F3-R12** | A plugin's provenance MUST be verifiable rather than taken on trust. |
+| **F3-R13** | Fetching, validating, rehearsing and proving a plugin MUST each be reachable non-interactively with a meaningful exit status. |
+| **F3-R14** | A plugin that conflicts with the bundled topology MUST surface the conflict at validation rather than silently overriding it. |
+| **F3-R15** | A recipe MUST be an ordered sequence of calls supporting capture, substitution of earlier captures, branching on status or captured value, and bounded wait-and-retry — and MUST NOT support unbounded computation. |
+| **F3-R16** | A recipe MUST NOT reach any host, service or value the manifest has not declared. |
+| **F3-R17** | Every secret a plugin will hold MUST be declared in its manifest, and capturing an undeclared value MUST fail validation. |
+| **F3-R18** | Every bundled thing a plugin will override MUST be declared in its manifest, and changing an undeclared one MUST fail validation. |
+| **F3-R19** | A plugin MAY name one of a published, fixed set of lemonfiber-implemented adapters for flows recipes cannot express, and MUST NOT supply an adapter of its own. |
+| **F3-R20** | Naming an adapter this lemonfiber does not implement MUST be refused, naming the adapter and the set that is available. |
+| **F3-R21** | A manifest MUST declare the capabilities it requires of lemonfiber, and an unmet requirement MUST be refused by naming the capability rather than a version. |
+| **F3-R22** | Manifest validation MUST report every violation in one pass, each named with its location. |
 
 ## Related
 
 - [F1 Customisation & escape hatches](f1-customisation.md) — the escape-hatch posture this narrows to declarative data
-- [F2 Service catalogue](f2-service-catalogue.md) — the bundled catalogue this generalises to community stacks
-- [C2 VPN verification](../c-trust/c2-vpn-verification.md) — the verification engine that runs a manifest's declared proofs
+- [F2 Service catalogue](f2-service-catalogue.md) — the bundled catalogue whose entries a plugin extends
+- [F4 Capabilities & substitution](f4-capabilities.md) — the vocabulary a manifest claims and asks in
+- [F5 The plugin catalogue](f5-plugin-catalogue.md) — where a manifest comes from and what vouches for it
+- [F6 Plugin lifecycle](f6-plugin-lifecycle.md) — what rehearsing, installing and removing one does
+- [F7 Plugin provenance](f7-plugin-provenance.md) — how what a plugin changed stays answerable
