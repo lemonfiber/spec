@@ -165,7 +165,7 @@ media_types = ["tv"]
 | `without_it` | string | ✔ | Consequence of its absence (`F2-R2`) |
 | `media_types` | array | | Which media types it handles; drives root-folder seeding |
 | `depends_on` | array | | **Same profile only.** Cross-profile entries fail validation (`B1-R14`). |
-| `capabilities` | array | | e.g. `["NET_ADMIN"]`. Any entry beyond an allow-list fails validation. |
+| `grants` | array | | Extra kernel capabilities granted to the container, e.g. `["NET_ADMIN"]`. Any entry beyond an allow-list fails validation. Spelled `capabilities` until `0.16.0`; that spelling is still accepted and always will be, because a rename is not a reason to refuse to read somebody's own stack description. |
 | `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`) |
 
 ### `health`
@@ -368,7 +368,7 @@ license = "MIT"
 upstream = "https://github.com/qdm12/gluetun"
 describes = "Routes torrent traffic through your VPN and blocks it if the VPN drops"
 without_it = "Your home IP is visible to every peer"
-capabilities = ["NET_ADMIN"]
+grants = ["NET_ADMIN"]
 
 [[service]]
 id = "qbittorrent"
