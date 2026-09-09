@@ -111,8 +111,8 @@ trailers and PR bodies — **never in code comments**
 | 60-brand | Accepted | Brand rules, surface mapping, accessibility contract |
 | 70-operations | Accepted | Releasing, setup registry, project workflow, maintainers |
 
-The v1 spec is complete and **v2 — the ecosystem epoch — is specified** (areas
-H–K plus F3; the runtime pillar and stack-manifests are still Draft).
+The v1 spec is complete and **the ecosystem is specified** (areas H–K plus F3;
+the runtime pillar and stack-manifests are still Draft).
 Implementation is under way: the
 [version train](00-overview/roadmap.md#the-version-train) runs to 1.0, and
 [releases](https://github.com/lemonfiber/lemonfiber/releases) say where it has

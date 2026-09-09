@@ -14,35 +14,35 @@ should target a stack that is already known-good, so that debugging is never
 Releases ship as a serial train of semver versions, each scoped by a manifest in
 [`70-operations/versions/`](../70-operations/versions/) — the single source of
 truth for a version's goals and status; the table below renders that truth.
-There are two **epochs**: **v1** (features A–G) reaching `1.0.0`, then **v2** (the
-ecosystem) reaching `2.0.0`. **Minors** are themed feature slices; **patches**
-(`x.y.Z`) are hotfixes; a **major closes its epoch and ships no stubs**
+**Minors** are themed feature slices; **patches** (`x.y.Z`) are hotfixes; a
+**major** carries the capability that justifies the number. **No version ships a
+stub** — a release refuses while a feature it locks is not yet built
 ([OPS-R54](../70-operations/staging.md)).
 
-| Version | Epoch | Milestone | Delivers | Status |
-|---------|-------|-----------|----------|--------|
-| `0.1.0` | v1 | M2 | Core: manifest, compose driver, CLI | Released |
-| `0.2.0` | v1 | M3 | Setup wizard + doctor | Released |
-| `0.3.0` | v1 | M4 | Backup & restore | Released |
-| `0.4.0` | v1 | M4 | Auto-wiring, seed, quality, trace and the first-content walk | Released |
-| `0.5.0` | v1 | M5 | How the product speaks — errors, notifications, health, dashboard data | Released |
-| `0.6.0` | v1 | M5 | Trust checks: VPN, storage, queue health | Released |
-| `0.7.0` | v1 | M5 | Trust checks: providers, support bundle, auto-remediation | Released |
-| `0.8.0` | v1 | M6 | Live TUI: forms, lifecycle, logs and diagnostics as surfaces | Released |
-| `0.9.0` | v1 | M7 | Speaking plainly — interface tiers and the plain-language layer | Released |
-| `0.10.0` | v1 | M7 | The front door, its security, and the privacy stance | Released |
-| `0.11.0` | v1 | M8 | The household asks — requests, identity, client apps | Released |
-| `0.12.0` | v1 | M8 | Living within limits — disk, retention, bandwidth | Released |
-| `0.13.0` | v1 | M9 | Changing your mind — reconfigure, migrate, uninstall, credentials | Released |
-| `0.14.0` | v1 | M9 | Keeping it running — updates, backup, rollback, the journal | Staged |
-| `0.15.0` | v1 | M9 | The last of v1 — remote control, autostart, customisation | Planned |
-| `1.0.0` | v1 | M6 | **The dashboard** — a bare `lemonfiber` opens it. Closes v1. | Planned |
-| `2.0.0` | v2 | M15 | **Runs without Docker** — engine abstraction, Podman, native. Opens v2. | Planned |
-| `2.1.0` | v2 | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
-| `2.2.0` | v2 | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
-| `2.3.0` | v2 | M12 | Safely reachable — remote access and one account | Planned |
-| `2.4.0` | v2 | M14 | The platform — third-party manifests, catalogue, mobile client handoff | Planned |
-| `2.5.0` | v2 | M13 | See everything — metrics, dashboards, uptime | Planned |
+| Version | Milestone | Delivers | Status |
+|---------|-----------|----------|--------|
+| `0.1.0` | M2 | Core: manifest, compose driver, CLI | Released |
+| `0.2.0` | M3 | Setup wizard + doctor | Released |
+| `0.3.0` | M4 | Backup & restore | Released |
+| `0.4.0` | M4 | Auto-wiring, seed, quality, trace and the first-content walk | Released |
+| `0.5.0` | M5 | How the product speaks — errors, notifications, health, dashboard data | Released |
+| `0.6.0` | M5 | Trust checks: VPN, storage, queue health | Released |
+| `0.7.0` | M5 | Trust checks: providers, support bundle, auto-remediation | Released |
+| `0.8.0` | M6 | Live TUI: forms, lifecycle, logs and diagnostics as surfaces | Released |
+| `0.9.0` | M7 | Speaking plainly — interface tiers and the plain-language layer | Released |
+| `0.10.0` | M7 | The front door, its security, and the privacy stance | Released |
+| `0.11.0` | M8 | The household asks — requests, identity, client apps | Released |
+| `0.12.0` | M8 | Living within limits — disk, retention, bandwidth | Released |
+| `0.13.0` | M9 | Changing your mind — reconfigure, migrate, uninstall, credentials | Released |
+| `0.14.0` | M9 | Keeping it running — updates, backup, rollback, the journal | Staged |
+| `0.15.0` | M9 | The last of v1 — remote control, autostart, customisation | Planned |
+| `1.0.0` | M6 | **The dashboard** — a bare `lemonfiber` opens it. Closes v1. | Planned |
+| `2.0.0` | M15 | **Runs without Docker** — engine abstraction, Podman, native. Opens v2. | Planned |
+| `2.1.0` | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
+| `2.2.0` | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
+| `2.3.0` | M12 | Safely reachable — remote access and one account | Planned |
+| `2.4.0` | M14 | The platform — third-party manifests, catalogue, mobile client handoff | Planned |
+| `2.5.0` | M13 | See everything — metrics, dashboards, uptime | Planned |
 
 ### Patch releases (hotfixes)
 
@@ -263,8 +263,8 @@ confirmed, and an unattended stack recovers across a reboot.
 
 ## M10 — Release engineering
 
-Ships with `1.0.0`: the install paths a non-contributor follows, and the epoch
-gate that ships no stubs ([OPS-R54](../70-operations/staging.md)).
+Ships with `1.0.0`: the install paths a non-contributor follows, and the gate
+that ships no stubs ([OPS-R54](../70-operations/staging.md)).
 
 | Deliverable | Notes |
 |-------------|-------|
@@ -279,11 +279,11 @@ following only the README.
 
 ---
 
-## v2 — the ecosystem epoch (M11–M15)
+## v2 — the ecosystem (M11–M15)
 
-`1.0.0` closes v1 with the television interface. v2 opens with `2.0.0` and the
-capability that justifies a major: the stack runs without Docker. The rest of the
-epoch follows as minors, authored to the same bar as v1.
+`1.0.0` finishes v1 with the television interface. v2 opens with `2.0.0` and the
+capability that justifies a major: the stack runs without Docker. The rest
+follows as minors, authored to the same bar as v1.
 
 ---
 

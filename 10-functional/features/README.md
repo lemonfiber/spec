@@ -4,13 +4,20 @@
 
 **v1** is the seven product areas (A–G) — the contract the technical spec is
 written against, where every architecture and implementation decision must trace
-to a feature requirement here, not the other way round. **v2 — the ecosystem
-epoch** — adds four areas (H–K) plus F3, each tagged `tracks: v2`; those features
-are catalogued below the v1 areas and ship after 1.0. Area **L — Release &
-distribution** spans both: L1 releases v1 (`1.0.0`) and L2 releases v2 (`2.0.0`),
-each the scoped work of shipping an epoch rather than a summary of it. The
-generated [feature board](BOARD.md) lists every feature with the version it ships
-in; [`index.json`](index.json) is the same board for tools.
+to a feature requirement here, not the other way round. **The ecosystem** adds
+four areas (H–K) plus F3, catalogued below the v1 areas and delivered after 1.0.
+Area **L — Release & distribution** spans both: L1 releases v1 (`1.0.0`) and L2
+releases v2 (`2.0.0`), each the scoped work of shipping a generation rather than
+a summary of it. The generated [feature board](BOARD.md) lists every feature with
+how far it is built and the version it ships in; [`index.json`](index.json) is
+the same board for tools.
+
+Every feature carries two answers that are easy to confuse and are kept apart.
+**`status`** is about the specification — `draft` until it is agreed, then
+`accepted`, and citable. **`maturity`** is about the implementation — `planned`,
+`building`, `shipped` (with the version that carried it), or `withdrawn`. A
+feature is routinely `accepted` and `planned` for a year; conflating the two
+would lose whichever question is asked less often.
 
 ## How to read a feature doc
 
@@ -153,10 +160,11 @@ read as one product.
 
 ---
 
-## v2 — Ecosystem epoch
+## v2 — The ecosystem
 
-Everything below is `tracks: v2`: authored to the same falsifiable-requirement
-bar, delivered after 1.0, and gated by the same rule (no stubs when 2.0.0 is cut).
+Everything below is delivered after 1.0: authored to the same
+falsifiable-requirement bar, and gated by the same rule — no version ships a
+feature it has not finished ([OPS-R54](../../70-operations/staging.md)).
 The through-line is the project's wedge applied outward — not just *wiring* these
 services, but **proving the wire works** (a health check, a valid upstream
 credential, and a synthetic action read back), the thing no adjacent tool does.
@@ -219,8 +227,8 @@ Open-source-native metrics and monitoring — a second opinion, delivery-confirm
 ## L — Release & distribution
 
 Turning the built product into something a stranger can install and run. Each
-epoch's major release is its own scoped work — the distribution itself, not the
-features that came before it.
+major release is its own scoped work — the distribution itself, not the features
+that came before it.
 
 | ID | Feature | Audience | Ships in |
 |----|---------|----------|----------|
