@@ -149,15 +149,20 @@ honest.
 
 **A major carries the capability that justifies it.** Not a stamp on a finished
 backlog — `0.15.0` to `1.0.0` shipping nothing would be a strange thing to
-announce. `1.0.0` opens the dashboard on a bare invocation, which is what v1
-builds toward. `2.0.0` runs the stack without Docker, which is a different
-product generation. A major that adds no capability is a number nobody can read.
+announce. `1.0.0` opens the dashboard on a bare invocation and stops the four
+interfaces this product is used through from moving again, which is a promise no
+version before it can make. A major that adds no capability is a number nobody
+can read.
 
-**A generation's work ships inside its own major.** The ecosystem features used
-to be scheduled as `1.1.0` through `1.7.0` — minor bumps, one of which removed
-the container runtime. Anyone reading the version would have been misled about
-how much changed. They are `2.x`, so the size of the change and the size of the
-number agree.
+**There is one major to ship into.** The ecosystem features were once scheduled
+as `1.1.0` through `1.7.0` and then as a second generation, `2.x`, on the
+reasoning that a minor which removed the container runtime would mislead anyone
+reading the number. The second half of that is gone: there are no epochs, and
+what was sequenced behind `2.0.0` is the last stretch of minors before `1.0.0` —
+the container-engine abstraction among them, at `0.22.0`. The first half is why
+they are still minors and not one release: each is one theme, and a version that
+carried a generation would be the backlog-with-a-number this rule exists to
+refuse.
 
 **A version is one theme, not a backlog.** They ranged from nine goals to a
 hundred and eighty-five; the large ones were not releases, they were everything

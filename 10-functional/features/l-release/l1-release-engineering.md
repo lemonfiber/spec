@@ -91,4 +91,3 @@ features rather than in requirements taken one at a time
 
 - [OPS-R54 — no version ships a stub](../../../70-operations/staging.md) — the bar `1.0.0` must clear
 - [A2 Setup wizard](../a-getting-started/a2-setup-wizard.md) — what the operator reaches once installed
-- [L2 v2 release](l2-v2-release.md) — the same discipline applied when v2 is shipped
