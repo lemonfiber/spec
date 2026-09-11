@@ -23,9 +23,9 @@ Let a household member watch from outside the home — on cellular, at a friend'
 house — without the operator opening a port they don't understand or handing
 their stack to a proprietary control plane.
 
-This was a deliberate 1.0 non-goal ([roadmap post-1.0](../../../00-overview/roadmap.md#post-10-candidates),
-the reserved **B7**): every easy option in 2024 either ran through a proprietary
-coordinator or was substantially harder to stand up. It returns in v2 because the
+This was deferred once (the reserved **B7**, [roadmap](../../../00-overview/roadmap.md#m12--safely-reachable)):
+every easy option in 2024 either ran through a proprietary
+coordinator or was substantially harder to stand up. It is scheduled now because the
 constraint that blocked it — "easy *and* open-source *and* verifiable" — is now
 satisfiable with a self-hosted overlay control plane, and because reaching the
 stack from outside is the single most-requested capability a running stack still

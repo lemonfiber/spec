@@ -1,4 +1,5 @@
-# The last of v1 — remote control, autostart, customisation and the service catalogue.
+# Away from the keyboard — remote control, autostart, customisation and the
+# service catalogue.
 #
 # 71 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
@@ -10,7 +11,7 @@
 # the version does, the way G8-R4 and G8-R10 reach 0.14.0 from 0.10.0 (OPS-R31).
 version = "0.15.0"
 milestone = "M9"   # Lifecycle & maintenance
-delivers  = "The last of v1 — remote control, autostart, customisation"
+delivers  = "Away from the keyboard — remote control, autostart, customisation"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [

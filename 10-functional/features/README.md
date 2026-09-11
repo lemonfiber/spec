@@ -80,15 +80,15 @@ The hardest part of the product, and where most users are lost today.
 | [B5](b-running/b5-notifications.md) | Notifications & alerting | Both |
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | Operator |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | Operator |
-| [B9](b-running/b9-notification-backends.md) · *v2* | Open notification back-ends | Both |
+| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | Both |
 | [B10](b-running/b10-hosting.md) | Hosting long-running commands | Operator |
 
-> **B7 (remote access for the household) is deferred past 1.0** — household
-> features are **LAN-only** in 1.0. It returns in **v2 as [I1](i-remote-access/i1-remote-access.md)**,
+> **B7 (remote access for the household) is deferred** — household features are
+> **LAN-only** until it lands. It returns as [I1](i-remote-access/i1-remote-access.md) in `0.20.0`,
 > once a self-hosted overlay control plane (Headscale + self-hosted relay) makes
 > it possible without the proprietary control plane that blocked it (Tailscale).
 > See [ADR-0010](../../00-overview/decisions/0010-engine-abstraction-for-v2.md) for the
-> related runtime decision and the [roadmap](../../00-overview/roadmap.md#post-10-candidates).
+> related runtime decision and the [roadmap](../../00-overview/roadmap.md#beyond-100).
 
 ## C — Trust & correctness
 
@@ -138,7 +138,7 @@ demands the tool prove things rather than assume them.
 |----|---------|----------|
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | Operator |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | Operator |
-| [F3](f-extensibility/f3-stack-manifests.md) · *v2, draft* | Third-party stack manifests | Operator |
+| [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests and recipes | Operator |
 
 ## G — Cross-cutting UX
 
@@ -156,23 +156,23 @@ read as one product.
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | Household |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | Operator |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | Both |
-| [G9](g-ux/g9-mobile-handoff.md) · *v2* | Mobile client handoff | Both |
+| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | Both |
 
 ---
 
-## v2 — The ecosystem
+## The ecosystem
 
-Everything below is delivered after 1.0: authored to the same
-falsifiable-requirement bar, and gated by the same rule — no version ships a
+Everything below ships **before** `1.0.0`, on the same train as everything
+above it: authored to the same falsifiable-requirement bar, and gated by the same rule — no version ships a
 feature it has not finished ([OPS-R54](../../70-operations/staging.md)).
 The through-line is the project's wedge applied outward — not just *wiring* these
 services, but **proving the wire works** (a health check, a valid upstream
 credential, and a synthetic action read back), the thing no adjacent tool does.
 
-Areas **H, I and K are Accepted**. The runtime pillar (**J**) and **F3** are
-**Draft** — proposed and open for comment: they reopen a v1 non-goal
+Areas **H, I and K are Accepted**, as is **F3**. The runtime pillar (**J**) is
+**Draft** — proposed and open for comment: it reopens a non-goal
 ([ADR-0010](../../00-overview/decisions/0010-engine-abstraction-for-v2.md)) and
-carry the most design risk, so they are not binding until reviewed.
+carries the most design risk, so it is not binding until reviewed.
 
 ## H — Ecosystem glue
 

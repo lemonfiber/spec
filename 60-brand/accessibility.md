@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 
-Whether the palette meets [WCAG AA](../10-functional/features/g-ux/g3-accessibility.md#g3-r3)
+Whether the palette meets [WCAG AA](../10-functional/features/g-ux/g3-accessibility.md)
 is a **computed property of the tokens**, not an opinion. This page states the
 baseline, with the actual ratios, and the pairings that are unsafe.
 
