@@ -91,9 +91,19 @@ def check_links():
 #: and an ADR count five short.
 def stated_counts() -> list[str]:
     """Numbers the repository states about itself that no longer match it."""
-    index = ROOT / "10-functional" / "features" / "index.json"
+    features = ROOT / "10-functional" / "features"
+    index = features / "index.json"
+
+    # A tree with no feature catalogue states no counts about one. Reporting a
+    # missing index here would be this check complaining that it has nothing to
+    # do, which is noise rather than a finding.
+    if not features.is_dir():
+        return []
     if not index.is_file():
-        return [f"{index.relative_to(ROOT)} is missing, so no stated count can be checked"]
+        return [
+            f"{index.relative_to(ROOT)} is missing, so the counts this "
+            "repository states about its catalogue cannot be checked"
+        ]
 
     counts = json.loads(index.read_text(encoding="utf-8"))["counts"]
     features = int(counts["features"])
