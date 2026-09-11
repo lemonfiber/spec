@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 77,
-    "requirements": 1131,
+    "features": 78,
+    "requirements": 1144,
     "areas": "A–N"
   },
   "versions": [
@@ -1592,7 +1592,7 @@
     },
     {
       "id": "F3",
-      "title": "Plugin manifests and recipes",
+      "title": "Plugin manifests",
       "area": "F",
       "audience": "operator",
       "kind": "feature",
@@ -1618,6 +1618,7 @@
         "F5",
         "F6",
         "F7",
+        "F8",
         "C9",
         "E4"
       ],
@@ -1780,6 +1781,37 @@
         }
       ],
       "path": "f-extensibility/f7-plugin-provenance.md"
+    },
+    {
+      "id": "F8",
+      "title": "Recipes and named adapters",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P1",
+      "labels": [
+        "extensibility",
+        "verification",
+        "security"
+      ],
+      "requires": [
+        "F3",
+        "F4"
+      ],
+      "relates": [
+        "F5",
+        "F6",
+        "F7",
+        "G8",
+        "C1"
+      ],
+      "versions": [],
+      "path": "f-extensibility/f8-recipes.md"
     },
     {
       "id": "G1",
