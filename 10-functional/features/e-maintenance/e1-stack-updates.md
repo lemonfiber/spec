@@ -116,7 +116,7 @@ shown a diff ([C9](../c-trust/c9-drift.md)).
 
 | ID | Requirement |
 |----|-------------|
-| **E1-R1** | All service images MUST be pinned to explicit versions; no service MAY track a floating tag. |
+| **E1-R1** | All service images MUST be pinned to an immutable digest, of the multi-architecture index rather than of one platform's image, with the version tag recorded alongside it and shown wherever a version is shown. No service MAY resolve an image by tag when it runs. |
 | **E1-R2** | Available updates MUST be shown with current version, target version, and the significance of the jump before anything is applied. |
 | **E1-R3** | An update that will migrate service state MUST state that the change is irreversible before proceeding. |
 | **E1-R4** | A backup MUST be taken automatically before any update touching service state. |
