@@ -123,19 +123,26 @@ def codeowners(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[s
     )
     if written.returncode != 0:
         return [
-            f"gen_codeowners.py could not generate for {name}: "
-            f"{written.stderr.strip() or 'no output'}"
+            (
+                f"gen_codeowners.py could not generate for {name}: "
+                f"{written.stderr.strip() or 'no output'}"
+            )
         ]
     if not got.is_file():
         return [
-            ".github/CODEOWNERS is missing; generate it with "
-            f"`python3 scripts/gen_codeowners.py {name}` from a spec checkout (OPS-R17)"
+            (
+                ".github/CODEOWNERS is missing; generate it with "
+                f"`python3 scripts/gen_codeowners.py {name}` from a spec checkout "
+                "(OPS-R17)"
+            )
         ]
     if got.read_text(encoding="utf-8") != written.stdout:
         return [
-            ".github/CODEOWNERS differs from what the registry generates; "
-            f"regenerate it with `python3 scripts/gen_codeowners.py {name}` "
-            "rather than editing it (OPS-R17)"
+            (
+                ".github/CODEOWNERS differs from what the registry generates; "
+                f"regenerate it with `python3 scripts/gen_codeowners.py {name}` "
+                "rather than editing it (OPS-R17)"
+            )
         ]
     return []
 
