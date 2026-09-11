@@ -179,6 +179,28 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R22** | Pinning MUST be to the stack rather than to an address, so that reaching the same stack by another route does not re-open the question of its identity. |
 | **N1-R23** | A credential, a session token and pairing material MUST NOT be written to any cache, and MUST NOT survive beyond the storage [N4](n4-native-integration.md) defines for them. |
 | **N1-R24** | A reading the app retained from an earlier session MAY be shown on opening, and MUST carry when it was read as `N1-R9` requires; the confirmation of an action just performed MUST NOT be served from a retained value. |
+| **N1-R25** | A screen that reads from a stack MUST publish its first frame before issuing the read, and that frame MUST be built from what the app already holds ([ADR-0019](../../../00-overview/decisions/0019-a-screen-paints-before-it-reaches-the-stack.md)). |
+| **N1-R26** | Every call the app makes MUST carry a bounded timeout short enough that a refused reach returns the screen to the operator, and the bound MUST NOT be raised to accommodate a slow stack. |
+| **N1-R27** | A screen whose content can change while it is open MUST refresh on a stated cadence, and MUST NOT rely on the operator leaving and returning to see a change. |
+| **N1-R28** | An indeterminate progress indicator MUST be shown only where the app holds nothing to show, and MUST NOT replace a retained reading that could be shown with its age. |
+| **N1-R29** | The app MUST establish, before offering an action, whether the connected stack supports it, and MUST NOT determine this by attempting the action. |
+| **N1-R30** | An action the connected stack is too old to offer MUST be reported as unavailable on that stack, naming what would provide it, and MUST NOT be hidden (`N1-R3`) or presented as a failure of the operator's request. |
+| **N1-R31** | Where two configured stacks differ in what they support, the app MUST NOT present the capabilities of one as the capabilities of another. |
+| **N1-R32** | Anything the app retains between launches MUST carry the version of the shape it was written in. |
+| **N1-R33** | On reading retained state written in an older shape, the app MUST either migrate it or discard it, and MUST NOT interpret it as though it were current. |
+| **N1-R34** | Discarding retained state MUST NOT discard a pairing or its pinned fingerprint; where those cannot be carried forward, the app MUST say that re-pairing is required and why. |
+| **N1-R35** | On a launch with no stack configured, the app MUST say that setup happens at the machine (`N1-R4`) and offer pairing, and MUST NOT present an empty operator surface. |
+| **N1-R36** | On a launch with a stack configured, the app MUST reach a usable frame without waiting for a reading to complete. |
+| **N1-R37** | A launch where the device has no network, where the stack cannot be reached, and where the app is locked MUST each be told apart, consistent with `N1-R10` and the lock `N4` defines. |
+| **N1-R38** | Returning to a previous screen MUST restore what the operator had done there, and MUST NOT re-read the stack solely to rebuild it. |
+| **N1-R39** | Which stack a screen is showing MUST be carried explicitly by that screen, and MUST NOT be read from state shared across screens. |
+| **N1-R40** | An action the app could not deliver MUST be refused rather than retained, and the refusal MUST name the stack and state that nothing was changed ([ADR-0020](../../../00-overview/decisions/0020-an-action-the-stack-did-not-receive-did-not-happen.md)). |
+| **N1-R41** | The app MUST NOT retain an undelivered action, MUST NOT replay one on reconnecting, and MUST NOT present an action as pending. |
+| **N1-R42** | An idempotency key MUST accompany every action that changes a stack, and serves retry within a single attempt; it MUST NOT be used to replay an action across a reconnection. |
+| **N1-R43** | A refused attempt MUST leave the action offered, consistent with `N1-R3`; the attempt failed, the capability did not become unavailable. |
+| **N1-R44** | Where a session is rejected or has ended, the app MUST report it on the screen the operator is on, MUST offer to establish a new session there, and MUST restore that screen once one is established. |
+| **N1-R45** | The end of a session MUST NOT discard the pairing or its pinned fingerprint; a credential expiring is not the machine changing ([ADR-0018](../../../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md)). |
+| **N1-R46** | A session that has ended MUST be reported differently from a credential that was refused, consistent with `N1-R10`. |
 
 ## Related
 
