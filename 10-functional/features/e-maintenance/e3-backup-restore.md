@@ -128,6 +128,8 @@ silently fill the disk they were protecting.
 | Backup includes credentials no longer valid | Restore them; report which fail validation afterwards. |
 | Operator wants media backed up | Out of scope. State it and point at general-purpose backup tools — pretending to solve it badly is worse. |
 | Operator wants their configuration captured as it was **before** lemonfiber touched it | This is what the capture before an adoption is for, and it reads the existing setup's own host paths rather than lemonfiber's layout. |
+| The setup being adopted is still running | Adoption is refused until it is stopped. The capture that must precede it copies that setup's own service databases, and copying a live one is the corruption a backup exists to prevent; the project proved still is the **existing** setup's, never lemonfiber's, which does not exist yet and would answer "nothing running" to any question asked of it. |
+| The setup being adopted mounts no host paths | There is nothing to capture, and adoption proceeds without an archive. A capture of nothing recorded as a backup would be worse than none: it reads as protection that was never there. |
 | Restoring an archive of a setup lemonfiber does not manage | Refused. The archive records the host path each tree came from and lists them, and putting them back is an extraction the operator performs. lemonfiber writing into a tree it does not manage is the one step of a restore nobody can sanction on their behalf, and an automatic one would land on a setup that has since moved on. |
 | Backup taken mid-update | Only meaningful pre- or post-update; take it before, never during. |
 | Partial restore leaves inconsistency | Re-run [seed](../d-content/d1-seed.md) after restore to reconcile inter-service wiring. |
