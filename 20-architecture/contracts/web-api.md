@@ -264,6 +264,73 @@ These are writes and sit behind the same guard as the actions above. They are na
 because the first-run walk is where credentials are entered, and an endpoint that takes one
 and is written down nowhere is the one nobody audits.
 
+### What a stack says it can do
+
+```
+GET /api/capabilities
+```
+
+Every other surface runs on the machine the stack runs on, so it is the same version by
+construction and never has to ask. A client on a phone is the first that can be older or
+newer than what it is talking to, and the first that can hold several stacks at once, each
+at a different version ([N1-R11](../../10-functional/features/n-companion/n1-companion-app.md)).
+
+A version number does not answer the question. `GET /api/version` says which binary is
+running; turning that into *what this stack can do* means a client carrying a table of which
+release added which feature — a second copy of the changelog, on a different release cadence,
+in a different repository. It goes wrong quietly: a client meeting a version its table does
+not know either offers an action that fails when pressed, or hides one that works.
+
+So the stack declares what it can do, and the client reads it rather than deduces it.
+
+The payload is `kind: "capabilities"`, whose data maps a capability name to its state:
+
+```json
+{ "api_version": 1, "kind": "capabilities",
+  "data": { "capabilities": {
+      "updates":   "available",
+      "rollback":  "available",
+      "snapshots": "unconfigured",
+      "requests":  "unpermitted" } } }
+```
+
+Four answers, and the difference between them is the whole point — each is a different
+sentence to show somebody:
+
+| State | Means | What a client says |
+|---|---|---|
+| `available` | This stack can do it, and this credential may | offers it |
+| `unconfigured` | The stack has it; something must be set up first | offers it, and says what is missing |
+| `unpermitted` | The stack has it; this credential may not | says it is not theirs to do, not that it is broken |
+| *absent* | This stack does not have it | says the stack is too old, naming what would provide it |
+
+**Absence is the answer for a stack that is too old**, and it needs no coordination: a stack
+that has never heard of a capability cannot name it, so a client meeting an older stack sees
+the same thing it would see if the capability were removed. That is why the shape is a map
+of what *is* rather than a list of flags, and why a client must treat an unknown key as
+something it does not understand rather than as an error.
+
+**The set is scoped to the credential, not only to the stack.** What a household member may
+do is already the core's answer
+([D6](../../10-functional/features/d-content/d6-household-identity.md),
+[N3-R2](../../10-functional/features/n-companion/n3-household-companion.md)), so a capability
+set that ignored who was asking would be a second permission model — the thing `N3-R2`
+exists to prevent. `unpermitted` is how that answer arrives, and it is deliberately
+distinguishable from `unconfigured`, because "you may not" and "nobody has set this up" are
+not the same news.
+
+**It is read, not pushed, and it can change under a client.** Configuring storage turns
+`snapshots` from `unconfigured` to `available` without the session ending. So it is an
+ordinary read: it carries the age every other reading carries
+([N1-R9](../../10-functional/features/n-companion/n1-companion-app.md)), a client may retain
+it and paint from it
+([ADR-0019](../../00-overview/decisions/0019-a-screen-paints-before-it-reaches-the-stack.md)), and a client
+that has not re-read it lately is holding an opinion rather than a fact.
+
+**A capability is not a promise the action will succeed.** It says the action is offerable.
+A repair may still be refused on its own terms, and that refusal is `G4`'s business, not
+this endpoint's.
+
 ## What guards it
 
 A writable API on loopback is reachable from any page the operator happens to visit — a page
@@ -413,6 +480,11 @@ generation has not been used.
 | **ARCH-R75** | The operator's password MUST be exchanged for a session by one request and MUST NOT be required by any other. |
 | **ARCH-R76** | A session's secret MUST travel in the same header the per-run token does, so the surface reads one credential header. |
 | **ARCH-R77** | A refusal a caller could correct by sending something else MUST be distinguished by status from one nothing they could send would satisfy, and a refusal for too many failed attempts MUST say how long is left. |
+| **ARCH-R78** | The API MUST expose the set of capabilities the stack can perform, and a client MUST NOT derive that set from a version number. |
+| **ARCH-R79** | A capability MUST be reported as available, present but unconfigured, or present but not permitted to this credential; a capability the stack does not have MUST be absent rather than reported as false. |
+| **ARCH-R80** | The capability set MUST be scoped to the credential that asked, so that it carries the core's existing answer about what a household member may do rather than a second one. |
+| **ARCH-R81** | A client MUST treat a capability name it does not recognise as one it does not understand, and MUST NOT refuse the payload for containing it. |
+| **ARCH-R82** | The capability set MUST be readable again within a session, and MUST carry when it was read as any other reading does. |
 
 ## Shapes are generated; semantics are not
 

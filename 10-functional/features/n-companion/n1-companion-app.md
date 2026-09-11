@@ -183,8 +183,8 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R26** | Every call the app makes MUST carry a bounded timeout short enough that a refused reach returns the screen to the operator, and the bound MUST NOT be raised to accommodate a slow stack. |
 | **N1-R27** | A screen whose content can change while it is open MUST refresh on a stated cadence, and MUST NOT rely on the operator leaving and returning to see a change. |
 | **N1-R28** | An indeterminate progress indicator MUST be shown only where the app holds nothing to show, and MUST NOT replace a retained reading that could be shown with its age. |
-| **N1-R29** | The app MUST establish, before offering an action, whether the connected stack supports it, and MUST NOT determine this by attempting the action. |
-| **N1-R30** | An action the connected stack is too old to offer MUST be reported as unavailable on that stack, naming what would provide it, and MUST NOT be hidden (`N1-R3`) or presented as a failure of the operator's request. |
+| **N1-R29** | The app MUST establish, before offering an action, whether the connected stack supports it by reading the capability set the API declares (`ARCH-R78`), and MUST NOT determine this by attempting the action or by deriving it from a version number. |
+| **N1-R30** | An action the connected stack is too old to offer MUST be reported as unavailable on that stack, naming what would provide it, and MUST NOT be hidden (`N1-R3`) or presented as a failure of the operator's request. A capability that is present but unconfigured, and one the credential may not use, MUST each be reported as themselves rather than as absence (`ARCH-R79`). |
 | **N1-R31** | Where two configured stacks differ in what they support, the app MUST NOT present the capabilities of one as the capabilities of another. |
 | **N1-R32** | Anything the app retains between launches MUST carry the version of the shape it was written in. |
 | **N1-R33** | On reading retained state written in an older shape, the app MUST either migrate it or discard it, and MUST NOT interpret it as though it were current. |
