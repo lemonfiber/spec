@@ -363,5 +363,78 @@ class Usage(Workspace):
         self.assertIn("no version manifests", out)
 
 
+class Unclaimed(Workspace):
+    """A tick a row's own column never claimed.
+
+    Both this gate and `gate.py` decide a row by whether its line holds the glyph
+    and then take every identifier on it, so a sentence inside a ticked row saying
+    a thing was *deferred* is what marks that thing done. `E3-R5` was counted as
+    met that way while two of its three triggers had nothing at all.
+    """
+
+    HEADER = "| Deliverable | Spec | Status | Landing / notes |\n|---|---|---|---|\n"
+
+    def table(self, *rows):
+        return "## M5 — Trust · `0.7.0`\n\n" + self.HEADER + "".join(rows)
+
+    def test_a_deferral_inside_a_ticked_row_is_refused(self):
+        # The shape exactly: the row claims R1..R12, and its prose explains that
+        # R13 was moved to a later milestone — which is what marked R13 done.
+        code, out = self.lint(self.table(
+            "| Backup | `G7-R1..R12` | ✅ | The rest (`G7-R13`) is reassigned to M9. |\n"))
+        self.assertEqual(code, 1, out)
+        self.assertIn("G7-R13", out)
+        self.assertIn("does not claim it", out)
+
+    def test_a_cross_reference_to_work_done_elsewhere_is_allowed(self):
+        # Ordinary and must stay legal: a deliverable explains what it rests on,
+        # and the requirement it names is claimed by a ticked row of its own.
+        code, out = self.lint(self.table(
+            "| Backup | `G7-R1..R12` | ✅ | Composed with `G7-R13`, which is below. |\n",
+            "| Retention | `G7-R13` | ✅ | y |\n"))
+        self.assertEqual(code, 0, out)
+
+    def test_an_unticked_row_may_name_anything(self):
+        # A row that is not ticked is where an unfinished requirement belongs, so
+        # naming one there is the cure rather than the disease.
+        code, out = self.lint(self.table(
+            "| Backup | `G7-R1..R12` | ✅ | y |\n",
+            "| What is still owed | `G7-R13` | ☐ | Not started; see `G7-R1`. |\n"))
+        self.assertEqual(code, 0, out)
+
+    def test_a_table_without_a_spec_column_names_its_requirements_inline(self):
+        # The older three-column shape puts the identifiers in the deliverable,
+        # where claim and prose cannot be told apart. Reading a fixed column there
+        # takes the status cell for the requirements and refuses honest rows.
+        self.spec_tree()
+        body = ("## M5 — Trust · `0.7.0`\n\n"
+                "| Deliverable | Status | Landing |\n|---|---|---|\n"
+                "| Form closure (`G7-R1`, `G7-R2`) | ✅ | #14 |\n"
+                "| The rest | ✅ | `G7-R3..R13` |\n")
+        code, out = run_main(["--status", self.tracker(body), "--spec", SPEC])
+        self.assertEqual(code, 0, out)
+
+    def test_a_short_row_claims_the_whole_of_itself(self):
+        # A row with fewer cells than the header promised has no column to read,
+        # so nothing on it is prose and nothing on it is refused.
+        self.spec_tree()
+        body = ("## M5 — Trust · `0.7.0`\n\n" + self.HEADER +
+                "| `G7-R1..R13` ✅ |\n")
+        code, out = run_main(["--status", self.tracker(body), "--spec", SPEC])
+        self.assertEqual(code, 0, out)
+
+    def test_a_second_table_is_read_with_its_own_header(self):
+        # Two tables under one heading, the second shaped differently. A reader
+        # that kept the first table's column would read the second's rows wrong.
+        self.spec_tree()
+        body = ("## M5 — Trust · `0.7.0`\n\n" + self.HEADER +
+                "| Backup | `G7-R1..R12` | ✅ | y |\n"
+                "\nSome prose between them.\n\n"
+                "| Deliverable | Status | Landing |\n|---|---|---|\n"
+                "| Retention (`G7-R13`) | ✅ | #21 |\n")
+        code, out = run_main(["--status", self.tracker(body), "--spec", SPEC])
+        self.assertEqual(code, 0, out)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
