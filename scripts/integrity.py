@@ -5,12 +5,14 @@ Verifies:
   - every cited requirement/ADR identifier resolves to a definition
   - no requirement ID is defined twice (IDs are permanent and unique, GOV-R8)
   - every internal Markdown link resolves to a real file
+  - the counts this repository's own prose states match what it contains
 
 Exit 0 = clean, 1 = problems found.
 """
 from __future__ import annotations
 
 import collections
+import json
 import pathlib
 import re
 import sys
@@ -83,11 +85,58 @@ def check_links():
     return problems
 
 
+#: Prose that states a number about this repository, and how to count the real
+#: one. The documentation site guards its own transcriptions of these; nothing
+#: guarded the spec's own, so its README drifted to a feature count nine short
+#: and an ADR count five short.
+def stated_counts() -> list[str]:
+    """Numbers the repository states about itself that no longer match it."""
+    features = ROOT / "10-functional" / "features"
+    index = features / "index.json"
+
+    # A tree with no feature catalogue states no counts about one. Reporting a
+    # missing index here would be this check complaining that it has nothing to
+    # do, which is noise rather than a finding.
+    if not features.is_dir():
+        return []
+    if not index.is_file():
+        return [
+            (
+                f"{index.relative_to(ROOT)} is missing, so the counts this "
+                "repository states about its catalogue cannot be checked"
+            )
+        ]
+
+    counts = json.loads(index.read_text(encoding="utf-8"))["counts"]
+    features = int(counts["features"])
+    adrs = len([p for p in (ROOT / "00-overview" / "decisions").glob("*.md")
+                if ADR_FILE.match(p.name)])
+
+    expected = {
+        r"(\d+)-feature catalogue": (features, "features"),
+        r"(\d+) ADRs": (adrs, "architecture decision records"),
+    }
+
+    faults = []
+    for path in md_files():
+        text = path.read_text(encoding="utf-8")
+        for pattern, (actual, what) in expected.items():
+            for found in re.finditer(pattern, text):
+                stated = int(found.group(1))
+                if stated != actual:
+                    line = text[: found.start()].count("\n") + 1
+                    faults.append(
+                        f"{path.relative_to(ROOT)}:{line}: says {stated} "
+                        f"{what} where this repository has {actual}"
+                    )
+    return faults
+
+
 def main() -> int:
     problems = []
     # De-dup the "cites undefined" one-per-file noise into unique messages.
     seen = set()
-    for msg in check_ids() + check_links():
+    for msg in check_ids() + check_links() + stated_counts():
         if msg not in seen:
             seen.add(msg)
             problems.append(msg)

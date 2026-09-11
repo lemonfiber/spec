@@ -34,6 +34,7 @@ jobs:
           coverage run --append scripts/test_spec_check.py
           coverage run --append scripts/test_integrity.py
           coverage run --append scripts/test_shared_files.py
+          coverage run --append scripts/test_next_id.py
           coverage report --fail-under=100
       # Not a coverage suite: it runs the ratchet step out of sonar-gate.yml against
       # a stubbed GitHub and checks what it refuses (Q-R66). The gate it exercises
