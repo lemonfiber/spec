@@ -226,8 +226,8 @@ Open-source-native metrics and monitoring — a second opinion, delivery-confirm
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | Operator |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | Operator |
 
-> **Also v2, in existing areas:** [F3](f-extensibility/f3-stack-manifests.md)
-> (third-party stack manifests), [B9](b-running/b9-notification-backends.md)
+> **Also in existing areas:** [F3](f-extensibility/f3-stack-manifests.md)
+> (plugin manifests and recipes), [B9](b-running/b9-notification-backends.md)
 > (open notification back-ends, extends [B5](b-running/b5-notifications.md)), and
 > [G9](g-ux/g9-mobile-handoff.md) (mobile handoff, extends [G6](g-ux/g6-client-apps.md)).
 
@@ -240,6 +240,19 @@ that came before it.
 | ID | Feature | Audience | Ships in |
 |----|---------|----------|----------|
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | Operator | `1.0.0` |
+
+## M — Companion
+
+The fourth surface, on a device that is not the one the stack runs on. One
+application for both audiences, deciding which by who signs in
+([ADR-0017](../../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)).
+
+| ID | Feature | Audience |
+|----|---------|----------|
+| [M1](m-companion/m1-companion-app.md) | The companion app | Both |
+| [M2](m-companion/m2-operator-companion.md) | The operator's companion | Operator |
+| [M3](m-companion/m3-household-companion.md) | The household's companion | Household |
+| [M4](m-companion/m4-native-integration.md) | What the app uses of the device | Both |
 
 ---
 

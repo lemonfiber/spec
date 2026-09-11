@@ -29,15 +29,34 @@ operator working over SSH and anyone automating.
 
 ## Behaviour
 
-### Three surfaces, one core
+### Four surfaces, one core
 
 | Surface | Invocation | For |
 |---------|-----------|-----|
 | **CLI** | `lemonfiber up tv` | Scripting, automation, remote shells |
 | **TUI** | `lemonfiber` | Interactive use at a terminal |
 | **Web** | `lemonfiber ui` | Anyone who'd rather use a browser |
+| **Mobile** | the companion app | Whoever is not at the machine ([M1](../m-companion/m1-companion-app.md)) |
 
-All three drive the same logic. A surface is a rendering, never a capability.
+All four drive the same logic. A surface is a rendering, never a capability.
+
+### The fourth one is not on the machine, and that changes two things
+
+The first three run where the stack runs. The companion does not, and the parity
+rule has to be read against that rather than quietly broken by it
+([ADR-0017](../../../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)).
+
+**Reachability is a reported condition, not a missing capability.** A surface on
+the host can always reach the core. A phone can reach it only where the operator
+has chosen to bind the admin surface and configure authentication
+([C6](../c-trust/c6-web-security.md)) — their decision, not the app's. So the
+companion offers every action and reports honestly when it cannot carry one out,
+rather than hiding what it cannot currently do.
+
+**First-run setup does not cross the boundary**, and that is the documented
+exception `G1-R1` provides for. The thing that lets a phone reach the machine is
+created *during* setup, so a phone cannot perform the act that makes a phone able
+to perform acts. Reconfiguration is offered in full.
 
 ### Feature parity is a requirement, not an aspiration
 
@@ -191,7 +210,7 @@ exactly the users this exists for.
 | **G1-R11** | Failure to launch a browser MUST NOT fail the command; the URL MUST be printed. |
 | **G1-R12** | Concurrent surfaces MUST reflect the same state, and lifecycle operations MUST be serialised across them. |
 | **G1-R13** | Non-interactive invocation lacking required input MUST fail naming the required flags. |
-| **G1-R14** | Setup MUST be completable from all three surfaces. |
+| **G1-R14** | Setup MUST be completable from all three surfaces that run on the host machine. It is not required of the companion surface, for the reason recorded above and in [M1-R4](../m-companion/m1-companion-app.md). |
 
 ## Related
 

@@ -1,9 +1,9 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 73,
-    "requirements": 1022,
-    "areas": "A–L"
+    "features": 77,
+    "requirements": 1078,
+    "areas": "A–M"
   },
   "versions": [
     {
@@ -2631,6 +2631,139 @@
       "relates": [],
       "versions": [],
       "path": "l-release/l2-v2-release.md"
+    },
+    {
+      "id": "M1",
+      "title": "The companion app",
+      "area": "M",
+      "audience": "both",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P1",
+      "labels": [
+        "mobile",
+        "security",
+        "ux"
+      ],
+      "requires": [
+        "C6",
+        "D6",
+        "G1",
+        "G4"
+      ],
+      "relates": [
+        "A4",
+        "B2",
+        "C1",
+        "G3",
+        "I1"
+      ],
+      "versions": [],
+      "path": "m-companion/m1-companion-app.md"
+    },
+    {
+      "id": "M2",
+      "title": "The operator's companion",
+      "area": "M",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P1",
+      "labels": [
+        "mobile",
+        "ux",
+        "verification"
+      ],
+      "requires": [
+        "M1",
+        "C1",
+        "C3",
+        "G7"
+      ],
+      "relates": [
+        "B2",
+        "B4",
+        "B5",
+        "C2",
+        "C7",
+        "C8",
+        "D5",
+        "E1"
+      ],
+      "versions": [],
+      "path": "m-companion/m2-operator-companion.md"
+    },
+    {
+      "id": "M3",
+      "title": "The household's companion",
+      "area": "M",
+      "audience": "household",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "household",
+        "ux"
+      ],
+      "requires": [
+        "M1",
+        "D4",
+        "D6"
+      ],
+      "relates": [
+        "D7",
+        "D8",
+        "G5",
+        "G6",
+        "G9"
+      ],
+      "versions": [],
+      "path": "m-companion/m3-household-companion.md"
+    },
+    {
+      "id": "M4",
+      "title": "What the app uses of the device",
+      "area": "M",
+      "audience": "both",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P1",
+      "labels": [
+        "mobile",
+        "security",
+        "ux"
+      ],
+      "requires": [
+        "M1",
+        "G3"
+      ],
+      "relates": [
+        "A7",
+        "B5",
+        "C4",
+        "G8",
+        "M2",
+        "M3"
+      ],
+      "versions": [],
+      "path": "m-companion/m4-native-integration.md"
     }
   ]
 }
