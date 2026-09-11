@@ -226,8 +226,8 @@ Open-source-native metrics and monitoring — a second opinion, delivery-confirm
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | Operator |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | Operator |
 
-> **Also v2, in existing areas:** [F3](f-extensibility/f3-stack-manifests.md)
-> (third-party stack manifests), [B9](b-running/b9-notification-backends.md)
+> **Also in existing areas:** [F3](f-extensibility/f3-stack-manifests.md)
+> (plugin manifests and recipes), [B9](b-running/b9-notification-backends.md)
 > (open notification back-ends, extends [B5](b-running/b5-notifications.md)), and
 > [G9](g-ux/g9-mobile-handoff.md) (mobile handoff, extends [G6](g-ux/g6-client-apps.md)).
 
@@ -240,6 +240,23 @@ that came before it.
 | ID | Feature | Audience | Ships in |
 |----|---------|----------|----------|
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | Operator | `1.0.0` |
+
+## N — Companion
+
+The fourth surface, on a device that is not the one the stack runs on. One
+application for both audiences, deciding which by who signs in
+([ADR-0017](../../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)).
+
+Specified in full and **locked by no version**: the app follows what the main
+repositories have shipped rather than leading them, so nothing on the release
+train waits on it. It is pinned with the rest once it has caught up.
+
+| ID | Feature | Audience |
+|----|---------|----------|
+| [N1](n-companion/n1-companion-app.md) | The companion app | Both |
+| [N2](n-companion/n2-operator-companion.md) | The operator's companion | Operator |
+| [N3](n-companion/n3-household-companion.md) | The household's companion | Household |
+| [N4](n-companion/n4-native-integration.md) | What the app uses of the device | Both |
 
 ---
 

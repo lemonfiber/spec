@@ -21,14 +21,14 @@ AREA_DIR = {
     "A": "a-getting-started", "B": "b-running", "C": "c-trust", "D": "d-content",
     "E": "e-maintenance", "F": "f-extensibility", "G": "g-ux", "H": "h-glue",
     "I": "i-remote-access", "J": "j-runtime", "K": "k-observability",
-    "L": "l-release",
+    "L": "l-release", "N": "n-companion",
 }
 AREA_NAME = {
     "A": "Getting started", "B": "Running it", "C": "Trust & correctness",
     "D": "Content & household", "E": "Maintenance", "F": "Extensibility",
     "G": "Cross-cutting UX", "H": "Ecosystem glue", "I": "Remote access & identity",
     "J": "Runtime & platform", "K": "Observability",
-    "L": "Release & distribution",
+    "L": "Release & distribution", "N": "Companion",
 }
 
 
@@ -66,7 +66,7 @@ def main():
     num = str(int(num))  # normalise through int so it can never be a path fragment
     area = (field(body, "Area")[:1] or "").upper()
     if area not in AREA_DIR:
-        print(f"::error::RFC area is not one of A-L (got '{field(body, 'Area')}')")
+        print(f"::error::RFC area is not one of A-N (got '{field(body, 'Area')}')")
         return 1
 
     fid = next_id(area)

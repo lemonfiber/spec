@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**73 features** in areas A–L, **1022 requirements**.
+**77 features** in areas A–N, **1093 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 2 built, 6 building, 26 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 2 built, 6 building, 30 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -104,6 +104,10 @@ code, and the two move independently.
 | [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.22.0` |
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.21.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.21.0` |
+| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | draft | — |
+| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | draft | — |
+| [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | draft | — |
+| [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | draft | — |
 
 ## Withdrawn — no longer to be built
 
