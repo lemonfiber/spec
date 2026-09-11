@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 78,
-    "requirements": 1144,
+    "features": 79,
+    "requirements": 1150,
     "areas": "A–N"
   },
   "versions": [
@@ -100,13 +100,13 @@
       "version": "0.16.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 60
+      "goals": 59
     },
     {
       "version": "0.17.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 24
+      "goals": 30
     },
     {
       "version": "0.18.0",
@@ -1632,7 +1632,7 @@
     },
     {
       "id": "F4",
-      "title": "Capabilities and substitution",
+      "title": "The capability vocabulary",
       "area": "F",
       "audience": "operator",
       "kind": "feature",
@@ -1658,6 +1658,7 @@
         "F5",
         "F6",
         "F7",
+        "F9",
         "B1",
         "D1"
       ],
@@ -1812,6 +1813,43 @@
       ],
       "versions": [],
       "path": "f-extensibility/f8-recipes.md"
+    },
+    {
+      "id": "F9",
+      "title": "Capabilities of the bundled services",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
+      "priority": "P1",
+      "labels": [
+        "extensibility",
+        "wiring",
+        "verification"
+      ],
+      "requires": [
+        "F4"
+      ],
+      "relates": [
+        "F2",
+        "F5",
+        "F6",
+        "F8",
+        "D1"
+      ],
+      "versions": [
+        {
+          "version": "0.17.0",
+          "status": "planned"
+        }
+      ],
+      "path": "f-extensibility/f9-bundled-capabilities.md"
     },
     {
       "id": "G1",

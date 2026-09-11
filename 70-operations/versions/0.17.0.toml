@@ -1,12 +1,15 @@
-# Plugins, part two — where one comes from, and what vouches for it.
+# Plugins, part two — what the bundled stack can do, where a plugin comes from.
 #
-# The catalogue, the operator's own source on the same technical terms, and the
-# provenance that says which of the two an installed plugin came from.
+# F9 gives all nineteen bundled services their capabilities and their probes, and converts
+# the stack's wiring to ask for capabilities rather than to name services. That is the
+# larger half of the capability work and the smaller half of its thinking, and it is what
+# makes substituting a plugin for a *bundled* service possible rather than merely
+# describable. It is work in the stack repository as much as in this one.
 #
-# F5-R3 requires catalogue releases to be signed, and no artefact-signing mechanism
-# exists yet — L1-R2 owes one at 1.0.0, which is after this. ADR-0023 decides that
-# signing is one capability with two consumers and the earlier consumer sets its date;
-# the capability has to land here rather than at 1.0.0.
+# With it, the catalogue and its provenance (F5). F5-R3 requires catalogue releases to be
+# signed and no artefact-signing mechanism exists yet — L1-R2 owes one at 1.0.0, which is
+# after this. ADR-0023 decides signing is one capability with two consumers and the
+# earlier consumer sets its date, so it has to land here.
 #
 # The catalogue is a repository this organisation does not yet have. It is named in
 # neither repos nor satisfied_in until it exists, or the goal gate searches a checkout
@@ -15,15 +18,21 @@
 # G9 stays: a mobile client is handed a stack it did not configure, which is the same
 # question this version answers for a plugin.
 #
-# 24 goals, seeded from the roadmap milestone this version serves;
+# 30 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.17.0"
 milestone = "M14"   # The platform
-delivers  = "Plugins — where they come from, and what vouches for one"
+delivers  = "Plugins — what the bundled stack can do, and where a plugin comes from"
 status  = "planned"
 repos   = ["lemonfiber"]
-satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php"]
+satisfied_in = ["lemonfiber", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php"]
 goals   = [
+    "F9-R1",
+    "F9-R2",
+    "F9-R3",
+    "F9-R4",
+    "F9-R5",
+    "F9-R6",
     "F5-R1",
     "F5-R2",
     "F5-R3",

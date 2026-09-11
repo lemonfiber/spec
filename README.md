@@ -57,7 +57,7 @@ freely.
 | Section | Contents | Read this if… |
 |---------|----------|---------------|
 | **[00-overview](00-overview/)** | Vision, glossary, roadmap, and all Architecture Decision Records | …you want the *why* behind any choice |
-| **[10-functional](10-functional/)** | The 78-feature catalogue, numbered requirements, and nine user journeys | …you're deciding what to build or verifying it got built |
+| **[10-functional](10-functional/)** | The 79-feature catalogue, numbered requirements, and nine user journeys | …you're deciding what to build or verifying it got built |
 | **[20-architecture](20-architecture/)** | System context, component model, platform matrix, inter-repo contracts | …you're implementing across the lemonfiber ↔ lemonfiber-media-stack seam |
 | **[30-repos](30-repos/)** | Per-repo technical specs | …you're working inside one repo |
 | **[40-quality](40-quality/)** | Code standards, comment policy, testing, CI/CD, security | …you're writing or reviewing a PR |

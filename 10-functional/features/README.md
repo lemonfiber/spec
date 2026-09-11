@@ -146,11 +146,12 @@ demands the tool prove things rather than assume them.
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | Operator |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | Operator |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | Operator |
-| [F4](f-extensibility/f4-capabilities.md) | Capabilities and substitution | Operator |
+| [F4](f-extensibility/f4-capabilities.md) | The capability vocabulary | Operator |
 | [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | Operator |
 | [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | Operator |
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | Operator |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | Operator |
+| [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | Operator |
 
 ## G — Cross-cutting UX
 
@@ -231,7 +232,7 @@ Open-source-native metrics and monitoring — a second opinion, delivery-confirm
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | Operator |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | Operator |
 
-> **Also in existing areas:** [F3](f-extensibility/f3-stack-manifests.md)–[F8](f-extensibility/f8-recipes.md)
+> **Also in existing areas:** [F3](f-extensibility/f3-stack-manifests.md)–[F9](f-extensibility/f9-bundled-capabilities.md)
 > (the plugin system), [B9](b-running/b9-notification-backends.md)
 > (open notification back-ends, extends [B5](b-running/b5-notifications.md)), and
 > [G9](g-ux/g9-mobile-handoff.md) (mobile handoff, extends [G6](g-ux/g6-client-apps.md)).
