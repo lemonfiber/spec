@@ -200,7 +200,7 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 - [plugin-manifest contract](../../../20-architecture/contracts/plugin-manifest.md) — the fields a plugin declares in, and the entry lemonfiber writes from them
 - [F1 Customisation & escape hatches](f1-customisation.md) — the escape-hatch posture this narrows to declarative data
 - [F2 Service catalogue](f2-service-catalogue.md) — the bundled catalogue whose entries a plugin extends
-- [F4 Capabilities & substitution](f4-capabilities.md) — the vocabulary a manifest claims and asks in
+- [F4 The capability vocabulary](f4-capabilities.md) — the vocabulary a manifest claims and asks in
 - [F5 The plugin catalogue](f5-plugin-catalogue.md) — where a manifest comes from and what vouches for it
 - [F6 Plugin lifecycle](f6-plugin-lifecycle.md) — what rehearsing, installing and removing one does
 - [F7 Plugin provenance](f7-plugin-provenance.md) — how what a plugin changed stays answerable
