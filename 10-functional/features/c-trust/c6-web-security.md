@@ -128,6 +128,8 @@ listening, not what was intended.
 | Reverse proxy terminates TLS upstream | Detect and don't duplicate; trust forwarded headers only from configured sources. |
 | Session active during a credential change | Invalidate existing sessions. |
 | Household service needs to be reachable but the network is untrusted | Explain the trade-off; do not silently expose. |
+| A plugin adds a service that will listen | It declares which tier it belongs in, and lemonfiber assigns the address. A plugin that could write its own address could put an admin surface on the LAN without touching anything this feature inspects. |
+| A plugin's service is bound to the wrong tier | Caught the way every other wrong binding is caught: by checking what is actually listening against the policy (`C6-R13`), not by trusting what was declared. |
 
 ## Acceptance criteria
 
@@ -150,6 +152,7 @@ listening, not what was intended.
 | **C6-R15** | Deliberate exposure of an admin service MUST require explicit acknowledgement and MUST be recorded. |
 | **C6-R16** | Where Docker port publishing bypasses the host firewall, lemonfiber MUST warn. |
 | **C6-R17** | The interface household services publish on MUST be operator-configurable through a single documented setting, and where it defaults to all interfaces that MUST be stated plainly alongside its consequences. |
+| **C6-R18** | A service an installed plugin adds MUST be bound by the tier lemonfiber assigns from the classification the plugin declared, and a plugin MUST NOT be able to declare an address, an interface or a published port mapping. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber-media-stack` publishes the household
 tier on a configurable address; `lemonfiber` reports the observed binding under
