@@ -12,19 +12,20 @@ working inside it.
 
 ```mermaid
 flowchart TD
-    spec[spec<br/>canonical]
+    spec["spec<br/>canonical"]
     gh[".github<br/>community health files"]
 
     subgraph impl[Implementation]
-        lemonfiber[lemonfiber<br/>Rust binary]
-        stack[lemonfiber-media-stack<br/>Compose + manifest]
-        web[lemonfiber-web<br/>the web surface]
-        sdk[sdk-ts<br/>the TypeScript client]
-        sdkphp[sdk-php<br/>the PHP client]
-        tap[homebrew-tap<br/>generated formula]
-        brand[brand<br/>design tokens]
+        lemonfiber["lemonfiber<br/>Rust binary"]
+        web["lemonfiber-web<br/>the web surface"]
+        companion["lemonfiber-companion<br/>the phone surface"]
+        sdk["sdk-ts<br/>the TypeScript client"]
+        sdkphp["sdk-php<br/>the PHP client"]
+        stack["lemonfiber-media-stack<br/>Compose + manifest"]
+        tap["homebrew-tap<br/>generated formula"]
         site["website-lemonfiber.app<br/>the public frontpage"]
         docs["website-docs.lemonfiber.app<br/>the documentation site"]
+        brand["brand<br/>design tokens"]
     end
 
     stack -->|submodule, pinned| lemonfiber
@@ -32,6 +33,7 @@ flowchart TD
     sdk -->|pinned| web
     lemonfiber -->|contract artefact| sdk
     lemonfiber -->|contract artefact| sdkphp
+    companion -->|pinned; every call goes through it| sdkphp
     lemonfiber -->|release CI generates| tap
     brand -->|values mirrored| site
     lemonfiber -->|docs submodule, pinned| docs
@@ -45,6 +47,7 @@ flowchart TD
 | `spec` | [../README.md](../README.md) | Markdown | This repository — canonical, and cited by every change to the rest |
 | `lemonfiber` | [lemonfiber.md](lemonfiber.md) · [lemonfiber-tui.md](lemonfiber-tui.md) · [lemonfiber-reference.md](lemonfiber-reference.md) | Rust | Three surfaces, one core; the submodule; the build |
 | `lemonfiber-web` | [lemonfiber-web.md](lemonfiber-web.md) | TypeScript | Two surfaces, one component library; draws the API, implements nothing |
+| `lemonfiber-companion` | [lemonfiber-companion.md](lemonfiber-companion.md) | PHP | The fourth surface, and the first that does not run on the machine it operates |
 | `sdk-ts` | [sdk-ts.md](sdk-ts.md) | TypeScript | Owns the stream's hard parts so no consumer reimplements them |
 | `sdk-php` | [sdk-php.md](sdk-php.md) | PHP | The same contract, implemented as a peer rather than translated |
 | `lemonfiber-media-stack` | [lemonfiber-media-stack.md](lemonfiber-media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
@@ -54,7 +57,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those eleven are every repository in the org. `.github` carries the community
+Those twelve are every repository in the org. `.github` carries the community
 health files GitHub serves for a repo that does not define its own — the code of
 conduct, the security policy, the issue templates and the org profile — so a
 sibling repo inherits them rather than copying them

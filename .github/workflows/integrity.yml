@@ -40,3 +40,7 @@ jobs:
         run: |
           python3 scripts/gen_board.py
           git diff --exit-code -- 10-functional/features/index.json 10-functional/features/BOARD.md
+      - name: The repository table and diagram match the registry
+        run: |
+          python3 scripts/gen_repos.py
+          git diff --exit-code -- 30-repos/README.md
