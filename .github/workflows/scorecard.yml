@@ -1,30 +1,68 @@
+# The supply-chain posture check every repository in the org publishes — Q-R59.
+#
+# Reusable rather than copied, which is what `Q-R56` asks for and what six
+# byte-identical copies of this file were not. Five repositories had no copy at
+# all: `sdk-php`, `sdk-ts`, `lemonfiber-web`, `website-docs.lemonfiber.app` and
+# `lemonfiber-companion`. Nothing said so, because nothing was comparing a list
+# of repositories against a list of files.
+#
+# The triggers stay with the caller and cannot move here. `branch_protection_rule`
+# and `push` are events about the calling repository, and a reusable workflow is
+# not a place events arrive — it is a place a job goes. So each caller keeps a
+# short file naming when to ask, and this holds what is asked.
+#
+# This file carries both: `workflow_call` for the ten repositories that call it,
+# and its own triggers because this repository is also one of the eleven. A
+# separate caller here would be a second file saying the same thing, which is
+# the fault being fixed.
+#
+# `publish_results: true` is the point of it. Scorecard's value is a number
+# somebody outside the org can read without being trusted with anything, which
+# is why the token is a repository secret with no write scope rather than the
+# workflow's own.
 name: scorecard
+
 on:
+  workflow_call:
   workflow_dispatch:
+  # A change to this repository's protection is a change to its posture, and it
+  # is the one event that says so without waiting for the week to turn.
   branch_protection_rule:
   schedule:
     - cron: "0 6 * * 1"
   push:
     branches: [main]
+
 permissions:
   contents: read
+
 jobs:
   analysis:
+    name: scorecard
     runs-on: ubuntu-latest
     permissions:
+      # Writing the SARIF back is what puts the findings in the security tab,
+      # where they are read. Without it the analysis runs and is thrown away.
       security-events: write
+      # Scorecard signs its result so the published entry can be traced to this
+      # run rather than merely claimed.
       id-token: write
       contents: read
+      # Reading the workflow list is how it judges the pipeline itself — pinned
+      # actions, permissions, and the rest.
       actions: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { persist-credentials: false }
+        with:
+          persist-credentials: false
+
       - uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
         with:
           repo_token: ${{ secrets.SCORECARD_TOKEN }}
           results_file: results.sarif
           results_format: sarif
           publish_results: true
+
       - uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v3
         with:
           sarif_file: results.sarif
