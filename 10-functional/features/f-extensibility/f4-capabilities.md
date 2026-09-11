@@ -1,6 +1,6 @@
 ---
 id: F4
-title: Capabilities and substitution
+title: The capability vocabulary
 kind: feature
 area: F
 audience: operator
@@ -9,10 +9,10 @@ maturity: planned
 priority: P1
 labels: [extensibility, wiring, verification]
 requires: [F2, F3]
-relates: [F1, F5, F6, F7, B1, D1]
+relates: [F1, F5, F6, F7, F9, B1, D1]
 ---
 
-# F4 — Capabilities and substitution
+# F4 — The capability vocabulary
 
 **Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
@@ -41,6 +41,11 @@ capability is not a label: it carries a contract, and probes that demonstrate th
 holds. Claiming a capability you do not satisfy fails verification, which is what makes
 substitution safe to offer at all.
 
+**This feature is the model and its rules.** Having the nineteen bundled services declare
+their capabilities, pass the probes, and converting the stack's wiring to ask rather than
+to name, is [F9](f9-bundled-capabilities.md) — the larger half of the work and the smaller
+half of the thinking, which is why the two are separable.
+
 ## Behaviour
 
 ### lemonfiber owns the core vocabulary; plugins may add namespaced ones
@@ -54,22 +59,17 @@ something nothing bundled consumes. A namespaced capability is inert until somet
 for it, which is exactly the right amount of power: it lets an ecosystem grow a vocabulary
 without letting one plugin fragment the shared one.
 
-### Every bundled service declares its capabilities
+### Something has to speak it
 
-All nineteen bundled services are given capabilities and the probes that demonstrate them.
-This is not bookkeeping — it is what makes the vocabulary real. The bundled stack becomes
-the reference implementation of every core capability, so a plugin author has something
-concrete to satisfy rather than a paragraph to interpret, and a capability nothing bundled
-implements is a capability nobody has tested.
+A vocabulary nothing speaks is not a vocabulary, and a capability nothing implements is
+one nobody has tested. So the bundled stack becomes the reference implementation of every
+core capability, and the wiring that currently names services is converted to ask in it —
+which is what makes a stack with Plex in place of Jellyfin wire identically.
 
-### Wiring asks for a capability, never a name
-
-Where the stack currently names a service, it asks for a capability. What follows is the
-whole point: a stack with Plex in place of Jellyfin wires identically, because nothing in
-the wiring mentioned Jellyfin.
-
-Wiring by name remains possible where it is genuinely about one service — but it is the
-exception, it is visible as such, and a plugin cannot introduce one.
+That work is [F9](f9-bundled-capabilities.md). What belongs here is the rule it applies:
+**wiring asks for a capability rather than naming a service.** By-name wiring remains
+possible where it is genuinely about one service — but it is the exception, it is visible
+as such, and a plugin cannot introduce one.
 
 ### Substitution is a plugin filling a capability something else was filling
 
@@ -116,7 +116,6 @@ run is reported as unproven — never as satisfied.
 | A plugin invents a core-looking capability name | Refuse. Only namespaced capabilities may be plugin-declared. |
 | A plugin declares a namespaced capability nothing consumes | Accept it and treat it as inert. It becomes meaningful when something asks for it. |
 | A substitution would leave a capability unfilled | Say so before installing rather than after — the rehearsal names what would stop being available. |
-| A bundled service loses a capability at a pin bump | Treat it as the same failure as a plugin failing a claim: the probes are the source of truth for both. |
 | The operator wires to a service by name deliberately | Allow it, and show it as a by-name wiring so it is visible as the exception it is. |
 | The word `capabilities` is already taken | The stack manifest's `Service.capabilities` already means *kernel* capabilities granted to a container. These are a different thing entirely, and one of the two MUST be renamed rather than overloaded — a field whose meaning depends on where you are reading it is how a security-relevant setting gets misread. |
 
@@ -128,7 +127,7 @@ run is reported as unproven — never as satisfied.
 | **F4-R2** | The core capability vocabulary MUST be published, versioned and owned by lemonfiber. |
 | **F4-R3** | Every core capability MUST carry a stated contract and probes that demonstrate it. |
 | **F4-R4** | A plugin MUST NOT declare a capability in the core vocabulary's namespace, and MUST be able to declare namespaced capabilities of its own. |
-| **F4-R5** | Every bundled service MUST declare its capabilities and pass their probes. |
+| **F4-R5** | *Withdrawn — carried to [F9-R1](f9-bundled-capabilities.md) and [F9-R2](f9-bundled-capabilities.md) when the bundled declarations became their own feature. The number is not reused.* |
 | **F4-R6** | A service claiming a capability whose probes fail MUST NOT be installed or wired to. |
 | **F4-R7** | A capability whose probes cannot be run MUST be reported as unproven and MUST NOT be treated as satisfied. |
 | **F4-R8** | Where more than one installed candidate claims the same capability, lemonfiber MUST refuse and name every claimant and the collision, and MUST NOT resolve it by install order, precedence or recency. |
@@ -141,7 +140,8 @@ run is reported as unproven — never as satisfied.
 
 ## Related
 
-- [F3 Plugin manifests and recipes](f3-stack-manifests.md) — where a capability is claimed and asked for
+- [F9 Capabilities of the bundled services](f9-bundled-capabilities.md) — the nineteen that implement this vocabulary, and the wiring converted to ask in it
+- [F3 Plugin manifests](f3-stack-manifests.md) — where a capability is claimed and asked for
 - [F2 Service catalogue](f2-service-catalogue.md) — what each bundled service is, which capabilities describe in machine terms
 - [F6 Plugin lifecycle](f6-plugin-lifecycle.md) — when the probes run and what a failure costs
 - [F7 Plugin provenance](f7-plugin-provenance.md) — how a substitution stays visible afterwards

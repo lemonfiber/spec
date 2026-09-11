@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 77,
-    "requirements": 1130,
+    "features": 79,
+    "requirements": 1151,
     "areas": "A–N"
   },
   "versions": [
@@ -100,40 +100,46 @@
       "version": "0.16.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 36
+      "goals": 59
     },
     {
       "version": "0.17.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 49
+      "goals": 30
     },
     {
       "version": "0.18.0",
       "status": "planned",
-      "milestone": "M11",
-      "goals": 56
+      "milestone": "M14",
+      "goals": 13
     },
     {
       "version": "0.19.0",
       "status": "planned",
       "milestone": "M11",
-      "goals": 59
+      "goals": 56
     },
     {
       "version": "0.20.0",
+      "status": "planned",
+      "milestone": "M11",
+      "goals": 59
+    },
+    {
+      "version": "0.21.0",
       "status": "planned",
       "milestone": "M12",
       "goals": 29
     },
     {
-      "version": "0.21.0",
+      "version": "0.22.0",
       "status": "planned",
       "milestone": "M13",
       "goals": 40
     },
     {
-      "version": "0.22.0",
+      "version": "0.23.0",
       "status": "planned",
       "milestone": "M15",
       "goals": 42
@@ -653,7 +659,7 @@
       ],
       "versions": [
         {
-          "version": "0.21.0",
+          "version": "0.22.0",
           "status": "planned"
         }
       ],
@@ -1592,7 +1598,7 @@
     },
     {
       "id": "F3",
-      "title": "Plugin manifests and recipes",
+      "title": "Plugin manifests",
       "area": "F",
       "audience": "operator",
       "kind": "feature",
@@ -1618,6 +1624,7 @@
         "F5",
         "F6",
         "F7",
+        "F8",
         "C9",
         "E4"
       ],
@@ -1631,7 +1638,7 @@
     },
     {
       "id": "F4",
-      "title": "Capabilities and substitution",
+      "title": "The capability vocabulary",
       "area": "F",
       "audience": "operator",
       "kind": "feature",
@@ -1657,6 +1664,7 @@
         "F5",
         "F6",
         "F7",
+        "F9",
         "B1",
         "D1"
       ],
@@ -1674,7 +1682,7 @@
       "area": "F",
       "audience": "operator",
       "kind": "feature",
-      "status": "draft",
+      "status": "accepted",
       "maturity": "planned",
       "shipped": null,
       "milestones": [
@@ -1711,7 +1719,7 @@
       "area": "F",
       "audience": "operator",
       "kind": "feature",
-      "status": "draft",
+      "status": "accepted",
       "maturity": "planned",
       "shipped": null,
       "milestones": [
@@ -1737,7 +1745,7 @@
       ],
       "versions": [
         {
-          "version": "0.17.0",
+          "version": "0.16.0",
           "status": "planned"
         }
       ],
@@ -1749,7 +1757,7 @@
       "area": "F",
       "audience": "operator",
       "kind": "feature",
-      "status": "draft",
+      "status": "accepted",
       "maturity": "planned",
       "shipped": null,
       "milestones": [
@@ -1775,11 +1783,86 @@
       ],
       "versions": [
         {
-          "version": "0.17.0",
+          "version": "0.16.0",
           "status": "planned"
         }
       ],
       "path": "f-extensibility/f7-plugin-provenance.md"
+    },
+    {
+      "id": "F8",
+      "title": "Recipes and named adapters",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
+      "priority": "P1",
+      "labels": [
+        "extensibility",
+        "verification",
+        "security"
+      ],
+      "requires": [
+        "F3",
+        "F4"
+      ],
+      "relates": [
+        "F5",
+        "F6",
+        "F7",
+        "G8",
+        "C1"
+      ],
+      "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        }
+      ],
+      "path": "f-extensibility/f8-recipes.md"
+    },
+    {
+      "id": "F9",
+      "title": "Capabilities of the bundled services",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
+      "priority": "P1",
+      "labels": [
+        "extensibility",
+        "wiring",
+        "verification"
+      ],
+      "requires": [
+        "F4"
+      ],
+      "relates": [
+        "F2",
+        "F5",
+        "F6",
+        "F8",
+        "D1"
+      ],
+      "versions": [
+        {
+          "version": "0.17.0",
+          "status": "planned"
+        }
+      ],
+      "path": "f-extensibility/f9-bundled-capabilities.md"
     },
     {
       "id": "G1",
@@ -2124,7 +2207,7 @@
       ],
       "versions": [
         {
-          "version": "0.18.0",
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -2157,7 +2240,7 @@
       ],
       "versions": [
         {
-          "version": "0.18.0",
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -2189,7 +2272,7 @@
       ],
       "versions": [
         {
-          "version": "0.18.0",
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -2221,7 +2304,7 @@
       ],
       "versions": [
         {
-          "version": "0.18.0",
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -2252,7 +2335,7 @@
       ],
       "versions": [
         {
-          "version": "0.19.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2283,7 +2366,7 @@
       ],
       "versions": [
         {
-          "version": "0.19.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2315,7 +2398,7 @@
       ],
       "versions": [
         {
-          "version": "0.19.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2347,7 +2430,7 @@
       ],
       "versions": [
         {
-          "version": "0.19.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2382,7 +2465,7 @@
       ],
       "versions": [
         {
-          "version": "0.20.0",
+          "version": "0.21.0",
           "status": "planned"
         }
       ],
@@ -2416,7 +2499,7 @@
       ],
       "versions": [
         {
-          "version": "0.20.0",
+          "version": "0.21.0",
           "status": "planned"
         }
       ],
@@ -2448,7 +2531,7 @@
       ],
       "versions": [
         {
-          "version": "0.22.0",
+          "version": "0.23.0",
           "status": "planned"
         }
       ],
@@ -2481,7 +2564,7 @@
       ],
       "versions": [
         {
-          "version": "0.22.0",
+          "version": "0.23.0",
           "status": "planned"
         }
       ],
@@ -2513,7 +2596,7 @@
       ],
       "versions": [
         {
-          "version": "0.22.0",
+          "version": "0.23.0",
           "status": "planned"
         }
       ],
@@ -2544,7 +2627,7 @@
       ],
       "versions": [
         {
-          "version": "0.21.0",
+          "version": "0.22.0",
           "status": "planned"
         }
       ],
@@ -2576,7 +2659,7 @@
       ],
       "versions": [
         {
-          "version": "0.21.0",
+          "version": "0.22.0",
           "status": "planned"
         }
       ],

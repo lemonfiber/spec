@@ -1,17 +1,31 @@
-# Plugins, part one — the manifest, its recipes, and the capabilities wiring asks for.
+# Plugins, part one — what a plugin is, installing one, and what that leaves readable.
 #
-# First of the two, and first of what follows 0.15.0, because it changes the stack
-# manifest and introduces the capability vocabulary. Everything sequenced after it is
-# then built on the shape that ships rather than retrofitted onto it, and the schema
-# has several minors of use behind it before 1.0.0 freezes it.
+# Re-sliced twice, and the second time is worth recording. The first cut put the manifest
+# alone here, which ships a plugin format with no way to install a plugin — close to the
+# stub OPS-R54 exists to refuse. The second put capabilities behind it and check_order
+# refused it: F6 requires F4.
 #
-# 36 goals, seeded from the roadmap milestone this version serves;
+# It requires the *vocabulary*, which is why F4 was split. F4 is now the model and its
+# rules; F9 is the nineteen bundled services declaring in it and the wiring converted to
+# ask. Reading F6's five capability references shows three are the host-feature sense of
+# F3-R21 rather than F4's at all, and the two that are F4's are satisfiable between two
+# plugins. So the vocabulary ships here and the declarations ship in 0.17.0.
+#
+# What that means for the operator, said plainly: a plugin adds a service here, and can
+# take over a capability another *plugin* was filling. Standing in for a bundled service
+# needs F9 and waits for 0.17.0.
+#
+# F3-R15, R16, R19, R20 are absent because they were withdrawn to F8; F4-R5 because it
+# was withdrawn to F9. OPS-R30 forbids a Withdrawn requirement being a goal.
+#
+# 59 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
-delivers  = "Plugins — what one is, how it wires, and what it may stand in for"
+delivers  = "Plugins — what one is, installing one, and what that leaves readable"
 status  = "planned"
 repos   = ["lemonfiber"]
+satisfied_in = ["lemonfiber", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php"]
 goals   = [
     "F3-R1",
     "F3-R2",
@@ -27,19 +41,17 @@ goals   = [
     "F3-R12",
     "F3-R13",
     "F3-R14",
-    "F3-R15",
-    "F3-R16",
     "F3-R17",
     "F3-R18",
-    "F3-R19",
-    "F3-R20",
     "F3-R21",
     "F3-R22",
+    "F3-R23",
+    "F3-R24",
+    "F3-R25",
     "F4-R1",
     "F4-R2",
     "F4-R3",
     "F4-R4",
-    "F4-R5",
     "F4-R6",
     "F4-R7",
     "F4-R8",
@@ -49,6 +61,31 @@ goals   = [
     "F4-R12",
     "F4-R13",
     "F4-R14",
+    "F6-R1",
+    "F6-R2",
+    "F6-R3",
+    "F6-R4",
+    "F6-R5",
+    "F6-R6",
+    "F6-R7",
+    "F6-R8",
+    "F6-R9",
+    "F6-R10",
+    "F6-R11",
+    "F6-R12",
+    "F6-R13",
+    "F7-R1",
+    "F7-R2",
+    "F7-R3",
+    "F7-R4",
+    "F7-R5",
+    "F7-R6",
+    "F7-R7",
+    "F7-R8",
+    "F7-R9",
+    "F7-R10",
+    "F7-R11",
+    "F7-R12",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
