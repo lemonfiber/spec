@@ -151,8 +151,9 @@ media_types = ["tv"]
 | `id` | string | ✔ | Unique. MUST match the Compose service name. |
 | `name` | string | ✔ | Human-facing |
 | `profile` | string | ✔ | **Exactly one** (`B1-R1`). MUST reference a declared profile. |
-| `image` | string | ✔ | Without tag |
-| `tag` | string | ✔ | Explicit version. A floating tag fails validation (`E1-R1`). |
+| `image` | string | ✔ | Without tag or digest |
+| `digest` | string | ✔ | `sha256:…` of the multi-architecture index. What actually runs (`E1-R1`). |
+| `tag` | string | ✔ | The human-readable version the digest corresponds to. Recorded and shown; never resolved at run time. |
 | `port` | integer | | Primary UI/API port. Omitted for services with no listener. |
 | `bind` | enum | ✔ if `port` | `loopback` \| `lan`. Enforces [C6](../../10-functional/features/c-trust/c6-web-security.md)'s two-tier policy. |
 | `health` | table | | See below. Absent means lifecycle waits on container state only. |
@@ -247,6 +248,7 @@ Validation reports **every** violation in one pass, each naming its location
 | Every `form.profiles` entry references a declared profile | Both named |
 | Exactly one profile per service | Service named |
 | No `depends_on` crossing a profile boundary | Service and target named (`B1-R14`) |
+| `digest` present and well-formed | Service named (`E1-R1`) |
 | `tag` is not `latest` or otherwise floating | Service named (`E1-R1`) |
 | `bind` present when `port` is | Service named |
 | `license` is a recognised OSI identifier | Service and licence named (`F2-R5`) |
