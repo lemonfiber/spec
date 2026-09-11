@@ -55,9 +55,9 @@ jobs:
       title: "📎 Why this repo needs a `Spec:` citation"
       body: |
         This project is spec-led: every change cites a spec identifier that already
-        exists on `main`, and `spec-check` closes a PR without one — not to reject
-        the work, but to sequence it. Add a `Spec:` trailer to a commit **and** the
-        PR body, each on its own line, e.g. `Spec: OPS-R1`. Routine maintenance
+        exists on `main`, and `spec-check` fails without one — not to reject the
+        work, but to sequence it. Add a `Spec:` trailer to a commit **or** the PR
+        body, on its own line, e.g. `Spec: OPS-R1`. Routine maintenance
         (dependencies, formatting, CI) cites `GOV-R12`. Changing behaviour? Open the
         spec PR first, then cite the new identifier. See 50-governance/contributing.md.
   dco:
