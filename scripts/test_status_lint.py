@@ -299,7 +299,10 @@ class Miscolumned(Workspace):
         self.assertEqual(code, 0, out)
 
     def test_a_header_with_no_rows_under_it_skips_nothing(self):
-        code, out = self.lint(
+        # The exit code is not the subject here — the table below is followed by a
+        # blank line, so what comes after it is a separate table with its own
+        # header. What matters is that a header alone is not reported.
+        _, out = self.lint(
             "## M5 — Trust · `0.7.0`\n\n"
             "| Deliverable | Citations | Status | Landed |\n|---|---|---|---|\n"
             "\n| x | `G7-R1..R13` | ✅ | y |\n")
