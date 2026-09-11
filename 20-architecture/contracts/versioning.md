@@ -121,6 +121,21 @@ parser variants indefinitely.
 
 Dropping support is a breaking change for the binary and moves its major version.
 
+### This window is `stack.toml`'s, and is not the plugin manifest's
+
+The trade above is priced for a **fork**: one maintainer, actively tracking the
+project, who will bump when told. One cycle of overlap is generous for them and
+cheap for us.
+
+It is the wrong trade for [`plugin.toml`](plugin-manifest.md), whose authors are
+many and mostly not watching. A plugin that was finished is not abandoned, and a
+two-generation window would delete the long tail of the catalogue at every
+second schema bump — experienced by the operator not as "this plugin is old" but
+as "my media server stopped". A plugin manifest generation is therefore supported
+until it is deprecated by announcement and then removed, never merely by being
+overtaken; the reasoning is
+[there](plugin-manifest.md#compatibility) rather than restated here.
+
 ## Binary and configuration
 
 lemonfiber holds no irreversibly-migrating state, so **downgrade is supported**
