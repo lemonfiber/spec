@@ -89,8 +89,13 @@ def check_links():
 #: one. The documentation site guards its own transcriptions of these; nothing
 #: guarded the spec's own, so its README drifted to a feature count nine short
 #: and an ADR count five short.
-def stated_counts() -> list[str]:
-    """Numbers the repository states about itself that no longer match it."""
+def counted() -> tuple[dict, list[str]]:
+    """What the tree actually holds, as {pattern: (actual, what)}, and any faults.
+
+    Split out from `stated_counts` so that reporting a wrong number and writing
+    the right one read the same table. A second copy of it is how a `--write`
+    mode comes to disagree with the check that follows it.
+    """
     features = ROOT / "10-functional" / "features"
     index = features / "index.json"
 
@@ -98,9 +103,9 @@ def stated_counts() -> list[str]:
     # missing index here would be this check complaining that it has nothing to
     # do, which is noise rather than a finding.
     if not features.is_dir():
-        return []
+        return {}, []
     if not index.is_file():
-        return [
+        return {}, [
             (
                 f"{index.relative_to(ROOT)} is missing, so the counts this "
                 "repository states about its catalogue cannot be checked"
@@ -112,12 +117,15 @@ def stated_counts() -> list[str]:
     adrs = len([p for p in (ROOT / "00-overview" / "decisions").glob("*.md")
                 if ADR_FILE.match(p.name)])
 
-    expected = {
+    return {
         r"(\d+)-feature catalogue": (features, "features"),
         r"(\d+) ADRs": (adrs, "architecture decision records"),
-    }
+    }, []
 
-    faults = []
+
+def stated_counts() -> list[str]:
+    """Numbers the repository states about itself that no longer match it."""
+    expected, faults = counted()
     for path in md_files():
         text = path.read_text(encoding="utf-8")
         for pattern, (actual, what) in expected.items():
@@ -132,7 +140,57 @@ def stated_counts() -> list[str]:
     return faults
 
 
+def write_counts() -> list[str]:
+    """Rewrite every stated count to what the tree holds. Returns what changed.
+
+    The number is replaced inside the sentence that carries it, so the prose
+    keeps its own voice — `80-feature catalogue` stays that phrase, with a
+    different number in it.
+
+    This exists because the check alone was not enough. Three of these needed a
+    person on one afternoon: the ADR count twice, in two pull requests that then
+    conflicted with each other, and the feature count once at 68 against 77.
+    Each time the fix was to count files by hand and type the answer in.
+    """
+    expected, faults = counted()
+    if faults:
+        return faults
+    changed = []
+    for path in md_files():
+        text = original = path.read_text(encoding="utf-8")
+        for pattern, (actual, what) in expected.items():
+            def replace(found, actual=actual, what=what, path=path):
+                stated = int(found.group(1))
+                if stated == actual:
+                    return found.group(0)
+                changed.append(
+                    f"{path.relative_to(ROOT)}: {stated} -> {actual} {what}"
+                )
+                return found.group(0).replace(found.group(1), str(actual), 1)
+
+            text = re.sub(pattern, replace, text)
+        if text == original:
+            continue
+        # Only ever write inside the tree that was counted. `md_files()` yields
+        # from `ROOT.rglob`, so this holds today — asserting it means a symlink
+        # out of the tree, or a future caller passing a path from somewhere
+        # else, cannot make it stop holding quietly.
+        inside = path.resolve()
+        if not inside.is_relative_to(ROOT.resolve()):
+            changed.append(f"{path}: outside the spec tree, not rewritten")
+            continue
+        inside.write_text(text, encoding="utf-8")
+    return changed
+
+
 def main() -> int:
+    if "--write" in sys.argv[1:]:
+        changed = write_counts()
+        for line in changed:
+            print(line)
+        print(f"\n{len(changed)} stated count(s) rewritten.")
+        return 0
+
     problems = []
     # De-dup the "cites undefined" one-per-file noise into unique messages.
     seen = set()

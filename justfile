@@ -36,6 +36,10 @@ board:
 repos:
     python3 scripts/gen_repos.py
 
+# Rewrite every count this repository states about itself from what it holds.
+counts:
+    python3 scripts/integrity.py --write
+
 # Spell check.
 typos:
     typos
