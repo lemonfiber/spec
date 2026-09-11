@@ -80,10 +80,39 @@ and the same project:
   tests, not conventions.
 - **Pint** for formatting, **Rector** for upgrades, **composer-dependency-analyser**
   for unused and shadow dependencies.
-- **Captainhook** for the same pre-commit guards.
+- **Git hooks** under `.githooks`, installed by composer setting `core.hooksPath`.
+  They run only the fast checks — a hook that takes a minute is one people turn
+  off, and one that is off enforces nothing (`OPS-R51`).
 - A **DCO** sign-off on every commit and a `Spec:` citation naming a requirement,
   enforced by the shared governance workflow every repository in this project
   calls ([`spec-check`](../50-governance/cross-repo-ci.md)).
+
+## How it is laid out
+
+The application is modular: a composition root holding nothing but bindings, and
+modules under `app-modules/` that each declare what **kind** they are —
+`kernel`, `capability`, `design`, `surface` or `adapter`. That declaration
+generates the module's dependency rules, so a module added later is governed the
+moment it exists rather than when somebody remembers to write its test.
+
+Each module is a composer package with its own manifest, which is what makes the
+SDK rule structural rather than advisory: `modules/sdk` is the only manifest
+requiring `lemonfiber/sdk-php`, so a screen that names the SDK is a shadow
+dependency and fails resolution. `N1-R16` stops being a rule a reviewer applies.
+
+The architecture document in that repository lists every rule beside the
+mechanism enforcing it, and a test reads that column and fails when the two
+disagree — in either direction. A rule table that can quietly go out of date is
+worse than none, because people stop reading it once they trust it.
+
+## The decisions that shape it
+
+| | |
+|---|---|
+| It is a fourth surface, reached over the network, rendering natively | [ADR-0017](../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md) |
+| A paired fingerprint decides which machine it will talk to | [ADR-0018](../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md) |
+| A screen paints what it knows before it reaches the stack | [ADR-0019](../00-overview/decisions/0019-a-screen-paints-before-it-reaches-the-stack.md) |
+| An action the stack did not receive did not happen | [ADR-0020](../00-overview/decisions/0020-an-action-the-stack-did-not-receive-did-not-happen.md) |
 
 ## It follows the main repos rather than gating them
 
