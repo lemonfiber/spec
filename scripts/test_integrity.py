@@ -298,5 +298,102 @@ class StatedCounts(unittest.TestCase):
         self.assertIn("has 20", found[0])
 
 
+class Writing(StatedCounts):
+    """`--write` — the same table, used to repair rather than to report.
+
+    The check alone was not enough. Three of these needed a person on one
+    afternoon: the ADR count twice, in two pull requests that then conflicted
+    with each other over it, and the feature count once at 68 against 77. Each
+    time the repair was to count files by hand and type the answer in.
+    """
+
+    def test_it_repairs_exactly_what_the_check_reported(self):
+        self.index(77)
+        self.adrs(2)
+        readme = self.tmp / "README.md"
+        readme.write_text("The 68-feature catalogue, and 9 ADRs.\n", encoding="utf-8")
+        self.assertEqual(len(integrity.stated_counts()), 2)
+        changed = integrity.write_counts()
+        self.assertEqual(len(changed), 2)
+        self.assertEqual(integrity.stated_counts(), [])
+        self.assertEqual(
+            readme.read_text(encoding="utf-8"),
+            "The 77-feature catalogue, and 2 ADRs.\n",
+        )
+
+    def test_the_sentence_keeps_its_own_voice(self):
+        # The number is replaced inside the phrase, not the phrase rewritten.
+        self.index(80)
+        readme = self.tmp / "README.md"
+        readme.write_text(
+            "| **[10-functional](x)** | The 79-feature catalogue, and more |\n",
+            encoding="utf-8",
+        )
+        integrity.write_counts()
+        self.assertIn("The 80-feature catalogue, and more", readme.read_text(encoding="utf-8"))
+
+    def test_a_correct_count_is_not_rewritten(self):
+        self.index(77)
+        self.adrs(2)
+        readme = self.tmp / "README.md"
+        readme.write_text("The 77-feature catalogue, and 2 ADRs.\n", encoding="utf-8")
+        before = readme.stat().st_mtime_ns
+        self.assertEqual(integrity.write_counts(), [])
+        self.assertEqual(readme.stat().st_mtime_ns, before)
+
+    def test_every_file_stating_it_is_repaired_not_just_the_first(self):
+        self.index(77)
+        one = self.tmp / "README.md"
+        two = self.tmp / "10-functional" / "features" / "README.md"
+        one.write_text("The 1-feature catalogue.\n", encoding="utf-8")
+        two.write_text("The 2-feature catalogue.\n", encoding="utf-8")
+        self.assertEqual(len(integrity.write_counts()), 2)
+        self.assertIn("77-feature", one.read_text(encoding="utf-8"))
+        self.assertIn("77-feature", two.read_text(encoding="utf-8"))
+
+    def test_a_tree_it_cannot_count_is_reported_rather_than_rewritten(self):
+        # No index: the counts are unknown, so writing one would be inventing it.
+        readme = self.tmp / "README.md"
+        readme.write_text("The 5-feature catalogue.\n", encoding="utf-8")
+        found = integrity.write_counts()
+        self.assertEqual(len(found), 1)
+        self.assertIn("cannot be checked", found[0])
+        self.assertIn("5-feature", readme.read_text(encoding="utf-8"))
+
+    def test_the_flag_reaches_it_and_it_reports_what_it_changed(self):
+        # `--write` is how anyone actually reaches this, so drive it that way
+        # rather than calling the function and trusting the wiring.
+        self.index(77)
+        self.adrs(2)
+        (self.tmp / "README.md").write_text(
+            "The 68-feature catalogue.\n", encoding="utf-8"
+        )
+        saved, sys.argv = sys.argv, ["integrity.py", "--write"]
+        self.addCleanup(setattr, sys, "argv", saved)
+        code, out = run_main()
+        self.assertEqual(code, 0)
+        self.assertIn("68 -> 77 features", out)
+        self.assertIn("1 stated count(s) rewritten", out)
+        self.assertEqual(integrity.stated_counts(), [])
+
+    def test_a_file_outside_the_tree_is_refused_rather_than_written(self):
+        # `md_files()` yields from inside ROOT, so this is a guard rather than a
+        # case that happens — which is the point: it cannot start happening
+        # quietly.
+        self.index(77)
+        outside = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, outside, ignore_errors=True)
+        stray = outside / "stray.md"
+        stray.write_text("The 1-feature catalogue.\n", encoding="utf-8")
+        (self.tmp / "link.md").symlink_to(stray)
+        reported = integrity.write_counts()
+        self.assertTrue(any("outside the spec tree" in line for line in reported), reported)
+        self.assertIn("1-feature", stray.read_text(encoding="utf-8"))
+
+    def test_a_tree_with_no_catalogue_writes_nothing(self):
+        shutil.rmtree(self.features.parent)
+        self.assertEqual(integrity.write_counts(), [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
