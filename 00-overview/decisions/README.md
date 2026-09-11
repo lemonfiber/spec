@@ -37,6 +37,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0016](0016-dependabot-over-renovate.md) | Dependabot updates the dependencies, and the gate cites for it | Proposed |
 | [0017](0017-the-companion-app-as-a-fourth-surface.md) | The companion app is a fourth surface, reached over the network | Proposed |
 | [0018](0018-trusting-a-stack-over-the-local-network.md) | A paired fingerprint decides which machine the app will talk to | Proposed |
+| [0019](0019-a-screen-paints-before-it-reaches-the-stack.md) | A screen paints what it knows before it reaches the stack | Proposed |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
