@@ -151,6 +151,7 @@ demands the tool prove things rather than assume them.
 | [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | Operator |
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | Operator |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | Operator |
+| [F10](f-extensibility/f10-authoring.md) | Writing a plugin | Operator |
 
 ## G — Cross-cutting UX
 
