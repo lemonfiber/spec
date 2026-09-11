@@ -17,6 +17,7 @@ import contextlib
 import io
 import pathlib
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -126,6 +127,100 @@ class Allocating(unittest.TestCase):
         self.define("a.md", "DES-R1")
         with self.assertRaises(SystemExit):
             run()
+
+
+class Branches(unittest.TestCase):
+    """An identifier taken on an unmerged branch is taken.
+
+    `F9` was allocated on a pull request that had not merged, and this script —
+    reading only the working tree — still reported the `F` ceiling as `F8`. The
+    next author to ask would have been handed a number already spoken for, which
+    is the double allocation the script exists to prevent, one level up.
+    """
+
+    def git(self, *args):
+        return subprocess.run(
+            ["git", *args], cwd=self.tmp, capture_output=True, text=True, check=True,
+        )
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.previous, next_id.ROOT = next_id.ROOT, self.tmp
+        self.addCleanup(setattr, next_id, "ROOT", self.previous)
+        self.git("init", "-q", "-b", "main")
+        self.git("config", "user.email", "t@e.st")
+        self.git("config", "user.name", "T")
+
+    def commit(self, name, *identifiers):
+        rows = "".join(f"| **{i}** | a requirement |\n" for i in identifiers)
+        (self.tmp / name).write_text(rows, encoding="utf-8")
+        self.git("add", name)
+        self.git("commit", "-qm", f"add {name}")
+
+    def on_a_branch(self, branch, name, *identifiers):
+        """Commit on a branch and leave it only under refs/remotes, as a fetch would."""
+        self.git("checkout", "-q", "-b", branch)
+        self.commit(name, *identifiers)
+        head = self.git("rev-parse", "HEAD").stdout.strip()
+        self.git("checkout", "-q", "main")
+        self.git("branch", "-qD", branch)
+        self.git("update-ref", f"refs/remotes/origin/{branch}", head)
+
+    def test_a_number_taken_on_a_branch_is_not_handed_out_again(self):
+        self.commit("main.md", "F-R1", "F-R2")
+        self.on_a_branch("in-flight", "flight.md", "F-R3")
+        code, out, err = run("F")
+        self.assertEqual(code, 0)
+        self.assertEqual(out.strip(), "F-R4")
+        self.assertIn("branch(es) read", err)
+
+    def test_the_branch_is_named_so_the_reader_knows_where_it_went(self):
+        self.commit("main.md", "F-R1")
+        self.on_a_branch("in-flight", "flight.md", "F-R7")
+        _, _, err = run("F")
+        self.assertIn("origin/in-flight", err)
+
+    def test_here_reads_the_tree_only_and_says_what_that_costs(self):
+        self.commit("main.md", "F-R1")
+        self.on_a_branch("in-flight", "flight.md", "F-R3")
+        _, out, err = run("F", "--here")
+        self.assertEqual(out.strip(), "F-R2")
+        self.assertIn("handed out again", err)
+
+    def test_a_number_in_both_keeps_the_path_the_tree_has(self):
+        # The branch is only ever news about a number the tree does not know.
+        # The branch edits the same file so the row is on both sides of it.
+        self.commit("main.md", "F-R1")
+        self.git("checkout", "-q", "-b", "in-flight")
+        (self.tmp / "main.md").write_text(
+            "| **F-R1** | reworded on the branch |\n", encoding="utf-8")
+        self.git("add", "main.md")
+        self.git("commit", "-qm", "reword")
+        head = self.git("rev-parse", "HEAD").stdout.strip()
+        self.git("checkout", "-q", "main")
+        self.git("branch", "-qD", "in-flight")
+        self.git("update-ref", "refs/remotes/origin/in-flight", head)
+        _, _, err = run("F")
+        self.assertIn("main.md", err)
+        self.assertNotIn("(origin/in-flight)", err)
+
+    def test_a_ref_this_clone_cannot_read_yields_nothing_rather_than_guessing(self):
+        # A ref listed but unreadable — a shallow clone, or a fetch that failed
+        # partway. Returning an empty set is right; inventing one is not.
+        self.commit("main.md", "F-R1")
+        self.git("update-ref", "refs/remotes/origin/broken", "0" * 40)
+        self.assertEqual(next_id.defined_on("refs/remotes/origin/broken"), set())
+
+    def test_a_tree_that_is_not_a_repository_says_it_searched_only_itself(self):
+        # No git, no refs. It must say so rather than imply it looked.
+        plain = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, plain, ignore_errors=True)
+        next_id.ROOT = plain
+        (plain / "a.md").write_text("| **F-R1** | x |\n", encoding="utf-8")
+        _, out, err = run("F")
+        self.assertEqual(out.strip(), "F-R2")
+        self.assertIn("no branches could be read", err)
 
 
 if __name__ == "__main__":
