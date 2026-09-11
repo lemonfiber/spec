@@ -4,7 +4,7 @@ title: The plugin catalogue and what vouches for a plugin
 kind: feature
 area: F
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [extensibility, security, verification]
@@ -14,7 +14,7 @@ relates: [F1, F4, F6, F7, C1]
 
 # F5 — The plugin catalogue and what vouches for a plugin
 
-**Status:** Draft · **Audience:** Operator · **Area:** F — Extensibility
+**Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
 ---
 

@@ -4,7 +4,7 @@ title: Plugin lifecycle
 kind: feature
 area: F
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [extensibility, verification, updates]
@@ -14,7 +14,7 @@ relates: [F5, F7, E3, C9]
 
 # F6 — Plugin lifecycle
 
-**Status:** Draft · **Audience:** Operator · **Area:** F — Extensibility
+**Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
 ---
 
@@ -143,6 +143,6 @@ message says which thing went.
 
 - [E4 Rollback](../e-maintenance/e4-rollback.md) — the journal and the reversal machinery this is built on
 - [F3 Plugin manifests and recipes](f3-stack-manifests.md) — what is being installed
-- [F4 Capabilities & substitution](f4-capabilities.md) — what changes hands during an install
+- [F4 The capability vocabulary](f4-capabilities.md) — what changes hands during an install
 - [F7 Plugin provenance](f7-plugin-provenance.md) — what is readable afterwards
 - [E3 Backup & restore](../e-maintenance/e3-backup-restore.md) — the heavier recovery path when a reversal cannot finish

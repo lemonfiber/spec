@@ -1,6 +1,6 @@
 ---
 id: F3
-title: Plugin manifests and recipes
+title: Plugin manifests
 kind: feature
 area: F
 audience: operator
@@ -9,10 +9,10 @@ maturity: planned
 priority: P1
 labels: [extensibility, verification, wiring]
 requires: [F1, F2]
-relates: [F4, F5, F6, F7, C9, E4]
+relates: [F4, F5, F6, F7, F8, C9, E4]
 ---
 
-# F3 — Plugin manifests and recipes
+# F3 — Plugin manifests
 
 **Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
@@ -41,13 +41,12 @@ The hard case this must survive is the one an operator will actually ask for: **
 instead of Jellyfin**. Jellyfin is not a container in this stack — it is the identity
 source the request service signs in through, whose admin password lemonfiber mints by
 driving Jellyfin's own first-run setup. A plugin that only described a container would
-substitute nothing. So the manifest carries **recipes**: ordered sequences of HTTP calls
-that capture values, feed them into later calls, branch on what came back and wait when
-something is not ready yet. Recipes are how first-run flows become data.
+substitute nothing.
 
-Where even that is not enough, a plugin **names** one of a fixed set of adapters
-lemonfiber implements. It never supplies one. The bespoke stays first-party, and a plugin
-reuses it by name.
+So a manifest carries more than a container, and the rest of it is
+[F8](f8-recipes.md): the ordered calls that turn a first-run flow into data, and the
+named adapters for the flows even those cannot express. This feature says what a manifest
+*is* and what may be written in it; F8 says what the calls in it may do.
 
 ## Behaviour
 
@@ -62,7 +61,8 @@ A manifest declares:
   owns.
 - **The wiring** — what it connects to, expressed as capabilities asked for rather than
   services named.
-- **The recipes** — the ordered calls that configure it and the services around it.
+- **The recipes** — the ordered calls that configure it and the services around it,
+  which [F8](f8-recipes.md) governs.
 - **The secrets it will hold** — each named in advance.
 - **The overrides it intends** — each bundled thing it will change, named in advance.
 - **The proofs** — the checks by which lemonfiber decides whether it actually worked.
@@ -94,32 +94,17 @@ outside the machine, and it is not one a stranger installs on an operator's beha
 anything genuinely in that position the route is [F1](f1-customisation.md)'s — fork the
 stack and operate it, with the operator's own name on the decision.
 
-### A recipe is a sequence, not a program
+### Recipes and adapters are their own feature
 
-A recipe is an ordered list of calls. Each may:
+A manifest that only describes a service can add one; it cannot *substitute* one, because
+the case this design exists for needs an account created and a token read back. Those
+flows are recipes, and recipes are [F8](f8-recipes.md).
 
-- **capture** values out of a response and name them,
-- **substitute** values captured earlier into a later call,
-- **branch** on a status code or a captured value,
-- **wait and retry** a bounded number of times when a service is not ready yet.
-
-There is no arbitrary computation, no loop that does not terminate, no way to reach
-anything the manifest did not declare. A recipe is powerful enough to create an account,
-claim a server and read back a token — which is what a first-run flow is — and no more
-powerful than that. It is Turing-incomplete by construction rather than by convention, so
-"what can this plugin do?" is answerable by reading it.
-
-### Where data will not reach, a plugin names an adapter
-
-Some flows cannot be honestly expressed as calls and captures. For those a plugin names
-one of a fixed set of **adapters** that lemonfiber implements and ships — the
-Servarr-shaped registration flow, and others as they earn their place. The plugin supplies
-the parameters; lemonfiber supplies the behaviour.
-
-This keeps the awkward cases in code that is reviewed, tested and covered like the rest of
-the product, while still letting a plugin reach them. A plugin naming an adapter that does
-not exist is a validation failure, and the set of adapters is published rather than
-discovered.
+They are separated because they are different in kind. What this feature describes is a
+container whose reach lemonfiber fixes. A recipe runs with lemonfiber's own authority, on
+behalf of a manifest a stranger wrote, and it is where the risk in the design actually
+lives. Keeping them apart lets the simplest useful plugin — one that adds a service — be
+operated before the most consequential mechanism arrives.
 
 ### No code, and no route to code
 
@@ -171,8 +156,6 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | A recipe changes something the manifest did not list as an override | Refuse the plugin, naming what it reached for. |
 | A declared proof fails | Do not install. A declared-and-failing proof is a rejection, not an advisory. |
 | A declared proof cannot be run at all | Report it as unproven. An unrunnable check is not a satisfied one. |
-| A recipe's call never succeeds | Bound the retries, then fail the recipe naming the call and what it last answered. |
-| A recipe branches on a value that was never captured | Refuse at validation rather than at run time; the reference is checkable without running anything. |
 | The manifest names an adapter that does not exist | Refuse, naming the adapter and listing what is available. |
 | A referenced image is unsigned | Report it as unproven and say so. A publisher who never signed anything has made no claim, which is a different fact from a claim that did not check out, and an operator deciding whether to proceed needs to tell them apart. |
 | A referenced image claims a signature that does not verify | Refuse. A claimed-and-invalid signature is worse than none and is treated as worse. |
@@ -200,12 +183,12 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | **F3-R12** | A plugin's provenance MUST be verifiable rather than taken on trust. |
 | **F3-R13** | Fetching, validating, rehearsing and proving a plugin MUST each be reachable non-interactively with a meaningful exit status. |
 | **F3-R14** | A plugin that conflicts with the bundled topology MUST surface the conflict at validation rather than silently overriding it. |
-| **F3-R15** | A recipe MUST be an ordered sequence of calls supporting capture, substitution of earlier captures, branching on status or captured value, and bounded wait-and-retry — and MUST NOT support unbounded computation. |
-| **F3-R16** | A recipe MUST NOT reach any host, service or value the manifest has not declared. |
+| **F3-R15** | *Withdrawn — carried to [F8-R1](f8-recipes.md) when recipes became their own feature. The number is not reused.* |
+| **F3-R16** | *Withdrawn — carried to [F8-R10](f8-recipes.md) when recipes became their own feature. The number is not reused.* |
 | **F3-R17** | Every secret a plugin will hold MUST be declared in its manifest, and capturing an undeclared value MUST fail validation. |
 | **F3-R18** | Every bundled thing a plugin will override MUST be declared in its manifest, and changing an undeclared one MUST fail validation. |
-| **F3-R19** | A plugin MAY name one of a published, fixed set of lemonfiber-implemented adapters for flows recipes cannot express, and MUST NOT supply an adapter of its own. |
-| **F3-R20** | Naming an adapter this lemonfiber does not implement MUST be refused, naming the adapter and the set that is available. |
+| **F3-R19** | *Withdrawn — carried to [F8-R11](f8-recipes.md) when recipes became their own feature. The number is not reused.* |
+| **F3-R20** | *Withdrawn — carried to [F8-R12](f8-recipes.md) when recipes became their own feature. The number is not reused.* |
 | **F3-R21** | A manifest MUST declare the capabilities it requires of lemonfiber, and an unmet requirement MUST be refused by naming the capability rather than a version. |
 | **F3-R22** | Manifest validation MUST report every violation in one pass, each named with its location. |
 | **F3-R23** | A plugin MUST NOT supply a container definition, and lemonfiber MUST generate one from what the plugin declares. |
@@ -217,7 +200,7 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 - [plugin-manifest contract](../../../20-architecture/contracts/plugin-manifest.md) — the fields a plugin declares in, and the entry lemonfiber writes from them
 - [F1 Customisation & escape hatches](f1-customisation.md) — the escape-hatch posture this narrows to declarative data
 - [F2 Service catalogue](f2-service-catalogue.md) — the bundled catalogue whose entries a plugin extends
-- [F4 Capabilities & substitution](f4-capabilities.md) — the vocabulary a manifest claims and asks in
+- [F4 The capability vocabulary](f4-capabilities.md) — the vocabulary a manifest claims and asks in
 - [F5 The plugin catalogue](f5-plugin-catalogue.md) — where a manifest comes from and what vouches for it
 - [F6 Plugin lifecycle](f6-plugin-lifecycle.md) — what rehearsing, installing and removing one does
 - [F7 Plugin provenance](f7-plugin-provenance.md) — how what a plugin changed stays answerable
