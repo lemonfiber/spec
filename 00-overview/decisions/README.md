@@ -42,6 +42,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0021](0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) | A plugin is data, and lemonfiber writes its container | Proposed |
 | [0022](0022-a-recipe-declares-pairs-not-lists.md) | A recipe declares pairs, not lists | Proposed |
 | [0023](0023-a-pin-is-a-digest.md) | A pin is a digest, and a signature is a different question | Proposed |
+| [0024](0024-what-opens-and-what-never-does.md) | Data about this installation opens; behaviour lemonfiber implements does not | Proposed |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
