@@ -57,7 +57,15 @@ def step_script(name: str) -> str:
     return named[0]["run"]
 
 
-class Workspace(unittest.TestCase):
+class Workspace:
+    """The temporary tree, the `gh` stub and the runner the classes below share.
+
+    Deliberately not a `TestCase`. Subclassing one here would make this a test
+    class in its own right — collected and run, holding no tests, and reporting
+    a pass that measured nothing — and `run_step` and `asked` would read as
+    tests that forgot their prefix rather than as the helpers they are.
+    """
+
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
@@ -99,7 +107,7 @@ class Workspace(unittest.TestCase):
         return self.log.read_text(encoding="utf-8") if self.log.exists() else ""
 
 
-class Closing(Workspace):
+class Closing(Workspace, unittest.TestCase):
     """What the gate does to a pull request it refuses."""
 
     def test_it_comments_before_it_closes(self):
@@ -137,7 +145,7 @@ class Closing(Workspace):
         self.assertIn("fork", out)
 
 
-class Deciding(Workspace):
+class Deciding(Workspace, unittest.TestCase):
     """The refusal itself, which stands whether or not anything was closed."""
 
     def test_a_missing_citation_refuses_and_names_the_reason(self):
