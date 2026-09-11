@@ -5,10 +5,10 @@
 **v1** is the seven product areas (A–G) — the contract the technical spec is
 written against, where every architecture and implementation decision must trace
 to a feature requirement here, not the other way round. **The ecosystem** adds
-four areas (H–K) plus F3, catalogued below the v1 areas and delivered after 1.0.
-Area **L — Release & distribution** spans both: L1 releases v1 (`1.0.0`) and L2
-releases v2 (`2.0.0`), each the scoped work of shipping a generation rather than
-a summary of it. The generated [feature board](BOARD.md) lists every feature with
+four areas (H–K) plus F3, catalogued below the v1 areas and sequenced before
+`1.0.0` on the same train. Area **L — Release & distribution** spans both, and
+carries one release: L1 ships `1.0.0`, which is the scoped work of getting there
+rather than a summary of it. The generated [feature board](BOARD.md) lists every feature with
 how far it is built and the version it ships in; [`index.json`](index.json) is
 the same board for tools.
 
@@ -233,7 +233,6 @@ that came before it.
 | ID | Feature | Audience | Ships in |
 |----|---------|----------|----------|
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | Operator | `1.0.0` |
-| [L2](l-release/l2-v2-release.md) | v2 release | Operator | `2.0.0` |
 
 ---
 
