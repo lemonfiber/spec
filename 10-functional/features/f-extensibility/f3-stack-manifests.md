@@ -159,7 +159,8 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | `proofs-passing` | The declared proofs ran and passed |
 | `proofs-failing` | The declared proofs ran and did not pass; the plugin is not installed |
 | `proofs-unrunnable` | A declared proof could not be run; reported as unproven, never as passed |
-| `image-unpinned` | A referenced image is unsigned or on a mutable tag; flagged, not accepted |
+| `image-unpinned` | A referenced image is named by tag rather than digest; refused, because a digest can always be obtained |
+| `image-unproven` | A referenced image is pinned, and its registry offers no signature; installed and reported as unproven, never as verified |
 
 ## Edge cases
 
@@ -173,9 +174,10 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | A recipe's call never succeeds | Bound the retries, then fail the recipe naming the call and what it last answered. |
 | A recipe branches on a value that was never captured | Refuse at validation rather than at run time; the reference is checkable without running anything. |
 | The manifest names an adapter that does not exist | Refuse, naming the adapter and listing what is available. |
-| A referenced image is unpinned or unsigned | Flag it and refuse to treat it as trusted. Pinning and signing are the bar. |
+| A referenced image is unsigned | Report it as unproven and say so. A publisher who never signed anything has made no claim, which is a different fact from a claim that did not check out, and an operator deciding whether to proceed needs to tell them apart. |
+| A referenced image claims a signature that does not verify | Refuse. A claimed-and-invalid signature is worse than none and is treated as worse. |
 | A manifest asks for a mount, a device, a kernel capability or a network of its own | Refuse, naming the field and listing what may be declared. There is no field for it, so this is a malformed manifest rather than a permission being withheld. |
-| A manifest names an image by tag alone | Refuse. A tag is a name its publisher can repoint, so the reviewed version and the running version can differ with nothing in the manifest changing. This is stricter than the row above deliberately: that one is about a *signature*, which a registry may not offer and which is therefore reported as unproven; a *digest* can always be obtained, so its absence is a fault in the manifest rather than a limitation of the registry. |
+| A manifest names an image by tag alone | Refuse. A tag is a name its publisher can repoint, so the reviewed version and the running version can differ with nothing in the manifest changing. A digest can always be obtained, so its absence is a fault in the manifest rather than a limitation of the registry — which is why this is refused where a missing signature is only unproven. |
 | A service genuinely needs more than a plugin can describe | Say so plainly and name the fork route. The shape is not widened for one plugin; widening it is a change made once, for everybody. |
 | The schema has moved on since the manifest was written | Answer with the capability the manifest asked for that this lemonfiber does not provide, by name, rather than with a version number. |
 
@@ -190,7 +192,8 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | **F3-R5** | A declared proof that cannot be run MUST be reported as unproven and MUST NOT be treated as passed. |
 | **F3-R6** | Contributed code MUST NOT be executed, and no opt-in, sandbox or capability grant may make it executable. |
 | **F3-R7** | Arbitrary native plugins MUST NOT be a supported extension mechanism. |
-| **F3-R8** | Referenced images MUST be signed and pinned; an unpinned or unsigned image MUST be flagged rather than silently accepted. |
+| **F3-R8** | A referenced image MUST be named by an immutable digest, and one named by tag alone MUST be refused. |
+| **F3-R25** | Where a registry offers a signature for a referenced image it MUST be verified, and one that does not verify MUST be refused. Where none is offered the image MUST be reported as unproven, and an unproven image MUST NOT be reported as verified. |
 | **F3-R9** | The manifest schema MUST be validated in the catalogue's CI so malformed contributions are caught before merge. |
 | **F3-R10** | A manifest MUST review as a readable diff, with no opaque or obfuscated content required to understand what it does. |
 | **F3-R11** | A plugin MUST NOT reach beyond what its manifest declares, and one that over-reaches MUST be rejected rather than confined. |
