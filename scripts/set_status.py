@@ -15,9 +15,16 @@ people actually get — so `--released-as` records which tag carried the goals t
 manifest locked. There is no manifest per patch: a patch delivers no goals of its
 own, and one would be a version the train has to walk past.
 
+A withdrawal is the one transition that destroys information if it is recorded
+bare. A release is yanked because something was wrong with it, and the manifest
+is where anyone later asks what — so `--withdrawn-because` is required to reach
+`yanked` and refused everywhere else. The release itself is never removed from
+the record; only marked.
+
 Usage:
   set_status.py --version X.Y.Z --status <state> [--released-on YYYY-MM-DD]
-                [--released-as X.Y.Z] [--pin name=sha ...] > <manifest>
+                [--released-as X.Y.Z] [--withdrawn-because WHY]
+                [--pin name=sha ...] > <manifest>
 Exit 0 = emitted, 1 = the manifest is missing or misshapen, 2 = usage.
 """
 from __future__ import annotations
@@ -94,6 +101,23 @@ def with_released_as(text: str, tag: str) -> str:
     return stamped(text, "released_as", tag, "released_on" if dated else "status")
 
 
+def with_withdrawn_because(text: str, why: str) -> str:
+    """Stamp why a release was withdrawn, beneath whatever records that it went out.
+
+    Under `released_as` where there is one, otherwise the date, otherwise the
+    status — the same descending order the other stamps use, so the lines read in
+    the order the events happened and a withdrawal is last because it is.
+    """
+    if not why.strip():
+        sys.exit("::error::--withdrawn-because wants a reason")
+    if '"' in why:
+        sys.exit("::error::--withdrawn-because cannot contain a quote")
+    for anchor in ("released_as", "released_on"):
+        if re.search(rf"(?m)^{anchor}\s*=", text):
+            return stamped(text, "withdrawn_because", why, anchor)
+    return stamped(text, "withdrawn_because", why, "status")
+
+
 def with_pins(text: str, pairs: list[str]) -> str:
     """Replace the trailing [pins] table (or append one)."""
     kept: list[str] = []
@@ -111,8 +135,18 @@ def main() -> int:
     ap.add_argument("--status", required=True, choices=sorted(STATES))
     ap.add_argument("--released-on", metavar="YYYY-MM-DD")
     ap.add_argument("--released-as", metavar="X.Y.Z")
+    ap.add_argument("--withdrawn-because", metavar="WHY")
     ap.add_argument("--pin", action="append", default=[], metavar="name=sha")
     a = ap.parse_args()
+
+    # A yank with no reason is the record losing the only thing anyone will come
+    # back to it for, and a reason on anything else is a withdrawal nobody made.
+    if a.status == "yanked" and not a.withdrawn_because:
+        sys.exit("::error::--withdrawn-because is required to withdraw a release")
+    if a.withdrawn_because and a.status != "yanked":
+        sys.exit(
+            f"::error::--withdrawn-because belongs to a withdrawn manifest, not {a.status!r}"
+        )
 
     if a.released_on and a.status != "released":
         sys.exit(f"::error::--released-on belongs to a released manifest, not {a.status!r}")
@@ -137,6 +171,8 @@ def main() -> int:
         text = with_released_on(text, a.released_on)
     if a.released_as:
         text = with_released_as(text, a.released_as)
+    if a.withdrawn_because:
+        text = with_withdrawn_because(text, a.withdrawn_because)
     if a.pin:
         text = with_pins(text, parse_pins(a.pin))
 
@@ -144,6 +180,7 @@ def main() -> int:
     print(f"{path.name}: status={a.status}"
           + (f", released_on={a.released_on}" if a.released_on else "")
           + (f", released_as={a.released_as}" if a.released_as else "")
+          + (", withdrawn" if a.withdrawn_because else "")
           + (f", pins={len(a.pin)}" if a.pin else ""),
           file=sys.stderr)
     return 0
