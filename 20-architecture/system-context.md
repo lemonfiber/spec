@@ -128,8 +128,9 @@ Three properties this encodes:
 
 ## Data crossing the boundary
 
-Everything lemonfiber itself sends outward, enumerable and individually
-disableable ([G8-R3](../10-functional/features/g-ux/g8-privacy.md)):
+Everything lemonfiber itself sends outward, enumerable
+([G8-R3](../10-functional/features/g-ux/g8-privacy.md)) and individually
+disableable ([G8-R5](../10-functional/features/g-ux/g8-privacy.md)):
 
 | Destination | Purpose | Disableable |
 |-------------|---------|-------------|
@@ -143,6 +144,12 @@ not by intention (`G8-R9`).
 
 Requests made by the *services* — indexer queries, metadata lookups — are theirs,
 documented as such rather than claimed as ours (`G8-R12`).
+
+An installed plugin adds a third kind: a request lemonfiber makes **on the
+plugin's behalf**, which is neither its own nor a service's. Each is attributed
+to the plugin that declared it, refusable on its own, and counted by the test
+above (`G8-R15`–`G8-R17`). The four rows are what this table holds with nothing
+installed, and that remains separately testable.
 
 ## What is deliberately not in the picture
 
