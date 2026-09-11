@@ -194,6 +194,13 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R37** | A launch where the device has no network, where the stack cannot be reached, and where the app is locked MUST each be told apart, consistent with `N1-R10` and the lock `N4` defines. |
 | **N1-R38** | Returning to a previous screen MUST restore what the operator had done there, and MUST NOT re-read the stack solely to rebuild it. |
 | **N1-R39** | Which stack a screen is showing MUST be carried explicitly by that screen, and MUST NOT be read from state shared across screens. |
+| **N1-R40** | An action the app could not deliver MUST be refused rather than retained, and the refusal MUST name the stack and state that nothing was changed ([ADR-0020](../../../00-overview/decisions/0020-an-action-the-stack-did-not-receive-did-not-happen.md)). |
+| **N1-R41** | The app MUST NOT retain an undelivered action, MUST NOT replay one on reconnecting, and MUST NOT present an action as pending. |
+| **N1-R42** | An idempotency key MUST accompany every action that changes a stack, and serves retry within a single attempt; it MUST NOT be used to replay an action across a reconnection. |
+| **N1-R43** | A refused attempt MUST leave the action offered, consistent with `N1-R3`; the attempt failed, the capability did not become unavailable. |
+| **N1-R44** | Where a session is rejected or has ended, the app MUST report it on the screen the operator is on, MUST offer to establish a new session there, and MUST restore that screen once one is established. |
+| **N1-R45** | The end of a session MUST NOT discard the pairing or its pinned fingerprint; a credential expiring is not the machine changing ([ADR-0018](../../../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md)). |
+| **N1-R46** | A session that has ended MUST be reported differently from a credential that was refused, consistent with `N1-R10`. |
 
 ## Related
 
