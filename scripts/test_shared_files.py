@@ -19,11 +19,23 @@ import hashlib
 import io
 import pathlib
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
 
 HERE = pathlib.Path(__file__).resolve().parent
+
+#: A registry with one maintainer scoped to everything, which is what the real
+#: one holds. `gen_codeowners.py` turns this into `* @lead`.
+REGISTRY = """
+[[maintainer]]
+handle  = "lead"
+name    = "A Lead"
+lead    = true
+scope   = ["*"]
+domains = ["*"]
+"""
 sys.path.insert(0, str(HERE))
 import check_shared_files  # noqa: E402
 
@@ -62,6 +74,15 @@ class Copies(unittest.TestCase):
         (shared / "hooks").mkdir(parents=True)
         self.repo.mkdir()
 
+        # The real generator and a registry for it to read, rather than a stub:
+        # what the check compares against is this script's output, so a stub here
+        # would be testing the stub.
+        (self.canonical / "scripts").mkdir(parents=True)
+        shutil.copy(HERE / "gen_codeowners.py", self.canonical / "scripts")
+        (self.canonical / "70-operations").mkdir(parents=True)
+        (self.canonical / "70-operations" / "maintainers.toml").write_text(
+            REGISTRY, encoding="utf-8")
+
         (shared / "markdownlint.jsonc").write_text(MARKDOWNLINT, encoding="utf-8")
         (shared / "typos.toml").write_text(TYPOS, encoding="utf-8")
         (shared / "hooks" / "pre-push").write_text(HOOK, encoding="utf-8")
@@ -69,7 +90,15 @@ class Copies(unittest.TestCase):
 
         self.write(".markdownlint.jsonc", MARKDOWNLINT)
         self.write("typos.toml", TYPOS)
+        self.write(".github/CODEOWNERS", self.generated())
         self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def generated(self, repo_name="cli"):
+        """What `gen_codeowners.py` writes for a repo, asked of the real script."""
+        done = subprocess.run(
+            [sys.executable, str(self.canonical / "scripts" / "gen_codeowners.py"), repo_name],
+            capture_output=True, text=True, check=True)
+        return done.stdout
 
     def digest(self, text):
         return hashlib.sha256(text.encode()).hexdigest()
@@ -100,7 +129,7 @@ class Agreeing(Copies):
     def test_a_repo_whose_copies_all_agree(self):
         code, out = self.check()
         self.assertEqual(code, 0, out)
-        self.assertIn("match their canonical copies", out)
+        self.assertIn("match their one home", out)
 
     def test_an_asset_the_repo_does_not_carry_is_not_asked_for(self):
         # The manifest lists what a copy must equal, not what a repo must have.
@@ -265,6 +294,54 @@ class Drifted(Copies):
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn("6 shared file(s) out of step with", out)
+
+
+class Owners(Copies):
+    """`OPS-R17` — CODEOWNERS is generated from the registry, in every repo.
+
+    Required rather than conditional, unlike the hooks: five of the seven
+    implementation repositories had no CODEOWNERS at all, and the absence
+    satisfied "never hand-edited" in the only sense anything was asking about.
+    """
+
+    def test_a_generated_codeowners_agrees(self):
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
+    def test_a_missing_codeowners_is_refused(self):
+        (self.repo / ".github" / "CODEOWNERS").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("CODEOWNERS is missing", out)
+        self.assertIn("gen_codeowners.py", out)
+
+    def test_a_hand_edited_codeowners_is_refused(self):
+        self.write(".github/CODEOWNERS", self.generated() + "* @someone-else\n")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("differs from what the registry generates", out)
+
+    def test_the_message_names_the_repo_to_generate_for(self):
+        # The fix is one command, and it takes the repo's name. Printing the
+        # name means the reader does not have to work out which one they are in.
+        (self.repo / ".github" / "CODEOWNERS").unlink()
+        _, out = self.check(repo_name="lemonfiber/sdk-php")
+        self.assertIn("gen_codeowners.py sdk-php", out)
+
+    def test_without_a_repo_name_it_says_so_rather_than_guessing(self):
+        # The generator's output depends on the name, so there is nothing to
+        # compare against without one. Saying so beats comparing against a guess.
+        code, out = self.check(repo_name="")
+        self.assertEqual(code, 1)
+        self.assertIn("--repo was not given", out)
+
+    def test_a_generator_that_cannot_run_says_so_rather_than_failing_the_repo(self):
+        # A broken canonical checkout is this check's fault, not the repo's, and
+        # reporting it as a missing file would send somebody to fix the wrong tree.
+        (self.canonical / "70-operations" / "maintainers.toml").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("could not generate", out)
 
 
 class Usage(Copies):

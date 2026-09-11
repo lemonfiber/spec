@@ -16,6 +16,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import pathlib
+import subprocess
+import sys
 import tomllib
 
 # The members of `shared/` this file names. Named here rather than at each use so
@@ -92,6 +94,50 @@ def assets(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str]:
                 f"copy it again rather than editing it here"
             )
     return problems
+
+
+def codeowners(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str]:
+    """`OPS-R17`: a repo's CODEOWNERS is generated from the registry.
+
+    Required rather than conditional, unlike the hooks above. A hook a repo has
+    not adopted is a repo that has not adopted hooks; a missing CODEOWNERS is a
+    repo GitHub routes no review request for, and the requirement says each repo
+    has one. Five of seven had none, and the absence satisfied "never
+    hand-edited" in the only sense anything was asking about.
+
+    Generated here rather than compared against a stored copy, because the file
+    is per-repository output rather than a copy of one shared original: the same
+    registry produces a different file for each name.
+    """
+    got = repo / ".github" / "CODEOWNERS"
+    generator = canonical / "scripts" / "gen_codeowners.py"
+    if not name:
+        # Without a name there is nothing to generate for, and comparing against
+        # a guess would be worse than saying so.
+        return ["--repo was not given, so CODEOWNERS could not be checked"]
+    written = subprocess.run(
+        [sys.executable, str(generator), name],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if written.returncode != 0:
+        return [
+            f"gen_codeowners.py could not generate for {name}: "
+            f"{written.stderr.strip() or 'no output'}"
+        ]
+    if not got.is_file():
+        return [
+            ".github/CODEOWNERS is missing; generate it with "
+            f"`python3 scripts/gen_codeowners.py {name}` from a spec checkout (OPS-R17)"
+        ]
+    if got.read_text(encoding="utf-8") != written.stdout:
+        return [
+            ".github/CODEOWNERS differs from what the registry generates; "
+            f"regenerate it with `python3 scripts/gen_codeowners.py {name}` "
+            "rather than editing it (OPS-R17)"
+        ]
+    return []
 
 
 def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
@@ -173,13 +219,14 @@ def main() -> int:
         + typos(repo, canonical)
         + assets(repo, canonical, name)
         + hooks(repo, canonical)
+        + codeowners(repo, canonical, name)
     )
     if problems:
         for problem in problems:
             print(f"::error::{problem}")
         print(f"\n{len(problems)} shared file(s) out of step with {canonical / 'shared'}.")
         return 1
-    print("shared files: lint configs and brand assets match their canonical copies")
+    print("shared files: lint configs, hooks, brand assets and CODEOWNERS match their one home")
     return 0
 
 
