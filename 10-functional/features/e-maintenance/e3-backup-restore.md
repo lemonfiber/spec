@@ -59,10 +59,25 @@ The label is stated at creation and recorded in the archive.
 
 ### Automatic before risky operations
 
-Taken automatically before updates ([E1](e1-stack-updates.md)), before adopting
-an existing setup ([A5](../a-getting-started/a5-migration.md)), and before
-configuration removal ([A6](../a-getting-started/a6-uninstall.md)). Not offered —
-taken.
+Taken automatically before updates ([E1](e1-stack-updates.md)), before
+configuration removal ([A6](../a-getting-started/a6-uninstall.md)), and
+immediately after adopting an existing setup
+([A5](../a-getting-started/a5-migration.md)). Not offered — taken.
+
+**Adoption is the one that comes after, and the reason is worth stating so
+nobody moves it back.** A capture is described in terms of lemonfiber's own
+layout — its configuration directory, the service configuration under its data
+root, the materialised stack. At adopt time none of that is the thing worth
+protecting: the operator's setup is wherever they put it, and lemonfiber has not
+taken it over yet. A whole-stack capture run at that moment would archive
+lemonfiber's own empty layout and call it a backup, which is worse than no
+backup, because it is a backup somebody would rely on. Taken directly after the
+adoption, the same capture describes the setup that was just taken over, and is
+true.
+
+What that leaves uncovered is stated in the edge cases below rather than hidden
+in this sentence: nothing here captures the operator's configuration in the
+state it was in *before* lemonfiber first touched it.
 
 ### Restore is selective
 
@@ -105,6 +120,7 @@ silently fill the disk they were protecting.
 | Restore with a different data root | Detect the path difference and offer to re-point rather than restoring paths that don't exist. |
 | Backup includes credentials no longer valid | Restore them; report which fail validation afterwards. |
 | Operator wants media backed up | Out of scope. State it and point at general-purpose backup tools — pretending to solve it badly is worse. |
+| Operator wants their configuration captured as it was **before** lemonfiber touched it | Not offered today, and not because it is a bad idea — it protects the case that matters most, a setup a tool the operator has just met is about to change. It needs a capture scope for a project lemonfiber does not own, which raises a second question this feature has no answer for: where a restore of it would put files back, in a tree lemonfiber does not manage. Until both are answered, say what adoption does capture and when, rather than implying the earlier state was kept. |
 | Backup taken mid-update | Only meaningful pre- or post-update; take it before, never during. |
 | Partial restore leaves inconsistency | Re-run [seed](../d-content/d1-seed.md) after restore to reconcile inter-service wiring. |
 | Retention would delete the only backup | Never prune to zero. |
@@ -117,7 +133,7 @@ silently fill the disk they were protecting.
 | **E3-R2** | Backups MUST include service configuration, lemonfiber configuration, the expected-state baseline, and materialised stack files. |
 | **E3-R3** | Backups MUST NOT include the media library. |
 | **E3-R4** | Backups containing credentials MUST be labelled sensitive at creation and within the archive. |
-| **E3-R5** | A backup MUST be taken automatically before updates, adoption, and configuration removal. |
+| **E3-R5** | A backup MUST be taken automatically before updates and before configuration removal, and immediately after lemonfiber adopts an existing setup. Adoption is the one of the three that comes after rather than before: until the setup is taken over, what is worth capturing is not in a layout lemonfiber can describe. |
 | **E3-R6** | Restore MUST support whole-stack and single-service scope. |
 | **E3-R7** | An archive MUST be verified and its contents listed before anything is overwritten. |
 | **E3-R8** | A corrupt or incompatible archive MUST be refused before modification begins. |
