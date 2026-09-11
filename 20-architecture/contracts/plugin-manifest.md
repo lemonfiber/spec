@@ -11,6 +11,8 @@ is not declared here.
 [F3-R8](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R10](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R14](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
+[F3-R23](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
+[F3-R24](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R21](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R22](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F4-R14](../../10-functional/features/f-extensibility/f4-capabilities.md),
