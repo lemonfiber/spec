@@ -38,7 +38,7 @@ sequenceDiagram
 
 | # | Check | Failure |
 |---|-------|---------|
-| 1 | At least one citation present in a commit trailer **and** the PR body | Close |
+| 1 | At least one citation present in a commit trailer **or** the PR body | Close |
 | 2 | Every cited ID is well-formed | Close, naming the malformed ID |
 | 3 | Every cited ID **exists** in `spec@main` at the merge-base | Close, naming the unknown ID |
 | 4 | No cited requirement is `Draft` or `Withdrawn` | Close, naming it and its status |

@@ -25,6 +25,11 @@ jobs:
     steps:
       - name: Check out the calling repo (PR)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The commit range below needs both ends present. Checkout clones to
+          # depth 1 by default, which leaves the base commit out of the clone
+          # and makes `git log base..head` fail.
+          fetch-depth: 0
 
       - name: Check out the canonical spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -45,7 +50,14 @@ jobs:
             printf '%s\n' "$PR_BODY"
             if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
                && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
-              git log --format='%B' "${BASE_SHA}..${HEAD_SHA}" 2>/dev/null || true
+              # A failure here must be loud. Swallowed, it leaves the body as the
+              # only text searched, and the gate then reports a missing citation
+              # for a pull request whose commits carry one.
+              git log --format='%B' "${BASE_SHA}..${HEAD_SHA}" \
+                || { echo "::error::Could not read commit messages for ${BASE_SHA}..${HEAD_SHA}. The citation below was searched in the pull request body alone." >&2; exit 1; }
+            else
+              echo "::error::base or head is not a commit SHA, so no commit message was read." >&2
+              exit 1
             fi
           } > .pr-text.txt
 
