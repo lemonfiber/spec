@@ -201,6 +201,11 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R44** | Where a session is rejected or has ended, the app MUST report it on the screen the operator is on, MUST offer to establish a new session there, and MUST restore that screen once one is established. |
 | **N1-R45** | The end of a session MUST NOT discard the pairing or its pinned fingerprint; a credential expiring is not the machine changing ([ADR-0018](../../../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md)). |
 | **N1-R46** | A session that has ended MUST be reported differently from a credential that was refused, consistent with `N1-R10`. |
+| **N1-R47** | The stack MUST be able to produce pairing material on demand, from a surface the operator has already been admitted to, and MUST NOT require the app to be reachable in order to produce it. |
+| **N1-R48** | Pairing material MUST carry the address the app should reach and the fingerprint of the certificate that address will present, and MUST NOT carry a credential. |
+| **N1-R49** | Pairing material MUST expire, and redeeming it MUST NOT be what admits the app; admission remains the exchange of the operator's own credential for a session (`N1-R7`). |
+| **N1-R50** | Where pairing is completed by typed entry rather than by scanning (`N1-R6`), the app MUST present the fingerprint it observed in a form a person can compare against what the stack displays, and MUST NOT proceed on an unconfirmed fingerprint. |
+| **N1-R51** | The comparable form MUST be short enough to be checked at a glance and MUST be derived from the whole fingerprint, so that two different certificates do not share one. |
 
 ## Related
 
