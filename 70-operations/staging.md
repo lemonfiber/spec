@@ -159,7 +159,7 @@ as `1.1.0` through `1.7.0` and then as a second generation, `2.x`, on the
 reasoning that a minor which removed the container runtime would mislead anyone
 reading the number. The second half of that is gone: there are no epochs, and
 what was sequenced behind `2.0.0` is the last stretch of minors before `1.0.0` —
-the container-engine abstraction among them, at `0.22.0`. The first half is why
+the container-engine abstraction among them, at `0.23.0`. The first half is why
 they are still minors and not one release: each is one theme, and a version that
 carried a generation would be the backlog-with-a-number this rule exists to
 refuse.
