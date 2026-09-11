@@ -40,6 +40,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0019](0019-a-screen-paints-before-it-reaches-the-stack.md) | A screen paints what it knows before it reaches the stack | Proposed |
 | [0020](0020-an-action-the-stack-did-not-receive-did-not-happen.md) | An action the stack did not receive did not happen | Proposed |
 | [0021](0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) | A plugin is data, and lemonfiber writes its container | Proposed |
+| [0022](0022-a-recipe-declares-pairs-not-lists.md) | A recipe declares pairs, not lists | Proposed |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
