@@ -262,13 +262,48 @@ class Refusals(Workspace):
 
     def test_every_fault_is_reported_not_just_the_first(self):
         code, out = self.lint(
-            "## M5 — Trust · `0.9.0`\n\n| x | `G7-R1..R14` | ✅ | y |\n"
+            "## M5 — Trust · `0.9.0`\n\n"
+            "| Deliverable | Spec | Status | Landing / notes |\n|---|---|---|---|\n"
+            "| x | `G7-R1..R14` | ✅ | y |\n"
             "| x | `Z9-R1` | ✅ | y |\n")
         self.assertEqual(code, 1)
         self.assertIn("does not name 0.7.0", out)
         self.assertIn("defines up to R13", out)
         self.assertIn("locked by no version: G7-R14, Z9-R1", out)
         self.assertIn("3 claim(s) the spec does not back", out)
+
+
+class Miscolumned(Workspace):
+    """A table read as a shape that checks nothing is refused rather than skipped."""
+
+    def test_a_wide_table_naming_no_requirements_column_is_refused(self):
+        code, out = self.lint(
+            "## M5 — Trust · `0.7.0`\n\n"
+            "| Deliverable | Citations | Status | Landed |\n|---|---|---|---|\n"
+            "| x | `G7-R1..R13` | ✅ | y |\n")
+        self.assertEqual(code, 1, out)
+        self.assertIn("none is named", out)
+
+    def test_the_reqs_spelling_is_read_as_a_requirements_column(self):
+        code, out = self.lint(
+            "## M5 — Trust · `0.7.0`\n\n"
+            "| Deliverable | Reqs | Status | Landed |\n|---|---|---|---|\n"
+            "| x | `G7-R1..R13` | ✅ | y |\n")
+        self.assertEqual(code, 0, out)
+
+    def test_a_legacy_three_column_table_is_left_alone(self):
+        code, out = self.lint(
+            "## M5 — Trust · `0.7.0`\n\n"
+            "| Deliverable | Status | Landing |\n|---|---|---|\n"
+            "| `G7-R1..R13` | ✅ | y |\n")
+        self.assertEqual(code, 0, out)
+
+    def test_a_header_with_no_rows_under_it_skips_nothing(self):
+        code, out = self.lint(
+            "## M5 — Trust · `0.7.0`\n\n"
+            "| Deliverable | Citations | Status | Landed |\n|---|---|---|---|\n"
+            "\n| x | `G7-R1..R13` | ✅ | y |\n")
+        self.assertNotIn("none is named", out)
 
 
 class Unlocked(Workspace):
