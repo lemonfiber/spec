@@ -2,8 +2,8 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 77,
-    "requirements": 1078,
-    "areas": "A–M"
+    "requirements": 1080,
+    "areas": "A–N"
   },
   "versions": [
     {
@@ -2633,9 +2633,9 @@
       "path": "l-release/l2-v2-release.md"
     },
     {
-      "id": "M1",
+      "id": "N1",
       "title": "The companion app",
-      "area": "M",
+      "area": "N",
       "audience": "both",
       "kind": "feature",
       "status": "draft",
@@ -2663,12 +2663,12 @@
         "I1"
       ],
       "versions": [],
-      "path": "m-companion/m1-companion-app.md"
+      "path": "n-companion/n1-companion-app.md"
     },
     {
-      "id": "M2",
+      "id": "N2",
       "title": "The operator's companion",
-      "area": "M",
+      "area": "N",
       "audience": "operator",
       "kind": "feature",
       "status": "draft",
@@ -2683,7 +2683,7 @@
         "verification"
       ],
       "requires": [
-        "M1",
+        "N1",
         "C1",
         "C3",
         "G7"
@@ -2699,12 +2699,12 @@
         "E1"
       ],
       "versions": [],
-      "path": "m-companion/m2-operator-companion.md"
+      "path": "n-companion/n2-operator-companion.md"
     },
     {
-      "id": "M3",
+      "id": "N3",
       "title": "The household's companion",
-      "area": "M",
+      "area": "N",
       "audience": "household",
       "kind": "feature",
       "status": "draft",
@@ -2719,7 +2719,7 @@
         "ux"
       ],
       "requires": [
-        "M1",
+        "N1",
         "D4",
         "D6"
       ],
@@ -2731,12 +2731,12 @@
         "G9"
       ],
       "versions": [],
-      "path": "m-companion/m3-household-companion.md"
+      "path": "n-companion/n3-household-companion.md"
     },
     {
-      "id": "M4",
+      "id": "N4",
       "title": "What the app uses of the device",
-      "area": "M",
+      "area": "N",
       "audience": "both",
       "kind": "feature",
       "status": "draft",
@@ -2751,7 +2751,7 @@
         "ux"
       ],
       "requires": [
-        "M1",
+        "N1",
         "G3"
       ],
       "relates": [
@@ -2759,11 +2759,11 @@
         "B5",
         "C4",
         "G8",
-        "M2",
-        "M3"
+        "N2",
+        "N3"
       ],
       "versions": [],
-      "path": "m-companion/m4-native-integration.md"
+      "path": "n-companion/n4-native-integration.md"
     }
   ]
 }

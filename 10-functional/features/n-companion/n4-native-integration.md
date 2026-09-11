@@ -1,20 +1,20 @@
 ---
-id: M4
+id: N4
 title: What the app uses of the device
 kind: feature
-area: M
+area: N
 audience: both
 status: draft
 maturity: planned
 priority: P1
 labels: [mobile, security, ux]
-requires: [M1, G3]
-relates: [A7, B5, C4, G8, M2, M3]
+requires: [N1, G3]
+relates: [A7, B5, C4, G8, N2, N3]
 ---
 
-# M4 — What the app uses of the device
+# N4 — What the app uses of the device
 
-**Status:** Draft · **Audience:** Both · **Area:** M — Companion
+**Status:** Draft · **Audience:** Both · **Area:** N — Companion
 
 ---
 
@@ -26,7 +26,7 @@ a permission somebody grants and a surface somebody can lose.
 
 This feature is the whole of what the app asks of the device, why each is asked
 for, and what happens when it is declined. It is separate from
-[M1](m1-companion-app.md) because the answer to "what does this app do with my
+[N1](n1-companion-app.md) because the answer to "what does this app do with my
 camera" should be readable in one place by somebody who is not going to read the
 rest.
 
@@ -116,25 +116,25 @@ are honoured by being used rather than re-implemented.
 
 | ID | Requirement |
 |----|-------------|
-| **M4-R1** | A permission MUST be requested at the point of first use, and MUST NOT be requested on launch. |
-| **M4-R2** | The app MUST state what a permission is for, in its own words, before the system prompt. |
-| **M4-R3** | Every permission MUST be optional, and the app MUST offer a working alternative for each declined one. |
-| **M4-R4** | A declined permission MUST NOT be requested again automatically. |
-| **M4-R5** | A session token MUST be stored in the platform's secure storage, and MUST NOT be written to application preferences, an app-readable file, or an unencrypted backup. |
-| **M4-R6** | Where the device offers no secure storage, the app MUST refuse to persist a session and MUST say why. |
-| **M4-R7** | The app MUST lock on backgrounding, and MUST require biometric or passcode to resume. |
-| **M4-R8** | Biometric failure MUST fall back to the device passcode and MUST NOT fall back to unlocked. |
-| **M4-R9** | The task-switcher representation of the app MUST NOT show application content. |
-| **M4-R10** | A notification MUST NOT contain a credential, a household member's name, or the title of a requested item. |
-| **M4-R11** | The app MUST NOT raise alerts of its own; every notification MUST originate in the core's notification decisions. |
-| **M4-R12** | The app MUST NOT send analytics, telemetry or crash reports to any third party. |
-| **M4-R13** | A diagnostic report MUST be assembled for the operator to send, and MUST NOT be transmitted by the app. |
-| **M4-R14** | The app MUST honour the platform's text scaling, screen reader, contrast and reduced-motion settings, and MUST NOT implement a parallel accessibility layer. |
-| **M4-R15** | A notification MUST NOT be shown for a stack no longer configured on the device. |
+| **N4-R1** | A permission MUST be requested at the point of first use, and MUST NOT be requested on launch. |
+| **N4-R2** | The app MUST state what a permission is for, in its own words, before the system prompt. |
+| **N4-R3** | Every permission MUST be optional, and the app MUST offer a working alternative for each declined one. |
+| **N4-R4** | A declined permission MUST NOT be requested again automatically. |
+| **N4-R5** | A session token MUST be stored in the platform's secure storage, and MUST NOT be written to application preferences, an app-readable file, or an unencrypted backup. |
+| **N4-R6** | Where the device offers no secure storage, the app MUST refuse to persist a session and MUST say why. |
+| **N4-R7** | The app MUST lock on backgrounding, and MUST require biometric or passcode to resume. |
+| **N4-R8** | Biometric failure MUST fall back to the device passcode and MUST NOT fall back to unlocked. |
+| **N4-R9** | The task-switcher representation of the app MUST NOT show application content. |
+| **N4-R10** | A notification MUST NOT contain a credential, a household member's name, or the title of a requested item. |
+| **N4-R11** | The app MUST NOT raise alerts of its own; every notification MUST originate in the core's notification decisions. |
+| **N4-R12** | The app MUST NOT send analytics, telemetry or crash reports to any third party. |
+| **N4-R13** | A diagnostic report MUST be assembled for the operator to send, and MUST NOT be transmitted by the app. |
+| **N4-R14** | The app MUST honour the platform's text scaling, screen reader, contrast and reduced-motion settings, and MUST NOT implement a parallel accessibility layer. |
+| **N4-R15** | A notification MUST NOT be shown for a stack no longer configured on the device. |
 
 ## Related
 
-- [M1](m1-companion-app.md) — the session this stores and locks
+- [N1](n1-companion-app.md) — the session this stores and locks
 - [G3](../g-ux/g3-accessibility.md) — the accessibility bar every surface is held to
 - [G8](../g-ux/g8-privacy.md) — nothing leaves that was not asked to leave
 - [B5](../b-running/b5-notifications.md) — where a notification comes from

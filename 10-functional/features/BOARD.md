@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**77 features** in areas A–M, **1078 requirements**.
+**77 features** in areas A–N, **1080 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -104,10 +104,10 @@ code, and the two move independently.
 | [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.22.0` |
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.21.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.21.0` |
-| [M1](m-companion/m1-companion-app.md) | The companion app | M | both | draft | — |
-| [M2](m-companion/m2-operator-companion.md) | The operator's companion | M | operator | draft | — |
-| [M3](m-companion/m3-household-companion.md) | The household's companion | M | household | draft | — |
-| [M4](m-companion/m4-native-integration.md) | What the app uses of the device | M | both | draft | — |
+| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | draft | — |
+| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | draft | — |
+| [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | draft | — |
+| [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | draft | — |
 
 ## Withdrawn — no longer to be built
 

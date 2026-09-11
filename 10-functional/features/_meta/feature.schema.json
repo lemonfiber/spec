@@ -16,7 +16,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^[A-M][0-9]+$"
+      "pattern": "^[A-N][0-9]+$"
     },
     "title": {
       "type": "string",
@@ -43,7 +43,7 @@
         "J",
         "K",
         "L",
-        "M"
+        "N"
       ]
     },
     "audience": {
@@ -120,7 +120,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^[A-M][0-9]+$"
+        "pattern": "^[A-N][0-9]+$"
       },
       "description": "Features this cannot meet its own acceptance criteria without — a notification channel to notify through, a surface to appear on, an error model to express a remedy in. Enforced: no version may schedule a feature before something it requires."
     },
@@ -128,7 +128,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^[A-M][0-9]+$"
+        "pattern": "^[A-N][0-9]+$"
       },
       "description": "Features worth reading alongside this one, which it does not need in order to be built. Not enforced — conflating these two is what let features be scheduled before the things they need."
     }

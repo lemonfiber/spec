@@ -22,7 +22,7 @@ PROPS = SCHEMA["properties"]
 REQUIRED = SCHEMA["required"]
 LABELS = set(PROPS["labels"]["items"]["enum"])
 ENUM_KEYS = ("kind", "area", "audience", "status", "maturity", "priority")
-ID_RE = re.compile(r"^[A-M]\d+$")
+ID_RE = re.compile(r"^[A-N]\d+$")
 
 
 def _enum(name):
@@ -106,7 +106,7 @@ def problems_for(path):
 
 
 def main():
-    files = sorted(glob.glob("10-functional/features/[a-m]-*/*.md"))
+    files = sorted(glob.glob("10-functional/features/[a-n]-*/*.md"))
     problems = [p for path in files for p in problems_for(path)]
     if problems:
         print("frontmatter: problems found:")

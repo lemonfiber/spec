@@ -38,7 +38,7 @@ def _order(fid):
 
 def load_features():
     feats = {}
-    for path in sorted(glob.glob(f"{FEATDIR}/[a-m]-*/*.md")):
+    for path in sorted(glob.glob(f"{FEATDIR}/[a-n]-*/*.md")):
         fm = metafm.load(path)
         if fm and "id" in fm:
             fm["path"] = path

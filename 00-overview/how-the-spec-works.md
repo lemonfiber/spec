@@ -31,7 +31,7 @@ Area  ─contains─▶  Feature  ─contains─▶  Requirement  ◀─implemen
   correctness, `H` is ecosystem glue, and so on. Areas `A–G` are the core product;
   `H–K` are the ecosystem additions, which ship as minors before `1.0.0` on the
   same train rather than after it; `L` is the release engineering that ships each
-  of them, and `M` is the companion app that renders them on a phone.
+  of them, and `N` is the companion app that renders them on a phone.
 - **Feature** — one capability, like an *epic*. `B3` is the live dashboard. Each
   feature is one markdown file with a fixed shape: **Purpose → Behaviour → States
   → Edge cases → Acceptance criteria → Related**.

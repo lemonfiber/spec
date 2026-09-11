@@ -241,18 +241,22 @@ that came before it.
 |----|---------|----------|----------|
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | Operator | `1.0.0` |
 
-## M — Companion
+## N — Companion
 
 The fourth surface, on a device that is not the one the stack runs on. One
 application for both audiences, deciding which by who signs in
 ([ADR-0017](../../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)).
 
+Specified in full and **locked by no version**: the app follows what the main
+repositories have shipped rather than leading them, so nothing on the release
+train waits on it. It is pinned with the rest once it has caught up.
+
 | ID | Feature | Audience |
 |----|---------|----------|
-| [M1](m-companion/m1-companion-app.md) | The companion app | Both |
-| [M2](m-companion/m2-operator-companion.md) | The operator's companion | Operator |
-| [M3](m-companion/m3-household-companion.md) | The household's companion | Household |
-| [M4](m-companion/m4-native-integration.md) | What the app uses of the device | Both |
+| [N1](n-companion/n1-companion-app.md) | The companion app | Both |
+| [N2](n-companion/n2-operator-companion.md) | The operator's companion | Operator |
+| [N3](n-companion/n3-household-companion.md) | The household's companion | Household |
+| [N4](n-companion/n4-native-integration.md) | What the app uses of the device | Both |
 
 ---
 

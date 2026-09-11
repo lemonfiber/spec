@@ -4,7 +4,7 @@
 
 The mobile companion app. PHP on NativePHP, Hippocratic 3.0.
 
-**Implements:** area [M](../10-functional/features/README.md) — the fourth
+**Implements:** area [N](../10-functional/features/README.md) — the fourth
 surface, against the
 [web API contract](../20-architecture/contracts/web-api.md), by way of
 [`sdk-php`](sdk-php.md).
@@ -26,7 +26,7 @@ qualifications ADR-0017 records — reachability is a reported condition, and
 first-run setup does not cross the device boundary.
 
 One application serves both audiences. The credential that signs in decides
-which ([M3-R1](../10-functional/features/m-companion/m3-household-companion.md)).
+which ([N3-R1](../10-functional/features/n-companion/n3-household-companion.md)).
 
 ## What it does not contain
 
@@ -35,11 +35,25 @@ which ([M3-R1](../10-functional/features/m-companion/m3-household-companion.md))
 second client here would be a second source of truth for the contract, which
 `ARCH-R58` forbids.
 
+**No way around the SDK.** Not "prefers the SDK" — the app issues no HTTP request
+of its own at all
+([N1-R16](../10-functional/features/n-companion/n1-companion-app.md)). Where the
+SDK does not yet expose something a screen needs, **the work stops and the gap is
+raised** against the SDK and the contract
+([N1-R17](../10-functional/features/n-companion/n1-companion-app.md)). It is not
+worked around, not fetched directly "just this once", and not approximated from a
+neighbouring endpoint.
+
+That rule is load-bearing for anyone — person or agent — building here
+unsupervised. A blocked screen is a smaller problem than a fourth consumer the
+contract does not know it has, and being blocked is a finding worth reporting
+rather than a problem to solve locally.
+
 **No business logic.** It renders the core's answers. A decision made here that
 the core does not also make is the drift `G1-R2` exists to prevent.
 
 **No second permission model.** What a household member may do is the core's
-answer, rendered ([M3-R2](../10-functional/features/m-companion/m3-household-companion.md)).
+answer, rendered ([N3-R2](../10-functional/features/n-companion/n3-household-companion.md)).
 
 **No generated contract of its own.** The envelope shapes arrive through the
 SDK, already generated from `web-api.contract.json`
@@ -49,10 +63,10 @@ SDK, already generated from `web-api.contract.json`
 
 | | |
 |---|---|
-| Pairing, session exchange, and multi-stack handling | [M1](../10-functional/features/m-companion/m1-companion-app.md) |
-| The operator's screens | [M2](../10-functional/features/m-companion/m2-operator-companion.md) |
-| The household's screens | [M3](../10-functional/features/m-companion/m3-household-companion.md) |
-| Device permissions, secure storage, app lock, notifications | [M4](../10-functional/features/m-companion/m4-native-integration.md) |
+| Pairing, session exchange, and multi-stack handling | [N1](../10-functional/features/n-companion/n1-companion-app.md) |
+| The operator's screens | [N2](../10-functional/features/n-companion/n2-operator-companion.md) |
+| The household's screens | [N3](../10-functional/features/n-companion/n3-household-companion.md) |
+| Device permissions, secure storage, app lock, notifications | [N4](../10-functional/features/n-companion/n4-native-integration.md) |
 
 ## Standards
 
@@ -70,6 +84,23 @@ and the same project:
 - A **DCO** sign-off on every commit and a `Spec:` citation naming a requirement,
   enforced by the shared governance workflow every repository in this project
   calls ([`spec-check`](../50-governance/cross-repo-ci.md)).
+
+## It follows the main repos rather than gating them
+
+**This repo carries no version of its own yet, and locks no goal on the release
+train.** Area N is specified in full because the specification leads everywhere
+in this project; the app is built against what the main repositories have already
+shipped rather than the other way round.
+
+So it tracks `main` and takes no releases while it catches up. When it has, it is
+pinned with the rest of the repositories the way every other one is
+([pins](../70-operations/releasing.md)), and from that point it moves on the
+train like everything else.
+
+What this deliberately avoids: a version manifest locking `N1`–`N4` would make
+`1.0.0` — "everything specced is built" — wait on an application that is
+following the core rather than leading it. The specification is not the thing
+holding anything up here, and a manifest would make it look like it was.
 
 ## Distribution
 

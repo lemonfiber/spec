@@ -36,7 +36,7 @@ operator working over SSH and anyone automating.
 | **CLI** | `lemonfiber up tv` | Scripting, automation, remote shells |
 | **TUI** | `lemonfiber` | Interactive use at a terminal |
 | **Web** | `lemonfiber ui` | Anyone who'd rather use a browser |
-| **Mobile** | the companion app | Whoever is not at the machine ([M1](../m-companion/m1-companion-app.md)) |
+| **Mobile** | the companion app | Whoever is not at the machine ([N1](../n-companion/n1-companion-app.md)) |
 
 All four drive the same logic. A surface is a rendering, never a capability.
 
@@ -210,7 +210,7 @@ exactly the users this exists for.
 | **G1-R11** | Failure to launch a browser MUST NOT fail the command; the URL MUST be printed. |
 | **G1-R12** | Concurrent surfaces MUST reflect the same state, and lifecycle operations MUST be serialised across them. |
 | **G1-R13** | Non-interactive invocation lacking required input MUST fail naming the required flags. |
-| **G1-R14** | Setup MUST be completable from all three surfaces that run on the host machine. It is not required of the companion surface, for the reason recorded above and in [M1-R4](../m-companion/m1-companion-app.md). |
+| **G1-R14** | Setup MUST be completable from all three surfaces that run on the host machine. It is not required of the companion surface, for the reason recorded above and in [N1-R4](../n-companion/n1-companion-app.md). |
 
 ## Related
 

@@ -1,20 +1,20 @@
 ---
-id: M3
+id: N3
 title: The household's companion
 kind: feature
-area: M
+area: N
 audience: household
 status: draft
 maturity: planned
 priority: P2
 labels: [mobile, household, ux]
-requires: [M1, D4, D6]
+requires: [N1, D4, D6]
 relates: [D7, D8, G5, G6, G9]
 ---
 
-# M3 — The household's companion
+# N3 — The household's companion
 
-**Status:** Draft · **Audience:** Household · **Area:** M — Companion
+**Status:** Draft · **Audience:** Household · **Area:** N — Companion
 
 ---
 
@@ -27,7 +27,7 @@ A household member wants three things: to ask for something, to know whether it
 is coming, and to find it when it arrives. They do not want a dashboard, and they
 must never be shown a control that would let them stop the stack.
 
-This exists in one app with [M2](m2-operator-companion.md) rather than as a
+This exists in one app with [N2](n2-operator-companion.md) rather than as a
 second product because a household is not two populations — the operator is
 usually also a member, and asking somebody to install two apps to watch a film
 and to fix the machine that serves it is a worse answer than asking who is
@@ -38,7 +38,7 @@ signing in.
 ### The credential decides the application
 
 A household identity ([D6](../d-content/d6-household-identity.md)) signs in and
-gets this. An operator signs in and gets [M2](m2-operator-companion.md) as well.
+gets this. An operator signs in and gets [N2](n2-operator-companion.md) as well.
 There is no setting that switches between them, and no build that contains only
 one.
 
@@ -111,23 +111,23 @@ does not hold a second copy of them.
 
 | ID | Requirement |
 |----|-------------|
-| **M3-R1** | The application a person is given MUST be decided by the identity that signed in, and MUST NOT be a setting or a separate build. |
-| **M3-R2** | The app MUST NOT implement its own permission model; what a member may do MUST be the core's answer. |
-| **M3-R3** | A control a member is not entitled to MUST be refused by the core if it is ever reached, and MUST NOT rely on the app having omitted it. |
-| **M3-R4** | Before a member asks for something, the app MUST state whether it needs approval and whether they have allowance left. |
-| **M3-R5** | A member whose allowance is spent MUST be told before asking, with when it resets. |
-| **M3-R6** | A member's own requests MUST carry their state in household terms, and MUST NOT expose pipeline internals. |
-| **M3-R7** | A refused request MUST carry the reason that was given. |
-| **M3-R8** | The app MUST NOT play media; it MUST hand off to a household client. |
-| **M3-R9** | A member MUST NOT be shown lifecycle controls, logs, credentials, diagnostics, or another member's requests. |
-| **M3-R10** | Where a member's request failed because of a stack fault, the app MUST tell them it did not work and that the operator has been told, and MUST NOT show them the fault. |
-| **M3-R11** | Parental limits MUST be rendered from the core's answer, and the app MUST NOT hold a second copy of them. |
-| **M3-R12** | While the stack is unreachable, asking for something new MUST be declined rather than queued. |
-| **M3-R13** | An identity removed from the household MUST result in a signed-out app at the next refused call, and MUST NOT continue to render what was already loaded. |
+| **N3-R1** | The application a person is given MUST be decided by the identity that signed in, and MUST NOT be a setting or a separate build. |
+| **N3-R2** | The app MUST NOT implement its own permission model; what a member may do MUST be the core's answer. |
+| **N3-R3** | A control a member is not entitled to MUST be refused by the core if it is ever reached, and MUST NOT rely on the app having omitted it. |
+| **N3-R4** | Before a member asks for something, the app MUST state whether it needs approval and whether they have allowance left. |
+| **N3-R5** | A member whose allowance is spent MUST be told before asking, with when it resets. |
+| **N3-R6** | A member's own requests MUST carry their state in household terms, and MUST NOT expose pipeline internals. |
+| **N3-R7** | A refused request MUST carry the reason that was given. |
+| **N3-R8** | The app MUST NOT play media; it MUST hand off to a household client. |
+| **N3-R9** | A member MUST NOT be shown lifecycle controls, logs, credentials, diagnostics, or another member's requests. |
+| **N3-R10** | Where a member's request failed because of a stack fault, the app MUST tell them it did not work and that the operator has been told, and MUST NOT show them the fault. |
+| **N3-R11** | Parental limits MUST be rendered from the core's answer, and the app MUST NOT hold a second copy of them. |
+| **N3-R12** | While the stack is unreachable, asking for something new MUST be declined rather than queued. |
+| **N3-R13** | An identity removed from the household MUST result in a signed-out app at the next refused call, and MUST NOT continue to render what was already loaded. |
 
 ## Related
 
-- [M1](m1-companion-app.md) — connecting, and what the app may claim
+- [N1](n1-companion-app.md) — connecting, and what the app may claim
 - [D4](../d-content/d4-request-flow.md) — the request flow rendered here
 - [D6](../d-content/d6-household-identity.md) — who is signing in
 - [D7](../d-content/d7-approval-quotas.md), [D8](../d-content/d8-parental-controls.md) — allowance and limits

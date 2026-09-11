@@ -1,20 +1,20 @@
 ---
-id: M2
+id: N2
 title: The operator's companion
 kind: feature
-area: M
+area: N
 audience: operator
 status: draft
 maturity: planned
 priority: P1
 labels: [mobile, ux, verification]
-requires: [M1, C1, C3, G7]
+requires: [N1, C1, C3, G7]
 relates: [B2, B4, B5, C2, C7, C8, D5, E1]
 ---
 
-# M2 — The operator's companion
+# N2 — The operator's companion
 
-**Status:** Draft · **Audience:** Operator · **Area:** M — Companion
+**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
 
 ---
 
@@ -110,23 +110,23 @@ type a provider password into over a LAN.
 
 | ID | Requirement |
 |----|-------------|
-| **M2-R1** | The app MUST open on the overall verdict, and MUST render `unknown` as its own answer rather than as healthy or as an absence. |
-| **M2-R2** | Findings MUST be ordered by severity, worst first. |
-| **M2-R3** | Every finding shown MUST carry its code, its plain-language meaning, and its remedy, in the words the core produced. |
-| **M2-R4** | Where the core offers a repair, the app MUST offer it, and MUST state what it does, what else it affects, and whether it can be undone, before asking for confirmation. |
-| **M2-R5** | A repair MUST NOT be carried out without an explicit confirmation distinct from the act of viewing the finding. |
-| **M2-R6** | A repair confirmed against one reading MUST NOT be carried out if the reading has changed; the app MUST refuse and re-offer. |
-| **M2-R7** | The app MUST offer start, stop and restart by form and by service. |
-| **M2-R8** | A disruptive action MUST state what it disturbs and for how long before it is confirmed. |
-| **M2-R9** | Stuck downloads, provider health, disk pressure and VPN verification MUST each be reachable. |
-| **M2-R10** | Logs MUST be offered as a bounded, searchable read, MUST name the service, and MUST state that the view is a window rather than the whole. |
-| **M2-R11** | Requests awaiting a decision MUST be surfaced with enough to decide on, and MUST be approvable and refusable from the app. |
-| **M2-R12** | The app MUST NOT offer to set or change a credential's value. |
-| **M2-R13** | A reading older than the current session MUST carry its age wherever it is shown, including on the opening verdict. |
+| **N2-R1** | The app MUST open on the overall verdict, and MUST render `unknown` as its own answer rather than as healthy or as an absence. |
+| **N2-R2** | Findings MUST be ordered by severity, worst first. |
+| **N2-R3** | Every finding shown MUST carry its code, its plain-language meaning, and its remedy, in the words the core produced. |
+| **N2-R4** | Where the core offers a repair, the app MUST offer it, and MUST state what it does, what else it affects, and whether it can be undone, before asking for confirmation. |
+| **N2-R5** | A repair MUST NOT be carried out without an explicit confirmation distinct from the act of viewing the finding. |
+| **N2-R6** | A repair confirmed against one reading MUST NOT be carried out if the reading has changed; the app MUST refuse and re-offer. |
+| **N2-R7** | The app MUST offer start, stop and restart by form and by service. |
+| **N2-R8** | A disruptive action MUST state what it disturbs and for how long before it is confirmed. |
+| **N2-R9** | Stuck downloads, provider health, disk pressure and VPN verification MUST each be reachable. |
+| **N2-R10** | Logs MUST be offered as a bounded, searchable read, MUST name the service, and MUST state that the view is a window rather than the whole. |
+| **N2-R11** | Requests awaiting a decision MUST be surfaced with enough to decide on, and MUST be approvable and refusable from the app. |
+| **N2-R12** | The app MUST NOT offer to set or change a credential's value. |
+| **N2-R13** | A reading older than the current session MUST carry its age wherever it is shown, including on the opening verdict. |
 
 ## Related
 
-- [M1](m1-companion-app.md) — connecting, and what the app may claim
+- [N1](n1-companion-app.md) — connecting, and what the app may claim
 - [C1](../c-trust/c1-diagnostics.md), [C3](../c-trust/c3-auto-remediation.md) — the findings and repairs rendered here
 - [G7](../g-ux/g7-health-summary.md) — the verdict this opens on
 - [G4](../g-ux/g4-error-model.md) — the words a problem is given

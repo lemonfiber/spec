@@ -1,8 +1,8 @@
 ---
-id: M1
+id: N1
 title: The companion app
 kind: feature
-area: M
+area: N
 audience: both
 status: draft
 maturity: planned
@@ -12,9 +12,9 @@ requires: [C6, D6, G1, G4]
 relates: [A4, B2, C1, G3, I1]
 ---
 
-# M1 — The companion app
+# N1 — The companion app
 
-**Status:** Draft · **Audience:** Both · **Area:** M — Companion
+**Status:** Draft · **Audience:** Both · **Area:** N — Companion
 
 ---
 
@@ -34,9 +34,9 @@ credential that signs in, never by which build was installed
 ([D6](../d-content/d6-household-identity.md)).
 
 This feature owns **getting connected and staying honest about it**. What the
-app then shows is [M2](m2-operator-companion.md) and
-[M3](m3-household-companion.md); what it uses of the device is
-[M4](m4-native-integration.md).
+app then shows is [N2](n2-operator-companion.md) and
+[N3](n3-household-companion.md); what it uses of the device is
+[N4](n4-native-integration.md).
 
 ## Behaviour
 
@@ -68,6 +68,24 @@ Whatever the route, the app exchanges the credential **once** at `/api/session`
 for a session, and carries that session in `X-Lemonfiber-Token` afterwards. The
 credential is not kept to be re-sent: a secret held for one exchange is a smaller
 secret than one held for every request.
+
+### The SDK is the only way out, and a gap in it is a question rather than a workaround
+
+Every call to the stack goes through [`sdk-php`](../../../30-repos/sdk-php.md).
+The app issues no HTTP request of its own, builds no URL, and parses no envelope
+the SDK did not hand it.
+
+**Where the SDK does not yet expose something the app needs, that is where the
+work stops.** The gap is raised against the SDK and the contract, and the app
+waits. It does not reach past the SDK to the endpoint, re-implement the call
+beside it, or approximate the answer from something adjacent.
+
+This is the rule that keeps a fourth client from quietly becoming a third source
+of truth. The failure it prevents is the ordinary one: a screen needs a field
+nobody generated yet, somebody fetches it directly "just this once", and the
+contract now has a consumer it does not know about. A missing capability is
+information — it says the contract or the SDK is behind — and information is
+worth more than the screen it was blocking.
 
 ### An unreachable stack is a state, not a missing feature
 
@@ -137,21 +155,23 @@ session travels the overlay instead. The app's conversation does not change.
 
 | ID | Requirement |
 |----|-------------|
-| **M1-R1** | The app MUST speak the published web API contract and MUST NOT implement a second API client of its own ([ADR-0013](../../../00-overview/decisions/0013-an-sdk-owns-the-api-client.md)). |
-| **M1-R2** | Every action available from another surface MUST be offered by the app, except where a requirement here states otherwise and why. |
-| **M1-R3** | The app MUST NOT hide or remove an action because the stack is currently unreachable; it MUST offer the action and report the reachability failure. |
-| **M1-R4** | The app MUST NOT offer first-run setup, and MUST state that setup is performed at the machine and why, rather than omitting it silently. |
-| **M1-R5** | The app MUST offer reconfiguration in full once connected. |
-| **M1-R6** | Pairing MUST be possible by scanning a code, and MUST remain possible by typed entry where no camera is available or permission is declined. |
-| **M1-R7** | The credential MUST be exchanged for a session once, and MUST NOT be retained for re-sending on subsequent requests. |
-| **M1-R8** | The session MUST be carried in the credential header the API defines, and MUST NOT be placed in a URL or a query parameter. |
-| **M1-R9** | Any value shown that was not read in the current session MUST be marked with when it was read, and MUST NOT be presented indistinguishably from a live reading. |
-| **M1-R10** | A stack that cannot be reached, one that refuses the credential, and a device with no network MUST be reported as three different things, each with its own remedy. |
-| **M1-R11** | The app MUST support more than one configured stack, MUST keep each one's session separate, and MUST NOT attribute a reading from one stack to another. |
-| **M1-R12** | The app MUST state whether the connection it has is encrypted, and MUST NOT imply protection it does not have. |
-| **M1-R13** | The app MUST refuse an envelope whose wire version it does not support, naming the version it received and the versions it reads. |
-| **M1-R14** | A change of transport — LAN today, an overlay under [I1](../i-remote-access/i1-remote-access.md) later — MUST NOT require a change to how the app authenticates or to the contract it speaks. |
-| **M1-R15** | The app MUST NOT log, transmit or include in a diagnostic report any credential, session token, or stack address. |
+| **N1-R1** | The app MUST speak the published web API contract and MUST NOT implement a second API client of its own ([ADR-0013](../../../00-overview/decisions/0013-an-sdk-owns-the-api-client.md)). |
+| **N1-R2** | Every action available from another surface MUST be offered by the app, except where a requirement here states otherwise and why. |
+| **N1-R3** | The app MUST NOT hide or remove an action because the stack is currently unreachable; it MUST offer the action and report the reachability failure. |
+| **N1-R4** | The app MUST NOT offer first-run setup, and MUST state that setup is performed at the machine and why, rather than omitting it silently. |
+| **N1-R5** | The app MUST offer reconfiguration in full once connected. |
+| **N1-R6** | Pairing MUST be possible by scanning a code, and MUST remain possible by typed entry where no camera is available or permission is declined. |
+| **N1-R7** | The credential MUST be exchanged for a session once, and MUST NOT be retained for re-sending on subsequent requests. |
+| **N1-R8** | The session MUST be carried in the credential header the API defines, and MUST NOT be placed in a URL or a query parameter. |
+| **N1-R9** | Any value shown that was not read in the current session MUST be marked with when it was read, and MUST NOT be presented indistinguishably from a live reading. |
+| **N1-R10** | A stack that cannot be reached, one that refuses the credential, and a device with no network MUST be reported as three different things, each with its own remedy. |
+| **N1-R11** | The app MUST support more than one configured stack, MUST keep each one's session separate, and MUST NOT attribute a reading from one stack to another. |
+| **N1-R12** | The app MUST state whether the connection it has is encrypted, and MUST NOT imply protection it does not have. |
+| **N1-R13** | The app MUST refuse an envelope whose wire version it does not support, naming the version it received and the versions it reads. |
+| **N1-R14** | A change of transport — LAN today, an overlay under [I1](../i-remote-access/i1-remote-access.md) later — MUST NOT require a change to how the app authenticates or to the contract it speaks. |
+| **N1-R15** | The app MUST NOT log, transmit or include in a diagnostic report any credential, session token, or stack address. |
+| **N1-R16** | Every call to the API MUST be made through the SDK. The app MUST NOT issue an HTTP request of its own, construct an API URL, or parse an envelope the SDK did not produce. |
+| **N1-R17** | Where the SDK does not expose a capability the app requires, the app MUST NOT reach past it, re-implement the call, or approximate the answer from another endpoint. The gap MUST be raised against the SDK and the contract, and the dependent work MUST stop until it is closed. |
 
 ## Related
 
@@ -160,4 +180,4 @@ session travels the overlay instead. The app's conversation does not change.
 - [D6](../d-content/d6-household-identity.md) — who is signing in
 - [G4](../g-ux/g4-error-model.md) — how a refusal is worded
 - [I1](../i-remote-access/i1-remote-access.md) — the transport this is built to move onto
-- [M2](m2-operator-companion.md), [M3](m3-household-companion.md), [M4](m4-native-integration.md)
+- [N2](n2-operator-companion.md), [N3](n3-household-companion.md), [N4](n4-native-integration.md)
