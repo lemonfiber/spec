@@ -90,6 +90,11 @@ text scaling, screen readers, contrast and reduced motion are the system's and
 are honoured by being used rather than re-implemented.
 [G3](../g-ux/g3-accessibility.md)'s bar applies here as it does to every surface.
 
+What the brand does and does not assert on this surface is
+[its own mapping](../../../60-brand/surface-mapping.md): the accent, the app icon
+and the launch mark, and nothing that would override the reader's own type size
+or the system's theme.
+
 ## States
 
 | State | Meaning |

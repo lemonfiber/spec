@@ -2,29 +2,30 @@
 
 **Status:** Accepted
 
-The brand reaches the three surfaces very unequally. Designing as if the logo and
+The brand reaches the four surfaces very unequally. Designing as if the logo and
 the amber palette apply everywhere is the mistake this page exists to prevent.
 
 ---
 
-## The three surfaces, honestly
+## The four surfaces, honestly
 
 ```mermaid
 flowchart LR
     brand[brand tokens + marks] -->|full| web[Web UI]
     brand -->|mapped subset| tui[TUI]
+    brand -->|mapped subset| app[Companion]
     brand -->|name only| cli[CLI]
 ```
 
-| | Web UI | TUI | CLI |
-|---|--------|-----|-----|
-| Logo (SVG) | ✅ full | ⚠️ ASCII mark only | ⚠️ ASCII mark, optional |
-| Colour palette | ✅ all tokens | ⚠️ mapped to terminal capability | ❌ terminal default |
-| Bricolage Grotesque | ✅ | ❌ terminal font, not ours | ❌ |
-| Space / radius / shadow | ✅ | ❌ meaningless | ❌ |
-| The *voice* (plain, warm, precise) | ✅ | ✅ | ✅ |
+| | Web UI | TUI | Companion | CLI |
+|---|--------|-----|-----------|-----|
+| Logo (SVG) | ✅ full | ⚠️ ASCII mark only | ✅ app icon and launch mark | ⚠️ ASCII mark, optional |
+| Colour palette | ✅ all tokens | ⚠️ mapped to terminal capability | ⚠️ mapped to platform theme roles | ❌ terminal default |
+| Bricolage Grotesque | ✅ | ❌ terminal font, not ours | ❌ the platform's face, and the reader's size | ❌ |
+| Space / radius / shadow | ✅ | ❌ meaningless | ⚠️ the platform's, not ours | ❌ |
+| The *voice* (plain, warm, precise) | ✅ | ✅ | ✅ | ✅ |
 
-The last row is the point: what actually carries across all three isn't the
+The last row is the point: what actually carries across all four isn't the
 palette — it's the [plain-language voice](../10-functional/features/g-ux/g2-plain-language.md).
 The visual brand is largely a web concern.
 
@@ -76,10 +77,42 @@ forbids control sequences in redirected output).
 The CLI's brand is the word `lemonfiber` and the voice. An optional ASCII mark may
 appear in interactive help; it never appears in machine output.
 
+## Companion — the platform's look, wearing our name
+
+The companion app is the one surface where deferring to somebody else's design
+language is the *reason* it was built that way.
+
+Its components are the platform's own — SwiftUI on iOS, Jetpack Compose on
+Android ([ADR-0017](../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)).
+That is what buys the accessibility tree, the reader's own text size, the
+system's contrast and reduced-motion settings and its light and dark modes,
+without any of them being built a second time here. Overriding that look to
+reach the web UI's palette would spend exactly what it was chosen for.
+
+So the mapping is the TUI's shape rather than the web's, for a different reason.
+The TUI takes a subset because a terminal cannot render more. The companion takes
+a subset because taking more would make it a worse app:
+
+| Brand token | Companion mapping |
+|-------------|-------------------|
+| `lemon` | The accent role — the one place brand colour is asserted |
+| `ink` / paper | Left to the platform's theme roles, which honour the reader's setting |
+| Everything else | Not mapped; the platform's own spacing, radii, type and elevation |
+
+**Where the brand is worn in full is the app icon and the launch mark**, which
+are ours, are not a reading surface, and are where somebody recognises the
+product on a home screen.
+
+**The wordmark is not re-typeset.** Bricolage Grotesque is not shipped as an
+interface font here — the interface is set in whatever face the platform and the
+reader have chosen, at whatever size they chose. `DES-R6` already forbids
+re-typesetting the wordmark from its outlined form, and that holds on a phone as
+anywhere else.
+
 ## Why this asymmetry is stated, not hidden
 
 A designer handed the brand assets will reasonably assume they apply to "the app."
-They apply to *one third* of it. Without this page, effort goes into terminal
+They apply to *one* of four surfaces in full. Without this page, effort goes into terminal
 colour schemes that a `NO_COLOR` user never sees, or an ASCII logo in JSON output
 that breaks scripts — both plausible, both wrong.
 
@@ -96,6 +129,10 @@ full on the web, restrained in the TUI, none in machine output.
 | **DES-R12** | The TUI MUST map colour *roles*, not exact hex values, so a user's terminal theme remains legible. |
 | **DES-R13** | The SVG marks MUST NOT be used in the TUI or CLI; an ASCII rendering MUST be used where a mark is shown. |
 | **DES-R14** | Machine-readable CLI output MUST carry no brand colour or logo. |
+| **DES-R24** | The companion app MUST map brand colour to the platform's theme roles rather than asserting token values, so the reader's light, dark and contrast settings are honoured. |
+| **DES-R25** | The companion app MUST NOT ship Bricolage Grotesque as an interface font, and MUST render text in the platform's face at the reader's chosen size. |
+| **DES-R26** | The companion app MUST NOT override the platform's spacing, radii, elevation or motion with brand values. |
+| **DES-R27** | The companion app's icon and launch mark MUST carry the full brand, and are the only surfaces of the app that do. |
 
 ## Related
 
