@@ -32,6 +32,10 @@ check-meta:
 board:
     python3 scripts/gen_board.py
 
+# Regenerate the repository table, diagram and count from 30-repos/repos.toml.
+repos:
+    python3 scripts/gen_repos.py
+
 # Spell check.
 typos:
     typos
