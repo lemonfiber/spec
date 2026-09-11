@@ -133,19 +133,40 @@ def cells(line: str) -> list[str]:
     return [cell.strip() for cell in line.strip().strip("|").split("|")]
 
 
+#: Header spellings that name a row's requirements column. The tracker uses more
+#: than one, and a column found by name is the only way to read both table shapes
+#: — but a name this list does not know reads as the older shape and silently
+#: turns the check off, so `miscolumned()` refuses a table that looks modern and
+#: matches none of these.
+REQUIREMENT_COLUMNS = ("Spec", "Reqs", "Requirements", "Requirement")
+
+#: Columns a table of the older three-column shape carries. Anything wider is
+#: expected to name its requirements in a column of its own.
+LEGACY_WIDTH = 3
+
+
+def requirement_column(row: list[str]) -> int | None:
+    """The index of the row's requirements column, or None if it names none."""
+    for name in REQUIREMENT_COLUMNS:
+        if name in row:
+            return row.index(name)
+    return None
+
+
 def claiming(lines: list[str]) -> list[str | None]:
     """For each line, the text that line *claims*, or None where it claims nothing.
 
-    A tracker holds tables of two shapes. The current one carries a `Spec` column,
-    and there the claim is that cell and everything else on the row is prose. The
+    A tracker holds tables of two shapes. The current one carries a requirements
+    column — `Spec` or `Reqs`, the tracker uses both — and there the claim is that
+    cell and everything else on the row is prose. The
     older three-column tables name their requirements in the deliverable itself,
     and there claim and prose cannot be told apart — so the whole row is read as a
     claim, which is what keeps a row like "Form closure (`B1-R4`, `B1-R5`)" from
     being read as a stray mention of work nobody did.
 
     The column is found from each table's own header rather than by position,
-    because the two shapes put `Spec` in different places and a fixed index reads
-    the status column of one as the requirements of the other.
+    because the two shapes put it in different places and a fixed index reads the
+    status column of one as the requirements of the other.
     """
     found: list[str | None] = []
     column: int | None = None
@@ -158,7 +179,7 @@ def claiming(lines: list[str]) -> list[str | None]:
             continue
         if heading:
             heading = False
-            column = row.index("Spec") if "Spec" in row else None
+            column = requirement_column(row)
             found.append(None)
             continue
         if column is not None and column < len(row):
@@ -228,6 +249,57 @@ def unlocked(status, lines, locked) -> list[str]:
     )
 
 
+def separator(row: list[str]) -> bool:
+    """Whether a parsed row is the `|---|---|` rule under a header."""
+    return bool(row) and all(re.fullmatch(r":?-{3,}:?", cell) for cell in row)
+
+
+def miscolumned(status, lines) -> list[str]:
+    """Tables whose rows are read as a shape that checks nothing.
+
+    `claiming()` finds the requirements column by its header, and a header it does
+    not know reads as the older three-column shape: the whole row becomes the
+    claim, and `unclaimed()` then skips every row in that table. The check does not
+    fail, it stops looking — which is the shape worth refusing outright, because a
+    tracker table is where a requirement gets marked done.
+
+    Reported only where rows would actually be skipped. A table of the legacy width
+    names its requirements inside the deliverable and is meant to read this way,
+    and a header with no rows under it is skipping nothing.
+    """
+    found = []
+    header: tuple[int, list[str]] | None = None
+    rows = 0
+
+    def verdict() -> None:
+        if header is None or rows == 0:
+            return
+        number, row = header
+        if len(row) <= LEGACY_WIDTH or requirement_column(row) is not None:
+            return
+        found.append(
+            f"{status}:{number}: this table has {len(row)} columns and none is named "
+            f"{' or '.join(REQUIREMENT_COLUMNS)}, so its {rows} row(s) are read as the "
+            "older three-column shape and checked for nothing. Name the requirements "
+            "column, or add its heading to REQUIREMENT_COLUMNS."
+        )
+
+    for number, line in enumerate(lines, start=1):
+        row = cells(line)
+        if not row:
+            verdict()
+            header, rows = None, 0
+            continue
+        if separator(row):
+            continue
+        if header is None:
+            header = (number, row)
+            continue
+        rows += 1
+    verdict()
+    return found
+
+
 def unclaimed(status, lines) -> list[str]:
     """Requirements a ticked row marks done in its prose rather than in its column.
 
@@ -277,6 +349,7 @@ def main() -> int:
         *misnamed(status, lines, manifests(spec)[0]),
         *unlocked(status, lines, manifests(spec)[1]),
         *unclaimed(status, lines),
+        *miscolumned(status, lines),
     ]
 
     for fault in faults:
