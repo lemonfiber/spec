@@ -18,6 +18,15 @@ doing so, each found in the field rather than imagined:
   3. A tick on a requirement no version locks. Work that cannot be released,
      recorded as though it had been.
 
+  4. A tick a row's own column never claimed. Both this and `gate.py` decide a
+     row by whether its *line* holds the glyph and then take every identifier on
+     it, so a sentence in a ticked row explaining that something was deferred is
+     what marks that something done. `E3-R5` was counted as met that way while
+     two of its three triggers had nothing at all, and the tracker's own header
+     records three earlier requirements lost to the same shape. A cross-
+     reference to work that is genuinely done elsewhere is ordinary and stays
+     legal; what is refused is an identifier no ticked row claims in its column.
+
 Usage:
   status_lint.py --status <IMPLEMENTATION-STATUS.md> --spec <spec repo root>
 
@@ -104,15 +113,67 @@ def claimed_ranges(lines: list[str]) -> list[tuple[int, str, int]]:
     return found
 
 
+def mentions(text: str) -> set[str]:
+    """Every requirement an extent of text names, ranges expanded.
+
+    One reading, because the two callers below must agree: what counts as done and
+    what a row claims are the same grammar asked of different extents, and two
+    spellings of it is how one comes to accept what the other refuses.
+    """
+    found: set[str] = set(CITE.findall(text))
+    for feature, first, last in RANGE.findall(text):
+        found.update(f"{feature}-R{n}" for n in range(int(first), int(last) + 1))
+    return found
+
+
+def cells(line: str) -> list[str]:
+    """A table row's cells, or the empty list for anything that is not one."""
+    if not line.lstrip().startswith("|"):
+        return []
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def claiming(lines: list[str]) -> list[str | None]:
+    """For each line, the text that line *claims*, or None where it claims nothing.
+
+    A tracker holds tables of two shapes. The current one carries a `Spec` column,
+    and there the claim is that cell and everything else on the row is prose. The
+    older three-column tables name their requirements in the deliverable itself,
+    and there claim and prose cannot be told apart — so the whole row is read as a
+    claim, which is what keeps a row like "Form closure (`B1-R4`, `B1-R5`)" from
+    being read as a stray mention of work nobody did.
+
+    The column is found from each table's own header rather than by position,
+    because the two shapes put `Spec` in different places and a fixed index reads
+    the status column of one as the requirements of the other.
+    """
+    found: list[str | None] = []
+    column: int | None = None
+    heading = True
+    for line in lines:
+        row = cells(line)
+        if not row:
+            heading, column = True, None
+            found.append(None)
+            continue
+        if heading:
+            heading = False
+            column = row.index("Spec") if "Spec" in row else None
+            found.append(None)
+            continue
+        if column is not None and column < len(row):
+            found.append(row[column])
+        else:
+            found.append(line)
+    return found
+
+
 def ticked(lines: list[str]) -> set[str]:
     """Every requirement the tracker marks done — the same reading `gate.py` takes."""
     done: set[str] = set()
     for line in lines:
-        if "✅" not in line:
-            continue
-        for feature, first, last in RANGE.findall(line):
-            done.update(f"{feature}-R{n}" for n in range(int(first), int(last) + 1))
-        done.update(CITE.findall(line))
+        if "✅" in line:
+            done.update(mentions(line))
     return done
 
 
@@ -167,6 +228,34 @@ def unlocked(status, lines, locked) -> list[str]:
     )
 
 
+def unclaimed(status, lines) -> list[str]:
+    """Requirements a ticked row marks done in its prose rather than in its column.
+
+    Naming another requirement in a row's prose is ordinary — a deliverable
+    explains what it rests on — and stays legal wherever some ticked row claims
+    that requirement in its own column. What this refuses is the identifier no
+    ticked row ever claims: it is done in the reading and undone in the tree, and
+    the sentence carrying it is usually one saying so.
+    """
+    claimed_by = claiming(lines)
+    claimed: set[str] = set()
+    for line, claim in zip(lines, claimed_by, strict=True):
+        if "✅" in line and claim is not None:
+            claimed.update(mentions(claim))
+
+    faults = []
+    for number, (line, claim) in enumerate(zip(lines, claimed_by, strict=True), start=1):
+        if "✅" not in line or claim is None or claim == line:
+            continue
+        stray = sorted(mentions(line) - mentions(claim) - claimed)
+        if stray:
+            faults.append(
+                f"{status}:{number}: marks {', '.join(stray)} done by naming it in a "
+                "ticked row that does not claim it, and no ticked row claims it"
+            )
+    return faults
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--status", required=True)
@@ -187,6 +276,7 @@ def main() -> int:
         *overshooting(status, lines, defined(spec)),
         *misnamed(status, lines, manifests(spec)[0]),
         *unlocked(status, lines, manifests(spec)[1]),
+        *unclaimed(status, lines),
     ]
 
     for fault in faults:
