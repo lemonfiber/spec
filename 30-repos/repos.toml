@@ -1,0 +1,192 @@
+# Every repository in the org — the single source of truth.
+#
+# The table in README.md and the sentence counting it are GENERATED from this by
+# scripts/gen_repos.py. Never edit either by hand; add the repo here and run the
+# generator. `integrity.py` fails when they disagree, which is what stops the
+# drift this file exists to end: the count read "eleven" for as long as it took
+# somebody to create a twelfth repository and notice.
+#
+# order : the order the README lists them in. Not alphabetical — it runs from
+#         the specification outward through the surfaces to the things that
+#         exist only so a tool works, which is the order a newcomer needs.
+# spec  : the pages under 30-repos/ describing it, in reading order. Empty where
+#         the repository has no page of its own.
+# lang  : what a contributor will be writing.
+# note  : the one thing about it that is not true of its neighbours.
+
+[[repo]]
+name = "spec"
+node = "spec"
+group = "root"
+label = "spec<br/>canonical"
+spec = ["../README.md"]
+lang = "Markdown"
+note = "This repository — canonical, and cited by every change to the rest"
+
+[[repo]]
+name = "lemonfiber"
+node = "lemonfiber"
+group = "impl"
+label = "lemonfiber<br/>Rust binary"
+spec = ["lemonfiber.md", "lemonfiber-tui.md", "lemonfiber-reference.md"]
+lang = "Rust"
+note = "Three surfaces, one core; the submodule; the build"
+
+[[repo]]
+name = "lemonfiber-web"
+node = "web"
+group = "impl"
+label = "lemonfiber-web<br/>the web surface"
+spec = ["lemonfiber-web.md"]
+lang = "TypeScript"
+note = "Two surfaces, one component library; draws the API, implements nothing"
+
+[[repo]]
+name = "lemonfiber-companion"
+node = "companion"
+group = "impl"
+label = "lemonfiber-companion<br/>the phone surface"
+spec = ["lemonfiber-companion.md"]
+lang = "PHP"
+note = "The fourth surface, and the first that does not run on the machine it operates"
+
+[[repo]]
+name = "sdk-ts"
+node = "sdk"
+group = "impl"
+label = "sdk-ts<br/>the TypeScript client"
+spec = ["sdk-ts.md"]
+lang = "TypeScript"
+note = "Owns the stream's hard parts so no consumer reimplements them"
+
+[[repo]]
+name = "sdk-php"
+node = "sdkphp"
+group = "impl"
+label = "sdk-php<br/>the PHP client"
+spec = ["sdk-php.md"]
+lang = "PHP"
+note = "The same contract, implemented as a peer rather than translated"
+
+[[repo]]
+name = "lemonfiber-media-stack"
+node = "stack"
+group = "impl"
+label = "lemonfiber-media-stack<br/>Compose + manifest"
+spec = ["lemonfiber-media-stack.md"]
+lang = "YAML/TOML"
+note = "Runs standalone; the compose rules CI enforces"
+
+[[repo]]
+name = "homebrew-tap"
+node = "tap"
+group = "impl"
+label = "homebrew-tap<br/>generated formula"
+spec = ["homebrew-tap.md"]
+lang = "Ruby"
+note = "Generated; exists so `brew` works"
+
+[[repo]]
+name = "website-lemonfiber.app"
+node = "site"
+group = "impl"
+label = "website-lemonfiber.app<br/>the public frontpage"
+spec = ["website-lemonfiber.md"]
+lang = "Astro"
+note = "The org is the motor; roadmap read, not written"
+
+[[repo]]
+name = "website-docs.lemonfiber.app"
+node = "docs"
+group = "impl"
+label = "website-docs.lemonfiber.app<br/>the documentation site"
+spec = ["website-docs.md"]
+lang = "Astro"
+note = "It renders; it does not own — every page pinned to the repo that wrote it"
+
+[[repo]]
+name = "brand"
+node = "brand"
+group = "impl"
+label = "brand<br/>design tokens"
+spec = ["brand.md"]
+lang = "CSS/SVG"
+note = "Tokens are generated; the marks are not open"
+
+[[repo]]
+name = ".github"
+node = "gh"
+group = "root"
+label = ".github<br/>community health files"
+spec = []
+lang = "Markdown"
+note = "Org-wide community health files; no spec of its own"
+
+# ── How they depend on each other ────────────────────────────────────────────
+#
+# The diagram in README.md is generated from these. An arrow points the way the
+# dependency runs: `from` needs `to`. `dotted` is for a relationship that is not
+# a dependency — inheritance and governance apply to everything and would drown
+# the graph drawn as solid.
+
+[[edge]]
+from = "lemonfiber-media-stack"
+to = "lemonfiber"
+label = "submodule, pinned"
+
+[[edge]]
+from = "lemonfiber-web"
+to = "lemonfiber"
+label = "submodule, pinned"
+
+[[edge]]
+from = "sdk-ts"
+to = "lemonfiber-web"
+label = "pinned"
+
+[[edge]]
+from = "lemonfiber"
+to = "sdk-ts"
+label = "contract artefact"
+
+[[edge]]
+from = "lemonfiber"
+to = "sdk-php"
+label = "contract artefact"
+
+[[edge]]
+from = "lemonfiber-companion"
+to = "sdk-php"
+label = "pinned; every call goes through it"
+
+[[edge]]
+from = "lemonfiber"
+to = "homebrew-tap"
+label = "release CI generates"
+
+[[edge]]
+from = "brand"
+to = "website-lemonfiber.app"
+label = "values mirrored"
+
+[[edge]]
+from = "lemonfiber"
+to = "website-docs.lemonfiber.app"
+label = "docs submodule, pinned"
+
+[[edge]]
+from = "brand"
+to = "website-docs.lemonfiber.app"
+label = "docs submodule, pinned"
+
+[[edge]]
+from = ".github"
+to = "impl"
+label = "inherited by"
+dotted = true
+
+[[edge]]
+from = "spec"
+to = "impl"
+label = "governs all"
+dotted = true

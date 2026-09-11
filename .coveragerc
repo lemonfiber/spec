@@ -21,6 +21,7 @@ include =
     scripts/integrity.py
     scripts/check_shared_files.py
     scripts/next_id.py
+    scripts/gen_repos.py
 
 [report]
 exclude_also =
