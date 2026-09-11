@@ -27,7 +27,7 @@ sequenceDiagram
     else citation found
         Bot->>Spec: resolve IDs at merge-base
         alt any ID unknown or withdrawn
-            Bot->>PR: close, naming the bad ID
+            Bot->>PR: fail, naming the bad ID
         else all resolve
             Bot->>PR: pass
         end
@@ -38,11 +38,11 @@ sequenceDiagram
 
 | # | Check | Failure |
 |---|-------|---------|
-| 1 | At least one citation present in a commit trailer **or** the PR body | Close |
-| 2 | Every cited ID is well-formed | Close, naming the malformed ID |
-| 3 | Every cited ID **exists** in `spec@main` at the merge-base | Close, naming the unknown ID |
-| 4 | No cited requirement is `Draft` or `Withdrawn` | Close, naming it and its status |
-| 5 | Spec change merged before this PR, where behaviour changed | Close, with the ordering explained |
+| 1 | At least one citation present in a commit trailer **or** the PR body | Fail |
+| 2 | Every cited ID is well-formed | Fail, naming the malformed ID |
+| 3 | Every cited ID **exists** in `spec@main` at the merge-base | Fail, naming the unknown ID |
+| 4 | No cited requirement is `Draft` or `Withdrawn` | Fail, naming it and its status |
+| 5 | Spec change merged before this PR, where behaviour changed | Fail, with the ordering explained |
 
 Check 3 is what distinguishes this from a regex looking for a plausible string.
 Check 5 is what makes the spec structurally incapable of falling behind.
