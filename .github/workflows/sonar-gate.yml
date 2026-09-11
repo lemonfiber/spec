@@ -61,7 +61,7 @@ on:
         required: false
         default: ""
       allowed-open:
-        description: "Open issues this repository still carries. Q-R64 says zero; a repository working a backlog down declares what is left, and the gate refuses any number above it. Q-R67 makes it a ratchet: this run's value is compared against the same declaration on the base branch and may not exceed it."
+        description: "Open issues this repository still carries. Q-R64 says zero; a repository working a backlog down declares what is left, and the gate refuses any number above it. Q-R67 makes it a ratchet: this run's value is compared against the same declaration on the base branch and may not exceed it, unless it names a backlog already standing against that branch and no more."
         type: number
         required: false
         default: 0
@@ -84,6 +84,8 @@ jobs:
       - name: The declared allowance may only fall (Q-R67)
         env:
           GH_TOKEN: ${{ github.token }}
+          SONAR_TOKEN: ${{ secrets.sonar-token }}
+          PROJECT: ${{ inputs.project }}
           API: ${{ github.api_url }}
           REPO: ${{ github.repository }}
           WORKFLOW_REF: ${{ github.workflow_ref }}
@@ -149,9 +151,51 @@ jobs:
             exit 1
           fi
 
+          # A raise may name the backlog, and nothing beyond it.
+          #
+          # A backlog can arrive without anybody writing a line: an analyser enables
+          # a rule and a repository that had reached zero is suddenly carrying issues
+          # it has no way to declare. "Declare what is left and work it down" is the
+          # whole purpose of this allowance, and at zero there was no way to say it —
+          # including on the pull request that fixes them, which this gate blocked
+          # with the very backlog it exists to see removed. A ratchet with no way to
+          # acknowledge reality is a ratchet that jams.
+          #
+          # So the ceiling for a raise is the count actually standing against the base
+          # branch. Reality may be declared; headroom may not, because a diff that
+          # brings a new issue cannot raise the ceiling to cover it — the count it
+          # would have to point at is the count from before the diff.
           if [ "$declared" -gt "$on_base" ]; then
-            echo "::error::allowed-open is ${declared} on this pull request and ${on_base} on ${BASE_REF}. That declaration is a ratchet and may only fall (Q-R67)."
-            exit 1
+            standing=""
+            if [ -n "${SONAR_TOKEN:-}" ]; then
+              project=${PROJECT:-${REPO/\//_}}
+              # The token goes in a header rather than the URL or the process
+              # arguments, and the status is read apart from the body, for the
+              # reasons the count below is read that way.
+              auth=$(printf '%s:' "$SONAR_TOKEN" | base64 | tr -d '\n')
+              got=$(curl -sS --max-time 30 -o standing.json -w '%{http_code}' \
+                -H "Authorization: Basic ${auth}" \
+                "https://sonarcloud.io/api/issues/search?projects=${project}&branch=${BASE_REF}&resolved=false&ps=1" \
+                || echo "000")
+              if [ "$got" = "200" ]; then
+                standing=$(jq -r '.total // empty' standing.json 2>/dev/null || true)
+              fi
+            fi
+
+            # Refused rather than waved through, on the same reasoning as the
+            # unreadable base above: a raise nobody could check is a raise nobody
+            # knows was only the backlog.
+            if [ -z "$standing" ]; then
+              echo "::error::allowed-open rises from ${on_base} to ${declared}, and this run could not read how many issues stand against ${BASE_REF} to tell the backlog from headroom. Refusing: not knowing whether the ratchet held is not the same as it having held."
+              exit 1
+            fi
+
+            if [ "$declared" -gt "$standing" ]; then
+              echo "::error::allowed-open is ${declared} on this pull request and ${on_base} on ${BASE_REF}, and ${standing} issues stand against ${BASE_REF}. A raise may name the backlog and nothing past it (Q-R67)."
+              exit 1
+            fi
+
+            echo "::notice::allowed-open rises from ${on_base} to ${declared}, which is the ${standing} already standing against ${BASE_REF} rather than room for anything new. It may only fall from here."
           fi
 
           if [ "$declared" -lt "$on_base" ]; then

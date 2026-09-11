@@ -59,8 +59,20 @@ CURL_STUB = """#!/bin/sh
 # Stand in for curl. CURL_STATUS is the status it reports, CURL_BODY the file it
 # copies to wherever curl was told to write the body, CURL_FAILS makes the
 # process itself fail the way an unreachable host does.
+#
+# The step asks two different hosts — GitHub for the base branch's declaration,
+# SonarCloud for what stands against that branch — so the stub answers by which
+# one was called. Without that, a test setting up one of them would be silently
+# answering the other as well.
 set -eu
 printf '%s\\n' "$*" >> "${CURL_LOG:-/dev/null}"
+case "$*" in
+*sonarcloud.io*)
+  CURL_STATUS=${CURL_SONAR_STATUS:-200}
+  CURL_BODY=${CURL_SONAR_BODY:-}
+  CURL_FAILS=${CURL_SONAR_FAILS:-}
+  ;;
+esac
 if [ "${CURL_FAILS:-}" = "1" ]; then
   exit 7
 fi
@@ -106,8 +118,14 @@ class Ratchet(unittest.TestCase):
         self.stubs = stubs
         self.log = self.tmp / "curl.log"
 
-    def run_step(self, declared, *, base=None, status="200", fails=False):
-        """Run the step with `allowed-open: declared` against a base branch file."""
+    def run_step(self, declared, *, base=None, status="200", fails=False,
+                 standing=None, sonar_status=None):
+        """Run the step with `allowed-open: declared` against a base branch file.
+
+        `standing` is how many issues SonarCloud reports against the base branch.
+        Left out, no token reaches the step at all — which is a fork's run, and the
+        case where a raise cannot be checked.
+        """
         work = self.tmp / "work"
         work.mkdir(exist_ok=True)
         env = {
@@ -128,6 +146,14 @@ class Ratchet(unittest.TestCase):
             body = self.tmp / "base-branch.yml"
             body.write_text(base, encoding="utf-8")
             env["CURL_BODY"] = str(body)
+        if standing is not None:
+            answer = self.tmp / "standing.json"
+            answer.write_text(f'{{"total": {standing}}}', encoding="utf-8")
+            env["SONAR_TOKEN"] = "not-a-real-token"
+            env["CURL_SONAR_BODY"] = str(answer)
+            env["PROJECT"] = ""
+        if sonar_status is not None:
+            env["CURL_SONAR_STATUS"] = sonar_status
         if fails:
             env["CURL_FAILS"] = "1"
         done = subprocess.run(
@@ -142,16 +168,65 @@ class Ratchet(unittest.TestCase):
 
     # --- the raise, which is the whole reason the step exists ----------------
 
-    def test_a_raise_is_refused(self):
-        code, out = self.run_step(3, base=DECLARES.format(n=0))
+    def test_a_raise_past_what_stands_is_refused(self):
+        code, out = self.run_step(3, base=DECLARES.format(n=0), standing=1)
         self.assertEqual(code, 1)
         self.assertIn("allowed-open is 3 on this pull request and 0 on main", out)
-        self.assertIn("may only fall", out)
+        self.assertIn("1 issues stand against main", out)
+        self.assertIn("may name the backlog and nothing past it", out)
 
     def test_a_new_declaration_is_a_raise_from_the_default(self):
-        code, out = self.run_step(2, base=DECLARES_NOTHING)
+        code, out = self.run_step(2, base=DECLARES_NOTHING, standing=1)
         self.assertEqual(code, 1)
         self.assertIn("allowed-open is 2 on this pull request and 0 on main", out)
+
+    def test_a_raise_that_buys_room_for_a_new_issue_is_refused(self):
+        """The whole point, and the case the relaxation must not cost.
+
+        Nothing stands against the base branch, so there is no backlog to name and
+        the only thing a raise could be is room for what this diff brings.
+        """
+        code, out = self.run_step(1, base=DECLARES.format(n=0), standing=0)
+        self.assertEqual(code, 1)
+        self.assertIn("0 issues stand against main", out)
+
+    def test_a_raise_to_the_backlog_that_stands_is_allowed(self):
+        """A backlog nobody wrote — an analyser turned a rule on — can be declared.
+
+        Without this there is no number the repository can put in its own workflow:
+        the ratchet refuses everything above the zero already on the base branch,
+        including on the pull request that takes the count back to zero.
+        """
+        code, out = self.run_step(28, base=DECLARES.format(n=0), standing=28)
+        self.assertEqual(code, 0)
+        self.assertIn("rises from 0 to 28", out)
+        self.assertIn("rather than room for anything new", out)
+
+    def test_a_raise_below_what_stands_is_allowed(self):
+        code, out = self.run_step(20, base=DECLARES.format(n=0), standing=28)
+        self.assertEqual(code, 0)
+        self.assertIn("rises from 0 to 20", out)
+
+    def test_a_raise_nobody_could_check_is_refused(self):
+        """No token reaches a fork's run, so what stands cannot be read."""
+        code, out = self.run_step(3, base=DECLARES.format(n=0))
+        self.assertEqual(code, 1)
+        self.assertIn("could not read how many issues stand against main", out)
+        self.assertIn("not knowing whether the ratchet held", out)
+
+    def test_a_sonarcloud_that_will_not_answer_leaves_a_raise_refused(self):
+        code, out = self.run_step(
+            3, base=DECLARES.format(n=0), standing=28, sonar_status="401"
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("could not read how many issues stand against main", out)
+
+    def test_it_asks_sonarcloud_about_the_base_branch(self):
+        self.run_step(3, base=DECLARES.format(n=0), standing=28)
+        asked = self.log.read_text(encoding="utf-8")
+        self.assertIn("sonarcloud.io/api/issues/search", asked)
+        self.assertIn("branch=main", asked)
+        self.assertIn("resolved=false", asked)
 
     # --- what must keep working ----------------------------------------------
 
@@ -210,7 +285,9 @@ class Ratchet(unittest.TestCase):
         )
 
     def test_a_commented_out_declaration_is_not_read(self):
-        code, out = self.run_step(1, base=DECLARES_NOTHING + "#     allowed-open: 5\n")
+        code, out = self.run_step(
+            1, base=DECLARES_NOTHING + "#     allowed-open: 5\n", standing=0
+        )
         self.assertEqual(code, 1)
         self.assertIn("allowed-open is 1 on this pull request and 0 on main", out)
 
