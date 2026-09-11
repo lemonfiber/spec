@@ -102,7 +102,7 @@ trailers and PR bodies — **never in code comments**
 
 | Section | Status | Contents |
 |---------|--------|----------|
-| 00-overview | Accepted | Vision, glossary, roadmap, 20 ADRs |
+| 00-overview | Accepted | Vision, glossary, roadmap, 21 ADRs |
 | 10-functional | Accepted | The [feature board](10-functional/features/BOARD.md) — features, requirements, areas — and 9 journeys |
 | 20-architecture | Accepted | System context, component model, data flow, platform matrix, 7 contracts |
 | 30-repos | Accepted | All eleven repos: `spec`, `lemonfiber` (+ TUI + reference), `lemonfiber-web`, `sdk-ts`, `sdk-php`, `lemonfiber-media-stack`, `brand`, `homebrew-tap`, `website-lemonfiber.app`, `website-docs.lemonfiber.app`, `.github` |
