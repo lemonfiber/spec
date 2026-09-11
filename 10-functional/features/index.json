@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 79,
-    "requirements": 1151,
+    "features": 80,
+    "requirements": 1161,
     "areas": "A–N"
   },
   "versions": [
@@ -1863,6 +1863,35 @@
         }
       ],
       "path": "f-extensibility/f9-bundled-capabilities.md"
+    },
+    {
+      "id": "F10",
+      "title": "Writing a plugin",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "extensibility",
+        "cli",
+        "verification"
+      ],
+      "requires": [
+        "F3"
+      ],
+      "relates": [
+        "F5",
+        "F6",
+        "F8",
+        "G4"
+      ],
+      "versions": [],
+      "path": "f-extensibility/f10-authoring.md"
     },
     {
       "id": "G1",
