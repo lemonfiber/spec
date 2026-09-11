@@ -108,6 +108,8 @@ size is stated before writing.
 | Bundle contains a hostname or LAN IP | Allow-listed as safe by default; offer to redact for the cautious. |
 | Operator shares an old bundle | Bundles are timestamped and carry the lemonfiber and stack versions. |
 | Insufficient disk to write | Report before collecting rather than failing partway. |
+| A plugin is installed | The bundle records which plugins, from where, at what version, and whether each was reviewed. That is the most useful thing it can say about a stack that no longer matches the bundled one. |
+| A plugin holds configuration that would help | Withheld, and said to be withheld, naming the plugin. Redaction is an allow-list (`C4-R2`), the allow-list is first-party, and an allow-list extended on the strength of an untrusted manifest is a deny-list wearing a hat. |
 
 ## Acceptance criteria
 
@@ -127,6 +129,7 @@ size is stated before writing.
 | **C4-R12** | The bundle MUST record lemonfiber version, stack version and creation time. |
 | **C4-R13** | Media filename redaction MUST be offered. |
 | **C4-R14** | Insufficient disk space MUST be detected before collection begins. |
+| **C4-R15** | A bundle MUST record which plugins are installed, with origin, version and whether each was reviewed. It MUST NOT collect a plugin's own configuration, and MUST say that it was withheld and why, naming the plugin. |
 
 ## Related
 

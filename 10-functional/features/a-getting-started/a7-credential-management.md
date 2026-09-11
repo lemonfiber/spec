@@ -132,6 +132,8 @@ working system on a schedule the operator didn't choose.
 | Config file permissions are too open | Detect and offer to tighten. Report as a [diagnostic](../c-trust/c1-diagnostics.md) finding. |
 | Same credential used by multiple services | Rotate everywhere atomically, or report exactly which consumers were updated. |
 | Operator supplies a credential lemonfiber can't attribute | Reject it rather than storing an unattributable secret. |
+| An installed plugin consumes a rotated credential | It is a consumer like any other: rotation reaches it, and if it could not be updated it is named. A consumer list that silently omits plugins is how a rotation reports success and leaves something broken. |
+| A plugin holds a credential of its own | It appears in the one inventory, attributed to the plugin, never by value. Plugins do not get a parallel credentials surface. |
 
 ## Acceptance criteria
 
@@ -151,6 +153,7 @@ working system on a schedule the operator didn't choose.
 | **A7-R12** | Backups containing credentials MUST be labelled as sensitive at creation time. |
 | **A7-R13** | Over-permissive credential file permissions MUST be reported as a diagnostic finding with a remedy. |
 | **A7-R14** | Where a service mints only a temporary credential, lemonfiber MUST generate a durable replacement, set it on the service, and record it for its consumers. The operator MUST NOT be required to handle it. |
+| **A7-R15** | Where an installed plugin consumes a credential lemonfiber rotates, that plugin MUST be among the consumers rotation propagates to, and one that could not be updated MUST be named in the report like any other. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber` generates and propagates the
 credential; `lemonfiber-media-stack` consumes it from the environment so that the

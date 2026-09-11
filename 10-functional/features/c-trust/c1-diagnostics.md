@@ -123,6 +123,9 @@ failure), `unknown` (checks could not run).
 | Disruptive check run while downloads are active | Warn about the interruption and require confirmation. |
 | Very slow storage | Use generous timeouts for filesystem checks; a NAS is not a local SSD. |
 | Operator runs diagnostics during setup | Supported and encouraged — setup uses the same checks. |
+| A plugin's declared proof fails | Report it as that plugin's proof failing, naming the plugin. It is a finding about the plugin, not about the stack the plugin was added to. |
+| A plugin's proof is slow or never returns | The same bounded timeout every check has, and the same `unverified` on expiry. A contributed check does not get to decide how long diagnostics take. |
+| A plugin's proof throws rather than answers | A check error attributed to the plugin (`C1-R8`'s rule, with a name on it). An operator reading it should not be left wondering whether their stack is broken. |
 
 ## Acceptance criteria
 
@@ -142,6 +145,7 @@ failure), `unknown` (checks could not run).
 | **C1-R12** | A full non-disruptive run SHOULD complete within 30 seconds. |
 | **C1-R13** | Setup MUST use the same checks as diagnostics, not a parallel implementation. |
 | **C1-R14** | Filesystem check timeouts MUST accommodate network and external storage. |
+| **C1-R15** | A proof an installed plugin declares MUST run as a check like any other — under a bounded timeout, reporting the same verdicts — MUST be attributed to the plugin, and an error inside it MUST be reported as that plugin's check error rather than as a finding about the stack. |
 
 ## Related
 
