@@ -25,10 +25,17 @@ they come from, what installing one does — has a single thing to talk about.
 
 A plugin is declarative data. It describes a service, what that service can do, how it
 connects to the rest of the stack, the secrets it will hold, what it intends to override,
-and the proofs by which it can be judged. It ships no code. That is not a limitation
-lemonfiber tolerates and hopes to lift later; it is the property that lets a stranger's
-contribution be read line by line before it is trusted, and it is why a plugin catalogue
-can exist at all.
+and the proofs by which it can be judged.
+
+It contributes **no code to lemonfiber's own process**, and no opt-in changes that. What
+it does contribute is a container to the stack and a script of calls to the recipe
+engine, and both of those execute. The precision matters, because an image is arbitrary
+code running as a daemon with network access and a mount of the operator's library, and
+nobody reads one line by line. So the property this buys is not that nothing runs. It is
+that **what runs, and what it may reach, is stated in advance and is checkable without
+running it** — by a person reading a diff, and by lemonfiber refusing a manifest that
+asks for more than the format can express. That is what lets a stranger's contribution be
+judged before it is trusted, and it is why a plugin catalogue can exist at all.
 
 The hard case this must survive is the one an operator will actually ask for: **run Plex
 instead of Jellyfin**. Jellyfin is not a container in this stack — it is the identity
@@ -48,7 +55,9 @@ reuses it by name.
 
 A manifest declares:
 
-- **The service** — the container description of what runs, with its image pinned.
+- **The service** — which image runs, at which digest, on which port, and whether that
+  port is an admin surface or a household one. Not how the container is assembled: that
+  is written rather than supplied.
 - **The capabilities it claims** — what it can do, in the vocabulary [F4](f4-capabilities.md)
   owns.
 - **The wiring** — what it connects to, expressed as capabilities asked for rather than
@@ -63,6 +72,27 @@ the manifest did not name, or changes something the manifest did not list as an 
 is a validation failure rather than a surprise found later. The declaration is not
 paperwork: it is what lets an operator read the blast radius before installing, and it is
 what makes over-reach detectable rather than merely discouraged.
+
+### The container is written, not supplied
+
+A plugin says which image runs and how it should be reached. It does not say how the
+container is assembled. lemonfiber writes that from the declaration
+([ADR-0021](../../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md)),
+against the same template every bundled service is built from.
+
+The consequence is the one an operator cares about: **installing a plugin cannot give it
+more of the machine than a bundled service has.** Not a second mount, not a path outside
+its own configuration directory, not a device, not a kernel capability, not another
+container's network, not the container runtime's own socket. None of these is refused by
+a rule somebody has to remember and apply — there is no field in which to ask, so a
+manifest that tries is refused by name and told what it may declare instead.
+
+It follows that some services cannot be plugins, and that is the intended answer rather
+than an awkward one. The tunnel that keeps torrent traffic off the home address needs a
+device and a kernel capability; it is the one service whose failure has consequences
+outside the machine, and it is not one a stranger installs on an operator's behalf. For
+anything genuinely in that position the route is [F1](f1-customisation.md)'s — fork the
+stack and operate it, with the operator's own name on the decision.
 
 ### A recipe is a sequence, not a program
 
@@ -93,10 +123,17 @@ discovered.
 
 ### No code, and no route to code
 
-Contributed code is not executed, and there is no opt-in that changes that. The earlier
-draft of this feature reserved a sandboxed escape hatch; recipes and named adapters
-replace it, and reserving a code path "for the rare case" is how the rare case becomes the
-common one. Native plugins are not a supported mechanism and never become one.
+No contributed code is loaded into lemonfiber's own process, and there is no opt-in,
+grant or sandbox that changes that. The earlier draft of this feature reserved a
+sandboxed escape hatch; recipes and named adapters replace it, and reserving a code path
+"for the rare case" is how the rare case becomes the common one. Native plugins are not a
+supported mechanism and never become one.
+
+The container a plugin names is a separate question, answered separately. It runs, and
+what it may reach is fixed by the shape lemonfiber writes rather than by anything the
+plugin asked for. Whether it deserves to run is a question about where the image came
+from — pinned by digest, so the thing reviewed and the thing running are the same one —
+rather than a question anybody answers by reading it.
 
 ### It validates before anything happens
 
@@ -137,6 +174,9 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | A recipe branches on a value that was never captured | Refuse at validation rather than at run time; the reference is checkable without running anything. |
 | The manifest names an adapter that does not exist | Refuse, naming the adapter and listing what is available. |
 | A referenced image is unpinned or unsigned | Flag it and refuse to treat it as trusted. Pinning and signing are the bar. |
+| A manifest asks for a mount, a device, a kernel capability or a network of its own | Refuse, naming the field and listing what may be declared. There is no field for it, so this is a malformed manifest rather than a permission being withheld. |
+| A manifest names an image by tag alone | Refuse. A tag is a name its publisher can repoint, so the reviewed version and the running version can differ with nothing in the manifest changing. This is stricter than the row above deliberately: that one is about a *signature*, which a registry may not offer and which is therefore reported as unproven; a *digest* can always be obtained, so its absence is a fault in the manifest rather than a limitation of the registry. |
+| A service genuinely needs more than a plugin can describe | Say so plainly and name the fork route. The shape is not widened for one plugin; widening it is a change made once, for everybody. |
 | The schema has moved on since the manifest was written | Answer with the capability the manifest asked for that this lemonfiber does not provide, by name, rather than with a version number. |
 
 ## Acceptance criteria
@@ -165,9 +205,13 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | **F3-R20** | Naming an adapter this lemonfiber does not implement MUST be refused, naming the adapter and the set that is available. |
 | **F3-R21** | A manifest MUST declare the capabilities it requires of lemonfiber, and an unmet requirement MUST be refused by naming the capability rather than a version. |
 | **F3-R22** | Manifest validation MUST report every violation in one pass, each named with its location. |
+| **F3-R23** | A plugin MUST NOT supply a container definition, and lemonfiber MUST generate one from what the plugin declares. |
+| **F3-R24** | What a plugin's service may reach of the machine MUST be fixed by lemonfiber rather than chosen by the plugin — no mount beyond the data root and its own configuration directory, no device, no kernel capability, no network mode, no privileged container and no user override — and a manifest asking for any of them MUST be refused by name. |
 
 ## Related
 
+- [ADR-0021](../../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) — why a plugin is data, and why its container is written rather than supplied
+- [plugin-manifest contract](../../../20-architecture/contracts/plugin-manifest.md) — the fields a plugin declares in, and the entry lemonfiber writes from them
 - [F1 Customisation & escape hatches](f1-customisation.md) — the escape-hatch posture this narrows to declarative data
 - [F2 Service catalogue](f2-service-catalogue.md) — the bundled catalogue whose entries a plugin extends
 - [F4 Capabilities & substitution](f4-capabilities.md) — the vocabulary a manifest claims and asks in
