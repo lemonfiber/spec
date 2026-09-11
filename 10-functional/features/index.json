@@ -1596,7 +1596,7 @@
       "area": "F",
       "audience": "operator",
       "kind": "feature",
-      "status": "draft",
+      "status": "accepted",
       "maturity": "planned",
       "shipped": null,
       "milestones": [
@@ -1635,7 +1635,7 @@
       "area": "F",
       "audience": "operator",
       "kind": "feature",
-      "status": "draft",
+      "status": "accepted",
       "maturity": "planned",
       "shipped": null,
       "milestones": [

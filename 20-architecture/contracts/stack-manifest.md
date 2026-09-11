@@ -251,7 +251,7 @@ Validation reports **every** violation in one pass, each naming its location
 | `bind` present when `port` is | Service named |
 | `license` is a recognised OSI identifier | Service and licence named (`F2-R5`) |
 | `last_release` is `YYYY-MM-DD` and not in the future | Service and value named (`F2-R14`) |
-| `capabilities` within the allow-list | Service and capability named |
+| `grants` within the allow-list | Service and kernel capability named |
 | `protocol` is a permitted value | Profile and value named |
 | At most one profile per `protocol` | Both profiles named |
 | Manifest services match `compose.yml` services exactly | Divergence listed both ways |

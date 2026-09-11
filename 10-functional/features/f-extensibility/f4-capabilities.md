@@ -4,7 +4,7 @@ title: Capabilities and substitution
 kind: feature
 area: F
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [extensibility, wiring, verification]
@@ -14,7 +14,7 @@ relates: [F1, F5, F6, F7, B1, D1]
 
 # F4 — Capabilities and substitution
 
-**Status:** Draft · **Audience:** Operator · **Area:** F — Extensibility
+**Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
 ---
 

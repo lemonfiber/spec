@@ -78,8 +78,8 @@ code, and the two move independently.
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.21.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
-| [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests and recipes | F | operator | draft | `0.16.0` |
-| [F4](f-extensibility/f4-capabilities.md) | Capabilities and substitution | F | operator | draft | `0.16.0` |
+| [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests and recipes | F | operator | accepted | `0.16.0` |
+| [F4](f-extensibility/f4-capabilities.md) | Capabilities and substitution | F | operator | accepted | `0.16.0` |
 | [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | draft | `0.17.0` |
 | [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | draft | `0.17.0` |
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | draft | `0.17.0` |

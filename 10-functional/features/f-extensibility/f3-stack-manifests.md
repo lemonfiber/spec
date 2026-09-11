@@ -4,7 +4,7 @@ title: Plugin manifests and recipes
 kind: feature
 area: F
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [extensibility, verification, wiring]
@@ -14,7 +14,7 @@ relates: [F4, F5, F6, F7, C9, E4]
 
 # F3 — Plugin manifests and recipes
 
-**Status:** Draft · **Audience:** Operator · **Area:** F — Extensibility
+**Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
 ---
 
