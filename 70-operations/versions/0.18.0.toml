@@ -1,69 +1,42 @@
-# Glue — cross-seeding, announce-driven grabbing, quality-profile sync and subtitles.
+# Plugins, part three — the calls that configure what a plugin installed.
 #
-# 56 goals, seeded from the roadmap milestone this version serves;
+# Recipes last, and deliberately so. A manifest describes a container whose reach
+# lemonfiber fixes (ADR-0021), so the worst one can do is fail to parse. A recipe runs
+# with lemonfiber's own authority — the credential store, every service in the stack on
+# its loopback port, and the open internet — on behalf of a manifest a stranger wrote.
+# It is the riskiest mechanism in this design, and it arrives after two versions of
+# operating the simplest plugin there is.
+#
+# It also completes the substitution story. 0.17.0 makes a plugin able to stand in for a
+# bundled service; the first-run flows that some substitutions need — creating an
+# account, claiming a server, reading a token back — are these.
+#
+# F8 is Draft. OPS-R30 forbids a Draft requirement being a goal, so this version cannot
+# stage until F8 is Accepted. That is a review decision about ADR-0022's flow rules —
+# pairs rather than lists, the static check, the approval at rehearsal — and not a
+# scheduling one, so it is recorded here rather than taken by whoever stages next.
+#
+# 13 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
-milestone = "M11"   # Ecosystem glue
-delivers  = "Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles"
+milestone = "M14"   # The platform
+delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
 status  = "planned"
 repos   = ["lemonfiber"]
 goals   = [
-    "H1-R1",
-    "H1-R2",
-    "H1-R3",
-    "H1-R4",
-    "H1-R5",
-    "H1-R6",
-    "H1-R7",
-    "H1-R8",
-    "H1-R9",
-    "H1-R10",
-    "H1-R11",
-    "H1-R12",
-    "H1-R13",
-    "H1-R14",
-    "H2-R1",
-    "H2-R2",
-    "H2-R3",
-    "H2-R4",
-    "H2-R5",
-    "H2-R6",
-    "H2-R7",
-    "H2-R8",
-    "H2-R9",
-    "H2-R10",
-    "H2-R11",
-    "H2-R12",
-    "H2-R13",
-    "H2-R14",
-    "H3-R1",
-    "H3-R2",
-    "H3-R3",
-    "H3-R4",
-    "H3-R5",
-    "H3-R6",
-    "H3-R7",
-    "H3-R8",
-    "H3-R9",
-    "H3-R10",
-    "H3-R11",
-    "H3-R12",
-    "H3-R13",
-    "H3-R14",
-    "H4-R1",
-    "H4-R2",
-    "H4-R3",
-    "H4-R4",
-    "H4-R5",
-    "H4-R6",
-    "H4-R7",
-    "H4-R8",
-    "H4-R9",
-    "H4-R10",
-    "H4-R11",
-    "H4-R12",
-    "H4-R13",
-    "H4-R14",
+    "F8-R1",
+    "F8-R2",
+    "F8-R3",
+    "F8-R4",
+    "F8-R5",
+    "F8-R6",
+    "F8-R7",
+    "F8-R8",
+    "F8-R9",
+    "F8-R10",
+    "F8-R11",
+    "F8-R12",
+    "F8-R13",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

@@ -33,8 +33,8 @@ between:
    arguing for the failure C6 exists to prevent.
 2. **Remote access does not exist yet.**
    [I1](../../10-functional/features/i-remote-access/i1-remote-access.md) is
-   scheduled for `0.20.0` and is built on a self-hosted overlay. Waiting for it
-   would leave the LAN case — which already works — unserved for five minors.
+   scheduled for `0.21.0` and is built on a self-hosted overlay. Waiting for it
+   would leave the LAN case — which already works — unserved for six minors.
 3. **Parity is a requirement, not an aspiration** (`G1-R1`). A fourth surface
    that quietly did less would re-introduce exactly the drift G1 forbids.
 
