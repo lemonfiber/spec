@@ -37,6 +37,7 @@ project should be operable from one page.
 | 7 | Add `SONAR_TOKEN` secret | every repo with a Sonar job | The Sonar scan, and the `Q-R64` issue gate — which warns rather than fails where the secret is missing |
 | 8 | Add a token that can push to `homebrew-tap` | `lemonfiber` | Release regenerates the formula, from `1.0.0` (`L1-R3`) |
 | 9 | Add npm publish auth (`NPM_TOKEN`) | `brand` | Publishing `@lemonfiber/brand` |
+| 9a | Add the catalogue signing key | `lemonfiber-plugins` | Signing catalogue releases (`F5-R3`), which is owed before `L1-R2` delivers signing for release artifacts ([ADR-0023](../00-overview/decisions/0023-a-pin-is-a-digest.md)) |
 | 10 | Enable **GitHub Pages** (source: Actions) | `spec` | The redirects that stand where the book stood |
 | 11 | Enable **private vulnerability reporting** | all | Security disclosure path |
 | 12 | Add `CNAME docs → lemonfiber.github.io` in Cloudflare DNS, proxied; enable **GitHub Pages** (source: Actions) with custom domain `docs.lemonfiber.app` | `website-docs.lemonfiber.app` | [docs.lemonfiber.app](https://docs.lemonfiber.app) resolves and serves |

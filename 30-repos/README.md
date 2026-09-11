@@ -22,6 +22,7 @@ flowchart TD
         sdk["sdk-ts<br/>the TypeScript client"]
         sdkphp["sdk-php<br/>the PHP client"]
         stack["lemonfiber-media-stack<br/>Compose + manifest"]
+        plugins["lemonfiber-plugins<br/>the reviewed catalogue"]
         tap["homebrew-tap<br/>generated formula"]
         site["website-lemonfiber.app<br/>the public frontpage"]
         docs["website-docs.lemonfiber.app<br/>the documentation site"]
@@ -34,6 +35,7 @@ flowchart TD
     lemonfiber -->|contract artefact| sdk
     lemonfiber -->|contract artefact| sdkphp
     companion -->|pinned; every call goes through it| sdkphp
+    plugins -->|fetched on request, never embedded| lemonfiber
     lemonfiber -->|release CI generates| tap
     brand -->|values mirrored| site
     lemonfiber -->|docs submodule, pinned| docs
@@ -51,13 +53,14 @@ flowchart TD
 | `sdk-ts` | [sdk-ts.md](sdk-ts.md) | TypeScript | Owns the stream's hard parts so no consumer reimplements them |
 | `sdk-php` | [sdk-php.md](sdk-php.md) | PHP | The same contract, implemented as a peer rather than translated |
 | `lemonfiber-media-stack` | [lemonfiber-media-stack.md](lemonfiber-media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
+| `lemonfiber-plugins` | [lemonfiber-plugins.md](lemonfiber-plugins.md) | TOML | Reviewed and signed, and never a runtime dependency |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website-lemonfiber.app` | [website-lemonfiber.md](website-lemonfiber.md) | Astro | The org is the motor; roadmap read, not written |
 | `website-docs.lemonfiber.app` | [website-docs.md](website-docs.md) | Astro | It renders; it does not own — every page pinned to the repo that wrote it |
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those twelve are every repository in the org. `.github` carries the community
+Those thirteen are every repository in the org. `.github` carries the community
 health files GitHub serves for a repo that does not define its own — the code of
 conduct, the security policy, the issue templates and the org profile — so a
 sibling repo inherits them rather than copying them
