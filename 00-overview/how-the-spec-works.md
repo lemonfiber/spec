@@ -28,9 +28,10 @@ Area  ─contains─▶  Feature  ─contains─▶  Requirement  ◀─implemen
 ```
 
 - **Area** — a big theme, a single letter. `A` is getting started, `C` is trust &
-  correctness, `H` is ecosystem glue, and so on. Areas `A–G` are the v1 product;
-  `H–K` are the v2 ("ecosystem") additions; `L` is the release engineering that
-  ships each of them.
+  correctness, `H` is ecosystem glue, and so on. Areas `A–G` are the core product;
+  `H–K` are the ecosystem additions, which ship as minors before `1.0.0` on the
+  same train rather than after it; `L` is the release engineering that ships each
+  of them.
 - **Feature** — one capability, like an *epic*. `B3` is the live dashboard. Each
   feature is one markdown file with a fixed shape: **Purpose → Behaviour → States
   → Edge cases → Acceptance criteria → Related**.
