@@ -20,6 +20,7 @@ include =
     scripts/gen_redirects.py
     scripts/integrity.py
     scripts/check_shared_files.py
+    scripts/next_id.py
 
 [report]
 exclude_also =

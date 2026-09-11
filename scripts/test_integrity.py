@@ -232,5 +232,71 @@ class Reading(Spec):
         self.assertEqual(integrity.defined_adrs(), set())
 
 
+class StatedCounts(unittest.TestCase):
+    """`stated_counts()` — numbers this repository states about itself.
+
+    The documentation site guards its transcriptions of these. Nothing guarded
+    the spec's own, and its README drifted to a feature count nine short.
+    """
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.previous, integrity.ROOT = integrity.ROOT, self.tmp
+        self.addCleanup(setattr, integrity, "ROOT", self.previous)
+        self.features = self.tmp / "10-functional" / "features"
+        self.features.mkdir(parents=True)
+        (self.tmp / "00-overview" / "decisions").mkdir(parents=True)
+
+    def index(self, features):
+        (self.features / "index.json").write_text(
+            f'{{"counts": {{"features": {features}}}}}', encoding="utf-8"
+        )
+
+    def adrs(self, count):
+        for number in range(1, count + 1):
+            (self.tmp / "00-overview" / "decisions" / f"{number:04d}-a.md").write_text(
+                "", encoding="utf-8"
+            )
+
+    def test_a_tree_with_no_catalogue_states_nothing_about_one(self):
+        shutil.rmtree(self.features.parent)
+        self.assertEqual(integrity.stated_counts(), [])
+
+    def test_a_catalogue_with_no_index_cannot_be_counted(self):
+        found = integrity.stated_counts()
+        self.assertEqual(len(found), 1)
+        self.assertIn("cannot be checked", found[0])
+
+    def test_a_matching_count_is_left_alone(self):
+        self.index(77)
+        self.adrs(2)
+        (self.tmp / "README.md").write_text(
+            "The 77-feature catalogue, and 2 ADRs.\n", encoding="utf-8"
+        )
+        self.assertEqual(integrity.stated_counts(), [])
+
+    def test_a_stale_feature_count_is_named_with_its_line(self):
+        self.index(77)
+        (self.tmp / "README.md").write_text(
+            "intro\n\nThe 68-feature catalogue.\n", encoding="utf-8"
+        )
+        found = integrity.stated_counts()
+        self.assertEqual(len(found), 1)
+        self.assertIn("README.md:3", found[0])
+        self.assertIn("says 68 features where this repository has 77", found[0])
+
+    def test_a_stale_adr_count_is_named(self):
+        self.index(1)
+        self.adrs(20)
+        (self.tmp / "README.md").write_text(
+            "The 1-feature catalogue, and 15 ADRs.\n", encoding="utf-8"
+        )
+        found = integrity.stated_counts()
+        self.assertEqual(len(found), 1)
+        self.assertIn("15 architecture decision records", found[0])
+        self.assertIn("has 20", found[0])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
