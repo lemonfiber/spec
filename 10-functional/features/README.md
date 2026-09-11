@@ -15,9 +15,16 @@ the same board for tools.
 Every feature carries two answers that are easy to confuse and are kept apart.
 **`status`** is about the specification — `draft` until it is agreed, then
 `accepted`, and citable. **`maturity`** is about the implementation — `planned`,
-`building`, `shipped` (with the version that carried it), or `withdrawn`. A
-feature is routinely `accepted` and `planned` for a year; conflating the two
-would lose whichever question is asked less often.
+`building`, `built`, `shipped` (with the version that carried it), or
+`withdrawn`. A feature is routinely `accepted` and `planned` for a year;
+conflating the two would lose whichever question is asked less often.
+
+`built` and `shipped` are also worth keeping apart. A feature whose every
+requirement is met sits in `built` until the version carrying it is released —
+which is a different fact from being half-written, and `building` used to have to
+mean both. It is the state [OPS-R54](../../70-operations/staging.md) can actually
+gate on: `shipped` means out in a released version, so demanding it *before* a
+release is a gate nothing could ever pass.
 
 ## How to read a feature doc
 
