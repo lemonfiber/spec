@@ -12,9 +12,16 @@ It is also max+1 and never count+1. Identifiers are permanent (`GOV-R8`), so a
 withdrawn requirement leaves a hole: `GOV` has a permanent gap at R36–R39, and
 counting would hand back an identifier that once meant something else.
 
+It reads the branches too, not only the working tree. An identifier allocated
+on a pull request that has not merged is taken, and a tree that cannot see it
+hands it out again — which is the same double allocation one level up, and it
+nearly happened: `F9` was allocated on an unmerged branch while this script,
+reading `main`, still reported the ceiling as `F8`.
+
     python3 scripts/next_id.py DES          # the next one
     python3 scripts/next_id.py DES -n 4     # the next four
     python3 scripts/next_id.py --prefixes   # every prefix in use, and its ceiling
+    python3 scripts/next_id.py DES --here   # this tree only, and say so
 
 Exit 0 with the identifiers on stdout, 2 if the prefix is unknown.
 """
@@ -24,6 +31,7 @@ from __future__ import annotations
 import argparse
 import collections
 import pathlib
+import subprocess
 import sys
 
 from patterns import REQ_DEF
@@ -31,7 +39,45 @@ from patterns import REQ_DEF
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
-def defined() -> dict[str, dict[int, pathlib.Path]]:
+def branches() -> list[str]:
+    """Every ref that might hold an identifier this tree does not.
+
+    Remote branches rather than local ones: a pull request's work is on the
+    remote whether or not this clone has a local branch for it.
+    """
+    done = subprocess.run(
+        ["git", "for-each-ref", "--format=%(refname)", "refs/remotes"],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    if done.returncode != 0:
+        return []
+    return [
+        ref for ref in done.stdout.split()
+        # `refs/remotes/origin/HEAD` is a symbolic ref to another entry in this
+        # same list, so reading it would be reading one branch twice.
+        if not ref.endswith("/HEAD")
+    ]
+
+
+def defined_on(ref: str) -> set[str]:
+    """The identifiers a ref defines, asked of git rather than of the disk."""
+    done = subprocess.run(
+        # POSIX ERE, which is what git grep speaks: no `\s`. The rows are then
+        # matched again with REQ_DEF below, so this only has to be no narrower
+        # than that pattern.
+        ["git", "grep", "-h", "-E",
+         r"^\|[[:space:]]*\*\*[A-Z]+[0-9]*-R[0-9]+\*\*[[:space:]]*\|",
+         ref, "--", "*.md"],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    # Exit 1 is "no match", which is an answer. Anything else is a ref this
+    # clone cannot read, and guessing about it would defeat the point.
+    if done.returncode not in (0, 1):
+        return set()
+    return set(REQ_DEF.findall(done.stdout))
+
+
+def defined(here: bool = False) -> dict[str, dict[int, pathlib.Path]]:
     """Every requirement this repository defines, by prefix and number.
 
     Read from definitions rather than citations. A citation of an identifier that
@@ -45,6 +91,15 @@ def defined() -> dict[str, dict[int, pathlib.Path]]:
         for identifier in REQ_DEF.findall(path.read_text(encoding="utf-8")):
             prefix, number = identifier.rsplit("-R", 1)
             found[prefix][int(number)] = path.relative_to(ROOT)
+
+    if not here:
+        for ref in branches():
+            short = ref.removeprefix("refs/remotes/")
+            for identifier in defined_on(ref):
+                prefix, number = identifier.rsplit("-R", 1)
+                # A number this tree already has keeps the path it has here; the
+                # branch is only ever news about one the tree does not know.
+                found[prefix].setdefault(int(number), pathlib.Path(f"({short})"))
     return found
 
 
@@ -67,9 +122,27 @@ def main() -> int:
     parser.add_argument("prefix", nargs="?", help="the family, e.g. DES or N1")
     parser.add_argument("-n", "--count", type=int, default=1)
     parser.add_argument("--prefixes", action="store_true", help="list every prefix in use")
+    parser.add_argument(
+        "--here", action="store_true",
+        help="read this tree only, ignoring what other branches have taken",
+    )
     args = parser.parse_args()
 
-    families = defined()
+    families = defined(here=args.here)
+    seen = 0 if args.here else len(branches())
+    if args.here:
+        print(
+            "# reading this tree only: an identifier taken on an unmerged "
+            "branch will be handed out again.", file=sys.stderr,
+        )
+    elif not seen:
+        print(
+            "# no branches could be read, so only this tree was searched. An "
+            "identifier taken on an unmerged branch will be handed out again.",
+            file=sys.stderr,
+        )
+    else:
+        print(f"# {seen} branch(es) read as well as this tree.", file=sys.stderr)
 
     if args.prefixes:
         return report_prefixes(families)
