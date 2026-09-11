@@ -130,5 +130,5 @@ discover gaps.
 - [A2 Setup wizard](a2-setup-wizard.md) — the path when nothing exists
 - [A4 Reconfiguration](a4-reconfiguration.md) — changing decisions post-migration
 - [C5 Storage management](../c-trust/c5-storage.md) — the hardlink assessment
-- [E3 Backup & restore](../e-maintenance/e3-backup-restore.md) — the safety net, taken directly after an adoption rather than before it, for the reason stated there
+- [E3 Backup & restore](../e-maintenance/e3-backup-restore.md) — the pre-migration safety net, which captures the existing setup's own paths rather than lemonfiber's
 - [F1 Customisation](../f-extensibility/f1-customisation.md) — for operators keeping their own compose file
