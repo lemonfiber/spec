@@ -78,6 +78,15 @@ lang = "YAML/TOML"
 note = "Runs standalone; the compose rules CI enforces"
 
 [[repo]]
+name = "lemonfiber-plugins"
+node = "plugins"
+group = "impl"
+label = "lemonfiber-plugins<br/>the reviewed catalogue"
+spec = ["lemonfiber-plugins.md"]
+lang = "TOML"
+note = "Reviewed and signed, and never a runtime dependency"
+
+[[repo]]
 name = "homebrew-tap"
 node = "tap"
 group = "impl"
@@ -158,6 +167,11 @@ label = "contract artefact"
 from = "lemonfiber-companion"
 to = "sdk-php"
 label = "pinned; every call goes through it"
+
+[[edge]]
+from = "lemonfiber-plugins"
+to = "lemonfiber"
+label = "fetched on request, never embedded"
 
 [[edge]]
 from = "lemonfiber"
