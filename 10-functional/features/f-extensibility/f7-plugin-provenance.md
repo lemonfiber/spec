@@ -4,7 +4,7 @@ title: Plugin provenance
 kind: feature
 area: F
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [extensibility, ux, verification]
@@ -14,7 +14,7 @@ relates: [F4, F5, C9, G2]
 
 # F7 — Plugin provenance
 
-**Status:** Draft · **Audience:** Operator · **Area:** F — Extensibility
+**Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
 ---
 

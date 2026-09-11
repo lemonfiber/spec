@@ -4,7 +4,7 @@ title: Plugin lifecycle
 kind: feature
 area: F
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [extensibility, verification, updates]
@@ -14,7 +14,7 @@ relates: [F5, F7, E3, C9]
 
 # F6 — Plugin lifecycle
 
-**Status:** Draft · **Audience:** Operator · **Area:** F — Extensibility
+**Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
 ---
 

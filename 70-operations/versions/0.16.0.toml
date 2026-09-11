@@ -1,17 +1,28 @@
-# Plugins, part one — the manifest, its recipes, and the capabilities wiring asks for.
+# Plugins, part one — the whole plugin system except the recipes.
 #
-# First of the two, and first of what follows 0.15.0, because it changes the stack
-# manifest and introduces the capability vocabulary. Everything sequenced after it is
-# then built on the shape that ships rather than retrofitted onto it, and the schema
-# has several minors of use behind it before 1.0.0 freezes it.
+# Re-sliced, and not as first drafted. The first cut put the manifest alone here and the
+# lifecycle behind it, which would have shipped a plugin format with no way to install a
+# plugin — close to the stub OPS-R54 exists to refuse. The second cut kept capabilities
+# back to 0.17.0 and did not survive check_order: F6 requires F4, because its rehearsal
+# states which capability would change hands and F6-R11 is about one left unfilled. So
+# the substitution vocabulary comes with the lifecycle that uses it.
 #
-# 36 goals, seeded from the roadmap milestone this version serves;
+# What is held back is recipes (F8), which is the split that was actually load-bearing:
+# a recipe runs with lemonfiber's own authority on behalf of a stranger's manifest, and
+# it is the riskiest mechanism in the design. It does not belong in the same version as
+# the first plugin anything.
+#
+# F3-R15, R16, R19 and R20 are absent because they were withdrawn to F8 (GOV-R8 keeps
+# the numbers dead); OPS-R30 forbids a Withdrawn requirement being a goal.
+#
+# 60 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
-delivers  = "Plugins — what one is, how it wires, and what it may stand in for"
+delivers  = "Plugins — what one is, what it may stand in for, and what installing one leaves readable"
 status  = "planned"
 repos   = ["lemonfiber"]
+satisfied_in = ["lemonfiber", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php"]
 goals   = [
     "F3-R1",
     "F3-R2",
@@ -27,14 +38,13 @@ goals   = [
     "F3-R12",
     "F3-R13",
     "F3-R14",
-    "F3-R15",
-    "F3-R16",
     "F3-R17",
     "F3-R18",
-    "F3-R19",
-    "F3-R20",
     "F3-R21",
     "F3-R22",
+    "F3-R23",
+    "F3-R24",
+    "F3-R25",
     "F4-R1",
     "F4-R2",
     "F4-R3",
@@ -49,6 +59,31 @@ goals   = [
     "F4-R12",
     "F4-R13",
     "F4-R14",
+    "F6-R1",
+    "F6-R2",
+    "F6-R3",
+    "F6-R4",
+    "F6-R5",
+    "F6-R6",
+    "F6-R7",
+    "F6-R8",
+    "F6-R9",
+    "F6-R10",
+    "F6-R11",
+    "F6-R12",
+    "F6-R13",
+    "F7-R1",
+    "F7-R2",
+    "F7-R3",
+    "F7-R4",
+    "F7-R5",
+    "F7-R6",
+    "F7-R7",
+    "F7-R8",
+    "F7-R9",
+    "F7-R10",
+    "F7-R11",
+    "F7-R12",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

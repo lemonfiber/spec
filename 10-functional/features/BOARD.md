@@ -85,9 +85,9 @@ code, and the two move independently.
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
 | [F4](f-extensibility/f4-capabilities.md) | Capabilities and substitution | F | operator | accepted | `0.16.0` |
-| [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | draft | `0.17.0` |
-| [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | draft | `0.17.0` |
-| [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | draft | `0.17.0` |
+| [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | accepted | `0.17.0` |
+| [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | accepted | `0.16.0` |
+| [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | accepted | `0.16.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | draft | — |
 | [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.18.0` |
