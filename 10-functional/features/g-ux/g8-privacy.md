@@ -57,6 +57,25 @@ Nothing else. The list is short by design and is testable.
 Requests made by the *services* — indexer queries, metadata lookups — are theirs
 and are documented as such rather than claimed as lemonfiber's.
 
+**An installed plugin adds a third kind**, and it is neither of the first two. A
+plugin's recipe call is a request *lemonfiber makes on the plugin's behalf*: not
+lemonfiber's own, because lemonfiber has no reason of its own to make it, and not
+the stack's, because no service made it. So the account holds three kinds, each
+answering a different question — *why does this tool reach out*, *what do the
+services it runs reach out for*, and *who asked for this one*.
+
+The third kind is attributed to the plugin that declared it, and it is refusable
+like the first. Refusing it is not free and does not pretend to be: a plugin whose
+reach is switched off is a plugin whose recipes cannot run, and the account says
+so in those words rather than leaving the operator to discover it. What it is
+**not** is a silent failure — a refused reach is reported as nothing having been
+asked, the same answer a credential gets when the request that would prove it is
+switched off.
+
+The closed list is therefore still a closed list. It is just no longer four
+entries long by construction; it is four, plus what each installed plugin
+declared, with a name against every addition.
+
 ### The update check is minimal and optional
 
 It asks a version endpoint what the latest version is. It transmits no identifier,
@@ -87,12 +106,21 @@ running the server can see what they watched.
 A test verifies that no unexpected outbound connection occurs. A privacy claim
 maintained by good intentions decays; one maintained by a failing test does not.
 
+Plugins change what *unexpected* means, and the test has to change with them or
+it quietly stops testing anything. The destinations are no longer all known when
+the test is written: some of them are data, read from manifests the author never
+saw. So the test measures against **lemonfiber's own documented set together with
+the declared reach of whatever is installed** — and, separately and
+non-negotiably, that with no plugin installed the set is exactly the documented
+one. The second half is what keeps the first honest; without it, a test that
+accepts "whatever was declared" accepts everything.
+
 ## States
 
 | State | Meaning |
 |-------|---------|
 | `default` | Update check enabled; no telemetry |
-| `offline` | All outbound requests by lemonfiber disabled |
+| `offline` | All outbound requests by lemonfiber disabled, including those it would make on a plugin's behalf |
 | `air-gapped` | No network expected; update checks silent |
 
 ## Edge cases
@@ -108,6 +136,10 @@ maintained by good intentions decays; one maintained by a failing test does not.
 | Household member asks who can see their activity | Disclosed: the operator can, via Jellyfin's administration. |
 | A dependency introduces telemetry | Prohibited. Dependency review MUST check for it. |
 | Operator wants to contribute usage data | Not offered. There is no mechanism, deliberately. |
+| An installed plugin declares a host | It joins the account as a third kind, attributed to the plugin, refusable on its own, with the cost of refusing stated as what stops working. |
+| An operator refuses an installed plugin's reach | Its recipes report that nothing was asked, rather than failing as though the host were down. The plugin stays installed and says it cannot work. |
+| A plugin would send something the operator did not agree to | Refused at validation, before installing — the pair was never declared, so there is nothing to switch off later. |
+| A plugin's declared host is where its own vendor collects usage data | lemonfiber does not prohibit it and does not conceal it. The pair is named at rehearsal, the destination is named in the account, and the operator decides. What is prohibited is lemonfiber doing it, or doing it on a plugin's behalf unasked. |
 
 ## Acceptance criteria
 
@@ -127,6 +159,10 @@ maintained by good intentions decays; one maintained by a failing test does not.
 | **G8-R12** | Requests made by stack services MUST be documented as theirs, not attributed to lemonfiber. |
 | **G8-R13** | Operator visibility of household watch history MUST be disclosed to household members. |
 | **G8-R14** | Outbound requests MUST be logged locally so the operator can verify what was sent. |
+| **G8-R15** | The account of what leaves this machine MUST distinguish lemonfiber's own requests, the stack services' own requests, and requests lemonfiber makes on an installed plugin's behalf, and MUST attribute each of the third kind to the plugin that declared it. |
+| **G8-R16** | A plugin's declared reach MUST be refusable on its own, the consequence MUST be stated as what stops working, and a refused reach MUST be reported as nothing having been asked rather than as a failure of the destination. |
+| **G8-R17** | The test that verifies no unexpected outbound connection MUST measure against lemonfiber's documented set together with the declared reach of installed plugins, and MUST separately verify that with no plugin installed the set is exactly the documented one. |
+| **G8-R18** | lemonfiber MUST NOT transmit anything on a plugin's behalf that the operator has not approved, and approval MUST be of the specific value and destination rather than of the installation as a whole. |
 
 ## Related
 
