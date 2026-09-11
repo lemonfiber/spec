@@ -35,7 +35,7 @@ stub** — a release refuses while a feature it locks is not yet built
 | `0.12.0` | M8 | Living within limits — disk, retention, bandwidth | Released |
 | `0.13.0` | M9 | Changing your mind — reconfigure, migrate, uninstall, credentials | Released |
 | `0.14.0` | M9 | Keeping it running — updates, backup, rollback, the journal | Staged |
-| `0.15.0` | M9 | The last of v1 — remote control, autostart, customisation | Planned |
+| `0.15.0` | M9 | Away from the keyboard — remote control, autostart, customisation | Planned |
 | `0.16.0` | M14 | Plugins — what one is, how it wires, and what it may stand in for | Planned |
 | `0.17.0` | M14 | Plugins — where they come from, what installing one does, and what it leaves readable | Planned |
 | `0.18.0` | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
@@ -294,21 +294,24 @@ of use behind it before `1.0.0` freezes it.
 
 ---
 
-## M15 — Runs anywhere
+## M14 — The platform
 
-`0.22.0`. The container engine becomes one implementation behind an
-abstraction rather than an assumption, which lifts the single-engine non-goal
-([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)).
+`0.16.0` and `0.17.0`. Other people's stacks, and the surface that makes them
+possible. F3 and F4 are Accepted; the catalogue, lifecycle and provenance
+features (F5–F7) are Draft.
 
 | Deliverable | Notes |
 |-------------|-------|
-| Container-engine abstraction | One port, Docker behind it; nothing above it names an engine |
-| Podman | A first-class alternative, not a compatibility shim |
-| Native, without containers | Services run as processes; the same manifest describes both |
-| Upgrade in place | An existing install moves to `0.22.0` keeping its configuration and data |
+| Plugin manifests and recipes | F3 — declarative data carrying ordered calls, so a first-run flow is data rather than code |
+| Capabilities and substitution | F4 — services declare what they can do and wiring asks for it, which is what lets one stand in for another |
+| The plugin catalogue | F5 — reviewed, signed, and an operator's own source on the same technical terms with unreviewed said plainly |
+| Plugin lifecycle | F6 — rehearse, install, prove, verify the stack around it, and reverse through the journal on either failure |
+| Plugin provenance | F7 — four redundant answers to why did my stack do that |
+| Mobile client handoff | G9 — a household member's phone reaches the library in one step |
 
-**Exit criteria:** the same stack starts, passes doctor and serves media under
-Docker, under Podman, and with no container runtime present.
+**Exit criteria:** a plugin authored outside this project installs, proves itself,
+and substitutes for a bundled service with no change to lemonfiber — and removing it
+puts the stack back.
 
 ---
 
@@ -363,23 +366,21 @@ notification the trust checks already know how to send.
 
 ---
 
-## M14 — The platform
+## M15 — Runs anywhere
 
-`0.16.0` and `0.17.0`. Other people's stacks, and the surface that makes them
-possible *(Draft)*.
+`0.22.0`. The container engine becomes one implementation behind an
+abstraction rather than an assumption, which lifts the single-engine non-goal
+([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)).
 
 | Deliverable | Notes |
 |-------------|-------|
-| Plugin manifests and recipes | F3 — declarative data carrying ordered calls, so a first-run flow is data rather than code |
-| Capabilities and substitution | F4 — services declare what they can do and wiring asks for it, which is what lets one stand in for another |
-| The plugin catalogue | F5 — reviewed, signed, and an operator's own source on the same technical terms with unreviewed said plainly |
-| Plugin lifecycle | F6 — rehearse, install, prove, verify the stack around it, and reverse through the journal on either failure |
-| Plugin provenance | F7 — four redundant answers to why did my stack do that |
-| Mobile client handoff | G9 — a household member's phone reaches the library in one step |
+| Container-engine abstraction | One port, Docker behind it; nothing above it names an engine |
+| Podman | A first-class alternative, not a compatibility shim |
+| Native, without containers | Services run as processes; the same manifest describes both |
+| Upgrade in place | An existing install moves to `0.22.0` keeping its configuration and data |
 
-**Exit criteria:** a plugin authored outside this project installs, proves itself,
-and substitutes for a bundled service with no change to lemonfiber — and removing it
-puts the stack back.
+**Exit criteria:** the same stack starts, passes doctor and serves media under
+Docker, under Podman, and with no container runtime present.
 
 ## Beyond `1.0.0`
 

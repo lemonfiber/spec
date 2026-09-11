@@ -87,7 +87,7 @@ Stated plainly, because a guard half the people believe in is worse than none:
   `captainhook.json`; none of them is installed anywhere, so nothing conflicts
   today. Satisfying `OPS-R51` means a `pre-commit` file in `.githooks/` next to
   this one, not `lefthook install`
-  ([tooling](../40-quality/tooling.md#lefthook-and-the-pre-push-guard-that-displaced-it)).
+  ([tooling](../40-quality/tooling.md#the-hooks-and-why-there-is-no-hook-manager)).
 
 Refusing a push straight to `main` is belt and braces: branch protection already
 enforces it server-side on every repo, for everyone, hook or not. Refusing a push

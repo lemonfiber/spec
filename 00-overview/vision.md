@@ -124,7 +124,7 @@ Named explicitly so they're rejected on purpose rather than forgotten.
 | Non-goal | Why |
 |----------|-----|
 | Multi-tenant operation | Several *households* sharing one stack. A single household with several members **is** in scope — see below. |
-| Kubernetes / Nomad | Compose is correct at this scale. Orchestrators multiply the platform matrix for no single-household benefit. (A Docker-optional runtime — Podman, and a native profile — is a **v2** goal, deliberately reopened by [ADR-0010](decisions/0010-engine-abstraction-for-v2.md); it stays out of v1.) |
+| Kubernetes / Nomad | Compose is correct at this scale. Orchestrators multiply the platform matrix for no single-household benefit. (A Docker-optional runtime — Podman, and a native profile — is scheduled for `0.22.0`, deliberately reopened by [ADR-0010](decisions/0010-engine-abstraction-for-v2.md); it is out of scope for the single-engine assumption this line is about.) |
 | Managing content acquisition policy | lemonfiber wires the tools together. What you point them at is yours. |
 | Being a general Docker manager | Lazydocker exists. lemonfiber knows about *this* stack, and that knowledge is the value. |
 | Windows without WSL2 | Docker Desktop requires it. Supporting Hyper-V-only setups isn't worth the matrix. |
@@ -134,7 +134,7 @@ Named explicitly so they're rejected on purpose rather than forgotten.
 
 | Deferred | Status |
 |----------|--------|
-| **Remote access for the household** | Watching from outside the home. Deferred from 1.0 because every easy candidate had a proprietary control plane (Tailscale). It is a **v2** feature ([I1](../10-functional/features/i-remote-access/i1-remote-access.md)), built on a self-hosted overlay (Headscale + self-hosted relay). Household features stay **LAN-only** in v1. See [roadmap](roadmap.md#post-10-candidates). |
+| **Remote access for the household** | Watching from outside the home. Deferred because every easy candidate had a proprietary control plane (Tailscale). It is scheduled for `0.20.0` as [I1](../10-functional/features/i-remote-access/i1-remote-access.md), built on a self-hosted overlay (Headscale + self-hosted relay). Household features stay **LAN-only** until it lands. See [roadmap](roadmap.md#m12--safely-reachable). |
 
 ### Formerly non-goals
 
