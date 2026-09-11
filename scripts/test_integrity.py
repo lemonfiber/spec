@@ -376,6 +376,20 @@ class Writing(StatedCounts):
         self.assertIn("1 stated count(s) rewritten", out)
         self.assertEqual(integrity.stated_counts(), [])
 
+    def test_a_file_outside_the_tree_is_refused_rather_than_written(self):
+        # `md_files()` yields from inside ROOT, so this is a guard rather than a
+        # case that happens — which is the point: it cannot start happening
+        # quietly.
+        self.index(77)
+        outside = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, outside, ignore_errors=True)
+        stray = outside / "stray.md"
+        stray.write_text("The 1-feature catalogue.\n", encoding="utf-8")
+        (self.tmp / "link.md").symlink_to(stray)
+        reported = integrity.write_counts()
+        self.assertTrue(any("outside the spec tree" in line for line in reported), reported)
+        self.assertIn("1-feature", stray.read_text(encoding="utf-8"))
+
     def test_a_tree_with_no_catalogue_writes_nothing(self):
         shutil.rmtree(self.features.parent)
         self.assertEqual(integrity.write_counts(), [])

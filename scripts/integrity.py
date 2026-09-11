@@ -169,8 +169,17 @@ def write_counts() -> list[str]:
                 return found.group(0).replace(found.group(1), str(actual), 1)
 
             text = re.sub(pattern, replace, text)
-        if text != original:
-            path.write_text(text, encoding="utf-8")
+        if text == original:
+            continue
+        # Only ever write inside the tree that was counted. `md_files()` yields
+        # from `ROOT.rglob`, so this holds today — asserting it means a symlink
+        # out of the tree, or a future caller passing a path from somewhere
+        # else, cannot make it stop holding quietly.
+        inside = path.resolve()
+        if not inside.is_relative_to(ROOT.resolve()):
+            changed.append(f"{path}: outside the spec tree, not rewritten")
+            continue
+        inside.write_text(text, encoding="utf-8")
     return changed
 
 
