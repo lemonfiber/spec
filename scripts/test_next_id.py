@@ -184,7 +184,7 @@ class Branches(unittest.TestCase):
     def test_here_reads_the_tree_only_and_says_what_that_costs(self):
         self.commit("main.md", "F-R1")
         self.on_a_branch("in-flight", "flight.md", "F-R3")
-        code, out, err = run("F", "--here")
+        _, out, err = run("F", "--here")
         self.assertEqual(out.strip(), "F-R2")
         self.assertIn("handed out again", err)
 
