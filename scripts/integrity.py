@@ -101,8 +101,10 @@ def stated_counts() -> list[str]:
         return []
     if not index.is_file():
         return [
-            f"{index.relative_to(ROOT)} is missing, so the counts this "
-            "repository states about its catalogue cannot be checked"
+            (
+                f"{index.relative_to(ROOT)} is missing, so the counts this "
+                "repository states about its catalogue cannot be checked"
+            )
         ]
 
     counts = json.loads(index.read_text(encoding="utf-8"))["counts"]
