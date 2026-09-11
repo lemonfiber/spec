@@ -148,11 +148,12 @@ def build_rows(feats, by_feature):
     return rows
 
 
-MATURITIES = ("shipped", "building", "planned", "withdrawn")
+MATURITIES = ("shipped", "built", "building", "planned", "withdrawn")
 
 MATURITY_LABEL = {
     "shipped": "Shipped — built, and out in a version",
-    "building": "Building — work has started, or a version in flight locks it",
+    "built": "Built — every requirement met, waiting for its version to be released",
+    "building": "Building — work has started and is not finished",
     "planned": "Planned — specified, not yet built",
     "withdrawn": "Withdrawn — no longer to be built",
 }
