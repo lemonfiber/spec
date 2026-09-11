@@ -36,6 +36,13 @@ jobs:
           coverage run --append scripts/test_shared_files.py
           coverage run --append scripts/test_next_id.py
           coverage report --fail-under=100
+      # Not a coverage suite: it reads `.coveragerc` against the scripts directory
+      # and fails on a script in neither the include list nor the declared-unmeasured
+      # table. Without it the report above is a percentage of whatever it was
+      # pointed at, and a script added beside it is measured by nothing — which is
+      # how `next_id.py` merged unaccounted (Q-R61, Q-R66).
+      - name: Every script is measured or declared
+        run: python3 scripts/test_coverage_reads_every_script.py
       # Not a coverage suite: it runs the ratchet step out of sonar-gate.yml against
       # a stubbed GitHub and checks what it refuses (Q-R66). The gate it exercises
       # is shell inside a workflow, so there are no Python lines here to measure.
