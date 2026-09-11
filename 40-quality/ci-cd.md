@@ -194,7 +194,7 @@ Every repo: required checks must pass, `spec-check` among them, before merge
 | **Q-R36** | A release smoke test MUST run the binary on all three platforms, not merely build it. |
 | **Q-R37** | Every repository in the org MUST require passing checks before merge; the override MUST bypass only spec-check. |
 | **Q-R64** | Open SonarCloud issues MUST be zero, enforced as a blocking CI check independent of the Sonar plan's own quality gate, since the free plan's gate cannot be configured to this standard (`Q-R63`). |
-| **Q-R67** | A repository that has not yet reached zero MUST declare what it still carries, in its own workflow, as a number that MUST NOT increase. |
+| **Q-R67** | A repository that has not yet reached zero MUST declare what it still carries, in its own workflow, as a number that MUST NOT increase beyond what already stands against the branch it merges into. |
 
 ### Reaching zero from a backlog
 
@@ -219,6 +219,22 @@ needs no comparison, since no count is below it. The gate also says so in its
 verdict when the true count is below the declaration, and a repository that
 declares its backlog rather than reducing it is failing `Q-R67` whatever the
 check reports.
+
+A backlog can arrive without anybody writing a line. An analyser enables a rule,
+and a repository that had reached zero is carrying issues no diff of its own
+introduced. "Declare what is left and work it down" is what the allowance is for,
+and at zero there was no way to say it — the ratchet refused every number above
+the zero already declared, **including on the pull request that fixed them**. A
+gate whose remedy it blocks is a gate nobody can obey, and the only ways past it
+were an override or a lie.
+
+So a raise is permitted, and only as far as reality: the gate reads how many
+issues actually stand against the base branch and refuses any declaration past
+that number. What cannot be declared is headroom. A diff that brings a new issue
+cannot raise the ceiling to cover it, because the count it would have to point at
+is the count from before the diff — and the new-issue check has already refused
+it on its own. A raise the gate cannot check is refused on the same reasoning as
+a base it cannot read.
 
 ## Related
 
