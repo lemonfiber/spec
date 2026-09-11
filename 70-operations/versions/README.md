@@ -38,9 +38,10 @@ Minors (`0.4.0`, `1.3.0`, …) are themed slices toward the next major; patches
 (`x.y.Z`) are hotfixes; a major (`X.0.0`) carries the capability that justifies
 the number. Whichever it is, **a version MUST NOT ship a feature it has not
 finished** — before the tag, every feature this manifest's `goals` name has to be
-`maturity: shipped` in the [catalogue](../../10-functional/features/README.md)
-([OPS-R54](../staging.md)). A goal is a requirement, and a feature is more than
-its requirements taken one at a time; a major's list is measured against both.
+**`built`** in the [catalogue](../../10-functional/features/README.md), which
+[OPS-R54](../staging.md) states in full along with why it is `built` rather than
+`shipped`. A goal is a requirement, and a feature is more than its requirements
+taken one at a time; a major's list is measured against both.
 
 ## Rules
 
