@@ -91,7 +91,7 @@ The hardest part of the product, and where most users are lost today.
 | [B10](b-running/b10-hosting.md) | Hosting long-running commands | Operator |
 
 > **B7 (remote access for the household) is deferred** — household features are
-> **LAN-only** until it lands. It returns as [I1](i-remote-access/i1-remote-access.md) in `0.20.0`,
+> **LAN-only** until it lands. It returns as [I1](i-remote-access/i1-remote-access.md) in `0.21.0`,
 > once a self-hosted overlay control plane (Headscale + self-hosted relay) makes
 > it possible without the proprietary control plane that blocked it (Tailscale).
 > See [ADR-0010](../../00-overview/decisions/0010-engine-abstraction-for-v2.md) for the

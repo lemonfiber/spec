@@ -48,6 +48,7 @@ their state is captured. Correctness outranks convenience here.
 | lemonfiber configuration and expected-state baseline | Downloads in progress |
 | Materialised stack files and local modifications | Container images |
 | Credentials **(marked sensitive)** | Logs beyond a recent window |
+| An existing setup's own configuration, before adopting it | A tree lemonfiber does not manage, on the way back — see `E3-R16` |
 
 ### Backups containing credentials are labelled as such
 
@@ -64,20 +65,26 @@ configuration removal ([A6](../a-getting-started/a6-uninstall.md)), and
 immediately after adopting an existing setup
 ([A5](../a-getting-started/a5-migration.md)). Not offered — taken.
 
-**Adoption is the one that comes after, and the reason is worth stating so
-nobody moves it back.** A capture is described in terms of lemonfiber's own
-layout — its configuration directory, the service configuration under its data
-root, the materialised stack. At adopt time none of that is the thing worth
-protecting: the operator's setup is wherever they put it, and lemonfiber has not
-taken it over yet. A whole-stack capture run at that moment would archive
-lemonfiber's own empty layout and call it a backup, which is worse than no
-backup, because it is a backup somebody would rely on. Taken directly after the
-adoption, the same capture describes the setup that was just taken over, and is
-true.
+**Adoption's capture reads the operator's own paths, not lemonfiber's, and that
+is what makes it possible to take it before.** This requirement briefly said
+*after* instead, and the reasoning was sound at the time: a capture was described
+only in terms of lemonfiber's own layout — its configuration directory, the
+service configuration under its data root, the materialised stack — and at adopt
+time none of that is the thing worth protecting. A whole-stack capture run then
+would archive lemonfiber's own empty layout and call it a backup, which is worse
+than no backup, because it is a backup somebody would rely on.
 
-What that leaves uncovered is stated in the edge cases below rather than hidden
-in this sentence: nothing here captures the operator's configuration in the
-state it was in *before* lemonfiber first touched it.
+What was wrong with moving it was that *after* does not fix it either. Adoption
+writes one line — the Compose project lemonfiber manages — and moves nothing. The
+operator's configuration stays where it was, so a whole-stack capture a moment
+later describes the same empty layout. The premise that needed changing was never
+the timing; it was that lemonfiber could only ever capture its own tree.
+
+So the scope is what changed. A capture taken before an adoption covers the
+existing setup's own directories, at the host paths the survey already reports
+for exactly this purpose, and the trigger goes back where the requirement first
+had it. That is the protection worth having: an operator's configuration as it
+stood **before** a tool they had just met touched anything.
 
 ### Restore is selective
 
@@ -120,7 +127,10 @@ silently fill the disk they were protecting.
 | Restore with a different data root | Detect the path difference and offer to re-point rather than restoring paths that don't exist. |
 | Backup includes credentials no longer valid | Restore them; report which fail validation afterwards. |
 | Operator wants media backed up | Out of scope. State it and point at general-purpose backup tools — pretending to solve it badly is worse. |
-| Operator wants their configuration captured as it was **before** lemonfiber touched it | Not offered today, and not because it is a bad idea — it protects the case that matters most, a setup a tool the operator has just met is about to change. It needs a capture scope for a project lemonfiber does not own, which raises a second question this feature has no answer for: where a restore of it would put files back, in a tree lemonfiber does not manage. Until both are answered, say what adoption does capture and when, rather than implying the earlier state was kept. |
+| Operator wants their configuration captured as it was **before** lemonfiber touched it | This is what the capture before an adoption is for, and it reads the existing setup's own host paths rather than lemonfiber's layout. |
+| The setup being adopted is still running | Adoption is refused until it is stopped. The capture that must precede it copies that setup's own service databases, and copying a live one is the corruption a backup exists to prevent; the project proved still is the **existing** setup's, never lemonfiber's, which does not exist yet and would answer "nothing running" to any question asked of it. |
+| The setup being adopted mounts no host paths | There is nothing to capture, and adoption proceeds without an archive. A capture of nothing recorded as a backup would be worse than none: it reads as protection that was never there. |
+| Restoring an archive of a setup lemonfiber does not manage | Refused. The archive records the host path each tree came from and lists them, and putting them back is an extraction the operator performs. lemonfiber writing into a tree it does not manage is the one step of a restore nobody can sanction on their behalf, and an automatic one would land on a setup that has since moved on. |
 | Backup taken mid-update | Only meaningful pre- or post-update; take it before, never during. |
 | Partial restore leaves inconsistency | Re-run [seed](../d-content/d1-seed.md) after restore to reconcile inter-service wiring. |
 | Retention would delete the only backup | Never prune to zero. |
@@ -133,7 +143,7 @@ silently fill the disk they were protecting.
 | **E3-R2** | Backups MUST include service configuration, lemonfiber configuration, the expected-state baseline, and materialised stack files. |
 | **E3-R3** | Backups MUST NOT include the media library. |
 | **E3-R4** | Backups containing credentials MUST be labelled sensitive at creation and within the archive. |
-| **E3-R5** | A backup MUST be taken automatically before updates and before configuration removal, and immediately after lemonfiber adopts an existing setup. Adoption is the one of the three that comes after rather than before: until the setup is taken over, what is worth capturing is not in a layout lemonfiber can describe. |
+| **E3-R5** | A backup MUST be taken automatically before updates, before adoption, and before configuration removal. The capture taken before an adoption MUST cover the **existing setup's own configuration**, at the host paths the survey reports, rather than lemonfiber's layout — which holds nothing worth protecting until the takeover has happened. |
 | **E3-R6** | Restore MUST support whole-stack and single-service scope. |
 | **E3-R7** | An archive MUST be verified and its contents listed before anything is overwritten. |
 | **E3-R8** | A corrupt or incompatible archive MUST be refused before modification begins. |
@@ -144,6 +154,7 @@ silently fill the disk they were protecting.
 | **E3-R13** | Restore MUST report which restored credentials subsequently fail validation. |
 | **E3-R14** | After restore, inter-service wiring MUST be reconciled by re-running seed. |
 | **E3-R15** | A full backup of a typical configuration SHOULD complete within 60 seconds. |
+| **E3-R16** | lemonfiber MUST NOT restore a captured tree it does not manage. An archive of an existing setup MUST record the host path each tree was taken from, so putting it back is an ordinary extraction the operator performs deliberately. Writing into a tree lemonfiber does not manage is the one step in a restore nobody can sanction on the operator's behalf. |
 
 ## Related
 

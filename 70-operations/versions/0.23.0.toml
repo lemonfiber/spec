@@ -1,0 +1,55 @@
+# **Running without Docker.** The container engine becomes one implementation behind an abstraction, Podman becomes a first-class alternative, and the stack can run natively with no containers at all. A different product generation, which is why it is a major.
+#
+# 42 goals, seeded from the roadmap milestone this version serves;
+# frozen at stage-version (OPS-R30).
+version = "0.23.0"
+milestone = "M15"   # Runs anywhere
+delivers  = "Runs without Docker — engine abstraction, Podman, native"
+status  = "planned"
+repos   = ["lemonfiber"]
+goals   = [
+    "J1-R1",
+    "J1-R2",
+    "J1-R3",
+    "J1-R4",
+    "J1-R5",
+    "J1-R6",
+    "J1-R7",
+    "J1-R8",
+    "J1-R9",
+    "J1-R10",
+    "J1-R11",
+    "J1-R12",
+    "J1-R13",
+    "J1-R14",
+    "J2-R1",
+    "J2-R2",
+    "J2-R3",
+    "J2-R4",
+    "J2-R5",
+    "J2-R6",
+    "J2-R7",
+    "J2-R8",
+    "J2-R9",
+    "J2-R10",
+    "J2-R11",
+    "J2-R12",
+    "J2-R13",
+    "J2-R14",
+    "J3-R1",
+    "J3-R2",
+    "J3-R3",
+    "J3-R4",
+    "J3-R5",
+    "J3-R6",
+    "J3-R7",
+    "J3-R8",
+    "J3-R9",
+    "J3-R10",
+    "J3-R11",
+    "J3-R12",
+    "J3-R13",
+    "J3-R14",
+]
+
+# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
