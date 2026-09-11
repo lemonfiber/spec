@@ -38,11 +38,12 @@ stub** — a release refuses while a feature it locks is not yet built
 | `0.15.0` | M9 | Away from the keyboard — remote control, autostart, customisation | Planned |
 | `0.16.0` | M14 | Plugins — what one is, installing one, and what that leaves readable | Planned |
 | `0.17.0` | M14 | Plugins — what the bundled stack can do, and where a plugin comes from | Planned |
-| `0.18.0` | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
-| `0.19.0` | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
-| `0.20.0` | M12 | Safely reachable — remote access and one account | Planned |
-| `0.21.0` | M13 | See everything — metrics, dashboards, uptime | Planned |
-| `0.22.0` | M15 | Runs without Docker — engine abstraction, Podman, native | Planned |
+| `0.18.0` | M14 | Plugins — the calls that configure what one installed, and what they may carry where | Planned |
+| `0.19.0` | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
+| `0.20.0` | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
+| `0.21.0` | M12 | Safely reachable — remote access and one account | Planned |
+| `0.22.0` | M13 | See everything — metrics, dashboards, uptime | Planned |
+| `0.23.0` | M15 | Runs without Docker — engine abstraction, Podman, native | Planned |
 | `1.0.0` | M6 | The dashboard — a bare `lemonfiber` opens it. Everything specced is built, and the interfaces stop moving. | Planned |
 
 ### Patch releases (hotfixes)
@@ -337,7 +338,7 @@ that some substitutions need wait for F8.
 
 ## M11 — Ecosystem glue
 
-`0.18.0`–`0.19.0`. The integrations a mature stack grows into, each one *verified*
+`0.19.0`–`0.20.0`. The integrations a mature stack grows into, each one *verified*
 rather than merely wired.
 
 | Deliverable | Notes |
@@ -358,7 +359,7 @@ presence in a configuration file.
 
 ## M12 — Safely reachable
 
-`0.20.0`. Reaching the stack from outside the house without opening it to the
+`0.21.0`. Reaching the stack from outside the house without opening it to the
 world.
 
 | Deliverable | Notes |
@@ -373,7 +374,7 @@ port exposed to the internet, signing in once.
 
 ## M13 — See everything
 
-`0.21.0`. The stack's own telemetry, for the operator who wants graphs rather
+`0.22.0`. The stack's own telemetry, for the operator who wants graphs rather
 than a dashboard.
 
 | Deliverable | Notes |
@@ -388,7 +389,7 @@ notification the trust checks already know how to send.
 
 ## M15 — Runs anywhere
 
-`0.22.0`. The container engine becomes one implementation behind an
+`0.23.0`. The container engine becomes one implementation behind an
 abstraction rather than an assumption, which lifts the single-engine non-goal
 ([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)).
 
@@ -397,7 +398,7 @@ abstraction rather than an assumption, which lifts the single-engine non-goal
 | Container-engine abstraction | One port, Docker behind it; nothing above it names an engine |
 | Podman | A first-class alternative, not a compatibility shim |
 | Native, without containers | Services run as processes; the same manifest describes both |
-| Upgrade in place | An existing install moves to `0.22.0` keeping its configuration and data |
+| Upgrade in place | An existing install moves to `0.23.0` keeping its configuration and data |
 
 **Exit criteria:** the same stack starts, passes doctor and serves media under
 Docker, under Podman, and with no container runtime present.
