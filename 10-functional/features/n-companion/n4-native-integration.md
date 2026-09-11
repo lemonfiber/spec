@@ -136,6 +136,12 @@ or the system's theme.
 | **N4-R13** | A diagnostic report MUST be assembled for the operator to send, and MUST NOT be transmitted by the app. |
 | **N4-R14** | The app MUST honour the platform's text scaling, screen reader, contrast and reduced-motion settings, and MUST NOT implement a parallel accessibility layer. |
 | **N4-R15** | A notification MUST NOT be shown for a stack no longer configured on the device. |
+| **N4-R16** | The app MUST declare a local-network permission purpose that states what the network is used for in the operator's terms, and MUST NOT ship a placeholder string. |
+| **N4-R17** | Where the platform requires permission before the local network may be reached, the app MUST report a refused permission as a distinct condition from an unreachable stack, and MUST offer the way to grant it. |
+| **N4-R18** | A screen showing a credential, a session token or pairing material MUST be excluded from the task-switcher snapshot and from screen recording. |
+| **N4-R19** | The app MUST require the device's own authentication on a cold start, and again on resume after a period the operator can configure; it MUST NOT prompt while an action it has already sent is still outstanding. |
+| **N4-R20** | A notification shown while the app is locked MUST NOT disclose a finding's detail, a service name, or any value read from a stack. |
+| **N4-R21** | Every control that can be operated MUST carry a label the screen reader announces, and a control whose only content is an icon MUST NOT rely on that icon to convey its purpose. |
 
 ## Related
 

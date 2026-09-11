@@ -172,6 +172,13 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R15** | The app MUST NOT log, transmit or include in a diagnostic report any credential, session token, or stack address. |
 | **N1-R16** | Every call to the API MUST be made through the SDK. The app MUST NOT issue an HTTP request of its own, construct an API URL, or parse an envelope the SDK did not produce. |
 | **N1-R17** | Where the SDK does not expose a capability the app requires, the app MUST NOT reach past it, re-implement the call, or approximate the answer from another endpoint. The gap MUST be raised against the SDK and the contract, and the dependent work MUST stop until it is closed. |
+| **N1-R18** | The pairing material MUST carry the fingerprint of the certificate the stack will present, and the app MUST take it from that material rather than from the network ([ADR-0018](../../../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md)). |
+| **N1-R19** | The app MUST pin the paired fingerprint against that stack and MUST validate every subsequent connection against it, whether or not the platform trust store would accept the certificate. |
+| **N1-R20** | A connection presenting a different certificate MUST be refused rather than warned about, MUST be reported as this machine not being the one the app was introduced to, and MUST offer re-pairing as the remedy. |
+| **N1-R21** | Certificate verification MUST NOT be disabled in any build, under any flag or configuration value. |
+| **N1-R22** | Pinning MUST be to the stack rather than to an address, so that reaching the same stack by another route does not re-open the question of its identity. |
+| **N1-R23** | A credential, a session token and pairing material MUST NOT be written to any cache, and MUST NOT survive beyond the storage [N4](n4-native-integration.md) defines for them. |
+| **N1-R24** | A reading the app retained from an earlier session MAY be shown on opening, and MUST carry when it was read as `N1-R9` requires; the confirmation of an action just performed MUST NOT be served from a retained value. |
 
 ## Related
 
