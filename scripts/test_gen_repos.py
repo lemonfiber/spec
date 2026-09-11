@@ -80,8 +80,14 @@ Those nine are every repository in the org. And prose after it.
 """
 
 
-class Tree(unittest.TestCase):
-    """A throwaway spec tree the generator is pointed at."""
+class Tree:
+    """A throwaway spec tree the generator is pointed at.
+
+    Deliberately not a `TestCase`. Subclassing one here would make this a test
+    class in its own right — collected and run, holding no tests, and reporting
+    a pass that measured nothing — and `run_gen` would read as a test that
+    forgot its prefix rather than as the helper it is.
+    """
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
@@ -101,7 +107,7 @@ class Tree(unittest.TestCase):
         return self.readme.read_text(encoding="utf-8")
 
 
-class Generating(Tree):
+class Generating(Tree, unittest.TestCase):
     def test_generating_twice_changes_nothing(self):
         # The property CI rests on: `gen && git diff --exit-code` must not fail
         # on a tree nobody touched.
@@ -137,7 +143,7 @@ class Generating(Tree):
         self.assertIn("[../README.md](../README.md)", self.run_gen())
 
 
-class Diagramming(Tree):
+class Diagramming(Tree, unittest.TestCase):
     def test_the_old_diagram_is_replaced_not_appended(self):
         out = self.run_gen()
         self.assertNotIn("this gets replaced", out)
@@ -161,7 +167,7 @@ class Diagramming(Tree):
         self.assertIn("-.->|governs all|", out)
 
 
-class Refusing(Tree):
+class Refusing(Tree, unittest.TestCase):
     def test_a_count_past_the_words_refuses_rather_than_writing_a_digit(self):
         with self.assertRaises(SystemExit) as raised:
             self.gen.word(21)
