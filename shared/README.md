@@ -20,6 +20,13 @@ So the copies are load-bearing and cannot be deleted. What can be removed is the
 `.markdownlint.jsonc` files across the org, two of them holding identical rules in
 different key order.
 
+A built application is the third reason, and it is the same one: the companion
+app is a bundle on a phone, so a value it paints has to be inside that bundle at
+build time — there is no request during which it could reach another repository.
+It carries the brand's token file for that reason and checks the two colours it
+asserts against it, and the row here is what keeps that copy equal to the
+brand's own.
+
 ## What is here
 
 | File | Copied to | Rule |

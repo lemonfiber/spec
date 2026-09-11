@@ -35,3 +35,11 @@ b1d5ef3c2db6fbcf74c71544cffe89065b6b7ddfb81eee82f50826d983042259  public/brand/l
 49644a8c94f0d413a7bff5b2252701362b111086926f41835013ad904a9174c1  public/brand/discord.svg               .github:.github/discord.svg
 c1092d6b7340c2b63cd075a1cb3465fcb94b795ac99a51a93368c71b93def56c  public/brand/nightworks-dark.png       .github:.github/nightworks-dark.png
 e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  public/brand/nightworks-white.png      .github:.github/nightworks-white.png
+
+# The companion asserts two brand colours in PHP, because a module may not read
+# a file and a provider may not read one at boot. Its own suite checks those two
+# against this copy of the brand's token file; this row is what keeps the copy
+# equal to the brand's own, so the two checks in series mean the application
+# paints what the brand says and not what somebody typed.
+
+2ae3b4c9f74199860786a2796700061f2e293214b4875f90329f2622fa861fae  app-modules/design/resources/tokens.json  brand:tokens/tokens.json
