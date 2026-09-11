@@ -18,6 +18,11 @@ on:
 
 permissions:
   contents: read
+  # Closing is the documented failure (50-governance/cross-repo-ci.md), so the
+  # caller must grant this. A caller that does not still gets the refusal — the
+  # check fails either way, and the step below says plainly that it could not
+  # close rather than passing over it.
+  pull-requests: write
 
 jobs:
   spec-check:
@@ -67,16 +72,71 @@ jobs:
           python-version: "3.12"
 
       - name: Verify citation
+        id: citation
         # `pull_request.user.login` is GitHub's record of who opened this, not
         # anything the pull request carries. It is what lets Dependabot — which
         # cannot write a `Spec:` trailer — be cited for; see spec_check.py.
+        #
+        # The exit status decides what happens next, so it is captured rather
+        # than allowed to end the job: 1 is the contributor's to fix and closes
+        # the pull request, 2 is ours — a spec checkout that did not arrive, or
+        # one holding no identifiers — and must never close somebody's work for
+        # a fault on this side.
+        continue-on-error: true
         env:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
+          set +e
           python3 .spec-canonical/scripts/spec_check.py \
             --spec-dir .spec-canonical \
             --text-file .pr-text.txt \
-            --pr-author "$PR_AUTHOR"
+            --pr-author "$PR_AUTHOR" 2>&1 | tee .citation-output.txt
+          status=${PIPESTATUS[0]}
+          {
+            echo "status=${status}"
+            echo "reason<<REASON"
+            grep -F '::error::' .citation-output.txt | sed 's/^::error:://' || true
+            echo "REASON"
+          } >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Close the pull request, naming what it cited
+        if: steps.citation.outputs.status == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          REASON: ${{ steps.citation.outputs.reason }}
+        run: |
+          printf '%s\n\n%s\n' \
+            "**\`spec-check\` closed this.** ${REASON}" \
+            "This is sequencing, not rejection. Add a \`Spec:\` trailer naming an identifier that already exists on \`spec@main\` — to a commit or to the pull request body, on its own line, e.g. \`Spec: OPS-R1\`. Routine maintenance cites \`GOV-R12\`. Changing behaviour? Merge the spec change first, then cite the new identifier. Reopen when it is ready; nothing here is lost." \
+            > .close-comment.md
+
+          # Closing needs a token that may write, and a pull request opened from
+          # a fork is handed a read-only one whatever this file declares. That is
+          # not a reason to pass: the refusal below stands either way, and saying
+          # which happened is the difference between a contributor who knows to
+          # reopen and one who wonders why nothing moved.
+          if gh pr comment "$NUMBER" --repo "$REPO" --body-file .close-comment.md \
+             && gh pr close "$NUMBER" --repo "$REPO"; then
+            echo "::notice::Closed #${NUMBER}. ${REASON}"
+          else
+            echo "::warning::Could not close #${NUMBER} — the token cannot write to pull requests here, which is what a fork is given. The refusal below still stands."
+          fi
+
+      - name: The citation decides whether this may merge
+        if: steps.citation.outputs.status != '0'
+        env:
+          STATUS: ${{ steps.citation.outputs.status }}
+          REASON: ${{ steps.citation.outputs.reason }}
+        run: |
+          if [ "$STATUS" = "2" ]; then
+            echo "::error::spec-check could not run: ${REASON}. Nothing was closed — this is a fault on the gate's side, not the pull request's." >&2
+          else
+            echo "::error::${REASON}" >&2
+          fi
+          exit 1
 
       # Only the implementation repo keeps a tracker; every other caller skips this.
       - name: The tracker claims only what the spec backs
