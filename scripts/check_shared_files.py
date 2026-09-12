@@ -79,12 +79,29 @@ def asset_rows(canonical: pathlib.Path):
 
 
 def assets(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str]:
-    """Every copy present in this repo matches the file it was taken from."""
+    """Every copy present in this repo matches the file it was taken from.
+
+    In the repository that *is* a row's home, the row is read the other way
+    round: the home file is checked against the digest instead. Without that,
+    the digest is a number only the copies are ever held to, and the home can
+    move away from every copy of it with nothing anywhere saying so. That is
+    not a hypothetical — three of the six brand assets here had drifted from
+    their homes, and eight repositories carried a wordmark in a colour the
+    brand had replaced, each of them in perfect agreement with a record that
+    had stopped describing anything.
+
+    It takes nothing away from the home. Brand still changes its own files
+    whenever it likes; what it may not do is change one and leave the record
+    behind, because the record is what every copy is following. The digest and
+    the copies move in the same round, and this is what says so on the day
+    rather than months later.
+    """
     problems = []
     for digest, path, home_repo, home_path in asset_rows(canonical):
-        if home_repo == name:
-            continue
         target = repo / path
+        if home_repo == name:
+            problems += home(repo / home_path, digest, home_path)
+            continue
         if not target.is_file():
             continue
         actual = hashlib.sha256(target.read_bytes()).hexdigest()
@@ -94,6 +111,25 @@ def assets(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str]:
                 f"copy it again rather than editing it here"
             )
     return problems
+
+
+def home(target: pathlib.Path, digest: str, home_path: str) -> list[str]:
+    """The original still hashes to what the manifest says it does."""
+    if not target.is_file():
+        return [
+            f"{home_path} is named as a home in shared/assets.sha256 and is not "
+            f"here; every copy of it is following a record of a file that is gone"
+        ]
+    actual = hashlib.sha256(target.read_bytes()).hexdigest()
+    if actual == digest:
+        return []
+    return [
+        f"{home_path} no longer hashes to what shared/assets.sha256 records for "
+        f"it. Changing the original is fine; leaving the record behind is not, "
+        f"because every copy of this file is checked against the record rather "
+        f"than against the original. Put {actual} in the manifest and refresh "
+        f"the copies in the same round (GOV-R12)"
+    ]
 
 
 def codeowners(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str]:
