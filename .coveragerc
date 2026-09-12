@@ -22,6 +22,7 @@ include =
     scripts/check_shared_files.py
     scripts/next_id.py
     scripts/gen_repos.py
+    scripts/gen_contrast.py
 
 [report]
 exclude_also =
