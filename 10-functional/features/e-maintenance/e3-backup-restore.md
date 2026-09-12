@@ -5,7 +5,7 @@ kind: feature
 area: E
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [storage, updates]
 relates: [A5, A6, A7, E1, E4]
 ---

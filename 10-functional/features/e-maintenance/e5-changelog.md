@@ -5,7 +5,7 @@ kind: feature
 area: E
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 priority: P2
 labels: [updates, verification]
 relates: [E1, E2]
