@@ -61,9 +61,9 @@ The label is stated at creation and recorded in the archive.
 ### Automatic before risky operations
 
 Taken automatically before updates ([E1](e1-stack-updates.md)), before
-configuration removal ([A6](../a-getting-started/a6-uninstall.md)), and
-immediately after adopting an existing setup
-([A5](../a-getting-started/a5-migration.md)). Not offered — taken.
+configuration removal ([A6](../a-getting-started/a6-uninstall.md)), and before
+adopting an existing setup ([A5](../a-getting-started/a5-migration.md)). Not
+offered — taken.
 
 **Adoption's capture reads the operator's own paths, not lemonfiber's, and that
 is what makes it possible to take it before.** This requirement briefly said
