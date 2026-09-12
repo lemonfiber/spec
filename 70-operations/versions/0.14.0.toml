@@ -10,7 +10,8 @@
 version = "0.14.0"
 milestone = "M9"   # Lifecycle & maintenance
 delivers  = "Keeping it running — updates, backup, rollback, the journal"
-status  = "staged"
+status  = "released"
+released_on = "2026-09-12"
 repos   = ["lemonfiber"]
 goals   = [
     "E1-R1",
@@ -75,3 +76,7 @@ goals   = [
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
+
+[pins]
+lemonfiber-media-stack = "1d8e02ebe91e5ec22aab43d7144577f722d03196"
+lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"

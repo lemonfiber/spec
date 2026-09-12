@@ -86,7 +86,7 @@
     },
     {
       "version": "0.14.0",
-      "status": "staged",
+      "status": "released",
       "milestone": "M9",
       "goals": 59
     },
@@ -1396,7 +1396,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "e-maintenance/e1-stack-updates.md"
@@ -1427,7 +1427,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "e-maintenance/e2-self-update.md"
@@ -1462,7 +1462,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "staged"
+          "status": "released"
         },
         {
           "version": "0.3.0",
@@ -1499,7 +1499,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "e-maintenance/e4-rollback.md"
@@ -1530,7 +1530,7 @@
       "versions": [
         {
           "version": "0.14.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "e-maintenance/e5-changelog.md"
@@ -2171,7 +2171,7 @@
         },
         {
           "version": "0.14.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "g-ux/g8-privacy.md"
