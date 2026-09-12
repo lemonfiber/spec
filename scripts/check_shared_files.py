@@ -117,18 +117,23 @@ def home(target: pathlib.Path, digest: str, home_path: str) -> list[str]:
     """The original still hashes to what the manifest says it does."""
     if not target.is_file():
         return [
-            f"{home_path} is named as a home in shared/assets.sha256 and is not "
-            f"here; every copy of it is following a record of a file that is gone"
+            (
+                f"{home_path} is named as a home in shared/assets.sha256 and is "
+                f"not here; every copy of it is following a record of a file "
+                f"that is gone"
+            )
         ]
     actual = hashlib.sha256(target.read_bytes()).hexdigest()
     if actual == digest:
         return []
     return [
-        f"{home_path} no longer hashes to what shared/assets.sha256 records for "
-        f"it. Changing the original is fine; leaving the record behind is not, "
-        f"because every copy of this file is checked against the record rather "
-        f"than against the original. Put {actual} in the manifest and refresh "
-        f"the copies in the same round (GOV-R12)"
+        (
+            f"{home_path} no longer hashes to what shared/assets.sha256 records "
+            f"for it. Changing the original is fine; leaving the record behind "
+            f"is not, because every copy of this file is checked against the "
+            f"record rather than against the original. Put {actual} in the "
+            f"manifest and refresh the copies in the same round (GOV-R12)"
+        )
     ]
 
 
