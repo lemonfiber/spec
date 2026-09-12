@@ -34,7 +34,7 @@ stub** — a release refuses while a feature it locks is not yet built
 | `0.11.0` | M8 | The household asks — requests, identity, client apps | Released |
 | `0.12.0` | M8 | Living within limits — disk, retention, bandwidth | Released |
 | `0.13.0` | M9 | Changing your mind — reconfigure, migrate, uninstall, credentials | Released |
-| `0.14.0` | M9 | Keeping it running — updates, backup, rollback, the journal | Staged |
+| `0.14.0` | M9 | Keeping it running — updates, backup, rollback, the journal | Released |
 | `0.15.0` | M9 | Away from the keyboard — remote control, autostart, customisation | Planned |
 | `0.16.0` | M14 | Plugins — what one is, installing one, and what that leaves readable | Planned |
 | `0.17.0` | M14 | Plugins — what the bundled stack can do, and where a plugin comes from | Planned |
