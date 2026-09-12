@@ -88,6 +88,12 @@ class Copies(unittest.TestCase):
         (shared / "hooks" / "pre-push").write_text(HOOK, encoding="utf-8")
         self.manifest(f"{self.digest(LOGO)}  .github/logo.svg  brand:assets/logo/lockup.svg")
 
+        # The repo under test also carries the file the manifest names as the
+        # home, so that a run as the home repository has the original in front
+        # of it. Without it every such run reports a home that is not there,
+        # which is a true answer about this fixture and an unhelpful one.
+        self.write("assets/logo/lockup.svg", LOGO)
+
         self.write(".markdownlint.jsonc", MARKDOWNLINT)
         self.write("typos.toml", TYPOS)
         self.write(".github/CODEOWNERS", self.generated())
@@ -142,12 +148,18 @@ class Agreeing(Copies):
         self.write(".github/logo.svg", LOGO)
         self.assertEqual(self.check()[0], 0)
 
-    def test_the_repo_that_is_an_asset_home_is_not_checked_against_itself(self):
-        # brand maintains the lockup; its own file is the original, not a copy,
-        # and it must be free to change it.
+    def test_the_home_repos_own_copy_of_a_row_is_not_checked_against_itself(self):
+        # brand maintains the lockup, so its `.github/logo.svg` is not held to
+        # the row that names brand as the home — the original is what that row
+        # is about, and it is checked separately below.
         self.write(".github/logo.svg", OTHER)
         code, out = self.check("lemonfiber/brand")
         self.assertEqual(code, 0, out)
+
+    def test_a_home_file_that_still_hashes_to_what_the_manifest_records(self):
+        code, out = self.check("lemonfiber/brand")
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("lockup.svg", out)
 
     def test_a_typos_config_adding_words_and_patterns_of_its_own(self):
         # The shared config is a floor: a repo may add entries, never contradict one.
@@ -173,6 +185,14 @@ class Agreeing(Copies):
     def test_a_bare_repo_name_is_read_the_same_as_a_qualified_one(self):
         self.write(".github/logo.svg", OTHER)
         self.assertEqual(self.check("brand")[0], 0)
+
+    def test_a_repo_that_is_nobodys_home_is_asked_for_no_original(self):
+        # The row names brand as the home, so a run as any other repository
+        # checks the copy and never looks for `assets/logo/lockup.svg`.
+        (self.repo / "assets" / "logo" / "lockup.svg").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("lockup.svg", out)
 
 
 class Drifted(Copies):
@@ -231,6 +251,23 @@ class Drifted(Copies):
         self.assertEqual(code, 1)
         self.assertIn("missing the shared word", out)
         self.assertIn("missing the shared pattern", out)
+
+    def test_a_home_that_moved_away_from_its_own_record(self):
+        # The failure this half exists for. Changing the original is allowed;
+        # leaving the manifest behind is what every copy then follows, and
+        # nothing anywhere used to say so.
+        self.write("assets/logo/lockup.svg", OTHER)
+        code, out = self.check("lemonfiber/brand")
+        self.assertEqual(code, 1, out)
+        self.assertIn("assets/logo/lockup.svg no longer hashes to what", out)
+        self.assertIn(self.digest(OTHER), out)
+        self.assertIn("refresh the copies in the same round", out)
+
+    def test_a_home_the_manifest_names_and_the_repo_does_not_have(self):
+        (self.repo / "assets" / "logo" / "lockup.svg").unlink()
+        code, out = self.check("lemonfiber/brand")
+        self.assertEqual(code, 1, out)
+        self.assertIn("is named as a home in shared/assets.sha256 and is not here", out)
 
     def test_an_asset_edited_where_it_was_copied_to(self):
         self.write(".github/logo.svg", OTHER)

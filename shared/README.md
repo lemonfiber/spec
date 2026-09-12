@@ -37,6 +37,14 @@ brand's own.
 | [hooks/commit-msg](hooks/commit-msg) | each repo's `.githooks/commit-msg` | Byte-identical, where a repo has adopted it |
 | [assets.sha256](assets.sha256) | — | Digests of the brand assets repos carry copies of |
 
+Each asset row is read from both ends. In a repository carrying a copy, the copy
+is checked against the digest. In the repository that *is* the home, the original
+is checked against the digest instead — so changing an original and leaving the
+record behind is refused there, on the day, rather than leaving every copy in
+step with a record that has stopped describing anything. It takes nothing away
+from a home repository: it changes its own files whenever it likes, and moves the
+digest and the copies in the same round.
+
 The two configs differ in kind deliberately. A markdown rule that one repo needs
 costs the others nothing, so one file serves everybody. A spelling allowance is
 about a specific tree — the site excludes its Dutch translations, this repo
