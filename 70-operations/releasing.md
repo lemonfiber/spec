@@ -66,8 +66,9 @@ Concretely, a maintainer does **three things**; CI does the rest:
    the release job runs. `execute-version` refuses to tag a repo that declares
    anything else, so getting it wrong costs a re-run rather than a deleted tag.
 2. **Dispatch `execute-version`** with the version, `dry_run` first. It checks the
-   goal gate, cross-stream compatibility, release blockers and the declared
-   version, then tags every repo the manifest names. A version left at
+   goal gate, the [no-stub rule](versions/README.md#the-no-stub-rule),
+   cross-stream compatibility, release blockers and the declared version, then
+   tags every repo the manifest names. A version left at
    `releasable` blocks the next one from being staged, so this is not optional
    bookkeeping.
 3. **Review the drafted GitHub Release**, and the homebrew-tap PR once that publish
