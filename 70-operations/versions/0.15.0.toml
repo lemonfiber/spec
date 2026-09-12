@@ -12,7 +12,7 @@
 version = "0.15.0"
 milestone = "M9"   # Lifecycle & maintenance
 delivers  = "Away from the keyboard — remote control, autostart, customisation"
-status  = "planned"
+status  = "staged"
 repos   = ["lemonfiber"]
 goals   = [
     "B6-R1",
