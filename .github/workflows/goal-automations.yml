@@ -2,9 +2,18 @@
 #
 # Called by each implementation repo on pull_request. Classifies the PR's cited
 # requirement IDs against whichever version is staged and then: labels an
-# in-scope PR with its version and posts a self-updating goal-advance comment;
-# flags a PR that cites only out-of-scope requirements with `scope:next`. No-ops
-# when nothing is staged. Same-repo PRs only — a fork PR's token cannot label.
+# in-scope PR with its version, puts it in that version's milestone, and posts a
+# self-updating goal-advance comment; flags a PR that cites only out-of-scope
+# requirements with `scope:next`. No-ops when nothing is staged. Same-repo PRs
+# only — a fork PR's token cannot label.
+#
+# The milestone is created where it does not exist rather than kept in step by
+# hand. OPS-R39 asks for two things and this workflow did one of them: it minted
+# the label and touched no milestone, and no repository in the org had a
+# milestone for any version at all — so the half that was implemented had nothing
+# to be half of. A milestone list maintained beside the version manifests is a
+# second copy of the release train; read from the manifest and made on demand, it
+# is the same list.
 name: goal-automations
 
 on:
@@ -13,6 +22,10 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  # A milestone is an issues-API object even when it is put on a pull request,
+  # so `pull-requests: write` alone cannot create one or apply one. A caller
+  # granting less than this gets the label and no milestone.
+  issues: write
 
 jobs:
   classify:
@@ -55,6 +68,35 @@ jobs:
           def gh(*args):
               subprocess.run(["gh", *args], check=False)
 
+          def read(*args):
+              return subprocess.run(["gh", *args], capture_output=True,
+                                    text=True, check=False).stdout.strip()
+
+          def milestone(version, delivers):
+              """This version's milestone number, made if the repository has none.
+
+              Looked up by title over every state, because a version's milestone is
+              closed when the version ships and a hotfix citing one of its goals
+              afterwards must land in the same milestone rather than mint a second
+              one beside it.
+
+              Made rather than expected. No repository in the org has ever had a
+              milestone for a version, so a workflow that only applied existing ones
+              would go on doing nothing and reporting success — and a list of
+              milestones kept by hand is the version manifests written out twice.
+              The description is the manifest's own `delivers`, carried through the
+              classifier for the same reason.
+              """
+              title = f"v{version}"
+              found = read("api", f"repos/{repo}/milestones", "-X", "GET",
+                           "-f", "state=all", "--jq",
+                           f'[.[] | select(.title == "{title}") | .number] | first // empty')
+              if found:
+                  return found
+              return read("api", "--method", "POST", f"repos/{repo}/milestones",
+                          "-f", f"title={title}", "-f", f"description={delivers}",
+                          "--jq", ".number // empty")
+
           if not r.get("staged"):
               raise SystemExit(0)
           version = r["staged"]
@@ -64,6 +106,15 @@ jobs:
               gh("label", "create", label, "--repo", repo, "--force",
                  "--color", "0e8a16", "--description", f"Targets release {version}")
               gh("pr", "edit", pr, "--repo", repo, "--add-label", label)
+              at = milestone(version, r.get("delivers", ""))
+              if at:
+                  # Sent as a number rather than a string: the field is an integer
+                  # and the API refuses the quoted form `-f` would produce.
+                  gh("api", "--method", "PATCH", f"repos/{repo}/issues/{pr}",
+                     "-F", f"milestone={at}")
+              else:
+                  print(f"::warning::no milestone v{version} in {repo} and none could "
+                        "be made, so this PR carries the label without one (OPS-R39)")
               goals = ", ".join(f"`{g}`" for g in r["in_scope"])
               body = f"{MARK}\n🎯 Advances **{version}** — {goals}."
           elif r["advisory"]:
