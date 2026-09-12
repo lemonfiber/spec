@@ -43,7 +43,26 @@ jobs:
         run: |
           set -euo pipefail
           url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -sSfL --proto '=https' --tlsv1.2 "$url" | tar xz gitleaks
+
+          # Downloaded to a file rather than piped into tar, and retried.
+          #
+          # `curl | tar xz` reports the wrong thing when the network blips: tar
+          # receives a truncated stream and says `gzip: stdin: unexpected end of
+          # file`, which reads as a corrupt release. It is not — the release is
+          # fine and the transfer was not. A security gate that fails with a
+          # message pointing at the wrong cause is one somebody re-runs until it
+          # passes, which is the habit this whole job exists to avoid.
+          #
+          # `--retry-all-errors` is needed alongside `--retry`: without it curl
+          # retries only what it considers transient, and a connection reset
+          # mid-body is not on that list.
+          curl -sSfL --proto '=https' --tlsv1.2 \
+            --retry 3 --retry-delay 2 --retry-all-errors \
+            -o gitleaks.tar.gz "$url"
+
+          tar xzf gitleaks.tar.gz gitleaks
+          rm -f gitleaks.tar.gz
+
           ./gitleaks git --no-banner --redact --exit-code 1 .
 
       # The watch. It runs after the scan, so a fault here never stands in for a
