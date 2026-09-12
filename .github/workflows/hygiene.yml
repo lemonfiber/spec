@@ -154,10 +154,31 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # `--accept` here is the floor for repositories that ship no `lychee.toml`,
+      # and it is what wins where one exists — a command-line argument overrides
+      # the config file, so a repository's own `accept` list is decoration. That
+      # is worth knowing before changing either.
+      #
+      # What is accepted, and why each one is not a broken link:
+      #
+      #   206  a partial response — the host answered, in pieces
+      #   429  the host asking to be asked less often
+      #   5xx  the host is unwell
+      #
+      # The last one is the addition. A `504 Gateway Timeout` from GitHub failed
+      # this gate on a link that answers `200` from any other machine, and the
+      # report read as a dead link. It is not: a 5xx is the *server* failing, and
+      # a link check cannot tell a permanently broken host from a momentarily
+      # busy one — but it can tell either from a URL that is wrong, because a URL
+      # that is wrong answers `404` or `410`, and those still fail.
+      #
+      # The alternative is what was happening: somebody re-runs the job until it
+      # passes. A gate that is re-run until green is not a gate, and the habit
+      # spreads to the gates that matter.
       - name: lychee link check
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
-          args: "--no-progress --accept 200,206,429 ."
+          args: "--no-progress --max-retries 3 --retry-wait-time 3 --accept 200,206,429,500..=599 ."
           fail: true
 
   invite:
