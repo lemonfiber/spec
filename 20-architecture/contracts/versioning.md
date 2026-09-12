@@ -158,6 +158,51 @@ Every payload carries `api_version`. Additive changes leave it alone; removing o
 retyping a field increments it. Scripts can assert on it rather than
 pattern-matching output shapes.
 
+## What a release declares about the stack it carries
+
+`schema_version` protects a reader from a manifest it cannot parse, and the embedded
+stack means the pairing *inside* one release is proven at build time. Neither covers
+the question asked before an update: an operator running one version is offered
+another, and nothing they can see says whether the release on offer carries a newer
+manifest generation than the copy they are running reads.
+
+Without that number, the statement
+[E2-R9](../../10-functional/features/e-maintenance/e2-self-update.md) asks for can
+only be made generically. "A release carries its own pinned stack" is true of every
+release, which is less than a requirement worded *an update requiring a newer stack
+schema* is asking for. A conditional statement needs the condition, and the condition
+has to travel with the release.
+
+**A release declares it as the name of a published asset**: one asset per release,
+named `stack-schema-<n>`, where `<n>` is the `schema_version` of the stack that
+release carries. The file's contents are not read and carry no meaning.
+
+The name rather than the contents is the whole of why this is cheap:
+
+| | |
+|---|---|
+| Where it is read | The release list reply the update check already fetches |
+| What it costs | Nothing — asset names are in that reply already |
+| What it transmits | Nothing new; the request is unchanged |
+| What it needs | No second request, no new host, no authenticated call |
+
+The third row is the one that matters for
+[G8-R4](../../10-functional/features/g-ux/g8-privacy.md), which forbids an update
+check transmitting any identifier, configuration or usage information. Reading one
+more field out of a reply that has already arrived transmits nothing, so the privacy
+stance is untouched rather than traded against — which is what makes this the shape
+to prefer over a metadata endpoint of our own.
+
+A release carrying no such asset predates this, or belongs to a fork that publishes
+none. It reads as **not stated** rather than as a schema. A copy that cannot tell says
+so, the way a tag it cannot order is reported rather than ranked: being wrong about
+whether an update brings a newer generation is the failure this exists to prevent, and
+a guess is how it happens.
+
+What this does not do is gate anything. The declaration is read to *say* something
+before an update, and a release whose schema cannot be told is still installable — the
+binary that arrives carries its own stack and reads it at build-proven parity.
+
 ## Requirements
 
 | ID | Requirement |
@@ -173,6 +218,7 @@ pattern-matching output shapes.
 | **ARCH-R9** | Machine-readable output MUST carry an `api_version`. |
 | **ARCH-R10** | Configuration written by a newer binary MUST be refused, never modified. |
 | **ARCH-R43** | Before the first release candidate `schema_version` MUST NOT increment; the schema changes in place, and the build-time refusal is what keeps a pairing honest. |
+| **ARCH-R98** | Every release MUST declare the manifest `schema_version` its stack carries, as the name of a published release asset, so that a copy reading the release list can tell whether an update brings a newer generation without a second request. A release that declares none MUST read as not stated rather than as any particular schema. |
 
 ## Related
 
