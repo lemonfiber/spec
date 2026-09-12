@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 2 built, 6 building, 33 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 6 built, 2 building, 33 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -61,6 +61,10 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.14.0` |
+| [E2](e-maintenance/e2-self-update.md) | Self-update | E | operator | accepted | `0.14.0` |
+| [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.14.0`, `0.3.0` |
+| [E4](e-maintenance/e4-rollback.md) | Rollback | E | operator | accepted | `0.14.0` |
+| [E5](e-maintenance/e5-changelog.md) | Changelog & release notes | E | operator | accepted | `0.14.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0` |
 
 ## Building — work has started and is not finished
@@ -68,10 +72,6 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.5.0`, `1.0.0` |
-| [E2](e-maintenance/e2-self-update.md) | Self-update | E | operator | accepted | `0.14.0` |
-| [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.14.0`, `0.3.0` |
-| [E4](e-maintenance/e4-rollback.md) | Rollback | E | operator | accepted | `0.14.0` |
-| [E5](e-maintenance/e5-changelog.md) | Changelog & release notes | E | operator | accepted | `0.14.0` |
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
 
 ## Planned — specified, not yet built
