@@ -14,74 +14,85 @@ the contrast is measured, and re-measured by a CI check
 
 ## The measured baseline
 
-Contrast ratios against the default `paper` surface (#FBF7EA), computed to WCAG
-2.1. **AA** needs 4.5:1 for body text, 3:1 for large text.
+Every number below is computed from [`tokens.json`](tokens.json) by
+[`gen_contrast.py`](../scripts/gen_contrast.py), and the integrity job fails if
+the page and the tokens disagree. Nobody types a ratio here, because the page's
+own premise is that a ratio is not an opinion — and because the numbers that
+were typed here went wrong three times over without anyone noticing.
 
-| Foreground | On paper | Verdict | Use |
-|------------|----------|---------|-----|
-| `ink` #17160F | **16.9** | AAA | Body, headings — the default |
-| `ink-soft` #241F14 | **15.3** | AAA | Body |
-| `leaf` #5B6B2A | **5.5** | AA | Text where the green is wanted |
-| `text-muted` #6E6A57 | **5.1** | AA | Secondary body text — **on paper only** |
-| `fiber-deep` #A85A12 | **4.7** | AA | Links, the "fiber" wordmark |
-| `text-faint` #8B8770 | **3.4** | AA-large | **Not body** — labels, large only |
-| `fiber` #E07A17 | **2.8** | ✗ FAIL | **Never text** — signal accent only |
-| `fiber-light` #F09A3C | **2.1** | ✗ FAIL | Dark-mode amber only, never light-mode text |
+**AA** needs 4.5:1 for body text and 3:1 for large text; **AAA** needs 7:1. The
+three surfaces are the grounds anything is ever set on: `paper` is the default,
+`canvas` the darker page behind cards, `ink` the dark theme.
 
-## The findings that constrain usage
+| Token | Hex | On `paper` | On `canvas` | On `ink` |
+|-------|-----|---|---|---|
+| `ink` | #17160F | 16.92 · AAA | 14.67 · AAA | — |
+| `ink-soft` | #241F14 | 15.29 · AAA | 13.26 · AAA | 1.11 · fails |
+| `lemon` | #F0C419 | 1.55 · fails | 1.35 · fails | 10.89 · AAA |
+| `lemon-bright` | #FFD84D | 1.29 · fails | 1.12 · fails | 13.11 · AAA |
+| `fiber` | #E07A17 | 2.81 · fails | 2.44 · fails | 6.01 · AA |
+| `fiber-deep` | #9C5411 | 5.31 · AA | 4.61 · AA | 3.19 · AA large |
+| `fiber-light` | #F09A3C | 2.09 · fails | 1.81 · fails | 8.11 · AAA |
+| `leaf` | #5B6B2A | 5.47 · AA | 4.74 · AA | 3.09 · AA large |
+| `paper` | #FBF7EA | — | 1.15 · fails | 16.92 · AAA |
+| `pith` | #FBF6E7 | 1.01 · fails | 1.14 · fails | 16.78 · AAA |
+| `canvas` | #EDE7D5 | 1.15 · fails | — | 14.67 · AAA |
+| `line` | #DAD2BC | 1.41 · fails | 1.22 · fails | 12.02 · AAA |
+| `line-soft` | #E4DCC7 | 1.28 · fails | 1.11 · fails | 13.26 · AAA |
+| `text-muted` | #565344 | 7.21 · AAA | 6.26 · AA | 2.35 · fails |
+| `text-faint` | #6A6756 | 5.31 · AA | 4.61 · AA | 3.18 · AA large |
 
-Three are not obvious and each is a rule:
+`tokens.json` here is a distribution copy. The brand maintains it, and
+[`shared/assets.sha256`](../shared/assets.sha256) holds this copy byte-identical
+to it — so a token changing in the brand reaches this page by the copy being
+refreshed, and the table follows on the next run.
 
-### `text-muted` is body-safe on paper, not on canvas
+## What the measurements decide
 
-On `paper` it's 5.1 (AA). On `canvas` (#EDE7D5, the darker page behind cards) it
-drops to **4.4 — below AA for body**. So muted secondary text MUST sit on paper,
-not on canvas. This is the kind of pairing that passes a casual eye and fails a
-meter.
+**The body-safe set is whatever the table says it is.** A pairing at AA or
+better may carry body text; one below it may not, and no list needs keeping.
+That is the whole of `DES-R15`, and it is why the list that used to sit here is
+gone: it was a second statement of the table, and it was the half that went
+stale.
 
-### Amber is unusable as text — which the brand already forbids
+**Both surfaces are measured, not just the default.** A pairing is about a
+foreground *and* a ground, and the same token can clear AA on `paper` and fail
+on `canvas`, which is darker. The table carries a column for each so the
+question cannot be answered for the wrong one.
 
-`fiber` at 2.8 and `fiber-light` at 2.1 both fail as text. This is the
-*accessibility* reason behind the [brand rule](brand-rules.md#the-closed-palette)
-that amber is signal-only: the aesthetic rule and the contrast rule agree, which
-is why amber-as-text is forbidden twice over.
+**Amber is never text on a light ground, and the rule and the meter agree.**
+`fiber` and `fiber-light` both fail against `paper` and `canvas`, which is the
+accessibility reason behind the [brand rule](brand-rules.md#the-closed-palette)
+that amber is signal-only. They clear AA against `ink`, and that is not a
+loophole — it is the same finding read from the other side, and it is why the
+dark theme lightens amber rather than keeping the light-theme value. Amber is
+fine as a **non-text** accent anywhere — a fibre core, a focus ring, an active
+underline — where contrast rules for text do not apply.
 
-Amber is fine as a **non-text** accent — a fibre core, a focus ring, an active
-underline — where contrast rules for text don't apply.
+**`text-faint` is restrained by emphasis, not by contrast.** It clears AA for
+body text against `paper` and `canvas` both. It is still not body copy: it is
+the lowest-emphasis token in the palette, for eyebrow labels and secondary type,
+and information a reader needs does not go there. That is a typographic
+decision rather than a measured one, and saying so is better than implying a
+meter forbids it.
 
-### `text-faint` is decorative
-
-At 3.4 it clears AA only for *large* text. It is for eyebrow labels and
-oversized secondary type, never body copy.
-
-## The ink theme is comfortable
-
-Dark mode inverts to `paper` = #17160F, and the pairings there are generous:
-
-| On ink #17160F | Ratio | Verdict |
-|----------------|-------|---------|
-| Light text #FBF7EA | 16.9 | AAA |
-| `lemon` #F0C419 | 10.9 | AAA |
-| `fiber-light` #F09A3C | 8.1 | AAA |
-
-This is why the ink theme lightens amber to `fiber-light`
+**The dark theme is the comfortable one.** The `On ink` column is generous
+throughout, which is why the ink theme lightens amber to `fiber-light`
 ([token contract](../20-architecture/contracts/design-tokens.md#theme)) — on a
-dark surface the lighter amber is not only legible but AAA, whereas the same
-lightening on paper would fail. The theme switch is a contrast decision, not just
-a mood one.
+dark surface the lighter amber is legible where the same lightening on paper
+would fail. The theme switch is a contrast decision, not just a mood one.
 
 ## The contract this creates
 
 The [design-token contract](../20-architecture/contracts/design-tokens.md#what-the-tokens-must-guarantee)
-requires every body-text pairing to meet AA, and a CI check verifies it. This page
-is the baseline that check enforces:
+requires every body-text pairing to meet AA, and a CI check verifies it. Two
+checks, in two repositories, and neither is a person reading a table:
+`brand:scripts/check_tokens.py` refuses a token change that puts a failing
+pairing into body use, and the integrity job here refuses a page that has
+drifted from the tokens.
 
-- **Body text** MUST use `ink`, `ink-soft`, `text-muted` (on paper), `leaf`, or
-  `fiber-deep`.
-- `text-faint` MUST be large-text only.
-- `fiber` and `fiber-light` MUST NOT be text.
-- A new or changed token that would put a failing pairing into body use is a
-  **contract violation**, not a design preference.
+A new or changed token that would put a failing pairing into body use is a
+**contract violation**, not a design preference.
 
 ## Beyond contrast
 
@@ -98,9 +109,9 @@ ink/paper theme honours `prefers-color-scheme` and the explicit toggle
 
 | ID | Requirement |
 |----|-------------|
-| **DES-R15** | Body text MUST use only token pairings meeting WCAG AA (4.5:1); the body-safe set MUST be as listed here. |
-| **DES-R16** | `text-muted` MUST be used for body text only on `paper`, not on `canvas`. |
-| **DES-R17** | `text-faint` MUST be restricted to large text. |
+| **DES-R15** | Body text MUST use only token pairings meeting WCAG AA (4.5:1); the body-safe set MUST be computed from the tokens rather than listed by hand. |
+| **DES-R16** | Every surface a token may sit on MUST be measured, not only the default one. |
+| **DES-R17** | `text-faint` MUST NOT carry information a reader needs; it is the lowest-emphasis token, restrained by emphasis rather than by contrast. |
 | **DES-R18** | `fiber` and `fiber-light` MUST NOT be used as text. |
 | **DES-R19** | A token change producing a failing body pairing MUST be treated as a contract violation. |
 | **DES-R20** | The logo MUST carry a text alternative in the web UI. |

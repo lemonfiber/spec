@@ -44,3 +44,12 @@ jobs:
         run: |
           python3 scripts/gen_repos.py
           git diff --exit-code -- 30-repos/README.md
+      # The page states that whether the palette meets AA is a computed property
+      # of the tokens rather than an opinion. This is what makes that true of the
+      # page itself: the numbers are measured here and diffed, so a token change
+      # that nobody regenerated is a red run rather than a page quoting a ratio
+      # that stopped being the ratio (DES-R15, DES-R19).
+      - name: The contrast table matches the tokens
+        run: |
+          python3 scripts/gen_contrast.py
+          git diff --exit-code -- 60-brand/accessibility.md
