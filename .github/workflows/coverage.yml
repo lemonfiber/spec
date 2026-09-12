@@ -31,6 +31,7 @@ jobs:
           coverage run scripts/test_release_train.py
           coverage run --append scripts/test_redirects.py
           coverage run --append scripts/test_status_lint.py
+          coverage run --append scripts/test_no_stubs.py
           coverage run --append scripts/test_spec_check.py
           coverage run --append scripts/test_integrity.py
           coverage run --append scripts/test_shared_files.py

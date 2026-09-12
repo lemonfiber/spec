@@ -7,22 +7,24 @@ unknown keys. Exit 0 when every feature is valid, 1 with the violations named.
 Run from the repo root.
 """
 import glob
-import json
 import pathlib
 import re
 import sys
 
+import catalogue
 import metafm
 from patterns import VERSION
 
-SCHEMA = json.loads(
-    pathlib.Path("10-functional/features/_meta/feature.schema.json").read_text(encoding="utf-8")
-)
+SCHEMA = catalogue.schema()
 PROPS = SCHEMA["properties"]
 REQUIRED = SCHEMA["required"]
 LABELS = set(PROPS["labels"]["items"]["enum"])
 ENUM_KEYS = ("kind", "area", "audience", "status", "maturity", "priority")
-ID_RE = re.compile(r"^[A-N]\d+$")
+# The shape of an id has one home, the schema, and is compiled from it rather
+# than written again here. The copy this replaces was the same pattern by hand,
+# and a check reading its own spelling of what the schema says is a check that
+# can go on passing after the schema changes.
+ID_RE = re.compile(PROPS["id"]["pattern"])
 
 
 def _enum(name):
@@ -106,7 +108,7 @@ def problems_for(path):
 
 
 def main():
-    files = sorted(glob.glob("10-functional/features/[a-n]-*/*.md"))
+    files = sorted(glob.glob(catalogue.FEATURE_DOCS))
     problems = [p for path in files for p in problems_for(path)]
     if problems:
         print("frontmatter: problems found:")
