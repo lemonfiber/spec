@@ -320,6 +320,57 @@ class SetStatusTests(Workspace):
                                                "--released-as", "0.1.0"])[0], 1)
 
 
+    def test_a_withdrawal_records_why_beneath_what_it_withdrew(self):
+        """A yank is the one transition that loses information if recorded bare."""
+        pathlib.Path("70-operations/versions/0.1.0.toml").write_text(
+            'version = "0.1.0"\nstatus  = "released"\nreleased_on = "2026-08-26"\n'
+            'released_as = "0.1.1"\nrepos = []\n',
+            encoding="utf-8")
+        code, out = run_main(set_status, ["--version", "0.1.0", "--status", "yanked",
+                                          "--withdrawn-because", "the installer pinned a bad sha"])
+        self.assertEqual(code, 0)
+        read = tomllib.loads(out)
+        self.assertEqual(read["status"], "yanked")
+        self.assertEqual(read["withdrawn_because"], "the installer pinned a bad sha")
+        # The release itself is never removed from the record, only marked.
+        self.assertEqual(read["released_as"], "0.1.1")
+        self.assertEqual(read["released_on"], "2026-08-26")
+        # Last of the stamps, so the lines read in the order the events happened.
+        self.assertLess(out.index("released_as"), out.index("withdrawn_because"))
+
+    def test_a_withdrawal_falls_back_to_the_lines_a_manifest_actually_has(self):
+        """A manifest with no tag stamps under the date; with neither, under status."""
+        dated = set_status.with_withdrawn_because(
+            'status  = "yanked"\nreleased_on = "2026-08-26"\n', "it broke")
+        self.assertLess(dated.index("released_on"), dated.index("withdrawn_because"))
+        bare = set_status.with_withdrawn_because('status  = "yanked"\n', "it broke")
+        self.assertLess(bare.index("status"), bare.index("withdrawn_because"))
+
+    def test_a_reason_already_there_is_replaced_not_repeated(self):
+        pathlib.Path("70-operations/versions/0.1.0.toml").write_text(
+            'version = "0.1.0"\nstatus  = "yanked"\nwithdrawn_because = "first"\n',
+            encoding="utf-8")
+        code, out = run_main(set_status, ["--version", "0.1.0", "--status", "yanked",
+                                          "--withdrawn-because", "second"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out.count("withdrawn_because"), 1)
+        self.assertEqual(tomllib.loads(out)["withdrawn_because"], "second")
+
+    def test_a_withdrawal_without_a_reason_is_refused(self):
+        self.manifest("0.1.0")
+        self.assertEqual(
+            run_main(set_status, ["--version", "0.1.0", "--status", "yanked"])[0], 1)
+        # And a reason on anything else is a withdrawal nobody made.
+        self.assertEqual(
+            run_main(set_status, ["--version", "0.1.0", "--status", "released",
+                                  "--withdrawn-because", "it broke"])[0], 1)
+        # An empty reason is no reason, and a quote would break the line it writes.
+        with self.assertRaises(SystemExit):
+            set_status.with_withdrawn_because('status  = "yanked"\n', "   ")
+        with self.assertRaises(SystemExit):
+            set_status.with_withdrawn_because('status  = "yanked"\n', 'it "broke"')
+
+
 class CheckStageableTests(Workspace):
     def test_planned_ok(self):
         # a .md under a .git dir is skipped when scanning for defined ids
