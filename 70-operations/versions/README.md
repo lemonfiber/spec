@@ -45,6 +45,12 @@ finished** — before the tag, every feature this manifest's `goals` name has to
 `shipped`. A goal is a requirement, and a feature is more than its requirements
 taken one at a time; a major's list is measured against both.
 
+`execute-version` refuses on it, and `just no-stubs <version>` asks the same
+question from a checkout. Ask it early. The rule was enforced by nothing until
+`0.15.0` was already staged, and what stood in for it was somebody reading six
+catalogue files by hand on release day — which is how `0.14.0` came to lock five
+features that still said `building` an hour before it went out.
+
 ## Rules
 
 - A goal MUST be an `Accepted` requirement; a `Draft` or `Withdrawn` one is

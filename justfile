@@ -28,6 +28,10 @@ integrity:
 check-meta:
     python3 scripts/check_frontmatter.py
 
+# The question OPS-R54 asks at release, runnable long before the tag.
+no-stubs version:
+    python3 scripts/check_no_stubs.py --version {{version}}
+
 # Regenerate the feature board (index.json + BOARD.md) from frontmatter + manifests.
 board:
     python3 scripts/gen_board.py
