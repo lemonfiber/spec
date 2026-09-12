@@ -8,3 +8,9 @@
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Working clones of other estate repositories, made by hand for cross-repo
+# reading. They are separate git repositories, so a wide `git add` records one
+# as a gitlink — a commit pointer to a repo this one cannot fetch, which breaks
+# every clone that tries.
+/checkouts/
