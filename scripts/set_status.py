@@ -129,16 +129,13 @@ def with_pins(text: str, pairs: list[str]) -> str:
     return "\n".join(kept).rstrip() + "\n\n" + block
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--version", required=True)
-    ap.add_argument("--status", required=True, choices=sorted(STATES))
-    ap.add_argument("--released-on", metavar="YYYY-MM-DD")
-    ap.add_argument("--released-as", metavar="X.Y.Z")
-    ap.add_argument("--withdrawn-because", metavar="WHY")
-    ap.add_argument("--pin", action="append", default=[], metavar="name=sha")
-    a = ap.parse_args()
+def refuse_inconsistent(a: argparse.Namespace) -> None:
+    """Reject a combination of flags that cannot describe one transition.
 
+    Apart from `main` because each of these is a sentence about which status a
+    stamp belongs to, and reading five of them in a row is the whole of the rule —
+    interleaved with the rewriting they were a list nobody finished reading.
+    """
     # A yank with no reason is the record losing the only thing anyone will come
     # back to it for, and a reason on anything else is a withdrawal nobody made.
     if a.status == "yanked" and not a.withdrawn_because:
@@ -147,7 +144,6 @@ def main() -> int:
         sys.exit(
             f"::error::--withdrawn-because belongs to a withdrawn manifest, not {a.status!r}"
         )
-
     if a.released_on and a.status != "released":
         sys.exit(f"::error::--released-on belongs to a released manifest, not {a.status!r}")
     if a.released_as and a.status != "released":
@@ -158,6 +154,32 @@ def main() -> int:
     if a.released_as == a.version:
         sys.exit(f"::error::--released-as {a.version} is this manifest's own version")
 
+
+def stamps(text: str, a: argparse.Namespace) -> str:
+    """Apply every stamp the transition asked for, in the order they are written."""
+    if a.released_on:
+        text = with_released_on(text, a.released_on)
+    if a.released_as:
+        text = with_released_as(text, a.released_as)
+    if a.withdrawn_because:
+        text = with_withdrawn_because(text, a.withdrawn_because)
+    if a.pin:
+        text = with_pins(text, parse_pins(a.pin))
+    return text
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--version", required=True)
+    ap.add_argument("--status", required=True, choices=sorted(STATES))
+    ap.add_argument("--released-on", metavar="YYYY-MM-DD")
+    ap.add_argument("--released-as", metavar="X.Y.Z")
+    ap.add_argument("--withdrawn-because", metavar="WHY")
+    ap.add_argument("--pin", action="append", default=[], metavar="name=sha")
+    a = ap.parse_args()
+
+    refuse_inconsistent(a)
+
     path = manifest_for(a.version)
     if not path.is_file():
         print(f"::error::no manifest at {path}", file=sys.stderr)
@@ -167,14 +189,7 @@ def main() -> int:
     if n != 1:
         print(f"::error::expected exactly one status line in {path}, found {n}", file=sys.stderr)
         return 1
-    if a.released_on:
-        text = with_released_on(text, a.released_on)
-    if a.released_as:
-        text = with_released_as(text, a.released_as)
-    if a.withdrawn_because:
-        text = with_withdrawn_because(text, a.withdrawn_because)
-    if a.pin:
-        text = with_pins(text, parse_pins(a.pin))
+    text = stamps(text, a)
 
     sys.stdout.write(text)
     print(f"{path.name}: status={a.status}"
