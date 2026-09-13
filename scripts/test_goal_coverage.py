@@ -28,7 +28,7 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-import check_goal_coverage as gate  # noqa: E402
+import check_goal_coverage as gate
 
 FEATURE = """---
 status: {status}
