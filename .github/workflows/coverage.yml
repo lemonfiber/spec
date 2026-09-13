@@ -27,6 +27,15 @@ jobs:
         run: |
           pip install --disable-pip-version-check --only-binary :all: coverage==7.15.2 pyyaml==6.0.3
       - name: The scripts that gate a merge, at 100% coverage (Q-R61)
+        # `what_is_blocking.py`'s suite shells out to the real `gh` to prove the
+        # JSON field names it asks for are ones `gh` knows — `reviewThreads` was
+        # a plausible name and not a real one, and `_gh` answers a rejected field
+        # the same way it answers an unreadable repository, with an empty string.
+        # Inside Actions `gh` refuses to run at all without a token, so without
+        # this the probe reads an empty answer and the check passes having
+        # validated nothing. `contents: read` is all it uses.
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           coverage run scripts/test_release_train.py
           coverage run --append scripts/test_redirects.py
