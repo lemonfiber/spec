@@ -34,8 +34,6 @@ ROOT = SCRIPTS.parent
 # reason says what it gates rather than merely that it is small.
 UNMEASURED = {
     "check_frontmatter.py": "gates a merge; wants a suite",
-    "check_order.py": "gates a merge; wants a suite",
-    "commit_lint.py": "gates a merge; wants a suite",
     "spec_refs.py": "gates a merge; wants a suite",
     "gen_board.py": "generates the board the integrity job diffs, so a wrong "
     "answer is caught there rather than here",

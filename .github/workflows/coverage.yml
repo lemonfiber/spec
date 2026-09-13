@@ -41,6 +41,8 @@ jobs:
           coverage run --append scripts/test_goal_coverage.py
           coverage run --append scripts/test_binding_order.py
           coverage run --append scripts/test_dco_check.py
+          coverage run --append scripts/test_commit_lint.py
+          coverage run --append scripts/test_order.py
           coverage report --fail-under=100
       # Not a coverage suite: it reads `.coveragerc` against the scripts directory
       # and fails on a script in neither the include list nor the declared-unmeasured

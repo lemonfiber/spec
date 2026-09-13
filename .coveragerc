@@ -17,6 +17,8 @@ include =
     scripts/check_goal_coverage.py
     scripts/check_binding_order.py
     scripts/dco_check.py
+    scripts/commit_lint.py
+    scripts/check_order.py
     scripts/manifest_repos.py
     scripts/tracker_body.py
     scripts/pr_goals.py
