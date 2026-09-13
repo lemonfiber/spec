@@ -322,6 +322,59 @@ class ReadingTheRulesOffTheForge(Stubbed):
         self.assertTrue(wib._unresolved("o/r", 1))
 
 
+class NamesThatWouldBecomeFlags(Stubbed):
+    """`gh` reads a leading dash as an option, and no shell is needed for that."""
+
+    def test_what_a_repository_may_be_called(self):
+        for good in ("lemonfiber/spec", "o/r", "a-b.c/d_e", "O0/r9"):
+            with self.subTest(good):
+                self.assertTrue(wib.named(good))
+
+    def test_what_it_may_not(self):
+        # `--template` is not a repository this fails to find. It is a flag.
+        for bad in ("--template", "-R", "o", "/r", "o/", "o/../x", "o/r/s", ""):
+            with self.subTest(bad):
+                self.assertFalse(wib.named(bad))
+
+    def test_what_a_branch_may_be_called(self):
+        self.assertTrue(wib.branched("main"))
+        self.assertTrue(wib.branched("feat/a-thing"))
+
+    def test_a_branch_that_walks_out_of_the_api_path(self):
+        # Interpolated into `repos/{repo}/branches/{base}/protection`, so `..`
+        # is not a branch that does not exist — it is a different endpoint.
+        for bad in ("../../x", "a/../b", "-x", ""):
+            with self.subTest(bad):
+                self.assertFalse(wib.branched(bad))
+
+    def test_a_bad_repository_never_reaches_gh(self):
+        reached = []
+        self.addCleanup(setattr, wib, "_gh", wib._gh)
+        wib._gh = lambda *args: reached.append(args) or ""
+        out = wib.look("--template", 1)
+        self.assertIn("not a repository name", out[0])
+        self.assertEqual(reached, [])
+
+    def test_a_bad_base_branch_stops_before_the_protection_call(self):
+        self.said["pr view"] = "../../elsewhere\n"
+        out = wib.look("o/r", 1)
+        self.assertIn("is not a branch name", out[0])
+
+    def test_the_organisation_is_checked_too(self):
+        # A leading dash never gets this far — argparse refuses it as an unknown
+        # option, which is defence this did not have to write. Everything else
+        # does get here, so it is checked here.
+        out = io.StringIO()
+        with redirect_stdout(out):
+            code = wib.main(["--org", "owner/repo"])
+        self.assertEqual(code, 1)
+        self.assertIn("not an organisation name", out.getvalue())
+
+    def test_argparse_turns_away_a_target_that_starts_with_a_dash(self):
+        with self.assertRaises(SystemExit):
+            wib.main(["--org", "--evil"])
+
+
 class TheFieldNamesAreReal(unittest.TestCase):
     """`_gh` answers a rejected field the same way it answers an unreadable repo.
 

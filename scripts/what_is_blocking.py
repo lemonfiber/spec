@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 
@@ -78,6 +79,16 @@ RULES = (
         "an approving review is required",
     ),
 )
+
+
+# How loudly each state speaks, for deciding which of two reports under one name
+# is the one to show. Built once: it never changes, and a dict comprehension per
+# call was doing the same work for every check on every pull request.
+RANK = {
+    **dict.fromkeys(FAILED, 0),
+    **dict.fromkeys(WAITING, 1),
+    **dict.fromkeys(QUIET, 2),
+}
 
 
 def blocking(required: list[str], reported: dict[str, str]) -> dict[str, list[str]]:
@@ -164,6 +175,33 @@ def lines(
     return out
 
 
+# What a repository and a branch are allowed to be called, checked before either
+# reaches `gh`.
+#
+# Nothing here goes through a shell, so this is not shell injection — it is
+# argument injection, which needs no shell. `gh` reads an argument beginning with
+# `-` as an option, so a "repository" called `--template` is not a repository
+# this fails to find; it is a flag, silently changing what the command does. The
+# repository name arrives from the command line and is interpolated into an API
+# path besides, where `..` would walk out of it.
+#
+# Refused rather than escaped. There is no legitimate repository or branch this
+# turns away: GitHub allows neither a leading dash nor `..` in either.
+_NAME = re.compile(r"\A[0-9A-Za-z][0-9A-Za-z._-]{0,99}\Z")
+_BRANCH = re.compile(r"\A[0-9A-Za-z][0-9A-Za-z._/-]{0,254}\Z")
+
+
+def named(repo: str) -> bool:
+    """Whether `repo` is `owner/name` and both halves are what they claim."""
+    owner, slash, name = repo.partition("/")
+    return bool(slash) and bool(_NAME.match(owner)) and bool(_NAME.match(name))
+
+
+def branched(base: str) -> bool:
+    """Whether `base` is a branch name, and not a path walking out of one."""
+    return bool(_BRANCH.match(base)) and ".." not in base
+
+
 def _gh(*args: str) -> str:
     """What `gh` said, or an empty string where it would not answer.
 
@@ -171,6 +209,10 @@ def _gh(*args: str) -> str:
     answer to "what is required here", and so is a token that cannot read it.
     Both are reported by the caller as "nothing required", which is true of what
     this was able to see and is said plainly rather than implied.
+
+    No shell, and never one: the arguments are passed as a list, and the two that
+    come from outside this script are checked against `named` and `branched`
+    before they arrive here.
     """
     done = subprocess.run(
         ("gh", *args), capture_output=True, text=True, check=False, timeout=60
@@ -294,8 +336,7 @@ def _reported(repo: str, number: int) -> dict[str, str]:
 
 def _worse(state: str, than: str) -> bool:
     """Whether `state` is the one a maintainer needs to hear about."""
-    rank = {**{s: 0 for s in FAILED}, **{s: 1 for s in WAITING}, **{s: 2 for s in QUIET}}
-    return rank.get(state, 1) < rank.get(than, 1)
+    return RANK.get(state, 1) < RANK.get(than, 1)
 
 
 def _open_prs(repo: str) -> list[int]:
@@ -317,7 +358,11 @@ def _base(repo: str, number: int) -> str:
 
 def look(repo: str, number: int) -> list[str]:
     """Read one pull request and report it."""
+    if not named(repo):
+        return [f"{repo}: not a repository name — expected owner/name"]
     base = _base(repo, number)
+    if not branched(base):
+        return [f"{repo}#{number}: base branch {base!r} is not a branch name"]
     protection = _protection_of(repo, base)
     required = required_in(protection)
     rules = unmet(rules_in(protection), _state(repo, number)) if protection else []
@@ -334,6 +379,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.org:
+        if not _NAME.match(args.target):
+            print(f"{args.target}: not an organisation name")
+            return 1
         pairs = [(repo, n) for repo in _repos(args.target) for n in _open_prs(repo)]
     elif args.numbers:
         pairs = [(args.target, n) for n in args.numbers]
