@@ -16,7 +16,7 @@ import sys
 import tomllib
 
 from manifest_repos import cut, searched
-from patterns import REQ_DEF
+from patterns import IN_FLIGHT, REQ_DEF
 from patterns import VERSION as VERSION_RE
 
 VERSIONS = pathlib.Path("70-operations/versions")
@@ -34,7 +34,7 @@ def in_flight(exclude: str) -> str | None:
         if other.name == exclude:
             continue
         status = tomllib.loads(other.read_text(encoding="utf-8")).get("status")
-        if status in ("staged", "in_progress", "releasable"):
+        if status in IN_FLIGHT:
             return f"{other.name} is already {status}"
     return None
 
