@@ -29,3 +29,32 @@ jobs:
         with:
           languages: ${{ matrix.language }}
       - uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v3
+
+  # The analysis finding something is not the same as anything stopping it: the
+  # check GitHub raises beside it is neutral on every pull request here, so
+  # requiring it would gate nothing. This asks whether an open alert stands
+  # against what the branch proposes, which is the question that was meant.
+  #
+  # `!cancelled()` rather than `always()`, and rather than `needs:` alone: a
+  # `needs:` dependency that fails makes this job vanish, and a skipped required
+  # check satisfies branch protection — so the one gate that refuses an alert
+  # would be absent in exactly the case where the analysis went wrong. A
+  # cancelled run is somebody pressing stop, and finishing the job they stopped
+  # serves nobody.
+  #
+  # The gate is safe to run after a failed analysis now: it refuses a commit it
+  # has no analysis of, by language and by name, so it produces a red check that
+  # says what is missing rather than a skipped one that says nothing.
+  alerts:
+    needs: analyze
+    if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      security-events: read
+    uses: ./.github/workflows/codeql-alerts.yml
+    with:
+      analysis: ${{ needs.analyze.result }}
+      # The original rather than a copy: this repository is where the gate is
+      # maintained, and a repository that carried a second copy of its own file
+      # would be the first place the two could disagree.
+      gate: shared/gates/no_open_codeql_alert.py

@@ -66,6 +66,47 @@ Supply chain is a real threat ([security](security.md)), enforced not exhorted:
 `G8-R11` — dependencies must not introduce telemetry — is checked here rather than
 hoped for.
 
+## CodeQL — the analysis is not the gate
+
+`Q-R53` puts SAST in CI, and for years that was where it stopped. The check
+GitHub raises beside a CodeQL analysis compares the *configurations* a pull
+request produced against every one seen on `main`; the supply-chain scan uploads
+three that only ever run on `main`, so on a pull request that check is neutral
+whatever the analysis found. Requiring it gates nothing. A finding would be
+raised, shown in the Security tab, and block no merge.
+
+So the question is asked directly, by a reusable
+[`codeql-alerts.yml`](../.github/workflows/codeql-alerts.yml)
+each repository's own `codeql.yml` calls: *of the alerts the API holds against
+this branch, is any of them open.* An alert dismissed with a reason is not open,
+which leaves the judgement about what is worth acting on where it was recorded.
+
+Two things that gate must not do, both of which an earlier copy of it did:
+
+| It would pass on | Because | So it |
+|---|---|---|
+| a commit nobody analysed | `code-scanning/alerts` returns `[]` for *analysed and clean* and for *never analysed* alike | reads the analysis list alongside, and refuses a commit carrying none |
+| a commit already replaced | `analyses?ref=…` answers about the **ref**, and a pull request's merge ref is rebuilt on every push | is handed a commit sha and asks about that |
+
+It waits, rather than races: an upload the `analyze` job accepted is not an
+analysis the API will answer about yet, and the two are minutes apart. The same
+function decides the wait and the verdict, so there is no second opinion to
+drift. Where the analysis already failed, it asks once and is red in seconds —
+running after a failed analysis is safe now precisely because it refuses a
+commit it has no analysis of, by language and by name.
+
+The languages come off the caller's own workflow — `strategy.matrix` where there
+are several, `init`'s `languages:` where there is one — rather than being passed
+in beside it. A second copy of that list is free to fall behind silently, which
+is how a gate comes to check two of three and report a pass.
+
+The job runs under `if: ${{ !cancelled() }}`. `needs:` alone made it *vanish*
+when a language failed, and [a skipped required check satisfies branch
+protection](#when-a-pull-request-is-blocked-and-does-not-say-by-what) — so the
+one gate that refuses an alert was absent in exactly the case where the analysis
+went wrong. `always()` would also finish a run somebody pressed stop on, which
+serves nobody.
+
 ## Secret scanning
 
 Runs over **all** tracked files including tests (`Q-R29`). A real key in a fixture
