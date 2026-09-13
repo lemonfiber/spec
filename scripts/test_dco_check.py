@@ -23,6 +23,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -152,34 +153,49 @@ class WhatItSays(unittest.TestCase):
 
 
 class WhatGitIsAsked(unittest.TestCase):
-    """The half the tests above stand in for, asked once against this repository.
+    """The half the tests above stand in for, asked once against a real repository.
 
     Everything above hands `unsigned` a string, which is the only way to reach the
     decisions without making commits. That leaves the question nothing else asks:
     does the format string still produce records of the shape those tests assume.
     A field added or reordered in `git log --format` would pass every test above
     and report every commit as unsigned.
+
+    Against a repository built here rather than against this one. CI clones
+    shallow, so `HEAD~1` is not a commit there — and a test that only runs where
+    the history is deep is a test that does not run where the gate does.
     """
 
     def test_the_format_produces_the_shape_the_records_above_assume(self):
-        here = pathlib.Path(__file__).resolve().parent.parent
-        head = subprocess.run(
-            ["git", "-C", str(here), "rev-parse", "HEAD"],
-            capture_output=True, text=True, check=True,
-        ).stdout.strip()
-        base = subprocess.run(
-            ["git", "-C", str(here), "rev-parse", "HEAD~1"],
-            capture_output=True, text=True, check=True,
-        ).stdout.strip()
+        where = pathlib.Path(tempfile.mkdtemp())
+        git = ["git", "-C", str(where), "-c", "user.name=A Person",
+               "-c", "user.email=a@example.com", "-c", "commit.gpgsign=false"]
+        subprocess.run([*git, "init", "-q", "-b", "main"], check=True, capture_output=True)
+        shas = []
+        for n in ("one", "two"):
+            (where / f"{n}.txt").write_text(n, encoding="utf-8")
+            subprocess.run([*git, "add", "-A"], check=True, capture_output=True)
+            subprocess.run(
+                [*git, "commit", "-q", "-m", f"feat: {n}\n\n{SIGNED}"],
+                check=True, capture_output=True,
+            )
+            shas.append(
+                subprocess.run([*git, "rev-parse", "HEAD"],
+                               capture_output=True, text=True, check=True).stdout.strip()
+            )
 
-        os.chdir(here)
-        out = gate._read(base, head)
+        os.chdir(where)
+        out = gate._read(*shas)
 
         self.assertTrue(out.endswith("\x01\n"), "a record no longer ends where one is read to end")
         parts = out.strip("\x01\n").split("\x00")
         self.assertEqual(len(parts), 5, f"a record now carries {len(parts)} fields, not five")
-        self.assertTrue(parts[0].startswith(head[:8]), "the first field is no longer the sha")
-        self.assertIn("@", parts[2], "the third field is no longer an address")
+        self.assertEqual(parts[0], shas[1], "the first field is no longer the sha")
+        self.assertEqual(parts[1], "A Person", "the second field is no longer the author's name")
+        self.assertEqual(parts[2], "a@example.com", "the third field is no longer the address")
+        self.assertIn("Signed-off-by", parts[4], "the fifth field is no longer the body")
+
+        self.assertEqual(gate.unsigned(out), [], "a signed-off commit was read as unsigned")
 
 
 if __name__ == "__main__":
