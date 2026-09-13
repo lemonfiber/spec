@@ -98,3 +98,8 @@ jobs:
       # same one going green once the distance rule is relaxed (Q-R66, Q-R68).
       - name: A pin near in time and far in commits is shown refused (Q-R68)
         run: python3 scripts/test_pins.py
+
+      # Not a coverage suite either: it reads the step that refuses a lychee
+      # `accept` list which cannot run, out of the committed workflow.
+      - name: An accept list that does not run is refused
+        run: python3 scripts/test_dead_accept.py
