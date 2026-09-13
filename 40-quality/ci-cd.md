@@ -100,6 +100,13 @@ are several, `init`'s `languages:` where there is one — rather than being pass
 in beside it. A second copy of that list is free to fall behind silently, which
 is how a gate comes to check two of three and report a pass.
 
+A caller adopting it adds `codeql` to its `awaiting-maintainer` wait list in
+the same change. That list is what re-asks *is this mergeable yet* when a
+workflow finishes; a gating workflow left out of it can be the last one to go
+green, with nothing afterwards to notice — the flag never goes up and nothing
+says why. The workflow need not be a required context first: naming it costs one
+extra evaluation and means the list is already right on the day it becomes one.
+
 The job runs under `if: ${{ !cancelled() }}`. `needs:` alone made it *vanish*
 when a language failed, and [a skipped required check satisfies branch
 protection](#when-a-pull-request-is-blocked-and-does-not-say-by-what) — so the

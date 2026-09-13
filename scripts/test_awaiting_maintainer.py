@@ -659,6 +659,18 @@ class ThisRepositoryWaitsForItsOwn(unittest.TestCase):
         }
         self.assertEqual(supplies - set(declared_triggers()), set())
 
+    def test_it_waits_for_the_workflows_that_decide_the_merge_box(self):
+        """A workflow can gate a merge before its check is required.
+
+        `codeql`'s `alerts` job refuses a branch an open alert stands against.
+        It is not a required context here yet, so the set above does not reach
+        it — and a gating workflow left out of the trigger list can be the last
+        one to finish, with nothing afterwards to notice the pull request became
+        mergeable. Naming it costs one more evaluation and means the list is
+        already right on the day it becomes required.
+        """
+        self.assertIn("codeql", declared_triggers())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
