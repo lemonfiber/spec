@@ -29,7 +29,7 @@ Every tool below was chosen to work within that constraint.
 | **Governance gate** | `spec-check` (in-repo) | our own | all repos |
 | **Spec integrity** | `integrity.py` (in-repo) | our own | spec |
 | **Code quality + coverage** | **SonarQube Cloud** | free for public | all repos |
-| **SAST** | **CodeQL** | free for public | the repos whose language or workflow surface it can analyse |
+| **SAST** | **CodeQL** | free for public | six of eleven repos; the other five have never had it ([#358](https://github.com/lemonfiber/spec/issues/358)) |
 | **Secret scanning** | **gitleaks** | OSS | all repos |
 | **Dependency/vuln scanning** | **OSV-Scanner** | OSS | all repos, via the shared `security.yml` |
 | **Supply-chain posture** | **OpenSSF Scorecard** | free for public | each repo that publishes an artefact or the specification; the newest four are outstanding (`Q-R59`) |

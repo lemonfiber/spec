@@ -42,10 +42,18 @@ on:
       DISCORD_MAINTAINERS_WEBHOOK:
         required: false
   workflow_run:
-    # Every workflow that supplies a check `main` requires here. Keep this equal to
-    # that set: a workflow missing from it never re-evaluates the gate, so the flag
-    # would wait forever on a check that had in fact gone green.
-    workflows: [commitlint, coverage, dco, docs, hygiene, integrity, security, sonar]
+    # Every workflow that supplies a check `main` requires here, and every
+    # workflow that decides whether the merge box goes clean. A workflow missing
+    # from it never re-evaluates the gate, so the flag would wait forever on a
+    # check that had in fact gone green.
+    #
+    # `codeql` is the second kind rather than the first. Its `alerts` job refuses
+    # a branch an open alert stands against and is not a required context yet;
+    # naming it here costs one more evaluation and means the list is already
+    # right on the day it becomes one. A gating workflow left out can be the last
+    # to finish, with nothing afterwards to notice the pull request became
+    # mergeable.
+    workflows: [codeql, commitlint, coverage, dco, docs, hygiene, integrity, security, sonar]
     types: [completed]
   pull_request_review:
     types: [submitted]
