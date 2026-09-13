@@ -25,11 +25,18 @@ Exit non-zero listing every one, so a single run shows the whole picture rather
 than the first of them.
 """
 
+import argparse
 import pathlib
 import re
 import sys
 
 FEATURES = pathlib.Path("10-functional/features")
+
+# One feature this tree is known to define. A sweep that finds nothing reports
+# every claim below it as satisfied, and a gate that has read nothing is
+# indistinguishable from a gate that has read everything and found it in order —
+# so the reading is asserted before anything is said about it.
+KNOWN = "F1"
 ID = re.compile(r"^id:\s*(\S+)", re.MULTILINE)
 STATUS = re.compile(r"^status:\s*(\S+)", re.MULTILINE)
 REQUIRES = re.compile(r"^requires:\s*\[(.*?)\]\s*$", re.MULTILINE)
@@ -40,11 +47,11 @@ REQUIRES = re.compile(r"^requires:\s*\[(.*?)\]\s*$", re.MULTILINE)
 BINDING = "accepted"
 
 
-def _features() -> tuple[dict[str, str], dict[str, list[str]]]:
+def _features(root: pathlib.Path) -> tuple[dict[str, str], dict[str, list[str]]]:
     """Every feature's status, and what each says it requires."""
     status: dict[str, str] = {}
     wants: dict[str, list[str]] = {}
-    for path in sorted(FEATURES.rglob("*.md")):
+    for path in sorted((root / FEATURES).rglob("*.md")):
         text = path.read_text(encoding="utf-8")
         found, said = ID.search(text), STATUS.search(text)
         if not (found and said):
@@ -67,7 +74,16 @@ def _unmet(feature: str, need: str, status: dict[str, str]) -> str | None:
 
 
 def main() -> None:
-    status, wants = _features()
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--root", default=".", help="the spec checkout to read")
+    root = pathlib.Path(ap.parse_args().root).resolve()
+
+    status, wants = _features(root)
+    if KNOWN not in status:
+        sys.exit(
+            f"::error::no feature called {KNOWN} was found under {root / FEATURES}, so "
+            "this read the wrong tree and every claim below would be a claim about nothing"
+        )
     problems = [
         said
         for feature, needs in sorted(wants.items())
