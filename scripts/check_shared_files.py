@@ -27,6 +27,7 @@ MANAGERS = ("lefthook.yml", "lefthook.yaml", ".lefthook.yml", "captainhook.json"
 
 MARKDOWNLINT = "markdownlint.jsonc"
 TYPOS = "typos.toml"
+GATES = "gates"
 HOOKS = "hooks"
 RUFF = "ruff.toml"
 
@@ -306,11 +307,44 @@ def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     return complaints
 
 
+def gates(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
+    """The gate scripts a repository has adopted, where it has adopted them.
+
+    Conditional, the way `hooks` is: a repository running no CodeQL alert gate is
+    not failed for it, but one carrying a copy must carry the current one. These
+    decide whether a branch merges, and a gate that has quietly drifted is worse
+    than none because it is trusted — `no_open_codeql_alert.py` spent its whole
+    life reading an empty alert list as a clean one, and a repository still
+    carrying that version would be reporting a pass it had not earned.
+
+    Byte for byte, and read as bytes: a copy rewritten with CRLF endings reads as
+    identical when both are read as text, and is a script the kernel will not run
+    because the interpreter its first line names has a carriage return on it.
+
+    Listed from the canonical directory rather than named here, so a gate added
+    to `shared/gates/` is compared everywhere rather than copied everywhere and
+    compared nowhere.
+    """
+    complaints = []
+    for name in sorted(
+        one.name for one in (canonical / "shared" / GATES).iterdir() if one.is_file()
+    ):
+        got = repo / "scripts" / name
+        if not got.is_file():
+            continue
+        want = canonical / "shared" / GATES / name
+        if got.read_bytes() != want.read_bytes():
+            complaints.append(
+                f"scripts/{name} differs from the canonical copy; replace it with {want}"
+            )
+    return complaints
+
+
 # Every member of `shared/` that a check above compares, and the ones nothing
 # compares because they are not copies. `README.md` documents the directory and
 # `assets.sha256` is the manifest `assets()` reads rather than a file any repo
 # carries.
-COMPARED = {MARKDOWNLINT, TYPOS, HOOKS, RUFF}
+COMPARED = {MARKDOWNLINT, TYPOS, HOOKS, RUFF, GATES}
 NOT_A_COPY = {"README.md", "assets.sha256"}
 
 
@@ -355,6 +389,7 @@ def main() -> int:
         + ruff(repo, canonical)
         + assets(repo, canonical, name)
         + hooks(repo, canonical)
+        + gates(repo, canonical)
         + manager(repo)
         + codeowners(repo, canonical, name)
     )
@@ -363,7 +398,7 @@ def main() -> int:
             print(f"::error::{problem}")
         print(f"\n{len(problems)} shared file(s) out of step with {canonical / 'shared'}.")
         return 1
-    print("shared files: lint configs, hooks, brand assets and CODEOWNERS match their one home")
+    print("shared files: lint configs, hooks, gate scripts, brand assets and CODEOWNERS match their one home")
     return 0
 
 
