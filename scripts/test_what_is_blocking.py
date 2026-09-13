@@ -24,12 +24,23 @@ import what_is_blocking as wib
 
 
 class Stubbed(unittest.TestCase):
-    """`_gh` answers from a table keyed on the sub-command it was asked."""
+    """`_gh` answers from a table keyed on any fragment of the call.
+
+    Keyed on a fragment rather than the sub-command, because two calls can share
+    one: `_base` and `_branch_of` are both `pr view`, and a stub that cannot tell
+    them apart hands each the other's answer and tests neither. The longest
+    matching key wins, so `pr view` stays a usable default beside a specific one.
+    """
 
     def setUp(self):
         self.said = {}
         self.addCleanup(setattr, wib, "_gh", wib._gh)
-        wib._gh = lambda *args: self.said.get(" ".join(args[:2]), "")
+        wib._gh = self.answer
+
+    def answer(self, *args):
+        whole = " ".join(args)
+        matches = [key for key in self.said if key in whole]
+        return self.said[max(matches, key=len)] if matches else ""
 
 
 class Sorting(unittest.TestCase):
@@ -320,6 +331,75 @@ class ReadingTheRulesOffTheForge(Stubbed):
         self.assertFalse(wib._unresolved("o/r", 1))
         self.said["api graphql"] = json.dumps([True, False])
         self.assertTrue(wib._unresolved("o/r", 1))
+
+
+class WhenNothingRanAtAll(Stubbed):
+    """Twenty missing contexts, one line each, is twenty statements of one fact."""
+
+    def all_missing(self, n=3):
+        return wib.blocking([f"c{i}" for i in range(n)], {})
+
+    def test_a_workflow_that_could_not_start_is_named(self):
+        # The failure with no other symptom: no check run, no log, nothing on the
+        # pull request. Twenty MISSING lines is what it looks like from outside.
+        said = wib.why_nothing_ran(self.all_missing(), ["startup_failure", "success"])
+        self.assertIn("did not start", said)
+        self.assertIn("push the branch again", said)
+
+    def test_no_runs_at_all(self):
+        said = wib.why_nothing_ran(self.all_missing(), [])
+        self.assertIn("no workflow run exists", said)
+
+    def test_runs_that_simply_have_not_produced_them(self):
+        said = wib.why_nothing_ran(self.all_missing(), ["success", "success"])
+        self.assertIn("not produced them", said)
+
+    def test_one_missing_context_among_reported_ones_is_a_different_question(self):
+        # A `paths:` filter or a failed `needs:`, and "nothing ran" is the wrong
+        # answer to it. Answering only where everything is missing is the point.
+        found = wib.blocking(["a", "b"], {"b": "SUCCESS"})
+        self.assertIsNone(wib.why_nothing_ran(found, ["startup_failure"]))
+
+    def test_nothing_missing_is_not_this_question_either(self):
+        found = wib.blocking(["a"], {"a": "SUCCESS"})
+        self.assertIsNone(wib.why_nothing_ran(found, ["startup_failure"]))
+
+    def test_the_report_collapses_to_one_line_and_a_count(self):
+        out = wib.lines("o/r", 1, self.all_missing(), None, "the workflows did not start")
+        self.assertEqual(out[0], "o/r#1: the workflows did not start")
+        self.assertIn("3 required contexts, all of them", out[1])
+        self.assertEqual(len(out), 2)
+
+    def test_a_protection_rule_still_shows_beside_it(self):
+        out = wib.lines("o/r", 1, self.all_missing(), ["sign the commits"], "nothing ran")
+        self.assertIn("RULE: sign the commits", out[1])
+
+    def test_end_to_end_a_branch_whose_workflows_never_started(self):
+        self.said["api repos/o/r/branches/main/protection"] = json.dumps(
+            {"required_status_checks": {"contexts": ["a", "b"]}}
+        )
+        self.said["pr checks"] = json.dumps([])
+        self.said["headRefName"] = "feat/a-thing\n"
+        self.said["baseRefName"] = "main\n"
+        self.said["run list"] = json.dumps(["startup_failure", "startup_failure"])
+        out = wib.look("o/r", 1)
+        self.assertIn("did not start", out[0])
+        self.assertIn("2 required contexts", out[1])
+
+    def test_conclusions_drops_the_runs_that_have_not_finished(self):
+        self.said["run list"] = json.dumps(["success", None, "failure"])
+        self.assertEqual(wib._conclusions("o/r", "b"), ["success", "failure"])
+
+    def test_a_branch_name_gh_will_not_give_is_not_asked_about(self):
+        # `_branch_of` answers empty when `gh` refuses, and an empty branch is not
+        # a branch — asking `gh run list --branch ""` would list the whole repo.
+        self.said["api repos/o/r/branches/main/protection"] = json.dumps(
+            {"required_status_checks": {"contexts": ["a"]}}
+        )
+        self.said["pr checks"] = json.dumps([])
+        self.assertEqual(wib._branch_of("o/r", 1), "")
+        out = wib.look("o/r", 1)
+        self.assertIn("MISSING: a", out[1])
 
 
 class NamesThatWouldBecomeFlags(Stubbed):

@@ -138,6 +138,34 @@ def unmet(protection: dict[str, bool], state: dict[str, bool]) -> list[str]:
     ]
 
 
+def why_nothing_ran(found: dict[str, list[str]], conclusions: list[str]) -> str | None:
+    """Where every required check is missing, the reason they all are.
+
+    Twenty contexts reported as missing, one line each, is twenty statements of
+    one fact — and the fact is not about the contexts. Nothing ran. What is worth
+    saying is why, and `startup_failure` is the answer that has no other symptom:
+    a workflow that could not start produces no check run, no log, and no entry on
+    the pull request. On 2026-09-13 every workflow on three branches failed to
+    start inside one minute, and each pull request read as twenty missing checks.
+
+    Only where *everything* is missing. A single missing context among reported
+    ones is a different question — a `paths:` filter, a failed `needs:` — and this
+    would be the wrong answer to it.
+    """
+    if not found["missing"] or any(found[key] for key in ORDER if key != "missing"):
+        return None
+    if "startup_failure" in conclusions:
+        return (
+            "no required check reported because the workflows did not start "
+            "(startup_failure). A run that fails to start leaves no check, no log "
+            "and nothing on the pull request. Re-running is usually refused; push "
+            "the branch again"
+        )
+    if not conclusions:
+        return "no required check reported, and no workflow run exists for this branch at all"
+    return "no required check reported yet; the runs that exist have not produced them"
+
+
 def verdict(found: dict[str, list[str]], rules: list[str] | None = None) -> str:
     """One line saying whether anything is wrong, and where to look if so."""
     if found["missing"]:
@@ -159,8 +187,14 @@ def lines(
     number: int,
     found: dict[str, list[str]],
     rules: list[str] | None = None,
+    nothing_ran: str | None = None,
 ) -> list[str]:
     """The report, worst first, with the empty categories left out."""
+    if nothing_ran:
+        out = [f"{repo}#{number}: {nothing_ran}"]
+        out.extend(f"  {'RULE':>8}: {said}" for said in rules or [])
+        out.append(f"  {'missing':>8}: {len(found['missing'])} required contexts, all of them")
+        return out
     out = [f"{repo}#{number}: {verdict(found, rules)}"]
     for key in ORDER:
         if key == "passed" or not found[key]:
@@ -339,6 +373,25 @@ def _worse(state: str, than: str) -> bool:
     return RANK.get(state, 1) < RANK.get(than, 1)
 
 
+def _conclusions(repo: str, branch: str) -> list[str]:
+    """How this branch's recent workflow runs ended.
+
+    Only asked when nothing reported, because that is the only case it answers.
+    """
+    said = _gh(
+        "run", "list", "-R", repo, "--branch", branch, "--limit", "30",
+        "--json", "conclusion", "--jq", "[.[].conclusion]",
+    )
+    return [c for c in (json.loads(said) if said.strip() else []) if c]
+
+
+def _branch_of(repo: str, number: int) -> str:
+    said = _gh(
+        "pr", "view", "-R", repo, str(number), "--json", "headRefName", "--jq", ".headRefName"
+    )
+    return said.strip()
+
+
 def _open_prs(repo: str) -> list[int]:
     said = _gh("pr", "list", "-R", repo, "--state", "open", "--json", "number")
     return [pr["number"] for pr in (json.loads(said) if said.strip() else [])]
@@ -368,7 +421,13 @@ def look(repo: str, number: int) -> list[str]:
     rules = unmet(rules_in(protection), _state(repo, number)) if protection else []
     if not required and not rules:
         return [f"{repo}#{number}: nothing required, or branch protection is unreadable here"]
-    return lines(repo, number, blocking(required, _reported(repo, number)), rules)
+    found = blocking(required, _reported(repo, number))
+    nothing_ran = None
+    if found["missing"] and not any(found[key] for key in ORDER if key != "missing"):
+        branch = _branch_of(repo, number)
+        if branched(branch):
+            nothing_ran = why_nothing_ran(found, _conclusions(repo, branch))
+    return lines(repo, number, found, rules, nothing_ran)
 
 
 def main(argv: list[str] | None = None) -> int:
