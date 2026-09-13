@@ -181,6 +181,25 @@ Every repo: required checks must pass, `spec-check` among them, before merge
 (`roadmap M0.5`). The [override](../50-governance/overrides.md) bypasses
 `spec-check` **only**, never the build, tests, or review (`GOV-R19`).
 
+### When a pull request is blocked and does not say by what
+
+GitHub names a failing check and links its log. It does not name a required
+check that **never reported** — that one appears in no check list at all, so the
+merge box says "Required statuses must pass" with nothing to click. A `paths:`
+filter that did not match, a job whose `needs:` dependency failed, a reusable
+workflow granted too few `permissions:`, a workflow that could not start, and a
+third-party app having an outage all look identical from outside, which is to say
+they look like nothing.
+
+`just blocked <owner/repo> [<number>…]`, or `just blocked <owner> --org`, reads
+what protection requires against what the head commit carries and names the
+difference. It also reports the rules that are not checks — `strict`,
+`required_signatures`, conversation resolution, review — which block just as hard
+and appear in no list either.
+
+Read it as a second opinion, not an authority: where it and GitHub disagree it
+says so, and GitHub decides.
+
 ## Requirements
 
 | ID | Requirement |
