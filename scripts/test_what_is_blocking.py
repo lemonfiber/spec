@@ -412,9 +412,12 @@ class WhenNothingRanAtAll(Stubbed):
         self.assertIn("did not start", said)
         self.assertIn("push the branch again", said)
 
-    def test_no_runs_at_all(self):
+    def test_no_finished_runs_says_it_may_only_be_early(self):
+        # True, and also what a branch pushed a moment ago looks like. Saying only
+        # the first half sends somebody hunting a trigger that is not broken.
         said = wib.why_nothing_ran(self.all_missing(), [])
-        self.assertIn("no workflow run exists", said)
+        self.assertIn("no workflow run has finished", said)
+        self.assertIn("pushed moments ago", said)
 
     def test_runs_that_simply_have_not_produced_them(self):
         said = wib.why_nothing_ran(self.all_missing(), ["success", "success"])
