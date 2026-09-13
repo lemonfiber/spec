@@ -58,6 +58,10 @@ def main() -> None:
     in_scope = sorted(ids & goals)
     print(json.dumps({
         "staged": version["version"],
+        # What the version is for, in the manifest's own words. Carried so the
+        # milestone this PR is assigned to can be described without a second
+        # sentence being written in a workflow and drifting from the first.
+        "delivers": version.get("delivers", ""),
         "cited": sorted(ids),
         "in_scope": in_scope,
         "out_of_scope": sorted(ids - goals),

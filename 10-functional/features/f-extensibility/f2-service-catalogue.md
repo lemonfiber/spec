@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: planned
+maturity: building
 labels: [extensibility]
 relates: [B1, F1, G2]
 ---

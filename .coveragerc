@@ -8,6 +8,8 @@
 [run]
 include =
     scripts/patterns.py
+    scripts/catalogue.py
+    scripts/check_no_stubs.py
     scripts/gate.py
     scripts/set_status.py
     scripts/submodule_pins.py

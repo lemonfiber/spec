@@ -1,7 +1,7 @@
-# Execute a staged (or fast-lane) version — OPS-R34, R35, R36.
+# Execute a staged (or fast-lane) version — OPS-R34, R35, R36, R54.
 #
-# Gates on every locked goal being satisfied, checks the streams still agree and
-# nothing is blocking, then tags each target repo (an App-token tag DOES trigger
+# Gates on every locked goal being satisfied and on every one of them being
+# built, checks the streams still agree and nothing is blocking, then tags each target repo (an App-token tag DOES trigger
 # their release.yml, unlike GITHUB_TOKEN) and stops. The tags produce draft
 # releases; a human reviews and publishes one, and only then does the manifest
 # flip to released and the announcement fire — release-finalize and
@@ -98,6 +98,12 @@ jobs:
           while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < searched.txt
           python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" \
             "${args[@]}" --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md"
+      - name: Gate — no requirement it locks is unbuilt (OPS-R54)
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python3 scripts/check_no_stubs.py --version "$VERSION" \
+            --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md"
       - name: Cross-stream compatibility (OPS-R35)
         env:
           VERSION: ${{ inputs.version }}

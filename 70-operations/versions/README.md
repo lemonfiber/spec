@@ -38,12 +38,31 @@ lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"
 
 Minors (`0.4.0`, `1.3.0`, …) are themed slices toward the next major; patches
 (`x.y.Z`) are hotfixes; a major (`X.0.0`) carries the capability that justifies
-the number. Whichever it is, **a version MUST NOT ship a feature it has not
-finished** — before the tag, every feature this manifest's `goals` name has to be
-**`built`** in the [catalogue](../../10-functional/features/README.md), which
-[OPS-R54](../staging.md) states in full along with why it is `built` rather than
-`shipped`. A goal is a requirement, and a feature is more than its requirements
-taken one at a time; a major's list is measured against both.
+the number. Whichever it is, **a version MUST NOT ship a requirement it has not
+finished** — before the tag, every requirement this manifest's `goals` name has to
+be built, which [OPS-R54](../staging.md) states in full.
+
+The subject is what a version *carries*. A manifest may lock part of a feature and
+most of them do: 24 of the 25 here lock part of at least one, and `0.1.0` locks two
+of `B1`'s fifteen. So the catalogue answers where it can — a feature that is
+`built` or `shipped` has every requirement finished, one that is `planned` has none
+— and where a feature is `building` the [implementation
+status](https://github.com/lemonfiber/lemonfiber/blob/main/IMPLEMENTATION-STATUS.md)
+is asked about each locked requirement on its own. A catalogue calling a feature
+untouched while the tracker ticks its requirements is refused either way; the two
+records have to agree.
+
+`execute-version` refuses on it, and `just no-stubs <version> <tracker>` asks the
+same question from a checkout. Ask it early. The rule was enforced by nothing until
+`0.15.0` was already staged, and what stood in for it was somebody reading six
+catalogue files by hand on release day — which is how `0.14.0` came to lock five
+features that still said `building` an hour before it went out.
+
+The refusal also names any requirement of a feature this version touches that **no
+manifest in the train locks at all**. Fourteen stand that way today across eight
+features. They are not this version's fault and do not fail it, and without a line
+saying so nothing would ever ask about them: a requirement no version locks is one
+no release gate reaches.
 
 ## Rules
 

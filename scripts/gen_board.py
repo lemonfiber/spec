@@ -12,7 +12,7 @@ import json
 import pathlib
 import tomllib
 
-import metafm
+from catalogue import features as load_features
 from patterns import REQ_DEF
 
 FEATDIR = "10-functional/features"
@@ -34,16 +34,6 @@ def area_span(rows):
 
 def _order(fid):
     return (fid[0], int(fid[1:]))
-
-
-def load_features():
-    feats = {}
-    for path in sorted(glob.glob(f"{FEATDIR}/[a-n]-*/*.md")):
-        fm = metafm.load(path)
-        if fm and "id" in fm:
-            fm["path"] = path
-            feats[fm["id"]] = fm
-    return feats
 
 
 VERSION_MANIFESTS = "70-operations/versions/*.toml"

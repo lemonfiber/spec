@@ -100,10 +100,11 @@ requirement IDs it must satisfy:
   that justifies the number: `1.0.0` opens the dashboard on a bare invocation,
   `2.0.0` runs the stack without Docker.
 
-No version ships a stub. A release refuses while a feature it locks is not yet
-built ([OPS-R54](../70-operations/staging.md)), which is a rule about every
-version and bites hardest on a major — a major is what people read as a finished
-generation.
+No version ships a stub. A release refuses while a requirement it locks is not yet
+built ([OPS-R54](../70-operations/staging.md)) — the requirements that version
+carries, since a version may take a feature in slices and most of them do. It is a
+rule about every version and bites hardest on a major, which is what people read as
+a finished generation.
 
 A version's goals are **locked** before the work starts, and the release refuses
 to ship until every goal is both cited in a merged PR *and* ticked off as done.
