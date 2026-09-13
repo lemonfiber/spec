@@ -25,6 +25,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -130,32 +131,43 @@ class WhatItSays(unittest.TestCase):
 
 
 class WhatGitIsAsked(unittest.TestCase):
-    """The half the tests above stand in for, asked once against this repository.
+    """The half the tests above stand in for, asked once against a real repository.
 
     Everything above hands `unconventional` a string. That leaves the question
     nothing else asks: does the format string still produce records of that shape.
     A field added or reordered would pass every test above and report every commit
     as unconventional.
+
+    Against a repository built here rather than against this one. CI clones
+    shallow, so `HEAD~1` is not a commit there — and a test that only runs where
+    the history is deep is a test that does not run where the gate does.
     """
 
     def test_the_format_produces_the_shape_the_records_above_assume(self):
-        here = pathlib.Path(__file__).resolve().parent.parent
-        shas = [
-            subprocess.run(
-                ["git", "-C", str(here), "rev-parse", ref],
-                capture_output=True, text=True, check=True,
-            ).stdout.strip()
-            for ref in ("HEAD~1", "HEAD")
-        ]
+        where = pathlib.Path(tempfile.mkdtemp())
+        git = ["git", "-C", str(where), "-c", "user.name=A Person",
+               "-c", "user.email=a@example.com", "-c", "commit.gpgsign=false"]
+        subprocess.run([*git, "init", "-q", "-b", "main"], check=True, capture_output=True)
+        shas = []
+        for subject in ("feat: the first thing", "fix: the second thing"):
+            (where / subject.split(": ")[1].replace(" ", "-")).write_text("x", encoding="utf-8")
+            subprocess.run([*git, "add", "-A"], check=True, capture_output=True)
+            subprocess.run([*git, "commit", "-q", "-m", subject], check=True, capture_output=True)
+            shas.append(
+                subprocess.run([*git, "rev-parse", "HEAD"],
+                               capture_output=True, text=True, check=True).stdout.strip()
+            )
 
-        os.chdir(here)
+        os.chdir(where)
         out = gate._read(*shas)
 
         line = out.splitlines()[0]
         sha, sep, subject = line.partition("\x00")
         self.assertEqual(sep, "\x00", "the two fields are no longer separated by a NUL")
-        self.assertTrue(sha.startswith(shas[1][:8]), "the first field is no longer the sha")
-        self.assertTrue(subject, "the second field is empty, so no subject is being read")
+        self.assertEqual(sha, shas[1], "the first field is no longer the sha")
+        self.assertEqual(subject, "fix: the second thing", "the second field is no longer the subject")
+
+        self.assertEqual(gate.unconventional(out), [], "a conventional subject was refused")
 
 
 if __name__ == "__main__":
