@@ -37,6 +37,15 @@ contract is wrong.
 Also the token: supplied by the caller, sent as a header, never placed in a URL
 (`ARCH-R52`).
 
+And the address: **loopback only**, with no pinned exception. `ARCH-R99` lets a
+client reach a non-loopback stack when it holds a certificate pin, and
+[`sdk-php`](sdk-php.md) takes that up for the companion. This one does not, and
+the reason is where it runs: a browser cannot resolve a name, has no pin to be
+given, and is the party `ARCH-R60`'s DNS-rebinding reasoning is about. The two
+SDKs are peers of one contract rather than copies of each other
+([ADR-0025](../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)),
+and this is the first place that distinction does work.
+
 ## What it must not own
 
 - **Rendering.** No DOM, no components, no framework dependency. A consumer that

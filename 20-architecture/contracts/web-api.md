@@ -345,6 +345,7 @@ page does reaches `argv`.
 | `Origin` and `Host` checked against the bound address | `ARCH-R53` |
 | No proxying to an admin service | [C6-R12](../../10-functional/features/c-trust/c6-web-security.md) |
 | Says plainly that it is unencrypted HTTP | [C6-R6](../../10-functional/features/c-trust/c6-web-security.md) |
+| A loopback address, or a pinned certificate instead of one | `ARCH-R60`, `ARCH-R99` |
 
 The token travels in a header. Never a query parameter: URLs reach logs, history and
 referrers, and a credential that leaks into any of those has leaked.
@@ -383,6 +384,22 @@ A host name is accepted only if it resolves to a loopback address. Refusing the 
 `localhost` outright is the wrong trade: it is what an operator types and what a
 printed address may contain. Refusing a name that resolves *off* loopback is the
 protection that matters, and resolving before connecting is what provides it.
+
+That protection is against a browser: a page the operator visits cannot read a
+cross-origin response, but it can send a request the server acts on, and DNS
+rebinding defeats a naive origin check. A page has no pin to offer and never
+will, so for `sdk-ts` the rule stands unchanged.
+
+A client that *can* be given a pin is in a different position. The companion is
+deliberately not on this machine ([ADR-0017](../../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)),
+and the identity question a loopback address answered by construction is answered
+for it by the pinned certificate instead
+([ADR-0025](../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)).
+So the address rule is a condition rather than a prohibition: loopback needs no
+pin, anything else needs one, and there is no third case. `ARCH-R99` is written so
+that the unsafe combination has no spelling — a non-loopback address is not a
+setting that can be turned on and a pin forgotten, because the pin is what
+produces the address.
 
 ### The heartbeat
 
@@ -464,7 +481,7 @@ generation has not been used.
 | **ARCH-R57** | Regenerating the contract artefact MUST produce no diff, and CI MUST fail if it does. |
 | **ARCH-R58** | An SDK's contract types MUST be generated from the artefact; hand-written response shapes MUST NOT be used. |
 | **ARCH-R59** | The per-run token MUST be sent in the `X-Lemonfiber-Token` header. |
-| **ARCH-R60** | A client MUST refuse a base address that does not resolve to a loopback address, and MUST NOT refuse a loopback address for being named rather than numeric. |
+| **ARCH-R60** | A client MUST refuse a base address that does not resolve to a loopback address unless `ARCH-R99`'s condition is met, and MUST NOT refuse a loopback address for being named rather than numeric. |
 | **ARCH-R61** | The event stream MUST emit a heartbeat at least every 15 seconds, and a client MUST treat twice that in silence as a broken stream. |
 | **ARCH-R62** | Every event MUST carry an `id`, and a resuming client MUST send the last one it saw as `Last-Event-ID`. |
 | **ARCH-R63** | A client MUST expose a payload typed by its `kind`, never as an untyped value. |
@@ -485,6 +502,7 @@ generation has not been used.
 | **ARCH-R80** | The capability set MUST be scoped to the credential that asked, so that it carries the core's existing answer about what a household member may do rather than a second one. |
 | **ARCH-R81** | A client MUST treat a capability name it does not recognise as one it does not understand, and MUST NOT refuse the payload for containing it. |
 | **ARCH-R82** | The capability set MUST be readable again within a session, and MUST carry when it was read as any other reading does. |
+| **ARCH-R99** | A client MUST refuse a base address that is not loopback unless it was given a certificate pin for that stack, and MUST enforce that pin during the TLS handshake so that no request is written to a peer it has not verified. A client MUST NOT offer any means of reaching a non-loopback address without a pin, or of weakening verification ([ADR-0025](../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)). |
 
 ## Shapes are generated; semantics are not
 

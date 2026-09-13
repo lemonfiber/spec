@@ -80,6 +80,24 @@ to click through certificate warnings, which is a worse security outcome than
 honest HTTP on a trusted local network. The [Caddy overlay](../b-running/b1-forms.md)
 provides real certificates for operators who want them.
 
+### A certificate the companion pinned does not change quietly
+
+A phone paired to this stack holds the fingerprint of the certificate it was
+introduced to ([ADR-0018](../../../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md)),
+and refuses a connection presenting a different one. That refusal is the point,
+and it is indistinguishable — to the operator, at the moment it happens — from
+an impostor on the network.
+
+So replacing the certificate is an act the stack announces before it performs,
+naming re-pairing as the consequence. The alternative is an alarm that fires for
+routine maintenance, which is an alarm people learn to click through, and a
+security control nobody reads is not one.
+
+Where the stack is not the thing renewing — the [Caddy overlay](../b-running/b1-forms.md)
+obtaining real certificates, which rotates on its own schedule — it cannot make
+that promise, and says so when the pairing material is produced rather than
+letting every paired device find out at the next renewal.
+
 ### Session handling is conservative
 
 Sessions expire. Credentials are stored hashed with a modern password-hashing
@@ -127,6 +145,8 @@ listening, not what was intended.
 | Operator on an untrusted network (café, shared flat) | The LAN tier assumes a trusted network. State that assumption plainly. |
 | Reverse proxy terminates TLS upstream | Detect and don't duplicate; trust forwarded headers only from configured sources. |
 | Session active during a credential change | Invalidate existing sessions. |
+| The certificate a companion pinned is about to be replaced | Announce it before replacing it, naming re-pairing as the consequence. A pinned device refuses afterwards, and a refusal nobody was warned about is read as a fault. |
+| Renewal is performed by something the stack does not control | Say so at pairing. The stack cannot promise a warning it will not receive, and an unkeepable promise is worse than the absence of one. |
 | Household service needs to be reachable but the network is untrusted | Explain the trade-off; do not silently expose. |
 | A plugin adds a service that will listen | It declares which tier it belongs in, and lemonfiber assigns the address. A plugin that could write its own address could put an admin surface on the LAN without touching anything this feature inspects. |
 | A plugin's service is bound to the wrong tier | Caught the way every other wrong binding is caught: by checking what is actually listening against the policy (`C6-R13`), not by trusting what was declared. |
@@ -153,10 +173,12 @@ listening, not what was intended.
 | **C6-R16** | Where Docker port publishing bypasses the host firewall, lemonfiber MUST warn. |
 | **C6-R17** | The interface household services publish on MUST be operator-configurable through a single documented setting, and where it defaults to all interfaces that MUST be stated plainly alongside its consequences. |
 | **C6-R18** | A service an installed plugin adds MUST be bound by the tier lemonfiber assigns from the classification the plugin declared, and a plugin MUST NOT be able to declare an address, an interface or a published port mapping. |
+| **C6-R19** | Replacing a certificate a companion may have pinned MUST be announced before it is replaced, naming re-pairing as the consequence; where renewal is performed by something lemonfiber does not control, that MUST be stated when the pairing material is produced rather than discovered at the next renewal ([ADR-0025](../../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)). |
 
 **Affected repos** (`GOV-R7`): `lemonfiber-media-stack` publishes the household
 tier on a configurable address; `lemonfiber` reports the observed binding under
-`C6-R13`.
+`C6-R13`, and announces a certificate replacement under `C6-R19` since it is the
+side that produces pairing material.
 
 ## Related
 
@@ -164,3 +186,4 @@ tier on a configurable address; `lemonfiber` reports the observed binding under
 - [A7 Credential management](../a-getting-started/a7-credential-management.md)
 - [D6 Household identity](../d-content/d6-household-identity.md) — who reaches household surfaces
 - [C1 Diagnostics](c1-diagnostics.md) — binding verification
+- [ADR-0025](../../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md) — why `C6-R19` exists, and what a pin permits

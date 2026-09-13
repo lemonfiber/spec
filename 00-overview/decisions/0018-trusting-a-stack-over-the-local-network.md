@@ -2,6 +2,7 @@
 
 **Status:** Proposed
 **Date:** 2026-09-11
+**Amended by:** [ADR-0025](0025-nothing-leaves-this-machine-unpinned.md) — the fingerprint's written form, how a client enforces it, and the address it permits.
 
 ## Context
 
@@ -46,6 +47,10 @@ Concretely:
 1. Pairing material produced by the stack includes the fingerprint of the
    certificate the stack will present. It is not fetched from the network; it
    comes from the same payload as the address, over the same out-of-band channel.
+   [ADR-0025](0025-nothing-leaves-this-machine-unpinned.md) fixes its written
+   form — SHA-256 over the DER encoding, lower-case hex — because "a
+   fingerprint" also names the public-key digest, and confusing the two survives
+   review.
 2. The app pins that fingerprint against that stack and validates every
    subsequent connection against it, regardless of the platform trust store.
 3. A connection presenting a different certificate is **refused**, not warned
@@ -54,6 +59,8 @@ Concretely:
    only way forward.
 4. Certificate rotation on the stack is therefore a deliberate act that requires
    re-pairing, and the stack is responsible for saying so before it rotates.
+   That responsibility is `C6-R19` rather than only this sentence, and it covers
+   the case where the stack does not control renewal at all.
 5. Verification is never disabled, for any build, under any flag. There is no
    development shortcut, because a development shortcut is the thing being
    guarded against.
@@ -85,6 +92,13 @@ must re-pair every device. This is a real cost and it is accepted deliberately:
 the alternative is an app that accepts a new certificate quietly, which is the
 same as an app that accepts any certificate.
 
+A public-key pin would have avoided that cost, and
+[ADR-0025](0025-nothing-leaves-this-machine-unpinned.md) considered it and
+declined — it accepts a re-issue nobody has to act on, which is the event this
+decision exists to make loud. What that ADR changes instead is the other side:
+`C6-R19` requires the stack to announce the rotation first, so the alarm does
+not fire for a reason the operator was never told about.
+
 **The stack owes the app a fingerprint.** This is a requirement on the stack and
 on the SDK contract, not only on the app. Where the SDK does not yet expose it,
 `N1-R17` applies: the gap is raised and the dependent work stops rather than
@@ -96,6 +110,8 @@ re-open the question.
 
 ## Related
 
+- [ADR-0025](0025-nothing-leaves-this-machine-unpinned.md) — the pinned value's
+  form, the handshake check that enforces it, and the address it unlocks
 - [ADR-0017](0017-the-companion-app-as-a-fourth-surface.md) — the companion as a
   fourth surface, and why reachability is a reported condition
 - [C6](../../10-functional/features/c-trust/c6-web-security.md) — why the admin
