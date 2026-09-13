@@ -175,6 +175,40 @@ jobs:
       # The alternative is what was happening: somebody re-runs the job until it
       # passes. A gate that is re-run until green is not a gate, and the habit
       # spreads to the gates that matter.
+      # A `lychee.toml` in the calling repository that declares `accept` is
+      # declaring something the step below overrides, and the two agreeing is
+      # exactly what makes it invisible.
+      #
+      # Five repositories carried `accept = ["200", "206", "429"]` and not one of
+      # them had ever been consulted, because a command-line argument beats a
+      # config file and the argument held the same three codes. On 2026-09-13
+      # SonarCloud answered 503 for over an hour, `hygiene / links` went red on a
+      # pull request that touched no link, and the obvious fix was to add `503` to
+      # one of those lists. It would have been watched failing with no explanation.
+      #
+      # Refused rather than noticed, because there is nothing to weigh: the list
+      # does nothing, it comes out in one line, and the message says where the one
+      # that runs lives. A no-op that looks like configuration is the shape this
+      # repository refuses everywhere else.
+      - name: An accept list in the caller's config is not the one that runs
+        run: |
+          set -euo pipefail
+
+          if [ ! -f lychee.toml ]; then
+            echo "No lychee.toml here; the list below is the only one."
+            exit 0
+          fi
+
+          if ! grep -qE "^[[:space:]]*accept[[:space:]]*=" lychee.toml; then
+            echo "lychee.toml declares no accept list, which is right: the one that runs is below."
+            exit 0
+          fi
+
+          said="lychee.toml declares an \`accept\` list. The step below passes --accept on the command line and that beats a config file, so this list has never been consulted — and somebody editing it to fix a failing link check would watch it keep failing with no idea why. Take it out. The list that runs is in lemonfiber/spec's hygiene.yml, with the reasoning for each code beside it."
+          echo "::error file=lychee.toml::${said}"
+          printf '### An accept list that does not run\n\n%s\n' "$said" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
       - name: lychee link check
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
