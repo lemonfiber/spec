@@ -109,6 +109,12 @@ def problems_for(path):
 
 def main():
     files = sorted(glob.glob(catalogue.FEATURE_DOCS))
+    # A glob that matched nothing reports every feature as valid, which is the
+    # sentence a tree of valid features gets — run from the wrong directory, or
+    # after the layout moves, the two are indistinguishable.
+    if not files:
+        print(f"::error::no feature doc matched {catalogue.FEATURE_DOCS}, so nothing was read")
+        return 1
     problems = [p for path in files for p in problems_for(path)]
     if problems:
         print("frontmatter: problems found:")
