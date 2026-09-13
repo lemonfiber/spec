@@ -95,7 +95,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           RESULT_REF: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/merge', github.event.number) || github.ref }}
-          PR: ${{ github.event.pull_request.number }}
           ANALYSIS: ${{ inputs.analysis }}
           # Through the environment rather than into the script body: an input is
           # the caller's string, and a caller is not a thing a gate should be
@@ -106,16 +105,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          # The commit the alerts are about: the merge commit on a pull request,
-          # the pushed commit otherwise. Asked of the API rather than taken from
-          # the event, because `github.event.pull_request.merge_commit_sha` is
-          # the value at the time the event fired and the merge commit is rebuilt
-          # whenever the base moves.
-          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
-            sha=$(gh api "repos/${REPO}/pulls/${PR}" --jq '.merge_commit_sha')
-          else
-            sha=${GITHUB_SHA}
-          fi
+          # The commit the alerts are about: this run's own, which on a pull
+          # request is the merge commit GitHub dispatched the run for and on a
+          # push is the pushed commit.
+          #
+          # **Neither of the two values that look right is right.**
+          # `github.event.pull_request.merge_commit_sha` is what the payload said
+          # when the event fired, and the merge commit is rebuilt whenever the
+          # base moves — so it goes stale. Asking the API instead was the first
+          # fix and overshoots in the other direction: it answers with the merge
+          # commit *as of now*, and a base branch that moves while this run is
+          # going gives a commit no analysis was ever made of and none ever will
+          # be, because nothing dispatched a run for it. The gate then waits its
+          # full five minutes and fails, naming a language rather than the
+          # mismatch — which is what it did to sdk-php#68 the moment sdk-php#67
+          # merged underneath it.
+          #
+          # `GITHUB_SHA` cannot drift against the analysis, and that is the whole
+          # argument: `analyze` and this job are jobs of one run, so the commit
+          # this asks about is by construction the commit that was checked out
+          # and uploaded under. Two API calls that agree most of the time are
+          # replaced by one value that agrees always.
+          sha=${GITHUB_SHA}
 
           # `analyze` succeeding means the upload was accepted, not that the
           # analysis is queryable — those are minutes apart. So this waits for
