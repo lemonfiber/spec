@@ -36,7 +36,6 @@ UNMEASURED = {
     "check_binding_order.py": "gates a merge — it is what refuses a binding "
     "feature resting on a draft — and wants a suite",
     "check_frontmatter.py": "gates a merge; wants a suite",
-    "check_order.py": "gates a merge; wants a suite",
     "dco_check.py": "gates a merge; wants a suite",
     "spec_refs.py": "gates a merge; wants a suite",
     "gen_board.py": "generates the board the integrity job diffs, so a wrong "

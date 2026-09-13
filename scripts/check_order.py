@@ -15,6 +15,7 @@ Exit non-zero listing every inversion, so one run shows the whole picture rather
 than the first of them.
 """
 
+import argparse
 import pathlib
 import re
 import sys
@@ -22,11 +23,16 @@ import tomllib
 
 FEATURES = pathlib.Path("10-functional/features")
 VERSIONS = pathlib.Path("70-operations/versions")
+
+# One feature this tree is known to schedule. A sweep that finds nothing reports
+# no inversions, which is the same sentence a tree with none gets — so the
+# reading is asserted before anything is said about it.
+KNOWN = "F1"
 ID = re.compile(r"^id:\s*(\S+)", re.MULTILINE)
 REQUIRES = re.compile(r"^requires:\s*\[(.*?)\]\s*$", re.MULTILINE)
 
 
-def _released_in() -> tuple[dict[str, str], dict[str, int], set[str]]:
+def _released_in(root: pathlib.Path) -> tuple[dict[str, str], dict[str, int], set[str]]:
     """Which version each feature is scheduled in, their order, and which shipped.
 
     A released version is history rather than a plan: nothing can be moved into or
@@ -34,7 +40,7 @@ def _released_in() -> tuple[dict[str, str], dict[str, int], set[str]]:
     fix. Those are reported once, as a note, and never fail the check.
     """
     order, schedule, shipped = [], {}, set()
-    for path in sorted(VERSIONS.glob("*.toml")):
+    for path in sorted((root / VERSIONS).glob("*.toml")):
         if path.stem == "TEMPLATE":
             continue
         order.append(path.stem)
@@ -47,10 +53,10 @@ def _released_in() -> tuple[dict[str, str], dict[str, int], set[str]]:
     return schedule, {version: i for i, version in enumerate(order)}, shipped
 
 
-def _requirements() -> dict[str, list[str]]:
+def _requirements(root: pathlib.Path) -> dict[str, list[str]]:
     """Each feature's hard dependencies."""
     wants = {}
-    for path in FEATURES.rglob("*.md"):
+    for path in sorted((root / FEATURES).rglob("*.md")):
         text = path.read_text(encoding="utf-8")
         found, needs = ID.search(text), REQUIRES.search(text)
         if found and needs:
@@ -72,10 +78,10 @@ def _inversion(feature, mine, need, schedule, rank) -> str | None:
     return None
 
 
-def _gather(schedule, rank, shipped) -> tuple[list[str], list[str]]:
+def _gather(root, schedule, rank, shipped) -> tuple[list[str], list[str]]:
     """Every inversion, split into what must be fixed and what merely happened."""
     problems, historical = [], []
-    for feature, needs in sorted(_requirements().items()):
+    for feature, needs in sorted(_requirements(root).items()):
         mine = schedule.get(feature)
         if mine is None:
             continue
@@ -86,17 +92,30 @@ def _gather(schedule, rank, shipped) -> tuple[list[str], list[str]]:
     return problems, historical
 
 
-def main() -> None:
-    schedule, rank, shipped = _released_in()
-    problems, historical = _gather(schedule, rank, shipped)
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--root", default=".", help="the spec checkout to read")
+    root = pathlib.Path(ap.parse_args().root).resolve()
+
+    schedule, rank, shipped = _released_in(root)
+    if KNOWN not in schedule:
+        print(
+            f"::error::no version schedules {KNOWN}, so this read the wrong tree and "
+            "every claim below would be a claim about nothing"
+        )
+        return 1
+
+    problems, historical = _gather(root, schedule, rank, shipped)
     for note in historical:
         print(f"::notice::already shipped, recorded not enforced — {note}")
     if problems:
         for problem in problems:
             print(f"::error::{problem}")
-        sys.exit(f"{len(problems)} feature(s) scheduled before something they require")
+        print(f"::error::{len(problems)} feature(s) scheduled before something they require")
+        return 1
     print(f"order ok: {len(schedule)} scheduled features, none before what it requires")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
