@@ -225,44 +225,59 @@ def check_manifest_repos():
     if not manifests:
         return []
 
+    known, unreadable = registered(len(manifests))
+
+    if unreadable:
+        return [unreadable]
+
+    return [
+        f"{manifest.relative_to(ROOT)}: {said}, which is not a repository in {REGISTRY}"
+        for manifest in manifests
+        for said, name in repositories_named(
+            tomllib.loads(manifest.read_text(encoding="utf-8"))
+        )
+        if name not in known
+    ]
+
+
+def registered(wanted):
+    """The repositories the registry knows, or why it could name none.
+
+    Two answers rather than an empty set, because an empty set compares equal to a
+    registry that holds nothing and to one that is not there at all — and against
+    either, every name in every manifest would be reported as unknown, which reads
+    as fifty broken manifests rather than one missing file.
+    """
     registry = ROOT / REGISTRY
 
     if not registry.is_file():
-        return [
-            (
-                f"{REGISTRY}: not found, and {len(manifests)} manifest(s) name "
-                "repositories that have to resolve to one"
-            )
-        ]
+        return set(), (
+            f"{REGISTRY}: not found, and {wanted} manifest(s) name "
+            "repositories that have to resolve to one"
+        )
 
-    known = {repo["name"] for repo in tomllib.loads(registry.read_text(encoding="utf-8")).get("repo", [])}
+    read = tomllib.loads(registry.read_text(encoding="utf-8"))
+    known = {repo["name"] for repo in read.get("repo", [])}
 
     if not known:
-        return [f"{REGISTRY}: no repository was read, so nothing can be checked against it"]
+        return set(), f"{REGISTRY}: no repository was read, so nothing can be checked against it"
 
-    problems = []
+    return known, None
 
-    for manifest in manifests:
-        data = tomllib.loads(manifest.read_text(encoding="utf-8"))
-        for field in ("repos", "satisfied_in"):
-            for name in data.get(field, []):
-                if name not in known:
-                    problems.append(
-                        f"{manifest.relative_to(ROOT)}: {field} names {name!r}, "
-                        f"which is not a repository in {REGISTRY}"
-                    )
 
-        # A pin is keyed by repository too, and `0.1.0` had the short name in
-        # both places. A pin that names nothing records which commit of no
-        # repository the release carried.
-        for name in data.get("pins", {}):
-            if name not in known:
-                problems.append(
-                    f"{manifest.relative_to(ROOT)}: pins {name!r}, "
-                    f"which is not a repository in {REGISTRY}"
-                )
+def repositories_named(data):
+    """Every repository one manifest names, said the way that manifest says it.
 
-    return problems
+    Three keys rather than two: a pin is keyed by repository as well, and `0.1.0`
+    had the short name in both places. A pin that names nothing records which commit
+    of no repository the release carried.
+    """
+    for field in ("repos", "satisfied_in"):
+        for name in data.get(field, []):
+            yield f"{field} names {name!r}", name
+
+    for name in data.get("pins", {}):
+        yield f"pins {name!r}", name
 
 
 def main() -> int:
