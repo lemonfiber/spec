@@ -14,6 +14,7 @@ include =
     scripts/set_status.py
     scripts/submodule_pins.py
     scripts/check_stageable.py
+    scripts/check_goal_coverage.py
     scripts/manifest_repos.py
     scripts/tracker_body.py
     scripts/pr_goals.py
