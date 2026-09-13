@@ -221,8 +221,29 @@ def lines(
 #
 # Refused rather than escaped. There is no legitimate repository or branch this
 # turns away: GitHub allows neither a leading dash nor `..` in either.
+_SAFE = re.compile(r"\A[0-9A-Za-z][0-9A-Za-z._/-]{0,254}\Z")
 _NAME = re.compile(r"\A[0-9A-Za-z][0-9A-Za-z._-]{0,99}\Z")
 _BRANCH = re.compile(r"\A[0-9A-Za-z][0-9A-Za-z._/-]{0,254}\Z")
+
+
+def safe(value: str) -> str:
+    """`value`, or a refusal — applied where it is put into a `gh` argument.
+
+    `look` already turns away a repository or branch that is not one, with a
+    sentence a reader can act on, and that is the right place for the message.
+    It is the wrong place for the guarantee: it leaves every later caller of the
+    helpers below to remember, and it leaves the check far enough from the
+    `subprocess` call that a taint analyser cannot see the two connected —
+    SonarCloud raised `S8705` here twice for exactly that reason, and was right
+    to, because "some caller checks this" is not a property of this function.
+
+    So the values are checked where they are used. Raised rather than returned
+    empty: reaching here with an unchecked name is a mistake in this file, not a
+    repository somebody cannot read, and the two should not look alike.
+    """
+    if not _SAFE.match(value):
+        raise ValueError(f"refusing to pass {value!r} to gh: not a name or a number")
+    return value
 
 
 def named(repo: str) -> bool:
@@ -260,7 +281,7 @@ def _protection_of(repo: str, base: str) -> dict:
     Once, because the two questions asked of it — which contexts are required,
     and which of the other rules are on — are two reads of the same document.
     """
-    said = _gh("api", f"repos/{repo}/branches/{base}/protection")
+    said = _gh("api", f"repos/{safe(repo)}/branches/{safe(base)}/protection")
     return json.loads(said) if said.strip() else {}
 
 
@@ -302,7 +323,7 @@ def _state(repo: str, number: int) -> dict[str, bool]:
     rather than inferred from `BLOCKED`, which is the single word this whole
     script exists because GitHub gives instead of a reason.
     """
-    said = _gh("pr", "view", "-R", repo, str(number), "--json", ",".join(FIELDS))
+    said = _gh("pr", "view", "-R", safe(repo), safe(str(number)), "--json", ",".join(FIELDS))
     if not said.strip():
         return {}
     pr = json.loads(said)
@@ -332,7 +353,7 @@ def _unresolved(repo: str, number: int) -> bool:
     said = _gh(
         "api", "graphql",
         "-f", f"query={THREADS}",
-        "-F", f"owner={owner}", "-F", f"repo={name}", "-F", f"number={number}",
+        "-F", f"owner={safe(owner)}", "-F", f"repo={safe(name)}", "-F", f"number={safe(str(number))}",
         "--jq", "[.data.repository.pullRequest.reviewThreads.nodes[].isResolved]",
     )
     return any(not resolved for resolved in (json.loads(said) if said.strip() else []))
@@ -342,7 +363,7 @@ def _unsigned(repo: str, number: int) -> list[str]:
     """Commits on this pull request the forge has not verified a signature for."""
     said = _gh(
         "api",
-        f"repos/{repo}/pulls/{number}/commits",
+        f"repos/{safe(repo)}/pulls/{safe(str(number))}/commits",
         "--jq",
         "[.[] | select(.commit.verification.verified | not) | .sha[0:8]]",
     )
@@ -357,7 +378,7 @@ def _reported(repo: str, number: int) -> dict[str, str]:
     beside it is how this tool would become the thing it exists to catch.
     """
     said = _gh(
-        "pr", "checks", "-R", repo, str(number), "--json", "name,state"
+        "pr", "checks", "-R", safe(repo), safe(str(number)), "--json", "name,state"
     )
     checks: dict[str, str] = {}
     for check in json.loads(said) if said.strip() else []:
@@ -379,7 +400,7 @@ def _conclusions(repo: str, branch: str) -> list[str]:
     Only asked when nothing reported, because that is the only case it answers.
     """
     said = _gh(
-        "run", "list", "-R", repo, "--branch", branch, "--limit", "30",
+        "run", "list", "-R", safe(repo), "--branch", safe(branch), "--limit", "30",
         "--json", "conclusion", "--jq", "[.[].conclusion]",
     )
     return [c for c in (json.loads(said) if said.strip() else []) if c]
@@ -387,24 +408,24 @@ def _conclusions(repo: str, branch: str) -> list[str]:
 
 def _branch_of(repo: str, number: int) -> str:
     said = _gh(
-        "pr", "view", "-R", repo, str(number), "--json", "headRefName", "--jq", ".headRefName"
+        "pr", "view", "-R", safe(repo), safe(str(number)), "--json", "headRefName", "--jq", ".headRefName"
     )
     return said.strip()
 
 
 def _open_prs(repo: str) -> list[int]:
-    said = _gh("pr", "list", "-R", repo, "--state", "open", "--json", "number")
+    said = _gh("pr", "list", "-R", safe(repo), "--state", "open", "--json", "number")
     return [pr["number"] for pr in (json.loads(said) if said.strip() else [])]
 
 
 def _repos(org: str) -> list[str]:
-    said = _gh("repo", "list", org, "--limit", "100", "--json", "nameWithOwner")
+    said = _gh("repo", "list", safe(org), "--limit", "100", "--json", "nameWithOwner")
     return [r["nameWithOwner"] for r in (json.loads(said) if said.strip() else [])]
 
 
 def _base(repo: str, number: int) -> str:
     said = _gh(
-        "pr", "view", "-R", repo, str(number), "--json", "baseRefName", "--jq", ".baseRefName"
+        "pr", "view", "-R", safe(repo), safe(str(number)), "--json", "baseRefName", "--jq", ".baseRefName"
     )
     return said.strip() or "main"
 

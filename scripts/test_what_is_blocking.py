@@ -427,6 +427,37 @@ class NamesThatWouldBecomeFlags(Stubbed):
             with self.subTest(bad):
                 self.assertFalse(wib.branched(bad))
 
+    def test_the_sanitiser_at_the_sink_takes_a_name_and_a_number(self):
+        for good in ("lemonfiber/spec", "main", "feat/a-thing", "349", "o"):
+            with self.subTest(good):
+                self.assertEqual(wib.safe(good), good)
+
+    def test_the_sanitiser_raises_rather_than_answering_empty(self):
+        # An unchecked name reaching here is a mistake in this file, not a
+        # repository somebody cannot read, and the two must not look alike.
+        for bad in ("--template", "-R", "a b", "a;b", "a$(x)", "", "a" * 300):
+            with self.subTest(bad), self.assertRaises(ValueError):
+                wib.safe(bad)
+
+    def test_every_helper_sanitises_what_it_was_handed(self):
+        # `look` checks first and says something useful; these are what stops a
+        # later caller skipping it, and what a taint analyser can actually see.
+        for call in (
+            lambda: wib._protection_of("--x", "main"),
+            lambda: wib._protection_of("o/r", "--x"),
+            lambda: wib._state("--x", 1),
+            lambda: wib._unsigned("--x", 1),
+            lambda: wib._unresolved("--x/y", 1),
+            lambda: wib._reported("--x", 1),
+            lambda: wib._conclusions("o/r", "--x"),
+            lambda: wib._branch_of("--x", 1),
+            lambda: wib._open_prs("--x"),
+            lambda: wib._repos("--x"),
+            lambda: wib._base("--x", 1),
+        ):
+            with self.assertRaises(ValueError):
+                call()
+
     def test_a_bad_repository_never_reaches_gh(self):
         reached = []
         self.addCleanup(setattr, wib, "_gh", wib._gh)
