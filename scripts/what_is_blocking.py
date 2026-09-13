@@ -84,10 +84,21 @@ RULES = (
 # How loudly each state speaks, for deciding which of two reports under one name
 # is the one to show. Built once: it never changes, and a dict comprehension per
 # call was doing the same work for every check on every pull request.
+#
+# `PASSED` is in here, and leaving it out was a bug. Everything absent took the
+# default rank, which is `WAITING`'s — so a success and a run still going tied,
+# and a tie is decided by whichever the forge happened to list first. A re-run
+# then reads as the old pass: `lemonfiber-companion#123` reported twenty of
+# twenty satisfied while `mutation testing` was `in_progress` on the head commit,
+# and this script contradicted a `BLOCKED` merge box on the strength of it.
+#
+# Ranked last rather than merely distinct: a pass is the only state that says
+# nothing more is coming, so anything else reported under the same name is news.
 RANK = {
     **dict.fromkeys(FAILED, 0),
     **dict.fromkeys(WAITING, 1),
     **dict.fromkeys(QUIET, 2),
+    **dict.fromkeys(PASSED, 3),
 }
 
 
@@ -180,7 +191,13 @@ def disagrees(found: dict[str, list[str]], rules: list[str], forge: str) -> str 
     usually the one that has not caught up: closing and reopening the pull
     request forces it to, at the price of starting every workflow again.
     """
-    clear = not found["missing"] and not found["failing"] and not rules
+    # `waiting` counts. A check still running is a pull request GitHub is right
+    # to be blocking, and calling that a disagreement would make this cry wolf on
+    # every pull request between the push and the last check — which is most of
+    # them, most of the time.
+    clear = not rules and not any(
+        found[key] for key in ("missing", "failing", "waiting")
+    )
     if clear and forge not in ("CLEAN", "HAS_HOOKS", "UNSTABLE", "UNKNOWN", ""):
         return (
             f"every required context is satisfied here, but GitHub says {forge}. "
@@ -399,23 +416,102 @@ def _unsigned(repo: str, number: int) -> list[str]:
     return json.loads(said) if said.strip() else []
 
 
-def _reported(repo: str, number: int) -> dict[str, str]:
-    """Every check the pull request has reported, by name.
+# A check run says `status` until it is over and `conclusion` after; a commit
+# status says `state`. Both are lowercase and neither vocabulary is the one the
+# columns above are written in, so each is translated once, here.
+_CONCLUSION = {
+    "success": "SUCCESS",
+    "failure": "FAILURE",
+    "timed_out": "TIMED_OUT",
+    "action_required": "ACTION_REQUIRED",
+    "startup_failure": "STARTUP_FAILURE",
+    "cancelled": "CANCELLED",
+    "neutral": "NEUTRAL",
+    "skipped": "SKIPPED",
+    "stale": "STALE",
+}
+_STATUS = {"queued": "QUEUED", "in_progress": "IN_PROGRESS", "waiting": "WAITING"}
+_COMMIT_STATE = {
+    "success": "SUCCESS",
+    "failure": "FAILURE",
+    "error": "FAILURE",
+    "pending": "PENDING",
+}
 
-    Where a name reports more than once — a re-run, or two workflows using one
-    job name — the worst state wins. Reporting the pass and hiding the failure
-    beside it is how this tool would become the thing it exists to catch.
+
+def reading(runs: list[dict], statuses: list[dict]) -> dict[str, str]:
+    """One state per check name, from what the head commit actually carries.
+
+    The most recent report under a name wins, because that is the one the forge
+    is holding the merge against. Where two share a timestamp the worse of them
+    does, since showing the pass and hiding the failure beside it is how this
+    tool would become the thing it exists to catch.
+
+    An unrecognised `conclusion` keeps its own name rather than being mapped to
+    anything: `blocking` reads a state it does not know as unfinished, and that
+    is the right reading for a word GitHub added after this was written.
     """
-    said = _gh(
-        "pr", "checks", "-R", safe(repo), safe(str(number)), "--json", "name,state"
+    latest: dict[str, tuple[str, str]] = {}
+    for run in runs:
+        conclusion = run.get("conclusion")
+        state = (
+            _CONCLUSION.get(conclusion, (conclusion or "").upper())
+            if conclusion
+            else _STATUS.get(run.get("status", ""), "PENDING")
+        )
+        _keep(latest, run.get("name", ""), state,
+              run.get("completed_at") or run.get("started_at") or "")
+    for status in statuses:
+        _keep(latest, status.get("context", ""),
+              _COMMIT_STATE.get(status.get("state", ""), "PENDING"),
+              status.get("created_at") or "")
+    return {name: state for name, (_, state) in latest.items()}
+
+
+def _keep(latest: dict, name: str, state: str, when: str) -> None:
+    """Record `state` for `name` where it is the one worth reporting."""
+    if not name:
+        return
+    seen = latest.get(name)
+    if seen is None or when > seen[0] or (when == seen[0] and _worse(state, seen[1])):
+        latest[name] = (when, state)
+
+
+def _reported(repo: str, number: int) -> dict[str, str]:
+    """Every check the head commit carries, by name.
+
+    Read from the commit rather than from `gh pr checks`. They are not the same
+    answer: `gh pr checks` reads a rollup that lags, and on
+    `lemonfiber-companion#123` it reported `mutation testing` as the success of a
+    previous run while the commit carried one still in progress — so this script
+    called twenty of twenty satisfied and contradicted a `BLOCKED` merge box.
+    Branch protection is evaluated against the commit, so the commit is what this
+    asks.
+    """
+    sha = _head(repo, number)
+    if not sha:
+        return {}
+    runs = _gh(
+        "api", f"repos/{safe(repo)}/commits/{safe(sha)}/check-runs?per_page=100",
+        "--paginate", "--jq",
+        "[.check_runs[]|{name,conclusion,status,completed_at,started_at}]",
     )
-    checks: dict[str, str] = {}
-    for check in json.loads(said) if said.strip() else []:
-        name, state = check["name"], check["state"]
-        seen = checks.get(name)
-        if seen is None or _worse(state, seen):
-            checks[name] = state
-    return checks
+    statuses = _gh(
+        "api", f"repos/{safe(repo)}/commits/{safe(sha)}/status",
+        "--jq", "[.statuses[]|{context,state,created_at}]",
+    )
+    return reading(
+        json.loads(runs) if runs.strip() else [],
+        json.loads(statuses) if statuses.strip() else [],
+    )
+
+
+def _head(repo: str, number: int) -> str:
+    said = _gh(
+        "pr", "view", "-R", safe(repo), safe(str(number)),
+        "--json", "headRefOid", "--jq", ".headRefOid",
+    )
+    return said.strip()
 
 
 def _worse(state: str, than: str) -> bool:

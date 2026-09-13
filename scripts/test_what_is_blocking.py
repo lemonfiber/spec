@@ -125,28 +125,84 @@ class TheReport(unittest.TestCase):
 
 
 class WhenANameReportsTwice(Stubbed):
-    """A re-run leaves two entries, and the wrong one would hide the other."""
+    """A re-run leaves two reports under one name, and one of them is stale."""
 
-    def test_the_failure_wins_over_the_pass_beside_it(self):
-        self.said["pr checks"] = json.dumps(
-            [{"name": "gate", "state": "SUCCESS"}, {"name": "gate", "state": "FAILURE"}]
-        )
-        self.assertEqual(wib._reported("o/r", 1), {"gate": "FAILURE"})
+    def run_of(self, name, conclusion=None, status="completed", when="2026-01-01T00:00:00Z"):
+        return {
+            "name": name,
+            "conclusion": conclusion,
+            "status": status,
+            "completed_at": when if conclusion else None,
+            "started_at": when,
+        }
 
-    def test_in_either_order(self):
-        self.said["pr checks"] = json.dumps(
-            [{"name": "gate", "state": "FAILURE"}, {"name": "gate", "state": "SUCCESS"}]
-        )
-        self.assertEqual(wib._reported("o/r", 1), {"gate": "FAILURE"})
+    def test_the_most_recent_report_is_the_one_the_forge_holds_you_to(self):
+        # `lemonfiber-companion#123`: a `mutation testing` that passed at 09:45
+        # and another still running at 09:53. The merge is blocked on the second.
+        runs = [
+            self.run_of("m", "success", when="2026-09-13T09:45:44Z"),
+            self.run_of("m", None, "in_progress", "2026-09-13T09:53:00Z"),
+        ]
+        self.assertEqual(reading := wib.reading(runs, []), {"m": "IN_PROGRESS"})
+        self.assertEqual(wib.reading(list(reversed(runs)), []), reading)
 
-    def test_running_outranks_skipped(self):
-        self.said["pr checks"] = json.dumps(
-            [{"name": "g", "state": "SKIPPED"}, {"name": "g", "state": "IN_PROGRESS"}]
-        )
-        self.assertEqual(wib._reported("o/r", 1), {"g": "IN_PROGRESS"})
+    def test_the_older_report_does_not_win_by_being_newer_shaped(self):
+        runs = [
+            self.run_of("m", None, "in_progress", "2026-09-13T09:00:00Z"),
+            self.run_of("m", "failure", when="2026-09-13T09:53:00Z"),
+        ]
+        self.assertEqual(wib.reading(runs, []), {"m": "FAILURE"})
+
+    def test_where_two_share_a_timestamp_the_worse_one_wins(self):
+        same = "2026-09-13T09:00:00Z"
+        runs = [self.run_of("m", "success", when=same), self.run_of("m", "failure", when=same)]
+        self.assertEqual(wib.reading(runs, []), {"m": "FAILURE"})
+        self.assertEqual(wib.reading(list(reversed(runs)), []), {"m": "FAILURE"})
+
+    def test_every_conclusion_this_script_knows(self):
+        for conclusion, state in wib._CONCLUSION.items():
+            with self.subTest(conclusion):
+                self.assertEqual(wib.reading([self.run_of("m", conclusion)], []), {"m": state})
+
+    def test_a_conclusion_it_does_not_know_keeps_its_own_name(self):
+        # `blocking` reads an unknown state as unfinished, which is the right
+        # reading for a word GitHub adds after this was written.
+        got = wib.reading([self.run_of("m", "flambeed")], [])
+        self.assertEqual(got, {"m": "FLAMBEED"})
+        self.assertEqual(wib.blocking(["m"], got)["waiting"], ["m"])
+
+    def test_a_run_that_has_not_finished_reports_its_status(self):
+        self.assertEqual(wib.reading([self.run_of("m", None, "queued")], []), {"m": "QUEUED"})
+        self.assertEqual(wib.reading([self.run_of("m", None, "in_progress")], []), {"m": "IN_PROGRESS"})
+        self.assertEqual(wib.reading([self.run_of("m", None, "napping")], []), {"m": "PENDING"})
+
+    def test_commit_statuses_are_read_beside_check_runs(self):
+        # `SonarCloud Code Analysis` is one of these, not a check run.
+        statuses = [{"context": "s", "state": "success", "created_at": "2026-01-01T00:00:00Z"}]
+        self.assertEqual(wib.reading([], statuses), {"s": "SUCCESS"})
+
+    def test_a_status_error_is_a_failure_and_an_unknown_one_is_not_a_pass(self):
+        def one(state):
+            return [{"context": "s", "state": state, "created_at": "2026-01-01T00:00:00Z"}]
+        self.assertEqual(wib.reading([], one("error")), {"s": "FAILURE"})
+        self.assertEqual(wib.reading([], one("pending")), {"s": "PENDING"})
+        self.assertEqual(wib.reading([], one("sideways")), {"s": "PENDING"})
+
+    def test_a_report_with_no_name_is_dropped_rather_than_filed_under_nothing(self):
+        self.assertEqual(wib.reading([self.run_of("", "success")], []), {})
+        self.assertEqual(wib.reading([], [{"context": "", "state": "success"}]), {})
 
     def test_nothing_reported(self):
+        self.assertEqual(wib.reading([], []), {})
         self.assertEqual(wib._reported("o/r", 1), {})
+
+    def test_the_head_commit_is_what_gets_asked_about(self):
+        self.assertEqual(wib._head("o/r", 1), "")
+        self.said["headRefOid"] = "abc123\n"
+        self.assertEqual(wib._head("o/r", 1), "abc123")
+        self.said["check-runs"] = json.dumps([self.run_of("m", "success")])
+        self.said["/status"] = json.dumps([])
+        self.assertEqual(wib._reported("o/r", 1), {"m": "SUCCESS"})
 
 
 class Ranking(unittest.TestCase):
@@ -169,7 +225,11 @@ class ReadingTheForge(Stubbed):
     def test_a_repository_with_no_readable_protection_says_so(self):
         # Not "nothing is blocking it". A token that cannot read the rule and a
         # branch that carries none are different facts, and this claims neither.
-        self.said["pr checks"] = json.dumps([{"name": "x", "state": "SUCCESS"}])
+        self.said["headRefOid"] = "abc123\n"
+        self.said["check-runs"] = json.dumps(
+            [{"name": "x", "conclusion": "success", "status": "completed",
+              "completed_at": "2026-01-01T00:00:00Z", "started_at": "2026-01-01T00:00:00Z"}]
+        )
         out = wib.look("o/r", 3)
         self.assertIn("nothing required, or branch protection is unreadable", out[0])
 
@@ -177,7 +237,6 @@ class ReadingTheForge(Stubbed):
         self.said["api repos/o/r/branches/main/protection"] = json.dumps(
             {"required_status_checks": {"contexts": ["gate / gate"], "strict": False}}
         )
-        self.said["pr checks"] = json.dumps([])
         self.assertEqual(
             wib.required_in({"required_status_checks": {"contexts": ["gate / gate"]}}),
             ["gate / gate"],
@@ -241,7 +300,12 @@ class TheCommandLine(Stubbed):
         self.said["api repos/o/r/branches/main/protection"] = json.dumps(
             {"required_status_checks": {"contexts": ["a"]}}
         )
-        self.said["pr checks"] = json.dumps([{"name": "a", "state": "FAILURE"}])
+        self.said["headRefOid"] = "abc123\n"
+        self.said["check-runs"] = json.dumps(
+            [{"name": "a", "conclusion": "failure", "status": "completed",
+              "completed_at": "2026-01-01T00:00:00Z", "started_at": "2026-01-01T00:00:00Z"}]
+        )
+        self.said["/status"] = json.dumps([])
         code, out = self.run_main(["o/r", "3"])
         self.assertEqual(code, 0)
         self.assertIn("FAILING: a", out)
@@ -378,7 +442,6 @@ class WhenNothingRanAtAll(Stubbed):
         self.said["api repos/o/r/branches/main/protection"] = json.dumps(
             {"required_status_checks": {"contexts": ["a", "b"]}}
         )
-        self.said["pr checks"] = json.dumps([])
         self.said["headRefName"] = "feat/a-thing\n"
         self.said["baseRefName"] = "main\n"
         self.said["run list"] = json.dumps(["startup_failure", "startup_failure"])
@@ -396,7 +459,6 @@ class WhenNothingRanAtAll(Stubbed):
         self.said["api repos/o/r/branches/main/protection"] = json.dumps(
             {"required_status_checks": {"contexts": ["a"]}}
         )
-        self.said["pr checks"] = json.dumps([])
         self.assertEqual(wib._branch_of("o/r", 1), "")
         out = wib.look("o/r", 1)
         self.assertIn("MISSING: a", out[1])
@@ -433,6 +495,19 @@ class WhenThisAndGitHubDisagree(Stubbed):
         )
         self.assertIsNone(wib.disagrees(self.clear(), ["sign the commits"], "BLOCKED"))
 
+    def test_a_check_still_running_is_not_a_disagreement(self):
+        # GitHub is right to block a pull request whose checks have not finished.
+        # Calling that a disagreement would cry wolf on almost every pull request
+        # almost all of the time.
+        found = wib.blocking(["a", "b"], {"a": "SUCCESS", "b": "IN_PROGRESS"})
+        self.assertIsNone(wib.disagrees(found, [], "BLOCKED"))
+
+    def test_a_quiet_check_is_still_a_disagreement(self):
+        # `SKIPPED` is finished. Nothing more is coming, so if GitHub is still
+        # blocking, the two really have read different things.
+        found = wib.blocking(["a"], {"a": "SKIPPED"})
+        self.assertIn("but GitHub says BLOCKED", wib.disagrees(found, [], "BLOCKED"))
+
     def test_the_report_is_that_line_and_nothing_else(self):
         out = wib.lines("o/r", 1, self.clear(), [], None, "we differ")
         self.assertEqual(out, ["o/r#1: we differ"])
@@ -441,7 +516,12 @@ class WhenThisAndGitHubDisagree(Stubbed):
         self.said["api repos/o/r/branches/main/protection"] = json.dumps(
             {"required_status_checks": {"contexts": ["a"], "strict": True}}
         )
-        self.said["pr checks"] = json.dumps([{"name": "a", "state": "SUCCESS"}])
+        self.said["headRefOid"] = "abc123\n"
+        self.said["check-runs"] = json.dumps(
+            [{"name": "a", "conclusion": "success", "status": "completed",
+              "completed_at": "2026-01-01T00:00:00Z", "started_at": "2026-01-01T00:00:00Z"}]
+        )
+        self.said["/status"] = json.dumps([])
         self.said["baseRefName"] = "main\n"
         self.said["mergeStateStatus"] = json.dumps(
             {"mergeStateStatus": "BLOCKED", "reviewDecision": None}
