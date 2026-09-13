@@ -519,14 +519,22 @@ def _worse(state: str, than: str) -> bool:
     return RANK.get(state, 1) < RANK.get(than, 1)
 
 
-def _conclusions(repo: str, branch: str) -> list[str]:
-    """How this branch's recent workflow runs ended.
+def _conclusions(repo: str, branch: str, sha: str) -> list[str]:
+    """How this commit's workflow runs ended — not this branch's.
+
+    A branch keeps its old runs, and every push leaves another set. Reading them
+    all means a `startup_failure` from two pushes ago answers for a commit whose
+    runs are queued and fine, which is the same mistake `no_open_codeql_alert.py`
+    was making about analyses: the ref keeps answering after the commit it
+    describes has been replaced. `lemonfiber-companion#121` was told to push
+    again on the strength of a run belonging to a commit it had already replaced.
 
     Only asked when nothing reported, because that is the only case it answers.
     """
     said = _gh(
-        "run", "list", "-R", safe(repo), "--branch", safe(branch), "--limit", "30",
-        "--json", "conclusion", "--jq", "[.[].conclusion]",
+        "run", "list", "-R", safe(repo), "--branch", safe(branch), "--limit", "40",
+        "--json", "headSha,conclusion", "--jq",
+        f'[.[]|select(.headSha == "{safe(sha)}")|.conclusion]',
     )
     return [c for c in (json.loads(said) if said.strip() else []) if c]
 
@@ -571,9 +579,9 @@ def look(repo: str, number: int) -> list[str]:
     found = blocking(required, _reported(repo, number))
     nothing_ran = None
     if found["missing"] and not any(found[key] for key in ORDER if key != "missing"):
-        branch = _branch_of(repo, number)
-        if branched(branch):
-            nothing_ran = why_nothing_ran(found, _conclusions(repo, branch))
+        branch, sha = _branch_of(repo, number), _head(repo, number)
+        if branched(branch) and sha:
+            nothing_ran = why_nothing_ran(found, _conclusions(repo, branch, sha))
     split = disagrees(found, rules, str(state.get("forge", "")))
     return lines(repo, number, found, rules, nothing_ran, split)
 

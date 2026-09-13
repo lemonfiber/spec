@@ -34,10 +34,12 @@ class Stubbed(unittest.TestCase):
 
     def setUp(self):
         self.said = {}
+        self.seen = []
         self.addCleanup(setattr, wib, "_gh", wib._gh)
         wib._gh = self.answer
 
     def answer(self, *args):
+        self.seen.append(args)
         whole = " ".join(args)
         matches = [key for key in self.said if key in whole]
         return self.said[max(matches, key=len)] if matches else ""
@@ -444,6 +446,7 @@ class WhenNothingRanAtAll(Stubbed):
         )
         self.said["headRefName"] = "feat/a-thing\n"
         self.said["baseRefName"] = "main\n"
+        self.said["headRefOid"] = "abc123\n"
         self.said["run list"] = json.dumps(["startup_failure", "startup_failure"])
         out = wib.look("o/r", 1)
         self.assertIn("did not start", out[0])
@@ -451,7 +454,13 @@ class WhenNothingRanAtAll(Stubbed):
 
     def test_conclusions_drops_the_runs_that_have_not_finished(self):
         self.said["run list"] = json.dumps(["success", None, "failure"])
-        self.assertEqual(wib._conclusions("o/r", "b"), ["success", "failure"])
+        self.assertEqual(wib._conclusions("o/r", "b", "abc123"), ["success", "failure"])
+
+    def test_only_this_commit_s_runs_are_asked_about(self):
+        # A branch keeps its old runs. `lemonfiber-companion#121` was told to
+        # push again on the strength of a startup_failure two pushes old.
+        wib._conclusions("o/r", "b", "abc123")
+        self.assertIn('select(.headSha == "abc123")', " ".join(self.seen[-1]))
 
     def test_a_branch_name_gh_will_not_give_is_not_asked_about(self):
         # `_branch_of` answers empty when `gh` refuses, and an empty branch is not
@@ -577,8 +586,10 @@ class NamesThatWouldBecomeFlags(Stubbed):
             lambda: wib._unsigned("--x", 1),
             lambda: wib._unresolved("--x/y", 1),
             lambda: wib._reported("--x", 1),
-            lambda: wib._conclusions("o/r", "--x"),
+            lambda: wib._conclusions("o/r", "--x", "abc"),
+            lambda: wib._conclusions("o/r", "b", "--x"),
             lambda: wib._branch_of("--x", 1),
+            lambda: wib._head("--x", 1),
             lambda: wib._open_prs("--x"),
             lambda: wib._repos("--x"),
             lambda: wib._base("--x", 1),
