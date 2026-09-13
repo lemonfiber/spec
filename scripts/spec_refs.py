@@ -54,7 +54,11 @@ def adr_entries(spec_dir: pathlib.Path):
 def index(spec_dir: pathlib.Path) -> dict[str, tuple[str, str]]:
     """Map every defined identifier to (relative_path, description)."""
     idx: dict[str, tuple[str, str]] = {}
-    for p in spec_dir.rglob("*.md"):
+    # Sorted, because the first definition found is the one kept below, and `rglob`
+    # hands files over in whatever order the filesystem holds them. Two files defining
+    # one identifier would otherwise send a reader to a different file on a different
+    # machine, from the same spec. `adr_entries` above sorts for the same reason.
+    for p in sorted(spec_dir.rglob("*.md")):
         if ".git" in p.parts:
             continue
         rel = p.relative_to(spec_dir).as_posix()
