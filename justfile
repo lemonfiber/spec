@@ -16,6 +16,13 @@ hooks:
 lint:
     uvx ruff@0.16.4 check scripts/
 
+# `just blocked lemonfiber/spec` for one repo, `just blocked lemonfiber --org`
+# for every repo in the organisation. Both take pull request numbers too.
+#
+# Say what a pull request is blocked on, including checks that never reported.
+blocked target *flags:
+    python3 scripts/what_is_blocking.py {{target}} {{flags}}
+
 # The lint configs and brand assets here match the canonical copies in shared/.
 shared:
     python3 scripts/check_shared_files.py --canonical . --repo lemonfiber/spec
