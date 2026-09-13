@@ -33,6 +33,7 @@ brand's own.
 |------|-----------|------|
 | [markdownlint.jsonc](markdownlint.jsonc) | each repo's `.markdownlint.jsonc` | Byte-identical, key order included |
 | [typos.toml](typos.toml) | each repo's `typos.toml` | Every entry present; a repo may add more |
+| [ruff.toml](ruff.toml) | each Python-carrying repo's `ruff.toml` | Every shared rule selected and none of them ignored; a repo may select more |
 | [hooks/pre-push](hooks/pre-push) | each repo's `.githooks/pre-push` | Byte-identical, where a repo has adopted it |
 | [hooks/commit-msg](hooks/commit-msg) | each repo's `.githooks/commit-msg` | Byte-identical, where a repo has adopted it |
 | — | each repo's `.githooks/pre-commit` | Not shared: the fast checks are different in each. Its *absence* is not checked, and a hook-manager config in its place is refused |
@@ -46,10 +47,25 @@ step with a record that has stopped describing anything. It takes nothing away
 from a home repository: it changes its own files whenever it likes, and moves the
 digest and the copies in the same round.
 
-The two configs differ in kind deliberately. A markdown rule that one repo needs
-costs the others nothing, so one file serves everybody. A spelling allowance is
-about a specific tree — the site excludes its Dutch translations, this repo
+The three lint configs differ in kind deliberately. A markdown rule that one repo
+needs costs the others nothing, so one file serves everybody. A spelling allowance
+is about a specific tree — the site excludes its Dutch translations, this repo
 allows `UPnP` — so the shared file is a floor rather than a copy.
+
+`ruff.toml` is a floor in one direction and a ceiling in the other, which is the
+asymmetry the other two do not need. Selecting a rule a repo's own scripts want
+raises that repo's standard and costs nobody anything, so a copy may add. Ignoring
+one lowers the standard every repo is held to while looking like a local decision,
+so a copy may not silence what this file keeps — an allowance belongs here, with
+the reason, where every copy takes it at once.
+
+It is also not byte-identical, and that is the difference from `markdownlint.jsonc`:
+each copy opens with a paragraph saying what *that* repository's scripts are and
+why they are worth linting, because the scripts are different in each. What has to
+agree is the two lists and the width. Four repositories carry one today —
+`lemonfiber`, `lemonfiber-media-stack`, `brand` and this one — and every one of
+them held identical lists that nothing compared, which is four lists that agree
+until the first is edited.
 
 ## The pre-push hook
 
@@ -117,7 +133,13 @@ the hook is on.
 The `shared-files` job in the hygiene gate, which runs
 [`scripts/check_shared_files.py`](../scripts/check_shared_files.py) against the
 calling repository. It fails on a config that differs, a shared word that is
-missing, and a brand asset that has been edited in place instead of copied again.
+missing, a lint rule that has been dropped or silenced, and a brand asset that has
+been edited in place instead of copied again.
+
+It also fails on a file added to this directory that no check there looks at,
+because a shared file nothing compares is copied into every repository and held to
+in none — and the run still says the copies match, which is true of the ones it
+looked at and reads as an account of all of them.
 
 ## Changing one of them
 
