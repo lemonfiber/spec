@@ -18,12 +18,23 @@ nothing at all. On 2026-09-13 every open pull request in this organisation sat o
 a missing `SonarCloud Code Analysis` and a missing `gate / gate`, and finding
 that out took reading branch protection and the check list side by side by hand.
 
-So that is what this does. It reads the contexts branch protection requires and
-the checks the pull request reported, and names the difference. Two halves, split
-the way `dco_check.py` splits: `_read` shells out to `gh`, `blocking` is handed
-what `gh` said and decides. The decisions are the part worth testing, and a suite
-that had to stand up a repository and a branch protection rule to reach them
-would be testing GitHub.
+So that is what this does. It reads what branch protection requires — the status
+contexts and the rules that are not contexts at all — against what the head
+commit actually carries, and names the difference.
+
+Against the head *commit*, not the pull request. `gh pr checks` reads a rollup
+that lags, and branch protection is evaluated against the commit; asking the
+pull request instead is how this reported twenty of twenty satisfied while a
+check was still running.
+
+Where it and GitHub disagree it says so rather than quietly contradicting the
+merge box, and where every required context is missing it says that once, with
+the reason, instead of once per context.
+
+Two halves, split the way `dco_check.py` splits: `_gh` shells out and everything
+above it is handed what `gh` said and decides. The decisions are the part worth
+testing, and a suite that had to stand up a repository and a branch protection
+rule to reach them would be testing GitHub.
 """
 
 from __future__ import annotations
