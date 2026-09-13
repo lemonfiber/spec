@@ -48,6 +48,37 @@ QUIET = frozenset({"SKIPPED", "NEUTRAL", "CANCELLED", "STALE"})
 # the one with nowhere to look.
 ORDER = ("missing", "failing", "quiet", "waiting", "passed")
 
+# Branch protection is not only a list of checks, and the rest of it blocks just
+# as hard while appearing in no check list at all.
+#
+# Each entry maps a protection setting to the question that decides whether it is
+# what is holding this pull request, and to the sentence a maintainer can act on.
+# `required_signatures` is here because it is the trap that costs the most time:
+# an unsigned commit blocks a pull request with every check green and nothing
+# anywhere naming the cause.
+RULES = (
+    (
+        "strict",
+        "behind",
+        "the branch must be up to date with its base — rebase it and push",
+    ),
+    (
+        "signatures",
+        "unsigned",
+        "every commit must be signed — re-sign and force-push",
+    ),
+    (
+        "conversation",
+        "unresolved",
+        "every review conversation must be resolved",
+    ),
+    (
+        "reviews",
+        "unapproved",
+        "an approving review is required",
+    ),
+)
+
 
 def blocking(required: list[str], reported: dict[str, str]) -> dict[str, list[str]]:
     """Sort every required context by what it is doing.
@@ -77,7 +108,26 @@ def blocking(required: list[str], reported: dict[str, str]) -> dict[str, list[st
     return found
 
 
-def verdict(found: dict[str, list[str]]) -> str:
+def unmet(protection: dict[str, bool], state: dict[str, bool]) -> list[str]:
+    """The protection rules holding this pull request that are not checks.
+
+    `protection` says which rules the branch turns on; `state` says which of the
+    corresponding conditions this pull request is currently failing. A rule that
+    is off, or on and satisfied, is not returned.
+
+    Separate from `blocking` because these are a different kind of answer: a
+    failing check has a log, and none of these has anything at all. Reporting
+    "every required context is satisfied" while one of them holds the merge is
+    the same wrong answer GitHub's own merge box gives.
+    """
+    return [
+        said
+        for setting, condition, said in RULES
+        if protection.get(setting) and state.get(condition)
+    ]
+
+
+def verdict(found: dict[str, list[str]], rules: list[str] | None = None) -> str:
     """One line saying whether anything is wrong, and where to look if so."""
     if found["missing"]:
         return (
@@ -86,19 +136,28 @@ def verdict(found: dict[str, list[str]]) -> str:
         )
     if found["failing"]:
         return "blocked on a check that failed; its log is on the pull request"
+    if rules:
+        return "every required context is satisfied; a branch protection rule holds it"
     if found["waiting"]:
         return "nothing is wrong; checks are still running"
     return "every required context is satisfied"
 
 
-def lines(repo: str, number: int, found: dict[str, list[str]]) -> list[str]:
+def lines(
+    repo: str,
+    number: int,
+    found: dict[str, list[str]],
+    rules: list[str] | None = None,
+) -> list[str]:
     """The report, worst first, with the empty categories left out."""
-    out = [f"{repo}#{number}: {verdict(found)}"]
+    out = [f"{repo}#{number}: {verdict(found, rules)}"]
     for key in ORDER:
         if key == "passed" or not found[key]:
             continue
         for context in found[key]:
             out.append(f"  {key.upper():>8}: {context}")
+    for said in rules or []:
+        out.append(f"  {'RULE':>8}: {said}")
     passed = len(found["passed"])
     if passed:
         out.append(f"  {'passed':>8}: {passed}")
@@ -119,13 +178,97 @@ def _gh(*args: str) -> str:
     return done.stdout if done.returncode == 0 else ""
 
 
-def _required(repo: str, base: str) -> list[str]:
-    """The contexts branch protection insists on for `base`."""
+def _protection_of(repo: str, base: str) -> dict:
+    """The whole branch protection object for `base`, read once.
+
+    Once, because the two questions asked of it — which contexts are required,
+    and which of the other rules are on — are two reads of the same document.
+    """
+    said = _gh("api", f"repos/{repo}/branches/{base}/protection")
+    return json.loads(said) if said.strip() else {}
+
+
+def required_in(protection: dict) -> list[str]:
+    """The contexts branch protection insists on."""
+    return list((protection.get("required_status_checks") or {}).get("contexts") or [])
+
+
+def rules_in(protection: dict) -> dict[str, bool]:
+    """Which of the non-check rules are turned on."""
+    checks = protection.get("required_status_checks") or {}
+    reviews = protection.get("required_pull_request_reviews") or {}
+    return {
+        "strict": bool(checks.get("strict")),
+        "signatures": bool((protection.get("required_signatures") or {}).get("enabled")),
+        "conversation": bool(
+            (protection.get("required_conversation_resolution") or {}).get("enabled")
+        ),
+        "reviews": (reviews.get("required_approving_review_count") or 0) > 0,
+    }
+
+
+# The `gh pr view --json` fields `_state` asks for. Named here so the suite can
+# hand them back to `gh` and check it accepts them.
+#
+# It has to. `_gh` answers an unreadable repository with an empty string on
+# purpose, so one bad repository does not end the run for the others — which
+# means a field name `gh` rejects also comes back empty, and the rule it feeds
+# silently never fires. `reviewThreads` was exactly that: a plausible name, not a
+# real one, and every conversation-resolution block would have gone unreported
+# with the script saying nothing was wrong.
+FIELDS = ("mergeStateStatus", "reviewDecision")
+
+
+def _state(repo: str, number: int) -> dict[str, bool]:
+    """Which of those conditions this pull request is currently failing.
+
+    `mergeStateStatus` answers "behind" directly. The rest are asked separately
+    rather than inferred from `BLOCKED`, which is the single word this whole
+    script exists because GitHub gives instead of a reason.
+    """
+    said = _gh("pr", "view", "-R", repo, str(number), "--json", ",".join(FIELDS))
+    if not said.strip():
+        return {}
+    pr = json.loads(said)
+    return {
+        "behind": pr.get("mergeStateStatus") == "BEHIND",
+        "unsigned": bool(_unsigned(repo, number)),
+        "unresolved": _unresolved(repo, number),
+        "unapproved": pr.get("reviewDecision") not in ("APPROVED", None, ""),
+    }
+
+
+# Review threads and their resolution are not on `gh pr view`, only on GraphQL.
+THREADS = """
+query($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    pullRequest(number: $number) {
+      reviewThreads(first: 100) { nodes { isResolved } }
+    }
+  }
+}
+"""
+
+
+def _unresolved(repo: str, number: int) -> bool:
+    """Whether any review conversation is still open."""
+    owner, name = repo.split("/", 1)
+    said = _gh(
+        "api", "graphql",
+        "-f", f"query={THREADS}",
+        "-F", f"owner={owner}", "-F", f"repo={name}", "-F", f"number={number}",
+        "--jq", "[.data.repository.pullRequest.reviewThreads.nodes[].isResolved]",
+    )
+    return any(not resolved for resolved in (json.loads(said) if said.strip() else []))
+
+
+def _unsigned(repo: str, number: int) -> list[str]:
+    """Commits on this pull request the forge has not verified a signature for."""
     said = _gh(
         "api",
-        f"repos/{repo}/branches/{base}/protection",
+        f"repos/{repo}/pulls/{number}/commits",
         "--jq",
-        "[.required_status_checks.contexts[]?]",
+        "[.[] | select(.commit.verification.verified | not) | .sha[0:8]]",
     )
     return json.loads(said) if said.strip() else []
 
@@ -174,10 +317,13 @@ def _base(repo: str, number: int) -> str:
 
 def look(repo: str, number: int) -> list[str]:
     """Read one pull request and report it."""
-    required = _required(repo, _base(repo, number))
-    if not required:
+    base = _base(repo, number)
+    protection = _protection_of(repo, base)
+    required = required_in(protection)
+    rules = unmet(rules_in(protection), _state(repo, number)) if protection else []
+    if not required and not rules:
         return [f"{repo}#{number}: nothing required, or branch protection is unreadable here"]
-    return lines(repo, number, blocking(required, _reported(repo, number)))
+    return lines(repo, number, blocking(required, _reported(repo, number)), rules)
 
 
 def main(argv: list[str] | None = None) -> int:

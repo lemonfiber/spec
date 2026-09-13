@@ -23,6 +23,15 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import what_is_blocking as wib
 
 
+class Stubbed(unittest.TestCase):
+    """`_gh` answers from a table keyed on the sub-command it was asked."""
+
+    def setUp(self):
+        self.said = {}
+        self.addCleanup(setattr, wib, "_gh", wib._gh)
+        wib._gh = lambda *args: self.said.get(" ".join(args[:2]), "")
+
+
 class Sorting(unittest.TestCase):
     """Every required context lands in exactly one column."""
 
@@ -104,28 +113,23 @@ class TheReport(unittest.TestCase):
         self.assertEqual(out, ["o/r#7: every required context is satisfied"])
 
 
-class WhenANameReportsTwice(unittest.TestCase):
+class WhenANameReportsTwice(Stubbed):
     """A re-run leaves two entries, and the wrong one would hide the other."""
 
-    def setUp(self):
-        self.said = {}
-        self.addCleanup(setattr, wib, "_gh", wib._gh)
-        wib._gh = lambda *args: self.said.get(args[0], "")
-
     def test_the_failure_wins_over_the_pass_beside_it(self):
-        self.said["pr"] = json.dumps(
+        self.said["pr checks"] = json.dumps(
             [{"name": "gate", "state": "SUCCESS"}, {"name": "gate", "state": "FAILURE"}]
         )
         self.assertEqual(wib._reported("o/r", 1), {"gate": "FAILURE"})
 
     def test_in_either_order(self):
-        self.said["pr"] = json.dumps(
+        self.said["pr checks"] = json.dumps(
             [{"name": "gate", "state": "FAILURE"}, {"name": "gate", "state": "SUCCESS"}]
         )
         self.assertEqual(wib._reported("o/r", 1), {"gate": "FAILURE"})
 
     def test_running_outranks_skipped(self):
-        self.said["pr"] = json.dumps(
+        self.said["pr checks"] = json.dumps(
             [{"name": "g", "state": "SKIPPED"}, {"name": "g", "state": "IN_PROGRESS"}]
         )
         self.assertEqual(wib._reported("o/r", 1), {"g": "IN_PROGRESS"})
@@ -148,50 +152,74 @@ class Ranking(unittest.TestCase):
         self.assertTrue(wib._worse("WHAT", "SKIPPED"))
 
 
-class ReadingTheForge(unittest.TestCase):
+class ReadingTheForge(Stubbed):
     """Everything above `_gh`, with `_gh` answering from a table."""
-
-    def setUp(self):
-        self.said = {}
-        self.addCleanup(setattr, wib, "_gh", wib._gh)
-        wib._gh = lambda *args: self.said.get(args[0], "")
 
     def test_a_repository_with_no_readable_protection_says_so(self):
         # Not "nothing is blocking it". A token that cannot read the rule and a
         # branch that carries none are different facts, and this claims neither.
-        self.said["pr"] = json.dumps([{"name": "x", "state": "SUCCESS"}])
+        self.said["pr checks"] = json.dumps([{"name": "x", "state": "SUCCESS"}])
         out = wib.look("o/r", 3)
         self.assertIn("nothing required, or branch protection is unreadable", out[0])
 
     def test_required_contexts_are_read_from_the_base_branch(self):
-        self.said["api"] = json.dumps(["gate / gate"])
-        self.said["pr"] = json.dumps([])
-        self.assertEqual(wib._required("o/r", "main"), ["gate / gate"])
+        self.said["api repos/o/r/branches/main/protection"] = json.dumps(
+            {"required_status_checks": {"contexts": ["gate / gate"], "strict": False}}
+        )
+        self.said["pr checks"] = json.dumps([])
+        self.assertEqual(
+            wib.required_in({"required_status_checks": {"contexts": ["gate / gate"]}}),
+            ["gate / gate"],
+        )
         out = wib.look("o/r", 3)
         self.assertIn("MISSING: gate / gate", out[1])
 
     def test_the_base_branch_falls_back_to_main(self):
         self.assertEqual(wib._base("o/r", 1), "main")
-        self.said["pr"] = "release\n"
+        self.said["pr view"] = "release\n"
         self.assertEqual(wib._base("o/r", 1), "release")
+
+    def test_protection_is_read_once_and_both_questions_asked_of_it(self):
+        # Two reads of one document, not two calls to one endpoint.
+        protection = {
+            "required_status_checks": {"contexts": ["a"], "strict": True},
+            "required_signatures": {"enabled": True},
+            "required_conversation_resolution": {"enabled": False},
+            "required_pull_request_reviews": {"required_approving_review_count": 1},
+        }
+        self.assertEqual(wib.required_in(protection), ["a"])
+        self.assertEqual(
+            wib.rules_in(protection),
+            {"strict": True, "signatures": True, "conversation": False, "reviews": True},
+        )
+
+    def test_a_protection_document_missing_every_optional_block(self):
+        # A repository can turn any of these off, and the key then is not there
+        # at all rather than false. Reading that as "on" would report a rule
+        # holding a pull request that nothing is holding.
+        self.assertEqual(wib.required_in({}), [])
+        self.assertEqual(
+            wib.rules_in({}),
+            {"strict": False, "signatures": False, "conversation": False, "reviews": False},
+        )
+
+    def test_the_protection_endpoint_answers_or_it_does_not(self):
+        self.assertEqual(wib._protection_of("o/r", "main"), {})
+        self.said["api repos/o/r/branches/main/protection"] = json.dumps({"x": 1})
+        self.assertEqual(wib._protection_of("o/r", "main"), {"x": 1})
 
     def test_nothing_open_and_nothing_listed(self):
         self.assertEqual(wib._open_prs("o/r"), [])
         self.assertEqual(wib._repos("o"), [])
 
     def test_open_pull_requests_and_repositories(self):
-        self.said["pr"] = json.dumps([{"number": 4}, {"number": 9}])
+        self.said["pr list"] = json.dumps([{"number": 4}, {"number": 9}])
         self.assertEqual(wib._open_prs("o/r"), [4, 9])
-        self.said["repo"] = json.dumps([{"nameWithOwner": "o/r"}])
+        self.said["repo list"] = json.dumps([{"nameWithOwner": "o/r"}])
         self.assertEqual(wib._repos("o"), ["o/r"])
 
 
-class TheCommandLine(unittest.TestCase):
-    def setUp(self):
-        self.said = {}
-        self.addCleanup(setattr, wib, "_gh", wib._gh)
-        wib._gh = lambda *args: self.said.get(args[0], "")
-
+class TheCommandLine(Stubbed):
     def run_main(self, argv):
         out = io.StringIO()
         with redirect_stdout(out):
@@ -199,24 +227,128 @@ class TheCommandLine(unittest.TestCase):
         return code, out.getvalue()
 
     def test_named_numbers(self):
-        self.said["api"] = json.dumps(["a"])
-        self.said["pr"] = json.dumps([{"name": "a", "state": "FAILURE"}])
+        self.said["api repos/o/r/branches/main/protection"] = json.dumps(
+            {"required_status_checks": {"contexts": ["a"]}}
+        )
+        self.said["pr checks"] = json.dumps([{"name": "a", "state": "FAILURE"}])
         code, out = self.run_main(["o/r", "3"])
         self.assertEqual(code, 0)
         self.assertIn("FAILING: a", out)
 
     def test_every_open_pull_request_when_none_is_named(self):
-        self.said["pr"] = json.dumps([{"number": 4}])
+        self.said["pr list"] = json.dumps([{"number": 4}])
         code, out = self.run_main(["o/r"])
         self.assertEqual(code, 0)
         self.assertIn("o/r#4", out)
 
     def test_the_whole_organisation(self):
-        self.said["repo"] = json.dumps([{"nameWithOwner": "o/r"}])
-        self.said["pr"] = json.dumps([{"number": 4}])
+        self.said["repo list"] = json.dumps([{"nameWithOwner": "o/r"}])
+        self.said["pr list"] = json.dumps([{"number": 4}])
         code, out = self.run_main(["--org", "o"])
         self.assertEqual(code, 0)
         self.assertIn("o/r#4", out)
+
+
+class RulesThatAreNotChecks(unittest.TestCase):
+    """Branch protection blocks in ways that appear in no check list at all."""
+
+    def test_a_rule_that_is_off_is_not_reported(self):
+        self.assertEqual(wib.unmet({"strict": False}, {"behind": True}), [])
+
+    def test_a_rule_that_is_on_and_satisfied_is_not_reported(self):
+        self.assertEqual(wib.unmet({"strict": True}, {"behind": False}), [])
+
+    def test_each_rule_names_what_to_do_about_it(self):
+        for setting, condition, said in wib.RULES:
+            with self.subTest(setting):
+                self.assertEqual(wib.unmet({setting: True}, {condition: True}), [said])
+
+    def test_a_pull_request_with_every_check_green_can_still_be_held(self):
+        # The answer GitHub's own merge box gets wrong, and the reason the
+        # headline could not simply read "every required context is satisfied".
+        found = wib.blocking(["a"], {"a": "SUCCESS"})
+        held = wib.unmet({"signatures": True}, {"unsigned": True})
+        self.assertIn("branch protection rule holds it", wib.verdict(found, held))
+        out = wib.lines("o/r", 1, found, held)
+        self.assertIn("RULE: every commit must be signed", "\n".join(out))
+
+    def test_a_failing_check_still_leads(self):
+        # A rule has no log and a failed check does; send the reader to the log.
+        found = wib.blocking(["a"], {"a": "FAILURE"})
+        held = wib.unmet({"strict": True}, {"behind": True})
+        self.assertIn("log is on the pull request", wib.verdict(found, held))
+        self.assertIn("RULE:", "\n".join(wib.lines("o/r", 1, found, held)))
+
+    def test_nothing_known_about_the_pull_request_holds_nothing(self):
+        self.assertEqual(wib.unmet({"strict": True, "signatures": True}, {}), [])
+
+
+class ReadingTheRulesOffTheForge(Stubbed):
+    """The three reads that answer "is this pull request failing that rule"."""
+
+    def test_a_pull_request_behind_its_base(self):
+        self.said["pr view"] = json.dumps({"mergeStateStatus": "BEHIND"})
+        self.assertTrue(wib._state("o/r", 1)["behind"])
+
+    def test_a_pull_request_that_is_not_behind_and_is_approved(self):
+        self.said["pr view"] = json.dumps(
+            {"mergeStateStatus": "CLEAN", "reviewDecision": "APPROVED"}
+        )
+        state = wib._state("o/r", 1)
+        self.assertFalse(state["behind"])
+        self.assertFalse(state["unapproved"])
+
+    def test_review_required_is_not_the_same_as_no_review_being_asked_for(self):
+        # `null` is a repository that requires no approval. Reading it as "not
+        # approved" would report every pull request as held by a rule that is off.
+        self.said["pr view"] = json.dumps({"reviewDecision": None})
+        self.assertFalse(wib._state("o/r", 1)["unapproved"])
+        self.said["pr view"] = json.dumps({"reviewDecision": "CHANGES_REQUESTED"})
+        self.assertTrue(wib._state("o/r", 1)["unapproved"])
+
+    def test_a_pull_request_gh_will_not_describe(self):
+        self.assertEqual(wib._state("o/r", 1), {})
+
+    def test_unsigned_commits_are_named_by_their_short_sha(self):
+        self.assertEqual(wib._unsigned("o/r", 1), [])
+        self.said["api repos/o/r/pulls/1/commits"] = json.dumps(["abcd1234"])
+        self.assertEqual(wib._unsigned("o/r", 1), ["abcd1234"])
+
+    def test_an_open_conversation(self):
+        self.assertFalse(wib._unresolved("o/r", 1))
+        self.said["api graphql"] = json.dumps([True, True])
+        self.assertFalse(wib._unresolved("o/r", 1))
+        self.said["api graphql"] = json.dumps([True, False])
+        self.assertTrue(wib._unresolved("o/r", 1))
+
+
+class TheFieldNamesAreReal(unittest.TestCase):
+    """`_gh` answers a rejected field the same way it answers an unreadable repo.
+
+    Both come back empty, on purpose, so one bad repository does not end the run
+    for the others. That makes a misspelled field silent: the rule it feeds never
+    fires and the script reports nothing wrong. `reviewThreads` was exactly that
+    — a plausible name, not a real one.
+    """
+
+    def test_gh_accepts_every_field_state_asks_for(self):
+        said = wib._gh("pr", "view", "--json", ",".join(wib.FIELDS))
+        # Run outside a pull request, so `gh` refuses for want of one — but it
+        # validates the field names first, and names any it does not know.
+        self.assertNotIn("Unknown JSON field", said)
+        for field in wib.FIELDS:
+            with self.subTest(field):
+                rejected = wib._gh("pr", "view", "--json", field, "--repo", "o/r")
+                self.assertNotIn("Unknown JSON field", rejected)
+
+    def test_a_field_gh_does_not_know_is_caught_rather_than_swallowed(self):
+        # The check above is only worth having if it can fail. This plants the
+        # mistake and shows the probe notices.
+        done = __import__("subprocess").run(
+            ("gh", "pr", "view", "--json", "reviewThreads"),
+            capture_output=True, text=True, check=False,
+        )
+        self.assertIn("Unknown JSON field", done.stderr + done.stdout)
 
 
 class TheShellBoundary(unittest.TestCase):
