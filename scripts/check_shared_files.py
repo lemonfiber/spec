@@ -22,6 +22,9 @@ import tomllib
 
 # The members of `shared/` this file names. Named here rather than at each use so
 # the accounting below and the checks above cannot come to mean different files.
+#: Hook managers that write `.git/hooks`, which `core.hooksPath` makes inert.
+MANAGERS = ("lefthook.yml", "lefthook.yaml", ".lefthook.yml", "captainhook.json")
+
 MARKDOWNLINT = "markdownlint.jsonc"
 TYPOS = "typos.toml"
 HOOKS = "hooks"
@@ -134,6 +137,34 @@ def home(target: pathlib.Path, digest: str, home_path: str) -> list[str]:
             f"record rather than against the original. Put {actual} in the "
             f"manifest and refresh the copies in the same round (GOV-R12)"
         )
+    ]
+
+
+def manager(repo: pathlib.Path) -> list[str]:
+    """A hook-manager config, which cannot run here and turns off the hook that can.
+
+    Not a style preference. `core.hooksPath .githooks` is what makes the pre-push
+    guard run at all, and git then reads *only* that directory — so anything a
+    manager writes into `.git/hooks` is ignored. lefthook 2.x detects the setting,
+    refuses to install, and offers `--reset-hooks-path`, which unsets it. The one
+    command that repairs the dead config disables the working one.
+
+    Six repositories carried a `lefthook.yml` and one a `captainhook.json`, none
+    of them ever installed, and one named a script that had been renamed
+    underneath it. They are all gone. This is what keeps them gone: a file that
+    looks like hook configuration, is not, and whose repair is destructive is
+    worth refusing by name rather than explaining again later.
+    """
+    return [
+        (
+            f"{found} is a hook manager's config, and this repository's hooks are "
+            f"files in `.githooks/` reached through `core.hooksPath`. Git reads only "
+            f"that directory, so this cannot run — and installing it would unset the "
+            f"setting and turn off the pre-push guard with it. Take it out, and put "
+            f"the checks in `.githooks/pre-commit` (OPS-R51)"
+        )
+        for found in MANAGERS
+        if (repo / found).is_file()
     ]
 
 
@@ -267,6 +298,7 @@ def main() -> int:
         + typos(repo, canonical)
         + assets(repo, canonical, name)
         + hooks(repo, canonical)
+        + manager(repo)
         + codeowners(repo, canonical, name)
     )
     if problems:
