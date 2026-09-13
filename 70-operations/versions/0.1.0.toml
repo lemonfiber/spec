@@ -7,8 +7,8 @@ milestone = "M2"   # Core: manifest, compose driver, CLI
 delivers  = "Core: manifest, compose driver, CLI"
 status  = "released"
 released_on = "2026-07-26"
-repos   = ["lemonfiber", "media-stack"]
+repos   = ["lemonfiber", "lemonfiber-media-stack"]
 goals   = ["B1-R4", "B1-R5", "C1-R3", "C1-R4", "C1-R5", "C1-R6", "C1-R7", "C1-R8", "C1-R9"]
 
 [pins]
-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"
+lemonfiber-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"

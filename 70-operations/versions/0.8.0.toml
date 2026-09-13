@@ -61,4 +61,4 @@ goals   = [
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 
 [pins]
-media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"
+lemonfiber-media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"
