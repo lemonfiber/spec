@@ -1542,7 +1542,7 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "planned",
+      "maturity": "building",
       "shipped": null,
       "milestones": [
         "M9"
@@ -1572,7 +1572,7 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "planned",
+      "maturity": "building",
       "shipped": null,
       "milestones": [
         "M9"
