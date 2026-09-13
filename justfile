@@ -14,7 +14,9 @@ hooks:
 # Read the scripts that do the reading. They are the gates, here and in every
 # repo that calls the reusable workflows.
 lint:
-    uvx ruff@0.16.4 check scripts/
+    # `shared/gates/` too: it is Python that decides whether a merge may
+    # happen in six repositories, and it was linted in none of them.
+    uvx ruff@0.16.4 check scripts/ shared/gates/
 
 # `just blocked lemonfiber/spec` for one repo, `just blocked lemonfiber --org`
 # for every repo in the organisation. Both take pull request numbers too.

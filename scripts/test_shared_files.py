@@ -297,6 +297,18 @@ class Agreeing(Copies):
         self.assertEqual(code, 0, out)
         self.assertNotIn("lockup.svg", out)
 
+    def test_a_tool_cache_in_the_shared_directory_is_not_a_shared_file(self):
+        """`uvx ruff` run with `shared/` as its working directory leaves a
+        `.ruff_cache/` there. Nothing copies it anywhere, so naming it as an
+        uncompared shared file turns every later run of this check red over a
+        directory no repository has ever carried."""
+        (self.canonical / "shared" / ".ruff_cache").mkdir()
+        (self.canonical / "shared" / ".ruff_cache" / "CACHEDIR.TAG").write_text(
+            "Signature: 8a477f597d28d172789f06886806bc55\n", encoding="utf-8")
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertNotIn(".ruff_cache", out)
+
 
 class Drifted(Copies):
     """Every refusal, and the home each message sends the reader to."""

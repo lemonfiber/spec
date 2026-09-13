@@ -23,7 +23,9 @@ jobs:
       # Before the scripts are asked to judge anything, since they are what does
       # the judging here and in every repo that calls the reusable workflows.
       - name: Lint the scripts
-        run: pipx run ruff==0.16.4 check scripts/
+        # `shared/gates/` too: it is Python that decides whether a merge may
+        # happen in six repositories, and it was linted in none of them.
+        run: pipx run ruff==0.16.4 check scripts/ shared/gates/
       - name: Check spec integrity
         run: python3 scripts/integrity.py
       - name: Validate feature frontmatter
