@@ -33,8 +33,6 @@ ROOT = SCRIPTS.parent
 # whether that is acceptable is what the script would do wrong unnoticed, so each
 # reason says what it gates rather than merely that it is small.
 UNMEASURED = {
-    "check_binding_order.py": "gates a merge — it is what refuses a binding "
-    "feature resting on a draft — and wants a suite",
     "check_frontmatter.py": "gates a merge; wants a suite",
     "check_order.py": "gates a merge; wants a suite",
     "commit_lint.py": "gates a merge; wants a suite",
