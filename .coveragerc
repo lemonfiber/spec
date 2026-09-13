@@ -33,6 +33,7 @@ include =
     scripts/next_id.py
     scripts/gen_repos.py
     scripts/gen_contrast.py
+    scripts/what_is_blocking.py
 
 [report]
 exclude_also =

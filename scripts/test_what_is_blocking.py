@@ -1,0 +1,236 @@
+#!/usr/bin/env python3
+"""Cover the decisions in `what_is_blocking.py`.
+
+Everything here stubs `_gh`, which is the script's one shell boundary, so the
+suite tests what the script concludes rather than what `gh` returns. One case at
+the end runs the real `_gh` — it is the half a stub cannot vouch for.
+
+Stdlib unittest, no dependencies.
+Run:  python3 scripts/test_what_is_blocking.py
+"""
+
+from __future__ import annotations
+
+import io
+import json
+import pathlib
+import sys
+import unittest
+from contextlib import redirect_stdout
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+
+import what_is_blocking as wib
+
+
+class Sorting(unittest.TestCase):
+    """Every required context lands in exactly one column."""
+
+    def test_a_context_nothing_reported_is_the_one_with_nowhere_to_look(self):
+        found = wib.blocking(["gate / gate"], {})
+        self.assertEqual(found["missing"], ["gate / gate"])
+
+    def test_the_four_states_that_are_not_missing(self):
+        found = wib.blocking(
+            ["a", "b", "c", "d"],
+            {"a": "SUCCESS", "b": "FAILURE", "c": "SKIPPED", "d": "IN_PROGRESS"},
+        )
+        self.assertEqual(found["passed"], ["a"])
+        self.assertEqual(found["failing"], ["b"])
+        self.assertEqual(found["quiet"], ["c"])
+        self.assertEqual(found["waiting"], ["d"])
+
+    def test_a_state_this_script_has_never_heard_of_counts_as_unfinished(self):
+        # Deliberately not a pass. A state GitHub adds later should read as "not
+        # finished" until somebody looks, or this widens every time the forge does.
+        found = wib.blocking(["a"], {"a": "MOON_PHASE_PENDING"})
+        self.assertEqual(found["waiting"], ["a"])
+        self.assertEqual(found["passed"], [])
+
+    def test_a_check_that_is_not_required_is_not_this_script_s_business(self):
+        # It cannot block the merge, so naming it would only add noise to the
+        # answer somebody came here for.
+        found = wib.blocking(["a"], {"a": "SUCCESS", "unrelated": "FAILURE"})
+        self.assertEqual(found["failing"], [])
+        self.assertEqual(sum(len(v) for v in found.values()), 1)
+
+
+class TheHeadline(unittest.TestCase):
+    """The one line at the top says which kind of trouble this is."""
+
+    def test_missing_outranks_failing(self):
+        # Both are real, and only one of them has a log to read. Say that one.
+        said = wib.verdict(wib.blocking(["a", "b"], {"b": "FAILURE"}))
+        self.assertIn("never reported", said)
+
+    def test_failing_names_where_the_log_is(self):
+        said = wib.verdict(wib.blocking(["b"], {"b": "FAILURE"}))
+        self.assertIn("log is on the pull request", said)
+
+    def test_still_running_is_not_trouble(self):
+        said = wib.verdict(wib.blocking(["b"], {"b": "QUEUED"}))
+        self.assertIn("nothing is wrong", said)
+
+    def test_everything_satisfied(self):
+        said = wib.verdict(wib.blocking(["b"], {"b": "SUCCESS"}))
+        self.assertIn("satisfied", said)
+
+    def test_a_quiet_check_alone_is_not_called_trouble(self):
+        # SKIPPED is neither a pass nor a failure here, and the headline does not
+        # pretend otherwise — it is listed below, where a maintainer sees it.
+        found = wib.blocking(["b"], {"b": "SKIPPED"})
+        self.assertIn("satisfied", wib.verdict(found))
+        self.assertEqual(found["quiet"], ["b"])
+
+
+class TheReport(unittest.TestCase):
+    def test_worst_first_and_passes_counted_rather_than_listed(self):
+        found = wib.blocking(
+            ["m", "f", "q", "w", "p"],
+            {"f": "FAILURE", "q": "SKIPPED", "w": "QUEUED", "p": "SUCCESS"},
+        )
+        out = wib.lines("o/r", 7, found)
+        self.assertTrue(out[0].startswith("o/r#7: "))
+        self.assertIn("MISSING: m", out[1])
+        self.assertIn("FAILING: f", out[2])
+        self.assertIn("passed: 1", out[-1])
+
+    def test_a_clean_pull_request_says_so_in_one_line_and_a_count(self):
+        out = wib.lines("o/r", 7, wib.blocking(["p"], {"p": "SUCCESS"}))
+        self.assertEqual(len(out), 2)
+
+    def test_nothing_required_at_all(self):
+        out = wib.lines("o/r", 7, wib.blocking([], {}))
+        self.assertEqual(out, ["o/r#7: every required context is satisfied"])
+
+
+class WhenANameReportsTwice(unittest.TestCase):
+    """A re-run leaves two entries, and the wrong one would hide the other."""
+
+    def setUp(self):
+        self.said = {}
+        self.addCleanup(setattr, wib, "_gh", wib._gh)
+        wib._gh = lambda *args: self.said.get(args[0], "")
+
+    def test_the_failure_wins_over_the_pass_beside_it(self):
+        self.said["pr"] = json.dumps(
+            [{"name": "gate", "state": "SUCCESS"}, {"name": "gate", "state": "FAILURE"}]
+        )
+        self.assertEqual(wib._reported("o/r", 1), {"gate": "FAILURE"})
+
+    def test_in_either_order(self):
+        self.said["pr"] = json.dumps(
+            [{"name": "gate", "state": "FAILURE"}, {"name": "gate", "state": "SUCCESS"}]
+        )
+        self.assertEqual(wib._reported("o/r", 1), {"gate": "FAILURE"})
+
+    def test_running_outranks_skipped(self):
+        self.said["pr"] = json.dumps(
+            [{"name": "g", "state": "SKIPPED"}, {"name": "g", "state": "IN_PROGRESS"}]
+        )
+        self.assertEqual(wib._reported("o/r", 1), {"g": "IN_PROGRESS"})
+
+    def test_nothing_reported(self):
+        self.assertEqual(wib._reported("o/r", 1), {})
+
+
+class Ranking(unittest.TestCase):
+    def test_a_failure_is_worse_than_anything(self):
+        self.assertTrue(wib._worse("FAILURE", "QUEUED"))
+        self.assertTrue(wib._worse("FAILURE", "SKIPPED"))
+
+    def test_quiet_is_worse_than_nothing(self):
+        self.assertFalse(wib._worse("SKIPPED", "FAILURE"))
+        self.assertFalse(wib._worse("SKIPPED", "QUEUED"))
+
+    def test_an_unknown_state_ranks_where_waiting_does(self):
+        self.assertFalse(wib._worse("WHAT", "QUEUED"))
+        self.assertTrue(wib._worse("WHAT", "SKIPPED"))
+
+
+class ReadingTheForge(unittest.TestCase):
+    """Everything above `_gh`, with `_gh` answering from a table."""
+
+    def setUp(self):
+        self.said = {}
+        self.addCleanup(setattr, wib, "_gh", wib._gh)
+        wib._gh = lambda *args: self.said.get(args[0], "")
+
+    def test_a_repository_with_no_readable_protection_says_so(self):
+        # Not "nothing is blocking it". A token that cannot read the rule and a
+        # branch that carries none are different facts, and this claims neither.
+        self.said["pr"] = json.dumps([{"name": "x", "state": "SUCCESS"}])
+        out = wib.look("o/r", 3)
+        self.assertIn("nothing required, or branch protection is unreadable", out[0])
+
+    def test_required_contexts_are_read_from_the_base_branch(self):
+        self.said["api"] = json.dumps(["gate / gate"])
+        self.said["pr"] = json.dumps([])
+        self.assertEqual(wib._required("o/r", "main"), ["gate / gate"])
+        out = wib.look("o/r", 3)
+        self.assertIn("MISSING: gate / gate", out[1])
+
+    def test_the_base_branch_falls_back_to_main(self):
+        self.assertEqual(wib._base("o/r", 1), "main")
+        self.said["pr"] = "release\n"
+        self.assertEqual(wib._base("o/r", 1), "release")
+
+    def test_nothing_open_and_nothing_listed(self):
+        self.assertEqual(wib._open_prs("o/r"), [])
+        self.assertEqual(wib._repos("o"), [])
+
+    def test_open_pull_requests_and_repositories(self):
+        self.said["pr"] = json.dumps([{"number": 4}, {"number": 9}])
+        self.assertEqual(wib._open_prs("o/r"), [4, 9])
+        self.said["repo"] = json.dumps([{"nameWithOwner": "o/r"}])
+        self.assertEqual(wib._repos("o"), ["o/r"])
+
+
+class TheCommandLine(unittest.TestCase):
+    def setUp(self):
+        self.said = {}
+        self.addCleanup(setattr, wib, "_gh", wib._gh)
+        wib._gh = lambda *args: self.said.get(args[0], "")
+
+    def run_main(self, argv):
+        out = io.StringIO()
+        with redirect_stdout(out):
+            code = wib.main(argv)
+        return code, out.getvalue()
+
+    def test_named_numbers(self):
+        self.said["api"] = json.dumps(["a"])
+        self.said["pr"] = json.dumps([{"name": "a", "state": "FAILURE"}])
+        code, out = self.run_main(["o/r", "3"])
+        self.assertEqual(code, 0)
+        self.assertIn("FAILING: a", out)
+
+    def test_every_open_pull_request_when_none_is_named(self):
+        self.said["pr"] = json.dumps([{"number": 4}])
+        code, out = self.run_main(["o/r"])
+        self.assertEqual(code, 0)
+        self.assertIn("o/r#4", out)
+
+    def test_the_whole_organisation(self):
+        self.said["repo"] = json.dumps([{"nameWithOwner": "o/r"}])
+        self.said["pr"] = json.dumps([{"number": 4}])
+        code, out = self.run_main(["--org", "o"])
+        self.assertEqual(code, 0)
+        self.assertIn("o/r#4", out)
+
+
+class TheShellBoundary(unittest.TestCase):
+    """The half a stub cannot vouch for."""
+
+    def test_gh_answers(self):
+        self.assertIn("gh version", wib._gh("--version"))
+
+    def test_a_command_gh_refuses_is_an_empty_answer_rather_than_a_crash(self):
+        # A repository with no protection, a token without the scope, and a typo
+        # all land here, and none of them should end the run for the other
+        # pull requests being reported beside it.
+        self.assertEqual(wib._gh("api", "repos/lemonfiber/does-not-exist-xyz/branches/main/protection"), "")
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
