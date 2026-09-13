@@ -25,8 +25,23 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)#]+)(?:#[^)]*)?\)")
 
 
+#: Directories under the root that hold no document of this repository's own.
+#:
+#: `checkouts/` is other repositories, cloned here on purpose — `.gitignore` says
+#: so, `execute-version` puts nine of them there, and the release gates are meant
+#: to be runnable from a checkout the same way. Read as this repository's prose,
+#: every relative link in a tracker cloned there resolves against the wrong tree
+#: and the whole of it reports as broken, which is `just integrity` failing for a
+#: reason that is not about anything in this repository.
+ELSEWHERE = (".git", "checkouts")
+
+
 def md_files():
-    return [p for p in ROOT.rglob("*.md") if ".git" not in p.parts]
+    return [
+        p
+        for p in ROOT.rglob("*.md")
+        if not any(part in ELSEWHERE for part in p.parts)
+    ]
 
 
 def defined_reqs():

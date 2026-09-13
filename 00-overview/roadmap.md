@@ -16,7 +16,7 @@ Releases ship as a serial train of semver versions, each scoped by a manifest in
 truth for a version's goals and status; the table below renders that truth.
 **Minors** are themed feature slices; **patches** (`x.y.Z`) are hotfixes; a
 **major** carries the capability that justifies the number. **No version ships a
-stub** — a release refuses while a feature it locks is not yet built
+stub** — a release refuses while a requirement it locks is not yet built
 ([OPS-R54](../70-operations/staging.md)).
 
 | Version | Milestone | Delivers | Status |

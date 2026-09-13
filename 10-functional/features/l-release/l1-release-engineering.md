@@ -59,9 +59,10 @@ each release, so the docs describe the version in hand and cannot drift from it.
 ### The no-stub bar it clears
 
 `1.0.0` finishes v1, and a major ships no stubs: it MUST NOT be cut while any
-feature it locks is not both Accepted and `shipped`. The bar is measured in
-features rather than in requirements taken one at a time
-([OPS-R54](../../../70-operations/staging.md)).
+requirement it locks is unbuilt ([OPS-R54](../../../70-operations/staging.md)).
+For this version the requirement reading and the feature reading coincide, because
+`1.0.0` locks every requirement its features have left — the other seven of `B3`,
+and all ten of this one.
 
 ## Edge cases
 
