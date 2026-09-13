@@ -402,6 +402,54 @@ class WhenNothingRanAtAll(Stubbed):
         self.assertIn("MISSING: a", out[1])
 
 
+class WhenThisAndGitHubDisagree(Stubbed):
+    """A second opinion that contradicts the forge silently is worse than none."""
+
+    def clear(self):
+        return wib.blocking(["a"], {"a": "SUCCESS"})
+
+    def test_a_clean_reading_against_a_blocked_merge_box_is_said_out_loud(self):
+        said = wib.disagrees(self.clear(), [], "BLOCKED")
+        self.assertIn("but GitHub says BLOCKED", said)
+        self.assertIn("GitHub decides", said)
+        self.assertIn("closing and reopening", said)
+
+    def test_agreement_says_nothing(self):
+        self.assertIsNone(wib.disagrees(self.clear(), [], "CLEAN"))
+
+    def test_states_that_are_not_a_disagreement(self):
+        # `UNSTABLE` is a non-required check failing, which this deliberately
+        # does not report on; the others are GitHub declining to say.
+        for forge in ("CLEAN", "HAS_HOOKS", "UNSTABLE", "UNKNOWN", ""):
+            with self.subTest(forge):
+                self.assertIsNone(wib.disagrees(self.clear(), [], forge))
+
+    def test_nothing_to_disagree_about_when_this_found_trouble_too(self):
+        # Both say blocked. They agree on the answer; only the detail differs,
+        # and the detail is what the rest of the report is for.
+        self.assertIsNone(wib.disagrees(wib.blocking(["a"], {}), [], "BLOCKED"))
+        self.assertIsNone(
+            wib.disagrees(wib.blocking(["a"], {"a": "FAILURE"}), [], "BLOCKED")
+        )
+        self.assertIsNone(wib.disagrees(self.clear(), ["sign the commits"], "BLOCKED"))
+
+    def test_the_report_is_that_line_and_nothing_else(self):
+        out = wib.lines("o/r", 1, self.clear(), [], None, "we differ")
+        self.assertEqual(out, ["o/r#1: we differ"])
+
+    def test_end_to_end(self):
+        self.said["api repos/o/r/branches/main/protection"] = json.dumps(
+            {"required_status_checks": {"contexts": ["a"], "strict": True}}
+        )
+        self.said["pr checks"] = json.dumps([{"name": "a", "state": "SUCCESS"}])
+        self.said["baseRefName"] = "main\n"
+        self.said["mergeStateStatus"] = json.dumps(
+            {"mergeStateStatus": "BLOCKED", "reviewDecision": None}
+        )
+        out = wib.look("o/r", 1)
+        self.assertIn("but GitHub says BLOCKED", out[0])
+
+
 class NamesThatWouldBecomeFlags(Stubbed):
     """`gh` reads a leading dash as an option, and no shell is needed for that."""
 

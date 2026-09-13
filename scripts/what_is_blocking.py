@@ -166,6 +166,31 @@ def why_nothing_ran(found: dict[str, list[str]], conclusions: list[str]) -> str 
     return "no required check reported yet; the runs that exist have not produced them"
 
 
+def disagrees(found: dict[str, list[str]], rules: list[str], forge: str) -> str | None:
+    """Where this script and GitHub have reached different conclusions.
+
+    GitHub's `mergeStateStatus` is the answer that actually decides the merge,
+    and this script is a second opinion about the same evidence. Where the two
+    agree, saying so adds nothing. Where they do not, one of them is reading
+    something stale — and printing "every required context is satisfied" over the
+    top of a `BLOCKED` merge box sends somebody looking for a failure that is not
+    there, which is the shape of unhelpfulness this was written against.
+
+    So it says both, and says which to believe. GitHub decides. It is also
+    usually the one that has not caught up: closing and reopening the pull
+    request forces it to, at the price of starting every workflow again.
+    """
+    clear = not found["missing"] and not found["failing"] and not rules
+    if clear and forge not in ("CLEAN", "HAS_HOOKS", "UNSTABLE", "UNKNOWN", ""):
+        return (
+            f"every required context is satisfied here, but GitHub says {forge}. "
+            "GitHub decides, and it is usually the one that has not recomputed — "
+            "closing and reopening the pull request forces it, at the price of "
+            "starting every workflow again"
+        )
+    return None
+
+
 def verdict(found: dict[str, list[str]], rules: list[str] | None = None) -> str:
     """One line saying whether anything is wrong, and where to look if so."""
     if found["missing"]:
@@ -188,8 +213,11 @@ def lines(
     found: dict[str, list[str]],
     rules: list[str] | None = None,
     nothing_ran: str | None = None,
+    split: str | None = None,
 ) -> list[str]:
     """The report, worst first, with the empty categories left out."""
+    if split:
+        return [f"{repo}#{number}: {split}"]
     if nothing_ran:
         out = [f"{repo}#{number}: {nothing_ran}"]
         out.extend(f"  {'RULE':>8}: {said}" for said in rules or [])
@@ -328,6 +356,7 @@ def _state(repo: str, number: int) -> dict[str, bool]:
         return {}
     pr = json.loads(said)
     return {
+        "forge": pr.get("mergeStateStatus") or "",
         "behind": pr.get("mergeStateStatus") == "BEHIND",
         "unsigned": bool(_unsigned(repo, number)),
         "unresolved": _unresolved(repo, number),
@@ -439,7 +468,8 @@ def look(repo: str, number: int) -> list[str]:
         return [f"{repo}#{number}: base branch {base!r} is not a branch name"]
     protection = _protection_of(repo, base)
     required = required_in(protection)
-    rules = unmet(rules_in(protection), _state(repo, number)) if protection else []
+    state = _state(repo, number)
+    rules = unmet(rules_in(protection), state) if protection else []
     if not required and not rules:
         return [f"{repo}#{number}: nothing required, or branch protection is unreadable here"]
     found = blocking(required, _reported(repo, number))
@@ -448,7 +478,8 @@ def look(repo: str, number: int) -> list[str]:
         branch = _branch_of(repo, number)
         if branched(branch):
             nothing_ran = why_nothing_ran(found, _conclusions(repo, branch))
-    return lines(repo, number, found, rules, nothing_ran)
+    split = disagrees(found, rules, str(state.get("forge", "")))
+    return lines(repo, number, found, rules, nothing_ran, split)
 
 
 def main(argv: list[str] | None = None) -> int:
