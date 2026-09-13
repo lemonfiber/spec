@@ -46,8 +46,16 @@ and test for itself:
   values held across a reconnect gap as stale rather than current (`ARCH-R51`).
 - **The token** — supplied by the caller, sent as a header, never placed in a
   URL (`ARCH-R52`).
-- **Loopback only** — a non-loopback host is refused, matching
-  [C6-R1](../10-functional/features/c-trust/c6-web-security.md).
+- **Loopback, or an address a pin vouches for** — a non-loopback host is refused
+  unless the caller supplied that stack's certificate pin, and where one is
+  supplied it is enforced during the TLS handshake so nothing is written to an
+  unverified peer (`ARCH-R60`, `ARCH-R99`,
+  [ADR-0025](../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)).
+  The pin is given when the client is built and the client configures the
+  transport itself; there is no way to supply one address without the other, and
+  no seam through which a caller can reach verification to weaken it. The rule
+  cites `ARCH-R60` rather than `C6-R1`, which is about where a server binds and
+  not about what a client may dial.
 - **The refusal on mismatch** — a wire version it cannot speak names both
   versions and returns nothing (`ARCH-R55`).
 

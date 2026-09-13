@@ -123,9 +123,28 @@ Switching is explicit.
 
 ### Honest about the transport it got
 
-On a LAN the connection is plain HTTP unless the operator has arranged
-otherwise, which is C6's deliberate position. The app says which it got rather
-than implying a protection it does not have.
+`C6`'s deliberate position is that a LAN stack serves plain HTTP unless the
+operator has arranged otherwise, and that self-signed TLS is not on by default
+because it trains people to click through certificate warnings.
+
+**The app is the one client that cannot take that offer.** A pin is compared
+against a certificate while the connection is being set up
+([ARCH-R99](../../../20-architecture/contracts/web-api.md)), and a plain HTTP
+address presents no certificate, so there is nothing for the pin to decide and
+`ARCH-R60` refuses the address. Pairing a phone therefore requires TLS on the
+stack, and that is a cost stated here rather than discovered at the first
+pairing.
+
+The warning-fatigue reasoning `C6-R7` rests on does not apply to this surface.
+It is about a browser offering a human the choice to proceed. The app offers no
+such choice: it refuses, in software, against a value it was given out of band
+([ADR-0018](../../../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md)).
+Self-signed is exactly what it expects, because no public authority will sign
+the name a stack is reachable under.
+
+So what the app reports under `N1-R12` is an encrypted connection whose
+certificate it pinned — not the platform trust store's opinion of it, which it
+does not consult.
 
 When remote access ([I1](../i-remote-access/i1-remote-access.md)) lands, the same
 session travels the overlay instead. The app's conversation does not change.
@@ -172,7 +191,7 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R15** | The app MUST NOT log, transmit or include in a diagnostic report any credential, session token, or stack address. |
 | **N1-R16** | Every call to the API MUST be made through the SDK. The app MUST NOT issue an HTTP request of its own, construct an API URL, or parse an envelope the SDK did not produce. |
 | **N1-R17** | Where the SDK does not expose a capability the app requires, the app MUST NOT reach past it, re-implement the call, or approximate the answer from another endpoint. The gap MUST be raised against the SDK and the contract, and the dependent work MUST stop until it is closed. |
-| **N1-R18** | The pairing material MUST carry the fingerprint of the certificate the stack will present, and the app MUST take it from that material rather than from the network ([ADR-0018](../../../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md)). |
+| **N1-R18** | The pairing material MUST carry the fingerprint of the certificate the stack will present, expressed as SHA-256 over that certificate's DER encoding in lower-case hexadecimal, and the app MUST take it from that material rather than from the network ([ADR-0018](../../../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md), [ADR-0025](../../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)). The digest of the certificate's public key MUST NOT be carried in its place: it is the same length and a different value, so nothing but this sentence distinguishes them. |
 | **N1-R19** | The app MUST pin the paired fingerprint against that stack and MUST validate every subsequent connection against it, whether or not the platform trust store would accept the certificate. |
 | **N1-R20** | A connection presenting a different certificate MUST be refused rather than warned about, MUST be reported as this machine not being the one the app was introduced to, and MUST offer re-pairing as the remedy. |
 | **N1-R21** | Certificate verification MUST NOT be disabled in any build, under any flag or configuration value. |
