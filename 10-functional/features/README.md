@@ -178,7 +178,7 @@ read as one product.
 
 Everything below ships **before** `1.0.0`, on the same train as everything
 above it: authored to the same falsifiable-requirement bar, and gated by the same rule — no version ships a
-feature it has not finished ([OPS-R54](../../70-operations/staging.md)).
+requirement it has not finished ([OPS-R54](../../70-operations/staging.md)).
 The through-line is the project's wedge applied outward — not just *wiring* these
 services, but **proving the wire works** (a health check, a valid upstream
 credential, and a synthetic action read back), the thing no adjacent tool does.

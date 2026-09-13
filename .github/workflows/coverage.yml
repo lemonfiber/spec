@@ -31,6 +31,7 @@ jobs:
           coverage run scripts/test_release_train.py
           coverage run --append scripts/test_redirects.py
           coverage run --append scripts/test_status_lint.py
+          coverage run --append scripts/test_no_stubs.py
           coverage run --append scripts/test_spec_check.py
           coverage run --append scripts/test_integrity.py
           coverage run --append scripts/test_shared_files.py
@@ -51,6 +52,14 @@ jobs:
       # is shell inside a workflow, so there are no Python lines here to measure.
       - name: The declared allowance is shown refusing a raise (Q-R66, Q-R67)
         run: python3 scripts/test_ratchet.py
+      # Not a coverage suite: it runs the goal automations' own step out of the
+      # committed workflow against a stubbed forge and checks what it does with a
+      # milestone (Q-R66). OPS-R39 asks for a label *and* a milestone; the workflow
+      # did the first and nothing at all did the second, so what is driven here is
+      # the half that was missing — and the suite fails against the workflow as it
+      # stood, which is the only way to know it is testing anything.
+      - name: A PR citing a locked goal is shown landing in its milestone (OPS-R39, Q-R66)
+        run: python3 scripts/test_milestone.py
       # The same shape once more, on the gate that closes a pull request. Closing
       # somebody's work is the most consequential thing any gate here does, and
       # the two faults it must never confuse — the contributor's and its own —
