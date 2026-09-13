@@ -123,9 +123,28 @@ Switching is explicit.
 
 ### Honest about the transport it got
 
-On a LAN the connection is plain HTTP unless the operator has arranged
-otherwise, which is C6's deliberate position. The app says which it got rather
-than implying a protection it does not have.
+`C6`'s deliberate position is that a LAN stack serves plain HTTP unless the
+operator has arranged otherwise, and that self-signed TLS is not on by default
+because it trains people to click through certificate warnings.
+
+**The app is the one client that cannot take that offer.** A pin is compared
+against a certificate while the connection is being set up
+([ARCH-R99](../../../20-architecture/contracts/web-api.md)), and a plain HTTP
+address presents no certificate, so there is nothing for the pin to decide and
+`ARCH-R60` refuses the address. Pairing a phone therefore requires TLS on the
+stack, and that is a cost stated here rather than discovered at the first
+pairing.
+
+The warning-fatigue reasoning `C6-R7` rests on does not apply to this surface.
+It is about a browser offering a human the choice to proceed. The app offers no
+such choice: it refuses, in software, against a value it was given out of band
+([ADR-0018](../../../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md)).
+Self-signed is exactly what it expects, because no public authority will sign
+the name a stack is reachable under.
+
+So what the app reports under `N1-R12` is an encrypted connection whose
+certificate it pinned — not the platform trust store's opinion of it, which it
+does not consult.
 
 When remote access ([I1](../i-remote-access/i1-remote-access.md)) lands, the same
 session travels the overlay instead. The app's conversation does not change.
