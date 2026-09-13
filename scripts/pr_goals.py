@@ -17,7 +17,7 @@ import pathlib
 import sys
 import tomllib
 
-from patterns import CITE
+from patterns import CITE, IN_FLIGHT
 from patterns import SPEC_TRAILER as TRAILER
 
 VERSIONS = pathlib.Path("70-operations/versions")
@@ -31,7 +31,7 @@ def within_cwd(raw: str) -> pathlib.Path:
 def staged_manifest() -> dict | None:
     for manifest in sorted(VERSIONS.glob("*.toml")):
         data = tomllib.loads(manifest.read_text(encoding="utf-8"))
-        if data.get("status") in ("staged", "in_progress", "releasable"):
+        if data.get("status") in IN_FLIGHT:
             return data
     return None
 

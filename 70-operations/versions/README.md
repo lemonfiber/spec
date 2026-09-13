@@ -9,7 +9,7 @@ and finalised by `execute-version`.
 
 ```toml
 version = "0.2.0"         # the release this manifest describes; matches the tag v0.2.0
-status  = "staged"        # planned → staged → releasable → released → yanked
+status  = "staged"        # planned → staged → in_progress → releasable → released → yanked
 released_on = "2026-07-30"   # UTC date the release was published; written at release (OPS-R57)
 released_as = "0.2.1"     # the tag that carried these goals, where it is not this version's own
 withdrawn_because = "the installer shipped a broken pin"   # why it was yanked; only on `yanked` (E5-R8)

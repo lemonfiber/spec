@@ -66,9 +66,11 @@ jobs:
           echo "manifest=${man}" >> "$GITHUB_OUTPUT"
           python3 - "$man" <<'PY'
           import sys, tomllib
+          sys.path.insert(0, "scripts")
+          from patterns import IN_FLIGHT
           st = tomllib.load(open(sys.argv[1], "rb")).get("status")
-          if st not in ("staged", "in_progress", "releasable"):
-              sys.exit(f"::error::{sys.argv[1]} is '{st}', not staged/in_progress/releasable")
+          if st not in IN_FLIGHT:
+              sys.exit(f"::error::{sys.argv[1]} is '{st}', not {'/'.join(IN_FLIGHT)}")
           PY
           # Two lists, because they answer two questions (OPS-R58). `repos.txt`
           # is what gets tagged; `searched.txt` is where the gate reads commit

@@ -45,6 +45,12 @@ jobs:
       # how `next_id.py` merged unaccounted (Q-R61, Q-R66).
       - name: Every script is measured or declared
         run: python3 scripts/test_coverage_reads_every_script.py
+      # Not a coverage suite either: it reads the lifecycle comments in
+      # `70-operations` against `patterns.STATES`. Those comments are written for
+      # a reader and nothing had ever read them, which is how the manifests'
+      # own README came to document five states where the tooling accepts six.
+      - name: The lifecycle is written once (OPS-R32)
+        run: python3 scripts/test_release_states.py
       # Not a coverage suite: it runs the ratchet step out of sonar-gate.yml against
       # a stubbed GitHub and checks what it refuses (Q-R66). The gate it exercises
       # is shell inside a workflow, so there are no Python lines here to measure.
