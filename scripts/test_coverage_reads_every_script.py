@@ -37,8 +37,6 @@ UNMEASURED = {
     "answer is caught there rather than here",
     "gen_codeowners.py": "generates a file the forge validates on push",
     "gen_roadmap_table.py": "generates a table the integrity job diffs",
-    "metafm.py": "read through catalogue.py, which the no-stub gate and the "
-    "board both go through, and exercised at 100% from there",
     "rfc_scaffold.py": "writes a new RFC on request; gates nothing",
 }
 
