@@ -103,6 +103,10 @@ def answer(var, default=""):
 if args[:2] == ["pr", "edit"]:
     sys.exit(int(os.environ.get("GH_EDIT_RC", "0")))
 
+if args[:2] == ["pr", "view"]:
+    sys.stdout.write(os.environ.get("GH_MERGE", "CLEAN") + "\\n")
+    sys.exit(0)
+
 if args[:2] == ["pr", "checks"]:
     answer("GH_CHECKS")
     sys.stderr.write(os.environ.get("GH_CHECKS_ERR", ""))
@@ -121,6 +125,10 @@ if args[0] == "api":
         sys.exit(0)
     if "/actions/runs" in url:
         answer("GH_RUNS", "[]")
+        sys.exit(0)
+    if "/actions/workflows" in url:
+        listed = json.loads(os.environ.get("GH_WORKFLOWS", "[]"))
+        sys.stdout.write(json.dumps([{"workflows": [{"name": n} for n in listed]}]))
         sys.exit(0)
     if url.endswith("/pulls"):
         sys.stdout.write(os.environ.get("GH_PR", "") + "\\n")
@@ -242,6 +250,8 @@ class Gate(unittest.TestCase):
         approved="0",
         pr="41",
         edit_rc=0,
+        merge="CLEAN",
+        workflows=("ci", "build", "codeql", "sonar", "release-workflow"),
     ):
         work = self.tmp / "work"
         work.mkdir(exist_ok=True)
@@ -271,6 +281,8 @@ class Gate(unittest.TestCase):
             "GH_CHECKS_RC": str(checks_rc),
             "GH_CHECKS_ERR": checks_err,
             "GH_EDIT_RC": str(edit_rc),
+            "GH_MERGE": merge,
+            "GH_WORKFLOWS": json.dumps(list(workflows)),
         }
         if caller is not None:
             env["GH_CALLER"] = self.file("caller.yml", caller)
@@ -326,7 +338,86 @@ class Gate(unittest.TestCase):
         self.assertIn("flagged=true", self.flagged())
         self.assertIn("pr=41", self.flagged())
         self.assertIn("checks=7", self.flagged())
-        self.assertIn("7 required checks, all green", out)
+        self.assertIn("7 required checks green", out)
+        self.assertIn("CLEAN on the merge box", out)
+
+    # --- what the rollup could not be asked ----------------------------------
+
+    def test_a_merge_box_that_is_not_clean_holds(self):
+        """`gh pr checks --required` returns the required checks that *reported*.
+        Twelve green of fifteen required read as twelve, all green — and this
+        step announced exactly that, with a link, on 2026-09-13. The forge is
+        asked instead, because knowing about a context that never arrived is
+        `mergeStateStatus`'s whole job."""
+        for state in ("BLOCKED", "BEHIND", "DIRTY", "DRAFT", "UNKNOWN"):
+            with self.subTest(merge=state):
+                self.setUp()
+                code, out = self.run_step(merge=state)
+                self.assertNotAnnounced(code, out)
+                self.assertIn(f"GitHub says {state}", out)
+
+    def test_a_merge_box_with_nothing_in_it_holds(self):
+        """`gh pr view` failing leaves the answer empty, and an empty answer is
+        not a clean one."""
+        code, out = self.run_step(merge="")
+        self.assertNotAnnounced(code, out)
+        self.assertIn("GitHub says nothing", out)
+
+    def test_the_merge_states_that_still_flag(self):
+        """`UNSTABLE` is a non-required check that failed and `HAS_HOOKS` is
+        clean with a repository hook to run — both merge, so both flag. Holding
+        on either would be this gate refusing a pull request nothing is wrong
+        with, which is the failure it trades against."""
+        for state in ("CLEAN", "UNSTABLE", "HAS_HOOKS"):
+            with self.subTest(merge=state):
+                self.setUp()
+                code, out = self.run_step(merge=state)
+                self.assertEqual(code, 0, out)
+                self.assertIn("flagged=true", self.flagged())
+
+    def test_it_asks_the_forge_about_the_pull_request_it_would_flag(self):
+        """A `mergeStateStatus` read of some other pull request answers nothing
+        about this one."""
+        self.run_step(pr="41")
+        self.assertIn("pr view 41 --json mergeStateStatus", self.asked())
+
+    # --- a wait list nothing will ever answer to -----------------------------
+
+    def test_a_waited_name_that_is_no_workflow_is_refused(self):
+        """`workflow_run` matches a workflow's `name:`, not its filename, so a
+        list written as `[ci.yml]` reads as "no run at this commit yet" forever.
+        The flag never goes up and nothing says why — so it is refused, loudly,
+        rather than held: holding is for something that is coming."""
+        code, out = self.run_step(workflows=("ci", "build", "codeql", "sonar"))
+        self.assertEqual(code, 1, out)
+        self.assertIn("release-workflow", out)
+        self.assertIn("name no workflow", out)
+        self.assertNotIn("--add-label", self.asked())
+
+    def test_every_unknown_name_is_named_at_once(self):
+        """One refusal per run, with the whole list in it: a maintainer fixing
+        them one per red run is a maintainer who stops reading."""
+        code, out = self.run_step(workflows=("ci",))
+        self.assertEqual(code, 1, out)
+        for name in ("build", "codeql", "sonar", "release-workflow"):
+            self.assertIn(name, out)
+
+    def test_the_refusal_says_what_the_repository_does_have(self):
+        """The fix is a name, and the names are not somewhere the reader of a red
+        check can see without leaving it."""
+        code, out = self.run_step(workflows=("ci", "build", "codeql", "sonar"))
+        self.assertEqual(code, 1, out)
+        self.assertIn("Workflows here:", out)
+        self.assertIn("ci", out)
+
+    def test_a_wait_list_every_name_of_which_is_a_workflow_passes_through(self):
+        """The control. A refusal that fires on the correct case is worse than
+        no refusal, because it blocks every repository at once."""
+        code, out = self.run_step(
+            workflows=("ci", "build", "codeql", "sonar", "release-workflow", "docs")
+        )
+        self.assertEqual(code, 0, out)
+        self.assertIn("flagged=true", self.flagged())
 
     def test_a_skipped_required_check_is_not_held_against_the_pull_request(self):
         code, out = self.run_step(
