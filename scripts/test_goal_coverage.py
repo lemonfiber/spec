@@ -109,13 +109,13 @@ class TheGate(unittest.TestCase):
         self.assertEqual(code, 0, said)
 
     def test_a_declared_entry_that_is_now_locked_is_refused(self):
-        gate.AWAITING_A_VERSION["X1-R2"] = "a note"
+        gate.AWAITING_A_VERSION["X1"] = ("a note naming 0.1.0", ["X1-R2"])
         code, said = run(tree())
         self.assertEqual(code, 1)
         self.assertIn("X1-R2 is locked by a version now", said)
 
     def test_a_declared_entry_nothing_defines_is_refused(self):
-        gate.AWAITING_A_VERSION["X9-R1"] = "a note"
+        gate.AWAITING_A_VERSION["X9"] = ("a note naming 0.1.0", ["X9-R1"])
         code, said = run(tree())
         self.assertEqual(code, 1)
         self.assertIn("X9-R1 is defined by no accepted feature", said)
@@ -129,9 +129,15 @@ class TheRealTree(unittest.TestCase):
 
     def test_every_declared_entry_carries_where_the_rest_of_its_feature_sits(self):
         """A bare identifier is a debt nobody can act on."""
-        for rid, note in gate.AWAITING_A_VERSION.items():
-            with self.subTest(rid=rid):
-                self.assertRegex(note, r"0\.\d+\.0", f"{rid} names no version to decide against")
+        for feature, (note, ids) in gate.AWAITING_A_VERSION.items():
+            with self.subTest(feature=feature):
+                self.assertRegex(note, r"0\.\d+\.0", f"{feature} names no version to decide against")
+                self.assertTrue(ids, f"{feature} declares a note and no requirement")
+
+    def test_a_requirement_is_declared_once(self):
+        """Two features claiming the same identifier would hide one of them."""
+        flat = [rid for _, ids in gate.AWAITING_A_VERSION.values() for rid in ids]
+        self.assertEqual(sorted(flat), sorted(set(flat)))
 
 
 if __name__ == "__main__":

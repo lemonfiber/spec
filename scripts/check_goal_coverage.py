@@ -40,6 +40,11 @@ STATUS = re.compile(r"^status:\s*(\S+)", re.MULTILINE)
 # Requirements that predate this check and have no version yet, against where the
 # rest of their feature is locked — which is what somebody deciding needs.
 #
+# Keyed by feature, because that is what the note is a fact about. Written per
+# requirement it was the same sentence four times over for F3 and again for G8,
+# and four copies of a sentence are four things to correct when one of those
+# versions moves.
+#
 # Not a licence to leave one here. An entry is a debt with a name on it, and the
 # check refuses an entry that has stopped being true: one that some version has
 # since locked, or that no accepted feature defines any more. So the list empties
@@ -51,21 +56,30 @@ STATUS = re.compile(r"^status:\s*(\S+)", re.MULTILINE)
 # *released* manifest, whose goals are frozen (OPS-R30), so those cannot simply
 # be added to where the rest sit.
 AWAITING_A_VERSION = {
-    "A7-R15": "the other fourteen A7 goals are locked by 0.13.0, released",
-    "C1-R15": "C1 is split across 0.1.0, 0.2.0 and 0.8.0, all released",
-    "C4-R15": "the other fourteen C4 goals are locked by 0.7.0, released",
-    "C6-R18": "C6 is split across 0.9.0 and 0.10.0, both released",
-    "E3-R16": "E3 is split across 0.3.0 and 0.14.0, both released",
-    "F3-R15": "F3's other twenty-one goals are locked by 0.16.0, planned",
-    "F3-R16": "F3's other twenty-one goals are locked by 0.16.0, planned",
-    "F3-R19": "F3's other twenty-one goals are locked by 0.16.0, planned",
-    "F3-R20": "F3's other twenty-one goals are locked by 0.16.0, planned",
-    "F4-R5": "F4's other thirteen goals are locked by 0.16.0, planned",
-    "G8-R15": "G8 is split across 0.10.0, 0.11.0 and 0.14.0, all released",
-    "G8-R16": "G8 is split across 0.10.0, 0.11.0 and 0.14.0, all released",
-    "G8-R17": "G8 is split across 0.10.0, 0.11.0 and 0.14.0, all released",
-    "G8-R18": "G8 is split across 0.10.0, 0.11.0 and 0.14.0, all released",
+    "A7": ("the other fourteen A7 goals are locked by 0.13.0, released", ["A7-R15"]),
+    "C1": ("C1 is split across 0.1.0, 0.2.0 and 0.8.0, all released", ["C1-R15"]),
+    "C4": ("the other fourteen C4 goals are locked by 0.7.0, released", ["C4-R15"]),
+    "C6": ("C6 is split across 0.9.0 and 0.10.0, both released", ["C6-R18"]),
+    "E3": ("E3 is split across 0.3.0 and 0.14.0, both released", ["E3-R16"]),
+    "F3": (
+        "F3's other twenty-one goals are locked by 0.16.0, planned",
+        ["F3-R15", "F3-R16", "F3-R19", "F3-R20"],
+    ),
+    "F4": ("F4's other thirteen goals are locked by 0.16.0, planned", ["F4-R5"]),
+    "G8": (
+        "G8 is split across 0.10.0, 0.11.0 and 0.14.0, all released",
+        ["G8-R15", "G8-R16", "G8-R17", "G8-R18"],
+    ),
 }
+
+
+def declared() -> dict[str, str]:
+    """The table flattened to one entry per requirement, against its note."""
+    return {
+        rid: note
+        for note, ids in AWAITING_A_VERSION.values()
+        for rid in ids
+    }
 
 
 def accepted_requirements(root: pathlib.Path) -> dict[str, str]:
@@ -97,14 +111,14 @@ def unscheduled(defined: dict[str, str], locked: set[str]) -> list[str]:
     return sorted(
         f"{rid} is defined in {where} and no version locks it"
         for rid, where in defined.items()
-        if rid not in locked and rid not in AWAITING_A_VERSION
+        if rid not in locked and rid not in declared()
     )
 
 
 def stale(defined: dict[str, str], locked: set[str]) -> list[str]:
     """Declared entries that have stopped being true, so the list cannot outlive them."""
     gone = []
-    for rid in sorted(AWAITING_A_VERSION):
+    for rid in sorted(declared()):
         if rid in locked:
             gone.append(f"{rid} is locked by a version now — delete its line")
         elif rid not in defined:
@@ -137,7 +151,7 @@ def main() -> int:
         return 1
 
     print(
-        f"{len(defined)} accepted requirements, {len(AWAITING_A_VERSION)} awaiting a version"
+        f"{len(defined)} accepted requirements, {len(declared())} awaiting a version"
     )
     return 0
 
