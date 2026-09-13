@@ -130,9 +130,15 @@ def days_ago(days: int) -> str:
     return (moment - datetime.timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def compared(ahead: int, days: int, status: str = "ahead") -> str:
-    """One `gh compare` answer, in the shape the step's --jq produces."""
-    return f"{status} {ahead} {days_ago(days)}"
+def compared(ahead: int, days: int, status: str = "ahead", files: tuple = ()) -> str:
+    """One `gh compare` answer, in the shape the step's --jq produces.
+
+    The fourth field is what the commits between the pin and main touched, comma
+    separated, which is how the step learns whether any of them was a workflow
+    this repository runs. Empty by default: most of what lands here touches no
+    workflow at all, and that is the answer the older cases were written under.
+    """
+    return f"{status} {ahead} {days_ago(days)} {','.join(files)}"
 
 
 #: The comparison the defect had: 94 commits behind, 13 days old, which is well
@@ -161,13 +167,13 @@ class Pins(unittest.TestCase):
         self.work = self.tmp / "work"
         (self.work / ".github" / "workflows").mkdir(parents=True)
 
-    def caller(self, name: str, *pins: str) -> None:
+    def caller(self, name: str, *pins: str, shared: str = "hygiene.yml") -> None:
         """A caller workflow pinning the given revisions, as the fleet writes them."""
         lines = [f"name: {name}", "jobs:"]
         for index, pin in enumerate(pins):
             lines.append(f"  job{index}:")
             lines.append(
-                f"    uses: lemonfiber/spec/.github/workflows/hygiene.yml@{pin} # main"
+                f"    uses: lemonfiber/spec/.github/workflows/{shared}@{pin} # main"
             )
         path = self.work / ".github" / "workflows" / f"{name}.yml"
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -244,6 +250,97 @@ class Pins(unittest.TestCase):
         code, out = self.run_step({FAR: DEFECT}, commits=10_000)
         self.assertEqual(code, 0, out)
         self.assertIn("::notice::aaaaaaaa is 94 commits behind", out)
+        self.assertNotIn("::error::", out)
+
+    # --- what a pin is behind on, which a count cannot say -------------------
+
+    def test_a_notice_names_the_workflow_this_repo_runs_that_changed(self):
+        """The question a distance cannot answer.
+
+        On the day SonarCloud answered 503 for half an hour, every repository's
+        pin was inside both thresholds and `hygiene.yml` had gained the fix that
+        morning. The count said 23; what somebody needed to read was which of
+        the twenty-three.
+        """
+        self.caller("ci", NEAR)
+        code, out = self.run_step(
+            {NEAR: compared(23, 2, files=(".github/workflows/hygiene.yml",))}
+        )
+        self.assertEqual(code, 0, out)
+        self.assertIn("and hygiene.yml changed in them", out)
+
+    def test_a_notice_says_so_when_none_of_them_touched_one(self):
+        """The other half, and the reason the first sentence means anything.
+
+        Most of what lands in this repository is spec prose and scripts. A
+        notice that named a workflow every time would be a notice nobody reads.
+        """
+        self.caller("ci", NEAR)
+        code, out = self.run_step(
+            {NEAR: compared(23, 2, files=("10-functional/features/a1.md", "scripts/gate.py"))}
+        )
+        self.assertEqual(code, 0, out)
+        self.assertIn("none of them touched a workflow this repository runs", out)
+
+    def test_a_workflow_this_repo_does_not_run_is_not_named(self):
+        """Scoped to what the caller pins, not to what changed.
+
+        `sonar-gate.yml` moving is news for the repositories that call it and
+        noise for the ones that do not, and telling everybody about everything is
+        how a notice stops being read.
+        """
+        self.caller("ci", NEAR, shared="hygiene.yml")
+        code, out = self.run_step(
+            {NEAR: compared(5, 1, files=(".github/workflows/sonar-gate.yml",))}
+        )
+        self.assertEqual(code, 0, out)
+        self.assertIn("none of them touched a workflow this repository runs", out)
+        self.assertNotIn("sonar-gate", out)
+
+    def test_two_workflows_from_one_pin_are_both_named(self):
+        self.caller("ci", NEAR, shared="hygiene.yml")
+        self.caller("release", NEAR, shared="security.yml")
+        code, out = self.run_step(
+            {
+                NEAR: compared(
+                    9,
+                    1,
+                    files=(
+                        ".github/workflows/hygiene.yml",
+                        ".github/workflows/security.yml",
+                        "README.md",
+                    ),
+                )
+            }
+        )
+        self.assertEqual(code, 0, out)
+        self.assertIn("hygiene.yml", out)
+        self.assertIn("security.yml", out)
+        self.assertNotIn("README.md", out)
+
+    def test_a_refused_pin_says_it_too(self):
+        """The sentence is worth more on the failure than on the notice: a pin
+        that is being bumped anyway is one somebody wants to know the reason for.
+        """
+        self.caller("ci", FAR)
+        code, out = self.run_step(
+            {FAR: compared(94, 13, files=(".github/workflows/hygiene.yml",))}
+        )
+        self.assertEqual(code, 1, out)
+        self.assertIn("and hygiene.yml changed in them", out)
+        self.assertIn("whatever has been fixed there has not reached", out)
+
+    def test_a_workflow_changing_does_not_on_its_own_fail_the_run(self):
+        """Said, not gated. Failing the moment a shared workflow lands would
+        redden every repository on every change here, which is the check people
+        route around.
+        """
+        self.caller("ci", NEAR)
+        code, out = self.run_step(
+            {NEAR: compared(1, 0, files=(".github/workflows/hygiene.yml",))}
+        )
+        self.assertEqual(code, 0, out)
+        self.assertIn("::notice::", out)
         self.assertNotIn("::error::", out)
 
     def test_one_commit_past_the_threshold_is_refused(self):
