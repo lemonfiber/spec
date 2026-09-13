@@ -406,6 +406,7 @@ class Gate(unittest.TestCase):
         """The fix is a name, and the names are not somewhere the reader of a red
         check can see without leaving it."""
         code, out = self.run_step(workflows=("ci", "build", "codeql", "sonar"))
+        self.assertEqual(code, 1, out)
         self.assertIn("Workflows here:", out)
         self.assertIn("ci", out)
 
