@@ -184,7 +184,14 @@ def why_nothing_ran(found: dict[str, list[str]], conclusions: list[str]) -> str 
             "the branch again"
         )
     if not conclusions:
-        return "no required check reported, and no workflow run exists for this branch at all"
+        # True, and also what a branch pushed a moment ago looks like. Saying only
+        # the first half sends somebody hunting a broken trigger while the runs
+        # they are waiting for are still being scheduled.
+        return (
+            "no required check reported, and no workflow run has finished for this "
+            "commit — which is also how a branch pushed moments ago reads. Look "
+            "again before treating it as a broken trigger"
+        )
     return "no required check reported yet; the runs that exist have not produced them"
 
 
