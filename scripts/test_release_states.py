@@ -29,7 +29,7 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-from patterns import IN_FLIGHT, STATES  # noqa: E402
+from patterns import IN_FLIGHT, STATES
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
