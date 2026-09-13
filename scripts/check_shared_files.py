@@ -28,6 +28,7 @@ MANAGERS = ("lefthook.yml", "lefthook.yaml", ".lefthook.yml", "captainhook.json"
 MARKDOWNLINT = "markdownlint.jsonc"
 TYPOS = "typos.toml"
 HOOKS = "hooks"
+RUFF = "ruff.toml"
 
 
 def markdownlint(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
@@ -66,6 +67,61 @@ def typos(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     for pattern in want_res:
         if pattern not in got_res:
             problems.append(f"typos.toml is missing the shared pattern {pattern!r}")
+    return problems
+
+
+def ruff(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
+    """The lint config is a floor one way and a ceiling the other.
+
+    A repository may select more rules than the shared config does. It may not
+    select fewer, and it may not ignore something the shared config keeps. The
+    asymmetry is the point: adding a rule raises that repository's standard and
+    costs nobody anything, while adding an ignore lowers the standard everybody
+    is held to while looking like a local decision.
+
+    Not compared byte for byte, as `markdownlint.jsonc` is. Each copy opens with
+    a preamble saying what that repository's scripts are and why they are worth
+    linting, and those paragraphs are different because the scripts are. What
+    has to agree is the two lists and the width.
+
+    Conditional, as `hooks` is: a repository with no Python has nothing to lint,
+    and requiring the file would mean carrying a config for a language it does
+    not use. Four repositories carry one today, every one of them with the same
+    lists — which is four lists that agree until the first is edited.
+    """
+    got_path = repo / RUFF
+    if not got_path.is_file():
+        return []
+
+    want = tomllib.loads((canonical / "shared" / RUFF).read_text(encoding="utf-8"))
+    got = tomllib.loads(got_path.read_text(encoding="utf-8"))
+    problems = []
+
+    want_select = want.get("lint", {}).get("select", [])
+    got_select = got.get("lint", {}).get("select", [])
+    for rule in want_select:
+        if rule not in got_select:
+            problems.append(
+                f"ruff.toml does not select {rule!r}, which the shared config does"
+            )
+
+    want_ignore = want.get("lint", {}).get("ignore", [])
+    got_ignore = got.get("lint", {}).get("ignore", [])
+    for rule in got_ignore:
+        if rule not in want_ignore:
+            problems.append(
+                f"ruff.toml ignores {rule!r}, which the shared config does not. "
+                f"Silencing a rule here lowers the floor every repository is held "
+                f"to; add it to shared/ruff.toml with the reason, or fix what it "
+                f"reports"
+            )
+
+    want_width = want.get("line-length")
+    got_width = got.get("line-length")
+    if got_width is not None and want_width is not None and got_width > want_width:
+        problems.append(
+            f"ruff.toml allows {got_width} columns, shared allows {want_width}"
+        )
     return problems
 
 
@@ -254,7 +310,7 @@ def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
 # compares because they are not copies. `README.md` documents the directory and
 # `assets.sha256` is the manifest `assets()` reads rather than a file any repo
 # carries.
-COMPARED = {MARKDOWNLINT, TYPOS, HOOKS}
+COMPARED = {MARKDOWNLINT, TYPOS, HOOKS, RUFF}
 NOT_A_COPY = {"README.md", "assets.sha256"}
 
 
@@ -296,6 +352,7 @@ def main() -> int:
     problems = unaccounted(canonical) + (
         markdownlint(repo, canonical)
         + typos(repo, canonical)
+        + ruff(repo, canonical)
         + assets(repo, canonical, name)
         + hooks(repo, canonical)
         + manager(repo)

@@ -46,6 +46,15 @@ TYPOS = (
     "extend-ignore-re = [\"\\\\[[a-z]\\\\][a-zA-Z]+\"]\n"
 )
 HOOK = "#!/bin/sh\n# Refuse a push that would empty the branch it lands on.\nexit 0\n"
+RUFF = (
+    "# The Python lint floor.\n"
+    'target-version = "py312"\n'
+    "line-length = 110\n"
+    "\n"
+    "[lint]\n"
+    'select = ["E", "F", "ISC"]\n'
+    'ignore = ["E501"]\n'
+)
 LOGO = "<svg><!-- the lockup --></svg>\n"
 OTHER = "<svg><!-- something else --></svg>\n"
 
@@ -85,6 +94,7 @@ class Copies(unittest.TestCase):
 
         (shared / "markdownlint.jsonc").write_text(MARKDOWNLINT, encoding="utf-8")
         (shared / "typos.toml").write_text(TYPOS, encoding="utf-8")
+        (shared / "ruff.toml").write_text(RUFF, encoding="utf-8")
         (shared / "hooks" / "pre-push").write_text(HOOK, encoding="utf-8")
         self.manifest(f"{self.digest(LOGO)}  .github/logo.svg  brand:assets/logo/lockup.svg")
 
@@ -167,6 +177,41 @@ class Agreeing(Copies):
         self.assertEqual(code, 0, out)
         self.assertNotIn("hook manager", out)
 
+    def test_a_repo_with_no_ruff_config_is_not_asked_for_one(self):
+        # Conditional, as the hook is. A repository with no Python has nothing to
+        # lint, and requiring the file would mean carrying a config for a
+        # language it does not use.
+        self.assertFalse((self.repo / "ruff.toml").exists())
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("ruff.toml", out)
+
+    def test_a_ruff_config_holding_the_same_lists(self):
+        self.write("ruff.toml", RUFF)
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
+    def test_a_ruff_config_selecting_more_than_the_floor(self):
+        # The direction that is allowed: a rule added here raises this
+        # repository's standard and costs nobody else anything.
+        self.write("ruff.toml", RUFF.replace('"ISC"]', '"ISC", "PERF", "PL"]'))
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
+    def test_a_ruff_config_with_a_preamble_of_its_own(self):
+        # Not compared byte for byte: each copy says what its own scripts are and
+        # why they are worth linting, and those paragraphs differ because the
+        # scripts do.
+        self.write("ruff.toml", "# The gates in scripts/, and what they decide.\n" + RUFF)
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
+    def test_a_ruff_config_holding_a_narrower_line(self):
+        # Narrower is stricter, and stricter is this repository's business.
+        self.write("ruff.toml", RUFF.replace("line-length = 110", "line-length = 88"))
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
     def test_a_typos_config_adding_words_and_patterns_of_its_own(self):
         # The shared config is a floor: a repo may add entries, never contradict one.
         self.write("typos.toml",
@@ -246,6 +291,36 @@ class Drifted(Copies):
                 self.assertEqual(code, 1, out)
                 self.assertIn(name, out)
                 path.unlink()
+
+    def test_a_ruff_config_selecting_fewer_rules_than_the_floor(self):
+        self.write("ruff.toml", RUFF.replace(', "ISC"]', "]"))
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("does not select 'ISC'", out)
+
+    def test_a_ruff_config_silencing_a_rule_the_floor_keeps(self):
+        # The direction that is refused, and the reason the message gives: an
+        # ignore added here lowers the standard every repository is held to,
+        # while looking like a local decision.
+        self.write("ruff.toml", RUFF.replace('ignore = ["E501"]', 'ignore = ["E501", "B007"]'))
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("ignores 'B007'", out)
+        self.assertIn("lowers the floor", out)
+        self.assertIn("add it to shared/ruff.toml with the reason", out)
+
+    def test_a_ruff_config_allowing_a_wider_line(self):
+        self.write("ruff.toml", RUFF.replace("line-length = 110", "line-length = 200"))
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("allows 200 columns, shared allows 110", out)
+
+    def test_a_ruff_config_that_states_no_width_is_left_alone(self):
+        # `ruff` has a default of its own, and a copy that does not set one is
+        # taking that default rather than widening anything.
+        self.write("ruff.toml", RUFF.replace("line-length = 110\n", ""))
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
 
     def test_a_typos_config_that_is_not_there(self):
         (self.repo / "typos.toml").unlink()
