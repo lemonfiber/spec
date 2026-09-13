@@ -66,8 +66,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          pins=$(grep -rhoE "lemonfiber/spec/\.github/workflows/[a-z-]+\.yml@[0-9a-f]{40}" \
-            .github/workflows/ 2>/dev/null | grep -oE "[0-9a-f]{40}$" | sort -u || true)
+          # The workflow name is kept, not only the revision. A pin is asked two
+          # questions below that a count cannot answer: which shared workflows
+          # this repository actually runs, and whether any of them changed in the
+          # commits the pin has not taken.
+          pairs=$(grep -rhoE "lemonfiber/spec/\.github/workflows/[a-z-]+\.yml@[0-9a-f]{40}" \
+            .github/workflows/ 2>/dev/null | sed "s|lemonfiber/spec/\.github/workflows/||" | sort -u || true)
+          pins=$(printf "%s" "$pairs" | grep -oE "[0-9a-f]{40}$" | sort -u || true)
 
           if [ -z "$pins" ]; then
             echo "This repository pins no shared workflow."
@@ -77,10 +82,11 @@ jobs:
           faults=0
           for pin in $pins; do
             answer=$(gh api "repos/lemonfiber/spec/compare/${pin}...main" \
-              --jq '"\(.status) \(.ahead_by) \(.base_commit.commit.committer.date)"' 2>/dev/null || true)
+              --jq '"\(.status) \(.ahead_by) \(.base_commit.commit.committer.date) \([(.files // [])[].filename] | join(","))"' 2>/dev/null || true)
             status=$(echo "$answer" | cut -d" " -f1)
             ahead=$(echo "$answer" | cut -d" " -f2)
             dated=$(echo "$answer" | cut -d" " -f3)
+            changed=$(echo "$answer" | cut -d" " -f4)
 
             # gh prints its own error body on stdout, so a revision that does not
             # exist arrives here looking like a status. Only the words the API
@@ -115,6 +121,37 @@ jobs:
             # can be stale by either without being stale by the other, and which
             # one fired is what tells a reader whether the pin was forgotten or
             # merely outrun.
+            # Which of the shared workflows this repository runs changed in the
+            # commits this pin has not taken.
+            #
+            # "23 commits behind" is a number nobody acts on. "the link check you
+            # run was fixed in one of them" is a sentence somebody does something
+            # about — and that was the difference on the day SonarCloud answered
+            # 503 for half an hour: `hygiene.yml` had gained the fix that morning,
+            # every repository was inside both thresholds, and the count said
+            # nothing about which commit any of them needed.
+            #
+            # It is said and not gated, deliberately. Failing the moment a shared
+            # workflow lands would redden nine repositories on every change here,
+            # which is the check people route around. `website-docs` draws the
+            # same line between how far a pin is behind and what it is behind
+            # *on*, and reports both rather than gating either (Q-R68).
+            runs=$(printf "%s" "$pairs" | grep -F "@${pin}" | cut -d@ -f1 | sort -u || true)
+            touched=""
+            for name in $runs; do
+              case ",${changed}," in
+              *",.github/workflows/${name},"*)
+                touched="${touched:+${touched}, }${name}"
+                ;;
+              esac
+            done
+
+            if [ -n "$touched" ]; then
+              reads="${touched} changed in them"
+            else
+              reads="none of them touched a workflow this repository runs"
+            fi
+
             broke=""
             if [ "$age" -gt "$STALE_DAYS" ]; then
               broke="more than ${STALE_DAYS} days old"
@@ -127,10 +164,10 @@ jobs:
             fi
 
             if [ -n "$broke" ]; then
-              echo "::error::${pin:0:8} is ${ahead} commits and ${age} days behind lemonfiber/spec main, which is ${broke}. Bump it: whatever has been fixed there has not reached this repository."
+              echo "::error::${pin:0:8} is ${ahead} commits and ${age} days behind lemonfiber/spec main, which is ${broke}, and ${reads}. Bump it: whatever has been fixed there has not reached this repository."
               faults=$((faults + 1))
             else
-              echo "::notice::${pin:0:8} is ${ahead} commits behind lemonfiber/spec main (${age} days). Bump it when convenient."
+              echo "::notice::${pin:0:8} is ${ahead} commits behind lemonfiber/spec main (${age} days), and ${reads}. Bump it when convenient."
             fi
           done
 
