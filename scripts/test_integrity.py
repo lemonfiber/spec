@@ -395,5 +395,62 @@ class Writing(StatedCounts):
         self.assertEqual(integrity.write_counts(), [])
 
 
+class ManifestRepositories(Spec):
+    """Every repository a version manifest names resolves to one in the registry."""
+
+    def manifest(self, version, body):
+        self.doc(f"70-operations/versions/{version}.toml", body)
+
+    def registry(self, *names):
+        rows = "".join(f'[[repo]]\nname = "{n}"\n\n' for n in names)
+        self.doc("30-repos/repos.toml", rows)
+
+    def test_a_tree_with_no_manifests_has_nothing_to_check(self):
+        """The shape every other case in this file builds, and it must stay quiet."""
+        self.assertEqual(integrity.check_manifest_repos(), [])
+
+    def test_a_manifest_naming_a_repository_in_the_registry_passes(self):
+        self.registry("lemonfiber", "lemonfiber-media-stack")
+        self.manifest("0.1.0", 'repos = ["lemonfiber"]\nsatisfied_in = ["lemonfiber-media-stack"]\n')
+        self.assertEqual(integrity.check_manifest_repos(), [])
+
+    def test_a_repository_the_registry_does_not_know_is_refused(self):
+        self.registry("lemonfiber")
+        self.manifest("0.1.0", 'repos = ["lemonfiber", "lemonfibre"]\n')
+        said = integrity.check_manifest_repos()
+        self.assertEqual(len(said), 1)
+        self.assertIn("'lemonfibre'", said[0])
+        self.assertIn("repos", said[0])
+
+    def test_satisfied_in_is_read_as_well_as_repos(self):
+        self.registry("lemonfiber")
+        self.manifest("0.1.0", 'satisfied_in = ["media-stack"]\n')
+        self.assertIn("satisfied_in", integrity.check_manifest_repos()[0])
+
+    def test_a_pin_is_keyed_by_repository_too(self):
+        """`0.1.0` through `0.8.0` pinned `media-stack`, which is no repository."""
+        self.registry("lemonfiber")
+        self.manifest("0.1.0", 'repos = ["lemonfiber"]\n\n[pins]\nmedia-stack = "abc123"\n')
+        said = integrity.check_manifest_repos()
+        self.assertEqual(len(said), 1)
+        self.assertIn("pins 'media-stack'", said[0])
+
+    def test_the_template_is_not_a_manifest(self):
+        self.registry("lemonfiber")
+        self.doc("70-operations/versions/TEMPLATE.toml", 'repos = ["whatever-goes-here"]\n')
+        self.assertEqual(integrity.check_manifest_repos(), [])
+
+    def test_manifests_with_no_registry_say_so(self):
+        self.manifest("0.1.0", 'repos = ["lemonfiber"]\n')
+        said = integrity.check_manifest_repos()
+        self.assertEqual(len(said), 1)
+        self.assertIn("not found", said[0])
+
+    def test_a_registry_that_reads_empty_says_so(self):
+        self.doc("30-repos/repos.toml", "# nothing here\n")
+        self.manifest("0.1.0", 'repos = ["lemonfiber"]\n')
+        self.assertIn("no repository was read", integrity.check_manifest_repos()[0])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -16,11 +16,15 @@ import json
 import pathlib
 import re
 import sys
+import tomllib
 
 from patterns import ADR_CITE, ADR_FILE, REQ_DEF
 from patterns import CITE as REQ_CITE
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+
+REGISTRY = pathlib.Path("30-repos/repos.toml")
+VERSIONS = pathlib.Path("70-operations/versions")
 
 LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)#]+)(?:#[^)]*)?\)")
 
@@ -198,6 +202,84 @@ def write_counts() -> list[str]:
     return changed
 
 
+def check_manifest_repos():
+    """Every repository a version manifest names resolves to one in the registry.
+
+    `repos` says which streams a version cuts and `satisfied_in` says where the
+    goal gate reads citations, and both are acted on: `manifest_repos.py` writes
+    them out and `execute-version` clones the union. A name that resolves to
+    nothing is a clone that fails at release, or a search that finds no commits
+    and reports the goals unmet for a reason that is not about the work.
+
+    `0.1.0` carried `media-stack` where every other manifest says
+    `lemonfiber-media-stack`, which is the name the repository actually has.
+    Nothing read the two lists against each other.
+    """
+    manifests = [
+        m for m in sorted((ROOT / VERSIONS).glob("*.toml")) if m.name != "TEMPLATE.toml"
+    ]
+
+    # A tree with no manifests has nothing to check, which is the shape the
+    # suite builds. A tree with manifests and no registry is a different fact
+    # and says so rather than raising.
+    if not manifests:
+        return []
+
+    known, unreadable = registered(len(manifests))
+
+    if unreadable:
+        return [unreadable]
+
+    return [
+        f"{manifest.relative_to(ROOT)}: {said}, which is not a repository in {REGISTRY}"
+        for manifest in manifests
+        for said, name in repositories_named(
+            tomllib.loads(manifest.read_text(encoding="utf-8"))
+        )
+        if name not in known
+    ]
+
+
+def registered(wanted):
+    """The repositories the registry knows, or why it could name none.
+
+    Two answers rather than an empty set, because an empty set compares equal to a
+    registry that holds nothing and to one that is not there at all — and against
+    either, every name in every manifest would be reported as unknown, which reads
+    as fifty broken manifests rather than one missing file.
+    """
+    registry = ROOT / REGISTRY
+
+    if not registry.is_file():
+        return set(), (
+            f"{REGISTRY}: not found, and {wanted} manifest(s) name "
+            "repositories that have to resolve to one"
+        )
+
+    read = tomllib.loads(registry.read_text(encoding="utf-8"))
+    known = {repo["name"] for repo in read.get("repo", [])}
+
+    if not known:
+        return set(), f"{REGISTRY}: no repository was read, so nothing can be checked against it"
+
+    return known, None
+
+
+def repositories_named(data):
+    """Every repository one manifest names, said the way that manifest says it.
+
+    Three keys rather than two: a pin is keyed by repository as well, and `0.1.0`
+    had the short name in both places. A pin that names nothing records which commit
+    of no repository the release carried.
+    """
+    for field in ("repos", "satisfied_in"):
+        for name in data.get(field, []):
+            yield f"{field} names {name!r}", name
+
+    for name in data.get("pins", {}):
+        yield f"pins {name!r}", name
+
+
 def main() -> int:
     if "--write" in sys.argv[1:]:
         changed = write_counts()
@@ -209,7 +291,7 @@ def main() -> int:
     problems = []
     # De-dup the "cites undefined" one-per-file noise into unique messages.
     seen = set()
-    for msg in check_ids() + check_links() + stated_counts():
+    for msg in check_ids() + check_links() + stated_counts() + check_manifest_repos():
         if msg not in seen:
             seen.add(msg)
             problems.append(msg)
