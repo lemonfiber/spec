@@ -72,12 +72,23 @@ class WhatItFinds(unittest.TestCase):
         found = refs.index(spec())
         self.assertEqual(found["X1-R1"], ("10-functional/x1.md", "The first thing."))
 
-    def test_the_first_definition_wins_so_a_later_copy_cannot_move_the_link(self):
+    def test_a_later_copy_does_not_move_the_link(self):
         root = spec()
         (root / "10-functional" / "x2.md").write_text(
             "| **X1-R1** | Said again elsewhere. |\n", encoding="utf-8"
         )
         self.assertEqual(refs.index(root)["X1-R1"][0], "10-functional/x1.md")
+
+    def test_the_tie_is_broken_by_path_and_not_by_the_order_files_are_handed_over(self):
+        # The copy below is written last and still wins, because it sorts first. That
+        # is the whole of the claim: "first" means first by path, not first off the
+        # filesystem — which is a different file on a different machine, and would make
+        # this comment link somewhere else for the same spec.
+        root = spec()
+        (root / "10-functional" / "x0.md").write_text(
+            "| **X1-R1** | Said again, earlier in the tree. |\n", encoding="utf-8"
+        )
+        self.assertEqual(refs.index(root)["X1-R1"][0], "10-functional/x0.md")
 
     def test_a_decision_record_by_its_padded_number(self):
         found = refs.index(spec(adrs={"0018-pinning.md": "# Pin the certificate"}))
