@@ -60,6 +60,23 @@ SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.MULTILINE | re.IGNORE
 # A version, as the manifests and the tracker write one.
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 
+# Every state a version manifest may be in, in the order OPS-R32 puts them.
+#
+# Ordered rather than a set, because three comments write this chain out for a
+# reader and `test_release_states.py` holds them to it — which needs to know
+# what comes after what, not merely what is allowed.
+STATES = ("planned", "staged", "in_progress", "releasable", "released", "yanked")
+
+# The states meaning "this is the version being worked on".
+#
+# Three gates asked this question and each spelled the answer itself: the PR
+# classifier looking for the manifest to classify against, the staging check
+# refusing a second version in flight, and `execute-version` refusing to execute
+# one that is not. A state added to the middle of the lifecycle would have had
+# to be remembered in three places in two languages, and the one that gets
+# forgotten is whichever is not being edited that day.
+IN_FLIGHT = ("staged", "in_progress", "releasable")
+
 # A git ref that is safe to hand to a command is deliberately *not* here.
 # `commit_lint` and `dco_check` each validate their arguments against one before
 # reaching a subprocess, and the analysis that checks such a call cannot follow a
