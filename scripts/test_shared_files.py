@@ -161,6 +161,12 @@ class Agreeing(Copies):
         self.assertEqual(code, 0, out)
         self.assertNotIn("lockup.svg", out)
 
+    def test_a_repo_carrying_no_hook_manager_config(self):
+        # The state every repository is in, and the one this keeps them in.
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("hook manager", out)
+
     def test_a_typos_config_adding_words_and_patterns_of_its_own(self):
         # The shared config is a floor: a repo may add entries, never contradict one.
         self.write("typos.toml",
@@ -212,6 +218,34 @@ class Drifted(Copies):
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn(".markdownlint.jsonc differs from the canonical copy", out)
+
+    def test_a_lefthook_config(self):
+        # Not a style preference: `core.hooksPath` makes it inert, and the one
+        # command that would repair it unsets the setting and takes the pre-push
+        # guard with it.
+        self.write("lefthook.yml", "pre-commit:\n  commands:\n    lint:\n      run: true\n")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("lefthook.yml is a hook manager's config", out)
+        self.assertIn("turn off the pre-push guard", out)
+        self.assertIn(".githooks/pre-commit", out)
+
+    def test_a_captainhook_config(self):
+        self.write("captainhook.json", "{}\n")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("captainhook.json is a hook manager's config", out)
+
+    def test_the_other_spellings_lefthook_accepts(self):
+        # lefthook reads four names. Refusing one and letting the other three
+        # through would be a rule that reads as enforced and is not.
+        for name in ("lefthook.yaml", ".lefthook.yml"):
+            with self.subTest(name):
+                path = self.write(name, "pre-commit:\n")
+                code, out = self.check()
+                self.assertEqual(code, 1, out)
+                self.assertIn(name, out)
+                path.unlink()
 
     def test_a_typos_config_that_is_not_there(self):
         (self.repo / "typos.toml").unlink()

@@ -35,6 +35,7 @@ brand's own.
 | [typos.toml](typos.toml) | each repo's `typos.toml` | Every entry present; a repo may add more |
 | [hooks/pre-push](hooks/pre-push) | each repo's `.githooks/pre-push` | Byte-identical, where a repo has adopted it |
 | [hooks/commit-msg](hooks/commit-msg) | each repo's `.githooks/commit-msg` | Byte-identical, where a repo has adopted it |
+| — | each repo's `.githooks/pre-commit` | Not shared: the fast checks are different in each. Its *absence* is not checked, and a hook-manager config in its place is refused |
 | [assets.sha256](assets.sha256) | — | Digests of the brand assets repos carry copies of |
 
 Each asset row is read from both ends. In a repository carrying a copy, the copy
@@ -82,6 +83,7 @@ from a command a contributor was going to run anyway:
 | `lemonfiber`, `lemonfiber-media-stack`, `spec` | the `hooks` recipe, which `just ci` depends on | `just ci` or `just hooks` |
 | `sdk-ts`, `lemonfiber-web`, `website-docs.lemonfiber.app`, `website-lemonfiber.app` | npm's `prepare` script | `npm install` or `npm ci` |
 | `sdk-php` | Composer's `post-install-cmd` and `post-update-cmd` | `composer install` or `composer update` |
+| `homebrew-tap` | the `hooks` recipe, which `just ci` depends on | `just ci` or `just hooks` |
 
 Each is `git config core.hooksPath .githooks` under a different name. Run it by
 hand in a clone where it has not happened yet.
@@ -98,10 +100,11 @@ Stated plainly, because a guard half the people believe in is worse than none:
 - A hook manager that writes `.git/hooks` — lefthook, CaptainHook — is inert while
   `core.hooksPath` is set, because git then reads only the path it names. lefthook
   2.x refuses to install for exactly that reason and offers `--reset-hooks-path`,
-  which turns this hook **off**. Six repos carry a `lefthook.yml` and `sdk-php` a
-  `captainhook.json`; none of them is installed anywhere, so nothing conflicts
-  today. Satisfying `OPS-R51` means a `pre-commit` file in `.githooks/` next to
-  this one, not `lefthook install`
+  which turns this hook **off**: the one command that repairs the dead config
+  disables the working one. Six repos carried a `lefthook.yml` and `sdk-php` a
+  `captainhook.json`, none of them installed anywhere; all are gone, every repo
+  carries a `pre-commit` in `.githooks/`, and `check_shared_files.py` refuses a
+  hook-manager config coming back
   ([tooling](../40-quality/tooling.md#the-hooks-and-why-there-is-no-hook-manager)).
 
 Refusing a push straight to `main` is belt and braces: branch protection already
