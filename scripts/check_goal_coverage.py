@@ -52,11 +52,12 @@ STATUS = re.compile(r"^status:\s*(\S+)", re.MULTILINE)
 #
 # None of these is assigned here, deliberately. Which version carries a
 # requirement is a decision about what ships when, and a gate is the wrong place
-# to make one — five of the eight features below have their siblings in a
+# to make one — six of the nine features below have their siblings in a
 # *released* manifest, whose goals are frozen (OPS-R30), so those cannot simply
 # be added to where the rest sit.
 AWAITING_A_VERSION = {
     "A7": ("the other fourteen A7 goals are locked by 0.13.0, released", ["A7-R15"]),
+    "B2": ("B2's other fifteen goals are locked by 0.8.0, released", ["B2-R16"]),
     "C1": ("C1 is split across 0.1.0, 0.2.0 and 0.8.0, all released", ["C1-R15"]),
     "C4": ("the other fourteen C4 goals are locked by 0.7.0, released", ["C4-R15"]),
     "C6": ("C6 is split across 0.9.0 and 0.10.0, both released", ["C6-R18"]),

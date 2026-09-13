@@ -44,6 +44,30 @@ has been lied to.
 Stopping `hunt` while `tv` is also running stops six services, four of which
 `tv` still needs. The operator sees the affected list first.
 
+### How long it will be disturbed, where that can be said honestly
+
+The operator deciding whether to restart `hunt` now or after dinner is asking one
+question: *how long will this be down for?* The stack can answer it in one of two
+ways, and only one of them is a duration.
+
+Where the operation has a **bound** — a stop grace period, a health-check timeout,
+the wait a start gives a service before it gives up on it — that bound is a real
+number the stack already holds, and it is what gets stated. Where it does not — a
+teardown that lets downloads finish, a pull over an unknown connection, a start
+waiting on a service doing an hour of work it was in the middle of — there is no
+honest figure, and the operation says so rather than producing one.
+
+What is refused is the middle: an estimate nobody can check. A duration guessed
+from an average is wrong in exactly the cases the operator most needs it — a large
+library mid-scan, a slow disk — and wrong silently, because nothing afterwards
+compares it to what happened. "Up to ninety seconds" and "as long as the downloads
+take" are both answers somebody can plan around. "About a minute", where a minute
+was never measured, is not.
+
+This is stated by the stack rather than worked out by whatever is displaying it.
+A surface that estimates is a second opinion with less to go on, and there is no
+version of that which is better than the first one being honest.
+
 ### Individual services are addressable
 
 Restarting one wedged service must not require restarting the form. Operations
@@ -109,6 +133,7 @@ Per form: `inactive`, `partial` (some services healthy), `active` (all healthy),
 | Gluetun stopped while qBittorrent runs | Stop qBittorrent first. Ordering within the `torrent` profile is enforced. |
 | Restart requested for a native-mode Jellyfin | Report that it's host-managed and print the platform-specific command; do not attempt to control the OS service manager. |
 | Operation issued while another is in progress | Serialise. Report that an operation is running rather than racing. |
+| Asked how long a disturbance will last, with no bound to give | Say it is open-ended and what it is waiting on. Do not produce a figure nothing measured. |
 | Disk full at start | Detect and report as a disk problem, not a container failure — the remedies are entirely different. |
 
 ## Acceptance criteria
@@ -130,6 +155,7 @@ Per form: `inactive`, `partial` (some services healthy), `active` (all healthy),
 | **B2-R13** | Stopping with active downloads MUST report them and offer to wait. |
 | **B2-R14** | Concurrent lifecycle operations MUST be serialised, not raced. |
 | **B2-R15** | Native-mode Jellyfin MUST report as host-managed and MUST NOT be started or stopped by lemonfiber. |
+| **B2-R16** | Every operation MUST state, before it acts, whether the disturbance it causes is bounded — naming that bound — or open-ended, and MUST NOT leave a surface to estimate it. |
 
 ## Related
 

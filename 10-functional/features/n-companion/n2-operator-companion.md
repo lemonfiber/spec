@@ -56,7 +56,13 @@ A repair is never carried out because the operator tapped the finding.
 
 Starting, stopping and restarting, by form or by service
 ([B2](../b-running/b2-lifecycle.md)). A destructive or disruptive action asks
-first, and says what it disturbs and for how long.
+first, and says what it disturbs and how long for — as the stack reported it. The
+stack answers that with a bound where it has one and with *open-ended* where it
+does not (`B2-R16`), and the app states whichever it was given. It does not
+estimate: a duration worked out in the app would be a guess at something the stack
+knows and the app does not, wrong in exactly the cases an operator most needs it,
+and wrong silently, because nothing on either side would ever compare it to what
+happened.
 
 ### The things that go wrong while nobody is watching
 
@@ -117,12 +123,13 @@ type a provider password into over a LAN.
 | **N2-R5** | A repair MUST NOT be carried out without an explicit confirmation distinct from the act of viewing the finding. |
 | **N2-R6** | A repair confirmed against one reading MUST NOT be carried out if the reading has changed; the app MUST refuse and re-offer. |
 | **N2-R7** | The app MUST offer start, stop and restart by form and by service. |
-| **N2-R8** | A disruptive action MUST state what it disturbs and for how long before it is confirmed. |
+| **N2-R8** | A disruptive action MUST state what it disturbs, and MUST state the bound on the disturbance the stack reported or that the stack reported none (`B2-R16`), before it is confirmed. The app MUST NOT estimate a duration of its own. |
 | **N2-R9** | Stuck downloads, provider health, disk pressure and VPN verification MUST each be reachable. |
 | **N2-R10** | Logs MUST be offered as a bounded, searchable read, MUST name the service, and MUST state that the view is a window rather than the whole. |
 | **N2-R11** | Requests awaiting a decision MUST be surfaced with enough to decide on, and MUST be approvable and refusable from the app. |
 | **N2-R12** | The app MUST NOT offer to set or change a credential's value. |
 | **N2-R13** | A reading older than the current session MUST carry its age wherever it is shown, including on the opening verdict. |
+| **N2-R14** | Where the contract does not carry something a requirement here asks the app to state, the app MUST NOT substitute a value of its own; the gap MUST be raised against the contract (`N1-R17`) and the requirement MUST be answered there. |
 
 ## Related
 
