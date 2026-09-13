@@ -1,0 +1,151 @@
+# Reusable CodeQL alert gate — Q-R53. One definition, every repository.
+#
+# The analysis finding something is not the same as anything stopping it. The
+# check GitHub raises beside the analysis compares the configurations a pull
+# request produced against every one seen on `main`, and the supply-chain scan
+# uploads three that only ever run on `main` — so it is neutral on every pull
+# request, whatever the analysis found, and gates nothing. Six repositories in
+# this organisation ran the analysis and stopped there; a finding would be
+# raised, shown in the Security tab, and block nothing (spec#351).
+#
+# This asks the question that was meant instead: is there an open alert against
+# what this branch proposes. It lives here rather than in each caller because it
+# is one judgement — GOV-R12 — and because the sixth copy of a fifty-line shell
+# step is the one that falls behind.
+#
+# Two things the gate must not do, both of which it once did:
+#
+#   `code-scanning/alerts` returns `[]` for a ref that was analysed and found
+#   clean *and* for a ref no analysis ever reached. So the analysis list is read
+#   alongside, and a commit carrying none is refused rather than passed.
+#
+#   `analyses?ref=...` answers about the ref, not the commit. A pull request's
+#   merge ref is rebuilt on every push, so it keeps answering about commits
+#   already replaced. The gate is handed a commit sha and asks about that.
+#
+# The judgement itself stays a file — `shared/gates/no_open_codeql_alert.py` —
+# that each adopting repository carries at `scripts/`, and `check_shared_files.py`
+# refuses a copy that differs from the canonical one by a single byte. What this
+# workflow removes is the sixty lines of shell around it, which is the part that
+# had no guard at all.
+#
+# Not fetched from `spec` at run time, which was tried first and is worse two
+# ways. At `main` it would put a script change into six repositories the moment
+# it merged, with no pull request in any of them — the action-at-a-distance
+# ADR-0009 pins against. At the revision this workflow came from it would need
+# `github.job_workflow_sha`, which is an OIDC claim rather than a property of the
+# `github` context: `github.workflow_ref` and `workflow_sha` name the *caller's*
+# entry workflow here, not this file.
+#
+# Callers whose `alerts` context is already required on `main` should not move
+# to this workflow without moving the branch protection in the same breath: the
+# check name becomes `<job> / alerts`, and a required context that no longer
+# reports is MISSING forever and says nothing about why.
+name: codeql-alerts
+
+on:
+  workflow_call:
+    inputs:
+      analysis:
+        description: "The caller's `needs.analyze.result`. An analysis that already failed is not on its way, so the wait below asks once rather than for five minutes. Left empty, the gate waits."
+        type: string
+        required: false
+        default: ""
+      workflow:
+        description: "The caller's CodeQL workflow, whose matrix — or whose `init` step — names every language meant to be analysed here. Read rather than passed as a list, so there is no second copy of the languages to fall behind."
+        type: string
+        required: false
+        default: .github/workflows/codeql.yml
+      gate:
+        description: "The caller's copy of `shared/gates/no_open_codeql_alert.py`. An input rather than a constant only because a repository may keep its scripts somewhere else; `check_shared_files.py` compares whatever sits at `scripts/<name>` against the canonical copy."
+        type: string
+        required: false
+        default: scripts/no_open_codeql_alert.py
+
+permissions:
+  contents: read
+
+jobs:
+  alerts:
+    runs-on: ubuntu-latest
+    # A reusable workflow's permissions are a ceiling the caller has to reach,
+    # not a grant it receives: a caller that hands over less fails the whole run
+    # before any job starts. `contents: read` is restated because a job-level
+    # block replaces the workflow-level default outright rather than adding to it.
+    permissions:
+      contents: read
+      security-events: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # A gate nobody has watched fail is a gate nobody knows works, so it is put
+      # in front of an alert before it is trusted about their absence. It also
+      # says, in one step and in seconds, that the caller's copy is there and
+      # runs at all — a missing script would otherwise be discovered as a failure
+      # of the alert check, which reads like a finding.
+      - name: The gate refuses a branch an alert stands against
+        env:
+          GATE: ${{ inputs.gate }}
+        run: python3 "${GATE}" --self-test
+
+      - name: No open CodeQL alert reaches main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RESULT_REF: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/merge', github.event.number) || github.ref }}
+          PR: ${{ github.event.pull_request.number }}
+          ANALYSIS: ${{ inputs.analysis }}
+          # Through the environment rather than into the script body: an input is
+          # the caller's string, and a caller is not a thing a gate should be
+          # resting on being careful. The gate refuses a path that leaves the
+          # working directory as well, so both ends hold it.
+          WORKFLOW: ${{ inputs.workflow }}
+          GATE: ${{ inputs.gate }}
+        run: |
+          set -euo pipefail
+
+          # The commit the alerts are about: the merge commit on a pull request,
+          # the pushed commit otherwise. Asked of the API rather than taken from
+          # the event, because `github.event.pull_request.merge_commit_sha` is
+          # the value at the time the event fired and the merge commit is rebuilt
+          # whenever the base moves.
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            sha=$(gh api "repos/${REPO}/pulls/${PR}" --jq '.merge_commit_sha')
+          else
+            sha=${GITHUB_SHA}
+          fi
+
+          # `analyze` succeeding means the upload was accepted, not that the
+          # analysis is queryable — those are minutes apart. So this waits for
+          # every language's analysis of this commit rather than racing it, and
+          # the same function that decides the wait decides the gate, so there is
+          # no second opinion to drift.
+          gate() {
+            python3 "${GATE}" \
+              --analyses analyses.json \
+              --sha "${sha}" \
+              --workflow "${WORKFLOW}" "$@"
+          }
+
+          # Five minutes is worth waiting for an analysis that is on its way and
+          # nothing at all for one that is not. An analysis job that already
+          # failed is not indexing; ask once, say so, and be red in seconds.
+          tries=30
+          if [ -n "${ANALYSIS}" ] && [ "${ANALYSIS}" != "success" ]; then
+            echo "::warning::The analysis did not succeed (${ANALYSIS}), so this asks once rather than waiting for an upload that is not coming."
+            tries=1
+          fi
+
+          for attempt in $(seq 1 "${tries}"); do
+            gh api --paginate --slurp \
+              "repos/${REPO}/code-scanning/analyses?ref=${RESULT_REF}" > analyses.json
+            if gate --complete-only; then break; fi
+            echo "  (${attempt}/${tries})"
+            sleep 10
+          done
+
+          gh api --paginate --slurp \
+            "repos/${REPO}/code-scanning/alerts?state=open&tool_name=CodeQL&ref=${RESULT_REF}" \
+            | gate

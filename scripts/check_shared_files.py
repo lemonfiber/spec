@@ -356,8 +356,20 @@ def unaccounted(canonical: pathlib.Path) -> list[str]:
     whoever adds it and compared in none — and the run still says the copies
     match, which is true of the ones it looked at and reads as an account of all
     of them.
+
+    Dot-named entries are a tool's leavings, not a shared file: every canonical
+    member here is undotted and lands in the copying repository under whatever
+    name that repository wants (`markdownlint.jsonc` becomes `.markdownlint.jsonc`
+    there). Running ruff with `shared/` as the working directory leaves a
+    `.ruff_cache/` behind, and this named it as a shared file nothing compares —
+    a red check, on every recipe that runs afterwards, about a directory no
+    repository has ever carried. A gate that cries about a cache is a gate people
+    learn to run past.
     """
-    held = {one.name for one in (canonical / "shared").iterdir()}
+    held = {
+        one.name for one in (canonical / "shared").iterdir()
+        if not one.name.startswith(".")
+    }
     missed = sorted(held - COMPARED - NOT_A_COPY)
     if not missed:
         return []

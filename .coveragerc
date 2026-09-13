@@ -1,39 +1,29 @@
-# Coverage for the scripts that gate a merge. Line coverage, matching
-# lemonfiber's 100%-on-applicable-code standard (Q-R61). The __main__ guards only
-# run when a script is executed rather than imported for test, so they are
-# excluded.
+# Coverage for the code that decides whether a merge may happen. Line coverage,
+# matching lemonfiber's 100%-on-applicable-code standard (Q-R61). The __main__
+# guards only run when a script is executed rather than imported for test, so
+# they are excluded.
 #
-# The list is what the gate covers, not what the suites happen to import: a
-# script is added here when it has a suite that holds it at 100%.
+# `source` rather than `include`, which is the difference between measuring a
+# directory and measuring whatever happened to be imported. Under `include`, a
+# file nothing imported is absent from the report entirely — so `what_is_blocking.py`
+# sat in that list with a suite of eighty-three tests that no workflow ran, and
+# the gate reported 100% and meant it, about the other files. Under `source` an
+# unimported file is reported at 0% and fails, which is the answer that was wanted.
+#
+# What `omit` holds is therefore the declared exceptions and nothing else: the
+# suites themselves, and the scripts `test_coverage_reads_every_script.py`
+# declares unmeasured with a reason. That file compares the two, so a name can be
+# dropped from neither quietly.
 [run]
-include =
-    scripts/patterns.py
-    scripts/catalogue.py
-    scripts/metafm.py
-    scripts/check_no_stubs.py
-    scripts/gate.py
-    scripts/set_status.py
-    scripts/submodule_pins.py
-    scripts/check_stageable.py
-    scripts/check_goal_coverage.py
-    scripts/check_binding_order.py
-    scripts/dco_check.py
-    scripts/commit_lint.py
-    scripts/check_order.py
-    scripts/check_frontmatter.py
-    scripts/spec_refs.py
-    scripts/manifest_repos.py
-    scripts/tracker_body.py
-    scripts/pr_goals.py
-    scripts/status_lint.py
-    scripts/spec_check.py
-    scripts/gen_redirects.py
-    scripts/integrity.py
-    scripts/check_shared_files.py
-    scripts/next_id.py
-    scripts/gen_repos.py
-    scripts/gen_contrast.py
-    scripts/what_is_blocking.py
+source =
+    scripts
+    shared/gates
+omit =
+    scripts/test_*.py
+    scripts/gen_board.py
+    scripts/gen_codeowners.py
+    scripts/gen_roadmap_table.py
+    scripts/rfc_scaffold.py
 
 [report]
 exclude_also =

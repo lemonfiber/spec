@@ -14,3 +14,7 @@ __pycache__/
 # as a gitlink — a commit pointer to a repo this one cannot fetch, which breaks
 # every clone that tries.
 /checkouts/
+
+# Tool caches. `uvx ruff` leaves one wherever it is run from, including
+# `shared/`, where it reads as a shared file nothing compares.
+.ruff_cache/
