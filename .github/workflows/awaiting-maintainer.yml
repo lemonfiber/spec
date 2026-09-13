@@ -172,6 +172,26 @@ jobs:
           gh api --paginate --slurp \
             "repos/${GH_REPO}/actions/runs?head_sha=${HEAD_SHA}&per_page=100" > runs.json
 
+          # A name in the list that is not a workflow in this repository reads as
+          # "no run at this commit yet" and always will, so the flag never goes
+          # up and nothing ever says why. `workflow_run` matches a workflow's
+          # `name:`, not its filename, so `[ci.yml, sonar.yml]` is the shape that
+          # does this — plausible, wrong, and silent.
+          #
+          # Refused rather than held. Holding is what this does while it waits for
+          # something that is coming; a name nothing will ever answer to is not
+          # that, and the caller is the only place it can be fixed.
+          gh api --paginate --slurp "repos/${GH_REPO}/actions/workflows?per_page=100" \
+            | jq -r '[ .[].workflows[].name ] | .[]' > names.txt
+          unknown=""
+          for wf in "${wanted[@]}"; do
+            grep -qxF "$wf" names.txt || unknown="${unknown} ${wf}"
+          done
+          if [ -n "$unknown" ]; then
+            echo "::error::${caller} waits for${unknown}, which name no workflow in ${GH_REPO}. \`workflow_run\` matches a workflow's \`name:\` rather than its filename, so this gate would hold forever and say nothing. Workflows here: $(paste -sd, - < names.txt)"
+            exit 1
+          fi
+
           holding=""
           for wf in "${wanted[@]}"; do
             state=$(WF="$wf" jq -r '
@@ -226,13 +246,50 @@ jobs:
             exit 0
           fi
 
+          # --- and does GitHub agree there is nothing left? ------------------
+          # Everything above counts checks that *reported*. `gh pr checks
+          # --required` cannot count the ones that did not: a required context
+          # nothing has posted appears in no rollup, so twelve green out of
+          # fifteen required reads here as "twelve required checks, all green"
+          # — and this workflow then says exactly that to a maintainer, in
+          # Discord, with a link.
+          #
+          # The wait list above is the only thing that was standing between that
+          # and a false flag, and the comment in every caller admits what keeps
+          # the list honest: somebody remembering to edit it in the same change
+          # as branch protection. On 2026-09-13 an outage left every repository
+          # here with a required context that never reported for two hours, which
+          # is the same shape arriving without anybody editing anything.
+          #
+          # So the last question is asked of the forge rather than of the rollup.
+          # `mergeStateStatus` is the answer that actually decides the merge, it
+          # needs no permission this token lacks, and it knows about a context
+          # that never arrived because knowing that is its whole job.
+          #
+          #   CLEAN      nothing left — flag it
+          #   UNSTABLE   a non-required check failed; it can still merge, so flag
+          #   HAS_HOOKS  clean, with a repository hook to run on merge
+          #   anything else — BLOCKED, BEHIND, DIRTY, UNKNOWN, DRAFT — hold
+          #
+          # Holding on `UNKNOWN` costs a cycle: GitHub computes it lazily and the
+          # next finishing workflow asks again. Flagging on it would be a guess
+          # about the one thing this step exists to stop guessing about.
+          merge=$(gh pr view "$pr" --json mergeStateStatus --jq '.mergeStateStatus' 2>/dev/null || echo "")
+          case "$merge" in
+          CLEAN | UNSTABLE | HAS_HOOKS) ;;
+          *)
+            echo "Holding #${pr}: ${total} required checks reported and all are green, but GitHub says ${merge:-nothing}. It knows about a required context that never reported and this step does not."
+            exit 0
+            ;;
+          esac
+
           gh pr edit "$pr" --add-label "$LABEL"
           {
             echo "flagged=true"
             echo "pr=${pr}"
             echo "checks=${total}"
           } >> "$GITHUB_OUTPUT"
-          echo "#${pr}: ${total} required checks, all green, no review. Flagged."
+          echo "#${pr}: ${total} required checks green, ${merge} on the merge box, no review. Flagged."
   notify:
     needs: toggle
     if: needs.toggle.outputs.flagged == 'true'
