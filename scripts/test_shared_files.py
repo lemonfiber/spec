@@ -45,6 +45,14 @@ TYPOS = (
     "extend-words = { lemonfiber = \"lemonfiber\", ratatui = \"ratatui\" }\n"
     "extend-ignore-re = [\"\\\\[[a-z]\\\\][a-zA-Z]+\"]\n"
 )
+GATE = """#!/usr/bin/env python3
+\"\"\"A gate, for the fixture to compare copies of.\"\"\"
+import sys
+
+if __name__ == "__main__":
+    sys.exit(0)
+"""
+
 HOOK = "#!/bin/sh\n# Refuse a push that would empty the branch it lands on.\nexit 0\n"
 RUFF = (
     "# The Python lint floor.\n"
@@ -81,6 +89,7 @@ class Copies(unittest.TestCase):
         self.repo = self.tmp / "repo"
         shared = self.canonical / "shared"
         (shared / "hooks").mkdir(parents=True)
+        (shared / "gates").mkdir(parents=True)
         self.repo.mkdir()
 
         # The real generator and a registry for it to read, rather than a stub:
@@ -96,6 +105,7 @@ class Copies(unittest.TestCase):
         (shared / "typos.toml").write_text(TYPOS, encoding="utf-8")
         (shared / "ruff.toml").write_text(RUFF, encoding="utf-8")
         (shared / "hooks" / "pre-push").write_text(HOOK, encoding="utf-8")
+        (shared / "gates" / "a_gate.py").write_text(GATE, encoding="utf-8")
         self.manifest(f"{self.digest(LOGO)}  .github/logo.svg  brand:assets/logo/lockup.svg")
 
         # The repo under test also carries the file the manifest names as the
@@ -220,6 +230,48 @@ class Agreeing(Copies):
                    "Servarr = \"Servarr\" }\n"
                    "extend-ignore-re = [\"\\\\[[a-z]\\\\][a-zA-Z]+\", \"SPDX-.*\"]\n")
         self.assertEqual(self.check()[0], 0)
+
+    def test_a_repo_running_no_gate_script_is_not_asked_for_one(self):
+        # Conditional, as the hook is. A repository that gates on nothing here is
+        # not failed for it; one carrying a copy must carry the current one.
+        self.assertFalse((self.repo / "scripts" / "a_gate.py").exists())
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("a_gate.py", out)
+
+    def test_a_repo_carrying_the_current_gate(self):
+        self.write("scripts/a_gate.py", GATE)
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
+    def test_a_gate_that_has_drifted(self):
+        # Worse than no gate, because it is trusted: `no_open_codeql_alert.py`
+        # spent its whole life reading an empty alert list as a clean one, and a
+        # repository still carrying that version reports a pass it has not earned.
+        self.write("scripts/a_gate.py", GATE + "\n# a local tweak\n")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("scripts/a_gate.py differs from the canonical copy", out)
+
+    def test_a_gate_rewritten_with_carriage_returns(self):
+        # Reading both as text folds CRLF to LF and calls them identical. The
+        # kernel disagrees: the interpreter the first line names has a carriage
+        # return on the end of it.
+        self.write("scripts/a_gate.py", GATE.replace("\n", "\r\n"))
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("a_gate.py differs", out)
+
+    def test_a_gate_added_to_shared_is_compared_everywhere(self):
+        # Listed from the canonical directory rather than named in the script, so
+        # a second gate cannot be copied into every repository and compared in
+        # none — which is what a hard-coded list did to `shared/hooks/`.
+        (self.canonical / "shared" / "gates" / "another.py").write_text(
+            GATE, encoding="utf-8")
+        self.write("scripts/another.py", GATE + "# drifted\n")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("scripts/another.py differs", out)
 
     def test_a_repo_that_has_not_adopted_the_hook_is_not_failed_for_it(self):
         # Conditional, not required: hooks are opted into per clone, and a repo

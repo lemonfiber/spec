@@ -37,7 +37,19 @@ brand's own.
 | [hooks/pre-push](hooks/pre-push) | each repo's `.githooks/pre-push` | Byte-identical, where a repo has adopted it |
 | [hooks/commit-msg](hooks/commit-msg) | each repo's `.githooks/commit-msg` | Byte-identical, where a repo has adopted it |
 | — | each repo's `.githooks/pre-commit` | Not shared: the fast checks are different in each. Its *absence* is not checked, and a hook-manager config in its place is refused |
+| [gates/no_open_codeql_alert.py](gates/no_open_codeql_alert.py) | each repo's `scripts/no_open_codeql_alert.py` | Byte-identical, where a repo has adopted it |
 | [assets.sha256](assets.sha256) | — | Digests of the brand assets repos carry copies of |
+
+`gates/` is for scripts that decide whether a branch merges, and they are held to
+the strictest of the rules above: byte-identical, and compared as bytes so a copy
+rewritten with CRLF endings cannot read as the same file. A drifted gate is worse
+than a missing one, because it is trusted — `no_open_codeql_alert.py` spent its
+whole life reading an empty alert list as an analysed and clean one, and a
+repository still carrying that version would report a pass it had not earned.
+
+Adoption is per repository and conditional: a repository gating on none of them
+is not asked for one. What is refused is carrying a copy that is not the current
+one.
 
 Each asset row is read from both ends. In a repository carrying a copy, the copy
 is checked against the digest. In the repository that *is* the home, the original
