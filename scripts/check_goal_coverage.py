@@ -66,6 +66,7 @@ AWAITING_A_VERSION = {
         ["F3-R15", "F3-R16", "F3-R19", "F3-R20"],
     ),
     "F4": ("F4's other thirteen goals are locked by 0.16.0, planned", ["F4-R5"]),
+    "G7": ("the other thirteen G7 goals are locked by 0.5.0, released", ["G7-R14"]),
     "G8": (
         "G8 is split across 0.10.0, 0.11.0 and 0.14.0, all released",
         ["G8-R15", "G8-R16", "G8-R17", "G8-R18"],
