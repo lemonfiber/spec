@@ -59,10 +59,13 @@ catalogue files by hand on release day — which is how `0.14.0` came to lock fi
 features that still said `building` an hour before it went out.
 
 The refusal also names any requirement of a feature this version touches that **no
-manifest in the train locks at all**. Fourteen stand that way today across eight
-features. They are not this version's fault and do not fail it, and without a line
-saying so nothing would ever ask about them: a requirement no version locks is one
-no release gate reaches.
+manifest in the train locks at all**. They are not this version's fault and do not
+fail it, and without a line saying so nothing would ever ask about them: a
+requirement no version locks is one no release gate reaches.
+
+How many there are is not written here. It changes with every version staged, and
+a count in prose goes stale silently — `just no-stubs <version>` names them, which
+is the answer somebody can act on rather than a number they have to trust.
 
 ## Rules
 
