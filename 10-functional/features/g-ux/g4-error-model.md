@@ -21,9 +21,13 @@ relates: [C1, C3, C4, G2]
 
 One consistent shape for everything that goes wrong, everywhere in the product.
 
-This is the connective tissue. Forty-seven features can fail in hundreds of ways;
-without a shared model each one invents its own, and the operator faces a product
-that behaves like a dozen different tools stitched together.
+This is the connective tissue. Every feature in the catalogue can fail in several
+ways; without a shared model each one invents its own, and the operator faces a
+product that behaves like a dozen different tools stitched together.
+
+(How many features that is, [BOARD.md](../BOARD.md) counts. It said forty-seven
+here for long enough to be wrong by more than thirty, which is the argument for
+not saying it in prose at all.)
 
 It also implements [P4](../../../00-overview/vision.md#p4--errors-carry-remedies)
 — the principle that an error without a remedy is a dead end. That principle is
