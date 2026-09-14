@@ -1,0 +1,57 @@
+# Reusable check that the record credits nobody it should not (GOV-R46). Repos
+# call it; the spec repo self-triggers on PRs.
+#
+# Beside `dco.yml` and shaped like it, because they read the same thing from
+# opposite directions: one insists a human attested to the work, and this one
+# insists no tool is credited for it.
+name: attribution
+on:
+  workflow_call:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  attribution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      # The canonical copy, for the repos that call this. Not for the spec
+      # repo's own runs: this check cannot live on `main` until the pull request
+      # that adds it has merged, and a self-check reading `main` would in any
+      # case be reading the version before the change under review. Here the
+      # working copy *is* the canonical one, so it is the one that runs — the
+      # same reading `integrity.py` does of the tree in front of it.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.repository != 'lemonfiber/spec'
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: main
+          path: .spec-canonical
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Check the record
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # Through the environment and then a pipe, never interpolated into the
+          # script: a pull request body is whatever somebody typed, and a body
+          # containing a quote would otherwise be a shell injection.
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if [ "$GITHUB_REPOSITORY" = "lemonfiber/spec" ]; then
+            scripts=scripts
+          else
+            scripts=.spec-canonical/scripts
+          fi
+          if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
+             && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            printf '%s' "$PR_BODY" \
+              | python3 "$scripts/attribution_check.py" "$BASE_SHA" "$HEAD_SHA" --body-on-stdin
+          else
+            echo "no PR range; skipping"
+          fi
