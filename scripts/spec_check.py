@@ -8,6 +8,10 @@ Enforces:
   GOV-R2  a citation is present
   GOV-R3  every cited identifier exists on spec@main
 
+`--citation-optional` drops the first of those and keeps the second. It is for
+the one event that carries no pull request to read a citation from; see the
+comment over the flag.
+
 One author cannot write a trailer, and the gate cites on its behalf: see
 `by_dependabot` below (Q-R55).
 
@@ -18,6 +22,7 @@ the spec repo, and any change to this script cites GOV-R11.
 Usage:
   spec_check.py --spec-dir <path to spec checkout> --text-file <PR body+commits>
                 [--pr-author <login of whoever opened the pull request>]
+                [--citation-optional]
 Exit 0 = pass, 1 = fail (with guidance), 2 = usage error.
 """
 from __future__ import annotations
@@ -75,6 +80,34 @@ def by_dependabot(pr_author: str) -> bool:
     return pr_author == DEPENDABOT
 
 
+# The event that carries no pull request, and what this gate can still ask of it.
+#
+# A merge queue tests a batch on a branch of its own — the default branch's tip
+# with every queued pull request applied — and the event asking for those checks
+# carries no pull request at all: no body, no author, nothing to close. Two of
+# the three things GOV-R2 reads are therefore missing, and demanding a trailer
+# of what is left would refuse two changes that are not at fault: one whose
+# citation sits in its pull request body, which is where GOV-R2 allows it, and
+# any batch of Dependabot's, whose allowance keys on an author the event does
+# not carry.
+#
+# So presence stops being required there, and GOV-R3 does not: every identifier
+# the batch's commits do cite is still resolved against the spec. That is the
+# half of the rule a queue can change — a pull request can wait in one while the
+# identifier it cited is withdrawn — and the half GOV-R2 covers was settled
+# before the queue accepted it, because a pull request cannot be queued until
+# this gate has passed on it.
+#
+# The trap, for whoever edits this next: what selects this is the *event*, which
+# the workflow reads from GitHub's own payload. Nothing a contributor writes can
+# reach it. Wire it to a label, a title or a branch name instead and the
+# citation rule becomes optional for anyone who can type.
+NOTHING_CITED = (
+    "spec-check: OK — nothing cited, and presence is not asked on this event. "
+    "GOV-R2 was asked of every pull request in this batch before the queue took it."
+)
+
+
 GUIDANCE = """
 This change does not cite a spec identifier that exists on spec@main.
 
@@ -98,6 +131,11 @@ def main() -> int:
     ap.add_argument("--spec-dir", required=True)
     ap.add_argument("--text-file", required=True)
     ap.add_argument("--pr-author", default="", help="login that opened the PR")
+    ap.add_argument(
+        "--citation-optional",
+        action="store_true",
+        help="citing nothing is not a refusal; GOV-R3 still runs on what is cited",
+    )
     a = ap.parse_args()
 
     spec_dir = pathlib.Path(a.spec_dir)
@@ -120,6 +158,9 @@ def main() -> int:
     if by_dependabot(a.pr_author):
         cited.add(ROUTINE)
     if not cited:
+        if a.citation_optional:
+            print(NOTHING_CITED)
+            return 0
         print("::error::no `Spec:` citation found")
         print(GUIDANCE)
         return 1

@@ -8,9 +8,11 @@ The mechanical enforcement of [GOV-R2 through GOV-R5](canonical-spec.md#the-gov-
 
 ## What runs, and where
 
-A check runs on every pull request in every repository the org governs. The
-reusable workflow is called from each repo's `ci.yml`, so a repository added later
-inherits it by wiring three lines rather than by being added to a list here.
+A check runs on every pull request in every repository the org governs, and on
+every merge group where one merges through a queue — see [In a merge
+queue](#in-a-merge-queue). The reusable workflow is called from each repo's
+`ci.yml`, so a repository added later inherits it by wiring three lines rather
+than by being added to a list here.
 It reads the PR's commits and body, extracts citations, and resolves them against
 this repository.
 
@@ -121,6 +123,43 @@ The closing comment is covered in [contributing.md](contributing.md#when-your-pr
 in short: thank them, state the rule and why, link the spec, give copy-pasteable
 steps, and say explicitly that the work isn't rejected — it's sequenced.
 
+## In a merge queue
+
+A repository whose default branch merges through a **merge queue** runs its
+checks twice: once on the pull request, and once on the queue's own branch — the
+base branch's tip with every queued pull request applied — under the
+`merge_group` event. Every context the branch requires has to report on that
+event. One that does not is not read as a failure; it is read as a wait, and the
+queue drops the pull request when the status-check timeout expires, naming
+nothing.
+
+Two things about that are worth writing down, because both were found the
+expensive way.
+
+**A skipped job reports success; a skipped *caller* reports nothing at all.**
+The context a reusable workflow produces is `caller / callee`, and the callee
+exists only if the caller ran. So `if: github.event_name == 'pull_request'` on
+the caller does not leave a skipped tick on a merge group — it leaves no tick,
+which is exactly the state a queue waits on. A caller of a required reusable
+therefore runs on `merge_group` and lets the workflow inside decide what it can
+answer.
+
+**This gate asks less of a merge group, and says so.** That event carries no
+pull request: no body, and no author. **GOV-R2** allows a citation to live in
+the body and **Q-R55**'s Dependabot allowance keys on the author, so requiring a
+trailer of the commits alone would refuse a batch for citing exactly where the
+rule permits it, and would refuse every dependency update outright. So presence
+is not re-asked there — it was asked of each pull request before the queue
+accepted it, and a merge group does not rewrite a commit message. **GOV-R3 is**
+re-asked: every identifier the batch cites is resolved against `spec@main` as it
+stands now, which is the one answer that can change while a pull request waits
+in a queue. The run states which half it asked rather than leaving a bare tick.
+
+Nothing is closed on a merge group. A batch that reaches a refusal there is the
+queue's rather than any one author's, and closing one of the pull requests in it
+would pick a victim out of a batch. The batch is rejected, the pull requests stay
+open, and their authors are told why.
+
 ## Spec-side checks
 
 This repository runs its own checks, since **GOV-R11** subjects governance to
@@ -148,6 +187,7 @@ Enforcement machinery that fails badly is worse than none, because it fails
 | Bot is down entirely | Merging is blocked. Use the [override](overrides.md) — that is a legitimate use. |
 | Citation valid, spec changed since | Resolve at merge-base, not at HEAD. Later spec edits must not retroactively invalidate a merged PR. |
 | Very large PR touching many areas | One valid citation suffices. The bot counts references, not coverage. |
+| Required check absent on `merge_group` | The queue waits and then drops the pull request. A caller that skips there reports nothing at all, rather than reporting a skip — see [In a merge queue](#in-a-merge-queue). |
 
 The last row is deliberate: requiring a citation *per file* would produce
 box-ticking, and box-ticking is how a rule stops meaning anything.
