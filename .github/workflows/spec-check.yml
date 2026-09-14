@@ -11,6 +11,13 @@
 # consumer of them, and a spec PR introducing a requirement cannot cite an
 # identifier that exists on main only once that PR has merged. Citations here are
 # checked by integrity.py, which resolves them against the tree under review.
+#
+# Two events reach it, because a caller behind a merge queue has to call it from
+# both. A pull request carries a body, an author and a commit range. A merge
+# group carries a range and nothing else, and the steps below name which of the
+# two they are reading rather than letting an absent field decide for them — a
+# null read as a value is how this gate came to exit 1 on a base that was simply
+# not there.
 name: spec-check
 
 on:
@@ -28,7 +35,7 @@ jobs:
   spec-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the calling repo (PR)
+      - name: Check out the calling repo (the pull request, or the queue's branch)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # The commit range below needs both ends present. Checkout clones to
@@ -43,25 +50,41 @@ jobs:
           ref: main
           path: .spec-canonical
 
-      - name: Gather PR body and commit messages
+      - name: Gather the text this event carries
         # All untrusted event data is passed via env, never interpolated into
         # the shell — see the workflow-injection guidance. base/head are SHAs.
+        #
+        # The range is named per event rather than inferred from whichever field
+        # happens to hold something. Both are read because only one of them
+        # exists at a time: `github.event.pull_request` is null on a merge group
+        # and `github.event.merge_group` is null on a pull request.
+        #
+        # A merge group's range is `main`'s tip to the queue's branch, so it is
+        # every commit in the batch — which is the whole of what that event has
+        # to offer. Its body is not absent because nobody wrote one; there is no
+        # pull request for one to belong to, and the step below says so.
         env:
+          EVENT: ${{ github.event_name }}
           PR_BODY: ${{ github.event.pull_request.body }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
         run: |
           {
-            printf '%s\n' "$PR_BODY"
+            # Only a pull request has one, and `printf` on an empty variable
+            # would put a blank line at the top of the text either way — this is
+            # about saying which event was read, not about the byte.
+            if [ "$EVENT" = "pull_request" ]; then
+              printf '%s\n' "$PR_BODY"
+            fi
             if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
                && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
               # A failure here must be loud. Swallowed, it leaves the body as the
               # only text searched, and the gate then reports a missing citation
               # for a pull request whose commits carry one.
               git log --format='%B' "${BASE_SHA}..${HEAD_SHA}" \
-                || { echo "::error::Could not read commit messages for ${BASE_SHA}..${HEAD_SHA}. The citation below was searched in the pull request body alone." >&2; exit 1; }
+                || { echo "::error::Could not read commit messages for ${BASE_SHA}..${HEAD_SHA}. Nothing else was searched: on a merge group the commits are the only text there is, and on a pull request the body alone is not the rule." >&2; exit 1; }
             else
-              echo "::error::base or head is not a commit SHA, so no commit message was read." >&2
+              echo "::error::base or head is not a commit SHA on a ${EVENT} event, so no commit message was read." >&2
               exit 1
             fi
           } > .pr-text.txt
@@ -84,13 +107,35 @@ jobs:
         # a fault on this side.
         continue-on-error: true
         env:
+          EVENT: ${{ github.event_name }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
           set +e
+
+          # `--citation-optional` on a merge group, and only there.
+          #
+          # GOV-R2 allows the citation to live in the pull request body, and the
+          # Dependabot allowance keys on the author GitHub records for the pull
+          # request. A merge group has neither, so requiring a trailer of the
+          # commits alone would refuse a batch for carrying its citation exactly
+          # where the rule permits it, and would refuse every dependency update
+          # outright. GOV-R3 is untouched: whatever the batch cites is still
+          # resolved, which is the half a queue can change while a pull request
+          # waits in it.
+          #
+          # Keyed on the event, which comes from GitHub's payload rather than
+          # from anything a contributor writes. See `spec_check.py` for what
+          # widening that would cost.
+          optional=()
+          if [ "$EVENT" = "merge_group" ]; then
+            optional+=(--citation-optional)
+          fi
+
           python3 .spec-canonical/scripts/spec_check.py \
             --spec-dir .spec-canonical \
             --text-file .pr-text.txt \
-            --pr-author "$PR_AUTHOR" 2>&1 | tee .citation-output.txt
+            --pr-author "$PR_AUTHOR" \
+            "${optional[@]}" 2>&1 | tee .citation-output.txt
           status=${PIPESTATUS[0]}
           {
             echo "status=${status}"
@@ -101,7 +146,13 @@ jobs:
           exit 0
 
       - name: Close the pull request, naming what it cited
-        if: steps.citation.outputs.status == '1'
+        # There has to be one. A merge group reaches `status == 1` only through
+        # GOV-R3 — an identifier that no longer resolves — and the thing at
+        # fault there is a batch the queue built, not a pull request somebody
+        # opened. Closing one of the pull requests in it would pick a victim.
+        # The refusal below still stands, the batch is still rejected, and the
+        # authors go back to a pull request that is open.
+        if: steps.citation.outputs.status == '1' && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           NUMBER: ${{ github.event.pull_request.number }}
@@ -137,6 +188,18 @@ jobs:
             echo "::error::${REASON}" >&2
           fi
           exit 1
+
+      # A step absent from a log reads the same as a step that ran and found
+      # nothing, so the narrower question a merge group was asked appears under
+      # its own name carrying its reason — the shape `sonar.yml` uses for the
+      # scan it skips, for the same reason.
+      - name: What a merge group was, and was not, asked
+        if: github.event_name == 'merge_group'
+        run: |
+          set -euo pipefail
+          said="This ran on a merge group, which carries no pull request: no body to read a citation from and no author to cite on behalf of. So GOV-R2 — that a citation is present — was not re-asked here. It was asked of every pull request in this batch before the queue accepted it, and a merge group does not rewrite a commit message. What did run is GOV-R3: every identifier the batch's commits cite was resolved against spec@main as it stands now, which is the one answer that can have changed while a pull request waited in the queue."
+          echo "::notice::${said}"
+          printf '### spec-check on a merge group\n\n%s\n' "$said" >> "$GITHUB_STEP_SUMMARY"
 
       # Only the implementation repo keeps a tracker; every other caller skips this.
       - name: The tracker claims only what the spec backs

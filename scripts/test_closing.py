@@ -36,6 +36,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 WORKFLOW = HERE.parent / ".github" / "workflows" / "spec-check.yml"
 CLOSING = "Close the pull request, naming what it cited"
 DECIDING = "The citation decides whether this may merge"
+QUEUED = "What a merge group was, and was not, asked"
+GATHERING = "Gather the text this event carries"
 
 GH_STUB = """#!/bin/sh
 # Records what was asked of it, and fails when told to.
@@ -75,10 +77,12 @@ class Workspace:
         gh.write_text(GH_STUB, encoding="utf-8")
         gh.chmod(0o755)
         self.log = self.tmp / "gh.log"
+        self.summary = self.tmp / "summary.md"
+        self.summary.touch()
         self.work = self.tmp / "work"
         self.work.mkdir()
 
-    def run_step(self, name, *, status="1", reason="no `Spec:` citation found", fails=False):
+    def run_step(self, name, *, status="1", reason="no `Spec:` citation found", fails=False, extra=None):
         script = self.tmp / "step.sh"
         script.write_text(step_script(name), encoding="utf-8")
         env = {
@@ -90,9 +94,14 @@ class Workspace:
             "REPO": "lemonfiber/sdk-php",
             "REASON": reason,
             "STATUS": status,
+            # The run page a step writes its reason to. A step that says what it
+            # did not check is worth nothing if it says it only to a log nobody
+            # opens, so the file is real here and read back below.
+            "GITHUB_STEP_SUMMARY": str(self.summary),
         }
         if fails:
             env["GH_FAILS"] = "1"
+        env.update(extra or {})
         done = subprocess.run(
             ["bash", str(script)],
             cwd=self.work,
@@ -166,6 +175,109 @@ class Deciding(Workspace, unittest.TestCase):
         self.assertNotIn("Nothing was closed", out)
 
 
+class TheRangeEachEventCarries(Workspace, unittest.TestCase):
+    """What the gate reads, on each of the two events that reach it.
+
+    The bug this closes: the range came from `github.event.pull_request` alone,
+    so a merge group handed the step two empty strings and it exited 1 — failing
+    a whole batch over a pull request that was never meant to be there. The
+    shell is driven with each event's range in turn, over a real repository,
+    because "it reads the commits" is the claim and a string comparison is not
+    that claim.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.base, self.head = self._repo()
+
+    def _repo(self):
+        def git(*args):
+            return subprocess.run(
+                ["git", "-c", "user.name=T", "-c", "user.email=t@e", *args],
+                cwd=self.work,
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+
+        git("init", "-q", "-b", "main")
+        (self.work / "a.md").write_text("a\n", encoding="utf-8")
+        git("add", "a.md")
+        git("commit", "-qm", "docs: the base this batch would land on")
+        base = git("rev-parse", "HEAD")
+        (self.work / "b.md").write_text("b\n", encoding="utf-8")
+        git("add", "b.md")
+        git("commit", "-qm", "feat: a queued change\n\nSpec: GOV-R12")
+        return base, git("rev-parse", "HEAD")
+
+    def gather(self, event, body="Spec: ONLY-IN-THE-BODY"):
+        code, out = self.run_step(
+            GATHERING,
+            extra={
+                "EVENT": event,
+                "PR_BODY": body,
+                "BASE_SHA": self.base,
+                "HEAD_SHA": self.head,
+            },
+        )
+        return code, out, (self.work / ".pr-text.txt").read_text(encoding="utf-8")
+
+    def test_a_merge_group_range_is_read_rather_than_refused(self):
+        code, out, text = self.gather("merge_group")
+        self.assertEqual(code, 0, out)
+        self.assertIn("Spec: GOV-R12", text)
+
+    def test_a_merge_group_carries_no_body_to_read(self):
+        _, _, text = self.gather("merge_group")
+        self.assertNotIn("ONLY-IN-THE-BODY", text)
+
+    def test_a_pull_request_still_reads_its_body_and_its_commits(self):
+        code, out, text = self.gather("pull_request")
+        self.assertEqual(code, 0, out)
+        self.assertIn("ONLY-IN-THE-BODY", text)
+        self.assertIn("Spec: GOV-R12", text)
+
+    def test_a_range_that_is_not_two_shas_still_refuses_and_names_the_event(self):
+        code, out = self.run_step(
+            GATHERING,
+            extra={"EVENT": "merge_group", "PR_BODY": "", "BASE_SHA": "", "HEAD_SHA": ""},
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("not a commit SHA on a merge_group event", out)
+
+
+class AMergeGroup(Workspace, unittest.TestCase):
+    """The narrower question, said out loud (GOV-R2, GOV-R3, Q-R66).
+
+    A merge group carries no pull request, so the gate asks less of it than of a
+    pull request. A check that quietly asks less is indistinguishable from one
+    that asked everything and found nothing wrong, and this repository has been
+    caught by that reading before — so the step that says which half ran is
+    driven here rather than trusted.
+    """
+
+    def test_it_names_the_half_it_did_not_ask(self):
+        code, out = self.run_step(QUEUED)
+        self.assertEqual(code, 0, out)
+        self.assertIn("GOV-R2", out)
+        self.assertIn("not re-asked", out)
+
+    def test_it_names_the_half_it_did_ask(self):
+        _, out = self.run_step(QUEUED)
+        self.assertIn("GOV-R3", out)
+        self.assertIn("resolved against spec@main", out)
+
+    def test_it_says_why_the_missing_half_is_not_a_gap(self):
+        _, out = self.run_step(QUEUED)
+        self.assertIn("before the queue accepted it", out)
+
+    def test_it_writes_its_reason_to_the_run_page_as_well_as_the_log(self):
+        self.run_step(QUEUED)
+        written = self.summary.read_text(encoding="utf-8")
+        self.assertIn("spec-check on a merge group", written)
+        self.assertIn("GOV-R3", written)
+
+
 class Wiring(unittest.TestCase):
     """The conditions that decide which of the two runs, read from the YAML."""
 
@@ -177,14 +289,34 @@ class Wiring(unittest.TestCase):
     def named(self, name):
         return next(s for s in self.steps if s.get("name") == name)
 
-    def test_closing_runs_only_on_the_contributors_fault(self):
-        self.assertEqual(self.named(CLOSING)["if"], "steps.citation.outputs.status == '1'")
+    def test_closing_runs_only_on_the_contributors_fault_and_only_on_a_pull_request(self):
+        # The second clause is not tidiness. A merge group reaches status 1 only
+        # through GOV-R3 — an identifier that stopped resolving while the batch
+        # waited — and the batch belongs to the queue rather than to any one
+        # author, so closing there would pick a victim out of it. The refusal
+        # still stands and the batch is still rejected; nobody's thread is.
+        self.assertEqual(
+            self.named(CLOSING)["if"],
+            "steps.citation.outputs.status == '1' && github.event_name == 'pull_request'",
+        )
 
     def test_the_refusal_runs_on_either_fault(self):
         self.assertEqual(self.named(DECIDING)["if"], "steps.citation.outputs.status != '0'")
 
     def test_the_check_does_not_end_the_job_before_the_two_can_run(self):
         self.assertTrue(self.named("Verify citation")["continue-on-error"])
+
+    def test_the_range_is_named_for_both_events_rather_than_one(self):
+        # The expressions cannot be evaluated here, so what is held is that both
+        # are named. Only one of the two is ever non-null, and reading only the
+        # first is the fault this change repairs.
+        declared = self.named(GATHERING)["env"]
+        for end in ("base", "head"):
+            self.assertIn(f"github.event.pull_request.{end}.sha", declared[f"{end.upper()}_SHA"])
+            self.assertIn(f"github.event.merge_group.{end}_sha", declared[f"{end.upper()}_SHA"])
+
+    def test_the_merge_group_notice_runs_only_on_a_merge_group(self):
+        self.assertEqual(self.named(QUEUED)["if"], "github.event_name == 'merge_group'")
 
     def test_the_workflow_asks_for_what_closing_needs(self):
         declared = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["permissions"]
