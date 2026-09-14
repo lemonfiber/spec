@@ -5,8 +5,9 @@ A version is releasable only when every locked goal is satisfied, and a goal is
 satisfied only when BOTH hold:
 
   1. a merged commit in a target repo cites its ID in a `Spec:` trailer, and
-  2. the implementation-status tracker marks it done — a row bearing ✅ that
-     names the ID, directly or via a range like `C1-R1..R12`.
+  2. the implementation-status tracker marks it done — a row whose **status
+     column** bears ✅ and which names the ID, directly or via a range like
+     `C1-R1..R12`.
 
 Citation without a tick is work in flight; a tick without a citation is an
 unauditable claim. Requiring both is the defence in depth OPS-R34 specifies.
@@ -27,6 +28,7 @@ import subprocess
 import sys
 import tomllib
 
+import tracker
 from patterns import CITE, LANDED, RANGE
 from patterns import SPEC_TRAILER as TRAILER
 
@@ -64,20 +66,52 @@ def cited_ids(repo_paths: dict[str, pathlib.Path]) -> set[str]:
     return found
 
 
+def done_rows(status: pathlib.Path) -> list[tracker.Row]:
+    """Every tracker row whose status column says finished.
+
+    By column, because by line is a search of the text rather than a reading of
+    the row: a `◐` row explaining that something is not done yet holds the tick
+    character, and read that way it marks that something done. `tracker.py` has
+    the four times this went wrong.
+
+    A table with no status column is refused rather than skipped. Nothing in it
+    can be told done from not-done, and a gate that stops looking reports
+    success about the part it could read.
+    """
+    lines = status.read_text(encoding="utf-8").splitlines()
+
+    for number in tracker.statusless(lines):
+        print(f"::error::{status}:{number}: this table names no "
+              f"{' or '.join(tracker.STATUS_COLUMNS)} column, so no row in it can be "
+              "read as done or not done")
+        raise SystemExit(2)
+
+    return [row for row in tracker.rows(lines) if row is not None and row.done]
+
+
+def claimed(row: tracker.Row) -> set[str]:
+    """Every ID a done row names, ranges expanded.
+
+    The whole row, prose included, which is deliberate: a deliverable naming
+    what it rests on is ordinary. `status_lint.unclaimed` is what refuses an ID
+    on a ticked row that no ticked row claims in a column of its own.
+    """
+    found: set[str] = set(CITE.findall(row.line))
+    for prefix, lo, hi in RANGE.findall(row.line):
+        found.update(f"{prefix}-R{n}" for n in range(int(lo), int(hi) + 1))
+    return found
+
+
 def done_ids(status: pathlib.Path) -> set[str]:
-    """IDs the tracker marks ✅ — named directly or spanned by a range."""
+    """IDs the tracker marks done — named directly or spanned by a range."""
     done: set[str] = set()
-    for line in status.read_text(encoding="utf-8").splitlines():
-        if "✅" not in line:
-            continue
-        for prefix, lo, hi in RANGE.findall(line):
-            done.update(f"{prefix}-R{n}" for n in range(int(lo), int(hi) + 1))
-        done.update(CITE.findall(line))
+    for row in done_rows(status):
+        done.update(claimed(row))
     return done
 
 
 def landed_ids(status: pathlib.Path, repo_paths: dict[str, pathlib.Path]) -> set[str]:
-    """IDs on a ✅ row that names the merged commit which finished them.
+    """IDs on a done row that names the merged commit which finished them.
 
     The narrow way out of a real dead end. A merged commit cannot gain a `Spec:`
     trailer, so a change that closed several requirements under one trailer leaves
@@ -94,19 +128,15 @@ def landed_ids(status: pathlib.Path, repo_paths: dict[str, pathlib.Path]) -> set
     artefact itself; the other is a question for the forge.
     """
     landed: set[str] = set()
-    for line in status.read_text(encoding="utf-8").splitlines():
-        if "✅" not in line:
-            continue
-        shas = LANDED.findall(line)
+    for row in done_rows(status):
+        shas = LANDED.findall(row.line)
         if not shas:
             continue
         if not any(reachable(path, sha) for sha in shas for path in repo_paths.values()):
             print(f"::warning::a row names {shas} as where its goals landed and no "
                   "searched repository has that commit, so it counts for nothing")
             continue
-        for prefix, lo, hi in RANGE.findall(line):
-            landed.update(f"{prefix}-R{n}" for n in range(int(lo), int(hi) + 1))
-        landed.update(CITE.findall(line))
+        landed.update(claimed(row))
     return landed
 
 

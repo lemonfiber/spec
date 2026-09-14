@@ -18,14 +18,24 @@ doing so, each found in the field rather than imagined:
   3. A tick on a requirement no version locks. Work that cannot be released,
      recorded as though it had been.
 
-  4. A tick a row's own column never claimed. Both this and `gate.py` decide a
-     row by whether its *line* holds the glyph and then take every identifier on
-     it, so a sentence in a ticked row explaining that something was deferred is
-     what marks that something done. `E3-R5` was counted as met that way while
-     two of its three triggers had nothing at all, and the tracker's own header
-     records three earlier requirements lost to the same shape. A cross-
-     reference to work that is genuinely done elsewhere is ordinary and stays
-     legal; what is refused is an identifier no ticked row claims in its column.
+  4. A tick a row's own column never claimed. Both this and `gate.py` take
+     every identifier on a done row, so a sentence in one explaining that
+     something was deferred is what marks that something done. `E3-R5` was
+     counted as met that way while two of its three triggers had nothing at all.
+     A cross-reference to work that is genuinely done elsewhere is ordinary and
+     stays legal; what is refused is an identifier no ticked row claims in its
+     column.
+
+  5. The tick character written on a row that is not ticked. Both gates used to
+     decide a row by whether its *line* held the glyph, which made a `◐` row
+     explaining "this is ✅ when they start" read as done — three requirements
+     were counted as met that way and a fourth reached a gate run. The reading
+     is by column now (`tracker.py`), and this refuses the glyph in the prose
+     that used to cause it, so the shape cannot come back by a different route.
+
+  6. A table nothing can be read as done in. A header naming no status column
+     leaves every row in it undecidable, and a gate that stops looking reports
+     success about the rows it could read.
 
 Usage:
   status_lint.py --status <IMPLEMENTATION-STATUS.md> --spec <spec repo root>
@@ -44,8 +54,10 @@ import tomllib
 # imported rather than restated: a second copy is a second thing to change, and
 # the ceiling below is exactly what goes wrong when a reader of definitions is
 # spelled as a reader of mentions.
+import tracker
 from integrity import REQ_DEF
 from patterns import CITE, RANGE
+from tracker import DONE, LEGACY_WIDTH, REQUIREMENT_COLUMNS, STATUS_COLUMNS
 
 HEADING = re.compile(r"^##\s+(M[0-9.]+)\b")
 VERSION = re.compile(r"`(\d+\.\d+\.\d+)`")
@@ -126,75 +138,17 @@ def mentions(text: str) -> set[str]:
     return found
 
 
-def cells(line: str) -> list[str]:
-    """A table row's cells, or the empty list for anything that is not one."""
-    if not line.lstrip().startswith("|"):
-        return []
-    return [cell.strip() for cell in line.strip().strip("|").split("|")]
-
-
-#: Header spellings that name a row's requirements column. The tracker uses more
-#: than one, and a column found by name is the only way to read both table shapes
-#: — but a name this list does not know reads as the older shape and silently
-#: turns the check off, so `miscolumned()` refuses a table that looks modern and
-#: matches none of these.
-REQUIREMENT_COLUMNS = ("Spec", "Reqs", "Requirements", "Requirement")
-
-#: Columns a table of the older three-column shape carries. Anything wider is
-#: expected to name its requirements in a column of its own.
-LEGACY_WIDTH = 3
-
-
-def requirement_column(row: list[str]) -> int | None:
-    """The index of the row's requirements column, or None if it names none."""
-    for name in REQUIREMENT_COLUMNS:
-        if name in row:
-            return row.index(name)
-    return None
-
-
-def claiming(lines: list[str]) -> list[str | None]:
-    """For each line, the text that line *claims*, or None where it claims nothing.
-
-    A tracker holds tables of two shapes. The current one carries a requirements
-    column — `Spec` or `Reqs`, the tracker uses both — and there the claim is that
-    cell and everything else on the row is prose. The
-    older three-column tables name their requirements in the deliverable itself,
-    and there claim and prose cannot be told apart — so the whole row is read as a
-    claim, which is what keeps a row like "Form closure (`B1-R4`, `B1-R5`)" from
-    being read as a stray mention of work nobody did.
-
-    The column is found from each table's own header rather than by position,
-    because the two shapes put it in different places and a fixed index reads the
-    status column of one as the requirements of the other.
-    """
-    found: list[str | None] = []
-    column: int | None = None
-    heading = True
-    for line in lines:
-        row = cells(line)
-        if not row:
-            heading, column = True, None
-            found.append(None)
-            continue
-        if heading:
-            heading = False
-            column = requirement_column(row)
-            found.append(None)
-            continue
-        if column is not None and column < len(row):
-            found.append(row[column])
-        else:
-            found.append(line)
-    return found
-
-
 def ticked(lines: list[str]) -> set[str]:
-    """Every requirement the tracker marks done — the same reading `gate.py` takes."""
+    """Every requirement the tracker marks done — the same reading `gate.py` takes.
+
+    Literally the same: both read a row's status from the column its table names
+    it in, out of `tracker.py`, because two spellings of *done* is how one gate
+    comes to accept what the other refuses.
+    """
     done: set[str] = set()
-    for line in lines:
-        if "✅" in line:
-            done.update(mentions(line))
+    for row in tracker.rows(lines):
+        if row is not None and row.done:
+            done.update(mentions(row.line))
     return done
 
 
@@ -249,16 +203,11 @@ def unlocked(status, lines, locked) -> list[str]:
     )
 
 
-def separator(row: list[str]) -> bool:
-    """Whether a parsed row is the `|---|---|` rule under a header."""
-    return bool(row) and all(re.fullmatch(r":?-{3,}:?", cell) for cell in row)
-
-
 def miscolumned(status, lines) -> list[str]:
     """Tables whose rows are read as a shape that checks nothing.
 
-    `claiming()` finds the requirements column by its header, and a header it does
-    not know reads as the older three-column shape: the whole row becomes the
+    `tracker.rows()` finds the requirements column by its header, and a header it
+    does not know reads as the older three-column shape: the whole row becomes the
     claim, and `unclaimed()` then skips every row in that table. The check does not
     fail, it stops looking — which is the shape worth refusing outright, because a
     tracker table is where a requirement gets marked done.
@@ -275,7 +224,7 @@ def miscolumned(status, lines) -> list[str]:
         if header is None or rows == 0:
             return
         number, row = header
-        if len(row) <= LEGACY_WIDTH or requirement_column(row) is not None:
+        if len(row) <= LEGACY_WIDTH or tracker.column_named(row, REQUIREMENT_COLUMNS) is not None:
             return
         found.append(
             f"{status}:{number}: this table has {len(row)} columns and none is named "
@@ -285,12 +234,12 @@ def miscolumned(status, lines) -> list[str]:
         )
 
     for number, line in enumerate(lines, start=1):
-        row = cells(line)
+        row = tracker.cells(line)
         if not row:
             verdict()
             header, rows = None, 0
             continue
-        if separator(row):
+        if tracker.is_rule(row):
             continue
         if header is None:
             header = (number, row)
@@ -301,31 +250,72 @@ def miscolumned(status, lines) -> list[str]:
 
 
 def unclaimed(status, lines) -> list[str]:
-    """Requirements a ticked row marks done in its prose rather than in its column.
+    """Requirements a done row marks done in its prose rather than in its column.
 
     Naming another requirement in a row's prose is ordinary — a deliverable
-    explains what it rests on — and stays legal wherever some ticked row claims
+    explains what it rests on — and stays legal wherever some done row claims
     that requirement in its own column. What this refuses is the identifier no
-    ticked row ever claims: it is done in the reading and undone in the tree, and
+    done row ever claims: it is done in the reading and undone in the tree, and
     the sentence carrying it is usually one saying so.
     """
-    claimed_by = claiming(lines)
+    read = tracker.rows(lines)
     claimed: set[str] = set()
-    for line, claim in zip(lines, claimed_by, strict=True):
-        if "✅" in line and claim is not None:
-            claimed.update(mentions(claim))
+    for row in read:
+        if row is not None and row.done:
+            claimed.update(mentions(row.claim))
 
     faults = []
-    for number, (line, claim) in enumerate(zip(lines, claimed_by, strict=True), start=1):
-        if "✅" not in line or claim is None or claim == line:
+    for number, row in enumerate(read, start=1):
+        if row is None or not row.done or row.claim == row.line:
             continue
-        stray = sorted(mentions(line) - mentions(claim) - claimed)
+        stray = sorted(mentions(row.line) - mentions(row.claim) - claimed)
         if stray:
             faults.append(
                 f"{status}:{number}: marks {', '.join(stray)} done by naming it in a "
                 "ticked row that does not claim it, and no ticked row claims it"
             )
     return faults
+
+
+def misplaced_glyph(status, lines) -> list[str]:
+    """The tick character written somewhere on a row other than its status cell.
+
+    The rule the tracker's preamble had to ask authors to follow, enforced. Both
+    gates once decided a row by whether its line held the glyph, so a `◐` row
+    whose notes read "this is ✅ when they start" was read as done — three
+    requirements were counted as met that way, and a fourth moved a release gate
+    from 69 of 72 to 70 before anybody looked.
+
+    Reading by column fixed that, and this keeps the shape from coming back by
+    another route: a glyph in the prose is a trap for whoever next edits the
+    status cell and leaves the sentence behind.
+
+    Only the *done* glyph. `◐` and `☐` in a sentence cannot mark anything done,
+    and refusing them would be a stricter rule than the harm asks for — two rows
+    of the tracker use `◐` in prose to name the state rather than to claim it.
+    """
+    return [
+        f"{status}:{number}: writes {DONE} outside the "
+        f"{' or '.join(STATUS_COLUMNS)} column, where it says nothing and misleads "
+        "everyone. Write \"ticked\" — the word is safe, the character is not."
+        for number, row in enumerate(tracker.rows(lines), start=1)
+        if row is not None and DONE in row.stray_glyphs
+    ]
+
+
+def unreadable(status, lines) -> list[str]:
+    """Tables in which no row can be told done from not done.
+
+    The same refusal `miscolumned` makes about the requirements column, for the
+    other column a row is read by. A gate that cannot decide does not fail on
+    such a table — it skips it, and silence reads as a pass.
+    """
+    return [
+        f"{status}:{number}: this table names no {' or '.join(STATUS_COLUMNS)} column, "
+        "so no row in it can be read as done or not done. Name the status column, or "
+        "add its heading to STATUS_COLUMNS."
+        for number in tracker.statusless(lines)
+    ]
 
 
 def main() -> int:
@@ -349,7 +339,9 @@ def main() -> int:
         *misnamed(status, lines, manifests(spec)[0]),
         *unlocked(status, lines, manifests(spec)[1]),
         *unclaimed(status, lines),
+        *misplaced_glyph(status, lines),
         *miscolumned(status, lines),
+        *unreadable(status, lines),
     ]
 
     for fault in faults:

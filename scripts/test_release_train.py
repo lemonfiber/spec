@@ -23,6 +23,10 @@ import tempfile
 import tomllib
 import unittest
 
+#: The header every tracker table carries, and without which no row in it has a
+#: status to read. Spelled once here so a fixture is a row rather than a table.
+HEADER = "| Deliverable | Spec | Status | Landing / notes |\n|---|---|---|---|\n"
+
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import check_stageable  # noqa: E402
@@ -85,8 +89,9 @@ class Workspace(unittest.TestCase):
     def status_file(self, path="checkouts/lf/IMPLEMENTATION-STATUS.md"):
         p = pathlib.Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text("| **B1-R4** | x | ✅ |\n| **C1-R1..R12** | x | ✅ |\n"
-                     "| **Z9-R9** | x | ☐ |\n", encoding="utf-8")
+        p.write_text(HEADER + "| x | **B1-R4** | ✅ | y |\n"
+                     "| x | **C1-R1..R12** | ✅ | y |\n"
+                     "| x | **Z9-R9** | ☐ | y |\n", encoding="utf-8")
         return str(p)
 
 
@@ -98,42 +103,47 @@ class LandedTests(Workspace):
                               capture_output=True, text=True).stdout.strip()
 
     def rows(self, text, path="checkouts/lf/IMPLEMENTATION-STATUS.md"):
+        """A tracker holding `text` as the body of one table.
+
+        The header is not decoration: a row's status is read from the column its
+        table names, so a bare row has no status to read and cannot be done.
+        """
         p = pathlib.Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(text, encoding="utf-8")
+        p.write_text(HEADER + text, encoding="utf-8")
         return p
 
     def test_a_row_naming_a_commit_in_the_history_carries_its_goals(self):
         """The whole point: a goal nothing cites, finished by a commit that is there."""
         self.repo("checkouts/lf", trailer="Spec: B1-R4")
         sha = self.head_of("checkouts/lf")
-        rows = self.rows(f"| **Z9-R9** | x | ✅ | landed in `{sha}` |\n")
+        rows = self.rows(f"| x | **Z9-R9** | ✅ | landed in `{sha}` |\n")
         landed = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
         self.assertIn("Z9-R9", landed)
 
     def test_a_row_naming_a_commit_nobody_has_carries_nothing(self):
         """What stops this being a way to tick anything by writing eight characters."""
         self.repo("checkouts/lf")
-        rows = self.rows("| **Z9-R9** | x | ✅ | landed in `deadbeefdeadbeef` |\n")
+        rows = self.rows("| x | **Z9-R9** | ✅ | landed in `deadbeefdeadbeef` |\n")
         landed = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
         self.assertEqual(landed, set())
 
     def test_a_row_that_is_not_done_carries_nothing_however_it_is_written(self):
         self.repo("checkouts/lf")
         sha = self.head_of("checkouts/lf")
-        rows = self.rows(f"| **Z9-R9** | x | ☐ | landed in `{sha}` |\n")
+        rows = self.rows(f"| x | **Z9-R9** | ☐ | landed in `{sha}` |\n")
         self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), set())
 
     def test_a_done_row_with_no_commit_named_carries_nothing_here(self):
         """The ordinary row. This arm only ever adds; it never stands in for the tick."""
         self.repo("checkouts/lf")
-        rows = self.rows("| **Z9-R9** | x | ✅ | nothing named |\n")
+        rows = self.rows("| x | **Z9-R9** | ✅ | nothing named |\n")
         self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), set())
 
     def test_a_range_on_a_named_row_is_spanned_like_any_other(self):
         self.repo("checkouts/lf")
         sha = self.head_of("checkouts/lf")
-        rows = self.rows(f"| **C1-R1..R3** | x | ✅ | landed in `{sha}` |\n")
+        rows = self.rows(f"| x | **C1-R1..R3** | ✅ | landed in `{sha}` |\n")
         landed = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
         self.assertEqual(landed, {"C1-R1", "C1-R2", "C1-R3"})
 
@@ -147,6 +157,95 @@ class LandedTests(Workspace):
 
     def test_reachable_says_no_for_a_path_that_is_not_a_repository(self):
         self.assertFalse(gate.reachable(pathlib.Path("nowhere"), "HEAD"))
+
+
+class ByColumnNotByLine(Workspace):
+    """A row is done because its status column says so, and for no other reason.
+
+    Both gates used to decide by whether the *line* held the glyph. The tracker's
+    preamble records three requirements counted as met that way, and a fourth
+    moved the release gate from 69 of 72 to 70 on a row that visibly says `◐` —
+    its notes ended "this row is ✅ when they start". Every test here plants that
+    exact shape.
+    """
+
+    def tracker(self, body, path="checkouts/lf/IMPLEMENTATION-STATUS.md"):
+        p = pathlib.Path(path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(body, encoding="utf-8")
+        return p
+
+    def test_the_glyph_in_a_partial_rows_prose_does_not_mark_it_done(self):
+        rows = self.tracker(
+            HEADER + "| Stack runs | `F1-R1` | ◐ | Three left; this row is ✅ when they start. |\n")
+        self.assertEqual(gate.done_ids(rows), set())
+
+    def test_the_glyph_in_the_status_column_does_mark_it_done(self):
+        # The other direction, which matters as much: a gate that counts nothing
+        # is as useless as one that counts everything.
+        rows = self.tracker(HEADER + "| Stack runs | `F1-R1` | ✅ | All nineteen answer. |\n")
+        self.assertEqual(gate.done_ids(rows), {"F1-R1"})
+
+    def test_a_partial_row_beside_a_done_one_is_read_apart_from_it(self):
+        rows = self.tracker(
+            HEADER
+            + "| Catalogue | `F2-R10` | ✅ | Done. |\n"
+            + "| Stack runs | `F1-R1` | ◐ | Not yet — see the ✅ row above. |\n")
+        self.assertEqual(gate.done_ids(rows), {"F2-R10"})
+
+    def test_the_glyph_in_prose_outside_any_table_marks_nothing(self):
+        # A paragraph is not a row, and the preamble of the real tracker is full
+        # of sentences naming requirements.
+        rows = self.tracker(
+            "Never name an unfinished requirement such as `F1-R1` inside a ✅ row.\n")
+        self.assertEqual(gate.done_ids(rows), set())
+
+    def test_the_older_three_column_shape_is_still_read(self):
+        # Its status column sits where the modern shape keeps requirements, which
+        # is exactly why the column is found by name rather than by position.
+        rows = self.tracker(
+            "| Deliverable | Status | Landing |\n|---|---|---|\n"
+            "| Form closure (`B1-R4`, `B1-R5`) | ✅ | #14 |\n")
+        self.assertEqual(gate.done_ids(rows), {"B1-R4", "B1-R5"})
+
+    def test_a_second_table_is_read_with_its_own_header(self):
+        rows = self.tracker(
+            HEADER + "| Stack runs | `F1-R1` | ◐ | y |\n"
+            "\nProse between them.\n\n"
+            "| Deliverable | Status | Landing |\n|---|---|---|\n"
+            "| Retention (`C1-R1`) | ✅ | #21 |\n")
+        self.assertEqual(gate.done_ids(rows), {"C1-R1"})
+
+    def test_a_table_with_no_status_column_is_refused_rather_than_skipped(self):
+        # A gate that cannot decide must not report success about the rest.
+        rows = self.tracker(
+            "| Deliverable | Spec | Landing |\n|---|---|---|\n"
+            "| Stack runs | `F1-R1` | #76 |\n")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), self.assertRaises(SystemExit) as exit:
+            gate.done_ids(rows)
+        self.assertEqual(exit.exception.code, 2)
+        self.assertIn("names no Status column", out.getvalue())
+
+    def test_a_header_with_no_rows_under_it_is_not_refused(self):
+        # A table nobody has filled in yet decides nothing and hides nothing.
+        rows = self.tracker("| Deliverable | Spec | Landing |\n|---|---|---|\n")
+        self.assertEqual(gate.done_ids(rows), set())
+
+    def test_a_row_shorter_than_its_header_promised_is_not_done(self):
+        # There is no cell to read a status from, and a row that cannot be read
+        # is not a row that says yes.
+        rows = self.tracker(HEADER + "| `F1-R1` ✅ |\n")
+        self.assertEqual(gate.done_ids(rows), set())
+
+    def test_a_landing_named_on_a_partial_row_carries_nothing(self):
+        # The same reading, on the other arm: `landed_ids` shared the flaw.
+        self.repo("checkouts/lf")
+        sha = subprocess.run(["git", "-C", "checkouts/lf", "rev-parse", "HEAD"],
+                             capture_output=True, text=True).stdout.strip()
+        rows = self.tracker(
+            HEADER + f"| Stack runs | `F1-R1` | ◐ | ✅ once done; landed in `{sha}` |\n")
+        self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), set())
 
 
 class GateTests(Workspace):
