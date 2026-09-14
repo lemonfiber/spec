@@ -9,7 +9,7 @@ maturity: planned
 priority: P1
 labels: [mobile, ux, verification]
 requires: [N1, C1, C3, G7]
-relates: [B2, B4, B5, C2, C7, C8, D5, E1]
+relates: [B2, B4, B5, C2, C7, C8, D5, E1, E4]
 ---
 
 # N2 — The operator's companion
@@ -63,6 +63,33 @@ estimate: a duration worked out in the app would be a guess at something the sta
 knows and the app does not, wrong in exactly the cases an operator most needs it,
 and wrong silently, because nothing on either side would ever compare it to what
 happened.
+
+### An update is a decision, not a number
+
+Whether the stack is current is an answer, and the app opens on it the way it
+opens on everything else here ([E1](../e-maintenance/e1-stack-updates.md)). An
+operator holding a phone is not comparing version strings; they are deciding
+whether tonight is the night.
+
+So what is offered is what the decision needs. That a release is user-facing is
+the distinction that matters on this surface — a change somebody in the house
+will notice is a different decision from a patch nobody will — and a release
+that has been withdrawn is not an update at all. Applying one asks first, and
+says which services it would change, because an update of eight services and an
+update of one are different evenings.
+
+**Undoing is part of the offer, and the two ways of undoing are not
+interchangeable.** A rollback puts the previous version back; a restore puts
+back what was there ([E4](../e-maintenance/e4-rollback.md)). Which one is
+available is the stack's answer per service, and an app that flattened them into
+*undo* would be promising a thing it cannot tell it has. Where the stack named
+neither, nothing is offered — an undo that is not there is worse than none,
+because it is what somebody agreed to the update on the strength of.
+
+Afterwards, each service says how it ended, and *not fetched*, *not started* and
+*not reached* are three different evenings too: one is a network, one is the
+service, one is the machine. A single *failed* would send an operator looking in
+the wrong place.
 
 ### The things that go wrong while nobody is watching
 
@@ -130,6 +157,12 @@ type a provider password into over a LAN.
 | **N2-R12** | The app MUST NOT offer to set or change a credential's value. |
 | **N2-R13** | A reading older than the current session MUST carry its age wherever it is shown, including on the opening verdict. |
 | **N2-R14** | Where the contract does not carry something a requirement here asks the app to state, the app MUST NOT substitute a value of its own; the gap MUST be raised against the contract (`N1-R17`) and the requirement MUST be answered there. |
+| **N2-R15** | The app MUST report whether the stack is current, has an update pending, or is stale, as the stack reported it, and MUST NOT derive that answer by comparing version strings of its own. |
+| **N2-R16** | Where an update is pending, the app MUST distinguish a release the household will notice from one it will not, and MUST NOT present a withdrawn release as an update. |
+| **N2-R17** | Applying an update MUST be confirmed before it runs, and the confirmation MUST name the services it would change. |
+| **N2-R18** | The app MUST report how an applied update ended for each service, and MUST distinguish *updated*, *not fetched*, *not started* and *not reached* from one another rather than reporting a single failure. |
+| **N2-R19** | Where an update can be undone, the app MUST say which way it can be undone — a rollback and a restore are not one offer — and MUST NOT offer undoing where the stack named neither. |
+| **N2-R20** | The app MUST NOT apply an update the stack did not report as pending, and MUST NOT offer to apply one where the stack reported the version in use is current. |
 
 ## Related
 

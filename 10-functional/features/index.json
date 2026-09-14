@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 80,
-    "requirements": 1164,
+    "requirements": 1170,
     "areas": "A–N"
   },
   "versions": [
@@ -2813,7 +2813,8 @@
         "C7",
         "C8",
         "D5",
-        "E1"
+        "E1",
+        "E4"
       ],
       "versions": [],
       "path": "n-companion/n2-operator-companion.md"
