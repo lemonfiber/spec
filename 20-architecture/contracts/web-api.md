@@ -56,7 +56,7 @@ GET /api/checks        GET /api/storage        GET /api/logs?…
 GET /api/requests      GET /api/trace?…        GET /api/stuck
 GET /api/version       GET /api/config?…       GET /api/quality
 GET /api/explain?…     GET /api/backups        GET /api/bundle/{name}
-GET /api/front-door    GET /api/provenance
+GET /api/front-door    GET /api/provenance    GET /api/catalogue
 GET /api/outbound      GET /api/stored       GET /api/clients
 GET /api/credentials   GET /api/alerts
 GET /api/space         GET /api/bandwidth
