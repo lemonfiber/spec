@@ -11,7 +11,8 @@ here.
 [B1-R3](../../10-functional/features/b-running/b1-forms.md),
 [F1-R5](../../10-functional/features/f-extensibility/f1-customisation.md),
 [F1-R9](../../10-functional/features/f-extensibility/f1-customisation.md),
-[F2-R1](../../10-functional/features/f-extensibility/f2-service-catalogue.md)–[F2-R4](../../10-functional/features/f-extensibility/f2-service-catalogue.md)
+[F2-R1](../../10-functional/features/f-extensibility/f2-service-catalogue.md)–[F2-R4](../../10-functional/features/f-extensibility/f2-service-catalogue.md),
+[F2-R10](../../10-functional/features/f-extensibility/f2-service-catalogue.md)
 
 ---
 
@@ -143,6 +144,8 @@ upstream    = "https://github.com/Sonarr/Sonarr"
 last_release = "2026-06-26"
 describes   = "Watches for new episodes and fetches them"
 without_it  = "Find and download episodes yourself"
+reaches     = "television metadata providers"
+asks_for    = "Reads series, season and episode information, artwork and air dates for what is in your library and what you add to it."
 media_types = ["tv"]
 ```
 
@@ -164,10 +167,45 @@ media_types = ["tv"]
 | `last_release` | string | ✔ | `YYYY-MM-DD`. The **latest upstream release**, not the pinned one — an abandonment signal, refreshed when the pin is reviewed (`F2-R14`) |
 | `describes` | string | ✔ | What it does *for the operator* (`F2-R1`) |
 | `without_it` | string | ✔ | Consequence of its absence (`F2-R2`) |
+| `reaches` | string | | Where this service's own requests go, in terms an operator would recognise. `""` means it reaches nothing — an answer, not an omission. Both this and `asks_for` or neither (`F2-R10`). |
+| `asks_for` | string | | What it asks for there. Never blank, including for a service that reaches nothing (`F2-R10`). |
 | `media_types` | array | | Which media types it handles; drives root-folder seeding |
 | `depends_on` | array | | **Same profile only.** Cross-profile entries fail validation (`B1-R14`). |
 | `grants` | array | | Extra kernel capabilities granted to the container, e.g. `["NET_ADMIN"]`. Any entry beyond an allow-list fails validation. Spelled `capabilities` until `0.16.0`; that spelling is still accepted and always will be, because a rename is not a reason to refuse to read somebody's own stack description. |
 | `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`) |
+
+### `reaches` and `asks_for` — the errand, where the errand is decided
+
+The privacy inventory lists what leaves the machine, and most of what leaves it is
+not lemonfiber's. An indexer query is Prowlarr asking an indexer; a poster is
+Radarr asking a metadata provider. Those are the stack's errands, and the stack is
+what knows them.
+
+This pair used to be a table compiled into lemonfiber, keyed by service id. That
+made the catalogue's prose version with the binary rather than with the stack that
+carries it, which `F2-R10` forbids, and it meant a service added to a Compose
+project could not be described until a lemonfiber release shipped — the one cost
+`F1-R5` exists to refuse. Declaring it here is what makes both true at once.
+
+Three consequences worth stating, because each is a case somebody will meet:
+
+- **A service that declares neither is reported as one lemonfiber has no record
+  of**, and listed rather than dropped. There is no compiled table left to answer
+  for it. Saying nothing is honest; guessing, or leaving it out of an inventory
+  that reads as complete, is not.
+- **An empty `reaches` is the strongest claim here**, not a missing value. It says
+  no request leaves the machine, which is why `asks_for` may not be blank beside
+  it: a service that goes nowhere still says what it does instead.
+- **Half the pair is none of it.** A destination with no purpose attached describes
+  where without why, and "it talks to a metadata provider" and "it sends your
+  library to a metadata provider" are the same destination and different decisions.
+
+The pair is optional in the *format*, so an operator's own stack directory
+(`F1-R3`) stays readable without it. It is not optional of a bundled service: the
+stack this project ships declares it for every service, its own validation refuses
+one that does not, and the lemonfiber build refuses a stack that leaves any service
+silent. An inventory of what leaves a machine is only honest if a service cannot
+arrive in it unlisted.
 
 ### `health`
 
@@ -253,6 +291,9 @@ Validation reports **every** violation in one pass, each naming its location
 | `bind` present when `port` is | Service named |
 | `license` is a recognised OSI identifier | Service and licence named (`F2-R5`) |
 | `last_release` is `YYYY-MM-DD` and not in the future | Service and value named (`F2-R14`) |
+| `reaches` and `asks_for` declared together or not at all | Service and the declared half named (`F2-R10`) |
+| `asks_for` is not blank where it is declared | Service named (`F2-R10`) |
+| No service is silent about its errand in a manifest where another declares one | Every silent service named (`F2-R10`) |
 | `grants` within the allow-list | Service and kernel capability named |
 | `protocol` is a permitted value | Profile and value named |
 | At most one profile per `protocol` | Both profiles named |
