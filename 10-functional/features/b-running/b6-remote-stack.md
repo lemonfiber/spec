@@ -5,7 +5,7 @@ kind: feature
 area: B
 audience: operator
 status: accepted
-maturity: planned
+maturity: building
 labels: [cli, network]
 relates: [B2, C6, G1]
 ---

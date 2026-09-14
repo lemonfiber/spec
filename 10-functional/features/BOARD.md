@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 6 built, 4 building, 31 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 5 building, 29 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -60,6 +60,7 @@ code, and the two move independently.
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
+| [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.14.0` |
 | [E2](e-maintenance/e2-self-update.md) | Self-update | E | operator | accepted | `0.14.0` |
 | [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.14.0`, `0.3.0` |
@@ -72,6 +73,7 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.5.0`, `1.0.0` |
+| [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
@@ -80,8 +82,6 @@ code, and the two move independently.
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
-| [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
-| [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.22.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
 | [F4](f-extensibility/f4-capabilities.md) | The capability vocabulary | F | operator | accepted | `0.16.0` |
