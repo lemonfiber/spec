@@ -169,5 +169,38 @@ class Dependabot(GateCase):
         self.assertIn("cites GOV-R12, Q-R55", out)
 
 
+class AMergeGroup(GateCase):
+    """`--citation-optional`: the event with no pull request to read.
+
+    A merge queue asks this gate about a batch on a branch of its own, and that
+    event carries no body and no author — two of the three places GOV-R2 looks.
+    So presence stops being required and GOV-R3 does not, and both halves of
+    that are held here, because a flag that quietly took the whole gate with it
+    would look exactly like this one from the outside.
+    """
+
+    def test_citing_nothing_is_not_a_refusal(self):
+        code, out = self.check("A commit message with no trailer.\n", "--citation-optional")
+        self.assertEqual(code, 0)
+        self.assertIn("nothing cited", out)
+
+    def test_an_identifier_that_does_not_exist_is_still_refused(self):
+        code, out = self.check("Spec: GOV-R999\n", "--citation-optional")
+        self.assertEqual(code, 1)
+        self.assertIn("do not exist on spec@main: GOV-R999", out)
+
+    def test_what_is_cited_is_still_resolved_and_reported(self):
+        code, out = self.check("Spec: GOV-R12\n", "--citation-optional")
+        self.assertEqual(code, 0)
+        self.assertIn("cites GOV-R12", out)
+
+    def test_without_the_flag_the_same_text_is_refused(self):
+        # The pair, rather than the permissive half alone: this is the line the
+        # flag moves, and a test that only ever passes it cannot show that.
+        code, out = self.check("A commit message with no trailer.\n")
+        self.assertEqual(code, 1)
+        self.assertIn("no `Spec:` citation found", out)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
