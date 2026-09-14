@@ -138,6 +138,7 @@ type a provider password into over a LAN.
 | A disruptive check is available | It is offered only with what it disturbs and for how long stated first. |
 | The verdict is unknown because the engine is down | Reported as the engine being down, which is a different remedy from a check that failed. |
 | A log window is requested for a service that is not running | The absence is stated; an empty window is not shown as though the service were quiet. |
+| Something is running on the machine that the stack does not declare | Named and shown apart from the stack's own services, with no verb offered against it. The app did not start it and cannot say what it is for. |
 
 ## Acceptance criteria
 
@@ -163,6 +164,7 @@ type a provider password into over a LAN.
 | **N2-R18** | The app MUST report how an applied update ended for each service, and MUST distinguish *updated*, *not fetched*, *not started* and *not reached* from one another rather than reporting a single failure. |
 | **N2-R19** | Where an update can be undone, the app MUST say which way it can be undone — a rollback and a restore are not one offer — and MUST NOT offer undoing where the stack named neither. |
 | **N2-R20** | The app MUST NOT apply an update the stack did not report as pending, and MUST NOT offer to apply one where the stack reported the version in use is current. |
+| **N2-R21** | Where the stack reports containers running on the machine that its own configuration does not declare, the app MUST make them reachable, MUST name each and state what it is running, and MUST NOT present one as part of the stack or offer a verb against it. |
 
 ## Related
 
