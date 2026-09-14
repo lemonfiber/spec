@@ -34,6 +34,7 @@ project should be operable from one page.
 | # | Step | Repos | Needed for |
 |---|------|-------|-----------|
 | 6 | Branch protection: PR + signed commits + **strict** required checks (incl. SonarCloud), linear history, conversation-resolution, `enforce_admins` **on** | all | Governance is enforced, not advisory, and not exempt for the people who wrote it |
+| 6a | Pin every required status check to the app that reports it — **outstanding**, see [the unpinned checks](#the-unpinned-required-checks-specifically) | all | A required check with no app behind it can be reported by anything that can write a status, so the requirement is decorative |
 | 7 | Add `SONAR_TOKEN` secret | every repo with a Sonar job | The Sonar scan, and the `Q-R64` issue gate — which warns rather than fails where the secret is missing |
 | 8 | Add a token that can push to `homebrew-tap` | `lemonfiber` | Release regenerates the formula, from `1.0.0` (`L1-R3`) |
 | 9 | Add npm publish auth (`NPM_TOKEN`) | `brand` | Publishing `@lemonfiber/brand` |
@@ -43,6 +44,44 @@ project should be operable from one page.
 | 12 | Add `CNAME docs → lemonfiber.github.io` in Cloudflare DNS, proxied; enable **GitHub Pages** (source: Actions) with custom domain `docs.lemonfiber.app` | `website-docs.lemonfiber.app` | [docs.lemonfiber.app](https://docs.lemonfiber.app) resolves and serves |
 | 13 | Turn on **Always Use HTTPS** and set the zone's SSL/TLS mode to **Full** | zone | `http://docs.lemonfiber.app` answers `301` to `https://`, and the hop to GitHub stays encrypted |
 | 14 | Apply the **Bulk Redirect** list for the surfaces that moved to the documentation site — **outstanding**, see [the rules](#the-redirect-list-specifically) | zone | Every URL the marketing site published for a moved page answers `301` to its new address |
+
+### The unpinned required checks, specifically
+
+**Outstanding**, on the repositories listed below rather than on a count that
+goes stale. A required status check is stored as a context *and* an app id. With
+an app id, only that app's report satisfies it. With `null`, any integration
+that can write a commit status satisfies it — so the check is required in the
+sense that something must report it, and not in the sense that the gate must
+pass.
+
+That is the whole of the exposure: these are governance checks, and a
+governance check anything can answer is one nothing has to.
+
+| Repo | Contexts with no app id |
+|---|---|
+| `lemonfiber` | `spec-check / spec-check`, `dco / dco` |
+| `brand` | `spec-check / spec-check`, `dco / dco` |
+| `homebrew-tap` | `spec-check / spec-check`, `dco / dco` |
+| `lemonfiber-media-stack` | `gate / gate` |
+| `spec` | `dco` |
+
+Every other required check across the fleet carries `15368` (GitHub Actions), or
+`12526` for the context SonarQube Cloud's own app posts. The unpinned ones are
+the oldest, which is what a UI-typed context name produces: the API records the
+app only when the protection is written through it or when GitHub can resolve a
+report it has already seen.
+
+It is not urgent — nothing else can currently report these contexts in these
+repositories — and it is not fixable by committed config, which is why it is
+here rather than in a workflow.
+
+**The fix is a read-modify-write of the whole protection object**, per repo:
+read `required_status_checks.checks`, set `app_id` to `15368` on the rows above,
+and write the *complete* object back. The endpoint is a `PUT` that replaces
+everything it is given, so a field omitted is a field switched off — read the
+object again afterwards and diff it against the one you read first. `spec` is
+the exception: `dco` there is the spec repo's own self-triggered job, so its
+reporter is Actions like the rest.
 
 ### The docs site's certificate, specifically
 
