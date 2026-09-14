@@ -116,3 +116,13 @@ jobs:
       # `accept` list which cannot run, out of the committed workflow.
       - name: An accept list that does not run is refused
         run: python3 scripts/test_dead_accept.py
+
+      # Not a coverage suite: it drives `shared/hooks/commit-msg` as what it is —
+      # a message file in, an exit status out — and holds the three near-misses it
+      # must let through, because a hook that refuses prose or a human co-author
+      # is a hook people pass `--no-verify`, and the bypass takes the other three
+      # checks with it. It also reads the hook's list of assistants against
+      # `attribution_check.py`'s: a POSIX shell cannot read a Python tuple, so the
+      # names are spelled twice and nothing else compares them (GOV-R46, Q-R57).
+      - name: The hook refuses what CI refuses, and no more (Q-R57, Q-R66)
+        run: python3 scripts/test_commit_msg_hook.py
