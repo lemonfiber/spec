@@ -139,6 +139,7 @@ type a provider password into over a LAN.
 | The verdict is unknown because the engine is down | Reported as the engine being down, which is a different remedy from a check that failed. |
 | A log window is requested for a service that is not running | The absence is stated; an empty window is not shown as though the service were quiet. |
 | Something is running on the machine that the stack does not declare | Named and shown apart from the stack's own services, with no verb offered against it. The app did not start it and cannot say what it is for. |
+| An update would make a change that cannot be undone | Said in the confirmation, against the service it is true of, before the operator agrees. Undoing the update afterwards will not put this back. |
 
 ## Acceptance criteria
 
@@ -165,6 +166,7 @@ type a provider password into over a LAN.
 | **N2-R19** | Where an update can be undone, the app MUST say which way it can be undone — a rollback and a restore are not one offer — and MUST NOT offer undoing where the stack named neither. |
 | **N2-R20** | The app MUST NOT apply an update the stack did not report as pending, and MUST NOT offer to apply one where the stack reported the version in use is current. |
 | **N2-R21** | Where the stack reports containers running on the machine that its own configuration does not declare, the app MUST make them reachable, MUST name each and state what it is running, and MUST NOT present one as part of the stack or offer a verb against it. |
+| **N2-R22** | Where the stack reports that a change an update would make cannot be undone, the confirmation MUST say so before it is agreed to, and MUST name the services it is true of. |
 
 ## Related
 
