@@ -94,7 +94,7 @@
       "version": "0.15.0",
       "status": "staged",
       "milestone": "M9",
-      "goals": 71
+      "goals": 72
     },
     {
       "version": "0.16.0",
@@ -437,7 +437,8 @@
       "maturity": "shipped",
       "shipped": "0.8.0",
       "milestones": [
-        "M6"
+        "M6",
+        "M9"
       ],
       "milestone": "M6",
       "priority": null,
@@ -453,6 +454,10 @@
         "B8"
       ],
       "versions": [
+        {
+          "version": "0.15.0",
+          "status": "staged"
+        },
         {
           "version": "0.8.0",
           "status": "released"
