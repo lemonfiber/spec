@@ -38,6 +38,16 @@
 # and the manifest surface that uses them, which is what turns a plugin that can be
 # read into one that can be useful.
 #
+# The architecture numbers are goals here for the first time since 0.10.0, and the
+# reason is the same one: what those three artefacts must be is settled in the
+# contracts rather than in the feature. A feature says a vocabulary is published;
+# `ARCH-R106..R110` say what is in it, that `declared_by` is read off the stack
+# rather than written, and that a probe asks what the service does. `ARCH-R111..R115`
+# and `R118` do the same for the points, `R116` and `R117` for the manifest surface,
+# `R92` and `R93` for the generated schema, and `R119` for what a probe may assume the
+# operator has. Leaving them out of every version was why an implementation could mark
+# them done and be told the spec did not back the claim.
+#
 # F10 is here rather than unscheduled, and it is here because it was being built
 # against while it was still Draft — which is the one thing the status vocabulary
 # says a Draft may not be. The template it asks for exists, the schema it is
@@ -45,7 +55,7 @@
 # are answerable from the binary. A feature whose requirements are being satisfied
 # is not proposed; it is late being said so.
 #
-# 90 goals, seeded from the roadmap milestone this version serves;
+# 106 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
@@ -144,6 +154,22 @@ goals   = [
     "F10-R8",
     "F10-R9",
     "F10-R10",
+    "ARCH-R92",
+    "ARCH-R93",
+    "ARCH-R106",
+    "ARCH-R107",
+    "ARCH-R108",
+    "ARCH-R109",
+    "ARCH-R110",
+    "ARCH-R111",
+    "ARCH-R112",
+    "ARCH-R113",
+    "ARCH-R114",
+    "ARCH-R115",
+    "ARCH-R116",
+    "ARCH-R117",
+    "ARCH-R118",
+    "ARCH-R119",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
