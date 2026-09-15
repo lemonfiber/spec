@@ -112,6 +112,32 @@ contract now has a consumer it does not know about. A missing capability is
 information — it says the contract or the SDK is behind — and information is
 worth more than the screen it was blocking.
 
+### The first run is a route through, not a screen to work out
+
+`N1-R35` says a launch with no stack configured offers pairing rather than an
+empty operator surface. That is the floor, and a single screen with two buttons
+on it meets the floor while leaving the operator to work out what this
+application is, what it needs of them, and which of the two ways to pair is the
+one they can actually do right now.
+
+**Setup happens at the machine, and the app has to say so before it asks for
+anything.** `N1-R4` puts first-run setup on the host, and somebody who installed
+the app first has arrived in the wrong place — they need to be told that, once,
+in a sentence, rather than discovering it by pairing and finding nothing to do.
+
+So the first run is a sequence with a stated end: what this is, what has to be
+true at the machine, and then the pairing itself. Each step says which one it is
+and how many there are, because a sequence whose length is unknown reads as a
+form that might not end. It is leavable at every step, and leaving lands on the
+pairing screen rather than on nothing — the operator who already knows all of
+this should not be made to read it.
+
+**It happens once and is not a setting.** The sequence is shown while the device
+holds no pairing, which is the same condition `N4-R22` reads for the lock, and
+it stops being shown the moment one is held. Neither an operator nor a screen
+can ask for it again: a wizard that can be re-entered is a place to get stuck,
+and everything it says is available afterwards in the surfaces that own it.
+
 ### An unreachable stack is a state, not a missing feature
 
 The app never hides an action because it cannot currently reach the stack. It
@@ -252,6 +278,9 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R51** | The comparable form MUST be short enough to be checked at a glance and MUST be derived from the whole fingerprint, so that two different certificates do not share one. |
 | **N1-R52** | The application's identity MUST be declared once in the repository, MUST be the same for every build of a given release, and MUST NOT be derived from the environment of whoever built it. |
 | **N1-R53** | A build whose configured identity differs from the declared one MUST be refused, naming the declared identity and the configured one. |
+| **N1-R54** | A launch with no stack configured MUST present a sequence that says what the app is, that setup happens at the machine (`N1-R4`), and then offers pairing — rather than a single screen the operator is left to interpret. |
+| **N1-R55** | Every step of that sequence MUST say which step it is and how many there are, and MUST be leavable, with leaving landing on pairing rather than on nothing. |
+| **N1-R56** | The sequence MUST be shown only while the device holds no pairing, MUST NOT be re-enterable once one is held, and MUST NOT be offered as a setting. |
 
 ## Related
 
