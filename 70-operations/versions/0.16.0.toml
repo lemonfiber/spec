@@ -45,7 +45,7 @@
 # are answerable from the binary. A feature whose requirements are being satisfied
 # is not proposed; it is late being said so.
 #
-# 89 goals, seeded from the roadmap milestone this version serves;
+# 90 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
@@ -108,6 +108,7 @@ goals   = [
     "F4-R22",
     "F4-R23",
     "F4-R24",
+    "F4-R25",
     "F6-R1",
     "F6-R2",
     "F6-R3",
