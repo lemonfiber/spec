@@ -127,6 +127,16 @@ class Citations(GateCase):
         self.assertEqual(code, 1)
         self.assertIn("GOV-R98", out)
 
+    def test_a_git_directory_cannot_retire_a_live_identifier(self):
+        git = self.root / SPEC / ".git"
+        git.mkdir()
+        (git / "stray.md").write_text(
+            "| **GOV-R12** | *Withdrawn — by a file nobody wrote.* |\n", encoding="utf-8"
+        )
+        code, out = self.check("Spec: GOV-R12\n")
+        self.assertEqual(code, 0)
+        self.assertIn("cites GOV-R12", out)
+
 
 class Usage(GateCase):
     def test_a_missing_spec_checkout_is_a_usage_error(self):
