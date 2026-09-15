@@ -298,7 +298,8 @@ of use behind it before `1.0.0` freezes it.
 ## M14 — The platform
 
 `0.16.0` and `0.17.0`. Other people's stacks, and the surface that makes them
-possible. F3–F7 are Accepted; recipes (F8) are Draft and carry no version yet.
+possible. F3–F7 and F10 are Accepted; recipes (F8) are Draft and carry no version
+yet.
 
 | Deliverable | Notes | Version |
 |-------------|-------|---------|
@@ -306,6 +307,7 @@ possible. F3–F7 are Accepted; recipes (F8) are Draft and carry no version yet.
 | The capability vocabulary | F4 — what a capability is, what its probes must show, and what happens when two things claim one | `0.16.0` |
 | Plugin lifecycle | F6 — rehearse, install, prove, verify the stack around it, and reverse through the journal on either failure | `0.16.0` |
 | Plugin provenance | F7 — four redundant answers to why did my stack do that | `0.16.0` |
+| Writing a plugin | F10 — the generated schema, the two vocabularies an author may name from, and a template that validates and proves unmodified | `0.16.0` |
 | Capabilities of the bundled services | F9 — they declare what they can do, pass the probes, and the wiring is converted to ask rather than to name | `0.17.0` |
 | The plugin catalogue | F5 — reviewed, signed, and an operator's own source on the same technical terms with unreviewed said plainly | `0.17.0` |
 | Mobile client handoff | G9 — a household member's phone reaches the library in one step | `0.17.0` |

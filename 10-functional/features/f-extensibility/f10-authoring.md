@@ -4,7 +4,7 @@ title: Writing a plugin
 kind: feature
 area: F
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [extensibility, cli, verification]
@@ -14,7 +14,7 @@ relates: [F5, F6, F8, G4]
 
 # F10 — Writing a plugin
 
-**Status:** Draft · **Audience:** Operator · **Area:** F — Extensibility
+**Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
 ---
 
