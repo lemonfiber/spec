@@ -79,7 +79,7 @@ already defines, which is what the storage overlay does.
 
 ## The service inventory
 
-19 services, all verified `linux/arm64` + `linux/amd64`, all OSI-licensed
+20 services, all verified `linux/arm64` + `linux/amd64`, all OSI-licensed
 (2026-07). Full descriptions in
 [F2](../10-functional/features/f-extensibility/f2-service-catalogue.md); the
 canonical data is in `stack.toml`.
