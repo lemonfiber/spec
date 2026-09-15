@@ -235,13 +235,18 @@ nothing here changes that. What a plugin is, to this train, is an **input to the
 gate**: a thing the release has to still be compatible with, checked on the way
 past, and never tagged.
 
-Each registered plugin pins the manifest generation it is written in, in its own
-`plugin.toml`. The lemonfiber version it is held to is pinned in
-[`plugins.toml`](plugins.toml) rather than in the plugin, and the asymmetry is
-deliberate: `plugin.toml` has no `min_lemonfiber_version` on purpose, because
-`F3-R21` refuses an unmet requirement by naming the capability rather than a
-version, which is the right answer for an operator installing one. It is not
-enough for the train, which has to be able to say what it gated against.
+**Every number the gate compares is the plugin's own.** Its `plugin.toml` says
+which manifest generation it is written in; its `targets.toml` says which release
+it is validated and proved against. [`plugins.toml`](plugins.toml) holds where to
+look and nothing else — a version pinned there as well would be a second statement
+of one fact, and the two disagree the day one of them is edited.
+
+The lemonfiber version lives in `targets.toml` rather than in the manifest because
+`ARCH-R89` forbids a manifest carrying a minimum lemonfiber version: `F3-R21`
+refuses an unmet requirement by naming the capability rather than a number that
+cannot say which one, which is the right answer for an operator installing a
+plugin. What the train needs is a different fact — which release it gated
+against — and each plugin states it in a file of its own.
 
 Every run that would cut a tag — a release and a pre-release alike — re-reads both
 pins and re-reads the report the plugin's own proofs left, and **a plugin that no
@@ -258,15 +263,17 @@ and silence reads as a pass. So each of these fails the run **by name**:
 | The registry cannot be read, or declares nothing | The run cannot be answered at all |
 | A registered repository does not exist, or cannot be cloned | Named as unreachable |
 | Its manifest is absent, unreadable, or declares no `schema_version` | Named |
-| Its manifest has moved off the generation it was registered against | Named, with both numbers |
+| It cannot say which release it targets — no `targets.toml`, unreadable, or naming none | Named |
 | Its manifest pins a generation this release does not carry | Named, with both numbers |
 | Its proof report is absent, unreadable, or was run against another version | Named |
 | Its report names no proof, or names one that is anything but passed | Named — including `unrun`, which is not a passing proof (`F3-R5`) |
 
-`from` is what keeps it from being retroactive. A plugin names the first version
-it rides; below that it is not gated and is not even cloned, because it made no
-claim about a release that predates it. At or above it, nothing about it may be
-missing.
+What a plugin targets is what keeps this from being retroactive. A release below
+it is not that plugin's business and the plugin is passed over; at or above it,
+nothing about the plugin may be missing. Every registered plugin is still
+*fetched*, because the declaration deciding whether it rides is inside it — a
+registry that could answer that question itself would be holding the second copy
+this design exists to avoid.
 
 ## What a version number means
 
@@ -421,9 +428,9 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R64** | A pre-release MUST NOT be offered as an available update, and a reader that cannot order a tag MUST pass over it rather than rank it. |
 | **OPS-R65** | Every pre-release MUST be recorded in its version's manifest with its tag, the date it was cut, the goals unmet when it was cut, and the submodule pins it embedded, so the manifest answers what went out before the release without reading the forge. |
 | **OPS-R66** | A pre-release MUST pass every check `execute-version` runs before tagging apart from the goal gate — cross-stream compatibility, release blockers, the declared version, and the plugin gate — and MUST record its pins the way `OPS-R35` requires of a release. A pre-release relaxes the goal gate and nothing else. |
-| **OPS-R67** | Every plugin the release train gates on MUST be registered under `70-operations/` with the repository holding it, the path of its manifest, the path of the report its proofs leave, the manifest generation it pins and the first version it rides. A registered plugin MUST NOT be a stream the train cuts and MUST NOT be named by any version manifest; it is an input to the gate and MUST NOT be tagged by it. |
+| **OPS-R67** | Every plugin the release train gates on MUST be registered under `70-operations/` with the repository holding it and the paths of the files the gate reads. The manifest generation a plugin is written in and the release it is validated against MUST be declared by the plugin itself and MUST NOT be restated in the registry. A registered plugin MUST NOT be a stream the train cuts and MUST NOT be named by any version manifest; it is an input to the gate and MUST NOT be tagged by it. |
 | **OPS-R68** | Every run that would cut a tag MUST re-validate every registered plugin riding that version against the manifest generation the release carries and MUST re-read the report its proofs left, and MUST refuse the run where one no longer validates, naming the plugin and what failed. |
-| **OPS-R69** | A registered plugin the gate cannot reach, whose manifest or proof report is absent or unreadable, or whose report names no proof or names one that is not passed, MUST fail the run by name. The gate MUST NOT pass over what it could not read, and MUST NOT report success about the part it could. |
+| **OPS-R69** | A registered plugin the gate cannot reach, that cannot say which release it targets, whose manifest or proof report is absent or unreadable, or whose report names no proof or names one that is not passed, MUST fail the run by name. The gate MUST NOT pass over what it could not read, and MUST NOT report success about the part it could. |
 | **OPS-R58** | A manifest MUST say where the work satisfying its goals landed, and the goal gate MUST search exactly those repositories. Where a manifest does not say, the streams it cuts are what is searched. A repository named there MUST NOT be tagged for being named: what a version *cuts* and where its goals were *satisfied* are separate lists, and a goal satisfied in a repository the gate does not search MUST be reported unmet rather than passed over. |
 
 ## Related

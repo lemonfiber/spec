@@ -182,16 +182,17 @@ jobs:
           # not reach as a failure, and a `|| true` here would turn that into a
           # plugin it was never asked about.
           python3 - <<'PY' > plugins.txt
-          import os, pathlib, sys
+          import pathlib, sys
           sys.path.insert(0, "scripts")
           import check_plugins
-          version = os.environ["VERSION"]
           for index, entry in enumerate(
               check_plugins.load_registry(pathlib.Path(check_plugins.REGISTRY))
           ):
-              # A malformed entry is left for the gate to name rather than skipped
-              # here, and one that rides a later version is not cloned at all.
-              if check_plugins.malformed(entry, index) or not check_plugins.rides(entry, version):
+              # Every registered plugin, not only the ones that ride this version:
+              # what a plugin targets is the plugin's own declaration, so the gate
+              # cannot know which ones ride until it has them. A malformed entry is
+              # left for the gate to name rather than skipped here.
+              if check_plugins.malformed(entry, index):
                   continue
               print(f"{entry['repo']}\t{entry.get('ref', 'main')}")
           PY

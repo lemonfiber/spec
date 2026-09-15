@@ -12,9 +12,14 @@ missing — each of those is a question this could decline to answer, and a gate
 declines reports success about the part it could read. So every one of them fails by
 name, and the only pass is a plugin that was found, parsed, matched and proven.
 
-`from` is what keeps that from being retroactive. A plugin names the first version it
-rides; below that it is not gated, because it was not making a claim about a release
-that predates it. At or above it, nothing about it may be missing.
+Every number compared here is the plugin's own. `plugin.toml` says which manifest
+generation it is written in; `targets.toml` says which release it is validated and
+proved against. The registry says only where to look, because a pin held in two
+places is two statements of one fact and they disagree the day one is edited.
+
+What a plugin targets is also what keeps this from being retroactive: a release
+below it is not that plugin's business and the plugin is not even cloned. At or
+above it, nothing about it may be missing.
 
 Usage:
   check_plugins.py --version X.Y.Z --schema N \\
@@ -39,7 +44,7 @@ REGISTRY = "70-operations/plugins.toml"
 #: Every field a registry entry must carry. Absent ones are named together rather
 #: than one per run, because a registry is edited by hand and a half-written entry
 #: usually has more than one thing wrong with it.
-FIELDS = ("id", "repo", "manifest", "report", "from", "schema_version")
+FIELDS = ("id", "repo", "manifest", "targets", "report")
 
 
 def within_cwd(raw: str) -> pathlib.Path:
@@ -87,14 +92,29 @@ def malformed(entry: dict, index: int) -> list[str]:
     if missing:
         named = entry.get("id", f"entry {index}")
         return [f"{named} declares no {', '.join(missing)}"]
-    if not VERSION_RE.match(str(entry["from"])):
-        return [f"{entry['id']}'s `from` is {entry['from']!r}, not X.Y.Z"]
     return []
 
 
-def rides(entry: dict, version: str) -> bool:
+def targeted(root: pathlib.Path, entry: dict) -> tuple[str | None, str | None]:
+    """Which release this plugin says it is validated against, or why that is unreadable."""
+    path = root / entry["targets"]
+    plugin = entry["id"]
+    if not path.is_file():
+        return None, f"{plugin} has no {entry['targets']} at {path}"
+    try:
+        declared = tomllib.loads(path.read_text(encoding="utf-8")).get("lemonfiber")
+    except tomllib.TOMLDecodeError as broken:
+        return None, f"{plugin}'s {entry['targets']} cannot be read: {broken}"
+    if declared is None:
+        return None, f"{plugin}'s {entry['targets']} names no lemonfiber release"
+    if not VERSION_RE.match(str(declared)):
+        return None, f"{plugin} targets {declared!r}, which is not X.Y.Z"
+    return str(declared), None
+
+
+def rides(targets: str, version: str) -> bool:
     """Whether this plugin is gated on the version being cut."""
-    return ordered(version) >= ordered(str(entry["from"]))
+    return ordered(version) >= ordered(targets)
 
 
 def read_json(path: pathlib.Path, what: str, plugin: str) -> tuple[dict | None, str | None]:
@@ -108,7 +128,7 @@ def read_json(path: pathlib.Path, what: str, plugin: str) -> tuple[dict | None, 
 
 
 def check_manifest(root: pathlib.Path, entry: dict, schema: int) -> list[str]:
-    """The plugin's own manifest, against the generation it pins and the one shipping."""
+    """The plugin's own manifest, against the generation this release carries."""
     path = root / entry["manifest"]
     plugin = entry["id"]
     if not path.is_file():
@@ -120,17 +140,9 @@ def check_manifest(root: pathlib.Path, entry: dict, schema: int) -> list[str]:
     declared = manifest.get("schema_version")
     if declared is None:
         return [f"{plugin}'s manifest declares no schema_version"]
-    problems = []
-    if declared != entry["schema_version"]:
-        problems.append(
-            f"{plugin} is registered against manifest schema {entry['schema_version']} "
-            f"and its manifest now declares {declared}"
-        )
     if declared != schema:
-        problems.append(
-            f"{plugin} pins manifest schema {declared}; this release carries {schema}"
-        )
-    return problems
+        return [f"{plugin} pins manifest schema {declared}; this release carries {schema}"]
+    return []
 
 
 def check_report(root: pathlib.Path, entry: dict, version: str) -> list[str]:
@@ -183,10 +195,6 @@ def evaluate(entries: list[dict], version: str, schema: int, where: dict[str, pa
         if broken:
             problems.extend(broken)
             continue
-        if not rides(entry, version):
-            print(f"{entry['id']} rides from {entry['from']}; {version} predates it.")
-            continue
-        gated += 1
         root = where.get(entry["repo"])
         if root is None or not root.is_dir():
             unreachable = (
@@ -195,6 +203,18 @@ def evaluate(entries: list[dict], version: str, schema: int, where: dict[str, pa
             )
             problems.append(unreachable)
             continue
+        # Read before the question of whether this plugin rides at all, because
+        # the answer lives in the plugin. A registered repository that cannot say
+        # what it targets is a fault at every version rather than one that starts
+        # mattering later.
+        targets, why = targeted(root, entry)
+        if why is not None:
+            problems.append(why)
+            continue
+        if not rides(str(targets), version):
+            print(f"{entry['id']} targets {targets}; {version} predates it.")
+            continue
+        gated += 1
         problems.extend(check_manifest(root, entry, schema))
         problems.extend(check_report(root, entry, version))
     return problems, gated

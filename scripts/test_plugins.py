@@ -35,10 +35,9 @@ ENTRY = """schema = 1
 id = "komga"
 repo = "plugin-komga"
 manifest = "plugin.toml"
+targets = "targets.toml"
 report = "proofs.json"
 ref = "main"
-from = "0.16.0"
-schema_version = 1
 """
 
 
@@ -75,6 +74,10 @@ class PluginGate(unittest.TestCase):
         body = "" if schema is None else f"schema_version = {schema}\n"
         (self.plugin / "plugin.toml").write_text(body + '[plugin]\nid = "komga"\n', encoding="utf-8")
 
+    def targets(self, release: str | None = "0.16.0") -> None:
+        body = "" if release is None else f'lemonfiber = "{release}"\n'
+        (self.plugin / "targets.toml").write_text(body, encoding="utf-8")
+
     def report(self, **over) -> None:
         body = {"plugin": "komga", "lemonfiber": "0.16.0",
                 "proofs": [{"id": "answers", "outcome": "passed"}]}
@@ -91,16 +94,56 @@ class PluginGate(unittest.TestCase):
 
     def test_a_registered_plugin_that_validates_passes(self):
         self.manifest()
+        self.targets()
         self.report()
         code, said = self.gate()
         self.assertEqual(code, 0, said)
         self.assertIn("1 of 1 ride 0.16.0", said)
 
-    def test_a_version_below_from_is_not_gated_on_it(self):
-        code, said = self.gate(version="0.15.0", checkout=False)
+    def test_a_release_the_plugin_does_not_target_is_not_gated_on_it(self):
+        self.targets()
+        code, said = self.gate(version="0.15.0")
         self.assertEqual(code, 0, said)
-        self.assertIn("0.15.0 predates it", said)
+        self.assertIn("targets 0.16.0; 0.15.0 predates it", said)
         self.assertIn("0 of 1", said)
+
+    def test_what_a_plugin_targets_is_read_from_the_plugin(self):
+        # The registry states no version, so a plugin that retargets needs no edit
+        # here — and cannot disagree with a second copy of the same fact.
+        self.manifest()
+        self.targets("0.15.0")
+        self.report(lemonfiber="0.15.0")
+        code, said = self.gate(version="0.15.0")
+        self.assertEqual(code, 0, said)
+        self.assertIn("1 of 1 ride 0.15.0", said)
+
+    def test_a_plugin_that_cannot_say_what_it_targets_fails(self):
+        self.manifest()
+        self.report()
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn("has no targets.toml at", said)
+
+    def test_a_targets_file_that_cannot_be_read_fails(self):
+        self.manifest()
+        (self.plugin / "targets.toml").write_text("lemonfiber = \n", encoding="utf-8")
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn("cannot be read", said)
+
+    def test_a_targets_file_naming_no_release_fails(self):
+        self.manifest()
+        self.targets(None)
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn("names no lemonfiber release", said)
+
+    def test_a_target_that_is_not_a_version_fails(self):
+        self.manifest()
+        self.targets("0.16")
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn("targets '0.16', which is not X.Y.Z", said)
 
     # The silences, each refused by name.
 
@@ -123,6 +166,7 @@ class PluginGate(unittest.TestCase):
         self.assertIn("declares no [[plugin]]", said)
 
     def test_a_repository_nobody_created_fails_by_name(self):
+        self.targets()
         code, said = self.gate(checkout=False)
         self.assertEqual(code, 1)
         self.assertIn("plugin-komga", said)
@@ -152,7 +196,7 @@ class PluginGate(unittest.TestCase):
         self.registry.write_text('schema = 1\n\n[[plugin]]\nid = "komga"\n', encoding="utf-8")
         code, said = self.gate()
         self.assertEqual(code, 1)
-        self.assertIn("komga declares no repo, manifest, report, from, schema_version", said)
+        self.assertIn("komga declares no repo, manifest, targets, report", said)
 
     def test_an_entry_with_no_id_is_named_by_its_position(self):
         self.registry.write_text('schema = 1\n\n[[plugin]]\nrepo = "x"\n', encoding="utf-8")
@@ -160,21 +204,17 @@ class PluginGate(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("entry 0 declares no", said)
 
-    def test_a_from_that_is_not_a_version_is_refused(self):
-        self.registry.write_text(ENTRY.replace('from = "0.16.0"', 'from = "0.16"'), encoding="utf-8")
-        code, said = self.gate()
-        self.assertEqual(code, 1)
-        self.assertIn("`from` is '0.16', not X.Y.Z", said)
-
     # The manifest.
 
     def test_an_absent_manifest_fails(self):
+        self.targets()
         self.report()
         code, said = self.gate()
         self.assertEqual(code, 1)
         self.assertIn("has no manifest at", said)
 
     def test_an_unreadable_manifest_fails(self):
+        self.targets()
         (self.plugin / "plugin.toml").write_text("[plugin\n", encoding="utf-8")
         self.report()
         code, said = self.gate()
@@ -183,20 +223,15 @@ class PluginGate(unittest.TestCase):
         self.assertIn("cannot be read", said)
 
     def test_a_manifest_with_no_schema_version_fails(self):
+        self.targets()
         self.manifest(schema=None)
         self.report()
         code, said = self.gate()
         self.assertEqual(code, 1)
         self.assertIn("declares no schema_version", said)
 
-    def test_a_manifest_that_moved_off_its_registered_schema_fails(self):
-        self.manifest(schema=2)
-        self.report()
-        code, said = self.gate(schema=2)
-        self.assertEqual(code, 1)
-        self.assertIn("registered against manifest schema 1", said)
-
     def test_a_manifest_pinning_a_schema_the_release_does_not_carry_fails(self):
+        self.targets()
         self.manifest(schema=1)
         self.report()
         code, said = self.gate(schema=2)
@@ -206,12 +241,14 @@ class PluginGate(unittest.TestCase):
     # The proof report.
 
     def test_an_absent_report_fails(self):
+        self.targets()
         self.manifest()
         code, said = self.gate()
         self.assertEqual(code, 1)
         self.assertIn("has no proof report at", said)
 
     def test_an_unreadable_report_fails(self):
+        self.targets()
         self.manifest()
         (self.plugin / "proofs.json").write_text("{", encoding="utf-8")
         code, said = self.gate()
@@ -219,6 +256,7 @@ class PluginGate(unittest.TestCase):
         self.assertIn("cannot be read", said)
 
     def test_a_report_run_against_another_version_fails(self):
+        self.targets()
         self.manifest()
         self.report(lemonfiber="0.15.0")
         code, said = self.gate()
@@ -226,6 +264,7 @@ class PluginGate(unittest.TestCase):
         self.assertIn("run against 0.15.0, not 0.16.0", said)
 
     def test_a_report_stating_no_version_fails(self):
+        self.targets()
         self.manifest()
         self.report(lemonfiber=None)
         code, said = self.gate()
@@ -233,6 +272,7 @@ class PluginGate(unittest.TestCase):
         self.assertIn("nothing stated", said)
 
     def test_a_report_naming_no_proof_fails(self):
+        self.targets()
         self.manifest()
         self.report(proofs=[])
         code, said = self.gate()
@@ -240,6 +280,7 @@ class PluginGate(unittest.TestCase):
         self.assertIn("names no proof", said)
 
     def test_a_failing_proof_fails(self):
+        self.targets()
         self.manifest()
         self.report(proofs=[{"id": "answers", "outcome": "failed"}])
         code, said = self.gate()
@@ -247,6 +288,7 @@ class PluginGate(unittest.TestCase):
         self.assertIn("proof answers is failed", said)
 
     def test_an_unrun_proof_is_not_a_passing_one(self):
+        self.targets()
         self.manifest()
         self.report(proofs=[{"id": "answers", "outcome": "unrun"}])
         code, said = self.gate()
@@ -254,6 +296,7 @@ class PluginGate(unittest.TestCase):
         self.assertIn("proof answers is unrun", said)
 
     def test_a_proof_with_no_outcome_and_no_id_is_still_named(self):
+        self.targets()
         self.manifest()
         self.report(proofs=[{}])
         code, said = self.gate()
