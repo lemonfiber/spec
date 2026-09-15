@@ -55,8 +55,15 @@
 # are answerable from the binary. A feature whose requirements are being satisfied
 # is not proposed; it is late being said so.
 #
-# Three numbers arrived after the lock, carried in under the `goals-change` label
-# OPS-R31 asks for. `ARCH-R120..R122` say what a recorded response is: the file a
+# Four numbers arrived after the lock, carried in under the `goals-change` label
+# OPS-R31 asks for. `ARCH-R102` is the oldest of them and the one this version was
+# always going to satisfy: a plugin's service declares what it can do, a claim outside
+# the published vocabulary is namespaced with the plugin's id, and one that is neither
+# is refused by name. It sat in no version at all, which is the state the paragraph
+# above calls out — an implementation marks it done and is told the spec does not back
+# the claim, which is exactly what the status gate said when one did.
+#
+# `ARCH-R120..R122` say what a recorded response is: the file a
 # claim is demonstrated against where no instance exists, which is what makes a probe
 # runnable in an author's checkout and in the catalogue's CI. Three plugin
 # repositories already write seventeen of them to one shape and nothing described it,
@@ -64,7 +71,7 @@
 # objection a directory over, and it is cheaper to answer now than after a second
 # reader disagrees with the first.
 #
-# 109 goals, seeded from the roadmap milestone this version serves;
+# 110 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
@@ -165,6 +172,7 @@ goals   = [
     "F10-R10",
     "ARCH-R92",
     "ARCH-R93",
+    "ARCH-R102",
     "ARCH-R106",
     "ARCH-R107",
     "ARCH-R108",
