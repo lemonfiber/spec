@@ -220,6 +220,11 @@ So a probe is satisfiable by a service with nothing in it. `json_array_min = 0`
 is how a claimant says *the answer reads as a list* without saying how long the
 list is; `json_has_keys` is how it says the same of an object.
 
+The rule has a checkable edge, and it is worth having one: a count above zero is
+the only way an expectation can say something about how much the operator has,
+so a binding carrying `json_array_min` above zero or any `json_at_least` minimum
+above zero is refused. Everything else an expectation can say is about shape.
+
 A **contributed check** is the opposite and may say exactly what a probe may not,
 because it reports on a running stack rather than gating an install — a check
 that fails on a fresh installation is a check doing its job, and the remedy it
@@ -278,7 +283,7 @@ answer from the binary they already have (`F10-R8`).
 | A binding's status is one the probe permits | Status given, with the set |
 | A binding carries one of the body constraints the probe requires | Probe given, with the kinds |
 | Every binding names a recorded response that exists | Path given |
-| No probe asks about data the operator has put there | Probe named |
+| No binding asserts a count above zero — `json_array_min`, or a `json_at_least` minimum | Probe and constraint named |
 
 ## Requirements
 

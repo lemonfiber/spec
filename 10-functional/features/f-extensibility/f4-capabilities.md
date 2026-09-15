@@ -222,7 +222,7 @@ run is reported as unproven — never as satisfied.
 | **F4-R22** | A contribution's identity MUST be namespaced with the declaring plugin's id, and one naming an identity a published extension point records as bundled MUST be refused naming both. |
 | **F4-R23** | A name MUST NOT appear both in the core capability vocabulary and in the set of capabilities a manifest may require of lemonfiber, and the two sets MUST be published as separate artefacts. |
 | **F4-R24** | What a capability's probe must show MUST be declared by the vocabulary and where it is asked MUST be declared by the claimant; a probe requiring a credential MUST be reported as unproven when run with none, and MUST NOT be reported as failed. |
-| **F4-R25** | A capability's probe MUST be satisfiable by a service holding none of the operator's own data. A contributed check MUST NOT be held to that, because a check reports on a running stack rather than gating an install. |
+| **F4-R25** | A capability's probe MUST be satisfiable by a service holding none of the operator's own data, and a binding asserting a count above zero MUST be refused. A contributed check MUST NOT be held to either, because a check reports on a running stack rather than gating an install. |
 
 ## Related
 
