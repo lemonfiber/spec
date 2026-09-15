@@ -5,21 +5,30 @@
 # never an artefact the gate tags. No version manifest names any of them, and a
 # contribution to one moves no version number in this organisation.
 #
-# Why the lemonfiber version is pinned here and not in the plugin's own manifest:
-# `plugin.toml` deliberately has no `min_lemonfiber_version`, because F3-R21
-# refuses an unmet requirement by naming the capability rather than a version.
-# That is right for an operator installing a plugin. It is not enough for the
-# train, which has to say what it gated against — so the plugin pins the manifest
-# generation it is written in (`schema_version`, in its own file) and this pins
-# the version of lemonfiber the train holds it to.
+# This file holds **where to look and nothing else**. Every number the gate
+# compares is the plugin's own declaration, read out of the plugin's own files:
 #
-# `from` is the first version a plugin rides. Below it the plugin is not gated at
-# all, which is how 0.15.0 releases without waiting on a plugin that targets the
-# version introducing plugins. At or above it, everything about the plugin is
-# required to be there: a repository that cannot be reached, a manifest that is
-# absent, a schema that has moved, or a proof report that is missing or does not
-# say passed, each fails the run by name. A gate that skips what it cannot find
-# reports success about the part it could read.
+#   plugin.toml   `schema_version` — the manifest generation it is written in
+#   targets.toml  `lemonfiber`     — the release it is validated and proved against
+#
+# That split is not tidiness. A version pinned here as well would be a second
+# statement of the same fact, and the two would disagree on the day one of them
+# was edited — which is the failure this organisation keeps finding in numbers a
+# person maintains. The plugin says what it targets; this says where to read it.
+#
+# `targets.lemonfiber` is also what decides when a plugin starts being gated. A
+# release below it is not this plugin's business and the plugin is not cloned; at
+# or above it, nothing about the plugin may be missing — a repository that cannot
+# be reached, a manifest that is absent, a schema that has moved, or a proof
+# report that is missing or does not say passed, each fails the run by name. A
+# gate that skips what it cannot find reports success about the part it read.
+#
+# Why `lemonfiber` is pinned in the plugin rather than in `plugin.toml`: ARCH-R89
+# forbids a manifest carrying a minimum lemonfiber version, because F3-R21
+# requires an unmet requirement to be refused by naming the capability that is
+# missing rather than a number that cannot say which one. What the train needs is
+# a different fact — which release it gated against — and `targets.toml` is where
+# each plugin states it.
 
 schema = 1
 
@@ -27,16 +36,14 @@ schema = 1
 id = "komga"
 repo = "plugin-komga"
 manifest = "plugin.toml"
+targets = "targets.toml"
 report = "proofs.json"
 ref = "main"
-from = "0.16.0"
-schema_version = 1
 
 [[plugin]]
 id = "uptime-kuma"
 repo = "plugin-uptime-kuma"
 manifest = "plugin.toml"
+targets = "targets.toml"
 report = "proofs.json"
 ref = "main"
-from = "0.16.0"
-schema_version = 1
