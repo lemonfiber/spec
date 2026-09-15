@@ -448,6 +448,33 @@ inside is listening. A manifest whose every proof asserts only a status is
 refused, naming the proofs, because it has declared nothing a replaced container
 would fail.
 
+### What an expectation may say
+
+One vocabulary, read in three places — a `[[proof]]`, a `[[claim.probe]]` and a
+contributed check — because all three ask a service a question and judge the
+answer, and three vocabularies for one job would be three things to keep in step.
+
+| Key | Type | What it asserts |
+|-----|------|-----------------|
+| `status` | integer | The response status. Not sufficient alone, except for a refusal — see above. |
+| `json` | table | Keys the body must carry, each with the exact value it must hold. A value is a boolean, a whole number or a string; nothing nested, because a shape deeper than that is asking about a document rather than about a claim. |
+| `json_has_keys` | array | Keys the body must carry, whatever they hold |
+| `json_types` | table | Keys the body must carry, each with the kind of value it must be: `bool`, `int`, `str`, `list` or `dict` |
+| `json_at_least` | table | Keys the body must carry, each with a number it must not be below. *At least one series*, rather than *a catalogue exists*. |
+| `json_array_min` | integer | The body read as a JSON **array**, with at least this many entries. A catalogue is very often a list rather than an object, and none of the key-wise constraints can say anything about one. |
+| `json_is_absent` | boolean | **The body did not parse as JSON at all.** How a proof says *this answered with an application shell, not an object* — which is what a client-routed service answers for every path it does not implement, and the reason a status proves nothing against one. |
+| `content_type` | string | A substring of the content type the answer was served as |
+| `body_starts_with` | string | What the body must begin with, where it is not JSON |
+
+The set is closed. A key outside it is refused by name rather than ignored, for
+`ARCH-R91`'s reason pointed at an expectation: an assertion nothing evaluates is
+a proof that silently checks less than it says, which is worse than one that
+fails.
+
+`json_is_absent` is the one worth reading twice, because its name invites the
+other reading — *these keys are absent* — and the two are not close. It says
+nothing about keys. It says the answer was not JSON.
+
 Three verdicts, never two (`F3-R5`, `F4-R7`): passed, failed, and could not be
 run. The third is reported as unproven and is never counted as the first.
 
