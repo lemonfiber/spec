@@ -17,6 +17,12 @@ repos   = ["lemonfiber", "lemonfiber-media-stack"]   # streams this version cuts
 satisfied_in = ["lemonfiber", "lemonfiber-web"]   # where the goal gate searches; omit to mean `repos`
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs (OPS-R30)
 
+[[prerelease]]            # one per pre-release cut from this version (OPS-R65)
+tag = "v0.2.0-pre.1"      # never the version's own tag
+cut_on = "2026-07-24"     # UTC date it was tagged
+unmet = ["C1-R13"]        # the goals the gate called unmet when it was cut
+pins = { lemonfiber-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225" }
+
 [pins]                    # written at execute (OPS-R35); absent while staged
 lemonfiber-media-stack = "fbdafe0eb229c5c5016decf00b8a460b488a4225"   # one line per embedded submodule
 lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"
@@ -32,6 +38,7 @@ lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"
 | `goals` | The locked set of `Accepted` requirement IDs the release must satisfy before it ships. |
 | `withdrawn_because` | Why a shipped release was withdrawn, in one plain sentence. Present **only** on a `yanked` manifest, and required there: a withdrawal recorded bare is the record losing the only thing anyone comes back to it for. The release is never removed — the manifest stays, its `goals` stay, and this says what went wrong ([E5-R8](../../10-functional/features/e-maintenance/e5-changelog.md), [E5-R12](../../10-functional/features/e-maintenance/e5-changelog.md)). Written by the transition to `yanked`, which refuses without it. |
 | `released_as` | The tag the goals actually shipped under, present **only where it is not this version's own**. A minor whose release run fails part-way is finished by a patch, and the patch is the artefact people install; there is no manifest per patch, because a patch delivers no goals and a manifest for it would be another version the serial train must walk past. Written by the transition to `released` — never typed. |
+| `prerelease` | One table per pre-release cut from this version ([OPS-R65](../staging.md)), in the order they were cut. A pre-release is **not** a lifecycle transition: `status` does not move, `released_on` is not written, and the version goes on being whatever it was. What the record holds is what nothing else can answer afterwards — the tag, the day, **the goals the gate called unmet at that moment**, and the pins the artefacts embedded. The verdict is recorded rather than recomputed because it changes as work lands, and what a particular artefact went out knowing is a fact about that artefact. The tag is never the version's own: `v0.2.0-pre.1` orders below `v0.2.0`, so the release tag stays free and nothing that compares tags ranks the pre-release above the release. Written by the pre-release lane; never typed. |
 | `pins` | The exact submodule commits embedded, recorded at execute so the release is reproducible from this file alone. **One line per submodule the tag declares**, named for the repository rather than the path it is mounted at — `lemonfiber-media-stack`, not `assets/media-stack`. The list is enumerated from the tag's own `.gitmodules`, not named in the workflow: `release-finalize` spelled out the one path that existed when it was written, and went on recording only that one after [ADR-0012](../../00-overview/decisions/0012-web-assets-embedded-at-build-time.md) added the web app, so `0.10.0` first shipped a record that did not say which build of the app went out with it. |
 
 ## The no-stub rule
@@ -76,6 +83,9 @@ is the answer somebody can act on rather than a number they have to trust.
 - The file, not CI history, answers "where is this version": read `status`.
 - The file, not the forge, answers "when did it ship": read `released_on`
   ([OPS-R57](../staging.md)).
+- And what went out *before* it: read `prerelease`. A record there is an
+  artefact somebody can install and a verdict somebody can read; it is not a
+  release, and no rule about a released manifest applies to it.
 - And what it shipped *as*: read `released_as` where there is one, `version`
   otherwise. A patch records the line it closed rather than a manifest of its
   own, so the train stays serial and the record still names the tag.

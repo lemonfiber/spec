@@ -1,0 +1,360 @@
+# Publish an in-flight version as a pre-release — OPS-R60..R66.
+#
+# `execute-version` refuses while a goal is unmet, and that is right: a release
+# claims its goals shipped. A pre-release claims nothing of the kind. It carries
+# the gate's verdict — every unmet goal, by name — on the artefact itself, so a
+# version whose last goal closes on somebody's own hardware can still be
+# installed by the person who has that hardware.
+#
+# It relaxes the goal gate and nothing else. Compatibility, blockers, the
+# declared version and the plugin gate are checked exactly as they are before a
+# release tag. The manifest's `status` does not move — a pre-release is not a
+# lifecycle transition — and what is written is one `[[prerelease]]` record
+# holding the tag, the day, the unmet goals and the pins.
+#
+# Nothing outside the organisation hears about it: this posts to no public
+# channel, and the binary repository's announce path refuses on the pre-release
+# flag rather than relying on being unconfigured (OPS-R63).
+#
+# Maintainer-only; dry_run defaults on.
+name: prerelease-version
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to pre-release, e.g. 0.15.0 — its versions/<v>.toml must be staged, in_progress or releasable."
+        required: true
+      identifier:
+        description: "Pre-release identifier appended to the tag, e.g. pre.1. `rc` is refused — ARCH-R43 already uses it."
+        required: true
+        default: "pre.1"
+      dry_run:
+        description: "Run every check and print the verdict, but record and tag nothing."
+        type: boolean
+        default: true
+permissions:
+  contents: read
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gate to maintainers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          perm=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          case "$perm" in
+            admin|maintain) echo "${ACTOR} is a maintainer (${perm})." ;;
+            *) echo "::error::${ACTOR} lacks maintainer permission (${perm})."; exit 1 ;;
+          esac
+
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Settle the tag this will cut (OPS-R61)
+        id: tag
+        env:
+          VERSION: ${{ inputs.version }}
+          IDENTIFIER: ${{ inputs.identifier }}
+        run: |
+          set -euo pipefail
+          # Both halves against the patterns the rest of the train reads, so a
+          # tag this refuses is refused for the same reason `set_status` would
+          # refuse to record it rather than for a different one written here.
+          python3 - <<'PY'
+          import os, sys
+          sys.path.insert(0, "scripts")
+          from patterns import PRERELEASE_ID, VERSION
+          version, identifier = os.environ["VERSION"], os.environ["IDENTIFIER"]
+          if not VERSION.match(version):
+              sys.exit(f"::error::version must be X.Y.Z, got {version!r}")
+          if not PRERELEASE_ID.match(identifier):
+              sys.exit(
+                  f"::error::{identifier!r} is not a usable pre-release identifier; "
+                  "`rc` is reserved by ARCH-R43 for the point schema_version starts binding"
+              )
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"tag=v{version}-{identifier}\n")
+              out.write(f"declared={version}-{identifier}\n")
+          PY
+
+      - name: Mint the release App token
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Read the manifest and clone its repos
+        id: read
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          man="70-operations/versions/${VERSION}.toml"
+          [ -f "$man" ] || { echo "::error::no manifest at ${man}"; exit 1; }
+          python3 - "$man" "$TAG" <<'PY'
+          import datetime, os, sys, tomllib
+          sys.path.insert(0, "scripts")
+          from patterns import IN_FLIGHT
+          data = tomllib.load(open(sys.argv[1], "rb"))
+          status = data.get("status")
+          if status not in IN_FLIGHT:
+              sys.exit(f"::error::{sys.argv[1]} is '{status}', not {'/'.join(IN_FLIGHT)}")
+          # A tag cut twice would mean two different artefacts answering to one
+          # name, and the second record would say nothing about which is which.
+          if any(rec.get("tag") == sys.argv[2] for rec in data.get("prerelease", [])):
+              sys.exit(f"::error::{sys.argv[2]} is already recorded on this manifest")
+          # The status is carried forward rather than chosen: a pre-release is not
+          # a transition, and the record has to be written against whatever the
+          # version already is (OPS-R60).
+          today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"status={status}\n")
+              out.write(f"today={today}\n")
+          PY
+          python3 scripts/manifest_repos.py --version "$VERSION" --for cut > repos.txt
+          python3 scripts/manifest_repos.py --version "$VERSION" --for searched > searched.txt
+          sort -u repos.txt searched.txt > needed.txt
+          while read -r r; do
+            [ -n "$r" ] || continue
+            git clone --quiet --filter=blob:none \
+              "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${r}.git" "checkouts/${r}"
+          done < needed.txt
+
+      # The one check that does not refuse. Its answer is what the pre-release
+      # exists to carry, so it is captured rather than acted on — and captured
+      # as JSON, because the record keeps the goals by name (OPS-R62, OPS-R65).
+      - name: The gate's verdict, recorded rather than enforced (OPS-R62)
+        id: verdict
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -uo pipefail
+          args=()
+          while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < searched.txt
+          python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" \
+            "${args[@]}" --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md" \
+            --format json > verdict.json
+          answered=$?
+          # 0 is releasable and 1 is goals unmet; both are verdicts. 2 is the gate
+          # failing to answer at all — an unreadable tracker, a shallow clone, a
+          # manifest locking nothing. A pre-release may go out with goals unmet; it
+          # may not go out with no verdict, because the verdict is what it publishes.
+          if [ "$answered" -ge 2 ]; then
+            echo "::error::the gate could not answer for ${VERSION}; a pre-release without a verdict is refused"
+            exit 1
+          fi
+          set -e
+          python3 - <<'PY'
+          import json, os
+          verdict = json.load(open("verdict.json", encoding="utf-8"))
+          unmet = [goal["id"] for goal in verdict["goals"] if not (goal["cited"] and goal["done"])]
+          met = len(verdict["goals"]) - len(unmet)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"unmet={' '.join(unmet)}\n")
+              out.write(f"summary={met} of {len(verdict['goals'])} goals satisfied\n")
+          print(f"{met} of {len(verdict['goals'])} goals satisfied")
+          if unmet:
+              print(f"::warning title=Goals unmet::{len(unmet)} unmet and going out anyway: {', '.join(unmet)}")
+          PY
+
+      - name: What it locks that is not built, reported not enforced (OPS-R54)
+        continue-on-error: true
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python3 scripts/check_no_stubs.py --version "$VERSION" \
+            --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md"
+
+      - name: Cross-stream compatibility (OPS-R35, OPS-R66)
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          git -C checkouts/lemonfiber submodule update --init --depth 1 assets/media-stack
+          stack="checkouts/lemonfiber/assets/media-stack/stack.toml"
+          if [ ! -f "$stack" ]; then
+            echo "::error::the embedded stack carries no stack.toml"
+            exit 1
+          fi
+          mincli=$(sed -nE 's/^min_cli_version[[:space:]]*=[[:space:]]*"(.*)".*/\1/p' "$stack" | head -1)
+          schema=$(sed -nE 's/^schema_version[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' "$stack" | head -1)
+          if [ -z "$mincli" ] || [ -z "$schema" ]; then
+            echo "::error::the embedded stack declares no min_cli_version or schema_version"
+            exit 1
+          fi
+          # Compared on the version rather than on the tag. A pre-release
+          # identifier orders below the version it precedes, so `sort -V` would
+          # call a pre-release of the minimum older than the minimum — which is
+          # true of the tag and not of what the binary can do.
+          if [ "$(printf '%s\n%s\n' "$mincli" "$VERSION" | sort -V | head -1)" != "$mincli" ]; then
+            echo "::error::stack needs cli >= ${mincli}, pre-releasing ${VERSION}"
+            exit 1
+          fi
+          reads=$(sed -nE 's/^pub const SCHEMA_VERSION: u32 = ([0-9]+);.*/\1/p' \
+            checkouts/lemonfiber/crates/lemonfiber-manifest/src/lib.rs | head -1)
+          if [ -z "$reads" ]; then
+            echo "::error::could not read the binary's schema version"
+            exit 1
+          fi
+          if [ "$schema" != "$reads" ]; then
+            echo "::error::stack is schema ${schema}, binary reads ${reads}"
+            exit 1
+          fi
+          echo "compat ok: binary ${VERSION} >= min_cli ${mincli}, schema ${schema}"
+
+      - name: Check for release blockers (OPS-R44, OPS-R66)
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          { echo spec; cat needed.txt; } > allrepos.txt
+          blockers=0
+          while read -r repo; do
+            [ -n "$repo" ] || continue
+            n=$(gh issue list --repo "${OWNER}/${repo}" --state open \
+              --label release-blocker --label "v${VERSION}" --json number --jq 'length')
+            if [ "$n" -gt 0 ]; then
+              echo "::error::${n} open release-blocker(s) labelled v${VERSION} in ${repo}"
+              blockers=$((blockers + n))
+            fi
+          done < allrepos.txt
+          [ "$blockers" -eq 0 ] || { echo "::error::pre-release blocked — resolve the blockers first."; exit 1; }
+          echo "no release blockers."
+
+      - name: Every registered plugin still validates (OPS-R68, OPS-R69)
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          # Cloned by the registry rather than by the manifest: a plugin is an
+          # input to this gate and never a stream the train cuts (OPS-R59), so it
+          # appears in neither `repos` nor `satisfied_in` and nothing here tags it.
+          #
+          # A clone that fails is not swallowed. The gate names a plugin it could
+          # not reach as a failure, and a `|| true` here would turn that into a
+          # plugin it was never asked about.
+          python3 - <<'PY' > plugins.txt
+          import os, pathlib, sys
+          sys.path.insert(0, "scripts")
+          import check_plugins
+          version = os.environ["VERSION"]
+          for index, entry in enumerate(
+              check_plugins.load_registry(pathlib.Path(check_plugins.REGISTRY))
+          ):
+              # A malformed entry is left for the gate to name rather than skipped
+              # here, and one that rides a later version is not cloned at all.
+              if check_plugins.malformed(entry, index) or not check_plugins.rides(entry, version):
+                  continue
+              print(f"{entry['repo']}\t{entry.get('ref', 'main')}")
+          PY
+          args=()
+          while IFS=$'\t' read -r repo ref; do
+            [ -n "$repo" ] || continue
+            if git clone --quiet --depth 1 --branch "$ref" \
+              "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${repo}.git" "plugins/${repo}"; then
+              echo "cloned ${repo}@${ref}."
+            else
+              echo "::warning::${repo}@${ref} could not be cloned; the gate will name it."
+            fi
+            args+=(--checkout "${repo}=plugins/${repo}")
+          done < plugins.txt
+          schema=$(sed -nE 's/^pub const SCHEMA_VERSION: u32 = ([0-9]+);.*/\1/p' \
+            checkouts/lemonfiber/crates/lemonfiber-manifest/src/lib.rs | head -1)
+          [ -n "$schema" ] || { echo "::error::could not read the schema this release carries"; exit 1; }
+          python3 scripts/check_plugins.py --version "$VERSION" --schema "$schema" "${args[@]}"
+
+      - name: The repos declare the pre-release being cut (OPS-R66)
+        env:
+          DECLARED: ${{ steps.tag.outputs.declared }}
+        run: |
+          set -euo pipefail
+          # cargo-dist releases the tag whose version the workspace carries, so a
+          # pre-release tag over a workspace declaring the plain version produces a
+          # tag nothing will build. The pre-release identifier has to be in the
+          # manifest too, which is the whole reason this is checked and not assumed.
+          mismatched=0
+          while read -r r; do
+            [ -n "$r" ] || continue
+            man="checkouts/${r}/Cargo.toml"
+            if [ ! -f "$man" ]; then
+              echo "no Cargo.toml in ${r} — nothing to check."
+              continue
+            fi
+            declared=$(python3 - "$man" <<'PY'
+          import sys, tomllib
+          d = tomllib.load(open(sys.argv[1], "rb"))
+          print(d.get("workspace", {}).get("package", {}).get("version")
+                or d.get("package", {}).get("version") or "")
+          PY
+            )
+            if [ "$declared" != "$DECLARED" ]; then
+              echo "::error::${r} declares ${declared:-nothing}, not ${DECLARED} — merge the version bump before tagging"
+              mismatched=$((mismatched + 1))
+            else
+              echo "${r} declares ${declared}."
+            fi
+          done < repos.txt
+          [ "$mismatched" -eq 0 ] || exit 1
+
+      - name: Dry run — stop before recording anything
+        if: ${{ inputs.dry_run }}
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          SUMMARY: ${{ steps.verdict.outputs.summary }}
+          UNMET: ${{ steps.verdict.outputs.unmet }}
+        run: |
+          echo "::notice title=Dry run::${TAG} would go out with ${SUMMARY}. Unmet: ${UNMET:-none}. Re-run with dry_run=false to record and tag."
+
+      # Recorded before the tag, not after. The binary repository's changelog job
+      # reads this record to write the verdict onto the release body, and a tag
+      # cut before the record is merged would produce a build with nothing to read.
+      - name: Record it on the manifest (OPS-R65)
+        if: ${{ !inputs.dry_run }}
+        uses: ./.github/actions/manifest-transition
+        with:
+          version: ${{ inputs.version }}
+          status: ${{ steps.read.outputs.status }}
+          prerelease: ${{ steps.tag.outputs.tag }}
+          prerelease_on: ${{ steps.read.outputs.today }}
+          unmet: ${{ steps.verdict.outputs.unmet }}
+          token: ${{ steps.token.outputs.token }}
+
+      - name: Tag the target repos
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          while read -r r; do
+            [ -n "$r" ] || continue
+            sha=$(git -C "checkouts/${r}" rev-parse HEAD)
+            gh api --method POST "repos/${OWNER}/${r}/git/refs" \
+              -f ref="refs/tags/${TAG}" -f sha="${sha}"
+            echo "tagged ${r} @ ${sha:0:8} as ${TAG}"
+          done < repos.txt
+
+      - name: Tagged — review and publish to finish
+        if: ${{ !inputs.dry_run }}
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          SUMMARY: ${{ steps.verdict.outputs.summary }}
+          UNMET: ${{ steps.verdict.outputs.unmet }}
+        run: |
+          echo "::notice title=Pre-released::${TAG} is tagged. The build leaves a draft marked pre-release, carrying ${SUMMARY} and naming what is unmet (${UNMET:-none}). Publishing it announces to the maintainer channel and to nothing public (OPS-R63), and moves no manifest status (OPS-R60)."

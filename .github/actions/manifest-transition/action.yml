@@ -26,6 +26,18 @@ inputs:
     description: The tag the goals actually shipped under, where it is not this version's own — a patch finishing a minor. Empty otherwise.
     required: false
     default: ""
+  prerelease:
+    description: A pre-release tag to record against this version, e.g. v0.15.0-pre.1. The status is left where it is (OPS-R60).
+    required: false
+    default: ""
+  prerelease_on:
+    description: UTC date the pre-release was tagged, YYYY-MM-DD. Required with `prerelease`.
+    required: false
+    default: ""
+  unmet:
+    description: Space-separated goal IDs the gate called unmet when the pre-release was cut.
+    required: false
+    default: ""
   token:
     description: The release App installation token.
     required: true
@@ -41,6 +53,9 @@ runs:
         PINS: ${{ inputs.pins }}
         RELEASED_ON: ${{ inputs.released_on }}
         RELEASED_AS: ${{ inputs.released_as }}
+        PRERELEASE: ${{ inputs.prerelease }}
+        PRERELEASE_ON: ${{ inputs.prerelease_on }}
+        UNMET: ${{ inputs.unmet }}
       run: |
         set -euo pipefail
         man="70-operations/versions/${VERSION}.toml"
@@ -56,8 +71,17 @@ runs:
         if [ -n "$RELEASED_AS" ]; then
           dateargs+=(--released-as "$RELEASED_AS")
         fi
+        # A pre-release is not a transition: the status passed is whatever the
+        # manifest already holds, and what this writes is one more `[[prerelease]]`
+        # record beside it (OPS-R60, OPS-R65).
+        prearg=()
+        if [ -n "$PRERELEASE" ]; then
+          prearg+=(--prerelease "$PRERELEASE" --prerelease-on "$PRERELEASE_ON")
+          read -ra goals <<< "$UNMET"
+          for g in "${goals[@]}"; do [ -n "$g" ] && prearg+=(--unmet "$g"); done
+        fi
         python3 scripts/set_status.py --version "$VERSION" --status "$STATUS" \
-          "${dateargs[@]}" "${pinargs[@]}" > "${man}.new"
+          "${dateargs[@]}" "${prearg[@]}" "${pinargs[@]}" > "${man}.new"
         mv "${man}.new" "$man"
         # The roadmap table and the feature board are generated from the manifests,
         # so a status change that does not carry them is a change integrity will
@@ -67,12 +91,27 @@ runs:
         python3 scripts/gen_roadmap_table.py
         python3 scripts/gen_board.py
 
-        branch="release/${VERSION}-${STATUS}"
+        # Named for what is being recorded rather than for the status, because a
+        # pre-release leaves the status where it was: two of them against one
+        # staged version would otherwise want the same branch.
+        what="$STATUS"
+        if [ -n "$PRERELEASE" ]; then
+          what="prerelease-${PRERELEASE#v}"
+        fi
+        branch="release/${VERSION}-${what}"
         base=$(gh api "repos/${OWNER}/spec/git/ref/heads/main" --jq '.object.sha')
         gh api --method POST "repos/${OWNER}/spec/git/refs" -f ref="refs/heads/${branch}" -f sha="$base" || true
         # Author/committer omitted: GitHub fills them from the token (the App bot,
         # DCO-exempt) and marks the commit verified.
-        msg=$(printf 'chore(release): %s → %s\n\nRecorded by the release train.\n\nSpec: OPS-R32' "$VERSION" "$STATUS")
+        if [ -n "$PRERELEASE" ]; then
+          msg=$(printf 'chore(release): %s went out as %s\n\nRecorded by the release train.\n\nSpec: OPS-R65' "$VERSION" "$PRERELEASE")
+          title="chore(release): ${VERSION} went out as ${PRERELEASE}"
+          body="Automated pre-release record. Spec: OPS-R65"
+        else
+          msg=$(printf 'chore(release): %s → %s\n\nRecorded by the release train.\n\nSpec: OPS-R32' "$VERSION" "$STATUS")
+          title="chore(release): ${VERSION} → ${STATUS}"
+          body="Automated manifest transition. Spec: OPS-R32"
+        fi
         # One commit per file, collapsed by the squash merge. The contents API
         # writes one path at a time; a file the generators left unchanged is
         # skipped, so an unchanged board does not produce an empty commit.
@@ -86,6 +125,5 @@ runs:
           echo "wrote ${path}."
         done
         url=$(gh pr create --repo "${OWNER}/spec" --base main --head "$branch" \
-          --title "chore(release): ${VERSION} → ${STATUS}" \
-          --body "Automated manifest transition. Spec: OPS-R32")
+          --title "$title" --body "$body")
         gh pr merge "$url" --auto --squash

@@ -470,6 +470,103 @@ class SetStatusTests(Workspace):
             set_status.with_withdrawn_because('status  = "yanked"\n', 'it "broke"')
 
 
+class PrereleaseRecordTests(Workspace):
+    """A pre-release is recorded without moving anything — OPS-R60, OPS-R61, OPS-R65."""
+
+    def record(self, version="0.1.0", tag="v0.1.0-pre.1", when="2026-09-15",
+               status="staged", unmet=("B1-R4",), pins=()):
+        argv = ["--version", version, "--status", status,
+                "--prerelease", tag, "--prerelease-on", when]
+        for goal in unmet:
+            argv += ["--unmet", goal]
+        for pin in pins:
+            argv += ["--pin", pin]
+        return run_main(set_status, argv)
+
+    def test_a_record_is_written_and_the_status_does_not_move(self):
+        self.manifest("0.1.0")
+        code, out = self.record(pins=["lemonfiber-media-stack=abc"])
+        self.assertEqual(code, 0, out)
+        read = tomllib.loads(out)
+        self.assertEqual(read["status"], "staged")
+        self.assertNotIn("released_on", read)
+        self.assertEqual(read["prerelease"][0]["tag"], "v0.1.0-pre.1")
+        self.assertEqual(read["prerelease"][0]["unmet"], ["B1-R4"])
+        self.assertEqual(read["prerelease"][0]["pins"]["lemonfiber-media-stack"], "abc")
+
+    def test_a_second_record_joins_the_first_rather_than_replacing_it(self):
+        self.manifest("0.1.0")
+        _, first = self.record()
+        pathlib.Path("70-operations/versions/0.1.0.toml").write_text(first, encoding="utf-8")
+        code, out = self.record(tag="v0.1.0-pre.2", unmet=())
+        self.assertEqual(code, 0, out)
+        self.assertEqual([r["tag"] for r in tomllib.loads(out)["prerelease"]],
+                         ["v0.1.0-pre.1", "v0.1.0-pre.2"])
+
+    def test_a_release_written_afterwards_does_not_swallow_the_records(self):
+        # `with_pins` rewrites everything from `[pins]` to the end of the file, so a
+        # record below it would disappear the moment the version went out — which is
+        # exactly when somebody asks what went out before it.
+        self.manifest("0.1.0")
+        _, staged = self.record()
+        pathlib.Path("70-operations/versions/0.1.0.toml").write_text(staged, encoding="utf-8")
+        code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
+                                          "--released-on", "2026-09-20",
+                                          "--pin", "lemonfiber-media-stack=999"])
+        self.assertEqual(code, 0, out)
+        read = tomllib.loads(out)
+        self.assertEqual(read["status"], "released")
+        self.assertEqual(len(read["prerelease"]), 1)
+        self.assertEqual(read["pins"]["lemonfiber-media-stack"], "999")
+
+    def test_a_tag_for_another_version_is_refused(self):
+        self.manifest("0.1.0")
+        self.assertEqual(self.record(tag="v0.2.0-pre.1")[0], 1)
+
+    def test_the_versions_own_tag_is_not_a_pre_release_tag(self):
+        self.manifest("0.1.0")
+        self.assertEqual(self.record(tag="v0.1.0")[0], 1)
+
+    def test_rc_is_refused_because_arch_r43_already_uses_it(self):
+        self.manifest("0.1.0")
+        for reserved in ("v0.1.0-rc.1", "v0.1.0-rc", "v0.1.0-rc2"):
+            self.assertEqual(self.record(tag=reserved)[0], 1, reserved)
+        # And an identifier that merely starts with those letters is fine.
+        self.manifest("0.1.0")
+        self.assertEqual(self.record(tag="v0.1.0-arc.1")[0], 0)
+
+    def test_an_identifier_that_is_not_one_is_refused(self):
+        self.manifest("0.1.0")
+        self.assertEqual(self.record(tag="v0.1.0-pre_1")[0], 1)
+
+    def test_a_manifest_not_in_flight_cannot_carry_one(self):
+        self.manifest("0.1.0", status="released")
+        self.assertEqual(self.record(status="released")[0], 1)
+        self.manifest("0.1.0", status="planned")
+        self.assertEqual(self.record(status="planned")[0], 1)
+
+    def test_the_three_halves_of_the_record_are_required_together(self):
+        self.manifest("0.1.0")
+        self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "staged",
+                                               "--prerelease", "v0.1.0-pre.1"])[0], 1)
+        self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "staged",
+                                               "--prerelease-on", "2026-09-15"])[0], 1)
+        self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "staged",
+                                               "--unmet", "B1-R4"])[0], 1)
+
+    def test_a_date_that_cannot_mean_anything_is_refused(self):
+        self.manifest("0.1.0")
+        self.assertEqual(self.record(when="15-09-2026")[0], 1)
+
+    def test_a_record_with_no_pins_says_so_rather_than_being_malformed(self):
+        self.manifest("0.1.0")
+        code, out = self.record(unmet=())
+        self.assertEqual(code, 0, out)
+        read = tomllib.loads(out)
+        self.assertEqual(read["prerelease"][0]["pins"], {})
+        self.assertEqual(read["prerelease"][0]["unmet"], [])
+
+
 class CheckStageableTests(Workspace):
     def test_planned_ok(self):
         # a .md under a .git dir is skipped when scanning for defined ids
