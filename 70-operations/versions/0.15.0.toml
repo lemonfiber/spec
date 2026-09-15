@@ -21,7 +21,8 @@
 version = "0.15.0"
 milestone = "M9"   # Lifecycle & maintenance
 delivers  = "Away from the keyboard — remote control, autostart, customisation"
-status  = "staged"
+status  = "released"
+released_on = "2026-09-15"
 repos   = ["lemonfiber"]
 # Where the gate reads citations, which is not where this version cuts (OPS-R58).
 # Two of these goals are satisfied in the stack repository and can be satisfied
@@ -108,3 +109,7 @@ goals   = [
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
+
+[pins]
+lemonfiber-media-stack = "d7a16ae419819506bbda9a28cd39bdacbade7a97"
+lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"
