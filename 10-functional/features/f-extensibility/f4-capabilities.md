@@ -41,7 +41,7 @@ capability is not a label: it carries a contract, and probes that demonstrate th
 holds. Claiming a capability you do not satisfy fails verification, which is what makes
 substitution safe to offer at all.
 
-**This feature is the model and its rules.** Having the nineteen bundled services declare
+**This feature is the model and its rules.** Having the twenty bundled services declare
 their capabilities, pass the probes, and converting the stack's wiring to ask rather than
 to name, is [F9](f9-bundled-capabilities.md) — the larger half of the work and the smaller
 half of the thinking, which is why the two are separable.
@@ -173,7 +173,7 @@ run is reported as unproven — never as satisfied.
 
 ## Related
 
-- [F9 Capabilities of the bundled services](f9-bundled-capabilities.md) — the nineteen that implement this vocabulary, and the wiring converted to ask in it
+- [F9 Capabilities of the bundled services](f9-bundled-capabilities.md) — the twenty that implement this vocabulary, and the wiring converted to ask in it
 - [F3 Plugin manifests](f3-stack-manifests.md) — where a capability is claimed and asked for
 - [F2 Service catalogue](f2-service-catalogue.md) — what each bundled service is, which capabilities describe in machine terms
 - [F6 Plugin lifecycle](f6-plugin-lifecycle.md) — when the probes run and what a failure costs

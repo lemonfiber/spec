@@ -62,7 +62,7 @@ versions, define how they connect, and own every interaction between them.
 
 ### Inside — ours to orchestrate, not to build
 
-The 19 services. We don't write Sonarr; we decide it's included, how it's
+The 20 services. We don't write Sonarr; we decide it's included, how it's
 configured, and what happens when it misbehaves. Its bugs are not ours, but its
 *integration* is entirely ours.
 

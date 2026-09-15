@@ -61,7 +61,7 @@ without lemonfiber at all.
 ### 2. Reads and writes take different paths
 
 Writes go through `docker compose` because profiles live there. Reads go through
-the Docker API because a 1 Hz dashboard across 19 services cannot afford process
+the Docker API because a 1 Hz dashboard across 20 services cannot afford process
 spawns. Neither path can serve both jobs.
 → [ADR-0008](../00-overview/decisions/0008-hybrid-docker-access.md)
 

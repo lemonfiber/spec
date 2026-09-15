@@ -1,6 +1,6 @@
 # Plugins, part two — what the bundled stack can do, where a plugin comes from.
 #
-# F9 gives all nineteen bundled services their capabilities and their probes, and converts
+# F9 gives all twenty bundled services their capabilities and their probes, and converts
 # the stack's wiring to ask for capabilities rather than to name services. That is the
 # larger half of the capability work and the smaller half of its thinking, and it is what
 # makes substituting a plugin for a *bundled* service possible rather than merely

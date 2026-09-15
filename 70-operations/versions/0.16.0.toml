@@ -6,7 +6,7 @@
 # refused it: F6 requires F4.
 #
 # It requires the *vocabulary*, which is why F4 was split. F4 is now the model and its
-# rules; F9 is the nineteen bundled services declaring in it and the wiring converted to
+# rules; F9 is the twenty bundled services declaring in it and the wiring converted to
 # ask. Reading F6's five capability references shows three are the host-feature sense of
 # F3-R21 rather than F4's at all, and the two that are F4's are satisfiable between two
 # plugins. So the vocabulary ships here and the declarations ship in 0.17.0.

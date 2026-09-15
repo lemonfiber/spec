@@ -126,7 +126,7 @@ Deliberately ([ADR-0008](../00-overview/decisions/0008-hybrid-docker-access.md))
 observation goes through the Docker API because it's streamed and cheap; control
 goes through the Compose CLI because profiles are a Compose concept.
 
-At 1 Hz across 19 services, spawning processes to observe would be both wasteful
+At 1 Hz across 20 services, spawning processes to observe would be both wasteful
 and jittery — noticeably so on Windows.
 
 ## 4. The seed flow
