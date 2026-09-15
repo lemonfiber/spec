@@ -60,7 +60,7 @@
 version = "0.16.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — what one is, installing one, and what that leaves readable"
-status  = "planned"
+status  = "staged"
 repos   = ["lemonfiber"]
 satisfied_in = ["lemonfiber", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php"]
 goals   = [
