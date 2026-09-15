@@ -478,6 +478,50 @@ nothing about keys. It says the answer was not JSON.
 Three verdicts, never two (`F3-R5`, `F4-R7`): passed, failed, and could not be
 run. The third is reported as unproven and is never counted as the first.
 
+### What a recording is
+
+A `fixture` names a file beside the manifest holding **one response somebody
+recorded from the image this manifest pins**. It is what lets a claim be shown
+where no instance exists — an author's laptop, the catalogue's CI, a reviewer's
+checkout — and it is ordinary reviewable data rather than a cassette a tool
+wrote and only that tool reads (`F10-R4`, `F10-R5`).
+
+```json
+{
+  "recorded_from": "ghcr.io/example/thing@sha256:6c2a967…",
+  "note": "An unauthenticated read of the catalogue. A refusal is the pass: a library server on the household network that answered this would be publishing somebody's collection to every device on it.",
+  "request":  { "method": "GET", "path": "/api/v1/series" },
+  "response": {
+    "status": 401,
+    "headers": { "content-type": "application/json" },
+    "json": { "status": 401, "error": "Unauthorized" }
+  }
+}
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `recorded_from` | string | ✔ | The image this answer came out of, as `image@sha256:…` |
+| `note` | string | ✔ | Why this is the answer worth recording — the half a diff cannot show |
+| `request.method` | string | ✔ | What was asked |
+| `request.path` | string | ✔ | Where it was asked |
+| `response.status` | integer | ✔ | |
+| `response.headers` | table | | The headers an expectation may constrain; `content-type` is the one in use |
+| `response.json` | any | | The body as it parsed, or `null` where it did not parse as JSON |
+| `response.body_starts_with` | string | | The beginning of a body that is not JSON |
+
+**It names the image by digest, and that digest is the manifest's own pin.** A
+recording taken from some other build is a claim about software nobody is
+installing, and the drift is silent: it passes, and the service it describes is
+not the service that will run. Moving the pin means re-recording in the same
+change, and a recording naming a different image is refused rather than trusted.
+
+**A recording that is absent, unreadable, or records a request the assertion
+does not ask is unproven** — never a pass and never a failure. Nothing about the
+service has been established either way, and reporting it as a failure would say
+the service is broken when the recording is. It is the third verdict's plainest
+case, and the one an author meets most often.
+
 ## `[[contribution]]` — a row in a register lemonfiber already runs
 
 ```toml
@@ -780,6 +824,9 @@ unreadable.
 | **ARCH-R105** | A plugin's proofs MUST be declarable in the manifest, each naming what it asks and what the answer must be, and a manifest whose every proof constrains only a response status MUST be refused naming those proofs. |
 | **ARCH-R116** | A core capability MUST be claimed by a `[[claim]]` block binding every probe the published vocabulary declares for it, the claimed name MUST also appear in the service's `provides`, and either half without the other MUST be refused naming both. |
 | **ARCH-R117** | A recipe MUST be declarable in the manifest, and a manifest declaring one MUST name the capability that runs it in `[requires]`; a build not offering that capability MUST refuse the manifest by naming it rather than by parsing the block and skipping it. |
+| **ARCH-R120** | A recorded response MUST be one file of readable data carrying the request it recorded and the answer to it, and a field outside the published set MUST be refused by name rather than ignored. |
+| **ARCH-R121** | A recording MUST name the image it was taken from by digest, that digest MUST be the one the manifest pins for the service being asked, and a recording naming another image MUST be refused rather than run against. |
+| **ARCH-R122** | An assertion whose recording is absent, unreadable, or records a request the assertion does not ask MUST be reported unproven, naming the recording, and MUST NOT be reported as passed or as failed. |
 
 ## Related
 
