@@ -4,7 +4,7 @@ default:
 
 # Run every check CI runs, and turn the hooks on if they are not already —
 # this is the command run before a push, which is when the hook matters.
-ci: hooks integrity shared lint typos links
+ci: hooks integrity shared services lint typos links
 
 # Turn on the repository's own git hooks. Once per clone.
 hooks:
@@ -50,6 +50,13 @@ board:
 # Regenerate the repository table, diagram and count from 30-repos/repos.toml.
 repos:
     python3 scripts/gen_repos.py
+
+# The bundled-service count this repository states, against the stack that holds
+# them. Reads `lemonfiber-media-stack`'s own manifest over the wire, like `links`
+# already does; `--stack <path>` reads a copy inside this checkout instead, and
+# `--write` rewrites the prose rather than refusing it.
+services *flags:
+    python3 scripts/check_services.py {{flags}}
 
 # Rewrite every count this repository states about itself from what it holds.
 counts:

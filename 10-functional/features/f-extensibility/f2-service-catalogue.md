@@ -21,7 +21,7 @@ relates: [B1, F1, G2]
 Say what each service is for, in terms of what it does *for the operator* rather
 than what it is.
 
-A stack of twenty services is opaque. "Prowlarr" and "Bazarr" convey nothing;
+A stack of twenty bundled services is opaque. "Prowlarr" and "Bazarr" convey nothing;
 the operator sees a list of names, cannot tell which matter, and cannot judge
 whether a failure is serious. When something breaks they don't know whether
 they've lost subtitles or lost everything.

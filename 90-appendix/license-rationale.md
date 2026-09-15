@@ -95,7 +95,7 @@ is protected, which is a trademark matter, not a software-freedom one.
 Every service the stack orchestrates is OSI-licensed open source. The
 authoritative per-service licence is the `license` field on each `[[service]]`
 in [`stack.toml`](../30-repos/lemonfiber-media-stack.md#the-service-inventory), which is
-what the manifest contract validates; this table groups all nineteen of them
+what the manifest contract validates; this table groups every one of them
 using the same SPDX identifiers.
 
 | Licence | Services |

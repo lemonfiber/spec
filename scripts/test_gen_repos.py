@@ -76,7 +76,7 @@ Prose above the table that must survive.
 |------|------|----------|--------------------------|
 | `stale` | [gone.md](gone.md) | COBOL | A row from before |
 
-Those nine are every repository in the org. And prose after it.
+Those nine are the repositories this specification governs. And prose after it.
 """
 
 
@@ -116,7 +116,7 @@ class Generating(Tree, unittest.TestCase):
         self.assertEqual(once, twice)
 
     def test_the_count_is_a_word_and_matches_the_registry(self):
-        self.assertIn("Those three are every repository in the org", self.run_gen())
+        self.assertIn("Those three are the repositories this specification governs", self.run_gen())
 
     def test_a_row_the_registry_does_not_name_is_gone(self):
         out = self.run_gen()
@@ -174,7 +174,7 @@ class Refusing(Tree, unittest.TestCase):
         self.assertIn("counting words", str(raised.exception))
 
     def test_a_readme_with_no_table_refuses(self):
-        self.readme.write_text("```mermaid\nflowchart TD\n```\nThose three are every repository in the org\n", encoding="utf-8")
+        self.readme.write_text("```mermaid\nflowchart TD\n```\nThose three are the repositories this specification governs\n", encoding="utf-8")
         with self.assertRaises(SystemExit) as raised:
             self.gen.main()
         self.assertIn("no repository table", str(raised.exception))
@@ -186,7 +186,7 @@ class Refusing(Tree, unittest.TestCase):
         self.assertIn("no repository diagram", str(raised.exception))
 
     def test_a_readme_with_no_counting_sentence_refuses(self):
-        self.readme.write_text(README.replace("Those nine are every repository in the org.", ""), encoding="utf-8")
+        self.readme.write_text(README.replace("Those nine are the repositories this specification governs.", ""), encoding="utf-8")
         with self.assertRaises(SystemExit) as raised:
             self.gen.main()
         self.assertIn("no counting sentence", str(raised.exception))

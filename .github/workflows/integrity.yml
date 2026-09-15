@@ -48,6 +48,15 @@ jobs:
         run: |
           python3 scripts/gen_repos.py
           git diff --exit-code -- 30-repos/README.md
+      # The one number here that lives in another repository. `lemonfiber-media-stack`
+      # guards its own prose against its own manifest; this is the half the spec was
+      # missing, which is why ten pages here said nineteen services through the day a
+      # twentieth shipped. Read over the wire rather than from a pin: what each
+      # release embedded is already recorded in that version's `[pins]`, and a pin
+      # read here would have been green against stale input and red against correct
+      # prose.
+      - name: The bundled-service count matches the stack
+        run: python3 scripts/check_services.py
       # The page states that whether the palette meets AA is a computed property
       # of the tokens rather than an opinion. This is what makes that true of the
       # page itself: the numbers are measured here and diffed, so a token change

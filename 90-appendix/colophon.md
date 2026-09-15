@@ -14,7 +14,7 @@ the credits cannot drift from what is actually used (GOV-R34).
 
 ## The orchestrated services
 
-The nineteen services `lemonfiber-media-stack` composes. Every one is
+The twenty bundled services `lemonfiber-media-stack` composes. Every one is
 OSI-licensed and runs
 on the user's own hardware; the licence breakdown is in
 [license-rationale.md](license-rationale.md#note-on-bundled-services), and the

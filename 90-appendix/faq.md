@@ -18,8 +18,8 @@ a capability is on the roadmap, the answer says so.
 ### What is lemonfiber?
 
 A media stack you can run in slices, driven by a binary that sets itself up. It
-orchestrates nineteen open-source services — Jellyfin, the \*arr applications,
-indexers and download clients — as one Docker Compose stack, boots only the part
+orchestrates twenty bundled services, every one open-source — Jellyfin, the
+\*arr applications, indexers and download clients — as one Docker Compose stack, boots only the part
 you asked for, and verifies its own work rather than reporting green and hoping.
 
 ### Is lemonfiber a media server?
