@@ -540,15 +540,43 @@ title = "Point it at the comics the stack already files"
 why   = "…"
 
 [[recipe.step]]
-id      = "create"
-call    = { method = "POST", to = "komga", path = "/api/v1/libraries" }
+id      = "sign-in"
+call    = { method = "POST", to = "komga", path = "/api/v1/login" }
 expect  = { status = 200 }
-capture = [{ name = "library", from = "json.id", origin = "stack-service" }]
+capture = [{ name = "token", from = "json.token", origin = "stack-service" }]
+
+[[recipe.step]]
+id      = "create"
+call    = { method  = "POST", to = "komga", path = "/api/v1/libraries",
+            headers = { Authorization = "Bearer {{token}}" } }
+expect  = { status = 200 }
 
 [[recipe.pair]]
-value = "library"
+value = "token"
 to    = "komga"
 ```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `step[].call.method` | string | ✔ | |
+| `step[].call.to` | string | ✔ | A service id in this stack, or a DNS name outside it. Never an address, a range or a bare host port (`F8-R8`). |
+| `step[].call.path` | string | ✔ | |
+| `step[].call.headers` | table | | Headers the call carries. A value may substitute an earlier capture. |
+| `step[].call.body` | string | | The body the call carries. A value may substitute an earlier capture. |
+
+**A call needs somewhere to put what an earlier step captured**, and `headers`
+and `body` are it. Without them a recipe can name a destination and capture a
+value and has no way to carry one to the other — which is every first-run flow
+this feature exists for, since creating an account and reading back a token is
+worth nothing if the token cannot then be presented.
+
+They are also what makes the pair check bite. Every `{{capture}}` in a call is a
+flow from that value to that call's destination, so the set of flows a recipe
+could produce is computable by reading it — and a flow with no
+`[[recipe.pair]]` behind it fails validation before a call is made
+([ADR-0022](../../00-overview/decisions/0022-a-recipe-declares-pairs-not-lists.md)).
+A `call` with nowhere to substitute into would make that analysis a check over an
+empty set.
 
 [F8](../../10-functional/features/f-extensibility/f8-recipes.md) governs what the
 calls may do; this says where they are written. A step names a method, an
