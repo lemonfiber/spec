@@ -55,7 +55,16 @@
 # are answerable from the binary. A feature whose requirements are being satisfied
 # is not proposed; it is late being said so.
 #
-# 106 goals, seeded from the roadmap milestone this version serves;
+# Three numbers arrived after the lock, carried in under the `goals-change` label
+# OPS-R31 asks for. `ARCH-R120..R122` say what a recorded response is: the file a
+# claim is demonstrated against where no instance exists, which is what makes a probe
+# runnable in an author's checkout and in the catalogue's CI. Three plugin
+# repositories already write seventeen of them to one shape and nothing described it,
+# so the first reader of one would have become its description — which is ADR-0014's
+# objection a directory over, and it is cheaper to answer now than after a second
+# reader disagrees with the first.
+#
+# 109 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
@@ -170,6 +179,9 @@ goals   = [
     "ARCH-R117",
     "ARCH-R118",
     "ARCH-R119",
+    "ARCH-R120",
+    "ARCH-R121",
+    "ARCH-R122",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
