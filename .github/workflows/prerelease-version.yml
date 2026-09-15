@@ -142,10 +142,14 @@ jobs:
           set -uo pipefail
           args=()
           while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < searched.txt
+          # A `run:` block is `bash -e`, and `set -uo pipefail` does not take that
+          # off. The gate answering "goals unmet" is exit 1 — the verdict a
+          # pre-release exists to carry — so its status is read through `||`,
+          # where errexit does not reach, rather than from `$?` on the next line.
+          answered=0
           python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" \
             "${args[@]}" --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md" \
-            --format json > verdict.json
-          answered=$?
+            --format json > verdict.json || answered=$?
           # 0 is releasable and 1 is goals unmet; both are verdicts. 2 is the gate
           # failing to answer at all — an unreadable tracker, a shallow clone, a
           # manifest locking nothing. A pre-release may go out with goals unmet; it
@@ -154,7 +158,6 @@ jobs:
             echo "::error::the gate could not answer for ${VERSION}; a pre-release without a verdict is refused"
             exit 1
           fi
-          set -e
           python3 - <<'PY'
           import json, os
           verdict = json.load(open("verdict.json", encoding="utf-8"))
