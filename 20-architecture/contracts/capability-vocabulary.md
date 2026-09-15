@@ -103,7 +103,10 @@ has gone.
           "asks": "the same read, with the credential the operator holds",
           "why": "…",
           "credential": "operator",
-          "requires": { "status": [200], "body": ["json", "json_has_keys", "json_types"] }
+          "requires": {
+            "status": [200],
+            "body": ["json", "json_has_keys", "json_types", "json_at_least", "json_array_min"]
+          }
         }
       ]
     }
@@ -177,7 +180,7 @@ must be shown. The claimant declares where to ask.**
 |---------------|--------------------------|
 | What question the probe asks, in prose | The method and path that asks it on this service |
 | Which statuses are an acceptable answer | Which of them this service gives |
-| Which kinds of body constraint the answer must carry | The constraint itself |
+| Which kinds of body constraint the answer must carry, any one of which will do | The constraint itself |
 | Whether a credential is needed to ask | The recorded response it was answered with |
 
 A claim that does not bind every probe its capability declares is refused, naming

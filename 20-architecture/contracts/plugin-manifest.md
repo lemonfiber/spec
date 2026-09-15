@@ -496,6 +496,14 @@ something is wrong and nothing about what to do has moved the work to the
 operator rather than done it, and `C1-R2` has no exemption for a contributed
 finding.
 
+**Contributing is a capability a manifest asks for by name.** Each published
+point names the one a contribution there requires
+([extension-points](extension-points.md#a-point-names-the-capability-it-is-taken-at)),
+and a manifest carrying a contribution without asking for it is refused by naming
+that capability — the same rule `recipe.run` gets below, and for the same reason:
+a build that read a row it could not run and dropped it would install a plugin
+whose declared behaviour is wider than its actual one.
+
 ## `[[recipe]]` — declarable before it is runnable
 
 ```toml
