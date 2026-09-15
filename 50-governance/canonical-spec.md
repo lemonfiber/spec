@@ -40,6 +40,7 @@ how the bot works is itself a change, and it cites a `GOV-R`.
 | **GOV-R10** | The maintainer override MUST require a written justification and MUST be recorded permanently. |
 | **GOV-R11** | Governance changes are themselves subject to these rules and MUST cite a `GOV-R` identifier. |
 | **GOV-R12** | Routine maintenance — dependency updates, formatting, CI configuration, typo corrections — MUST cite a governance identifier or use the override. |
+| **GOV-R47** | A retired identifier — withdrawn or superseded — MUST NOT be cited by an implementation change, and the gate MUST refuse one by saying where its row says the work went rather than by reporting it as absent. |
 
 ## What "canonical" means, precisely
 
