@@ -217,6 +217,55 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | A contributed remedy would act on the machine rather than be read | Refuse it as a remedy. A remedy is rendered; a thing that acts is a recipe, and a recipe is declared as one. |
 | A contribution names a bundled check or remedy | Refuse, naming both. Adding is not overriding, and overriding something bundled is F9's subject rather than a manifest's. |
 | A plugin is removed | Its contributions go with it. A stack with no plugin installed answers exactly as one that never had any. |
+| A plugin's service is installed and nothing in the stack can reach it | Not a case. The proxy stanza and the dashboard entry are written from the manifest, by the same argument that has lemonfiber write the container: a plugin that supplies no Compose entry supplies no wiring either. |
+| A loopback plugin asks for a hostname | Refuse, naming the field and the tier that governs. An admin surface does not get a name it can be reached by, and the bundled stack ships every admin proxy stanza commented out for that reason. |
+| An image keeps its configuration somewhere other than the conventional path | Declare where. One directory, one mount, the source still lemonfiber's — only the target is the plugin's to name, and it is checked. |
+| A plugin asks for an environment variable | Refuse. The two things an image is usually told that way — where its data lives and where its library is — are declarations of their own, checked and bounded; a free-form pair is how a plugin would configure its way past what its manifest says it does. |
+
+### An installed plugin is a wired plugin
+
+A plugin that installs, starts and passes its proofs, and that the operator then has to
+put behind the proxy and onto the dashboard by hand, has moved the work rather than done
+it. The bundled stack does both for its own services from `stack.toml`; a plugin declares
+the same facts — an id, a port, a tier, a description — so the same two pieces of wiring
+are written from the same information.
+
+It follows the container rule exactly. `F3-R23` has a plugin supply no container
+definition because a supplied one is a reach nobody can bound; a supplied proxy stanza or
+dashboard entry is the same reach by a quieter route — a `reverse_proxy` line naming
+something other than the plugin's own service is a redirect of somebody else's traffic.
+So the plugin supplies neither, and gets both.
+
+**The binding tier governs and the plugin does not.** Only a `lan` service is proxied.
+That is not a default a manifest can argue with: the shipped `Caddyfile` has every admin
+stanza commented out with what you would be accepting written beside it, and a plugin able
+to obtain a hostname for a loopback service would put a full-control surface on the
+household network without touching anything `C6` inspects. The most a manifest may say is
+which label it would like in front of the operator's domain, and only where the tier has
+already made it reachable.
+
+What a plugin gets on the dashboard is a **link**, not a widget. A widget reads a
+service's API with a credential, which is an adapter and a captured value — a recipe, and
+recipes arrive with [F8](f8-recipes.md). The entry that needs nothing arrives now.
+
+### Where an image keeps its configuration is the image's business, not a convention's
+
+`F3-R24` fixes what a plugin's service may reach: the data root and its own configuration
+directory, and nothing else. That bounds the *number* of mounts and their sources, which
+is the part that matters. It was read as also fixing the target at `/config`, and that
+reading made a whole class of image uninstallable for no gain in safety.
+
+`/config` is a LinuxServer.io convention. Five of the twenty bundled services keep their
+configuration somewhere else, and the stack's own `compose/` says so for each. A plugin
+whose image is one of those shapes was generated a container mounting a directory the
+application never reads — installing cleanly, answering its health probe, and losing
+everything it had written the moment the container was replaced. A plugin that forgets
+its state on a routine image bump is not one anybody should install, and nothing in the
+manifest could say so.
+
+So the target is declared and checked: one absolute path, not the root, and not inside the
+data root. The source is still lemonfiber's, there is still one of it, and what a plugin
+can reach is unchanged.
 
 ## Acceptance criteria
 
@@ -252,6 +301,8 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | **F3-R28** | A declared contribution that cannot be run or rendered MUST be reported as unrun, naming it and the plugin, and MUST NOT be reported as passed, as satisfied, or by being omitted. |
 | **F3-R29** | A contributed remedy MUST be text in the error model's shape, rendered and never executed; a contribution that would act on the operator's system MUST be refused as a remedy and MUST be declared as a recipe or not at all. |
 | **F3-R30** | A plugin's contributions MUST be withdrawn when the plugin is removed, and lemonfiber with no plugin installed MUST answer exactly as it does with none ever declared. |
+| **F3-R31** | An installed plugin's service MUST be reachable through the stack's own proxy and visible on its dashboard on the same terms as a bundled service in the same binding tier, written by lemonfiber from what the manifest declares; a plugin MUST NOT supply that wiring, and MUST NOT be able to obtain it for a service bound to loopback. |
+| **F3-R32** | A plugin's service MUST be able to declare where inside its container its one configuration directory is mounted, so that an image keeping its state somewhere other than the conventional path is installable without its state being left unmounted. |
 
 ## Related
 

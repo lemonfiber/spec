@@ -15,7 +15,12 @@ is not declared here.
 [F3-R24](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R21](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R22](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
+[F4-R1](../../10-functional/features/f-extensibility/f4-capabilities.md),
+[F4-R4](../../10-functional/features/f-extensibility/f4-capabilities.md),
 [F4-R14](../../10-functional/features/f-extensibility/f4-capabilities.md),
+[F3-R17](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
+[F3-R18](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
+[F3-R31](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F1-R9](../../10-functional/features/f-extensibility/f1-customisation.md)
 
 ---
@@ -62,10 +67,21 @@ resolved, because "which one did I install" has no good answer.
 ```toml
 schema_version = 1
 
-[plugin]     # identity and provenance
-[[service]]  # exactly one, in this version
-[requires]   # what the plugin needs of lemonfiber
+[plugin]      # identity and provenance
+[[service]]   # exactly one, in this version
+[wiring]      # how the stack's own proxy and dashboard reach it
+[[proof]]     # what must hold before it is installed
+[[secret]]    # every value it will hold (F3-R17)
+[[override]]  # every bundled thing it will change (F3-R18)
+[requires]    # what the plugin needs of lemonfiber
 ```
+
+`[[secret]]` and `[[override]]` are declared here and, in this version, are
+always empty in practice: capturing a value is a recipe, and recipes arrive with
+[F8](../../10-functional/features/f-extensibility/f8-recipes.md). They are part
+of the format now because `F3-R17` and `F3-R18` fail validation on an
+*undeclared* secret or override, and a format with no place to declare one
+cannot enforce that.
 
 ## `[plugin]` — identity and provenance
 
@@ -129,8 +145,10 @@ port   = 32400
 bind   = "lan"
 health = { kind = "http", path = "/identity", timeout_s = 90 }
 criticality = "important"
-media_types = ["movie", "tv"]
+media_types = ["movies", "tv"]
 takes_data  = true
+provides    = ["media.serve", "plex:direct-play"]
+config_path = "/config"
 ```
 
 | Field | Type | Required | Notes |
@@ -144,8 +162,10 @@ takes_data  = true
 | `bind` | enum | ✔ if `port` | `loopback` \| `lan`. A **tier**, not an address — see below. |
 | `health` | table | | As `stack.toml`. Absent means lifecycle waits on container state only. |
 | `criticality` | enum | ✔ | As `stack.toml`. A plugin MUST NOT declare `critical` — see below. |
-| `media_types` | array | | Which media types it handles |
+| `media_types` | array | | Which media types it handles, in `stack.toml`'s vocabulary. Drives root-folder seeding, which is how a plugin's service is pointed at the library the stack already fills. |
 | `takes_data` | bool | | `true` if it needs the data root mounted. Default `false`. |
+| `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). |
+| `config_path` | string | | Where inside the container the one configuration directory is mounted. Default `/config`. |
 
 ### The image is named by digest
 
@@ -173,6 +193,54 @@ lemonfiber renders the tier to an address exactly as it does for a bundled
 service, and the two-tier policy stays a property of the system rather than a
 request the plugin makes.
 
+### `config_path` — where its own directory lands, not how many there are
+
+`ARCH-R86` fixes the **mount set**: the single data mount, and the service's own
+configuration directory. That is what makes "what can this plugin reach"
+answerable from the format. It does not follow that the configuration directory
+must land at `/config`, and assuming it did made a whole class of image
+uninstallable.
+
+`/config` is a LinuxServer.io convention, not a standard. Of the twenty bundled
+services, five keep their configuration somewhere else, and `compose/` says so
+for each: Homepage and Seerr at `/app/config`, Caddy at a file under
+`/etc/caddy`, Jellyfin and Audiobookshelf needing a second path beside the first.
+A plugin whose image is any of those shapes would previously be generated a
+container mounting a directory the application never reads — installing
+successfully, passing its health probe, and losing everything it had written the
+moment the container was replaced.
+
+So the target is data. The source is still lemonfiber's, there is still exactly
+one of it, and the number of mounts is unchanged. What is permitted is narrow:
+
+- a single absolute path, and not `/`;
+- not `/data` and nothing beneath it, which would be a second mount over the
+  library wearing a different name;
+- no `..`, and no interpolation.
+
+A second path beside the first — Jellyfin's `/cache`, Audiobookshelf's
+`/metadata` — is deliberately **not** offered. One directory is what `ARCH-R86`
+permits, and a plugin needing two is one the format should refuse rather than
+quietly satisfy.
+
+### `provides` — what it can do, in the vocabulary
+
+`F4-R1` has services declare what they can do as named capabilities so that
+wiring can ask for a capability rather than name a service. A plugin's service
+declares them here, exactly as a bundled service declares them in `stack.toml`.
+
+A core name comes from the published vocabulary (`F4-R2`) and means the
+contracted thing that vocabulary defines; claiming one and failing its probes is
+a verification failure and the plugin is not installed (`F4-R6`). A plugin's own
+capability MUST be namespaced with the plugin's id — `komga:opds` — and is inert
+until something asks for it (`F4-R4`).
+
+**Until the core vocabulary is published there is nothing core to claim.** A
+plugin written today can declare only namespaced capabilities, which is a real
+limit and not a stylistic one: an inert claim wires nothing. That is `F4-R2`'s
+work in this version, and a plugin that wants to stand in for a bundled service
+additionally needs `F9`'s declarations in `0.17.0`.
+
 ### A plugin may not declare itself `critical`
 
 `critical` means *its failure has consequences outside the machine*, and in the
@@ -193,6 +261,7 @@ ignored:
 | `depends_on` | The bundled stack contains exactly one cross-service dependency (`B1-R14`), and it is the one that keeps torrent traffic inside the tunnel. A plugin introducing an ordering edge between services it does not own is a source of failures nobody can attribute. |
 | `host_managed` | Native-mode lifecycle is the operating system's (`B2-R15`). A plugin cannot install a system service. |
 | `profile` | Assigned, not declared — see below. |
+| `environment` | Arbitrary variables into a container lemonfiber generates. The two things an image is usually told this way are where its data lives and where its library is, and both are declarations here — `config_path` and `media_types` — checked and bounded. A free-form pair is neither, and is how a plugin would configure its way past what the format says it does. |
 | `api` | How lemonfiber talks to a service for seeding. A plugin naming an adapter is the subject of the version that introduces recipes; until then a plugin's service is operated generically, as `F1-R10` and `F1-R11` already promise for a service lemonfiber does not know. |
 | `last_release` | An abandonment signal maintained by the people reviewing the bundled pins (`F2-R14`). Self-reported by a plugin it would signal nothing. |
 
@@ -219,9 +288,35 @@ plex:
     - ./config/plex:/config
 ```
 
+`./config/plex:/config` is the default target. A manifest declaring
+`config_path = "/app/data"` gets `./config/plex:/app/data` — the same one
+directory, the same source lemonfiber chose, mounted where the image actually
+reads it.
+
 That is the whole of it, and the whole of what it can ever be. There is no field
 in `plugin.toml` that adds a line to this, which is what makes "what can this
 plugin reach" answerable from the format rather than from the instance.
+
+lemonfiber also writes the stack's own wiring for it, from the same declaration
+and by the same argument — a plugin that supplies no Compose entry supplies no
+proxy stanza and no dashboard entry either, and gets both written for it. For a
+`lan` service:
+
+```caddyfile
+comics.{$DOMAIN} {
+    reverse_proxy plex:32400
+}
+```
+
+```yaml
+- Library:
+    - Plex:
+        href: http://{{HOMEPAGE_VAR_LAN_HOST}}:32400
+        description: Plays your library on TVs, phones and browsers
+```
+
+A `loopback` service gets neither, which is the bundled policy holding rather
+than a limitation of the format.
 
 `defaults` rather than `rootless`: the `PUID`/`PGID` pair is a LinuxServer.io
 convention, and setting it on an image that ignores it is a silent no-op that
@@ -233,6 +328,100 @@ The `${DATA_ROOT}:/data` mount appears only where `takes_data` is `true`, and
 when it appears it is the **single** data mount — [ADR-0006](../../00-overview/decisions/0006-single-data-mount.md)'s
 rule holds for a plugin by construction rather than by review, because there is
 no second mount to declare.
+
+## `[wiring]` — how the stack's own services reach it
+
+```toml
+[wiring]
+hostname = "comics"
+dashboard_group = "Library"
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `hostname` | string | | The label in front of the operator's domain. A single DNS label — not a name, an address or a port. Default: the plugin's `id`. |
+| `dashboard_group` | string | | Which group on the bundled dashboard it appears under. Default: the group the stack uses for its tier. |
+
+A plugin that is installed and then has to be wired by hand is one the operator
+has to do the work lemonfiber exists to do. The bundled stack puts a household
+service behind Caddy and on Homepage; a plugin's service gets the same, written
+by lemonfiber from what the manifest already declares — the id and port to reach
+it on, the tier that decides whether it is reachable at all, and the description
+that goes beside it.
+
+**The tier governs, not the plugin.** Only `lan` services are proxied, because
+the bundled policy is that an admin surface does not get a hostname — every
+admin stanza in the shipped `Caddyfile` is commented out with what you would be
+accepting written next to it. A `loopback` plugin gets no route, and there is no
+field by which it can ask for one. That is the same reasoning as `ARCH-R88`: a
+plugin that could publish its own address could put an admin surface on the
+household network without touching anything `C6` inspects.
+
+**A link, not a widget.** The dashboard entry is an icon, a link and the
+description the manifest already carries. A widget reads a service's API with a
+credential, which means an adapter and a captured value — a recipe, arriving
+with `F8`. A plugin gets the panel that needs nothing and waits for the one that
+needs something.
+
+## `[[proof]]` — what must hold before it is installed
+
+```toml
+[[proof]]
+id      = "plex.serves"
+title   = "Plex answers on its declared health path"
+request = { method = "GET", path = "/identity" }
+expect  = { status = 200, json_has_keys = ["MediaContainer"] }
+fixture = "fixtures/identity.json"
+why     = "The path the health probe asks for is one this image serves."
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `id` | string | ✔ | Unique within the plugin. What a verdict is reported against. |
+| `title` | string | ✔ | What it establishes, in one line |
+| `request` | table | ✔ | `method` and `path`. The same shape a `health` probe takes. |
+| `expect` | table | ✔ | What the answer must be. A status alone is not sufficient — see below. |
+| `fixture` | string | | A recorded response to run against where no instance exists (`F10-R4`) |
+| `why` | string | ✔ | Why this is worth asserting. A proof nobody can justify is one nobody will maintain. |
+
+`F3-R1` has named a plugin's proofs among what its manifest declares since the
+feature was written, and `F3-R3` runs them in the existing verification engine.
+There was no block to declare them in, which left an author two bad options:
+carry them in a second file the installer never reads, or leave `F3-R4` — *a
+plugin whose proofs do not pass is not installed* — with nothing to evaluate.
+
+**`expect` must constrain the body.** A status is a claim about the network
+path, not about the service: Docker publishes a port by putting a proxy in front
+of it, and that proxy accepts a connection before knowing whether anything
+inside is listening. A manifest whose every proof asserts only a status is
+refused, naming the proofs, because it has declared nothing a replaced container
+would fail.
+
+Three verdicts, never two (`F3-R5`, `F4-R7`): passed, failed, and could not be
+run. The third is reported as unproven and is never counted as the first.
+
+## `[[secret]]` and `[[override]]` — declared before they are held
+
+```toml
+[[secret]]
+id   = "api-key"
+of   = "komga"
+why  = "Read the library counts the dashboard panel shows"
+
+[[override]]
+id   = "homepage.services"
+why  = "Add its own entry to the bundled dashboard"
+```
+
+`F3-R17` fails validation on a secret captured but not declared, and `F3-R18` on
+a bundled thing changed but not declared. Both need somewhere to declare one.
+
+In this version both are, in practice, always absent. Capturing a value and
+changing a bundled setting are both recipe verbs, and recipes arrive with `F8`
+in `0.18.0`; a plugin that declared a secret here would be declaring something
+nothing can yet capture. They are in the format now because the alternative is a
+rule that cannot be enforced for want of a field, and because adding the field
+later would make every manifest written against this version wrong.
 
 ## `[requires]` — what the plugin needs of lemonfiber
 
@@ -314,6 +503,14 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | `license` present | Plugin named |
 | Every `forms` entry names a declared form | Both named |
 | Every entry in `requires.capabilities` is offered | Capability named, never a version |
+| `config_path` is one absolute path, not `/`, and outside the data root | Path named, with what is permitted |
+| Every `provides` entry is a published core name or namespaced with the plugin's id | Capability named, with the namespace required |
+| Every `[[proof]]` carries `id`, `title`, `request`, `expect` and `why` | Proof and field named |
+| At least one `[[proof]]` constrains the body rather than only the status | Every status-only proof named |
+| `wiring.hostname` is a single DNS label | Value named |
+| A `loopback` service declares no `wiring.hostname` | Service named, and the tier that governs |
+| Every secret captured is one `[[secret]]` declared (`F3-R17`) | Value and its origin named |
+| Every bundled thing changed is one `[[override]]` declared (`F3-R18`) | Setting and its owner named |
 
 A manifest that fails any of these is refused outright — never partly applied,
 never applied on the strength of the parts that did parse (`F3-R2`).
@@ -363,6 +560,12 @@ unreadable.
 | **ARCH-R95** | A plugin's image MUST be named by digest, and a manifest naming an image by tag alone MUST be refused. |
 | **ARCH-R96** | A plugin's service MUST be placed in a profile of its own, added to the closure of each form the manifest declares, and naming a form the stack does not declare MUST be refused by name. |
 | **ARCH-R97** | A plugin MUST NOT declare a criticality of `critical`, and one that does MUST be refused naming the value and those available. |
+| **ARCH-R100** | A plugin's service MUST be able to name the path inside its container at which its one configuration directory is mounted; that path MUST be validated as a single absolute path that is neither the root nor within the data root, and naming it MUST NOT change the number of mounts the generated entry carries. |
+| **ARCH-R101** | The manifest MUST have no field by which a plugin could set an environment variable on the container lemonfiber generates for it. |
+| **ARCH-R102** | A plugin's service MUST declare the capabilities it claims in the manifest, a claim outside the published core vocabulary MUST be namespaced with the plugin's id, and a claim naming neither MUST be refused by name. |
+| **ARCH-R103** | lemonfiber MUST generate the stack's own proxy and dashboard wiring for a plugin's service from what the manifest declares, on the same terms as a bundled service in the same binding tier, and MUST NOT accept a proxy stanza, dashboard entry or any other wiring fragment from a plugin. |
+| **ARCH-R104** | A plugin MUST NOT be able to obtain a proxy hostname for a service bound to loopback, and the binding tier alone MUST decide whether a service is reachable by name. |
+| **ARCH-R105** | A plugin's proofs MUST be declarable in the manifest, each naming what it asks and what the answer must be, and a manifest whose every proof constrains only a response status MUST be refused naming those proofs. |
 
 ## Related
 

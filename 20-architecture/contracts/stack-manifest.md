@@ -169,10 +169,29 @@ media_types = ["tv"]
 | `without_it` | string | ✔ | Consequence of its absence (`F2-R2`) |
 | `reaches` | string | | Where this service's own requests go, in terms an operator would recognise. `""` means it reaches nothing — an answer, not an omission. Both this and `asks_for` or neither (`F2-R10`). |
 | `asks_for` | string | | What it asks for there. Never blank, including for a service that reaches nothing (`F2-R10`). |
-| `media_types` | array | | Which media types it handles; drives root-folder seeding |
+| `media_types` | array | | Which media types it handles; drives root-folder seeding. One or more of `tv`, `movies`, `music`, `books`, `comics`. |
 | `depends_on` | array | | **Same profile only.** Cross-profile entries fail validation (`B1-R14`). |
 | `grants` | array | | Extra kernel capabilities granted to the container, e.g. `["NET_ADMIN"]`. Any entry beyond an allow-list fails validation. Spelled `capabilities` until `0.16.0`; that spelling is still accepted and always will be, because a rename is not a reason to refuse to read somebody's own stack description. |
 | `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`) |
+
+### The media types, and why the set is written down here
+
+`media_types` is what points a service at the part of the library it works on —
+it drives root-folder seeding, so a service declaring `tv` is one lemonfiber can
+seed with `/data/media/tv` without being told again.
+
+The set is `tv`, `movies`, `music`, `books` and `comics`. It was, until now,
+written down in exactly one place: the validator's own source. That is the shape
+`F4-R14` objects to for declarations generally — a closed enumeration in
+first-party code that something outside has to match without being able to read
+it — and it had a concrete cost. A plugin serving comics had no term for what it
+serves, so the one field that would have pointed it at `/data/media/comics` could
+not be used, and the plugin was left to be aimed by hand on first run.
+
+`comics` is therefore in the set although no bundled service declares it. A
+vocabulary that only admits what is already bundled is one a plugin cannot
+extend the library with, which is the opposite of what
+[F3](../../10-functional/features/f-extensibility/f3-stack-manifests.md) is for.
 
 ### `reaches` and `asks_for` — the errand, where the errand is decided
 
