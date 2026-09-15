@@ -23,7 +23,7 @@ relates: [B3, C1, G4]
 Answer "is it working?" in one line.
 
 The operator's most frequent question has, at present, only an expensive answer:
-read twenty container states, check the VPN, look at the queue, check disk, and
+read every container state, check the VPN, look at the queue, check disk, and
 synthesise. That's a skilled judgement, made repeatedly, and it's exactly the work
 a tool should do.
 

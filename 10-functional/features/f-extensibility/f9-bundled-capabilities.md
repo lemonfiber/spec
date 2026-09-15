@@ -32,8 +32,8 @@ ways no one would discover until a plugin author trusted it.
 This is where the twenty bundled services declare what they can do, pass the probes
 that prove it, and the wiring that currently names them is changed to ask instead. It is
 the larger half of the work by a wide margin and the smaller half of the thinking, which
-is why it is separable: F4 is a model and a set of rules, and this is twenty services'
-worth of applying them.
+is why it is separable: F4 is a model and a set of rules, and this is a stack's worth
+of applying them.
 
 The payoff is the one the whole extensibility area exists for. Once the request service
 asks for *an identity source* rather than for Jellyfin, a plugin claiming that capability
@@ -43,7 +43,7 @@ can stand in — and nothing that consumes it has to know a plugin exists.
 
 ### Every bundled service declares what it can do
 
-All twenty are given capabilities and the probes that demonstrate them. This is not
+Every one of them is given capabilities and the probes that demonstrate them. This is not
 bookkeeping. The bundled stack becomes the **reference implementation** of every core
 capability, so a plugin author has something concrete to satisfy rather than a paragraph
 to interpret.
@@ -122,7 +122,7 @@ was not really converted.
 ## Related
 
 - [F4 The capability vocabulary](f4-capabilities.md) — the model, the rules and the probes this implements
-- [F2 Service catalogue](f2-service-catalogue.md) — the twenty services these describe in machine terms
+- [F2 Service catalogue](f2-service-catalogue.md) — the services these describe in machine terms
 - [F5 The plugin catalogue](f5-plugin-catalogue.md) — where a plugin claiming one of these comes from
 - [D1 Service auto-wiring](../d-content/d1-seed.md) — the wiring this converts
 - [stack-manifest contract](../../../20-architecture/contracts/stack-manifest.md) — where a bundled service's capabilities are declared

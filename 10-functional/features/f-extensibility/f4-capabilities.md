@@ -173,7 +173,7 @@ run is reported as unproven — never as satisfied.
 
 ## Related
 
-- [F9 Capabilities of the bundled services](f9-bundled-capabilities.md) — the twenty that implement this vocabulary, and the wiring converted to ask in it
+- [F9 Capabilities of the bundled services](f9-bundled-capabilities.md) — the ones that implement this vocabulary, and the wiring converted to ask in it
 - [F3 Plugin manifests](f3-stack-manifests.md) — where a capability is claimed and asked for
 - [F2 Service catalogue](f2-service-catalogue.md) — what each bundled service is, which capabilities describe in machine terms
 - [F6 Plugin lifecycle](f6-plugin-lifecycle.md) — when the probes run and what a failure costs

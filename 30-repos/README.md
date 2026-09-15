@@ -60,10 +60,16 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those thirteen are every repository in the org. `.github` carries the community
-health files GitHub serves for a repo that does not define its own — the code of
-conduct, the security policy, the issue templates and the org profile — so a
-sibling repo inherits them rather than copying them
+Those thirteen are the repositories this specification governs, which is not the
+same as every repository in the organisation and is no longer close to it. A
+plugin is a repository too, and where one comes from is the reviewed catalogue's
+to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))
+rather than this register's — so the org has repositories this file does not list,
+on purpose, and the sentence says so rather than making a claim nothing checks.
+
+`.github` carries the community health files GitHub serves for a repo that does
+not define its own — the code of conduct, the security policy, the issue templates
+and the org profile — so a sibling repo inherits them rather than copying them
 ([tooling](../40-quality/tooling.md)).
 
 ## The `REPO-R` namespace

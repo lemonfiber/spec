@@ -306,7 +306,7 @@ possible. F3–F7 are Accepted; recipes (F8) are Draft and carry no version yet.
 | The capability vocabulary | F4 — what a capability is, what its probes must show, and what happens when two things claim one | `0.16.0` |
 | Plugin lifecycle | F6 — rehearse, install, prove, verify the stack around it, and reverse through the journal on either failure | `0.16.0` |
 | Plugin provenance | F7 — four redundant answers to why did my stack do that | `0.16.0` |
-| Capabilities of the bundled services | F9 — the nineteen declare what they can do, pass the probes, and the wiring is converted to ask rather than to name | `0.17.0` |
+| Capabilities of the bundled services | F9 — they declare what they can do, pass the probes, and the wiring is converted to ask rather than to name | `0.17.0` |
 | The plugin catalogue | F5 — reviewed, signed, and an operator's own source on the same technical terms with unreviewed said plainly | `0.17.0` |
 | Mobile client handoff | G9 — a household member's phone reaches the library in one step | `0.17.0` |
 | Recipes and named adapters | F8 — the ordered calls that turn a first-run flow into data, and what they may carry where ([ADR-0022](decisions/0022-a-recipe-declares-pairs-not-lists.md)) | unscheduled |
@@ -321,10 +321,10 @@ release behind it, which is a decision about the train rather than about plugins
 **The capability work is split across the two**, and the difference is visible to an
 operator rather than internal. `0.16.0` ships the vocabulary: a plugin can claim a
 capability, be refused for claiming one it cannot demonstrate, and take over one another
-*plugin* was filling. `0.17.0` ships the nineteen bundled declarations and the converted
-wiring, which is what makes a plugin able to stand in for a *bundled* service. The model
-has to exist before nineteen services can be described in it, and describing them is the
-larger half of the work.
+*plugin* was filling. `0.17.0` ships the bundled declarations and the converted wiring,
+which is what makes a plugin able to stand in for a *bundled* service. The model has to
+exist before a service can be described in it, and describing them all is the larger
+half of the work.
 
 **Exit criteria for `0.16.0`:** a plugin authored outside this project installs, proves
 itself, and adds a service to a running stack with no change to lemonfiber — and removing

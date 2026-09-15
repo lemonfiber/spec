@@ -148,10 +148,10 @@ file.
 ## Going out before it is releasable
 
 A version can be finished everywhere except in one place nobody on a runner can
-reach. `0.15.0` is there: seventeen of the nineteen stack services are started
-and made to answer on every change, and the two that are not need a real VPN
-provider and key, so `F1-R1` closes on one hand-run on the owner's own hardware
-and on nothing a workflow can arrange. Waiting is not free — the binary that
+reach. `0.15.0` is there: every stack service but two is started and made to
+answer on every change, and the two that are not need a real VPN provider and
+key, so `F1-R1` closes on one hand-run on the owner's own hardware and on
+nothing a workflow can arrange. Waiting is not free — the binary that
 would do the hand-run is the binary nobody can install, because installing it is
 what the release produces.
 

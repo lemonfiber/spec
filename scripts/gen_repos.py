@@ -46,7 +46,13 @@ IMPL = "impl"
 TABLE = re.compile(r"^\| Repo \| Spec \| Language \|.*(?:\n\|.*)*", re.MULTILINE)
 
 #: The sentence that counts the table. The word is the only part that moves.
-SENTENCE = re.compile(r"\bThose (\w+) are every repository in the org\b")
+#:
+#: It counts the register rather than the organisation, and it used to claim both.
+#: `plugin-komga` and `plugin-uptime-kuma` were created and belong in neither this
+#: file nor `repos.toml` — a plugin's home is the reviewed catalogue (`F5-R1`) —
+#: so the old sentence was wrong by two and nothing went red, because nothing here
+#: enumerates the org. A generated number is only honest about what it counts.
+SENTENCE = re.compile(r"\bThose (\w+) are the repositories this specification governs\b")
 
 
 def repos() -> list[dict]:
@@ -128,7 +134,9 @@ def main() -> None:
     count = len(repos())
     text = DIAGRAM.sub(lambda _: diagram(), text, count=1)
     text = TABLE.sub("\n".join(table()), text, count=1)
-    text = SENTENCE.sub(f"Those {word(count)} are every repository in the org", text)
+    text = SENTENCE.sub(
+        f"Those {word(count)} are the repositories this specification governs", text
+    )
     README.write_text(text, encoding="utf-8")
     print(f"30-repos: diagram, table and count regenerated from {count} registry entries")
 
