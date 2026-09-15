@@ -334,6 +334,35 @@ jobs:
           unmet: ${{ steps.verdict.outputs.unmet }}
           token: ${{ steps.token.outputs.token }}
 
+      # The record has to be *on main* before the tag, not merely opened as a pull
+      # request. The binary repository's changelog job reads it to write the verdict
+      # onto the release body and refuses a tag it finds no record for (OPS-R62) —
+      # so a tag cut while the record is still in review produces a build that fails
+      # for a reason that has nothing to do with the build.
+      #
+      # Bounded rather than open-ended, and the timeout is a refusal rather than a
+      # shrug: nothing is tagged, so nothing has to be undone.
+      - name: Wait for the record to land on main (OPS-R62, OPS-R65)
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 60); do
+            if gh api -H "Accept: application/vnd.github.raw" \
+              "repos/${OWNER}/spec/contents/70-operations/versions/${VERSION}.toml?ref=main" \
+              2>/dev/null | grep -qF "tag = \"${TAG}\""; then
+              echo "${TAG} is recorded on main."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::${TAG}'s record has not reached main after ten minutes; nothing was tagged."
+          exit 1
+
       - name: Tag the target repos
         if: ${{ !inputs.dry_run }}
         env:

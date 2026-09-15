@@ -211,6 +211,12 @@ pre-release — the tag, the day it was cut, the goals unmet at that moment, and
 the submodule pins it embedded — so the file answers *what went out before the
 release* the same way it already answers what the release shipped.
 
+The record lands **before** the tag, not after. What writes the verdict onto the
+published artefact reads it from here, so a tag cut while the record is still in
+review would produce a build that cannot carry its verdict and fails for a reason
+that has nothing to do with the build. The wait is bounded and its expiry is a
+refusal rather than a shrug: nothing has been tagged, so nothing has to be undone.
+
 The unmet goals are recorded rather than derived later, and that is the point of
 recording them. The gate's verdict changes as work lands; what a particular
 artefact went out knowing is a fact about that artefact, and a reader asking why
