@@ -120,6 +120,40 @@ class TheGate(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("X9-R1 is defined by no accepted feature", said)
 
+    def test_a_withdrawn_row_is_not_a_requirement_awaiting_a_version(self):
+        """The row survives so the number is never reused; the debt does not.
+
+        OPS-R30 forbids a withdrawn requirement being a goal, so a gate counting
+        one as live demands a lock the same rule refuses to allow — a debt whose
+        only discharge is the thing that is not permitted.
+        """
+        root = tree(goals='"X1-R1", "X1-R2"')
+        feature = root / gate.FEATURES / "features" / "x-thing" / "x1-thing.md"
+        feature.write_text(
+            feature.read_text(encoding="utf-8")
+            + "| **X1-R3** | *Withdrawn — carried to X2-R1. The number is not reused.* |\n",
+            encoding="utf-8",
+        )
+        code, said = run(root)
+        self.assertEqual(code, 0, said)
+        self.assertIn("2 accepted requirements", said)
+
+    def test_a_declared_entry_the_spec_has_since_withdrawn_is_refused(self):
+        """Which is how the five this check was holding came to be deleted."""
+        root = tree(goals='"X1-R1"')
+        feature = root / gate.FEATURES / "features" / "x-thing" / "x1-thing.md"
+        feature.write_text(
+            feature.read_text(encoding="utf-8").replace(
+                "| **X1-R2** | The second thing. |",
+                "| **X1-R2** | *Withdrawn — carried to X2-R1. The number is not reused.* |",
+            ),
+            encoding="utf-8",
+        )
+        gate.AWAITING_A_VERSION["X1"] = ("a note naming 0.1.0", ["X1-R2"])
+        code, said = run(root)
+        self.assertEqual(code, 1)
+        self.assertIn("X1-R2 is defined by no accepted feature", said)
+
 
 class TheRealTree(unittest.TestCase):
     def test_the_spec_itself_passes(self):

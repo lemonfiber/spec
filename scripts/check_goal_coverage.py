@@ -31,7 +31,7 @@ import re
 import sys
 import tomllib
 
-from patterns import REQ_DEF
+from patterns import REQ_DEF, REQ_RETIRED_ROW
 
 FEATURES = "10-functional"
 VERSIONS = "70-operations/versions"
@@ -52,20 +52,15 @@ STATUS = re.compile(r"^status:\s*(\S+)", re.MULTILINE)
 #
 # None of these is assigned here, deliberately. Which version carries a
 # requirement is a decision about what ships when, and a gate is the wrong place
-# to make one — six of the eight features below have their siblings in a
-# *released* manifest, whose goals are frozen (OPS-R30), so those cannot simply
-# be added to where the rest sit.
+# to make one — every feature below has its siblings in a *released* manifest,
+# whose goals are frozen (OPS-R30), so they cannot simply be added to where the
+# rest sit.
 AWAITING_A_VERSION = {
     "A7": ("the other fourteen A7 goals are locked by 0.13.0, released", ["A7-R15"]),
     "C1": ("C1 is split across 0.1.0, 0.2.0 and 0.8.0, all released", ["C1-R15"]),
     "C4": ("the other fourteen C4 goals are locked by 0.7.0, released", ["C4-R15"]),
     "C6": ("C6 is split across 0.9.0 and 0.10.0, both released", ["C6-R18", "C6-R19"]),
     "E3": ("E3 is split across 0.3.0 and 0.14.0, both released", ["E3-R16"]),
-    "F3": (
-        "F3's other twenty-one goals are locked by 0.16.0, planned",
-        ["F3-R15", "F3-R16", "F3-R19", "F3-R20"],
-    ),
-    "F4": ("F4's other thirteen goals are locked by 0.16.0, planned", ["F4-R5"]),
     "G7": ("the other thirteen G7 goals are locked by 0.5.0, released", ["G7-R14"]),
     "G8": (
         "G8 is split across 0.10.0, 0.11.0 and 0.14.0, all released",
@@ -84,15 +79,22 @@ def declared() -> dict[str, str]:
 
 
 def accepted_requirements(root: pathlib.Path) -> dict[str, str]:
-    """Every requirement an accepted feature defines, against the file defining it."""
+    """Every requirement an accepted feature defines, against the file defining it.
+
+    Less the rows a feature keeps only to retire a number. A withdrawn row is not
+    a requirement waiting for a version — OPS-R30 forbids it ever being a goal —
+    so counting it here asks for a lock the same rule refuses to allow.
+    """
     found: dict[str, str] = {}
     for md in sorted((root / FEATURES).rglob("*.md")):
         text = md.read_text(encoding="utf-8", errors="ignore")
         status = STATUS.search(text)
         if status is None or status.group(1) != "accepted":
             continue
+        retired = set(REQ_RETIRED_ROW.findall(text))
         for rid in REQ_DEF.findall(text):
-            found[rid] = str(md.relative_to(root))
+            if rid not in retired:
+                found[rid] = str(md.relative_to(root))
     return found
 
 
