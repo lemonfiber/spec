@@ -1,12 +1,15 @@
 # Repo: `lemonfiber-plugins`
 
-**Status:** Draft
+**Status:** Accepted
 
-The reviewed plugin catalogue. TOML and recorded fixtures; no code of its own.
+The reviewed plugin catalogue. A register of where plugins are, and the revision of
+each one that a person read.
 
-**This repository does not exist yet.** What follows is what it must be when it is
-created, which is owed by [F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md)
-in `0.17.0`.
+It registers rather than holds. A plugin's manifest and its recordings belong to the
+repository that publishes them, and a second copy here would be a second answer to
+*what does this plugin declare* — with no way to tell which of the two an operator
+installed. So an entry is an origin and a reviewed revision, and everything else is
+read out of that revision when CI asks.
 
 **Implements:** [F5-R1](../10-functional/features/f-extensibility/f5-plugin-catalogue.md)–[F5-R3](../10-functional/features/f-extensibility/f5-plugin-catalogue.md),
 [F5-R10](../10-functional/features/f-extensibility/f5-plugin-catalogue.md),
@@ -33,25 +36,35 @@ human spends any attention.
 ```
 lemonfiber-plugins/
 ├── plugins/
-│   └── <id>/
-│       ├── plugin.toml      the manifest, reviewed as a diff
-│       └── fixtures/        recorded responses its proofs run against
+│   └── <id>.toml            where it is, and the revision that was read
 └── .github/workflows/
 ```
 
-One directory per plugin, and **nothing in it that cannot be read as a diff**
-(`REPO-R54`). No archives, no encoded blobs, no generated artefacts. That constraint is
-what makes human review possible at all, and it is the property
+One file per plugin, and **nothing in it that cannot be read as a diff** (`REPO-R60`).
+No archives, no encoded blobs, no generated artefacts. That constraint is what makes
+human review possible at all, and it is the property
 [F3-R10](../10-functional/features/f-extensibility/f3-stack-manifests.md) asks for.
 
-The fixtures are here rather than elsewhere because CI has to run the declared proofs
-(`F5-R2`) and cannot do that against a live Plex. They are reviewed with the manifest: a
-recording nobody reads is a place for something to hide.
+An entry is short on purpose: an origin and a commit. The revision is the whole of what
+review means here — a person read *that* tree, and moving the plugin forward is a pull
+request moving the commit, which is the same person reading again. It is also what makes
+[F5-R7](../10-functional/features/f-extensibility/f5-plugin-catalogue.md)'s *where it came
+from, at which revision* answerable without the catalogue being where it came from.
+
+The fixtures stay in the plugin's own repository and CI reads them there, at the pinned
+revision, because the proofs it has to run (`F5-R2`) are the plugin's proofs against the
+plugin's recordings. Reading them rather than copying them is also the only way the two
+cannot drift.
 
 ## What its CI does
 
 Three things, in order, before a human looks:
 
+0. **Fetch.** The registered revision is fetched, and what is read out of it is data:
+   the manifest, the recordings, and the release the plugin says it targets. Nothing in
+   the registered repository is executed, here or ever (`REPO-R62`) — a catalogue that
+   ran a stranger's script to find out whether the stranger's data was acceptable would
+   be answering the question by doing the thing the question is about.
 1. **Schema.** Every manifest is validated against the schema the binary publishes
    (`ARCH-R92`).
 2. **Proofs.** Every declared proof runs against that plugin's recorded fixtures, and a
@@ -107,12 +120,15 @@ project has said it does not build.
 
 | ID | Requirement |
 |----|-------------|
-| **REPO-R54** | The catalogue MUST hold one directory per plugin containing its manifest and its recorded fixtures, and MUST contain nothing that cannot be reviewed as a readable diff. |
-| **REPO-R55** | Its CI MUST validate every manifest against the published schema, run every declared proof against the plugin's recorded fixtures, and check its declared reach statically; a contribution failing any of these MUST be refused before human review. |
+| **REPO-R54** | *Withdrawn — carried to [REPO-R60](lemonfiber-plugins.md) when the catalogue became a register of origins rather than a copy of what it registers. The number is not reused.* |
+| **REPO-R55** | *Withdrawn — carried to [REPO-R61](lemonfiber-plugins.md) for the same reason: the checks are made against a fetched revision rather than against a copy held here. The number is not reused.* |
 | **REPO-R56** | Those checks MUST run the same commands an author runs locally, from a `lemonfiber` release pinned and named in the repository. |
 | **REPO-R57** | A catalogue release MUST be signed, and what the signature covers MUST be exactly what was reviewed. |
 | **REPO-R58** | The catalogue MUST NOT publish anything an installed plugin resolves at run time. |
 | **REPO-R59** | The catalogue MUST hold no service, no database and no state beyond the repository itself. |
+| **REPO-R60** | The catalogue MUST register each plugin as an origin and the revision of it that was reviewed, MUST hold no copy of a registered plugin's manifest or recordings, and MUST contain nothing that cannot be reviewed as a readable diff. |
+| **REPO-R61** | Its CI MUST fetch each registered revision and, from the data in that revision alone, validate the manifest against the published schema, run every declared proof against the plugin's recorded fixtures, and check its declared reach statically; a registration failing any of these MUST be refused before human review. |
+| **REPO-R62** | The catalogue MUST NOT execute anything from a registered repository, and MUST read that repository as data only. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber-plugins`.
 
