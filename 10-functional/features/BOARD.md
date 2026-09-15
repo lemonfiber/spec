@@ -90,7 +90,7 @@ code, and the two move independently.
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | accepted | `0.16.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | draft | `0.18.0` |
 | [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | F | operator | accepted | `0.17.0` |
-| [F10](f-extensibility/f10-authoring.md) | Writing a plugin | F | operator | draft | — |
+| [F10](f-extensibility/f10-authoring.md) | Writing a plugin | F | operator | accepted | `0.16.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
 | [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.19.0` |

@@ -100,7 +100,7 @@
       "version": "0.16.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 79
+      "goals": 89
     },
     {
       "version": "0.17.0",
@@ -1880,11 +1880,13 @@
       "area": "F",
       "audience": "operator",
       "kind": "feature",
-      "status": "draft",
+      "status": "accepted",
       "maturity": "planned",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
       "priority": "P2",
       "labels": [
         "extensibility",
@@ -1900,7 +1902,12 @@
         "F8",
         "G4"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "0.16.0",
+          "status": "planned"
+        }
+      ],
       "path": "f-extensibility/f10-authoring.md"
     },
     {
