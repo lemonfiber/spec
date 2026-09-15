@@ -16,6 +16,7 @@ import contextlib
 import io
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -628,6 +629,63 @@ class CheckStageableTests(Workspace):
             'version = "0.6.0"\nstatus  = "planned"\nrepos = []\ngoals = ["Q-R64"]\n',
             encoding="utf-8")
         self.assertNotEqual(run_main(check_stageable, ["0.6.0"])[0], 0)
+
+
+class WhatTheManifestsSayTheyLock(unittest.TestCase):
+    """The goal count a manifest opens with, against the list beneath it.
+
+    Most manifests begin by saying how many goals they lock, and that sentence is
+    what somebody reads instead of counting. It is also a number two people touch at
+    different times — one appends a goal, the other wrote the sentence — and nothing
+    has ever asked whether the two still agree. A count that has stopped being true
+    reads exactly like one that is, which is the whole of the failure: there is
+    nothing to notice, and `versions/README.md` says as much about a different count
+    it deliberately refuses to write down.
+
+    Stating one is not required. A manifest that says nothing claims nothing, and
+    several say nothing. What is refused is a count the list under it contradicts.
+
+    The real tree rather than a fixture, because the thing at risk is these files.
+    """
+
+    #: The first number the header offers as a count of goals.
+    STATED = re.compile(r"(\d+)\s+goals\b")
+
+    def manifests(self):
+        found = sorted((HERE.parent / "70-operations" / "versions").glob("*.toml"))
+        found = [f for f in found if f.name != "TEMPLATE.toml"]
+        self.assertTrue(found, "no manifest was read, so nothing below is a claim")
+        return found
+
+    def test_a_stated_count_matches_the_goals_beneath_it(self):
+        for manifest in self.manifests():
+            text = manifest.read_text(encoding="utf-8")
+            # The header only. A count is an opening sentence about the version; a
+            # digit further down belongs to a requirement id or a pin.
+            said = self.STATED.search(text.split("version =")[0])
+            if said is None:
+                continue
+            with self.subTest(manifest=manifest.name):
+                self.assertEqual(
+                    int(said.group(1)),
+                    len(tomllib.loads(text).get("goals", [])),
+                    f"{manifest.name} opens by claiming a number of goals that its own "
+                    "`goals` list does not hold",
+                )
+
+    def test_at_least_one_manifest_states_a_count(self):
+        """So a regex that stopped matching is told apart from a tree with no counts."""
+        stating = [
+            manifest.name
+            for manifest in self.manifests()
+            if self.STATED.search(
+                manifest.read_text(encoding="utf-8").split("version =")[0]
+            )
+        ]
+        self.assertTrue(
+            stating,
+            "no manifest header states a goal count, so the check above compared nothing",
+        )
 
 
 class ManifestReposTests(Workspace):
