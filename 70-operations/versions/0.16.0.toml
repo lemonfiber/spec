@@ -78,7 +78,20 @@ milestone = "M14"   # The platform
 delivers  = "Plugins — what one is, installing one, and what that leaves readable"
 status  = "staged"
 repos   = ["lemonfiber"]
-satisfied_in = ["lemonfiber", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php"]
+# The catalogue is named here because F10-R4, F10-R6 and F10-R9 are cited in it, and
+# F10-R4 names the catalogue's own CI in the requirement. OPS-R58 asks a manifest to say
+# where the work satisfying its goals landed, and a goal satisfied where the gate does
+# not look is reported unmet for a reason that is not about the work. 0.10.0's list was
+# drafted short three times over the same question, which is why the versions README
+# asks for this to be settled by running the gate rather than from memory.
+#
+# The three registered plugins are not named here and must not be. OPS-R67 makes a
+# registered plugin an input to the gate rather than a stream, and a plugin citing a
+# requirement declares that it complies with one, not that lemonfiber implements it —
+# so searching those repositories would mark an unbuilt requirement cited. F10-R7 is
+# where that bites: the template is the obvious place to satisfy it, so whatever ends up
+# satisfying it has to be citable from a repository this list may name.
+satisfied_in = ["lemonfiber", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-plugins"]
 goals   = [
     "F3-R1",
     "F3-R2",
