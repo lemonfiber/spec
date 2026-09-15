@@ -65,6 +65,21 @@ generated is a description of it.* A plugin SDK would be a second, hand-maintain
 description of the manifest, and the day it disagreed with the parser the symptom would be
 a plugin that validates in its author's editor and is refused on an operator's machine.
 
+### Three artefacts, and every one of them generated
+
+The schema is not the only thing an author needs published. Two more decide
+whether what they write does anything: the **capability vocabulary** they may
+claim from ([`F4-R18`](f4-capabilities.md)), and the **extension points** they
+may contribute at ([`F4-R20`](f4-capabilities.md)). Both are generated the same
+way and attached to the same releases, and the binary answers from all three
+with no network and no running stack.
+
+Their absence is what the first two published plugins ran into. Every capability
+either of them claims is namespaced, because there was no core name to claim, and
+a namespaced capability is inert — so both install a container and wire nothing.
+That was not a limit of the format or a mistake by either author. It was one
+missing file, twice.
+
 ### The binary is the toolchain
 
 Fetching, validating, rehearsing, proving, installing and removing are already required to
@@ -124,7 +139,7 @@ Per plugin, while it is being written:
 | Fixtures drift from what the service now does | The proof passes against the recording and fails against the service. Both results are reported as what they are; a fixture is evidence about a moment. |
 | An author wants a helper library in their own language | Nothing stops them writing one. What is not published is an official second description of the format. |
 | A plugin is written against a newer lemonfiber than the operator has | Refused by naming the capability the manifest asked for, never by naming a version (`F3-R21`). |
-| An author asks what adapters or capabilities they may name | Answerable non-interactively from the binary; the sets are published rather than discovered (`F3-R20`). |
+| An author asks what adapters or capabilities they may name | Answerable non-interactively from the binary; the sets are published rather than discovered (`F4-R18`, `F4-R20`, `F8-R13`). |
 | A validation failure is unclear | It names the location in the manifest and what was expected, and reports every violation in one pass (`F3-R22`). Authoring is where `G4`'s error model earns its keep. |
 
 ## Acceptance criteria

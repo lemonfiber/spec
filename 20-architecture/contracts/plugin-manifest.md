@@ -21,6 +21,9 @@ is not declared here.
 [F3-R17](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R18](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R31](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
+[F3-R33](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
+[F3-R34](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
+[F3-R35](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F1-R9](../../10-functional/features/f-extensibility/f1-customisation.md)
 
 ---
@@ -67,13 +70,16 @@ resolved, because "which one did I install" has no good answer.
 ```toml
 schema_version = 1
 
-[plugin]      # identity and provenance
-[[service]]   # exactly one, in this version
-[wiring]      # how the stack's own proxy and dashboard reach it
-[[proof]]     # what must hold before it is installed
-[[secret]]    # every value it will hold (F3-R17)
-[[override]]  # every bundled thing it will change (F3-R18)
-[requires]    # what the plugin needs of lemonfiber
+[plugin]          # identity and provenance
+[[service]]       # exactly one, in this version
+[[claim]]         # a core capability, and the probes that demonstrate it
+[wiring]          # how the stack's own proxy and dashboard reach it
+[[proof]]         # what must hold before it is installed
+[[contribution]]  # a row at a published extension point
+[[recipe]]        # the ordered calls that configure what it installed (F8)
+[[secret]]        # every value it will hold (F3-R17)
+[[override]]      # every bundled thing it will change (F3-R18)
+[requires]        # what the plugin needs of lemonfiber
 ```
 
 `[[secret]]` and `[[override]]` are declared here and, in this version, are
@@ -235,11 +241,12 @@ a verification failure and the plugin is not installed (`F4-R6`). A plugin's own
 capability MUST be namespaced with the plugin's id — `komga:opds` — and is inert
 until something asks for it (`F4-R4`).
 
-**Until the core vocabulary is published there is nothing core to claim.** A
-plugin written today can declare only namespaced capabilities, which is a real
-limit and not a stylistic one: an inert claim wires nothing. That is `F4-R2`'s
-work in this version, and a plugin that wants to stand in for a bundled service
-additionally needs `F9`'s declarations in `0.17.0`.
+The vocabulary is published as
+[`capability-vocabulary.json`](capability-vocabulary.md) and is answerable from
+the binary, so an author asking what they may claim asks the tool rather than a
+document. A core name here with no [`[[claim]]`](#claim--the-probes-a-core-name-is-demonstrated-by)
+block binding its probes is refused: `F4`'s whole posture is that *a claim is
+demonstrated, not asserted*, and a name in a list asserts.
 
 ### A plugin may not declare itself `critical`
 
@@ -329,6 +336,50 @@ when it appears it is the **single** data mount — [ADR-0006](../../00-overview
 rule holds for a plugin by construction rather than by review, because there is
 no second mount to declare.
 
+## `[[claim]]` — the probes a core name is demonstrated by
+
+```toml
+[[claim]]
+capability = "media.serve"
+
+[[claim.probe]]
+id      = "guarded"
+request = { method = "GET", path = "/api/v1/series" }
+expect  = { status = 401 }
+fixture = "fixtures/media-serve-guarded.json"
+
+[[claim.probe]]
+id      = "catalogue"
+request = { method = "GET", path = "/api/v1/series" }
+expect  = { status = 200, json_has_keys = ["content", "totalElements"] }
+fixture = "fixtures/media-serve-catalogue.json"
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `capability` | string | ✔ | A core name, which MUST also appear in the service's `provides` |
+| `probe[].id` | string | ✔ | Names a probe the capability declares. Every one of them, exactly once. |
+| `probe[].request` | table | ✔ | `method` and `path` on this plugin's own service |
+| `probe[].expect` | table | ✔ | What the answer must be. Within what the probe permits — see below. |
+| `probe[].fixture` | string | ✔ | The recorded response. Required here where it is optional on a proof: a claim nobody can demonstrate without owning the service is a claim the catalogue's CI cannot check (`F5-R2`). |
+
+**The vocabulary owns what must be shown; this owns where to ask.** A capability
+is one contract with many claimants, each answering at a path of its own, so the
+published probe declares the question, the statuses that answer it, and whether a
+credential is needed — and the binding declares the method, the path and the
+recorded response. A binding that leaves a probe unbound, names one the
+capability does not declare, or carries an expectation weaker than the probe
+requires is refused naming the probe (`ARCH-R109`).
+
+`provides` and this are a declaration and its evidence rather than two lists. A
+core name in `provides` with no claim is refused; a claim whose capability is not
+in `provides` is refused; both name the other half.
+
+A namespaced capability gets no claim block and cannot have one. There is no
+published contract for it to satisfy — that is what *inert* means — and the
+plugin's own `[[proof]]` entries are where it says what it can nevertheless
+demonstrate.
+
 ## `[wiring]` — how the stack's own services reach it
 
 ```toml
@@ -399,6 +450,97 @@ would fail.
 
 Three verdicts, never two (`F3-R5`, `F4-R7`): passed, failed, and could not be
 run. The third is reported as unproven and is never counted as the first.
+
+## `[[contribution]]` — a row in a register lemonfiber already runs
+
+```toml
+[[contribution]]
+at        = "doctor.check"
+id        = "komga:claimed"
+title     = "Komga has an administrator, so nobody else can become one"
+category  = "services"
+request   = { method = "GET", path = "/api/v1/claim" }
+expect    = { status = 200, json = { isClaimed = true } }
+fixture   = "fixtures/api-v1-claim-claimed.json"
+timeout_s = 10
+why       = "An unclaimed Komga hands administrator to whoever asks first."
+
+[[contribution]]
+at     = "doctor.remedy"
+id     = "komga:claim-it"
+for    = "komga:claimed"
+action = "Open Komga and create the administrator account"
+why    = "Until somebody does, the first caller on the household network becomes it."
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `at` | string | ✔ | A point [`extension-points.json`](extension-points.md) publishes. One this build does not is refused by name, with the ones that exist. |
+| `id` | string | ✔ | `<plugin-id>:<name>`. Namespaced, always (`F4-R16`). |
+| … | | | Everything else is the row that point declares, and nothing else |
+
+The fields are not enumerated here, and deliberately: the row belongs to the
+point and the point is published, so restating it would be a second description
+of a format that already has one — `F10-R2`'s objection, one level down. What is
+fixed here is that a contribution is declared **in this block and nowhere else**,
+and that it carries exactly the row its point declares.
+
+What that buys is the property `F3-R26` is written for: nothing new evaluates a
+contribution. The doctor already runs checks independently, bounds each one,
+keeps `unverified` distinct from `pass`, and carries a remedy on anything that
+does not pass. A contributed check is another row in that register, run on
+exactly those terms and attributed to its plugin wherever it appears.
+
+Every check carries at least one remedy (`F3-R34`). A check that can say
+something is wrong and nothing about what to do has moved the work to the
+operator rather than done it, and `C1-R2` has no exemption for a contributed
+finding.
+
+## `[[recipe]]` — declarable before it is runnable
+
+```toml
+[[recipe]]
+id    = "adopt-existing-library"
+title = "Point it at the comics the stack already files"
+why   = "…"
+
+[[recipe.step]]
+id      = "create"
+call    = { method = "POST", to = "komga", path = "/api/v1/libraries" }
+expect  = { status = 200 }
+capture = [{ name = "library", from = "json.id", origin = "stack-service" }]
+
+[[recipe.pair]]
+value = "library"
+to    = "komga"
+```
+
+[F8](../../10-functional/features/f-extensibility/f8-recipes.md) governs what the
+calls may do; this says where they are written. A step names a method, an
+in-stack service or an external DNS name, and a path; it may capture values out
+of a response, substitute earlier captures into a later call, branch on a status
+or a captured value, and wait a bounded number of times. Every value it could
+carry to every destination it could reach is declared as a `[[recipe.pair]]`, and
+a flow with no pair behind it fails validation before a call is made.
+
+**Nothing runs one yet, and the manifest says so rather than implying it.**
+Running a recipe is a capability a manifest asks for by name:
+
+```toml
+[requires]
+capabilities = ["service.add", "service.health.http", "recipe.run"]
+```
+
+A lemonfiber that does not offer `recipe.run` refuses such a manifest **by naming
+that capability** (`F3-R21`, `ARCH-R90`), which is the honest failure. The
+alternative — parsing the block and skipping it — would install a plugin whose
+declared behaviour is wider than its actual one, and that is the tolerated
+unknown `ARCH-R91` exists to refuse.
+
+The block is in the format before its engine is for the same reason `[[secret]]`
+and `[[override]]` are: a rule that cannot be stated for want of a field is not
+being enforced, and adding the field later would make every manifest written
+against this version wrong.
 
 ## `[[secret]]` and `[[override]]` — declared before they are held
 
@@ -511,6 +653,13 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | A `loopback` service declares no `wiring.hostname` | Service named, and the tier that governs |
 | Every secret captured is one `[[secret]]` declared (`F3-R17`) | Value and its origin named |
 | Every bundled thing changed is one `[[override]]` declared (`F3-R18`) | Setting and its owner named |
+| Every core name in `provides` has a `[[claim]]`, and every `[[claim]]` a name in `provides` | Both halves named |
+| Every probe a claimed capability declares is bound, and no other | Probe named, with the ones it declares |
+| Every binding's status and body constraint are within what its probe permits | Probe named, with what it requires |
+| Every `[[contribution]].at` names a published extension point | Point named, with those that exist |
+| Every contributed identity is namespaced, and none is one the point records as bundled | Both named |
+| Every `doctor.check` carries a `doctor.remedy` naming it | Check named |
+| A `[[recipe]]` is declared and `requires.capabilities` does not name `recipe.run` | Capability named, never a version |
 
 A manifest that fails any of these is refused outright — never partly applied,
 never applied on the strength of the parts that did parse (`F3-R2`).
@@ -566,11 +715,15 @@ unreadable.
 | **ARCH-R103** | lemonfiber MUST generate the stack's own proxy and dashboard wiring for a plugin's service from what the manifest declares, on the same terms as a bundled service in the same binding tier, and MUST NOT accept a proxy stanza, dashboard entry or any other wiring fragment from a plugin. |
 | **ARCH-R104** | A plugin MUST NOT be able to obtain a proxy hostname for a service bound to loopback, and the binding tier alone MUST decide whether a service is reachable by name. |
 | **ARCH-R105** | A plugin's proofs MUST be declarable in the manifest, each naming what it asks and what the answer must be, and a manifest whose every proof constrains only a response status MUST be refused naming those proofs. |
+| **ARCH-R116** | A core capability MUST be claimed by a `[[claim]]` block binding every probe the published vocabulary declares for it, the claimed name MUST also appear in the service's `provides`, and either half without the other MUST be refused naming both. |
+| **ARCH-R117** | A recipe MUST be declarable in the manifest, and a manifest declaring one MUST name the capability that runs it in `[requires]`; a build not offering that capability MUST refuse the manifest by naming it rather than by parsing the block and skipping it. |
 
 ## Related
 
 - [ADR-0021](../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) — the decision this contract implements
 - [stack-manifest](stack-manifest.md) — the vocabulary a plugin's service is declared in, and the whole-stack manifest this is not
+- [capability-vocabulary](capability-vocabulary.md) — the names `provides` may carry and the probes a `[[claim]]` binds
+- [extension-points](extension-points.md) — the points a `[[contribution]]` is made at and the row each one takes
 - [versioning](versioning.md) — the three version identifiers, and the window this one does not share
 - [web-api](web-api.md) — `ARCH-R78`–`ARCH-R82`, the capability negotiation this reuses and the tolerance rule it inverts
 - [F3](../../10-functional/features/f-extensibility/f3-stack-manifests.md) — what a plugin is

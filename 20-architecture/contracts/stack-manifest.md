@@ -170,6 +170,7 @@ media_types = ["tv"]
 | `reaches` | string | | Where this service's own requests go, in terms an operator would recognise. `""` means it reaches nothing — an answer, not an omission. Both this and `asks_for` or neither (`F2-R10`). |
 | `asks_for` | string | | What it asks for there. Never blank, including for a service that reaches nothing (`F2-R10`). |
 | `media_types` | array | | Which media types it handles; drives root-folder seeding. One or more of `tv`, `movies`, `music`, `books`, `comics`. |
+| `provides` | array | | The capabilities this service provides, in the published [capability vocabulary](capability-vocabulary.md). A name the vocabulary does not carry fails validation, named (`ARCH-R110`). |
 | `depends_on` | array | | **Same profile only.** Cross-profile entries fail validation (`B1-R14`). |
 | `grants` | array | | Extra kernel capabilities granted to the container, e.g. `["NET_ADMIN"]`. Any entry beyond an allow-list fails validation. Spelled `capabilities` until `0.16.0`; that spelling is still accepted and always will be, because a rename is not a reason to refuse to read somebody's own stack description. |
 | `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`) |
@@ -192,6 +193,28 @@ not be used, and the plugin was left to be aimed by hand on first run.
 vocabulary that only admits what is already bundled is one a plugin cannot
 extend the library with, which is the opposite of what
 [F3](../../10-functional/features/f-extensibility/f3-stack-manifests.md) is for.
+
+### `provides` — what it can do, so wiring can ask rather than name
+
+[`F9-R1`](../../10-functional/features/f-extensibility/f9-bundled-capabilities.md)
+puts a bundled service's capabilities in this manifest rather than in
+lemonfiber's source, for `F1-R5`'s reason: a fork adding a service declares what
+it can do the same way, with no code change. A plugin declares the same facts in
+the same vocabulary, in `provides` on its own service — which is what makes
+substitution a change of which service fills a capability rather than a rewrite
+of everything that named one.
+
+The names come from [`capability-vocabulary.json`](capability-vocabulary.md), and
+that file is generated from **this field**: a capability no service here declares
+fails the generation, which is how `F9-R3` — *a capability nothing implements
+MUST NOT be published* — is enforced by the artefact refusing to be built.
+
+Four bundled services declare nothing, and that is the answer rather than an
+omission. Recyclarr writes quality profiles into other services' configuration
+and Unpackerr watches the filesystem; Homepage and Caddy are configured by
+lemonfiber writing a file rather than by anything asking them a question. A
+capability is something one service asks another for while both are running, and
+nothing asks these four — so there is nothing to stand in for.
 
 ### `reaches` and `asks_for` — the errand, where the errand is decided
 

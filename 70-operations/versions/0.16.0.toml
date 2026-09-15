@@ -29,7 +29,16 @@
 # is a recipe and arrives with F8 in 0.18.0; overriding a bundled check is F9's and
 # waits for 0.17.0 with the rest of standing-in.
 #
-# 69 goals, seeded from the roadmap milestone this version serves;
+# The three artefacts were the thing this version was missing and nobody had written
+# down as missing. F4-R2 has required a published vocabulary since it was accepted,
+# ARCH-R92 a generated schema, F4-R15 the extension points — and the two plugins
+# published against this format namespace every capability they claim, because there
+# was no core name to claim, which makes every one of them inert. Both install a
+# container and wire nothing. F4-R18..R24 and F3-R33..R35 are those three artefacts
+# and the manifest surface that uses them, which is what turns a plugin that can be
+# read into one that can be useful.
+#
+# 79 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
@@ -66,6 +75,9 @@ goals   = [
     "F3-R30",
     "F3-R31",
     "F3-R32",
+    "F3-R33",
+    "F3-R34",
+    "F3-R35",
     "F4-R1",
     "F4-R2",
     "F4-R3",
@@ -82,6 +94,13 @@ goals   = [
     "F4-R15",
     "F4-R16",
     "F4-R17",
+    "F4-R18",
+    "F4-R19",
+    "F4-R20",
+    "F4-R21",
+    "F4-R22",
+    "F4-R23",
+    "F4-R24",
     "F6-R1",
     "F6-R2",
     "F6-R3",
