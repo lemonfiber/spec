@@ -213,6 +213,31 @@ jobs:
           fi
           echo "compat ok: binary ${VERSION} >= min_cli ${mincli}, schema ${schema}"
 
+      # What the artefacts will actually embed, so the record answers "which build
+      # of the stack went out with it" from the file alone (OPS-R65).
+      #
+      # Enumerated from `.gitmodules` rather than named here, which is the lesson
+      # `release-finalize` learned the expensive way: it spelled out the one path
+      # that existed when it was written and went on recording only that one after
+      # a second submodule arrived, so 0.10.0 shipped a record that did not say
+      # which build of the web app was in it.
+      - name: Read the pins these artefacts will carry (OPS-R65)
+        id: pins
+        run: |
+          set -euo pipefail
+          python3 scripts/submodule_pins.py < checkouts/lemonfiber/.gitmodules > modules.tsv
+          recorded=()
+          while IFS=$'\t' read -r name where; do
+            [ -n "$name" ] || continue
+            sha=$(git -C checkouts/lemonfiber ls-tree HEAD "$where" | awk '{print $3}')
+            printf '%s' "$sha" | grep -Eq '^[0-9a-f]{40}$' \
+              || { echo "::error::${name}'s pin is not a sha: '${sha}'"; exit 1; }
+            recorded+=("${name}=${sha}")
+            echo "${name} @ ${sha:0:8}"
+          done < modules.tsv
+          [ "${#recorded[@]}" -gt 0 ] || { echo "::error::the tag embeds no submodule this could record"; exit 1; }
+          echo "pins=${recorded[*]}" >> "$GITHUB_OUTPUT"
+
       - name: Check for release blockers (OPS-R44, OPS-R66)
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
@@ -332,6 +357,7 @@ jobs:
           prerelease: ${{ steps.tag.outputs.tag }}
           prerelease_on: ${{ steps.read.outputs.today }}
           unmet: ${{ steps.verdict.outputs.unmet }}
+          pins: ${{ steps.pins.outputs.pins }}
           token: ${{ steps.token.outputs.token }}
 
       # The record has to be *on main* before the tag, not merely opened as a pull
