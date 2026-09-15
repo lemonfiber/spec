@@ -25,6 +25,20 @@ REQ_DEF = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|", re.MULTILINE)
 # The same row, keeping the text as well, for the gates that read what it says.
 REQ_DEF_ROW = re.compile(r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|([^|]*)\|", re.MULTILINE)
 
+# A row kept only to retire a number: withdrawn or superseded in place.
+#
+# The row stays so the number is never reused, and its body says that instead of
+# stating a requirement. It is a headstone, not a requirement, and OPS-R30 forbids
+# one being a goal — so a gate that counts it as live is asking for something no
+# manifest is permitted to give. `check_goal_coverage` did exactly that and held
+# five debts nothing could ever discharge; `check_stageable` did the mirror of it
+# and would have accepted a withdrawn identifier as a goal, under a docstring
+# naming OPS-R30 as the rule it enforces.
+REQ_RETIRED_ROW = re.compile(
+    r"^\|\s*\*\*([A-Z]+\d*-R\d+)\*\*\s*\|\s*\*(?:Withdrawn|Superseded)\b",
+    re.MULTILINE,
+)
+
 # A requirement, cited: a mention of one anywhere in prose.
 CITE = re.compile(r"\b([A-Z]+\d*-R\d+)\b")
 

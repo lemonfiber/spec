@@ -39,21 +39,28 @@ import tracker_body  # noqa: E402
 
 
 def run_main(mod, argv, stdin=""):
-    """Call a module's main() with argv/stdin patched; return (exit_code, stdout)."""
+    """Call a module's main() with argv/stdin patched; return (exit_code, what it said).
+
+    `sys.exit("::error::…")` is how these gates refuse, and the interpreter prints
+    that string only when nothing catches the SystemExit. Caught here it would be
+    dropped, leaving a test able to see *that* a gate refused and never *which*
+    thing it refused — so the message joins the captured stdout.
+    """
     out = io.StringIO()
     saved_argv, saved_stdin = sys.argv, sys.stdin
     sys.argv = [mod.__name__, *argv]
     sys.stdin = io.StringIO(stdin)
-    code = 0
+    code, said = 0, ""
     try:
         with contextlib.redirect_stdout(out):
             result = mod.main()
         code = result if isinstance(result, int) else 0
     except SystemExit as exc:
         code = exc.code if isinstance(exc.code, int) else 1
+        said = "" if exc.code is None or isinstance(exc.code, int) else f"{exc.code}\n"
     finally:
         sys.argv, sys.stdin = saved_argv, saved_stdin
-    return code, out.getvalue()
+    return code, out.getvalue() + said
 
 
 class Workspace(unittest.TestCase):
@@ -593,6 +600,24 @@ class CheckStageableTests(Workspace):
         self.manifest("0.2.0", status="releasable")
         self.manifest("0.3.0", status="planned", goals=("B1-R4",))
         self.assertNotEqual(run_main(check_stageable, ["0.3.0"])[0], 0)
+
+    def test_a_withdrawn_goal_is_refused_by_name(self):
+        """A retired row holds a number open; OPS-R30 forbids locking one.
+
+        It is defined — the row is still there, which is the whole point of
+        keeping it — so a gate asking only whether the spec defines the
+        identifier lets it through, under a docstring naming OPS-R30.
+        """
+        pathlib.Path("40-quality").mkdir(exist_ok=True)
+        pathlib.Path("40-quality/x.md").write_text(
+            "| **Q-R64** | text |\n"
+            "| **Q-R65** | *Withdrawn — carried to Q-R64. The number is not reused.* |\n",
+            encoding="utf-8")
+        self.manifest("0.2.0", status="planned", goals=("Q-R64", "Q-R65"), repos=("lf",))
+        code, out = run_main(check_stageable, ["0.2.0"])
+        self.assertNotEqual(code, 0)
+        self.assertIn("Q-R65", out)
+        self.assertNotIn("Q-R64", out)
 
     def test_a_version_with_nowhere_to_search_is_refused_at_staging(self):
         """A manifest that cuts nothing has nowhere for the gate to look either,
