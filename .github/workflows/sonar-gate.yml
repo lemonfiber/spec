@@ -331,14 +331,20 @@ jobs:
             standing=$(printf "\n\n> Open issues against \`%s\`: **%s**." "$project" "$open")
           fi
 
-          # The count, or nothing where this body does not carry one. SonarCloud
-          # pluralises it — "1 New issue", "2 New issues" — so the trailing `s` is
-          # optional; without that, exactly one new issue reads as unparsable rather
-          # than as the one it is.
-          count_in() {
-            printf '%s' "$1" | grep -oE '\[[0-9]+ New issues?\]' \
-              | grep -oE '[0-9]+' | head -1 || true
-          }
+          # The summary is read for *when it was written*, and for nothing else.
+          #
+          # It used to be read for the count as well, and the count is the one thing
+          # it does not always carry: SonarCloud omits the new-issue link from the
+          # comment exactly when the quality gate fails, leaving only the failed
+          # conditions. So the gate went green, with a warning nobody reads, in
+          # precisely the case it exists for — and a pull request could take a new
+          # issue while its quality gate failed for something unrelated, and
+          # `Q-R64` would not see it.
+          #
+          # The count comes from the API below instead, the same way the open count
+          # already did. What the comment is still needed for is proof that an
+          # analysis of *this* head exists at all; a count read before the analysis
+          # lands is a count about the commit before it.
 
           # The summary has to describe THIS commit. SonarCloud edits one comment in
           # place, so after a push the previous analysis's comment is still sitting
@@ -355,26 +361,44 @@ jobs:
           echo "Waiting for a summary of ${head:0:8}, pushed ${pushed}."
 
           body=""
-          count=""
+          fresh=""
           for attempt in $(seq 1 30); do
             latest=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
               --jq "[.[] | select(.user.login == \"${BOT}\")] | last | {body, updated_at} // empty" \
               || true)
             body=$(printf '%s' "$latest" | jq -r '.body // empty')
             written=$(printf '%s' "$latest" | jq -r '.updated_at // empty')
-            count=$(count_in "$body")
-            if [ -n "$count" ] && [ -n "$written" ] && [ "$written" \> "$pushed" ]; then
+            if [ -n "$written" ] && [ "$written" \> "$pushed" ]; then
               echo "Summary written ${written}, after the push."
+              fresh=yes
               break
             fi
-            if [ -n "$count" ]; then
+            if [ -n "$body" ]; then
               echo "Ignoring a summary written ${written:-never}, before this push… (${attempt}/30)"
             else
-              echo "Waiting for a SonarCloud summary with a count… (${attempt}/30)"
+              echo "Waiting for a SonarCloud summary… (${attempt}/30)"
             fi
-            count=""
             sleep 10
           done
+
+          # The new-issue count, asked of the API rather than read off the comment.
+          # `pullRequest` is the same search the open count uses with the branch
+          # left off, so the two numbers come from one source and cannot disagree
+          # about what an issue is. Left empty where the project could not be
+          # reached, so the arm below says nothing was enforced rather than that
+          # nothing was wrong.
+          count=""
+          if [ "$found" = "200" ] && [ -n "$fresh" ]; then
+            asked=$(curl -sS --max-time 30 -o new.json -w '%{http_code}' \
+              -H "Authorization: Basic ${auth}" \
+              "https://sonarcloud.io/api/issues/search?projects=${project}&pullRequest=${PR}&resolved=false&ps=1" \
+              || echo "000")
+            if [ "$asked" = "200" ]; then
+              count=$(jq -r '.total // empty' new.json 2>/dev/null || true)
+            else
+              echo "::warning::Could not read the new-issue count for ${project} (HTTP ${asked})"
+            fi
+          fi
 
           # Neither of the next two blocks Q-R64: one means SonarCloud never answered,
           # the other means this gate no longer understands the answer. Both are worth
@@ -389,7 +413,7 @@ jobs:
           fi
 
           if [ -z "$count" ]; then
-            verdict "### ⚠️ Issue gate needs attention · SonarCloud posted a summary this gate could not read a new-issue count from. **Not a failure of this pull request** — the gate's own pattern needs updating, and until it is, \`Q-R64\` is not being enforced."
+            verdict "### ⚠️ Issue gate needs attention · SonarCloud would not answer how many new issues this pull request carries. **Not a failure of this pull request** — until it answers, \`Q-R64\` is not being enforced on the new count."
             echo "::warning::Could not read the new-issue count; the gate is not enforcing Q-R64"
             if [ -n "$open" ] && [ "$open" -gt "$ALLOWED" ]; then exit 1; fi
             exit 0
