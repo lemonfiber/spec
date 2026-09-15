@@ -92,7 +92,7 @@
     },
     {
       "version": "0.15.0",
-      "status": "staged",
+      "status": "released",
       "milestone": "M9",
       "goals": 72
     },
@@ -456,7 +456,7 @@
       "versions": [
         {
           "version": "0.15.0",
-          "status": "staged"
+          "status": "released"
         },
         {
           "version": "0.8.0",
@@ -599,7 +599,7 @@
       "versions": [
         {
           "version": "0.15.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "b-running/b6-remote-stack.md"
@@ -633,7 +633,7 @@
       "versions": [
         {
           "version": "0.15.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "b-running/b8-autostart.md"
@@ -703,7 +703,7 @@
       "versions": [
         {
           "version": "0.15.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "b-running/b10-hosting.md"
@@ -1565,7 +1565,7 @@
       "versions": [
         {
           "version": "0.15.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "f-extensibility/f1-customisation.md"
@@ -1596,7 +1596,7 @@
       "versions": [
         {
           "version": "0.15.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "f-extensibility/f2-service-catalogue.md"
