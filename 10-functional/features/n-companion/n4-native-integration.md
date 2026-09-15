@@ -66,6 +66,33 @@ for a moment.
 Biometric failure falls back to the device passcode. It does not fall back to
 nothing.
 
+### A lock over nothing is an obstacle, not a protection
+
+`N4-R19` asks for the device's own authentication on a cold start. Read without
+a qualifier that is also true of the first launch of a freshly installed app,
+where no stack is paired, no session is held and the secure store is empty —
+and the first thing the app does is demand a fingerprint to see a screen that
+says *no stacks yet*.
+
+**What the lock is for is what decides when it applies.** It stands between a
+person holding the phone and what the operator's credential reaches: a stack
+that can be stopped, a household's requests, a diagnostic. Where the device
+holds none of that, there is nothing on the other side of the prompt, and an
+authentication that protects nothing teaches an operator that the prompt is
+noise. That is the way a lock gets turned off.
+
+So the first run is the case the requirement does not cover, and the way to
+tell it is not a flag the app sets but the store it already reads: nothing
+paired and nothing held is a device with nothing to protect. It is the same
+question `N1-R35` answers on the other side — a launch with no stack configured
+is an invitation to pair, and a lock in front of an invitation is a door onto a
+field.
+
+**It is not a grace period and it is not configurable.** The moment the device
+holds a pairing, the prompt applies on the next cold start with no further
+condition. An operator who has paired once is never again offered the unlocked
+launch, which is what keeps this from being a setting somebody can leave on.
+
 ### Notifications say what happened without saying too much
 
 lemonfiber already decides what is worth telling somebody about
@@ -142,6 +169,9 @@ or the system's theme.
 | **N4-R19** | The app MUST require the device's own authentication on a cold start, and again on resume after a period the operator can configure; it MUST NOT prompt while an action it has already sent is still outstanding. |
 | **N4-R20** | A notification shown while the app is locked MUST NOT disclose a finding's detail, a service name, or any value read from a stack. |
 | **N4-R21** | Every control that can be operated MUST carry a label the screen reader announces, and a control whose only content is an icon MUST NOT rely on that icon to convey its purpose. |
+| **N4-R22** | Authentication on a cold start (`N4-R19`) MUST NOT be required where the device holds no pairing and no session, and the app MUST reach its first-run surface without a prompt. |
+| **N4-R23** | Whether the device holds a pairing MUST be read from the store itself rather than from a flag the app maintains, and the unlocked first run MUST NOT be reachable once a pairing has been held. |
+| **N4-R24** | While the app is locked, no application content MUST be drawn behind the lock, including a first-run surface, an empty state and any previously rendered frame. |
 
 ## Related
 
