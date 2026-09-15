@@ -130,6 +130,7 @@ green.
 | **G7-R11** | The summary MUST be debounced so transient conditions do not cause it to flap. |
 | **G7-R12** | During startup the summary MUST report `unknown` rather than a failure state. |
 | **G7-R13** | A healthy summary MUST be as clearly presented as an unhealthy one. |
+| **G7-R14** | An affected item the operator has acknowledged MUST be shown as acknowledged, and MUST NOT be presented as resolved while it still stands. |
 
 ## Related
 
