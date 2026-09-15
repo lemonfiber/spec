@@ -8,8 +8,8 @@ status: accepted
 maturity: planned
 priority: P1
 labels: [extensibility, verification, wiring]
-requires: [F1, F2]
-relates: [F4, F5, F6, F7, F8, C9, E4]
+requires: [F1, F2, C1, G4]
+relates: [F4, F5, F6, F7, F8, B3, C3, C9, E4]
 ---
 
 # F3 — Plugin manifests
@@ -106,6 +106,52 @@ behalf of a manifest a stranger wrote, and it is where the risk in the design ac
 lives. Keeping them apart lets the simplest useful plugin — one that adds a service — be
 operated before the most consequential mechanism arrives.
 
+### Extending lemonfiber itself, in terms lemonfiber already runs in
+
+A plugin adds a service beside lemonfiber. It may also add to what lemonfiber *says* — a
+check the doctor runs, and the remedy that check carries when it does not pass.
+
+That is not a second mechanism. `F3-R3` already has a plugin's declared proofs running in
+the existing verification engine, and [`C1-R15`](../c-trust/c1-diagnostics.md) already has
+one of them appearing as a check like any other, attributed to the plugin. What follows
+generalises that one case rather than opening a door beside it.
+
+The rule it generalises is the load-bearing part: **a contribution is an entry in a
+register some engine already enumerates, never an interpreter of its own.** The doctor
+already runs checks independently, bounds each one, keeps `unverified` distinct from
+`pass`, and carries a remedy in the error model's four parts. A plugin's check is another
+row in that register. Nothing new evaluates it — which is why no contributed code runs
+here: there is nothing for contributed code to be.
+
+Two things an operator might reasonably ask for are absent, and the same test refuses both.
+
+| Asked for | Answer |
+|-----------|--------|
+| A dashboard panel of its own | No. The six sections are fixed (`B3-R2`) and the renderer has no panel vocabulary to declare into, so a declared panel would need something new to read it — and a new interpreter is contributed code wearing a data costume. A plugin reaches the dashboard the way everything else does: its checks become findings, and the summary is computed from findings (`G7-R2`). |
+| A command of its own | No. The command surface is generated from the types the binary parses (`ARCH-R68`), so a declared verb would be a second source for something that has one, and CI already fails when those two disagree. A contributed check needs no verb: the doctor already runs a single named check (`C1-R6`), so the plugin's check is reachable by name the day it is installed. |
+
+A repair that *acts* is the third of these and is absent for a different reason. It is not
+missing an interpreter; it is a recipe. The ordered calls such a repair would make are
+exactly [F8](f8-recipes.md)'s four operations, bounded by its declared pairs, and a second
+way to make them here would be the duplicate mechanism this section exists to refuse. So
+what a plugin may contribute to remediation is the **guided** half
+[`C3-R3`](../c-trust/c3-auto-remediation.md) already distinguishes — the explanation and
+the next action, rendered rather than performed — and the automatic half arrives with
+recipes or not at all.
+
+### Adding is not overriding
+
+A contribution is namespaced to the plugin that made it and cannot take the identity of a
+bundled one. A plugin may not replace, re-order or suppress a check lemonfiber ships, or
+the remedy that check carries.
+
+This is not tidiness. What lemonfiber says about itself is the one account an operator has
+that is not a claim by the thing being described, and a plugin able to edit it could make
+a stack look healthy by removing whatever noticed it was not. Standing in for something
+bundled is a real requirement with a real home: [F9](f9-bundled-capabilities.md), where
+substitution is already the subject and is already recorded as an operator's choice rather
+than a manifest's assertion.
+
 ### No code, and no route to code
 
 No contributed code is loaded into lemonfiber's own process, and there is no opt-in,
@@ -146,6 +192,9 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | `proofs-unrunnable` | A declared proof could not be run; reported as unproven, never as passed |
 | `image-unpinned` | A referenced image is named by tag rather than digest; refused, because a digest can always be obtained |
 | `image-unproven` | A referenced image is pinned, and its registry offers no signature; installed and reported as unproven, never as verified |
+| `contribution-declared` | The manifest declares a check or a remedy at a published extension point |
+| `contribution-unrun` | A declared contribution could not be run or rendered; reported as unrun, never as passed and never omitted |
+| `contribution-shadowing` | A contribution would take the identity of a bundled check or remedy; refused |
 
 ## Edge cases
 
@@ -163,6 +212,11 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | A manifest names an image by tag alone | Refuse. A tag is a name its publisher can repoint, so the reviewed version and the running version can differ with nothing in the manifest changing. A digest can always be obtained, so its absence is a fault in the manifest rather than a limitation of the registry — which is why this is refused where a missing signature is only unproven. |
 | A service genuinely needs more than a plugin can describe | Say so plainly and name the fork route. The shape is not widened for one plugin; widening it is a change made once, for everybody. |
 | The schema has moved on since the manifest was written | Answer with the capability the manifest asked for that this lemonfiber does not provide, by name, rather than with a version number. |
+| A manifest declares a dashboard panel or a command of its own | Refuse, naming the field and saying what may be contributed instead. There is no point to declare either at, so this is a malformed manifest rather than a permission withheld. |
+| A declared check cannot be run | Report it as unrun, naming the check and the plugin. An unrunnable check is not a passing one, and one that quietly disappears from the run is worse than one that fails. |
+| A contributed remedy would act on the machine rather than be read | Refuse it as a remedy. A remedy is rendered; a thing that acts is a recipe, and a recipe is declared as one. |
+| A contribution names a bundled check or remedy | Refuse, naming both. Adding is not overriding, and overriding something bundled is F9's subject rather than a manifest's. |
+| A plugin is removed | Its contributions go with it. A stack with no plugin installed answers exactly as one that never had any. |
 
 ## Acceptance criteria
 
@@ -193,6 +247,11 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | **F3-R22** | Manifest validation MUST report every violation in one pass, each named with its location. |
 | **F3-R23** | A plugin MUST NOT supply a container definition, and lemonfiber MUST generate one from what the plugin declares. |
 | **F3-R24** | What a plugin's service may reach of the machine MUST be fixed by lemonfiber rather than chosen by the plugin — no mount beyond the data root and its own configuration directory, no device, no kernel capability, no network mode, no privileged container and no user override — and a manifest asking for any of them MUST be refused by name. |
+| **F3-R26** | A plugin MAY declare contributions to lemonfiber's own behaviour, and every contribution MUST be data an engine lemonfiber already runs interprets, in that engine's existing vocabulary. A contribution that would require an interpreter lemonfiber does not already have MUST NOT be declarable. |
+| **F3-R27** | A declared contribution MUST be run or rendered by that engine exactly as its bundled entries are — the same evaluation, the same verdicts, the same bounds — and MUST be attributed to the plugin that declared it wherever it appears. |
+| **F3-R28** | A declared contribution that cannot be run or rendered MUST be reported as unrun, naming it and the plugin, and MUST NOT be reported as passed, as satisfied, or by being omitted. |
+| **F3-R29** | A contributed remedy MUST be text in the error model's shape, rendered and never executed; a contribution that would act on the operator's system MUST be refused as a remedy and MUST be declared as a recipe or not at all. |
+| **F3-R30** | A plugin's contributions MUST be withdrawn when the plugin is removed, and lemonfiber with no plugin installed MUST answer exactly as it does with none ever declared. |
 
 ## Related
 
@@ -204,3 +263,7 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 - [F5 The plugin catalogue](f5-plugin-catalogue.md) — where a manifest comes from and what vouches for it
 - [F6 Plugin lifecycle](f6-plugin-lifecycle.md) — what rehearsing, installing and removing one does
 - [F7 Plugin provenance](f7-plugin-provenance.md) — how what a plugin changed stays answerable
+- [F9 Capabilities of the bundled services](f9-bundled-capabilities.md) — where standing in for something bundled lives, which a contribution here may not do
+- [F11 Executing contributed code](f11-executing-contributed-code.md) — the question `F3-R6` closes, opened on its own rather than riding along with this
+- [C1 Diagnostics](../c-trust/c1-diagnostics.md) — the engine a contributed check is a row in
+- [C3 Auto-remediation](../c-trust/c3-auto-remediation.md) — the guided half a contributed remedy joins, and the automatic half it may not

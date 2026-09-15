@@ -153,6 +153,7 @@ demands the tool prove things rather than assume them.
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | Operator |
 | [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | Operator |
 | [F10](f-extensibility/f10-authoring.md) | Writing a plugin | Operator |
+| [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | Operator |
 
 ## G — Cross-cutting UX
 
@@ -233,7 +234,7 @@ Open-source-native metrics and monitoring — a second opinion, delivery-confirm
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | Operator |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | Operator |
 
-> **Also in existing areas:** [F3](f-extensibility/f3-stack-manifests.md)–[F10](f-extensibility/f10-authoring.md)
+> **Also in existing areas:** [F3](f-extensibility/f3-stack-manifests.md)–[F11](f-extensibility/f11-executing-contributed-code.md)
 > (the plugin system), [B9](b-running/b9-notification-backends.md)
 > (open notification back-ends, extends [B5](b-running/b5-notifications.md)), and
 > [G9](g-ux/g9-mobile-handoff.md) (mobile handoff, extends [G6](g-ux/g6-client-apps.md)).

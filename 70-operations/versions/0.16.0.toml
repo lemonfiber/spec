@@ -18,7 +18,18 @@
 # F3-R15, R16, R19, R20 are absent because they were withdrawn to F8; F4-R5 because it
 # was withdrawn to F9. OPS-R30 forbids a Withdrawn requirement being a goal.
 #
-# 59 goals, seeded from the roadmap milestone this version serves;
+# A plugin here also extends lemonfiber itself, and that did not re-slice anything.
+# F3-R26..R30 and F4-R15..R17 let a manifest contribute a doctor check and the remedy
+# it carries. They need no feature this version does not already lock: the engine is
+# C1's, shipped in 0.8.0, and the wording is G4's, shipped in 0.5.0, so check_order is
+# satisfied by features six versions old. The two contributions an operator will ask
+# for and not get are named in F3 with their reasons — a dashboard panel, because the
+# renderer has no panel vocabulary to declare into, and a command, because the command
+# surface is generated from the types the binary parses. The third, a repair that acts,
+# is a recipe and arrives with F8 in 0.18.0; overriding a bundled check is F9's and
+# waits for 0.17.0 with the rest of standing-in.
+#
+# 67 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
@@ -48,6 +59,11 @@ goals   = [
     "F3-R23",
     "F3-R24",
     "F3-R25",
+    "F3-R26",
+    "F3-R27",
+    "F3-R28",
+    "F3-R29",
+    "F3-R30",
     "F4-R1",
     "F4-R2",
     "F4-R3",
@@ -61,6 +77,9 @@ goals   = [
     "F4-R12",
     "F4-R13",
     "F4-R14",
+    "F4-R15",
+    "F4-R16",
+    "F4-R17",
     "F6-R1",
     "F6-R2",
     "F6-R3",
