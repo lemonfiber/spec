@@ -108,9 +108,3 @@ goals   = [
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
-
-[[prerelease]]
-tag = "v0.15.0-pre.1"
-cut_on = "2026-09-15"
-unmet = ["F1-R1"]
-pins = { lemonfiber-media-stack = "d7a16ae419819506bbda9a28cd39bdacbade7a97", lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3" }
