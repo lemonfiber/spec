@@ -1,5 +1,11 @@
 exclude = [
   "\\.docs/",
+  # opensource.org answers a runner with 403 and serves the same page to a browser.
+  # The link is right and it is load-bearing: the licence rationale turns on the OSD
+  # clause it points at, so the page is not the thing to change. Excluded by host
+  # rather than by accepting 403 everywhere — a blanket 403 would also pass a link
+  # that had genuinely gone, which is the one thing this check exists to catch.
+  "^https://opensource\\.org/",
 ]
 exclude_loopback = true
 max_retries = 2
