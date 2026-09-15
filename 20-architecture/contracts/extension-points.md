@@ -65,7 +65,8 @@ and the engine that reads it is lemonfiber's, unchanged.
         "bounds": { "timeout_s": { "min": 1, "max": 30, "default": 10 } },
         "enums": { "category": ["environment", "storage", "network", "vpn", "credentials", "services", "providers", "queue", "config"] }
       },
-      "occupied": ["environment.engine", "storage.space", "vpn.egress-match", "…"]
+      "occupied": ["environment.engine", "storage.space", "vpn.egress-match", "…"],
+      "requires": "doctor.contribute"
     },
     {
       "name": "doctor.remedy",
@@ -76,7 +77,8 @@ and the engine that reads it is lemonfiber's, unchanged.
         "required": ["id", "for", "action", "why"],
         "optional": ["detail"]
       },
-      "occupied": []
+      "occupied": [],
+      "requires": "doctor.contribute"
     }
   ]
 }
@@ -90,6 +92,7 @@ and the engine that reads it is lemonfiber's, unchanged.
 | `points[].engine` | What already reads that register, and on what terms |
 | `points[].row` | Exactly what a row carries: which fields are required, which are optional, the bounds on each bounded one, and the closed sets |
 | `points[].occupied` | The identities the bundled rows already hold. **Generated from the register**, not written here. |
+| `points[].requires` | The capability a manifest must ask for in order to contribute here — see below |
 
 ### `occupied` is what makes `F4-R17` a refusal rather than a hope
 
@@ -118,6 +121,26 @@ Like `declared_by` in the [capability vocabulary](capability-vocabulary.md), thi
 is read out of the register at generation time rather than restated, so a bundled
 check that is renamed moves the artefact rather than leaving a stale name a
 contribution could take.
+
+### A point names the capability it is taken at
+
+A manifest declaring a contribution is declaring behaviour, and `F3-R21` has one
+answer for behaviour this lemonfiber does not have: **refuse by naming the
+capability**. So each point publishes the name a manifest must ask for, and a
+manifest contributing at a point without asking for it is refused.
+
+The alternative is the one `ARCH-R91` exists to refuse. A build that read a
+contribution it could not run and dropped it would install a plugin whose
+declared behaviour is wider than its actual one — and the check that would have
+noticed a fault simply never runs, which is the one failure
+[`F3-R28`](../../10-functional/features/f-extensibility/f3-stack-manifests.md)
+singles out as worse than a failing check.
+
+Publishing the name here rather than writing it into the manifest contract keeps
+it a fact about the register rather than a convention an author has to remember,
+and it means a point added later brings its own capability with it. It is the
+same shape as `recipe.run` in [plugin-manifest](plugin-manifest.md#recipe--declarable-before-it-is-runnable),
+and for the same reason.
 
 ## `doctor.check`
 
@@ -211,6 +234,7 @@ a doctor run afterwards enumerates exactly what it enumerated before.
 | Every `doctor.remedy` names a `doctor.check` this manifest declares | Both named |
 | Every `doctor.check` carries at least one `doctor.remedy` | Check named |
 | Every `doctor.check` names a recorded response that exists | Path named |
+| A manifest contributing at a point asks for that point's capability | Capability named, never a version |
 
 ## Requirements
 
@@ -221,6 +245,7 @@ a doctor run afterwards enumerates exactly what it enumerated before.
 | **ARCH-R113** | A contribution MUST declare the extension point it is made at, and one naming a point this build does not publish MUST be refused by naming that point and listing those that exist, rather than by parse failure. |
 | **ARCH-R114** | A contributed row MUST carry every field its point declares required and none outside its point's set, MUST satisfy that point's closed sets and bounds, and a violation MUST be refused by naming the field and the point. |
 | **ARCH-R115** | A contributed check MUST ask only the declaring plugin's own service, and the manifest MUST have no field by which a check could name another host, another service or the machine. |
+| **ARCH-R118** | Each published extension point MUST name the capability a manifest asks for in order to contribute there, and a manifest carrying a contribution without asking for that capability MUST be refused by naming it rather than by reading the row and dropping it. |
 
 ## Related
 
