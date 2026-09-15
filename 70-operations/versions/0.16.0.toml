@@ -29,7 +29,7 @@
 # is a recipe and arrives with F8 in 0.18.0; overriding a bundled check is F9's and
 # waits for 0.17.0 with the rest of standing-in.
 #
-# 67 goals, seeded from the roadmap milestone this version serves;
+# 69 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
@@ -64,6 +64,8 @@ goals   = [
     "F3-R28",
     "F3-R29",
     "F3-R30",
+    "F3-R31",
+    "F3-R32",
     "F4-R1",
     "F4-R2",
     "F4-R3",
