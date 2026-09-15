@@ -115,6 +115,43 @@ else was filling is a substitution the operator chose and the journal records
 changing what lemonfiber says about itself, which no operator asked for and no journal
 would show as a choice.
 
+### Both vocabularies are one artefact each, and the binary answers from them
+
+A vocabulary nobody can read is a document, and for two releases that is exactly
+what this was: the two published plugins namespace every capability they claim
+because there was no core name to use, and a namespaced capability is inert. They
+install and wire nothing.
+
+So each vocabulary is **one generated file** — the capabilities a service may
+claim, and the points a plugin may contribute at — attached to every release and
+answerable from the binary with no network and no running stack. An author asking
+what they may name gets an answer from the tool they already have, which is what
+`F10-R8` asks for and what nothing could give it.
+
+Each carries its own generation. Adding a name does not move it; removing one
+does, and the removed name is carried forward as removed — so a manifest naming
+it is told *it went in generation N* rather than *there is no such thing*. The
+distinction is `F3-R21`'s: *older* and *missing something you needed* are
+different failures and only one of them can be acted on.
+
+### What a probe must show is ours; where it is asked is the claimant's
+
+A capability is one contract and its claimants are many services, each answering
+at a path of its own. If the vocabulary fixed the path there would be one
+claimant; if the claimant fixed the contract there would be no vocabulary.
+
+So the vocabulary declares what must be shown — the question in prose, the
+statuses that are an answer, whether a credential is needed to ask — and the
+claimant declares where to ask it and with what recorded response. A claim that
+leaves a probe unbound, or binds one with an expectation weaker than the probe
+requires, is refused naming the probe.
+
+A probe that needs a credential is the one place the three verdicts earn their
+keep. A manifest cannot hold a credential until recipes arrive, so such a probe
+run against a live service with nothing to present has demonstrated nothing —
+and reporting that as a failure would say the service is broken when the runner
+is. It is unproven, and against a recording it runs like any other.
+
 ### A claim is demonstrated, not asserted
 
 A capability carries probes. Claiming it and failing its probes is a verification failure,
@@ -132,6 +169,9 @@ run is reported as unproven — never as satisfied.
 | `contested` | More than one installed candidate claims the capability; refused pending the operator's choice |
 | `unfilled` | Something asks for the capability and nothing installed claims it |
 | `point-unknown` | A manifest declares at an extension point this lemonfiber does not publish; refused by name |
+| `capability-removed` | A manifest names a capability a published generation carried and this one does not; refused by naming the generation it went in |
+| `probe-unbound` | A claim does not bind a probe its capability declares; refused by naming the probe |
+| `probe-uncredentialed` | A probe needing a credential was run against a live service with none; unproven, never failed |
 
 ## Edge cases
 
@@ -147,6 +187,10 @@ run is reported as unproven — never as satisfied.
 | The operator wires to a service by name deliberately | Allow it, and show it as a by-name wiring so it is visible as the exception it is. |
 | A plugin declares at an extension point this lemonfiber does not publish | Refuse, naming the point and listing the ones that exist. Not a parse failure — the distinction `F4-R14` draws, applied to contributions. |
 | A contribution would take the identity of a bundled check or remedy | Refuse, naming both. Adding is not overriding; standing in for something bundled is F9's subject. |
+| A manifest names a capability a later generation removed | Refuse, naming the generation it went in. A removed name and a name that never existed are different facts, and only one of them has a replacement to point at. |
+| A claim binds a probe with a status the probe does not permit | Refuse, naming the probe and the statuses it permits. A claim demonstrated by the wrong evidence is an undemonstrated claim. |
+| A probe cannot be asked without a credential | Report unproven. The manifest holds no credential until recipes arrive, and a runner that cannot ask has established nothing about the service. |
+| A name appears in both the capability vocabulary and lemonfiber's own capability set | Refuse the vocabulary. A name whose meaning depends on which field it sits in is `F4-R13`'s failure in a second costume. |
 | The word `capabilities` is already taken | The stack manifest's `Service.capabilities` already means *kernel* capabilities granted to a container. These are a different thing entirely, and one of the two MUST be renamed rather than overloaded — a field whose meaning depends on where you are reading it is how a security-relevant setting gets misread. |
 
 ## Acceptance criteria
@@ -170,6 +214,13 @@ run is reported as unproven — never as satisfied.
 | **F4-R15** | The points at which a plugin may extend lemonfiber itself MUST be published, versioned and owned by lemonfiber, and a manifest declaring at a point this lemonfiber does not publish MUST be refused by naming that point and the ones that exist, rather than by parse failure. |
 | **F4-R16** | A contribution MUST be declared in the declaring plugin's own namespace, MUST NOT be declarable in the namespace of anything bundled, and MUST be attributed to that plugin wherever it appears. |
 | **F4-R17** | A plugin MUST NOT replace, re-order or suppress a bundled check or the remedy it carries, and a contribution that would MUST be refused naming what it collided with. Standing in for something bundled MUST remain an operator's recorded choice rather than a manifest's assertion. |
+| **F4-R18** | The core capability vocabulary MUST be published as a single artefact carrying every capability's name, contract and probes, MUST carry its own generation, and MUST be readable non-interactively without a network, a catalogue or a running stack. |
+| **F4-R19** | A capability name MUST NOT be reused, and one a published generation carried and a later one does not MUST be refused by naming the generation it was removed in rather than as unknown. |
+| **F4-R20** | The extension points MUST be published as a single artefact carrying every point's register, the shape of a row in it, and the identities its bundled rows already hold, and MUST carry its own generation. |
+| **F4-R21** | A contribution MUST name the extension point it is made at, and one naming a point this lemonfiber does not publish MUST be refused by naming that point and listing those that exist. |
+| **F4-R22** | A contribution's identity MUST be namespaced with the declaring plugin's id, and one naming an identity a published extension point records as bundled MUST be refused naming both. |
+| **F4-R23** | A name MUST NOT appear both in the core capability vocabulary and in the set of capabilities a manifest may require of lemonfiber, and the two sets MUST be published as separate artefacts. |
+| **F4-R24** | What a capability's probe must show MUST be declared by the vocabulary and where it is asked MUST be declared by the claimant; a probe requiring a credential MUST be reported as unproven when run with none, and MUST NOT be reported as failed. |
 
 ## Related
 

@@ -166,6 +166,33 @@ plugin asked for. Whether it deserves to run is a question about where the image
 from — pinned by digest, so the thing reviewed and the thing running are the same one —
 rather than a question anybody answers by reading it.
 
+### A contribution is declared where everything else about a plugin is
+
+`F3-R26` fixed what a contribution may be two versions ago and the manifest had
+nowhere to put one, which left the rule true and unreachable. It is declared here
+now, in a block naming the published point it is made at, carrying exactly the
+row that point declares — no more, because a field the point does not declare is
+one nothing would read, and no less, because a row missing a field the engine
+needs is one that cannot be run.
+
+Every check carries at least one remedy. `C1-R2` requires a non-passing result to
+say what to do and does not exempt a contributed one, and a check that finds
+something and offers nothing is a dead end with a plugin's name on it.
+
+### Recipes are declarable before they are runnable, and that is stated
+
+The manifest has carried no place for a recipe, which meant `F8`'s static
+guarantees — every flow computable from the file, every pair declared, nothing
+assembled while running — were properties of a block nobody could write. A format
+that cannot express the thing it promises to bound is not bounding it.
+
+So the block exists and is checked, and running it is a capability a manifest
+asks for by name. A lemonfiber that cannot run recipes refuses such a manifest by
+naming `recipe.run` — which is `F3-R21`'s rule doing exactly its job, and is a
+far better outcome than a plugin that installs and silently does none of what it
+declared. The riskiest mechanism still arrives last; what arrives now is the
+ability to read one before it can be run.
+
 ### It validates before anything happens
 
 Every manifest is checked against the published schema before lemonfiber acts on it, and a
@@ -217,6 +244,9 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | A contributed remedy would act on the machine rather than be read | Refuse it as a remedy. A remedy is rendered; a thing that acts is a recipe, and a recipe is declared as one. |
 | A contribution names a bundled check or remedy | Refuse, naming both. Adding is not overriding, and overriding something bundled is F9's subject rather than a manifest's. |
 | A plugin is removed | Its contributions go with it. A stack with no plugin installed answers exactly as one that never had any. |
+| A contributed check carries no remedy | Refuse, naming the check. `C1-R2` has no exemption for a contributed finding, and a plugin that can say something is wrong and nothing about what to do has moved the work rather than done it. |
+| A contributed check asks a service the plugin did not install | Not expressible. A check names a path and the service is its own; there is no field for a host, so a plugin cannot speak for somebody else's software. |
+| A manifest declares a recipe on a lemonfiber that cannot run one | Refuse, naming `recipe.run`. A declared-and-skipped recipe is a plugin whose behaviour is narrower than its manifest, which is the tolerated unknown `ARCH-R91` exists to refuse. |
 | A plugin's service is installed and nothing in the stack can reach it | Not a case. The proxy stanza and the dashboard entry are written from the manifest, by the same argument that has lemonfiber write the container: a plugin that supplies no Compose entry supplies no wiring either. |
 | A loopback plugin asks for a hostname | Refuse, naming the field and the tier that governs. An admin surface does not get a name it can be reached by, and the bundled stack ships every admin proxy stanza commented out for that reason. |
 | An image keeps its configuration somewhere other than the conventional path | Declare where. One directory, one mount, the source still lemonfiber's — only the target is the plugin's to name, and it is checked. |
@@ -303,11 +333,16 @@ can reach is unchanged.
 | **F3-R30** | A plugin's contributions MUST be withdrawn when the plugin is removed, and lemonfiber with no plugin installed MUST answer exactly as it does with none ever declared. |
 | **F3-R31** | An installed plugin's service MUST be reachable through the stack's own proxy and visible on its dashboard on the same terms as a bundled service in the same binding tier, written by lemonfiber from what the manifest declares; a plugin MUST NOT supply that wiring, and MUST NOT be able to obtain it for a service bound to loopback. |
 | **F3-R32** | A plugin's service MUST be able to declare where inside its container its one configuration directory is mounted, so that an image keeping its state somewhere other than the conventional path is installable without its state being left unmounted. |
+| **F3-R33** | A plugin's contributions MUST be declared in its manifest, each naming the published extension point it is made at and carrying exactly the row that point declares, and a row missing a required field or carrying one outside the point's set MUST be refused naming the field and the point. |
+| **F3-R34** | Every contributed check MUST carry at least one contributed remedy, and one declared without a remedy MUST be refused naming the check. |
+| **F3-R35** | A recipe MUST be declarable in the manifest and statically checkable without being run, and a manifest declaring one MUST require the capability that runs it by name, so that a lemonfiber which cannot run recipes refuses the manifest by naming that capability rather than by ignoring the block. |
 
 ## Related
 
 - [ADR-0021](../../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) — why a plugin is data, and why its container is written rather than supplied
 - [plugin-manifest contract](../../../20-architecture/contracts/plugin-manifest.md) — the fields a plugin declares in, and the entry lemonfiber writes from them
+- [extension-points contract](../../../20-architecture/contracts/extension-points.md) — the published points a contribution is made at, and the row each one takes
+- [capability-vocabulary contract](../../../20-architecture/contracts/capability-vocabulary.md) — the names a claim is made in, and the probes that demonstrate one
 - [F1 Customisation & escape hatches](f1-customisation.md) — the escape-hatch posture this narrows to declarative data
 - [F2 Service catalogue](f2-service-catalogue.md) — the bundled catalogue whose entries a plugin extends
 - [F4 The capability vocabulary](f4-capabilities.md) — the vocabulary a manifest claims and asks in
