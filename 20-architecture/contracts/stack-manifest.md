@@ -209,11 +209,12 @@ that file is generated from **this field**: a capability no service here declare
 fails the generation, which is how `F9-R3` — *a capability nothing implements
 MUST NOT be published* — is enforced by the artefact refusing to be built.
 
-Two bundled services declare nothing, and that is the answer rather than an
-omission. Recyclarr keeps quality profiles in step and Unpackerr unpacks a
-finished download; both act on the filesystem and on other services'
-configuration, and neither is asked for through an interface. Nothing can stand
-in for them by asking, so there is nothing for them to fill.
+Four bundled services declare nothing, and that is the answer rather than an
+omission. Recyclarr writes quality profiles into other services' configuration
+and Unpackerr watches the filesystem; Homepage and Caddy are configured by
+lemonfiber writing a file rather than by anything asking them a question. A
+capability is something one service asks another for while both are running, and
+nothing asks these four — so there is nothing to stand in for.
 
 ### `reaches` and `asks_for` — the errand, where the errand is decided
 

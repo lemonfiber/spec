@@ -140,16 +140,27 @@ behaviour: a bundled service that stops declaring a capability changes what
 lemonfiber publishes, and a change nobody meant shows up as a diff in a generated
 artefact rather than as a plugin that stopped wiring six months later.
 
-### Two bundled services declare nothing, and that is the right answer
+### A capability is something one service asks another for
 
-Recyclarr keeps quality profiles in step; Unpackerr unpacks a completed download.
-Both act on the filesystem and on other services' configuration, and **neither is
-asked for through an interface**. Nothing can substitute for them by asking,
-because there is no asking — so there is no capability for them to fill, and
-inventing one would put a contract in the vocabulary that no probe could
-demonstrate.
+That sentence is the whole admission test, and four of the twenty bundled
+services fail it:
 
-A capability earns its place by something needing to ask for it. These two are
+| Service | Why it declares nothing |
+|---------|-------------------------|
+| Recyclarr | Writes quality profiles into the curating services' own configuration. Nothing asks it for anything. |
+| Unpackerr | Watches the filesystem and unpacks what it finds there. Same. |
+| Homepage | Configured by lemonfiber **writing a file**, not by anything asking Homepage a question |
+| Caddy | The same: lemonfiber writes a stanza into a `Caddyfile`. A plugin's `[wiring]` asks lemonfiber for a route, not Caddy. |
+
+Homepage is the interesting one, because it *is* probeable — it answers
+`/api/widgets` to anybody — and probeable is not the test. A capability exists
+where one service asks another for something while both are running, and
+substituting the answerer is then a change of which service fills it. Nothing in
+this stack asks Homepage anything, so there is nothing to substitute *for*, and
+publishing `dashboard.present` would put a contract in the vocabulary that
+nothing would ever consume.
+
+A capability earns its place by something needing to ask for it. These four are
 the honest demonstration that the rule bites.
 
 ## Probes
