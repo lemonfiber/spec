@@ -174,6 +174,12 @@ Both are documented as manual steps ([Q-R60](../40-quality/tooling.md)), like `S
 | **OPS-R20** | Every release MUST publish SLSA build provenance (an attestation) and an SBOM alongside the checksummed artifacts. |
 | **OPS-R59** | The plugin catalogue MUST release on its own clock and MUST NOT be a stream the version train cuts; no version manifest may name it, and a contribution to it MUST NOT move a version number in this organisation. |
 
+A plugin is still **gated** by the train even though it is not cut by it: every
+run that would tag re-validates the registered plugins and refuses on one that no
+longer does ([staging.md](staging.md#plugins-ride-the-train-pinned-and-block-it-when-they-stop-validating)).
+Being an input to the gate and being a stream the gate tags are different things,
+and `OPS-R59` is about the second.
+
 ## Related
 
 - [staging.md](staging.md) — the spec-led, cross-repo release train this cut sits inside

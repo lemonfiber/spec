@@ -58,6 +58,7 @@ jobs:
           coverage run --append scripts/test_metafm.py
           coverage run --append scripts/test_what_is_blocking.py
           coverage run --append scripts/test_no_open_codeql_alert.py
+          coverage run --append scripts/test_plugins.py
           coverage report --fail-under=100
       # Not a coverage suite: it reads `.coveragerc` against the directories it
       # names and fails on a file omitted from measurement without a reason beside

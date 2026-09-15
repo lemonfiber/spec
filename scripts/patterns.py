@@ -60,6 +60,21 @@ SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.MULTILINE | re.IGNORE
 # A version, as the manifests and the tracker write one.
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 
+# A pre-release identifier, as OPS-R61 lets a tag carry one: dot-separated
+# alphanumeric segments, appended to a version that is otherwise this one.
+#
+# Kept apart from `VERSION` rather than folded into it, and the separation is the
+# rule. Four gates match a version to decide whether they may act on it, and every
+# one of them is about the release — staging it, transitioning it, naming the
+# manifest it lives in. A pattern that accepted `0.15.0-pre.1` everywhere would let
+# a pre-release be staged, be recorded as released, and name a manifest of its own,
+# which is the whole of what OPS-R60 says must not happen.
+#
+# `rc` is refused by name. ARCH-R43 gives "the first release candidate" a meaning
+# about the product's life — the moment `schema_version` stops changing in place —
+# and a tag that called itself one would fire that by accident.
+PRERELEASE_ID = re.compile(r"^(?!rc\d*(?:\.|$))[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*$")
+
 # Every state a version manifest may be in, in the order OPS-R32 puts them.
 #
 # Ordered rather than a set, because three comments write this chain out for a

@@ -167,6 +167,50 @@ jobs:
           done < allrepos.txt
           [ "$blockers" -eq 0 ] || { echo "::error::release blocked — resolve the blockers first."; exit 1; }
           echo "no release blockers."
+      - name: Every registered plugin still validates (OPS-R68, OPS-R69)
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          # Cloned by the registry rather than by the manifest: a plugin is an
+          # input to this gate and never a stream the train cuts (OPS-R59), so it
+          # appears in neither `repos` nor `satisfied_in` and nothing here tags it.
+          #
+          # A clone that fails is not swallowed. The gate names a plugin it could
+          # not reach as a failure, and a `|| true` here would turn that into a
+          # plugin it was never asked about.
+          python3 - <<'PY' > plugins.txt
+          import os, pathlib, sys
+          sys.path.insert(0, "scripts")
+          import check_plugins
+          version = os.environ["VERSION"]
+          for index, entry in enumerate(
+              check_plugins.load_registry(pathlib.Path(check_plugins.REGISTRY))
+          ):
+              # A malformed entry is left for the gate to name rather than skipped
+              # here, and one that rides a later version is not cloned at all.
+              if check_plugins.malformed(entry, index) or not check_plugins.rides(entry, version):
+                  continue
+              print(f"{entry['repo']}\t{entry.get('ref', 'main')}")
+          PY
+          args=()
+          while IFS=$'\t' read -r repo ref; do
+            [ -n "$repo" ] || continue
+            if git clone --quiet --depth 1 --branch "$ref" \
+              "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${repo}.git" "plugins/${repo}"; then
+              echo "cloned ${repo}@${ref}."
+            else
+              echo "::warning::${repo}@${ref} could not be cloned; the gate will name it."
+            fi
+            args+=(--checkout "${repo}=plugins/${repo}")
+          done < plugins.txt
+          schema=$(sed -nE 's/^pub const SCHEMA_VERSION: u32 = ([0-9]+);.*/\1/p' \
+            checkouts/lemonfiber/crates/lemonfiber-manifest/src/lib.rs | head -1)
+          [ -n "$schema" ] || { echo "::error::could not read the schema this release carries"; exit 1; }
+          python3 scripts/check_plugins.py --version "$VERSION" --schema "$schema" "${args[@]}"
+
       - name: The repos declare the version being released (OPS-R35)
         env:
           VERSION: ${{ inputs.version }}

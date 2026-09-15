@@ -21,9 +21,18 @@ is where anyone later asks what — so `--withdrawn-because` is required to reac
 `yanked` and refused everywhere else. The release itself is never removed from
 the record; only marked.
 
+A pre-release is the one thing recorded here that is not a transition. `OPS-R60`
+says a pre-release does not move the version's status, so `--prerelease` writes a
+`[[prerelease]]` table and leaves everything else where it was — including the
+status, which is passed as whatever the manifest already holds. What the record
+keeps is what nothing can answer afterwards: the goals the gate called unmet at
+that moment. The verdict moves as work lands, and which goals a particular
+artefact went out without is a fact about that artefact rather than about now.
+
 Usage:
   set_status.py --version X.Y.Z --status <state> [--released-on YYYY-MM-DD]
                 [--released-as X.Y.Z] [--withdrawn-because WHY]
+                [--prerelease TAG --prerelease-on YYYY-MM-DD [--unmet ID ...]]
                 [--pin name=sha ...] > <manifest>
 Exit 0 = emitted, 1 = the manifest is missing or misshapen, 2 = usage.
 """
@@ -34,10 +43,12 @@ import pathlib
 import re
 import sys
 
-from patterns import STATES
+from patterns import PRERELEASE_ID, STATES
 from patterns import VERSION as VERSION_RE
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+PRERELEASE_TAG_RE = re.compile(r"^v(\d+\.\d+\.\d+)-(.+)$")
+IN_FLIGHT_FOR_PRERELEASE = ("staged", "in_progress", "releasable")
 VERSIONS_DIR = pathlib.Path("70-operations/versions")
 
 
@@ -118,6 +129,52 @@ def with_withdrawn_because(text: str, why: str) -> str:
     return stamped(text, "withdrawn_because", why, "status")
 
 
+def prerelease_tag(tag: str, version: str) -> str:
+    """Refuse a tag that is not this version carrying a pre-release identifier.
+
+    Three faults look alike from a workflow and are different to a reader, so each
+    is named: a tag for another version, the version's own release tag, and an
+    identifier ARCH-R43 has already given a meaning to.
+    """
+    found = PRERELEASE_TAG_RE.match(tag)
+    if not found:
+        sys.exit(f"::error::--prerelease wants vX.Y.Z-<id>, got {tag!r}")
+    named, identifier = found.groups()
+    if named != version:
+        sys.exit(f"::error::--prerelease {tag} names {named}, not {version}")
+    if not PRERELEASE_ID.match(identifier):
+        sys.exit(
+            f"::error::{identifier!r} is not a usable pre-release identifier; "
+            "`rc` is reserved by ARCH-R43 for the point schema_version starts binding"
+        )
+    return tag
+
+
+def with_prerelease(text: str, tag: str, when: str, unmet: list[str], pairs: list[str]) -> str:
+    """Append one `[[prerelease]]` table to the end of the manifest.
+
+    Appended rather than placed, and it stays above `[pins]` without being put
+    there: a pre-release belongs to a version in flight and `[pins]` is written at
+    release, so a manifest carrying one cannot yet carry the other. That ordering
+    is what keeps the record: `with_pins` rewrites everything from `[pins]` to the
+    end of the file, so a record below it would be swallowed by the release — and
+    the answer to what went out *before* a version would disappear at exactly the
+    moment somebody asks.
+    """
+    if not DATE_RE.match(when):
+        sys.exit(f"::error::--prerelease-on wants YYYY-MM-DD, got {when!r}")
+    goals = ", ".join(f'"{goal}"' for goal in unmet)
+    inline = ", ".join(pairs)
+    block = [
+        "[[prerelease]]",
+        f'tag = "{tag}"',
+        f'cut_on = "{when}"',
+        f"unmet = [{goals}]",
+        f"pins = {{ {inline} }}" if inline else "pins = {}",
+    ]
+    return text.rstrip() + "\n\n" + "\n".join(block) + "\n"
+
+
 def with_pins(text: str, pairs: list[str]) -> str:
     """Replace the trailing [pins] table (or append one)."""
     kept: list[str] = []
@@ -153,6 +210,31 @@ def refuse_inconsistent(a: argparse.Namespace) -> None:
     # decided, and the caller that passed it computed the wrong tag.
     if a.released_as == a.version:
         sys.exit(f"::error::--released-as {a.version} is this manifest's own version")
+    refuse_half_a_prerelease(a)
+
+
+def refuse_half_a_prerelease(a: argparse.Namespace) -> None:
+    """Reject a pre-release record that is not one, kept apart from the stamps above.
+
+    Its own function because it asks a different question. The stamps are about which
+    status a mark belongs to; this is about a record that is written in three parts
+    and means nothing with any of them missing.
+    """
+    # A pre-release is not a transition, so the only statuses it can be recorded
+    # against are the ones a version is in while it is still being worked on. A
+    # record on a released manifest would be a pre-release of something already out;
+    # on a planned one, of a version nobody has committed to yet.
+    if a.prerelease and a.status not in IN_FLIGHT_FOR_PRERELEASE:
+        sys.exit(
+            f"::error::a pre-release belongs to a version in flight, not {a.status!r} "
+            f"({'/'.join(IN_FLIGHT_FOR_PRERELEASE)})"
+        )
+    if a.prerelease and not a.prerelease_on:
+        sys.exit("::error::--prerelease-on is required to record a pre-release")
+    if a.prerelease_on and not a.prerelease:
+        sys.exit("::error::--prerelease-on belongs to a pre-release record")
+    if a.unmet and not a.prerelease:
+        sys.exit("::error::--unmet belongs to a pre-release record")
 
 
 def stamps(text: str, a: argparse.Namespace) -> str:
@@ -163,7 +245,17 @@ def stamps(text: str, a: argparse.Namespace) -> str:
         text = with_released_as(text, a.released_as)
     if a.withdrawn_because:
         text = with_withdrawn_because(text, a.withdrawn_because)
-    if a.pin:
+    # Before `with_pins`, which rewrites everything from `[pins]` to the end: a
+    # record written after it would be inside the table it appends.
+    if a.prerelease:
+        text = with_prerelease(
+            text,
+            prerelease_tag(a.prerelease, a.version),
+            a.prerelease_on,
+            a.unmet,
+            parse_pins(a.pin),
+        )
+    elif a.pin:
         text = with_pins(text, parse_pins(a.pin))
     return text
 
@@ -175,6 +267,9 @@ def main() -> int:
     ap.add_argument("--released-on", metavar="YYYY-MM-DD")
     ap.add_argument("--released-as", metavar="X.Y.Z")
     ap.add_argument("--withdrawn-because", metavar="WHY")
+    ap.add_argument("--prerelease", metavar="vX.Y.Z-ID")
+    ap.add_argument("--prerelease-on", metavar="YYYY-MM-DD")
+    ap.add_argument("--unmet", action="append", default=[], metavar="ID")
     ap.add_argument("--pin", action="append", default=[], metavar="name=sha")
     a = ap.parse_args()
 
@@ -196,6 +291,7 @@ def main() -> int:
           + (f", released_on={a.released_on}" if a.released_on else "")
           + (f", released_as={a.released_as}" if a.released_as else "")
           + (", withdrawn" if a.withdrawn_because else "")
+          + (f", prerelease={a.prerelease} unmet={len(a.unmet)}" if a.prerelease else "")
           + (f", pins={len(a.pin)}" if a.pin else ""),
           file=sys.stderr)
     return 0
