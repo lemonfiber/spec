@@ -47,6 +47,31 @@ decide ([ADR-0017](../../../00-overview/decisions/0017-the-companion-app-as-a-fo
 Every action reachable from a terminal is reachable here, with one stated
 exception below.
 
+### The app has one identity, and the build does not choose it
+
+An application's identity is what the operating system installs it *as*. Two
+builds carrying two identities are two applications: they install beside one
+another, each with its own storage, and neither can read the other's.
+
+That is why this cannot be left to whoever ran the build. The pairing and the
+pinned fingerprint `N1-R45` refuses to discard live in that storage, so a build
+that arrives under a different identity does not update the operator's app — it
+appears next to it, empty, while the pairing stays in the one now orphaned. The
+operator is told to pair again and is given no reason, because from inside
+either app nothing is wrong.
+
+It is also the Purpose's rule read at the layer beneath it. Which person the app
+serves is decided by the credential that signs in, never by which build was
+installed; an identity derived from the builder's environment makes *which build
+was installed* a distinguishing fact about the app, which is the thing that
+sentence forbids being load-bearing.
+
+So the identity is declared once, in the repository, where it is reviewable and
+cannot differ between two people who both ran the build. A configured identity
+that disagrees with the declared one is refused rather than built, and the
+refusal names both — an identity is not something an operator can be expected to
+notice the drift of by reading a screen.
+
 ### Reaching a stack is the operator's choice, not the app's
 
 lemonfiber's admin surface binds to loopback and refuses to widen without
@@ -225,6 +250,8 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R49** | Pairing material MUST expire, and redeeming it MUST NOT be what admits the app; admission remains the exchange of the operator's own credential for a session (`N1-R7`). |
 | **N1-R50** | Where pairing is completed by typed entry rather than by scanning (`N1-R6`), the app MUST present the fingerprint it observed in a form a person can compare against what the stack displays, and MUST NOT proceed on an unconfirmed fingerprint. |
 | **N1-R51** | The comparable form MUST be short enough to be checked at a glance and MUST be derived from the whole fingerprint, so that two different certificates do not share one. |
+| **N1-R52** | The application's identity MUST be declared once in the repository, MUST be the same for every build of a given release, and MUST NOT be derived from the environment of whoever built it. |
+| **N1-R53** | A build whose configured identity differs from the declared one MUST be refused, naming the declared identity and the configured one. |
 
 ## Related
 
