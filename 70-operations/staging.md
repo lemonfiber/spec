@@ -211,6 +211,12 @@ pre-release — the tag, the day it was cut, the goals unmet at that moment, and
 the submodule pins it embedded — so the file answers *what went out before the
 release* the same way it already answers what the release shipped.
 
+The pins are enumerated from the tag's own `.gitmodules`, not named in the lane.
+That is the expensive lesson `release-finalize` already learned: it spelled out
+the one submodule path that existed when it was written and went on recording
+only that one after a second arrived, so `0.10.0` shipped a record that did not
+say which build of the web app was in it.
+
 The record lands **before** the tag, not after. What writes the verdict onto the
 published artefact reads it from here, so a tag cut while the record is still in
 review would produce a build that cannot carry its verdict and fails for a reason
