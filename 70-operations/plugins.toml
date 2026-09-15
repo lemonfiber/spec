@@ -10,6 +10,7 @@
 #
 #   plugin.toml   `schema_version` — the manifest generation it is written in
 #   targets.toml  `lemonfiber`     — the release it is validated and proved against
+#   proofs.json   what its own CI left when it last ran everything it declares
 #
 # That split is not tidiness. A version pinned here as well would be a second
 # statement of the same fact, and the two would disagree on the day one of them
@@ -31,6 +32,22 @@
 # each plugin states it.
 
 schema = 1
+
+[[plugin]]
+# The template F10-R7 asks for, and the first entry here whose failure is a
+# failure of the *format* rather than of one plugin. It is required to validate
+# and prove unmodified, so a release that breaks it has broken what every author
+# starts from — and the train should stop for that before it stops for anything
+# built on top of it.
+#
+# It is also where `.github/interim/` is written; the other two carry byte-identical
+# copies and each fails when its copy drifts from this one.
+id = "template"
+repo = "plugin-template"
+manifest = "plugin.toml"
+targets = "targets.toml"
+report = "proofs.json"
+ref = "main"
 
 [[plugin]]
 id = "komga"
