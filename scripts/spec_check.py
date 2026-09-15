@@ -31,7 +31,7 @@ import argparse
 import pathlib
 import sys
 
-from patterns import ADR_FILE, CITE_ANY, REQ_DEF, SPEC_TRAILER
+from patterns import ADR_FILE, CITE_ANY, REQ_DEF, REQ_DEF_ROW, SPEC_TRAILER
 
 
 # Identifiers the spec defines.
@@ -48,6 +48,34 @@ def defined_ids(spec_dir: pathlib.Path) -> set[str]:
             if m:
                 ids.add(f"ADR-{int(m.group(1)):04d}")
     return ids
+
+
+# A requirement whose row says it is gone, against what its row says about where.
+RETIRED = ("*Withdrawn", "*Superseded")
+
+
+def retired_ids(spec_dir: pathlib.Path) -> dict[str, str]:
+    """Identifiers the spec still defines and no longer offers, against why.
+
+    `defined_ids` finds these, because a withdrawal is recorded **in place** — the
+    row stays so the number is visibly retired rather than missing, which is what
+    stops it being reused. That is the right shape for the spec and the wrong
+    answer for a citation: `GOV-R8` retires the number permanently, and the status
+    vocabulary says a Superseded one is not citable for new work.
+
+    So the gate has to tell the two apart, and the row already says which it is
+    and where the work went. Carrying that sentence into the refusal is the whole
+    value: an author who cited `F3-R20` is told it moved to `F8-R12`, rather than
+    being told a number that plainly exists does not.
+    """
+    found: dict[str, str] = {}
+    for p in spec_dir.rglob("*.md"):
+        if ".git" in p.parts:
+            continue
+        for rid, cell in REQ_DEF_ROW.findall(p.read_text(encoding="utf-8", errors="ignore")):
+            if cell.strip().startswith(RETIRED):
+                found[rid] = " ".join(cell.split())
+    return found
 
 
 def cited_ids(text: str) -> set[str]:
@@ -126,6 +154,17 @@ Guide: https://github.com/lemonfiber/spec/blob/main/50-governance/contributing.m
 """
 
 
+RETIRED_GUIDANCE = """
+A retired identifier still appears in the spec, and that is deliberate: the row
+stays so the number is visibly gone rather than missing, which is what stops it
+being reused. It is not something to build against.
+
+Cite the identifier the row names in its place. Where it names none, the work it
+described is gone rather than moved, and what you are doing needs a requirement
+that exists.
+"""
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--spec-dir", required=True)
@@ -169,6 +208,14 @@ def main() -> int:
     if unknown:
         print(f"::error::cited identifiers do not exist on spec@main: {', '.join(unknown)}")
         print(GUIDANCE)
+        return 1
+
+    retired = retired_ids(spec_dir)
+    gone = sorted(i for i in cited if i in retired)
+    if gone:
+        for rid in gone:
+            print(f"::error::{rid} is retired: {retired[rid]}")
+        print(RETIRED_GUIDANCE)
         return 1
 
     print(f"spec-check: OK — cites {', '.join(sorted(cited))}")

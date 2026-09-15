@@ -38,6 +38,8 @@ ROWS = """# Governance
 |----|-------------|
 | **GOV-R12** | Routine maintenance MUST cite a governance identifier. |
 | **Q-R55** | Dependency-update automation MUST satisfy spec-check unattended. |
+| **GOV-R90** | *Withdrawn — carried to [GOV-R12](governance.md) when the rule moved. The number is not reused.* |
+| **GOV-R91** | *Superseded by [GOV-R12](governance.md).* |
 """
 
 
@@ -100,6 +102,22 @@ class Citations(GateCase):
         code, out = self.check("Spec: ADR-0016\n")
         self.assertEqual(code, 0)
         self.assertIn("cites ADR-0016", out)
+
+    def test_a_withdrawn_identifier_is_refused_and_says_where_it_went(self):
+        code, out = self.check("Spec: GOV-R90\n")
+        self.assertEqual(code, 1)
+        self.assertIn("GOV-R90 is retired", out)
+        self.assertIn("carried to [GOV-R12]", out)
+
+    def test_a_superseded_identifier_is_refused(self):
+        code, out = self.check("Spec: GOV-R91\n")
+        self.assertEqual(code, 1)
+        self.assertIn("GOV-R91 is retired", out)
+
+    def test_a_live_identifier_beside_a_retired_one_does_not_rescue_it(self):
+        code, out = self.check("Spec: GOV-R12, GOV-R90\n")
+        self.assertEqual(code, 1)
+        self.assertIn("GOV-R90 is retired", out)
 
     def test_a_git_directory_is_not_read_for_identifiers(self):
         git = self.root / SPEC / ".git"

@@ -133,6 +133,15 @@ are opened there.
 Draft requirements are not citable — otherwise the ordering guarantee collapses,
 since anyone could merge a draft and implement against it in the same breath.
 
+**A retired number is not a citation either, and the gate now says so**
+(`GOV-R47`). A withdrawal is recorded *in place*: the row stays so the number is
+visibly gone rather than missing, which is what stops it being reused. That is
+the right shape for the spec and the wrong answer for `spec-check`, which
+resolved the row and passed — so an implementation could cite `F3-R20`, which has
+been withdrawn for two versions, and be told nothing. It is refused now with the
+sentence its own row carries, which names where the work went; being told a
+number that plainly exists does not is the unhelpful half of the same refusal.
+
 ## Related
 
 - [canonical-spec.md](canonical-spec.md) — the rule and the `GOV-R` namespace
