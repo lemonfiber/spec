@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 81,
-    "requirements": 1205,
+    "requirements": 1206,
     "areas": "A–N"
   },
   "versions": [
@@ -100,7 +100,7 @@
       "version": "0.16.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 89
+      "goals": 90
     },
     {
       "version": "0.17.0",

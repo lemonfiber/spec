@@ -189,6 +189,7 @@ run is reported as unproven — never as satisfied.
 | A contribution would take the identity of a bundled check or remedy | Refuse, naming both. Adding is not overriding; standing in for something bundled is F9's subject. |
 | A manifest names a capability a later generation removed | Refuse, naming the generation it went in. A removed name and a name that never existed are different facts, and only one of them has a replacement to point at. |
 | A claim binds a probe with a status the probe does not permit | Refuse, naming the probe and the statuses it permits. A claim demonstrated by the wrong evidence is an undemonstrated claim. |
+| A probe asks about something the operator has not put there yet | Refuse the probe into the vocabulary. A probe gates an install, so one resting on the operator's own data is a plugin nobody can install on a fresh machine — and the author will not find out, because their own instance has data in it. |
 | A probe cannot be asked without a credential | Report unproven. The manifest holds no credential until recipes arrive, and a runner that cannot ask has established nothing about the service. |
 | A name appears in both the capability vocabulary and lemonfiber's own capability set | Refuse the vocabulary. A name whose meaning depends on which field it sits in is `F4-R13`'s failure in a second costume. |
 | The word `capabilities` is already taken | The stack manifest's `Service.capabilities` already means *kernel* capabilities granted to a container. These are a different thing entirely, and one of the two MUST be renamed rather than overloaded — a field whose meaning depends on where you are reading it is how a security-relevant setting gets misread. |
@@ -221,6 +222,7 @@ run is reported as unproven — never as satisfied.
 | **F4-R22** | A contribution's identity MUST be namespaced with the declaring plugin's id, and one naming an identity a published extension point records as bundled MUST be refused naming both. |
 | **F4-R23** | A name MUST NOT appear both in the core capability vocabulary and in the set of capabilities a manifest may require of lemonfiber, and the two sets MUST be published as separate artefacts. |
 | **F4-R24** | What a capability's probe must show MUST be declared by the vocabulary and where it is asked MUST be declared by the claimant; a probe requiring a credential MUST be reported as unproven when run with none, and MUST NOT be reported as failed. |
+| **F4-R25** | A capability's probe MUST be satisfiable by a service holding none of the operator's own data, and a binding asserting a count above zero MUST be refused. A contributed check MUST NOT be held to either, because a check reports on a running stack rather than gating an install. |
 
 ## Related
 

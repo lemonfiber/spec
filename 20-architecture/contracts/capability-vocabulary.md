@@ -204,6 +204,32 @@ broken when the runner is. Against a recording it runs like any other, and is
 reported as a proof against recordings and never as one against the service
 (`F10-R6`).
 
+### A probe asks what the service does, never what the library holds
+
+A probe gates an install: `F4-R6` refuses to install a service whose probes fail.
+So a probe that asks about the operator's own data is a plugin nobody can install
+until they have put some there, and the author who wrote it will not find out —
+their own instance has data in it.
+
+The failure is easy to write and reads as the stronger proof. *At least one
+series* looks like better evidence of serving a library than *an answer shaped
+like a catalogue*, and it is worse: an empty library is a library, and a fresh
+machine is where a plugin is installed.
+
+So a probe is satisfiable by a service with nothing in it. `json_array_min = 0`
+is how a claimant says *the answer reads as a list* without saying how long the
+list is; `json_has_keys` is how it says the same of an object.
+
+The rule has a checkable edge, and it is worth having one: a count above zero is
+the only way an expectation can say something about how much the operator has,
+so a binding carrying `json_array_min` above zero or any `json_at_least` minimum
+above zero is refused. Everything else an expectation can say is about shape.
+
+A **contributed check** is the opposite and may say exactly what a probe may not,
+because it reports on a running stack rather than gating an install — a check
+that fails on a fresh installation is a check doing its job, and the remedy it
+carries is the point of it.
+
 ### A refusal is evidence; a status alone usually is not
 
 `ARCH-R105` refuses a manifest whose every proof constrains only a status,
@@ -257,6 +283,7 @@ answer from the binary they already have (`F10-R8`).
 | A binding's status is one the probe permits | Status given, with the set |
 | A binding carries one of the body constraints the probe requires | Probe given, with the kinds |
 | Every binding names a recorded response that exists | Path given |
+| No binding asserts a count above zero — `json_array_min`, or a `json_at_least` minimum | Probe and constraint named |
 
 ## Requirements
 
@@ -267,6 +294,7 @@ answer from the binary they already have (`F10-R8`).
 | **ARCH-R108** | The capability vocabulary, the extension points and the generated manifest schema MUST each be attached to every release under a stable name, and MUST each be readable from the binary with no network, no catalogue and no running stack, stating the generation reported. |
 | **ARCH-R109** | A service claiming a core capability MUST bind every probe that capability declares to a request on itself, an expectation the probe permits and a recorded response; a claim leaving one unbound, naming one the capability does not declare, or carrying an expectation weaker than the probe requires MUST be refused by naming the probe rather than by parse failure. |
 | **ARCH-R110** | A bundled service MUST declare the capabilities it provides in the stack manifest, in this vocabulary, and a name the vocabulary does not carry MUST be refused by name. |
+| **ARCH-R119** | A capability's probe MUST be satisfiable by a service holding none of the operator's own data, so that a claim does not rest on what the operator has yet put there. |
 
 ## Related
 
