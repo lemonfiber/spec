@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 80,
-    "requirements": 1170,
+    "requirements": 1171,
     "areas": "A–N"
   },
   "versions": [
