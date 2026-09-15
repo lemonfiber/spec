@@ -213,6 +213,7 @@ intent.
 | **Q-R61** | Applicable code MUST reach 100% coverage, enforced as a merge gate (`cargo-llvm-cov`) and reported to SonarCloud. |
 | **Q-R62** | The applicable set MUST be defined by explicit, reviewable in-code exclusions (generated, trivial derivations, rendering, CLI wiring, unreachable arms, e2e-only paths); coverage MUST NOT be inflated by testing trivial code to reach the number. |
 | **Q-R66** | A gate MUST be shown to refuse the defect it exists to catch, in the environment it runs in, before it is relied on. |
+| **Q-R72** | Affordances that exist only for local development — a stand-in for a dependency, a fault raised on purpose, a clock that can be moved — MUST live in one place that a release composition cannot name, MUST admit a new one without any release artefact changing, and their absence from a release MUST be enforced by a gate rather than by convention. |
 
 ## Related
 

@@ -4,7 +4,34 @@ default:
 
 # Run every check CI runs, and turn the hooks on if they are not already —
 # this is the command run before a push, which is when the hook matters.
-ci: hooks integrity shared services lint typos links
+#
+# `generated` and `ordering` are here because the claim in the line above has
+# to be true for the recipe to be worth running. It ran seven of the fifteen
+# checks `integrity.yml` runs, so a push that passed it could — and did — go
+# red on CI for a board nobody regenerated. A pre-push command that is a subset
+# of CI teaches people to skip it and read the run instead.
+ci: hooks integrity shared services check-meta ordering generated lint typos links
+
+# Every file this repository generates from something else, regenerated and
+# compared. A generated file edited by hand, or left behind by an edit to its
+# source, is the failure these exist to refuse — and the number in it goes
+# stale silently, which is the whole reason it is generated.
+generated:
+    python3 scripts/gen_roadmap_table.py
+    git diff --exit-code -- 00-overview/roadmap.md
+    python3 scripts/gen_board.py
+    git diff --exit-code -- 10-functional/features/index.json 10-functional/features/BOARD.md
+    python3 scripts/gen_repos.py
+    git diff --exit-code -- 30-repos/README.md
+    python3 scripts/gen_contrast.py
+    git diff --exit-code -- 60-brand/accessibility.md
+
+# Nothing scheduled before what it requires, nothing binding resting on
+# something unagreed, and every accepted requirement on the release train.
+ordering:
+    python3 scripts/check_order.py
+    python3 scripts/check_binding_order.py
+    python3 scripts/check_goal_coverage.py
 
 # Turn on the repository's own git hooks. Once per clone.
 hooks:

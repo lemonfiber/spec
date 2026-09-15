@@ -281,6 +281,11 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R54** | A launch with no stack configured MUST present a sequence that says what the app is, that setup happens at the machine (`N1-R4`), and then offers pairing — rather than a single screen the operator is left to interpret. |
 | **N1-R55** | Every step of that sequence MUST say which step it is and how many there are, and MUST be leavable, with leaving landing on pairing rather than on nothing. |
 | **N1-R56** | The sequence MUST be shown only while the device holds no pairing, MUST NOT be re-enterable once one is held, and MUST NOT be offered as a setting. |
+| **N1-R57** | It MUST be possible to reach and operate every screen of the app with no stack on the network, by standing in for the stack itself rather than for any part of the app. |
+| **N1-R58** | A stand-in MUST sit below the transport the app's client uses, so that the client, the envelope reading and the wire-version check (`N1-R13`) exercised against it are the ones exercised against a real stack. |
+| **N1-R59** | What a stand-in answers with MUST be derived from the published contract rather than written by hand, and a divergence between the two MUST fail a gate. |
+| **N1-R60** | A stand-in MUST hold no credential, session or pairing material that could reach a real stack, and MUST NOT write any to the device's store. |
+| **N1-R61** | A released build MUST NOT be able to run against a stand-in, and that MUST be structural rather than a setting the app reads. |
 
 ## Related
 
