@@ -148,6 +148,27 @@ This is the honest form of parity across a device boundary: the surface offers
 everything, and reachability is a condition it reports rather than a capability
 it lacks.
 
+### A frame reads once, and again only when it said it would
+
+A screen paints before it reaches the stack (`N1-R25`), and what it paints is
+built from values the frame goes on to read many times — a template asks for a
+count, then for the same count in a sentence beside it, then for the list the
+count came from. Each of those is a read of what the screen holds, and none of
+them is a reason to reach the machine a second time.
+
+The failure this rules out is quiet, because it looks like nothing at all on the
+machine that suffers it. A screen that reaches the stack per value read, or per
+character typed into a filter, works perfectly in a test and on a desk. It is on
+the operator's phone, over their own network, against a machine that is also
+serving the film somebody is watching, that one frame becomes thirty requests —
+and the cost lands on the thing the app exists to keep an eye on.
+
+So the reading is an act the screen performs, once, and everything the frame
+asks afterwards is answered from what came back. Beyond that, a screen reaches a
+stack when it said it would (`N1-R27`) or when the operator did something —
+never because a value was read, a key was pressed, or a screen was rebuilt
+(`N1-R38`).
+
 ### Nothing is presented as current that is not
 
 A value read four hours ago, shown without saying so, is the failure this
@@ -286,6 +307,8 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R59** | What a stand-in answers with MUST be derived from the published contract rather than written by hand, and a divergence between the two MUST fail a gate. |
 | **N1-R60** | A stand-in MUST hold no credential, session or pairing material that could reach a real stack, and MUST NOT write any to the device's store. |
 | **N1-R61** | A released build MUST NOT be able to run against a stand-in, and that MUST be structural rather than a setting the app reads. |
+| **N1-R65** | A screen MUST perform at most one read of a stack per frame it publishes, however many values that frame goes on to read from what came back. A value read more than once MUST be answered from what the screen holds rather than by reaching the stack again. |
+| **N1-R66** | Beyond that read, a screen MUST reach a stack only on the cadence it states (`N1-R27`) or in answer to an act of the operator's. It MUST NOT reach one because a value was read, a key was pressed, or a screen was rebuilt (`N1-R38`). |
 
 ## Related
 
