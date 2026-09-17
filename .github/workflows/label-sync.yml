@@ -21,7 +21,13 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           curl -sfL --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/lemonfiber/spec/main/70-operations/labels.yml -o labels.yml
-          python3 -m pip install --quiet "pyyaml==6.0.2"
+          # `--only-binary :all:` refuses a source distribution, which is what
+          # keeps this from running a package's own `setup.py` on a runner
+          # holding `GH_TOKEN`. The sibling step in `coverage.yml` has said so
+          # since it was written; this one did not, and a pinned version is not
+          # the same protection — a pin says *which* code, and this says the
+          # code does not get to run at install time.
+          python3 -m pip install --quiet --only-binary :all: "pyyaml==6.0.2"
           python3 - <<'PY'
           import subprocess, yaml
           for l in yaml.safe_load(open("labels.yml")):
