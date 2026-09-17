@@ -94,6 +94,25 @@ for a session, and carries that session in `X-Lemonfiber-Token` afterwards. The
 credential is not kept to be re-sent: a secret held for one exchange is a smaller
 secret than one held for every request.
 
+### Re-pairing is the same machine, said again
+
+The app asks an operator to pair again often enough that it is a routine rather
+than an edge: a certificate the stack announced it would replace (`C6-R19`), an
+address DHCP moved, retained state that could not be carried forward (`N1-R34`).
+Each time, what comes back has to land on the machine already held.
+
+Nothing in the material says which machine that is. The address moves — that is
+one of the reasons for re-pairing. The fingerprint changes — that is another.
+Matching on either identifies a stack by the very thing that changed, and gets
+it wrong in exactly the cases the app itself asked for. `N1-R22` already refuses
+that inference for pinning; it is no better as an answer to *which of my
+machines is this*.
+
+So the material names the stack, with the stack's own identifier, and the app
+matches on that. The alternative is a second row for a machine the operator
+paired once — the app disagreeing with itself about how many machines are in the
+house, on a screen whose entire job is to say.
+
 ### The SDK is the only way out, and a gap in it is a question rather than a workaround
 
 Every call to the stack goes through [`sdk-php`](../../../30-repos/sdk-php.md).
@@ -237,6 +256,7 @@ session travels the overlay instead. The app's conversation does not change.
 |-----------|-----------|
 | The operator scans a code for a stack the phone cannot route to | Paired, then immediately unreachable, with the address named — a wrong network is the common cause and is worth naming. |
 | The stack's address changes with DHCP | Reported as unreachable at the address held. Re-pairing is offered; the app does not scan the network for a replacement. |
+| The operator pairs again with a machine the app already holds | The machine already held is updated — its address, its pinned fingerprint, its name — rather than joined by a second row for the same stack. |
 | Two stacks on one phone answer at the same address | Each is held separately by what it calls itself, and a reading is never attributed to the wrong one. |
 | The credential is correct and the surface is loopback-bound | The stack is unreachable rather than refusing, and the app names the binding as the likely cause. |
 | The device is offline entirely | Unreachable, distinguished from a stack that is down, because the person can tell the difference and the remedy differs. |
@@ -307,6 +327,9 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R59** | What a stand-in answers with MUST be derived from the published contract rather than written by hand, and a divergence between the two MUST fail a gate. |
 | **N1-R60** | A stand-in MUST hold no credential, session or pairing material that could reach a real stack, and MUST NOT write any to the device's store. |
 | **N1-R61** | A released build MUST NOT be able to run against a stand-in, and that MUST be structural rather than a setting the app reads. |
+| **N1-R62** | Pairing material MUST carry an identifier for the stack that is the stack's own and is stable across re-issue of the material, a change of address, and a replacement of the certificate. It MUST NOT be derived from the address, from the fingerprint, or from any credential, and MUST NOT carry anything that identifies the household or an operator. |
+| **N1-R63** | The app MUST decide which machine pairing material refers to from that identifier alone, and MUST NOT infer it from the address or the fingerprint. Material carrying an identifier the device already holds MUST replace what is held for that stack — its address, its pinned fingerprint and its name — rather than add a second. |
+| **N1-R64** | A re-pairing that changes the pinned fingerprint MUST discard the session held for that stack; a re-pairing that does not MUST keep it, consistent with `N1-R45`. A different certificate is a different key, and a session obtained under the old one is not carried across it. |
 | **N1-R65** | A screen MUST perform at most one read of a stack per frame it publishes, however many values that frame goes on to read from what came back. A value read more than once MUST be answered from what the screen holds rather than by reaching the stack again. |
 | **N1-R66** | Beyond that read, a screen MUST reach a stack only on the cadence it states (`N1-R27`) or in answer to an act of the operator's. It MUST NOT reach one because a value was read, a key was pressed, or a screen was rebuilt (`N1-R38`). |
 
