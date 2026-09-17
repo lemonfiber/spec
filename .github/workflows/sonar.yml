@@ -10,14 +10,5 @@ permissions:
 jobs:
   gate:
     uses: ./.github/workflows/sonar-gate.yml
-    # The one issue standing against `main`, named rather than waived. `S8541`
-    # on `label-sync.yml` is what this pull request closes, and the gate counts
-    # issues open against the project rather than issues a branch raised — so
-    # with `allowed-open: 0` the fix for the only open issue is the one change
-    # that can never land. `Q-R67` is the way through: a raise may name the
-    # backlog already standing and nothing past it, and it may only fall from
-    # here. It falls back to zero the moment SonarCloud has re-read `main`.
-    with:
-      allowed-open: 1
     secrets:
       sonar-token: ${{ secrets.SONAR_TOKEN }}
