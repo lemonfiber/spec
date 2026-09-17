@@ -94,6 +94,25 @@ a failure message as readily as a container's reach a log line. Redaction is not
 this rule — a credential scrubber looks for secrets, and has no opinion about an
 escape.
 
+### A target is bigger than the words on it
+
+Everything above is written for a terminal and a browser, which are operated
+with a key or a pointer. The [companion](../n-companion/n1-companion-app.md) is
+operated with a thumb, and a thumb is about a centimetre across.
+
+So a control's target is not its ink. A line of quiet text that navigates is as
+tappable as a filled button beside it, and the way to say so is to give it the
+platform's own minimum — 44 points on iOS, 48 density-independent pixels on
+Android — measured on what responds to a touch rather than on what is drawn
+inside it. The alternative is making the words bigger, which changes the design
+to fix a thing the design was not wrong about.
+
+This matters most for exactly the controls a screen has made quiet on purpose:
+the way past an act, the way back, *check again*. Those are the ones a person
+reaches for when something has gone wrong, often one-handed, often in the dark
+behind a rack — and they are the ones whose drawn extent is a single line of
+small text.
+
 ### Layout adapts rather than assumes
 
 Content reflows for narrow terminals and small viewports. No horizontal scrolling
@@ -127,6 +146,7 @@ or types slowly. Where a timeout exists it is generous, stated, and extendable.
 | Long-running operation with no output | Emit periodic textual progress; silence is indistinguishable from a hang for anyone not watching a spinner. |
 | Confirmation prompt with a timeout | Generous, stated, extendable — or absent. |
 | High-contrast mode | Honour system preference in the web UI. |
+| A control drawn as one line of small text | Its target is enlarged around it to the platform minimum; the words are left as they are. |
 | Colour-coded severity in logs | Severity always also present as text. |
 
 ## Acceptance criteria
@@ -148,6 +168,7 @@ or types slowly. Where a timeout exists it is generous, stated, and extendable.
 | **G3-R13** | The web UI MUST respect browser text sizing and system high-contrast preferences. |
 | **G3-R14** | Severity in log output MUST be present as text, not only as colour. |
 | **G3-R15** | Text the product did not author MUST NOT be able to alter terminal state, on any surface that shows it. |
+| **G3-R16** | On a surface operated by touch, every control MUST present a target at least as large as the platform's own stated minimum — 44 points on iOS, 48 density-independent pixels on Android — measured on what responds to a touch rather than on what is drawn inside it. A control whose drawn extent is smaller MUST have its target enlarged around it rather than its text made larger. |
 
 ## Related
 
