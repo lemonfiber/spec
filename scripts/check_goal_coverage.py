@@ -61,6 +61,7 @@ AWAITING_A_VERSION = {
     "C4": ("the other fourteen C4 goals are locked by 0.7.0, released", ["C4-R15"]),
     "C6": ("C6 is split across 0.9.0 and 0.10.0, both released", ["C6-R18", "C6-R19"]),
     "E3": ("E3 is split across 0.3.0 and 0.14.0, both released", ["E3-R16"]),
+    "G2": ("the other thirteen G2 goals are locked by 0.9.0, released", ["G2-R14"]),
     "G3": ("G3 is split across 0.9.0 and 0.10.0, both released", ["G3-R16"]),
     "G7": ("the other thirteen G7 goals are locked by 0.5.0, released", ["G7-R14"]),
     "G8": (
