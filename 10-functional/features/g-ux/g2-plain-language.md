@@ -64,6 +64,30 @@ is actionable. Sizes, durations and rates carry consequence where it's knowable.
 The plain phrasing must not prevent an operator from learning the real term —
 they'll need it to search for help. Both are shown, with the plain one leading.
 
+### A translated screen keeps the words that are also names
+
+The section above is about a term an operator will search for. A second language
+puts the same argument under more pressure, because it offers a translator a word
+that fits the sentence and names nothing.
+
+A *form* here is a group of services that start and stop together. Dutch has an
+ordinary word that a dictionary gives for *form* — and it means a form somebody
+fills in, which is a different object entirely. An operator reading it has been
+handed a word that appears in no compose file, no subcommand and no page of the
+documentation they would search the moment the screen stops being enough.
+
+So a locale translates the sentence and not the name in it. The distinction is
+not between English and other languages: it is between text and labels. Text is
+for reading, and every locale is entitled to its own. A label is a thing an
+operator will meet again somewhere this product does not control — in a
+filename, in a log line, in a command they type — and those places have one
+spelling. Renaming it in one surface leaves them holding two names for one thing
+and nothing that says they are the same thing.
+
+Which words those are is a decision, not an observation, so it is written down
+rather than inferred. A name added to the product without being declared here is
+a name a translator will reasonably translate.
+
 ### Depth is available, never mandatory
 
 A short explanation with an optional longer one. The newcomer isn't buried and
@@ -98,6 +122,7 @@ Per term or concept:
 | Non-English operator | Out of scope for 1.0; write text that translates cleanly — avoid idiom and cultural reference. |
 | Explanation drifts from behaviour | Explanations live beside the behaviour they describe so they version together. |
 | Household-facing text | Seerr and Jellyfin own their own wording; lemonfiber doesn't rewrite it. |
+| A name that is also an ordinary word in another language | Declare it. A translator handed *form* will write the word their dictionary gives, and that word names something else. |
 
 ## Acceptance criteria
 
@@ -116,6 +141,7 @@ Per term or concept:
 | **G2-R11** | Text MUST avoid idiom and cultural reference so it translates cleanly. |
 | **G2-R12** | Explanations MUST be versioned alongside the behaviour they describe. |
 | **G2-R13** | Every acronym in shipped text MUST resolve to a glossary entry, or to a word declared ordinary and carrying the reason it is. |
+| **G2-R14** | The names lemonfiber gives its own things — the words that also name a file, a command or an argument — MUST be declared, and every locale MUST render a declared name as declared and translate only the text around it. |
 
 ### Two of these are stated as properties, and why
 
