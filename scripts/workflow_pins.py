@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
 """A pin on a shared workflow says how far behind it is — Q-R68.
 
-Fourteen repositories call this repository's reusable workflows, every one of
-them pinned to an exact commit. Q-R68 has a check fail a pull request where such
-a pin is behind the dependency's default branch, naming the commits it has not
-taken. The companion runs one for the SDK client it locks; nothing ran one for
-these, and the drift was not small: six different revisions in use, the oldest
-fifty-seven commits and four gate changes behind.
-
-**Dependabot cannot do this one**, which is why nobody noticed. Its
-`github-actions` updater compares versions, and a raw commit on `main` has no
-version to be newer than — this repository publishes no tags at all. So the
-updater had nothing to propose, opened nothing, and the silence read exactly
-like *nothing to update*.
+Every repository that runs one of this repository's reusable workflows pins it
+to an exact commit. Q-R68 has a check fail a pull request where such a pin is
+behind, naming the commits it has not taken.
 
 **What is pinned and what is not.** The workflow file is pinned; the scripts it
 runs are not. Every one of these workflows checks this repository out at `main`
 and runs the script from there, so a change to `spec_check.py` reaches every
 consumer on their next run. What a stale pin holds back is the *workflow* — the
-arguments it passes, the steps it adds. That is a narrower gap than it looks and
-a sharper one: the half that changes rarely is the half that goes unnoticed.
+arguments it passes, the steps it adds — and so a pin is measured against the
+history of the one file it names. Measured against the default branch instead,
+every pin in the organisation is behind for most of every day, and a check that
+is always red is a check that stops being required.
+
+**Dependabot needs a version to compare.** Its `github-actions` updater proposes
+a bump when a newer tag exists; a pin whose trailing comment names no tag gives
+it nothing to be newer than. `publish-pin-tag.yml` cuts the tag that makes the
+comparison possible, and the comment beside each pin is what carries it.
 """
 from __future__ import annotations
 
@@ -87,8 +85,18 @@ def _git(spec: pathlib.Path, *args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def commits_between(spec: pathlib.Path, pin: str, head: str) -> list[str] | None:
-    """The commits `head` has and `pin` does not, newest first.
+def commits_between(
+    spec: pathlib.Path, pin: str, head: str, workflow: str
+) -> list[str] | None:
+    """The commits `head` has and `pin` does not that changed `workflow`.
+
+    Narrowed to the one file, because the one file is the whole of what a pin
+    holds. The scripts these workflows run are checked out at `main` on every
+    run and reach a consumer whatever its pin says; only the steps and the
+    arguments travel with the revision. A pin behind by commits that cannot
+    reach it is current, and a check that called it stale would be red on every
+    pull request in the organisation for most of every day — which is how a
+    check stops being required.
 
     `None` where the question could not be asked — a shallow checkout, a pin that
     is not a commit in this repository at all, or a pair that are not revisions.
@@ -98,7 +106,15 @@ def commits_between(spec: pathlib.Path, pin: str, head: str) -> list[str] | None
     if not (REVISION.match(pin) and REVISION.match(head)):
         return None
 
-    asked = _git(spec, "log", "--no-color", "--format=%h %s", f"{pin}..{head}")
+    asked = _git(
+        spec,
+        "log",
+        "--no-color",
+        "--format=%h %s",
+        f"{pin}..{head}",
+        "--",
+        f".github/workflows/{workflow}",
+    )
 
     if asked.returncode != 0:
         return None
@@ -112,8 +128,8 @@ def refusal(workflow: str, where: list[str], missed: list[str]) -> str:
     more = len(missed) - len(named)
 
     behind = (
-        f"::error::{workflow} is pinned {len(missed)} commit(s) behind spec@main, "
-        f"in {', '.join(where)}."
+        f"::error::{workflow} has changed {len(missed)} time(s) since the commit "
+        f"pinned in {', '.join(where)}."
     )
 
     said = [behind, "  It has not taken:", *(f"    {line}" for line in named)]
@@ -154,7 +170,7 @@ def main() -> int:
 
     stale = []
     for (workflow, sha), where in sorted(pinned.items()):
-        missed = commits_between(spec, sha, head)
+        missed = commits_between(spec, sha, head, workflow)
 
         if missed is None:
             # A pin this checkout cannot resolve. Loud, and code 2: it is a
@@ -173,14 +189,14 @@ def main() -> int:
     if stale:
         print("\n".join(stale))
         print(
-            "\nBump each pin to "
-            f"{head} and keep the trailing `# main` comment. The workflow file is what "
-            "is pinned; the scripts it runs are checked out at `main` on every run, so "
-            "what a stale pin holds back is the steps and the arguments (Q-R68)."
+            f"\nBump each pin named above to {head}, and set the trailing comment to "
+            "the tag that revision carries. The workflow file is the whole of what a "
+            "pin holds — the scripts it runs are checked out at `main` on every run — "
+            "so only a pin whose own workflow has moved is named here (Q-R68)."
         )
         return 1
 
-    print(f"every pin is at spec@main ({head[:8]})")
+    print(f"every pin holds the newest revision of the workflow it names ({head[:8]})")
     return 0
 
 

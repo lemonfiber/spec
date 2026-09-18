@@ -262,34 +262,31 @@ a minute ago, on a runner holding that repository's token.
 An exact commit is a copy, and a copy goes stale in silence. `workflow-pins` is
 what makes it say so. It reads every
 `uses: lemonfiber/spec/.github/workflows/<name>.yml@<sha>` out of the calling
-repository's own `.github/workflows/`, compares each against this repository's
-`main`, and fails the pull request naming the commits that pin has not taken
-(**Q-R68**, **Q-R70**). A pin on somebody else's action is not its business; that
-one has versions, and the dependency bot does it.
+repository's own `.github/workflows/`, and fails the pull request naming the
+commits that pin has not taken (**Q-R68**, **Q-R70**). A pin on somebody else's
+action is not its business; that one has versions, and the dependency bot does it.
 
-One asymmetry is worth knowing before reading one of its logs. *What a pin is
-compared against* is always this repository's `main`, for every caller. *Which
-copy of the reader runs* is the caller's own where the caller is this repository
-— the same split the `shared-files` job makes, and for the same reason: the
-definition under review is the one that should be run by the review. It also
-happens to be the only way a gate like this can be introduced at all, since
-`main` does not hold it until the change that adds it has merged.
+**A pin is measured against the one file it names**, not against this
+repository's `main`. Measured against the branch, every pin in the organisation
+is behind from the first unrelated commit after each merge, which is to say for
+most of every day — and a check that is red on every pull request is a check that
+stops being required. Narrowed to the workflow's own history it is red only when
+something that can reach the caller has moved.
 
-It was published with the drift already in front of it, which is the only honest
-way to publish a check like this: fourteen repositories calling `spec-check` at
-six different revisions, the oldest fifty-seven commits behind, and this
-repository thirteen behind its own.
+One asymmetry is worth knowing before reading one of its logs. *Which copy of the
+reader runs* is the caller's own where the caller is this repository — the same
+split the `shared-files` job makes, and for the same reason: the definition under
+review is the one that should be run by the review. It is also the only way a
+gate like this can be introduced at all, since `main` does not hold it until the
+change that adds it has merged.
 
-The first thing it found was here. This repository called six of its own
-reusable workflows as `lemonfiber/spec/…@<sha>` and the rest of them as `./`, and
-the first form is not a coherent thing for a repository to do to itself: it is a
-supply-chain pin against your own tree, it runs an older copy of a file you are
-looking at, and it guarantees a refusal on every pull request from one commit
-after each merge — this gate blocking its own cure, on the day it arrived. All
-six are `./` now, which is what the other calls already did. The self-run reports
-*nothing to check*, and that is the honest answer rather than a gap: the rule is
-about depending on **another** repository at an exact revision, and this one does
-not depend on itself.
+**This repository does not pin itself.** Every call to one of its own reusable
+workflows is `./`. The `lemonfiber/spec/…@<sha>` form aimed at your own tree is a
+supply-chain pin against yourself: it runs an older copy of the file you are
+looking at, and it guarantees a refusal from one commit after each merge. The
+self-run therefore reports *nothing to check*, which is the honest answer rather
+than a gap — the rule is about depending on **another** repository at an exact
+revision, and this one does not depend on itself.
 
 ### What a stale pin actually holds back
 
@@ -306,20 +303,30 @@ added here does not run there. A workflow taught to run on `merge_group` does no
 run on one there. Nothing goes red to say so, because from inside the consuming
 repository the job is present, green, and doing less than its name.
 
-### Why Dependabot cannot do this one
+### How a pin gets bumped
 
-It is configured. `github-actions` is on in every one of these repositories, on a
-daily schedule, with `lemonfiber/spec*` grouped ahead of the wildcard so a shared
-gate is never held behind a cooldown. It has opened exactly zero pull requests for
-these pins.
+Dependabot does it, and `publish-pin-tag.yml` is what lets it. Its
+`github-actions` updater compares **versions**: a raw commit has nothing to be
+newer than, so a pin whose trailing comment names no version gives the updater
+nothing to propose — and a bot that is configured and quiet is indistinguishable
+from one that is configured and satisfied.
 
-The reason is not a misconfiguration to be found and fixed. Dependabot's
-`github-actions` updater compares **versions**, and this repository publishes no
-tags and no releases at all. A raw commit on `main` has nothing to be newer than,
-so the updater had nothing to propose, proposed nothing, and its silence read
-exactly like *nothing to update*. That is the more expensive half: a bot that is
-configured and quiet is indistinguishable from a bot that is configured and
-satisfied, and fourteen repositories were read as the second for months.
+So every commit to `main` that changes a published workflow is tagged `v1.0.N`.
+The series carries no meaning beyond order, which is all the comparison needs.
+Each pin names its tag in the comment beside it:
+
+```yaml
+uses: lemonfiber/spec/.github/workflows/dco.yml@<sha> # v1.0.12
+```
+
+`github-actions` is on in every one of these repositories on a daily schedule,
+with `lemonfiber/spec*` grouped ahead of the wildcard so a shared gate is never
+held behind a cooldown. The bump arrives as a pull request like any other.
+
+`workflow-pins` and the bot answer different questions and neither replaces the
+other. The bot keeps a pin at the newest tag whether or not it matters; the check
+refuses only a pin whose own workflow has moved. A repository can sit a tag or
+two behind and be entirely current.
 
 ### Could not ask is not clean
 
@@ -332,10 +339,10 @@ shallow clone looks like from the inside.
 Exit 2 fails the run and **closes nothing**. The distinction is the same one
 `spec-check` draws when it declines to close on its own fault (**GOV-R9** is about
 non-conforming work, and a checkout that did not arrive is not that), and it is
-load-bearing here for a plainer reason: a drift check that reported clean over a
-question it failed to ask is precisely how a pin gets to fifty-seven behind. The
-history is fetched at full depth for this reason and no other — without it the
-honest answer is 2, on every run, forever.
+load-bearing here for a plainer reason: a drift check that reports clean over a
+question it failed to ask is how a pin goes unwatched for months. The history is
+fetched at full depth for this reason and no other — without it the honest answer
+is 2, on every run, forever.
 
 ### Two pin checks, and why both
 

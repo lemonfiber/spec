@@ -1,0 +1,74 @@
+# A version for the workflows this repository publishes, so a pin on one can be
+# bumped by the dependency bot rather than by hand.
+#
+# Fourteen repositories pin these workflows to an exact commit. Dependabot's
+# `github-actions` updater proposes a bump when a newer *version* exists, and a
+# raw commit is not one — so with no tag here it has nothing to compare, opens
+# nothing, and its silence is indistinguishable from nothing to update. The
+# `shared-workflows` group in `.github/dependabot.yml` is already waiting on
+# exactly this.
+#
+# The series is `v1.0.N`, incremented once per commit to `main` that changes a
+# published workflow. It carries no meaning beyond order, which is all the
+# updater compares.
+name: publish-pin-tag
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+# One tag at a time. Two merges landing together would otherwise compute the
+# same next number and the second would fail on a ref that already exists.
+concurrency:
+  group: publish-pin-tag
+  cancel-in-progress: false
+
+jobs:
+  publish-pin-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      # Creating the ref, and nothing else. The tag is created through the API
+      # rather than pushed, so no credential is left in the checkout.
+      contents: write
+    steps:
+      - name: Check out the history the numbering reads
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Work out the next number and whether this commit needs one
+        id: next
+        run: |
+          set -euo pipefail
+          git fetch --quiet --tags --force origin
+
+          if [ -n "$(git tag --points-at HEAD --list 'v1.0.*')" ]; then
+            echo "already: $(git tag --points-at HEAD --list 'v1.0.*')"
+            echo "tag=" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Highest existing number rather than a count, so a deleted tag does
+          # not hand its number to a second commit.
+          highest=$(git tag --list 'v1.0.*' \
+            | sed -n 's/^v1\.0\.\([0-9][0-9]*\)$/\1/p' \
+            | sort -n | tail -1)
+          echo "tag=v1.0.$(( ${highest:-0} + 1 ))" >>"$GITHUB_OUTPUT"
+
+      - name: Publish it
+        if: steps.next.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.next.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
+            -f "ref=refs/tags/${TAG}" \
+            -f "sha=${GITHUB_SHA}" >/dev/null
+          echo "::notice::published ${TAG} at ${GITHUB_SHA}"
