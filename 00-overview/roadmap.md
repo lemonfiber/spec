@@ -2,6 +2,11 @@
 
 **Status:** Accepted
 
+The version table below is generated from the version manifests by
+[`scripts/gen_roadmap_table.py`](../scripts/gen_roadmap_table.py) — edit a
+manifest, not the table. `just generated` rewrites it and refuses a hand
+edit. Everything else on this page is written by hand.
+
 Sequenced to keep a working, demonstrable artifact at every milestone. The
 ordering principle: **build the thing being wrapped before the wrapper.** lemonfiber
 should target a stack that is already known-good, so that debugging is never

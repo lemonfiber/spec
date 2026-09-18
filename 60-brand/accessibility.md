@@ -2,6 +2,11 @@
 
 **Status:** Accepted
 
+The contrast table below is generated from [`tokens.json`](tokens.json) by
+[`scripts/gen_contrast.py`](../scripts/gen_contrast.py) — edit the tokens, not
+the table. `just generated` rewrites it and refuses a hand edit. The prose
+around it is written by hand.
+
 Whether the palette meets [WCAG AA](../10-functional/features/g-ux/g3-accessibility.md)
 is a **computed property of the tokens**, not an opinion. This page states the
 baseline, with the actual ratios, and the pairings that are unsafe.

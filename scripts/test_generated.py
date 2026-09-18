@@ -9,7 +9,8 @@ mistake. So the tests that matter are the ones that read the refusal.
 Beside them, the three silences. A registry with nothing in it, a registry
 naming a file that is not there, and a git that could not answer all produce the
 same clean-looking run as a repository where nothing moved, and each has to
-refuse instead.
+refuse instead. The banner rule has the first of those silences too: an empty
+registry finds every banner it looked for.
 
 Stdlib unittest, no dependencies.
 Run:  python3 scripts/test_generated.py
@@ -20,6 +21,7 @@ from __future__ import annotations
 import io
 import pathlib
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
@@ -167,11 +169,70 @@ class TheRun(unittest.TestCase):
         self.assertEqual(ran.call_args[0][0][:3], ["git", "-C", str(generated.ROOT)])
 
 
+class TheBanner(unittest.TestCase):
+    def test_every_generated_file_names_its_generator_near_the_top(self):
+        out = io.StringIO()
+        self.assertEqual(generated.banners(out), 0, out.getvalue())
+
+    def test_a_file_that_does_not_name_its_generator_is_refused(self):
+        out = io.StringIO()
+        with mock.patch.object(
+            generated, "unbannered", return_value=["thing.md"]
+        ), mock.patch.object(generated, "GENERATED", (ONE,)):
+            self.assertEqual(generated.banners(out), 1)
+        self.assertIn("thing.md", out.getvalue())
+        self.assertIn("scripts/gen_thing.py", out.getvalue())
+
+    def test_the_refusal_says_what_to_add_and_why(self):
+        said = generated.banner_refusal(ONE, "thing.md")
+        self.assertIn("Add a line near the top", said)
+        self.assertIn("python3 scripts/gen_thing.py", said)
+        self.assertIn("generated, checked, free", said)
+
+    def test_an_empty_registry_refuses_rather_than_finding_every_banner(self):
+        out = io.StringIO()
+        with mock.patch.object(generated, "GENERATED", ()):
+            self.assertEqual(generated.banners(out), 1)
+        self.assertIn("no banner was looked for", out.getvalue())
+
+    def test_a_banner_below_the_window_does_not_count(self):
+        with tempfile.TemporaryDirectory() as where:
+            root = pathlib.Path(where)
+            (root / "thing.md").write_text(
+                "\n" * generated.BANNER_LINES + "scripts/gen_thing.py\n",
+                encoding="utf-8",
+            )
+            with mock.patch.object(generated, "ROOT", root):
+                self.assertEqual(generated.unbannered(ONE), ["thing.md"])
+
+    def test_a_banner_inside_the_window_counts(self):
+        with tempfile.TemporaryDirectory() as where:
+            root = pathlib.Path(where)
+            (root / "thing.md").write_text(
+                "# Thing\n\nwritten by scripts/gen_thing.py\n", encoding="utf-8"
+            )
+            with mock.patch.object(generated, "ROOT", root):
+                self.assertEqual(generated.unbannered(ONE), [])
+
+    def test_the_check_runs_the_banner_rule_after_the_diff(self):
+        out = io.StringIO()
+        with mock.patch.object(generated, "run", return_value=None), mock.patch.object(
+            generated, "moved", return_value=[]
+        ), mock.patch.object(generated, "banners", return_value=1) as looked:
+            self.assertEqual(generated.check(out), 1)
+        looked.assert_called_once()
+
+
 class TheCommandLine(unittest.TestCase):
     def test_list_prints_the_table(self):
         with mock.patch("sys.stdout", new=io.StringIO()) as out:
             self.assertEqual(generated.main(["--list"]), 0)
         self.assertIn("scripts/gen_board.py", out.getvalue())
+
+    def test_banners_checks_only_the_banners(self):
+        with mock.patch.object(generated, "banners", return_value=0) as looked:
+            self.assertEqual(generated.main(["--banners"]), 0)
+        looked.assert_called_once()
 
     def test_no_flag_checks(self):
         with mock.patch.object(generated, "check", return_value=0) as checked:

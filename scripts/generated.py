@@ -15,12 +15,20 @@ the reason it is a table and not four lines of shell: a file can be generated in
 exactly one place, and two lists of which files those are is one list that goes
 wrong.
 
+The same table answers the other question a maintainer has when they open one of
+these files: whether they may edit it. Only `BOARD.md` and `index.json` said so;
+the other three said nothing, and all three are only *partly* generated, which is
+worse than saying nothing about a file written whole — a reader cannot tell which
+paragraphs are theirs. So every registered file has to name its generator near the
+top, and that is checked here rather than remembered.
+
 What this does not do is decide whether the generated content is right. Each
 generator refuses on its own when its anchor is missing — `gen_repos.py` alone
 has three such refusals — and this runs them and reads the tree afterwards.
 
 Run:  python3 scripts/generated.py
       python3 scripts/generated.py --list
+      python3 scripts/generated.py --banners
 """
 
 from __future__ import annotations
@@ -85,6 +93,13 @@ GENERATED = (
 )
 
 
+# How far into a file the banner has to be. A statement that a page is generated
+# is worth nothing where a reader has already started editing, so it goes above
+# the first thing anybody reads past the title — and a window rather than a line
+# number leaves the files free to differ in how they open.
+BANNER_LINES = 12
+
+
 def owner_of(path: str) -> Generated | None:
     """The generator that writes one path, or None where nothing does."""
     for entry in GENERATED:
@@ -111,6 +126,72 @@ def refusal(entry: Generated, path: str) -> str:
             "  so. See 40-quality/ci-cd.md.",
         ]
     )
+
+
+def unbannered(entry: Generated) -> list[str]:
+    """Which of an entry's files do not say, near the top, who writes them.
+
+    The rule is deliberately one thing: the generator's own path appears in the
+    opening of the file. It is narrow because a banner is prose a maintainer
+    should be able to word for their own page, and what cannot be left to
+    wording is the one fact a reader needs — which script to go and look at.
+    `index.json` satisfies it through the `generated_by` key it already carries,
+    which is the same fact in the only form JSON has for it.
+    """
+    missing = []
+    for path in entry.paths:
+        head = (ROOT / path).read_text(encoding="utf-8").splitlines()[:BANNER_LINES]
+        if not any(entry.generator in line for line in head):
+            missing.append(path)
+    return missing
+
+
+def banner_refusal(entry: Generated, path: str) -> str:
+    """What one unbannered file says."""
+    return "\n".join(
+        [
+            (
+                f"{path} is written by {entry.generator} and does not say so in "
+                f"its first {BANNER_LINES} lines."
+            ),
+            "",
+            "  A maintainer opening it cannot tell that editing it is the",
+            f"  mistake. What is generated in it: {entry.owns}.",
+            "",
+            f"  Add a line near the top naming `{entry.generator}`, what it reads,",
+            f"  and that `{entry.recipe}` rewrites it. The wording is yours; the",
+            "  path is the part a reader needs.",
+            "",
+            "  Why: the three kinds of document here — generated, checked, free —",
+            "  are only a promise if a document says which it is.",
+        ]
+    )
+
+
+def banners(out) -> int:
+    """Every generated file says, near the top, which script writes it."""
+    if not GENERATED:
+        print(
+            "no generated file is registered, so no banner was looked for — a "
+            "pass here would be an account of every generated surface having "
+            "opened none of them.",
+            file=out,
+        )
+        return 1
+
+    refused = 0
+    for entry in GENERATED:
+        for path in unbannered(entry):
+            print(banner_refusal(entry, path), file=out)
+            print(file=out)
+            refused += 1
+
+    if refused:
+        return 1
+
+    counted = sum(len(entry.paths) for entry in GENERATED)
+    print(f"{counted} generated file(s) name the generator that writes them")
+    return 0
 
 
 def _git(*args: str) -> subprocess.CompletedProcess[str]:
@@ -198,7 +279,7 @@ def check(out) -> int:
 
     if not differs:
         print(f"{len(every)} generated file(s) match what their generators write")
-        return 0
+        return banners(out)
 
     for path in differs:
         entry = owner_of(path)
@@ -229,10 +310,17 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="print the file/generator/recipe table and do nothing else",
     )
+    parser.add_argument(
+        "--banners",
+        action="store_true",
+        help="check only that each generated file names its generator",
+    )
     args = parser.parse_args(argv)
 
     if args.list:
         return listing(sys.stdout)
+    if args.banners:
+        return banners(sys.stderr)
     return check(sys.stderr)
 
 
