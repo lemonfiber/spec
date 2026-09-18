@@ -85,9 +85,10 @@ def defined(spec: pathlib.Path) -> dict[str, int]:
 
     Definitions, not mentions. A requirement exists where a table row declares it;
     everywhere else the identifier is a citation. Reading citations here raised the
-    ceiling to whatever the spec happened to *say* — one line of prose naming
-    `G7-R20` lifted G7 from thirteen to twenty and took the overshoot check with
-    it, silently, for every number in between. `integrity.py` catches stray
+    ceiling to whatever the spec happened to *say* — one line of prose naming a
+    twentieth G7 requirement lifted that feature's ceiling from thirteen to
+    twenty and took the overshoot check with it, silently, for every number in
+    between. `integrity.py` catches stray
     citations in this repository, so the two gates held each other up; they were
     never meant to, and `.git` is outside what `integrity.py` reads at all.
     """
