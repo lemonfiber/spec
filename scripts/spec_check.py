@@ -216,6 +216,12 @@ def named_in(diff: str, defined: set[str]) -> set[str]:
     tell that sentence from a citation. The trailer is where a citation is
     *made*, and that is where `GOV-R8` is enforced.
     """
+    if not diff:
+        # No diff was asked for, so nothing was read — and saying which files
+        # went unread would be reporting an exemption that did not apply to a
+        # run that opened no file at all.
+        return set()
+
     families = {rid.split("-", 1)[0] for rid in defined}
 
     found: set[str] = set()

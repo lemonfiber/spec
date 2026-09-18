@@ -309,6 +309,18 @@ class WhatAFileNames(GateCase):
         self.assertIn("not read for identifiers", out)
         self.assertIn("render.rs", out)
 
+    def test_a_run_with_no_diff_says_nothing_about_fixtures(self):
+        # Reporting which files went unread, on a run that opened none, is an
+        # exemption announcing itself where it did not apply — and the notice is
+        # the only thing telling a reader the gate skipped anything at all.
+        fixtures = self.root / ".github"
+        fixtures.mkdir(parents=True, exist_ok=True)
+        (self.root / "render.rs").write_text("fixture", encoding="utf-8")
+        (fixtures / "spec-check-fixtures").write_text("render.rs\n", encoding="utf-8")
+        code, out = self.check("Spec: GOV-R12\n")
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("not read for identifiers", out)
+
     def test_a_declaration_names_a_path_and_not_a_pattern(self):
         fixtures = self.root / ".github"
         fixtures.mkdir(parents=True, exist_ok=True)
