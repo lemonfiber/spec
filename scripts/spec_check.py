@@ -34,6 +34,7 @@ import argparse
 import pathlib
 import sys
 
+from integrity import elsewhere
 from patterns import ADR_FILE, CITE, CITE_ANY, REQ_DEF, REQ_DEF_ROW, SPEC_TRAILER
 
 
@@ -41,7 +42,7 @@ from patterns import ADR_FILE, CITE, CITE_ANY, REQ_DEF, REQ_DEF_ROW, SPEC_TRAILE
 def defined_ids(spec_dir: pathlib.Path) -> set[str]:
     ids: set[str] = set()
     for p in spec_dir.rglob("*.md"):
-        if ".git" in p.parts:
+        if elsewhere(p, spec_dir):
             continue
         ids.update(REQ_DEF.findall(p.read_text(encoding="utf-8", errors="ignore")))
     dec = spec_dir / "00-overview" / "decisions"
@@ -73,7 +74,7 @@ def retired_ids(spec_dir: pathlib.Path) -> dict[str, str]:
     """
     found: dict[str, str] = {}
     for p in spec_dir.rglob("*.md"):
-        if ".git" in p.parts:
+        if elsewhere(p, spec_dir):
             continue
         for rid, cell in REQ_DEF_ROW.findall(p.read_text(encoding="utf-8", errors="ignore")):
             if cell.strip().startswith(RETIRED):

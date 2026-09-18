@@ -34,6 +34,7 @@ import pathlib
 import subprocess
 import sys
 
+from integrity import elsewhere
 from patterns import REQ_DEF
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -86,7 +87,7 @@ def defined(here: bool = False) -> dict[str, dict[int, pathlib.Path]]:
     """
     found: dict[str, dict[int, pathlib.Path]] = collections.defaultdict(dict)
     for path in ROOT.rglob("*.md"):
-        if ".git" in path.parts or "vendor" in path.parts:
+        if elsewhere(path, ROOT):
             continue
         for identifier in REQ_DEF.findall(path.read_text(encoding="utf-8")):
             prefix, number = identifier.rsplit("-R", 1)

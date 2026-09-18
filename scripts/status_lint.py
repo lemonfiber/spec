@@ -55,7 +55,7 @@ import tomllib
 # the ceiling below is exactly what goes wrong when a reader of definitions is
 # spelled as a reader of mentions.
 import tracker
-from integrity import REQ_DEF
+from integrity import REQ_DEF, elsewhere
 from patterns import CITE, RANGE
 from tracker import DONE, LEGACY_WIDTH, REQUIREMENT_COLUMNS, STATUS_COLUMNS
 
@@ -95,7 +95,7 @@ def defined(spec: pathlib.Path) -> dict[str, int]:
     highest: dict[str, int] = {}
     # Read each ID whole, then split it: the feature prefix is not a fixed width.
     for doc in spec.rglob("*.md"):
-        if ".git" in doc.parts:
+        if elsewhere(doc, spec):
             continue
         for ident in REQ_DEF.findall(doc.read_text(encoding="utf-8")):
             feature, _, number = ident.partition("-R")

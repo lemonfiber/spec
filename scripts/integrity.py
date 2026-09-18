@@ -39,12 +39,13 @@ LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)#]+)(?:#[^)]*)?\)")
 #: and the whole of it reports as broken, which is `just integrity` failing for a
 #: reason that is not about anything in this repository.
 # Directories under the root that hold somebody else's text. `checkouts` is the
-# other repositories this one reads. A dot-directory is whatever a tool put
-# there — an agent's worktree, a cache, a virtualenv — and the worktree is the
-# one that bites: it is a second clone of this repository, so every requirement
-# in it is defined a second time and the gate reports the entire spec as
-# duplicated, on a machine where nothing is wrong.
-ELSEWHERE = ("checkouts",)
+# other repositories this one reads, `vendor` and `node_modules` are copies a
+# tool fetched, and `dist` is a rendered one. A dot-directory is whatever a tool
+# put there — an agent's worktree, a cache, a virtualenv — and the worktree is
+# the one that bites: it is a second clone of this repository, so every
+# requirement in it is defined a second time and the gate reports the entire spec
+# as duplicated, on a machine where nothing is wrong.
+ELSEWHERE = ("checkouts", "vendor", "node_modules", "dist")
 
 
 def elsewhere(path, root=None):

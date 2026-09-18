@@ -640,6 +640,34 @@ class CheckStageableTests(Workspace):
         self.assertIn("Q-R65", out)
         self.assertNotIn("Q-R64", out)
 
+    def test_a_version_locking_no_goal_is_refused_at_staging(self):
+        """A manifest with an empty goal list has nothing to prove and nothing to fail.
+
+        The release gate and the no-stub gate both refuse one. Staging did not, so a
+        version could join the train and be answered about only at the end of it.
+        """
+        self.manifest("0.2.0", status="planned", goals=(), repos=("lf",))
+        code, out = run_main(check_stageable, ["0.2.0"])
+        self.assertNotEqual(code, 0)
+        self.assertIn("locks no goal", out)
+
+    def test_every_reason_a_version_is_unstageable_is_reported_at_once(self):
+        """Four independent questions, and a manifest can fail several of them.
+
+        Each answer costs a CI round trip, so reporting the first and stopping made
+        finding the rest a sequence of pushes.
+        """
+        self.manifest("0.2.0", status="releasable")
+        pathlib.Path("70-operations/versions/0.6.0.toml").write_text(
+            'version = "0.6.0"\nstatus  = "draft"\nrepos = []\ngoals = []\n',
+            encoding="utf-8")
+        code, out = run_main(check_stageable, ["0.6.0"])
+        self.assertNotEqual(code, 0)
+        self.assertIn("not planned", out)
+        self.assertIn("one version at a time", out)
+        self.assertIn("locks no goal", out)
+        self.assertIn("nowhere for the gate to search", out)
+
     def test_a_version_with_nowhere_to_search_is_refused_at_staging(self):
         """A manifest that cuts nothing has nowhere for the gate to look either,
         and staging is the last moment anybody reads this file on purpose."""

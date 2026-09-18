@@ -158,11 +158,21 @@ class WhatItSays(unittest.TestCase):
         )
         self.assertEqual(CHECK.main(["attribution_check.py", "a", "b"]), 1)
 
+    def test_a_range_holding_no_commit_is_refused_rather_than_called_clean(self) -> None:
+        """Both refs resolve, git is happy, and nothing was read.
+
+        A pull request always carries a commit, so an empty range means the refs
+        are not the ones the run was about — and a clean answer over it is a pass
+        nobody earned.
+        """
+        CHECK._read = lambda base, head: "\n"
+        self.assertEqual(CHECK.main(["attribution_check.py", "a", "b"]), 1)
+
     def test_the_body_counts_only_where_the_caller_piped_one_in(self) -> None:
         # The flag is what makes stdin part of the answer. Without it a check run
         # by hand would sit waiting on a pipe nobody is filling, and the whole
         # reason the body is read at all — the squash merge — is a CI concern.
-        CHECK._read = lambda base, head: ""
+        CHECK._read = lambda base, head: "abcdef12\x00feat: a thing\x00feat: a thing\n\x01\n"
         credited = "A body.\n\nCo-authored-by: Codex <codex@example.com>\n"
 
         sys.stdin = io.StringIO(credited)
