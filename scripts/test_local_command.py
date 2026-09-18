@@ -71,7 +71,8 @@ class Repo(unittest.TestCase):
         (self.tmp / "package.json").write_text(
             json.dumps({"scripts": scripts}, indent=2), encoding="utf-8")
 
-    def check(self):
+    def verdict(self):
+        """This repository's exit status, and what the check said about it."""
         return run_main(self.tmp)
 
 
@@ -79,14 +80,14 @@ class TheFloor(Repo):
     """What the check has to refuse before it can be trusted to pass anything."""
 
     def test_a_repository_with_no_local_command(self):
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("no local command", said)
         self.assertIn("nothing a contributor can run before a push", said)
 
     def test_a_justfile_with_no_ci_recipe(self):
         (self.tmp / "justfile").write_text("default:\n    @just --list\n", encoding="utf-8")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("no local command", said)
 
@@ -94,19 +95,19 @@ class TheFloor(Repo):
         # The state this check would otherwise read as an honest repository: no
         # sentence to find, so no claim to refuse, so a clean report.
         self.justfile("")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("nothing says what it covers", said)
 
     def test_a_composer_script_with_no_description(self):
         self.composer(None)
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("nothing says what it covers", said)
 
     def test_an_npm_script_with_no_justfile_beside_it(self):
         self.package({"ci": "npm run lint && npm run test"})
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("npm run ci", said)
         self.assertIn("nothing says what it covers", said)
@@ -116,13 +117,13 @@ class TheFloor(Repo):
         # somewhere else. There is no local command here to describe.
         (self.tmp / "composer.json").write_text(
             json.dumps({"scripts": {"lint": "@php vendor/bin/pint"}}), encoding="utf-8")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("no local command", said)
 
     def test_a_task_runner_that_will_not_parse(self):
         (self.tmp / "composer.json").write_text("{ not json", encoding="utf-8")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("unreadable composer.json", said)
 
@@ -132,7 +133,7 @@ class TheClaim(Repo):
 
     def test_an_unqualified_claim(self):
         self.justfile("Everything CI runs, in CI's order.")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("says the local command is CI, and it is not", said)
         self.assertIn("Everything CI runs, in CI's order.", said)
@@ -146,14 +147,14 @@ class TheClaim(Repo):
             "Run every check CI runs before pushing.\n"
             "\n"
             "It is quick.")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("Run every check CI runs before pushing.", said)
         self.assertNotIn("The gates, in order.", said)
 
     def test_a_claim_qualified_in_the_sentence(self):
         self.justfile("Everything CI runs bar the image check, which needs the network.")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 0, said)
         self.assertIn("1 sentence(s) claiming to be CI", said)
 
@@ -161,7 +162,7 @@ class TheClaim(Repo):
         self.composer(
             "Every gate CI runs but backward compatibility, in order; "
             "run `composer bc` for that one.")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 0, said)
 
     def test_a_claim_whose_block_lists_what_is_missing(self):
@@ -172,12 +173,12 @@ class TheClaim(Repo):
             "\n"
             "Four jobs are not here: commitlint, dco, attribution and spec-check,\n"
             "each of which the commit-msg hook answers before the push.")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 0, said)
 
     def test_a_claim_in_a_composer_description(self):
         self.composer("Every check CI runs, in order.")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 1, said)
         self.assertIn("Every check CI runs, in order.", said)
 
@@ -187,7 +188,7 @@ class WhatItMustLetThrough(Repo):
 
     def test_a_description_that_makes_no_claim(self):
         self.justfile("The gates this repository's own scripts decide, in order.")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 0, said)
         self.assertIn("0 sentence(s)", said)
 
@@ -199,7 +200,7 @@ class WhatItMustLetThrough(Repo):
             "\n"
             "Not the command to run before a push: CI runs all of this the moment\n"
             "you push, so running it here first learns nothing sooner.")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 0, said)
 
     def test_two_runners_where_only_one_describes_the_command(self):
@@ -208,7 +209,7 @@ class WhatItMustLetThrough(Repo):
         self.package({"ci": "npm run lint"})
         self.justfile("Everything CI runs bar the browser install, which CI does first.",
                       recipe="ci:\n    npm run ci\n")
-        code, said = self.check()
+        code, said = self.verdict()
         self.assertEqual(code, 0, said)
         self.assertIn("just ci", said)
         self.assertIn("npm run ci", said)
