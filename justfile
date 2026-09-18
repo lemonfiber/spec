@@ -25,12 +25,16 @@ default:
 #   CodeQL, gitleaks, osv-scanner,         forge-side, and none of them decides
 #   sonar, label, the reference comment    anything about a document here
 #   the redirect site                      `just docs`
+#
+# Everything the `integrity` job decides, plus the hooks — not CI.
 ci: hooks integrity shared services check-meta ordering generated lint typos links local
 
-# What the recipe above says it covers, against what it cannot: a description
-# claiming to be CI has to name what it leaves out, because CI is mostly jobs no
-# clone can run. A recipe nobody described is refused too — the state in which
-# this has nothing to read and would report that every claim here is honest.
+# A description claiming to be CI has to name what it leaves out, because CI is
+# mostly jobs no clone can run. A recipe nobody described is refused too — the
+# state in which this has nothing to read and would report that every claim here
+# is honest.
+#
+# What the recipe above says it covers, against what it cannot.
 local:
     python3 scripts/check_local_command.py --root .
 
