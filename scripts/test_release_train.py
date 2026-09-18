@@ -278,6 +278,26 @@ class GateTests(Workspace):
         with self.assertRaises(SystemExit):
             gate.parse_repos(["noequals"])
 
+    def test_a_search_of_nowhere_is_refused_rather_than_answered(self):
+        """Naming no repository is a run that cannot look, not a verdict.
+
+        Answered, it comes back as every goal uncited — which is what a version
+        nobody has started also looks like, and the tracker renders the two
+        identically. So it exits 2 the way a manifest locking no goals does,
+        rather than 1.
+        """
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), self.assertRaises(SystemExit) as exit:
+            gate.parse_repos([])
+        self.assertEqual(exit.exception.code, 2)
+        self.assertIn("nowhere to read citations from", out.getvalue())
+
+        self.manifest("0.1.0", goals=("B1-R4",))
+        code, said = run_main(gate, ["--manifest", "70-operations/versions/0.1.0.toml",
+                                     "--status", self.status_file()])
+        self.assertEqual(code, 2)
+        self.assertNotIn("B1-R4", said)
+
     def test_cited_and_done_and_evaluate(self):
         self.repo("checkouts/lf")
         cited = gate.cited_ids(gate.parse_repos(["lf=checkouts/lf"]))
@@ -793,8 +813,44 @@ class TrackerAndPrGoalsTests(Workspace):
                    '{"id":"A2-R6","cited":true,"done":false}]}')
         code, out = run_main(tracker_body, [], stdin=payload)
         self.assertEqual(code, 0)
+        self.assertIn("## Release 0.2.0 — 1/2 goals", out)
         self.assertIn("- [x] `A2-R1`", out)
-        self.assertIn("missing", out)
+        self.assertIn("not yet releasable", out)
+
+    def test_an_unmet_goal_reads_as_unmet_in_both_halves(self):
+        """Each half of the line says what is absent, and neither reads as present.
+
+        The tick is the trap. A list of absences whose second item was spelled
+        `tracker ✅` renders as `missing citation, tracker ✅`, which is an
+        English sentence saying the tracker has ticked it — the opposite of the
+        verdict it was rendering, on every goal that has neither.
+        """
+        payload = ('{"version":"0.3.0","releasable":false,"goals":['
+                   '{"id":"A2-R1","cited":false,"done":false},'
+                   '{"id":"A2-R2","cited":true,"done":false},'
+                   '{"id":"A2-R3","cited":false,"done":true}]}')
+        code, out = run_main(tracker_body, [], stdin=payload)
+        self.assertEqual(code, 0)
+        self.assertIn("- [ ] `A2-R1` — no citation, no tracker tick", out)
+        self.assertIn("- [ ] `A2-R2` — no tracker tick", out)
+        self.assertIn("- [ ] `A2-R3` — no citation", out)
+        # The glyph is what made the old rendering readable as its own opposite,
+        # and only a done goal may carry one. Counted first, because a sweep of
+        # the unchecked lines proves nothing if the prefix moved and there are
+        # none — which is the same silence this whole change is about.
+        unchecked = [line for line in out.splitlines() if line.startswith("- [ ]")]
+        self.assertEqual(len(unchecked), 3)
+        for line in unchecked:
+            self.assertNotIn("✅", line)
+
+    def test_every_goal_met_reads_as_releasable(self):
+        payload = ('{"version":"0.4.0","releasable":true,"goals":['
+                   '{"id":"A2-R1","cited":true,"done":true}]}')
+        code, out = run_main(tracker_body, [], stdin=payload)
+        self.assertEqual(code, 0)
+        self.assertIn("## Release 0.4.0 — 1/1 goals", out)
+        self.assertIn("✅ releasable", out)
+        self.assertNotIn("- [ ]", out)
 
     def _pr(self, text):
         pathlib.Path("pr.txt").write_text(text, encoding="utf-8")

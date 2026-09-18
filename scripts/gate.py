@@ -33,8 +33,6 @@ from patterns import CITE, LANDED, RANGE
 from patterns import SPEC_TRAILER as TRAILER
 
 
-# Same citation grammar the spec's own checks use (spec_check.py).
-# A done-marking status row, with an explicit ID range: C1-R1..R12 or C1-R1..C1-R12.
 def within_cwd(raw: str) -> pathlib.Path:
     """Resolve a CLI-supplied path, refusing anything outside the working tree."""
     path = pathlib.Path(raw).resolve()
@@ -158,6 +156,18 @@ def load_goals(manifest: pathlib.Path) -> list[str]:
 
 
 def parse_repos(specs: list[str]) -> dict[str, pathlib.Path]:
+    """Where citations are read from, refusing a run that names nowhere.
+
+    A gate handed no repository finds no trailer anywhere and calls every goal
+    uncited — a full sheet of refusals that reads as work nobody has done, from a
+    run that never looked. `load_goals` refuses an empty goal set for the same
+    reason, and the asymmetry was the hole: a manifest locking nothing could not
+    be answered, and a search of nothing could.
+    """
+    if not specs:
+        print("::error::no --repo given, so there is nowhere to read citations from "
+              "and every goal would be called unmet for want of looking")
+        raise SystemExit(2)
     repos: dict[str, pathlib.Path] = {}
     for spec in specs:
         if "=" not in spec:
@@ -190,7 +200,7 @@ def evaluate(
 
 
 def render_human(name: str, repos: list[str], results: list[dict]) -> None:
-    print(f"gate: {name} — {len(results)} goals across {', '.join(repos) or 'no repos'}\n")
+    print(f"gate: {name} — {len(results)} goals across {', '.join(repos)}\n")
     for r in results:
         ok = r["cited"] and r["done"]
         how = {"trailer": "yes    ", "landed": "landed ", None: "NO     "}[r.get("by")]

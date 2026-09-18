@@ -19,8 +19,16 @@ def main() -> int:
         if g["cited"] and g["done"]:
             lines.append(f"- [x] `{g['id']}`")
         else:
-            missing = ", ".join(m for m, ok in (("citation", g["cited"]), ("tracker ✅", g["done"])) if not ok)
-            lines.append(f"- [ ] `{g['id']}` — missing {missing}")
+            # Each half says what is absent and carries no glyph. "missing
+            # citation, tracker ✅" was a list of two absences that reads as one
+            # absence and one tick, and it said so about sixty-five goals whose
+            # tracker rows are blank — the burndown asserting the opposite of
+            # what the gate had just decided.
+            lacking = [
+                what for what, ok in
+                (("citation", g["cited"]), ("tracker tick", g["done"])) if not ok
+            ]
+            lines.append(f"- [ ] `{g['id']}` — no {', no '.join(lacking)}")
     state = "✅ releasable" if data["releasable"] else "not yet releasable"
     lines += ["", f"_{state} — maintained by the release train (OPS-R43)._"]
     print("\n".join(lines))
