@@ -310,6 +310,50 @@ class Agreeing(Copies):
         self.assertNotIn(".ruff_cache", out)
 
 
+class EmptiedCanonicals(Copies):
+    """A canonical side with nothing in it compares nothing, and must say so.
+
+    Listing from the canonical directory is what stops a file being copied
+    everywhere and compared nowhere. It buys the opposite hazard: an empty
+    directory, or a config whose lists moved, is zero comparisons and a clean
+    report — about six repositories, and about files that decide merges.
+    """
+
+    def test_an_empty_gates_directory_is_refused_rather_than_reported_as_matching(self):
+        self.write("scripts/a_gate.py", GATE + "# drifted here\n")
+        (self.canonical / "shared" / "gates" / "a_gate.py").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("holds no file", out)
+
+    def test_an_empty_hooks_directory_is_refused_rather_than_reported_as_matching(self):
+        (self.canonical / "shared" / "hooks" / "pre-push").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("holds no file", out)
+
+    def test_a_lint_config_selecting_nothing_is_a_floor_nobody_is_held_to(self):
+        """And the ignore arm would then flag every ignore any repository holds.
+
+        One half goes silent and the other cries wolf, which is how a gate comes
+        to be switched off rather than fixed.
+        """
+        (self.canonical / "shared" / "ruff.toml").write_text(
+            "line-length = 100\n", encoding="utf-8")
+        self.write("ruff.toml", "line-length = 100\n[lint]\nignore = [\"E501\"]\n")
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("selects no rules", out)
+        self.assertNotIn("which the shared config does not", out)
+
+    def test_a_typos_config_extending_nothing_compares_nothing(self):
+        (self.canonical / "shared" / "typos.toml").write_text(
+            "[files]\nextend-exclude = []\n", encoding="utf-8")
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("extends no words", out)
+
+
 class Drifted(Copies):
     """Every refusal, and the home each message sends the reader to."""
 

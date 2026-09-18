@@ -178,6 +178,31 @@ class ServiceCount(unittest.TestCase):
         self.assertEqual(code, 0, said)
         self.assertIn("nineteen bundled services", record.read_text(encoding="utf-8"))
 
+    def test_a_clone_of_another_repository_holds_no_prose_of_ours(self):
+        """`checkouts/` is where the other repositories are put, by hand and by
+        the release lane, and one of them states this count in its own tracker.
+
+        Read as ours, `just ci` goes red naming a file in a foreign repository,
+        and `--write` edits inside somebody else's git repository where
+        `.gitignore` means nothing would ever say so.
+        """
+        foreign = self.page("checkouts/lemonfiber/IMPLEMENTATION-STATUS.md",
+                            "the nineteen bundled services are wired\n")
+        worktree = self.page(".claude/worktrees/one/b.md",
+                             "The nineteen bundled services.\n")
+        self.page("a.md", "The twenty bundled services.\n")
+
+        code, said = self.gate()
+        self.assertEqual(code, 0, said)
+        self.assertIn("twenty — 1 page(s) agree", said)
+
+        code, said = self.gate("--write")
+        self.assertEqual(code, 0, said)
+        self.assertIn("nineteen bundled services",
+                      foreign.read_text(encoding="utf-8"))
+        self.assertIn("nineteen bundled services",
+                      worktree.read_text(encoding="utf-8"))
+
 
 class TheStackThisRepositoryDescribes(unittest.TestCase):
     """The committed prose agrees with the stack, read from a copy rather than the wire.

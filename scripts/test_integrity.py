@@ -310,13 +310,39 @@ class StatedCounts(unittest.TestCase):
 
     def test_a_stale_feature_count_is_named_with_its_line(self):
         self.index(77)
+        self.adrs(2)
+        # Both sentences, one of them wrong: a tree stating neither is its own
+        # fault now, and a fixture short of one would report that instead.
         (self.tmp / "README.md").write_text(
-            "intro\n\nThe 68-feature catalogue.\n", encoding="utf-8"
+            "intro\n\nThe 68-feature catalogue, and 2 ADRs.\n", encoding="utf-8"
         )
         found = integrity.stated_counts()
         self.assertEqual(len(found), 1)
         self.assertIn("README.md:3", found[0])
         self.assertIn("says 68 features where this repository has 77", found[0])
+
+    def test_a_count_no_sentence_states_is_a_fault_rather_than_a_pass(self):
+        """A pattern matching nothing is the case the check was written for.
+
+        Each of these matches one sentence in the whole repository. Rephrase it
+        — `the 81 feature catalogue`, `25 architecture decision records` — and
+        the check compares nothing, reports clean, and the number goes back to
+        being governed by nobody.
+        """
+        self.index(77)
+        self.adrs(2)
+        (self.tmp / "README.md").write_text(
+            "The 77-feature catalogue, and twenty-five architecture decisions.\n",
+            encoding="utf-8",
+        )
+        found = integrity.stated_counts()
+        self.assertEqual(len(found), 1)
+        self.assertIn("no sentence states a count of architecture", found[0])
+        self.assertIn("nothing was compared", found[0])
+
+        # And a tree stating neither says so about both rather than about one.
+        (self.tmp / "README.md").write_text("no counts here\n", encoding="utf-8")
+        self.assertEqual(len(integrity.stated_counts()), 2)
 
     def test_a_stale_adr_count_is_named(self):
         self.index(1)
@@ -383,6 +409,21 @@ class Writing(StatedCounts):
         self.assertIn("77-feature", one.read_text(encoding="utf-8"))
         self.assertIn("77-feature", two.read_text(encoding="utf-8"))
 
+    def test_a_repair_that_left_something_to_say_refuses(self):
+        """`0 stated count(s) rewritten.` is what a pattern matching nowhere
+        produces, and on its own it reads as the numbers having been right."""
+        self.index(77)
+        self.adrs(2)
+        (self.tmp / "README.md").write_text(
+            "The 77-feature catalogue, and twenty-five decisions.\n", encoding="utf-8"
+        )
+        saved, sys.argv = sys.argv, ["integrity.py", "--write"]
+        self.addCleanup(setattr, sys, "argv", saved)
+        code, out = run_main()
+        self.assertEqual(code, 1, out)
+        self.assertIn("0 stated count(s) rewritten", out)
+        self.assertIn("no sentence states a count of architecture", out)
+
     def test_a_tree_it_cannot_count_is_reported_rather_than_rewritten(self):
         # No index: the counts are unknown, so writing one would be inventing it.
         readme = self.tmp / "README.md"
@@ -398,7 +439,7 @@ class Writing(StatedCounts):
         self.index(77)
         self.adrs(2)
         (self.tmp / "README.md").write_text(
-            "The 68-feature catalogue.\n", encoding="utf-8"
+            "The 68-feature catalogue, and 2 ADRs.\n", encoding="utf-8"
         )
         saved, sys.argv = sys.argv, ["integrity.py", "--write"]
         self.addCleanup(setattr, sys, "argv", saved)

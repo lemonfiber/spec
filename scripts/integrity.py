@@ -46,16 +46,25 @@ LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)#]+)(?:#[^)]*)?\)")
 ELSEWHERE = ("checkouts",)
 
 
-def elsewhere(path):
+def elsewhere(path, root=None):
     """Whether a path sits under something this repository did not write.
 
-    Relative to `ROOT`, because a clone can live anywhere: a checkout under
+    Relative to the root, because a clone can live anywhere: a checkout under
     `~/.local/src` has a dot in its absolute path and every file in it would be
     skipped, which is the same gate going quiet for the opposite reason.
+
+    The root is an argument so that a check reading a tree it was pointed at asks
+    this the same way. It is the one answer to which files are ours, and a second
+    spelling of it is how one gate comes to walk a directory another skips.
+
+    Neither side is resolved. The path is one this root's own walk produced, so it
+    is already under it as written — and resolving would follow a symlink out of
+    the tree, which is a containment question `write_counts` asks for itself and
+    answers differently.
     """
     return any(
         part in ELSEWHERE or part.startswith(".")
-        for part in path.relative_to(ROOT).parts
+        for part in path.relative_to(root if root is not None else ROOT).parts
     )
 
 
@@ -158,12 +167,26 @@ def counted() -> tuple[dict, list[str]]:
 
 
 def stated_counts() -> list[str]:
-    """Numbers the repository states about itself that no longer match it."""
+    """Numbers the repository states about itself that no longer match it.
+
+    Each pattern matches one sentence in the whole tree, which makes finding
+    none of them indistinguishable from finding all of them right. Rephrase
+    either — `the 81 feature catalogue`, `25 architecture decision records` —
+    and this returns nothing, `integrity.py` prints `clean`, and the number goes
+    back to being ungoverned by the check written to govern it.
+
+    So the sentences are counted as well as compared. `check_services` refuses
+    the same silence in the same words a directory over, and the reason it gives
+    is the general one: a checker that finds no prose to compare passes in
+    exactly the case where the format changed under it.
+    """
     expected, faults = counted()
+    seen = dict.fromkeys(expected, 0)
     for path in md_files():
         text = path.read_text(encoding="utf-8")
         for pattern, (actual, what) in expected.items():
             for found in re.finditer(pattern, text):
+                seen[pattern] += 1
                 stated = int(found.group(1))
                 if stated != actual:
                     line = text[: found.start()].count("\n") + 1
@@ -171,6 +194,13 @@ def stated_counts() -> list[str]:
                         f"{path.relative_to(ROOT)}:{line}: says {stated} "
                         f"{what} where this repository has {actual}"
                     )
+    faults += [
+        f"no sentence states a count of {expected[pattern][1]} in the shape "
+        f"{pattern!r}, so nothing was compared — either the prose moved or this "
+        "check did"
+        for pattern, found in seen.items()
+        if not found
+    ]
     return faults
 
 
@@ -301,7 +331,14 @@ def main() -> int:
         for line in changed:
             print(line)
         print(f"\n{len(changed)} stated count(s) rewritten.")
-        return 0
+        # Asked again afterwards, because a repair that repaired nothing and a
+        # tree that needed none print the same line. `0 stated count(s)
+        # rewritten` is what a pattern matching nowhere produces, and it reads
+        # as the numbers having been right all along.
+        remaining = stated_counts()
+        for fault in remaining:
+            print(f"::error::{fault}")
+        return 1 if remaining else 0
 
     problems = []
     # De-dup the "cites undefined" one-per-file noise into unique messages.
