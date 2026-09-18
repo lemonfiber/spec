@@ -69,7 +69,7 @@ class Saying(unittest.TestCase):
 
     def test_it_names_the_commits_not_taken(self):
         said = workflow_pins.refusal("dco.yml", ["ci.yml"], ["abc1234 a thing", "def5678 another"])
-        self.assertIn("2 commit(s) behind", said)
+        self.assertIn("has changed 2 time(s)", said)
         self.assertIn("abc1234 a thing", said)
         self.assertIn("ci.yml", said)
 
@@ -78,7 +78,7 @@ class Saying(unittest.TestCase):
         # refusal naming commits must not imply.
         missed = [f"{i:07d} commit {i}" for i in range(25)]
         said = workflow_pins.refusal("dco.yml", ["ci.yml"], missed)
-        self.assertIn("25 commit(s) behind", said)
+        self.assertIn("has changed 25 time(s)", said)
         self.assertIn("and 15 more, not listed here", said)
 
 
@@ -104,8 +104,10 @@ class AgainstARepository(unittest.TestCase):
     def git(self, *args):
         subprocess.run(["git", "-C", str(self.spec), *args], check=True, capture_output=True)
 
-    def commit(self, said: str) -> str:
-        (self.spec / said).write_text(said, encoding="utf-8")
+    def commit(self, said: str, workflow: str = "dco.yml") -> str:
+        where = self.spec / ".github" / "workflows" / workflow
+        where.parent.mkdir(parents=True, exist_ok=True)
+        where.write_text(said, encoding="utf-8")
         self.git("add", "-A")
         self.git("commit", "-q", "-m", said)
         return subprocess.run(
@@ -134,16 +136,36 @@ class AgainstARepository(unittest.TestCase):
         sys.argv = ["workflow_pins.py", str(self.spec)]
         code, out = self.run_main()
         self.assertEqual(code, 0, out)
-        self.assertIn("every pin is at spec@main", out)
+        self.assertIn("holds the newest revision of the workflow it names", out)
 
     def test_a_pin_behind_is_refused_and_names_what_it_missed(self):
         self.pin(self.first)
         sys.argv = ["workflow_pins.py", str(self.spec)]
         code, out = self.run_main()
         self.assertEqual(code, 1)
-        self.assertIn("1 commit(s) behind", out)
+        self.assertIn("has changed 1 time(s)", out)
         self.assertIn("two", out)
         self.assertIn(self.second, out)
+
+    def test_a_commit_to_another_workflow_leaves_this_pin_current(self):
+        # A pin holds one file. Measured against the default branch every pin in
+        # the organisation is behind for most of every day, and a check that is
+        # always red is one somebody stops requiring — which is the failure this
+        # narrowing exists to prevent, not a convenience.
+        self.pin(self.second)
+        self.commit("three", workflow="sonar.yml")
+        sys.argv = ["workflow_pins.py", str(self.spec)]
+        code, out = self.run_main()
+        self.assertEqual(code, 0, out)
+
+    def test_a_commit_to_the_pinned_workflow_still_refuses(self):
+        # The other half of the same claim: narrowing must not be a way through.
+        self.pin(self.second)
+        self.commit("three", workflow="dco.yml")
+        sys.argv = ["workflow_pins.py", str(self.spec)]
+        code, out = self.run_main()
+        self.assertEqual(code, 1, out)
+        self.assertIn("has changed 1 time(s)", out)
 
     def test_a_pin_this_checkout_cannot_resolve_is_our_fault(self):
         # Code 2, never 1. A shallow clone or a rewritten commit is this side's
@@ -161,7 +183,9 @@ class AgainstARepository(unittest.TestCase):
         # beginning with `-` is an option to git rather than a revision, and the
         # answer for one is the same "could not ask" everything else here gives.
         self.assertIsNone(
-            workflow_pins.commits_between(self.spec, "--output=/tmp/x", self.second)
+            workflow_pins.commits_between(
+                self.spec, "--output=/tmp/x", self.second, "dco.yml"
+            )
         )
 
     def test_no_checkout_is_our_fault_too(self):
