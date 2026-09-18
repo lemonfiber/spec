@@ -63,8 +63,12 @@
 # are answerable from the binary. A feature whose requirements are being satisfied
 # is not proposed; it is late being said so.
 #
-# Four numbers arrived after the lock, carried in under the `goals-change` label
-# OPS-R31 asks for. `ARCH-R102` is the oldest of them and the one this version was
+# The four architecture numbers below are carried in under the `goals-change` label
+# OPS-R31 asks for. The count names them rather than the whole of what this version
+# has taken after the lock, because a total is a number somebody would have to keep
+# and `goals` is what answers it.
+#
+# `ARCH-R102` is the oldest of them and the one this version was
 # always going to satisfy: a plugin's service declares what it can do, a claim outside
 # the published vocabulary is namespaced with the plugin's id, and one that is neither
 # is refused by name. It sat in no version at all, which is the state the paragraph
