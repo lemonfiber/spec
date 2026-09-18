@@ -6,14 +6,22 @@
 # refused it: F6 requires F4.
 #
 # It requires the *vocabulary*, which is why F4 was split. F4 is now the model and its
-# rules; F9 is the twenty bundled services declaring in it and the wiring converted to
-# ask. Reading F6's five capability references shows three are the host-feature sense of
-# F3-R21 rather than F4's at all, and the two that are F4's are satisfiable between two
-# plugins. So the vocabulary ships here and the declarations ship in 0.17.0.
+# rules; F9 is the twenty bundled services declaring in it. Reading F6's five capability
+# references shows three are the host-feature sense of F3-R21 rather than F4's at all,
+# and the two that are F4's are satisfiable between two plugins. So the vocabulary ships
+# here and the declarations ship in 0.17.0.
 #
 # What that means for the operator, said plainly: a plugin adds a service here, and can
 # take over a capability another *plugin* was filling. Standing in for a bundled service
-# needs F9 and waits for 0.17.0.
+# needs those declarations and waits for 0.17.0.
+#
+# F9-R4 is here because five of F4's numbers are unbuildable without it. F4-R1's second
+# clause and F4-R12 are what F9-R4 does — stack wiring that asks for a capability, and a
+# wiring that is genuinely about one service shown as by-name — and F4-R9, F4-R10 and
+# F4-R11 have no subject until a consumer asks for a capability by name: nothing can
+# report an ask nothing fills, journal a substitution, or refuse one that would leave a
+# capability unfilled while every wiring still names a service. The rest of F9 is the
+# twenty bundled declarations and ships in 0.17.0.
 #
 # F3-R15, R16, R19, R20 are absent because they were withdrawn to F8; F4-R5 because it
 # was withdrawn to F9. OPS-R30 forbids a Withdrawn requirement being a goal.
@@ -71,7 +79,7 @@
 # objection a directory over, and it is cheaper to answer now than after a second
 # reader disagrees with the first.
 #
-# 110 goals, seeded from the roadmap milestone this version serves;
+# 111 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.16.0"
 milestone = "M14"   # The platform
@@ -173,6 +181,7 @@ goals   = [
     "F7-R10",
     "F7-R11",
     "F7-R12",
+    "F9-R4",
     "F10-R1",
     "F10-R2",
     "F10-R3",

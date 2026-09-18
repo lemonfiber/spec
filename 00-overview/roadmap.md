@@ -308,7 +308,8 @@ yet.
 | Plugin lifecycle | F6 — rehearse, install, prove, verify the stack around it, and reverse through the journal on either failure | `0.16.0` |
 | Plugin provenance | F7 — four redundant answers to why did my stack do that | `0.16.0` |
 | Writing a plugin | F10 — the generated schema, the two vocabularies an author may name from, and a template that validates and proves unmodified | `0.16.0` |
-| Capabilities of the bundled services | F9 — they declare what they can do, pass the probes, and the wiring is converted to ask rather than to name | `0.17.0` |
+| The converted wiring | F9-R4 — the stack asks for capabilities rather than naming services, and a wiring that is genuinely about one service is shown as by-name | `0.16.0` |
+| Capabilities of the bundled services | F9 — they declare what they can do and pass the probes | `0.17.0` |
 | The plugin catalogue | F5 — reviewed, signed, and an operator's own source on the same technical terms with unreviewed said plainly | `0.17.0` |
 | Mobile client handoff | G9 — a household member's phone reaches the library in one step | `0.17.0` |
 | Recipes and named adapters | F8 — the ordered calls that turn a first-run flow into data, and what they may carry where ([ADR-0022](decisions/0022-a-recipe-declares-pairs-not-lists.md)) | unscheduled |
@@ -321,12 +322,17 @@ the simplest plugin there is. It has no version because inserting one renumbers 
 release behind it, which is a decision about the train rather than about plugins.
 
 **The capability work is split across the two**, and the difference is visible to an
-operator rather than internal. `0.16.0` ships the vocabulary: a plugin can claim a
-capability, be refused for claiming one it cannot demonstrate, and take over one another
-*plugin* was filling. `0.17.0` ships the bundled declarations and the converted wiring,
-which is what makes a plugin able to stand in for a *bundled* service. The model has to
-exist before a service can be described in it, and describing them all is the larger
-half of the work.
+operator rather than internal. `0.16.0` ships the vocabulary and the converted wiring: a
+plugin can claim a capability, be refused for claiming one it cannot demonstrate, and take
+over one another *plugin* was filling. `0.17.0` ships the bundled declarations, which is
+what makes a plugin able to stand in for a *bundled* service. The model has to exist
+before a service can be described in it, and describing them all is the larger half of
+the work.
+
+The wiring conversion sits with the vocabulary rather than with the declarations because
+five of `F4`'s requirements are what it makes buildable — reporting an ask nothing fills,
+journalling a substitution, refusing one that would leave a capability unfilled — and
+none of them has a subject while every consumer still names a service.
 
 **Exit criteria for `0.16.0`:** a plugin authored outside this project installs, proves
 itself, and adds a service to a running stack with no change to lemonfiber — and removing

@@ -100,13 +100,13 @@
       "version": "0.16.0",
       "status": "staged",
       "milestone": "M14",
-      "goals": 110
+      "goals": 111
     },
     {
       "version": "0.17.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 30
+      "goals": 29
     },
     {
       "version": "0.18.0",
@@ -1844,7 +1844,7 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "planned",
+      "maturity": "building",
       "shipped": null,
       "milestones": [
         "M14"
@@ -1867,6 +1867,10 @@
         "D1"
       ],
       "versions": [
+        {
+          "version": "0.16.0",
+          "status": "staged"
+        },
         {
           "version": "0.17.0",
           "status": "planned"

@@ -6,6 +6,7 @@ Verifies:
   - no requirement ID is defined twice (IDs are permanent and unique, GOV-R8)
   - every internal Markdown link resolves to a real file
   - the counts this repository's own prose states match what it contains
+  - each version manifest's stated goal count matches the goals it locks
 
 Exit 0 = clean, 1 = problems found.
 """
@@ -247,6 +248,101 @@ def write_counts() -> list[str]:
     return changed
 
 
+#: A version manifest's comment saying how many goals it locks.
+#:
+#: The number is kept out of the replacement so `--write` can put a different one
+#: in the same sentence, the way `write_counts` does for the prose counts.
+GOAL_COUNT = re.compile(r"^(#\s*)(\d+)(\s+goals\b)", re.MULTILINE)
+
+
+def manifests() -> list[pathlib.Path]:
+    """Every version manifest, the template excluded.
+
+    The template is a file whose job is to be read as an example, so a number
+    written into it documents the shape rather than claiming anything.
+    """
+    return [
+        path
+        for path in sorted((ROOT / VERSIONS).glob("*.toml"))
+        if path.name != "TEMPLATE.toml"
+    ]
+
+
+def goal_counts() -> list[tuple[pathlib.Path, str, int, int]]:
+    """Every stated goal count against the goals its manifest actually locks.
+
+    A version states this in a comment and answers it in `goals`, so the two can
+    disagree — and nothing downstream reads the comment, because `index.json`
+    publishes the real number per version. That is what lets a stale one survive a
+    whole release: it is prose in a data file, and the only reader is a person.
+
+    The comparison is per match rather than per file, so a manifest stating the
+    number twice is held to both.
+    """
+    found = []
+    for path in manifests():
+        text = path.read_text(encoding="utf-8")
+        locked = len(tomllib.loads(text).get("goals", []))
+        for match in GOAL_COUNT.finditer(text):
+            line = text[: match.start()].count("\n") + 1
+            found.append((path, f"{line}", int(match.group(2)), locked))
+    return found
+
+
+def stated_goal_counts() -> list[str]:
+    """Version manifests whose stated goal count is not the number they lock.
+
+    A manifest stating none is left alone — three of them state none, and asking
+    for the sentence would be this check demanding prose rather than checking it.
+    What is refused is a tree that has manifests and states the count in none of
+    them: a pattern matching nowhere and a set of numbers that are all right print
+    the same nothing, and the number this governs is one an editor retypes.
+    """
+    present = manifests()
+    if not present:
+        return []
+
+    stated_anywhere = goal_counts()
+    faults = [
+        f"{path.relative_to(ROOT)}:{line}: says {stated} goals where this "
+        f"version locks {locked}"
+        for path, line, stated, locked in stated_anywhere
+        if stated != locked
+    ]
+    if not stated_anywhere:
+        faults.append(
+            f"no manifest of the {len(present)} under {VERSIONS} states how many "
+            f"goals it locks in the shape {GOAL_COUNT.pattern!r}, so nothing was "
+            "compared — either the comment moved or this check did"
+        )
+    return faults
+
+
+def write_goal_counts() -> list[str]:
+    """Rewrite each stated goal count to what its manifest locks. Returns changes.
+
+    The number is replaced inside the comment that carries it, so a manifest
+    explaining its own scope keeps its wording and gains the right figure.
+    """
+    changed = []
+    for path in manifests():
+        text = original = path.read_text(encoding="utf-8")
+        locked = len(tomllib.loads(text).get("goals", []))
+
+        def replace(match, locked=locked, path=path):
+            if int(match.group(2)) == locked:
+                return match.group(0)
+            changed.append(
+                f"{path.relative_to(ROOT)}: {match.group(2)} -> {locked} goals"
+            )
+            return f"{match.group(1)}{locked}{match.group(3)}"
+
+        text = GOAL_COUNT.sub(replace, text)
+        if text != original:
+            path.write_text(text, encoding="utf-8")
+    return changed
+
+
 def check_manifest_repos():
     """Every repository a version manifest names resolves to one in the registry.
 
@@ -327,7 +423,7 @@ def repositories_named(data):
 
 def main() -> int:
     if "--write" in sys.argv[1:]:
-        changed = write_counts()
+        changed = write_counts() + write_goal_counts()
         for line in changed:
             print(line)
         print(f"\n{len(changed)} stated count(s) rewritten.")
@@ -335,7 +431,7 @@ def main() -> int:
         # tree that needed none print the same line. `0 stated count(s)
         # rewritten` is what a pattern matching nowhere produces, and it reads
         # as the numbers having been right all along.
-        remaining = stated_counts()
+        remaining = stated_counts() + stated_goal_counts()
         for fault in remaining:
             print(f"::error::{fault}")
         return 1 if remaining else 0
@@ -343,7 +439,13 @@ def main() -> int:
     problems = []
     # De-dup the "cites undefined" one-per-file noise into unique messages.
     seen = set()
-    for msg in check_ids() + check_links() + stated_counts() + check_manifest_repos():
+    for msg in (
+        check_ids()
+        + check_links()
+        + stated_counts()
+        + stated_goal_counts()
+        + check_manifest_repos()
+    ):
         if msg not in seen:
             seen.add(msg)
             problems.append(msg)
