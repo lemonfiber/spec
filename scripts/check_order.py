@@ -11,6 +11,12 @@ cannot be finished, discovered months later by whoever tries.
 deliberately not checked here, because conflating the two is what let sixty-seven
 of these accumulate unnoticed.
 
+Two readings are asserted before anything is claimed, because each can go quiet on
+its own: that some version schedules `KNOWN`, and that some feature declares a
+`requires:`. A tree where nothing declares one is a tree this compared nothing in,
+and the sentence it would otherwise print is the sentence a tree in good order
+gets.
+
 Exit non-zero listing every inversion, so one run shows the whole picture rather
 than the first of them.
 """
@@ -84,10 +90,20 @@ def _inversion(feature, mine, need, schedule, rank) -> str | None:
     return None
 
 
-def _gather(root, schedule, rank, shipped) -> tuple[list[str], list[str]]:
+def _declared(wants: dict[str, list[str]]) -> int:
+    """How many dependencies were read, which is what there is to compare.
+
+    `KNOWN` proves the manifests were read. Nothing proved the *features* were,
+    and the two are read by different patterns: a `requires:` written as a block
+    list, or renamed, leaves `wants` empty and every claim below it vacuous.
+    """
+    return sum(len(needs) for needs in wants.values())
+
+
+def _gather(wants, schedule, rank, shipped) -> tuple[list[str], list[str]]:
     """Every inversion, split into what must be fixed and what merely happened."""
     problems, historical = [], []
-    for feature, needs in sorted(_requirements(root).items()):
+    for feature, needs in sorted(wants.items()):
         mine = schedule.get(feature)
         if mine is None:
             continue
@@ -111,7 +127,15 @@ def main() -> int:
         )
         return 1
 
-    problems, historical = _gather(root, schedule, rank, shipped)
+    wants = _requirements(root)
+    if not _declared(wants):
+        print(
+            f"::error::no feature under {root / FEATURES} declares a `requires:`, so "
+            "nothing was compared — either the frontmatter moved or this check did"
+        )
+        return 1
+
+    problems, historical = _gather(wants, schedule, rank, shipped)
     for note in historical:
         print(f"::notice::already shipped, recorded not enforced — {note}")
     if problems:
@@ -119,7 +143,10 @@ def main() -> int:
             print(f"::error::{problem}")
         print(f"::error::{len(problems)} feature(s) scheduled before something they require")
         return 1
-    print(f"order ok: {len(schedule)} scheduled features, none before what it requires")
+    print(
+        f"order ok: {len(schedule)} scheduled features and {_declared(wants)} declared "
+        "dependencies, none before what it requires"
+    )
     return 0
 
 

@@ -16,6 +16,11 @@ ordering guarantee collapses the same way, one step further out.
 is worth reading and not needed to build, and conflating the two is what let
 sixty-seven links accumulate unnoticed.
 
+Two readings are asserted before anything is claimed, because each can go quiet on
+its own: that `KNOWN` is defined, and that some feature declares a `requires:`. A
+tree where nothing declares one is a tree this compared nothing in, and the
+sentence it would otherwise print is the sentence a tree in good order gets.
+
 Superseded and Withdrawn are refused here too, and not as an afterthought. Both
 say "not citable for new work" in as many words, so a live feature resting on one
 is a feature resting on something the spec has already moved on from — which is
@@ -84,6 +89,17 @@ def main() -> None:
             f"::error::no feature called {KNOWN} was found under {root / FEATURES}, so "
             "this read the wrong tree and every claim below would be a claim about nothing"
         )
+    # `KNOWN` proves a feature was read, which is a different question from whether
+    # a dependency was. `status` and `requires:` are read by two patterns, and only
+    # one of them is asserted above — so a `requires:` written as a block list, or
+    # renamed, leaves nothing to compare and every line below it says so about
+    # nothing.
+    declared = sum(len(needs) for needs in wants.values())
+    if not declared:
+        sys.exit(
+            f"::error::no feature under {root / FEATURES} declares a `requires:`, so "
+            "nothing was compared — either the frontmatter moved or this check did"
+        )
     problems = [
         said
         for feature, needs in sorted(wants.items())
@@ -96,7 +112,10 @@ def main() -> None:
             print(f"::error::{problem}")
         sys.exit(f"{len(problems)} feature(s) binding on something that is not agreed")
     binding = sum(1 for said in status.values() if said == BINDING)
-    print(f"binding order ok: {binding} accepted features, none resting on a draft")
+    print(
+        f"binding order ok: {binding} accepted features and {declared} declared "
+        "dependencies, none resting on a draft"
+    )
 
 
 if __name__ == "__main__":
