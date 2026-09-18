@@ -14,9 +14,10 @@
 # copy is a gate nobody is holding to the canonical version. The rule is in
 # `40-quality/tooling.md`, under Anti-drift.
 #
-# One row per repository in `30-repos/repos.toml`, every one of them — including
-# the repositories that carry nothing. An empty list is an answer; a missing row
-# is the silence this file exists to end, and is refused as one.
+# One row per repository in `30-repos/repos.toml`, every one of them — both of
+# its tables, `[[repo]]` and `[[ungoverned]]` — including the repositories that
+# carry nothing. An empty list is an answer; a missing row is the silence this
+# file exists to end, and is refused as one.
 #
 # `gates` names files in `shared/gates/` and `hooks` names files in
 # `shared/hooks/`. A name neither directory holds is refused: a row describing a
@@ -65,10 +66,9 @@ hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
 name = "lemonfiber-plugins"
-# Runs no CodeQL analysis and carries no `.githooks/`, so there is nothing here
-# for either directory to be compared against.
+# Runs no CodeQL analysis, so there is nothing in `gates/` for it to carry.
 gates = []
-hooks = []
+hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
 name = "homebrew-tap"
@@ -93,6 +93,27 @@ hooks = ["commit-msg", "pre-push"]
 [[repo]]
 name = ".github"
 # Community health files only: no workflows of its own beyond the shared three,
-# and no `.githooks/`.
+# so nothing in `gates/`. Its pull requests still meet `dco`, `commitlint` and
+# `spec-check`, which is what the hooks are for.
 gates = []
-hooks = []
+hooks = ["commit-msg", "pre-push"]
+
+# The three below are in `30-repos/repos.toml`'s `[[ungoverned]]` table: in the
+# organisation, outside the map this specification draws. They call the shared
+# workflows like everything else, so the question this file answers is asked
+# about them and the answer is here. None runs CodeQL.
+
+[[repo]]
+name = "plugin-template"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-komga"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-uptime-kuma"
+gates = []
+hooks = ["commit-msg", "pre-push"]

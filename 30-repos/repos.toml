@@ -1,10 +1,15 @@
 # Every repository in the org — the single source of truth.
 #
-# The table in README.md and the sentence counting it are GENERATED from this by
-# scripts/gen_repos.py. Never edit either by hand; add the repo here and run the
-# generator. `integrity.py` fails when they disagree, which is what stops the
-# drift this file exists to end: the count read "eleven" for as long as it took
-# somebody to create a twelfth repository and notice.
+# Two tables, because two different questions are asked of it. `[[repo]]` is the
+# map this specification governs: the table in README.md, the diagram and the
+# sentence counting them are GENERATED from it by scripts/gen_repos.py. Never
+# edit either by hand; add the repo here and run the generator. `integrity.py`
+# fails when they disagree, which is what stops the drift this file exists to
+# end: the count read "eleven" for as long as it took somebody to create a
+# twelfth repository and notice.
+#
+# `[[ungoverned]]`, at the foot, is the rest of the organisation — in it, and
+# outside the map. Nothing renders it; `shared/adoption.toml` is held to it.
 #
 # order : the order the README lists them in. Not alphabetical — it runs from
 #         the specification outward through the surfaces to the things that
@@ -204,3 +209,32 @@ from = "spec"
 to = "impl"
 label = "governs all"
 dotted = true
+
+# ── In the organisation, outside the map above ───────────────────────────────
+#
+# The table, the diagram and the sentence counting them are the repositories
+# this specification governs, which README.md says plainly is not the same set
+# as the organisation. A plugin repository is the org's and not the map's: where
+# a plugin comes from is the reviewed catalogue's to answer (`F5-R1`).
+#
+# They are named here anyway, because something else needs the other set. Every
+# repository below calls the shared reusable workflows, so `shared/adoption.toml`
+# has to hold a row for it — and a register reading the map above as the org
+# refused three repositories as unknown while offering no row they could be
+# given. One file, two questions: `gen_repos.py` reads `[[repo]]` and renders the
+# map, `check_shared_files.py` reads both and gets the org.
+#
+# A repository here carries no `spec`, `node`, `label` or `order`: it is in no
+# diagram and no table, and a field nothing renders is a field that goes stale.
+
+[[ungoverned]]
+name = "plugin-template"
+note = "The plugin an author copies; the catalogue lists it, this map does not"
+
+[[ungoverned]]
+name = "plugin-komga"
+note = "A plugin, and the catalogue is where a plugin is found"
+
+[[ungoverned]]
+name = "plugin-uptime-kuma"
+note = "A plugin, and the catalogue is where a plugin is found"

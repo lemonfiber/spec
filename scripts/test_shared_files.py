@@ -665,6 +665,27 @@ class Declared(Copies):
         self.assertEqual(code, 1, out)
         self.assertIn("holds a row for archived, which is not a repository", out)
 
+    def test_a_repository_in_the_org_and_outside_the_governed_map(self):
+        # The map this specification draws is not the organisation, and says so.
+        # A repository outside it calls these workflows all the same, so it is
+        # asked what it carries and a row for it is about somebody.
+        (self.canonical / "30-repos" / "repos.toml").write_text(
+            ORG + '\n[[ungoverned]]\nname = "a-plugin"\n', encoding="utf-8")
+        self.declare(rows={"cli": {}, "brand": {}, "a-plugin": {}})
+        code, out = self.check("lemonfiber/a-plugin")
+        self.assertEqual(code, 0, out)
+
+    def test_a_repository_outside_the_map_with_no_row(self):
+        # Reading the governed map alone as the org refused a repository as
+        # unknown and refused the row that would have answered for it, and the
+        # only way through was to stop running the check.
+        (self.canonical / "30-repos" / "repos.toml").write_text(
+            ORG + '\n[[ungoverned]]\nname = "a-plugin"\n', encoding="utf-8")
+        code, out = self.check("lemonfiber/a-plugin")
+        self.assertEqual(code, 1, out)
+        self.assertIn("a-plugin has no row in shared/adoption.toml", out)
+        self.assertIn("a-plugin is a repository in 30-repos/repos.toml with no row", out)
+
     def test_a_row_naming_a_file_the_canonical_directory_does_not_hold(self):
         # A declaration about a file that is gone is compared against nothing,
         # and the loop over the canonical directory would never reach it.

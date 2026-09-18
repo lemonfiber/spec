@@ -115,6 +115,14 @@ exists to end. A register that is missing, unreadable or names nobody is refused
 for the same reason: it decides both checks, so one that did not arrive is a
 question that went unasked rather than an org that has adopted nothing.
 
+Both of that file's tables. `[[repo]]` is the map this specification governs and
+[30-repos/README.md](../30-repos/README.md) says in its own prose that the org
+holds repositories the map does not draw; `[[ungoverned]]` is those. A repository
+outside the map calls these workflows all the same, so the question here is asked
+about it — and reading the map alone as the org refused three of them as unknown
+while refusing the row that would have answered for them, which leaves stopping
+the check as the only way through.
+
 A row moves in the same pull request as the copy it describes, in either
 direction. This is the only place the answer lives; a second list able to disagree
 with it would be the defect rather than the fix.
