@@ -75,6 +75,38 @@ class Clean(Spec):
     def test_an_empty_spec_is_clean(self):
         self.assertEqual(run_main(), (0, "spec integrity: clean\n"))
 
+    def test_a_worktree_inside_the_tree_is_not_a_second_spec(self):
+        # An agent's worktree is a full clone of this repository living under
+        # `.claude/`. Walked, it defines every requirement a second time and the
+        # gate reports the whole spec as duplicated, on a machine where nothing
+        # is wrong — a refusal naming every identifier there is says nothing
+        # about any of them.
+        self.doc("10-functional/f.md", self.define("A1-R1", "A1-R2"))
+        self.doc(".claude/worktrees/agent-1/10-functional/f.md", self.define("A1-R1", "A1-R2"))
+        code, out = run_main()
+        self.assertEqual(code, 0, out)
+
+    def test_a_checkout_of_another_repository_is_not_read_either(self):
+        self.doc("10-functional/f.md", self.define("A1-R1"))
+        self.doc("checkouts/lemonfiber/10-functional/f.md", self.define("A1-R1"))
+        code, out = run_main()
+        self.assertEqual(code, 0, out)
+
+    def test_a_clone_living_under_a_dotted_path_is_still_read(self):
+        # The skip is relative to ROOT because a clone can live anywhere. Under
+        # `~/.local/src`, reading the absolute path would skip every file in the
+        # repository and report it clean — the same gate going quiet for the
+        # opposite reason, and the harder of the two to notice.
+        dotted = self.root / ".local" / "src" / "spec"
+        integrity.ROOT = dotted
+        (dotted / "10-functional").mkdir(parents=True)
+        (dotted / "10-functional" / "f.md").write_text(
+            self.define("A1-R1") + "and a mention of A1-R2\n", encoding="utf-8"
+        )
+        code, out = run_main()
+        self.assertEqual(code, 1, out)
+        self.assertIn("A1-R2", out)
+
     def test_a_link_to_a_file_that_exists(self):
         self.doc("00-overview/vision.md", "see [the features](../10-functional/f.md)\n")
         self.doc("10-functional/f.md", "# features\n")
