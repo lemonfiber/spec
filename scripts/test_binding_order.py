@@ -6,12 +6,13 @@ built in a temporary directory: an accepted feature requiring a draft, one
 requiring a feature the spec has moved on from, and one requiring a feature that
 is not here at all.
 
-It is also shown refusing a tree it did not read. That is the failure this gate
-actually had: `FEATURES` is a relative path, so from any directory but the
-checkout root `rglob` yielded nothing, `status` was empty, and the gate printed
-*binding order ok: 0 accepted features, none resting on a draft* and exited 0. A
-gate that has read nothing and a gate that has read everything and found it in
-order say the same sentence, and the first one is worth nothing.
+It is also shown refusing a tree it did not read, and a tree that declares no
+dependency at all. `FEATURES` is a relative path, so from any directory but the
+checkout root `rglob` yields nothing; and `requires:` is read by a second pattern
+the first assertion says nothing about, so one renamed key empties the graph from
+the right directory. A gate that has read nothing and a gate that has read
+everything and found it in order say the same sentence, and the first is worth
+nothing.
 
 `relates:` is checked too — that it is *not* acted on. It is the field the gate
 deliberately ignores, and an ignore nobody tests is an ignore somebody removes.
@@ -79,6 +80,11 @@ def run(root: pathlib.Path) -> tuple[int, str]:
 # here is about the claim under test rather than about the tree.
 KNOWN = (gate.KNOWN, "accepted", "")
 
+# And one declared dependency, because a tree where nothing declares one is
+# refused rather than passed. It is draft, so it gives the gate something to read
+# without adding an accepted feature to count or a verdict to reach.
+DECLARED = ("Z8", "draft", f"requires: [{gate.KNOWN}]\n")
+
 
 class ReadingTheTree(unittest.TestCase):
     def test_a_tree_it_did_not_read_is_refused_rather_than_passed(self):
@@ -93,9 +99,22 @@ class ReadingTheTree(unittest.TestCase):
         self.assertIn(gate.KNOWN, said)
 
     def test_a_tree_it_did_read_says_how_many_it_found(self):
-        code, said = run(tree([KNOWN, ("X2", "accepted", "")]))
+        code, said = run(tree([KNOWN, DECLARED, ("X2", "accepted", "")]))
         self.assertEqual(code, 0)
         self.assertIn("2 accepted features", said)
+        self.assertIn("1 declared dependencies", said)
+
+    def test_a_tree_declaring_no_dependency_is_refused_rather_than_passed(self):
+        """The second reading, and the one every verdict is made out of.
+
+        `KNOWN` is read out of `id:` and `status:`; every verdict is read out of a
+        `requires:` line, by a pattern nothing asserted. Spelled as a block list,
+        or renamed, it leaves nothing to compare — and a gate that compared
+        nothing said what a tree in good order says.
+        """
+        code, said = run(tree([KNOWN, ("X2", "accepted", "")]))
+        self.assertEqual(code, 1)
+        self.assertIn("nothing was compared", said)
 
 
 class WhatItRefuses(unittest.TestCase):
@@ -149,15 +168,15 @@ class WhatItLeavesAlone(unittest.TestCase):
         self.assertEqual(code, 0)
 
     def test_relates_is_read_by_nobody(self):
-        code, _ = run(tree([KNOWN, ("X2", "accepted", "relates: [X3]\n"), ("X3", "draft", "")]))
+        code, _ = run(tree([KNOWN, DECLARED, ("X2", "accepted", "relates: [X3]\n"), ("X3", "draft", "")]))
         self.assertEqual(code, 0)
 
     def test_an_empty_requires_is_not_a_requirement(self):
-        code, _ = run(tree([KNOWN, ("X2", "accepted", "requires: []\n")]))
+        code, _ = run(tree([KNOWN, DECLARED, ("X2", "accepted", "requires: []\n")]))
         self.assertEqual(code, 0)
 
     def test_a_file_with_no_id_or_status_is_skipped_rather_than_guessed_at(self):
-        root = tree([KNOWN])
+        root = tree([KNOWN, DECLARED])
         (root / gate.FEATURES / "x-area" / "readme.md").write_text(
             "# Not a feature\n", encoding="utf-8"
         )

@@ -12,10 +12,12 @@ shipped release, so it is a fact to record rather than a fault to fix — and
 holes by design, and a hole nothing tests is a hole that closes by accident or
 widens by accident, and nobody finds out which.
 
-It is also shown refusing a tree it did not read. `FEATURES` and `VERSIONS` are
-relative paths, so from any directory but the checkout root the globs yielded
-nothing and the gate printed *order ok: 0 scheduled features, none before what it
-requires* and exited 0.
+It is also shown refusing a tree it did not read, and a tree that declares no
+dependency at all. Both are silences that read as a pass: the first is what
+relative `FEATURES` and `VERSIONS` paths produce from any directory but the
+checkout root, and the second is what one renamed frontmatter key produces from
+the right one. Neither has anything to say, and both said what a tree in good
+order says.
 
 Stdlib unittest, no dependencies.
 Run:  python3 scripts/test_order.py
@@ -84,6 +86,11 @@ def run(root: pathlib.Path) -> tuple[int, str]:
 KNOWN = (gate.KNOWN, "")
 FIRST = ("0.1.0", "planned", f'"{gate.KNOWN}-R1"')
 
+# And one declared dependency, because a tree where nothing declares one is
+# refused rather than passed. No manifest schedules it, so it gives the gate
+# something to read without giving it anything to decide.
+DECLARED = ("Z9", f"requires: [{gate.KNOWN}]\n")
+
 
 class ReadingTheTree(unittest.TestCase):
     def test_a_tree_it_did_not_read_is_refused_rather_than_passed(self):
@@ -98,9 +105,22 @@ class ReadingTheTree(unittest.TestCase):
         self.assertIn(gate.KNOWN, said)
 
     def test_a_tree_it_did_read_says_how_many_it_found(self):
-        code, said = run(tree([KNOWN], [FIRST]))
+        code, said = run(tree([KNOWN, DECLARED], [FIRST]))
         self.assertEqual(code, 0)
         self.assertIn("1 scheduled features", said)
+        self.assertIn("1 declared dependencies", said)
+
+    def test_a_tree_declaring_no_dependency_is_refused_rather_than_passed(self):
+        """The reading this gate never asserted, and the one it decides on.
+
+        `KNOWN` is read out of the manifests and every verdict is read out of a
+        `requires:` line. A frontmatter that spelled that as a block list, or
+        renamed it, left nothing to compare — and the sentence a gate that had
+        compared nothing printed was the sentence a healthy tree prints.
+        """
+        code, said = run(tree([KNOWN], [FIRST]))
+        self.assertEqual(code, 1)
+        self.assertIn("nothing was compared", said)
 
 
 class WhatItRefuses(unittest.TestCase):
@@ -207,7 +227,7 @@ class WhatItLetsThrough(unittest.TestCase):
     def test_relates_is_read_by_nobody(self):
         code, _ = run(
             tree(
-                [KNOWN, ("X2", "relates: [X3]\n"), ("X3", "")],
+                [KNOWN, DECLARED, ("X2", "relates: [X3]\n"), ("X3", "")],
                 [FIRST, ("0.2.0", "planned", '"X2-R1"'), ("0.3.0", "planned", '"X3-R1"')],
             )
         )
@@ -223,7 +243,7 @@ class WhatItLetsThrough(unittest.TestCase):
         self.assertEqual(code, 0)
 
     def test_the_template_is_not_a_version(self):
-        root = tree([KNOWN], [FIRST])
+        root = tree([KNOWN, DECLARED], [FIRST])
         (root / gate.VERSIONS / "TEMPLATE.toml").write_text(
             MANIFEST.format(version="x", status="planned", goals='"X9-R1"'), encoding="utf-8"
         )
