@@ -6,7 +6,9 @@ reusable workflow (.github/workflows/spec-check.yml). See 50-governance/.
 
 Enforces:
   GOV-R2  a citation is present
-  GOV-R3  every cited identifier exists on spec@main
+  GOV-R3  every cited identifier exists on spec@main — in the trailer, and in
+          the lines this change adds to a file; see `named_in` for where the
+          second of those stops and why
 
 `--citation-optional` drops the first of those and keeps the second. It is for
 the one event that carries no pull request to read a citation from; see the
@@ -21,6 +23,7 @@ the spec repo, and any change to this script cites GOV-R11.
 
 Usage:
   spec_check.py --spec-dir <path to spec checkout> --text-file <PR body+commits>
+                [--diff-file <unified diff of the change>]
                 [--pr-author <login of whoever opened the pull request>]
                 [--citation-optional]
 Exit 0 = pass, 1 = fail (with guidance), 2 = usage error.
@@ -31,7 +34,7 @@ import argparse
 import pathlib
 import sys
 
-from patterns import ADR_FILE, CITE_ANY, REQ_DEF, REQ_DEF_ROW, SPEC_TRAILER
+from patterns import ADR_FILE, CITE, CITE_ANY, REQ_DEF, REQ_DEF_ROW, SPEC_TRAILER
 
 
 # Identifiers the spec defines.
@@ -83,6 +86,82 @@ def cited_ids(text: str) -> set[str]:
     for line in SPEC_TRAILER.findall(text):
         ids.update(CITE_ANY.findall(line))
     return ids
+
+
+# The files this gate is made of, which it does not read.
+#
+# `test_spec_check.py` exists to name identifiers that do not resolve: that is
+# what a test of "refuse an unknown identifier" is. Reading it would have the
+# gate refuse the pull request that teaches it to refuse, and the only way to
+# satisfy it would be to write fixtures out of real requirement numbers — which
+# would tie the gate's tests to whatever the spec happens to hold this week.
+#
+# It is the exemption a rule of this shape always needs. A rule against naming a
+# requirement has to name one to say what it is refusing, and the honest answer
+# is to say so here rather than to let somebody discover it. The list is two
+# paths and it is not a pattern: `tests/` anywhere would be a hole wide enough
+# to walk a repository through, since a test's own title is exactly the kind of
+# citation this check exists to resolve.
+OUR_OWN = ("scripts/spec_check.py", "scripts/test_spec_check.py")
+
+
+def added_lines(diff: str) -> list[str]:
+    """The lines a diff adds, less the file header that shares their marker.
+
+    Lines under {OUR_OWN} are skipped — see there for why.
+    """
+    added: list[str] = []
+    reading = True
+
+    for line in diff.splitlines():
+        if line.startswith("+++ "):
+            reading = line[len("+++ ") :].removeprefix("b/") not in OUR_OWN
+        elif reading and line.startswith("+"):
+            added.append(line[1:])
+
+    return added
+
+
+def named_in(diff: str, defined: set[str]) -> set[str]:
+    """Identifiers this change writes into a file, of families the spec defines.
+
+    `GOV-R3` says every cited identifier exists on spec@main, and until now this
+    gate read the pull request's body and its commit messages and nothing else.
+    An identifier written into a file — the comment saying which requirement a
+    rule keeps, a test's own title, the sentence a refusal prints telling
+    somebody what to go and read — is cited in every sense that matters to the
+    person who follows it, and was resolved against nothing at all. A digit
+    slipped there names a requirement that does not exist, on a line whose whole
+    job is to send a reader to one.
+
+    **Added lines only.** A file's existing text is not this change's to answer
+    for, and reading the whole file would refuse a pull request over a line
+    somebody wrote two years ago — which is the shape of gate that gets switched
+    off rather than fixed.
+
+    **Only families the spec defines**, and this is where the rule stops rather
+    than where it was convenient to stop. `X-R1..R4` is a placeholder in a doc
+    comment meaning *any requirement of any family*; a family the spec has never
+    heard of is prose about requirements rather than a citation of one. What
+    that costs is worth stating plainly: a slip in the family rather than the
+    number — `M1-R62` where `N1-R62` was meant — reads as prose here and is
+    passed over. The number is where the slips are, and a rule that refused
+    every capital-letter-and-digit token would refuse the writing that explains
+    the rules.
+
+    **Retirement is not asked of a file**, for the same reason. A comment
+    recording that a number was withdrawn has to name it, and nothing here can
+    tell that sentence from a citation. The trailer is where a citation is
+    *made*, and that is where `GOV-R8` is enforced.
+    """
+    families = {rid.split("-", 1)[0] for rid in defined}
+
+    found: set[str] = set()
+    for line in added_lines(diff):
+        found.update(
+            rid for rid in CITE.findall(line) if rid.split("-", 1)[0] in families
+        )
+    return found
 
 
 # The account whose pull requests carry no trailer, and the identifier the gate
@@ -165,11 +244,79 @@ that exists.
 """
 
 
+NAMED_GUIDANCE = """
+An identifier written into a file is a citation to whoever reads it. A comment
+saying which requirement a rule keeps, a test's title, the sentence a refusal
+prints — each sends somebody to the spec, and one naming a number that is not
+there sends them nowhere and reads as though the rule rests on something.
+
+Correct the number, or open the spec PR that brings it into being and let it
+merge first. Only lines this change adds were read, and only identifiers whose
+family the spec defines.
+"""
+
+
+class Refused(Exception):
+    """A refusal, carrying the code the gate should leave with.
+
+    Raised rather than returned because the two file arguments are read in the
+    middle of gathering input, and threading a sentinel back out through each
+    of them is what pushed `main()` past the complexity this repository allows.
+    Two is the code for *the gate could not run*, which is not the same answer
+    as *the change is wrong* and must never be mistaken for it.
+    """
+
+    def __init__(self, code: int, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def within_cwd(arg: str, what: str) -> pathlib.Path:
+    """The path an argument names, refused unless it sits under this checkout.
+
+    Both files this gate reads are written by the workflow beside it. A path
+    that climbs out of the checkout is the gate reading something the pull
+    request did not write.
+    """
+    path = pathlib.Path(arg).resolve()
+    if not path.is_relative_to(pathlib.Path.cwd().resolve()):
+        raise Refused(2, f"::error::{what} must be within the working directory")
+    return path
+
+
+def the_diff(arg: str) -> str:
+    """What the change writes into files, or nothing where none was asked for."""
+    if not arg:
+        return ""
+
+    path = within_cwd(arg, "diff-file")
+    if not path.is_file():
+        # Loud rather than empty. A diff that did not arrive reads exactly like
+        # a change that named nothing, and this half of GOV-R3 would then be off
+        # in every repo with nobody able to see that it was.
+        raise Refused(2, f"::error::diff-file not found: {arg}")
+
+    return path.read_text(encoding="utf-8", errors="ignore")
+
+
 def main() -> int:
+    try:
+        return gate()
+    except Refused as refused:
+        print(refused)
+        return refused.code
+
+
+def gate() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--spec-dir", required=True)
     ap.add_argument("--text-file", required=True)
     ap.add_argument("--pr-author", default="", help="login that opened the PR")
+    ap.add_argument(
+        "--diff-file",
+        default="",
+        help="unified diff of the change; identifiers its added lines name are resolved too",
+    )
     ap.add_argument(
         "--citation-optional",
         action="store_true",
@@ -182,16 +329,31 @@ def main() -> int:
         print(f"::error::spec dir not found: {spec_dir}")
         return 2
 
-    cwd = pathlib.Path.cwd().resolve()
-    text_path = pathlib.Path(a.text_file).resolve()
-    if not text_path.is_relative_to(cwd):
-        print("::error::text-file must be within the working directory")
-        return 2
-    text = text_path.read_text(encoding="utf-8", errors="ignore")
+    text = within_cwd(a.text_file, "text-file").read_text(
+        encoding="utf-8", errors="ignore"
+    )
+    diff = the_diff(a.diff_file)
+
     defined = defined_ids(spec_dir)
     if not defined:
         print("::error::no identifiers found in spec checkout — cannot verify")
         return 2
+
+    # Asked before the trailer is, and asked whatever the trailer turns out to
+    # say. A change may cite perfectly and still write a number that is not
+    # there into a file, and on a merge group — where presence is not asked and
+    # a batch citing nothing returns early below — this would otherwise be the
+    # one event that skipped it. GOV-R3 is precisely the half a queue can
+    # change while a pull request waits in it.
+    named = named_in(diff, defined)
+    unnamed = sorted(rid for rid in named if rid not in defined)
+    if unnamed:
+        print(
+            "::error::this change names identifiers that do not exist on spec@main: "
+            f"{', '.join(unnamed)}"
+        )
+        print(NAMED_GUIDANCE)
+        return 1
 
     cited = cited_ids(text)
     if by_dependabot(a.pr_author):

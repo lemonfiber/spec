@@ -37,15 +37,30 @@ LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)#]+)(?:#[^)]*)?\)")
 #: every relative link in a tracker cloned there resolves against the wrong tree
 #: and the whole of it reports as broken, which is `just integrity` failing for a
 #: reason that is not about anything in this repository.
-ELSEWHERE = (".git", "checkouts")
+# Directories under the root that hold somebody else's text. `checkouts` is the
+# other repositories this one reads. A dot-directory is whatever a tool put
+# there — an agent's worktree, a cache, a virtualenv — and the worktree is the
+# one that bites: it is a second clone of this repository, so every requirement
+# in it is defined a second time and the gate reports the entire spec as
+# duplicated, on a machine where nothing is wrong.
+ELSEWHERE = ("checkouts",)
+
+
+def elsewhere(path):
+    """Whether a path sits under something this repository did not write.
+
+    Relative to `ROOT`, because a clone can live anywhere: a checkout under
+    `~/.local/src` has a dot in its absolute path and every file in it would be
+    skipped, which is the same gate going quiet for the opposite reason.
+    """
+    return any(
+        part in ELSEWHERE or part.startswith(".")
+        for part in path.relative_to(ROOT).parts
+    )
 
 
 def md_files():
-    return [
-        p
-        for p in ROOT.rglob("*.md")
-        if not any(part in ELSEWHERE for part in p.parts)
-    ]
+    return [p for p in ROOT.rglob("*.md") if not elsewhere(p)]
 
 
 def defined_reqs():
