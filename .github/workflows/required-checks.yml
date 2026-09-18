@@ -1,0 +1,93 @@
+# A check that runs on a pull request and cannot refuse one is a defect.
+#
+# Branch protection is the only thing in this organisation that can stop a
+# merge. Eight pull requests merged red in one afternoon because `workflow-pins`
+# was failing and was a required context in zero of sixteen repositories: the
+# check was correct, it went red, it was read as a verdict, and protection had
+# nothing to refuse. Nothing anywhere compared what runs against what blocks.
+#
+# This asks that question across the organisation, daily. The exemptions — the
+# jobs that report rather than judge — live in `70-operations/required-checks.toml`
+# with a reason each, in one file rather than sixteen, because a per-repository
+# list would let a repository quietly exempt its own gate.
+#
+# It reports rather than gates, which is what `Q-R68` asks of a new cross-repo
+# check until it has run clean. Requiring a merge here to wait on the shape of
+# another repository's protection would refuse unrelated work for as long as
+# that repository took to answer. What a reporter needs instead is a reader, and
+# the finding goes to the maintainers on the run that raises it — a check that
+# has been red for days and reaches nobody is indistinguishable from one that is
+# broken.
+name: required-checks
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily, early. Protection is changed by hand and rarely, and the cost of
+    # hearing about it a day late is a day of merges that could not be refused.
+    - cron: "15 6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  required-checks:
+    runs-on: ubuntu-latest
+    outputs:
+      red: ${{ steps.look.outputs.red }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Branch protection is readable only with administration rights on the
+      # repository, which `github.token` does not have outside this one. The
+      # release App is installed across the organisation; a run that cannot read
+      # a repository's protection says so and goes red rather than reporting
+      # that the repository has nothing unrequired.
+      - id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: What runs, and what can refuse
+        id: look
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          # `||` rather than a bare call: the shell is `bash -e`, and the verdict
+          # has to outlive the refusal that produced it or the job that sends the
+          # finding on has nothing to read.
+          verdict=0
+          python3 scripts/check_required.py 2>&1 | tee "$RUNNER_TEMP/finding.txt" || verdict=$?
+          {
+            echo "## What runs on a pull request and cannot refuse one"
+            echo
+            echo '```'
+            cat -- "$RUNNER_TEMP/finding.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          printf 'red=%s\n' "$([ "$verdict" -eq 0 ] && echo false || echo true)" \
+            >> "$GITHUB_OUTPUT"
+
+      - name: Something runs that cannot refuse
+        if: steps.look.outputs.red == 'true'
+        run: exit 1
+
+  told:
+    needs: required-checks
+    if: always() && needs.required-checks.outputs.red == 'true'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      title: "🛡️ a check runs and cannot refuse a merge"
+      body: >-
+        Something in the organisation runs on a pull request, is not a required
+        context, and is not in `70-operations/required-checks.toml`. Until it is
+        one or the other it goes red and the merge happens anyway. The run page
+        names the repository and the check.
+      url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      color: "15158332"
+    secrets:
+      webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}
