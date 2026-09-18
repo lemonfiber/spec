@@ -1,0 +1,98 @@
+# Which repository carries which of the conditional files in `shared/`.
+#
+# `shared/gates/` and `shared/hooks/` are adopted per repository: a repository
+# gating on none of them is not asked for one, and what is refused is carrying a
+# copy that is not the current one. Absence is therefore two different answers —
+# never adopted, and adopted and then deleted — and a check with nothing to read
+# them against cannot tell which it is looking at. A gate script decides whether
+# a branch merges, so the second of those is a merge gate that has stopped
+# running with nothing anywhere saying so.
+#
+# This is what tells them apart. Adoption is stated here and `check_shared_files.py`
+# reads it: a repository that declares a file and does not carry it is refused by
+# name, and so is one carrying a file it never declared, because an undeclared
+# copy is a gate nobody is holding to the canonical version. The rule is in
+# `40-quality/tooling.md`, under Anti-drift.
+#
+# One row per repository in `30-repos/repos.toml`, every one of them — including
+# the repositories that carry nothing. An empty list is an answer; a missing row
+# is the silence this file exists to end, and is refused as one.
+#
+# `gates` names files in `shared/gates/` and `hooks` names files in
+# `shared/hooks/`. A name neither directory holds is refused: a row describing a
+# file that is not there is compared against nothing.
+#
+# A row moves in the same pull request as the copy it describes. Adding the copy
+# without the row is refused, and so is taking the copy out and leaving the row.
+
+[[repo]]
+name = "spec"
+# The home. `codeql.yml` here runs `shared/gates/no_open_codeql_alert.py` in
+# place rather than a copy at `scripts/`, because the repository that maintains
+# the gate is the first place two copies of it could disagree.
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "lemonfiber"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "lemonfiber-web"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "lemonfiber-companion"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "sdk-ts"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "sdk-php"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "lemonfiber-media-stack"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "lemonfiber-plugins"
+# Runs no CodeQL analysis and carries no `.githooks/`, so there is nothing here
+# for either directory to be compared against.
+gates = []
+hooks = []
+
+[[repo]]
+name = "homebrew-tap"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "website-lemonfiber.app"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "website-docs.lemonfiber.app"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "brand"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = ".github"
+# Community health files only: no workflows of its own beyond the shared three,
+# and no `.githooks/`.
+gates = []
+hooks = []

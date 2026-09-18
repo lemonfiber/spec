@@ -5,6 +5,11 @@ Two lint configs and a handful of brand assets exist in more than one repository
 because the tools and GitHub both read them from the tree they are given. This
 checks each copy against the canonical one in ``shared/`` (GOV-R12, Q-R56).
 
+The two directories a repository adopts from rather than is required to carry —
+``shared/gates/`` and ``shared/hooks/`` — are read against ``shared/adoption.toml``,
+which is where adoption is stated. Without it, a gate a repository never took and
+one it deleted last week arrive here as the same silence.
+
 Usage, from the root of the repository being checked::
 
     check_shared_files.py --canonical <path to a spec checkout> --repo owner/name
@@ -30,6 +35,28 @@ TYPOS = "typos.toml"
 GATES = "gates"
 HOOKS = "hooks"
 RUFF = "ruff.toml"
+ADOPTION = "adoption.toml"
+
+#: The list of repositories the register answers for, relative to a spec checkout.
+ORG = "30-repos/repos.toml"
+
+#: For each canonical directory whose members are adopted rather than required:
+#: where a copy lands in the adopting repository, what to call the set of them,
+#: and what a copy that has gone actually costs.
+CARRIED = {
+    GATES: (
+        "scripts",
+        "gate scripts",
+        ("A gate script decides whether a branch merges, so a copy that is gone "
+         "is a merge gate that stopped running"),
+    ),
+    HOOKS: (
+        ".githooks",
+        "hooks",
+        ("A hook that is gone is a guard that stopped running in every clone "
+         "that had it turned on"),
+    ),
+}
 
 
 def markdownlint(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
@@ -291,92 +318,228 @@ def codeowners(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[s
     return []
 
 
-def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
-    """The pre-push hook, where a repo has adopted it.
+def register(canonical: pathlib.Path) -> tuple[dict, list[str]]:
+    """Every repository's declared adoption, read from `shared/adoption.toml`.
 
-    Conditional rather than required: a repo that has not enabled hooks yet is
-    not failed for it, but one carrying a copy must carry the current one — a
-    guard that has quietly drifted is worse than none, because it is trusted.
+    `shared/gates/` and `shared/hooks/` are adopted per repository, and a check
+    that reads absence as *not adopted* cannot tell that from *deleted*. One of
+    those two is a merge gate that stopped running and nobody was told. So the
+    answer is declared and read here rather than inferred from what a tree
+    happens to hold.
 
-    Compared byte for byte, as the other copies here are. Reading both as text
-    folds CRLF endings to LF, so a hook rewritten with CRLF reads as identical
-    to the canonical one — and that hook is one the kernel will not run, because
-    the interpreter its first line names has a carriage return on the end.
+    The register failing to arrive is a refusal rather than an org in which
+    nobody has adopted anything: a file that is missing, unparsable, naming no
+    repository, or naming one with no name at all answers nothing, and
+    answering nothing while reporting clean is the whole of what this replaces.
     """
-    complaints = []
-    # Read from the canonical directory rather than named here. This listed two
-    # hooks, which is what `shared/hooks/` held when it was written; a third
-    # would have been copied into every repository and compared in none, and the
-    # run would have said the copies match.
-    names = sorted(
-        one.name
-        for one in (canonical / "shared" / HOOKS).iterdir()
-        if one.is_file()
-    )
-    # Listing from the directory buys that, and costs this: an empty directory is
-    # zero comparisons and a clean report, which reads as the copies matching.
-    if not names:
-        return [
-            (f"shared/{HOOKS}/ holds no file, so no repository's hooks were "
-             "compared against anything")
+    path = canonical / "shared" / ADOPTION
+    if not path.is_file():
+        return {}, [
+            (f"shared/{ADOPTION} is not here, so every repository reads as having "
+             f"adopted nothing, and every copy that has been deleted reads as one "
+             f"that was never taken")
         ]
-    for name in names:
-        got = repo / ".githooks" / name
-        if not got.is_file():
-            continue
-        want = canonical / "shared" / HOOKS / name
-        if got.read_bytes() != want.read_bytes():
-            complaints.append(f".githooks/{name} differs from the canonical copy; replace it with {want}")
-    return complaints
+    try:
+        held = tomllib.loads(path.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as unreadable:
+        return {}, [
+            (f"shared/{ADOPTION} could not be read, so no repository's copies were "
+             f"held to a declaration: {unreadable}")
+        ]
+    rows = held.get("repo", [])
+    if not rows:
+        return {}, [
+            (f"shared/{ADOPTION} names no repository, so every repository in the "
+             f"org would be refused as unknown and none would be compared")
+        ]
+    named = {row.get("name", ""): row for row in rows}
+    if "" in named:
+        return {}, [
+            (f"shared/{ADOPTION} holds a row with no `name`, which declares "
+             f"adoption for nobody")
+        ]
+    return named, []
 
 
-def gates(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
-    """The gate scripts a repository has adopted, where it has adopted them.
+def unregistered(canonical: pathlib.Path, rows: dict) -> list[str]:
+    """The register answers for every repository in the org, and for no other.
 
-    Conditional, the way `hooks` is: a repository running no CodeQL alert gate is
-    not failed for it, but one carrying a copy must carry the current one. These
-    decide whether a branch merges, and a gate that has quietly drifted is worse
-    than none because it is trusted — `no_open_codeql_alert.py` spent its whole
-    life reading an empty alert list as a clean one, and a repository still
-    carrying that version would be reporting a pass it had not earned.
+    A repository with no row is refused where it runs — but only where it runs,
+    which is somebody else's pull request, weeks later. This is the half that
+    fails here instead, on the change that opened the hole: a repository added
+    to the org and not to the register, a row for one the org no longer has, and
+    a row naming a file `shared/` does not hold.
 
-    Byte for byte, and read as bytes: a copy rewritten with CRLF endings reads as
-    identical when both are read as text, and is a script the kernel will not run
-    because the interpreter its first line names has a carriage return on it.
+    The last of those is the same failure as an unaccounted shared file, one
+    level up. A row naming a gate that has been renamed is compared against
+    nothing, because the comparison walks the canonical directory and never
+    reaches a name that is no longer in it.
+    """
+    listed = canonical / ORG
+    if not listed.is_file():
+        return [
+            (f"{ORG} is not here, so shared/{ADOPTION} was compared against no "
+             f"list of repositories and a missing row could not be seen")
+        ]
+    known = [
+        one.get("name", "")
+        for one in tomllib.loads(listed.read_text(encoding="utf-8")).get("repo", [])
+    ]
+    if not known:
+        return [
+            (f"{ORG} names no repository, so shared/{ADOPTION} was compared "
+             f"against nothing and any row could be missing from it")
+        ]
+    problems = [
+        (f"{one} is a repository in {ORG} with no row in shared/{ADOPTION}, so "
+         f"nothing records which shared gates and hooks it carries. Add a row "
+         f"naming them, an empty list included (Q-R74)")
+        for one in known if one not in rows
+    ]
+    problems += [
+        (f"shared/{ADOPTION} holds a row for {one}, which is not a repository "
+         f"{ORG} lists. A row nothing is ever checked against is a declaration "
+         f"about nobody")
+        for one in rows if one not in known
+    ]
+    for holds in sorted(CARRIED):
+        held = {
+            one.name for one in (canonical / "shared" / holds).iterdir() if one.is_file()
+        }
+        problems += [
+            (f"shared/{ADOPTION} says {who} carries {holds}/{gone}, which "
+             f"shared/{holds}/ does not hold. A row naming a file that is not "
+             f"there is compared against nothing")
+            for who, row in rows.items()
+            for gone in sorted(set(row.get(holds, [])) - held)
+        ]
+    return problems
 
-    Listed from the canonical directory rather than named here, so a gate added
+
+def copies(repo: pathlib.Path, canonical: pathlib.Path, name: str, row: dict,
+           holds: str) -> list[str]:
+    """One canonical directory's members, against what this repository declares.
+
+    Three answers rather than two. A file declared and present is compared byte
+    for byte — read as bytes, because reading both as text folds CRLF endings to
+    LF and calls a script the kernel will not run identical to the one it would.
+    A file declared and absent is refused by name. A file present and undeclared
+    is refused too: a copy nobody wrote down is a copy nobody is holding to the
+    canonical version, and it is how a second, older gate comes to sit in a
+    repository unnoticed.
+
+    Listed from the canonical directory rather than named here, so a file added
     to `shared/gates/` is compared everywhere rather than copied everywhere and
     compared nowhere.
     """
-    complaints = []
+    where, kind, cost = CARRIED[holds]
     names = sorted(
-        one.name for one in (canonical / "shared" / GATES).iterdir() if one.is_file()
+        one.name for one in (canonical / "shared" / holds).iterdir() if one.is_file()
     )
-    # And an empty directory compares nothing while reporting that the gates
-    # match — about six repositories, and about a file that decides merges.
+    # An empty directory is zero comparisons and a clean report, which reads as
+    # the copies matching — about every repository in the org, and about files
+    # that decide merges.
     if not names:
         return [
-            (f"shared/{GATES}/ holds no file, so no repository's gate scripts "
-             "were compared against anything")
+            (f"shared/{holds}/ holds no file, so no repository's {kind} were "
+             f"compared against anything")
         ]
-    for name in names:
-        got = repo / "scripts" / name
-        if not got.is_file():
+    declared = set(row.get(holds, []))
+    complaints = []
+    for one in names:
+        got = repo / where / one
+        want = canonical / "shared" / holds / one
+        if one not in declared:
+            if got.is_file():
+                complaints.append(
+                    f"{where}/{one} is here and shared/{ADOPTION} does not record "
+                    f"{name} as carrying it. An undeclared copy is one nothing "
+                    f"holds to the canonical version: add it to this repository's "
+                    f"row, or take the file out (Q-R73)"
+                )
             continue
-        want = canonical / "shared" / GATES / name
+        if not got.is_file():
+            complaints.append(
+                f"shared/{ADOPTION} records {name} as carrying {where}/{one} and "
+                f"it is not here. {cost}. Copy it again from {want}, or take the "
+                f"name out of this repository's row in the same change (Q-R73)"
+            )
+            continue
         if got.read_bytes() != want.read_bytes():
             complaints.append(
-                f"scripts/{name} differs from the canonical copy; replace it with {want}"
+                f"{where}/{one} differs from the canonical copy; replace it with {want}"
             )
     return complaints
 
 
+def hooks(repo: pathlib.Path, canonical: pathlib.Path, name: str,
+          row: dict) -> list[str]:
+    """The hooks this repository declares it carries.
+
+    Adopted rather than required: a repository that has not turned hooks on is
+    not asked for one. What it is asked for is an answer — the hooks it says it
+    carries are the hooks it carries, and no others.
+    """
+    return copies(repo, canonical, name, row, HOOKS)
+
+
+def gates(repo: pathlib.Path, canonical: pathlib.Path, name: str,
+          row: dict) -> list[str]:
+    """The gate scripts this repository declares it carries.
+
+    Held to the same three answers as the hooks, and it matters more here. These
+    decide whether a branch merges, and a gate that has quietly drifted is worse
+    than none because it is trusted — `no_open_codeql_alert.py` spent its whole
+    life reading an empty alert list as a clean one, and a repository still
+    carrying that version would be reporting a pass it had not earned. A gate
+    that has quietly *gone* is worse again, because there is nothing left to
+    read.
+    """
+    return copies(repo, canonical, name, row, GATES)
+
+
+def adoption(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str]:
+    """What this repository declares it carries, and whether it does.
+
+    The register is read once. Where it did not arrive there is one thing to
+    say, and saying it three times — once for the register, once for the gates,
+    once for the hooks — would turn one broken file into an account of three
+    problems. The copies go uncompared in that case, and the run is red with a
+    sentence saying exactly which file has to be fixed first.
+    """
+    rows, refused = register(canonical)
+    if refused:
+        return refused
+    structure = unregistered(canonical, rows)
+    if not name:
+        return [
+            *structure,
+            (f"--repo was not given, so shared/{ADOPTION} could not be read for "
+             f"this repository and its gates and hooks were compared against "
+             f"nothing"),
+        ]
+    if name not in rows:
+        return [
+            *structure,
+            (f"{name} has no row in shared/{ADOPTION}, so whether it has adopted "
+             f"any shared gate or hook is recorded nowhere — and an unknown "
+             f"repository is exactly the silence a conditional check reads as a "
+             f"pass. Add a row naming what it carries, an empty list included "
+             f"(Q-R74)"),
+        ]
+    return [
+        *structure,
+        *hooks(repo, canonical, name, rows[name]),
+        *gates(repo, canonical, name, rows[name]),
+    ]
+
+
 # Every member of `shared/` that a check above compares, and the ones nothing
-# compares because they are not copies. `README.md` documents the directory and
-# `assets.sha256` is the manifest `assets()` reads rather than a file any repo
-# carries.
+# compares because they are not copies. `README.md` documents the directory,
+# `assets.sha256` is the manifest `assets()` reads, and `adoption.toml` is the
+# register `register()` reads — none of the three is a file any repo carries.
 COMPARED = {MARKDOWNLINT, TYPOS, HOOKS, RUFF, GATES}
-NOT_A_COPY = {"README.md", "assets.sha256"}
+NOT_A_COPY = {"README.md", "assets.sha256", ADOPTION}
 
 
 def unaccounted(canonical: pathlib.Path) -> list[str]:
@@ -431,8 +594,7 @@ def main() -> int:
         + typos(repo, canonical)
         + ruff(repo, canonical)
         + assets(repo, canonical, name)
-        + hooks(repo, canonical)
-        + gates(repo, canonical)
+        + adoption(repo, canonical, name)
         + manager(repo)
         + codeowners(repo, canonical, name)
     )
@@ -441,7 +603,8 @@ def main() -> int:
             print(f"::error::{problem}")
         print(f"\n{len(problems)} shared file(s) out of step with {canonical / 'shared'}.")
         return 1
-    print("shared files: lint configs, hooks, gate scripts, brand assets and CODEOWNERS match their one home")
+    print("shared files: lint configs, brand assets and CODEOWNERS match their one home, "
+          "and the hooks and gate scripts here are the ones this repository declares")
     return 0
 
 

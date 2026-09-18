@@ -17,6 +17,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import io
+import json
 import pathlib
 import shutil
 import subprocess
@@ -25,6 +26,11 @@ import tempfile
 import unittest
 
 HERE = pathlib.Path(__file__).resolve().parent
+
+#: The two repositories these fixtures run as. The register answers for every
+#: repository the org has, so the canonical side needs a list of them to be
+#: complete against.
+ORG = '[[repo]]\nname = "cli"\n\n[[repo]]\nname = "brand"\n'
 
 #: A registry with one maintainer scoped to everything, which is what the real
 #: one holds. `gen_codeowners.py` turns this into `* @lead`.
@@ -100,6 +106,12 @@ class Copies(unittest.TestCase):
         (self.canonical / "70-operations").mkdir(parents=True)
         (self.canonical / "70-operations" / "maintainers.toml").write_text(
             REGISTRY, encoding="utf-8")
+        (self.canonical / "30-repos").mkdir(parents=True)
+        (self.canonical / "30-repos" / "repos.toml").write_text(ORG, encoding="utf-8")
+
+        # Both repositories declared, both carrying nothing. An empty list is an
+        # answer; it is a missing row that is refused.
+        self.declare()
 
         (shared / "markdownlint.jsonc").write_text(MARKDOWNLINT, encoding="utf-8")
         (shared / "typos.toml").write_text(TYPOS, encoding="utf-8")
@@ -135,6 +147,24 @@ class Copies(unittest.TestCase):
             "#\n"
             "# Each row is: <sha256>  <path in the repo>  <home>\n"
             "\n" + "\n".join(rows) + "\n",
+            encoding="utf-8")
+
+    def declare(self, rows=None, **carried):
+        """Write `shared/adoption.toml`.
+
+        `declare(gates=["a_gate.py"])` speaks for `cli`, which is the repository
+        almost every fixture here runs as. `rows` is for the cases that need to
+        say something about more than one.
+        """
+        if rows is None:
+            rows = {"cli": carried, "brand": {}}
+        (self.canonical / "shared" / check_shared_files.ADOPTION).write_text(
+            "".join(
+                f'[[repo]]\nname = "{name}"\n'
+                f'gates = {json.dumps(row.get("gates", []))}\n'
+                f'hooks = {json.dumps(row.get("hooks", []))}\n\n'
+                for name, row in rows.items()
+            ),
             encoding="utf-8")
 
     def write(self, name, text):
@@ -240,6 +270,7 @@ class Agreeing(Copies):
         self.assertNotIn("a_gate.py", out)
 
     def test_a_repo_carrying_the_current_gate(self):
+        self.declare(gates=["a_gate.py"])
         self.write("scripts/a_gate.py", GATE)
         code, out = self.check()
         self.assertEqual(code, 0, out)
@@ -248,6 +279,7 @@ class Agreeing(Copies):
         # Worse than no gate, because it is trusted: `no_open_codeql_alert.py`
         # spent its whole life reading an empty alert list as a clean one, and a
         # repository still carrying that version reports a pass it has not earned.
+        self.declare(gates=["a_gate.py"])
         self.write("scripts/a_gate.py", GATE + "\n# a local tweak\n")
         code, out = self.check()
         self.assertEqual(code, 1)
@@ -257,6 +289,7 @@ class Agreeing(Copies):
         # Reading both as text folds CRLF to LF and calls them identical. The
         # kernel disagrees: the interpreter the first line names has a carriage
         # return on the end of it.
+        self.declare(gates=["a_gate.py"])
         self.write("scripts/a_gate.py", GATE.replace("\n", "\r\n"))
         code, out = self.check()
         self.assertEqual(code, 1)
@@ -268,6 +301,7 @@ class Agreeing(Copies):
         # none — which is what a hard-coded list did to `shared/hooks/`.
         (self.canonical / "shared" / "gates" / "another.py").write_text(
             GATE, encoding="utf-8")
+        self.declare(gates=["a_gate.py", "another.py"])
         self.write("scripts/another.py", GATE + "# drifted\n")
         code, out = self.check()
         self.assertEqual(code, 1)
@@ -282,6 +316,7 @@ class Agreeing(Copies):
         self.assertNotIn("pre-push", out)
 
     def test_a_repo_carrying_the_current_hook(self):
+        self.declare(hooks=["pre-push"])
         self.write(".githooks/pre-push", HOOK)
         self.assertEqual(self.check()[0], 0)
 
@@ -320,6 +355,7 @@ class EmptiedCanonicals(Copies):
     """
 
     def test_an_empty_gates_directory_is_refused_rather_than_reported_as_matching(self):
+        self.declare(gates=["a_gate.py"])
         self.write("scripts/a_gate.py", GATE + "# drifted here\n")
         (self.canonical / "shared" / "gates" / "a_gate.py").unlink()
         code, out = self.check()
@@ -506,6 +542,7 @@ class Drifted(Copies):
         self.assertIn("2 shared file(s) out of step with", out)
 
     def test_a_hook_that_has_drifted(self):
+        self.declare(hooks=["pre-push"])
         self.write(".githooks/pre-push", HOOK.replace("exit 0", "exit 0  # edited here"))
         code, out = self.check()
         self.assertEqual(code, 1)
@@ -515,6 +552,7 @@ class Drifted(Copies):
     def test_a_hook_whose_line_endings_changed(self):
         # A guard the kernel will not run: `#!/bin/sh\r` is not an interpreter.
         # Nothing about it is visible in the text, so the bytes are what is compared.
+        self.declare(hooks=["pre-push"])
         self.write(".githooks/pre-push", HOOK.replace("\n", "\r\n"))
         code, out = self.check()
         self.assertEqual(code, 1)
@@ -535,6 +573,7 @@ class Drifted(Copies):
         the canonical directory rather than waited for."""
         (self.canonical / "shared" / "hooks" / "pre-commit").write_text(
             HOOK, encoding="utf-8")
+        self.declare(hooks=["pre-commit"])
         self.write(".githooks/pre-commit", HOOK.replace("exit 0", "exit 1"))
         code, out = self.check()
         self.assertEqual(code, 1)
@@ -544,10 +583,160 @@ class Drifted(Copies):
         (self.repo / ".markdownlint.jsonc").unlink()
         self.write("typos.toml", "[default]\nextend-words = {}\n")
         self.write(".github/logo.svg", OTHER)
+        self.declare(hooks=["pre-push"])
         self.write(".githooks/pre-push", "#!/bin/sh\nexit 1\n")
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn("6 shared file(s) out of step with", out)
+
+
+class Declared(Copies):
+    """Adoption is read from the register, so absence is two answers, not one.
+
+    `shared/gates/` and `shared/hooks/` are adopted per repository, and a check
+    that reads a file's absence as *not adopted* cannot tell that from
+    *deleted*. One of those is a gate script that decides whether a branch
+    merges and has stopped running, with the run still reporting that the copies
+    match. `shared/adoption.toml` is what the check reads instead.
+    """
+
+    def test_a_gate_declared_and_carried(self):
+        self.declare(gates=["a_gate.py"])
+        self.write("scripts/a_gate.py", GATE)
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
+    def test_a_gate_declared_and_not_there(self):
+        # The defect the register exists for: a merge gate that is gone, which
+        # was indistinguishable from one this repository never took.
+        self.declare(gates=["a_gate.py"])
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("records cli as carrying scripts/a_gate.py and it is not here", out)
+        self.assertIn("decides whether a branch merges", out)
+
+    def test_a_gate_carried_and_never_declared(self):
+        # The other direction, and it is not pedantry: a copy nobody wrote down
+        # is a copy nobody is holding to the canonical version.
+        self.write("scripts/a_gate.py", GATE)
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("scripts/a_gate.py is here and shared/adoption.toml does not "
+                      "record cli as carrying it", out)
+
+    def test_a_hook_declared_and_not_there(self):
+        self.declare(hooks=["pre-push"])
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("records cli as carrying .githooks/pre-push and it is not here", out)
+
+    def test_a_hook_carried_and_never_declared(self):
+        self.write(".githooks/pre-push", HOOK)
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn(".githooks/pre-push is here and shared/adoption.toml does not "
+                      "record cli as carrying it", out)
+
+    def test_a_repository_with_no_row_of_its_own(self):
+        # The silence the whole register is about. A repository nothing declares
+        # is a repository every conditional check passes over.
+        code, out = self.check("lemonfiber/newcomer")
+        self.assertEqual(code, 1, out)
+        self.assertIn("newcomer has no row in shared/adoption.toml", out)
+
+    def test_a_run_that_was_not_told_which_repository_it_is_in(self):
+        # There is nothing to look the row up by, and comparing against a guess
+        # would be worse than saying so.
+        code, out = self.check(repo_name="")
+        self.assertEqual(code, 1, out)
+        self.assertIn("--repo was not given, so shared/adoption.toml could not be read", out)
+
+    def test_a_repository_in_the_org_the_register_forgot(self):
+        # Refused here, on the change that opened the hole, rather than weeks
+        # later in somebody else's pull request in the repository that has no row.
+        self.declare(rows={"cli": {}})
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("brand is a repository in 30-repos/repos.toml with no row", out)
+
+    def test_a_row_for_a_repository_the_org_does_not_have(self):
+        self.declare(rows={"cli": {}, "brand": {}, "archived": {}})
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("holds a row for archived, which is not a repository", out)
+
+    def test_a_row_naming_a_file_the_canonical_directory_does_not_hold(self):
+        # A declaration about a file that is gone is compared against nothing,
+        # and the loop over the canonical directory would never reach it.
+        self.declare(gates=["a_gate.py", "renamed.py"])
+        self.write("scripts/a_gate.py", GATE)
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("says cli carries gates/renamed.py, which shared/gates/ "
+                      "does not hold", out)
+
+    def test_the_repository_list_is_not_there(self):
+        (self.canonical / "30-repos" / "repos.toml").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("30-repos/repos.toml is not here", out)
+
+    def test_the_repository_list_names_nobody(self):
+        (self.canonical / "30-repos" / "repos.toml").write_text(
+            "# every repository in the org\n", encoding="utf-8")
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("names no repository, so shared/adoption.toml was compared "
+                      "against nothing", out)
+
+
+class NoRegister(Copies):
+    """A register that answers nothing refuses, rather than reporting clean.
+
+    It is the input the two conditional checks are decided by, so a register
+    that did not arrive is not an org in which nobody has adopted anything — it
+    is a question that was not asked.
+    """
+
+    def test_a_register_that_is_not_there(self):
+        (self.canonical / "shared" / check_shared_files.ADOPTION).unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("shared/adoption.toml is not here", out)
+        self.assertIn("reads as one that was never taken", out)
+
+    def test_a_register_that_will_not_parse(self):
+        (self.canonical / "shared" / check_shared_files.ADOPTION).write_text(
+            '[[repo]\nname = "cli"\n', encoding="utf-8")
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("shared/adoption.toml could not be read", out)
+
+    def test_a_register_naming_no_repository(self):
+        (self.canonical / "shared" / check_shared_files.ADOPTION).write_text(
+            "# nobody has declared anything\n", encoding="utf-8")
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("shared/adoption.toml names no repository", out)
+
+    def test_a_row_that_names_no_repository(self):
+        (self.canonical / "shared" / check_shared_files.ADOPTION).write_text(
+            "[[repo]]\ngates = []\nhooks = []\n", encoding="utf-8")
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("holds a row with no `name`", out)
+
+    def test_a_missing_register_is_one_problem_rather_than_three(self):
+        """It decides the gates and the hooks both, and is itself a shared file.
+
+        Said once for each would turn one file that has to be fixed into an
+        account of three separate failures, and the reader would go looking for
+        two that are not there.
+        """
+        (self.canonical / "shared" / check_shared_files.ADOPTION).unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("1 shared file(s) out of step with", out)
 
 
 class Owners(Copies):
