@@ -256,7 +256,58 @@ family the spec defines.
 """
 
 
+class Refused(Exception):
+    """A refusal, carrying the code the gate should leave with.
+
+    Raised rather than returned because the two file arguments are read in the
+    middle of gathering input, and threading a sentinel back out through each
+    of them is what pushed `main()` past the complexity this repository allows.
+    Two is the code for *the gate could not run*, which is not the same answer
+    as *the change is wrong* and must never be mistaken for it.
+    """
+
+    def __init__(self, code: int, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def within_cwd(arg: str, what: str) -> pathlib.Path:
+    """The path an argument names, refused unless it sits under this checkout.
+
+    Both files this gate reads are written by the workflow beside it. A path
+    that climbs out of the checkout is the gate reading something the pull
+    request did not write.
+    """
+    path = pathlib.Path(arg).resolve()
+    if not path.is_relative_to(pathlib.Path.cwd().resolve()):
+        raise Refused(2, f"::error::{what} must be within the working directory")
+    return path
+
+
+def the_diff(arg: str) -> str:
+    """What the change writes into files, or nothing where none was asked for."""
+    if not arg:
+        return ""
+
+    path = within_cwd(arg, "diff-file")
+    if not path.is_file():
+        # Loud rather than empty. A diff that did not arrive reads exactly like
+        # a change that named nothing, and this half of GOV-R3 would then be off
+        # in every repo with nobody able to see that it was.
+        raise Refused(2, f"::error::diff-file not found: {arg}")
+
+    return path.read_text(encoding="utf-8", errors="ignore")
+
+
 def main() -> int:
+    try:
+        return gate()
+    except Refused as refused:
+        print(refused)
+        return refused.code
+
+
+def gate() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--spec-dir", required=True)
     ap.add_argument("--text-file", required=True)
@@ -278,26 +329,10 @@ def main() -> int:
         print(f"::error::spec dir not found: {spec_dir}")
         return 2
 
-    cwd = pathlib.Path.cwd().resolve()
-    text_path = pathlib.Path(a.text_file).resolve()
-    if not text_path.is_relative_to(cwd):
-        print("::error::text-file must be within the working directory")
-        return 2
-    text = text_path.read_text(encoding="utf-8", errors="ignore")
-
-    diff = ""
-    if a.diff_file:
-        diff_path = pathlib.Path(a.diff_file).resolve()
-        if not diff_path.is_relative_to(cwd):
-            print("::error::diff-file must be within the working directory")
-            return 2
-        if not diff_path.is_file():
-            # Loud rather than empty. A diff that did not arrive reads exactly
-            # like a change that named nothing, and this half of GOV-R3 would
-            # then be off in every repo with nobody able to see that it was.
-            print(f"::error::diff-file not found: {a.diff_file}")
-            return 2
-        diff = diff_path.read_text(encoding="utf-8", errors="ignore")
+    text = within_cwd(a.text_file, "text-file").read_text(
+        encoding="utf-8", errors="ignore"
+    )
+    diff = the_diff(a.diff_file)
 
     defined = defined_ids(spec_dir)
     if not defined:
