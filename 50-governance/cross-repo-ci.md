@@ -251,6 +251,101 @@ Enforcement machinery that fails badly is worse than none, because it fails
 The last row is deliberate: requiring a citation *per file* would produce
 box-ticking, and box-ticking is how a rule stops meaning anything.
 
+## The pin on a shared workflow
+
+Every repository in the org runs its CI out of this one. `spec-check`, `dco`,
+`hygiene`, `commitlint` and the rest are reusable workflows defined here once and
+called from each repo's `ci.yml` (**Q-R56**), and each call names an exact commit
+rather than a branch — `@main` is an instruction to run whatever was pushed here
+a minute ago, on a runner holding that repository's token.
+
+An exact commit is a copy, and a copy goes stale in silence. `workflow-pins` is
+what makes it say so. It reads every
+`uses: lemonfiber/spec/.github/workflows/<name>.yml@<sha>` out of the calling
+repository's own `.github/workflows/`, compares each against this repository's
+`main`, and fails the pull request naming the commits that pin has not taken
+(**Q-R68**, **Q-R70**). A pin on somebody else's action is not its business; that
+one has versions, and the dependency bot does it.
+
+One asymmetry is worth knowing before reading one of its logs. *What a pin is
+compared against* is always this repository's `main`, for every caller. *Which
+copy of the reader runs* is the caller's own where the caller is this repository
+— the same split the `shared-files` job makes, and for the same reason: the
+definition under review is the one that should be run by the review. It also
+happens to be the only way a gate like this can be introduced at all, since
+`main` does not hold it until the change that adds it has merged.
+
+It was published with the drift already in front of it, which is the only honest
+way to publish a check like this: fourteen repositories calling `spec-check` at
+six different revisions, the oldest fifty-seven commits behind, and this
+repository thirteen behind its own.
+
+### What a stale pin actually holds back
+
+Narrower than it reads, and sharper for it. **The workflow file is pinned; the
+scripts it runs are not.** Every one of these workflows checks this repository out
+at `ref: main` and runs `spec_check.py`, `dco_check.py`, `check_shared_files.py`
+from there — so a fix to what a gate *decides* reaches every consumer on their
+next run, whatever their pin says. What a stale pin holds is the workflow: its
+steps, the arguments they pass, the events it declares itself to run on.
+
+That is the half that changes rarely, which is exactly the half nobody watches,
+and it is the half where a gate is switched off rather than made wrong. A step
+added here does not run there. A workflow taught to run on `merge_group` does not
+run on one there. Nothing goes red to say so, because from inside the consuming
+repository the job is present, green, and doing less than its name.
+
+### Why Dependabot cannot do this one
+
+It is configured. `github-actions` is on in every one of these repositories, on a
+daily schedule, with `lemonfiber/spec*` grouped ahead of the wildcard so a shared
+gate is never held behind a cooldown. It has opened exactly zero pull requests for
+these pins.
+
+The reason is not a misconfiguration to be found and fixed. Dependabot's
+`github-actions` updater compares **versions**, and this repository publishes no
+tags and no releases at all. A raw commit on `main` has nothing to be newer than,
+so the updater had nothing to propose, proposed nothing, and its silence read
+exactly like *nothing to update*. That is the more expensive half: a bot that is
+configured and quiet is indistinguishable from a bot that is configured and
+satisfied, and fourteen repositories were read as the second for months.
+
+### Could not ask is not clean
+
+Three outcomes, and the third is the one the check exists for as much as the
+first. Exit 0 is every pin current, or a repository that pins nothing of ours.
+Exit 1 is drift, naming it. Exit 2 is **could not ask** — no spec checkout
+arrived, or a pin that this checkout cannot resolve to a commit, which is what a
+shallow clone looks like from the inside.
+
+Exit 2 fails the run and **closes nothing**. The distinction is the same one
+`spec-check` draws when it declines to close on its own fault (**GOV-R9** is about
+non-conforming work, and a checkout that did not arrive is not that), and it is
+load-bearing here for a plainer reason: a drift check that reported clean over a
+question it failed to ask is precisely how a pin gets to fifty-seven behind. The
+history is fetched at full depth for this reason and no other — without it the
+honest answer is 2, on every run, forever.
+
+### Two pin checks, and why both
+
+The `pins` job in `hygiene` also looks at these revisions, and the two are not
+duplicates. It reports over the wire, gates only past a threshold — thirty days,
+seventy-five commits — and is deliberately a **notice**, because reddening every
+repository the moment anything lands here is the check people learn to route
+around. It also answers a question this one does not: *which* of the workflows a
+repository runs changed in the commits it has not taken.
+
+`workflow-pins` is the gate, and it puts the catch-up in front of the next change
+rather than behind it. Its cost is the honest one and worth stating: this
+repository moves, so a repository green on Friday is behind on Monday without
+anyone touching it, and an author who changed none of it pays the bump. What is
+supposed to make that bearable is **OPS-R48** — an automated pull request bumping
+every consumer in lockstep when the workflows move. **That fan-out does not exist
+yet.** Until it does, the bump is done by hand, and that is the reason to keep
+this check off the required list on a default branch: a gate whose remedy nothing
+automates, made required, is a gate that blocks its own cure. **Q-R71** is the
+form that admission takes in a repository that has to defer it.
+
 ## Related
 
 - [canonical-spec.md](canonical-spec.md) · [change-lifecycle.md](change-lifecycle.md)

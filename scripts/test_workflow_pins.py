@@ -25,7 +25,7 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
-import workflow_pins  # noqa: E402
+import workflow_pins
 
 
 def a_pin(workflow: str, sha: str) -> str:
@@ -154,6 +154,15 @@ class AgainstARepository(unittest.TestCase):
         code, out = self.run_main()
         self.assertEqual(code, 2)
         self.assertIn("cannot resolve", out)
+
+    def test_a_revision_that_is_not_one_is_never_handed_to_git(self):
+        # Nothing in this file's own reading can produce such a value, which is
+        # the point: the guard is for the caller that comes later. An argument
+        # beginning with `-` is an option to git rather than a revision, and the
+        # answer for one is the same "could not ask" everything else here gives.
+        self.assertIsNone(
+            workflow_pins.commits_between(self.spec, "--output=/tmp/x", self.second)
+        )
 
     def test_no_checkout_is_our_fault_too(self):
         self.pin(self.second)

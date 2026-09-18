@@ -35,6 +35,15 @@ PIN = re.compile(
     r"uses:\s*lemonfiber/spec/\.github/workflows/(?P<workflow>[\w.-]+\.yml)@(?P<sha>[0-9a-f]{40})"
 )
 
+# A commit, as a revision this hands to `git`: forty hex characters and the whole
+# of the string.
+#
+# Nothing today can reach `git` failing it — the pattern above matches only such
+# a string, and `rev-parse` answers only with one. It is here because an argument
+# beginning with `-` is an *option* to git rather than a revision, and the
+# distance between "no caller does that" and "no caller can" is one line.
+REVISION = re.compile(r"\A[0-9a-f]{40}\Z")
+
 # How many commit subjects a refusal prints before it stops. A pin fifty-seven
 # behind would otherwise bury its own message, and the point of naming them is
 # that somebody reads them.
@@ -62,19 +71,34 @@ def pins_under(root: pathlib.Path) -> dict[tuple[str, str], list[str]]:
     return found
 
 
-def commits_between(spec: pathlib.Path, pin: str, head: str) -> list[str] | None:
-    """The commits `head` has and `pin` does not, newest first.
+def _git(spec: pathlib.Path, *args: str) -> subprocess.CompletedProcess[str]:
+    """One read-only git command inside a checkout, addressed by absolute path.
 
-    `None` where the question could not be asked — a shallow checkout, or a pin
-    that is not a commit in this repository at all. A gate that cannot ask is not
-    a gate that passed, and the caller says so rather than reporting nothing.
+    Resolved rather than passed through. A relative path is the ordinary case and
+    fine either way; one beginning with `-` is an option to git rather than a
+    directory, and resolving it makes it neither. The arguments after it are this
+    file's own words and the revisions `REVISION` has already vouched for.
     """
-    asked = subprocess.run(
-        ["git", "-C", str(spec), "log", "--no-color", "--format=%h %s", f"{pin}..{head}"],
+    return subprocess.run(
+        ["git", "-C", str(spec.resolve()), *args],
         capture_output=True,
         text=True,
         check=False,
     )
+
+
+def commits_between(spec: pathlib.Path, pin: str, head: str) -> list[str] | None:
+    """The commits `head` has and `pin` does not, newest first.
+
+    `None` where the question could not be asked — a shallow checkout, a pin that
+    is not a commit in this repository at all, or a pair that are not revisions.
+    A gate that cannot ask is not a gate that passed, and the caller says so
+    rather than reporting nothing.
+    """
+    if not (REVISION.match(pin) and REVISION.match(head)):
+        return None
+
+    asked = _git(spec, "log", "--no-color", "--format=%h %s", f"{pin}..{head}")
 
     if asked.returncode != 0:
         return None
@@ -101,13 +125,15 @@ def refusal(workflow: str, where: list[str], missed: list[str]) -> str:
 
 
 def head_of(spec: pathlib.Path) -> str | None:
-    """The commit this repository's default branch is at, as the checkout has it."""
-    asked = subprocess.run(
-        ["git", "-C", str(spec), "rev-parse", "HEAD"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    """The commit this repository's default branch is at, as the checkout has it.
+
+    `None` where there is no checkout to ask, which is the first thing this runs
+    and the first way it can be unable to answer.
+    """
+    if not spec.is_dir():
+        return None
+
+    asked = _git(spec, "rev-parse", "HEAD")
 
     return asked.stdout.strip() if asked.returncode == 0 else None
 
