@@ -40,6 +40,15 @@ ADOPTION = "adoption.toml"
 #: The list of repositories the register answers for, relative to a spec checkout.
 ORG = "30-repos/repos.toml"
 
+#: The two tables in it. `repo` is the map this specification governs and is what
+#: `gen_repos.py` renders; `ungoverned` is the rest of the organisation, which is
+#: rendered nowhere. Both are read here, because what decides whether a row is
+#: about somebody is whether the organisation has the repository — not whether
+#: the map draws it. Reading `repo` alone refused three repositories that call
+#: these workflows as unknown, while refusing the row that would have answered
+#: for them, so the only way out was to stop running the check.
+ORG_TABLES = ("repo", "ungoverned")
+
 #: For each canonical directory whose members are adopted rather than required:
 #: where a copy lands in the adopting repository, what to call the set of them,
 #: and what a copy that has gone actually costs.
@@ -370,6 +379,12 @@ def unregistered(canonical: pathlib.Path, rows: dict) -> list[str]:
     to the org and not to the register, a row for one the org no longer has, and
     a row naming a file `shared/` does not hold.
 
+    The org is both tables of the registry, not the governed map alone. The map
+    is what the specification draws and it says in its own prose that the org
+    holds repositories it does not list; a repository outside the map still
+    calls these workflows, so the question *which shared hooks does it carry*
+    is asked about it and has to have an answer.
+
     The last of those is the same failure as an unaccounted shared file, one
     level up. A row naming a gate that has been renamed is compared against
     nothing, because the comparison walks the canonical directory and never
@@ -381,9 +396,11 @@ def unregistered(canonical: pathlib.Path, rows: dict) -> list[str]:
             (f"{ORG} is not here, so shared/{ADOPTION} was compared against no "
              f"list of repositories and a missing row could not be seen")
         ]
+    read = tomllib.loads(listed.read_text(encoding="utf-8"))
     known = [
         one.get("name", "")
-        for one in tomllib.loads(listed.read_text(encoding="utf-8")).get("repo", [])
+        for table in ORG_TABLES
+        for one in read.get(table, [])
     ]
     if not known:
         return [
@@ -398,8 +415,8 @@ def unregistered(canonical: pathlib.Path, rows: dict) -> list[str]:
     ]
     problems += [
         (f"shared/{ADOPTION} holds a row for {one}, which is not a repository "
-         f"{ORG} lists. A row nothing is ever checked against is a declaration "
-         f"about nobody")
+         f"{ORG} lists in either of its tables. A row nothing is ever checked "
+         f"against is a declaration about nobody")
         for one in rows if one not in known
     ]
     for holds in sorted(CARRIED):
@@ -524,8 +541,9 @@ def adoption(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str
             (f"{name} has no row in shared/{ADOPTION}, so whether it has adopted "
              f"any shared gate or hook is recorded nowhere — and an unknown "
              f"repository is exactly the silence a conditional check reads as a "
-             f"pass. Add a row naming what it carries, an empty list included "
-             f"(Q-R74)"),
+             f"pass. Add a row naming what it carries, an empty list included, "
+             f"and name the repository in {ORG} too if neither of its tables "
+             f"holds it yet (Q-R74)"),
         ]
     return [
         *structure,
