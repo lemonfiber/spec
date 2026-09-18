@@ -11,6 +11,8 @@ import pathlib
 import re
 import tomllib
 
+from patterns import ordered
+
 VERSIONS = pathlib.Path("70-operations/versions")
 ROADMAP = pathlib.Path("00-overview/roadmap.md")
 SHOWN = {
@@ -27,7 +29,7 @@ def rows() -> list[str]:
            "|---------|-----------|----------|--------|"]
     manifests = sorted(
         (p for p in VERSIONS.glob("*.toml") if p.stem != "TEMPLATE"),
-        key=lambda p: [int(part) for part in p.stem.split(".")],
+        key=lambda p: ordered(p.stem),
     )
     for path in manifests:
         data = tomllib.loads(path.read_text(encoding="utf-8"))

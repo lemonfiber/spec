@@ -21,6 +21,8 @@ import re
 import sys
 import tomllib
 
+from patterns import ordered
+
 FEATURES = pathlib.Path("10-functional/features")
 VERSIONS = pathlib.Path("70-operations/versions")
 
@@ -40,7 +42,12 @@ def _released_in(root: pathlib.Path) -> tuple[dict[str, str], dict[str, int], se
     fix. Those are reported once, as a note, and never fail the check.
     """
     order, schedule, shipped = [], {}, set()
-    for path in sorted((root / VERSIONS).glob("*.toml")):
+    # Walked in version order, which `setdefault` below makes load-bearing: it
+    # records the *first* version to lock a feature, and the walk was in name
+    # order while the ranking a few lines down was numeric. The two disagreed
+    # about six features, each recorded as shipping later than it does.
+    for path in sorted((root / VERSIONS).glob("*.toml"),
+                       key=lambda p: ordered(p.stem) if p.stem != "TEMPLATE" else ()):
         if path.stem == "TEMPLATE":
             continue
         order.append(path.stem)
@@ -49,7 +56,6 @@ def _released_in(root: pathlib.Path) -> tuple[dict[str, str], dict[str, int], se
             shipped.add(path.stem)
         for goal in data.get("goals", []):
             schedule.setdefault(goal.split("-R")[0], path.stem)
-    order.sort(key=lambda v: [int(part) for part in v.split(".")])
     return schedule, {version: i for i, version in enumerate(order)}, shipped
 
 

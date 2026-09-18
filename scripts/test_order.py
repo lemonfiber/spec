@@ -150,6 +150,29 @@ class WhatItRefuses(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("which lands in 0.10.0", said)
 
+    def test_which_version_first_locks_a_feature_is_read_in_number_order_too(self):
+        """The other half of the same ordering, and the half that was wrong.
+
+        A feature locked by two versions ships in the earlier of them, and which
+        is earlier was decided by a walk in *name* order while the ranking beside
+        it was numeric. So `X2` here read as landing in `0.10.0` — after the `X3`
+        it requires — and the inversion was hidden. Six features in the real tree
+        were recorded several versions late by it.
+        """
+        code, said = run(
+            tree(
+                [KNOWN, ("X2", "requires: [X3]\n"), ("X3", "")],
+                [
+                    FIRST,
+                    ("0.2.0", "planned", '"X2-R1"'),
+                    ("0.5.0", "planned", '"X3-R1"'),
+                    ("0.10.0", "planned", '"X2-R2"'),
+                ],
+            )
+        )
+        self.assertEqual(code, 1, said)
+        self.assertIn("X2 ships in 0.2.0 but requires X3, which lands in 0.5.0", said)
+
 
 class WhatItLetsThrough(unittest.TestCase):
     def test_a_feature_scheduled_with_what_it_requires(self):

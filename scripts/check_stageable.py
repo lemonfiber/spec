@@ -42,8 +42,14 @@ def defined_ids() -> tuple[set[str], set[str]]:
 
 
 def in_flight(exclude: str) -> str | None:
+    """Another version already in flight, which is what keeps the train serial.
+
+    Past the template, which is a file meant to be read as an example: a real
+    status written into it to document the lifecycle would refuse every staging
+    attempt, naming a version that is not one.
+    """
     for other in VERSIONS.glob("*.toml"):
-        if other.name == exclude:
+        if other.name == exclude or other.stem == "TEMPLATE":
             continue
         status = tomllib.loads(other.read_text(encoding="utf-8")).get("status")
         if status in IN_FLIGHT:

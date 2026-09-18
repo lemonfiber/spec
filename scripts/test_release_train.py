@@ -856,6 +856,25 @@ class TrackerAndPrGoalsTests(Workspace):
         pathlib.Path("pr.txt").write_text(text, encoding="utf-8")
         return run_main(pr_goals, ["--pr-text", "pr.txt"])
 
+    def test_the_template_is_not_the_version_in_flight(self):
+        """It is a file whose job is to be read as an example.
+
+        Every other manifest walker skips it; these two read it, so a real status
+        written into it to document the lifecycle would classify every pull
+        request against a manifest with no version and no goals, and refuse every
+        staging attempt naming a version that is not one.
+        """
+        pathlib.Path("70-operations/versions/TEMPLATE.toml").write_text(
+            'version = "0.0.0"\nstatus  = "staged"\ngoals = []\n', encoding="utf-8")
+        self.assertIsNone(pr_goals.staged_manifest())
+        self.manifest("0.2.0", status="planned")
+        self.assertIsNone(check_stageable.in_flight("0.2.0.toml"))
+
+    def test_the_version_in_flight_is_the_earliest_by_number(self):
+        self.manifest("0.2.0", status="staged")
+        self.manifest("0.10.0", status="staged")
+        self.assertEqual(pr_goals.staged_manifest()["version"], "0.2.0")
+
     def test_pr_goals_scopes(self):
         # nothing staged
         _, out = self._pr("Spec: B1-R4\n")
