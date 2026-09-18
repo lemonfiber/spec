@@ -36,6 +36,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import subprocess
 import sys
 import tomllib
@@ -89,7 +90,33 @@ def register(path: pathlib.Path = REGISTER) -> tuple[list[dict], list[dict]]:
     return names, prefixes
 
 
+# What may be passed to `gh`. Two kinds: this file's own words, which are
+# subcommands and flags and are listed rather than pattern-matched, and the
+# values interpolated into them — an organisation name, a repository name, a
+# count. A value is held to a shape that cannot begin with `-`, because an
+# argument that begins with `-` is a *flag* rather than a value, and that is the
+# one way a name could change what the command does rather than what it asks
+# about. Nothing today can reach either refusal: the names come from the forge's
+# own answer. The distance between "no caller does that" and "no caller can" is
+# these two lines.
+SAID = frozenset(
+    {
+        "api", "--paginate", "--jq", ".[] | select(.archived | not) | .name",
+        "pr", "list", "-R", "--state", "all", "--limit", "--json",
+        "statusCheckRollup",
+    }
+)
+VALUE = re.compile(r"\A[\w][\w./:=&?@-]*\Z")
+
+
 def _gh(*args: str) -> str:
+    for arg in args:
+        if arg not in SAID and not VALUE.match(arg):
+            raise Unanswerable(
+                f"{arg!r} is neither a word this file passes to `gh` nor a value "
+                "shaped like a name. A value that could read as a flag would "
+                "change what the command does rather than what it asks about"
+            )
     done = subprocess.run(
         ["gh", *args], capture_output=True, text=True, check=False
     )
@@ -183,6 +210,27 @@ def refusal(repo: str, unrequired: list[str]) -> str:
     )
 
 
+def unrequired_in(
+    repo: str, names: list[dict], prefixes: list[dict], matched: set[int]
+) -> list[str]:
+    """The checks one repository runs that neither block nor are registered.
+
+    `matched` collects the register entries that covered something, so the
+    caller can refuse an exemption that covered nothing anywhere.
+    """
+    required = required_in(repo)
+    found = []
+    for check in sorted(observed_in(repo)):
+        if check in required:
+            continue
+        entry = exempt(check, names, prefixes)
+        if entry is None:
+            found.append(check)
+        else:
+            matched.add(id(entry))
+    return found
+
+
 def look(owner: str, only: str | None, out) -> int:
     names, prefixes = register()
     matched: set[int] = set()
@@ -193,20 +241,8 @@ def look(owner: str, only: str | None, out) -> int:
 
     for name in repos:
         repo = f"{owner}/{name}"
-        required = required_in(repo)
-        observed = observed_in(repo)
         looked += 1
-
-        unrequired = []
-        for check in sorted(observed):
-            if check in required:
-                continue
-            entry = exempt(check, names, prefixes)
-            if entry is None:
-                unrequired.append(check)
-            else:
-                matched.add(id(entry))
-
+        unrequired = unrequired_in(repo, names, prefixes, matched)
         if unrequired:
             print(refusal(repo, unrequired), file=out)
             print(file=out)

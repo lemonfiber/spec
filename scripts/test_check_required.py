@@ -58,18 +58,21 @@ class TheRegister(unittest.TestCase):
         self.assertIn("is not here", str(why.exception))
 
     def test_a_register_exempting_nothing_refuses(self):
+        where = wrote("# nothing here\n")
         with self.assertRaises(check_required.Unanswerable) as why:
-            check_required.register(wrote("# nothing here\n"))
+            check_required.register(where)
         self.assertIn("exempts nothing", str(why.exception))
 
     def test_an_exemption_with_no_reason_refuses(self):
+        where = wrote('[[exempt]]\nname = "x"\n')
         with self.assertRaises(check_required.Unanswerable) as why:
-            check_required.register(wrote('[[exempt]]\nname = "x"\n'))
+            check_required.register(where)
         self.assertIn("carries no reason", str(why.exception))
 
     def test_an_exemption_naming_neither_a_check_nor_a_prefix_refuses(self):
+        where = wrote('[[exempt]]\nwhy = "because"\n')
         with self.assertRaises(check_required.Unanswerable) as why:
-            check_required.register(wrote('[[exempt]]\nwhy = "because"\n'))
+            check_required.register(where)
         self.assertIn("neither a check nor a prefix", str(why.exception))
 
     def test_names_and_prefixes_are_kept_apart(self):
@@ -174,6 +177,11 @@ class TheSilences(unittest.TestCase):
              self.assertRaises(check_required.Unanswerable) as why:
             check_required.observed_in("lemonfiber/brand")
         self.assertIn("produced no check name", str(why.exception))
+
+    def test_an_argument_that_could_read_as_a_flag_refuses(self):
+        with self.assertRaises(check_required.Unanswerable) as why:
+            check_required._gh("api", "--upload-file=/etc/passwd")
+        self.assertIn("read as a flag", str(why.exception))
 
     def test_a_forge_that_will_not_answer_refuses(self):
         done = mock.Mock(returncode=1, stderr="not found", stdout="")
