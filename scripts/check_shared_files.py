@@ -55,6 +55,11 @@ def typos(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
 
     want_words = want.get("default", {}).get("extend-words", {})
     got_words = got.get("default", {}).get("extend-words", {})
+    if not want_words:
+        return [
+            (f"shared/{TYPOS} extends no words, so every repository's copy would "
+             "pass this having been compared against nothing")
+        ]
     for word, value in want_words.items():
         if word not in got_words:
             problems.append(f"typos.toml is missing the shared word {word!r}")
@@ -100,6 +105,16 @@ def ruff(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
 
     want_select = want.get("lint", {}).get("select", [])
     got_select = got.get("lint", {}).get("select", [])
+    # The floor read out of an empty list is no floor, and the ignore arm below
+    # would then flag every ignore any repository holds. One half goes silent and
+    # the other cries wolf, which is how a gate comes to be switched off — and
+    # `ruff.toml` has a second legal layout (`[tool.ruff.lint]`) that produces
+    # exactly this without anything looking wrong.
+    if not want_select:
+        return [
+            (f"shared/{RUFF} selects no rules, so the floor every repository is "
+             "held to was read as empty")
+        ]
     for rule in want_select:
         if rule not in got_select:
             problems.append(
@@ -293,11 +308,19 @@ def hooks(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     # hooks, which is what `shared/hooks/` held when it was written; a third
     # would have been copied into every repository and compared in none, and the
     # run would have said the copies match.
-    for name in sorted(
+    names = sorted(
         one.name
         for one in (canonical / "shared" / HOOKS).iterdir()
         if one.is_file()
-    ):
+    )
+    # Listing from the directory buys that, and costs this: an empty directory is
+    # zero comparisons and a clean report, which reads as the copies matching.
+    if not names:
+        return [
+            (f"shared/{HOOKS}/ holds no file, so no repository's hooks were "
+             "compared against anything")
+        ]
+    for name in names:
         got = repo / ".githooks" / name
         if not got.is_file():
             continue
@@ -326,9 +349,17 @@ def gates(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     compared nowhere.
     """
     complaints = []
-    for name in sorted(
+    names = sorted(
         one.name for one in (canonical / "shared" / GATES).iterdir() if one.is_file()
-    ):
+    )
+    # And an empty directory compares nothing while reporting that the gates
+    # match — about six repositories, and about a file that decides merges.
+    if not names:
+        return [
+            (f"shared/{GATES}/ holds no file, so no repository's gate scripts "
+             "were compared against anything")
+        ]
+    for name in names:
         got = repo / "scripts" / name
         if not got.is_file():
             continue
