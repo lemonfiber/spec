@@ -46,16 +46,25 @@ LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)#]+)(?:#[^)]*)?\)")
 ELSEWHERE = ("checkouts",)
 
 
-def elsewhere(path):
+def elsewhere(path, root=None):
     """Whether a path sits under something this repository did not write.
 
-    Relative to `ROOT`, because a clone can live anywhere: a checkout under
+    Relative to the root, because a clone can live anywhere: a checkout under
     `~/.local/src` has a dot in its absolute path and every file in it would be
     skipped, which is the same gate going quiet for the opposite reason.
+
+    The root is an argument so that a check reading a tree it was pointed at asks
+    this the same way. It is the one answer to which files are ours, and a second
+    spelling of it is how one gate comes to walk a directory another skips.
+
+    Neither side is resolved. The path is one this root's own walk produced, so it
+    is already under it as written — and resolving would follow a symlink out of
+    the tree, which is a containment question `write_counts` asks for itself and
+    answers differently.
     """
     return any(
         part in ELSEWHERE or part.startswith(".")
-        for part in path.relative_to(ROOT).parts
+        for part in path.relative_to(root if root is not None else ROOT).parts
     )
 
 

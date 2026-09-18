@@ -46,6 +46,8 @@ import tomllib
 import urllib.error
 import urllib.request
 
+from integrity import elsewhere
+
 #: Where the stack says what it composes, when nobody names a copy.
 STACK = "https://raw.githubusercontent.com/lemonfiber/lemonfiber-media-stack/main/stack.toml"
 
@@ -133,10 +135,20 @@ def services(text: str) -> int:
 
 
 def governed(root: pathlib.Path) -> list[pathlib.Path]:
-    """Every page holding a governed sentence, decision records excepted."""
+    """Every page holding a governed sentence, decision records excepted.
+
+    Which pages are this repository's is `integrity.elsewhere`'s question and is
+    asked rather than answered again here. This skipped `.git` alone, so a
+    checkout under `checkouts/` — which the justfile tells people to make, and
+    which `execute-version` makes nine of — was read as this repository's prose.
+    One tracker there states the bundled count, so `just ci` could go red naming
+    a file in another repository, and `--write` would have rewritten it inside
+    somebody else's git repository, where `.gitignore` means nothing would ever
+    have said so.
+    """
     found = []
     for page in sorted(root.rglob("*.md")):
-        if DECISIONS in page.as_posix() or ".git" in page.parts:
+        if DECISIONS in page.as_posix() or elsewhere(page, root):
             continue
         if SENTENCE.search(page.read_text(encoding="utf-8", errors="ignore")):
             found.append(page)
