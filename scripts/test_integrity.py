@@ -409,6 +409,21 @@ class Writing(StatedCounts):
         self.assertIn("77-feature", one.read_text(encoding="utf-8"))
         self.assertIn("77-feature", two.read_text(encoding="utf-8"))
 
+    def test_a_repair_that_left_something_to_say_refuses(self):
+        """`0 stated count(s) rewritten.` is what a pattern matching nowhere
+        produces, and on its own it reads as the numbers having been right."""
+        self.index(77)
+        self.adrs(2)
+        (self.tmp / "README.md").write_text(
+            "The 77-feature catalogue, and twenty-five decisions.\n", encoding="utf-8"
+        )
+        saved, sys.argv = sys.argv, ["integrity.py", "--write"]
+        self.addCleanup(setattr, sys, "argv", saved)
+        code, out = run_main()
+        self.assertEqual(code, 1, out)
+        self.assertIn("0 stated count(s) rewritten", out)
+        self.assertIn("no sentence states a count of architecture", out)
+
     def test_a_tree_it_cannot_count_is_reported_rather_than_rewritten(self):
         # No index: the counts are unknown, so writing one would be inventing it.
         readme = self.tmp / "README.md"
