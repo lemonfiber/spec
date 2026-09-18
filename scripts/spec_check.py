@@ -104,18 +104,80 @@ def cited_ids(text: str) -> set[str]:
 # citation this check exists to resolve.
 OUR_OWN = ("scripts/spec_check.py", "scripts/test_spec_check.py")
 
+# Where a repository declares the same thing about its own fixtures.
+#
+# This gate is not the only code with a test that must name an identifier
+# nothing answers to. The Rust stack renders a withdrawn requirement and asserts
+# the strikethrough, and refuses an id past the ceiling by asking for one — four
+# lines and one, each deliberately unresolvable. Read without an answer for
+# them, check 6 refuses the next pull request that touches such a line, and the
+# only way to satisfy it is to write the fixture out of a real requirement
+# number, which ties that repository's tests to whatever the spec holds this
+# week. That is the gate making the code worse.
+#
+# **Exact paths, never a pattern.** A repository says which files, one per line,
+# and a glob is not accepted: `tests/` anywhere would be a hole wide enough to
+# walk a repository through, since a test's own title is exactly the kind of
+# citation check 6 exists to resolve.
+#
+# **Every skip is printed**, because an exemption nobody sees is an exemption
+# nobody revisits — and a gate reporting "clean" over files it never opened
+# reads exactly like one that read them.
+FIXTURES = ".github/spec-check-fixtures"
 
-def added_lines(diff: str) -> list[str]:
+
+def declared_fixtures() -> tuple[str, ...]:
+    """The paths a repository has declared name identifiers that do not resolve.
+
+    A path that is not there is refused rather than ignored. A declaration
+    outlives the file it was written for, and a list carrying an entry that
+    stopped applying is one nobody trusts enough to shorten — so the day the
+    file moves, the gate says which line to delete.
+    """
+    listed = pathlib.Path(FIXTURES)
+    if not listed.is_file():
+        return ()
+
+    declared = []
+    for line in listed.read_text(encoding="utf-8").splitlines():
+        said = line.split("#", 1)[0].strip()
+        if not said:
+            continue
+        if "*" in said or "?" in said:
+            raise Refused(2, f"::error::{FIXTURES} names a pattern, not a path: {said}")
+        if not pathlib.Path(said).is_file():
+            raise Refused(
+                2,
+                f"::error::{FIXTURES} names a file that is not there: {said}. "
+                "Delete the line, or correct it to the path the fixture moved to.",
+            )
+        declared.append(said)
+
+    return tuple(declared)
+
+
+def unread() -> tuple[str, ...]:
+    """Every path check 6 does not open, this gate's own and the repository's."""
+    declared = declared_fixtures()
+
+    for path in declared:
+        print(f"::notice::not read for identifiers, declared in {FIXTURES}: {path}")
+
+    return OUR_OWN + declared
+
+
+def added_lines(diff: str, skipping: tuple[str, ...] = OUR_OWN) -> list[str]:
     """The lines a diff adds, less the file header that shares their marker.
 
-    Lines under {OUR_OWN} are skipped — see there for why.
+    Lines under {skipping} are left unread — see {FIXTURES} for why a repository
+    may add to that list.
     """
     added: list[str] = []
     reading = True
 
     for line in diff.splitlines():
         if line.startswith("+++ "):
-            reading = line[len("+++ ") :].removeprefix("b/") not in OUR_OWN
+            reading = line[len("+++ ") :].removeprefix("b/") not in skipping
         elif reading and line.startswith("+"):
             added.append(line[1:])
 
@@ -157,7 +219,7 @@ def named_in(diff: str, defined: set[str]) -> set[str]:
     families = {rid.split("-", 1)[0] for rid in defined}
 
     found: set[str] = set()
-    for line in added_lines(diff):
+    for line in added_lines(diff, unread()):
         found.update(
             rid for rid in CITE.findall(line) if rid.split("-", 1)[0] in families
         )

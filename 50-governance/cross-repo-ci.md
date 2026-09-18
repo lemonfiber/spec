@@ -88,6 +88,26 @@ teaches it to refuse. The exemption is two paths and deliberately not a pattern:
 a test's own title is exactly the kind of citation check 6 exists to resolve, so
 `tests/` anywhere would be a hole wide enough to walk a repository through.
 
+A repository may declare the same thing about its own fixtures, in
+`.github/spec-check-fixtures` — one path per line, `#` for a comment. This gate
+is not the only code with a test that must name an identifier nothing answers
+to: the Rust stack renders a withdrawn requirement and asserts the
+strikethrough, and refuses an id past the ceiling by asking for one. Without an
+answer for those, check 6 refuses the next change that touches such a line and
+the only way to satisfy it is to write the fixture out of a real requirement
+number — which ties that repository's tests to whatever the spec holds this
+week, and is the gate making the code worse.
+
+Three things keep the declaration from becoming a way out:
+
+- **Exact paths, never a pattern.** A glob is refused, for the reason above.
+- **A path that is not there is refused**, naming the line to delete. A
+  declaration outlives the file it was written for, and a list carrying an entry
+  that stopped applying is one nobody trusts enough to shorten.
+- **Every skipped path is printed** on every run. An exemption nobody sees is an
+  exemption nobody revisits, and a gate reporting clean over files it never
+  opened reads exactly like one that read them.
+
 ## Surfacing what a PR cites
 
 Enforcement is only half the loop. Alongside `spec-check`, a **spec-references**

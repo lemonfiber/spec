@@ -291,6 +291,54 @@ class WhatAFileNames(GateCase):
         self.assertEqual(code, 1)
         self.assertIn("GOV-R120", out)
 
+    def test_a_repository_declares_a_fixture_of_its_own(self):
+        # The Rust stack renders a withdrawn requirement and asserts the
+        # strikethrough. Read without an answer for that, the gate refuses the
+        # next change touching the line, and the only way to satisfy it is to
+        # write the fixture out of a real requirement number.
+        fixtures = self.root / ".github"
+        fixtures.mkdir(parents=True, exist_ok=True)
+        (self.root / "render.rs").write_text("fixture", encoding="utf-8")
+        (fixtures / "spec-check-fixtures").write_text(
+            "# names ids that do not resolve, on purpose\nrender.rs\n", encoding="utf-8"
+        )
+        code, out = self.check_diff(
+            a_diff("Gone GOV-R120 (withdrawn)", path="render.rs"), "Spec: GOV-R12\n"
+        )
+        self.assertEqual(code, 0, out)
+        self.assertIn("not read for identifiers", out)
+        self.assertIn("render.rs", out)
+
+    def test_a_declaration_names_a_path_and_not_a_pattern(self):
+        fixtures = self.root / ".github"
+        fixtures.mkdir(parents=True, exist_ok=True)
+        (fixtures / "spec-check-fixtures").write_text("tests/*\n", encoding="utf-8")
+        code, out = self.check_diff(a_diff("GOV-R12"), "Spec: GOV-R12\n")
+        self.assertEqual(code, 2)
+        self.assertIn("names a pattern, not a path", out)
+
+    def test_a_declaration_that_stopped_applying_is_refused(self):
+        # A list carrying an entry nobody can point at is one nobody trusts
+        # enough to shorten, so the day the fixture moves the gate says which
+        # line to delete rather than quietly reading one file more.
+        fixtures = self.root / ".github"
+        fixtures.mkdir(parents=True, exist_ok=True)
+        (fixtures / "spec-check-fixtures").write_text("gone.rs\n", encoding="utf-8")
+        code, out = self.check_diff(a_diff("GOV-R12"), "Spec: GOV-R12\n")
+        self.assertEqual(code, 2)
+        self.assertIn("names a file that is not there: gone.rs", out)
+
+    def test_a_declaration_does_not_cover_a_file_it_did_not_name(self):
+        fixtures = self.root / ".github"
+        fixtures.mkdir(parents=True, exist_ok=True)
+        (self.root / "render.rs").write_text("fixture", encoding="utf-8")
+        (fixtures / "spec-check-fixtures").write_text("render.rs\n", encoding="utf-8")
+        code, out = self.check_diff(
+            a_diff("GOV-R120", path="other.rs"), "Spec: GOV-R12\n"
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("GOV-R120", out)
+
     def test_a_removed_line_is_not_this_change_to_answer_for(self):
         diff = (
             "diff --git a/x.md b/x.md\n--- a/x.md\n+++ b/x.md\n"
