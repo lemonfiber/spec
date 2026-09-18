@@ -75,18 +75,50 @@ should happen, then fix it.
 Requirement IDs look like `A2-R4`: feature `A2`, fourth requirement. Every one is
 in a table at the bottom of its feature doc.
 
-## Sign your commits off — and cryptographically
+## What a commit message has to carry
 
-Two separate things, both required on `main`:
+Four things. Each is a separate check, each speaks after a push and a red run,
+and one hook says all four before any of that.
 
-- **`git commit -s`** adds a DCO `Signed-off-by` line — your assertion that you
-  have the right to submit the work under the repo's licence. A `dco` check
-  enforces it. See [dco.md](dco.md).
-- **Signed commits** (SSH or GPG) prove *who* you are. `main` requires them.
+| Rule | What it looks like | Check |
+|------|--------------------|-------|
+| A conventional subject (**OPS-R21**) | `feat: health-gate service startup` | `commitlint` |
+| A DCO sign-off (**GOV-R29**) | `Signed-off-by: Your Name <you@example.com>` | `dco` |
+| A citation of something in this spec (**GOV-R2**) | `Spec: B2-R1, B2-R2` | `spec-check` |
+| No credit to the tool that wrote it (**GOV-R46**) | no `Co-authored-by:` naming an assistant | `attribution` |
+
+The subject types are `feat fix docs refactor test chore ci perf build style
+revert`, optionally scoped (`feat(api):`) and optionally breaking (`feat!:`). A
+merge, a revert and a `fixup!` are written by git and are exempt, here and in CI.
+
+### Turn the hook on, and none of the four costs a round trip
+
+```sh
+git config core.hooksPath .githooks
+```
+
+Every repository in the organisation carries `.githooks/commit-msg`; it is the
+same file in each, held byte-identical to
+[shared/hooks/commit-msg](../shared/hooks/commit-msg), and it names all four at
+once with the literal line to add. It enforces nothing CI does not (**Q-R57**) —
+where the two differ, CI is right and the hook is wrong.
+
+The setting is per-clone local config, so no commit can carry it. Each repository
+hangs it on a command you were going to run anyway — `just ci`, `npm install` or
+`composer install`, whichever that repository has — and the line above is for a
+clone where none of them has been run yet.
+[shared/README.md](../shared/README.md#turning-it-on) is which repository uses
+which name, and [adoption.toml](../shared/adoption.toml) is which repositories
+carry the hooks at all.
+
+### Signing is a fifth thing, and a different one
+
+A sign-off is an assertion about rights; a signature is proof of identity. `main`
+requires both.
 
 `git config commit.gpgsign true` once, and always commit with `-s`, and both are
 handled. Your contribution ships under the repo's licence (Hippocratic 3.0 for
-code) — inbound equals outbound, no CLA.
+code) — inbound equals outbound, no CLA. See [dco.md](dco.md).
 
 ## What not to do
 
@@ -156,5 +188,7 @@ job rather than a reporter's (**GOV-R25**).
 
 - [change-lifecycle.md](change-lifecycle.md) — the full flow
 - [cross-repo-ci.md](cross-repo-ci.md) — what the bot checks
+- [dco.md](dco.md) — the sign-off, and what it asserts
+- [ai-contributors.md](ai-contributors.md) — **GOV-R46** and the rest of what an assistant is held to
 - [issue-routing.md](issue-routing.md) — which repo an issue belongs in
 - [40-quality/](../40-quality/) — code standards
