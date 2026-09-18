@@ -468,6 +468,86 @@ class Writing(StatedCounts):
         self.assertEqual(integrity.write_counts(), [])
 
 
+class ManifestGoalCounts(Spec):
+    """A manifest's stated goal count against the goals it locks.
+
+    The number lives in a comment, and the only reader of a comment is a person.
+    Everything mechanical reads `goals` itself — `index.json` publishes the real
+    figure per version — so a stated one can be wrong for a whole release without
+    anything going red.
+    """
+
+    def manifest(self, version, body):
+        self.doc(f"70-operations/versions/{version}.toml", body)
+
+    def locking(self, *ids):
+        return "goals = [" + ", ".join(f'"{i}"' for i in ids) + "]\n"
+
+    def test_a_count_matching_what_the_manifest_locks(self):
+        self.manifest("0.1.0", "# 2 goals, seeded from a milestone\n" + self.locking("A1-R1", "A1-R2"))
+        self.assertEqual(integrity.stated_goal_counts(), [])
+
+    def test_a_count_that_is_not_what_the_manifest_locks(self):
+        self.manifest("0.1.0", "# 3 goals, seeded from a milestone\n" + self.locking("A1-R1", "A1-R2"))
+        said = integrity.stated_goal_counts()
+        self.assertEqual(len(said), 1)
+        self.assertIn("says 3 goals where this version locks 2", said[0])
+        self.assertIn("70-operations/versions/0.1.0.toml:1", said[0])
+
+    def test_a_manifest_stating_no_count_is_left_alone(self):
+        self.manifest("0.1.0", "# 1 goals\n" + self.locking("A1-R1"))
+        self.manifest("0.2.0", "# what this version is for\n" + self.locking("A1-R2"))
+        self.assertEqual(integrity.stated_goal_counts(), [])
+
+    def test_manifests_that_state_it_nowhere_are_refused_rather_than_passed(self):
+        """The silence that reads as a pass, and the reason this has a floor."""
+        self.manifest("0.1.0", "# what this version is for\n" + self.locking("A1-R1"))
+        said = integrity.stated_goal_counts()
+        self.assertEqual(len(said), 1)
+        self.assertIn("nothing was compared", said[0])
+
+    def test_a_tree_with_no_manifests_states_nothing_about_one(self):
+        self.assertEqual(integrity.stated_goal_counts(), [])
+
+    def test_the_template_is_not_a_manifest(self):
+        self.manifest("0.1.0", "# 1 goals\n" + self.locking("A1-R1"))
+        self.doc("70-operations/versions/TEMPLATE.toml", "# 9 goals\ngoals = []\n")
+        self.assertEqual(integrity.stated_goal_counts(), [])
+
+    def test_a_manifest_stating_it_twice_is_held_to_both(self):
+        self.manifest("0.1.0", "# 1 goals\n# 4 goals\n" + self.locking("A1-R1"))
+        said = integrity.stated_goal_counts()
+        self.assertEqual(len(said), 1)
+        self.assertIn("says 4 goals where this version locks 1", said[0])
+
+    def test_a_number_inside_the_sentence_is_not_the_stated_count(self):
+        """Anchored at the comment's own opening, because manifests talk about
+        goals in prose — *two of these goals* is a remark, not a claim about how
+        many there are, and comparing it would redden a manifest that is right."""
+        self.manifest(
+            "0.1.0",
+            "# 1 goals\n# Two of these 9 goals land in the stack repository\n"
+            + self.locking("A1-R1"),
+        )
+        self.assertEqual(integrity.stated_goal_counts(), [])
+
+    def test_the_write_mode_repairs_exactly_what_the_check_reported(self):
+        self.manifest("0.1.0", "# 3 goals, seeded from a milestone\n" + self.locking("A1-R1", "A1-R2"))
+        changed = integrity.write_goal_counts()
+        self.assertEqual(changed, ["70-operations/versions/0.1.0.toml: 3 -> 2 goals"])
+        self.assertEqual(integrity.stated_goal_counts(), [])
+
+    def test_the_comment_keeps_its_own_wording(self):
+        self.manifest("0.1.0", "# 3 goals, seeded from a milestone\n" + self.locking("A1-R1"))
+        integrity.write_goal_counts()
+        text = (self.root / "70-operations/versions/0.1.0.toml").read_text(encoding="utf-8")
+        self.assertIn("# 1 goals, seeded from a milestone", text)
+
+    def test_a_correct_count_is_not_rewritten(self):
+        self.manifest("0.1.0", "# 1 goals\n" + self.locking("A1-R1"))
+        self.assertEqual(integrity.write_goal_counts(), [])
+
+
 class ManifestRepositories(Spec):
     """Every repository a version manifest names resolves to one in the registry."""
 

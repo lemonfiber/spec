@@ -89,6 +89,11 @@ is the answer somebody can act on rather than a number they have to trust.
 - And what it shipped *as*: read `released_as` where there is one, `version`
   otherwise. A patch records the line it closed rather than a manifest of its
   own, so the train stays serial and the record still names the tag.
+- A comment opening `# <n> goals` is checked against the `goals` list beneath it
+  by `just integrity`, and `just counts` rewrites it. It is a number a person
+  types into a data file nothing mechanical reads, so a scope change under
+  OPS-R31 leaves it wrong with no run going red; stating it is optional and
+  stating it wrongly is not.
 
 See [TEMPLATE.toml](TEMPLATE.toml) to start one, and [staging.md](../staging.md)
 for the lifecycle these files move through.

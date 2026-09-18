@@ -1,10 +1,12 @@
 # Plugins, part two — what the bundled stack can do, where a plugin comes from.
 #
-# F9 gives all twenty bundled services their capabilities and their probes, and converts
-# the stack's wiring to ask for capabilities rather than to name services. That is the
+# F9 gives all twenty bundled services their capabilities and their probes. That is the
 # larger half of the capability work and the smaller half of its thinking, and it is what
 # makes substituting a plugin for a *bundled* service possible rather than merely
 # describable. It is work in the stack repository as much as in this one.
+#
+# The wiring conversion F9-R4 asks for is 0.16.0's, because F4-R1, F4-R9, F4-R10, F4-R11
+# and F4-R12 cannot be built while every wiring still names a service.
 #
 # With it, the catalogue and its provenance (F5). F5-R3 requires catalogue releases to be
 # signed and no artefact-signing mechanism exists yet — L1-R2 owes one at 1.0.0, which is
@@ -25,7 +27,7 @@
 # G9 stays: a mobile client is handed a stack it did not configure, which is the same
 # question this version answers for a plugin.
 #
-# 30 goals, seeded from the roadmap milestone this version serves;
+# 29 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.17.0"
 milestone = "M14"   # The platform
@@ -37,7 +39,6 @@ goals   = [
     "F9-R1",
     "F9-R2",
     "F9-R3",
-    "F9-R4",
     "F9-R5",
     "F9-R6",
     "F5-R1",
