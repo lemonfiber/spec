@@ -1,16 +1,25 @@
 # A version for the workflows this repository publishes, so a pin on one can be
 # bumped by the dependency bot rather than by hand.
 #
-# Fourteen repositories pin these workflows to an exact commit. Dependabot's
+# Fifteen repositories pin these workflows to an exact commit. Dependabot's
 # `github-actions` updater proposes a bump when a newer *version* exists, and a
 # raw commit is not one — so with no tag here it has nothing to compare, opens
 # nothing, and its silence is indistinguishable from nothing to update. The
 # `shared-workflows` group in `.github/dependabot.yml` is already waiting on
 # exactly this.
 #
-# The series is `v1.0.N`, incremented once per commit to `main` that changes a
-# published workflow. It carries no meaning beyond order, which is all the
-# updater compares.
+# The series is `v1.0.N`, and the number is order and nothing else, because order
+# is all the updater compares. Two properties hold it up, and both are refused
+# rather than assumed: a number is cut for a commit to `main` that changes a
+# published workflow, and a number never points at a tree an earlier number
+# already contained.
+#
+# A push is how the tag is normally cut and it is not the only way in. The run
+# for a given commit happens once; if it fails, that commit's number is gone and
+# the next qualifying commit quietly takes it. So the same job can be asked for a
+# named commit by hand, and every run ends by checking that nothing on `main` is
+# still waiting for a number — a tag publisher whose misses are silent leaves
+# fifteen repositories with nothing to bump to and no way to find that out.
 name: publish-pin-tag
 
 on:
@@ -18,6 +27,14 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/**"
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: >-
+          The commit on main to number. Empty takes the head of the branch this
+          is run against, which is what a push does.
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -42,14 +59,39 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Work out the next number and whether this commit needs one
+      - name: Which commit is being numbered, and what number it may have
         id: next
+        env:
+          WANTED: ${{ inputs.commit }}
         run: |
           set -euo pipefail
           git fetch --quiet --tags --force origin
+          git fetch --quiet origin main
 
-          if [ -n "$(git tag --points-at HEAD --list 'v1.0.*')" ]; then
-            echo "already: $(git tag --points-at HEAD --list 'v1.0.*')"
+          commit=$(git rev-parse --verify "${WANTED:-$GITHUB_SHA}^{commit}")
+          echo "commit=$commit" >>"$GITHUB_OUTPUT"
+
+          # A tag on a commit `main` does not hold names a tree no consumer can
+          # reach by following the branch they pin against.
+          if ! git merge-base --is-ancestor "$commit" origin/main; then
+            echo "::error::$commit is not on main, so a number on it would name a"\
+              "tree no consumer can reach. Number a commit main holds."
+            exit 1
+          fi
+
+          # A number on a commit that changed no published workflow tells a
+          # consumer there is something to take when there is not, which is the
+          # same wasted bump a `# main` comment produces.
+          if [ -z "$(git diff-tree --no-commit-id --name-only -r "$commit" -- .github/workflows/)" ]; then
+            echo "::error::$commit changed no file under .github/workflows, so"\
+              "there is nothing for a consumer to bump to. Number the commit that"\
+              "changed the workflow."
+            exit 1
+          fi
+
+          carried=$(git tag --points-at "$commit" --list 'v1.0.*')
+          if [ -n "$carried" ]; then
+            echo "$commit already carries $carried"
             echo "tag=" >>"$GITHUB_OUTPUT"
             exit 0
           fi
@@ -59,6 +101,21 @@ jobs:
           highest=$(git tag --list 'v1.0.*' \
             | sed -n 's/^v1\.0\.\([0-9][0-9]*\)$/\1/p' \
             | sort -n | tail -1)
+
+          if [ -n "$highest" ]; then
+            at=$(git rev-parse --verify "v1.0.${highest}^{commit}")
+            # The number is order. A higher number on a tree an earlier number
+            # already contained inverts it, and a consumer bumping forward would
+            # take an older workflow than the one it holds.
+            if git merge-base --is-ancestor "$commit" "$at"; then
+              echo "::error::v1.0.${highest} already contains $commit, so the next"\
+                "number on it would point backwards and a consumer bumping to it"\
+                "would take an older workflow than it has. This commit's number is"\
+                "gone; nothing recovers it in order."
+              exit 1
+            fi
+          fi
+
           echo "tag=v1.0.$(( ${highest:-0} + 1 ))" >>"$GITHUB_OUTPUT"
 
       - name: Publish it
@@ -66,9 +123,63 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.next.outputs.tag }}
+          COMMIT: ${{ steps.next.outputs.commit }}
         run: |
           set -euo pipefail
           gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
             -f "ref=refs/tags/${TAG}" \
-            -f "sha=${GITHUB_SHA}" >/dev/null
-          echo "::notice::published ${TAG} at ${GITHUB_SHA}"
+            -f "sha=${COMMIT}" >/dev/null
+          echo "::notice::published ${TAG} at ${COMMIT}"
+
+      # What a failed run costs, asked on every run rather than hoped for. A run
+      # happens once per commit; the one that fails leaves that commit with no
+      # number and the next qualifying commit takes the one it was going to have,
+      # which is a gap nothing else in this repository can see.
+      - name: Nothing on main is still waiting for a number
+        if: always() && steps.next.outcome == 'success'
+        run: |
+          set -euo pipefail
+          git fetch --quiet --tags --force origin
+          git fetch --quiet origin main
+
+          highest=$(git tag --list 'v1.0.*' \
+            | sed -n 's/^v1\.0\.\([0-9][0-9]*\)$/\1/p' \
+            | sort -n | tail -1)
+
+          if [ -z "$highest" ]; then
+            echo "::error::no v1.0.* tag exists at all, so every pin in the"\
+              "organisation has nothing to be newer than and this check has"\
+              "nothing to measure against."
+            exit 1
+          fi
+
+          at=$(git rev-parse --verify "v1.0.${highest}^{commit}")
+          waiting=$(git log --format='%h %s' "${at}..origin/main" -- .github/workflows/)
+
+          if [ -n "$waiting" ]; then
+            echo "::error::a commit on main changed a published workflow and"\
+              "carries no number, so consumers have nothing to bump to for it."\
+              "Run this workflow by hand against that commit."
+            printf '%s\n' "$waiting" | sed 's/^/    /'
+            exit 1
+          fi
+
+          echo "v1.0.${highest} is at or ahead of every commit that changed a published workflow"
+
+  # Loud, because the cost of this failing is invisible from every repository it
+  # affects: fifteen of them go on pinning what they already have and nothing
+  # tells them a revision they could take exists.
+  told:
+    needs: publish-pin-tag
+    if: failure()
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      title: "🏷️ publish-pin-tag failed"
+      body: >-
+        No number was cut. Until it is, every repository pinning these workflows
+        has nothing newer to bump to and no way to notice — the run page says
+        which of the two it is.
+      url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      color: "15158332"
+    secrets:
+      webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}
