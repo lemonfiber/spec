@@ -105,15 +105,20 @@ class EveryWalkIsBounded(unittest.TestCase):
         for name in sorted(walkers()):
             with self.subTest(script=name):
                 text = (SCRIPTS / name).read_text(encoding="utf-8")
+                # The answer rather than the haystack. `assertIn` over a whole script
+                # prints the script on failure, which buries the one sentence saying
+                # what is wrong under nine hundred lines that are not.
                 if name in SCOPED:
+                    confined = SCOPED[name] in text
                     self.assertTrue(
-                        SCOPED[name] in text,
+                        confined,
                         f"{name} is declared confined to {SCOPED[name]} and no longer "
                         "names it",
                     )
                     continue
+                bounded = ASKS in text
                 self.assertTrue(
-                    ASKS in text,
+                    bounded,
                     f"{name} walks this tree and never asks which files are ours, so it "
                     "reads an agent's worktree or a vendored copy as this repository's "
                     "own text",
