@@ -251,11 +251,16 @@ The tooling is kept consistent across repos by construction, not vigilance:
   by review rather than by construction ([ADR-0016](../00-overview/decisions/0016-dependabot-over-renovate.md)).
 - **`.github` repo** supplies community files org-wide.
 - **`shared/`** in the spec repo holds the files that must be copied because a tool
-  or GitHub reads them from the tree it is given — the two lint configs and the
-  brand assets a README shows. The `shared-files` job in the hygiene gate fails a
-  copy that has drifted from the one here.
-- **lefthook and just** configs are small and per-repo, but mirror the reusable
-  CI so they cannot demand something CI doesn't.
+  or GitHub reads them from the tree it is given — the two lint configs, the hooks,
+  the gate scripts and the brand assets a README shows. The `shared-files` job in
+  the hygiene gate fails a copy that has drifted from the one here.
+- **Two homes are not in `shared/`.** A brand asset's is the brand repository's own
+  original, named in [`shared/assets.sha256`](../shared/assets.sha256); `CLAUDE.md`'s
+  is this repository's own copy at the root, because the one link in it is relative
+  to a repository root and would resolve to nothing from inside `shared/`.
+- **Task-runner recipes** are per-repo, because what each repository can run
+  locally is different. What they may not do is claim to be CI while running less
+  of it than CI does.
 
 The distinction worth keeping straight: a reusable workflow is *not* copied, so it
 cannot drift. A lint config **is** copied, because the gate checks out the calling
@@ -298,6 +303,29 @@ A register that is absent, unreadable or naming nobody refuses too. It is the
 input both checks are decided by, so one that did not arrive is a question that
 went unasked — and a question that went unasked has never been the same answer as
 *nothing to report*.
+
+### The first prose held to anything
+
+`shared/` covers configuration, hooks, gate scripts and images. It covered no
+prose at all, and the largest duplicated blocks in the org are prose: a licence
+rationale in 21 places, a footer in 16, the pointer to this repository's
+contributor rules in 13.
+
+`CLAUDE.md` is where that starts, because it is the cheapest possible case. It is
+one sentence — *see `AGENTS.md`* — it is the same sentence in every repository
+that has one, and there is no local variation to allow for. It was already
+byte-identical everywhere it existed, held there by nothing, which is a copy
+waiting to drift rather than a rule.
+
+Required rather than adopted, unlike the hooks: `GOV-R26` asks every repository
+for both files, the guide and the tool-specific name pointing at it. Read
+conditionally — *if a repository has a guide, check the pointer* — the one
+repository carrying neither would have been the only one this said nothing about,
+and it is the repository where an agent finds no guidance at all.
+
+What the pointer may not become is a second guide. Anything about a particular
+repository belongs in its `AGENTS.md`, which this does not read and which is
+deliberately free prose.
 
 ## A pin is a copy, and a copy goes stale
 

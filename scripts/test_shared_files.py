@@ -70,6 +70,11 @@ RUFF = (
     'ignore = ["E501"]\n'
 )
 LOGO = "<svg><!-- the lockup --></svg>\n"
+
+#: The one-line pointer, and a guide for it to point at. Its home is the canonical
+#: checkout's own root copy rather than a file in `shared/`.
+POINTER = "See [AGENTS.md](AGENTS.md) — the tool-agnostic agent guide for this repo.\n"
+GUIDE = "# AGENTS.md — cli\n\nWhat this repository is.\n"
 OTHER = "<svg><!-- something else --></svg>\n"
 
 
@@ -129,6 +134,9 @@ class Copies(unittest.TestCase):
         self.write(".markdownlint.jsonc", MARKDOWNLINT)
         self.write("typos.toml", TYPOS)
         self.write(".github/CODEOWNERS", self.generated())
+        (self.canonical / "CLAUDE.md").write_text(POINTER, encoding="utf-8")
+        self.write("CLAUDE.md", POINTER)
+        self.write("AGENTS.md", GUIDE)
         self.addCleanup(shutil.rmtree, self.tmp, True)
 
     def generated(self, repo_name="cli"):
@@ -709,6 +717,72 @@ class Declared(Copies):
         self.assertEqual(code, 1, out)
         self.assertIn("names no repository, so shared/adoption.toml was compared "
                       "against nothing", out)
+
+
+class ThePointer(Copies):
+    """`CLAUDE.md`: one sentence, the same sentence, in every repository.
+
+    The first prose held to anything. `GOV-R26` requires both files of every
+    repository, so this is required rather than conditional — a repository
+    carrying neither is the one an agent finds no guidance in at all, and a
+    conditional read is exactly the one that would say nothing about it.
+    """
+
+    def test_a_pointer_that_agrees(self):
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
+    def test_a_pointer_somebody_rewrote(self):
+        self.write("CLAUDE.md", POINTER.replace("tool-agnostic", "project"))
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("CLAUDE.md differs from the canonical copy", out)
+        self.assertIn("put anything repository-specific in AGENTS.md", out)
+
+    def test_a_pointer_that_grew_into_a_second_guide(self):
+        # The way this file actually drifts: somebody adds one local rule to the
+        # tool-specific name, and the guide beside it stops being the one answer.
+        self.write("CLAUDE.md", POINTER + "\nRun the tests before pushing.\n")
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("CLAUDE.md differs from the canonical copy", out)
+
+    def test_a_repository_with_no_pointer(self):
+        (self.repo / "CLAUDE.md").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("a tool that reads only CLAUDE.md finds no guide", out)
+
+    def test_a_repository_with_no_guide(self):
+        (self.repo / "AGENTS.md").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("AGENTS.md is not here", out)
+        self.assertIn("GOV-R26", out)
+
+    def test_a_repository_with_neither(self):
+        # Both named, rather than one standing in for the other: they are two
+        # files and a repository can be missing either.
+        (self.repo / "AGENTS.md").unlink()
+        (self.repo / "CLAUDE.md").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("AGENTS.md is not here", out)
+        self.assertIn("CLAUDE.md is not here", out)
+
+    def test_a_canonical_copy_that_is_not_there(self):
+        # The floor. Without it every repository's copy is compared against
+        # nothing and the run says the copies match.
+        (self.canonical / "CLAUDE.md").unlink()
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("compared against nothing", out)
+
+    def test_a_canonical_copy_that_is_blank(self):
+        (self.canonical / "CLAUDE.md").write_text("\n \n", encoding="utf-8")
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("compared against a blank file", out)
 
 
 class NoRegister(Copies):
