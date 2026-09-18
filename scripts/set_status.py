@@ -43,12 +43,11 @@ import pathlib
 import re
 import sys
 
-from patterns import PRERELEASE_ID, STATES
+from patterns import IN_FLIGHT, PRERELEASE_ID, STATES
 from patterns import VERSION as VERSION_RE
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 PRERELEASE_TAG_RE = re.compile(r"^v(\d+\.\d+\.\d+)-(.+)$")
-IN_FLIGHT_FOR_PRERELEASE = ("staged", "in_progress", "releasable")
 VERSIONS_DIR = pathlib.Path("70-operations/versions")
 
 
@@ -224,10 +223,10 @@ def refuse_half_a_prerelease(a: argparse.Namespace) -> None:
     # against are the ones a version is in while it is still being worked on. A
     # record on a released manifest would be a pre-release of something already out;
     # on a planned one, of a version nobody has committed to yet.
-    if a.prerelease and a.status not in IN_FLIGHT_FOR_PRERELEASE:
+    if a.prerelease and a.status not in IN_FLIGHT:
         sys.exit(
             f"::error::a pre-release belongs to a version in flight, not {a.status!r} "
-            f"({'/'.join(IN_FLIGHT_FOR_PRERELEASE)})"
+            f"({'/'.join(IN_FLIGHT)})"
         )
     if a.prerelease and not a.prerelease_on:
         sys.exit("::error::--prerelease-on is required to record a pre-release")
