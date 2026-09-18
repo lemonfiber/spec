@@ -40,6 +40,7 @@ ROOT = SCRIPTS.parent
 sys.path.insert(0, str(SCRIPTS))
 
 import attribution_check  # noqa: E402
+import check_local_command  # noqa: E402
 import check_shared_files  # noqa: E402
 import check_stageable  # noqa: E402
 import gate  # noqa: E402
@@ -204,6 +205,26 @@ class EveryGateRefusesAnEmptyCollection(unittest.TestCase):
                     rows, refused = check_shared_files.register(canonical)
                     self.assertFalse(rows)
                     self.assertTrue(refused, "the register was happy about nothing")
+
+    def test_a_repository_describing_nothing_is_refused(self):
+        """The claim check reads a sentence, and an empty tree has none.
+
+        Everything it decides is decided by finding prose. A repository with no
+        local command, and one whose command carries no description, both arrive
+        as *no sentence claims to be CI* — which is the same answer a repository
+        whose every claim is honest gives, and is the one answer that must not be
+        reported as clean.
+        """
+        with tempfile.TemporaryDirectory() as where:
+            repo = pathlib.Path(where)
+            problems, counted = check_local_command.check(repo)
+            self.assertTrue(problems, "an empty repository was happy about nothing")
+            self.assertEqual(counted, 0)
+
+            (repo / "justfile").write_text("ci: lint\n", encoding="utf-8")
+            problems, counted = check_local_command.check(repo)
+            self.assertTrue(problems, "an undescribed command was happy about nothing")
+            self.assertEqual(counted, 0)
 
 
 if __name__ == "__main__":

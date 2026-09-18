@@ -2,15 +2,41 @@
 default:
     @just --list
 
-# Run every check CI runs, and turn the hooks on if they are not already —
-# this is the command run before a push, which is when the hook matters.
+# Everything the `integrity` job decides, and the hooks turned on — the command
+# to run before a push, which is when the hook matters.
 #
-# `generated` and `ordering` are here because the claim in the line above has
-# to be true for the recipe to be worth running. It ran seven of the fifteen
-# checks `integrity.yml` runs, so a push that passed it could — and did — go
-# red on CI for a board nobody regenerated. A pre-push command that is a subset
-# of CI teaches people to skip it and read the run instead.
-ci: hooks integrity shared services check-meta ordering generated lint typos links
+# It is not CI and does not say it is. Most of what a pull request here starts is
+# forge-side and no clone can run any of it, so a recipe claiming to be the whole
+# of CI is making a promise it cannot keep — and a promise broken once teaches
+# people to skip the command and read the run instead.
+#
+# Not here, and what answers each:
+#
+#   commitlint, dco, attribution,          `.githooks/commit-msg`, which `hooks`
+#   the citation gate                      above turns on — all four, before the
+#                                          push, with the line to add
+#   coverage                               `python3 scripts/test_*.py` runs the
+#                                          suites; the 100% floor is measured on
+#                                          the forge
+#   markdown, actionlint                   `npx markdownlint-cli2 "**/*.md"` and
+#                                          `actionlint`
+#   pins, workflow-pins                    ask the forge which commits a pin has
+#                                          not taken
+#   CodeQL, gitleaks, osv-scanner,         forge-side, and none of them decides
+#   sonar, label, the reference comment    anything about a document here
+#   the redirect site                      `just docs`
+#
+# Everything the `integrity` job decides, plus the hooks — not CI.
+ci: hooks integrity shared services check-meta ordering generated lint typos links local
+
+# A description claiming to be CI has to name what it leaves out, because CI is
+# mostly jobs no clone can run. A recipe nobody described is refused too — the
+# state in which this has nothing to read and would report that every claim here
+# is honest.
+#
+# What the recipe above says it covers, against what it cannot.
+local:
+    python3 scripts/check_local_command.py --root .
 
 # Every file this repository generates from something else, regenerated and
 # compared. A generated file edited by hand, or left behind by an edit to its

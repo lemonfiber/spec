@@ -260,7 +260,7 @@ The tooling is kept consistent across repos by construction, not vigilance:
   to a repository root and would resolve to nothing from inside `shared/`.
 - **Task-runner recipes** are per-repo, because what each repository can run
   locally is different. What they may not do is claim to be CI while running less
-  of it than CI does.
+  of it than CI does — [below](#the-command-before-a-push-is-not-ci).
 
 The distinction worth keeping straight: a reusable workflow is *not* copied, so it
 cannot drift. A lint config **is** copied, because the gate checks out the calling
@@ -326,6 +326,34 @@ and it is the repository where an agent finds no guidance at all.
 What the pointer may not become is a second guide. Anything about a particular
 repository belongs in its `AGENTS.md`, which this does not read and which is
 deliberately free prose.
+
+### The command before a push is not CI
+
+Every repository has one command that stands for CI locally — `just ci`,
+`npm run ci`, `composer ci` — and none of them is it. Most of what a pull request
+starts here is forge-side: the citation gate, the sign-off, the subject, CodeQL,
+the secret scan, the label sync. A machine with a clone cannot run any of them,
+and no recipe ever will.
+
+A recipe describing itself as *everything CI runs* is therefore saying something
+that cannot be true, and the cost is specific. A contributor who runs it, pushes
+and goes red learns that the command is not worth running — and then does not run
+it for the things it *would* have caught.
+
+[`check_local_command.py`](../scripts/check_local_command.py) holds the sentence
+rather than the coverage. A recipe may leave out as much as it likes; what it may
+not do is claim the opposite. Two shapes pass — the clause, which reads best when
+there is one omission, and the list, which reads better when there are six:
+
+> Everything CI runs **bar the image check**, which needs the network.
+>
+> Every gate CI runs **but backward compatibility**, in order; run `composer bc`
+> for that one.
+
+The floor is the entry point. A repository with no local command, and one whose
+command nobody described, are both refused — the second because it is the state
+in which this has no sentence to read and would report that every claim in the
+repository is honest.
 
 ## A pin is a copy, and a copy goes stale
 
