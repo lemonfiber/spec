@@ -387,16 +387,42 @@ class ReadingTheRulesOffTheForge(Stubbed):
         self.assertEqual(wib._state("o/r", 1), {})
 
     def test_unsigned_commits_are_named_by_their_short_sha(self):
+        self.said["api repos/o/r/pulls/1/commits"] = json.dumps([])
         self.assertEqual(wib._unsigned("o/r", 1), [])
         self.said["api repos/o/r/pulls/1/commits"] = json.dumps(["abcd1234"])
         self.assertEqual(wib._unsigned("o/r", 1), ["abcd1234"])
 
     def test_an_open_conversation(self):
+        self.said["api graphql"] = json.dumps([])
         self.assertFalse(wib._unresolved("o/r", 1))
         self.said["api graphql"] = json.dumps([True, True])
         self.assertFalse(wib._unresolved("o/r", 1))
         self.said["api graphql"] = json.dumps([True, False])
         self.assertTrue(wib._unresolved("o/r", 1))
+
+    def test_a_call_that_failed_is_not_a_rule_that_was_met(self):
+        """`gh` printing nothing is `gh` having failed: a `--jq` over a list
+        prints `[]` when the list is empty, so the two are distinguishable and
+        used not to be.
+
+        These are the two rules read with a second call, and one of them is the
+        one no check list names — so losing it silently is the worst of the four
+        to lose.
+        """
+        self.assertIsNone(wib._unsigned("o/r", 1))
+        self.assertIsNone(wib._unresolved("o/r", 1))
+
+    def test_a_rule_that_could_not_be_read_is_reported_as_unproven(self):
+        on = {"strict": False, "signatures": True, "conversation": True, "reviews": False}
+        said = wib.unmet(on, {"unsigned": False, "unresolved": False,
+                              "unread": ["unsigned", "unresolved"]})
+        self.assertEqual(len(said), 2, said)
+        for sentence in said:
+            self.assertIn("could not be read", sentence)
+            self.assertIn("unproven rather than satisfied", sentence)
+        # And a rule that was read and met still reads as the thing to do.
+        met = wib.unmet(on, {"unsigned": True, "unresolved": False, "unread": []})
+        self.assertEqual(met, ["every commit must be signed — re-sign and force-push"])
 
 
 class WhenNothingRanAtAll(Stubbed):

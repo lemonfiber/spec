@@ -153,11 +153,25 @@ def unmet(protection: dict[str, bool], state: dict[str, bool]) -> list[str]:
     "every required context is satisfied" while one of them holds the merge is
     the same wrong answer GitHub's own merge box gives.
     """
-    return [
-        said
-        for setting, condition, said in RULES
-        if protection.get(setting) and state.get(condition)
-    ]
+    unread = set(state.get("unread") or ())
+    said: list[str] = []
+    for setting, condition, sentence in RULES:
+        if not protection.get(setting):
+            continue
+        if condition in unread:
+            # The one answer this must never give about a rule that is on. Two
+            # of the four are read with a second `gh` call, and a call that
+            # failed used to be indistinguishable from a rule that was met —
+            # so a rate limit or a token missing a scope made the report say
+            # every required context is satisfied, about a question it had not
+            # managed to ask.
+            said.append(
+                f"the {setting} rule is on and could not be read here, "
+                "so it is unproven rather than satisfied"
+            )
+        elif state.get(condition):
+            said.append(sentence)
+    return said
 
 
 def why_nothing_ran(found: dict[str, list[str]], conclusions: list[str]) -> str | None:
@@ -390,12 +404,21 @@ def _state(repo: str, number: int) -> dict[str, bool]:
     if not said.strip():
         return {}
     pr = json.loads(said)
+    unsigned, unresolved = _unsigned(repo, number), _unresolved(repo, number)
     return {
         "forge": pr.get("mergeStateStatus") or "",
         "behind": pr.get("mergeStateStatus") == "BEHIND",
-        "unsigned": bool(_unsigned(repo, number)),
-        "unresolved": _unresolved(repo, number),
+        "unsigned": bool(unsigned),
+        "unresolved": bool(unresolved),
         "unapproved": pr.get("reviewDecision") not in ("APPROVED", None, ""),
+        # The two that can come back unreadable, named so the report can say so.
+        # Reporting them as satisfied is the one answer this script must never
+        # give, because it is the answer the merge box already gives.
+        "unread": [
+            condition
+            for condition, answer in (("unsigned", unsigned), ("unresolved", unresolved))
+            if answer is None
+        ],
     }
 
 
@@ -411,8 +434,15 @@ query($owner: String!, $repo: String!, $number: Int!) {
 """
 
 
-def _unresolved(repo: str, number: int) -> bool:
-    """Whether any review conversation is still open."""
+def _unresolved(repo: str, number: int) -> bool | None:
+    """Whether any review conversation is still open, or nothing where unreadable.
+
+    A `--jq` over a list prints `[]` on a successful call with nothing in it, so
+    empty output is `gh` having failed rather than an answer. The two used to be
+    one: a rate limit, an expired token or a scope the token lacks each produced
+    `False` here, the rule was dropped from the report, and the run said every
+    required context was satisfied with nothing hinting that it had not asked.
+    """
     owner, name = repo.split("/", 1)
     said = _gh(
         "api", "graphql",
@@ -420,18 +450,26 @@ def _unresolved(repo: str, number: int) -> bool:
         "-F", f"owner={safe(owner)}", "-F", f"repo={safe(name)}", "-F", f"number={safe(str(number))}",
         "--jq", "[.data.repository.pullRequest.reviewThreads.nodes[].isResolved]",
     )
-    return any(not resolved for resolved in (json.loads(said) if said.strip() else []))
+    if not said.strip():
+        return None
+    return any(not resolved for resolved in json.loads(said))
 
 
-def _unsigned(repo: str, number: int) -> list[str]:
-    """Commits on this pull request the forge has not verified a signature for."""
+def _unsigned(repo: str, number: int) -> list[str] | None:
+    """Commits with no verified signature, or nothing where that could not be read.
+
+    The rule this repository is most often blocked by and the one no check list
+    names, so losing it silently is the worst of the four to lose.
+    """
     said = _gh(
         "api",
         f"repos/{safe(repo)}/pulls/{safe(str(number))}/commits",
         "--jq",
         "[.[] | select(.commit.verification.verified | not) | .sha[0:8]]",
     )
-    return json.loads(said) if said.strip() else []
+    if not said.strip():
+        return None
+    return json.loads(said)
 
 
 # A check run says `status` until it is over and `conclusion` after; a commit
