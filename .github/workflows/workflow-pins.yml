@@ -1,0 +1,81 @@
+# Reusable pin-drift check for the workflows this repository publishes. Every
+# repository that runs one of them pins it to an exact commit; this says how far
+# behind that commit is and names the commits it has not taken. Callers wire it
+# the way they wire the others:
+#
+#   jobs:
+#     workflow-pins:
+#       uses: lemonfiber/spec/.github/workflows/workflow-pins.yml@<sha> # main
+#
+# `pull_request` as well as `workflow_call`, so this repository runs it on its
+# own pull requests too. The citation gate next door declares `workflow_call`
+# only — for a reason that is good there and does not carry here — and the cost
+# of that is that it has never once run against the repository that maintains
+# it. A gate nobody has watched work is a claim about a gate.
+#
+# What a stale pin here actually holds back, and why the dependency bot cannot
+# open these pull requests itself, are both in 50-governance/cross-repo-ci.md.
+# Neither is what a reader assumes, and both change what this failure means.
+name: workflow-pins
+
+on:
+  workflow_call:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  workflow-pins:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the calling repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check out the canonical copy, with the history the question needs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: main
+          path: .spec-canonical
+          # A pin is answered by listing what `main` has and it does not, and a
+          # shallow clone does not hold the pin to compare against. The script
+          # is right to call that unanswerable rather than clean, which is also
+          # what it would call every single run without this line.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      # Three outcomes, and the third is the one worth knowing about: a pin that
+      # cannot be resolved exits 2 and fails the run without blaming the pull
+      # request. Nothing is closed here in any case — this gate does not have
+      # that power and should not acquire it, because being behind is a state
+      # every repository is in for part of every day.
+      #
+      # Two separate choices below, and they are separate on purpose. *What the
+      # pins are compared against* is always the canonical checkout, which is
+      # `main`, for everybody. *Which copy of the reader runs* is the caller's
+      # own where the caller is the repository that defines it — the same split
+      # the shared-files job makes, for the same reason and one more.
+      #
+      # The reason: in the repository under review the definition under review is
+      # the one that should run, or a change to the gate merges having been run
+      # by nobody. The one more: `main` did not hold this script when this file
+      # was written, so read from there the first run could only ever say the
+      # script was not found — a gate unable to be introduced is a gate nobody
+      # introduces.
+      - name: How far behind each pin is, and what it has not taken
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$REPO" = "lemonfiber/spec" ]; then
+            reader=scripts/workflow_pins.py
+          else
+            reader=.spec-canonical/scripts/workflow_pins.py
+          fi
+          python3 "$reader" .spec-canonical
