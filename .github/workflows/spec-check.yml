@@ -89,6 +89,36 @@ jobs:
             fi
           } > .pr-text.txt
 
+      - name: Gather what this change writes into a file
+        # The other half of GOV-R3. An identifier in a comment, a test's title
+        # or a refusal message is a citation to whoever follows it, and until
+        # this step existed it was resolved against nothing.
+        #
+        # The same two SHAs, re-read from the payload rather than carried over,
+        # for the reason the step above names them per event: only one of the
+        # two fields exists at a time and a null read as a value is how this
+        # gate once exited 1 on a base that was simply not there.
+        #
+        # Two dots, and only added lines are read downstream, so a branch behind
+        # the default one shows main's work as removals and is not answerable
+        # for it.
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+        run: |
+          if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
+             && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            # Loud, like the log above it. A diff that silently came out empty
+            # turns this half of the rule off in every repo, and nothing on the
+            # green tick would say so.
+            git diff --no-color "${BASE_SHA}" "${HEAD_SHA}" > .pr-diff.txt \
+              || { echo "::error::Could not read the diff for ${BASE_SHA}..${HEAD_SHA}. Identifiers written into files were not checked, and a pass here would have said they were." >&2; exit 1; }
+          else
+            echo "::error::base or head is not a commit SHA on a ${EVENT} event, so no diff was read." >&2
+            exit 1
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -134,6 +164,7 @@ jobs:
           python3 .spec-canonical/scripts/spec_check.py \
             --spec-dir .spec-canonical \
             --text-file .pr-text.txt \
+            --diff-file .pr-diff.txt \
             --pr-author "$PR_AUTHOR" \
             "${optional[@]}" 2>&1 | tee .citation-output.txt
           status=${PIPESTATUS[0]}

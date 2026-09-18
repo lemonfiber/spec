@@ -45,9 +45,48 @@ sequenceDiagram
 | 3 | Every cited ID **exists** in `spec@main` at the merge-base | Fail, naming the unknown ID |
 | 4 | No cited requirement is `Draft` or `Withdrawn` | Fail, naming it and its status |
 | 5 | Spec change merged before this PR, where behaviour changed | Fail, with the ordering explained |
+| 6 | Every ID the change **writes into a file** exists in `spec@main` | Fail, naming the unknown ID |
 
 Check 3 is what distinguishes this from a regex looking for a plausible string.
 Check 5 is what makes the spec structurally incapable of falling behind.
+Check 6 is what closes the gap between the two places a citation is made.
+
+### The citation nobody declared
+
+Checks 1 to 5 read the pull request's body and its commit messages. An identifier
+written into a file — the sentence a refusal prints telling somebody what to go
+and read, a page under a repository's own requirements directory, a rule's own
+title — is a citation in every sense that matters to the person who follows it,
+and was resolved against nothing at all. A digit slipped there names a
+requirement that does not exist, on a line whose whole job is to send a reader to
+one.
+
+Check 6 reads the lines a change **adds** and nothing else. A file's existing text
+is not this change's to answer for, and a gate that refused a pull request over a
+line somebody wrote two years ago is a gate that gets switched off rather than
+fixed.
+
+It resolves only families the spec defines, and that is where the rule stops
+rather than where it was convenient to stop. A placeholder such as `X-R…` in a
+doc comment means *any requirement of any family*, and a family the spec has
+never heard of is
+prose about requirements rather than a citation of one. What that costs is worth
+stating plainly: a slip in the family rather than the number — an `M1` where an
+`N1` was meant — reads as prose here and is passed over. The number is where
+the slips are, and a rule that refused every capital-letter-and-digit token would
+refuse the writing that explains the rules.
+
+Retirement is not asked of a file, for the same reason. A comment recording that a
+number was withdrawn has to name it, and nothing here can tell that sentence from
+a citation. The trailer is where a citation is *made*, and that is where
+**GOV-R8** and **GOV-R47** are enforced.
+
+It does not read its own tests. `scripts/test_spec_check.py` exists to name
+identifiers that do not resolve — that is what a test of *refuse an unknown
+identifier* is — and reading it would have the gate refuse the change that
+teaches it to refuse. The exemption is two paths and deliberately not a pattern:
+a test's own title is exactly the kind of citation check 6 exists to resolve, so
+`tests/` anywhere would be a hole wide enough to walk a repository through.
 
 ## Surfacing what a PR cites
 

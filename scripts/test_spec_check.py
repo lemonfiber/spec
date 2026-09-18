@@ -30,6 +30,7 @@ import spec_check  # noqa: E402
 
 SPEC = ".spec-canonical"
 TEXT = ".pr-text.txt"
+DIFF = ".pr-diff.txt"
 
 # A requirement is defined by its table row, and an ADR by its filename.
 ROWS = """# Governance
@@ -76,6 +77,23 @@ class GateCase(unittest.TestCase):
         return run_main(
             ["--spec-dir", spec_dir, "--text-file", text_file, *extra]
         )
+
+    def check_diff(self, diff, text="Spec: GOV-R12\n", *extra, diff_file=DIFF):
+        """The same gate, handed a change's diff as well as its text."""
+        (self.root / DIFF).write_text(diff, encoding="utf-8")
+        return self.check(text, "--diff-file", diff_file, *extra)
+
+
+def a_diff(*added, path="tests/SomeTest.php"):
+    """A unified diff adding the given lines, shaped as git writes one."""
+    body = "".join(f"+{line}\n" for line in added)
+    return (
+        f"diff --git a/{path} b/{path}\n"
+        f"--- a/{path}\n"
+        f"+++ b/{path}\n"
+        f"@@ -0,0 +1,{len(added)} @@\n"
+        f"{body}"
+    )
 
 
 class Citations(GateCase):
@@ -229,6 +247,100 @@ class AMergeGroup(GateCase):
         self.assertEqual(code, 1)
         self.assertIn("no `Spec:` citation found", out)
 
+
+
+class WhatAFileNames(GateCase):
+    """GOV-R3 over the lines a change adds, not only over its trailer."""
+
+    def test_an_identifier_a_file_names_is_resolved(self):
+        code, out = self.check_diff(a_diff("// GOV-R12 — the rule this keeps."))
+        self.assertEqual(code, 0)
+        self.assertIn("cites GOV-R12", out)
+
+    def test_a_number_that_does_not_exist_is_refused(self):
+        code, out = self.check_diff(a_diff("// GOV-R120 — the rule this keeps."))
+        self.assertEqual(code, 1)
+        self.assertIn("names identifiers that do not exist", out)
+        self.assertIn("GOV-R120", out)
+
+    def test_a_perfect_trailer_does_not_rescue_a_file(self):
+        # The whole point of the second half: the citation can be impeccable and
+        # the comment beside the rule can still send somebody nowhere.
+        code, out = self.check_diff(
+            a_diff("// GOV-R120 — the rule this keeps."), "Spec: GOV-R12\n"
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("GOV-R120", out)
+
+    def test_the_gate_does_not_read_its_own_tests(self):
+        # This file names identifiers that do not resolve, because that is what a
+        # test of "refuse an unknown identifier" is. Reading it would have the
+        # gate refuse the change that teaches it to refuse.
+        code, out = self.check_diff(
+            a_diff("GOV-R120", path="scripts/test_spec_check.py"), "Spec: GOV-R12\n"
+        )
+        self.assertEqual(code, 0, out)
+
+    def test_the_exemption_is_two_paths_and_not_a_pattern(self):
+        # A test's own title is exactly the kind of citation this check exists to
+        # resolve, so exempting `tests/` anywhere would be a hole wide enough to
+        # walk a repository through.
+        code, out = self.check_diff(
+            a_diff("GOV-R120", path="scripts/test_something_else.py"), "Spec: GOV-R12\n"
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("GOV-R120", out)
+
+    def test_a_removed_line_is_not_this_change_to_answer_for(self):
+        diff = (
+            "diff --git a/x.md b/x.md\n--- a/x.md\n+++ b/x.md\n"
+            "@@ -1 +1 @@\n-GOV-R120 was here\n+GOV-R12 is here\n"
+        )
+        code, _ = self.check_diff(diff)
+        self.assertEqual(code, 0)
+
+    def test_the_file_header_is_not_read_as_an_added_line(self):
+        # `+++ b/GOV-R120.md` starts with a plus and is not a line anybody wrote.
+        code, _ = self.check_diff(a_diff("nothing here", path="GOV-R120.md"))
+        self.assertEqual(code, 0)
+
+    def test_a_family_the_spec_never_defined_is_prose(self):
+        # `X-R1..R4` means *any requirement of any family*. The limit is stated
+        # in `named_in`, and this is what it costs and buys.
+        code, _ = self.check_diff(a_diff("/// counted as `X-R1..R4`, the four it means"))
+        self.assertEqual(code, 0)
+
+    def test_a_merge_group_citing_nothing_is_still_asked(self):
+        # The event where presence is not required returns early on the trailer.
+        # GOV-R3 is the half a queue can change, so it runs before that.
+        code, out = self.check_diff(
+            a_diff("// GOV-R120"), "no trailer at all\n", "--citation-optional"
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("GOV-R120", out)
+
+    def test_no_diff_given_leaves_the_gate_as_it_was(self):
+        code, out = self.check("Spec: GOV-R12\n")
+        self.assertEqual(code, 0)
+        self.assertIn("cites GOV-R12", out)
+
+    def test_a_retired_number_in_prose_is_not_refused(self):
+        # A comment recording a withdrawal has to name the number. The trailer is
+        # where a citation is made and where GOV-R8 is enforced.
+        code, _ = self.check_diff(a_diff("// GOV-R90 was withdrawn; this reads GOV-R12 now."))
+        self.assertEqual(code, 0)
+
+    def test_a_diff_that_did_not_arrive_is_a_usage_error(self):
+        # Never 1: an absent diff is a fault on the gate's side, and closing
+        # somebody's pull request for it is the one outcome that must not happen.
+        code, out = self.check("Spec: GOV-R12\n", "--diff-file", ".no-such-diff.txt")
+        self.assertEqual(code, 2)
+        self.assertIn("diff-file not found", out)
+
+    def test_a_diff_outside_the_tree_is_refused(self):
+        code, out = self.check("Spec: GOV-R12\n", "--diff-file", "/etc/hosts")
+        self.assertEqual(code, 2)
+        self.assertIn("diff-file must be within", out)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
