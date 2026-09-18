@@ -61,6 +61,7 @@ jobs:
           coverage run --append scripts/test_plugins.py
           coverage run --append scripts/test_services.py
           coverage run --append scripts/test_workflow_pins.py
+          coverage run --append scripts/test_local_command.py
           coverage run --append scripts/test_nothing_passes_over_nothing.py
           coverage report --fail-under=100
       # Not a coverage suite: it reads `.coveragerc` against the directories it
