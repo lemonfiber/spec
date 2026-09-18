@@ -14,17 +14,15 @@ ci: hooks integrity shared services check-meta ordering generated lint typos lin
 
 # Every file this repository generates from something else, regenerated and
 # compared. A generated file edited by hand, or left behind by an edit to its
-# source, is the failure these exist to refuse — and the number in it goes
+# source, is the failure this exists to refuse — and the number in it goes
 # stale silently, which is the whole reason it is generated.
+#
+# The comparison was four bare `git diff --exit-code` lines, which told a
+# contributor that something had moved and nothing else: not which generator
+# owns the file, not the command that rewrites it, not that editing it was the
+# mistake.
 generated:
-    python3 scripts/gen_roadmap_table.py
-    git diff --exit-code -- 00-overview/roadmap.md
-    python3 scripts/gen_board.py
-    git diff --exit-code -- 10-functional/features/index.json 10-functional/features/BOARD.md
-    python3 scripts/gen_repos.py
-    git diff --exit-code -- 30-repos/README.md
-    python3 scripts/gen_contrast.py
-    git diff --exit-code -- 60-brand/accessibility.md
+    python3 scripts/generated.py
 
 # Nothing scheduled before what it requires, nothing binding resting on
 # something unagreed, and every accepted requirement on the release train.

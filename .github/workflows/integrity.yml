@@ -30,24 +30,12 @@ jobs:
         run: python3 scripts/integrity.py
       - name: Validate feature frontmatter
         run: python3 scripts/check_frontmatter.py
-      - name: The roadmap's version table matches the manifests
-        run: |
-          python3 scripts/gen_roadmap_table.py
-          git diff --exit-code 00-overview/roadmap.md
       - name: Nothing is scheduled before what it requires
         run: python3 scripts/check_order.py
       - name: Nothing binding rests on something that is not agreed
         run: python3 scripts/check_binding_order.py
       - name: Every accepted requirement is on the release train
         run: python3 scripts/check_goal_coverage.py
-      - name: Feature board is up to date
-        run: |
-          python3 scripts/gen_board.py
-          git diff --exit-code -- 10-functional/features/index.json 10-functional/features/BOARD.md
-      - name: The repository table and diagram match the registry
-        run: |
-          python3 scripts/gen_repos.py
-          git diff --exit-code -- 30-repos/README.md
       # The one number here that lives in another repository. `lemonfiber-media-stack`
       # guards its own prose against its own manifest; this is the half the spec was
       # missing, which is why ten pages here said nineteen services through the day a
@@ -57,12 +45,17 @@ jobs:
       # prose.
       - name: The bundled-service count matches the stack
         run: python3 scripts/check_services.py
-      # The page states that whether the palette meets AA is a computed property
-      # of the tokens rather than an opinion. This is what makes that true of the
-      # page itself: the numbers are measured here and diffed, so a token change
-      # that nobody regenerated is a red run rather than a page quoting a ratio
-      # that stopped being the ratio (DES-R15, DES-R19).
-      - name: The contrast table matches the tokens
-        run: |
-          python3 scripts/gen_contrast.py
-          git diff --exit-code -- 60-brand/accessibility.md
+      # Every surface a script writes, regenerated and compared against what is
+      # committed. `accessibility.md` is why this has to be a gate rather than a
+      # convention: the page states that whether the palette meets AA is a
+      # computed property of the tokens rather than an opinion, and this is what
+      # makes that true of the page itself — a token change nobody regenerated is
+      # a red run rather than a page quoting a ratio that stopped being the ratio
+      # (DES-R15, DES-R19).
+      #
+      # One step rather than four, reading one table rather than four pairs of
+      # lines. A refusal names the generator that owns the file, the command that
+      # rewrites it and the region it owns; a bare diff said a file had moved and
+      # left the contributor to work out the rest.
+      - name: Every generated file matches what its generator writes
+        run: python3 scripts/generated.py

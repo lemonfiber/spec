@@ -62,6 +62,7 @@ jobs:
           coverage run --append scripts/test_services.py
           coverage run --append scripts/test_workflow_pins.py
           coverage run --append scripts/test_nothing_passes_over_nothing.py
+          coverage run --append scripts/test_generated.py
           coverage report --fail-under=100
       # Not a coverage suite: it reads `.coveragerc` against the directories it
       # names and fails on a file omitted from measurement without a reason beside
