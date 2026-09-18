@@ -301,7 +301,7 @@ jobs:
   notify:
     needs: toggle
     if: needs.toggle.outputs.flagged == 'true'
-    uses: lemonfiber/spec/.github/workflows/discord-notify.yml@775ae5558961aee92d99ea047f1e0d55cc1a6ee6 # main
+    uses: ./.github/workflows/discord-notify.yml
     with:
       title: "🔔 Awaiting review · ${{ github.event.repository.name }} #${{ needs.toggle.outputs.pr }}"
       body: "All ${{ needs.toggle.outputs.checks }} required checks passed and no review has landed — a maintainer needs to take a look."
