@@ -49,7 +49,7 @@ import tomllib
 import catalogue
 from gate import done_ids, within_cwd
 from manifest_repos import VERSIONS_DIR, manifest_for
-from patterns import REQ_DEF
+from patterns import REQ_DEF, REQ_RETIRED_ROW
 
 #: Maturities that answer for every requirement the feature defines.
 FINISHED = ("built", "shipped")
@@ -74,9 +74,18 @@ def vocabulary_holds(known: set[str]) -> str | None:
 
 
 def requirements_of(path: str) -> set[str]:
-    """Every requirement a feature doc defines."""
+    """Every requirement a feature doc defines, headstones left out.
+
+    A row kept only to retire a number is not a requirement, and OPS-R30 forbids
+    one being a goal — so the orphan warning below, which names requirements no
+    manifest locks, would name every withdrawn number for ever and ask for the one
+    thing no manifest is allowed to give. `check_goal_coverage` and
+    `check_stageable` each made this mistake and each was fixed; this was the third
+    reader of the same rows and the only one still counting them.
+    """
     with open(path, encoding="utf-8") as doc:
-        return set(REQ_DEF.findall(doc.read()))
+        text = doc.read()
+    return set(REQ_DEF.findall(text)) - set(REQ_RETIRED_ROW.findall(text))
 
 
 def locked_everywhere() -> set[str]:
