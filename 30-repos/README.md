@@ -2,6 +2,12 @@
 
 **Status:** Accepted
 
+The diagram, the repository table and the sentence counting it are generated
+from [`repos.toml`](repos.toml) by
+[`scripts/gen_repos.py`](../scripts/gen_repos.py) — edit the registry, not the
+page. `just repos` rewrites them and `just generated` refuses a hand edit. The
+prose around them is written by hand.
+
 Where [20-architecture](../20-architecture/) describes the system, this section
 describes each repository — its structure, its rules, and what is specific to
 working inside it.
