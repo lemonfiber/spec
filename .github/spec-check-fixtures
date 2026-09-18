@@ -1,0 +1,21 @@
+# Files whose job is to name identifiers that do not resolve.
+#
+# Check 6 asks that every identifier a change writes into a file exists on
+# spec@main. A test of "refuse an unknown identifier" has to write one that does
+# not, and a test of the next free number has to write ones past the ceiling —
+# so reading these would have the gate refuse the change that teaches it to
+# refuse, and the only way out would be fixtures built from real requirement
+# numbers, which drift the moment the spec moves.
+#
+# `spec_check.py` and `test_spec_check.py` are skipped by the gate itself and are
+# deliberately not repeated here: this list is for a repository's own fixtures,
+# and a line that could be deleted without effect is a line nobody trusts.
+#
+# Exact paths only. Every one of these is printed on every run.
+scripts/test_closing.py
+scripts/test_goal_coverage.py
+scripts/test_integrity.py
+scripts/test_milestone.py
+scripts/test_next_id.py
+scripts/test_order.py
+scripts/test_status_lint.py
