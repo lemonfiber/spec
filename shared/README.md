@@ -38,6 +38,7 @@ brand's own.
 | [hooks/commit-msg](hooks/commit-msg) | each repo's `.githooks/commit-msg` | Byte-identical, in the repos [adoption.toml](adoption.toml) names |
 | — | each repo's `.githooks/pre-commit` | Not shared: the fast checks are different in each. Its *absence* is not checked, and a hook-manager config in its place is refused |
 | [gates/no_open_codeql_alert.py](gates/no_open_codeql_alert.py) | each repo's `scripts/no_open_codeql_alert.py` | Byte-identical, in the repos [adoption.toml](adoption.toml) names |
+| — | each repo's `CLAUDE.md` | Byte-identical, in every repository. Its home is this repository's own root copy, not a file here: the one link in it is relative to a repository root |
 | [assets.sha256](assets.sha256) | — | Digests of the brand assets repos carry copies of |
 | [adoption.toml](adoption.toml) | — | Which repository carries which of the two adopted kinds above |
 

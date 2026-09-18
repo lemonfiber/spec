@@ -5,6 +5,11 @@ Two lint configs and a handful of brand assets exist in more than one repository
 because the tools and GitHub both read them from the tree they are given. This
 checks each copy against the canonical one in ``shared/`` (GOV-R12, Q-R56).
 
+Two of the homes are not in ``shared/``. A brand asset's home is the brand
+repository's own original, named in ``shared/assets.sha256``; ``CLAUDE.md``'s is
+this repository's own copy at the root, because the one link in it is relative to
+a repository root and would resolve to nothing from inside ``shared/``.
+
 The two directories a repository adopts from rather than is required to carry —
 ``shared/gates/`` and ``shared/hooks/`` — are read against ``shared/adoption.toml``,
 which is where adoption is stated. Without it, a gate a repository never took and
@@ -32,6 +37,15 @@ MANAGERS = ("lefthook.yml", "lefthook.yaml", ".lefthook.yml", "captainhook.json"
 
 MARKDOWNLINT = "markdownlint.jsonc"
 TYPOS = "typos.toml"
+
+#: The one-line pointer every repository carrying an agent guide holds, and the
+#: guide it points at. Its home is this repository's own copy at the root rather
+#: than a file under `shared/`: the one link in it is relative to a repository
+#: root, so a copy of it in `shared/` would point at a file that is not there and
+#: would be the first broken link the link checker found. `assets.sha256` already
+#: names homes outside this directory for the same kind of reason.
+POINTER = "CLAUDE.md"
+GUIDE = "AGENTS.md"
 GATES = "gates"
 HOOKS = "hooks"
 RUFF = "ruff.toml"
@@ -173,6 +187,60 @@ def ruff(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     if got_width is not None and want_width is not None and got_width > want_width:
         problems.append(
             f"ruff.toml allows {got_width} columns, shared allows {want_width}"
+        )
+    return problems
+
+
+def pointer(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
+    """`CLAUDE.md` is one sentence, and the same sentence in every repository.
+
+    The first prose this file checks, and the cheapest possible one: byte-identical,
+    one line, no local variation to allow for. The reason to start here is that it
+    was *already* byte-identical everywhere it existed, held there by nothing —
+    which is a copy waiting to drift rather than a rule.
+
+    Required rather than conditional, because `GOV-R26` requires both files of
+    every repository: the guide, and the tool-specific name pointing at it. Read
+    conditionally — *if a repository has a guide, check the pointer* — the one
+    repository carrying neither would be the only one this said nothing about,
+    and it is the repository where an agent finds no guidance at all.
+
+    What the pointer may not become is a second guide. It says *see AGENTS.md*
+    and that is the whole of it; anything local belongs in the guide, which this
+    does not read.
+    """
+    want = canonical / POINTER
+    if not want.is_file():
+        return [
+            (f"{POINTER} is not in the canonical checkout, so every repository's "
+             f"copy of it was compared against nothing")
+        ]
+    text = want.read_bytes()
+    if not text.strip():
+        return [
+            (f"the canonical {POINTER} is empty, so every repository's copy would "
+             f"pass this having been compared against a blank file")
+        ]
+
+    problems = []
+    if not (repo / GUIDE).is_file():
+        problems.append(
+            f"{GUIDE} is not here. Every repository carries one — what this "
+            f"repository is and its one load-bearing property, pointing at "
+            f"50-governance/ai-contributors.md rather than restating it (GOV-R26)"
+        )
+    got = repo / POINTER
+    if not got.is_file():
+        problems.append(
+            f"{POINTER} is not here, so a tool that reads only {POINTER} finds no "
+            f"guide in this repository. Copy it from {want} (GOV-R26)"
+        )
+    elif got.read_bytes() != text:
+        problems.append(
+            f"{POINTER} differs from the canonical copy. It is one sentence "
+            f"pointing at {GUIDE} and is the same sentence in every repository, so "
+            f"replace it with {want} and put anything repository-specific in "
+            f"{GUIDE}, which is where local guidance belongs (GOV-R26)"
         )
     return problems
 
@@ -612,6 +680,7 @@ def main() -> int:
         + typos(repo, canonical)
         + ruff(repo, canonical)
         + assets(repo, canonical, name)
+        + pointer(repo, canonical)
         + adoption(repo, canonical, name)
         + manager(repo)
         + codeowners(repo, canonical, name)
@@ -621,8 +690,9 @@ def main() -> int:
             print(f"::error::{problem}")
         print(f"\n{len(problems)} shared file(s) out of step with {canonical / 'shared'}.")
         return 1
-    print("shared files: lint configs, brand assets and CODEOWNERS match their one home, "
-          "and the hooks and gate scripts here are the ones this repository declares")
+    print("shared files: lint configs, brand assets, the agent pointer and CODEOWNERS "
+          "match their one home, and the hooks and gate scripts here are the ones "
+          "this repository declares")
     return 0
 
 
