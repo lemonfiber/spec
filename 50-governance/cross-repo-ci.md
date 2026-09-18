@@ -280,6 +280,17 @@ way to publish a check like this: fourteen repositories calling `spec-check` at
 six different revisions, the oldest fifty-seven commits behind, and this
 repository thirteen behind its own.
 
+The first thing it found was here. This repository called six of its own
+reusable workflows as `lemonfiber/spec/…@<sha>` and the rest of them as `./`, and
+the first form is not a coherent thing for a repository to do to itself: it is a
+supply-chain pin against your own tree, it runs an older copy of a file you are
+looking at, and it guarantees a refusal on every pull request from one commit
+after each merge — this gate blocking its own cure, on the day it arrived. All
+six are `./` now, which is what the other calls already did. The self-run reports
+*nothing to check*, and that is the honest answer rather than a gap: the rule is
+about depending on **another** repository at an exact revision, and this one does
+not depend on itself.
+
 ### What a stale pin actually holds back
 
 Narrower than it reads, and sharper for it. **The workflow file is pinned; the
