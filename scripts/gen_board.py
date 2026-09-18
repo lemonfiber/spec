@@ -13,7 +13,7 @@ import pathlib
 import tomllib
 
 from catalogue import features as load_features
-from patterns import REQ_DEF
+from patterns import REQ_DEF, ordered
 
 FEATDIR = "10-functional/features"
 
@@ -72,7 +72,7 @@ def load_version_list():
             "milestone": data.get("milestone"),
             "goals": len(data.get("goals", [])),
         })
-    versions.sort(key=lambda v: [int(part) for part in v["version"].split(".")])
+    versions.sort(key=lambda v: ordered(v["version"]))
     return versions
 
 
@@ -100,7 +100,7 @@ def milestones_of(feature_id, by_feature, by_version):
     seen = []
     for version in sorted(
         by_feature.get(feature_id, {}),
-        key=lambda v: [int(part) for part in v.split(".")],
+        key=ordered,
     ):
         milestone = by_version.get(version)
         if milestone and milestone not in seen:

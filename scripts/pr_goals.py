@@ -17,7 +17,7 @@ import pathlib
 import sys
 import tomllib
 
-from patterns import CITE, IN_FLIGHT
+from patterns import CITE, IN_FLIGHT, ordered
 from patterns import SPEC_TRAILER as TRAILER
 
 VERSIONS = pathlib.Path("70-operations/versions")
@@ -29,7 +29,18 @@ def within_cwd(raw: str) -> pathlib.Path:
 
 
 def staged_manifest() -> dict | None:
-    for manifest in sorted(VERSIONS.glob("*.toml")):
+    """The version in flight, or nothing where none is.
+
+    In version order, and past the template. Every other walker here skips
+    `TEMPLATE.toml`; this one read it, and it is a file whose whole job is to be
+    edited as an example — the day somebody writes a real status into it to
+    document the transition, this classifies every pull request against a
+    manifest with no `version` and no `goals`.
+    """
+    for manifest in sorted(
+        (p for p in VERSIONS.glob("*.toml") if p.stem != "TEMPLATE"),
+        key=lambda p: ordered(p.stem),
+    ):
         data = tomllib.loads(manifest.read_text(encoding="utf-8"))
         if data.get("status") in IN_FLIGHT:
             return data

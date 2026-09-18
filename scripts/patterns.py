@@ -74,6 +74,24 @@ SPEC_TRAILER = re.compile(r"^[ \t]*Spec:[ \t]*(\S.*)$", re.MULTILINE | re.IGNORE
 # A version, as the manifests and the tracker write one.
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 
+
+def ordered(version: str) -> tuple[int, ...]:
+    """A version as the numbers it is, which is not the order its name sorts in.
+
+    As text `0.10.0` sorts below `0.2.0`, and four scripts spelled this key for
+    themselves. One of them spelled it twice and used the other ordering in
+    between: `check_order` recorded which version first locks a feature by
+    walking the manifests in *name* order and then ranked those versions
+    numerically, so six features were recorded as shipping several versions later
+    than they do — `B2` in `0.15.0` where it is in `0.8.0`, `D1` in `0.12.0` where
+    it is in `0.4.0`.
+
+    Nothing went red for it, because the inversions it hid happened to fall in
+    released versions, which are reported as history rather than as faults. The
+    next one would not.
+    """
+    return tuple(int(part) for part in version.split("."))
+
 # A pre-release identifier, as OPS-R61 lets a tag carry one: dot-separated
 # alphanumeric segments, appended to a version that is otherwise this one.
 #
