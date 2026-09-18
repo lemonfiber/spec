@@ -118,6 +118,16 @@ jobs:
 
           echo "tag=v1.0.$(( ${highest:-0} + 1 ))" >>"$GITHUB_OUTPUT"
 
+      # Retried, because the refusal that costs a number is the one that arrives
+      # first. Every run that changed this file has been answered `403 Resource
+      # not accessible by integration` on its first attempt, and every run that
+      # changed some other workflow has been answered normally — with a
+      # byte-identical call, the same granted `contents: write`, no ruleset and
+      # no tag protection on the repository. A second attempt a little later has
+      # been answered normally. Whatever the token is waiting for, waiting is
+      # cheaper than the alternative: a number that is not cut on the first try
+      # is a number the next qualifying commit takes, and nothing recovers it in
+      # order afterwards.
       - name: Publish it
         if: steps.next.outputs.tag != ''
         env:
@@ -125,11 +135,29 @@ jobs:
           TAG: ${{ steps.next.outputs.tag }}
           COMMIT: ${{ steps.next.outputs.commit }}
         run: |
-          set -euo pipefail
-          gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
-            -f "ref=refs/tags/${TAG}" \
-            -f "sha=${COMMIT}" >/dev/null
-          echo "::notice::published ${TAG} at ${COMMIT}"
+          set -uo pipefail
+          for wait in 0 15 30 60; do
+            [ "$wait" -gt 0 ] && sleep "$wait"
+            if said=$(gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f "ref=refs/tags/${TAG}" \
+              -f "sha=${COMMIT}" 2>&1); then
+              echo "::notice::published ${TAG} at ${COMMIT}"
+              exit 0
+            fi
+            # Already there is the answer, not a failure: a re-run of a run that
+            # succeeded asks the same question twice.
+            case "$said" in
+              *"Reference already exists"*)
+                echo "::notice::${TAG} already exists at ${COMMIT}"
+                exit 0
+                ;;
+            esac
+            echo "attempt refused: $said"
+          done
+          echo "::error::could not create refs/tags/${TAG} at ${COMMIT} after four"\
+            "attempts. Until it exists, every repository pinning these workflows"\
+            "has nothing newer to bump to. The last answer was: ${said}"
+          exit 1
 
       # What a failed run costs, asked on every run rather than hoped for. A run
       # happens once per commit; the one that fails leaves that commit with no
