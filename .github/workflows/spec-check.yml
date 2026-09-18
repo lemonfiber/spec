@@ -38,6 +38,7 @@ jobs:
       - name: Check out the calling repo (the pull request, or the queue's branch)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           # The commit range below needs both ends present. Checkout clones to
           # depth 1 by default, which leaves the base commit out of the clone
           # and makes `git log base..head` fail.
@@ -46,6 +47,7 @@ jobs:
       - name: Check out the canonical spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           repository: lemonfiber/spec
           ref: main
           path: .spec-canonical

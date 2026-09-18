@@ -32,6 +32,7 @@ jobs:
       - name: Check out the spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           token: ${{ steps.token.outputs.token }}
           fetch-depth: 0
       - name: Resolve the version in flight
@@ -86,9 +87,25 @@ jobs:
           man="70-operations/versions/${VERSION}.toml"
           args=()
           while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < repos.txt
-          # gate exits 1 when not yet releasable — expected, so don't fail the job.
+          # 1 is "not releasable yet", which is the ordinary answer and not this
+          # job's failure. `|| true` swallowed every other status with it, and
+          # the gate has one: 2 is the gate refusing to judge — a manifest it
+          # could not read, or a run naming no repository to read citations
+          # from, in which case every goal would be called unmet for want of
+          # looking. That reached here as an empty `result.json` and surfaced as
+          # a JSONDecodeError out of the next line, which is the right outcome
+          # under the wrong headline, on the one report anybody reads to know
+          # where a release stands.
+          set +e
           python3 scripts/gate.py --manifest "$man" "${args[@]}" \
-            --status checkouts/lemonfiber/IMPLEMENTATION-STATUS.md --format json > result.json || true
+            --status checkouts/lemonfiber/IMPLEMENTATION-STATUS.md --format json > result.json
+          judged=$?
+          set -e
+          if [ "$judged" -gt 1 ]; then
+            cat result.json
+            echo "::error::the goal gate exited ${judged} rather than judging ${VERSION}, so the tracker is left as it was."
+            exit "$judged"
+          fi
           python3 scripts/tracker_body.py < result.json > body.md
           num=$(gh issue list --repo "${OWNER}/spec" --state open \
             --search "Release ${VERSION} — tracker in:title" --json number --jq '.[0].number // empty')
