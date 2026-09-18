@@ -161,5 +161,73 @@ class TheTwoListsAgree(unittest.TestCase):
         self.assertGreater(len(self.named()), 5)
 
 
+
+#: The contributing document's table of what a commit message has to carry.
+#: A row names a requirement in bold and the check that enforces it in backticks.
+RULE_ROW = re.compile(
+    r"^\| [^|]*\(\*\*([A-Z0-9-]+)\*\*\) \| [^|]+ \| `([a-z-]+)` \|$", re.MULTILINE
+)
+
+#: One edit to an acceptable message for each check, taking that rule away and
+#: nothing else. The keys are what the document is held to naming.
+BREAKS = {
+    "commitlint": lambda text: text.replace("feat: a thing", "a thing"),
+    "dco": lambda text: re.sub(r"^Signed-off-by:.*\n", "", text, flags=re.MULTILINE),
+    "spec-check": lambda text: re.sub(r"^Spec:.*\n", "", text, flags=re.MULTILINE),
+    "attribution": lambda text: text + "Co-authored-by: Claude <x@example.com>\n",
+}
+
+
+class TheDocumentAndTheHookAgree(unittest.TestCase):
+    """The four rules, stated in one place and enforced in another.
+
+    Before this, no document stated all four. Three did not mention the
+    conventional subject, none of them mentioned `GOV-R46`, and the only artefact
+    naming the whole set was this hook — which a contributor reads after it has
+    refused them. The document now names them, and a document naming a rule that
+    has moved is worse than one naming none, so the two are compared.
+    """
+
+    def stated(self) -> dict[str, str]:
+        """{check: requirement} as the contributing document states it."""
+        found = RULE_ROW.findall(
+            (ROOT / "50-governance" / "contributing.md").read_text(encoding="utf-8")
+        )
+        return {check: rule for rule, check in found}
+
+    def test_the_table_was_actually_read(self) -> None:
+        """What is being read, before what it says.
+
+        A pattern that matched nothing would make the comparison below pass
+        against a document that states no rule at all, which is the state this
+        exists to end.
+        """
+        self.assertIn(
+            "attribution",
+            self.stated(),
+            "50-governance/contributing.md no longer holds the table of commit "
+            "rules where this reads it, so the four rules are stated nowhere and "
+            "nothing compared them against the hook",
+        )
+
+    def test_it_names_every_check_the_hook_runs(self) -> None:
+        self.assertEqual(
+            sorted(self.stated()),
+            sorted(BREAKS),
+            "the document and the hook disagree about what a commit message has "
+            "to carry; a rule the hook refuses for and no document states is the "
+            "round trip this table exists to save",
+        )
+
+    def test_each_rule_it_states_is_one_the_hook_refuses_for(self) -> None:
+        for check, requirement in sorted(self.stated().items()):
+            with self.subTest(check=check, requirement=requirement):
+                code, said = refused(BREAKS[check](message()))
+                self.assertEqual(
+                    code, 1,
+                    f"the document says {check} enforces {requirement}, and the "
+                    f"hook accepts a message that would fail it: {said}",
+                )
+
 if __name__ == "__main__":
     unittest.main()
