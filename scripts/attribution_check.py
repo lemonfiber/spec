@@ -127,7 +127,20 @@ def main(argv: list[str]) -> int:
         print("::error::attribution_check: base and head must be valid git refs")
         return 1
 
-    said = problems(_read(base, head), _body(argv))
+    # A range holding no commit is a question this never asked. Both refs resolve,
+    # git is happy, and the answer is a clean record — about nothing. A pull
+    # request always carries a commit, so an empty range means the two refs are
+    # not the ones the run was about, and reporting a pass over it is the shape of
+    # silence this whole file exists to refuse.
+    log = _read(base, head)
+    if not log.strip():
+        print(
+            f"::error::attribution_check: no commit between {base} and {head}, so "
+            "the record was not read; a clean answer here would be about nothing"
+        )
+        return 1
+
+    said = problems(log, _body(argv))
 
     if said:
         print("::error::Assistant attribution in the permanent record:")

@@ -15,6 +15,7 @@ import pathlib
 import sys
 import tomllib
 
+from integrity import elsewhere
 from manifest_repos import cut, searched
 from patterns import IN_FLIGHT, REQ_DEF, REQ_RETIRED_ROW
 from patterns import VERSION as VERSION_RE
@@ -33,7 +34,7 @@ def defined_ids() -> tuple[set[str], set[str]]:
     defined: set[str] = set()
     retired: set[str] = set()
     for md in pathlib.Path(".").rglob("*.md"):
-        if ".git" in md.parts:
+        if elsewhere(md, pathlib.Path(".")):
             continue
         text = md.read_text(encoding="utf-8", errors="ignore")
         defined.update(REQ_DEF.findall(text))
@@ -57,6 +58,55 @@ def in_flight(exclude: str) -> str | None:
     return None
 
 
+def unstageable(manifest: pathlib.Path, data: dict) -> list[str]:
+    """Every reason this version is not stageable, rather than the first of them.
+
+    Four independent questions, and a manifest can fail several at once. Asked
+    together because each answer costs a CI round trip: a version that is still
+    draft, clashes with one in flight, locks a withdrawn goal and names nowhere to
+    search used to report one of those four, and the author found the rest one push
+    at a time.
+    """
+    problems: list[str] = []
+    if data.get("status") != "planned":
+        problems.append(f"{manifest.name} is '{data.get('status')}', not planned")
+    clash = in_flight(manifest.name)
+    if clash:
+        problems.append(f"{clash}; one version at a time (OPS-R52)")
+
+    # A version locking nothing is the shape every gate downstream refuses, and
+    # staging is where it is cheapest to say so. The release gate and the no-stub
+    # gate both stop on an empty goal set; staging let one through, so the answer
+    # arrived at the end of the train rather than at the start of it.
+    goals = data.get("goals", [])
+    if not goals:
+        problems.append(
+            f"{manifest.name} locks no goal, so staging it would put a version on the "
+            "train with nothing to prove and nothing to fail"
+        )
+    else:
+        # Read once. It walks every page in the repository, and asking it inside the
+        # comprehension walked them all again for every goal the manifest locks.
+        defined, retired = defined_ids()
+        unknown = [g for g in goals if g not in defined]
+        if unknown:
+            problems.append(f"goals not defined in the spec: {', '.join(unknown)}")
+        withdrawn = [g for g in goals if g in retired]
+        if withdrawn:
+            problems.append(
+                "withdrawn or superseded, so not lockable as a goal "
+                f"(OPS-R30): {', '.join(withdrawn)}"
+            )
+
+    # Where the gate will look, checked at staging rather than discovered at
+    # release (OPS-R58). A manifest naming a repository nobody can search is a
+    # gate that reports goals unmet for a reason that is not about the work, and
+    # staging is the last moment anybody is looking at this file on purpose.
+    if not searched(data):
+        problems.append(f"{manifest.name} names nowhere for the gate to search")
+    return problems
+
+
 def main() -> int:
     if len(sys.argv) != 2 or not VERSION_RE.match(sys.argv[1]):
         sys.exit("::error::usage: check_stageable.py X.Y.Z")
@@ -65,31 +115,11 @@ def main() -> int:
         sys.exit(f"::error::no manifest at {manifest}")
     data = tomllib.loads(manifest.read_text(encoding="utf-8"))
 
-    if data.get("status") != "planned":
-        sys.exit(f"::error::{manifest.name} is '{data.get('status')}', not planned")
-    clash = in_flight(manifest.name)
-    if clash:
-        sys.exit(f"::error::{clash}; one version at a time (OPS-R52)")
-    # Read once. It walks every page in the repository, and asking it inside the
-    # comprehension walked them all again for every goal the manifest locks.
-    defined, retired = defined_ids()
-    goals = data.get("goals", [])
-    unknown = [g for g in goals if g not in defined]
-    if unknown:
-        sys.exit(f"::error::goals not defined in the spec: {', '.join(unknown)}")
-    withdrawn = [g for g in goals if g in retired]
-    if withdrawn:
-        sys.exit(
-            "::error::withdrawn or superseded, so not lockable as a goal "
-            f"(OPS-R30): {', '.join(withdrawn)}"
-        )
-
-    # Where the gate will look, checked at staging rather than discovered at
-    # release (OPS-R58). A manifest naming a repository nobody can search is a
-    # gate that reports goals unmet for a reason that is not about the work, and
-    # staging is the last moment anybody is looking at this file on purpose.
-    if not searched(data):
-        sys.exit(f"::error::{manifest.name} names nowhere for the gate to search")
+    problems = unstageable(manifest, data)
+    if problems:
+        for problem in problems:
+            print(f"::error::{problem}")
+        return 1
 
     print("\n".join(cut(data)))
     return 0

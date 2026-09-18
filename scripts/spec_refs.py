@@ -17,6 +17,7 @@ import argparse
 import pathlib
 import re
 
+from integrity import elsewhere
 from patterns import ADR_FILE, CITE_ANY, REQ_DEF_ROW, SPEC_TRAILER
 
 # A requirement is defined by a table row `| **ID** | text |`; capture the text.
@@ -59,7 +60,7 @@ def index(spec_dir: pathlib.Path) -> dict[str, tuple[str, str]]:
     # one identifier would otherwise send a reader to a different file on a different
     # machine, from the same spec. `adr_entries` above sorts for the same reason.
     for p in sorted(spec_dir.rglob("*.md")):
-        if ".git" in p.parts:
+        if elsewhere(p, spec_dir):
             continue
         rel = p.relative_to(spec_dir).as_posix()
         for m in REQ_DEF_ROW.finditer(p.read_text(encoding="utf-8", errors="ignore")):
