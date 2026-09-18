@@ -29,7 +29,7 @@ Every tool below was chosen to work within that constraint.
 | **Governance gate** | `spec-check` (in-repo) | our own | all repos |
 | **Spec integrity** | `integrity.py` (in-repo) | our own | spec |
 | **Code quality + coverage** | **SonarQube Cloud** | free for public | all repos |
-| **SAST** | **CodeQL** | free for public | six of eleven repos; the other five have never had it ([#358](https://github.com/lemonfiber/spec/issues/358)) |
+| **SAST** | **CodeQL** | free for public | each repo [`shared/adoption.toml`](../shared/adoption.toml) records as carrying the alert gate ([#358](https://github.com/lemonfiber/spec/issues/358)) |
 | **Secret scanning** | **gitleaks** | OSS | all repos |
 | **Dependency/vuln scanning** | **OSV-Scanner** | OSS | all repos, via the shared `security.yml` |
 | **Supply-chain posture** | **OpenSSF Scorecard** | free for public | each repo that publishes an artefact or the specification; the newest four are outstanding (`Q-R59`) |
@@ -41,7 +41,7 @@ Every tool below was chosen to work within that constraint.
 | **Markdown lint** | **markdownlint** | OSS | all repos |
 | **Dependency updates** | **Dependabot** | native to GitHub | all repos |
 | **Pre-commit hooks** | none — git's own | — | `.githooks/`, turned on per clone; see below (`OPS-R51`) |
-| **Pre-push guard** | [`.githooks/pre-push`](../shared/hooks/pre-push) | our own | all eight code repos, via `core.hooksPath` |
+| **Pre-push guard** | [`.githooks/pre-push`](../shared/hooks/pre-push) | our own | each repo [`shared/adoption.toml`](../shared/adoption.toml) records as carrying it, via `core.hooksPath` |
 | **Task runner** | **just** | OSS | the Rust, spec, stack, brand and site repos; the npm and Composer repos use their own script runner |
 | **Changelog** | **git-cliff** | OSS | lemonfiber, sdk-ts, sdk-php |
 | **Release binaries** | **cargo-dist** | OSS | lemonfiber |
@@ -263,6 +263,42 @@ repository and lints that tree — the org's copy never arrives. Those two need
 different machinery, and conflating them is how four different
 `.markdownlint.jsonc` files came to be live at once.
 
+### Adoption is declared, not inferred
+
+Two members of `shared/` are adopted rather than required. A repository gating on
+no open CodeQL alert is not asked for the gate script, and one whose contributors
+have not turned hooks on is not asked for the hooks. What is refused is carrying a
+copy that is not the current one.
+
+That leaves absence carrying two meanings at once. *Never adopted* and *adopted,
+then deleted* arrive at the check as the same thing — a file that is not there —
+and it passes over both and reports that the copies match. Which is true of the
+copies it looked at, and reads as an account of all of them. One of those two
+meanings is a script that decides whether a branch merges, no longer running, in a
+repository whose pull requests still go green.
+
+So adoption is stated in [`shared/adoption.toml`](../shared/adoption.toml) and the
+check reads it. Where there was one answer there are now four:
+
+| The register says | The repository holds | Then |
+|---|---|---|
+| it carries the file | the current copy | passes |
+| it carries the file | a copy that differs | refused, as before |
+| it carries the file | nothing | refused, naming the file and the repository |
+| it carries nothing | a copy | refused — a copy nothing declared is one nothing holds to the canonical version |
+
+A repository with no row at all is refused rather than passed over, because an
+unknown repository is the silence the register exists to end. The register is the
+only place that answer lives: a second list able to disagree with it would be the
+defect rather than the fix, which is why the per-repository half of
+[turning the hooks on](../shared/README.md#turning-it-on) is a row here rather
+than a table there.
+
+A register that is absent, unreadable or naming nobody refuses too. It is the
+input both checks are decided by, so one that did not arrive is a question that
+went unasked — and a question that went unasked has never been the same answer as
+*nothing to report*.
+
 ## A pin is a copy, and a copy goes stale
 
 Anti-drift above covers what the tooling copies. It does not cover what a
@@ -393,6 +429,8 @@ All are one-time and free. Everything else runs from committed config.
 | **Q-R69** | A lockfile or equivalent record of what a build resolved MUST name the same revision as the declaration it resolves, and CI MUST fail where the two disagree. |
 | **Q-R70** | A check required under `Q-R68` MUST name, in the failure itself, the artefact that drifted and the command that brings it current. |
 | **Q-R71** | A repository that cannot yet satisfy `Q-R68` MUST state that in the workflow that would gate it — the reason, the work it waits on, and the date the deferral is reviewed — and the check MUST keep reporting until the gate is turned on. |
+| **Q-R73** | Where a shared file is carried by some repositories and not others, adoption MUST be declared rather than inferred from the file's presence, and the drift check MUST refuse a repository that declares a file it does not carry and one that carries a file it has not declared, naming the file and the repository in each. |
+| **Q-R74** | The adoption register MUST be the only record of which repository carries which shared file and MUST hold a row for every repository in the organisation; the drift check MUST refuse a repository it holds no row for, and MUST refuse a register that is absent, unreadable or names no repository rather than reading one as an organisation that has adopted nothing. |
 
 ## Related
 

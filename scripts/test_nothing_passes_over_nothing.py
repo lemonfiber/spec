@@ -180,10 +180,30 @@ class EveryGateRefusesAnEmptyCollection(unittest.TestCase):
             repo.mkdir()
             for asked in (check_shared_files.gates, check_shared_files.hooks):
                 with self.subTest(check=asked.__name__):
-                    complaints = asked(repo, canonical)
+                    complaints = asked(repo, canonical, "cli", {})
                     self.assertTrue(
                         complaints, f"{asked.__name__} was happy about nothing"
                     )
+
+    def test_a_register_declaring_nothing_is_refused(self):
+        """What the two checks above decide *adoption* by.
+
+        `shared/gates/` and `shared/hooks/` are carried by the repositories that
+        declare them, so a register that answers for nobody makes every
+        repository unknown and every deleted gate one that was never taken. Read
+        as an empty answer it would pass each of them over in silence, which is
+        the whole of what declaring adoption replaces.
+        """
+        with tempfile.TemporaryDirectory() as where:
+            canonical = pathlib.Path(where) / "canonical"
+            (canonical / "shared").mkdir(parents=True)
+            register = canonical / "shared" / check_shared_files.ADOPTION
+            for answered in ("# nobody yet\n", '[[repo]]\ngates = []\n'):
+                with self.subTest(register=answered):
+                    register.write_text(answered, encoding="utf-8")
+                    rows, refused = check_shared_files.register(canonical)
+                    self.assertFalse(rows)
+                    self.assertTrue(refused, "the register was happy about nothing")
 
 
 if __name__ == "__main__":

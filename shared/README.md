@@ -34,11 +34,12 @@ brand's own.
 | [markdownlint.jsonc](markdownlint.jsonc) | each repo's `.markdownlint.jsonc` | Byte-identical, key order included |
 | [typos.toml](typos.toml) | each repo's `typos.toml` | Every entry present; a repo may add more |
 | [ruff.toml](ruff.toml) | each Python-carrying repo's `ruff.toml` | Every shared rule selected and none of them ignored; a repo may select more |
-| [hooks/pre-push](hooks/pre-push) | each repo's `.githooks/pre-push` | Byte-identical, where a repo has adopted it |
-| [hooks/commit-msg](hooks/commit-msg) | each repo's `.githooks/commit-msg` | Byte-identical, where a repo has adopted it |
+| [hooks/pre-push](hooks/pre-push) | each repo's `.githooks/pre-push` | Byte-identical, in the repos [adoption.toml](adoption.toml) names |
+| [hooks/commit-msg](hooks/commit-msg) | each repo's `.githooks/commit-msg` | Byte-identical, in the repos [adoption.toml](adoption.toml) names |
 | — | each repo's `.githooks/pre-commit` | Not shared: the fast checks are different in each. Its *absence* is not checked, and a hook-manager config in its place is refused |
-| [gates/no_open_codeql_alert.py](gates/no_open_codeql_alert.py) | each repo's `scripts/no_open_codeql_alert.py` | Byte-identical, where a repo has adopted it |
+| [gates/no_open_codeql_alert.py](gates/no_open_codeql_alert.py) | each repo's `scripts/no_open_codeql_alert.py` | Byte-identical, in the repos [adoption.toml](adoption.toml) names |
 | [assets.sha256](assets.sha256) | — | Digests of the brand assets repos carry copies of |
+| [adoption.toml](adoption.toml) | — | Which repository carries which of the two adopted kinds above |
 
 `gates/` is for scripts that decide whether a branch merges, and they are held to
 the strictest of the rules above: byte-identical, and compared as bytes so a copy
@@ -46,10 +47,6 @@ rewritten with CRLF endings cannot read as the same file. A drifted gate is wors
 than a missing one, because it is trusted — `no_open_codeql_alert.py` spent its
 whole life reading an empty alert list as an analysed and clean one, and a
 repository still carrying that version would report a pass it had not earned.
-
-Adoption is per repository and conditional: a repository gating on none of them
-is not asked for one. What is refused is carrying a copy that is not the current
-one.
 
 Each asset row is read from both ends. In a repository carrying a copy, the copy
 is checked against the digest. In the repository that *is* the home, the original
@@ -79,6 +76,49 @@ agree is the two lists and the width. Four repositories carry one today —
 them held identical lists that nothing compared, which is four lists that agree
 until the first is edited.
 
+## Adoption, and why it is written down
+
+`gates/` and `hooks/` are the two kinds here that a repository takes rather than
+is required to have. A repository gating on no open CodeQL alert is not asked for
+the gate script; one whose contributors have not turned hooks on is not asked for
+the hooks.
+
+Read from the tree alone, that makes absence mean two things at once. A gate a
+repository never adopted and a gate it deleted last week are both *a file that is
+not there*, and a conditional check passes over both and reports that the copies
+match. The second of those is a script deciding whether a branch merges, no longer
+running, in a repository whose pull requests still go green.
+
+[`adoption.toml`](adoption.toml) is where the answer is stated so the check can
+read it. A row names a repository and the files it carries out of each directory:
+
+```toml
+[[repo]]
+name = "homebrew-tap"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+```
+
+What that row means is four things, and all four are enforced:
+
+- the named files are here, and byte-identical to the canonical ones;
+- a named file that is **not** here is refused, naming the file and the repository;
+- a file of either kind that is here and **not** named is refused too, because a
+  copy nobody declared is a copy nobody is holding to the original;
+- and the empty list is an answer. `gates = []` says this repository gates on
+  none of them, which is a different statement from having no row.
+
+Every repository in [30-repos/repos.toml](../30-repos/repos.toml) has a row,
+including the ones that carry nothing, and a repository with no row is refused
+rather than passed over — an unknown repository is exactly the silence this file
+exists to end. A register that is missing, unreadable or names nobody is refused
+for the same reason: it decides both checks, so one that did not arrive is a
+question that went unasked rather than an org that has adopted nothing.
+
+A row moves in the same pull request as the copy it describes, in either
+direction. This is the only place the answer lives; a second list able to disagree
+with it would be the defect rather than the fix.
+
 ## The pre-push hook
 
 Twice, a `git checkout` that failed silently left a shell on the trunk, and the
@@ -96,9 +136,11 @@ ahead of the trunk; only one that has been *replaced* by the trunk is not.
 It is a copy rather than a reference because git reads hooks from the tree it is
 given, the same reason the lint configs are copied.
 
-Adoption is per repo and the check below is conditional, so a repo without a copy
-is not failed for it — but a repo that carries one must carry the current one. A
-guard that has quietly drifted is worse than none, because it is trusted.
+Adoption is per repo, and which repos have taken it is
+[adoption.toml](adoption.toml): a repo declaring none of these is not asked for
+one, and a repo declaring this one carries the current copy of it. A guard that
+has quietly drifted is worse than none, because it is trusted — and one that has
+quietly gone leaves nothing there to be trusted at all.
 
 ## Turning it on
 
@@ -106,15 +148,16 @@ Git reads `.git/hooks` unless `core.hooksPath` says otherwise, and that setting 
 per-clone local config. **No commit can carry it**, so every repo has to set it
 from a command a contributor was going to run anyway:
 
-| Repo | Set by | Fires on |
-|------|--------|----------|
-| `lemonfiber`, `lemonfiber-media-stack`, `spec` | the `hooks` recipe, which `just ci` depends on | `just ci` or `just hooks` |
-| `sdk-ts`, `lemonfiber-web`, `website-docs.lemonfiber.app`, `website-lemonfiber.app` | npm's `prepare` script | `npm install` or `npm ci` |
-| `sdk-php` | Composer's `post-install-cmd` and `post-update-cmd` | `composer install` or `composer update` |
-| `homebrew-tap` | the `hooks` recipe, which `just ci` depends on | `just ci` or `just hooks` |
+| Set by | Fires on |
+|--------|----------|
+| the `hooks` recipe, which `just ci` depends on | `just ci` or `just hooks` |
+| npm's `prepare` script | `npm install` or `npm ci` |
+| Composer's `post-install-cmd` and `post-update-cmd` | `composer install` or `composer update` |
 
-Each is `git config core.hooksPath .githooks` under a different name. Run it by
-hand in a clone where it has not happened yet.
+Each is `git config core.hooksPath .githooks` under a different name — whichever
+of the three the repository's own task runner already gives it. Run it by hand in
+a clone where it has not happened yet. Which repositories carry the hooks at all
+is [adoption.toml](adoption.toml), and not a second list here.
 
 ## Where it still does not reach
 
@@ -151,7 +194,10 @@ been edited in place instead of copied again.
 It also fails on a file added to this directory that no check there looks at,
 because a shared file nothing compares is copied into every repository and held to
 in none — and the run still says the copies match, which is true of the ones it
-looked at and reads as an account of all of them.
+looked at and reads as an account of all of them. It fails on the same shape one
+level up: a repository [adoption.toml](adoption.toml) holds no row for, a row for
+a repository the org does not have, and a row naming a file this directory no
+longer holds.
 
 ## Changing one of them
 
