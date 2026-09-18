@@ -96,10 +96,13 @@ class Catalogue(unittest.TestCase):
                         encoding="utf-8")
 
     def feature(self, fid, maturity, title="A feature", requirements=3,
-                area="b-running"):
+                area="b-running", retired=()):
         directory = pathlib.Path(f"10-functional/features/{area}")
         directory.mkdir(parents=True, exist_ok=True)
         rows = "\n".join(
+            f"| **{fid}-R{n}** | *Withdrawn — carried elsewhere. The number is "
+            "not reused.* |"
+            if n in retired else
             f"| **{fid}-R{n}** | Something MUST happen. |"
             for n in range(1, requirements + 1)
         )
@@ -207,15 +210,30 @@ class TheNarrowing(Catalogue):
 
 class WhatNoVersionLocks(Catalogue):
     def test_a_requirement_the_train_never_locks_is_named(self):
-        """F3-R15, R16, R19 and R20 are locked by no manifest at all. Nothing
-        would ever ask about them, and the only run in a position to notice is one
-        already looking at the feature that holds them."""
+        """A live requirement no manifest carries. Nothing would ever ask about
+        it, and the only run in a position to notice is one already looking at
+        the feature that holds it."""
         self.feature("F3", "shipped", requirements=5, area="f-extensibility")
         self.manifest("0.16.0", ["F3-R1", "F3-R2"])
         code, said = self.act("0.16.0")
         self.assertEqual(code, 0)
         self.assertIn("locked by no manifest in the train", said)
         self.assertIn("F3-R3, F3-R4, F3-R5", said)
+
+    def test_a_retired_number_is_not_a_hole_in_the_train(self):
+        """F3-R15, R16, R19 and R20 are the real shape of this. Each is a row
+        kept so the number is never reused, and OPS-R30 forbids one being a goal
+        — so naming them here asks every manifest for the one thing none of them
+        may give, and trains a reader to read past the warning."""
+        self.feature("F3", "shipped", requirements=5, area="f-extensibility",
+                     retired=(3, 4))
+        self.manifest("0.16.0", ["F3-R1", "F3-R2"])
+        code, said = self.act("0.16.0")
+        self.assertEqual(code, 0)
+        self.assertNotIn("F3-R3", said)
+        self.assertNotIn("F3-R4", said)
+        self.assertIn("F3-R5", said)
+        self.assertIn("locks 2 of its 3 requirements", said)
 
     def test_it_counts_what_every_manifest_locks_and_not_only_this_one(self):
         """A requirement another version carries is not a hole in the train."""

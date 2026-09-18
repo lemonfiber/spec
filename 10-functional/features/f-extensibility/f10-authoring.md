@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: planned
+maturity: building
 priority: P2
 labels: [extensibility, cli, verification]
 requires: [F3]

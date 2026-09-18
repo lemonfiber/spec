@@ -323,24 +323,45 @@ into or out of something already shipped.
 ## The no-stub rule — a version ships nothing half-built
 
 A version proves its `goals` requirement by requirement, and that is not the
-whole of what it claims. A requirement can be met while the feature around it is
+whole of what it claims. A requirement can be met while the thing around it is
 half built: `1.0.0` announcing a dashboard whose panels are stubs would satisfy
-every goal it locked and still be the release nobody wanted. **The feature is the
-unit a reader understands, so the feature is what this asks about.**
+every goal it locked and still be the release nobody wanted.
 
-`execute-version` MUST refuse while any feature the manifest locks — one whose
-requirements appear in its `goals` — is not `maturity: shipped` in the
-[catalogue](../10-functional/features/README.md), and the refusal MUST name
-them. That is the whole of what **"a major ships no stubs"** means here: a rule
-about every version, and `X.0.0` is only where it bites hardest, because a major
-is what people read as a finished generation.
+`execute-version` MUST refuse while any requirement the manifest locks is not
+built, and the refusal MUST name those requirements. That is the whole of what
+**"a major ships no stubs"** means here: a rule about every version, and `X.0.0`
+is only where it bites hardest, because a major is what people read as a
+finished generation.
+
+The subject is the requirements a version **carries**, not the whole of every
+feature it touches. The first cut of this rule asked the feature-level question
+— is every feature this manifest locks finished — and nothing could ever satisfy
+it: partial locking is the norm rather than the exception, 24 of 25 manifests
+lock part of at least one feature, and `0.1.0` locks two of `B1`'s fifteen, so a
+feature spanning two versions could never be finished when the first of them
+shipped. A rule nothing can satisfy is a rule nobody runs.
 
 `maturity` is the catalogue's own answer to *how far is this built*, kept apart
 from the `status` that describes the specification — a feature can be `Accepted`
 and unbuilt, and conflating the two loses whichever question is asked less often.
 Like the tracker tick in `OPS-R34`, it is an attestation written before the tag
-rather than derived from it: the feature is marked `shipped` with the version
-that carries it, and the gate reads that mark.
+rather than derived from it, and it is read per requirement:
+
+| `maturity` | What it answers for the requirements the version locks |
+|-----------|--------------------------------------------------------|
+| `built`, `shipped` | all of them: the feature is finished, so any subset of it is |
+| `planned`, `withdrawn` | none of them: the feature is untouched, so no subset of it is |
+| `building` | some and not others, and the catalogue does not say which — so the implementation-status tracker is asked, requirement by requirement |
+
+`built` is what makes this checkable at all. `shipped` means *out in a released
+version*, so requiring it before the tag would be a gate no version could ever
+pass; `built` is the state a finished feature waits in while the version
+carrying it is staged.
+
+The two records are held against each other rather than trusted separately: a
+`planned` feature whose requirements the tracker ticks is refused here even
+though the goal gate would pass them, because a catalogue calling a feature
+untouched and a tracker calling its requirements done cannot both be right.
 
 ## Cross-repo orchestration
 
