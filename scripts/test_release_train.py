@@ -278,6 +278,26 @@ class GateTests(Workspace):
         with self.assertRaises(SystemExit):
             gate.parse_repos(["noequals"])
 
+    def test_a_search_of_nowhere_is_refused_rather_than_answered(self):
+        """Naming no repository is a run that cannot look, not a verdict.
+
+        Answered, it comes back as every goal uncited — which is what a version
+        nobody has started also looks like, and the tracker renders the two
+        identically. So it exits 2 the way a manifest locking no goals does,
+        rather than 1.
+        """
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), self.assertRaises(SystemExit) as exit:
+            gate.parse_repos([])
+        self.assertEqual(exit.exception.code, 2)
+        self.assertIn("nowhere to read citations from", out.getvalue())
+
+        self.manifest("0.1.0", goals=("B1-R4",))
+        code, said = run_main(gate, ["--manifest", "70-operations/versions/0.1.0.toml",
+                                     "--status", self.status_file()])
+        self.assertEqual(code, 2)
+        self.assertNotIn("B1-R4", said)
+
     def test_cited_and_done_and_evaluate(self):
         self.repo("checkouts/lf")
         cited = gate.cited_ids(gate.parse_repos(["lf=checkouts/lf"]))
