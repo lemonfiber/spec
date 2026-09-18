@@ -89,7 +89,7 @@ Ordered by ceremony. Each is a way of reaching the same tag-triggered release
 | **Staged train** | a planned minor (`0.2.0`) | full — every locked goal satisfied | yes: branches split, progress tracked |
 | **Fast lane** | spec and sub-repos already in sync | full, run once at execute | no — stage, gate and execute in one operation |
 | **Hotfix** | an urgent patch (`0.2.1`) | bypassed → replaced by a cited fix + maintainer | no |
-| **Raw tag** | the primitive under all of the above | none (`git tag` → [release.yml](releasing.md)) | no |
+| **Raw tag** | the primitive under all of the above | full — `OPS-R70`; a lane that cuts a release tag runs it or refuses | no |
 
 The fast lane still runs the gate: even a one-shot release *proves* its claimed
 goals shipped. Only the staging period is skipped.
@@ -144,6 +144,40 @@ stack's `schema_version` and `min_cli_version` against the binary
 ([versioning.md](../20-architecture/contracts/versioning.md)) — and record the
 exact submodule pins in the manifest, so the release is reproducible from the
 file.
+
+### The gate is on the lane, not on one workflow
+
+`execute-version` is a lane, not the gate. Anything that can put a `vX.Y.Z` tag
+on the trunk starts the same pipeline and produces the same release, so the rule
+belongs to **cutting a release tag** rather than to the workflow that usually
+does it (`OPS-R70`).
+
+This was found the expensive way. `v0.15.0` was tagged by `release-dispatch` in
+the binary repository — a one-click lane that validates the version is on `main`
+and matches `Cargo.toml`, and nothing else — while `execute-version` had not run
+for three days. `release-finalize` then fired on the publish and wrote
+`status = "released"` without re-asking. The version went out with `F1-R1`
+unmet, and the record could not say so: a manifest reads `released` whether its
+goals were proved or never asked about, and nothing anywhere distinguished the
+two. It was noticed from outside, by a renderer of these files asserting that a
+released version had proved its goals.
+
+So a "raw tag" lane is no longer a sanctioned bypass. It remains the primitive
+every lane is built on — the tag is still what starts the pipeline — but a lane
+that reaches it without the verdict is refused rather than described.
+
+Three properties make that refusal worth something, and each answers a way the
+first version of this could have been hollow:
+
+| Property | Why it is written down |
+|----------|------------------------|
+| The verdict is taken **at the commit being tagged** | A gate that passed last week says nothing about this tree. `v0.15.0`'s goals were last gated three days and eleven commits before the tag. |
+| A lane that **cannot** run the gate refuses | A gate that silently does not run is worse than no gate: it reads as a pass. An unreachable repository, an absent manifest and a missing status file are refusals, not skips. |
+| The verdict **names** the unmet goals | `OPS-R34` already asks this of `execute-version`. A lane that refuses without saying what is unmet sends somebody to read a gate rather than fix a goal. |
+
+The hotfix lane is still exempt, and for the reason it always was: a patch to an
+already-released version delivers no goals of its own, so there is no goal set to
+prove. `OPS-R37`'s cited fix and maintainer authorisation stand in its place.
 
 ## Going out before it is releasable
 
@@ -452,6 +486,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R67** | Every plugin the release train gates on MUST be registered under `70-operations/` with the repository holding it and the paths of the files the gate reads. The manifest generation a plugin is written in and the release it is validated against MUST be declared by the plugin itself and MUST NOT be restated in the registry. A registered plugin MUST NOT be a stream the train cuts and MUST NOT be named by any version manifest; it is an input to the gate and MUST NOT be tagged by it. |
 | **OPS-R68** | Every run that would cut a tag MUST re-validate every registered plugin riding that version against the manifest generation the release carries and MUST re-read the report its proofs left, and MUST refuse the run where one no longer validates, naming the plugin and what failed. |
 | **OPS-R69** | A registered plugin the gate cannot reach, that cannot say which release it targets, whose manifest or proof report is absent or unreadable, or whose report names no proof or names one that is not passed, MUST fail the run by name. The gate MUST NOT pass over what it could not read, and MUST NOT report success about the part it could. |
+| **OPS-R70** | Every lane that cuts a release tag MUST run the goal gate against the commit being tagged and MUST refuse unless every goal that version locks is satisfied, naming the unmet ones. A verdict taken at any other commit MUST NOT stand in for it, and a lane that cannot run the gate MUST refuse rather than tag — a gate that does not run MUST NOT read as one that passed. `execute-version` is one such lane and MUST NOT be the only one gated. A hotfix to an already-released version is exempt, because it delivers no goals of its own (`OPS-R37`). |
 | **OPS-R58** | A manifest MUST say where the work satisfying its goals landed, and the goal gate MUST search exactly those repositories. Where a manifest does not say, the streams it cuts are what is searched. A repository named there MUST NOT be tagged for being named: what a version *cuts* and where its goals were *satisfied* are separate lists, and a goal satisfied in a repository the gate does not search MUST be reported unmet rather than passed over. |
 
 ## Related
