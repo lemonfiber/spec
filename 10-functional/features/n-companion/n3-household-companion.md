@@ -68,9 +68,23 @@ a pipeline stage, and not a percentage that means nothing to them.
 
 ### Finding it when it arrives
 
-The app does not play media. It hands off to whichever client the household uses
-([G6](../g-ux/g6-client-apps.md)), which is a link and a hand-off rather than a
-second player nobody asked for.
+The app plays it. A member who asked for something and was told it had arrived
+should be able to watch it where they are standing, and an app that hands them to
+a second application they must also install is a household product that stops
+short of the thing the household wanted.
+
+The stream comes from the media server over the local network, which is what a
+media server is built to serve and what the pairing already knows the address of.
+Away from home, playback is declined and says so — the same shape as asking for
+something new while the stack is unreachable, and an honest refusal beats a
+spinner that never resolves.
+
+**What the player may not do is the whole of what it must get right.** It renders
+what the core says a member may watch and holds no second copy of it, so an age
+limit is never enforced twice and never disagrees with itself. It implements no
+part of asking, approving or allowance. A client the household already uses stays
+a first-class way to watch ([G6](../g-ux/g6-client-apps.md)); this is a second
+way, not a replacement for one.
 
 ### What a member is never shown
 
@@ -94,7 +108,7 @@ does not hold a second copy of them.
 | No allowance left | Asking is declined with when it resets, before a search happens rather than after. |
 | Request waiting | Somebody has to approve it, and the app says so. |
 | Request refused | Refused, carrying the reason that was given. |
-| Request fulfilled | Here, with a hand-off to a client that plays it. |
+| Request fulfilled | Here, and playable where they are standing. |
 
 ## Edge cases
 
@@ -106,6 +120,7 @@ does not hold a second copy of them.
 | A title is already held | Said so before they ask for it again. |
 | A member is removed from the household while signed in | The next call is refused by the core, and the app returns to signed-out rather than continuing to render what it had. |
 | Parental limits hide a title | It is not shown. The app does not display a title it then refuses to request. |
+| The media server cannot be reached while away from home | Playback is declined, saying the stack cannot be reached from here. Nothing buffers and nothing is queued. |
 
 ## Acceptance criteria
 
@@ -118,12 +133,15 @@ does not hold a second copy of them.
 | **N3-R5** | A member whose allowance is spent MUST be told before asking, with when it resets. |
 | **N3-R6** | A member's own requests MUST carry their state in household terms, and MUST NOT expose pipeline internals. |
 | **N3-R7** | A refused request MUST carry the reason that was given. |
-| **N3-R8** | The app MUST NOT play media; it MUST hand off to a household client. |
+| **N3-R8** | *Withdrawn.* The app plays media. What this row protected is stated by `N3-R14`, `N3-R15` and `N3-R16`. |
 | **N3-R9** | A member MUST NOT be shown lifecycle controls, logs, credentials, diagnostics, or another member's requests. |
 | **N3-R10** | Where a member's request failed because of a stack fault, the app MUST tell them it did not work and that the operator has been told, and MUST NOT show them the fault. |
 | **N3-R11** | Parental limits MUST be rendered from the core's answer, and the app MUST NOT hold a second copy of them. |
 | **N3-R12** | While the stack is unreachable, asking for something new MUST be declined rather than queued. |
 | **N3-R13** | An identity removed from the household MUST result in a signed-out app at the next refused call, and MUST NOT continue to render what was already loaded. |
+| **N3-R14** | What a member may watch MUST be the core's answer; the player MUST NOT hold a second copy of a library, an age limit or an entitlement. |
+| **N3-R15** | Where the media server cannot be reached, playback MUST be declined with the reason, and MUST NOT be queued or shown as buffering. |
+| **N3-R16** | The player MUST NOT implement request, approval or allowance logic of its own. |
 
 ## Related
 

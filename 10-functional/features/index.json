@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 81,
-    "requirements": 1224,
+    "features": 82,
+    "requirements": 1238,
     "areas": "A–N"
   },
   "versions": [
@@ -2261,6 +2261,38 @@
         }
       ],
       "path": "g-ux/g9-mobile-handoff.md"
+    },
+    {
+      "id": "G10",
+      "title": "The household's web surface",
+      "area": "G",
+      "audience": "household",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "web",
+        "household",
+        "ux"
+      ],
+      "requires": [
+        "D4",
+        "D6",
+        "G1"
+      ],
+      "relates": [
+        "D7",
+        "D8",
+        "G5",
+        "G6",
+        "N3"
+      ],
+      "versions": [],
+      "path": "g-ux/g10-household-web.md"
     },
     {
       "id": "H1",
