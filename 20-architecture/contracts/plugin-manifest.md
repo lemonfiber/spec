@@ -266,6 +266,7 @@ ignored:
 |-------|--------------------------------|
 | `grants` | Kernel capabilities. The allow-list is one entry long and exists so the VPN tunnel can hold `NET_ADMIN`; extending it on the strength of an untrusted manifest is a deny-list wearing a hat. |
 | `depends_on` | The bundled stack contains exactly one cross-service dependency (`B1-R14`), and it is the one that keeps torrent traffic inside the tunnel. A plugin introducing an ordering edge between services it does not own is a source of failures nobody can attribute. |
+| `[[wiring]]` | The stack manifest's array of [links between its own services](stack-manifest.md#wiring--the-link-between-two-services-and-which-of-them-it-names) — not to be read as the `[wiring]` block below, which is two fields saying where lemonfiber puts *this* service's hostname and dashboard entry. A plugin declares what it can do in `provides` and is asked for by whatever already asks; it does not get to say what reaches what. In particular it cannot introduce a **by-name** link, which is `F4-R12`'s third clause: a by-name wiring is the operator's exception to make and a plugin naming another service is reaching into wiring it does not own. |
 | `host_managed` | Native-mode lifecycle is the operating system's (`B2-R15`). A plugin cannot install a system service. |
 | `profile` | Assigned, not declared — see below. |
 | `environment` | Arbitrary variables into a container lemonfiber generates. The two things an image is usually told this way are where its data lives and where its library is, and both are declarations here — `config_path` and `media_types` — checked and bounded. A free-form pair is neither, and is how a plugin would configure its way past what the format says it does. |
@@ -387,6 +388,12 @@ demonstrate.
 hostname = "comics"
 dashboard_group = "Library"
 ```
+
+Two fields, and neither names another service. The stack manifest's
+[`[[wiring]]`](stack-manifest.md#wiring--the-link-between-two-services-and-which-of-them-it-names)
+is the other kind and is an array of links between the stack's own services;
+this one is a plugin saying where its *own* entry goes, and lemonfiber writes
+both the route and the panel from it.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|

@@ -12,7 +12,11 @@ here.
 [F1-R5](../../10-functional/features/f-extensibility/f1-customisation.md),
 [F1-R9](../../10-functional/features/f-extensibility/f1-customisation.md),
 [F2-R1](../../10-functional/features/f-extensibility/f2-service-catalogue.md)–[F2-R4](../../10-functional/features/f-extensibility/f2-service-catalogue.md),
-[F2-R10](../../10-functional/features/f-extensibility/f2-service-catalogue.md)
+[F2-R10](../../10-functional/features/f-extensibility/f2-service-catalogue.md),
+[F4-R1](../../10-functional/features/f-extensibility/f4-capabilities.md),
+[F4-R9](../../10-functional/features/f-extensibility/f4-capabilities.md),
+[F4-R12](../../10-functional/features/f-extensibility/f4-capabilities.md),
+[F9-R4](../../10-functional/features/f-extensibility/f9-bundled-capabilities.md)
 
 ---
 
@@ -40,6 +44,7 @@ min_cli_version = "0.4.0"
 [[profile]]  # 12 of these
 [[form]]     # 11 of these
 [[service]]  # 19 of these
+[[wiring]]   # one per link between two of them
 ```
 
 ## `schema_version`
@@ -315,6 +320,122 @@ issues a **per-account** API key, which exists only once first-run setup has
 created an account — so the key is retrieved over its own API after
 authenticating, and `path` does not apply.
 
+## `[[wiring]]` — the link between two services, and which of them it names
+
+```toml
+[[wiring]]
+by   = "seerr"
+asks = "identity.source"
+
+[[wiring]]
+by   = "bazarr"
+asks = "library.curate"
+each = true
+
+[[wiring]]
+by        = "bindery"
+asks      = "indexer.search"
+filled_by = "prowlarr"
+why       = "Two services here answer as an indexer and one of them has to be the one this asks."
+
+[[wiring]]
+by  = "qbittorrent"
+to  = "gluetun"
+why = "It has no network namespace of its own."
+```
+
+`provides` says what a service can do.
+[`F4-R1`](../../10-functional/features/f-extensibility/f4-capabilities.md)'s
+second clause is the other half, and it is this: **the wiring asks for a
+capability rather than naming a service**.
+[`F9-R4`](../../10-functional/features/f-extensibility/f9-bundled-capabilities.md)
+is that clause applied to the stack this project ships.
+
+A wiring lived nowhere before this. It was a `depends_on` in this file, a URL in
+a Compose fragment, and a service id in lemonfiber's own source — three places,
+none of which said *what the link is for*, and all of which name a service. So a
+reader asking "what reaches Jellyfin, and would anything else do?" had to read
+the code, and the answer was always "Jellyfin, because it says Jellyfin".
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `by` | string | ✔ | The service whose wiring this is — what asked. A declared service. This is the name a capability nothing fills is reported against (`F4-R9`). |
+| `asks` | string | | The capability asked for, in the published [vocabulary](capability-vocabulary.md). Exactly one of this and `to`. |
+| `each` | bool | | `true` where the wiring reaches **every** service that fills the capability rather than the one that does. Only with `asks`. Default `false`. |
+| `filled_by` | string | | Which claimant fills it, where the stack's own services contest it. Only with `asks`, never with `each`, and the named service must declare the capability. Requires `why`. |
+| `to` | string | | The service named. The by-name exception (`F4-R12`). Exactly one of this and `asks`. Requires `why`. |
+| `why` | string | | Why this is by name, or why this claimant was chosen. Never blank where it is required. |
+
+### `each` — one filler, or all of them
+
+Some asks are for the one service that does a thing and some are for all of
+them. The subtitle finder watches *every* service that curates a library; the
+request service signs in against *the* identity source. Both are honest asks and
+they resolve differently, so the wiring says which it is rather than leaving a
+reader to infer it from how many claimants happen to exist today.
+
+Without it the difference would be invisible until it bit: four services declare
+`library.curate`, so an ask that meant "the one" would be reported as contested
+and refused (`F4-R8`), and an ask that meant "all of them" would be reported the
+same way — one of those two is a wiring that works.
+
+### `filled_by` — a choice, recorded, rather than a rule
+
+Where two of the stack's own services claim one capability and a wiring asks for
+one of them, somebody has to choose. `F4-R8` says who: not install order, not
+precedence, not recency — an operator, and their choice is recorded.
+
+`filled_by` is the stack making that choice for the stack it ships, in the file
+the operator can read and with the reason beside it. It is a default, not a
+rule: the operator substitutes by choosing another claimant, that change is
+journalled like any other
+([`F4-R10`](../../10-functional/features/f-extensibility/f4-capabilities.md)),
+and it can be put back. A fork shipping different services makes its own choice
+the same way.
+
+It is `why`-bearing for the same reason `to` is. A choice with no reason beside
+it is indistinguishable from a rule somebody encoded, which is the thing `F4-R8`
+refuses.
+
+### `to` — by name, and shown as by name
+
+`F4-R12` keeps by-name wiring available and makes it visible as the exception it
+is. `to` is that spelling: it names a service, it carries the reason, and
+anything that lists the stack's wiring shows it as by-name rather than as an ask
+that happened to resolve to one candidate.
+
+**The stack has exactly one.** qBittorrent is inside Gluetun's network
+namespace, and it is worth writing down why that is genuinely about one service
+rather than an ask for `network.egress-guard` resolved late:
+
+- What is shared is a **container's namespace**, not an errand. `network_mode:
+  service:gluetun` makes two containers one network entity. There is no
+  indirection for the sharing to pass through, and nothing to substitute *at*.
+- The property this buys is that qBittorrent has **no network of its own**, so
+  when the tunnel drops it loses connectivity rather than falling back to the
+  home IP (`C2-R12`). That is a statement about those two containers, and an ask
+  that resolved to a name at render time would state it no better while hiding
+  the one relationship in this stack a reader most needs spelled out.
+- It is not one link but four that have to agree: the shared namespace, the
+  health-gated start order, the profile they share (`B1-R14`), and the port
+  Gluetun publishes *on qBittorrent's behalf*. A capability is something one
+  service asks another for while both are running; this is two containers being
+  co-scheduled as one.
+
+So it stays by name, it says why, and the exception is legible. Everything else
+in the stack asks.
+
+### What this does not cover
+
+A wiring here is a link between two services in *this* stack. lemonfiber writes
+the proxy and dashboard entries for a service from its tier and its description,
+which is generation rather than wiring, and a plugin's service is wired on the
+same terms ([`ARCH-R103`](plugin-manifest.md)). A plugin has no field by which it
+could add a `[[wiring]]` of its own, and in particular none by which it could add
+a by-name one — that is `F4-R12`'s third clause, and the plugin manifest's
+[absent fields](plugin-manifest.md#the-fields-that-are-absent-and-why) are where
+it is held.
+
 ## Validation
 
 Validation reports **every** violation in one pass, each naming its location
@@ -339,6 +460,15 @@ Validation reports **every** violation in one pass, each naming its location
 | `grants` within the allow-list | Service and kernel capability named |
 | `protocol` is a permitted value | Profile and value named |
 | At most one profile per `protocol` | Both profiles named |
+| Every `wiring.by`, `wiring.to` and `wiring.filled_by` references a declared service | Wiring and the unknown id named (`F4-R1`) |
+| Exactly one of `asks` and `to` on a wiring | Wiring named, and which of the two it has |
+| `why` present and not blank where `to` or `filled_by` is | Wiring named (`F4-R12`) |
+| `each` and `filled_by` only where `asks` is, and never together | Wiring and the field named |
+| `filled_by` declares the capability it is chosen for | Wiring, service and capability named (`F4-R8`) |
+| `wiring.asks` is a core capability name in shape | Wiring and the name named |
+| No wiring names its own `by` as `to` or `filled_by` | Wiring named |
+| No two wirings carry the same `by` and `asks`, or the same `by` and `to` | Both wirings named |
+| Every `depends_on` edge is also declared as a by-name `[[wiring]]` | Service and target named (`F4-R12`, `F9-R4`) |
 | Manifest services match `compose.yml` services exactly | Divergence listed both ways |
 
 That last rule matters more than it looks: a manifest describing a service that
@@ -504,11 +634,22 @@ license = "MIT"
 upstream = "https://github.com/seerr-team/seerr"
 describes = "Where the household asks for things"
 without_it = "Requests come to you in person"
+
+# ── Wiring ──────────────────────────────────────────────────
+[[wiring]]
+by   = "seerr"
+asks = "identity.source"
+
+[[wiring]]
+by  = "qbittorrent"
+to  = "gluetun"
+why = "It has no network namespace of its own — it is inside this one container's."
 ```
 
 Note `qbittorrent.depends_on = ["gluetun"]` — legal because both are in
 `torrent`, and the single permitted cross-service dependency in the stack
-(`B1-R14`).
+(`B1-R14`). It is also the stack's only by-name wiring, and the `[[wiring]]`
+entry above is where it says so.
 
 Note `seerr.bind = "lan"` against everything else's `loopback` — the two-tier
 policy expressed as data rather than as a rule someone has to remember.
@@ -522,4 +663,6 @@ See [versioning](versioning.md).
 - [ADR-0002 Profiles and forms](../../00-overview/decisions/0002-profiles-and-forms.md)
 - [ADR-0005 Embedded stack assets](../../00-overview/decisions/0005-embedded-stack-assets.md)
 - [B1 Forms](../../10-functional/features/b-running/b1-forms.md) · [F2 Service catalogue](../../10-functional/features/f-extensibility/f2-service-catalogue.md)
+- [F4 The capability vocabulary](../../10-functional/features/f-extensibility/f4-capabilities.md) · [F9 Capabilities of the bundled services](../../10-functional/features/f-extensibility/f9-bundled-capabilities.md) — what `provides` and `[[wiring]]` are for
+- [capability-vocabulary.md](capability-vocabulary.md) — the names a wiring may ask for
 - [component-model.md](../component-model.md) — where the manifest is parsed
