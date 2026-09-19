@@ -321,6 +321,40 @@ class StatedCounts(unittest.TestCase):
         self.assertIn("README.md:3", found[0])
         self.assertIn("says 68 features where this repository has 77", found[0])
 
+    def test_a_wrong_count_is_told_what_to_run(self):
+        """The refusal names the sentence; the run names the command.
+
+        Typing the right number is never the fix — this repository is the source
+        of it and `--write` reads the tree — so the line saying so is part of
+        what a wrong count produces rather than something to go and find.
+        """
+        self.index(77)
+        self.adrs(2)
+        (self.tmp / "README.md").write_text(
+            "The 68-feature catalogue, and 2 ADRs.\n", encoding="utf-8")
+        code, out = run_main()
+        self.assertEqual(code, 1, out)
+        self.assertIn("says 68 features where this repository has 77", out)
+        self.assertIn("run `just counts`", out)
+
+    def test_a_missing_sentence_is_not_sent_to_that_command(self):
+        """`--write` cannot repair a sentence it cannot find.
+
+        The two count faults look alike and only one of them has that fix. Saying
+        `just counts` over a governed sentence that has gone sends somebody to a
+        command that reports rewriting nothing, and leaves them no better off.
+        """
+        self.index(77)
+        self.adrs(2)
+        (self.tmp / "README.md").write_text(
+            "The 77-feature catalogue, and twenty-five architecture decisions.\n",
+            encoding="utf-8")
+        code, out = run_main()
+        self.assertEqual(code, 1, out)
+        self.assertIn("so nothing was compared", out)
+        self.assertNotIn("run `just counts`", out)
+        self.assertIn("Put the sentence back in that shape", out)
+
     def test_a_count_no_sentence_states_is_a_fault_rather_than_a_pass(self):
         """A pattern matching nothing is the case the check was written for.
 
