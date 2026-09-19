@@ -61,7 +61,7 @@ GET /api/outbound      GET /api/stored       GET /api/clients
 GET /api/credentials   GET /api/alerts
 GET /api/space         GET /api/bandwidth
 GET /api/hosting      GET /api/uninstall
-GET /api/migration
+GET /api/migration    GET /api/held?…
 GET /api/history
 GET /api/update?…
 ```
