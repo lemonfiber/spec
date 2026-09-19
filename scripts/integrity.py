@@ -469,9 +469,10 @@ def main() -> int:
         # rather than on each line, the way `check_services.py` says it — the
         # refusals above name the sentences, and this names what to do about
         # every one of them at once.
+        #
         # Only where a number is wrong. A governed sentence that has gone
-        # missing is not repaired by `--write` and saying so would send
-        # somebody to a command that reports repairing nothing.
+        # missing is not repaired by `--write`, and sending somebody there would
+        # be sending them to a command that reports repairing nothing.
         if [one for one in counts if UNCOMPARED not in one]:
             print(
                 "::error::this repository is the source of these numbers; run "
