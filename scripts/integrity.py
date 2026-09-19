@@ -29,6 +29,12 @@ VERSIONS = pathlib.Path("70-operations/versions")
 
 LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)#]+)(?:#[^)]*)?\)")
 
+#: The words both silence refusals carry. A governed sentence that has gone is a
+#: different fault from a number that is wrong, and only the second is repaired by
+#: `--write` — so the two are told apart here rather than answered with one
+#: sentence that is right about one of them.
+UNCOMPARED = "so nothing was compared"
+
 
 #: Directories under the root that hold no document of this repository's own.
 #:
@@ -199,7 +205,9 @@ def stated_counts() -> list[str]:
     faults += [
         f"no sentence states a count of {expected[pattern][1]} in the shape "
         f"{pattern!r}, so nothing was compared — either the prose moved or this "
-        "check did"
+        f"check did. `--write` cannot repair this one: it rewrites a number "
+        f"inside a sentence it can find. Put the sentence back in that shape, or "
+        f"move the pattern in `counted()` to the shape the prose now uses"
         for pattern, found in seen.items()
         if not found
     ]
@@ -314,7 +322,10 @@ def stated_goal_counts() -> list[str]:
         faults.append(
             f"no manifest of the {len(present)} under {VERSIONS} states how many "
             f"goals it locks in the shape {GOAL_COUNT.pattern!r}, so nothing was "
-            "compared — either the comment moved or this check did"
+            f"compared — either the comment moved or this check did. `--write` "
+            f"cannot repair this one: it rewrites a number inside a comment it can "
+            f"find. Put the comment back in that shape, or move `GOAL_COUNT` to "
+            f"the shape the manifests now use"
         )
     return faults
 
@@ -437,14 +448,14 @@ def main() -> int:
             print(f"::error::{fault}")
         return 1 if remaining else 0
 
+    counts = stated_counts() + stated_goal_counts()
     problems = []
     # De-dup the "cites undefined" one-per-file noise into unique messages.
     seen = set()
     for msg in (
         check_ids()
         + check_links()
-        + stated_counts()
-        + stated_goal_counts()
+        + counts
         + check_manifest_repos()
     ):
         if msg not in seen:
@@ -453,6 +464,20 @@ def main() -> int:
     if problems:
         for m in problems:
             print(f"::error::{m}")
+        # The fix for a wrong count is never to type the right one: the tree is
+        # the source of it and `--write` reads the tree. Said once at the end
+        # rather than on each line, the way `check_services.py` says it — the
+        # refusals above name the sentences, and this names what to do about
+        # every one of them at once.
+        # Only where a number is wrong. A governed sentence that has gone
+        # missing is not repaired by `--write` and saying so would send
+        # somebody to a command that reports repairing nothing.
+        if [one for one in counts if UNCOMPARED not in one]:
+            print(
+                "::error::this repository is the source of these numbers; run "
+                "`just counts` (`integrity.py --write`) rather than editing the "
+                "prose. A count nobody generated is a count that drifts again."
+            )
         print(f"\n{len(problems)} integrity problem(s).")
         return 1
     print("spec integrity: clean")
