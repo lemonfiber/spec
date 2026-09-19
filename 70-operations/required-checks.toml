@@ -1,0 +1,135 @@
+# Which checks are allowed to run on a pull request without being required.
+#
+# A check that runs and cannot refuse reports clean about nothing. Eight pull
+# requests merged red in one afternoon because `workflow-pins` was failing and
+# was a required context in zero of sixteen repositories: branch protection had
+# nothing to refuse. `scripts/check_required.py` reads this file and every
+# repository's protection and fails on a check that runs, is not required, and
+# is not named here.
+#
+# It is one file rather than sixteen because the question is one question. A
+# per-repository list would let a repository quietly exempt its own gate, which
+# is the shape of the defect rather than a fix for it.
+#
+# Every entry carries a reason, and an entry that matches nothing anywhere is
+# refused. An exemption is a claim about a check that exists; when it stops
+# being true it is a mute rather than a register, and nothing would say so.
+
+# Jobs that report rather than judge. They post a comment, move a label or send
+# a notification; requiring one would block a merge on whether somebody was
+# told, and none of them has a verdict to give.
+[[exempt]]
+name = "labeler / label"
+why = "applies labels from a path map; it decides nothing about the change"
+
+[[exempt]]
+name = "label / label"
+why = "the same job under the name a different caller gives it"
+
+[[exempt]]
+name = "refs / comment"
+why = "posts the spec references a pull request touches, as a comment"
+
+[[exempt]]
+name = "awaiting / notify"
+why = "tells the maintainers a pull request is ready; the readiness is decided elsewhere"
+
+[[exempt]]
+name = "awaiting / toggle"
+why = "moves the awaiting-maintainer label, and judges nothing"
+
+[[exempt]]
+name = "goals / classify"
+why = "labels a pull request with the goals it cites"
+
+[[exempt]]
+name = "citation / explain"
+why = "explains a citation refusal in a comment; the refusal is spec-check's"
+
+[[exempt]]
+name = "dco / explain"
+why = "explains a sign-off refusal in a comment; the refusal is dco's"
+
+# Complement legs. Each carries `if: github.event_name != 'pull_request'` and is
+# therefore always skipped on a pull request. Requiring one would deadlock the
+# branch permanently: a skipped check never reports, and protection waits.
+[[exempt]]
+name = "gate / not-a-pull-request"
+why = "always skipped on a pull request; requiring it would deadlock the branch"
+
+[[exempt]]
+name = "sonar-gate / not-a-pull-request"
+why = "always skipped on a pull request; requiring it would deadlock the branch"
+
+# Per-shard legs whose aggregate is already required. Naming a leg would also
+# name a set that moves: these come from a matrix computed at run time, so a
+# renamed shard silently drops the gate.
+[[exempt]]
+prefix = "mutation ("
+why = "per-module legs of a run-time matrix; the aggregate `mutation testing` is required"
+
+[[exempt]]
+prefix = "runs ("
+why = "per-profile legs of a run-time matrix; the aggregate `the stack starts` is required"
+
+# Push- and release-triggered jobs. They are not pull-request gates: they run
+# after a merge or on a tag, so on a pull request there is nothing to require.
+[[exempt]]
+name = "deploy"
+why = "publishes the built site after a merge to main"
+
+[[exempt]]
+name = "announce"
+why = "posts a release after a tag"
+
+[[exempt]]
+name = "host"
+why = "publishes to the hosting target after a merge"
+
+[[exempt]]
+name = "build-global-artifacts"
+why = "builds release artifacts on a tag"
+
+[[exempt]]
+prefix = "build-local-artifacts ("
+why = "release artifact legs, named from an unexpanded matrix expression"
+
+# The advanced-security app's own results check, which concludes `neutral`
+# rather than `success` on a pull request. The jobs are the `analyze (…)` legs
+# and those are required; this one would never report success.
+[[exempt]]
+name = "CodeQL"
+why = "the results check concludes neutral, not success, so requiring it deadlocks"
+
+# Spec's own notification and labelling jobs. This repository calls the shared
+# reusables directly rather than through a wrapper job, so their contexts are
+# the bare job name rather than `<caller> / <job>`.
+[[exempt]]
+name = "comment"
+why = "posts the spec references a pull request touches; spec-references' reporting half"
+
+[[exempt]]
+name = "detect"
+why = "decides whether a surprising check needs explaining, and posts the explanation"
+
+[[exempt]]
+name = "label"
+why = "applies labels from a path map; it decides nothing about the change"
+
+[[exempt]]
+name = "notify"
+why = "posts a run's outcome to Discord; the outcome is decided elsewhere"
+
+[[exempt]]
+name = "toggle"
+why = "moves the awaiting-maintainer label, and judges nothing"
+
+# SonarCloud's own app status, which is not the gate. The blocking job is the
+# repository's `gate / gate`, which reads the analysis and refuses a new issue.
+# This status does not post on every pull request, so requiring it would leave
+# the branches it skips waiting on a check that never reports. Where a repository
+# has the app status and no `gate / gate`, what is missing is the gate, and
+# exempting the status does not supply one.
+[[exempt]]
+name = "SonarCloud Code Analysis"
+why = "the analysis app's own status, which does not post on every pull request; the gate is `gate / gate`"
