@@ -66,6 +66,14 @@ The stream comes from the media server over the local network. Away from that
 network it is declined, saying so, rather than buffering against something it
 cannot reach.
 
+**A member is handed the service that faces them, not the one that happens to be
+the door.** A household reaches two: somewhere to ask for things, and somewhere
+to watch them. Which of those is the *front* door is an arrangement the operator
+made, and a member with a question about watching does not care. So both are
+offered, each with its own address and its own standing — and where one cannot
+be reached from where they are, that is said rather than an address handed over
+that will not answer.
+
 **What the player may not do is the whole of what it must get right.** It renders
 what the core says a member may watch and holds no second copy of it, so an age
 limit is never enforced twice and never disagrees with itself. It implements no
@@ -109,8 +117,10 @@ given the operator's error.
 | **G10-R2** | The web surface MUST NOT implement its own permission model; what a member may do MUST be the core's answer. |
 | **G10-R3** | A control a member is not entitled to MUST be refused by the core if it is ever reached, and MUST NOT rely on the surface having omitted it. |
 | **G10-R4** | A member MUST be able to see their own requests, ask for something, see what the household holds, and play it. |
+| **G10-R12** | Where the household reaches a service that faces them, the surface MUST be able to hand them its address, whether or not that service is the front door. |
+| **G10-R13** | Where a service a member is handed to cannot be reached from where they are, the surface MUST say so, and MUST NOT present an address it knows will not answer. |
 | **G10-R5** | Before a member asks for something, the surface MUST state whether it needs approval and whether they have allowance left. |
-| **G10-R6** | What a member may watch MUST be the core's answer; the player MUST NOT hold a second copy of a library, an age limit or an entitlement. |
+| **G10-R6** | What a member may watch MUST be the core's answer. The surface MAY render it, and MUST NOT compute, cache or enforce a second copy of it. |
 | **G10-R7** | Where the media server cannot be reached, playback MUST be declined with the reason, and MUST NOT be queued or shown as buffering. |
 | **G10-R8** | The player MUST NOT implement request, approval or allowance logic of its own. |
 | **G10-R9** | A member MUST NOT be shown lifecycle controls, logs, credentials, diagnostics, or another member's requests. |
