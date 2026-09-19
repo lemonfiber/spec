@@ -418,14 +418,28 @@ jobs:
             if [ -n "$open" ] && [ "$open" -gt "$ALLOWED" ]; then exit 1; fi
             exit 0
           fi
+          # The count and the rule, and then the two things somebody actually
+          # needs: where the issues are, and what to do with one that is not a
+          # defect. Neither was here, so tripping this gate began with finding
+          # out how to ask SonarCloud which issues it meant.
           if [ "$count" -ne 0 ]; then
-            verdict "### ❌ Issue gate failed · SonarCloud reports **${count} new issue(s)**; this repository requires zero (\`Q-R64\`)."
-            echo "::error::SonarCloud reports ${count} new issue(s); this repo requires zero"
+            where="https://sonarcloud.io/project/issues?id=${project}&pullRequest=${PR}&resolved=false"
+            verdict "### ❌ Issue gate failed · SonarCloud reports **${count} new issue(s)**; this repository requires zero (\`Q-R64\`).
+
+          [The ${count} issue(s), on this pull request](${where}).
+
+          Fix each, or — where one is not a defect — say so through \`sonar-dispose\`, which writes the judgement into the record rather than leaving a finding that stopped being open with nothing saying why."
+            echo "::error::SonarCloud reports ${count} new issue(s); this repo requires zero (Q-R64). They are at ${where} — fix each, or run the sonar-dispose workflow to record why one is not a defect"
             exit 1
           fi
           if [ -n "$open" ] && [ "$open" -gt "$ALLOWED" ]; then
-            verdict "### ❌ Issue gate failed · No new issues on this pull request, but the project carries more open issues than it declares."
-            echo "::error::${open} open issues against ${project}; this repository declares allowed-open: ${ALLOWED}"
+            standing_at="https://sonarcloud.io/project/issues?id=${project}&resolved=false"
+            verdict "### ❌ Issue gate failed · No new issues on this pull request, but the project carries more open issues than it declares.
+
+          [The ${open} open issue(s)](${standing_at}); the declared allowance is \`${ALLOWED}\` (\`Q-R67\`).
+
+          This is not about your change. It blocks every pull request here until the backlog is back under the allowance, which is the point of an allowance that may only fall."
+            echo "::error::${open} open issues against ${project}; this repository declares allowed-open: ${ALLOWED}. They are at ${standing_at}. Not caused by this pull request, and blocking every one of them until the backlog is back under the allowance (Q-R67)"
             exit 1
           fi
           verdict "### ✅ Issue gate passed · SonarCloud reports **0 new issues**."
