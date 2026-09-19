@@ -90,38 +90,34 @@ def register(path: pathlib.Path = REGISTER) -> tuple[list[dict], list[dict]]:
     return names, prefixes
 
 
-# What may be passed to `gh`. Two kinds: this file's own words, which are
-# subcommands and flags and are listed rather than pattern-matched, and the
-# values interpolated into them — an organisation name, a repository name, a
-# count. A value is held to a shape that cannot begin with `-`, because an
-# argument that begins with `-` is a *flag* rather than a value, and that is the
-# one way a name could change what the command does rather than what it asks
-# about. Nothing today can reach either refusal: the names come from the forge's
-# own answer. The distance between "no caller does that" and "no caller can" is
-# these two lines.
-SAID = frozenset(
-    {
-        "api", "--paginate", "--jq", ".[] | select(.archived | not) | .name",
-        "pr", "list", "-R", "--state", "all", "--limit", "--json",
-        "statusCheckRollup",
-    }
-)
-VALUE = re.compile(r"\A[\w][\w./:=&?@-]*\Z")
+# The only thing this file interpolates into a command line is a name: an
+# organisation's and a repository's. Both are held to a shape before they reach
+# one, at the point they are read rather than at the point they are used — a
+# value that could begin with `-` would arrive as a *flag* and change what the
+# command does rather than what it asks about. A leading dot is allowed because
+# the organisation profile repository is called `.github`. Nothing today can produce one,
+# because both come from the forge's own answer; the distance between "no caller
+# does that" and "no caller can" is this pattern.
+NAME = re.compile(r"\A[A-Za-z0-9.][A-Za-z0-9._-]*\Z")
 
 
-def _gh(*args: str) -> str:
-    for arg in args:
-        if arg not in SAID and not VALUE.match(arg):
-            raise Unanswerable(
-                f"{arg!r} is neither a word this file passes to `gh` nor a value "
-                "shaped like a name. A value that could read as a flag would "
-                "change what the command does rather than what it asks about"
-            )
-    done = subprocess.run(
-        ["gh", *args], capture_output=True, text=True, check=False
-    )
+def named(value: str, what: str) -> str:
+    """`value`, if it is shaped like a name. Otherwise a refusal."""
+    if not NAME.match(value):
+        raise Unanswerable(
+            f"{value!r} is not shaped like a {what}, so it is not something to "
+            "ask the forge about. A value that could read as a flag would change "
+            "what the command does rather than what it asks about"
+        )
+    return value
+
+
+def _run(argv: list[str]) -> str:
+    done = subprocess.run(argv, capture_output=True, text=True, check=False)
     if done.returncode != 0:
-        raise Unanswerable(f"`gh {' '.join(args)}` failed: {done.stderr.strip()}")
+        raise Unanswerable(
+            f"`{' '.join(argv)}` failed: {done.stderr.strip()}"
+        )
     return done.stdout
 
 
@@ -131,9 +127,12 @@ def repositories(owner: str) -> list[str]:
     A registry would answer about the repositories somebody remembered to add,
     and a repository nothing surveys is exactly the one this check exists for.
     """
-    raw = _gh(
-        "api", "--paginate", f"orgs/{owner}/repos?per_page=100",
-        "--jq", ".[] | select(.archived | not) | .name",
+    raw = _run(
+        [
+            "gh", "api", "--paginate",
+            "orgs/" + named(owner, "organisation") + "/repos?per_page=100",
+            "--jq", ".[] | select(.archived | not) | .name",
+        ]
     )
     names = [line.strip() for line in raw.splitlines() if line.strip()]
     if not names:
@@ -141,20 +140,29 @@ def repositories(owner: str) -> list[str]:
             f"no repository was listed for {owner}, so no protection was read "
             "and this run says nothing about any of them"
         )
-    return sorted(names)
+    return sorted(named(one, "repository") for one in names)
 
 
-def required_in(repo: str) -> set[str]:
+def required_in(owner: str, name: str) -> set[str]:
     """The contexts branch protection will refuse a merge over."""
-    raw = _gh("api", f"repos/{repo}/branches/main/protection/required_status_checks")
+    raw = _run(
+        [
+            "gh", "api",
+            "repos/" + named(owner, "organisation") + "/" + named(name, "repository")
+            + "/branches/main/protection/required_status_checks",
+        ]
+    )
     return {c["context"] for c in json.loads(raw).get("checks", [])}
 
 
-def observed_in(repo: str, sampled: int = SAMPLED) -> set[str]:
-    """Every check name recent pull requests in `repo` produced."""
-    raw = _gh(
-        "pr", "list", "-R", repo, "--state", "all", "--limit", str(sampled),
-        "--json", "statusCheckRollup",
+def observed_in(owner: str, name: str, sampled: int = SAMPLED) -> set[str]:
+    """Every check name recent pull requests in a repository produced."""
+    repo = named(owner, "organisation") + "/" + named(name, "repository")
+    raw = _run(
+        [
+            "gh", "pr", "list", "-R", repo, "--state", "all",
+            "--limit", str(int(sampled)), "--json", "statusCheckRollup",
+        ]
     )
     names: set[str] = set()
     for pull in json.loads(raw):
@@ -211,16 +219,17 @@ def refusal(repo: str, unrequired: list[str]) -> str:
 
 
 def unrequired_in(
-    repo: str, names: list[dict], prefixes: list[dict], matched: set[int]
+    owner: str, name: str, names: list[dict], prefixes: list[dict],
+    matched: set[int],
 ) -> list[str]:
     """The checks one repository runs that neither block nor are registered.
 
     `matched` collects the register entries that covered something, so the
     caller can refuse an exemption that covered nothing anywhere.
     """
-    required = required_in(repo)
+    required = required_in(owner, name)
     found = []
-    for check in sorted(observed_in(repo)):
+    for check in sorted(observed_in(owner, name)):
         if check in required:
             continue
         entry = exempt(check, names, prefixes)
@@ -242,7 +251,7 @@ def look(owner: str, only: str | None, out) -> int:
     for name in repos:
         repo = f"{owner}/{name}"
         looked += 1
-        unrequired = unrequired_in(repo, names, prefixes, matched)
+        unrequired = unrequired_in(owner, name, names, prefixes, matched)
         if unrequired:
             print(refusal(repo, unrequired), file=out)
             print(file=out)

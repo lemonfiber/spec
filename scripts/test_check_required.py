@@ -125,8 +125,8 @@ class TheSurvey(unittest.TestCase):
         out = io.StringIO()
         with mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)), \
              mock.patch.object(check_required, "repositories", return_value=list(required)), \
-             mock.patch.object(check_required, "required_in", side_effect=lambda r: required[r.split("/", 1)[1]]), \
-             mock.patch.object(check_required, "observed_in", side_effect=lambda r: observed[r.split("/", 1)[1]]):
+             mock.patch.object(check_required, "required_in", side_effect=lambda o, n: required[n]), \
+             mock.patch.object(check_required, "observed_in", side_effect=lambda o, n: observed[n]):
             code = check_required.look("lemonfiber", only, out)
         return code, out.getvalue()
 
@@ -167,27 +167,30 @@ class TheSurvey(unittest.TestCase):
 
 class TheSilences(unittest.TestCase):
     def test_an_organisation_with_no_repository_refuses(self):
-        with mock.patch.object(check_required, "_gh", return_value="\n"), \
+        with mock.patch.object(check_required, "_run", return_value="\n"), \
              self.assertRaises(check_required.Unanswerable) as why:
             check_required.repositories("lemonfiber")
         self.assertIn("no repository was listed", str(why.exception))
 
     def test_a_repository_with_no_check_at_all_refuses(self):
-        with mock.patch.object(check_required, "_gh", return_value="[]"), \
+        with mock.patch.object(check_required, "_run", return_value="[]"), \
              self.assertRaises(check_required.Unanswerable) as why:
-            check_required.observed_in("lemonfiber/brand")
+            check_required.observed_in("lemonfiber", "brand")
         self.assertIn("produced no check name", str(why.exception))
 
-    def test_an_argument_that_could_read_as_a_flag_refuses(self):
+    def test_a_name_that_could_read_as_a_flag_refuses(self):
         with self.assertRaises(check_required.Unanswerable) as why:
-            check_required._gh("api", "--upload-file=/etc/passwd")
+            check_required.named("--upload-file=/etc/passwd", "repository")
         self.assertIn("read as a flag", str(why.exception))
+
+    def test_the_organisation_profile_repository_is_a_name(self):
+        self.assertEqual(check_required.named(".github", "repository"), ".github")
 
     def test_a_forge_that_will_not_answer_refuses(self):
         done = mock.Mock(returncode=1, stderr="not found", stdout="")
         with mock.patch.object(check_required.subprocess, "run", return_value=done), \
              self.assertRaises(check_required.Unanswerable) as why:
-            check_required._gh("api", "whatever")
+            check_required._run(["gh", "api", "whatever"])
         self.assertIn("not found", str(why.exception))
 
     def test_an_unreadable_protection_is_not_a_clean_repository(self):
@@ -198,16 +201,16 @@ class TheSilences(unittest.TestCase):
         self.assertEqual(code, 1)
 
     def test_the_readers_parse_what_the_forge_answers(self):
-        with mock.patch.object(check_required, "_gh", return_value="b\na\n"):
+        with mock.patch.object(check_required, "_run", return_value="b\na\n"):
             self.assertEqual(check_required.repositories("lemonfiber"), ["a", "b"])
-        with mock.patch.object(check_required, "_gh", return_value='{"checks":[{"context":"a"}]}'):
-            self.assertEqual(check_required.required_in("lemonfiber/brand"), {"a"})
+        with mock.patch.object(check_required, "_run", return_value='{"checks":[{"context":"a"}]}'):
+            self.assertEqual(check_required.required_in("lemonfiber", "brand"), {"a"})
         rollup = '[{"statusCheckRollup":[{"name":"a"},{"context":"b"},{}]}]'
-        with mock.patch.object(check_required, "_gh", return_value=rollup):
-            self.assertEqual(check_required.observed_in("lemonfiber/brand"), {"a", "b"})
+        with mock.patch.object(check_required, "_run", return_value=rollup):
+            self.assertEqual(check_required.observed_in("lemonfiber", "brand"), {"a", "b"})
         with mock.patch.object(check_required.subprocess, "run",
                                return_value=mock.Mock(returncode=0, stdout="x")):
-            self.assertEqual(check_required._gh("api", "x"), "x")
+            self.assertEqual(check_required._run(["gh", "api", "x"]), "x")
 
 
 class TheCommandLine(unittest.TestCase):
