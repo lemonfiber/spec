@@ -48,7 +48,7 @@ Every tool below was chosen to work within that constraint.
 | **Docs site** | **Astro Starlight** | OSS | website-docs.lemonfiber.app |
 | **Web lint** | **ESLint** (`typescript-eslint`) | OSS | lemonfiber-web, sdk-ts |
 | **Web format** | **Prettier** | OSS | lemonfiber-web, sdk-ts |
-| **Web accessibility** | **axe-core / pa11y** | OSS | lemonfiber-web |
+| **Web accessibility** | **axe-core**, driven by Playwright | OSS | lemonfiber-web, website-docs.lemonfiber.app |
 
 ## Why these, specifically
 
@@ -178,9 +178,14 @@ tool in a repository that does not have it.
 
 Each skips a check whose tool is absent, so a contributor without `typos`
 installed gets CI's answer rather than a hook that cannot run. None of them
-duplicates a slow gate (`Q-R57`): tests, clippy and coverage stay in `just ci`,
-because a hook that takes a minute is a hook people turn off, and one that is off
-enforces nothing.
+duplicates a slow gate (`Q-R57`): tests, clippy and coverage belong to the task
+runner rather than the hook, because a hook that takes a minute is a hook people
+turn off, and one that is off enforces nothing.
+
+Which of them the task runner actually holds is a per-repository answer, and it is
+not *all of CI* anywhere. `lemonfiber`'s `just ci` runs the suite and leaves
+coverage to `just coverage`; `spec`'s and `brand`'s run neither. That is fine —
+what is not is a recipe saying otherwise, which is the subject below.
 
 Enabling is the hard part regardless, because `core.hooksPath` is per-clone local
 config that no commit can carry. Each repo sets it from a command a contributor
@@ -197,10 +202,16 @@ embedded scripts. It runs over every repo's workflows.
 
 ### just — the task runner
 
-A `justfile` per repo gives named tasks (`just test`, `just ci`, `just check`)
-that mirror CI locally, so a contributor runs the same commands the pipeline does.
-It matches the CLI's own ergonomics: discoverable, self-documenting, no hidden
-make magic.
+A `justfile` per repo gives named tasks (`just test`, `just ci`, `just check`) that
+run the same commands the pipeline does, so a contributor is not reading a workflow
+to find out what to type. It matches the CLI's own ergonomics: discoverable,
+self-documenting, no hidden make magic.
+
+*The same commands* is not *all of them*, and the difference is the subject of
+[the command before a push is not CI](#the-command-before-a-push-is-not-ci). A
+repository driving its gate through npm or Composer keeps the steps there and puts
+the sentence in a justfile beside it, because `package.json` has no slot for one
+and npm prints none.
 
 ### Astro Starlight — one docs site for the whole org
 
@@ -236,9 +247,11 @@ Prettier formats and ESLint does not — its formatting rules stay off, so the "
 formatter, no arguments" posture ([code-standards](code-standards.md)) holds with one
 tool deciding layout rather than two arguing about it.
 
-Paired with axe-core / pa11y for the accessibility testing the
+Paired with `@axe-core/playwright` for the accessibility testing the
 [contrast contract](../60-brand/accessibility.md) and
-[G3](../10-functional/features/g-ux/g3-accessibility.md) require.
+[G3](../10-functional/features/g-ux/g3-accessibility.md) require. Both repositories
+that sweep drive axe through Playwright against a built site; neither runs pa11y,
+and nothing in the org does.
 
 ## Anti-drift
 
