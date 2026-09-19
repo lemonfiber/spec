@@ -132,6 +132,22 @@ it does and how to satisfy it, through the one shared `explain-check` reusable s
 the wording lives in one place. The explainer is the courtesy that turns a closed
 PR from a rejection into a sequenced next step.
 
+The first two of those run in **every** repository in the organisation, so the
+explanation is called from every repository too, the way the gates themselves are:
+
+```yaml
+  explain:
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: lemonfiber/spec/.github/workflows/explain.yml@<sha> # main
+```
+
+`explain.yml` is the caller that knows about those two; `explain-check.yml` is the
+primitive under it, and a repository with a surprising check of its own calls that
+one directly with its own wording. Neither is copied: an explanation in fifteen
+places is fifteen wordings the day one of them is improved.
+
 | ID | Requirement |
 |----|-------------|
 | **GOV-R33** | A non-standard or PR-closing check MUST post a self-updating explainer comment describing what it does and how to satisfy it, via the shared reusable, **only when the contributor has not already satisfied the check** — and MUST remove the explainer once they do; it MUST NOT execute untrusted PR code. |

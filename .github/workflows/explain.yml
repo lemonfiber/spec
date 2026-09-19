@@ -1,12 +1,30 @@
-# Post explainers for this repo's non-standard checks, via the shared reusable
-# (GOV-R33) — but only where the advice is needed. A detect job decides whether
-# the contributor already cites a spec id, and whether the PR even contains a
-# merge/bot commit for the DCO exemption to be relevant; the explainer is posted
-# only then, and removed once a PR becomes compliant. Advice where it helps, not
-# noise where it doesn't.
+# Post the explainers for the two checks that surprise a first-time contributor
+# anywhere in this organisation (GOV-R33) — the citation gate, which closes a
+# pull request rather than only failing it, and the DCO check, which skips merge
+# and bot commits. A detect job decides whether the advice is needed at all; the
+# explainer is posted only then, and removed once the pull request becomes
+# compliant. Advice where it helps, not noise where it doesn't.
+#
+# Both checks run in every repository in the org, so the explanation is called
+# from every repository too:
+#
+#     explain:
+#       permissions:
+#         contents: read
+#         pull-requests: write
+#       uses: lemonfiber/spec/.github/workflows/explain.yml@<sha> # main
+#
+# `pull-requests: write` is what lets it post and delete the comment. A caller
+# granting less than a reusable workflow asks for fails the whole run before any
+# job starts, so the block is not optional.
+#
+# The two jobs below reach `explain-check.yml` by relative path, which resolves
+# against this repository at the revision the caller pinned — not against the
+# calling repository, which has no copy of it and needs none.
 name: explain
 on:
   pull_request:
+  workflow_call:
 jobs:
   detect:
     runs-on: ubuntu-latest
