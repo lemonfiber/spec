@@ -238,3 +238,7 @@ note = "A plugin, and the catalogue is where a plugin is found"
 [[ungoverned]]
 name = "plugin-uptime-kuma"
 note = "A plugin, and the catalogue is where a plugin is found"
+
+[[ungoverned]]
+name = "plugin-plex"
+note = "A plugin, and the catalogue is where a plugin is found"

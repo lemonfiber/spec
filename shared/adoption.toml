@@ -98,7 +98,7 @@ name = ".github"
 gates = []
 hooks = ["commit-msg", "pre-push"]
 
-# The three below are in `30-repos/repos.toml`'s `[[ungoverned]]` table: in the
+# The four below are in `30-repos/repos.toml`'s `[[ungoverned]]` table: in the
 # organisation, outside the map this specification draws. They call the shared
 # workflows like everything else, so the question this file answers is asked
 # about them and the answer is here. None runs CodeQL.
@@ -115,5 +115,10 @@ hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
 name = "plugin-uptime-kuma"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-plex"
 gates = []
 hooks = ["commit-msg", "pre-push"]
