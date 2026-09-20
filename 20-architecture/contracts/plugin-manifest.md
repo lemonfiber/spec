@@ -672,12 +672,48 @@ why  = "Add its own entry to the bundled dashboard"
 `F3-R17` fails validation on a secret captured but not declared, and `F3-R18` on
 a bundled thing changed but not declared. Both need somewhere to declare one.
 
-In this version both are, in practice, always absent. Capturing a value and
-changing a bundled setting are both recipe verbs, and recipes arrive with `F8`
-in `0.18.0`; a plugin that declared a secret here would be declaring something
-nothing can yet capture. They are in the format now because the alternative is a
-rule that cannot be enforced for want of a field, and because adding the field
-later would make every manifest written against this version wrong.
+**What counts as capturing, and what counts as changing.** A recipe is
+declarable before it is runnable and its block is where both verbs are written,
+so both rules are decided by reading the manifest rather than by watching one
+run:
+
+| Declared | Held to |
+|----------|---------|
+| `[[secret]]` | every `[[recipe.step]].capture` |
+| `[[override]]` | every `[[recipe.step]].call` whose method is not one that only asks and whose `to` is a service the stack ships |
+
+A secret is matched on the captured value's **name** and nothing else. `of` and
+a capture's `origin` both answer *whose*, and they answer it in different
+vocabularies — one names a service, the other a kind of source — so holding them
+to each other would be inventing a correspondence this contract does not state,
+and refusing manifests for not keeping it. What both do name is the value. A
+capture whose name no `[[secret]]` carries is refused, naming the value and its
+origin.
+
+Every captured value, rather than the ones that look like credentials. There is
+no field saying which is which and there should not be: a library id read back
+from a first-run flow is a value the plugin now holds and can carry somewhere,
+and a format in which the author decides what is worth declaring is one where
+the interesting cases are the ones nobody declared.
+
+An override names an owner and what of theirs, and the **owner** is the half a
+call can be held to by reading, because a path is a route on a service rather
+than the name of a setting. Three destinations, and only one of them is this: a
+call to one of the plugin's own services changes what the plugin installed and
+is what a recipe is for; a call to a DNS name outside the stack leaves the
+machine and is declared as a host rather than as an override; a call to a
+service the stack ships is refused, naming the call and the service, unless an
+`[[override]]` names that owner. The verbs that change are written as the
+complement of the ones that only ask, so a verb added to what a call may use is
+a change its author has to declare rather than one nobody is told about.
+
+So both blocks are absent from a manifest declaring no recipe, and are filled in
+one that declares a recipe which captures or changes anything. An earlier
+reading of this section — that both are in practice always absent until `F8`
+arrives in `0.18.0` — held only while a recipe could not be written down at all.
+They are in the format for the reason they always were: a rule that cannot be
+stated for want of a field is not being enforced, and adding the field later
+would make every manifest written against this version wrong.
 
 ## `[requires]` — what the plugin needs of lemonfiber
 
@@ -753,6 +789,8 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | No unrecognised enum value | Value named, with the values available |
 | `plugin.id` not already installed | Both origins named (`F5-R12`) |
 | `service.id` collides with no stack or installed-plugin service | Both named |
+| `service.port` is not a port the stack already publishes | Port and both services named |
+| `wiring.hostname` is not a name the stack's own proxy is written to answer on | Name given |
 | `digest` present and well-formed | Service named |
 | `bind` present when `port` is | Service named |
 | `criticality` is not `critical` | Value named, with the four available |
