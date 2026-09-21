@@ -323,8 +323,17 @@ comics.{$DOMAIN} {
         description: Plays your library on TVs, phones and browsers
 ```
 
-A `loopback` service gets neither, which is the bundled policy holding rather
-than a limitation of the format.
+A `loopback` service gets no proxy stanza — that is the bundled policy holding
+rather than a limitation of the format. **It still gets a dashboard entry**, with
+its `href` rendered from the tier rather than from the LAN host: the bundled
+stack puts nine of them on Homepage today, Prowlarr and NZBHydra2 among them, and
+a plugin's service is on the same terms as a bundled one in the same tier.
+
+The tier decides the route and nothing else. Refusing the whole wiring for a
+loopback service would refuse something lemonfiber accepts, which is why
+`a_loopback_service_may_be_given_a_dashboard_group` passes and why the refusal
+that does exist is narrower than this paragraph once said: a `loopback` service
+given a `wiring.hostname` is refused, naming the service and the tier.
 
 `defaults` rather than `rootless`: the `PUID`/`PGID` pair is a LinuxServer.io
 convention, and setting it on an image that ignores it is a silent no-op that
