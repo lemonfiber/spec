@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**91 features** in areas A–N, **1336 requirements**.
+**92 features** in areas A–N, **1347 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 9 building, 36 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 9 building, 37 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -117,6 +117,7 @@ code, and the two move independently.
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | draft | — |
 | [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | draft | — |
 | [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | draft | — |
+| [N9](n-companion/n9-who-gets-in.md) | Who gets in, and what the stack holds for them | N | operator | draft | — |
 | [N10](n-companion/n10-nobody-watching.md) | What the stack does when nobody is watching | N | operator | draft | — |
 | [N11](n-companion/n11-the-record.md) | What was done, and where it came from | N | operator | draft | — |
 | [N12](n-companion/n12-making-room.md) | Running out of room | N | operator | draft | — |
