@@ -178,7 +178,7 @@ must be shown. The claimant declares where to ask.**
 
 | Declared here | Declared by the claimant |
 |---------------|--------------------------|
-| What question the probe asks, in prose | The method, path and representation that asks it on this service |
+| What question the probe asks, in prose | The method and path that asks it on this service |
 | Which statuses are an acceptable answer | Which of them this service gives |
 | Which kinds of body constraint the answer must carry, any one of which will do | The constraint itself |
 | Whether a credential is needed to ask | The recorded response it was answered with |
@@ -187,25 +187,6 @@ A claim that does not bind every probe its capability declares is refused, namin
 the probe (`ARCH-R109`). A binding whose expectation is weaker than the probe
 requires — a status outside the set, or no constraint where one is required — is
 refused, naming the probe and what it requires. Neither is a parse failure.
-
-### A probe asks for one representation, and can present nothing
-
-A claimant's request may name an `accept`
-([plugin-manifest](plugin-manifest.md#what-a-request-may-ask-for)), because a
-service that answers XML unless asked for JSON cannot otherwise satisfy a probe
-whose body constraints are all JSON ones. That is the whole of what a probe may
-put on the wire beyond a method and a path.
-
-It is one field rather than a header map for the sake of the row below. A probe
-asked with `none` presents nothing, and that has been true because a manifest
-had nowhere to write anything; a header map would have made it a convention
-instead, unenforceable because a service may call its credential header whatever
-it likes. With one named field it stays a property of the format.
-
-None of the probe body-constraint sets in this vocabulary changed when that
-field arrived, and that is the test of it: the sets were never the obstacle.
-`media.serve`'s `catalogue` probe requires a JSON assertion, and once a claimant
-can ask for JSON it can make one.
 
 ### A probe carries who it is asked as
 
@@ -301,8 +282,6 @@ answer from the binary they already have (`F10-R8`).
 | No binding names a probe the capability does not declare | Probe given, with the ones it declares |
 | A binding's status is one the probe permits | Status given, with the set |
 | A binding carries one of the body constraints the probe requires | Probe given, with the kinds |
-| A binding's `request.accept` is one media type | Value given, with what is permitted |
-| Every key in a binding's expectation names a place an answer could hold | Key given, with what is wrong with it |
 | Every binding names a recorded response that exists | Path given |
 | No binding asserts a count above zero — `json_array_min`, or a `json_at_least` minimum | Probe and constraint named |
 

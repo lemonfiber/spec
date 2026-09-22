@@ -71,9 +71,9 @@ resolved, because "which one did I install" has no good answer.
 schema_version = 1
 
 [plugin]          # identity and provenance
-[[service]]       # what runs — one or more
+[[service]]       # exactly one, in this version
 [[claim]]         # a core capability, and the probes that demonstrate it
-[[wiring]]        # how the stack's own proxy and dashboard reach one service
+[wiring]          # how the stack's own proxy and dashboard reach it
 [[proof]]         # what must hold before it is installed
 [[contribution]]  # a row at a published extension point
 [[recipe]]        # the ordered calls that configure what it installed (F8)
@@ -140,33 +140,6 @@ Declared in [`stack.toml`](stack-manifest.md#service)'s vocabulary, restricted t
 the fields below. The restriction is the substance of ADR-0021: the set of
 fields *is* the set of things a plugin may ask for.
 
-**One or more, and the reason for more is not generality.** A plugin is one
-thing an operator installs and one thing they remove, and that thing is often
-two containers: a media server and the reader of its watch history, a service
-and the sidecar that indexes it. The two differ in exactly the way the format
-exists to record — one faces the household on `lan`, the other is an operator
-surface with no business being reachable from the sofa; one is `important`,
-the other `enhancing` — so a format permitting one forces the author to put both
-halves on the wider tier, or to publish two plugins an operator then keeps in
-step by hand. Neither is a thing to ask of somebody, and the second is how a
-household ends up with an admin page on its network.
-
-What more than one costs is three questions a single service never raised, and
-each is answered rather than deferred:
-
-- **Which service a hostname is about.** `[[wiring]]` names it, and is an array
-  rather than a table for that reason alone.
-- **Which service a proof or a contributed check asks.** Each names it, and must
-  where the plugin declares more than one.
-- **Which service answers for a capability.** Exactly one may declare a given
-  core name — see below.
-
-Service ids are unique within the manifest as well as across the stack, which
-was not a rule anything could break while there was one of them. Two services
-sharing an id is not a collision with anything installed; it is one name for two
-containers, and every rule that reaches for a service *by* that name would reach
-one of the two and say nothing about the other.
-
 ```toml
 [[service]]
 id     = "plex"
@@ -186,7 +159,7 @@ config_path = "/config"
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `id` | string | ✔ | Unique within this manifest, across the stack **and** across every installed plugin. A collision is refused, naming both. |
+| `id` | string | ✔ | Unique across the stack **and** every installed plugin. A collision is refused, naming both. |
 | `name` | string | ✔ | Human-facing |
 | `image` | string | ✔ | Registry path, without tag or digest |
 | `digest` | string | ✔ | `sha256:…`. What actually runs. |
@@ -197,7 +170,7 @@ config_path = "/config"
 | `criticality` | enum | ✔ | As `stack.toml`. A plugin MUST NOT declare `critical` — see below. |
 | `media_types` | array | | Which media types it handles, in `stack.toml`'s vocabulary. Drives root-folder seeding, which is how a plugin's service is pointed at the library the stack already fills. |
 | `takes_data` | bool | | `true` if it needs the data root mounted. Default `false`. |
-| `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). At most one service of a plugin may declare a given core name — see below. |
+| `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). |
 | `config_path` | string | | Where inside the container the one configuration directory is mounted. Default `/config`. |
 
 ### The image is named by digest
@@ -274,21 +247,6 @@ the binary, so an author asking what they may claim asks the tool rather than a
 document. A core name here with no [`[[claim]]`](#claim--the-probes-a-core-name-is-demonstrated-by)
 block binding its probes is refused: `F4`'s whole posture is that *a claim is
 demonstrated, not asserted*, and a name in a list asserts.
-
-### One service answers for a core capability, and a plugin's own may be shared
-
-Something asks for a core capability by name and exactly one service answers.
-Two services of one plugin declaring `media.serve` is not a choice an operator
-could make — they installed one plugin — so there is nothing for them to resolve
-and nothing for `F4-R8` to put in front of them. It is two answers to one
-question, and it is refused when the manifest is read, naming the capability and
-both services.
-
-A plugin's own namespaced capability is not held to this. It is inert: nothing
-asks for it and no published contract defines it, so two services both declaring
-`plex:direct-play` is two true statements rather than a contest. Refusing it
-would be refusing something with no consequence, which is the defect a stand-in
-gate is warned against in the other direction.
 
 ### A plugin may not declare itself `critical`
 
@@ -411,7 +369,7 @@ fixture = "fixtures/media-serve-catalogue.json"
 |-------|------|----------|-------|
 | `capability` | string | ✔ | A core name, which MUST also appear in the service's `provides` |
 | `probe[].id` | string | ✔ | Names a probe the capability declares. Every one of them, exactly once. |
-| `probe[].request` | table | ✔ | `method`, `path`, and optionally `accept` — on this plugin's own service. See [what a request may ask for](#what-a-request-may-ask-for). |
+| `probe[].request` | table | ✔ | `method` and `path` on this plugin's own service |
 | `probe[].expect` | table | ✔ | What the answer must be. Within what the probe permits — see below. |
 | `probe[].fixture` | string | ✔ | The recorded response. Required here where it is optional on a proof: a claim nobody can demonstrate without owning the service is a claim the catalogue's CI cannot check (`F5-R2`). |
 
@@ -432,16 +390,15 @@ published contract for it to satisfy — that is what *inert* means — and the
 plugin's own `[[proof]]` entries are where it says what it can nevertheless
 demonstrate.
 
-## `[[wiring]]` — how the stack's own services reach one service
+## `[wiring]` — how the stack's own services reach it
 
 ```toml
-[[wiring]]
+[wiring]
 hostname = "comics"
 dashboard_group = "Library"
 ```
 
-Three fields, and none of them names a service outside this plugin. The stack
-manifest's
+Two fields, and neither names another service. The stack manifest's
 [`[[wiring]]`](stack-manifest.md#wiring--the-link-between-two-services-and-which-of-them-it-names)
 is the other kind and is an array of links between the stack's own services;
 this one is a plugin saying where its *own* entry goes, and lemonfiber writes
@@ -449,15 +406,8 @@ both the route and the panel from it.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `service` | string | ✔ where the plugin declares more than one service | Which of this plugin's services this is about. Default: the only one. |
-| `hostname` | string | | The label in front of the operator's domain. A single DNS label — not a name, an address or a port. Default: the service's `id`. |
+| `hostname` | string | | The label in front of the operator's domain. A single DNS label — not a name, an address or a port. Default: the plugin's `id`. |
 | `dashboard_group` | string | | Which group on the bundled dashboard it appears under. Default: the group the stack uses for its tier. |
-
-**An array, and one entry per service at most.** A hostname is a fact about one
-container rather than about a plugin, which only became visible once a plugin
-could declare two: a default taken from the plugin's own id would have given two
-services one address. A second wiring for the same service is refused naming the
-service — it has one address and one panel.
 
 A plugin that is installed and then has to be wired by hand is one the operator
 has to do the work lemonfiber exists to do. The bundled stack puts a household
@@ -469,9 +419,8 @@ that goes beside it.
 **The tier governs, not the plugin.** Only `lan` services are proxied, because
 the bundled policy is that an admin surface does not get a hostname — every
 admin stanza in the shipped `Caddyfile` is commented out with what you would be
-accepting written next to it. A `loopback` service gets no route, and there is
-no field by which it can ask for one: a wiring giving one a `hostname` is
-refused, naming the service and the tier that decides it. That is the same reasoning as `ARCH-R88`: a
+accepting written next to it. A `loopback` plugin gets no route, and there is no
+field by which it can ask for one. That is the same reasoning as `ARCH-R88`: a
 plugin that could publish its own address could put an admin surface on the
 household network without touching anything `C6` inspects.
 
@@ -480,56 +429,6 @@ description the manifest already carries. A widget reads a service's API with a
 credential, which means an adapter and a captured value — a recipe, arriving
 with `F8`. A plugin gets the panel that needs nothing and waits for the one that
 needs something.
-
-### What a request may ask for
-
-A request is `method`, `path`, and — where the service needs asking — `accept`.
-
-```toml
-request = { method = "GET", path = "/identity", accept = "application/json" }
-```
-
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `method` | string | ✔ | |
-| `path` | string | ✔ | On the service being asked. |
-| `accept` | string | | One media type, sent as the request's `Accept` header. |
-
-**Why there is a field at all.** A service that answers XML unless a caller asks
-for JSON cannot satisfy a capability whose probe requires a JSON assertion, and
-before this there was nowhere to ask. Measured against
-`plexinc/pms-docker@sha256:e0ab2739…`, the same path in the same second:
-
-```
-GET /identity                          GET /identity  (Accept: application/json)
-Content-Type: text/xml;charset=utf-8   Content-Type: application/json
-<MediaContainer size="0" …/>           {"MediaContainer":{"size":0, …}}
-```
-
-**Why it is one field and not a header map, which is the part worth reading
-twice.** A probe declares who it is asked as, and `credential = "none"` on every
-`guarded` probe has meant what it says partly because a manifest could present
-nothing. A map of headers would turn that into a convention somebody has to
-enforce, and it could not be enforced: a service may name its credential header
-whatever it likes — `X-Plex-Token`, `X-Api-Key`, something nobody has seen — so
-no list of refused names is ever closed. One named field keeps it a property of
-the format instead. **A probe still cannot present a credential, because there
-is nowhere to write one.**
-
-A recipe's `[[recipe.step]].call` does carry a `headers` table, and the
-asymmetry is deliberate rather than an oversight. A recipe runs with lemonfiber's
-own authority, exists in order to carry a captured value to a destination, and
-every flow it could produce is declared as a `[[recipe.pair]]` and checked before
-a call is made. A probe has no such analysis and gates an install.
-
-`accept` is **one** media type: `type/subtype`, optionally followed by
-`; name=value` parameters. A list is refused — which representation came back
-would then be the service's choice, and a recording is of one answer. A wildcard
-is refused — it asks for nothing in particular, which is what a request with no
-`accept` already says and says more plainly. What a media type may carry is
-letters, digits and ``!#$%&'+-.^_`|~``; anything that would have to be quoted on
-the wire is refused, because a value needing quoting is one a reviewer cannot
-read as what arrives.
 
 ## `[[proof]]` — what must hold before it is installed
 
@@ -550,7 +449,6 @@ why     = "The path the health probe asks for is one this image serves."
 | `request` | table | ✔ | `method` and `path`. The same shape a `health` probe takes. |
 | `expect` | table | ✔ | What the answer must be. A status alone is not sufficient — see below. |
 | `fixture` | string | | A recorded response to run against where no instance exists (`F10-R4`) |
-| `service` | string | ✔ where the plugin declares more than one service | Which of this plugin's services is asked. Default: the only one. |
 | `why` | string | ✔ | Why this is worth asserting. A proof nobody can justify is one nobody will maintain. |
 
 `F3-R1` has named a plugin's proofs among what its manifest declares since the
@@ -575,10 +473,10 @@ answer, and three vocabularies for one job would be three things to keep in step
 | Key | Type | What it asserts |
 |-----|------|-----------------|
 | `status` | integer | The response status. Not sufficient alone, except for a refusal — see above. |
-| `json` | table | Places the body must carry, each with the exact value it must hold. A value is a boolean, a whole number or a string; nothing nested, because a shape deeper than that is asking about a document rather than about a claim — and where the thing worth asserting is deeper *in* the answer, the key reaches it rather than the value growing to match. |
-| `json_has_keys` | array | Places the body must carry, whatever they hold |
-| `json_types` | table | Places the body must carry, each with the kind of value it must be: `bool`, `int`, `str`, `list` or `dict` |
-| `json_at_least` | table | Places the body must carry, each with a number it must not be below. *At least one series*, rather than *a catalogue exists*. |
+| `json` | table | Keys the body must carry, each with the exact value it must hold. A value is a boolean, a whole number or a string; nothing nested, because a shape deeper than that is asking about a document rather than about a claim. |
+| `json_has_keys` | array | Keys the body must carry, whatever they hold |
+| `json_types` | table | Keys the body must carry, each with the kind of value it must be: `bool`, `int`, `str`, `list` or `dict` |
+| `json_at_least` | table | Keys the body must carry, each with a number it must not be below. *At least one series*, rather than *a catalogue exists*. |
 | `json_array_min` | integer | The body read as a JSON **array**, with at least this many entries. A catalogue is very often a list rather than an object, and none of the key-wise constraints can say anything about one. |
 | `json_is_absent` | boolean | **The body did not parse as JSON at all.** How a proof says *this answered with an application shell, not an object* — which is what a client-routed service answers for every path it does not implement, and the reason a status proves nothing against one. |
 | `content_type` | string | A substring of the content type the answer was served as |
@@ -592,68 +490,6 @@ fails.
 `json_is_absent` is the one worth reading twice, because its name invites the
 other reading — *these keys are absent* — and the two are not close. It says
 nothing about keys. It says the answer was not JSON.
-
-#### Where an expectation looks
-
-The four key-wise constraints above take a **place** rather than a name. The
-other five are about the answer as a whole and take none.
-
-A key that does not begin with `/` is the name of a top-level member, which is
-what every key written before this generation is and is why none of them changed
-meaning. A key that does begin with `/` is a
-[JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901), with one extension this
-contract defines.
-
-| Key | Reaches |
-|-----|---------|
-| `content` | the top-level member `content` |
-| `/MediaContainer/machineIdentifier` | `machineIdentifier` inside `MediaContainer` |
-| `/MediaContainer/Setting/[id=PublishServerOnPlexOnlineKey]/value` | the entry of the `Setting` list whose `id` holds that word, then its `value` |
-| `/MediaContainer/Directory/[type=movie]/Location/[path=~1data~1media~1movies]/path` | the film library's location under the stack's data root |
-| `/a~1b` | the top-level member literally called `a/b` (RFC 6901's escapes: `~1` is `/`, `~0` is `~`) |
-
-**Standard, and ours.** Everything but the third row is RFC 6901 unchanged. The
-third is the extension, and it is one step and one comparison: a reference token
-written `[field=value]` means *the entry of this list whose `field` holds
-`value`*, exactly one entry must, and there are no operators, no wildcards, no
-nesting and no indices.
-
-An index would be the trap the selector exists to avoid. Plex answers a hundred
-and fifty-one settings at `/:/prefs` and the order of them is not a promise
-anybody made, so *the ninety-first* is the wrong answer one release later, in a
-way that keeps passing.
-
-**A selector's value is escaped like any other reference token**, which the fourth
-row is there to show and which the common case needs: a filesystem path is full
-of slashes, and a slash in a token is written `~1`. Unescaped,
-`[path=/data/media/movies]` is four steps rather than one, and is refused by
-name rather than resolved somewhere nobody meant.
-
-Its cost is stated rather than hidden. `[` and `]` belong to the selector, so a
-reference token carrying either is refused rather than read as a member name — a
-member actually called `[a=b]` is unreachable through a pointer. That is the
-price of the extension; it also closes the mistake anybody would actually make,
-which is writing `…/Setting[id=X]/value` and being told nothing while it looks
-for a member with brackets in its name.
-
-**Why a name was not enough.** A flat name says everything there is to say about
-a flat answer, and the two plugins published before this one both have flat
-answers. A service that nests its payload — Plex puts every response one level
-down under `MediaContainer` — could only be asserted about at the envelope, so
-`json_has_keys = ["MediaContainer"]` was the strongest claim available and it
-says that the service replied. A probe that passes by observing that something
-replied is worse than one that fails, because a port proxy replies.
-
-A key naming no place is **refused when the manifest is read**, naming the key
-and what is wrong with it. It is not evaluated as a missing member: an assertion
-nothing can evaluate is one that silently checks less than it says, which is
-`ARCH-R91` pointed at an expectation.
-
-`[[recipe.step]].capture.from` is a different dialect — `json.token`, a dotted
-path — and is deliberately left alone here. Nothing resolves it yet, because
-nothing runs a recipe; it is aligned with this by
-[F8](../../10-functional/features/f-extensibility/f8-recipes.md), in the change
-that makes it run.
 
 Three verdicts, never two (`F3-R5`, `F4-R7`): passed, failed, and could not be
 run. The third is reported as unproven and is never counted as the first.
@@ -685,7 +521,6 @@ wrote and only that tool reads (`F10-R4`, `F10-R5`).
 | `note` | string | ✔ | Why this is the answer worth recording — the half a diff cannot show |
 | `request.method` | string | ✔ | What was asked |
 | `request.path` | string | ✔ | Where it was asked |
-| `request.accept` | string | | What representation it asked for, where it asked for one |
 | `response.status` | integer | ✔ | |
 | `response.headers` | table | | The headers an expectation may constrain; `content-type` is the one in use |
 | `response.json` | any | | The body as it parsed, or `null` where it did not parse as JSON |
@@ -696,13 +531,6 @@ recording taken from some other build is a claim about software nobody is
 installing, and the drift is silent: it passes, and the service it describes is
 not the service that will run. Moving the pin means re-recording in the same
 change, and a recording naming a different image is refused rather than trusted.
-
-**What was asked for is part of which call a recording is of.** A service that
-negotiates answers two different things at one path, so a recording that did not
-say which it asked for would be evidence for whichever question somebody later
-pointed at it. A recording taken plainly is not evidence for a request that
-names an `accept`, and one that named an `accept` is not evidence for a request
-that does not.
 
 **A recording that is absent, unreadable, or records a request the assertion
 does not ask is unproven** — never a pass and never a failure. Nothing about the
@@ -754,10 +582,6 @@ Every check carries at least one remedy (`F3-R34`). A check that can say
 something is wrong and nothing about what to do has moved the work to the
 operator rather than done it, and `C1-R2` has no exemption for a contributed
 finding.
-
-The row's `service` field is what a check names where the plugin declares more
-than one, and it is required there: *the plugin's own service* is the default
-and has no referent once there are two. A remedy asks nothing and names nothing.
 
 **Contributing is a capability a manifest asks for by name.** Each published
 point names the one a contribution there requires
@@ -973,10 +797,9 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | No field outside the permitted set | Field named, with the permitted set |
 | No unrecognised enum value | Value named, with the values available |
 | `plugin.id` not already installed | Both origins named (`F5-R12`) |
-| `service.id` collides with no other service in this manifest, the stack, or an installed plugin | Both named |
+| `service.id` collides with no stack or installed-plugin service | Both named |
 | `service.port` is not a port the stack already publishes | Port and both services named |
 | `wiring.hostname` is not a name the stack's own proxy is written to answer on | Name given |
-| At most one service declares a given core capability | Capability and both services named |
 | `digest` present and well-formed | Service named |
 | `bind` present when `port` is | Service named |
 | `criticality` is not `critical` | Value named, with the four available |
@@ -989,10 +812,6 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | At least one `[[proof]]` constrains the body rather than only the status | Every status-only proof named |
 | `wiring.hostname` is a single DNS label | Value named |
 | A `loopback` service declares no `wiring.hostname` | Service named, and the tier that governs |
-| Every `[[wiring]]`, `[[proof]]` and contributed check names a declared service, and names one where the plugin declares more than one | Name given, with the services declared |
-| No service is wired twice | Service named |
-| `request.accept` is one media type, not a list and not a wildcard | Value named, with what is permitted |
-| Every expectation key names a place an answer could hold | Key named, with what is wrong with it |
 | Every secret captured is one `[[secret]]` declared (`F3-R17`) | Value and its origin named |
 | Every bundled thing changed is one `[[override]]` declared (`F3-R18`) | Setting and its owner named |
 | Every core name in `provides` has a `[[claim]]`, and every `[[claim]]` a name in `provides` | Both halves named |
@@ -1062,12 +881,6 @@ unreadable.
 | **ARCH-R120** | A recorded response MUST be one file of readable data carrying the request it recorded and the answer to it, and a field outside the published set MUST be refused by name rather than ignored. |
 | **ARCH-R121** | A recording MUST name the image it was taken from by digest, that digest MUST be the one the manifest pins for the service being asked, and a recording naming another image MUST be refused rather than run against. |
 | **ARCH-R122** | An assertion whose recording is absent, unreadable, or records a request the assertion does not ask MUST be reported unproven, naming the recording, and MUST NOT be reported as passed or as failed. |
-| **ARCH-R123** | A request in a manifest MUST be able to name the one representation it asks for, that field MUST hold a single media type and MUST be refused by name where it holds a list, a wildcard or anything else, and the manifest MUST have no field by which a request outside a recipe could carry a credential or any other header. |
-| **ARCH-R124** | A recording MUST record the representation its request asked for, and the representation asked for MUST be part of whether a recording is of the request an assertion asks. |
-| **ARCH-R125** | An expectation's key-wise constraint MUST take a place in the answer rather than a top-level name, written as a JSON Pointer (RFC 6901) extended with a single-entry list selector this contract defines, a key that does not begin with `/` MUST keep meaning the top-level member of that name, and a key naming no place MUST be refused by name rather than evaluated as a member that is absent. |
-| **ARCH-R126** | A plugin MAY declare more than one service; every service id MUST be unique within the manifest, and at most one of a plugin's services MUST declare a given core capability, refused naming the capability and both services. |
-| **ARCH-R127** | Wiring MUST be declared per service, a manifest declaring more than one service MUST name the service each wiring is about, and a service MUST NOT carry two. |
-| **ARCH-R128** | A proof and a contributed check MUST name which of the plugin's services they ask where the plugin declares more than one, and one that does not MUST be refused by name rather than resolved to whichever service is read first. |
 
 ## Related
 
