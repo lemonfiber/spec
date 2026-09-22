@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 93,
-    "requirements": 1355,
+    "features": 94,
+    "requirements": 1366,
     "areas": "A–N"
   },
   "versions": [
@@ -3310,6 +3310,37 @@
       ],
       "versions": [],
       "path": "n-companion/n15-the-words.md"
+    },
+    {
+      "id": "N17",
+      "title": "Where a message goes",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "notifications",
+        "network",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "B9"
+      ],
+      "relates": [
+        "B5",
+        "N4",
+        "N10",
+        "N16"
+      ],
+      "versions": [],
+      "path": "n-companion/n17-where-a-message-goes.md"
     }
   ]
 }

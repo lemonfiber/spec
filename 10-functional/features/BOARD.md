@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**93 features** in areas A–N, **1355 requirements**.
+**94 features** in areas A–N, **1366 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 9 building, 38 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 9 building, 39 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -124,6 +124,7 @@ code, and the two move independently.
 | [N13](n-companion/n13-taking-away.md) | Taking something away | N | operator | draft | — |
 | [N14](n-companion/n14-what-version.md) | What is running, and what is newer | N | operator | draft | — |
 | [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | draft | — |
+| [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | draft | — |
 
 ## Withdrawn — no longer to be built
 
