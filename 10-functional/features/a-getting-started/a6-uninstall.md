@@ -79,6 +79,37 @@ stack being healthy, on lemonfiber's configuration being valid, or on the Docker
 being fully responsive. Where it can't complete a step, it reports what remains
 and how to remove it by hand.
 
+### On the companion
+
+The four tiers are four decisions, and `N13-R7` requires each to carry its own
+agreement naming its own scope, with none carried forward from another screen or
+another operation ([N13](../n-companion/n13-taking-away.md)). On a phone,
+consent collected once and reused is exactly how tier 4 gets taken along with
+tier 3.
+
+*The manifest is shown before anything is removed* needs a second requirement to
+survive a bad day. Uninstall must work when things are broken, which means the
+manifest is sometimes incomplete — so `N13-R4` requires the account to state
+whether it is complete and to name what could not be read, and `N13-R5` forbids
+presenting an incomplete account as a complete one. A total reclaimable size
+computed over the half of the disk that answered is a number that will be
+believed.
+
+Managed locations can hold things lemonfiber did not put there. `N13-R6` requires
+those shown separately, with their extent, because *delete this directory* and
+*delete this directory, which also contains something of yours* are different
+requests. What lemonfiber cannot remove is already listed here with instructions;
+away from the machine that list is the whole answer, because the operator cannot
+go and look.
+
+Tier 3 destroys credentials, and `N6-R7` is what makes an inventory of them
+showable beforehand at all: the app says a secret exists and what it is for, and
+does not render its value ([N6](../n-companion/n6-taking-a-copy.md)).
+
+A refusal carries the stack's reason rather than a retry prompt (`N13-R9`), a
+rehearsed removal is labelled as a rehearsal (`N13-R10`), and an operation that
+could not be read is told apart from one that has not run (`N13-R11`).
+
 ## States
 
 | State | Meaning |

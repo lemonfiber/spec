@@ -77,6 +77,39 @@ operators overshoot.
 What changed, when, by which operation. Answers "why is this different from last
 week?" without archaeology.
 
+### On the companion
+
+Rollback reaches the companion twice: as the act
+([N6](../n-companion/n6-taking-a-copy.md)) and as the record it leaves
+([N11](../n-companion/n11-the-record.md)).
+
+The table above is the load-bearing part of the act. Two of its rows are partial,
+and the data root move is the clearest: the path is re-pointed, and the data does
+not come back with it. `N6-R6` requires a reversal to name what it could not
+reverse and why, and to lead with that rather than append it — an operator who
+believes a thing was undone and finds half of it still there has been told
+something false. The migration row is the other one. Where rollback is
+unavailable and a restore is what remains, `N6-R10` forbids offering either as
+though it were the other: they put back different things, and this is the worst
+possible moment to be unclear about which.
+
+What this feature journals is what `N11` renders. A browsable history has an end,
+and `N11-R1` requires that end stated, because a list that simply stops is
+indistinguishable on a small screen from nothing having happened. Since a
+rollback is itself a change, every entry can carry how it would be reversed;
+`N11-R2` requires that carried, and requires an entry that cannot be reversed to
+say so rather than omit the field — an absent field reads as a question nobody
+answered, not as a no. `N11-R3` requires an entry to show how many changes
+accompanied it, because per-change rollback only means something if the operator
+can see what the change was part of, and `N11-R4` requires a recorded reason
+shown where there is one.
+
+Two failures of rendering are named rather than left to judgement. `N11-R5`
+forbids presenting this record as a log, which is the line `N2` already draws,
+and `N11-R10` requires changes written at the same instant ordered
+deterministically rather than shown as one having preceded the other. An empty
+record and a record that could not be read remain different answers (`N11-R9`).
+
 ## States
 
 Per journaled change:
