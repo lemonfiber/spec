@@ -115,6 +115,34 @@ non-negotiably, that with no plugin installed the set is exactly the documented
 one. The second half is what keeps the first honest; without it, a test that
 accepts "whatever was declared" accepts everything.
 
+### On the companion
+
+The table above is the distinction `N10-R1` makes load-bearing: connections
+lemonfiber itself makes and connections the installed services make are two
+lists, and must not be merged into one
+([N10](../n-companion/n10-nobody-watching.md)). *Ours* and *theirs* is the whole
+privacy answer — a combined list would attribute a tracker's request to
+lemonfiber, or lemonfiber's update check to Jellyfin, and either direction makes
+the claim on this page untestable.
+
+Its columns are the next two requirements. `N10-R2` requires each connection
+shown with its purpose, its destination and the switch that turns it off, and
+`N10-R3` requires the cost of turning it off shown beside it — which is what
+*Avoidable: only by not updating* already says. A switch offered without its
+consequence is one an operator flips once and regrets quietly.
+
+*No telemetry, at all* reaches the app as a prohibition on the app itself.
+`N10-R11` forbids the companion raising alerts of its own, because what is
+configured is the core's (`N4-R11`). A companion that added its own push
+notifications would be the one part of the product sending things nobody
+enumerated.
+
+*Local data is disclosed* includes the change journal, and where that is shown
+`N11-R1` requires its horizon stated ([N11](../n-companion/n11-the-record.md)) —
+the end of what is kept must not be presentable as nothing having happened.
+Connections that could not be read are told apart from there being none
+(`N10-R12`).
+
 ## States
 
 | State | Meaning |

@@ -116,6 +116,23 @@ instead. A guarantee that reads as continuous while nothing is running it is the
 whole failure this feature exists to remove, and it would survive the feature
 being built if the words did not move with it.
 
+### On the companion
+
+*Installed is not running* is what `N10-R10` carries onto the app: a long-running
+command is shown with what it guarantees and what is missing, and one that is
+**defined but not running** is shown as that rather than as absent
+([N10](../n-companion/n10-nobody-watching.md)).
+
+The three states this feature is careful to distinguish — running, written but
+not running, and not known — collapse easily into one indicator, and the app is
+where that collapse is both most tempting and most costly. *Not shown* reads as
+*not set up*, and an operator who reads it that way installs a second time rather
+than asking why the first one stopped. Where the platform will not say, the app
+says it does not know, on the same terms the command line already does.
+
+Commands that could not be read are told apart from there being none
+(`N10-R12`).
+
 ## States
 
 Per hosted command:

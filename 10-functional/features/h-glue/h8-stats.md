@@ -80,6 +80,20 @@ Ingestion status, the backfill, the query-back proof, and the statistics themsel
 are each reachable as plain subcommands, so stats can be wired into reporting without
 a prompt.
 
+### On the companion
+
+*Backfill depends on the reporting capability, and says so* is `N11-R1` on this
+surface ([N11](../n-companion/n11-the-record.md)): the history's horizon is
+stated, and the end of what is kept is never presentable as nothing having
+happened. A chart that simply begins in March is indistinguishable, on a phone,
+from a household that watched nothing before March — and the operator will draw
+the second conclusion unaided if the first is not said.
+
+*It handles awkward reporters honestly* meets `N11-R9`: an empty record and a
+record that could not be read are different answers. A reporter that quietly
+stopped answering produces a flat line, and a flat line is the most believable
+wrong figure this feature is able to produce.
+
 ## States
 
 | State | Meaning |
