@@ -159,7 +159,7 @@ door beside it.
 | `why` | Why this is worth checking. A check nobody can justify is one nobody will maintain. |
 | `fixture` | The recorded response the check is proved against in CI (`F10-R4`) |
 | `timeout_s` | Bounded, and bounded here rather than by the plugin's opinion (`C1-R7`) |
-| `service` | Which service the finding is about, where it is about one. Defaults to the plugin's own. |
+| `service` | Which of the plugin's services the finding is about, and the one the check asks. Required where the plugin declares more than one; defaults to the only one where it declares one. |
 
 What it inherits from the engine, and may not vary: independence (`C1-R4`), a
 bounded timeout reporting `unverified` on expiry (`C1-R7`), the four verdicts with
