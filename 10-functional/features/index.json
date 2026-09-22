@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 84,
-    "requirements": 1264,
+    "features": 85,
+    "requirements": 1275,
     "areas": "A–N"
   },
   "versions": [
@@ -3026,6 +3026,38 @@
       ],
       "versions": [],
       "path": "n-companion/n6-taking-a-copy.md"
+    },
+    {
+      "id": "N9",
+      "title": "Who gets in, and what the stack holds for them",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "household",
+        "security",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "D6"
+      ],
+      "relates": [
+        "A7",
+        "G5",
+        "G6",
+        "N2",
+        "N3"
+      ],
+      "versions": [],
+      "path": "n-companion/n9-who-gets-in.md"
     }
   ]
 }
