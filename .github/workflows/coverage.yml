@@ -61,6 +61,7 @@ jobs:
           coverage run --append scripts/test_plugins.py
           coverage run --append scripts/test_services.py
           coverage run --append scripts/test_workflow_pins.py
+          coverage run --append scripts/test_fan_out_pins.py
           coverage run --append scripts/test_local_command.py
           coverage run --append scripts/test_nothing_passes_over_nothing.py
           coverage run --append scripts/test_generated.py
@@ -93,6 +94,14 @@ jobs:
       # stood, which is the only way to know it is testing anything.
       - name: A PR citing a locked goal is shown landing in its milestone (OPS-R39, Q-R66)
         run: python3 scripts/test_milestone.py
+      # Not a coverage suite: it runs the fan-out's own step out of the committed
+      # workflow against a stubbed `gh` and an intercepted `git push`, and checks
+      # what it opens, what it leaves alone, and what it refuses (Q-R66). The
+      # rewrite it calls is Python and measured above; the loop around it is
+      # shell, and the claim that one repository failing does not cost the others
+      # their bump is a claim about that loop and nothing else held it.
+      - name: The fan-out is shown opening a bump and refusing a silence (OPS-R48, Q-R66)
+        run: python3 scripts/test_fan_out_workflow.py
       # The same shape once more, on the gate that closes a pull request. Closing
       # somebody's work is the most consequential thing any gate here does, and
       # the two faults it must never confuse — the contributor's and its own —

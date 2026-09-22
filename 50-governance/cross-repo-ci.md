@@ -372,13 +372,52 @@ repository runs changed in the commits it has not taken.
 `workflow-pins` is the gate, and it puts the catch-up in front of the next change
 rather than behind it. Its cost is the honest one and worth stating: this
 repository moves, so a repository green on Friday is behind on Monday without
-anyone touching it, and an author who changed none of it pays the bump. What is
-supposed to make that bearable is **OPS-R48** — an automated pull request bumping
-every consumer in lockstep when the workflows move. **That fan-out does not exist
-yet.** Until it does, the bump is done by hand, and that is the reason to keep
-this check off the required list on a default branch: a gate whose remedy nothing
+anyone touching it, and an author who changed none of it pays the bump. What
+makes that bearable is **OPS-R48** — `fan-out-pins.yml`, which opens the bump in
+every consumer rather than leaving it owed by all of them.
+
+It hangs off `publish-pin-tag` rather than off the merge, because the comment
+beside a pin carries the tag and the tag is what Dependabot compares: a fan-out
+firing on the merge would have no number to write. It rewrites through
+`workflow_pins.py`'s own reader, so it cannot bump a pin the gate would not have
+named nor leave one it would. And it visits the repositories `30-repos/repos.toml`
+lists rather than a second copy of that list, so the day somebody adds a
+fourteenth repository is not the day the fan-out quietly stops covering the org.
+
+**It does not replace the dependency bot and is not racing it.** The bot proposes
+whatever tag existed when it ran; this fires from the tag itself. The difference
+is the one that cost an afternoon — see below.
+
+Until this existed the bump was done by hand, and that was the reason to keep the
+check off the required list on a default branch: a gate whose remedy nothing
 automates, made required, is a gate that blocks its own cure. **Q-R71** is the
-form that admission takes in a repository that has to defer it.
+form that admission takes in a repository that has to defer it, and a deferral
+recorded under it names the work it waits on — which is now landed, so those are
+the deferrals to review rather than to renew.
+
+### When two freshness gates are red at once
+
+A repository can hold more than one check of this shape: *is what we pin still
+what they have?* `workflow-pins` asks it of the shared workflows, `sdk-drift` and
+`contract-drift` ask it of a vendored client. Each is independently reasonable
+and each is required where it runs.
+
+Together they have a failure mode neither has alone. **When two of them are red
+on `main` at the same time, nothing merges at all** — the pull request that fixes
+one still fails the other, in both directions, so neither can go first. It is not
+a deadlock between two changes; it is a deadlock over every change, because both
+gates read `main`'s state rather than the branch's.
+
+On 2026-09-22 it happened twice. `lemonfiber-web` had #128 bumping the pins and
+failing `sdk-drift`, and #127 taking the client and failing `workflow-pins`;
+`sdk-php` had the same pair. Both were resolved the only way the rule allows: one
+commit doing both. That is the remedy, and it is worth knowing before spending an
+hour looking for the one PR that will unblock the others.
+
+What makes it rare is that both gates have to go stale on the same afternoon,
+which is what a tag here landing while `lemonfiber` was also moving produced. What
+makes it survivable is that the fan-out now closes one of the two before anybody
+notices it opened.
 
 ## Related
 
