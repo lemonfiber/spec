@@ -78,6 +78,25 @@ lemonfiber's UI links out to services for convenience; household surfaces never
 link back to administration. A household member following links should never
 arrive somewhere they can change the stack's behaviour.
 
+### On the companion
+
+*Two doors, one per audience* is a fact the app has to carry rather than
+summarise. `N9-R10` requires the front door to show what each address faces and
+why ([N9](../n-companion/n9-who-gets-in.md)) — an operator holding one screen
+with two addresses on it needs to know which one belongs in an invitation, and
+*the address* is not an answer when there are two.
+
+The same requirement carries the mDNS distinction. A friendly name available
+because mDNS offered one, and an address the operator chose, are not
+interchangeable: one can change when the network does. `N9-R10` requires the app
+to say whether what it is showing was chosen or derived, rather than presenting
+both as equally settled.
+
+*Configuration reflected honestly* is the case `N9-R11` exists for. A door that
+does not exist because Seerr is not running, and a door the app could not read,
+are different answers — and on a surface with nothing else to check against, the
+second quietly becomes the first.
+
 ## States
 
 | State | Meaning |

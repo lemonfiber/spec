@@ -108,6 +108,29 @@ Where a credential has a known lifetime or has gone stale, lemonfiber surfaces i
 advisory. It does not expire credentials or force rotation — that would break a
 working system on a schedule the operator didn't choose.
 
+### On the companion
+
+This inventory's two columns are two requirements on the app. `N9-R2` requires a
+credential to name the services that consume it, and `N9-R3` requires its origin
+shown beside it ([N9](../n-companion/n9-who-gets-in.md)) — *Used by* and *Origin*
+are what turn a list of secrets into something an operator can reason about, and
+a small screen is where a table gets trimmed to fit.
+
+The qBittorrent row is why `N9-R1` refuses a single warning. *Stale*, *invalid*
+and *rotating* are three states with three different answers — wait, act, or do
+nothing — and a rotation that reached some consumers and not others is visible
+only if *rotating* survives as its own state rather than being folded into a
+caution symbol.
+
+*Secrets never appear in output* is restated here as a prohibition, twice over.
+`N9-R4` forbids the app rendering a credential's value where the contract carries
+one, and forbids it offering to set or change one at all — which is `N2-R12`, the
+same line `N2` draws for every value reached over a LAN. The app is an inventory
+and a diagnosis; it is not a place where secrets are typed.
+
+Credentials that could not be read are told apart from there being none
+(`N9-R11`).
+
 ## States
 
 | State | Meaning |

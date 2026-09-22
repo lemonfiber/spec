@@ -108,6 +108,32 @@ Household access works on the home network. Watching from elsewhere is not
 supported in 1.0 ([B7 deferred](../README.md#b--running-it)), and the invitation
 states this rather than letting someone discover it at a friend's house.
 
+### On the companion
+
+*Access is decided at invitation, in plain terms* becomes several requirements,
+because an invitation sent from a phone is the one most likely to be sent without
+its terms being read ([N9](../n-companion/n9-who-gets-in.md)). `N9-R5` requires
+an invitation to state what it grants — libraries, filtering, unrated material,
+and whether requests may be made — **before** it is sent, and `N9-R6` requires it
+to state when it lapses.
+
+Afterwards, `N9-R7` requires three outcomes kept apart: lapsed unaccepted,
+declined, and never sent. From the operator's end they look identical — nobody
+arrived — and each has a different next move, which is the argument
+[D9](d9-pipeline-trace.md) makes about content that never appeared, applied to
+people.
+
+*LAN-only, and said plainly* becomes `N9-R9`: where something works only on the
+household network, the app says so. That matters more here than anywhere else,
+because the app is the thing most likely to be held at a friend's house.
+
+*Removal is complete and honest* is where rounding does the most damage. `N13-R1`
+requires how far a revocation reached shown as *everywhere*, *media-server-only*
+or *nothing*, and `N13-R2` forbids rendering the middle one as complete
+([N13](../n-companion/n13-taking-away.md)). That middle state is precisely the
+one this feature refuses to leave behind — and flattening it into *removed* is
+how it gets left behind anyway.
+
 ## States
 
 Per household member:

@@ -82,6 +82,22 @@ Playback works on the home network. Watching from elsewhere is not supported in
 1.0 ([B7 deferred](../README.md#b--running-it)). Said up front rather than
 discovered at a friend's house.
 
+### On the companion
+
+The table above is a set of ratings, and `N9-R8` requires the app to carry them
+as ratings rather than as a recommendation
+([N9](../n-companion/n9-who-gets-in.md)): a suggestion is for a named device,
+carries its rating, and where the rating is poor carries what to use instead.
+*Varies by platform and vintage*, rendered as an unqualified *install the app*,
+is exactly the hour of failure this feature refuses to send someone into — and
+the app is where an operator looks this up on behalf of somebody already standing
+in front of the television.
+
+`N9-R9` requires the app to say where something works only on the household
+network. A client that works beautifully in the living room and not at all from
+elsewhere is the specific disappointment this surface is best placed to prevent,
+because it is the surface that travels.
+
 ## States
 
 Per household member:
