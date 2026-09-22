@@ -248,6 +248,11 @@ jobs:
             echo "::endgroup::"
           done
 
+          # Each list is accumulated with a separating space in front, so the
+          # first name carries one it did not earn. Trimmed here rather than at
+          # every append, which would be the same fix written three times.
+          opened=${opened# }; current=${current# }; refused=${refused# }
+
           {
             echo "### ${TAG} — the bump, fanned out"
             echo
@@ -259,7 +264,7 @@ jobs:
           # A repository nobody could ask about is not a repository that is
           # current, and the difference is the whole reason this runs at all.
           if [ -n "$refused" ]; then
-            echo "::error::no bump was opened in:${refused}. Those repositories go"\
+            echo "::error::no bump was opened in: ${refused}. Those repositories go"\
               "on pinning what they have, and their pull requests stay red, with"\
               "nothing else about to say so."
             exit 1
