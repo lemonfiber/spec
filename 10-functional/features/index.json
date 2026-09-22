@@ -3388,7 +3388,8 @@
       "labels": [
         "mobile",
         "ux",
-        "configuration"
+        "extensibility",
+        "cli"
       ],
       "requires": [
         "N1",

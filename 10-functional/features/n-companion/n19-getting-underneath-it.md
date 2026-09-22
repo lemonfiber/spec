@@ -7,7 +7,7 @@ audience: operator
 status: draft
 maturity: planned
 priority: P3
-labels: [mobile, ux, configuration]
+labels: [mobile, ux, extensibility, cli]
 requires: [N1, F1]
 relates: [C9, B2, N2, N14, N18]
 ---
