@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 87,
-    "requirements": 1295,
+    "features": 88,
+    "requirements": 1305,
     "areas": "A–N"
   },
   "versions": [
@@ -3120,6 +3120,38 @@
       ],
       "versions": [],
       "path": "n-companion/n11-the-record.md"
+    },
+    {
+      "id": "N12",
+      "title": "Running out of room",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "storage",
+        "queue",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "D5"
+      ],
+      "relates": [
+        "C5",
+        "H1",
+        "H6",
+        "N2",
+        "N6"
+      ],
+      "versions": [],
+      "path": "n-companion/n12-making-room.md"
     }
   ]
 }
