@@ -31,6 +31,7 @@ jobs:
   # that follows the scan rather than by Dependabot.
   gitleaks:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       # One home for the version: the download reads it and the watch checks it.
       GITLEAKS_VERSION: "8.30.1"
@@ -139,6 +140,7 @@ jobs:
   # findings this job already prints, and fails on, in the run itself.
   osv-scanner:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
