@@ -80,6 +80,38 @@ hooked into an *arr's event system. lemonfiber enumerates what it could **not** 
 across, rather than implying a complete migration and leaving the operator to
 discover gaps.
 
+### On the companion
+
+The four modes above are stances, and `N7-R2` requires the stance rendered as it
+was given ([N7](../n-companion/n7-moving-in.md)): *unchanged*, *pending* and
+*blocked* are not *applied*. Side-by-side is the one that outlives the operation
+— a service placed on an alternative port to avoid a conflict stays there, and
+`N7-R6` requires it reachable from the app afterwards rather than shown once, at
+the moment the port was chosen, and then lost.
+
+*What cannot be migrated is stated plainly* is the part a small screen is most
+likely to lose, so `N7-R1` makes it unignorable: what an import could not carry
+is shown with a reason for each, and is not subordinated to a success message. A
+phone has room for one headline, and a list of gaps underneath *Migration
+complete* is a list nobody reads. An import that carried nothing is a third
+answer, told apart from one that has not run (`N7-R9`).
+
+Where a move would take something over destructively, `N7-R4` requires the copy
+the stack wants first to be stated before the decision is agreed to rather than
+reported after it, and `N7-R5` requires a conflict to name what already holds the
+thing it conflicts over — *port in use*, without saying by what, is not something
+an operator away from the machine can act on. A refusal carries the stack's own
+reason (`N7-R3`); rendered as a generic failure with a retry button, it becomes
+an invitation to do the same thing again.
+
+Replacement stops the operator's existing stack without deleting it, and
+`N13-R8` requires the app to show what stopped, what would stop and what is still
+running — and forbids reporting a replacement as applied while anything it
+replaces is still up ([N13](../n-companion/n13-taking-away.md)).
+
+The survey changes nothing, which is what a rehearsal is, and `N7-R10` holds a
+rehearsed run here to the same labelling `N6-R1` requires everywhere else.
+
 ## States
 
 | State | Meaning |
