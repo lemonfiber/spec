@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 94,
-    "requirements": 1369,
+    "features": 95,
+    "requirements": 1378,
     "areas": "A–N"
   },
   "versions": [
@@ -3342,6 +3342,36 @@
       ],
       "versions": [],
       "path": "n-companion/n16-nobody-was-looking.md"
+    },
+    {
+      "id": "N18",
+      "title": "Running part of it on purpose",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "ux",
+        "observability"
+      ],
+      "requires": [
+        "N1",
+        "B1"
+      ],
+      "relates": [
+        "B2",
+        "B3",
+        "N2",
+        "N16"
+      ],
+      "versions": [],
+      "path": "n-companion/n18-running-part-of-it.md"
     }
   ]
 }
