@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 85,
-    "requirements": 1275,
+    "features": 86,
+    "requirements": 1284,
     "areas": "A–N"
   },
   "versions": [
@@ -3026,6 +3026,37 @@
       ],
       "versions": [],
       "path": "n-companion/n6-taking-a-copy.md"
+    },
+    {
+      "id": "N8",
+      "title": "What comes in, and where it got to",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "quality",
+        "queue",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "D2"
+      ],
+      "relates": [
+        "D9",
+        "H6",
+        "N2",
+        "N3"
+      ],
+      "versions": [],
+      "path": "n-companion/n8-what-comes-in.md"
     },
     {
       "id": "N9",
