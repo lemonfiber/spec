@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 83,
-    "requirements": 1253,
+    "features": 84,
+    "requirements": 1264,
     "areas": "A–N"
   },
   "versions": [
@@ -2994,6 +2994,38 @@
       ],
       "versions": [],
       "path": "n-companion/n5-connecting-the-stack.md"
+    },
+    {
+      "id": "N6",
+      "title": "Taking a copy, and putting it back",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "storage",
+        "updates",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "E3"
+      ],
+      "relates": [
+        "A4",
+        "A6",
+        "A7",
+        "E4",
+        "N2"
+      ],
+      "versions": [],
+      "path": "n-companion/n6-taking-a-copy.md"
     }
   ]
 }
