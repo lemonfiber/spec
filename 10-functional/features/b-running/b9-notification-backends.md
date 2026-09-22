@@ -71,6 +71,33 @@ What a notification contains is subject to the same [privacy](../g-ux/g8-privacy
 posture as everything else: no household watch or request detail leaves to a
 back-end the operator did not choose.
 
+### On the companion
+
+The sentence this feature opens with is about a phone whether or not it says so:
+*an alert that silently fails to send is worse than no alert, because it teaches
+the operator the stack is quiet when it is actually on fire.* A phone is the
+device the alert was expected on, and the one place where **no notification** and
+**a notification that never sent** are indistinguishable from the inside
+([N17](../n-companion/n17-where-a-message-goes.md)).
+
+*It refuses a hosted notification plane* is carried literally rather than
+loosely. `N17-R1` forbids the companion operating, requiring or shipping a
+notification service, relay or push identity of its own: what delivers a message
+is the back-end the operator configured, and the app subscribes to it as any
+other client would. **An app that shipped its own push identity would be a hosted
+notification plane in all but name**, arriving through the one surface this
+feature did not have in view when it refused one.
+
+That has a cost, and `N17-R2` makes saying so part of the design rather than a
+caveat on it: a self-hosted service reaching a sleeping phone is that service's
+problem and that service's app. An app quietly promising delivery it cannot
+provide would reproduce this feature's own failure one layer up.
+
+*It confirms delivery, it does not assume it* becomes `N17-R3` and `N17-R4`.
+Sent and confirmed-delivered stay different facts, and a back-end configured and
+never used is a third state — one that looks identical to a working one right up
+until the moment it matters.
+
 ## States
 
 | State | Meaning |

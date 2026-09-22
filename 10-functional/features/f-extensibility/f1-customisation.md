@@ -78,6 +78,35 @@ An operator can declare a service, or a specific configuration area, unmanaged.
 lemonfiber then reports its state but never writes to it — and stops reporting
 drift for it.
 
+### On the companion
+
+This feature's guarantee is the one a graphical surface loses most easily, and
+an app is the most graphical surface this product has: no shell to fall back to,
+no flags to pass, no obvious place to read what is about to happen. **If the
+escape hatch is not visible from the app then for anybody whose main surface is
+their phone it does not exist**
+([N19](../n-companion/n19-getting-underneath-it.md)).
+
+*Every command shows its work* becomes `N19-R1`: where the app offers an action
+it can show the command that performs it, without the operator having to reach
+another surface to find out. `N19-R7` carries the rest — an operator wondering
+what happens if they delete the app should be able to find that out from inside
+it.
+
+`N19-R2` is small and load-bearing. **A route offered with a caution that
+discourages taking it has been closed politely**, and the audience this feature
+is written for reads that correctly the first time. Their objection — *"it hides
+what's actually happening"* — is about exactly the shape an app naturally takes.
+
+*Materialised files are editable and respected* and *opting out of a managed
+area is supported* become `N19-R3` and `N19-R5`, and they fail the same way. An
+**edited** file and a **drifted** one are opposite facts about the same bytes; an
+**unmanaged** area and an **unconfigured** one are opposite facts about the same
+silence. A surface reading only a checksum, or only a count of what is
+configured, cannot tell a decision from a defect — it renders the decision as
+the defect and then offers to fix it, which is asking the operator to undo
+something they chose on purpose.
+
 ## States
 
 Per managed area:

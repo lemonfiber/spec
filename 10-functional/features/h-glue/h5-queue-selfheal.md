@@ -90,6 +90,34 @@ The classification report, the dry-run, and the healing run are each reachable a
 plain subcommands, so the operator can wire self-healing into a schedule without a
 prompt.
 
+### On the companion
+
+A queue that quietly fills with dead entries is the commonest reason a stack
+stops delivering while every service still reports *running*, which makes this
+the feature most likely to be read from somewhere other than the machine
+([N16](../n-companion/n16-nobody-was-looking.md)).
+
+*It shows what it would do before it does it* becomes `N16-R8`: an item about to
+be acted on carries why it was classified as wedged and how many strikes it
+holds. Both halves, because a strike count without a classification is a number
+nobody can weigh.
+
+*It removes, blocklists, then re-searches* becomes `N16-R9`, and this is the row
+worth the most here. **A blocklist outlives the item.** Flattened into *cleared*,
+an operator has been told something was tidied up and not told that a release
+will now never be tried again — which is the thing they would have had an
+opinion about.
+
+*It proves it can reach what it manages* becomes `N16-R10`: where self-healing
+could not reach the client it manages, that is its own answer. Rendered as
+nothing needing attention, it is a queue filling up behind a component that
+stopped working, which is this feature's own failure mode wearing its success
+state.
+
+And the app does none of it. `N16-R12` forbids acting on a wedged item, changing
+a strike count, or touching a grace window — a phone is where an automation this
+careful is most easily turned into a button.
+
 ## States
 
 | State | Meaning |

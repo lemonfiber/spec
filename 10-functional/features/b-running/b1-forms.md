@@ -105,6 +105,36 @@ Adding or changing a form is a manifest edit in `lemonfiber-media-stack`. It
 requires no change to `lemonfiber` and no release — see
 [ADR-0002](../../../00-overview/decisions/0002-profiles-and-forms.md).
 
+### On the companion
+
+A form is the operator's vocabulary for *"I only need part of this"*, and a
+screen small enough to show a count and not much else is where that vocabulary
+is most easily lost ([N18](../n-companion/n18-running-part-of-it.md)).
+
+`N18-R2` forbids rendering a partial stack as degraded, incomplete, or as a
+proportion of a whole. **Six services of eighteen is not a stack that is
+four-fifths broken**; it is a stack doing exactly what somebody asked for. That
+is a prohibition rather than a feature because every instinct a dashboard has —
+show progress, show completeness, flag what is absent — arrives at the wrong
+answer on its own, and it does so while looking like diligence.
+
+*Closures are filtered by configured protocols* becomes `N18-R3`. Away from the
+machine, *did not start* and *was filtered out because you have no torrent
+credentials* are the same silence and mean opposite things: one is a fault to
+chase and the other is this feature working. The reason travels, or the operator
+goes looking for a problem that is not there.
+
+*Forms are introspectable* becomes a rehearsal, labelled as one (`N18-R4`), and
+the footprint stays the estimate this feature declares rather than a measurement
+of what is running (`N18-R5`). *Forms compose* becomes `N18-R6`: a service
+claimed by several active forms is shown once and names all of them, because
+*why is this running* has as many answers as there are forms claiming it, and
+stopping one does not necessarily stop it.
+
+*Forms are data, not code* becomes `N18-R7`. An app holding its own list would
+be a second copy that goes out of date silently, and the first thing the
+operator would notice is a form of their own the app does not believe exists.
+
 ## States
 
 | State | Meaning |
