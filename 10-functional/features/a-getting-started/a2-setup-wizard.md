@@ -86,6 +86,23 @@ and prompt operators to kill the process mid-write.
 Quitting mid-wizard preserves answers. Returning resumes at the same step. The
 operator is never made to re-answer eleven questions because step 12 failed.
 
+### On the companion
+
+The companion does not offer this, and the reason is not squeamishness: a phone
+cannot perform the act that makes a phone able to perform acts
+([N1-R4](../n-companion/n1-companion-app.md)). But *not offered* and *not there*
+are different things, and `N15-R2` requires an operator who reaches first-run
+setup from the app to be declined with that reason rather than to meet an absence
+([N15](../n-companion/n15-the-words.md)). An absence reads as a defect, and the
+operator's next move is to go looking for the version that has it.
+
+What this wizard settled stays readable. `N15-R1` requires those answers shown as
+facts about the stack — this is the time zone, this is where the library lives —
+and forbids treating the act of showing them as offering setup. Reading what was
+decided is not deciding it again. A rule against offering first-run setup that
+also hid its outcome would leave an operator unable to find out what their own
+stack had been configured to do, which is not what `N1-R4` declines.
+
 ## States
 
 | State | Meaning |

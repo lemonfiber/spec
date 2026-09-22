@@ -81,6 +81,28 @@ engaged, expecting to interact, and willing to fix things.
 On success it points at what comes next: adding more content, inviting household
 members ([D6](d6-household-identity.md)), and where to watch ([G6](../g-ux/g6-client-apps.md)).
 
+### On the companion
+
+The narration above *is* the feature, so `N15-R6` requires a walkthrough's lines
+carried as they were given and forbids reconstructing or reordering them
+([N15](../n-companion/n15-the-words.md)). An app that rewrote *Selecting best
+match… 1080p, matches your Balanced preset* into its own words would be
+paraphrasing the one explanation the operator is meant to keep. This is a mental
+model being built; it is not copy.
+
+`N15-R5` requires the stage shown where the contract gives one, and forbids a
+progress indicator standing in for it. A spinner where *Importing…* belongs is
+precisely the loss this feature exists to prevent: the operator learns that
+something is happening rather than what.
+
+*It ends by handing over* becomes `N15-R7` — where the walkthrough names what to
+do next, that is shown. A hand-off arriving without its destinations is a
+walkthrough that stopped rather than one that ended.
+
+A stage that could not be read is told apart from idle (`N15-R10`), which here is
+the difference between a first run still working and one that died quietly while
+the operator was in another room.
+
 ## States
 
 | State | Meaning |

@@ -75,6 +75,20 @@ The operator is told what will stop, what will be removed, and what will be kept
 The same rule as [A2](a2-setup-wizard.md): a review step showing the diff between
 current and proposed configuration, and no writes before confirmation.
 
+### On the companion
+
+Revisiting a setup answer is not first-run setup, and `N15-R1` is what stops that
+distinction collapsing on a surface that declines the latter
+([N15](../n-companion/n15-the-words.md)): what setup settled is shown as facts
+about the stack, and showing them is not treated as offering setup.
+
+*Consequences are stated before the change is applied* takes a particular form
+when the change is a reset. `N6-R8` requires resetting configuration described by
+what changed and which connections went with it, rather than by a reassurance
+([N6](../n-companion/n6-taking-a-copy.md)). *Reset* means very different amounts
+depending on what had been set, and an operator agreeing to one from a phone has
+no other way to find out which amount they agreed to.
+
 ## States
 
 | State | Meaning |

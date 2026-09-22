@@ -90,6 +90,32 @@ the operator's diagnostic detail, but they aren't left in silence either.
 Anything reported by queue health links here, so "3 items stuck" leads directly
 to per-item explanations rather than to a list the operator must investigate.
 
+### On the companion
+
+The five ways an item can never appear are the whole value of this feature, and
+`N8-R6` carries them onto the app intact: a stage the contract names is rendered
+as that stage, and *not monitored* is never rendered as nothing found
+([N8](../n-companion/n8-what-comes-in.md)). *Nobody asked for it* and *indexers
+returned nothing* are one tap apart and a world apart; a surface that collapses
+them hands back exactly the confusion the trace was built to remove.
+
+A trace carries its confidence, and `N8-R4` forbids rendering an uncertain one as
+certain — correlation across sources is an inference, and an inference shown as a
+fact is worse on a screen the operator cannot cross-check from. Where the
+contract carries what is outstanding episode by episode, `N8-R5` requires the
+gaps shown rather than a completion figure alone, and a watch that has stopped is
+shown with the reason it stopped rather than omitted (`N8-R7`).
+
+*Household members see their own requests* is a different view, not a filtered
+one. `N8-R8` forbids reusing the operator's trace as a member's: that view is
+`N3-R6`'s, and it carries no pipeline internals. And `N15-R8` requires *already
+here* reported as its own outcome rather than as a search that found nothing
+([N15](../n-companion/n15-the-words.md)) — on a phone those two render
+identically, and one of them is good news.
+
+Choices or a trace that could not be read are told apart from there being none
+(`N8-R9`).
+
 ## States
 
 Per traced item, the furthest stage reached: `not-monitored`, `monitored`,
