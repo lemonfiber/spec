@@ -66,6 +66,26 @@ Entries are written for the operator, not the committer: the human-facing summar
 leads, and the identifiers are the link target, not the headline
 ([G2](../g-ux/g2-plain-language.md)).
 
+### On the companion
+
+`N14-R4` requires the changelog to distinguish user-facing releases from those
+that are not ([N14](../n-companion/n14-what-version.md)). Generating it from what
+shipped means it contains everything that shipped, which is the point — but an
+operator scrolling a phone through a release that changed only CI has been handed
+work rather than an answer. *Nothing that shipped is silently absent* is not the
+same promise as *everything gets equal billing*.
+
+*Hotfixes and withdrawals are visible, with their reason* becomes two
+requirements on the app rather than one. The withdrawal is shown with its reason,
+as this feature already requires; and `N14-R3` separately forbids the app
+offering that release or counting it as an available update. Visible and
+offerable are different things, and only the second would let an operator install
+something that had been pulled.
+
+A changelog that could not be read is told apart from being current (`N14-R7`).
+The only thing worse than a changelog that hides a withdrawal is one that shows
+nothing at all and reads as *no news*.
+
 ## States
 
 | State | Meaning |
