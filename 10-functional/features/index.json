@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 90,
-    "requirements": 1326,
+    "features": 91,
+    "requirements": 1336,
     "areas": "A–N"
   },
   "versions": [
@@ -3216,6 +3216,38 @@
       ],
       "versions": [],
       "path": "n-companion/n13-taking-away.md"
+    },
+    {
+      "id": "N15",
+      "title": "The words, and watching it happen",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "ux",
+        "queue"
+      ],
+      "requires": [
+        "N1",
+        "G2"
+      ],
+      "relates": [
+        "A2",
+        "A4",
+        "D3",
+        "D9",
+        "N2",
+        "N8"
+      ],
+      "versions": [],
+      "path": "n-companion/n15-the-words.md"
     }
   ]
 }
