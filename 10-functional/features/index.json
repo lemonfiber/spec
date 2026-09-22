@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 88,
-    "requirements": 1305,
+    "features": 90,
+    "requirements": 1325,
     "areas": "A–N"
   },
   "versions": [
@@ -3183,6 +3183,38 @@
       ],
       "versions": [],
       "path": "n-companion/n12-making-room.md"
+    },
+    {
+      "id": "N15",
+      "title": "The words, and watching it happen",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "ux",
+        "queue"
+      ],
+      "requires": [
+        "N1",
+        "G2"
+      ],
+      "relates": [
+        "A2",
+        "A4",
+        "D3",
+        "D9",
+        "N2",
+        "N8"
+      ],
+      "versions": [],
+      "path": "n-companion/n15-the-words.md"
     }
   ]
 }
