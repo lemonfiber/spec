@@ -74,6 +74,31 @@ installed. Bug reports are otherwise unactionable.
 Unlike service databases, lemonfiber holds no irreversibly-migrating state.
 Reverting to a previous version is supported, which makes updating low-risk.
 
+### On the companion
+
+*Update method follows installation method* is a table the app reads rather than
+summarises. `N14-R1` requires how lemonfiber was installed to be shown, and where
+that cannot be determined, said rather than assumed
+([N14](../n-companion/n14-what-version.md)) — a guess here produces a command
+that does nothing, or one that fights the package manager.
+
+`N14-R2` is what keeps *deferring is not a failure* true on a surface made of
+buttons. Where lemonfiber cannot replace itself, the app does not offer a control
+that would not work; **it shows the command that would**. A greyed-out button
+explains nothing, and an enabled one that quietly fails is the failure this
+feature already refuses at the command line. A phone cannot run `brew upgrade`,
+and showing the line the operator will run when they are next at the machine is
+the honest form of the same answer.
+
+*Update availability is advisory* becomes a prohibition. `N14-R6` forbids the app
+applying an update that was not asked for, and forbids applying one on a schedule
+of its own. An app is exactly where a background updater would feel natural and
+be wrong: the stack keeps working on an old lemonfiber, and that is the property
+being protected.
+
+A version that could not be read is told apart from being current (`N14-R7`) —
+both render as *up to date*, and one of them is a guess.
+
 ## States
 
 | State | Meaning |

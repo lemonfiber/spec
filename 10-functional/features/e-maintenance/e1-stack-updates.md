@@ -83,6 +83,26 @@ New lemonfiber versions carry a new pinned stack ([ADR-0005](../../../00-overvie
 Locally modified stack files are never silently overwritten — the operator is
 shown a diff ([C9](../c-trust/c9-drift.md)).
 
+### On the companion
+
+The app reads versions; it does not become a second place to apply them.
+`N14-R8` holds that boundary ([N14](../n-companion/n14-what-version.md)):
+updating the services is `N2`'s offer and carries different consequences, and a
+version screen that grew an *Update* button would be making that offer without
+the account `N2` requires of it.
+
+Where the offer is made, `N14-R5` requires it to state what version of the stack
+it carries and what happens after it is applied, **before** it is agreed to —
+which is *irreversibility is stated in advance*, on the surface where an operator
+is least able to go and check anything first. And `N14-R3` requires a withdrawn
+release neither offered nor counted as an available update: counted, it produces
+a badge for something nobody may install.
+
+*Rollback is offered where it's actually possible* carries across intact.
+`N6-R10` requires that where the stack offers neither a rollback nor a restore,
+the app offers neither, and never presents one as the other
+([N6](../n-companion/n6-taking-a-copy.md)).
+
 ## States
 
 | State | Meaning |
