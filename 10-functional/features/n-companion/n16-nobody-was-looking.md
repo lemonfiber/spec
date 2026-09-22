@@ -128,8 +128,22 @@ is not offering it — the distinction `N15` makes.
 
 ## Notes
 
-Nothing here asks the core for a capability it does not have. Where a field this
-page needs turns out not to be carried, the work stops and the gap is raised
-against the contract rather than approximated from a neighbouring value — which
-is `N1-R17`, and is the rule that keeps this surface honest about what it
-actually knows.
+Where a field this page needs is not carried, the work stops and the gap is
+raised against the contract rather than approximated from a neighbouring value.
+That is `N1-R17`, and it is the rule that keeps this surface honest about what
+it actually knows.
+
+**Two thirds of this page is waiting on the contract, and an earlier draft said
+otherwise.** It claimed nothing here asks the core for a capability it does not
+have. Checked against all sixty-two published envelopes, that is true of one of
+the three subjects and not of the other two:
+
+| Subject | Where it stands |
+|---|---|
+| Coming back after a restart | **Carried.** `HostingEnvelope` answers it almost exactly as written — `standing: 'installed-unverified'` *is* `N16-R7`, and `manager: 'unsupported'` *is* `N16-R5` |
+| The outside watcher | **Not carried.** Nothing holds an outside observer's readings, so `N16-R1` through `N16-R4` cannot be answered. `WatchEnvelope` is supervision of forms rather than an uptime monitor |
+| The queue's own repairs | **Partly.** `StuckEnvelope` carries the stage and why a repair could not reach what it manages, so `N16-R10` is answerable. It carries no strike count and no account of removing, blocklisting and re-searching as three acts, so `N16-R8` and `N16-R9` are not |
+
+Requirements are not withdrawn for being unanswerable yet — a requirement
+describes what the product owes, and a contract that cannot carry it is the
+thing to change. What is withdrawn is the claim that they were all answerable.
