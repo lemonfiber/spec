@@ -388,6 +388,24 @@ fourteenth repository is not the day the fan-out quietly stops covering the org.
 whatever tag existed when it ran; this fires from the tag itself. The difference
 is the one that cost an afternoon — see below.
 
+**What it needs to be allowed to do it.** The app it runs as must hold
+`workflows: write`, and `contents: write` is not enough. GitHub refuses a push
+from an app that creates or updates anything under `.github/workflows/`, whatever
+else the token may do — and every change a pin bump makes is to a file under
+`.github/workflows/`, because that is what a pin on a reusable workflow is. The
+refusal arrives as
+
+```
+! [remote rejected] ... refusing to allow a GitHub App to create or update
+  workflow `.github/workflows/scorecard.yml` without `workflows` permission
+```
+
+which reads like a branch problem and is a permission one. It is worth knowing
+before reading one of these logs: the first run, on `v1.0.10`, measured all
+twelve repositories correctly, rewrote the one stale pin correctly, and failed
+there. A granted permission also has to be *approved* for each installation
+before it takes effect, so granting it on the app is half the job.
+
 Until this existed the bump was done by hand, and that was the reason to keep the
 check off the required list on a default branch: a gate whose remedy nothing
 automates, made required, is a gate that blocks its own cure. **Q-R71** is the

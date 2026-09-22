@@ -118,6 +118,24 @@ jobs:
       # a pull request in each and do nothing else; it is minted once rather than
       # per repository, because a mint per repository is a dozen more chances for
       # the thing that opens the bump to be the thing that fails.
+      #
+      # **The app needs `workflows: write`, and `contents: write` is not enough.**
+      # GitHub refuses a push from an app that creates or updates anything under
+      # `.github/workflows/`, whatever else the token may do — and every change
+      # this workflow makes is to a file under `.github/workflows/`, because that
+      # is what a pin on a reusable workflow is. Without it the run gets as far as
+      # rewriting the pin correctly and is then answered
+      #
+      #     ! [remote rejected] ... refusing to allow a GitHub App to create or
+      #       update workflow `.github/workflows/scorecard.yml` without
+      #       `workflows` permission
+      #
+      # which reads like a branch problem and is a permission one. The first run
+      # of this workflow, on `v1.0.10`, failed exactly there against
+      # `lemonfiber-companion` after measuring all twelve repositories correctly.
+      #
+      # An installation does not take a newly granted permission until it is
+      # approved for that installation, so granting it on the app is half of it.
       - name: Mint a token that can reach them
         id: token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
