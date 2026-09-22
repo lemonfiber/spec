@@ -117,6 +117,34 @@ the product, while still letting a plugin reach them. The set is published rathe
 discovered, and naming one that does not exist is a validation failure listing what is
 available.
 
+### On the companion
+
+*Anything leaving the machine is agreed to, specifically* is the sentence a
+phone is most likely to break, because a phone is where one large button
+covering everything is the natural design. **The surface that most wants a
+single *Install* is the surface that must not have one**
+([N20](../n-companion/n20-what-a-plugin-may-send.md)).
+
+So `N20-R2` is written as a prohibition on *combining* two agreements rather
+than as a requirement to ask twice. The failure is not a missing prompt — it is
+a present one that covers more than the operator read it as covering, and a
+second prompt bolted onto the first would not fix that. `N20-R1` carries what
+the first prompt has to say: which value, and to which host, in terms somebody
+can weigh.
+
+*A recipe names, and never addresses* becomes `N20-R3` and `N20-R4`. The app
+shows the name the manifest gave; a resolved address in its place answers a
+question nobody asked and hides the one they did, because *where is this going*
+is a name rather than a number. And where a name answered from inside the
+network, the refusal carries its reason — rendered as a network error with a
+retry, it becomes a button that keeps trying to reach a household's router.
+
+*A recipe is a sequence, not a program* becomes `N20-R5`: the rehearsal lists
+every step in the order given, and is not summarised into an outcome.
+*Configures Plex* has removed the only thing an operator can actually judge.
+Where a plugin names an adapter, `N20-R6` requires the app to say which, and
+that it is one lemonfiber implements rather than anything the plugin supplied.
+
 ## States
 
 | State | Meaning |
