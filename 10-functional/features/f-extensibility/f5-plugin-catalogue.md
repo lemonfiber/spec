@@ -89,6 +89,14 @@ plugin already installed to keep working. If the catalogue is unreachable, insta
 plugins are unaffected and installing from a named source still works. The catalogue is a
 convenience and a review mechanism, not a runtime dependency.
 
+### On the companion
+
+The catalogue is offered on the companion ([N5](../n-companion/n5-connecting-the-stack.md)),
+and `N5-R8` holds it to the same thing this feature does: an entry carries what
+the household is without it, rather than a name and a description. `N5-R9`
+requires a removed entry to name what replaced it, so an operator looking for
+something they remember is answered rather than told it does not exist.
+
 ## States
 
 | State | Meaning |

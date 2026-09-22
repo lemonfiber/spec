@@ -85,6 +85,15 @@ a bundled service with a plugin claiming the same capability requires **no chang
 anything that consumes it**. If a consumer still has to be found and edited, the wiring
 was not really converted.
 
+### On the companion
+
+What the bundled services already answer is what makes a plugin's claim a
+contest rather than a filling, so the companion renders both from here
+([N5](../n-companion/n5-connecting-the-stack.md)). `N5-R5` makes a capability
+nothing fills a state with what is asking for it, rather than a fault: a stack
+with an unfilled capability is not broken, and a surface that showed it as
+broken would be wrong about the product.
+
 ## States
 
 | State | Meaning |

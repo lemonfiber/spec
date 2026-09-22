@@ -76,6 +76,13 @@ what uses it, where it lives, attributed to the plugin, and never its value. A p
 hosts appear in the account of what leaves this machine, attributed the same way. Plugins
 do not get their own parallel surfaces; they get their own column in the existing ones.
 
+### On the companion
+
+`N5-R10` requires an install offered on the companion to carry its provenance at
+the moment it is offered, rather than somewhere a curious operator could go and
+look. The argument is this feature's own, applied to a surface where going and
+looking means leaving the screen.
+
 ## States
 
 | State | Meaning |
