@@ -93,6 +93,15 @@ missing capability — not a version number. A plugin keeps working across upgra
 exactly as long as what it actually uses still exists, and when it stops working the
 message says which thing went.
 
+### On the companion
+
+Installing, and what is installed, is what the companion's plugin surface is for
+([N5](../n-companion/n5-connecting-the-stack.md)). Two rules are specific to
+being away from the machine: `N5-R11` forbids rendering an install as finished
+before the core reports it, and `N5-R10` requires a refused install to be shown
+with its refusal rather than omitted from the catalogue — an operator who cannot
+see why something is absent will try again.
+
 ## States
 
 | State | Meaning |

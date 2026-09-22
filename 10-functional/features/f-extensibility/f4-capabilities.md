@@ -158,6 +158,21 @@ A capability carries probes. Claiming it and failing its probes is a verificatio
 and a plugin that fails verification is not installed. A capability whose probes cannot be
 run is reported as unproven — never as satisfied.
 
+### On the companion
+
+A capability this refuses as `contested` is refused pending a choice, and the
+companion is a surface where that choice can be made
+([N5](../n-companion/n5-connecting-the-stack.md)). What it may not do is settle
+it: `N5-R1` forbids the app resolving a contest by default, by install order or
+by any ordering of its own, which is the same prohibition this feature puts on
+the core.
+
+The distinction between a settlement the stack reached and one the operator made
+is carried on the wire and is load-bearing there — `N5-R3` forbids rendering the
+first as the second. And because a substitution can leave a third service asking
+for something nothing now answers, `N5-R4` requires that be stated before the
+change rather than reported after it.
+
 ## States
 
 | State | Meaning |
