@@ -88,6 +88,33 @@ requests. Where a member's own request failed for a reason that is really a stac
 fault, they are told it did not work and that the operator has been told — never
 given the operator's error.
 
+### On the companion
+
+This feature exists for the people who will not install an app, which makes it
+the one place where the companion has to be careful about what it claims to be.
+
+The app is *a* way in, not *the* way in. That is the argument
+[G6](g6-client-apps.md) already makes about players — a client the household
+already uses stays first-class, and a second way is not a replacement for one —
+and it applies to this surface for the same reason. A member handed an
+invitation should reach the household without being asked to install anything,
+so `N9-R5` requires the invitation to state what it grants before it is sent,
+and `N9-R10` requires the front door to show what each address faces and why
+([N9](../n-companion/n9-who-gets-in.md)).
+
+Both doors travel, not just the one the operator thinks of as the front.
+Somewhere to ask for things and somewhere to watch them are two services, and
+which of them is *the* address is an arrangement a member with a question about
+watching does not care about. The app offers both, each with its own standing,
+on the same terms this page sets for the browser.
+
+Where a member reads one surface and then the other, the two must not disagree —
+which is not a matter of keeping them in step but of neither holding an opinion.
+`N3-R2` and `N3-R14` forbid the app a permission model or a second copy of what
+a member may watch, exactly as this page forbids the browser one. An age limit
+enforced in two places is an age limit that will eventually contradict itself,
+and the household member is the one who finds out.
+
 ## States
 
 | State | What is shown |
