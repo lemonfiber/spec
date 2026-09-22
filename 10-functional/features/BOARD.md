@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**82 features** in areas A–N, **1240 requirements**.
+**83 features** in areas A–N, **1253 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 9 building, 27 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 9 building, 28 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -113,6 +113,7 @@ code, and the two move independently.
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | draft | — |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | draft | — |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | draft | — |
+| [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | draft | — |
 
 ## Withdrawn — no longer to be built
 
