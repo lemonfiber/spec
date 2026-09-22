@@ -89,6 +89,25 @@ Files the operator can't read, or that services can't write, produce failures fa
 from their cause. Checked directly, with the platform's actual semantics — real
 on native Linux, largely mapped away on Docker Desktop.
 
+### On the companion
+
+*Degradation is stated in consequences, not properties* is the argument the
+companion applies everywhere, and this is where it is first made. `N12-R3`
+requires what removing a candidate would cost shown with the candidate
+([N12](../n-companion/n12-making-room.md)), and the storage mode is what
+determines that cost: where imports link, a seeding copy and a library copy are
+one set of bytes and removing one frees nothing; where they copy, the same act
+frees the whole file. *Hardlinks unsupported* is a property nobody can act on
+from a phone. **Removing this frees 14 GB** and **removing this frees nothing**
+are the same fact stated as a consequence, and only the second form survives the
+trip.
+
+*Availability is monitored, not assumed* is `N12-R10`: space that could not be
+read is told apart from space that is comfortable. A data root that vanished and
+a data root with room to spare both arrive as an absence of warning, and the app
+is the surface least able to tell which one it is looking at — the drive is in
+another room, and the phone is not.
+
 ## States
 
 | State | Meaning |
