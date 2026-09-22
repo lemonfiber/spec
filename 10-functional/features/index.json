@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 92,
-    "requirements": 1347,
+    "features": 93,
+    "requirements": 1355,
     "areas": "A–N"
   },
   "versions": [
@@ -3248,6 +3248,36 @@
       ],
       "versions": [],
       "path": "n-companion/n13-taking-away.md"
+    },
+    {
+      "id": "N14",
+      "title": "What is running, and what is newer",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "updates",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "E2"
+      ],
+      "relates": [
+        "E1",
+        "E5",
+        "N2",
+        "N11"
+      ],
+      "versions": [],
+      "path": "n-companion/n14-what-version.md"
     },
     {
       "id": "N15",
