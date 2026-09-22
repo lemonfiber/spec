@@ -102,6 +102,36 @@ than one that refuses to start.
 A stated number of backups is kept, oldest pruned. Backups are useless if they
 silently fill the disk they were protecting.
 
+### On the companion
+
+Backups are what an operator thinks about at the worst possible moment, and the
+companion is where they are when it arrives
+([N6](../n-companion/n6-taking-a-copy.md)).
+
+The three scopes captured here are the three an operator agrees to, and `N6-R2`
+requires which one — the whole stack, one service, or an existing project —
+stated before the work starts and again on the result. The third is the adoption
+capture described above, and it is the one most worth naming: a copy of somebody
+else's directories is not the same undertaking as a copy of ours.
+
+Retention prunes. `N6-R3` requires what a new copy removed to be reported with
+that copy, because it is housekeeping the operator did not ask for individually
+and would otherwise meet as an archive that is simply absent. Capture can also be
+paced deliberately, and `N6-R4` requires a paced copy told apart from a stalled
+one — on a progress view watched from somewhere else, that difference is the
+entire reason to look. And a restore may land data somewhere other than where it
+came from, which `N6-R5` requires the app to say: a restore that silently
+relocated a library is a restore its operator will believe failed.
+
+A rehearsed run is labelled as a rehearsal wherever its result appears, and is
+never phrased in the past tense (`N6-R1`). Unlabelled, it is the report of a
+backup that does not exist. The capture taken before an adoption is one the
+operator meets mid-decision rather than having asked for, so `N7-R4` requires it
+stated before that decision is agreed to rather than mentioned after it.
+
+`none` is an answer. A listing that could not be read is a different one, and
+`N6-R9` forbids showing the second as the first.
+
 ## States
 
 | State | Meaning |

@@ -83,6 +83,24 @@ Changing a preset affects future acquisitions. It does not retroactively upgrade
 an existing library unless the operator explicitly asks for that — which is a
 large, bandwidth-expensive operation and must never be a side effect.
 
+### On the companion
+
+Transcoding is a property of the machine, not of the preset, and `N8-R2` requires
+the app to keep the two apart ([N8](../n-companion/n8-what-comes-in.md)).
+**Maximum** is not a preset that transcodes; it is a preset that will transcode
+*here*, on this hardware in this Jellyfin mode. Rendered as a property of the
+preset, it becomes a caution that follows the operator to a machine where it is
+untrue — and the app is the surface most likely to be read somewhere other than
+in front of the machine it describes.
+
+The operator's question — *how good should this look, and how much disk am I
+willing to spend?* — is only half answered by a name and a resolution, so `N8-R1`
+requires a choice shown with what an hour of it costs in space. On a phone that
+figure is the choice, and the name is a label on it.
+
+Per-type overrides mean there is rarely a single answer to show, and a set of
+choices that could not be read is told apart from there being none (`N8-R9`).
+
 ## States
 
 | State | Meaning |

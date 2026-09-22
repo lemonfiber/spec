@@ -75,6 +75,22 @@ the system exists to prevent.
 The member is told the limit, what they've used, and when it resets — at the
 point of requesting, not after submitting.
 
+### On the companion
+
+Removing a person and the queue they leave behind are one decision seen from two
+ends, and `N13-R3` requires the first to show the second: before a person is
+removed, what they have outstanding, and whether they ask through the request
+service at all ([N13](../n-companion/n13-taking-away.md)). An operator deciding
+from a phone is the one most likely to remove an account without ever having seen
+its queue.
+
+*Declining requires a reason* and *quota exhaustion is explained, not just
+enforced* are the same principle the companion applies to refusals everywhere:
+`N13-R9` requires a refusal carried with the stack's own reason rather than
+rendered as an error to retry. A quota that answers *no* without saying it was a
+quota is indistinguishable, from the other end, from a request service that is
+broken — and the household member's next move is to ask again.
+
 ## States
 
 Per request: `auto-approved`, `pending`, `approved`, `declined`, `quota-blocked`,

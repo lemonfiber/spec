@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 88,
-    "requirements": 1303,
+    "features": 93,
+    "requirements": 1355,
     "areas": "A–N"
   },
   "versions": [
@@ -3028,6 +3028,37 @@
       "path": "n-companion/n6-taking-a-copy.md"
     },
     {
+      "id": "N7",
+      "title": "Moving in beside what is already there",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "storage",
+        "wiring",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "A5"
+      ],
+      "relates": [
+        "D1",
+        "A6",
+        "E3",
+        "N2"
+      ],
+      "versions": [],
+      "path": "n-companion/n7-moving-in.md"
+    },
+    {
       "id": "N8",
       "title": "What comes in, and where it got to",
       "area": "N",
@@ -3057,6 +3088,38 @@
       ],
       "versions": [],
       "path": "n-companion/n8-what-comes-in.md"
+    },
+    {
+      "id": "N9",
+      "title": "Who gets in, and what the stack holds for them",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "household",
+        "security",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "D6"
+      ],
+      "relates": [
+        "A7",
+        "G5",
+        "G6",
+        "N2",
+        "N3"
+      ],
+      "versions": [],
+      "path": "n-companion/n9-who-gets-in.md"
     },
     {
       "id": "N10",
@@ -3122,6 +3185,71 @@
       "path": "n-companion/n11-the-record.md"
     },
     {
+      "id": "N12",
+      "title": "Running out of room",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "storage",
+        "queue",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "D5"
+      ],
+      "relates": [
+        "C5",
+        "H1",
+        "H6",
+        "N2",
+        "N6"
+      ],
+      "versions": [],
+      "path": "n-companion/n12-making-room.md"
+    },
+    {
+      "id": "N13",
+      "title": "Taking something away",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "household",
+        "storage",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "A6"
+      ],
+      "relates": [
+        "D6",
+        "D7",
+        "A5",
+        "N3",
+        "N6",
+        "N12"
+      ],
+      "versions": [],
+      "path": "n-companion/n13-taking-away.md"
+    },
+    {
       "id": "N14",
       "title": "What is running, and what is newer",
       "area": "N",
@@ -3150,6 +3278,38 @@
       ],
       "versions": [],
       "path": "n-companion/n14-what-version.md"
+    },
+    {
+      "id": "N15",
+      "title": "The words, and watching it happen",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "ux",
+        "queue"
+      ],
+      "requires": [
+        "N1",
+        "G2"
+      ],
+      "relates": [
+        "A2",
+        "A4",
+        "D3",
+        "D9",
+        "N2",
+        "N8"
+      ],
+      "versions": [],
+      "path": "n-companion/n15-the-words.md"
     }
   ]
 }
