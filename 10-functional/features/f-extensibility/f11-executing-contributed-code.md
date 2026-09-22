@@ -81,6 +81,24 @@ promise made elsewhere and relied on.
   about itself. Code able to register itself over a bundled check would be that, with an
   extra step.
 
+### On the companion
+
+The companion's only job here is not to become the route by which this stops
+being true ([N20](../n-companion/n20-what-a-plugin-may-send.md)).
+
+`N20-R7` forbids the app executing content a plugin supplied, offering to, or
+presenting any opt-in, sandbox or capability grant that would. `N20-R8` requires
+a plugin declaring native or executable content to be shown as refused, with the
+reason, rather than quietly omitted — an operator who cannot see why something
+is absent will look for a way to make it appear.
+
+This is not a policy the app enforces on the core's behalf; the core already
+refuses it, and a second enforcement point would be a second thing to get wrong.
+It is a promise that **the app does not grow a second door** — which is the
+concern this page records rather than a new one, since an escape hatch reserved
+for the rare case is how the rare case becomes the common one, and a graphical
+surface is where such a hatch would be easiest to justify and hardest to see.
+
 ## Acceptance criteria
 
 These are conditions on *deciding*, not a design. A draft feature is not binding and
