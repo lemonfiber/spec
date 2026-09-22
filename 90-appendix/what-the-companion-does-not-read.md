@@ -2,9 +2,15 @@
 
 **Status:** Register · **Measured 22 September 2026**
 
-The stack serves sixty-two envelopes. The companion app follows eleven of them.
-This is the other fifty-one, written down so that what fills them is a decision
-somebody made rather than whatever the next person happened to notice.
+The stack **publishes** sixty-two envelopes and **serves** fifty-nine. The
+companion app follows eleven of them. This is the other fifty-one, written down
+so that what fills them is a decision somebody made rather than whatever the
+next person happened to notice.
+
+The gap between sixty-two and fifty-nine is the correction this register most
+needed. An earlier version said the stack served all sixty-two, which put three
+envelopes in here under the wrong heading: they are not envelopes the app has
+not got to, they are envelopes it cannot reach.
 
 It is a register of **facts**, not of requirements. No row here proposes a
 screen. `N1-R17` is the rule that matters: a field wants a requirement before it
@@ -66,19 +72,34 @@ app today.
 
 | Envelope | What it carries |
 |---|---|
-| `plugins` | Which plugins are installed, and one being installed now — `install` and `installed`. The whole of what an operator opens a plugin screen to see. |
-| `wiring` | Which service asks for which capability, and how each is settled: `outright`, `each`, **`contested`** with its claimants, or **`chosen`** with what it was chosen over, `whose` choice it was — `stack` or **`operator`** — and why. Plus `unfilled`: services asking for something nothing answers. |
-| `substitution` | Applying one service in place of another for a capability: who asked for it, what it was `was` and is `now`, the setting that carries it, and `leaves_unfilled` — what the swap breaks. |
+| `plugins` **(not served)** | Which plugins are installed, and one being installed now — `install` and `installed`. The whole of what an operator opens a plugin screen to see. |
+| `wiring` **(not served)** | Which service asks for which capability, and how each is settled: `outright`, `each`, **`contested`** with its claimants, or **`chosen`** with what it was chosen over, `whose` choice it was — `stack` or **`operator`** — and why. Plus `unfilled`: services asking for something nothing answers. |
+| `substitution` **(not served)** | Applying one service in place of another for a capability: who asked for it, what it was `was` and is `now`, the setting that carries it, and `leaves_unfilled` — what the swap breaks. |
 | `catalogue` | What the stack could run and does not: each service's `criticality`, what it `describes`, and `without_it` — what the household loses by not having it. Plus `removed`, with the reason and what replaced it. |
 | `bundle` | A support export: its `pieces`, what is `missing`, when it was `taken` and against which versions, and `terms` — whether filenames are revealed, what else is, and over what `window`. |
 | `beside` | Ports a service asks to be reachable on beside the front door, with a `stance` of unchanged, pending, blocked or applied. |
 | `preview` | What a change would come to before it is made: the services, profiles and forms it would leave, and what it `dropped` and why. |
 
-**The `wiring` row is the one with a hole under it.** The core will not resolve a
-contested capability — its own reader says *nothing wires to it until the
-operator chooses, and lemonfiber does not choose by install order*. The contract
-already models that choice, down to `whose: 'operator'`. There is nowhere in the
-companion to make it.
+**Three of these are not served at all.** `wiring`, `substitution` and
+`plugins` are published in the contract and generated into the SDK, and no HTTP
+route or action produces any of them. Checked against the core's thirty-three
+routes, its twenty-nine dispatched reads and its forty offered actions, with
+`catalogue`, `forms` and `alerts` as controls that pass the same test. Raised as
+[lemonfiber#731](https://github.com/lemonfiber/lemonfiber/issues/731).
+
+So they are a different kind of row from everything else here. Every other
+envelope in this register is a decision waiting to be made; these three are
+waiting on a route, and no decision about the companion can reach them.
+
+**The `wiring` row is the one with a hole under it, and the hole is deeper than
+it first looked.** The core will not resolve a contested capability — its own
+reader says *nothing wires to it until the operator chooses, and lemonfiber does
+not choose by install order*. The contract already models that choice, down to
+`whose: 'operator'`. The core can answer the question: `Command::Wiring`
+produces `Outcome::Wiring`, reachable from the command line.
+
+There is nowhere in the companion to make that choice, and nowhere on the wire
+to read that it is waiting.
 
 ## Guided setup
 
