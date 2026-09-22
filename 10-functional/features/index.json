@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 86,
-    "requirements": 1285,
+    "features": 87,
+    "requirements": 1295,
     "areas": "A–N"
   },
   "versions": [
@@ -3089,6 +3089,37 @@
       ],
       "versions": [],
       "path": "n-companion/n10-nobody-watching.md"
+    },
+    {
+      "id": "N11",
+      "title": "What was done, and where it came from",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "observability",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "E4"
+      ],
+      "relates": [
+        "F7",
+        "G8",
+        "H8",
+        "N2",
+        "N6"
+      ],
+      "versions": [],
+      "path": "n-companion/n11-the-record.md"
     }
   ]
 }
