@@ -153,7 +153,7 @@ services fail it:
 | Recyclarr | Writes quality profiles into the curating services' own configuration. Nothing asks it for anything. |
 | Unpackerr | Watches the filesystem and unpacks what it finds there. Same. |
 | Homepage | Configured by lemonfiber **writing a file**, not by anything asking Homepage a question |
-| Caddy | The same: lemonfiber writes a stanza into a `Caddyfile`. A plugin's `[wiring]` asks lemonfiber for a route, not Caddy. |
+| Caddy | The same: lemonfiber writes a stanza into a `Caddyfile`. A plugin's `[[wiring]]` asks lemonfiber for a route, not Caddy. |
 
 Homepage is the interesting one, because it *is* probeable — it answers
 `/api/widgets` to anybody — and probeable is not the test. A capability exists
