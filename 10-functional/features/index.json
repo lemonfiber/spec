@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 94,
-    "requirements": 1366,
+    "features": 95,
+    "requirements": 1380,
     "areas": "A–N"
   },
   "versions": [
@@ -3310,6 +3310,38 @@
       ],
       "versions": [],
       "path": "n-companion/n15-the-words.md"
+    },
+    {
+      "id": "N16",
+      "title": "What happened while nobody was looking",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "observability",
+        "queue",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "K2"
+      ],
+      "relates": [
+        "B8",
+        "H5",
+        "G7",
+        "N2",
+        "N10"
+      ],
+      "versions": [],
+      "path": "n-companion/n16-nobody-was-looking.md"
     },
     {
       "id": "N17",
