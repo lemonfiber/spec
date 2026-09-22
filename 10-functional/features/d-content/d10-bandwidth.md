@@ -85,6 +85,28 @@ A one-off "unrestricted for the next hour" for when the operator wants something
 now and knows nobody else is affected. Time-boxed, so it can't be forgotten and
 left on.
 
+### On the companion
+
+A share is a share of something, and `N10-R4` requires the app to say whether the
+line's capacity was declared by the operator or observed by the stack
+([N10](../n-companion/n10-nobody-watching.md)). *Half the uplink* measured
+against a figure somebody typed and *half the uplink* measured against a figure
+something observed are different promises, and only one of them quietly becomes
+wrong when the connection changes.
+
+*Data caps are tracked where declared* needs two distinctions the contract
+already carries. `N10-R7` requires a cap with no figure set told apart from a cap
+of zero — on a dashboard those render identically and mean opposite things — and
+`N10-R6` requires reaching one to say which of pause, throttle or continue the
+stack does, since *cap reached* without that is not something an operator can
+plan the rest of the month around. Where the contract carries whether traffic
+passes through the tunnel, `N10-R5` requires it shown.
+
+The app raises no alerts of its own here; what is configured is the core's
+(`N10-R11`, `N4-R11`). A rehearsed alert is labelled as a rehearsal and is never
+presented as one that was sent (`N10-R9`), and connections, capacity or alerts
+that could not be read are told apart from there being none (`N10-R12`).
+
 ## States
 
 | State | Meaning |
