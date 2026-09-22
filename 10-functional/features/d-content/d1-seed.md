@@ -127,6 +127,30 @@ The target is under a minute. Seed being cheap is what makes configuration
 disposable — and disposable configuration is what makes the stack safe to
 experiment with.
 
+### On the companion
+
+Seed makes the thirty connections; the companion is where they are checked
+rather than made ([N7](../n-companion/n7-moving-in.md)).
+
+*Partial success is reported precisely* is the property that has to survive a
+small screen. `N7-R1` requires what could not be carried shown with a reason for
+each, and not subordinated to a success message — twenty-eight connections of
+thirty is a success by any count, and the two that failed are the entire content
+of the report. Because seed is re-runnable, `N7-R9` requires a run that carried
+nothing told apart from one that has not run; with no shell to check, those look
+identical.
+
+*Verified, not assumed* is what gives the app something honest to render. Where a
+connection was read back it is sound; where it could not be read back, `N7-R7`
+requires that shown as its own answer rather than as sound, because an
+unverifiable wiring rendered green is worse than showing nothing. Where the stack
+attaches a severity, `N7-R8` requires both what would break and what would put it
+right — away from the machine, the second is the only half that can be acted on.
+
+Idempotence is not rehearsal. Running seed twice changing nothing is a property
+of the operation; a run that deliberately writes nothing is a rehearsal, and
+`N7-R10` holds it to the labelling `N6-R1` requires everywhere else.
+
 ## States
 
 Per connection:

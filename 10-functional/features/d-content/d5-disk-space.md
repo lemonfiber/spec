@@ -91,6 +91,35 @@ correctly configured system.
 Halting at exhaustion is a safety measure: a database that cannot write may
 corrupt, turning a space problem into a data-loss problem.
 
+### On the companion
+
+The attribution table is the answer, and `N12-R6` requires what is consuming
+space shown by those categories rather than as a file listing
+([N12](../n-companion/n12-making-room.md)). A listing is what an operator has
+*instead* of an answer, and a phone is the worst place to be handed one.
+
+*Cleanup is suggested, never automatic* needs saying twice here, because a
+surface can undo it by arrangement alone. `N12-R4` forbids the app pre-selecting
+candidates or proposing a set to remove, and `N12-R9` forbids it removing
+anything on its own initiative, including on a threshold. A checkbox that arrives
+already ticked is a proposal, and *Critical* delivered as a notification with a
+button beside it is the threshold doing the deciding.
+
+The reclaimable column is a standing rather than a flag. `N12-R1` requires
+*never imported*, *seeding* and *left alone* kept apart instead of flattened;
+`N12-R2` requires a seeding candidate's ratio shown with it; and `N12-R3`
+requires what removing it would cost shown *with the candidate*, not only in a
+confirmation. The tracker implication this feature insists on has to be readable
+at the moment of choosing, not at the moment of agreeing. Stopping seeding and
+removing are different acts with different costs, and `N12-R7` requires them
+shown as different.
+
+Removal is agreed to explicitly and is not reachable as one undifferentiated
+action (`N12-R5`). A rehearsed removal is labelled as a rehearsal and never
+reported as space freed (`N12-R8`). And space that could not be read is told
+apart from space that is comfortable (`N12-R10`) — on a dashboard, silence and
+good news look the same.
+
 ## States
 
 | State | Meaning |
