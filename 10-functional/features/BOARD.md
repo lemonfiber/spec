@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**85 features** in areas A–N, **1274 requirements**.
+**86 features** in areas A–N, **1283 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 9 building, 30 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 9 building, 31 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -116,6 +116,7 @@ code, and the two move independently.
 | [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | draft | — |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | draft | — |
 | [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | draft | — |
+| [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | draft | — |
 
 ## Withdrawn — no longer to be built
 
