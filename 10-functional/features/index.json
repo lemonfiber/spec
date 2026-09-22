@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 85,
-    "requirements": 1273,
+    "features": 86,
+    "requirements": 1285,
     "areas": "A–N"
   },
   "versions": [
@@ -3057,6 +3057,38 @@
       ],
       "versions": [],
       "path": "n-companion/n8-what-comes-in.md"
+    },
+    {
+      "id": "N10",
+      "title": "What the stack does when nobody is watching",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "network",
+        "notifications",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "G8"
+      ],
+      "relates": [
+        "B5",
+        "B10",
+        "D10",
+        "N2",
+        "N4"
+      ],
+      "versions": [],
+      "path": "n-companion/n10-nobody-watching.md"
     }
   ]
 }
