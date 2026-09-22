@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 86,
-    "requirements": 1284,
+    "features": 88,
+    "requirements": 1306,
     "areas": "A–N"
   },
   "versions": [
@@ -3089,6 +3089,69 @@
       ],
       "versions": [],
       "path": "n-companion/n9-who-gets-in.md"
+    },
+    {
+      "id": "N10",
+      "title": "What the stack does when nobody is watching",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "network",
+        "notifications",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "G8"
+      ],
+      "relates": [
+        "B5",
+        "B10",
+        "D10",
+        "N2",
+        "N4"
+      ],
+      "versions": [],
+      "path": "n-companion/n10-nobody-watching.md"
+    },
+    {
+      "id": "N11",
+      "title": "What was done, and where it came from",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "observability",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "E4"
+      ],
+      "relates": [
+        "F7",
+        "G8",
+        "H8",
+        "N2",
+        "N6"
+      ],
+      "versions": [],
+      "path": "n-companion/n11-the-record.md"
     }
   ]
 }
