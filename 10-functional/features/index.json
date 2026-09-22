@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 84,
-    "requirements": 1264,
+    "features": 85,
+    "requirements": 1274,
     "areas": "A–N"
   },
   "versions": [
@@ -3026,6 +3026,37 @@
       ],
       "versions": [],
       "path": "n-companion/n6-taking-a-copy.md"
+    },
+    {
+      "id": "N7",
+      "title": "Moving in beside what is already there",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "storage",
+        "wiring",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "A5"
+      ],
+      "relates": [
+        "D1",
+        "A6",
+        "E3",
+        "N2"
+      ],
+      "versions": [],
+      "path": "n-companion/n7-moving-in.md"
     }
   ]
 }
