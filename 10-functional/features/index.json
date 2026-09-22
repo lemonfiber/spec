@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 97,
-    "requirements": 1399,
+    "features": 98,
+    "requirements": 1409,
     "areas": "A–N"
   },
   "versions": [
@@ -3435,6 +3435,37 @@
       ],
       "versions": [],
       "path": "n-companion/n19-getting-underneath-it.md"
+    },
+    {
+      "id": "N20",
+      "title": "What a plugin may send, and what it may never run",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "security",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "F8"
+      ],
+      "relates": [
+        "F3",
+        "F11",
+        "N5",
+        "N10",
+        "N2"
+      ],
+      "versions": [],
+      "path": "n-companion/n20-what-a-plugin-may-send.md"
     }
   ]
 }
