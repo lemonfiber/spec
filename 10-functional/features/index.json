@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 90,
-    "requirements": 1325,
+    "features": 91,
+    "requirements": 1336,
     "areas": "A–N"
   },
   "versions": [
@@ -3183,6 +3183,39 @@
       ],
       "versions": [],
       "path": "n-companion/n12-making-room.md"
+    },
+    {
+      "id": "N13",
+      "title": "Taking something away",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "household",
+        "storage",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "A6"
+      ],
+      "relates": [
+        "D6",
+        "D7",
+        "A5",
+        "N3",
+        "N6",
+        "N12"
+      ],
+      "versions": [],
+      "path": "n-companion/n13-taking-away.md"
     },
     {
       "id": "N15",
