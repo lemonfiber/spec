@@ -110,3 +110,15 @@ into the same dark.
 decision rather than a reading: a companion that shipped its own push identity
 would be a hosted notification plane in all but name, arriving through the one
 surface `B9` did not have in view when it refused one.
+
+**Five of these eleven are waiting on the contract.** `AlertsEnvelope` carries
+the preset, what it means and the exceptions an operator has made — which is
+what `N10-R8` reads — and nothing about back-ends or delivery, checked against
+all sixty-two published envelopes. So `N17-R3`, `N17-R4`, `N17-R5`, `N17-R7` and
+`N17-R10` cannot be answered until the contract carries where a message went and
+whether it arrived.
+
+That is `B9`'s own subject rather than an extra this page invented, which is why
+the requirements stand as written: *an alert that silently fails to send is
+worse than no alert*, and a surface cannot say so about a delivery it is never
+told the fate of.
