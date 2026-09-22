@@ -73,6 +73,23 @@ Triggering a cross-seed search, listing matches, and running the wiring proof ar
 each reachable non-interactively, so an operator can drive cross-seeding from a
 cron job or a script without the interactive flow.
 
+### On the companion
+
+Cross-seeding is what makes *one set of bytes* back several torrents, and it is
+what makes a removal harder to describe than it looks. `N12-R1` requires a
+candidate's standing shown rather than flattened, and `N12-R2` requires a seeding
+candidate's ratio shown with it ([N12](../n-companion/n12-making-room.md)) —
+where this feature has done its work there is more than one ratio, because the
+same files are seeding to more than one tracker.
+
+`N12-R7` requires stopping seeding shown as distinct from removing, with what
+stopping costs, and that distinction is sharpest here: removing the files ends
+every torrent backed by them at once. An operator freeing space from a phone is
+entitled to know that the single row they are looking at stands for several
+standings on several trackers. *It proves a link will form before it commits* is
+this feature taking the same care in the other direction — and a surface that
+summarised the result would undo it.
+
 ## States
 
 | State | Meaning |

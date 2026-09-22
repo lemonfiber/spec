@@ -90,6 +90,30 @@ The candidate report, the dry-run, and a confirmed cleanup are each reachable as
 plain subcommands, with confirmation supplied explicitly, so cleanup can be
 scheduled without ever deleting unattended-and-unconfirmed.
 
+### On the companion
+
+*Nothing is deleted without a dry-run and a confirmation* is three states, and
+`N8-R3` requires each rendered as the value it was given: *rehearsed*, *held* and
+*recorded* are not flattened into one another
+([N8](../n-companion/n8-what-comes-in.md)). A dry run shown as a result, or a
+held proposal shown as a settled one, is this gate being lost by display rather
+than by logic. `N12-R8` says it from the other side: a rehearsed removal is
+labelled as a rehearsal and is never reported as space freed
+([N12](../n-companion/n12-making-room.md)).
+
+*Pressure changes when cleanup is proposed, never whether the household gets to
+approve it* becomes two prohibitions on the app, because a notification is a
+proposal and a phone is where this gate is cheapest to lose. `N12-R9` forbids the
+app removing anything on its own initiative, including on a threshold, and
+`N12-R4` forbids it pre-selecting candidates or proposing a set to remove. A
+reclaim target that arrives with the right boxes already ticked is the threshold
+deciding, whatever the confirmation afterwards says.
+
+*It honours who still wants the media* survives as a standing rather than as an
+exclusion. `N12-R1` requires *never imported*, *seeding* and *left alone* kept
+apart, and an item held back because a household member has not watched it yet is
+something the operator needs to see — not a row quietly missing from a list.
+
 ## States
 
 | State | Meaning |
