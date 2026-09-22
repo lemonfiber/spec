@@ -84,6 +84,27 @@ with lemonfiber, with the reason. Optionally via a notification
 It can be turned off, and turning it off removes what was configured rather than
 leaving orphaned login items or services behind.
 
+### On the companion
+
+This is the hole that swallows non-technical operators, and the companion is
+where they are when it opens ([N16](../n-companion/n16-nobody-was-looking.md)).
+
+*The platform difference is handled, not documented* becomes `N16-R5`: where the
+platform cannot be made to bring the stack back, the app says so rather than
+rendering the setting as **off**. *Off* invites switching it on and finding out
+why not; *not available here* invites reading the reason. The first is a support
+request and the second is an answer.
+
+*Boot failure is reported, not silent* becomes `N16-R6`, which requires a
+restart that did not bring everything back to name what did not. That is the
+failure this feature exists for in its purest form — nothing errored, nothing
+was logged anywhere the operator would think to look, and it simply stopped
+working — and a count of what is running is precisely how it stays invisible.
+
+Post-boot verification is shown with when it last ran, and `N16-R7` forbids one
+that has not run since the last restart being shown as passing. It is the case
+the operator most needs to see and the one that looks most like success.
+
 ## States
 
 | State | Meaning |

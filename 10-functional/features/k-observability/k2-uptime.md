@@ -77,6 +77,31 @@ reconciled with the stack's own notifications ([B5](../b-running/b5-notification
 so the operator is not paged twice for one event, nor left unsure which channel is
 authoritative.
 
+### On the companion
+
+The argument this feature opens with is the one that survives the trip to a
+phone: when the stack's own reporting is the thing that has failed, an outside
+watcher is the only observer that can still tell the truth
+([N16](../n-companion/n16-nobody-was-looking.md)).
+
+So `N16-R1` forbids the app reconciling this watcher and the stack's own health
+view into a single verdict. Where they disagree, **the disagreement is the
+information**, and a surface that resolved it would discard exactly the signal
+this exists to provide — silently, because one verdict looks authoritative in a
+way two do not.
+
+`N16-R2` and `N16-R3` are about the absence. A monitor that has stopped
+reporting and a service that has stopped both arrive as nothing, and they are
+opposite facts: one is a thing to go and fix, the other read as all clear is a
+stack nobody is watching. A heartbeat that has not arrived says how long it has
+been missing and what it was covering, because *late* and *never* are different
+answers.
+
+*It is honest about how it can be configured* becomes `N16-R4`: where a check
+could not be made to observe what it should, that is shown instead of its
+result. A green tick from a monitor watching the wrong thing is worse than no
+monitor at all, and from a phone there is no way to tell which one is on screen.
+
 ## States
 
 | State | Meaning |
