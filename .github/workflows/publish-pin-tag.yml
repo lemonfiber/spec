@@ -48,6 +48,12 @@ concurrency:
 jobs:
   publish-pin-tag:
     runs-on: ubuntu-latest
+    # Carried out of the job so the fan-out below can be asked for exactly the
+    # number this run cut. Empty where the commit already carried one, which is
+    # the re-run case and the one where there is nothing new to fan out.
+    outputs:
+      tag: ${{ steps.next.outputs.tag }}
+      commit: ${{ steps.next.outputs.commit }}
     permissions:
       # Creating the ref, and nothing else. The tag is created through the API
       # rather than pushed, so no credential is left in the checkout.
@@ -194,11 +200,27 @@ jobs:
 
           echo "v1.0.${highest} is at or ahead of every commit that changed a published workflow"
 
+  # The other half of cutting a number. A tag exists so a pin has something to
+  # be newer than; this opens the pull request that takes it, in every repository
+  # that holds one. Without it the number is an announcement nobody acts on until
+  # a gate goes red on work that has nothing to do with it (OPS-R48).
+  #
+  # Skipped where no number was cut — a re-run over a commit that already carries
+  # one has nothing for anybody to take.
+  fan-out:
+    needs: publish-pin-tag
+    if: needs.publish-pin-tag.outputs.tag != ''
+    uses: ./.github/workflows/fan-out-pins.yml
+    with:
+      tag: ${{ needs.publish-pin-tag.outputs.tag }}
+      commit: ${{ needs.publish-pin-tag.outputs.commit }}
+    secrets: inherit
+
   # Loud, because the cost of this failing is invisible from every repository it
   # affects: fifteen of them go on pinning what they already have and nothing
   # tells them a revision they could take exists.
   told:
-    needs: publish-pin-tag
+    needs: [publish-pin-tag, fan-out]
     if: failure()
     uses: ./.github/workflows/discord-notify.yml
     with:

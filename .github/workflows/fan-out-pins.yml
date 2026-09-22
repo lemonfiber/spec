@@ -1,0 +1,284 @@
+# The bump nobody had to open, opened — OPS-R48.
+#
+# `workflow-pins` tells fourteen repositories their pin is behind. Until now it
+# told them and nothing else happened: the remedy was a pull request somebody
+# wrote by hand, in every repository, every time a workflow here moved. That is
+# the admission `cross-repo-ci.md` makes about why the gate is not required
+# everywhere — a gate whose remedy nothing automates, made required, blocks its
+# own cure.
+#
+# On 2026-09-22 one line of `scorecard.yml` moved and nine of the ten
+# repositories pinning it went red at once. Each needed the same one-line change
+# and nothing was going to write it. That is this.
+#
+# **It runs after the tag, not after the merge.** The comment beside a pin
+# carries the tag, and the tag is what Dependabot compares — so a fan-out that
+# fired on the merge would have no number to write and would leave every pin
+# labelled with the one it had. `publish-pin-tag` cuts the number and calls this
+# with it.
+#
+# **It is not a race with Dependabot; it is the half Dependabot cannot do.** The
+# bot proposes whatever tag existed when it ran, which is how four repositories
+# took `v1.0.8` on an afternoon when `v1.0.9` was already published. This fires
+# from the tag itself, so what it writes is the revision that has just become
+# the one to hold. Where the bot gets there first the run finds nothing stale and
+# opens nothing, which is the outcome either way.
+name: fan-out-pins
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The number just cut, which the pin comments will carry.
+        type: string
+        required: true
+      commit:
+        description: The revision that tag names.
+        type: string
+        required: true
+    # No `secrets:` block, and that is deliberate rather than an omission.
+    # Declaring one narrows what this workflow can see to exactly what the
+    # caller passes — which would make the same file work when called and fail
+    # when run by hand, since a dispatch has no caller to pass anything. The
+    # caller sends `secrets: inherit`, a dispatch runs in this repository, and
+    # both reach the organisation's own secrets by name.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: >-
+          The published `vN.N.N` to bring every consumer up to. Its commit is
+          read from the tag, so a number that does not exist here is refused
+          rather than written into fourteen repositories.
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+# One at a time. Two tags cut close together would otherwise open two pull
+# requests per repository, each bumping past the other, and the second would be
+# merged on top of a branch that had already moved.
+concurrency:
+  group: fan-out-pins
+  cancel-in-progress: false
+
+jobs:
+  fan-out-pins:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the history the measurement reads
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The measurement is "what has this file done since that commit", and
+          # a shallow clone cannot answer it. The reader is right to call that
+          # unanswerable rather than clean, which is what it would call every
+          # repository without this line.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Which revision this number names
+        id: at
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          git fetch --quiet --tags --force origin
+
+          # Resolved from the tag rather than taken from the caller, even when
+          # the caller has just cut it. A number and a commit passed separately
+          # can disagree, and the disagreement would be written into every
+          # repository as a pin whose comment names a different tree.
+          if ! commit=$(git rev-parse --verify "refs/tags/${TAG}^{commit}" 2>/dev/null); then
+            echo "::error::${TAG} is not a tag in this repository. A pin comment"\
+              "names a published number, and one that does not exist here is one"\
+              "Dependabot can never compare against."
+            exit 1
+          fi
+
+          echo "commit=$commit" >>"$GITHUB_OUTPUT"
+          echo "::notice::${TAG} names ${commit}"
+
+      - name: Who holds a pin on this repository
+        id: who
+        run: |
+          set -euo pipefail
+          named=$(python3 scripts/fan_out_pins.py --consumers)
+          echo "::notice::$(echo "$named" | wc -l | tr -d ' ') repositories on the map"
+          {
+            echo "named<<EOF"
+            echo "$named"
+            echo "EOF"
+          } >>"$GITHUB_OUTPUT"
+
+      # Scoped to the repositories on the map and to this run. The token can open
+      # a pull request in each and do nothing else; it is minted once rather than
+      # per repository, because a mint per repository is a dozen more chances for
+      # the thing that opens the bump to be the thing that fails.
+      - name: Mint a token that can reach them
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ steps.who.outputs.named }}
+
+      # Every repository is visited even after one of them fails, and the run
+      # fails at the end naming which. Stopping at the first would leave the rest
+      # of the organisation red for a reason that has nothing to do with them —
+      # which is the state this workflow exists to end rather than to reproduce
+      # more efficiently.
+      - name: Open the bump wherever one is owed
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          TAG: ${{ inputs.tag }}
+          COMMIT: ${{ steps.at.outputs.commit }}
+          NAMED: ${{ steps.who.outputs.named }}
+          SPEC: ${{ github.workspace }}
+        run: |
+          set -uo pipefail
+          branch="ci/take-the-shared-workflows-at-${TAG}"
+          opened=""; current=""; refused=""
+
+          work=$(mktemp -d)
+
+          for repo in $NAMED; do
+            echo "::group::${repo}"
+            at="${work}/${repo}"
+
+            if ! gh repo clone "${OWNER}/${repo}" "$at" -- --quiet; then
+              echo "::warning::${repo} could not be cloned"
+              refused="${refused} ${repo}"
+              echo "::endgroup::"; continue
+            fi
+
+            # A pin is rewritten by the reader the gate refuses by, so this can
+            # neither bump something the gate would not have named nor leave
+            # behind something it would.
+            if ! python3 "${SPEC}/scripts/fan_out_pins.py" \
+                  --repo "$at" --spec "$SPEC" --tag "$TAG"; then
+              echo "::warning::${repo} could not be measured"
+              refused="${refused} ${repo}"
+              echo "::endgroup::"; continue
+            fi
+
+            if [ -z "$(git -C "$at" status --porcelain)" ]; then
+              current="${current} ${repo}"
+              echo "::endgroup::"; continue
+            fi
+
+            # A re-run, or a tag cut while the last bump was still open. The
+            # branch already carries this number, so there is nothing to add.
+            if gh pr list --repo "${OWNER}/${repo}" --head "$branch" \
+                 --state open --json number --jq 'length' | grep -qv '^0$'; then
+              echo "a pull request for ${TAG} is already open here"
+              current="${current} ${repo}"
+              echo "::endgroup::"; continue
+            fi
+
+            git -C "$at" config user.name "lemonfiber-release-train[bot]"
+            git -C "$at" config user.email \
+              "lemonfiber-release-train[bot]@users.noreply.github.com"
+            git -C "$at" checkout -q -b "$branch"
+            git -C "$at" add -A
+
+            # Written to a file rather than piped from a here-document. The body
+            # is indented inside this YAML and a here-document keeps whatever
+            # indentation it is given, which would put four spaces in front of
+            # every line of every commit message in the organisation.
+            printf '%s\n' \
+              "ci(workflows): take the shared workflows at ${TAG}" \
+              "" \
+              "A workflow this repository pins moved in the spec, so the pin behind" \
+              "it is a copy of something that has changed. \`workflow-pins\` names" \
+              "it on every pull request opened here until it is taken." \
+              "" \
+              "Only the pins whose own workflow moved are touched. A pin is measured" \
+              "against the one file it names — the scripts these workflows run are" \
+              "checked out at \`main\` on every run and reach here whatever the pin" \
+              "says — so a pin several numbers back whose file has not changed is" \
+              "current and is left alone." \
+              "" \
+              "Opened by the fan-out in \`spec\`, from the tag itself rather than" \
+              "from a schedule, so the revision written here is the one that has" \
+              "just become the one to hold." \
+              "" \
+              "Spec: OPS-R48" \
+              "" \
+              "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
+              >"${work}/message"
+
+            git -C "$at" commit -q -F "${work}/message"
+
+            # Pushed to an addressed remote rather than to `origin`. The clone
+            # carries no credential of its own — `gh` holds the token, `git` does
+            # not — and writing one into the checkout's config would leave it
+            # there for everything else the run does.
+            if ! git -C "$at" push -q \
+                 "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${repo}.git" \
+                 "$branch"; then
+              echo "::warning::${repo} would not take the branch"
+              refused="${refused} ${repo}"
+              echo "::endgroup::"; continue
+            fi
+
+            if gh pr create --repo "${OWNER}/${repo}" --head "$branch" \
+                 --title "ci(workflows): take the shared workflows at ${TAG}" \
+                 --body "$(printf '%s\n' \
+                   "A workflow this repository pins moved in the spec at \`${TAG}\` (\`${COMMIT}\`)." \
+                   "" \
+                   "\`workflow-pins\` names it on every pull request opened here until it is taken, so this is opened for you rather than owed to you." \
+                   "" \
+                   "**Only the pins whose own workflow moved are in the diff.** A pin is measured against the one file it names — the scripts these workflows run are checked out at \`main\` on every run and reach here whatever the pin says — so a pin several numbers back whose file has not changed is current and is left where it is." \
+                   "" \
+                   "Opened from the tag rather than from a schedule, which is the difference between this and the dependency bot: a proposal computed on a timer names whatever number existed when it ran, and can land already behind one published since." \
+                   "" \
+                   "Spec: OPS-R48")"; then
+              opened="${opened} ${repo}"
+            else
+              echo "::warning::${repo} would not take the pull request"
+              refused="${refused} ${repo}"
+            fi
+
+            echo "::endgroup::"
+          done
+
+          {
+            echo "### ${TAG} — the bump, fanned out"
+            echo
+            echo "- opened:  ${opened:-none}"
+            echo "- current: ${current:-none}"
+            echo "- refused: ${refused:-none}"
+          } >>"$GITHUB_STEP_SUMMARY"
+
+          # A repository nobody could ask about is not a repository that is
+          # current, and the difference is the whole reason this runs at all.
+          if [ -n "$refused" ]; then
+            echo "::error::no bump was opened in:${refused}. Those repositories go"\
+              "on pinning what they have, and their pull requests stay red, with"\
+              "nothing else about to say so."
+            exit 1
+          fi
+
+  # Loud, because the cost is invisible from every repository it affects: they
+  # go on pinning what they already have, and the only sign is a red gate on
+  # somebody's unrelated pull request.
+  told:
+    needs: fan-out-pins
+    if: failure()
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      title: "🌱 fan-out-pins failed"
+      body: >-
+        A number was cut and the bump was not opened everywhere. Until it is,
+        those repositories go on pinning what they have and every pull request
+        opened in them is red for it — the run page says which.
+      url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      color: "15158332"
+    secrets:
+      webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}
