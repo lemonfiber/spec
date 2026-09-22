@@ -99,6 +99,32 @@ An error is read by someone who is stuck, and often anxious. It's where jargon
 does the most damage and clarity the most good. [G4](g4-error-model.md) governs
 the structure; this feature governs the words.
 
+### On the companion
+
+Three of this feature's commitments become requirements on the app, because a
+small screen is where each is cheapest to drop
+([N15](../n-companion/n15-the-words.md)).
+
+*Depth is available, never mandatory* becomes `N15-R3`: a word the glossary
+carries is explainable where it is used, with the short form in place and the
+longer one available without leading. A phone invites choosing one — bury the
+newcomer, or stonewall the curious — and the requirement is that neither is
+chosen.
+
+*Jargon appears alongside plain language* becomes `N15-R4`, with something the
+app makes possible: what a word is also called is not only shown but
+**searchable**. An operator reaching for the real term is usually reaching for it
+in order to look something up, and a synonym that cannot be typed into the app's
+own search has been displayed rather than given.
+
+*Consistent terms, always* becomes a prohibition rather than an aspiration.
+`N15-R9` forbids the app defining a word the glossary does not carry, and forbids
+substituting its own term for one the vocabulary gives. A surface built
+separately is exactly where *grab*, *snatch* and *fetch* come back, and the tax
+this feature refuses to charge gets charged after all.
+
+A glossary that could not be read is told apart from idle (`N15-R10`).
+
 ## States
 
 Per term or concept:
