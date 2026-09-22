@@ -2,8 +2,8 @@
 
 **Status:** Register · **Measured 22 September 2026**
 
-The stack serves sixty-one envelopes. The companion app follows eleven of them.
-This is the other fifty, written down so that what fills them is a decision
+The stack serves sixty-two envelopes. The companion app follows eleven of them.
+This is the other fifty-one, written down so that what fills them is a decision
 somebody made rather than whatever the next person happened to notice.
 
 It is a register of **facts**, not of requirements. No row here proposes a
@@ -17,16 +17,16 @@ requirement asks for this* remains a complete answer.
 Reproducible, from the companion's checkout:
 
 ```
-ls vendor/lemonfiber/sdk-php/src/Generated/*Envelope.php | wc -l   # 61
+ls vendor/lemonfiber/sdk-php/src/Generated/*Envelope.php | wc -l   # 62
 Tests\Support\WhatTheReadersRead::envelopes()                      # 11
 ```
 
 | | |
 |---|---|
-| Envelopes the SDK ships | **61** |
+| Envelopes the SDK ships | **62** |
 | Followed by a reader | **11** |
-| Not followed | **50** |
-| — never referenced anywhere in the app | **48** |
+| Not followed | **51** |
+| — never referenced anywhere in the app | **49** |
 | — referenced but not followed | **2** |
 
 The eleven that are read: `Config`, `Doctor`, `Error`, `Held`, `Household`,
@@ -66,6 +66,7 @@ app today.
 
 | Envelope | What it carries |
 |---|---|
+| `plugins` | Which plugins are installed, and one being installed now — `install` and `installed`. The whole of what an operator opens a plugin screen to see. |
 | `wiring` | Which service asks for which capability, and how each is settled: `outright`, `each`, **`contested`** with its claimants, or **`chosen`** with what it was chosen over, `whose` choice it was — `stack` or **`operator`** — and why. Plus `unfilled`: services asking for something nothing answers. |
 | `substitution` | Applying one service in place of another for a capability: who asked for it, what it was `was` and is `now`, the setting that carries it, and `leaves_unfilled` — what the swap breaks. |
 | `catalogue` | What the stack could run and does not: each service's `criticality`, what it `describes`, and `without_it` — what the household loses by not having it. Plus `removed`, with the reason and what replaced it. |
