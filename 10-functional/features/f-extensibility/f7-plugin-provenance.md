@@ -83,6 +83,17 @@ the moment it is offered, rather than somewhere a curious operator could go and
 look. The argument is this feature's own, applied to a surface where going and
 looking means leaving the screen.
 
+`N11` adds what travels with a *service* rather than with an offer. `N11-R6`
+requires a service's provenance to show its image, the digest it is pinned to,
+its upstream and its licence; and `N11-R7` requires the licence shown for
+**every** service rather than only where it is unusual, because *shown where
+unusual* is a judgement the operator cannot audit and a silence they cannot
+interpret. `N11-R8` requires the pin and the licence still shown where the
+upstream cannot be reached ([N11](../n-companion/n11-the-record.md)) — both are
+facts about what is installed rather than about what a registry answered, and
+losing them to a network failure would make provenance least available exactly
+when somebody is most likely to be checking it.
+
 ## States
 
 | State | Meaning |

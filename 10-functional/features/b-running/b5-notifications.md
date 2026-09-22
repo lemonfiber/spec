@@ -101,6 +101,29 @@ what it means, and what to do. "VPN check failed" is a notification; "VPN tunnel
 dropped — torrent traffic is halted by the killswitch, no leak occurred; restart
 Gluetun to resume" is useful.
 
+### On the companion
+
+*Division of labour: lemonfiber alerts, services notify* extends to the app as a
+third party that must not join in. `N10-R11` forbids the companion raising alerts
+of its own ([N10](../n-companion/n10-nobody-watching.md)); what is configured
+here is the core's, and `N4-R11` is where that is settled. A phone is the device
+most able to interrupt someone, which is precisely why it is not given reasons of
+its own to.
+
+*Appetite is chosen during setup* is read on this surface rather than asked
+again, and `N10-R8` requires a preset shown with what it means **and** with the
+exceptions the operator has made. A preset name alone is not the configuration —
+it is the part of it that fits on one line — and an operator working out why
+something did or did not reach them needs the exceptions, which are where the
+answer usually is.
+
+A rehearsed alert is labelled as a rehearsal on the terms `N6-R1` sets, and
+`N10-R9` additionally forbids presenting it as an alert that was sent. On a
+device where a test and the real thing arrive identically, that is not a subtle
+distinction.
+
+Alerts that could not be read are told apart from there being none (`N10-R12`).
+
 ## States
 
 Per alert condition:
