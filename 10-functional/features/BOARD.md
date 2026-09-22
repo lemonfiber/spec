@@ -119,6 +119,7 @@ code, and the two move independently.
 | [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | draft | — |
 | [N10](n-companion/n10-nobody-watching.md) | What the stack does when nobody is watching | N | operator | draft | — |
 | [N11](n-companion/n11-the-record.md) | What was done, and where it came from | N | operator | draft | — |
+| [N12](n-companion/n12-making-room.md) | Running out of room | N | operator | draft | — |
 
 ## Withdrawn — no longer to be built
 
