@@ -40,6 +40,7 @@ jobs:
   analysis:
     name: scorecard
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       # Writing the SARIF back is what puts the findings in the security tab,
       # where they are read. Without it the analysis runs and is thrown away.

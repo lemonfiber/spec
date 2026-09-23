@@ -35,6 +35,7 @@ permissions:
 jobs:
   tell:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       # Allowed to fail, for the reason the dispatch below is. This step is the
       # one that broke: a caller pinned a revision naming the site by its old
