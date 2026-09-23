@@ -77,8 +77,13 @@ class Rewriting(unittest.TestCase):
         self.assertEqual(said, text)
 
 
-class AgainstARepository(unittest.TestCase):
-    """The half that needs a real checkout to answer."""
+class ARepositoryAndASpec(unittest.TestCase):
+    """A consumer checkout and a spec beside it, holding no tests of its own.
+
+    Split from the tests so a second class can take the same fixture without
+    inheriting — and re-running under its own name — the eight that belong to
+    the first.
+    """
 
     def setUp(self):
         self.root = pathlib.Path(tempfile.mkdtemp())
@@ -97,6 +102,14 @@ class AgainstARepository(unittest.TestCase):
         # something to distinguish.
         self.second = self.commit("one", "hygiene.yml")
         self.third = self.commit("two", "dco.yml")
+
+        # The number the tests bump to, cut where the tests expect it to point.
+        # It used to name nothing: every call passed `v1.0.9` at a repository
+        # holding no tag at all, and the script went to `HEAD` without noticing
+        # — which is how a bump could carry a number beside a revision that
+        # number does not name. A fixture that cannot tell the two apart cannot
+        # fail when they differ.
+        self.git("tag", "-a", "-m", "v1.0.9", "v1.0.9", self.third)
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -125,22 +138,27 @@ class AgainstARepository(unittest.TestCase):
         where.write_text(text, encoding="utf-8")
         return where
 
-    def head(self) -> str:
-        return workflow_pins.head_of(self.spec)
+    def named(self) -> str:
+        """The revision `v1.0.9` names — what a bump in these tests writes."""
+        return fan_out_pins.commit_named_by(self.spec, "v1.0.9")
+
+
+class AgainstARepository(ARepositoryAndASpec):
+    """The half that needs a real checkout to answer."""
 
     def test_a_stale_pin_is_brought_forward(self):
         where = self.wrote("ci.yml", a_pin("dco.yml", self.first))
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9")
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
 
         self.assertIsNotNone(moved)
         self.assertEqual(len(moved[0]), 1)
-        self.assertIn(self.head(), where.read_text(encoding="utf-8"))
+        self.assertIn(self.named(), where.read_text(encoding="utf-8"))
 
     def test_a_pin_whose_own_workflow_has_not_moved_is_left_where_it_is(self):
         # `hygiene.yml` last changed at `self.second` and nothing since has
         # touched it, so a pin there is current however many tags have been cut.
         where = self.wrote("ci.yml", a_pin("hygiene.yml", self.second))
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9")
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
 
         self.assertEqual(moved[0], [])
         self.assertIn(self.second, where.read_text(encoding="utf-8"))
@@ -149,16 +167,18 @@ class AgainstARepository(unittest.TestCase):
         first = self.wrote("ci.yml", a_pin("dco.yml", self.first))
         second = self.wrote("labels.yml", a_pin("dco.yml", self.first))
 
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9")
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
 
         self.assertEqual(len(moved[0]), 2)
         for where in (first, second):
-            self.assertIn(self.head(), where.read_text(encoding="utf-8"))
+            self.assertIn(self.named(), where.read_text(encoding="utf-8"))
 
     def test_no_spec_checkout_is_could_not_ask_rather_than_nothing_to_do(self):
         self.wrote("ci.yml", a_pin("dco.yml", self.first))
         self.assertIsNone(
-            fan_out_pins.bring_forward(self.repo, self.root / "absent", "v1.0.9")
+            fan_out_pins.bring_forward(
+                self.repo, self.root / "absent", "v1.0.9", self.third
+            )
         )
 
     def test_a_pin_this_checkout_cannot_resolve_is_could_not_ask(self):
@@ -167,12 +187,12 @@ class AgainstARepository(unittest.TestCase):
         # nobody can tell from the outside which of the two it was.
         self.wrote("ci.yml", a_pin("dco.yml", "f" * 40))
         self.assertIsNone(
-            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9")
+            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
         )
 
     def test_a_repository_pinning_nothing_of_ours_is_answered_not_refused(self):
         self.wrote("ci.yml", "    uses: actions/checkout@" + "a" * 40 + " # v7\n")
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9")
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
         self.assertEqual(moved[0], [])
 
     def test_the_same_workflow_called_from_two_jobs_in_one_file_is_one_rewrite(self):
@@ -184,11 +204,11 @@ class AgainstARepository(unittest.TestCase):
             "ci.yml", a_pin("dco.yml", self.first) + a_pin("dco.yml", self.first)
         )
 
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9")
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
 
         self.assertIsNotNone(moved, "one file naming a pin twice is not unanswerable")
         self.assertEqual(len(moved[0]), 1)
-        self.assertEqual(where.read_text(encoding="utf-8").count(self.head()), 2)
+        self.assertEqual(where.read_text(encoding="utf-8").count(self.named()), 2)
 
     def test_a_pin_the_reader_names_and_this_cannot_rewrite_is_refused(self):
         # Defensive, and reached only if the two halves stop sharing a reader.
@@ -204,7 +224,9 @@ class AgainstARepository(unittest.TestCase):
         fan_out_pins.pins_under = lambda _root: named
         self.addCleanup(setattr, fan_out_pins, "pins_under", was)
 
-        self.assertIsNone(fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9"))
+        self.assertIsNone(
+            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
+        )
 
 
 class TheTwoHalvesAgree(unittest.TestCase):
@@ -231,7 +253,16 @@ class TheTwoHalvesAgree(unittest.TestCase):
 
         self.first = self.commit("one", "dco.yml")
         self.settled = self.commit("one", "hygiene.yml")
-        self.commit("two", "dco.yml")
+        self.latest = self.commit("two", "dco.yml")
+
+        # The number these tests bump to. The fan-out reads the revision from
+        # the tag rather than from `HEAD`, so a fixture without one is a
+        # fixture the run cannot answer against.
+        subprocess.run(
+            ["git", "-C", str(self.spec), "tag", "-a", "-m", "v1.0.9", "v1.0.9"],
+            check=True,
+            capture_output=True,
+        )
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -271,7 +302,7 @@ class TheTwoHalvesAgree(unittest.TestCase):
         sys.argv = ["workflow_pins.py", str(self.spec)]
         self.assertEqual(self.gate(), 1, "the gate should refuse a stale pin")
 
-        fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9")
+        fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.latest)
 
         self.assertEqual(self.gate(), 0, "the fan-out should have satisfied it")
 
@@ -342,7 +373,7 @@ class TheTwoHalvesAgree(unittest.TestCase):
             encoding="utf-8",
         )
 
-        fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9")
+        fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.latest)
 
         self.assertIn(self.settled, where.read_text(encoding="utf-8"))
 
@@ -389,6 +420,78 @@ class WhoItVisits(unittest.TestCase):
         self.assertGreater(len(named), 1)
         self.assertNotIn("spec", named)
         self.assertIn("lemonfiber", named)
+
+
+class TheRevisionItWrites(ARepositoryAndASpec):
+    """Which commit ends up beside the number, when the two could differ.
+
+    The fixture's tag is cut at `self.third` and every test here moves `main`
+    past it, which is the state the fan-out's own dispatch input exists for:
+    bringing consumers up to a number published before today.
+    """
+
+    def test_the_pin_follows_the_tag_and_not_the_branch(self):
+        # The regression. The revision used to come from `head_of(spec)`, which
+        # agrees with the tag only when the fan-out fires the instant the tag is
+        # cut. A dispatch naming an earlier number wrote whatever `main` had
+        # reached, beside a comment naming the number — a pin that is wrong in
+        # the one way `workflow-pins` cannot see, because the file it compares
+        # is the same file either way.
+        moved_on = self.commit("three", "dco.yml")
+        where = self.wrote("ci.yml", a_pin("dco.yml", self.first))
+
+        moved = fan_out_pins.bring_forward(
+            self.repo, self.spec, "v1.0.9", self.named()
+        )
+        said = where.read_text(encoding="utf-8")
+
+        self.assertIsNotNone(moved)
+        self.assertEqual(self.named(), self.third)
+        self.assertIn(self.third, said)
+        self.assertNotIn(moved_on, said)
+
+    def test_a_number_this_checkout_does_not_hold_is_refused(self):
+        # A clone that fetched no tags answers every `rev-parse` the same way an
+        # unpublished number does, and both must stop the run. Writing a pin
+        # from a revision nobody can name is the failure this refuses.
+        self.commit("three", "dco.yml")
+        self.wrote("ci.yml", a_pin("dco.yml", self.first))
+
+        sys.argv = [
+            "fan_out_pins.py",
+            "--repo",
+            str(self.repo),
+            "--spec",
+            str(self.spec),
+            "--tag",
+            "v9.9.9",
+        ]
+        with contextlib.redirect_stdout(io.StringIO()) as said:
+            self.assertEqual(fan_out_pins.main(), 2)
+
+        self.assertIn("is not a tag in", said.getvalue())
+
+    def test_an_unpublished_number_writes_nothing(self):
+        # Refused *before* anything is rewritten, not after. A run that edited
+        # the checkout and then failed would leave a branch half-bumped for
+        # whoever looked next.
+        self.commit("three", "dco.yml")
+        where = self.wrote("ci.yml", a_pin("dco.yml", self.first))
+        before = where.read_text(encoding="utf-8")
+
+        sys.argv = [
+            "fan_out_pins.py",
+            "--repo",
+            str(self.repo),
+            "--spec",
+            str(self.spec),
+            "--tag",
+            "v9.9.9",
+        ]
+        with contextlib.redirect_stdout(io.StringIO()):
+            fan_out_pins.main()
+
+        self.assertEqual(where.read_text(encoding="utf-8"), before)
 
 
 class TheTagItWrites(unittest.TestCase):

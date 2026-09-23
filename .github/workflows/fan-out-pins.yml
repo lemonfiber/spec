@@ -136,6 +136,14 @@ jobs:
       #
       # An installation does not take a newly granted permission until it is
       # approved for that installation, so granting it on the app is half of it.
+      #
+      # **The three below are asked for by name, and that is the whole point.**
+      # A token minted with whatever the app happens to hold gets as far as
+      # twelve clones, twelve rewrites and twelve rejected pushes before anyone
+      # learns which permission was missing — and the run reports it as twelve
+      # repositories refusing a branch. Asking narrows the token to what this
+      # workflow actually uses, and turns the one that is absent into a failure
+      # at this step, naming it, before a single repository is touched.
       - name: Mint a token that can reach them
         id: token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -144,6 +152,9 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ steps.who.outputs.named }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
 
       # Every repository is visited even after one of them fails, and the run
       # fails at the end naming which. Stopping at the first would leave the rest
@@ -237,10 +248,15 @@ jobs:
             # carries no credential of its own — `gh` holds the token, `git` does
             # not — and writing one into the checkout's config would leave it
             # there for everything else the run does.
+            # The remote's own sentence is kept and printed. Without it this
+            # said only "would not take the branch", which is what a protected
+            # branch, a missing permission and a network fault all look like
+            # from here — and the one that actually happened was legible in the
+            # output being thrown away.
             if ! git -C "$at" push -q \
                  "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${repo}.git" \
-                 "$branch"; then
-              echo "::warning::${repo} would not take the branch"
+                 "$branch" 2>"${work}/refusal"; then
+              echo "::warning::${repo} would not take the branch: $(tr '\n' ' ' <"${work}/refusal")"
               refused="${refused} ${repo}"
               echo "::endgroup::"; continue
             fi

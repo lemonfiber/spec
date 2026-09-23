@@ -142,6 +142,12 @@ class TheLoop(unittest.TestCase):
         self.settled = self.commit("one", "hygiene.yml")
         self.head = self.commit("two", "dco.yml")
 
+        # Cut where CI cuts it. The step resolves `TAG` to a revision and the
+        # script reads the revision from that tag, so a harness whose spec holds
+        # no tags drives a run CI never has — and used to pass anyway, because
+        # the script fell back to `HEAD` and `HEAD` happened to be right here.
+        self.git("tag", "-a", "-m", "v1.0.9", "v1.0.9")
+
         self.bin = self.root / "bin"
         self.bin.mkdir()
         for name, body in (("gh", GH_STUB), ("git", GIT_STUB)):
@@ -324,6 +330,23 @@ class TheStepIsTheOneThatRuns(unittest.TestCase):
 
         for named in ("GH_TOKEN", "OWNER", "TAG", "COMMIT", "NAMED", "SPEC"):
             self.assertIn(named, step["env"])
+
+    def test_the_token_asks_for_permission_to_write_a_workflow_file(self):
+        # Every change this workflow makes is to a file under
+        # `.github/workflows/`, and GitHub refuses that push from an app without
+        # `workflows`, whatever else the token may do. Asked for by name so a
+        # token that cannot do it fails at the mint — on 2026-09-22 one that was
+        # not asked got as far as twelve rejected pushes, reported as twelve
+        # repositories refusing a branch.
+        described = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+        minted = next(
+            one
+            for one in described["jobs"][JOB]["steps"]
+            if str(one.get("uses", "")).startswith("actions/create-github-app-token")
+        )
+
+        for asked in ("contents", "pull-requests", "workflows"):
+            self.assertEqual(minted["with"][f"permission-{asked}"], "write")
 
 
 if __name__ == "__main__":

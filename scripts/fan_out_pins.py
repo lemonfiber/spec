@@ -19,18 +19,25 @@ tag gives it nothing to be newer than. A bump that moved the revision and left
 the comment behind would silence the bot that is the second half of keeping these
 current.
 
+**The revision is read from the tag, and never from `HEAD`.** The number and the
+revision written beside it are one fact, so they are read from one place. Taking
+the revision from whatever the spec checkout was sitting on agrees with the tag
+in exactly one case — a fan-out fired the moment the tag was cut — and disagrees
+silently in the case the dispatch input exists for, which is bringing everything
+up to a number published earlier.
+
 Usage:
-  fan_out_pins.py --repo <consumer checkout> --spec <spec checkout at main> --tag vX.Y.Z
+  fan_out_pins.py --repo <consumer checkout> --spec <spec checkout with tags> --tag vX.Y.Z
 
 Rewrites files in place and prints what it touched. The caller decides what to do
 about it by looking at the checkout, which is the one account of what happened
 that cannot disagree with itself.
 
 Exit 0 = the question was asked and answered, whether or not anything was
-rewritten. Exit 2 = **could not ask** — no spec checkout, or a pin this checkout
-cannot resolve. Never 1: a consumer with nothing stale is the ordinary case and
-the commonest one, and a script that failed on it would teach its caller to
-ignore the code that means something went wrong.
+rewritten. Exit 2 = **could not ask** — no spec checkout, a tag this checkout
+does not hold, or a pin it cannot resolve. Never 1: a consumer with nothing
+stale is the ordinary case and the commonest one, and a script that failed on it
+would teach its caller to ignore the code that means something went wrong.
 """
 
 from __future__ import annotations
@@ -43,7 +50,10 @@ import tomllib
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
-from workflow_pins import commits_between, head_of, pins_under
+# `_git` crosses from the gate deliberately, on the same terms as the readers
+# below: these two files are one answer in two halves, and a second way to run
+# git against a checkout is a second way for them to disagree about one.
+from workflow_pins import _git, commits_between, pins_under
 
 #: `v1.0.7` and nothing else. The series carries no meaning beyond order, but it
 #: is written into fourteen repositories, so what may be written is closed here
@@ -101,23 +111,38 @@ def rewritten(text: str, workflow: str, was: str, now: str, tag: str) -> str:
     )
 
 
+def commit_named_by(spec: pathlib.Path, tag: str) -> str | None:
+    """The revision `tag` names in this checkout, or `None` where it names none.
+
+    **Read from the tag, never from `HEAD`.** This used to be `head_of(spec)`,
+    and the two agree only in the one case the caller happens to run most: a
+    fan-out fired by `publish-pin-tag` runs against a checkout of `main` at the
+    instant the tag was cut from it. A dispatch naming an older number runs
+    against a `main` that has moved, and the pin written there would carry that
+    number beside a revision the number does not name — which is the one thing
+    `workflow-pins` cannot catch, because the file it compares is the same file.
+    """
+    asked = _git(spec, "rev-parse", "--verify", f"refs/tags/{tag}^{{commit}}")
+
+    return asked.stdout.strip() if asked.returncode == 0 else None
+
+
 def bring_forward(
-    repo: pathlib.Path, spec: pathlib.Path, tag: str
+    repo: pathlib.Path, spec: pathlib.Path, tag: str, named: str
 ) -> tuple[list[str], str] | None:
     """Rewrite every stale pin in `repo`, returning what moved and to where.
+
+    `named` is the revision `tag` names, resolved by the caller so that the
+    number and the revision written beside it cannot come from two places.
 
     `None` where the question could not be asked, which the caller reports rather
     than treating as a repository with nothing to do. The two are indistinguishable
     from the outside and only one of them is good news.
     """
-    head = head_of(spec)
-    if head is None:
-        return None
-
     moved: list[str] = []
 
     for (workflow, sha), where in sorted(pins_under(repo).items()):
-        missed = commits_between(spec, sha, head, workflow)
+        missed = commits_between(spec, sha, named, workflow)
 
         if missed is None:
             return None
@@ -132,7 +157,7 @@ def bring_forward(
         for name in dict.fromkeys(where):
             path = pathlib.Path(name)
             before = path.read_text(encoding="utf-8")
-            after = rewritten(before, workflow, sha, head, tag)
+            after = rewritten(before, workflow, sha, named, tag)
 
             # A pin the reader found and this could not rewrite is a disagreement
             # between two halves that must agree. Louder than a silent skip,
@@ -141,16 +166,18 @@ def bring_forward(
                 return None
 
             path.write_text(after, encoding="utf-8")
-            moved.append(f"{name}: {workflow} {sha[:8]} -> {head[:8]} ({tag})")
+            moved.append(f"{name}: {workflow} {sha[:8]} -> {named[:8]} ({tag})")
 
-    return moved, head
+    return moved, named
 
 
 def main() -> int:
     parsed = argparse.ArgumentParser(description=__doc__)
     parsed.add_argument("--repo", help="the consumer checkout")
-    parsed.add_argument("--spec", help="a spec checkout at main")
-    parsed.add_argument("--tag", help="the tag that revision carries")
+    parsed.add_argument("--spec", help="a spec checkout holding the tag")
+    parsed.add_argument(
+        "--tag", help="the published number; its revision is read from it"
+    )
     parsed.add_argument(
         "--consumers",
         action="store_true",
@@ -176,7 +203,33 @@ def main() -> int:
     spec = pathlib.Path(args.spec)
     repo = pathlib.Path(args.repo)
 
-    brought = bring_forward(repo, spec, args.tag)
+    # Asked before the tag is, so that "there is no checkout here" is never
+    # reported as "that number was never published". They are different faults
+    # with different cures, and one sentence covering both sends the reader to
+    # the wrong one.
+    if not spec.is_dir():
+        print(
+            f"::error::there is no spec checkout at {spec}. A fan-out that could not "
+            "ask must not report a repository as current."
+        )
+        return 2
+
+    # Refused rather than fallen back from. A fan-out that could not find the
+    # number and wrote whatever the checkout was sitting on would put a pin in
+    # every consumer whose comment names one revision and whose `@` names
+    # another, and both halves would look right on their own.
+    named = commit_named_by(spec, args.tag)
+
+    if named is None:
+        print(
+            f"::error::{args.tag} is not a tag in {spec}. The revision a pin "
+            "carries is read from the tag, so a checkout without it — a clone "
+            "that fetched no tags, or a number never published — cannot say "
+            "what this bump should point at."
+        )
+        return 2
+
+    brought = bring_forward(repo, spec, args.tag, named)
 
     if brought is None:
         print(
@@ -186,13 +239,13 @@ def main() -> int:
         )
         return 2
 
-    moved, head = brought
+    moved, at = brought
 
     if not moved:
         print(f"{repo}: every pin holds the newest revision of the workflow it names")
         return 0
 
-    print(f"{repo}: brought {len(moved)} pin(s) forward to {head[:8]}")
+    print(f"{repo}: brought {len(moved)} pin(s) forward to {at[:8]}")
     for line in moved:
         print(f"    {line}")
 
