@@ -91,6 +91,24 @@ rendered as an error to retry. A quota that answers *no* without saying it was a
 quota is indistinguishable, from the other end, from a request service that is
 broken — and the household member's next move is to ask again.
 
+*Long-pending requests remind the operator and expire* is two halves, and the
+companion owns only one of them. The reminder is the stack's to deliver:
+`N17-R1` forbids the app operating a notification service of its own, so an app
+that decided a request had waited long enough and told somebody would be the
+thing that rule exists to prevent. What the app owes is the figure the reminder
+would be about — how long each request has been waiting — because a request
+approaching expiry is a different decision from one made this morning, and
+`N2-R11` surfaces a request *with enough to decide on*, which is this page.
+
+That figure is carried, and it is carried in a shape the app has to be careful
+with: it is absent on a request somebody has already ruled on, and absent again
+where the service's own date could not be read. Those are not the same fact —
+the first is a request that is not waiting, the second is a request that is
+waiting for nobody knows how long — and an app rendering both as *no age* tells
+an operator the second is the first. Where the contract does not distinguish
+them, `N2-R14` applies: the app states neither rather than choosing, and the gap
+is raised rather than papered over.
+
 ## States
 
 Per request: `auto-approved`, `pending`, `approved`, `declined`, `quota-blocked`,
