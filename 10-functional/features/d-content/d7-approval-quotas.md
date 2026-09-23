@@ -100,14 +100,20 @@ would be about — how long each request has been waiting — because a request
 approaching expiry is a different decision from one made this morning, and
 `N2-R11` surfaces a request *with enough to decide on*, which is this page.
 
-That figure is carried, and it is carried in a shape the app has to be careful
-with: it is absent on a request somebody has already ruled on, and absent again
-where the service's own date could not be read. Those are not the same fact —
-the first is a request that is not waiting, the second is a request that is
-waiting for nobody knows how long — and an app rendering both as *no age* tells
-an operator the second is the first. Where the contract does not distinguish
-them, `N2-R14` applies: the app states neither rather than choosing, and the gap
-is raised rather than papered over.
+That figure is carried, and it is absent for two different reasons: a request
+somebody has already ruled on was not waiting, and a request whose service date
+could not be read is waiting for nobody knows how long. An app rendering both
+as *no age* tells an operator the second is the first.
+
+They are told apart by the state beside it, not by the figure. A request still
+waiting for approval says so, so an absent age there is an age that could not be
+read, and is shown as one. An age absent on a request already ruled on is the
+figure correctly declining to count.
+
+The one case neither field settles is a request whose state is itself absent,
+which is what the contract says about a status this build does not recognise. An
+app has nothing to go on there and `N2-R14` is what it does about it: state
+neither, rather than pick the reading that makes the screen tidier.
 
 ## States
 
