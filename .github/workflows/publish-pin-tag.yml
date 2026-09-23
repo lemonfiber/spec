@@ -48,6 +48,7 @@ concurrency:
 jobs:
   publish-pin-tag:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     # Carried out of the job so the fan-out below can be asked for exactly the
     # number this run cut. Empty where the commit already carried one, which is
     # the re-run case and the one where there is nothing new to fan out.

@@ -37,6 +37,7 @@ permissions:
 jobs:
   prerelease:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Gate to maintainers
         env:

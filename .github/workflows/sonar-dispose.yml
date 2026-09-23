@@ -39,6 +39,7 @@ permissions:
 jobs:
   record:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Say what is about to be answered
         env:

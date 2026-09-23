@@ -15,6 +15,7 @@ permissions:
 jobs:
   stage:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       goals: ${{ steps.issue.outputs.goals }}
     steps:

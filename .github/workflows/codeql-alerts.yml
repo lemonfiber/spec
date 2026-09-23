@@ -68,6 +68,7 @@ permissions:
 jobs:
   alerts:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # A reusable workflow's permissions are a ceiling the caller has to reach,
     # not a grant it receives: a caller that hands over less fails the whole run
     # before any job starts. `contents: read` is restated because a job-level

@@ -18,6 +18,7 @@ permissions:
 jobs:
   track:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     outputs:
       became_releasable: ${{ steps.evaluate.outputs.became_releasable }}
       version: ${{ steps.evaluate.outputs.version }}

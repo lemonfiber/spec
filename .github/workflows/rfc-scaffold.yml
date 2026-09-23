@@ -16,6 +16,7 @@ jobs:
   scaffold:
     if: github.event.label.name == 'rfc:approved'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Verify the approver has write access (GOV-R41)
         env:

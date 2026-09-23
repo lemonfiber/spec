@@ -20,6 +20,7 @@ permissions:
 jobs:
   look:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       stalled: ${{ steps.check.outputs.stalled }}
       summary: ${{ steps.check.outputs.summary }}
@@ -85,6 +86,7 @@ jobs:
     needs: look
     if: needs.look.outputs.stalled == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Say what is stopped, and fail
         env:

@@ -77,6 +77,7 @@ jobs:
   gate:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       # Before the wait for a SonarCloud summary, because this needs no summary
       # and a workflow file that raises its own ceiling should be told so in
@@ -453,6 +454,7 @@ jobs:
   not-a-pull-request:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Say that nothing was gated
         env:
