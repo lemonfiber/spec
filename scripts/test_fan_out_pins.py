@@ -77,12 +77,15 @@ class Rewriting(unittest.TestCase):
         self.assertEqual(said, text)
 
 
-class ARepositoryAndASpec(unittest.TestCase):
+class ARepositoryAndASpec:
     """A consumer checkout and a spec beside it, holding no tests of its own.
 
     Split from the tests so a second class can take the same fixture without
     inheriting — and re-running under its own name — the eight that belong to
-    the first.
+    the first. A mixin rather than a `TestCase`, because it is not one: a
+    `TestCase` carrying no test is a class the runner collects, reports on and
+    finds nothing in, and its helpers read as dead to anything looking at this
+    class alone.
     """
 
     def setUp(self):
@@ -143,7 +146,7 @@ class ARepositoryAndASpec(unittest.TestCase):
         return fan_out_pins.commit_named_by(self.spec, "v1.0.9")
 
 
-class AgainstARepository(ARepositoryAndASpec):
+class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
     """The half that needs a real checkout to answer."""
 
     def test_a_stale_pin_is_brought_forward(self):
@@ -422,7 +425,7 @@ class WhoItVisits(unittest.TestCase):
         self.assertIn("lemonfiber", named)
 
 
-class TheRevisionItWrites(ARepositoryAndASpec):
+class TheRevisionItWrites(ARepositoryAndASpec, unittest.TestCase):
     """Which commit ends up beside the number, when the two could differ.
 
     The fixture's tag is cut at `self.third` and every test here moves `main`
