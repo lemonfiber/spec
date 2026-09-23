@@ -471,6 +471,28 @@ class TheRevisionItWrites(ARepositoryAndASpec):
 
         self.assertIn("is not a tag in", said.getvalue())
 
+    def test_a_pin_the_checkout_cannot_resolve_is_reported_by_the_run(self):
+        # The tag is here and the checkout is here, so neither refusal above
+        # fires — what cannot be answered is how far behind this pin is. It has
+        # its own sentence because it has its own cure, and it reaches `main`
+        # only through `bring_forward` coming back empty-handed.
+        self.wrote("ci.yml", a_pin("dco.yml", "f" * 40))
+
+        sys.argv = [
+            "fan_out_pins.py",
+            "--repo",
+            str(self.repo),
+            "--spec",
+            str(self.spec),
+            "--tag",
+            "v1.0.9",
+        ]
+        with contextlib.redirect_stdout(io.StringIO()) as said:
+            self.assertEqual(fan_out_pins.main(), 2)
+
+        self.assertIn("could not read the pins", said.getvalue())
+        self.assertIn("must not report a repository as current", said.getvalue())
+
     def test_an_unpublished_number_writes_nothing(self):
         # Refused *before* anything is rewritten, not after. A run that edited
         # the checkout and then failed would leave a branch half-bumped for
