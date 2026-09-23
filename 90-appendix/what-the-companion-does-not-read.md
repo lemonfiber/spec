@@ -1,6 +1,6 @@
 # What the wire carries that the companion does not read
 
-**Status:** Register · **Measured 22 September 2026**
+**Status:** Register · **Measured 22 September 2026** · **Re-checked 23 September 2026**
 
 The stack **publishes** sixty-two envelopes and **serves** fifty-nine. The
 companion app follows eleven of them. This is the other fifty-one, written down
@@ -82,14 +82,40 @@ app today.
 
 **Three of these are not served at all.** `wiring`, `substitution` and
 `plugins` are published in the contract and generated into the SDK, and no HTTP
-route or action produces any of them. Checked against the core's thirty-three
-routes, its twenty-nine dispatched reads and its forty offered actions, with
-`catalogue`, `forms` and `alerts` as controls that pass the same test. Raised as
+route or action produces any of them. Checked against the core's routes, its
+dispatched reads and the list of action names it will accept, with `catalogue`,
+`forms` and `alerts` as controls that pass the same test. Raised as
 [lemonfiber#731](https://github.com/lemonfiber/lemonfiber/issues/731).
+
+**Re-checked 23 September, against the core at `688865f`, and all three still
+hold.** `lemonfiber-api` names none of them: there is no handler, and no
+`wiring`, `substitution` or `plugins` module among the per-read modules beside
+`catalogue`, `provenance`, `stack`, `outbound` and `history`. The single action
+route accepts only the names in `actions/named.rs`'s `OFFERED` — forty-one of
+them, and not one is a plugin, wiring or substitute verb, so an action outside
+that list is refused before a command is built.
+
+**The kind exists because the command line produces it, which is why the
+generated surface lists it.** `contract/web-api.surface.json` maps every kind to
+its type, including these three, and that file is not evidence of a route. The
+plugin work landing in 0.16.0 added `Outcome::Plugins` and grew the envelope for
+the core and the CLI; nothing on the HTTP surface asks for it. A register that
+read the surface map would have called this fixed and been wrong.
+
+**They are waiting on a release rather than on a route being forgotten**, and
+that is the correction this paragraph most needed. Serving them now would
+publish a surface over the plugin install and removal lifecycle while that is
+still being built, and the two slices left in it — the capability set and the
+command surface (`F6-R10`, `F6-R13`) — are the ones that decide what a plugin
+action's arguments are. A `plugins` read and a plugin action belong on top of a
+finished lifecycle. `wiring` and `substitution` are in the same position for a
+different reason: both have a settled report in the core and want only a route.
 
 So they are a different kind of row from everything else here. Every other
 envelope in this register is a decision waiting to be made; these three are
-waiting on a route, and no decision about the companion can reach them.
+waiting on a version, and no decision about the companion can reach them until
+it lands. They are the candidate for the first slice after 0.16.0, which is
+where `N5` would stop being unanswerable.
 
 **The `wiring` row is the one with a hole under it, and the hole is deeper than
 it first looked.** The core will not resolve a contested capability — its own
