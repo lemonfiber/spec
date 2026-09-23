@@ -1,9 +1,9 @@
 # What the wire carries that the companion does not read
 
-**Status:** Register · **Measured 22 September 2026** · **Re-checked 23 September 2026**
+**Status:** Register · **Measured 22 September 2026** · **Re-checked 23 September 2026**, when `hosting` became the first envelope this register lost to a reader
 
 The stack **publishes** sixty-two envelopes and **serves** fifty-nine. The
-companion app follows eleven of them. This is the other fifty-one, written down
+companion app follows twelve of them. This is the other fifty, written down
 so that what fills them is a decision somebody made rather than whatever the
 next person happened to notice.
 
@@ -24,19 +24,26 @@ Reproducible, from the companion's checkout:
 
 ```
 ls vendor/lemonfiber/sdk-php/src/Generated/*Envelope.php | wc -l   # 62
-Tests\Support\WhatTheReadersRead::envelopes()                      # 11
+Tests\Support\WhatTheReadersRead::envelopes()                      # 12
 ```
 
 | | |
 |---|---|
 | Envelopes the SDK ships | **62** |
-| Followed by a reader | **11** |
-| Not followed | **51** |
-| — never referenced anywhere in the app | **49** |
+| Followed by a reader | **12** |
+| Not followed | **50** |
+| — never referenced anywhere in the app | **48** |
 | — referenced but not followed | **2** |
 
-The eleven that are read: `Config`, `Doctor`, `Error`, `Held`, `Household`,
-`Job`, `Log`, `Repair`, `Status`, `Stuck`, `Update`.
+The twelve that are read: `Config`, `Doctor`, `Error`, `Held`, `Hosting`,
+`Household`, `Job`, `Log`, `Repair`, `Status`, `Stuck`, `Update`.
+
+`Hosting` is the newest and the first this register has lost to a reader. It
+answers `N16-R5`, `N16-R6` and `N16-R13` — whether the stack comes back after a
+restart, what did not come back, and the difference between a platform this
+product cannot configure and a machine with nothing running. Five of its paths
+are still unread and are recorded as such in the companion's own register:
+`caveat`, `changed`, and per command `definition`, `output` and `runs`.
 
 `Admission` and `Pull` are the two referenced without being followed — the app
 reads admission through `Admitted` rather than through the envelope, and `Pull`
@@ -47,7 +54,7 @@ carries a bare string.
 The companion already has a machine-checked register for unread fields,
 `WhatTheContractCarriesThatNothingReadsTest`, and it is a good rule: every path
 on an envelope the app reads is either followed to a reader or listed with a
-reason. Fifty-seven rows, two hundred and twenty-three paths.
+reason. Sixty-one rows, two hundred and ninety-four paths.
 
 **It cannot see any of the fifty**, and the reason is one line of its own
 scaffolding:
@@ -200,6 +207,5 @@ requirement would be written against.
 | `bandwidth` | What the line can carry and what is using it: `capacity` up and down, whether it was `declared` or `observed`, whether it runs through the tunnel, a monthly `cap` and what happens when it is exceeded. |
 | `alerts` | What the stack will tell somebody about: the `preset`, what it `means`, the `exceptions`, and whether it has been `rehearsed`. |
 | `outbound` | Every connection the stack makes: `ours` with its purpose, destination, reach and the switch that turns it off; and `theirs`, which is what the services do on their own. |
-| `hosting` | Running as a host-managed service: the commands, what each `guarantees`, what is `missing`, and what `changed`. |
 | `provenance` | Where each service came from: image, licence, the pinned digest and the upstream. |
 | `history` | What has been done to this stack: each change with what it `did`, to what, `because` of what, how to reverse it, and how much sat `alongside` it. |
