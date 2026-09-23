@@ -503,6 +503,7 @@ generation has not been used.
 | **ARCH-R81** | A client MUST treat a capability name it does not recognise as one it does not understand, and MUST NOT refuse the payload for containing it. |
 | **ARCH-R82** | The capability set MUST be readable again within a session, and MUST carry when it was read as any other reading does. |
 | **ARCH-R99** | A client MUST refuse a base address that is not loopback unless it was given a certificate pin for that stack, and MUST enforce that pin during the TLS handshake so that no request is written to a peer it has not verified. A client MUST NOT offer any means of reaching a non-loopback address without a pin, or of weakening verification ([ADR-0025](../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)). |
+| **ARCH-R129** | A definition in the contract artefact MUST NOT take a name an SDK's generator writes itself, and SDK generation MUST refuse such an artefact, naming the definition and the kind that carries it, rather than emit one name describing two shapes. |
 
 ## Shapes are generated; semantics are not
 
@@ -557,6 +558,27 @@ clean, which is why neither side said so.
 So the artefact is held to one reading, and a generator meeting a shape that has two refuses it
 rather than choosing. An annotation is not a constraint — a described reference means one thing
 to every reader, and stays ordinary company.
+
+The fourth guard is the same failure one step along: an artefact every reader agrees about, in
+which two authorities have chosen one name. A generator writes names of its own beside the ones
+the artefact gives it — the object every kind hangs off, the union of every kind the server may
+send, the envelope each kind carries, one type per kind. Where it flattens a kind's definitions
+into a single scope, those two sets share that scope, and nothing holds them apart.
+
+It reached one SDK once. The `plugins` kind gained a definition named `Kind` — *the kind of
+value a key must hold*, five and closed — while the TypeScript generator writes `Kind` for the
+union of every kind the server may send. Both were emitted. The compiler reports a duplicate
+identifier in a generated file, the union becomes an error type, and every use of it fails
+somewhere else: a literal kind is not assignable to `Kind`, a type parameter cannot index
+`ByKind`, a payload arrives `unknown`. Six errors across three files, one of them generated and
+two of them never touched, and not one of them naming a contract. The PHP SDK never saw it,
+because it inlines a kind's definitions into an alias scoped to one class — which is why this
+is a rule about the artefact rather than about whichever generator happens to flatten.
+
+So a definition's name is its own, and where a generator has already claimed one, generation
+says so at the point it would collide rather than leaving it to whatever the output does next.
+The name moves in the artefact: the names a generator writes are an SDK's published surface,
+and moving one of those instead would break every caller to spare the producer a rename.
 
 ## Related
 
