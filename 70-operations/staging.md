@@ -424,9 +424,41 @@ implementing them are built per repo.
 | **Drift watchdog** | A scheduled check flags a locked goal whose requirement was withdrawn or superseded |
 | **Submodule bump** | A `lemonfiber-media-stack` release opens a `lemonfiber` PR bumping the submodule pin, gated by the `build.rs` compat check |
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
+| **Bump ordering** | An automated bump does not merge itself while a repository downstream of it is running a required check the merge would discard |
 | **Issue lifecycle** | Releasing closes the issues opened for that version — its tracker, and any drift the watchdog raised |
 | **Release from the trunk** | A version is tagged on `main`; a hotfix to a shipped version branches from its tag and merges back |
 | **Discord cadence** | Staging and progress milestones (25/50/75/100%) post to `#maintainers`; execute posts to `#releases` |
+
+### A bump does not reset a gate it cannot see
+
+The train is a chain, and each link arms its own merge. A change to the core's
+contract dispatches a bump in the PHP client, which opens a pull request with
+auto-merge armed; merging it moves that client's default branch, which makes the
+companion's own client bump stale and discards every check running on it.
+
+Each link is right on its own. What emerges is not: **the gates are not the same
+length.** The client's is minutes and the companion's is an hour and a half, so
+the fast link upstream always wins the race and the slow one downstream never
+finishes. On 23 September 2026 the companion's bump was reset four times in one
+session and never landed, while every other pull request in that repository sat
+behind it — the drift check is required there and only that bump cures it.
+
+So a bump that is about to merge itself asks whether anything downstream is
+mid-gate on the change it would discard, and waits where something is. It is a
+question the workflow can answer: the consumer's pull request is open, its
+checks are readable, and *still running* is a state with an end. Waiting is
+bounded by the gate it waits on, which is the thing that makes this a delay
+rather than a deadlock.
+
+**The deferral is stated rather than silent.** A bump sitting green and unmerged
+with nothing saying why reads as a bump somebody forgot, and the cure somebody
+reaches for is to merge it by hand — which is the race again, run deliberately.
+
+This is ordering, not coupling: nothing here says a bump may be blocked by a
+consumer's opinion, only that it may not discard a gate that is already running.
+Shortening the slow gate is the better fix and it is a separate one; while the
+two differ by an order of magnitude, the ordering is what keeps the difference
+from being fatal.
 
 ### When a goal cannot be cited
 
@@ -470,6 +502,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R46** | A scheduled check MUST flag a locked goal whose requirement became `Withdrawn` or `Superseded`. |
 | **OPS-R47** | A `lemonfiber-media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep. |
+| **OPS-R71** | An automated dependency bump MUST NOT merge itself while a repository that depends on it has an open automated bump whose required checks are still running and which that merge would discard; the deferral MUST be stated on the pull request, naming what it waits on. |
 | **OPS-R49** | A version MUST be released from `main`: the tag names a commit on the trunk, and no long-lived release branch is cut. A hotfix to an already-released version MUST branch from that version's tag and MUST be merged back to `main`. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |
 | **OPS-R52** | At most one version MAY be `staged` or `releasable` at a time; `stage-version` MUST refuse while another version is still in flight. Hotfix patches are exempt. |
