@@ -208,4 +208,4 @@ requirement would be written against.
 | `alerts` | What the stack will tell somebody about: the `preset`, what it `means`, the `exceptions`, and whether it has been `rehearsed`. |
 | `outbound` | Every connection the stack makes: `ours` with its purpose, destination, reach and the switch that turns it off; and `theirs`, which is what the services do on their own. |
 | `provenance` | Where each service came from: image, licence, the pinned digest and the upstream. |
-| `history` | What has been done to this stack: each change with what it `did`, to what, `because` of what, how to reverse it, and how much sat `alongside` it. |
+| `history` | What has been done to this stack: each change with what it `did` and to what, how far it could be put back, `because` of what putting it back stops short and what to do `instead`, and how much sat `alongside` it — under the `horizon` of what is kept. |
