@@ -3,7 +3,7 @@
 **Status:** Register · **Measured 22 September 2026** · **Re-checked 23 September 2026**, when `hosting` became the first envelope this register lost to a reader
 
 The stack **publishes** sixty-two envelopes and **serves** fifty-nine. The
-companion app follows twelve of them. This is the other fifty, written down
+companion app follows thirteen of them. This is the other forty-nine, written down
 so that what fills them is a decision somebody made rather than whatever the
 next person happened to notice.
 
@@ -24,21 +24,30 @@ Reproducible, from the companion's checkout:
 
 ```
 ls vendor/lemonfiber/sdk-php/src/Generated/*Envelope.php | wc -l   # 62
-Tests\Support\WhatTheReadersRead::envelopes()                      # 12
+Tests\Support\WhatTheReadersRead::envelopes()                      # 13
 ```
 
 | | |
 |---|---|
 | Envelopes the SDK ships | **62** |
-| Followed by a reader | **12** |
-| Not followed | **50** |
-| — never referenced anywhere in the app | **48** |
+| Followed by a reader | **13** |
+| Not followed | **49** |
+| — never referenced anywhere in the app | **47** |
 | — referenced but not followed | **2** |
 
-The twelve that are read: `Config`, `Doctor`, `Error`, `Held`, `Hosting`,
-`Household`, `Job`, `Log`, `Repair`, `Status`, `Stuck`, `Update`.
+The thirteen that are read: `Config`, `Doctor`, `Error`, `Held`, `History`,
+`Hosting`, `Household`, `Job`, `Log`, `Repair`, `Status`, `Stuck`, `Update`.
 
-`Hosting` is the newest and the first this register has lost to a reader. It
+`History` is the newest. It answers `N11-R1`, `N11-R2`, `N11-R3`, `N11-R9` and
+`N11-R10` — the record's horizon said where the list ends, how far each change
+could be put back and why it stops short, how many changes came with it, an
+empty record told apart from one that could not be read, and changes made at
+one moment drawn together. Every one of its paths is read. `N11-R4`, the
+reason a change was made, is not: the envelope carries no such field, because
+the stack's journal records none, and `because` is why putting a change back
+stops short rather than why it was made.
+
+`Hosting` was the first this register lost to a reader. It
 answers `N16-R5`, `N16-R6` and `N16-R13` — whether the stack comes back after a
 restart, what did not come back, and the difference between a platform this
 product cannot configure and a machine with nothing running. Five of its paths
@@ -54,9 +63,9 @@ carries a bare string.
 The companion already has a machine-checked register for unread fields,
 `WhatTheContractCarriesThatNothingReadsTest`, and it is a good rule: every path
 on an envelope the app reads is either followed to a reader or listed with a
-reason. Sixty-one rows, two hundred and ninety-four paths.
+reason. Sixty-one rows, three hundred and four paths.
 
-**It cannot see any of the fifty**, and the reason is one line of its own
+**It cannot see any of the forty-nine**, and the reason is one line of its own
 scaffolding:
 
 ```php
@@ -208,4 +217,3 @@ requirement would be written against.
 | `alerts` | What the stack will tell somebody about: the `preset`, what it `means`, the `exceptions`, and whether it has been `rehearsed`. |
 | `outbound` | Every connection the stack makes: `ours` with its purpose, destination, reach and the switch that turns it off; and `theirs`, which is what the services do on their own. |
 | `provenance` | Where each service came from: image, licence, the version it is `pinned` at and the upstream. `pinned` is a tag, not a digest — the stack pins by tag today, which is short of what `E1-R1` and `N11-R6` ask. |
-| `history` | What has been done to this stack: each change with what it `did` and to what, how far it could be put back, `because` of what putting it back stops short and what to do `instead`, and how much sat `alongside` it — under the `horizon` of what is kept. |
