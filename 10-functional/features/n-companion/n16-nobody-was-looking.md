@@ -140,10 +140,28 @@ the three subjects and not of the other two:
 
 | Subject | Where it stands |
 |---|---|
-| Coming back after a restart | **Carried.** `HostingEnvelope` answers it almost exactly as written — `standing: 'installed-unverified'` *is* `N16-R7`, and `manager: 'unsupported'` *is* `N16-R5` |
+| Coming back after a restart | **Mostly.** `HostingEnvelope` answers `N16-R5` as written: `manager: 'unsupported'` with an `instruction` saying what to do instead is *not available here* rather than *off*. `N16-R6` is answerable from the per-command `standing`, which says of each one whether it is `hosted`, `stopped` or `orphaned`. `N16-R7` is **half** carried, and an earlier draft of this row said it was all of it — see below |
 | The outside watcher | **Not carried.** Nothing holds an outside observer's readings, so `N16-R1` through `N16-R4` cannot be answered. `WatchEnvelope` is supervision of forms rather than an uptime monitor |
 | The queue's own repairs | **Partly.** `StuckEnvelope` carries the stage and why a repair could not reach what it manages, so `N16-R10` is answerable. It carries no strike count and no account of removing, blocklisting and re-searching as three acts, so `N16-R8` and `N16-R9` are not |
 
 Requirements are not withdrawn for being unanswerable yet — a requirement
 describes what the product owes, and a contract that cannot carry it is the
 thing to change. What is withdrawn is the claim that they were all answerable.
+
+**`N16-R7` asks for two things and the contract carries one of them.** The half
+it carries is the shape: `standing: 'installed-unverified'` is *installed, and
+the manager would not say whether it is running*, which is a state that refuses
+to read as passing — exactly what the requirement asks of a verification that
+has not run. The half it does not carry is *when it last ran*. No field in the
+hosting payload holds a time, and post-boot verification is not a subject any
+envelope has: searched across all sixty-two on `688865f`, the nearest thing is
+`doctor`'s `Unverified` verdict, which is one check saying it could not run and
+carries no time either.
+
+The two are also not the same subject. `installed-unverified` is about what the
+*service manager* would confirm; `N16-R7` is about a check that runs after a
+boot. A surface built on the first and labelled as the second would be telling
+an operator that verification had not run when what had actually happened is
+that `launchd` declined to answer — which is the shape of mistake this page
+exists to refuse. So `N16-R7` needs a field the contract does not have, and the
+half that is carried is worth building on its own terms, under `N16-R5`.
