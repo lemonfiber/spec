@@ -207,5 +207,5 @@ requirement would be written against.
 | `bandwidth` | What the line can carry and what is using it: `capacity` up and down, whether it was `declared` or `observed`, whether it runs through the tunnel, a monthly `cap` and what happens when it is exceeded. |
 | `alerts` | What the stack will tell somebody about: the `preset`, what it `means`, the `exceptions`, and whether it has been `rehearsed`. |
 | `outbound` | Every connection the stack makes: `ours` with its purpose, destination, reach and the switch that turns it off; and `theirs`, which is what the services do on their own. |
-| `provenance` | Where each service came from: image, licence, the pinned digest and the upstream. |
+| `provenance` | Where each service came from: image, licence, the version it is `pinned` at and the upstream. `pinned` is a tag, not a digest — the stack pins by tag today, which is short of what `E1-R1` and `N11-R6` ask. |
 | `history` | What has been done to this stack: each change with what it `did` and to what, how far it could be put back, `because` of what putting it back stops short and what to do `instead`, and how much sat `alongside` it — under the `horizon` of what is kept. |
