@@ -91,6 +91,30 @@ rendered as an error to retry. A quota that answers *no* without saying it was a
 quota is indistinguishable, from the other end, from a request service that is
 broken — and the household member's next move is to ask again.
 
+*Long-pending requests remind the operator and expire* is two halves, and the
+companion owns only one of them. The reminder is the stack's to deliver:
+`N17-R1` forbids the app operating a notification service of its own, so an app
+that decided a request had waited long enough and told somebody would be the
+thing that rule exists to prevent. What the app owes is the figure the reminder
+would be about — how long each request has been waiting — because a request
+approaching expiry is a different decision from one made this morning, and
+`N2-R11` surfaces a request *with enough to decide on*, which is this page.
+
+That figure is carried, and it is absent for two different reasons: a request
+somebody has already ruled on was not waiting, and a request whose service date
+could not be read is waiting for nobody knows how long. An app rendering both
+as *no age* tells an operator the second is the first.
+
+They are told apart by the state beside it, not by the figure. A request still
+waiting for approval says so, so an absent age there is an age that could not be
+read, and is shown as one. An age absent on a request already ruled on is the
+figure correctly declining to count.
+
+The one case neither field settles is a request whose state is itself absent,
+which is what the contract says about a status this build does not recognise. An
+app has nothing to go on there and `N2-R14` is what it does about it: state
+neither, rather than pick the reading that makes the screen tidier.
+
 ## States
 
 Per request: `auto-approved`, `pending`, `approved`, `declined`, `quota-blocked`,
