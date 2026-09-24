@@ -104,7 +104,7 @@
     },
     {
       "version": "0.17.0",
-      "status": "planned",
+      "status": "staged",
       "milestone": "M14",
       "goals": 29
     },
@@ -1718,7 +1718,7 @@
       "versions": [
         {
           "version": "0.17.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "f-extensibility/f5-plugin-catalogue.md"
@@ -1873,7 +1873,7 @@
         },
         {
           "version": "0.17.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "f-extensibility/f9-bundled-capabilities.md"
@@ -2257,7 +2257,7 @@
       "versions": [
         {
           "version": "0.17.0",
-          "status": "planned"
+          "status": "staged"
         }
       ],
       "path": "g-ux/g9-mobile-handoff.md"
