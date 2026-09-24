@@ -75,10 +75,11 @@ way and attached to the same releases, and the binary answers from all three
 with no network and no running stack.
 
 Their absence is what the first two published plugins ran into. Every capability
-either of them claims is namespaced, because there was no core name to claim, and
-a namespaced capability is inert — so both install a container and wire nothing.
-That was not a limit of the format or a mistake by either author. It was one
-missing file, twice.
+either of them claimed was namespaced, because there was no core name to claim,
+and a namespaced capability is inert — so both installed a container and wired
+nothing. That was not a limit of the format or a mistake by either author. It was
+one missing file, twice. With the vocabulary published, `plugin-komga` claims the
+core `media.serve`; `plugin-uptime-kuma` still claims only names of its own.
 
 ### The binary is the toolchain
 

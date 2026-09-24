@@ -118,9 +118,11 @@ would show as a choice.
 ### Both vocabularies are one artefact each, and the binary answers from them
 
 A vocabulary nobody can read is a document, and for two releases that is exactly
-what this was: the two published plugins namespace every capability they claim
-because there was no core name to use, and a namespaced capability is inert. They
-install and wire nothing.
+what this was: the first two published plugins namespaced every capability they
+claimed because there was no core name to use, and a namespaced capability is
+inert. They installed and wired nothing. Once the vocabulary was published,
+`plugin-komga` claimed the core `media.serve`; `plugin-uptime-kuma` still claims
+only names of its own.
 
 So each vocabulary is **one generated file** — the capabilities a service may
 claim, and the points a plugin may contribute at — attached to every release and

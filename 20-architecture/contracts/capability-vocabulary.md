@@ -23,16 +23,19 @@ for it.
 ## Why this file exists
 
 [F4](../../10-functional/features/f-extensibility/f4-capabilities.md) has been
-able to describe a capability since it was written, and has had nothing to point
-at. The consequence was not theoretical. Every capability the two published
-plugins claim is namespaced with the plugin's own id — `komga:opds`,
-`uptime-kuma:status-page` — because `F4-R4` forbids a plugin inventing a
-core-looking name, and there was no core name to use instead. A namespaced
-capability is inert until something asks for it, and nothing asks.
+able to describe a capability since it was written, and had nothing to point
+at. The consequence was not theoretical. Every capability the first two
+published plugins claimed was namespaced with the plugin's own id —
+`komga:opds`, `uptime-kuma:status-page` — because `F4-R4` forbids a plugin
+inventing a core-looking name, and there was no core name to use instead. A
+namespaced capability is inert until something asks for it, and nothing asks.
 
-So both plugins install a container, pass their proofs, and **wire nothing**.
-They can be read and they cannot be useful, and the reason is one missing
-artefact rather than anything either author did.
+So both plugins installed a container, passed their proofs, and **wired
+nothing**. They could be read and they could not be useful, and the reason was
+one missing artefact rather than anything either author did. Once it existed,
+`plugin-komga` claimed the core `media.serve` in place of `komga:comics-serve`,
+with a `[[claim]]` binding its probes; `plugin-uptime-kuma` still claims only
+names of its own, and those stay inert.
 
 This is that artefact. It is a single file, generated from the types lemonfiber
 reads it with, attached to every release, and readable from the binary with no
