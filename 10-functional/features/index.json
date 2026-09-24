@@ -98,7 +98,7 @@
     },
     {
       "version": "0.16.0",
-      "status": "staged",
+      "status": "released",
       "milestone": "M14",
       "goals": 111
     },
@@ -1640,7 +1640,7 @@
       "versions": [
         {
           "version": "0.16.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "f-extensibility/f3-stack-manifests.md"
@@ -1681,7 +1681,7 @@
       "versions": [
         {
           "version": "0.16.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "f-extensibility/f4-capabilities.md"
@@ -1756,7 +1756,7 @@
       "versions": [
         {
           "version": "0.16.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "f-extensibility/f6-plugin-lifecycle.md"
@@ -1794,7 +1794,7 @@
       "versions": [
         {
           "version": "0.16.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "f-extensibility/f7-plugin-provenance.md"
@@ -1869,7 +1869,7 @@
       "versions": [
         {
           "version": "0.16.0",
-          "status": "staged"
+          "status": "released"
         },
         {
           "version": "0.17.0",
@@ -1909,7 +1909,7 @@
       "versions": [
         {
           "version": "0.16.0",
-          "status": "staged"
+          "status": "released"
         }
       ],
       "path": "f-extensibility/f10-authoring.md"
