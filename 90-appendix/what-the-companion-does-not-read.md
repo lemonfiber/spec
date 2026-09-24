@@ -1,6 +1,6 @@
 # What the wire carries that the companion does not read
 
-**Status:** Register · **Measured 22 September 2026** · **Re-checked 23 September 2026**, when `hosting` became the first envelope this register lost to a reader
+**Status:** Register · **Measured 22 September 2026** · **Re-checked 24 September 2026**, when `origin` arrived on three envelopes the app already reads, and was read on all three
 
 The stack **publishes** sixty-two envelopes and **serves** fifty-nine. The
 companion app follows fifteen of them. This is the other forty-seven, written down
@@ -69,6 +69,16 @@ product cannot configure and a machine with nothing running. Five of its paths
 are still unread and are recorded as such in the companion's own register:
 `caveat`, `changed`, and per command `definition`, `output` and `runs`.
 
+`Config`, `Doctor` and `Outbound` now carry the same four-armed `origin` —
+bundled, operator, a named plugin, or unknown with the stack's reason — on each
+setting, each finding and each service. Its eight paths arrived with the
+contract and none of them joined this register: all three are read, into one
+type, and shown (`F7-R3`, `C1-R15`, `F7-R9`). A setting says its origin on
+every row. A check or a service says it only where it is not the stack's own,
+with one line under the list saying what an unmarked row is, which is how the
+stack's own terminal draws them. An origin that cannot be read refuses the
+reading rather than defaulting to bundled (`F7-R11`).
+
 `Admission` and `Pull` are the two referenced without being followed — the app
 reads admission through `Admitted` rather than through the envelope, and `Pull`
 carries a bare string.
@@ -78,7 +88,7 @@ carries a bare string.
 The companion already has a machine-checked register for unread fields,
 `WhatTheContractCarriesThatNothingReadsTest`, and it is a good rule: every path
 on an envelope the app reads is either followed to a reader or listed with a
-reason. Sixty-one rows, three hundred and twenty-four paths.
+reason. Sixty-one rows, three hundred and thirty-two paths.
 
 **It cannot see any of the forty-seven**, and the reason is one line of its own
 scaffolding:
