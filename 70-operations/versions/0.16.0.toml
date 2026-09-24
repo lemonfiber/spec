@@ -88,7 +88,8 @@
 version = "0.16.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — what one is, installing one, and what that leaves readable"
-status  = "staged"
+status  = "released"
+released_on = "2026-09-24"
 repos   = ["lemonfiber"]
 # The catalogue is named here because F10-R4, F10-R6 and F10-R9 are cited in it, and
 # F10-R4 names the catalogue's own CI in the requirement. OPS-R58 asks a manifest to say
@@ -219,3 +220,7 @@ goals   = [
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
+
+[pins]
+lemonfiber-media-stack = "72395ca4ed585fe692ed3bc650fa626af3b17e44"
+lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"
