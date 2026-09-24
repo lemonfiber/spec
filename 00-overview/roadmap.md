@@ -42,7 +42,7 @@ stub** — a release refuses while a requirement it locks is not yet built
 | `0.14.0` | M9 | Keeping it running — updates, backup, rollback, the journal | Released |
 | `0.15.0` | M9 | Away from the keyboard — remote control, autostart, customisation | Released |
 | `0.16.0` | M14 | Plugins — what one is, installing one, and what that leaves readable | Released |
-| `0.17.0` | M14 | Plugins — what the bundled stack can do, and where a plugin comes from | Planned |
+| `0.17.0` | M14 | Plugins — what the bundled stack can do, and where a plugin comes from | Staged |
 | `0.18.0` | M14 | Plugins — the calls that configure what one installed, and what they may carry where | Planned |
 | `0.19.0` | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
 | `0.20.0` | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
