@@ -23,19 +23,24 @@ lemonfiber/
 ├── Cargo.toml                  workspace
 ├── crates/
 │   ├── lemonfiber/             bin — chooses a surface and runs it
-│   │   ├── cli.rs              clap: subcommands, flags, exit codes
-│   │   ├── dashboard.rs        ratatui: the dashboard and the log viewer
-│   │   ├── ui.rs               binds the socket the web surface is served on
-│   │   └── main.rs             surface selection
+│   │   ├── build.rs            validates submodule schema_version
+│   │   ├── src/cli.rs          clap: subcommands, flags
+│   │   ├── src/dashboard.rs    ratatui: the dashboard and the log viewer
+│   │   ├── src/ui.rs           binds the socket the web surface is served on
+│   │   ├── src/main.rs         surface selection
+│   │   └── tests/              integration tests
 │   ├── lemonfiber-api/         lib — axum: the JSON endpoints, and the frontend served
 │   ├── lemonfiber-core/        lib — all logic, no UI
 │   ├── lemonfiber-ports/       lib — the boundary and its vocabulary
+│   ├── lemonfiber-adapters/    lib — the ports' implementations that reach outside the process
 │   ├── lemonfiber-fixtures/    lib — the fakes for those traits
-│   └── lemonfiber-manifest/    lib — stack.toml
+│   ├── lemonfiber-manifest/    lib — stack.toml
+│   └── lemonfiber-plugin/      lib — plugin.toml, and the vocabularies a plugin names things from
 ├── assets/media-stack/         git submodule, embedded at build
-├── build.rs                    validates submodule schema_version
-├── .docs/                      repo-local technical docs
-└── tests/                      integration + golden files
+├── assets/web/                 git submodule — the built web surface, embedded at build
+├── contract/                   generated contracts: the web API, the plugin schema and vocabularies
+├── reference/                  the generated command reference
+└── .docs/                      repo-local technical docs
 ```
 
 Crate responsibilities are fixed in
@@ -51,13 +56,9 @@ Per the [three-layer model](../40-quality/code-comments.md#the-three-documentati
 ```
 lemonfiber/.docs/
 ├── 00-index.md
-├── architecture/       how subsystems are built — render loop, docker split,
-│                       the vpn-port-forwarding push mechanism, …
-├── adr/                repo-local decisions (crate choices, not product ones)
-├── conventions/        code-comments.md (copied from spec), naming, error style
-├── cicd/               pipeline detail
-├── runbooks/           release cutting, submodule bumping
-└── features/           subsystem notes
+├── architecture/       how subsystems are built — the ports boundary, dispatch,
+│                       the engine API, the embedded stack, the error model
+└── conventions/        naming, error style; the comment policy is canonical in the spec
 ```
 
 Code links here (`Q-R5`); these pages cite spec requirement IDs. This is the
@@ -88,8 +89,8 @@ opens the TUI at a terminal and prints help when piped, never blocking on stdin.
 |-------|------|-----|
 | `clap` | CLI parsing | Derive; generates help and completions |
 | `ratatui` + `crossterm` | TUI | [ADR-0003](../00-overview/decisions/0003-rust-ratatui-for-cli.md); crossterm for real Windows support |
-| `axum` | Web server | Minimal, tokio-native; only in the `web` module |
-| `bollard` | Docker API | Reads only; only in `lemonfiber-core::docker` |
+| `axum` | Web server | Minimal, tokio-native; `lemonfiber-api`, and the socket the `lemonfiber` crate binds |
+| `bollard` | Docker API | Reads only; only in `lemonfiber-adapters` |
 | `tokio` | Async | Shallow — [component-model](../20-architecture/component-model.md#async-model) |
 | `reqwest` | Service HTTP | Seed clients |
 | `serde` + `toml` | Manifest, config | |
@@ -102,8 +103,8 @@ opens the TUI at a terminal and prints help when piped, never blocking on stdin.
 
 ## The submodule
 
-`assets/media-stack` is a git submodule pinned to a `lemonfiber-media-stack` tag.
-`build.rs`:
+`assets/media-stack` is a git submodule pinned to a `lemonfiber-media-stack` commit.
+`crates/lemonfiber/build.rs`:
 
 1. Fails clearly if the submodule is empty (`git submodule update --init`).
 2. Parses `stack.toml` and fails the build if `schema_version` is unsupported

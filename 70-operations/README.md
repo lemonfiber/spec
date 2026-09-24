@@ -17,6 +17,7 @@ change is decided and gated* (the canonical-spec rule). Operations is the
 | Doc | Covers |
 |-----|--------|
 | [releasing.md](releasing.md) | The release process — tag → build → publish → formula → changelog → docs |
+| [staging.md](staging.md) | The version train — how a version comes together across repos, the goal lock, the readiness gate |
 | [setup-registry.md](setup-registry.md) | Every one-time manual step to operate the org — secrets, apps, protections |
 | [project-workflow.md](project-workflow.md) | Branching model, the canonical label set, milestones, issue automation |
 | [notifications.md](notifications.md) | Discord release/build/maintainer automation and the maintainer action queue |

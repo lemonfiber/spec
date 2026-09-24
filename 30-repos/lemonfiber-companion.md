@@ -91,13 +91,14 @@ and the same project:
 
 The application is modular: a composition root holding nothing but bindings, and
 modules under `app-modules/` that each declare what **kind** they are —
-`kernel`, `capability`, `design`, `surface` or `adapter`. That declaration
+`kernel`, `capability`, `design`, `surface`, `adapter`, or `stand-in` for the
+development-only fakes in `modules/dx`. That declaration
 generates the module's dependency rules, so a module added later is governed the
 moment it exists rather than when somebody remembers to write its test.
 
 Each module is a composer package with its own manifest, which is what makes the
-SDK rule structural rather than advisory: `modules/sdk` is the only manifest
-requiring `lemonfiber/sdk-php`, so a screen that names the SDK is a shadow
+SDK rule structural rather than advisory: `modules/sdk` and the development-only
+`modules/dx` are the only manifests requiring `lemonfiber/sdk-php`, so a screen that names the SDK is a shadow
 dependency and fails resolution. `N1-R16` stops being a rule a reviewer applies.
 
 The architecture document in that repository lists every rule beside the

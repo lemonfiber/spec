@@ -1,6 +1,6 @@
 # Quality
 
-**Status:** Partial — see contents
+**Status:** Accepted
 
 The standards a change is held to. Where [50-governance](../50-governance/)
 covers *how* change enters, this covers *whether it's good enough*.

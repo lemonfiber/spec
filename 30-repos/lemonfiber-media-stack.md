@@ -18,7 +18,7 @@ A **standalone, runnable Compose project**. Cloned and run with plain
 (`F1-R1`). That is the load-bearing property of this repo, not a side effect: it
 is what makes adopting lemonfiber a reversible decision.
 
-`lemonfiber` embeds a pinned tag of this repo as a submodule
+`lemonfiber` embeds this repo as a submodule pinned to a commit
 ([ADR-0005](../00-overview/decisions/0005-embedded-stack-assets.md)), but the two
 develop and version independently.
 
@@ -45,7 +45,7 @@ lemonfiber-media-stack/
 
 ## How `compose.yml` is assembled
 
-Nineteen services in one file is a file nobody reads. `compose.yml` therefore
+Twenty services in one file is a file nobody reads. `compose.yml` therefore
 defines **no services of its own**: it `include:`s one fragment per profile from
 `compose/`, so the file you open to change television automation is `tv.yml` and
 contains Sonarr and nothing else. The manifest's profile list and the directory
@@ -66,7 +66,8 @@ Two mechanical points, both load-bearing:
 
 ### Caddy lives in the main project
 
-Caddy is a service in `compose.yml` under the `proxy` profile. Profiles are
+Caddy is a service in the main project — `compose/proxy.yml`, which `compose.yml`
+includes — under the `proxy` profile. Profiles are
 already the off-by-default mechanism, so expressing "optional" a second way as a
 separate file adds nothing and costs something real: a service reachable only via
 `-f` cannot start under bare `docker compose`, and lemonfiber would need a
@@ -92,7 +93,7 @@ canonical data is in `stack.toml`.
 | `tv` / `movies` / `music` | sonarr / radarr / lidarr |
 | `books` | bindery |
 | `subs` | bazarr |
-| `media` | jellyfin, seerr, calibre-web-automated, audiobookshelf |
+| `media` | jellyfin, seerr, calibre-web-automated, audiobookshelf, navidrome |
 | `tuning` | recyclarr, unpackerr |
 | `dash` | homepage |
 | `proxy` | caddy |
@@ -136,10 +137,10 @@ gluetun:
   cap_add: [NET_ADMIN]
   devices: ["/dev/net/tun:/dev/net/tun"]
   environment:
-    VPN_SERVICE_PROVIDER: ${VPN_PROVIDER}
+    VPN_SERVICE_PROVIDER: ${VPN_PROVIDER:-}
     VPN_TYPE: wireguard
     VPN_PORT_FORWARDING: ${VPN_PORT_FORWARDING:-off}
-    VPN_PORT_FORWARDING_PROVIDER: ${VPN_PROVIDER}
+    VPN_PORT_FORWARDING_PROVIDER: ${VPN_PROVIDER:-}
     PORT_FORWARD_ONLY: ${VPN_PORT_FORWARDING:-off}
     QBT_USERNAME: ${QBITTORRENT_USERNAME:-admin}
     QBT_PASSWORD: ${QBITTORRENT_PASSWORD:-}
@@ -148,7 +149,9 @@ gluetun:
 
 qbittorrent:
   network_mode: "service:gluetun"
-  depends_on: [gluetun]
+  depends_on:
+    gluetun:
+      condition: service_healthy
 ```
 
 Where the push authenticates, logs in for a session cookie, then sets the port:
@@ -183,10 +186,11 @@ Four things worth stating:
 
 ## Storage overlay
 
-`stacks/compose.storage.nas.yml` adjusts mounts and drops hardlink-dependent
-wiring for [NAS mode](../10-functional/features/c-trust/c5-storage.md), where the
-\*arrs are configured to copy. Applied via `--stack-dir` composition or by
-lemonfiber when it detects the mode.
+`stacks/compose.storage.nas.yml` replaces each library service's `/data` bind with
+an NFS-backed named volume for [NAS mode](../10-functional/features/c-trust/c5-storage.md).
+Making the \*arrs copy instead of hardlink is an application setting, written over
+each app's API during seeding, not something the overlay does. It is applied with
+`docker compose -f compose.yml -f stacks/compose.storage.nas.yml`.
 
 ## CI
 
@@ -222,15 +226,16 @@ that breaks exactly that rule in a throwaway copy of the stack and asserts the
 violation is reported (`REPO-R37`). The same reasoning as the comment policy's
 fixture tree (`Q-R7`), applied to configuration.
 
-CI does **not** boot the stack — that needs real credentials and providers.
-Structural validity is what's checkable in CI; end-to-end runs are an M1 exit
-criterion done by hand.
+CI starts the profile groups `scripts/check_runs.py --plan` names and checks each
+service answers the probe `stack.toml` declares; a service that needs real
+credentials or a real provider, such as gluetun's tunnel, is named in
+`check_runs.py` with the reason and left out.
 
 ## Adding a service
 
 Three data edits, no Rust (`F1-R5`):
 
-1. A service block in `compose.yml`, one profile.
+1. A service block in the `compose/<profile>.yml` fragment for its one profile.
 2. A `[[service]]` in `stack.toml` — ports, health, api, criticality, licence.
 3. Add its profile to whichever forms should carry it.
 

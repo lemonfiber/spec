@@ -87,7 +87,7 @@ governance (`GOV-R2`) and quality (`Q-R1`).
 ## The relationships that matter
 
 **`lemonfiber-media-stack` → `lemonfiber` (submodule).** `lemonfiber` embeds a
-pinned tag of `lemonfiber-media-stack` and validates its `schema_version` at
+pinned commit of `lemonfiber-media-stack` and validates its `schema_version` at
 build time (`ARCH-R6`). They version
 independently; the pin says exactly which stack a given binary ships
 ([versioning](../20-architecture/contracts/versioning.md)).
@@ -96,9 +96,11 @@ independently; the pin says exactly which stack a given binary ships
 formula once the Homebrew publish job is enabled at `1.0.0` (`L1-R3`). The tap is
 downstream of every `lemonfiber` release and is otherwise inert.
 
-**Every repo → `website-docs.lemonfiber.app` (submodules).** The documentation
-site shows each repo's own `.docs/`, README and policy files, pinned to an exact
-revision and rendered rather than copied ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
+**The documented repos → `website-docs.lemonfiber.app` (submodules).** The
+documentation site shows the `.docs/`, README and policy files of `lemonfiber`,
+`lemonfiber-web`, `sdk-ts`, `sdk-php`, `lemonfiber-media-stack`, `brand`,
+`homebrew-tap` and `.github`, each pinned to an exact revision and rendered rather
+than copied ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
 The specification is mirrored the same way, and is published from there rather than
 from a book of its own.
 

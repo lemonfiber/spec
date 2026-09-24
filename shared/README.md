@@ -72,10 +72,10 @@ the reason, where every copy takes it at once.
 It is also not byte-identical, and that is the difference from `markdownlint.jsonc`:
 each copy opens with a paragraph saying what *that* repository's scripts are and
 why they are worth linting, because the scripts are different in each. What has to
-agree is the two lists and the width. Four repositories carry one today —
-`lemonfiber`, `lemonfiber-media-stack`, `brand` and this one — and every one of
-them held identical lists that nothing compared, which is four lists that agree
-until the first is edited.
+agree is the two lists and the width. Six repositories in the map carry one —
+`lemonfiber`, `lemonfiber-media-stack`, `lemonfiber-plugins`, `homebrew-tap`,
+`brand` and this one — and so does every `plugin-*` repository outside it; lists
+that nothing compares agree only until the first is edited.
 
 ## Adoption, and why it is written down
 
@@ -183,7 +183,8 @@ Stated plainly, because a guard half the people believe in is worse than none:
   which turns this hook **off**: the one command that repairs the dead config
   disables the working one. Six repos carried a `lefthook.yml` and `sdk-php` a
   `captainhook.json`, none of them installed anywhere; all are gone, every repo
-  carries a `pre-commit` in `.githooks/`, and `check_shared_files.py` refuses a
+  except `.github`, `lemonfiber-plugins` and the `plugin-*` repositories carries a
+  `pre-commit` in `.githooks/`, and `check_shared_files.py` refuses a
   hook-manager config coming back
   ([tooling](../40-quality/tooling.md#the-hooks-and-why-there-is-no-hook-manager)).
 

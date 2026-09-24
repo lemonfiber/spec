@@ -83,9 +83,10 @@ the build rather than surprising a consumer.
 
 ## Publishing
 
-Not yet published. Nothing consumes it, so it stays unreleased until there is a
-stable major worth pinning; registration on Packagist happens then rather than
-now.
+Not published: no release, no tag, and no Packagist registration.
+[`lemonfiber-companion`](lemonfiber-companion.md) takes it from this repository as
+a VCS dependency, pinned to a commit by its lockfile. Registration on Packagist
+waits for a stable major worth pinning.
 
 ## Related
 
