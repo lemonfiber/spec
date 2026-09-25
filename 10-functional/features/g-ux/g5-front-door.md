@@ -56,8 +56,9 @@ household.
 ### The invitation carries the right link
 
 [Invitations](../d-content/d6-household-identity.md) contain the household front
-door and nothing else — the address, a QR code, and what to do on arrival. The
-operator doesn't have to decide what to send, because lemonfiber decides.
+door, the address that declines the invitation, and nothing else — the addresses,
+a QR code, and what to do on arrival. The operator doesn't have to decide what to
+send, because lemonfiber decides.
 
 ### The address is stable and shown
 
@@ -131,7 +132,7 @@ second quietly becomes the first.
 | **G5-R3** | In a library-only configuration, Jellyfin MUST be the household front door. |
 | **G5-R4** | Where no household-facing service is running, lemonfiber MUST state that there is no front door rather than substituting one silently. |
 | **G5-R5** | Homepage MUST NOT be presented as a household front door. |
-| **G5-R6** | Invitations MUST contain the household front door address and nothing else. |
+| **G5-R6** | *Superseded by [G5-R14](g5-front-door.md): an invitation carries the address that declines it beside the front door. The number is not reused.* |
 | **G5-R7** | The front door address MUST be shown after setup, on the dashboard, and in invitations. |
 | **G5-R8** | A friendly mDNS name MUST be preferred over a raw IP where available. |
 | **G5-R9** | Where only an IP is available, lemonfiber MUST note that it may change. |
@@ -139,6 +140,7 @@ second quietly becomes the first.
 | **G5-R11** | A change of host address MUST be detected and reflected. |
 | **G5-R12** | The front door MUST be configurable, with consequences stated. |
 | **G5-R13** | "Service unreachable" MUST be distinguished from "network unreachable". |
+| **G5-R14** | Invitations MUST contain the household front door address and the address that declines the invitation ([`D6-R15`](../d-content/d6-household-identity.md)), and nothing else. |
 
 ## Related
 

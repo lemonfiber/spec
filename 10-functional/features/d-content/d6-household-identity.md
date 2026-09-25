@@ -52,18 +52,29 @@ $ lemonfiber invite ana
   [QR code]
 
   Tell her to sign in as `ana`. She will be asked to set a password.
+  If she would rather not, she can decline it here:
+  http://192.168.1.20:8097/decline/7f3c9a
 ```
 
-**The link is an address the stack already serves, not a route of its own.** The
-invitation is a state Jellyfin holds, not a page somebody must be running a
-server to answer: `lemonfiber ui` keeps nothing running once the operator closes
-it, so an invitation that only worked while it did would stop working the moment
-the operator went to bed.
+**Both addresses are answered by the stack, never by a lemonfiber process.**
+`lemonfiber ui` keeps nothing running once the operator closes it (`G1-R5`), so an
+invitation that only worked while it did would stop working the moment the
+operator went to bed. Accepting is a state Jellyfin holds: the account is there,
+unclaimed, until somebody sets its password. Declining is a page, and the stack
+serves it from a service it keeps running under its restart policy, beside the
+household front door and at the same binding tier ([C6](../c-trust/c6-web-security.md)),
+which is where the invitee already is. The front door itself is Seerr or Jellyfin,
+and lemonfiber adds no route to either.
 
-**It is Jellyfin's address, which is not always the front door.** Setting a first
+**A refusal is the invitation's standing.** The page declines the one invitation
+its address names and nothing else. The account can no longer be claimed from
+that moment, and the stack keeps the refusal until the core next reads the
+household, which reports the invitation as `declined` rather than `expired`.
+
+**The sign-in address is Jellyfin's, which is not always the front door.** Setting a first
 password happens in Jellyfin, and Seerr authenticates against Jellyfin rather
 than holding credentials of its own — so an account with no password yet cannot
-be claimed through Seerr, whichever service `G5` picks as the door. What `G5-R6`
+be claimed through Seerr, whichever service `G5` picks as the door. What `G5-R14`
 is for still holds, and is what the operator experiences: one address, chosen by
 lemonfiber, rather than four to choose between. After the account is claimed, the
 household member uses the front door like everyone else.
@@ -118,8 +129,8 @@ and whether requests may be made — **before** it is sent, and `N9-R6` requires
 to state when it lapses.
 
 Afterwards, `N9-R7` requires two outcomes kept apart: lapsed unaccepted, and
-declined by the invitee. From the operator's end they look identical — nobody
-arrived — and each has a different next move, which is the argument
+declined by the invitee (`D6-R16`). From the operator's end they look identical —
+nobody arrived — and each has a different next move, which is the argument
 [D9](d9-pipeline-trace.md) makes about content that never appeared, applied to
 people.
 
@@ -142,6 +153,7 @@ Per household member:
 |-------|---------|
 | `invited` | Invitation issued, not yet accepted |
 | `expired` | Invitation lapsed unused |
+| `declined` | The invitee refused the invitation at its decline address |
 | `active` | Account created and usable |
 | `restricted` | Active with content or library limits |
 | `suspended` | Access temporarily withdrawn; account retained |
@@ -151,8 +163,11 @@ Per household member:
 
 | Situation | Behaviour |
 |-----------|-----------|
-| Invitation link intercepted on the LAN | Single-use and short-lived. State that it grants account creation to whoever opens it. |
+| Invitation link intercepted on the LAN | Single-use and short-lived. State that it grants account creation to whoever opens it. Whoever holds the decline address can refuse the invitation, which costs a re-issue and grants nothing. |
 | Invitation expires unused | Re-issuable without recreating the account definition. |
+| Invitee declines | The account can no longer be claimed, and the core reports the invitation as `declined` rather than `expired`. |
+| Decline address opened after the invitation was claimed or lapsed | Says the invitation is no longer open, and changes nothing. |
+| The stack is stopped when the invitee opens the decline address | Nothing answers, as with the sign-in address. The invitation stays `invited` until it lapses. |
 | Invitee sets a weak password | Enforce a minimum; keep the message brief and non-lecturing. |
 | Person already has a Jellyfin account | Detect and offer to grant Seerr access rather than creating a duplicate. |
 | Seerr unavailable at invitation time | Create the Jellyfin account and complete the Seerr link when it returns; report the partial state. |
@@ -182,6 +197,8 @@ Per household member:
 | **D6-R12** | An invitation issued while Seerr is unavailable MUST still create the Jellyfin account and complete the link later, reporting the partial state. |
 | **D6-R13** | Expired invitations MUST be re-issuable without redefining the member. |
 | **D6-R14** | lemonfiber MUST NOT grant household members any access to lemonfiber itself. |
+| **D6-R15** | An invitation MUST carry a decline address whose page offers the invitee a refusal of that invitation only, served by a service the stack keeps running beside the household front door, at the household binding tier, and never by a lemonfiber process (`G1-R5`). |
+| **D6-R16** | A refusal MUST make the invitation unclaimable at once, MUST be kept by the stack until the core reads it, and the core MUST report it as the invitation's standing, `declined`, told apart from one that lapsed (`expired`). |
 
 ## Related
 
