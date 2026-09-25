@@ -157,6 +157,21 @@ class WhatItWrites(unittest.TestCase):
         said = refs.build(["X1-R1"], {"X1-R1": ("a.md", "")}, URL)
         self.assertIn("— —", said)
 
+    def test_a_draft_is_linked_and_said_to_be_one(self):
+        said = refs.build(["X1-R1"], {"X1-R1": ("a.md", "Proposed.")}, URL, {"X1-R1": "a.md"})
+        self.assertIn(f"[`X1-R1`]({URL}/a.md) — Proposed.", said)
+        self.assertIn(
+            "⚠️ X1-R1 is Draft: implementation must not cite it until it is Accepted", said
+        )
+
+    def test_an_accepted_citation_says_nothing_of_drafts(self):
+        said = refs.build(["X1-R1"], {"X1-R1": ("a.md", "Agreed.")}, URL, {"X2-R1": "b.md"})
+        self.assertNotIn("Draft", said)
+
+    def test_with_no_drafts_given_nothing_is_said_of_them(self):
+        said = refs.build(["X1-R1"], {"X1-R1": ("a.md", "Agreed.")}, URL)
+        self.assertNotIn("Draft", said)
+
 
 class WhatItRefusesToRead(unittest.TestCase):
     def setUp(self):
@@ -198,6 +213,20 @@ class WhatItRefusesToRead(unittest.TestCase):
         self.assertIn(refs.MARKER, said)
         self.assertIn("outside the workspace", said)
         self.assertNotIn("X1-R1", said)
+
+    def test_a_draft_feature_is_flagged_from_the_checkout(self):
+        root = spec()
+        (root / "10-functional" / "x2.md").write_text(
+            "---\nid: X2\nstatus: draft\n---\n\n| **X2-R1** | Proposed. |\n",
+            encoding="utf-8",
+        )
+        work = pathlib.Path(tempfile.mkdtemp())
+        body = work / "body.txt"
+        body.write_text("Spec: X1-R1, X2-R1\n", encoding="utf-8")
+        os.chdir(work)
+        said = self.run_main(root, body)
+        self.assertIn("X2-R1 is Draft", said)
+        self.assertNotIn("X1-R1 is Draft", said)
 
     def test_the_trailing_slash_on_the_url_is_not_doubled(self):
         root = spec()

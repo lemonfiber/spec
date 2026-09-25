@@ -9,6 +9,8 @@ Enforces:
   GOV-R3  every cited identifier exists on spec@main — in the trailer, and in
           the lines this change adds to a file; see `named_in` for where the
           second of those stops and why
+  GOV-R47 no trailer cites a retired identifier
+  GOV-R48 no trailer cites a requirement a Draft document defines
 
 `--citation-optional` drops the first of those and keeps the second. It is for
 the one event that carries no pull request to read a citation from; see the
@@ -32,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+import re
 import sys
 
 from integrity import elsewhere
@@ -80,6 +83,54 @@ def retired_ids(spec_dir: pathlib.Path) -> dict[str, str]:
             if cell.strip().startswith(RETIRED):
                 found[rid] = " ".join(cell.split())
     return found
+
+
+# A document's own word on whether it is agreed: a feature's frontmatter
+# `status:`, or the `**Status:**` line every other document opens with. The first
+# `**Status:**` line is the one read, because a document may quote the status
+# vocabulary further down and a later line is prose about it.
+FRONTMATTER_STATUS = re.compile(r"^status:\s*(\S+)", re.MULTILINE)
+HEADER_STATUS = re.compile(r"^\*\*Status:\*\*\s*(\w+)", re.MULTILINE)
+DRAFT = "draft"
+
+
+def document_status(text: str) -> str:
+    """What a document says of itself, lower-cased, or nothing where it says nothing."""
+    if text.startswith("---\n"):
+        head, _, _ = text[len("---\n") :].partition("\n---\n")
+        said = FRONTMATTER_STATUS.search(head)
+        if said:
+            return said.group(1).lower()
+    said = HEADER_STATUS.search(text)
+    return said.group(1).lower() if said else ""
+
+
+def draft_ids(spec_dir: pathlib.Path) -> dict[str, str]:
+    """Identifiers defined in a Draft document, against the document.
+
+    `change-lifecycle.md` gives Draft one sentence: proposed, not binding, and
+    implementation MUST NOT cite it. A draft requirement resolves — the row is
+    there — so existence alone passes it, and the ordering guarantee collapses:
+    anyone could merge a draft and implement against it in the same breath.
+
+    The status is the document's, because that is where the spec records it. A
+    requirement row carries no status of its own until it is retired, and
+    `retired_ids` reads that. A row a Draft repeats from a document that is not
+    one stays citable: the agreed definition is the one that binds.
+    """
+    drafted: dict[str, str] = {}
+    agreed: set[str] = set()
+    for p in sorted(spec_dir.rglob("*.md")):
+        if elsewhere(p, spec_dir):
+            continue
+        text = p.read_text(encoding="utf-8", errors="ignore")
+        rows = REQ_DEF.findall(text)
+        if document_status(text) != DRAFT:
+            agreed.update(rows)
+            continue
+        for rid in rows:
+            drafted.setdefault(rid, p.relative_to(spec_dir).as_posix())
+    return {rid: where for rid, where in drafted.items() if rid not in agreed}
 
 
 def cited_ids(text: str) -> set[str]:
@@ -313,6 +364,18 @@ that exists.
 """
 
 
+DRAFT_GUIDANCE = """
+A Draft is proposed and not binding. The spec says implementation must not cite
+one, because a draft can be merged and implemented against in the same breath,
+and then the review that decides whether the product should do this never
+happens.
+
+Cite an Accepted requirement, or ask for this one to be accepted first. Where
+the work only mentions the draft, say so in the body rather than on a `Spec:`
+line: a trailer is a claim to implement what it names.
+"""
+
+
 NAMED_GUIDANCE = """
 An identifier written into a file is a citation to whoever reads it. A comment
 saying which requirement a rule keeps, a test's title, the sentence a refusal
@@ -447,6 +510,17 @@ def gate() -> int:
         for rid in gone:
             print(f"::error::{rid} is retired: {retired[rid]}")
         print(RETIRED_GUIDANCE)
+        return 1
+
+    drafts = draft_ids(spec_dir)
+    unagreed = sorted(i for i in cited if i in drafts)
+    if unagreed:
+        for rid in unagreed:
+            print(
+                f"::error::{rid} is Draft: implementation must not cite it until it is "
+                f"Accepted ({drafts[rid]})"
+            )
+        print(DRAFT_GUIDANCE)
         return 1
 
     print(f"spec-check: OK — cites {', '.join(sorted(cited))}")
