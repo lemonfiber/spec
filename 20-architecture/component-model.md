@@ -42,8 +42,16 @@ crates/
 │                                  through, and the vocabulary that crosses
 │                                  them; re-exported by the core as `ports`
 │
+├── lemonfiber-error/        lib — the error model: the problem a failure is
+│                                  reported as, the registry of every code, and
+│                                  the withholding a problem's detail passes
+│                                  through; depends on no crate of the project
+│
 ├── lemonfiber-fixtures/     lib — the fakes for those traits, reachable from
 │                                  both in-crate tests and `tests/`
+│
+├── lemonfiber-testing/      lib — the context a test outside the core drives a
+│                                  command through
 │
 └── lemonfiber-manifest/     lib — stack.toml parse + validate
 ```
@@ -72,6 +80,11 @@ Which types may cross is decided mechanically, not by taste: a type belongs to t
 boundary only if all of its behaviour can move with it. A type whose methods must
 stay behind is logic wearing a vocabulary's clothes, and it stays in the core.
 
+The error model sits below the ports rather than inside them. A port reports its
+failures as problems, and so does the core, so the problem type and the registry of
+every code it can carry are shared by both — and a crate of their own keeps the ports
+crate to the traits and the vocabulary that crosses them.
+
 ## The one boundary that matters
 
 **`lemonfiber-core` has no UI dependency of any kind.** No ratatui, no clap, no
@@ -94,7 +107,9 @@ flowchart TD
     web[web] --> core
     core --> ports[lemonfiber-ports]
     core --> manifest[lemonfiber-manifest]
+    core --> error[lemonfiber-error]
     ports --> manifest
+    ports --> error
     core --> docker[(Docker)]
     core --> fs[(Filesystem)]
 
@@ -331,7 +346,7 @@ the server runs only when asked (`G1-R5`).
 | **ARCH-R19** | Web assets MUST be embedded in the binary; no runtime toolchain MAY be required. |
 | **ARCH-R20** | The web API MUST be the same interface the TUI consumes. |
 | **ARCH-R42** | Every surface MUST reach behaviour through a single dispatch entry point in `lemonfiber-core`; a surface MUST NOT orchestrate the core's subsystems directly. |
-| **ARCH-R44** | The ports MUST live in a crate below `lemonfiber-core`, depending on no other crate of the project except `lemonfiber-manifest`. |
+| **ARCH-R44** | The ports MUST live in a crate below `lemonfiber-core`, depending on no other crate of the project except `lemonfiber-manifest` and `lemonfiber-error`. |
 | **ARCH-R45** | Test fakes for the ports MUST have a single home reachable from both in-source and integration tests, and that home MUST NOT depend on `lemonfiber-core`. |
 | **ARCH-R68** | The command reference MUST be generated from the types the binary parses and MUST NOT be written by hand; CI MUST fail when the committed artefact and those types disagree. |
 | **ARCH-R69** | The error-code reference MUST be generated from the codes the crates declare and MUST NOT be written by hand; CI MUST fail when the committed artefact and those declarations disagree, or when a declaration cannot be enumerated. |
