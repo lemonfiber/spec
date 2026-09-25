@@ -25,12 +25,13 @@ what each repo owns.
 
 **The org is the motor.** A maintainer never edits this repo to move a milestone,
 mark a deliverable done, or list a release. Those facts live where they are
-already kept current — the GitHub API, and two Markdown files under governance's
-existing discipline:
+already kept current — the GitHub API, and two files under governance's existing
+discipline:
 
-- [`00-overview/roadmap.md`](../00-overview/roadmap.md) — the sequenced milestones
 - [`lemonfiber/IMPLEMENTATION-STATUS.md`](https://github.com/lemonfiber/lemonfiber/blob/main/IMPLEMENTATION-STATUS.md)
-  — per-deliverable status (✅ / ◐ / ☐)
+  — the milestones and per-deliverable status (✅ / ◐ / ☐)
+- [`10-functional/features/index.json`](../10-functional/features/index.json) — the
+  specification's generated counts
 
 The site reads them at build time and renders them. When a maintainer pushes to
 the repo that owns a fact, CI rebuilds and the site moves. This is what makes the
@@ -43,9 +44,10 @@ of reality to drift from.
 website-lemonfiber.app/
 ├── src/lib/github.ts   the motor — build-time fetch + Markdown parse
 ├── src/data/seed.ts    committed fallback snapshot (never truth when live)
-├── src/data/site.ts    editorial copy; the service / profile / form model
+├── src/data/site.ts    site metadata, tagline and promises; the service / profile / form model
+├── src/i18n/           the rest of the site's copy
 ├── src/components/      Nav · Footer · Console · FormsSwitcher · RepoCard · …
-├── src/pages/           index · roadmap · transparency · contribute · 404
+├── src/pages/           index · transparency · contribute · 404
 └── src/styles/tokens.css  design tokens mirrored from brand
 ```
 

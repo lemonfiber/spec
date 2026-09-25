@@ -37,7 +37,12 @@ human spends any attention.
 lemonfiber-plugins/
 ├── plugins/
 │   └── <id>.toml            where it is, and the revision that was read
-└── .github/workflows/
+├── registry/                the checks CI runs over an entry
+├── targets.toml             the lemonfiber version the checks are held to
+├── justfile
+└── .github/
+    ├── interim/             the validation and proof programs, copied from plugin-template
+    └── workflows/
 ```
 
 One file per plugin, and **nothing in it that cannot be read as a diff** (`REPO-R60`).
@@ -97,7 +102,8 @@ terms: the catalogue is the curated lane, not the only road.
 ## Releases, and what a signature covers
 
 The catalogue tags on its own clock and is **not a stream the version train cuts**
-(`OPS-R59`). Nothing in `70-operations/versions/` names it, and a plugin landing here
+(`OPS-R59`). No `repos` list in `70-operations/versions/` names it — it appears there only in
+`satisfied_in`, which tags nothing — and a plugin landing here
 moves no version number in this organisation.
 
 A release is signed (`F5-R3`), and the signature covers exactly what was reviewed

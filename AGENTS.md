@@ -48,8 +48,10 @@ consumer). They run integrity, hygiene, and the docs build.
 40-quality/      comments, standards, testing, CI/CD, security, tooling, done
 50-governance/   the canonical-spec rule and its enforcement
 60-brand/        brand rules, surface mapping, accessibility contract
+70-operations/   releasing, the version train, setup registry, maintainers
 90-appendix/     licence rationale, colophon, FAQ
-scripts/         integrity.py, spec_check.py (reusable gate), gen_redirects.py
+shared/          canonical copies of the lint configs, hooks and gates other repos carry
+scripts/         integrity.py, spec_check.py (reusable gate), the generators, the checks
 ```
 
 ## House style
