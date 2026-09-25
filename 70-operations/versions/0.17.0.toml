@@ -27,10 +27,10 @@
 # G9 stays: a mobile client is handed a stack it did not configure, which is the same
 # question this version answers for a plugin.
 #
-# 36 goals, seeded from the roadmap milestone this version serves;
+# 39 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
-# Seven of them were added after staging, each reviewed as a goal change (OPS-R31).
+# Ten of them were added after staging, each reviewed as a goal change (OPS-R31).
 #
 # `E1-R1` went out with 0.14.0 unmet: every image in the stack is still named by tag,
 # and the requirement forbids resolving one that way. It is locked here with the
@@ -47,6 +47,12 @@
 # `F10-R11` lets a contributed check be proved by the recording it fires on, for a check
 # whose passing state cannot be recorded without an account nobody holds. It is what
 # lets a registered plugin's proofs pass against the image it pins.
+#
+# `G5-R14`, `D6-R15` and `D6-R16` are the decline address: an invitation carries the
+# household front door and an address to refuse it at, a service the stack keeps running
+# beside the front door serves the refusal, and the core reports a refused invitation as
+# `declined`, apart from one that lapsed. Their siblings are locked by released versions,
+# so this is the first version that can hold them.
 version = "0.17.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — what the bundled stack can do, and where a plugin comes from"
@@ -90,6 +96,9 @@ goals   = [
     "B1-R19",
     "B1-R20",
     "F10-R11",
+    "G5-R14",
+    "D6-R15",
+    "D6-R16",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
