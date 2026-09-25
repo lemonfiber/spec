@@ -1,7 +1,8 @@
 # ADR-0029: A household service declines an invitation, holding one media-server key and nothing else
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-25
+**Decided:** 2026-09-25, by the maintainer, Wessel Verheij: with the D6-R15 rewording, the new C6 requirement, CorsHosts naming the household front-door origin, and Homepage holding no Jellyfin key.
 
 ## Context
 

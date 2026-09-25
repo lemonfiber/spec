@@ -1,7 +1,8 @@
 # ADR-0028: A supported major is data the stack declares, proved by its own recordings
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-25
+**Decided:** 2026-09-25, by the maintainer, Wessel Verheij: a line is one major, and each line's pin follows the newest release of that major.
 
 ## Context
 
