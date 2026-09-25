@@ -179,6 +179,7 @@ media_types = ["tv"]
 | `depends_on` | array | | **Same profile only.** Cross-profile entries fail validation (`B1-R14`). |
 | `grants` | array | | Extra kernel capabilities granted to the container, e.g. `["NET_ADMIN"]`. Any entry beyond an allow-list fails validation. Spelled `capabilities` until `0.16.0`; that spelling is still accepted and always will be, because a rename is not a reason to refuse to read somebody's own stack description. |
 | `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`) |
+| `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate the stack declares, summed into a form's footprint and never shown as a measurement (`B1-R18`). |
 
 ### The media types, and why the set is written down here
 
@@ -457,6 +458,7 @@ Validation reports **every** violation in one pass, each naming its location
 | `reaches` and `asks_for` declared together or not at all | Service and the declared half named (`F2-R10`) |
 | `asks_for` is not blank where it is declared | Service named (`F2-R10`) |
 | No service is silent about its errand in a manifest where another declares one | Every silent service named (`F2-R10`) |
+| `memory_mib` above zero where it is declared | Service named (`B1-R18`) |
 | `grants` within the allow-list | Service and kernel capability named |
 | `protocol` is a permitted value | Profile and value named |
 | At most one profile per `protocol` | Both profiles named |

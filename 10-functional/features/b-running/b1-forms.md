@@ -99,6 +99,26 @@ The operator can ask what a form will do before running it: the profiles it
 expands to, the services that will start, which were filtered out and why, and
 the approximate memory footprint.
 
+The footprint is the stack's estimate, not a measurement. Each service may declare
+the memory it expects to need; a form's footprint is the sum over the services it
+would start, and the services that declare nothing are named beside it, so a sum
+that is short says so.
+
+### What is running names what brought it
+
+Status names, beside each service, every active form whose closure holds it. All
+of them, because a service two forms share is there for both, and stopping one of
+them leaves it running for the other. A form counts as active while every service
+it holds has been started and none of them has been stopped: a service that failed
+is still part of the form somebody asked for, and its failure is its state rather
+than a reason to stop saying why it is there. A superseded form is not named, since
+its services are there because of the broader one.
+
+Beside the services, status reports what the active forms' closures filtered out:
+each service left out, the profile it belongs to, the provider it needed, and the
+forms that asked for it. A service that was filtered reads as the feature working
+rather than as one that did not start.
+
 ### Forms are data, not code
 
 Adding or changing a form is a manifest edit in `lemonfiber-media-stack`. It
@@ -179,6 +199,9 @@ operator would notice is a form of their own the app does not believe exists.
 | **B1-R13** | `library` MUST be startable with no third-party accounts configured. |
 | **B1-R14** | No service MAY declare a `depends_on` crossing a profile boundary, except within a profile whose services are always co-activated. |
 | **B1-R15** | Which profiles require a configured provider MUST be declared by the manifest; lemonfiber MUST NOT identify them by name. |
+| **B1-R16** | Status MUST name, for each service, every active form whose closure holds it, and MUST NOT name a superseded form. |
+| **B1-R17** | Status MUST report each service an active form's closure filtered out, with the provider it needs and the forms that asked for it. |
+| **B1-R18** | A service MAY declare the memory it expects to need; a form's introspection MUST report the sum over the services it would start as the stack's estimate, MUST name the services that declare none, and MUST NOT present it as a measurement. |
 
 ## Related
 

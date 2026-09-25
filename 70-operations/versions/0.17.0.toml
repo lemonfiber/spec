@@ -27,14 +27,18 @@
 # G9 stays: a mobile client is handed a stack it did not configure, which is the same
 # question this version answers for a plugin.
 #
-# 30 goals, seeded from the roadmap milestone this version serves;
+# 33 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
-# One of them was added after staging, reviewed as a goal change (OPS-R31).
+# Four of them were added after staging, each reviewed as a goal change (OPS-R31).
 #
 # `E1-R1` went out with 0.14.0 unmet: every image in the stack is still named by tag,
 # and the requirement forbids resolving one that way. It is locked here with the
 # digest pinning that meets it, and 0.14.0's manifest records why it no longer claims it.
+#
+# `B1-R16`, `B1-R17` and `B1-R18` are what the companion reads to show a partial stack as
+# the forms that brought it (N18): the forms behind each running service, what an active
+# form filtered out and why, and the footprint the stack estimates for a form.
 version = "0.17.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — what the bundled stack can do, and where a plugin comes from"
@@ -72,6 +76,9 @@ goals   = [
     "G9-R11",
     "G9-R12",
     "E1-R1",
+    "B1-R16",
+    "B1-R17",
+    "B1-R18",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

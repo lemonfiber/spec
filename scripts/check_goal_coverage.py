@@ -87,6 +87,10 @@ AWAITING_A_VERSION = {
         "N15 requires N1, which no version schedules, and G2, locked by 0.9.0, released",
         [f"N15-R{n}" for n in range(1, 11)],
     ),
+    "N18": (
+        "N18 requires N1, which no version schedules, and B1, whose last goals 0.17.0 locks",
+        [f"N18-R{n}" for n in range(1, 10)],
+    ),
 }
 
 
