@@ -50,9 +50,10 @@ why = "explains a citation refusal in a comment; the refusal is spec-check's"
 name = "dco / explain"
 why = "explains a sign-off refusal in a comment; the refusal is dco's"
 
-# Complement legs. Each carries `if: github.event_name != 'pull_request'` and is
-# therefore always skipped on a pull request. Requiring one would deadlock the
-# branch permanently: a skipped check never reports, and protection waits.
+# Complement legs. Each carries a condition that is false on a pull request
+# (`sonar-gate`'s is false on a merge group too) and is therefore always skipped
+# on one. Requiring one would deadlock the branch permanently: a skipped check
+# never reports, and protection waits.
 [[exempt]]
 name = "gate / not-a-pull-request"
 why = "always skipped on a pull request; requiring it would deadlock the branch"
