@@ -129,8 +129,12 @@ experiment with.
 
 ### On the companion
 
-Seed makes the thirty connections; the companion is where they are checked
-rather than made ([N7](../n-companion/n7-moving-in.md)).
+Seed makes the thirty connections, and the companion may run it
+([N7](../n-companion/n7-moving-in.md)). That is safe from a phone for two
+reasons this feature already requires: a second run with nothing changed writes
+nothing (`D1-R2`), and a value the operator set is kept rather than overwritten
+(`D1-R3`). `N7-R15` offers the run and shows each connection in the state it
+ended in; `N7-R16` forbids offering to overwrite the operator's value.
 
 *Partial success is reported precisely* is the property that has to survive a
 small screen. `N7-R1` requires what could not be carried shown with a reason for

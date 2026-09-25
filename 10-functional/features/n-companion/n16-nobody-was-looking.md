@@ -9,7 +9,7 @@ maturity: planned
 priority: P2
 labels: [mobile, observability, queue, ux]
 requires: [N1, K2]
-relates: [B8, H5, G7, N2, N10]
+relates: [B8, B10, H5, G7, N2, N10]
 ---
 
 # N16 — What happened while nobody was looking
@@ -98,9 +98,15 @@ component that stopped working.
 ### The app watches; it does not act
 
 Nothing here is the app's decision. It does not clear an item, does not change a
-strike count or a grace window, and does not turn autostart on or off on the
-operator's behalf. What is configured is the core's, which is the line
-[N2](n2-operator-companion.md) already draws.
+strike count or a grace window, and does not turn the stack's own autostart
+([B8](../b-running/b8-autostart.md)) on or off on the operator's behalf. What is
+configured is the core's, which is the line [N2](n2-operator-companion.md)
+already draws.
+
+Hosting one of lemonfiber's own long-running commands
+([B10](../b-running/b10-hosting.md)) is a different subject. It keeps a command
+running after the terminal closes, not the stack after a boot, and installing or
+removing one is an act the operator asks for by name — `N23`'s, not this page's.
 
 ### None of this is first-run setup
 
@@ -122,7 +128,7 @@ is not offering it — the distinction `N15` makes.
 | **N16-R9** | Removing, blocklisting and re-searching MUST be shown as the three acts they are, and MUST NOT be flattened into one. |
 | **N16-R10** | Where self-healing could not reach what it manages, that MUST be shown as its own answer and MUST NOT be rendered as nothing needing attention. |
 | **N16-R11** | A rehearsed self-heal MUST be labelled as a rehearsal (`N6-R1`) and MUST NOT be reported as items cleared. |
-| **N16-R12** | The app MUST NOT act on a wedged item, change a strike count or a grace window, or turn returning-after-restart on or off (`N2`). |
+| **N16-R12** | The app MUST NOT act on a wedged item, change a strike count or a grace window, or turn the stack's own autostart on or off (`B8`, `N2`). Installing or removing a hosted long-running command (`B10`) is not autostart, and this row does not forbid it. |
 | **N16-R13** | Uptime, restart or queue state that could not be read MUST be told apart from there being nothing wrong. |
 | **N16-R14** | Nothing on this surface MUST offer first-run setup (`N1-R4`). |
 
@@ -133,35 +139,24 @@ raised against the contract rather than approximated from a neighbouring value.
 That is `N1-R17`, and it is the rule that keeps this surface honest about what
 it actually knows.
 
-**Two thirds of this page is waiting on the contract, and an earlier draft said
-otherwise.** It claimed nothing here asks the core for a capability it does not
-have. Checked against all sixty-two published envelopes, that is true of one of
-the three subjects and not of the other two:
+**This page is waiting on the contract.** Checked against all sixty-two
+published envelopes, none of its three subjects is carried in full:
 
 | Subject | Where it stands |
 |---|---|
-| Coming back after a restart | **Mostly.** `HostingEnvelope` answers `N16-R5` as written: `manager: 'unsupported'` with an `instruction` saying what to do instead is *not available here* rather than *off*. `N16-R6` is answerable from the per-command `standing`, which says of each one whether it is `hosted`, `stopped` or `orphaned`. `N16-R7` is **half** carried, and an earlier draft of this row said it was all of it — see below |
+| Coming back after a restart | **Partly.** No envelope reports the stack's own autostart (`B8`): whether it is configured, `enabled-unverified`, or unavailable on this platform, so `N16-R5` has no field to answer from. `lifecycle` carries why a start at login declined — the stack was stopped on purpose, autostart was never asked for, or the machine is on battery — which is part of `N16-R6`. `hosting` is not this subject: it is lemonfiber's own long-running commands (`B10`), shown under `N10-R10` |
 | The outside watcher | **Not carried.** Nothing holds an outside observer's readings, so `N16-R1` through `N16-R4` cannot be answered. `WatchEnvelope` is supervision of forms rather than an uptime monitor |
 | The queue's own repairs | **Partly.** `StuckEnvelope` carries the stage and why a repair could not reach what it manages, so `N16-R10` is answerable. It carries no strike count and no account of removing, blocklisting and re-searching as three acts, so `N16-R8` and `N16-R9` are not |
 
-Requirements are not withdrawn for being unanswerable yet — a requirement
-describes what the product owes, and a contract that cannot carry it is the
-thing to change. What is withdrawn is the claim that they were all answerable.
+A requirement is not withdrawn for being unanswerable: it describes what the
+product owes, and a contract that cannot carry it is the thing to change.
 
-**`N16-R7` asks for two things and the contract carries one of them.** The half
-it carries is the shape: `standing: 'installed-unverified'` is *installed, and
-the manager would not say whether it is running*, which is a state that refuses
-to read as passing — exactly what the requirement asks of a verification that
-has not run. The half it does not carry is *when it last ran*. No field in the
-hosting payload holds a time, and post-boot verification is not a subject any
-envelope has: searched across all sixty-two on `688865f`, the nearest thing is
-`doctor`'s `Unverified` verdict, which is one check saying it could not run and
-carries no time either.
-
-The two are also not the same subject. `installed-unverified` is about what the
-*service manager* would confirm; `N16-R7` is about a check that runs after a
-boot. A surface built on the first and labelled as the second would be telling
-an operator that verification had not run when what had actually happened is
-that `launchd` declined to answer — which is the shape of mistake this page
-exists to refuse. So `N16-R7` needs a field the contract does not have, and the
-half that is carried is worth building on its own terms, under `N16-R5`.
+**`N16-R7` is not carried.** Post-boot verification is not a subject any
+envelope has: neither when it last ran nor whether it passed. The nearest things
+are two other subjects. `doctor`'s `Unverified` verdict is one check saying it
+could not run, and carries no time. `hosting`'s `installed-unverified` is a
+service manager declining to say whether a hosted command is running — a
+statement about `launchd` or `systemd` and one command, not about a check after a
+boot. A surface built on either and labelled as `N16-R7` would tell an operator
+verification had not run when something else had happened, which is the shape of
+mistake this page exists to refuse.
