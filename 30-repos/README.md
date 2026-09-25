@@ -98,9 +98,10 @@ downstream of every `lemonfiber` release and is otherwise inert.
 
 **The documented repos → `website-docs.lemonfiber.app` (submodules).** The
 documentation site shows the `.docs/`, README and policy files of `lemonfiber`,
-`lemonfiber-web`, `sdk-ts`, `sdk-php`, `lemonfiber-media-stack`, `brand`,
-`homebrew-tap` and `.github`, each pinned to an exact revision and rendered rather
-than copied ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
+`lemonfiber-web`, `lemonfiber-companion`, `sdk-ts`, `sdk-php`,
+`lemonfiber-media-stack`, `lemonfiber-plugins`, `brand`, `homebrew-tap`, `.github`
+and `plugin-template`, each pinned to an exact revision and rendered rather than
+copied ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
 The specification is mirrored the same way, and is published from there rather than
 from a book of its own.
 

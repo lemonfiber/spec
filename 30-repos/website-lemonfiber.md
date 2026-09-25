@@ -44,8 +44,8 @@ of reality to drift from.
 website-lemonfiber.app/
 ├── src/lib/github.ts   the motor — build-time fetch + Markdown parse
 ├── src/data/seed.ts    committed fallback snapshot (never truth when live)
-├── src/data/site.ts    site metadata; the service / profile / form model
-├── src/i18n/           the site's copy
+├── src/data/site.ts    site metadata, tagline and promises; the service / profile / form model
+├── src/i18n/           the rest of the site's copy
 ├── src/components/      Nav · Footer · Console · FormsSwitcher · RepoCard · …
 ├── src/pages/           index · transparency · contribute · 404
 └── src/styles/tokens.css  design tokens mirrored from brand

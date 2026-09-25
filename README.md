@@ -114,7 +114,8 @@ trailers and PR bodies — **never in code comments**
 | 70-operations | Accepted | Releasing, setup registry, project workflow, maintainers |
 
 The v1 spec is complete and **the ecosystem is specified** (areas H–K plus F3;
-the runtime pillar J, the companion area N, and F8, F11 and G10 are Draft).
+the runtime pillar J, the companion area N apart from N1, N11 and N15, and F8, F11
+and G10 are Draft).
 Implementation is under way: the
 [version train](00-overview/roadmap.md#the-version-train) runs to 1.0, and
 [releases](https://github.com/lemonfiber/lemonfiber/releases) say where it has

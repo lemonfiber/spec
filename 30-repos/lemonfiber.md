@@ -39,7 +39,7 @@ lemonfiber/
 ├── assets/media-stack/         git submodule, embedded at build
 ├── assets/web/                 git submodule — the built web surface, embedded at build
 ├── contract/                   generated contracts: the web API, the plugin schema and vocabularies
-├── reference/                  the generated command reference
+├── reference/                  the generated command reference, error codes and release record
 └── .docs/                      repo-local technical docs
 ```
 
@@ -58,7 +58,7 @@ lemonfiber/.docs/
 ├── 00-index.md
 ├── architecture/       how subsystems are built — the ports boundary, dispatch,
 │                       the engine API, the embedded stack, the error model
-└── conventions/        naming, error style; the comment policy is canonical in the spec
+└── conventions/        an index pointing at the comment policy, which is canonical in the spec
 ```
 
 Code links here (`Q-R5`); these pages cite spec requirement IDs. This is the

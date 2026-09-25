@@ -227,9 +227,10 @@ violation is reported (`REPO-R37`). The same reasoning as the comment policy's
 fixture tree (`Q-R7`), applied to configuration.
 
 CI starts the profile groups `scripts/check_runs.py --plan` names and checks each
-service answers the probe `stack.toml` declares; a service that needs real
-credentials or a real provider, such as gluetun's tunnel, is named in
-`check_runs.py` with the reason and left out.
+service answers the probe `stack.toml` declares. A profile that cannot start
+without real credentials or a real provider is named in `check_runs.py` with the
+reason and left out: `torrent`, whose gluetun needs a VPN tunnel and whose
+qbittorrent waits on gluetun.
 
 ## Adding a service
 
