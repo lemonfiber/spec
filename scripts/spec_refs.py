@@ -80,6 +80,21 @@ def cited(text: str) -> list[str]:
     return ids
 
 
+def row(i: str, idx: dict[str, tuple[str, str]], base_url: str, drafts: dict[str, str]) -> str:
+    """One cited identifier: a link and its text, or a warning where it has neither."""
+    if i not in idx:
+        return f"- `{i}` — ⚠️ not found on spec@main (`spec-check` will flag this)"
+    rel, desc = idx[i]
+    desc = (desc[:137] + "…") if len(desc) > 140 else (desc or "—")
+    line = f"- [`{i}`]({base_url}/{rel}) — {desc}"
+    if i in drafts:
+        line += (
+            f" — ⚠️ {i} is Draft: implementation must not cite it until it is "
+            "Accepted (`spec-check` will refuse this)"
+        )
+    return line
+
+
 def build(
     ids: list[str],
     idx: dict[str, tuple[str, str]],
@@ -92,7 +107,6 @@ def build(
     same thing where the author is already looking, so the refusal is not the
     first they hear of it.
     """
-    drafts = drafts or {}
     out = [MARKER, "### 📎 Spec references", ""]
     if not ids:
         out.append(
@@ -102,19 +116,7 @@ def build(
         )
     else:
         out += ["This PR cites the following spec identifiers:", ""]
-        for i in ids:
-            if i in idx:
-                rel, desc = idx[i]
-                desc = (desc[:137] + "…") if len(desc) > 140 else (desc or "—")
-                line = f"- [`{i}`]({base_url}/{rel}) — {desc}"
-                if i in drafts:
-                    line += (
-                        f" — ⚠️ {i} is Draft: implementation must not cite it until it is "
-                        "Accepted (`spec-check` will refuse this)"
-                    )
-                out.append(line)
-            else:
-                out.append(f"- `{i}` — ⚠️ not found on spec@main (`spec-check` will flag this)")
+        out += [row(i, idx, base_url, drafts or {}) for i in ids]
     out += ["", "<sub>Updated automatically on each push.</sub>"]
     return "\n".join(out)
 
