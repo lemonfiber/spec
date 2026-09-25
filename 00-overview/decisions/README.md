@@ -45,6 +45,8 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0024](0024-what-opens-and-what-never-does.md) | Data about this installation opens; behaviour lemonfiber implements does not | Proposed |
 | [0025](0025-nothing-leaves-this-machine-unpinned.md) | A pin is the certificate's digest, and it is what permits an address off this machine | Proposed |
 | [0026](0026-a-screen-may-hold-the-stream.md) | A screen may hold the event stream, and holding it is its one read | Proposed |
+| [0028](0028-a-supported-major-is-data-proved-by-its-own-recordings.md) | A supported major is data the stack declares, proved by its own recordings | Accepted |
+| [0029](0029-a-household-service-declines-an-invitation-with-one-key.md) | A household service declines an invitation, holding one media-server key and nothing else | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
