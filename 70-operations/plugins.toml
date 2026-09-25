@@ -40,8 +40,9 @@ schema = 1
 # starts from — and the train should stop for that before it stops for anything
 # built on top of it.
 #
-# It is also where `.github/interim/` is written; the other two carry byte-identical
-# copies and each fails when its copy drifts from this one.
+# It is also where `.github/reader/` is written; the other plugin repositories and
+# the catalogue carry byte-identical copies, and a `harness` job fails where a copy
+# drifts from this one.
 id = "template"
 repo = "plugin-template"
 manifest = "plugin.toml"
