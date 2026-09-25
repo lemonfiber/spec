@@ -4,6 +4,14 @@
 name: sonar
 on:
   pull_request:
+  # A merge queue asks for every context `main` requires again, on its own
+  # branch: `main`'s tip with the queued pull requests applied. A context that
+  # never reports there is read as a wait, and the queue drops the pull request
+  # at the timeout naming nothing. The reusable's `gate` job runs on this
+  # event too, and asks there what a batch can be asked: the new-issue count
+  # of every pull request in it, and the open count against the project. It
+  # never skips to a pass, because a skipped `gate / gate` reports success.
+  merge_group:
 permissions:
   contents: read
   pull-requests: write

@@ -7,6 +7,13 @@ on:
   push:
     branches: [main]
   pull_request:
+  # A merge queue asks for every context `main` requires again, on its own
+  # branch: `main`'s tip with the queued pull requests applied. A context that
+  # never reports there is read as a wait, and the queue drops the pull request
+  # at the timeout naming nothing. The analysis runs over the merged batch, and
+  # `alerts` asks about this run's own ref, which on this event is the queue's
+  # branch rather than a pull request's merge ref.
+  merge_group:
   schedule:
     - cron: "0 6 * * 2"
 permissions:

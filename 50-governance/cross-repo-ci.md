@@ -209,7 +209,7 @@ event. One that does not is not read as a failure; it is read as a wait, and the
 queue drops the pull request when the status-check timeout expires, naming
 nothing.
 
-Two things about that are worth writing down, because both were found the
+Three things about that are worth writing down, because each was found the
 expensive way.
 
 **A skipped job reports success; a skipped *caller* reports nothing at all.**
@@ -219,6 +219,17 @@ the caller does not leave a skipped tick on a merge group — it leaves no tick,
 which is exactly the state a queue waits on. A caller of a required reusable
 therefore runs on `merge_group` and lets the workflow inside decide what it can
 answer.
+
+**A gate that reads a range reads the batch's, and never skips.** `dco`,
+`attribution` and `commitlint` take their range from the merge group there:
+`main`'s tip to the commits the queue built, one squash per pull request, which
+is exactly what `main` is about to hold. A merge group that arrives without a
+range fails rather than passing over nothing, because a skipped required check
+reports success and the queue merges on it. `gate / gate` asks what SonarCloud
+can answer about a batch: the new-issue count of every pull request in it, and
+the open count against the project (**Q-R64**). SonarCloud's own
+`SonarCloud Code Analysis` status is posted by its app and never on a queue's
+branch, so a repository behind a queue requires `gate / gate` in its place.
 
 **This gate asks less of a merge group, and says so.** That event carries no
 pull request: no body, and no author. **GOV-R2** allows a citation to live in

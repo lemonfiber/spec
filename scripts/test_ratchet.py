@@ -119,7 +119,7 @@ class Ratchet(unittest.TestCase):
         self.log = self.tmp / "curl.log"
 
     def run_step(self, declared, *, base=None, status="200", fails=False,
-                 standing=None, sonar_status=None):
+                 standing=None, sonar_status=None, base_ref="main"):
         """Run the step with `allowed-open: declared` against a base branch file.
 
         `standing` is how many issues SonarCloud reports against the base branch.
@@ -137,7 +137,7 @@ class Ratchet(unittest.TestCase):
             "WORKFLOW_REF": (
                 "lemonfiber/sdk-php/.github/workflows/sonar.yml@refs/pull/12/merge"
             ),
-            "BASE_REF": "main",
+            "BASE_REF": base_ref,
             "ALLOWED": str(declared),
             "CURL_STATUS": status,
             "CURL_LOG": str(self.log),
@@ -283,6 +283,17 @@ class Ratchet(unittest.TestCase):
             ".github/workflows/sonar.yml?ref=main",
             asked,
         )
+
+    def test_a_merge_groups_full_ref_is_asked_as_a_branch(self):
+        """A merge group names its base `refs/heads/main`; both hosts want `main`."""
+        code, out = self.run_step(
+            1, base=DECLARES_NOTHING, standing=1, base_ref="refs/heads/main"
+        )
+        self.assertEqual(code, 0, out)
+        asked = self.log.read_text(encoding="utf-8")
+        self.assertIn("sonar.yml?ref=main\n", asked)
+        self.assertIn("&branch=main&", asked)
+        self.assertNotIn("refs/heads", asked)
 
     def test_a_commented_out_declaration_is_not_read(self):
         code, out = self.run_step(

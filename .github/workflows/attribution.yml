@@ -8,6 +8,10 @@ name: attribution
 on:
   workflow_call:
   pull_request:
+  # A merge queue's own event, for the spec repo's self-run. A caller that sits
+  # behind a queue calls this from `merge_group` too, and what the step below
+  # does there is the same for both.
+  merge_group:
 permissions:
   contents: read
 jobs:
@@ -36,9 +40,22 @@ jobs:
         with:
           python-version: "3.12"
       - name: Check the record
+        # The range is named per event, because only one of the two exists at a
+        # time: `github.event.pull_request` is null on a merge group, and
+        # `github.event.merge_group` is null on a pull request. A merge group's
+        # range is `main`'s tip to the batch the queue built on it — one commit
+        # per queued pull request, each the squash that will land — so this is
+        # asked of exactly what `main` is about to hold.
+        #
+        # A merge group always has a range. One that arrives without both ends
+        # fails rather than skipping: a skipped check reports success, and a
+        # queue reads success as leave to merge a batch nothing read. On any
+        # other event there is no pull request to hold to this, and the run says
+        # so in its log.
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
           # Through the environment and then a pipe, never interpolated into the
           # script: a pull request body is whatever somebody typed, and a body
           # containing a quote would otherwise be a shell injection.
@@ -53,6 +70,9 @@ jobs:
              && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
             printf '%s' "$PR_BODY" \
               | python3 "$scripts/attribution_check.py" "$BASE_SHA" "$HEAD_SHA" --body-on-stdin
+          elif [ "$EVENT" = "merge_group" ]; then
+            echo "::error::A merge group arrived without a base..head range (base '${BASE_SHA}', head '${HEAD_SHA}'), so the batch was not read. Refusing rather than passing over nothing."
+            exit 1
           else
             echo "no PR range; skipping"
           fi

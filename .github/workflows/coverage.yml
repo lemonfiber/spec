@@ -9,6 +9,12 @@
 name: coverage
 on:
   pull_request:
+  # A merge queue asks for every context `main` requires again, on its own
+  # branch: `main`'s tip with the queued pull requests applied. A context that
+  # never reports there is read as a wait, and the queue drops the pull request
+  # at the timeout naming nothing. Nothing here reads the pull request, so on
+  # this event the same checks run over the merged batch.
+  merge_group:
   push:
     branches: [main]
 permissions:
@@ -115,6 +121,13 @@ jobs:
       # silence (Q-R66).
       - name: A run with nothing to gate says so (Q-R64, Q-R66)
         run: python3 scripts/test_no_token.py
+      # The same shape, on the event a merge queue asks on. Every workflow `main`
+      # requires a context of declares it, and the steps that read a pull
+      # request are run without one and shown refusing a batch they cannot read
+      # rather than skipping it, since a skipped required check is a pass the
+      # queue merges on (Q-R37, Q-R66).
+      - name: A merge group is asked, and never skipped (Q-R37, Q-R66)
+        run: python3 scripts/test_merge_group.py
       # The same shape a third time, on the maintainer flag. It announced on one
       # workflow's conclusion and called it "Passed CI"; what this drives is the
       # gate declining while a required check is pending, failing, or belongs to
