@@ -21,6 +21,12 @@ name: workflow-pins
 on:
   workflow_call:
   pull_request:
+  # A merge queue asks for every context `main` requires again, on its own
+  # branch: `main`'s tip with the queued pull requests applied. A context that
+  # never reports there is read as a wait, and the queue drops the pull request
+  # at the timeout naming nothing. Nothing here reads the pull request, so on
+  # this event the same checks run over the merged batch.
+  merge_group:
 
 permissions:
   contents: read

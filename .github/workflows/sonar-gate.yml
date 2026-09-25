@@ -75,7 +75,12 @@ permissions:
 
 jobs:
   gate:
-    if: github.event_name == 'pull_request'
+    # A pull request, and a merge queue's batch. On a merge group this job runs
+    # rather than skipping, because `gate / gate` is a required context and a
+    # skipped job reports success: a queue would read that as leave to merge a
+    # batch nothing gated. What it asks there is in the step that runs only on
+    # that event, below.
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -90,10 +95,17 @@ jobs:
           API: ${{ github.api_url }}
           REPO: ${{ github.repository }}
           WORKFLOW_REF: ${{ github.workflow_ref }}
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          # The branch the change merges into, named per event: a pull
+          # request's base is a branch name and a merge group's is a full ref,
+          # and only one of the two exists on any run.
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref }}
           ALLOWED: ${{ inputs.allowed-open }}
         run: |
           set -euo pipefail
+
+          # A merge group names its base as `refs/heads/main`; the contents API
+          # and SonarCloud's `branch=` both want `main`.
+          BASE_REF=${BASE_REF#refs/heads/}
 
           # The caller's own workflow file, which is where the allowance is
           # written. `github.workflow_ref` names the workflow that started this
@@ -206,6 +218,11 @@ jobs:
           fi
 
       - name: Enforce zero new SonarCloud issues (Q-R64)
+        # A pull request's own verdict: it waits for the SonarCloud summary of
+        # this head and comments on the pull request, and a merge group has
+        # neither a summary nor a pull request to comment on. The batch is
+        # asked by the step after this one.
+        if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           SONAR_TOKEN: ${{ secrets.sonar-token }}
@@ -446,13 +463,129 @@ jobs:
           verdict "### ✅ Issue gate passed · SonarCloud reports **0 new issues**."
           echo "SonarCloud reports 0 new issues."
 
-  # A caller may invoke this from any event, and only a pull request has the two
-  # things it reads: a SonarCloud summary about a head commit, and a base branch
-  # to compare an allowance against. On anything else the job above does not run
+      # What a merge queue's batch can be asked, and it is asked all of it.
+      #
+      # A queue's branch is not a pull request, so SonarCloud writes no summary
+      # about it and holds no new-issue count for it. What there is: every pull
+      # request in the batch has its own analysis, and the
+      # project has an open count. So this reads the new-issue count of each
+      # pull request the batch carries and refuses any above zero, and refuses
+      # an open count above the declared allowance — the two numbers the step
+      # above reads on a pull request, asked again at the moment of merging.
+      #
+      # It refuses where the step above warns and passes. On a pull request an
+      # unreadable count is not the contributor's to fix, and the pull request
+      # waits for its author either way; in a queue a pass is a merge, and a
+      # batch nobody could read is a batch nobody gated. A refused batch leaves
+      # its pull requests open, to be queued again once SonarCloud answers.
+      - name: Every pull request in the batch carries zero new issues (Q-R64)
+        if: github.event_name == 'merge_group'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SONAR_TOKEN: ${{ secrets.sonar-token }}
+          PROJECT: ${{ inputs.project }}
+          ALLOWED: ${{ inputs.allowed-open }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+          DEPENDABOT: "dependabot[bot]"
+        run: |
+          set -euo pipefail
+
+          project=${PROJECT:-${REPO/\//_}}
+
+          refuse() {
+            echo "::error::$1"
+            printf '### ❌ Issue gate refused this batch\n\n%s\n' "$1" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+
+          if [ -z "${SONAR_TOKEN:-}" ]; then
+            refuse "No SONAR_TOKEN reached this merge group, so no count could be read and Q-R64 would go unenforced on a merge. A queue's branch is this repository's own, so the secret is missing rather than withheld."
+          fi
+          auth=$(printf '%s:' "$SONAR_TOKEN" | base64 | tr -d '\n')
+
+          # Whether the project is there, before any count is believed: a key
+          # that does not exist answers every search with 200 and zero.
+          found=$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Basic ${auth}" \
+            "https://sonarcloud.io/api/components/show?component=${project}" \
+            || echo "000")
+          if [ "$found" != "200" ]; then
+            refuse "No SonarCloud project called ${project} could be read (HTTP ${found}), so no count here would mean anything."
+          fi
+
+          status=$(curl -sS --max-time 30 -o open.json -w '%{http_code}' \
+            -H "Authorization: Basic ${auth}" \
+            "https://sonarcloud.io/api/issues/search?projects=${project}&resolved=false&ps=1" \
+            || echo "000")
+          open=""
+          if [ "$status" = "200" ]; then
+            open=$(jq -r '.total // empty' open.json 2>/dev/null || true)
+          fi
+          if [ -z "$open" ]; then
+            refuse "Could not read the open-issue count for ${project} (HTTP ${status})."
+          fi
+          if [ "$open" -gt "$ALLOWED" ]; then
+            refuse "${open} open issues against ${project}; this repository declares allowed-open: ${ALLOWED} (Q-R64, Q-R67). They are at https://sonarcloud.io/project/issues?id=${project}&resolved=false"
+          fi
+          echo "Open issues against ${project}: ${open}, within allowed-open: ${ALLOWED}."
+
+          # The pull requests in the batch, read off the commits the queue built.
+          # A squash queue lands one commit per pull request, its subject ending
+          # `(#<number>)`; a commit that names none is one this gate cannot
+          # attribute, and is refused rather than passed over.
+          subjects=$(gh api "repos/${REPO}/compare/${BASE_SHA}...${HEAD_SHA}" \
+            --jq '.commits[].commit.message | split("\n")[0]') \
+            || refuse "Could not read the commits between ${BASE_SHA} and ${HEAD_SHA}, so the pull requests in this batch are unknown."
+          if [ -z "$subjects" ]; then
+            refuse "No commit between ${BASE_SHA} and ${HEAD_SHA}, so this batch holds nothing to gate and a pass would be about nothing."
+          fi
+          prs=""
+          while IFS= read -r subject; do
+            number=$(printf '%s' "$subject" | sed -nE 's/.*\(#([0-9]+)\)$/\1/p')
+            if [ -z "$number" ]; then
+              refuse "The batch carries a commit naming no pull request: \"${subject}\". This gate reads a squash queue, one commit per pull request with its subject ending (#<number>)."
+            fi
+            prs="${prs} ${number}"
+          done <<< "$subjects"
+
+          for pr in $prs; do
+            asked=$(curl -sS --max-time 30 -o new.json -w '%{http_code}' \
+              -H "Authorization: Basic ${auth}" \
+              "https://sonarcloud.io/api/issues/search?projects=${project}&pullRequest=${pr}&resolved=false&ps=1" \
+              || echo "000")
+            count=""
+            if [ "$asked" = "200" ]; then
+              count=$(jq -r '.total // empty' new.json 2>/dev/null || true)
+            fi
+            if [ -z "$count" ]; then
+              # The one case the pull request's own run also let through, for
+              # its reason: a Dependabot run reads the Dependabot secret store,
+              # so a repository scanning in CI has no analysis of it to count.
+              author=$(gh api "repos/${REPO}/pulls/${pr}" --jq '.user.login' || true)
+              if [ "$author" = "$DEPENDABOT" ]; then
+                echo "::warning::#${pr} was opened by ${DEPENDABOT} and SonarCloud holds no count for it (HTTP ${asked}); Q-R64 was not enforced on it here, as it was not on the pull request."
+                continue
+              fi
+              refuse "Could not read the new-issue count for #${pr} (HTTP ${asked}), so this batch cannot be said to carry none."
+            fi
+            if [ "$count" -ne 0 ]; then
+              refuse "#${pr} carries ${count} new issue(s); this repository requires zero (Q-R64). They are at https://sonarcloud.io/project/issues?id=${project}&pullRequest=${pr}&resolved=false"
+            fi
+            echo "#${pr}: 0 new issues."
+          done
+
+          printf "### ✅ Issue gate passed this batch\n\nNo new issues on #%s, and %s open against \`%s\` within \`allowed-open: %s\`.\n" \
+            "$(printf '%s' "${prs# }" | sed 's/ /, #/g')" "$open" "$project" "$ALLOWED" >> "$GITHUB_STEP_SUMMARY"
+
+  # A caller may invoke this from any event, and only a pull request and a merge
+  # group have what it reads: an analysis of each change, and a base branch to
+  # compare an allowance against. On anything else the job above does not run
   # — which on its own is a tick beside a name, and a skipped check and a check
   # that passed look alike at a glance. This says which one happened.
   not-a-pull-request:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
