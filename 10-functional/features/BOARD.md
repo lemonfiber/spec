@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**98 features** in areas A–N, **1409 requirements**.
+**98 features** in areas A–N, **1412 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -126,7 +126,7 @@ code, and the two move independently.
 | [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | accepted | — |
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | draft | — |
 | [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | draft | — |
-| [N18](n-companion/n18-running-part-of-it.md) | Running part of it on purpose | N | operator | draft | — |
+| [N18](n-companion/n18-running-part-of-it.md) | Running part of it on purpose | N | operator | accepted | — |
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | draft | — |
 | [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | draft | — |
 

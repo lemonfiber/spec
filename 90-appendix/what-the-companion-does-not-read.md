@@ -119,7 +119,7 @@ app today.
 | `catalogue` | What the stack could run and does not: each service's `criticality`, what it `describes`, and `without_it` — what the household loses by not having it. Plus `removed`, with the reason and what replaced it. |
 | `bundle` | A support export: its `pieces`, what is `missing`, when it was `taken` and against which versions, and `terms` — whether filenames are revealed, what else is, and over what `window`. |
 | `beside` | Ports a service asks to be reachable on beside the front door, with a `stance` of unchanged, pending, blocked or applied. |
-| `preview` | What a change would come to before it is made: the services, profiles and forms it would leave, and what it `dropped` and why. |
+| `preview` | What a change would come to before it is made: the services, profiles and forms it would leave, what it `dropped` and why, each service it `filtered` with the provider it needs, and the `footprint` the stack estimates for it. |
 
 **Three of these are not served at all.** `wiring`, `substitution` and
 `plugins` are published in the contract and generated into the SDK, and no HTTP

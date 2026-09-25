@@ -4,7 +4,7 @@ title: Running part of it on purpose
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, ux, observability]
@@ -14,7 +14,7 @@ relates: [B2, B3, N2, N16]
 
 # N18 — Running part of it on purpose
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 
