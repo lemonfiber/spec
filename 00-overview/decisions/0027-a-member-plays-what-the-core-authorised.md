@@ -1,7 +1,8 @@
 # ADR-0027: A member plays what the core authorised, on the member's own account
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-25
+**Decided:** 2026-09-25, by the maintainer, Wessel Verheij. Accepted on the condition in point 3: the device-authorisation flow is proved against a recording of the pinned media server before any core work relies on it.
 
 ## Context
 
