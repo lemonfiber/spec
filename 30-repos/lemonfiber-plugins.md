@@ -41,7 +41,7 @@ lemonfiber-plugins/
 ├── targets.toml             the lemonfiber version the checks are held to
 ├── justfile
 └── .github/
-    ├── interim/             the validation and proof programs, copied from plugin-template
+    ├── reader/              asks the release targets.toml names, copied from plugin-template
     └── workflows/
 ```
 
