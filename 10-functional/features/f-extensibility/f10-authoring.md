@@ -103,6 +103,15 @@ it to. So an author records a service's responses once, and proves against the r
 The recordings are data and are reviewed like the manifest: a fixture nobody can read is
 a place for something to hide.
 
+Some checks exist to find a state nobody can record them passing on. Plex's check that the
+server has an owner passes only on a claimed server, and claiming one needs an account
+this plugin's authors are not required to hold. What can be recorded is the state the
+check exists to find. So a contributed check may name the recording it must fire on
+(`fires_on`), and proving it runs the check against that recording and holds it to
+failing there. A check that passes on the recording it says it fires on finds nothing,
+and is reported as refuted. Where the only recording there is is the one it fires on,
+`fixture` names the same file, and firing on it is the whole of the proof.
+
 ### A template that already passes
 
 An author starts from a repository containing one manifest, its fixtures, and a workflow
@@ -137,6 +146,7 @@ Per plugin, while it is being written:
 | An author's editor knows nothing about the schema | The same commands validate from the terminal with the same messages. The schema is a convenience, not the mechanism. |
 | A manifest validates in the editor and is refused by lemonfiber | A defect in the generated schema, not in the manifest. The generator and the parser come from one set of types precisely so this cannot be an ordinary occurrence (`ARCH-R93`). |
 | An author has no instance of the service to test against | Record fixtures, or take somebody else's. Proving against a recording is a first-class outcome, not a degraded one. |
+| A check's passing state cannot be recorded without an account nobody holds | Record the state it exists to find and name it in `fires_on`. The check is proved by failing there, and passing there refutes it (`F10-R11`). |
 | Fixtures drift from what the service now does | The proof passes against the recording and fails against the service. Both results are reported as what they are; a fixture is evidence about a moment. |
 | An author wants a helper library in their own language | Nothing stops them writing one. What is not published is an official second description of the format. |
 | A plugin is written against a newer lemonfiber than the operator has | Refused by naming the capability the manifest asked for, never by naming a version (`F3-R21`). |
@@ -157,6 +167,7 @@ Per plugin, while it is being written:
 | **F10-R8** | The sets an author may name — adapters, core capabilities, and what a manifest may require of lemonfiber — MUST each be readable non-interactively. |
 | **F10-R9** | Publishing a plugin MUST require no infrastructure beyond a git repository. |
 | **F10-R10** | An authoring failure MUST name its location in the manifest and what was expected, and MUST report every violation in one pass. |
+| **F10-R11** | A contributed check MAY name a recorded response it must fail on. Proving the check against recordings MUST run it against that recording, MUST report it as passed only where the check fails there, and MUST report it as refuted where the check passes there. |
 
 ## Related
 

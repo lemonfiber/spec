@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 98,
-    "requirements": 1414,
+    "requirements": 1415,
     "areas": "A–N"
   },
   "versions": [
@@ -106,7 +106,7 @@
       "version": "0.17.0",
       "status": "staged",
       "milestone": "M14",
-      "goals": 35
+      "goals": 36
     },
     {
       "version": "0.18.0",
@@ -1920,6 +1920,10 @@
         {
           "version": "0.16.0",
           "status": "released"
+        },
+        {
+          "version": "0.17.0",
+          "status": "staged"
         }
       ],
       "path": "f-extensibility/f10-authoring.md"
