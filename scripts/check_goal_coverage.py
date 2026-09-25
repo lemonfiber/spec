@@ -60,6 +60,10 @@ AWAITING_A_VERSION = {
     "C1": ("C1 is split across 0.1.0, 0.2.0 and 0.8.0, all released", ["C1-R15"]),
     "C4": ("the other fourteen C4 goals are locked by 0.7.0, released", ["C4-R15"]),
     "C6": ("C6 is split across 0.9.0 and 0.10.0, both released", ["C6-R18", "C6-R19"]),
+    "D6": (
+        "the other D6 goals are locked by 0.11.0, released; D6-R15 and D6-R16 are the decline address",
+        ["D6-R15", "D6-R16"],
+    ),
     "E3": ("E3 is split across 0.3.0 and 0.14.0, both released", ["E3-R16"]),
     # The one entry here that was locked and came back. 0.15.0 shipped without it,
     # by a lane that never ran the gate, and the manifest records why. It closes on
@@ -68,6 +72,10 @@ AWAITING_A_VERSION = {
     "F1": ("the other thirteen F1 goals are locked by 0.15.0, released", ["F1-R1"]),
     "G2": ("the other thirteen G2 goals are locked by 0.9.0, released", ["G2-R14"]),
     "G3": ("G3 is split across 0.9.0 and 0.10.0, both released", ["G3-R16"]),
+    "G5": (
+        "the other G5 goals are locked by 0.10.0 and 0.11.0, released; G5-R14 supersedes G5-R6",
+        ["G5-R14"],
+    ),
     "G7": ("the other thirteen G7 goals are locked by 0.5.0, released", ["G7-R14"]),
     "G8": (
         "G8 is split across 0.10.0, 0.11.0 and 0.14.0, all released",
