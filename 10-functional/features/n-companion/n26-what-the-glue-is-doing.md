@@ -4,7 +4,7 @@ title: What the glue is doing
 kind: feature
 area: N
 audience: both
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, verification, observability, stats, ux]

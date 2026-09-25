@@ -4,7 +4,7 @@ title: Moving in beside what is already there
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, storage, wiring, ux]

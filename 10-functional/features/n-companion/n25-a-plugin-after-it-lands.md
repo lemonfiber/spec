@@ -4,7 +4,7 @@ title: A plugin after it lands
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, extensibility, ux]

@@ -4,7 +4,7 @@ title: Choosing how good, and trying one
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, quality, transcoding, ux]

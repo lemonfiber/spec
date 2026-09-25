@@ -4,7 +4,7 @@ title: Asking somebody in
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, household, ux]

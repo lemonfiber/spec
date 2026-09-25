@@ -122,8 +122,7 @@ train.** Area N is specified in full because the specification leads everywhere
 in this project; the app is built against what the main repositories have already
 shipped rather than the other way round.
 
-Eighteen of its twenty features are accepted. Two are draft:
-[`N7`](../10-functional/features/n-companion/n7-moving-in.md) (moving in) and
+Twenty-five of its twenty-six features are accepted. One is draft:
 [`N13`](../10-functional/features/n-companion/n13-taking-away.md) (taking away).
 Every accepted requirement in
 area N is citable, and no version locks any of them: `N1` is not scheduled, and

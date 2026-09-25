@@ -152,6 +152,34 @@ AWAITING_A_VERSION = {
         "N20 requires N1, which no version schedules, and F8, locked by 0.18.0",
         [f"N20-R{n}" for n in range(1, 11)],
     ),
+    "N21": (
+        "N21 requires N1, which no version schedules, and D6, whose last goals 0.17.0 locks",
+        [f"N21-R{n}" for n in range(1, 11)],
+    ),
+    "N22": (
+        "N22 requires N1, which no version schedules, and C4, locked by 0.7.0, released",
+        [f"N22-R{n}" for n in range(1, 11)],
+    ),
+    "N23": (
+        "N23 requires N1, which no version schedules, B10, locked by 0.15.0, released, and C7, locked by 0.6.0, released",
+        [f"N23-R{n}" for n in range(1, 11)],
+    ),
+    "N24": (
+        "N24 requires N1, which no version schedules, and D2 and D3, locked by 0.4.0, released",
+        [f"N24-R{n}" for n in range(1, 11)],
+    ),
+    "N25": (
+        "N25 requires N1 and N5, which no version schedules, F5, whose last goals 0.17.0 locks, and F6, locked by 0.16.0, released",
+        [f"N25-R{n}" for n in range(1, 11)],
+    ),
+    "N26": (
+        "N26 requires N1, which no version schedules, H1, H2 and H3, locked by 0.19.0, H6 and H8, locked by 0.20.0, and K1, locked by 0.22.0",
+        [f"N26-R{n}" for n in range(1, 20)],
+    ),
+    "N7": (
+        "N7 requires N1, which no version schedules, and A5, locked by 0.13.0, released",
+        [f"N7-R{n}" for n in range(1, 18)],
+    ),
 }
 
 

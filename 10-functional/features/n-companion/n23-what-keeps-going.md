@@ -4,7 +4,7 @@ title: What keeps going, and what stopped moving
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, queue, ux]
