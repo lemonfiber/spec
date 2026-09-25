@@ -113,6 +113,34 @@ lemonfiber's UI does not tunnel to Sonarr's web interface. Doing so would
 effectively expose every admin service through one authenticated hole, and one
 authentication bug would expose all of them.
 
+### A household service holds another's administrative credential only for one operation
+
+The tiers sort *surfaces*: whatever can control the stack sits at `127.0.0.1`.
+A credential can cross that line without a surface doing so, and one does: the
+page that declines an invitation (`D6-R15`) faces the household at any hour, and
+disabling a Jellyfin account needs a credential that is administrative there. No
+Jellyfin version offers anything narrower
+([ADR-0029](../../../00-overview/decisions/0029-a-household-service-declines-an-invitation-with-one-key.md)).
+
+So the exception is narrow and stated. A household-tier service may hold such a
+credential only where one operation must be answerable at household reach at any
+hour. It holds that credential alone, performs that operation through a fixed set
+of calls, and is confined: no data mount, a read-only root, no kernel
+capabilities, and no network reach beyond the service it acts on and the port it
+publishes. What the credential could do if stolen is stated beside it (`A7-R9`).
+
+There is no other exception. Homepage does not hold the Jellyfin key: a dashboard
+widget is not one operation that must answer at any hour, so Jellyfin's widget
+shows no numbers.
+
+### Jellyfin answers one origin
+
+Jellyfin allows cross-origin requests from any origin by default, and an empty
+allow-list means the same. The stack names one origin instead, the household
+front door's (`G5`), and changes it when the front door's address changes.
+Jellyfin's own web client is served from Jellyfin's origin and needs none, and the
+decline page reaches Jellyfin only through its own origin, server-side.
+
 ### The policy is checked, not just configured
 
 A [diagnostic check](c1-diagnostics.md) verifies actual bindings against the
@@ -149,6 +177,8 @@ listening, not what was intended.
 | Renewal is performed by something the stack does not control | Say so at pairing. The stack cannot promise a warning it will not receive, and an unkeepable promise is worse than the absence of one. |
 | Household service needs to be reachable but the network is untrusted | Explain the trade-off; do not silently expose. |
 | A plugin adds a service that will listen | It declares which tier it belongs in, and lemonfiber assigns the address. A plugin that could write its own address could put an admin surface on the LAN without touching anything this feature inspects. |
+| A household service needs another service's administrative credential | Only for one operation that must answer at any hour, held alone, through fixed calls, and confined (`C6-R20`). Anything else keeps to the admin tier. |
+| The front door's address changes | Jellyfin's allowed origin changes with it (`C6-R21`). An empty list is never written, because Jellyfin reads it as every origin. |
 | A plugin's service is bound to the wrong tier | Caught the way every other wrong binding is caught: by checking what is actually listening against the policy (`C6-R13`), not by trusting what was declared. |
 
 ## Acceptance criteria
@@ -174,11 +204,17 @@ listening, not what was intended.
 | **C6-R17** | The interface household services publish on MUST be operator-configurable through a single documented setting, and where it defaults to all interfaces that MUST be stated plainly alongside its consequences. |
 | **C6-R18** | A service an installed plugin adds MUST be bound by the tier lemonfiber assigns from the classification the plugin declared, and a plugin MUST NOT be able to declare an address, an interface or a published port mapping. |
 | **C6-R19** | Replacing a certificate a companion may have pinned MUST be announced before it is replaced, naming re-pairing as the consequence; where renewal is performed by something lemonfiber does not control, that MUST be stated when the pairing material is produced rather than discovered at the next renewal ([ADR-0025](../../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)). |
+| **C6-R20** | A household-tier service MAY hold a credential that is administrative on another service only where one operation must be answerable at household reach at any hour. It MUST then hold that credential alone, MUST perform only that operation through a fixed set of calls, and MUST be confined: no data mount, a read-only root, no kernel capabilities, and no network reach beyond the service it acts on and the port it publishes. No other household-tier service MAY hold such a credential. |
+| **C6-R21** | Jellyfin's cross-origin allow-list MUST name the household front door's origin and nothing else, MUST follow a change of that address, and MUST NOT be written empty or as a wildcard. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber-media-stack` publishes the household
 tier on a configurable address; `lemonfiber` reports the observed binding under
 `C6-R13`, and announces a certificate replacement under `C6-R19` since it is the
-side that produces pairing material.
+side that produces pairing material. Under `C6-R20`, the decline service's own
+repository builds a confined image, `lemonfiber-media-stack` runs it and stops
+giving Homepage the Jellyfin key, and `lemonfiber` mints the service's key and no
+longer publishes `JELLYFIN_API_KEY`. Under `C6-R21`, `lemonfiber` writes and checks
+Jellyfin's allow-list.
 
 ## Related
 

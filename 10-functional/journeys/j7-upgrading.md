@@ -13,13 +13,13 @@
 ```
 $ lemonfiber update stack --check
 
-  sonarr      4.0.15 → 4.0.16   patch
-  jellyfin   10.10.3 → 10.11.0  minor · release notes ↗
-  prowlarr    1.28.1 → 2.0.0    MAJOR · release notes ↗
+  sonarr      4.0.15 → 4.0.16    patch
+  jellyfin   10.10.3 → 10.11.11  minor · via 10.10.7 · release notes ↗
+  prowlarr    1.28.1 → 2.0.0     MAJOR · release notes ↗
 
-  ⚠ Sonarr and Prowlarr migrate their databases on first start of a
-    new version. Returning to the current versions afterwards is not
-    possible.
+  ⚠ Sonarr, Jellyfin and Prowlarr migrate their databases on first
+    start of a new version. Returning to the current versions
+    afterwards is not possible.
 
     A backup will be taken automatically before updating.
 ```
@@ -30,6 +30,14 @@ The \*arrs migrate their SQLite schema on first start, and **there is no
 downgrade path**. Pull a newer image, find it unusable, and you cannot simply
 revert — the database has already been rewritten in a format the previous binary
 refuses to open.
+
+A move within a major can migrate too. Jellyfin 10.10 to 10.11 stays inside major
+10, so it is a *minor* update, and it still rewrites the database: a 10.10.5 or
+later server refuses to start on it afterwards, and upstream migrates only from
+10.10.7, so the update passes through it
+([ADR-0028](../../00-overview/decisions/0028-a-supported-major-is-data-proved-by-its-own-recordings.md)).
+The size of the jump and whether it can be undone are two separate facts, and the
+update states both.
 
 By default this is a one-word command with no warning. Stating it in advance
 (`E1-R3`) is the single highest-value thing this journey does.
