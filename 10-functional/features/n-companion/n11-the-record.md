@@ -4,7 +4,7 @@ title: What was done, and where it came from
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, observability, ux]
@@ -14,7 +14,7 @@ relates: [F7, G8, H8, N2, N6]
 
 # N11 — What was done, and where it came from
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

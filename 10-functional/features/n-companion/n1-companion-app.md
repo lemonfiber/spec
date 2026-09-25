@@ -4,7 +4,7 @@ title: The companion app
 kind: feature
 area: N
 audience: both
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [mobile, security, ux]
@@ -14,7 +14,7 @@ relates: [A4, B2, C1, G3, I1]
 
 # N1 — The companion app
 
-**Status:** Draft · **Audience:** Both · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Both · **Area:** N — Companion
 
 ---
 
