@@ -106,7 +106,7 @@
       "version": "0.17.0",
       "status": "staged",
       "milestone": "M14",
-      "goals": 36
+      "goals": 39
     },
     {
       "version": "0.18.0",
@@ -1222,7 +1222,8 @@
       "maturity": "shipped",
       "shipped": "0.11.0",
       "milestones": [
-        "M8"
+        "M8",
+        "M14"
       ],
       "milestone": "M8",
       "priority": null,
@@ -1243,6 +1244,10 @@
         {
           "version": "0.11.0",
           "status": "released"
+        },
+        {
+          "version": "0.17.0",
+          "status": "staged"
         }
       ],
       "path": "d-content/d6-household-identity.md"
@@ -2106,7 +2111,8 @@
       "shipped": "0.11.0",
       "milestones": [
         "M7",
-        "M8"
+        "M8",
+        "M14"
       ],
       "milestone": "M7",
       "priority": null,
@@ -2129,6 +2135,10 @@
         {
           "version": "0.11.0",
           "status": "released"
+        },
+        {
+          "version": "0.17.0",
+          "status": "staged"
         }
       ],
       "path": "g-ux/g5-front-door.md"
