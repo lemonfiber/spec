@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 98,
-    "requirements": 1424,
+    "features": 104,
+    "requirements": 1500,
     "areas": "A–N"
   },
   "versions": [
@@ -3490,6 +3490,198 @@
       ],
       "versions": [],
       "path": "n-companion/n20-what-a-plugin-may-send.md"
+    },
+    {
+      "id": "N21",
+      "title": "Asking somebody in",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "household",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "D6"
+      ],
+      "relates": [
+        "N3",
+        "N9",
+        "N13",
+        "N4"
+      ],
+      "versions": [],
+      "path": "n-companion/n21-asking-somebody-in.md"
+    },
+    {
+      "id": "N22",
+      "title": "Asking for help",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "security",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "C4"
+      ],
+      "relates": [
+        "N2",
+        "N4"
+      ],
+      "versions": [],
+      "path": "n-companion/n22-asking-for-help.md"
+    },
+    {
+      "id": "N23",
+      "title": "What keeps going, and what stopped moving",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "queue",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "B10",
+        "C7"
+      ],
+      "relates": [
+        "N2",
+        "N8",
+        "N10",
+        "N16"
+      ],
+      "versions": [],
+      "path": "n-companion/n23-what-keeps-going.md"
+    },
+    {
+      "id": "N24",
+      "title": "Choosing how good, and trying one",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "quality",
+        "transcoding",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "D2",
+        "D3"
+      ],
+      "relates": [
+        "N8",
+        "N15",
+        "N19"
+      ],
+      "versions": [],
+      "path": "n-companion/n24-choosing-and-trying.md"
+    },
+    {
+      "id": "N25",
+      "title": "A plugin after it lands",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "extensibility",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "N5",
+        "F5",
+        "F6"
+      ],
+      "relates": [
+        "N6",
+        "N11",
+        "N20"
+      ],
+      "versions": [],
+      "path": "n-companion/n25-a-plugin-after-it-lands.md"
+    },
+    {
+      "id": "N26",
+      "title": "What the glue is doing",
+      "area": "N",
+      "audience": "both",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P3",
+      "labels": [
+        "mobile",
+        "verification",
+        "observability",
+        "stats",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "H1",
+        "H2",
+        "H3",
+        "H6",
+        "H8",
+        "K1"
+      ],
+      "relates": [
+        "N2",
+        "N3",
+        "N4",
+        "N8",
+        "N11",
+        "N12",
+        "N16",
+        "N24"
+      ],
+      "versions": [],
+      "path": "n-companion/n26-what-the-glue-is-doing.md"
     }
   ]
 }

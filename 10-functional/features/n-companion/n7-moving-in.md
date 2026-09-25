@@ -87,6 +87,60 @@ confidence the core declined to express (`N2-R14`).
 Where a connection carries a severity, it carries what would break and what would
 put it right. Both are shown; a severity alone is a colour, not information.
 
+### The survey is offered here, and comes before any mode
+
+Moving in starts with a look that changes nothing
+([A5](../a-getting-started/a5-migration.md) `A5-R1`), and the app offers that
+look. What it found — each existing project, each of its services, whether each
+is running and whether lemonfiber could take it over — is shown before any mode
+is, because a mode chosen before the survey is read is a mode chosen blind.
+
+A survey that could not look is not a survey that found nothing. The contract
+says which, and an empty machine and an unread one are never the same screen.
+
+### A mode is offered as the stack offers it, and replacement is never the default
+
+The stack gives the modes least destructive first, says what each would come to
+and whether it disturbs what is already running, and marks the one it offers
+already chosen. The app keeps all three: the order, the disturbance and the
+preselection. It preselects nothing the stack did not, so replacement — the one
+that stops somebody's working stack — is never a tap away by default.
+
+### A layout that cannot hardlink is a cost, with a remedy that stays an offer
+
+Where the existing layout cannot hold a hardlink, the survey says why, what it
+costs in room, and what would fix it. The fix is the operator's to take: it is
+their library on their disks, and the stack does not force it. The app shows the
+cost and offers the remedy as its own act, never as a step folded into a move.
+
+### What cannot be taken over is named
+
+A service the stack found and cannot adopt is named as unsupported, with the
+reason. Left off the list, it reads as something the move will look after.
+
+### A wiring run is offered here, and each connection says how it ended
+
+Wiring the services together ([D1](../d-content/d1-seed.md)) is safe to run
+again and changes nothing that is already right, and the app offers it. What
+comes back is a state per connection, and those states are the report: *skipped*
+is a prerequisite that was not there and will be finished by a later run,
+*failed* is a service that refused, and a value the operator changed is kept
+rather than put back. A run that turned all of them into one tick has thrown away
+the only thing an operator can act on.
+
+### The operator's own value is kept, and never offered for overwriting
+
+Where a connection holds a value the operator set, the stack keeps it and says
+so, and where both the operator and lemonfiber moved away from the baseline it
+shows the two side by side and resolves neither. The app does the same. It does
+not offer to put lemonfiber's value back (`N19-R4`).
+
+### A service's refusal is in the service's words
+
+Where a service rejected a write, its own words are carried. The app shows them
+as they came rather than a sentence of its own, because the words are what the
+operator will search for.
+
 ## States
 
 | State | Meaning |
@@ -123,6 +177,36 @@ put it right. Both are shown; a severity alone is a colour, not information.
 | **N7-R8** | Where a wiring carries a severity, what would break and what would put it right MUST both be shown. |
 | **N7-R9** | An import that carried nothing MUST be told apart from an import that has not run. |
 | **N7-R10** | A rehearsed wiring run MUST be labelled as a rehearsal, on the same terms as `N6-R1`. |
+| **N7-R11** | The app MUST offer the survey of what is already on the machine, and MUST show every project and service it found, with whether each is running and whether it could be taken over, before any mode is offered (`A5-R1`, `A5-R2`). A survey that could not look MUST be told apart from one that found nothing. |
+| **N7-R12** | The app MUST offer the modes the stack gives, in the stack's order, each with what it would come to and whether it disturbs what is running. It MUST NOT preselect a mode the stack did not preselect, and MUST NOT preselect replacement (`A5-R3`). |
+| **N7-R13** | Where the survey reports a layout that cannot hardlink, the app MUST show why, what it costs and the remedy, and MUST offer the remedy only as an act of its own, never as part of a move (`A5-R10`). |
+| **N7-R14** | A service the survey found and cannot take over MUST be named as unsupported with the reason, and MUST NOT be omitted (`A5-R12`). |
+| **N7-R15** | The app MUST offer a wiring run, and MUST show each connection with the state the stack gave it. *Skipped* MUST NOT be rendered as failed, and a connection kept because the operator changed it MUST NOT be rendered as wired or as drift to repair (`D1-R3`, `D1-R5`, `D1-R6`). |
+| **N7-R16** | Where a connection is kept because the operator changed it, the app MUST say it is kept; where the operator's value and lemonfiber's both moved, the app MUST show what the service holds beside what lemonfiber would write. The app MUST NOT offer to overwrite the operator's value (`N19-R4`). |
+| **N7-R17** | A write a service rejected MUST be shown with the service's own words, and MUST NOT be paraphrased (`D1-R11`). |
+
+## Notes
+
+**What the contract carries for the rows above.** Checked against the core's
+`contract/web-api.contract.json` and the actions its HTTP route accepts.
+
+| Row | Carried | Not carried |
+|---|---|---|
+| `N7-R11` | `migration`, served at `/api/migration`: `standing` (each project, its services, `running`, `adoptable`) and `read`, which is false where the engine could not look | The configuration source and the library location of each service `A5-R2` names. The survey carries projects, services and ports; the library appears only as the filesystems in `linking` |
+| `N7-R12` | `modes`: `mode`, `what`, `disturbs`, `preselected`, least destructive first. The action route accepts `migrate-adopt`, `migrate-import`, `migrate-beside` and `migrate-replace`, and each answers unconfirmed with what it would come to | — |
+| `N7-R13` | `linking`: `because`, `cost`, `remedy`, `filesystems`, and `forced`, which is always false | No action carries the remedy out. It is offered as words, and there is no act for the app to offer beside them |
+| `N7-R14` | `unsupported`, each with `what` and `because`; `not_carried` for what no mode carries | — |
+| `N7-R15` | `seed`, from the `seed` action: each wiring's `state` — wired, already-wired, drifted, stale, conflicted, adopted, unmanaged, observed, would-wire, would-adopt, skipped, failed, refused — with the `reason` or `detail` each carries; `assessment`, `unsupported` and `rehearsed` | Whether a run was interrupted (`D1-R13`). A pass reports what it attempted, not what it did not reach |
+| `N7-R16` | `drifted` says an operator-changed value was kept; `conflicted` carries `ours` and `yours` side by side | The value itself on `drifted`, which carries none. `unmanaged` withholds the value by design, so a secret among what the stack takes on is never shown |
+| `N7-R17` | `failed` carries the service's own words in `detail` | — |
+
+**`N7-R15` and `D1`'s companion paragraph disagree.** That paragraph says the
+companion is where the connections are checked rather than made; `N7-R15` offers
+the run that makes them.
+
+`N7-R13` is written as an offer that stands on its own for a reason the contract
+makes plain: `forced` is always false. Folding the remedy into a move would be
+the app forcing what the stack declines to.
 
 ## Related
 
