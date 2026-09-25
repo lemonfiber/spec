@@ -122,14 +122,14 @@ train.** Area N is specified in full because the specification leads everywhere
 in this project; the app is built against what the main repositories have already
 shipped rather than the other way round.
 
-Four of its features are accepted: [`N1`](../10-functional/features/n-companion/n1-companion-app.md)
-(the app), [`N11`](../10-functional/features/n-companion/n11-the-record.md) (the
-record), [`N15`](../10-functional/features/n-companion/n15-the-words.md) (the
-words) and [`N18`](../10-functional/features/n-companion/n18-running-part-of-it.md)
-(running part of it). Their requirements are citable, and no version locks any of
-them: `N1` is not scheduled, and the other three require it. They wait in
-`check_goal_coverage.AWAITING_A_VERSION` until the app joins the train. The rest of
-area N is draft.
+Seventeen of its twenty features are accepted. Three are draft:
+[`N7`](../10-functional/features/n-companion/n7-moving-in.md) (moving in),
+[`N13`](../10-functional/features/n-companion/n13-taking-away.md) (taking away) and
+[`N20`](../10-functional/features/n-companion/n20-what-a-plugin-may-send.md) (what
+a plugin may send), which requires `F8`, itself draft. Every accepted requirement in
+area N is citable, and no version locks any of them: `N1` is not scheduled, and
+every other feature in the area requires it. They wait in
+`check_goal_coverage.AWAITING_A_VERSION` until the app joins the train.
 
 So it tracks `main` and takes no releases while it catches up. When it has, it is
 pinned with the rest of the repositories the way every other one is

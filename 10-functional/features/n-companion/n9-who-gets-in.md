@@ -4,7 +4,7 @@ title: Who gets in, and what the stack holds for them
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, household, security, ux]
@@ -14,7 +14,7 @@ relates: [A7, G5, G6, N2, N3]
 
 # N9 — Who gets in, and what the stack holds for them
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 
@@ -108,8 +108,9 @@ nobody made.
 
 - **A credential with no consumers.** Shown, and said to have none — that is a
   reason to remove it rather than a reason to hide it.
-- **An invitation that lapsed unaccepted.** Distinguished from one that was
-  declined, and from one never sent.
+- **An invitation that lapsed unaccepted.** Distinguished from one the invitee
+  declined. Whether the operator ever passed the link on is not something the
+  stack can know, so nothing is claimed about it.
 - **A device with no good client at all.** The *fallback* rating is an answer and
   is shown as one, with what it costs.
 - **A front door reachable only at home, presented to somebody who is not.** The
@@ -125,7 +126,7 @@ nobody made.
 | **N9-R4** | The app MUST NOT offer to set or change a credential's value (`N2-R12`), and MUST NOT render its value where the contract carries one. |
 | **N9-R5** | An invitation MUST state what it grants — libraries, filtering, unrated material and whether requests may be made — before it is sent. |
 | **N9-R6** | An invitation MUST state when it lapses. |
-| **N9-R7** | An invitation that lapsed unaccepted MUST be told apart from one that was declined and from one never sent. |
+| **N9-R7** | An invitation that lapsed unaccepted MUST be told apart from one the invitee declined. |
 | **N9-R8** | A client recommendation MUST be for a named device, MUST carry its rating, and where the rating is poor MUST carry what to use instead. |
 | **N9-R9** | Where something only works on the household network, the app MUST say so. |
 | **N9-R10** | The front door MUST show what each address faces and why, and MUST say whether it was chosen or derived. |

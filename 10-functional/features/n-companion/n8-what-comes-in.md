@@ -4,7 +4,7 @@ title: What comes in, and where it got to
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, quality, queue, ux]
@@ -14,7 +14,7 @@ relates: [D9, H6, N2, N3]
 
 # N8 — What comes in, and where it got to
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

@@ -4,7 +4,7 @@ title: What connects to what
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, extensibility, ux]
@@ -14,7 +14,7 @@ relates: [F2, F6, F7, F9, N2]
 
 # N5 — What connects to what
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

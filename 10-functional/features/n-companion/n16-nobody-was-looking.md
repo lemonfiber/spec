@@ -4,7 +4,7 @@ title: What happened while nobody was looking
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, observability, queue, ux]
@@ -14,7 +14,7 @@ relates: [B8, H5, G7, N2, N10]
 
 # N16 — What happened while nobody was looking
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

@@ -4,7 +4,7 @@ title: Where a message goes
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, notifications, network, ux]
@@ -14,7 +14,7 @@ relates: [B5, N4, N10, N16]
 
 # N17 — Where a message goes
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

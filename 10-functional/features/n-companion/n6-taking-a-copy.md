@@ -4,7 +4,7 @@ title: Taking a copy, and putting it back
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, storage, updates, ux]
@@ -14,7 +14,7 @@ relates: [A4, A6, A7, E4, N2]
 
 # N6 — Taking a copy, and putting it back
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

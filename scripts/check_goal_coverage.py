@@ -91,6 +91,59 @@ AWAITING_A_VERSION = {
         "N18 requires N1, which no version schedules, and B1, whose last goals 0.17.0 locks",
         [f"N18-R{n}" for n in range(1, 10)],
     ),
+    "N2": (
+        "N2 requires N1, which no version schedules, and C1, C3 and G7, locked by 0.8.0 at the latest, all released",
+        [f"N2-R{n}" for n in range(1, 23)],
+    ),
+    # N3-R8 is withdrawn, and a withdrawn row is never a goal.
+    "N3": (
+        "N3 requires N1, which no version schedules, and D4 and D6, locked by 0.11.0, released",
+        [f"N3-R{n}" for n in range(1, 17) if n != 8],
+    ),
+    "N4": (
+        "N4 requires N1, which no version schedules, and G3, locked by 0.10.0 at the latest, released",
+        [f"N4-R{n}" for n in range(1, 25)],
+    ),
+    "N5": (
+        "N5 requires N1, which no version schedules, F4, locked by 0.16.0, released, and F5, locked by 0.17.0",
+        [f"N5-R{n}" for n in range(1, 14)],
+    ),
+    "N6": (
+        "N6 requires N1, which no version schedules, and E3, locked by 0.14.0 at the latest, released",
+        [f"N6-R{n}" for n in range(1, 12)],
+    ),
+    "N8": (
+        "N8 requires N1, which no version schedules, and D2, locked by 0.4.0, released",
+        [f"N8-R{n}" for n in range(1, 10)],
+    ),
+    "N9": (
+        "N9 requires N1, which no version schedules, and D6, locked by 0.11.0, released",
+        [f"N9-R{n}" for n in range(1, 12)],
+    ),
+    "N10": (
+        "N10 requires N1, which no version schedules, and G8, locked by 0.14.0 at the latest, released",
+        [f"N10-R{n}" for n in range(1, 13)],
+    ),
+    "N12": (
+        "N12 requires N1, which no version schedules, and D5, locked by 0.12.0, released",
+        [f"N12-R{n}" for n in range(1, 11)],
+    ),
+    "N14": (
+        "N14 requires N1, which no version schedules, and E2, locked by 0.14.0, released",
+        [f"N14-R{n}" for n in range(1, 9)],
+    ),
+    "N16": (
+        "N16 requires N1, which no version schedules, and K2, locked by 0.22.0",
+        [f"N16-R{n}" for n in range(1, 15)],
+    ),
+    "N17": (
+        "N17 requires N1, which no version schedules, and B9, locked by 0.22.0",
+        [f"N17-R{n}" for n in range(1, 12)],
+    ),
+    "N19": (
+        "N19 requires N1, which no version schedules, and F1, locked by 0.15.0, released",
+        [f"N19-R{n}" for n in range(1, 11)],
+    ),
 }
 
 

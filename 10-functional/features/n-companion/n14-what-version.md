@@ -4,7 +4,7 @@ title: What is running, and what is newer
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, updates, ux]
@@ -14,7 +14,7 @@ relates: [E1, E5, N2, N11]
 
 # N14 — What is running, and what is newer
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

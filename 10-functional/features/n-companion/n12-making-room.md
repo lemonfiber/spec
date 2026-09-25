@@ -4,7 +4,7 @@ title: Running out of room
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, storage, queue, ux]
@@ -14,7 +14,7 @@ relates: [C5, H1, H6, N2, N6]
 
 # N12 — Running out of room
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

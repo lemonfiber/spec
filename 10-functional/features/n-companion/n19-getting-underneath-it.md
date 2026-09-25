@@ -4,7 +4,7 @@ title: Getting underneath it
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, ux, extensibility, cli]
@@ -14,7 +14,7 @@ relates: [C9, B2, N2, N14, N18]
 
 # N19 — Getting underneath it
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

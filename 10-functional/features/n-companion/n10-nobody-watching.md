@@ -4,7 +4,7 @@ title: What the stack does when nobody is watching
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, network, notifications, ux]
@@ -14,7 +14,7 @@ relates: [B5, B10, D10, N2, N4]
 
 # N10 — What the stack does when nobody is watching
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 
