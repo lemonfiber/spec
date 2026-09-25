@@ -76,10 +76,11 @@ stating plainly: a slip in the family rather than the number — an `M1` where a
 the slips are, and a rule that refused every capital-letter-and-digit token would
 refuse the writing that explains the rules.
 
-Retirement is not asked of a file, for the same reason. A comment recording that a
-number was withdrawn has to name it, and nothing here can tell that sentence from
-a citation. The trailer is where a citation is *made*, and that is where
-**GOV-R8** and **GOV-R47** are enforced.
+Retirement and drafts are not asked of a file, for the same reason. A comment
+recording that a number was withdrawn, or that a behaviour waits on a draft, has
+to name it, and nothing here can tell that sentence from a citation. The trailer
+is where a citation is *made*, and that is where **GOV-R8**, **GOV-R47** and
+**GOV-R48** are enforced.
 
 It does not read its own tests. `scripts/test_spec_check.py` exists to name
 identifiers that do not resolve — that is what a test of *refuse an unknown

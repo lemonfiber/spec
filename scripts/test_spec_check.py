@@ -156,6 +156,127 @@ class Citations(GateCase):
         self.assertIn("cites GOV-R12", out)
 
 
+# A feature still in draft, and a contract that says so on its first line.
+DRAFT_FEATURE = """---
+id: X9
+title: Something proposed
+status: draft
+---
+
+# X9 — Something proposed
+
+| ID | Requirement |
+|----|-------------|
+| **X9-R1** | Something nobody has agreed to yet. |
+"""
+
+DRAFT_CONTRACT = """# A contract
+
+**Status:** Draft
+
+| ID | Requirement |
+|----|-------------|
+| **ARCH-R900** | A shape still under discussion. |
+"""
+
+
+class Drafts(GateCase):
+    def setUp(self):
+        super().setUp()
+        (self.root / SPEC / "x9.md").write_text(DRAFT_FEATURE, encoding="utf-8")
+        (self.root / SPEC / "contract.md").write_text(DRAFT_CONTRACT, encoding="utf-8")
+
+    def test_a_draft_feature_is_refused_by_name(self):
+        code, out = self.check("Spec: X9-R1\n")
+        self.assertEqual(code, 1)
+        self.assertIn(
+            "X9-R1 is Draft: implementation must not cite it until it is Accepted (x9.md)", out
+        )
+        self.assertIn("A Draft is proposed and not binding", out)
+
+    def test_a_draft_document_is_read_by_its_status_line(self):
+        code, out = self.check("Spec: ARCH-R900\n")
+        self.assertEqual(code, 1)
+        self.assertIn("ARCH-R900 is Draft", out)
+        self.assertIn("(contract.md)", out)
+
+    def test_an_accepted_identifier_beside_a_draft_does_not_rescue_it(self):
+        code, out = self.check("Spec: GOV-R12, X9-R1\n")
+        self.assertEqual(code, 1)
+        self.assertIn("X9-R1 is Draft", out)
+        self.assertNotIn("GOV-R12 is Draft", out)
+
+    def test_every_draft_cited_is_named(self):
+        code, out = self.check("Spec: X9-R1, ARCH-R900\n")
+        self.assertEqual(code, 1)
+        self.assertIn("ARCH-R900 is Draft", out)
+        self.assertIn("X9-R1 is Draft", out)
+
+    def test_an_accepted_feature_is_citable(self):
+        (self.root / SPEC / "x9.md").write_text(
+            DRAFT_FEATURE.replace("status: draft", "status: accepted"), encoding="utf-8"
+        )
+        code, out = self.check("Spec: X9-R1\n")
+        self.assertEqual(code, 0)
+        self.assertIn("cites X9-R1", out)
+
+    def test_a_document_saying_nothing_of_itself_is_not_a_draft(self):
+        code, _ = self.check("Spec: GOV-R12\n")
+        self.assertEqual(code, 0)
+
+    def test_the_frontmatter_outranks_a_status_line_in_the_body(self):
+        (self.root / SPEC / "x9.md").write_text(
+            DRAFT_FEATURE.replace("status: draft", "status: accepted")
+            + "\n**Status:** Draft\n",
+            encoding="utf-8",
+        )
+        code, _ = self.check("Spec: X9-R1\n")
+        self.assertEqual(code, 0)
+
+    def test_frontmatter_without_a_status_falls_back_to_the_status_line(self):
+        (self.root / SPEC / "x9.md").write_text(
+            DRAFT_FEATURE.replace("status: draft\n", "").replace(
+                "# X9 — Something proposed", "# X9\n\n**Status:** Draft"
+            ),
+            encoding="utf-8",
+        )
+        code, out = self.check("Spec: X9-R1\n")
+        self.assertEqual(code, 1)
+        self.assertIn("X9-R1 is Draft", out)
+
+    def test_a_status_in_the_body_is_not_read_as_frontmatter(self):
+        # `status:` below the closing fence is prose, not the document's status.
+        (self.root / SPEC / "x9.md").write_text(
+            "---\nid: X9\n---\n\nstatus: draft\n\n| **X9-R1** | Agreed. |\n",
+            encoding="utf-8",
+        )
+        code, _ = self.check("Spec: X9-R1\n")
+        self.assertEqual(code, 0)
+
+    def test_a_row_an_agreed_document_also_defines_stays_citable(self):
+        (self.root / SPEC / "agreed.md").write_text(
+            "**Status:** Accepted\n\n| **X9-R1** | The agreed text. |\n", encoding="utf-8"
+        )
+        code, _ = self.check("Spec: X9-R1\n")
+        self.assertEqual(code, 0)
+
+    def test_a_draft_named_in_a_file_is_not_refused(self):
+        # A comment saying a behaviour waits on a draft has to name it; the
+        # trailer is where a citation is made.
+        code, _ = self.check_diff(a_diff("// waits on X9-R1, which is still a draft"))
+        self.assertEqual(code, 0)
+
+    def test_a_retired_identifier_is_still_refused_as_retired(self):
+        code, out = self.check("Spec: GOV-R90\n")
+        self.assertEqual(code, 1)
+        self.assertIn("GOV-R90 is retired", out)
+
+    def test_a_merge_group_citing_a_draft_is_refused(self):
+        code, out = self.check("Spec: X9-R1\n", "--citation-optional")
+        self.assertEqual(code, 1)
+        self.assertIn("X9-R1 is Draft", out)
+
+
 class Usage(GateCase):
     def test_a_missing_spec_checkout_is_a_usage_error(self):
         code, out = self.check("Spec: GOV-R12\n", spec_dir="nowhere")

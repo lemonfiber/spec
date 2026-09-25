@@ -19,6 +19,7 @@ import re
 
 from integrity import elsewhere
 from patterns import ADR_FILE, CITE_ANY, REQ_DEF_ROW, SPEC_TRAILER
+from spec_check import draft_ids
 
 # A requirement is defined by a table row `| **ID** | text |`; capture the text.
 #
@@ -79,7 +80,19 @@ def cited(text: str) -> list[str]:
     return ids
 
 
-def build(ids: list[str], idx: dict[str, tuple[str, str]], base_url: str) -> str:
+def build(
+    ids: list[str],
+    idx: dict[str, tuple[str, str]],
+    base_url: str,
+    drafts: dict[str, str] | None = None,
+) -> str:
+    """The comment, with a Draft said beside its link rather than left to the gate.
+
+    `spec-check` refuses a trailer citing a Draft (GOV-R48); the comment says the
+    same thing where the author is already looking, so the refusal is not the
+    first they hear of it.
+    """
+    drafts = drafts or {}
     out = [MARKER, "### 📎 Spec references", ""]
     if not ids:
         out.append(
@@ -93,7 +106,13 @@ def build(ids: list[str], idx: dict[str, tuple[str, str]], base_url: str) -> str
             if i in idx:
                 rel, desc = idx[i]
                 desc = (desc[:137] + "…") if len(desc) > 140 else (desc or "—")
-                out.append(f"- [`{i}`]({base_url}/{rel}) — {desc}")
+                line = f"- [`{i}`]({base_url}/{rel}) — {desc}"
+                if i in drafts:
+                    line += (
+                        f" — ⚠️ {i} is Draft: implementation must not cite it until it is "
+                        "Accepted (`spec-check` will refuse this)"
+                    )
+                out.append(line)
             else:
                 out.append(f"- `{i}` — ⚠️ not found on spec@main (`spec-check` will flag this)")
     out += ["", "<sub>Updated automatically on each push.</sub>"]
@@ -113,7 +132,8 @@ def main() -> None:
         print(MARKER + "\n\n_spec-references: text path outside the workspace._")
         return
     text = text_path.read_text(encoding="utf-8", errors="ignore")
-    print(build(cited(text), index(pathlib.Path(a.spec_dir)), a.spec_url.rstrip("/")))
+    spec_dir = pathlib.Path(a.spec_dir)
+    print(build(cited(text), index(spec_dir), a.spec_url.rstrip("/"), draft_ids(spec_dir)))
 
 
 if __name__ == "__main__":

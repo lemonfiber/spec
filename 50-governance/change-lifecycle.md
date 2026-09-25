@@ -132,6 +132,10 @@ are opened there.
 
 Draft requirements are not citable — otherwise the ordering guarantee collapses,
 since anyone could merge a draft and implement against it in the same breath.
+The gate refuses a trailer citing one (`GOV-R48`), saying it is Draft and which
+document defines it. A requirement is Draft when the document defining it is: a
+feature's frontmatter `status:`, or the `**Status:**` line every other document
+opens with.
 
 **A retired number is not a citation either, and the gate now says so**
 (`GOV-R47`). A withdrawal is recorded *in place*: the row stays so the number is
