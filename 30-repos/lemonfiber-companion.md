@@ -121,6 +121,14 @@ train.** Area N is specified in full because the specification leads everywhere
 in this project; the app is built against what the main repositories have already
 shipped rather than the other way round.
 
+Three of its features are accepted: [`N1`](../10-functional/features/n-companion/n1-companion-app.md)
+(the app), [`N11`](../10-functional/features/n-companion/n11-the-record.md) (the
+record) and [`N15`](../10-functional/features/n-companion/n15-the-words.md) (the
+words). Their requirements are citable, and no version locks any of them: `N1` is
+not scheduled, and `N11` and `N15` require it. They wait in
+`check_goal_coverage.AWAITING_A_VERSION` until the app joins the train. The rest of
+area N is draft.
+
 So it tracks `main` and takes no releases while it catches up. When it has, it is
 pinned with the rest of the repositories the way every other one is
 ([pins](../70-operations/releasing.md)), and from that point it moves on the

@@ -109,7 +109,7 @@ code, and the two move independently.
 | [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.23.0` |
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.22.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.22.0` |
-| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | draft | — |
+| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | — |
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | draft | — |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | draft | — |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | draft | — |
@@ -119,11 +119,11 @@ code, and the two move independently.
 | [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | draft | — |
 | [N9](n-companion/n9-who-gets-in.md) | Who gets in, and what the stack holds for them | N | operator | draft | — |
 | [N10](n-companion/n10-nobody-watching.md) | What the stack does when nobody is watching | N | operator | draft | — |
-| [N11](n-companion/n11-the-record.md) | What was done, and where it came from | N | operator | draft | — |
+| [N11](n-companion/n11-the-record.md) | What was done, and where it came from | N | operator | accepted | — |
 | [N12](n-companion/n12-making-room.md) | Running out of room | N | operator | draft | — |
 | [N13](n-companion/n13-taking-away.md) | Taking something away | N | operator | draft | — |
 | [N14](n-companion/n14-what-version.md) | What is running, and what is newer | N | operator | draft | — |
-| [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | draft | — |
+| [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | accepted | — |
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | draft | — |
 | [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | draft | — |
 | [N18](n-companion/n18-running-part-of-it.md) | Running part of it on purpose | N | operator | draft | — |

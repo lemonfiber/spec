@@ -4,7 +4,7 @@ title: The words, and watching it happen
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P3
 labels: [mobile, ux, queue]
@@ -14,7 +14,7 @@ relates: [A2, A4, D3, D9, N2, N8]
 
 # N15 — The words, and watching it happen
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 
