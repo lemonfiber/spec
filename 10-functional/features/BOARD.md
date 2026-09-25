@@ -90,10 +90,10 @@ code, and the two move independently.
 |----|---------|------|----------|--------|----------|
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.22.0` |
 | [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | accepted | `0.17.0` |
-| [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | draft | `0.18.0` |
+| [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.18.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
 | [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
-| [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | draft | — |
+| [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | — |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.19.0` |
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.19.0` |
 | [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `0.19.0` |
@@ -128,7 +128,7 @@ code, and the two move independently.
 | [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
 | [N18](n-companion/n18-running-part-of-it.md) | Running part of it on purpose | N | operator | accepted | — |
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
-| [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | draft | — |
+| [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | accepted | — |
 
 ## Withdrawn — no longer to be built
 

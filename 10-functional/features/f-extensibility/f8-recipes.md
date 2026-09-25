@@ -4,7 +4,7 @@ title: Recipes and named adapters
 kind: feature
 area: F
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [extensibility, verification, security]
@@ -14,7 +14,7 @@ relates: [F5, F6, F7, G8, C1]
 
 # F8 — Recipes and named adapters
 
-**Status:** Draft · **Audience:** Operator · **Area:** F — Extensibility
+**Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
 ---
 

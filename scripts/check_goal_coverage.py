@@ -73,6 +73,10 @@ AWAITING_A_VERSION = {
         "G8 is split across 0.10.0, 0.11.0 and 0.14.0, all released",
         ["G8-R15", "G8-R16", "G8-R17", "G8-R18"],
     ),
+    "G10": (
+        "no version schedules G10; what it requires, D4, D6 and G1, is locked by 0.11.0 at the latest, all released",
+        [f"G10-R{n}" for n in range(1, 14)],
+    ),
     # The companion app takes no release of its own yet (30-repos/lemonfiber-companion.md),
     # so nothing schedules N1, and nothing that requires N1 can be scheduled before it.
     "N1": (
@@ -143,6 +147,10 @@ AWAITING_A_VERSION = {
     "N19": (
         "N19 requires N1, which no version schedules, and F1, locked by 0.15.0, released",
         [f"N19-R{n}" for n in range(1, 11)],
+    ),
+    "N20": (
+        "N20 requires N1, which no version schedules, and F8, locked by 0.18.0",
+        [f"N20-R{n}" for n in range(1, 11)],
     ),
 }
 

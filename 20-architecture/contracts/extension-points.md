@@ -1,6 +1,6 @@
 # Contract: `extension-points.json`
 
-**Status:** Draft
+**Status:** Accepted
 
 The published set of places a plugin may extend lemonfiber itself, so that a
 manifest declaring at one lemonfiber does not have is refused by name rather than

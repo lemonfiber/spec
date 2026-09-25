@@ -1,6 +1,6 @@
 # Contract: `plugin.toml`
 
-**Status:** Draft
+**Status:** Accepted
 
 The interface between `lemonfiber` and a plugin. Everything lemonfiber will do
 on a plugin's behalf comes from this file; it knows nothing about a plugin that
