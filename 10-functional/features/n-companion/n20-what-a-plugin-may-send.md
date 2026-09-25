@@ -4,7 +4,7 @@ title: What a plugin may send, and what it may never run
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, security, ux]
@@ -14,7 +14,7 @@ relates: [F3, F11, N5, N10, N2]
 
 # N20 — What a plugin may send, and what it may never run
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

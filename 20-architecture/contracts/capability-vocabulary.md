@@ -1,6 +1,6 @@
 # Contract: `capability-vocabulary.json`
 
-**Status:** Draft
+**Status:** Accepted
 
 The published set of things a service can do, so that wiring can ask for one
 rather than name a service, and a plugin can claim one rather than invent a name

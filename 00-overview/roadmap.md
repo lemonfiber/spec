@@ -303,8 +303,7 @@ of use behind it before `1.0.0` freezes it.
 ## M14 — The platform
 
 `0.16.0` and `0.17.0`. Other people's stacks, and the surface that makes them
-possible. F3–F7 and F10 are Accepted; recipes (F8) are Draft and carry no version
-yet.
+possible. F3–F8 and F10 are Accepted; recipes (F8) are locked by `0.18.0`.
 
 | Deliverable | Notes | Version |
 |-------------|-------|---------|

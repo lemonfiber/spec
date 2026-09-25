@@ -4,7 +4,7 @@ title: The household's web surface
 kind: feature
 area: G
 audience: household
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [web, household, ux]
@@ -14,7 +14,7 @@ relates: [D7, D8, G5, G6, N3]
 
 # G10 — The household's web surface
 
-**Status:** Draft · **Audience:** Household · **Area:** G — Cross-cutting UX
+**Status:** Accepted · **Audience:** Household · **Area:** G — Cross-cutting UX
 
 ---
 
