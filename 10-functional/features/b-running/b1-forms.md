@@ -119,6 +119,14 @@ each service left out, the profile it belongs to, the provider it needed, and th
 forms that asked for it. A service that was filtered reads as the feature working
 rather than as one that did not start.
 
+What the whole stack amounts to is worked out over what the active forms hold and
+whatever else is there. A stack running one form has every other service absent,
+and counting those against it would call it partial when it is doing exactly what
+it was asked. A service no active form holds counts only while it is there, so one
+that failed still reads as something to look at. With no form up there is nothing
+to count against, and every service counts. A service an active form filtered out
+is listed with what was filtered and not among the services, unless it is there.
+
 ### Forms are data, not code
 
 Adding or changing a form is a manifest edit in `lemonfiber-media-stack`. It
@@ -202,6 +210,8 @@ operator would notice is a form of their own the app does not believe exists.
 | **B1-R16** | Status MUST name, for each service, every active form whose closure holds it, and MUST NOT name a superseded form. |
 | **B1-R17** | Status MUST report each service an active form's closure filtered out, with the provider it needs and the forms that asked for it. |
 | **B1-R18** | A service MAY declare the memory it expects to need; a form's introspection MUST report the sum over the services it would start as the stack's estimate, MUST name the services that declare none, and MUST NOT present it as a measurement. |
+| **B1-R19** | Where a form is active, the condition status reports for the whole stack MUST be worked out over the services the active forms hold and those present, and MUST NOT count a service that is neither. |
+| **B1-R20** | Status MUST NOT list among its services a service an active form's closure filtered out while that service is not present; it is reported as filtered (`B1-R17`). |
 
 ## Related
 
