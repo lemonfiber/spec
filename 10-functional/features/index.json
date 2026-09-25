@@ -88,7 +88,7 @@
       "version": "0.14.0",
       "status": "released",
       "milestone": "M9",
-      "goals": 59
+      "goals": 58
     },
     {
       "version": "0.15.0",
@@ -106,7 +106,7 @@
       "version": "0.17.0",
       "status": "staged",
       "milestone": "M14",
-      "goals": 29
+      "goals": 30
     },
     {
       "version": "0.18.0",
@@ -1383,7 +1383,8 @@
       "maturity": "built",
       "shipped": null,
       "milestones": [
-        "M9"
+        "M9",
+        "M14"
       ],
       "milestone": "M9",
       "priority": null,
@@ -1402,6 +1403,10 @@
         {
           "version": "0.14.0",
           "status": "released"
+        },
+        {
+          "version": "0.17.0",
+          "status": "staged"
         }
       ],
       "path": "e-maintenance/e1-stack-updates.md"

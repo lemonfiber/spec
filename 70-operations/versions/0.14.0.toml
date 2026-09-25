@@ -1,7 +1,15 @@
 # Keeping it running — stack updates, self-update, backup and restore, rollback, and the change journal.
 #
-# 59 goals, seeded from the roadmap milestone this version serves;
+# 58 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
+#
+# `E1-R1` was a goal here and is not one now. It went out unmet, and its tracker row
+# said otherwise. The requirement pins every service image to the digest of its
+# multi-architecture index and forbids resolving one by tag, and every image in the
+# stack this version shipped is still named by tag alone. Leaving the goal here would
+# make this manifest assert something no run established. It is locked again by
+# `0.17.0`, with the digest work that meets it. `released_on` is untouched: what
+# shipped on that day is a fact, and this corrects what the record claims about it.
 #
 # G8-R4 and G8-R10 arrive from 0.10.0 (OPS-R31): both constrain an update check,
 # and this version is where one first exists. They are constraints on a subject
@@ -14,7 +22,6 @@ status  = "released"
 released_on = "2026-09-12"
 repos   = ["lemonfiber"]
 goals   = [
-    "E1-R1",
     "E1-R2",
     "E1-R3",
     "E1-R4",
