@@ -4,7 +4,7 @@ title: The operator's companion
 kind: feature
 area: N
 audience: operator
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [mobile, ux, verification]
@@ -14,7 +14,7 @@ relates: [B2, B4, B5, C2, C7, C8, D5, E1, E4]
 
 # N2 — The operator's companion
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

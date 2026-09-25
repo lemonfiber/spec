@@ -4,7 +4,7 @@ title: What the app uses of the device
 kind: feature
 area: N
 audience: both
-status: draft
+status: accepted
 maturity: planned
 priority: P1
 labels: [mobile, security, ux]
@@ -14,7 +14,7 @@ relates: [A7, B5, C4, G8, N2, N3]
 
 # N4 — What the app uses of the device
 
-**Status:** Draft · **Audience:** Both · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Both · **Area:** N — Companion
 
 ---
 

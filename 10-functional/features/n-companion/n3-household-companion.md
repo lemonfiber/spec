@@ -4,7 +4,7 @@ title: The household's companion
 kind: feature
 area: N
 audience: household
-status: draft
+status: accepted
 maturity: planned
 priority: P2
 labels: [mobile, household, ux]
@@ -14,7 +14,7 @@ relates: [D7, D8, G5, G6, G9]
 
 # N3 — The household's companion
 
-**Status:** Draft · **Audience:** Household · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Household · **Area:** N — Companion
 
 ---
 

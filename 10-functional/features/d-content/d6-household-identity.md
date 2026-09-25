@@ -117,8 +117,8 @@ an invitation to state what it grants — libraries, filtering, unrated material
 and whether requests may be made — **before** it is sent, and `N9-R6` requires it
 to state when it lapses.
 
-Afterwards, `N9-R7` requires three outcomes kept apart: lapsed unaccepted,
-declined, and never sent. From the operator's end they look identical — nobody
+Afterwards, `N9-R7` requires two outcomes kept apart: lapsed unaccepted, and
+declined by the invitee. From the operator's end they look identical — nobody
 arrived — and each has a different next move, which is the argument
 [D9](d9-pipeline-trace.md) makes about content that never appeared, applied to
 people.
