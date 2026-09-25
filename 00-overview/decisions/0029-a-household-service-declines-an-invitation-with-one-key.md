@@ -224,11 +224,11 @@ round-trips a policy. It reads the result back, and the doctor checks what
 Jellyfin answers to a preflight from an unlisted origin (`C6-R13`).
 
 **The list is never empty**, because an empty list reopens CORS on every line
-measured. By default it names Jellyfin's own household origin, the address the
-front door publishes. Jellyfin's web client is served from that origin and needs
-no CORS, so naming it closes CORS to everything else. An operator whose browser
-client is served from elsewhere adds that origin, with the consequence stated
-(`G5-R12`).
+measured. It names the household front door's origin, the address `G5` publishes:
+Seerr's, or Jellyfin's own in a library-only form. Nothing else needs it. Jellyfin's
+web client is served from Jellyfin's own origin and needs no CORS, and Seerr reaches
+Jellyfin server-side. When the front door's address changes (`G5-R11`), the list
+changes with it.
 
 ### 8. Two clarifications this proposes
 
@@ -248,6 +248,13 @@ The requirement is about lifetime, and the wording should say so.
 > through a fixed set of calls, and MUST be confined as `C6` states: no data
 > mount, a read-only root, no kernel capabilities, and no network reach beyond the
 > service it acts on and the port it publishes.
+
+It has no exception. Homepage holds the core's own `lemonfiber` key today, which
+is administrator-equivalent, at the LAN tier, for a dashboard widget. That is not
+one operation answerable at any hour, so under this requirement Homepage stops
+holding it: the core no longer publishes `JELLYFIN_API_KEY` to Homepage's
+environment, and Jellyfin's widget shows no numbers, as a widget without a key
+already does.
 
 ### 9. Across majors (ADR-0028)
 
@@ -294,10 +301,8 @@ every supported line.
   expired one is removed.
 - Closing CORS breaks any browser client served from an origin the list does not
   name.
-- The proposed C6 requirement also binds Homepage. Homepage holds the core's own
-  `lemonfiber` key, which is administrator-equivalent, at the LAN tier, for a
-  dashboard widget rather than one operation. Adopting the requirement means
-  Homepage stops holding that key, or the requirement names it as an exception.
+- Homepage's dashboard loses its Jellyfin widget's numbers, because Homepage
+  stops holding an administrator-equivalent key.
 
 ### Neutral
 
