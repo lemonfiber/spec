@@ -77,7 +77,7 @@ AWAITING_A_VERSION = {
     # so nothing schedules N1, and nothing that requires N1 can be scheduled before it.
     "N1": (
         "what N1 requires is locked by 0.11.0 at the latest, all released; the app takes no release",
-        [f"N1-R{n}" for n in range(1, 67)],
+        [f"N1-R{n}" for n in range(1, 73)],
     ),
     "N11": (
         "N11 requires N1, which no version schedules, and E4, locked by 0.14.0, released",

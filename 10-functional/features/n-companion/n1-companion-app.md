@@ -188,6 +188,32 @@ stack when it said it would (`N1-R27`) or when the operator did something —
 never because a value was read, a key was pressed, or a screen was rebuilt
 (`N1-R38`).
 
+### A screen may hold the stream instead of reading
+
+Some of what the core says is said only on its event stream. The health summary
+is the one that matters most: the core computes it once, into the dashboard, and
+publishes the dashboard nowhere else, so the one line every surface must say
+identically ([G7](../g-ux/g7-health-summary.md)) is on the stream or it is
+nowhere ([ADR-0026](../../../00-overview/decisions/0026-a-screen-may-hold-the-stream.md)).
+
+A screen showing it holds a subscription rather than reading, and the
+subscription is that screen's one read (`N1-R67`). Opening it is a call like any
+other, bounded like any other (`N1-R68`). Once it is open, what the core sends
+arrives on the core's cadence, to every listener at once, and the screen takes
+what has already arrived on a cadence it states. Taking it does not reach the
+stack, because nothing is sent (`N1-R69`).
+
+A stream can go quiet without failing, so silence has a bound, and the bound is
+the contract's: the core breaks silence with a heartbeat, and twice its interval
+with nothing heard is a broken stream (`ARCH-R61`). From then on the last value
+is a stale one, and a summary that was healthy is not healthy any more; it is
+unknown (`N1-R70`). A broken subscription is reopened on a stated cadence
+(`N1-R71`).
+
+A subscription is held only while somebody is looking at what it carries. A
+phone in a pocket holding one open would wake its radio on every beat, all night,
+for a screen nobody can see (`N1-R72`).
+
 ### Nothing is presented as current that is not
 
 A value read four hours ago, shown without saying so, is the failure this
@@ -247,6 +273,7 @@ session travels the overlay instead. The app's conversation does not change.
 | Unpaired | No stack is configured. The app explains what has to be true and how to make it so. |
 | Paired, unreachable | A stack is configured and cannot be reached now. Last-read values are shown, marked as such. |
 | Paired, reachable | A live session. Everything is current. |
+| Subscribed, quiet | A held subscription has heard nothing, not even the heartbeat, for twice the heartbeat interval. What it last carried is shown as stale, and a summary reads unknown. |
 | Session expired | The stack is reachable and the session is no longer valid. Re-authentication is offered without re-pairing. |
 | Refused | The stack answered and declined the credential. Distinct from unreachable, because the remedy is different. |
 
@@ -260,6 +287,9 @@ session travels the overlay instead. The app's conversation does not change.
 | Two stacks on one phone answer at the same address | Each is held separately by what it calls itself, and a reading is never attributed to the wrong one. |
 | The credential is correct and the surface is loopback-bound | The stack is unreachable rather than refusing, and the app names the binding as the likely cause. |
 | The device is offline entirely | Unreachable, distinguished from a stack that is down, because the person can tell the difference and the remedy differs. |
+| The operator switches away from the app with a subscription open | Closed, and not reopened until the app is in front again with a screen that shows what it carries. |
+| The stack stops sending, and the connection stays open | Broken after twice the heartbeat interval in silence, not after the operating system gives up on the socket. |
+| A subscription is reopened after a break | What was held from before the break stays stale until the stream's first value since replaces it. |
 | The API answers a wire version the app does not know | Refused loudly, naming both versions. An app that guessed at a newer envelope would render a stale shape as current. |
 
 ## Acceptance criteria
@@ -332,6 +362,12 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R64** | A re-pairing that changes the pinned fingerprint MUST discard the session held for that stack; a re-pairing that does not MUST keep it, consistent with `N1-R45`. A different certificate is a different key, and a session obtained under the old one is not carried across it. |
 | **N1-R65** | A screen MUST perform at most one read of a stack per frame it publishes, however many values that frame goes on to read from what came back. A value read more than once MUST be answered from what the screen holds rather than by reaching the stack again. |
 | **N1-R66** | Beyond that read, a screen MUST reach a stack only on the cadence it states (`N1-R27`) or in answer to an act of the operator's. It MUST NOT reach one because a value was read, a key was pressed, or a screen was rebuilt (`N1-R38`). |
+| **N1-R67** | A screen MAY hold a subscription to the stack's event stream in place of reading, and opening it MUST count as that screen's one read (`N1-R65`). Each value the stream delivers MUST be rendered from what the subscription holds, and MUST NOT be a reason to reach the stack again ([ADR-0026](../../../00-overview/decisions/0026-a-screen-may-hold-the-stream.md)). |
+| **N1-R68** | A screen MUST publish its first frame before opening a subscription (`N1-R25`), and opening it MUST carry the bounded timeout every call carries (`N1-R26`). Once the subscription is open, that timeout MUST NOT bound how long it is held. |
+| **N1-R69** | A screen MUST take what a subscription has delivered on a cadence it states (`N1-R27`), and taking it MUST NOT wait for a value that has not arrived. |
+| **N1-R70** | A subscription that has delivered nothing, neither a value nor the heartbeat, for twice the heartbeat interval the contract states (`ARCH-R61`) MUST be treated as broken. From then on its last value MUST be shown as stale with when it was read (`N1-R9`), and a summary it carried MUST read unknown rather than healthy. |
+| **N1-R71** | A subscription that broke or could not be opened MUST be reopened on a cadence the screen states, and MUST NOT be reopened more often than that. Nothing held from before the break MUST be presented as current until the reopened subscription delivers a value. |
+| **N1-R72** | A subscription MUST be held only while a screen showing what it carries is in front of the operator. It MUST be closed when that screen is left, and at the screen's first wake after the app leaves the foreground; it MUST NOT be opened or read while the app is in the background. |
 
 ## Related
 
