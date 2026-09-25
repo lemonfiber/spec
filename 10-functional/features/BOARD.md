@@ -61,7 +61,7 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
-| [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.14.0` |
+| [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.14.0`, `0.17.0` |
 | [E2](e-maintenance/e2-self-update.md) | Self-update | E | operator | accepted | `0.14.0` |
 | [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.14.0`, `0.3.0` |
 | [E4](e-maintenance/e4-rollback.md) | Rollback | E | operator | accepted | `0.14.0` |
