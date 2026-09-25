@@ -18,12 +18,23 @@
 #
 # `publish_results: true` is the point of it. Scorecard's value is a number
 # somebody outside the org can read without being trusted with anything, which
-# is why the token is a repository secret with no write scope rather than the
+# is why the token is an organisation secret with no write scope rather than the
 # workflow's own.
+#
+# That token is the one secret this workflow reads, so it is the one it declares.
+# A caller hands over `SCORECARD_TOKEN` by name and nothing else; `secrets:
+# inherit` would pass every secret the calling repository can see to a job that
+# needs one of them.
 name: scorecard
 
 on:
   workflow_call:
+    secrets:
+      SCORECARD_TOKEN:
+        description: >-
+          The read-only token Scorecard reads the repository and publishes its
+          result with.
+        required: true
   workflow_dispatch:
   # A change to this repository's protection is a change to its posture, and it
   # is the one event that says so without waiting for the week to turn.
