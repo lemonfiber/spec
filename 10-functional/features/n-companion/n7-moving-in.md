@@ -200,10 +200,6 @@ operator will search for.
 | `N7-R16` | `drifted` says an operator-changed value was kept; `conflicted` carries `ours` and `yours` side by side | The value itself on `drifted`, which carries none. `unmanaged` withholds the value by design, so a secret among what the stack takes on is never shown |
 | `N7-R17` | `failed` carries the service's own words in `detail` | — |
 
-**`N7-R15` and `D1`'s companion paragraph disagree.** That paragraph says the
-companion is where the connections are checked rather than made; `N7-R15` offers
-the run that makes them.
-
 `N7-R13` is written as an offer that stands on its own for a reason the contract
 makes plain: `forced` is always false. Folding the remedy into a move would be
 the app forcing what the stack declines to.

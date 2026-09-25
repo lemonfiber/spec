@@ -159,12 +159,6 @@ operator there ([N8](n8-what-comes-in.md)) rather than to a count.
 The per-category list is on `dashboard`, which the stack publishes on its event
 stream; a screen holding that stream reads it on `N1-R67`'s terms.
 
-**`N23-R1` and `N16-R12` disagree.** `N16-R12` forbids the app turning
-returning-after-restart on or off, and reads `hosting` for that subject
-(`N16-R5`, `N16-R6`). Hosting a command is that act, for one command: installed,
-it comes back after the machine restarts. The two cannot both be Accepted as
-written.
-
 **Two acts `C7` names are not offered here, because nothing serves them.**
 Marking an item as intentionally unmanaged (`C7-R12`) and adjusting the
 thresholds (`C7-R5`) have no action on the route the app reaches. `N1-R17`
