@@ -382,10 +382,15 @@ jobs:
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
           set -euo pipefail
+          # The whole record is read before the tag is looked for. `grep -q`
+          # exits at the match, `gh` dies of SIGPIPE writing what follows it,
+          # and under `pipefail` a record that holds the tag reads as one that
+          # does not.
           for _ in $(seq 1 60); do
-            if gh api -H "Accept: application/vnd.github.raw" \
+            recorded="$(gh api -H "Accept: application/vnd.github.raw" \
               "repos/${OWNER}/spec/contents/70-operations/versions/${VERSION}.toml?ref=main" \
-              2>/dev/null | grep -qF "tag = \"${TAG}\""; then
+              2>/dev/null | grep -F "tag = \"${TAG}\"" || true)"
+            if [ -n "$recorded" ]; then
               echo "${TAG} is recorded on main."
               exit 0
             fi
