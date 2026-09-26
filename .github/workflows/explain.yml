@@ -48,7 +48,12 @@ jobs:
           set -euo pipefail
           # A Spec: trailer in the body or any commit means the citation is done.
           text=$( { printf '%s\n' "$PR_BODY"; git log --format=%B "${BASE}..${HEAD}" 2>/dev/null || true; } )
-          if printf '%s' "$text" | grep -qiE '^[[:space:]]*Spec:[[:space:]]*[A-Za-z]'; then
+          # Counted rather than `grep -q`: the text is the body and every commit
+          # message, which can take more than one write, and a `grep -q` that
+          # exits at the first trailer leaves `printf` to die of SIGPIPE, which
+          # `pipefail` turns into "no trailer".
+          cited=$(printf '%s' "$text" | grep -ciE '^[[:space:]]*Spec:[[:space:]]*[A-Za-z]' || true)
+          if [ "${cited:-0}" -gt 0 ]; then
             echo "citation=satisfied" >> "$GITHUB_OUTPUT"
           else
             echo "citation=needed" >> "$GITHUB_OUTPUT"

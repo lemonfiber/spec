@@ -144,8 +144,13 @@ jobs:
           # already being there is what makes the second and every later pass
           # silent — the announcement below rides on putting it there, not on
           # finding it there.
-          if gh api "repos/${GH_REPO}/pulls/${pr}" --jq '.labels[].name' 2>/dev/null \
-            | grep -Fxq "$LABEL"; then
+          #
+          # Every label is read before the match is tested. `grep -q` exits at
+          # the match, `gh` dies of SIGPIPE writing the labels after it, and
+          # under `pipefail` that reads as the label being absent.
+          carried="$(gh api "repos/${GH_REPO}/pulls/${pr}" --jq '.labels[].name' 2>/dev/null \
+            | grep -Fx "$LABEL" || true)"
+          if [ -n "$carried" ]; then
             echo "#${pr} already carries ${LABEL}; nothing to announce."
             exit 0
           fi
