@@ -48,6 +48,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0027](0027-a-member-plays-what-the-core-authorised.md) | A member plays what the core authorised, on the member's own account | Accepted |
 | [0028](0028-a-supported-major-is-data-proved-by-its-own-recordings.md) | A supported major is data the stack declares, proved by its own recordings | Accepted |
 | [0029](0029-a-household-service-declines-an-invitation-with-one-key.md) | A household service declines an invitation, holding one media-server key and nothing else | Accepted |
+| [0030](0030-a-declared-failure-is-its-own-verdict.md) | An assertion declared to fail on a recording is reported as failing as declared | Proposed |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

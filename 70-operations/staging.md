@@ -300,7 +300,13 @@ and silence reads as a pass. So each of these fails the run **by name**:
 | It cannot say which release it targets — no `targets.toml`, unreadable, or naming none | Named |
 | Its manifest pins a generation this release does not carry | Named, with both numbers |
 | Its proof report is absent, unreadable, or was run against another version | Named |
-| Its report names no proof, or names one that is anything but passed | Named — including `unrun`, which is not a passing proof (`F3-R5`) |
+| Its report names no proof, or names one that is anything but passed or failing as declared | Named — including `unrun`, which is not a passing proof (`F3-R5`) |
+
+A proof failing as declared ([`F10-R13`](../10-functional/features/f-extensibility/f10-authoring.md))
+fails on a recording its manifest says it fails on, with the reason, and nowhere
+else. It is not a pass and the gate does not count it as one: it names each in
+what it prints, and fails nothing on it. A declaration gone stale is already a
+failed proof in the report (`F10-R14`), and fails the run as one.
 
 What a plugin targets is what keeps this from being retroactive. A release below
 it is not that plugin's business and the plugin is passed over; at or above it,
@@ -518,8 +524,9 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R66** | A pre-release MUST pass every check `execute-version` runs before tagging apart from the goal gate — cross-stream compatibility, release blockers, the declared version, and the plugin gate — and MUST record its pins the way `OPS-R35` requires of a release. A pre-release relaxes the goal gate and nothing else. |
 | **OPS-R67** | Every plugin the release train gates on MUST be registered under `70-operations/` with the repository holding it and the paths of the files the gate reads. The manifest generation a plugin is written in and the release it is validated against MUST be declared by the plugin itself and MUST NOT be restated in the registry. A registered plugin MUST NOT be a stream the train cuts and MUST NOT be named by any version manifest; it is an input to the gate and MUST NOT be tagged by it. |
 | **OPS-R68** | Every run that would cut a tag MUST re-validate every registered plugin riding that version against the manifest generation the release carries and MUST re-read the report its proofs left, and MUST refuse the run where one no longer validates, naming the plugin and what failed. |
-| **OPS-R69** | A registered plugin the gate cannot reach, that cannot say which release it targets, whose manifest or proof report is absent or unreadable, or whose report names no proof or names one that is not passed, MUST fail the run by name. The gate MUST NOT pass over what it could not read, and MUST NOT report success about the part it could. |
+| **OPS-R69** | *Superseded by [OPS-R72](staging.md): a proof failing as declared is named and does not fail the run. The number is not reused.* |
 | **OPS-R70** | Every lane that cuts a release tag MUST run the goal gate against the commit being tagged and MUST refuse unless every goal that version locks is satisfied, naming the unmet ones. A verdict taken at any other commit MUST NOT stand in for it, and a lane that cannot run the gate MUST refuse rather than tag — a gate that does not run MUST NOT read as one that passed. `execute-version` is one such lane and MUST NOT be the only one gated. A hotfix to an already-released version is exempt, because it delivers no goals of its own (`OPS-R37`). |
+| **OPS-R72** | A registered plugin the gate cannot reach, that cannot say which release it targets, whose manifest or proof report is absent or unreadable, or whose report names no proof or names one that is neither passed nor failing as declared ([`F10-R13`](../10-functional/features/f-extensibility/f10-authoring.md)), MUST fail the run by name. A proof failing as declared MUST be named in what the gate reports and MUST NOT be counted as passed. The gate MUST NOT pass over what it could not read, and MUST NOT report success about the part it could. |
 | **OPS-R58** | A manifest MUST say where the work satisfying its goals landed, and the goal gate MUST search exactly those repositories. Where a manifest does not say, the streams it cuts are what is searched. A repository named there MUST NOT be tagged for being named: what a version *cuts* and where its goals were *satisfied* are separate lists, and a goal satisfied in a repository the gate does not search MUST be reported unmet rather than passed over. |
 
 ## Related
