@@ -24,7 +24,8 @@ is not declared here.
 [F3-R33](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R34](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R35](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
-[F1-R9](../../10-functional/features/f-extensibility/f1-customisation.md)
+[F1-R9](../../10-functional/features/f-extensibility/f1-customisation.md),
+[F10-R12](../../10-functional/features/f-extensibility/f10-authoring.md)
 
 ---
 
@@ -413,7 +414,7 @@ fixture = "fixtures/media-serve-catalogue.json"
 | `probe[].id` | string | ✔ | Names a probe the capability declares. Every one of them, exactly once. |
 | `probe[].request` | table | ✔ | `method`, `path`, and optionally `accept` — on this plugin's own service. See [what a request may ask for](#what-a-request-may-ask-for). |
 | `probe[].expect` | table | ✔ | What the answer must be. Within what the probe permits — see below. |
-| `probe[].fixture` | string | ✔ | The recorded response. Required here where it is optional on a proof: a claim nobody can demonstrate without owning the service is a claim the catalogue's CI cannot check (`F5-R2`). |
+| `probe[].fixture` | string | ✔ | The recorded response. Required here where it is optional on a proof: a claim nobody can demonstrate without owning the service is a claim the catalogue's CI cannot check (`F5-R13`). |
 
 **The vocabulary owns what must be shown; this owns where to ask.** A capability
 is one contract with many claimants, each answering at a path of its own, so the
@@ -552,6 +553,7 @@ why     = "The path the health probe asks for is one this image serves."
 | `fixture` | string | | A recorded response to run against where no instance exists (`F10-R4`) |
 | `service` | string | ✔ where the plugin declares more than one service | Which of this plugin's services is asked. Default: the only one. |
 | `why` | string | ✔ | Why this is worth asserting. A proof nobody can justify is one nobody will maintain. |
+| `expected` | array of tables | | Recordings this proof fails on, each with the reason — see [What an assertion is declared to fail on](#what-an-assertion-is-declared-to-fail-on) |
 
 `F3-R1` has named a plugin's proofs among what its manifest declares since the
 feature was written, and `F3-R3` runs them in the existing verification engine.
@@ -657,6 +659,47 @@ that makes it run.
 
 Three verdicts, never two (`F3-R5`, `F4-R7`): passed, failed, and could not be
 run. The third is reported as unproven and is never counted as the first.
+Against a recording a proof or a check declares it fails on, a fourth is
+reported in place of the second: failing as declared.
+
+### What an assertion is declared to fail on
+
+A `[[proof]]` and a `doctor.check` row may carry `expected`: the recordings it
+fails on, and why. It is for an assertion whose passing state nobody can record,
+such as a check that a server has an owner where claiming one needs an account
+the plugin's CI does not hold (`F10-R12`).
+
+```toml
+[[contribution]]
+at        = "doctor.check"
+id        = "plex:claimed"
+request   = { method = "GET", path = "/identity", accept = "application/json" }
+expect    = { status = 200, json = { "/MediaContainer/claimed" = true } }
+fixture   = "fixtures/identity-anonymous.json"
+expected  = [
+    { fixture = "fixtures/identity-anonymous.json", verdict = "fails", reason = "Recorded from a server nobody has claimed; claiming one needs a plex.tv account." },
+]
+# … title, category, timeout_s and why as for any check
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `fixture` | string | ✔ | The recording the assertion fails on. It may be the assertion's own `fixture`. |
+| `verdict` | string | ✔ | `fails`, and nothing else. Passing is what `expect` already declares, and unproven is never excused. |
+| `reason` | string | ✔ | Why this recording is one the assertion fails on. Reported with the verdict every time. |
+
+What each entry changes is the report about **that recording** and nothing else:
+
+| The assertion, against the recording an entry names | Reported as |
+|-----|-----|
+| Ran, and its expectation was judged false | Failing as declared, with the reason and what it failed on (`F10-R13`) |
+| Ran, and its expectation held | Failed: the declaration is stale (`F10-R14`) |
+| Could not be run | Unproven, naming the recording (`ARCH-R122`, `F10-R16`) |
+
+Against any other recording, and against the live service, the assertion is held
+to `expect` exactly as if `expected` were absent (`F10-R15`). A `[[claim.probe]]`
+has no `expected`: a claim is what other services are wired on, and one whose
+probe fails is not wired to (`F4-R6`).
 
 ### What a recording is
 
@@ -987,6 +1030,8 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | Every `provides` entry is a published core name or namespaced with the plugin's id | Capability named, with the namespace required |
 | Every `[[proof]]` carries `id`, `title`, `request`, `expect` and `why` | Proof and field named |
 | At least one `[[proof]]` constrains the body rather than only the status | Every status-only proof named |
+| Every `expected` entry carries `fixture`, `verdict` and `reason`, its `verdict` is `fails`, and its `fixture` names a recording that exists | Assertion, entry and field named |
+| No two `expected` entries of one assertion name the same recording | Assertion and recording named |
 | `wiring.hostname` is a single DNS label | Value named |
 | A `loopback` service declares no `wiring.hostname` | Service named, and the tier that governs |
 | Every `[[wiring]]`, `[[proof]]` and contributed check names a declared service, and names one where the plugin declares more than one | Name given, with the services declared |
@@ -1068,6 +1113,7 @@ unreadable.
 | **ARCH-R126** | A plugin MAY declare more than one service; every service id MUST be unique within the manifest, and at most one of a plugin's services MUST declare a given core capability, refused naming the capability and both services. |
 | **ARCH-R127** | Wiring MUST be declared per service, a manifest declaring more than one service MUST name the service each wiring is about, and a service MUST NOT carry two. |
 | **ARCH-R128** | A proof and a contributed check MUST name which of the plugin's services they ask where the plugin declares more than one, and one that does not MUST be refused by name rather than resolved to whichever service is read first. |
+| **ARCH-R130** | A `[[proof]]` and a `doctor.check` row MUST be able to carry `expected`, a list of entries each naming a recording, the verdict `fails` and a reason; an entry missing any of the three, naming a verdict other than `fails` or a recording that does not exist, or naming a recording another entry of the same assertion names, MUST be refused by name, and a `[[claim.probe]]` MUST have no such field. |
 
 ## Related
 

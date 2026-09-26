@@ -17,7 +17,7 @@ by parse failure.
 [F3-R28](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [F3-R30](../../10-functional/features/f-extensibility/f3-stack-manifests.md),
 [C1-R15](../../10-functional/features/c-trust/c1-diagnostics.md),
-[F10-R11](../../10-functional/features/f-extensibility/f10-authoring.md)
+[F10-R12](../../10-functional/features/f-extensibility/f10-authoring.md)
 
 ---
 
@@ -62,7 +62,7 @@ and the engine that reads it is lemonfiber's, unchanged.
       "engine": "the check engine — independent, bounded, four verdicts, a remedy on anything that does not pass",
       "row": {
         "required": ["id", "title", "category", "request", "expect", "why", "fixture"],
-        "optional": ["timeout_s", "service", "fires_on"],
+        "optional": ["timeout_s", "service", "expected"],
         "bounds": { "timeout_s": { "min": 1, "max": 30, "default": 10 } },
         "enums": { "category": ["environment", "storage", "network", "vpn", "credentials", "services", "providers", "queue", "config"] }
       },
@@ -159,7 +159,7 @@ door beside it.
 | `expect` | What the answer must be. The same vocabulary a proof's expectation uses, and the same rule: a status alone is not enough unless it is a refusal. |
 | `why` | Why this is worth checking. A check nobody can justify is one nobody will maintain. |
 | `fixture` | The recorded response the check is proved against in CI (`F10-R4`) |
-| `fires_on` | A recorded response the check must fail on, for a check whose passing state cannot be recorded. Proving the check holds it to failing there, and a check that passes there is refuted (`F10-R11`). It may name the same file as `fixture`. |
+| `expected` | The recordings the check fails on, each with the verdict `fails` and a reason, for a check whose passing state cannot be recorded. Failing there is reported as failing as declared, passing there fails the run as a stale declaration, and the live service is held to `expect` regardless. An entry may name the same file as `fixture`. The shape is [plugin-manifest's](plugin-manifest.md#what-an-assertion-is-declared-to-fail-on) (`F10-R12`–`F10-R16`, `ARCH-R130`). |
 | `timeout_s` | Bounded, and bounded here rather than by the plugin's opinion (`C1-R7`) |
 | `service` | Which of the plugin's services the finding is about, and the one the check asks. Required where the plugin declares more than one; defaults to the only one where it declares one. |
 
@@ -236,7 +236,7 @@ a doctor run afterwards enumerates exactly what it enumerated before.
 | Every `doctor.remedy` names a `doctor.check` this manifest declares | Both named |
 | Every `doctor.check` carries at least one `doctor.remedy` | Check named |
 | Every `doctor.check` names a recorded response that exists | Path named |
-| Every `fires_on` names a recorded response that exists | Path named |
+| Every `expected` entry is well-formed and names a recorded response that exists (`ARCH-R130`) | Check, entry and field named |
 | A manifest contributing at a point asks for that point's capability | Capability named, never a version |
 
 ## Requirements
