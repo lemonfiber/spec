@@ -108,7 +108,11 @@ goal, for the same reason it cannot be cited ([change-lifecycle.md](../50-govern
 
 Once staged, the goal set is **frozen**: changing it requires review (a
 `goals-change` label) and is logged to the maintainer channel, so a release's
-scope cannot drift silently after the promise is made.
+scope cannot drift silently after the promise is made. A released version's
+goals are frozen the same way. `goals-change.yml` holds both halves: its
+`goals-change` check refuses a pull request that moves a frozen version's goals
+without the label, naming every goal added and taken out, and once a labelled
+one merges it tells the maintainer channel what moved.
 
 ## Release branches — the hotfix exception
 

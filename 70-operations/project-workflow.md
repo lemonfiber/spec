@@ -53,7 +53,7 @@ drift). Colour-coded by kind.
 | `help wanted` | help | Maintainers would welcome a contributor |
 | `blocked` | status | Waiting on something else |
 | `release-blocker` | status | Must be resolved before a staged version can release ([staging.md](staging.md), OPS-R44) |
-| `goals-change` | flag | Alters a staged version's locked goals; needs review (OPS-R31) |
+| `goals-change` | flag | Alters a staged or released version's locked goals; the `goals-change` check refuses such a change without it (OPS-R31) |
 | `scope:next` | triage | Out of the current staged version's scope; routed to the next ([staging.md](staging.md), OPS-R42) |
 | `wontfix` | resolution | Considered and declined |
 | `duplicate` | resolution | Already tracked elsewhere |
