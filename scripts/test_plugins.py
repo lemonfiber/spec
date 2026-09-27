@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Coverage tests for the plugin gate — OPS-R67, OPS-R68, OPS-R69, Q-R66.
+"""Coverage tests for the plugin gate — OPS-R67, OPS-R68, OPS-R72, Q-R66.
 
 A gate is worth what it refuses, so most of what follows is a refusal: a registry
 that is missing, unreadable or declares nothing; an entry missing a field; a
 repository nobody created; a manifest that is absent, unreadable, silent about its
 schema, or pinned to a generation that has moved; a proof report that is absent,
-unreadable, run against another version, empty, failing or unrun.
+unreadable, run against another version, empty, failing or unrun, or that says a
+proof fails as declared without saying on what and why.
+
+The one outcome besides passed that it accepts is failing as declared, and it is
+named every time and never counted as passed.
 
 The one that matters most is the repository nobody created, because it is the shape
 this codebase keeps finding: the answer is true about what was looked at and silent
@@ -294,6 +298,89 @@ class PluginGate(unittest.TestCase):
         code, said = self.gate()
         self.assertEqual(code, 1)
         self.assertIn("proof answers is unrun", said)
+
+    # Failing as declared: named, not failed on, never passed.
+
+    def as_declared(self, **over) -> dict:
+        declaration = {
+            "fixture": "fixtures/identity-anonymous.json",
+            "constraint": "json",
+            "place": "/MediaContainer/claimed",
+            "held": "false",
+            "reason": "Recorded from a server nobody has claimed.",
+        }
+        declaration.update(over)
+        return {"id": "claimed", "outcome": "failing-as-declared", "declared": [declaration]}
+
+    def test_a_proof_failing_as_declared_is_named_and_does_not_fail_the_run(self):
+        self.targets()
+        self.manifest()
+        self.report(proofs=[{"id": "answers", "outcome": "passed"}, self.as_declared()])
+        code, said = self.gate()
+        self.assertEqual(code, 0, said)
+        self.assertIn(
+            "::notice::komga's proof claimed fails as declared on "
+            "fixtures/identity-anonymous.json: json at /MediaContainer/claimed held false. "
+            "Recorded from a server nobody has claimed.",
+            said,
+        )
+        self.assertIn("1 proof(s) fail as declared, named above; none is counted as passed", said)
+
+    def test_a_declaration_about_the_answer_as_a_whole_names_no_place(self):
+        self.targets()
+        self.manifest()
+        declared = self.as_declared(constraint="status", held="500")
+        del declared["declared"][0]["place"]
+        self.report(proofs=[declared])
+        code, said = self.gate()
+        self.assertEqual(code, 0, said)
+        self.assertIn("identity-anonymous.json: status held 500. Recorded", said)
+
+    def test_a_proof_failing_as_declared_is_still_named_when_the_run_fails(self):
+        self.targets()
+        self.manifest()
+        self.report(proofs=[{"id": "answers", "outcome": "failed"}, self.as_declared()])
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn("proof answers is failed", said)
+        self.assertIn("proof claimed fails as declared", said)
+        self.assertNotIn("plugins ok", said)
+
+    def test_failing_as_declared_naming_no_declaration_fails(self):
+        self.targets()
+        self.manifest()
+        self.report(proofs=[{"id": "claimed", "outcome": "failing-as-declared"}])
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn("proof claimed is failing-as-declared and names no declaration", said)
+
+    def test_a_declaration_that_is_not_a_table_names_everything_it_lacks(self):
+        self.targets()
+        self.manifest()
+        self.report(proofs=[{"id": "claimed", "outcome": "failing-as-declared",
+                             "declared": ["fixtures/identity-anonymous.json"]}])
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn("names no fixture, constraint, held, reason", said)
+
+    def test_failing_as_declared_without_a_reason_fails(self):
+        self.targets()
+        self.manifest()
+        self.report(proofs=[self.as_declared(reason="")])
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn("proof claimed is failing-as-declared and its declaration names no reason", said)
+        self.assertNotIn("::notice::", said)
+
+    def test_failing_as_declared_without_what_the_answer_held_fails(self):
+        self.targets()
+        self.manifest()
+        declared = self.as_declared()
+        del declared["declared"][0]["held"]
+        self.report(proofs=[declared])
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn("its declaration names no held", said)
 
     def test_a_proof_with_no_outcome_and_no_id_is_still_named(self):
         self.targets()

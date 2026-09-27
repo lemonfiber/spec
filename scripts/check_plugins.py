@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Every registered plugin still validates against the version going out — OPS-R68.
+"""Every registered plugin still validates against the version going out — OPS-R68, OPS-R72.
 
 A plugin rides the train version-pinned. It declares the manifest generation it is
 written in, the registry declares the version the train holds it to, and every run
@@ -11,6 +11,13 @@ a repository that was never created, a manifest that is absent, a report that is
 missing — each of those is a question this could decline to answer, and a gate that
 declines reports success about the part it could read. So every one of them fails by
 name, and the only pass is a plugin that was found, parsed, matched and proven.
+
+A proof may also come back failing as declared: it fails on a recording its manifest
+says it fails on, on the constraint the manifest names, for the reason it gives, and
+nowhere else (`F10-R13`). That is not a pass and is never counted as one, and it is
+not a failure either. The gate names each one, with what the report says failed and
+why, and fails nothing on it. A declaration that no longer holds is already a failed
+proof in the report (`F10-R14`), and fails the run as any other failed proof does.
 
 Every number compared here is the plugin's own. `plugin.toml` says which manifest
 generation it is written in; `targets.toml` says which release it is validated and
@@ -40,6 +47,15 @@ import tomllib
 from patterns import VERSION as VERSION_RE
 
 REGISTRY = "70-operations/plugins.toml"
+
+#: The outcome a proof report gives a proof failing where its manifest declares it
+#: does. The one outcome besides passed that the gate does not fail on.
+AS_DECLARED = "failing-as-declared"
+
+#: What each declaration a proof failing as declared was held to must say: the
+#: constraint that failed, what the answer held there, and why. A report that
+#: leaves one out has named a failure without the reason that excuses it.
+DECLARED = ("fixture", "constraint", "held", "reason")
 
 #: Every field a registry entry must carry. Absent ones are named together rather
 #: than one per run, because a registry is edited by hand and a half-written entry
@@ -145,33 +161,73 @@ def check_manifest(root: pathlib.Path, entry: dict, schema: int) -> list[str]:
     return []
 
 
-def check_report(root: pathlib.Path, entry: dict, version: str) -> list[str]:
-    """The report the plugin's proofs left, which has to exist and has to say passed."""
+def declared(plugin: str, proof: dict) -> tuple[list[str], list[str]]:
+    """What a proof failing as declared says, or what it leaves out.
+
+    Named rather than counted: the gate says every time which proof fails, where, on
+    what, and why, so a reader of the run never takes the count for a pass.
+    """
+    named = proof.get("id", "(unnamed)")
+    entries = proof.get("declared")
+    if not isinstance(entries, list) or not entries:
+        return [f"{plugin}'s proof {named} is {AS_DECLARED} and names no declaration"], []
+    problems: list[str] = []
+    lines: list[str] = []
+    for entry in entries:
+        entry = entry if isinstance(entry, dict) else {}
+        missing = [field for field in DECLARED if entry.get(field) in (None, "")]
+        if missing:
+            problems.append(
+                f"{plugin}'s proof {named} is {AS_DECLARED} and its declaration "
+                f"names no {', '.join(missing)}"
+            )
+            continue
+        place = f" at {entry['place']}" if entry.get("place") else ""
+        lines.append(
+            f"{plugin}'s proof {named} fails as declared on {entry['fixture']}: "
+            f"{entry['constraint']}{place} held {entry['held']}. {entry['reason']}"
+        )
+    return problems, lines
+
+
+def check_report(root: pathlib.Path, entry: dict, version: str) -> tuple[list[str], list[str]]:
+    """The report the plugin's proofs left: every proof passed or failing as declared.
+
+    The second list names each proof failing as declared. None of them is a pass.
+    """
     plugin = entry["id"]
     report, why = read_json(root / entry["report"], "proof report", plugin)
     if why:
-        return [why]
+        return [why], []
     against = report.get("lemonfiber")
     if against != version:
         elsewhere = (
             f"{plugin}'s proofs were run against {against or 'nothing stated'}, "
             f"not {version}"
         )
-        return [elsewhere]
+        return [elsewhere], []
     proofs = report.get("proofs")
     if not proofs:
         nothing = (
             f"{plugin}'s report names no proof; a plugin that proved nothing is not "
             "a plugin whose proofs passed"
         )
-        return [nothing]
-    failed = [
-        f"{plugin}'s proof {proof.get('id', '(unnamed)')} is "
-        f"{proof.get('outcome', 'not stated')}"
-        for proof in proofs
-        if proof.get("outcome") != "passed"
-    ]
-    return failed
+        return [nothing], []
+    problems: list[str] = []
+    named: list[str] = []
+    for proof in proofs:
+        outcome = proof.get("outcome")
+        if outcome == "passed":
+            continue
+        if outcome == AS_DECLARED:
+            wrong, lines = declared(plugin, proof)
+            problems.extend(wrong)
+            named.extend(lines)
+            continue
+        problems.append(
+            f"{plugin}'s proof {proof.get('id', '(unnamed)')} is {outcome or 'not stated'}"
+        )
+    return problems, named
 
 
 def checkouts(specs: list[str]) -> dict[str, pathlib.Path]:
@@ -186,9 +242,13 @@ def checkouts(specs: list[str]) -> dict[str, pathlib.Path]:
     return found
 
 
-def evaluate(entries: list[dict], version: str, schema: int, where: dict[str, pathlib.Path]) -> tuple[list[str], int]:
-    """Every problem across every plugin that rides this version, and how many did."""
+def evaluate(
+    entries: list[dict], version: str, schema: int, where: dict[str, pathlib.Path]
+) -> tuple[list[str], list[str], int]:
+    """Every problem across every plugin that rides this version, every proof failing
+    as declared, and how many plugins ride."""
     problems: list[str] = []
+    named: list[str] = []
     gated = 0
     for index, entry in enumerate(entries):
         broken = malformed(entry, index)
@@ -216,8 +276,10 @@ def evaluate(entries: list[dict], version: str, schema: int, where: dict[str, pa
             continue
         gated += 1
         problems.extend(check_manifest(root, entry, schema))
-        problems.extend(check_report(root, entry, version))
-    return problems, gated
+        wrong, lines = check_report(root, entry, version)
+        problems.extend(wrong)
+        named.extend(lines)
+    return problems, named, gated
 
 
 def main() -> int:
@@ -233,8 +295,12 @@ def main() -> int:
         return 2
 
     entries = load_registry(within_cwd(a.registry))
-    problems, gated = evaluate(entries, a.version, a.schema, checkouts(a.checkout))
+    problems, named, gated = evaluate(entries, a.version, a.schema, checkouts(a.checkout))
 
+    # Named before anything is decided, so a run that fails for another reason still
+    # says which proofs fail as declared.
+    for line in named:
+        print(f"::notice::{line}")
     for problem in problems:
         print(f"::error::{problem}")
     if problems:
@@ -244,6 +310,11 @@ def main() -> int:
         )
         return 1
     print(f"plugins ok: {gated} of {len(entries)} ride {a.version}, all validating.")
+    if named:
+        print(
+            f"{len(named)} proof(s) fail as declared, named above; "
+            "none is counted as passed (OPS-R72)."
+        )
     return 0
 
 

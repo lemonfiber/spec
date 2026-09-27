@@ -263,7 +263,7 @@ jobs:
           [ "$blockers" -eq 0 ] || { echo "::error::pre-release blocked — resolve the blockers first."; exit 1; }
           echo "no release blockers."
 
-      - name: Every registered plugin still validates (OPS-R68, OPS-R69)
+      - name: Every registered plugin still validates (OPS-R68, OPS-R72)
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           OWNER: ${{ github.repository_owner }}
