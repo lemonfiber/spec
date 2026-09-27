@@ -248,6 +248,20 @@ and appear in no list either.
 Read it as a second opinion, not an authority: where it and GitHub disagree it
 says so, and GitHub decides.
 
+## A push replaces the run it supersedes
+
+The organisation's repositories share one pool of runners, twenty jobs at a
+time. A pull request pushed again has no use for the run on its old head: the
+checks that decide the merge are the ones on the new head, and a run nobody will
+read holds runners the new one is queued behind. One repository's pipeline, run
+to the end on every superseded push, is enough to leave every other repository's
+checks queued behind it.
+
+So a pull request's workflows cancel the run they replace. A push to `main` and
+a release tag cancel nothing: what runs there is the record of the branch and
+the build of a release, and each has a ref of its own that a pull request's run
+never shares.
+
 ## Requirements
 
 | ID | Requirement |
@@ -262,6 +276,7 @@ says so, and GitHub decides.
 | **Q-R37** | Every repository in the org MUST require passing checks before merge; the override MUST bypass only spec-check. |
 | **Q-R64** | Open SonarCloud issues MUST be zero, enforced as a blocking CI check independent of the Sonar plan's own quality gate, since the free plan's gate cannot be configured to this standard (`Q-R63`). |
 | **Q-R67** | A repository that has not yet reached zero MUST declare what it still carries, in its own workflow, as a number that MUST NOT increase beyond what already stands against the branch it merges into. |
+| **Q-R75** | A workflow a pull request runs MUST cancel that pull request's run it supersedes when the pull request is pushed again, and MUST NOT cancel a run for a push to a protected branch or for a tag. |
 
 ### Reaching zero from a backlog
 
