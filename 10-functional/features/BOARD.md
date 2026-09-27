@@ -109,7 +109,7 @@ code, and the two move independently.
 | [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.23.0` |
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.22.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.22.0` |
-| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | — |
+| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0` |
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | — |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | — |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |

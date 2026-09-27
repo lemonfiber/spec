@@ -106,7 +106,7 @@
       "version": "0.17.0",
       "status": "staged",
       "milestone": "M14",
-      "goals": 43
+      "goals": 49
     },
     {
       "version": "0.18.0",
@@ -908,7 +908,8 @@
       "maturity": "shipped",
       "shipped": "0.10.0",
       "milestones": [
-        "M7"
+        "M7",
+        "M14"
       ],
       "milestone": "M7",
       "priority": null,
@@ -927,6 +928,10 @@
         {
           "version": "0.10.0",
           "status": "released"
+        },
+        {
+          "version": "0.17.0",
+          "status": "staged"
         },
         {
           "version": "0.9.0",
@@ -2862,8 +2867,10 @@
       "status": "accepted",
       "maturity": "planned",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
       "priority": "P1",
       "labels": [
         "mobile",
@@ -2883,7 +2890,12 @@
         "G3",
         "I1"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "0.17.0",
+          "status": "staged"
+        }
+      ],
       "path": "n-companion/n1-companion-app.md"
     },
     {

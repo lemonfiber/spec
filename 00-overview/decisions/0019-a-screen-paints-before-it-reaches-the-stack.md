@@ -1,7 +1,8 @@
 # ADR-0019: A screen paints before it reaches the stack
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-11
+**Decided:** 2026-09-27, by the maintainer, Wessel Verheij: with the stack's side of pairing (`N1-R18`, `N1-R47` to `N1-R49`, `N1-R62`, `C6-R19`) locked in 0.17.0, so the companion reaches a real stack in that release.
 
 ## Context
 
