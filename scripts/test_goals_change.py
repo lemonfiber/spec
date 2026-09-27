@@ -183,11 +183,27 @@ class GoalsChangeTest(unittest.TestCase):
             self.run_gate("--base", base, "--head", head, "--summary"), (0, "0.16.0: -B-R1\n0.17.0: +C-R3\n")
         )
 
-    def test_a_revision_git_cannot_compare_is_refused(self) -> None:
+    def test_a_revision_that_names_no_commit_is_refused(self) -> None:
         head = self.repo.commit({"0.17.0.toml": written("0.17.0", "staged", ["A-R1"])})
         code, said = self.run_gate("--base", "0" * 40, "--head", head)
         self.assertEqual(code, 1)
-        self.assertIn("::error::git could not compare", said)
+        self.assertIn("names no commit here", said)
+
+    def test_a_revision_git_could_read_as_an_option_never_reaches_it_as_one(self) -> None:
+        head = self.repo.commit({"0.17.0.toml": written("0.17.0", "staged", ["A-R1"])})
+        for said in ("--output=/tmp/x", "-p", "", "a b", "HEAD;true"):
+            with self.subTest(said=said):
+                code, out = self.run_gate(f"--base={said}", "--head", head)
+                self.assertEqual(code, 1)
+                self.assertIn("names no commit here", out)
+
+    def test_a_revision_is_resolved_to_the_commit_it_names(self) -> None:
+        base, head = self.two(
+            {"0.17.0.toml": written("0.17.0", "staged", ["A-R1"])},
+            {"0.17.0.toml": written("0.17.0", "staged", ["A-R1", "C-R3"])},
+        )
+        self.assertEqual(gate.commit(f"{head}^1"), base)
+        self.assertEqual(gate.commit("main"), head)
 
     def test_a_manifest_that_is_not_toml_is_refused(self) -> None:
         base, head = self.two(
@@ -198,37 +214,38 @@ class GoalsChangeTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("is not TOML", said)
 
-    def test_a_revision_git_could_read_as_an_option_is_refused_before_git_is_asked(self) -> None:
-        for said in ("--output=/tmp/x", "-p", "", "a b", "HEAD;true"):
-            with self.subTest(said=said), contextlib.redirect_stderr(io.StringIO()):
-                with self.assertRaises(SystemExit) as refused:
-                    gate.main(["--base", said, "--head", "HEAD"])
-                self.assertEqual(refused.exception.code, 2)
-
-    def test_the_revisions_the_workflow_passes_are_read_as_revisions(self) -> None:
-        for said in ("0" * 40, "abc123^1", "main~2", "origin/main", "refs/heads/feat/x-y_z"):
-            with self.subTest(said=said):
-                self.assertEqual(gate.revision(said), said)
-
-    def test_a_revision_that_cannot_be_listed_is_refused(self) -> None:
-        with self.assertRaisesRegex(gate.Unreadable, "could not list"):
-            gate.manifest("no-such-revision", f"{gate.VERSIONS}/0.17.0.toml")
-
-    def test_a_listed_path_that_cannot_be_shown_is_refused(self) -> None:
+    def test_a_manifest_a_commit_does_not_have_reads_as_none(self) -> None:
         head = self.repo.commit({"0.17.0.toml": written("0.17.0", "staged", ["A-R1"])})
+        self.assertIsNone(gate.manifest(head, f"{gate.VERSIONS}/0.99.0.toml"))
+
+    def refusing(self, first: str, second: str | None = None) -> None:
         real = gate._git
 
-        def refusing_show(*args: str) -> subprocess.CompletedProcess[str]:
-            if args[0] == "show":
-                return subprocess.CompletedProcess(args, 128, "", "fatal: bad object")
-            return real(*args)
+        def refused(*args: str, given: str | None = None) -> subprocess.CompletedProcess[str]:
+            if args[0] == first and (second is None or args[1] == second):
+                return subprocess.CompletedProcess(args, 128, "", "fatal: refused")
+            return real(*args, given=given)
 
-        gate._git = refusing_show
-        try:
-            with self.assertRaisesRegex(gate.Unreadable, "could not read"):
-                gate.manifest(head, f"{gate.VERSIONS}/0.17.0.toml")
-        finally:
-            gate._git = real
+        gate._git = refused
+        self.addCleanup(setattr, gate, "_git", real)
+
+    def test_a_git_that_will_not_resolve_is_a_commit_named_nowhere(self) -> None:
+        self.refusing("cat-file", "--batch-check")
+        with self.assertRaisesRegex(gate.Unreadable, "names no commit"):
+            gate.commit("HEAD")
+
+    def test_a_comparison_git_would_not_make_is_refused(self) -> None:
+        base, head = self.two({"0.17.0.toml": written("0.17.0", "staged", ["A-R1"])}, {})
+        self.refusing("diff")
+        code, said = self.run_gate("--base", base, "--head", head)
+        self.assertEqual(code, 1)
+        self.assertIn("::error::git could not compare", said)
+
+    def test_a_blob_git_would_not_show_is_refused(self) -> None:
+        head = self.repo.commit({"0.17.0.toml": written("0.17.0", "staged", ["A-R1"])})
+        self.refusing("cat-file", "blob")
+        with self.assertRaisesRegex(gate.Unreadable, "could not read"):
+            gate.manifest(head, f"{gate.VERSIONS}/0.17.0.toml")
 
 
 if __name__ == "__main__":

@@ -16,6 +16,11 @@ the change unless the label is on it, and names the version and every goal
 added and taken out. `--summary` prints the same change as one line per
 version, which is what the maintainer channel is sent once it merges.
 
+**No revision it is given reaches git as an argument.** Each is handed to
+`git cat-file` on its standard input and resolved to the commit it names, and
+only the object names git answers with, held to the shape of one, are passed
+on. A value git could read as an option has nowhere to be read as one.
+
 A manifest the base does not have is new, and a new one is `planned` or is
 being staged by `stage-version`, which is the lock itself rather than a change
 to it. A manifest that cannot be read at either end refuses: a comparison that
@@ -43,29 +48,38 @@ LABEL = "goals-change"
 NOT_A_VERSION = ("TEMPLATE.toml",)
 
 
-# A revision as git names one: a commit, a ref, or either followed by `^n`/`~n`.
-# Never one that begins with `-`, which git would read as an option.
-REVISION = re.compile(r"[0-9A-Za-z_][0-9A-Za-z_./^~-]*")
-
-
-def revision(value: str) -> str:
-    """A revision the command line gave, refused where git could read it as anything else."""
-    if not REVISION.fullmatch(value):
-        raise argparse.ArgumentTypeError(f"{value!r} is not a revision")
-    return value
+# An object name as git writes one: SHA-1 or SHA-256, in hex.
+OBJECT = re.compile(r"[0-9a-f]{40}(?:[0-9a-f]{24})?")
 
 
 class Unreadable(Exception):
     """A manifest could not be read at a revision. Never the same as unchanged."""
 
 
-def _git(*args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True, check=False)
+def _git(*args: str, given: str | None = None) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(ROOT), *args], input=given, capture_output=True, text=True, check=False
+    )
+
+
+def _named(asked: str) -> str | None:
+    """The object `git cat-file --batch-check` resolved one line to, or None where it named none."""
+    answered = _git("cat-file", "--batch-check", given=f"{asked}\n")
+    found = answered.stdout.split(" ", 1)[0] if answered.returncode == 0 else ""
+    return found if OBJECT.fullmatch(found) else None
+
+
+def commit(revision: str) -> str:
+    """The commit a revision names, resolved by git from its standard input."""
+    found = _named(f"{revision}^{{commit}}")
+    if found is None:
+        raise Unreadable(f"{revision!r} names no commit here")
+    return found
 
 
 def touched(base: str, head: str) -> list[str]:
-    """The version manifests that differ between the two revisions."""
-    asked = _git("diff", "--name-only", "--end-of-options", base, head, "--", VERSIONS)
+    """The version manifests that differ between two commits git resolved."""
+    asked = _git("diff", "--name-only", base, head, "--", VERSIONS)
     if asked.returncode != 0:
         raise Unreadable(f"git could not compare {base} with {head}: {asked.stderr.strip()}")
     return sorted(
@@ -76,13 +90,11 @@ def touched(base: str, head: str) -> list[str]:
 
 
 def manifest(revision: str, path: str) -> dict | None:
-    """The manifest at a revision, or None where that revision does not have it."""
-    listed = _git("ls-tree", "--name-only", "--end-of-options", revision, "--", path)
-    if listed.returncode != 0:
-        raise Unreadable(f"git could not list {path} at {revision}: {listed.stderr.strip()}")
-    if listed.stdout.strip() == "":
+    """The manifest at a commit git resolved, or None where that commit does not have it."""
+    blob = _named(f"{revision}:{path}")
+    if blob is None:
         return None
-    shown = _git("show", "--end-of-options", f"{revision}:{path}")
+    shown = _git("cat-file", "blob", blob)
     if shown.returncode != 0:
         raise Unreadable(f"git could not read {path} at {revision}: {shown.stderr.strip()}")
     try:
@@ -115,14 +127,14 @@ def said(version: str, added: list[str], removed: list[str]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--base", required=True, type=revision)
-    parser.add_argument("--head", required=True, type=revision)
+    parser.add_argument("--base", required=True)
+    parser.add_argument("--head", required=True)
     parser.add_argument("--labels", default="", help="the pull request's labels, comma-separated")
     parser.add_argument("--summary", action="store_true", help="print the change and refuse nothing")
     args = parser.parse_args(argv)
 
     try:
-        moved = changes(args.base, args.head)
+        moved = changes(commit(args.base), commit(args.head))
     except Unreadable as why:
         print(f"::error::{why}")
         return 1
