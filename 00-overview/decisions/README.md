@@ -35,15 +35,15 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0014](0014-one-generated-contract-for-every-sdk.md) | Every SDK generates its types from one artefact the server emits | Proposed |
 | [0015](0015-docs-site-renders-what-it-does-not-own.md) | The documentation site renders content it does not own | Proposed |
 | [0016](0016-dependabot-over-renovate.md) | Dependabot updates the dependencies, and the gate cites for it | Proposed |
-| [0017](0017-the-companion-app-as-a-fourth-surface.md) | The companion app is a fourth surface, reached over the network | Proposed |
-| [0018](0018-trusting-a-stack-over-the-local-network.md) | A paired fingerprint decides which machine the app will talk to | Proposed |
-| [0019](0019-a-screen-paints-before-it-reaches-the-stack.md) | A screen paints what it knows before it reaches the stack | Proposed |
+| [0017](0017-the-companion-app-as-a-fourth-surface.md) | The companion app is a fourth surface, reached over the network | Accepted |
+| [0018](0018-trusting-a-stack-over-the-local-network.md) | A paired fingerprint decides which machine the app will talk to | Accepted |
+| [0019](0019-a-screen-paints-before-it-reaches-the-stack.md) | A screen paints what it knows before it reaches the stack | Accepted |
 | [0020](0020-an-action-the-stack-did-not-receive-did-not-happen.md) | An action the stack did not receive did not happen | Proposed |
 | [0021](0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) | A plugin is data, and lemonfiber writes its container | Proposed |
 | [0022](0022-a-recipe-declares-pairs-not-lists.md) | A recipe declares pairs, not lists | Proposed |
 | [0023](0023-a-pin-is-a-digest.md) | A pin is a digest, and a signature is a different question | Proposed |
 | [0024](0024-what-opens-and-what-never-does.md) | Data about this installation opens; behaviour lemonfiber implements does not | Proposed |
-| [0025](0025-nothing-leaves-this-machine-unpinned.md) | A pin is the certificate's digest, and it is what permits an address off this machine | Proposed |
+| [0025](0025-nothing-leaves-this-machine-unpinned.md) | A pin is the certificate's digest, and it is what permits an address off this machine | Accepted |
 | [0026](0026-a-screen-may-hold-the-stream.md) | A screen may hold the event stream, and holding it is its one read | Proposed |
 | [0027](0027-a-member-plays-what-the-core-authorised.md) | A member plays what the core authorised, on the member's own account | Accepted |
 | [0028](0028-a-supported-major-is-data-proved-by-its-own-recordings.md) | A supported major is data the stack declares, proved by its own recordings | Accepted |
