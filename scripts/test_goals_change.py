@@ -198,6 +198,18 @@ class GoalsChangeTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("is not TOML", said)
 
+    def test_a_revision_git_could_read_as_an_option_is_refused_before_git_is_asked(self) -> None:
+        for said in ("--output=/tmp/x", "-p", "", "a b", "HEAD;true"):
+            with self.subTest(said=said), contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as refused:
+                    gate.main(["--base", said, "--head", "HEAD"])
+                self.assertEqual(refused.exception.code, 2)
+
+    def test_the_revisions_the_workflow_passes_are_read_as_revisions(self) -> None:
+        for said in ("0" * 40, "abc123^1", "main~2", "origin/main", "refs/heads/feat/x-y_z"):
+            with self.subTest(said=said):
+                self.assertEqual(gate.revision(said), said)
+
     def test_a_revision_that_cannot_be_listed_is_refused(self) -> None:
         with self.assertRaisesRegex(gate.Unreadable, "could not list"):
             gate.manifest("no-such-revision", f"{gate.VERSIONS}/0.17.0.toml")

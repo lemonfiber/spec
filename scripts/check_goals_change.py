@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+import re
 import subprocess
 import sys
 import tomllib
@@ -42,6 +43,18 @@ LABEL = "goals-change"
 NOT_A_VERSION = ("TEMPLATE.toml",)
 
 
+# A revision as git names one: a commit, a ref, or either followed by `^n`/`~n`.
+# Never one that begins with `-`, which git would read as an option.
+REVISION = re.compile(r"[0-9A-Za-z_][0-9A-Za-z_./^~-]*")
+
+
+def revision(value: str) -> str:
+    """A revision the command line gave, refused where git could read it as anything else."""
+    if not REVISION.fullmatch(value):
+        raise argparse.ArgumentTypeError(f"{value!r} is not a revision")
+    return value
+
+
 class Unreadable(Exception):
     """A manifest could not be read at a revision. Never the same as unchanged."""
 
@@ -52,7 +65,7 @@ def _git(*args: str) -> subprocess.CompletedProcess[str]:
 
 def touched(base: str, head: str) -> list[str]:
     """The version manifests that differ between the two revisions."""
-    asked = _git("diff", "--name-only", base, head, "--", VERSIONS)
+    asked = _git("diff", "--name-only", "--end-of-options", base, head, "--", VERSIONS)
     if asked.returncode != 0:
         raise Unreadable(f"git could not compare {base} with {head}: {asked.stderr.strip()}")
     return sorted(
@@ -64,12 +77,12 @@ def touched(base: str, head: str) -> list[str]:
 
 def manifest(revision: str, path: str) -> dict | None:
     """The manifest at a revision, or None where that revision does not have it."""
-    listed = _git("ls-tree", "--name-only", revision, "--", path)
+    listed = _git("ls-tree", "--name-only", "--end-of-options", revision, "--", path)
     if listed.returncode != 0:
         raise Unreadable(f"git could not list {path} at {revision}: {listed.stderr.strip()}")
     if listed.stdout.strip() == "":
         return None
-    shown = _git("show", f"{revision}:{path}")
+    shown = _git("show", "--end-of-options", f"{revision}:{path}")
     if shown.returncode != 0:
         raise Unreadable(f"git could not read {path} at {revision}: {shown.stderr.strip()}")
     try:
@@ -102,8 +115,8 @@ def said(version: str, added: list[str], removed: list[str]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--base", required=True)
-    parser.add_argument("--head", required=True)
+    parser.add_argument("--base", required=True, type=revision)
+    parser.add_argument("--head", required=True, type=revision)
     parser.add_argument("--labels", default="", help="the pull request's labels, comma-separated")
     parser.add_argument("--summary", action="store_true", help="print the change and refuse nothing")
     args = parser.parse_args(argv)
