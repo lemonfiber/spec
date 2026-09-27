@@ -112,17 +112,24 @@ check exists to find. A proof can be in the same position: what it asserts holds
 service an operator installs, and not on the one recording anybody can take.
 
 So a declared proof and a contributed check may each say, against a recording it names,
-that it fails there, and why. That is a declaration of an **expected verdict**
-(`expected`), and it changes what proving against recordings reports and nothing else:
+that it fails there, which of its constraints fails, and why. Plex's check names
+`/MediaContainer/claimed`, the place that says whether the server has an owner. That is
+a declaration of an **expected verdict** (`expected`), and it changes what proving
+against recordings reports and nothing else:
 
 - **It is reported as what it is.** An assertion that fails where its declaration says
-  it does is reported as *failing as declared*, with the reason and what it failed on.
+  it does, on the constraint the declaration names and no other, is reported as *failing
+  as declared*, naming that constraint, what the answer held there, and the reason.
   That is neither a pass, which would say the assertion holds, nor a failure, which
   would say the plugin is wrong. A reader sees it every time proving runs.
-- **It goes stale loudly.** An assertion that passes on a recording its declaration says
-  it fails on is reported as failed, naming the declaration. The recording has changed
-  or the assertion has, and the declaration is no longer true. It is removed rather
-  than left to excuse something else.
+- **It excuses one failure, not any.** A declaration names what fails. An assertion
+  that fails on that recording on a constraint the declaration does not name has failed
+  for a reason nobody declared, and is reported as failed, naming the declared
+  constraint and every constraint that failed.
+- **It goes stale loudly.** An assertion whose declared constraint holds on the
+  recording is reported as failed, naming the declaration. The recording has changed or
+  the assertion has, and the declaration is no longer true. It is removed rather than
+  left to excuse something else.
 - **It excuses one recording.** The live service, and every other recording, hold the
   assertion to its own expectation. A declaration never changes a verdict about the
   service an operator runs.
@@ -169,8 +176,10 @@ Per plugin, while it is being written:
 | An author's editor knows nothing about the schema | The same commands validate from the terminal with the same messages. The schema is a convenience, not the mechanism. |
 | A manifest validates in the editor and is refused by lemonfiber | A defect in the generated schema, not in the manifest. The generator and the parser come from one set of types precisely so this cannot be an ordinary occurrence (`ARCH-R93`). |
 | An author has no instance of the service to test against | Record fixtures, or take somebody else's. Proving against a recording is a first-class outcome, not a degraded one. |
-| A check's passing state cannot be recorded without an account nobody holds | Record the state it exists to find and declare that the check fails there, with the reason. It is reported as failing as declared, never as passed (`F10-R12`, `F10-R13`). |
+| A check's passing state cannot be recorded without an account nobody holds | Record the state it exists to find and declare that the check fails there, on the constraint that tells the two states apart, with the reason. It is reported as failing as declared, never as passed (`F10-R12`, `F10-R13`). |
 | A recording an assertion is declared to fail on starts passing | The run fails, naming the declaration as stale. The declaration is removed in the change that made the recording pass (`F10-R14`). |
+| An assertion fails on its declared recording, but on a constraint the declaration does not name | Failed, naming the declared constraint and what actually failed. A declaration excuses the failure it describes and no other (`F10-R14`). |
+| A declaration names a constraint the assertion does not make | Refused by name, with the constraints it does make (`F10-R12`). |
 | An assertion with a declared failing recording is run against the live service | Held to its own expectation. A claimed-server check fails on an unclaimed server an operator runs, as it exists to (`F10-R15`). |
 | The recording a declaration names is absent, unreadable, or of another request | Unproven, naming the recording. The declaration does not turn it into failing as declared (`F10-R16`). |
 | Fixtures drift from what the service now does | The proof passes against the recording and fails against the service. Both results are reported as what they are; a fixture is evidence about a moment. |
@@ -194,9 +203,9 @@ Per plugin, while it is being written:
 | **F10-R9** | Publishing a plugin MUST require no infrastructure beyond a git repository. |
 | **F10-R10** | An authoring failure MUST name its location in the manifest and what was expected, and MUST report every violation in one pass. |
 | **F10-R11** | *Superseded by [F10-R12](f10-authoring.md)–[F10-R16](f10-authoring.md): an assertion failing where its declaration says it does is reported as failing as declared, not as passed. The number is not reused.* |
-| **F10-R12** | A declared proof and a contributed check MAY each declare, against a recorded response it names, that it fails there. Every such declaration MUST carry a reason, and a declaration without one, naming a recording that does not exist, or naming any verdict other than failing MUST be refused by name. |
-| **F10-R13** | Proving against recordings MUST run an assertion against every recording a declaration names, and one that fails there MUST be reported as failing as declared, apart from passed and from failed, together with the declaration's reason and what it failed on. It MUST NOT be reported or counted as passed, and MUST NOT by itself fail the proving run. |
-| **F10-R14** | An assertion that passes on a recording its declaration says it fails on MUST be reported as failed, naming the declaration as stale, and MUST fail the proving run. |
+| **F10-R12** | A declared proof and a contributed check MAY each declare, against a recorded response it names, that it fails there on one constraint of its expectation, which the declaration MUST name. Every such declaration MUST carry a reason, and a declaration without one, naming a recording that does not exist, naming a constraint its assertion does not make, or naming any verdict other than failing MUST be refused by name. |
+| **F10-R13** | Proving against recordings MUST run an assertion against every recording a declaration names and judge every constraint of its expectation there. One whose declared constraint is judged false there while every other constraint holds MUST be reported as failing as declared, apart from passed and from failed, naming the declared constraint, what the answer held there, and the declaration's reason. It MUST NOT be reported or counted as passed, and MUST NOT by itself fail the proving run. |
+| **F10-R14** | An assertion whose failure on a declared recording is not the one declared MUST be reported as failed and MUST fail the proving run: where the declared constraint holds, naming the declaration as stale; where a constraint the declaration does not name is judged false, naming the declared constraint and every constraint that failed. |
 | **F10-R15** | A declaration MUST apply only to the recording it names. Against any other recording and against the live service, the assertion MUST be held to its own expectation, and the declaration MUST NOT change its verdict. |
 | **F10-R16** | An assertion MUST be reported as failing as declared only where it was run against the named recording and its expectation was judged false there. One that could not be run there MUST be reported unproven, and a declaration MUST NOT stand in for a run. |
 

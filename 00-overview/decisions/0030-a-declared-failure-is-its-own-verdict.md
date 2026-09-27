@@ -1,7 +1,8 @@
 # ADR-0030: An assertion declared to fail on a recording is reported as failing as declared
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-26
+**Decided:** 2026-09-27, by the maintainer, Wessel Verheij: with every declaration naming the constraint it expects to fail, and the successors of `F10-R11` and `F5-R2` locked in 0.17.0 in their place.
 
 ## Context
 
@@ -29,14 +30,22 @@ reports a failure as a pass. It is in `lemonfiber`'s `main` and in no release.
 ## Decision
 
 A declared proof and a contributed check may each declare, per recording, the
-verdict it is expected to reach there, with a reason. The only verdict it may
-declare is failing (`F10-R12`, `ARCH-R130`).
+verdict it is expected to reach there, the constraint of its expectation that
+reaches it, and a reason. The only verdict it may declare is failing, and the
+constraint must be one the assertion makes (`F10-R12`, `ARCH-R130`). For
+`plex:claimed` the constraint is `json` at `/MediaContainer/claimed`.
 
-- Failing there is reported as **failing as declared**, apart from passed and
-  from failed, with the reason and what the assertion failed on (`F10-R13`).
-- Passing there is reported as failed, naming the declaration as stale, and fails
-  the run (`F10-R14`). The declaration is removed in the change that made the
-  recording pass.
+- Failing there on the declared constraint, with every other constraint holding,
+  is reported as **failing as declared**, apart from passed and from failed,
+  naming the declared constraint, what the answer held there, and the reason
+  (`F10-R13`).
+- Failing there on any constraint the declaration does not name is reported as
+  failed, naming the declared constraint and every constraint that failed, and
+  fails the run (`F10-R14`). A declaration excuses the failure it describes and
+  no other.
+- The declared constraint holding there is reported as failed, naming the
+  declaration as stale, and fails the run (`F10-R14`). The declaration is removed
+  in the change that made the recording pass.
 - The declaration applies to the recording it names and nothing else. The live
   service, and every other recording, hold the assertion to its own expectation
   (`F10-R15`).
@@ -61,6 +70,7 @@ declare is failing (`F10-R12`, `ARCH-R130`).
 | Drop the check, or its fixture | The check is the finding the plugin exists to make about an unclaimed server. Without a recording it is not proved at all. |
 | Make the `proofs` job advisory | Every other assertion in it stops being enforced with the one that is expected to fail. |
 | Allow a declaration of unproven, or of any verdict | Unproven is the verdict that says nothing ran. Excusing it is the hiding this decision exists to prevent. |
+| Declare the recording, not the constraint | A recording that started failing for another reason — a truncated fixture, a 500 recorded by mistake — would still read as failing as declared. The declaration would excuse a failure nobody had looked at. |
 
 ## Consequences
 
@@ -70,6 +80,8 @@ declare is failing (`F10-R12`, `ARCH-R130`).
   a green proving run that still says so, every run, with the reason.
 - A declaration cannot outlive the fact it records: the day the recording passes,
   the run fails and names it.
+- A declaration cannot excuse a failure it does not describe: a recording that
+  fails on anything but the named constraint fails the run.
 - Proofs get the same treatment as checks. A proof's passing state is sometimes
   as unrecordable as a check's.
 
@@ -96,7 +108,8 @@ declare is failing (`F10-R12`, `ARCH-R130`).
   from passed and failed, writes it to `proofs.json`, and fails only on the rest.
   `plugin-komga`, `plugin-uptime-kuma` and `plugin-plex` carry the same file.
 - **plugin-plex** — `plex:claimed` declares that it fails on
-  `fixtures/identity-anonymous.json`, with the reason, once `targets.toml` names
+  `fixtures/identity-anonymous.json` on `json` at `/MediaContainer/claimed`, with
+  the reason, once `targets.toml` names
   a release that reads `expected`.
 - **lemonfiber-plugins** — its CI reads the new outcome under `F5-R13`.
 - **spec** — `scripts/check_plugins.py` and the two workflows that run it
