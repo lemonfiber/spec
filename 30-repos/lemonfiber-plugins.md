@@ -57,7 +57,7 @@ request moving the commit, which is the same person reading again. It is also wh
 from, at which revision* answerable without the catalogue being where it came from.
 
 The fixtures stay in the plugin's own repository and CI reads them there, at the pinned
-revision, because the proofs it has to run (`F5-R2`) are the plugin's proofs against the
+revision, because the proofs it has to run (`F5-R13`) are the plugin's proofs against the
 plugin's recordings. Reading them rather than copying them is also the only way the two
 cannot drift.
 
@@ -73,7 +73,8 @@ Three things, in order, before a human looks:
 1. **Schema.** Every manifest is validated against the schema the binary publishes
    (`ARCH-R92`).
 2. **Proofs.** Every declared proof runs against that plugin's recorded fixtures, and a
-   contribution whose proofs do not pass is refused (`F5-R2`).
+   contribution with a proof that is neither passed nor failing as declared is refused
+   (`F5-R13`).
 3. **Reach.** The declared pairs are checked statically — no undeclared flow, no address
    literal ([ADR-0022](../00-overview/decisions/0022-a-recipe-declares-pairs-not-lists.md)).
 

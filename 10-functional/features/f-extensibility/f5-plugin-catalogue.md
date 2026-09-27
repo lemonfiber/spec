@@ -46,7 +46,10 @@ their plugins nobody ever read.
 The catalogue is `lemonfiber-plugins` — a git repository in the project's own
 organisation. A plugin enters it by pull request. Its CI validates every manifest against
 the published schema, runs every declared proof, and refuses a contribution whose proofs
-do not pass — so the acceptance bar is mechanical before it is human. A human then reads
+do not pass. A proof failing on a recording its manifest declares it fails on is reported
+as failing as declared ([F10](f10-authoring.md)), is not a pass, and does not refuse the
+contribution; one that passes there has gone stale, and does. The acceptance bar is
+mechanical before it is human. A human then reads
 the diff, which is possible precisely because a plugin is data.
 
 Releases from the catalogue are signed. An operator installing from the catalogue is
@@ -119,6 +122,7 @@ something they remember is answered rather than told it does not exist.
 | A recipe reaches a host the manifest did not declare | Refuse the plugin. The account of what leaves this machine must stay complete. |
 | A plugin's source disappears after installation | Keep it running, mark it unupdatable, and say so rather than failing at the next update attempt. |
 | A catalogue contribution's proofs fail in CI | Refuse the contribution before merge. The catalogue never serves a plugin whose proofs did not pass. |
+| A contribution's proof fails on a recording its manifest declares it fails on | Accept it on that proof, and name it as failing as declared with its reason, never as passed (`F5-R13`, `F10-R13`). |
 | An operator asks whether a plugin was reviewed | Answerable from the installed plugin itself, not only from the catalogue. |
 
 ## Acceptance criteria
@@ -126,7 +130,7 @@ something they remember is answered rather than told it does not exist.
 | ID | Requirement |
 |----|-------------|
 | **F5-R1** | A reviewed plugin catalogue MUST exist as a git repository in the project's organisation, and every plugin MUST enter it by reviewed pull request. |
-| **F5-R2** | The catalogue's CI MUST validate every manifest against the published schema and run every declared proof, and MUST refuse a contribution whose proofs do not pass. |
+| **F5-R2** | *Superseded by [F5-R13](f5-plugin-catalogue.md): a proof failing as declared does not refuse a contribution. The number is not reused.* |
 | **F5-R3** | Catalogue releases MUST be signed, and a signature that does not verify MUST be refused. |
 | **F5-R4** | An operator MUST be able to install a plugin from a git source or local path they name. |
 | **F5-R5** | A plugin not installed from the catalogue MUST be installed as unreviewed, MUST be said so at install time, and MUST carry that for as long as it is installed. |
@@ -137,6 +141,7 @@ something they remember is answered rather than told it does not exist.
 | **F5-R10** | An unreachable catalogue MUST NOT affect installed plugins, and MUST NOT prevent installing from a named source. |
 | **F5-R11** | A plugin whose origin can no longer be fetched MUST keep working and MUST be reported as unupdatable. |
 | **F5-R12** | Two plugins of the same name from different origins MUST be refused, naming both origins. |
+| **F5-R13** | The catalogue's CI MUST validate every manifest against the published schema and run every declared proof, and MUST refuse a contribution any of whose proofs is neither passed nor failing as declared ([`F10-R13`](f10-authoring.md)). A proof failing as declared MUST be named as such and MUST NOT be counted as passed. |
 
 ## Related
 

@@ -27,10 +27,10 @@
 # G9 stays: a mobile client is handed a stack it did not configure, which is the same
 # question this version answers for a plugin.
 #
-# 39 goals, seeded from the roadmap milestone this version serves;
+# 43 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
-# Ten of them were added after staging, each reviewed as a goal change (OPS-R31).
+# Fifteen of them were added after staging, each reviewed as a goal change (OPS-R31).
 #
 # `E1-R1` went out with 0.14.0 unmet: every image in the stack is still named by tag,
 # and the requirement forbids resolving one that way. It is locked here with the
@@ -44,9 +44,12 @@
 # condition is counted over what the active forms hold, and a service a form filtered
 # out is reported as filtered rather than listed as absent.
 #
-# `F10-R11` lets a contributed check be proved by the recording it fires on, for a check
-# whose passing state cannot be recorded without an account nobody holds. It is what
-# lets a registered plugin's proofs pass against the image it pins.
+# `F10-R12` to `F10-R16` let a proof or a contributed check declare a recording it fails
+# on, with the reason, for an assertion whose passing state cannot be recorded without an
+# account nobody holds. Failing there is reported as failing as declared, never as passed,
+# and passing there fails the run. They supersede `F10-R11`, which reported that failure
+# as a pass, and `F5-R13` supersedes `F5-R2` so the catalogue's CI reads the same verdict
+# (OPS-R31).
 #
 # `G5-R14`, `D6-R15` and `D6-R16` are the decline address: an invitation carries the
 # household front door and an address to refuse it at, a service the stack keeps running
@@ -66,7 +69,7 @@ goals   = [
     "F9-R5",
     "F9-R6",
     "F5-R1",
-    "F5-R2",
+    "F5-R13",
     "F5-R3",
     "F5-R4",
     "F5-R5",
@@ -95,7 +98,11 @@ goals   = [
     "B1-R18",
     "B1-R19",
     "B1-R20",
-    "F10-R11",
+    "F10-R12",
+    "F10-R13",
+    "F10-R14",
+    "F10-R15",
+    "F10-R16",
     "G5-R14",
     "D6-R15",
     "D6-R16",
