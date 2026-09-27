@@ -1,0 +1,125 @@
+# A staged or released version's goals change only under review, and the change
+# is told to the maintainer channel (OPS-R31).
+#
+# `check` runs on every pull request rather than on the manifests' paths: a
+# required check behind a path filter never reports on a change that does not
+# touch them, and branch protection reads that as a wait with no end. With
+# nothing moved it passes at once. It runs again when a label is added or taken
+# off, which is how putting `goals-change` on turns it green.
+#
+# `told` runs once a labelled change merges, and on dispatch for a merged pull
+# request that was not told at the time. It sends what moved, one line per
+# version, and sends nothing when no frozen goal moved.
+name: goals-change
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, closed]
+  # A merge queue asks every required context again on a branch of its own
+  # (Q-R37). The batch carries no labels, so they are read off the pull request
+  # the queue's branch is named for.
+  merge_group:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: A merged pull request whose goal change the maintainer channel was not told
+        required: true
+        type: number
+permissions:
+  contents: read
+jobs:
+  check:
+    name: goals-change
+    if: github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: The locked goals move only under the label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          QUEUE_BASE: ${{ github.event.merge_group.base_sha }}
+          QUEUE_HEAD: ${{ github.event.merge_group.head_sha }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          if [ "$EVENT" = merge_group ]; then
+            number="$(printf '%s' "$QUEUE_REF" | sed -n 's|.*/pr-\([0-9][0-9]*\)-.*|\1|p')"
+            if [ -z "$number" ]; then
+              echo "::error::the queue's branch ${QUEUE_REF} names no pull request, so its labels cannot be read"
+              exit 1
+            fi
+            labels="$(gh pr view "$number" --json labels --jq '[.labels[].name] | join(",")')"
+            python3 scripts/check_goals_change.py --base "$QUEUE_BASE" --head "$QUEUE_HEAD" --labels "$labels"
+          else
+            python3 scripts/check_goals_change.py --base "$PR_BASE" --head "$PR_HEAD" --labels "$PR_LABELS"
+          fi
+  summary:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
+      && contains(github.event.pull_request.labels.*.name, 'goals-change'))
+      || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      moved: ${{ steps.moved.outputs.moved }}
+      number: ${{ steps.merged.outputs.number }}
+      title: ${{ steps.merged.outputs.title }}
+      url: ${{ steps.merged.outputs.url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Which merge
+        id: merged
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number || inputs.pr }}
+        run: |
+          merge="$(gh pr view "$NUMBER" --json mergeCommit --jq '.mergeCommit.oid // empty')"
+          if [ -z "$merge" ]; then
+            echo "::error::pull request #${NUMBER} has not merged, so there is no change to tell"
+            exit 1
+          fi
+          {
+            echo "number=${NUMBER}"
+            echo "merge=${merge}"
+            echo "title=$(gh pr view "$NUMBER" --json title --jq .title)"
+            echo "url=$(gh pr view "$NUMBER" --json url --jq .url)"
+          } >> "$GITHUB_OUTPUT"
+      - name: What moved
+        id: moved
+        env:
+          MERGE: ${{ steps.merged.outputs.merge }}
+        run: |
+          moved="$(python3 scripts/check_goals_change.py --base "${MERGE}^1" --head "$MERGE" --summary)"
+          {
+            echo "moved<<MOVED"
+            echo "$moved"
+            echo "MOVED"
+          } >> "$GITHUB_OUTPUT"
+  told:
+    needs: summary
+    if: needs.summary.outputs.moved != ''
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      title: "🎯 Goals changed · spec #${{ needs.summary.outputs.number }}"
+      body: "${{ needs.summary.outputs.title }}\n${{ needs.summary.outputs.moved }}"
+      url: ${{ needs.summary.outputs.url }}
+      color: "15105570"
+    secrets:
+      webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}

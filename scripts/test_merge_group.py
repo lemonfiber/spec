@@ -41,6 +41,7 @@ REQUIRED_FROM = (
     "coverage",
     "dco",
     "docs",
+    "goals-change",
     "hygiene",
     "integrity",
     "security",
