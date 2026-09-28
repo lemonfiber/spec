@@ -9,7 +9,7 @@ maturity: planned
 priority: P3
 labels: [mobile, quality, queue, ux]
 requires: [N1, D2]
-relates: [D9, H6, N2, N3]
+relates: [D9, C5, N2, N3, N23]
 ---
 
 # N8 — What comes in, and where it got to
@@ -71,10 +71,17 @@ outstanding episode by episode, each at its own stage — not monitored,
 monitored, searching, found, grabbed, downloading — and an operator asking about
 a show is asking about the gaps rather than about a percentage.
 
-### A folder that stopped being watched says why
+### A guard that stopped says why
 
-Watching a folder can stop, and the reason it stopped is carried. A watch that
-is simply absent from a screen is a watch an operator believes is running.
+The data-root guard ([C5](../c-trust/c5-storage.md)) stops the services the
+moment the data location is lost, and never starts them again — which is why
+nothing more comes in. The reason it ended is carried, and so is whether stopping
+the services worked. A guard that is simply absent from a screen is a guard an
+operator believes is running; one that ended without saying why reads as a
+pipeline that went quiet on its own.
+
+Starting one from the app, and how long it lives there, is
+[N23](n23-what-keeps-going.md)'s.
 
 ### Nothing here is the household's answer
 
@@ -102,8 +109,9 @@ and the two are not the same screen with a different filter.
   stage and is shown as one, rather than as nothing found.
 - **A season complete but for one episode.** The gap is what is shown; a
   completion figure would bury it.
-- **A watch stopped by the operator and a watch stopped by a fault.** Different
-  reasons, shown differently.
+- **A guard released by the operator, one let go because nothing asked about it,
+  and one that saw the data location go.** Different endings, shown differently
+  (`N23-R13`).
 
 ## Acceptance criteria
 
@@ -115,7 +123,7 @@ and the two are not the same screen with a different filter.
 | **N8-R4** | A trace MUST carry its confidence, and an uncertain trace MUST NOT be rendered as certain. |
 | **N8-R5** | Where the contract carries what is outstanding episode by episode, the app MUST show the gaps rather than a completion figure alone. |
 | **N8-R6** | A stage the contract names MUST be rendered as that stage, and *not monitored* MUST NOT be rendered as nothing found. |
-| **N8-R7** | A watch that has stopped MUST be shown with the reason it stopped, and MUST NOT be omitted from the surface. |
+| **N8-R7** | A data-root guard (`watch`) that has stopped MUST be shown with the reason it stopped, and MUST NOT be omitted from the surface. |
 | **N8-R8** | The operator's trace MUST NOT be reused as a member's view of their own request, which is `N3-R6`'s and carries no pipeline internals. |
 | **N8-R9** | Choices or a trace that could not be read MUST be told apart from there being none. |
 
@@ -126,4 +134,5 @@ and the two are not the same screen with a different filter.
 - [N3](n3-household-companion.md) — the member's version of *where did it get to*
 - [D2](../d-content/d2-quality-presets.md) — the presets and what they mean
 - [D9](../d-content/d9-pipeline-trace.md) — where a thing got to
-- [H6](../h-glue/h6-library-cleanup.md) — watching a folder
+- [C5](../c-trust/c5-storage.md) — the guard on the data location
+- [N23](n23-what-keeps-going.md) — starting a guard, and how long it lives

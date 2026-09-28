@@ -110,6 +110,17 @@ A refusal carries the stack's reason rather than a retry prompt (`N13-R9`), a
 rehearsed removal is labelled as a rehearsal (`N13-R10`), and an operation that
 could not be read is told apart from one that has not run (`N13-R11`).
 
+The rest of this feature has a row there too. Tier 4 is offered alone,
+with the data volume in its agreement (`N13-R12`), and a data location on a
+network share or a removable drive is said and acknowledged apart (`N13-R13`).
+Downloads in flight are named, with waiting offered (`N13-R14`). The backup taken
+before configuration goes is shown before the agreement (`N13-R15`), the
+credentials destroyed are listed by name (`N13-R16`), and shared images are shown
+kept with their reason (`N13-R17`). What lemonfiber cannot remove, and what a
+partial removal left, each come with how to finish by hand (`N13-R18`). Removing
+configuration from the app also removes what admits the app, and `N13-R20` says
+what that does to its session and its pairing.
+
 ## States
 
 | State | Meaning |

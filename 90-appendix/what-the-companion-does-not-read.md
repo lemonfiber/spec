@@ -2,14 +2,15 @@
 
 **Status:** Register · **Measured 25 September 2026**, against the companion at `73bbe5a` and the core at `5e151aa`
 
-The stack **publishes** sixty-two envelopes and **serves** fifty-nine. The
+The stack **publishes** sixty-two envelopes and **serves** fifty-eight. The
 companion app follows twenty-five of them. This is the other thirty-seven, written
 down so that what fills them is a decision somebody made rather than whatever the
 next person happened to notice.
 
-Three of the sixty-two are published and not served. They are not envelopes
-the app has not got to; they are envelopes it cannot reach, and they have a
-heading of their own below.
+Four of the sixty-two are published and not served. They are not envelopes the
+app has not got to; they are envelopes it cannot reach. Three have a heading of
+their own below, and the fourth, `pull`, is a line of the command line's own,
+said in the next section.
 
 It is a register of **facts**, not of requirements. No row here proposes a
 screen. `N1-R17` is the rule that matters: a field wants a requirement before it
@@ -47,6 +48,13 @@ stack. `Pull` carries a bare string, and is named in that stand-in's comments.
 named only in a test of that stand-in: the app asks for the whole glossary, which
 answers with `Glossary`. `Word` has a row below; `Admission` and `Pull` have
 none, and these sentences are their entry.
+
+**`pull` is the command line's alone.** Its bare strings are the lines
+`docker compose pull` prints, which the command line writes under that kind as
+they arrive. No read, action or event produces it over HTTP: the `pull` action
+answers with a job whose outcome is `lifecycle`, and nothing is said on the event
+stream while it runs. `N2-R24` asks the app to offer the fetch, and records the
+progress it cannot show.
 
 ## What the twenty-five answer
 
@@ -222,7 +230,7 @@ their reason where they gave one (`F4-R29`).
 | `setup` | What setup settled: the `data_root`, which `protocols` are on, the `service_user`, and whether it was `applied`, `abandoned` or was `already-set-up`. |
 | `step` | One step of a running job, as a stage — `choosing`, `searching`, `grabbing`, `downloading`, `importing`, `scanning`, `available` — with what was `said` and the detail under it. |
 | `walkthrough` | A first acquisition narrated end to end: the `lines` it produced, whether it ran `in_background`, whether the thing was `already_here`, and a `handover` naming what to do next. |
-| `word` | One entry of the glossary, alone. |
+| `word` | One entry of the glossary, alone: `word`, `short`, `deep`, `also_called` and `forms`, from `GET /api/explain?word=`. `N15-R11` asks for it where the glossary the app holds has no entry. |
 
 ## Backups and recovery
 
@@ -250,17 +258,17 @@ because it offers none of them.
 | `seed` | What the stack wires up on the operator's behalf, each wiring with a severity that names the breakage and its remediation, and what is `unsupported` and why. |
 | `quality` | The quality presets: each with its resolution, what it `means`, size per hour, whether it `needs_transcoding_here`, and whether the operator has `customised` it. |
 | `music` | The same for audio: format, scope, size per hour, and what the choice `means`. |
-| `watch` | Watching a folder for new material: the `forms` it covers, whether it is `stopped` and the reason, and what it `would` run. |
 
 ## A service's life
 
 | Envelope | What it carries |
 |---|---|
-| `lifecycle` | Starting, stopping and restarting: the `action`, the `command`, the `condition` — inactive, degraded, partial, active — what is `held`, and the `plan` with what it dropped. |
-| `start` | A bare string. |
-| `removal` | Removing a person's access: what was `revoked` and how widely, how many `requests` they had, and the `findings`. |
-| `replacement` | Swapping a service out: what was `stopped`, what `would_stop`, what is `still_running`, and a `stance`. |
-| `uninstall` | Taking the stack off: an agreement, the bytes, what is `foreign` and left behind, and a `confidence` naming what could not be read. |
+| `lifecycle` | Starting, stopping, restarting and fetching images: the `action`, the `command`, the `condition` — inactive, degraded, partial, active — what is `held`, and the `plan` with what it dropped. It is what the `pull` action answers with, which `N2-R24` asks for. |
+| `start` | A bare string: one line of what a start is waiting for, on the event stream, the newest replacing the one before. `N2-R23` asks for it. |
+| `removal` | Removing a person's access: what was `revoked` and how widely, how many `requests` they had, and the `findings`. `N13-R1`, `N13-R3` and `N13-R19` ask for it. |
+| `replacement` | Standing in place of a setup already on the machine — A5's replace mode, which stops that project's containers and deletes none: what `would_stop`, what was `stopped`, what is `still_running`, the `refusal` where nothing was, and a `stance`. `N7-R18` asks for it. |
+| `uninstall` | Taking the stack off: an agreement, the bytes, what is `foreign` and left behind, and a `confidence` naming what could not be read. `N13` asks for it. |
+| `watch` | The data-root guard, once the data location it was guarding was lost: the `forms` it stopped, whether stopping them succeeded (`stopped`) and the `reason`, and on a rehearsal what it `would` keep — the `root`, how often it looks (`every`) and the `command` it would run. Over HTTP it is a job that lives only while somebody asks about it. `N23-R11`, `N23-R12` and `N23-R13` ask for it, and `N8-R7` for the reason it stopped. |
 | `upgrade` | Moving media to a new preset: per media type, the preset, size per hour and the outcome. |
 | `version` | What is running and what has shipped: the binary, and a `changelog` of releases with what each `delivers`, what it `patches`, whether it is `user_facing` and whether it was `withdrawn`. |
 | `stop-seeding` | Stopping a torrent: the download, its `standing` — never imported, seeding at a ratio, or left alone — and what stopping it costs. |

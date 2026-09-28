@@ -64,6 +64,32 @@ knows and the app does not, wrong in exactly the cases an operator most needs it
 and wrong silently, because nothing on either side would ever compare it to what
 happened.
 
+### A start says what it is waiting for, in the stack's words
+
+A start is not waited for by the request that asked for it: the stack answers
+with a name for the work, and what the start is doing arrives afterwards on the
+event stream, as lines of the `start` kind: how long it will take services away
+for, and then which services it is still waiting on and how far into its time it
+is ([B2](../b-running/b2-lifecycle.md) `B2-R2`). Each line replaces the one
+before, because only the newest says what the wait is waiting for now.
+
+While a start the operator asked for runs, those lines are what the app shows. A
+bar or a spinner of the app's own in their place would say that something is
+happening, which the operator knew, and hide what, which is the only thing they
+opened the screen to learn.
+
+### Images can be fetched ahead of a start
+
+A start fetches whatever images it is missing before it can start anything, and
+on a slow line that is the longest part of it. Fetching them ahead of the start
+lets the operator choose when that happens, so the app offers it on its own
+(`B2-R12`). What it came to is the stack's answer to a lifecycle command.
+
+Before it runs, the app says that it may take long and may use a lot of the line.
+It gives no figure for either: nothing the stack says bounds a fetch, and
+`B2-R16`'s answer for a pull over an unknown connection is that it is
+open-ended.
+
 ### An update is a decision, not a number
 
 Whether the stack is current is an answer, and the app opens on it the way it
@@ -167,6 +193,22 @@ type a provider password into over a LAN.
 | **N2-R20** | The app MUST NOT apply an update the stack did not report as pending, and MUST NOT offer to apply one where the stack reported the version in use is current. |
 | **N2-R21** | Where the stack reports containers running on the machine that its own configuration does not declare, the app MUST make them reachable, MUST name each and state what it is running, and MUST NOT present one as part of the stack or offer a verb against it. |
 | **N2-R22** | Where the stack reports that a change an update would make cannot be undone, the confirmation MUST say so before it is agreed to, and MUST name the services it is true of. |
+| **N2-R23** | While a start the operator asked for runs, the app MUST show what the stack says it is waiting for, from the `start` lines on the event stream, and MUST NOT put a progress indicator of its own in their place (`B2-R2`). |
+| **N2-R24** | The app MUST offer fetching a form's images ahead of starting it, and before the fetch runs MUST say that it may take long and may use a lot of the line, without putting a duration or a size of its own on either (`B2-R12`, `B2-R16`, `N2-R8`). What the fetch came to MUST be shown from the stack's answer. |
+
+## Notes
+
+**What the contract carries for `N2-R23` and `N2-R24`.** Checked against the core's
+`contract/web-api.contract.json`, its event stream and the actions its HTTP route
+accepts.
+
+| Row | Carried | Not carried |
+|---|---|---|
+| `N2-R23` | `start` lines on `GET /api/events`, each a bare sentence, carried as state so the newest replaces the one before | Which start a line belongs to. A line carries no job name, so where two starts run at once the app shows what the stack says without being able to say which start said it |
+| `N2-R24` | The `pull` action, which takes `forms` and answers with a job; its outcome is `lifecycle`, with `action`, `command`, `plan` and `status` | **A bound for a fetch.** `status.disturbs` answers for starting, stopping, stopping after downloads, restarting and switching, and not for fetching, so `B2-R16`'s bound-or-open-ended is not on the wire for a pull. **Progress while it runs.** Nothing is said on the event stream while a pull runs; the lines `docker compose pull` prints are the command line's alone, under the `pull` kind, so `B2-R12`'s visible progress does not reach the app |
+
+The gaps in bold are the contract's to close, and until they are `N2-R14` applies:
+the app says what its rows require and substitutes no figure of its own.
 
 ## Related
 

@@ -105,9 +105,9 @@ reason (`N7-R3`); rendered as a generic failure with a retry button, it becomes
 an invitation to do the same thing again.
 
 Replacement stops the operator's existing stack without deleting it, and
-`N13-R8` requires the app to show what stopped, what would stop and what is still
-running — and forbids reporting a replacement as applied while anything it
-replaces is still up ([N13](../n-companion/n13-taking-away.md)).
+`N7-R18` requires the app to show what would stop, what stopped and what is still
+running — and forbids presenting a replacement as done while anything it replaces
+is still up, whatever its stance says.
 
 The survey changes nothing, which is what a rehearsal is, and `N7-R10` holds a
 rehearsed run here to the same labelling `N6-R1` requires everywhere else.

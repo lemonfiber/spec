@@ -149,7 +149,9 @@ requires how far a revocation reached shown as *everywhere*, *media-server-only*
 or *nothing*, and `N13-R2` forbids rendering the middle one as complete
 ([N13](../n-companion/n13-taking-away.md)). That middle state is precisely the
 one this feature refuses to leave behind — and flattening it into *removed* is
-how it gets left behind anyway.
+how it gets left behind anyway. `N13-R19` carries `D6-R9` to the phone: what
+removal does to watch history and to requests is stated before it is agreed to,
+with every finding in the stack's words.
 
 ## States
 

@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 104,
-    "requirements": 1515,
+    "requirements": 1531,
     "areas": "A–N"
   },
   "versions": [
@@ -3097,7 +3097,8 @@
         "D1",
         "A6",
         "E3",
-        "N2"
+        "N2",
+        "N13"
       ],
       "versions": [],
       "path": "n-companion/n7-moving-in.md"
@@ -3126,9 +3127,10 @@
       ],
       "relates": [
         "D9",
-        "H6",
+        "C5",
         "N2",
-        "N3"
+        "N3",
+        "N23"
       ],
       "versions": [],
       "path": "n-companion/n8-what-comes-in.md"
@@ -3266,7 +3268,7 @@
       "area": "N",
       "audience": "operator",
       "kind": "feature",
-      "status": "draft",
+      "status": "accepted",
       "maturity": "planned",
       "shipped": null,
       "milestones": [],
@@ -3288,6 +3290,7 @@
         "A5",
         "N3",
         "N6",
+        "N7",
         "N12"
       ],
       "versions": [],
@@ -3593,6 +3596,7 @@
         "C7"
       ],
       "relates": [
+        "C5",
         "N2",
         "N8",
         "N10",
