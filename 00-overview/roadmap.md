@@ -316,6 +316,7 @@ possible. F3–F8 and F10 are Accepted; recipes (F8) are locked by `0.18.0`.
 | Capabilities of the bundled services | F9 — they declare what they can do and pass the probes | `0.17.0` |
 | The plugin catalogue | F5 — reviewed, signed, and an operator's own source on the same technical terms with unreviewed said plainly | `0.17.0` |
 | Mobile client handoff | G9 — a household member's phone reaches the library in one step | `0.17.0` |
+| Plugins and wiring over the API | F6-R14 to F6-R16 and F4-R26 to F4-R28 — what is installed, installing, updating and removing, the wiring, and the operator's choice of what fills a capability, served where the companion reaches them | `0.18.0` |
 | Recipes and named adapters | F8 — the ordered calls that turn a first-run flow into data, and what they may carry where ([ADR-0022](decisions/0022-a-recipe-declares-pairs-not-lists.md)) | unscheduled |
 
 **Recipes are held back deliberately.** A manifest describes a container whose reach

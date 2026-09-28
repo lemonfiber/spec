@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P1
 labels: [extensibility, verification, updates]
 requires: [F3, F4, E4]
@@ -93,10 +93,25 @@ missing capability — not a version number. A plugin keeps working across upgra
 exactly as long as what it actually uses still exists, and when it stops working the
 message says which thing went.
 
+### Every surface can do it
+
+What is installed, and installing, updating and removing, are as much the web
+API's as the command line's (`G1-R1`). The read answers with the envelope
+`lemonfiber plugin installed` answers with, and each of the three is an action
+taking the argument the command takes and answering as the command does
+(`ARCH-R47`, `ARCH-R48`). Each can be rehearsed over the API, and a rehearsal there
+writes nothing, exactly as one at the command line does.
+
+A record that cannot be read is refused over the API as it is at the command line.
+An empty list is the answer for a machine with nothing installed, and a surface that
+received one for a record it could not read would report a stranger's service as
+absent.
+
 ### On the companion
 
 Installing, and what is installed, is what the companion's plugin surface is for
-([N5](../n-companion/n5-connecting-the-stack.md)). Two rules are specific to
+([N5](../n-companion/n5-connecting-the-stack.md)), and the web API is what it
+reaches them over (`F6-R14` to `F6-R16`). Two rules are specific to
 being away from the machine: `N5-R11` forbids rendering an install as finished
 before the core reports it, and `N5-R10` requires a refused install to be shown
 with its refusal rather than omitted from the catalogue — an operator who cannot
@@ -129,6 +144,7 @@ see why something is absent will try again.
 | A plugin needs a capability this lemonfiber lacks | Refuse, naming the capability rather than a version. |
 | Removing a plugin would leave a capability unfilled | Say so in the rehearsal for the removal, before it happens. |
 | The operator removes a plugin whose service holds data | Re-point what re-points, and say plainly that data is not moved back. |
+| The plugin record cannot be read when a surface asks what is installed | Refuse with the error envelope. An empty list says nothing is installed, which is the one wrong answer that would be believed. |
 
 ## Acceptance criteria
 
@@ -147,6 +163,9 @@ see why something is absent will try again.
 | **F6-R11** | A removal that would leave a capability unfilled MUST state so before it happens. |
 | **F6-R12** | Reversing a change that re-points a data location MUST state that the data itself does not move back. |
 | **F6-R13** | Installing, rehearsing, updating and removing MUST each be reachable non-interactively with a meaningful exit status. |
+| **F6-R14** | What is installed MUST be served as a read of the web API answering with the `plugins` envelope the command answers with (`ARCH-R47`), and a plugin record that cannot be read MUST be refused with the error envelope rather than answered as nothing installed. |
+| **F6-R15** | Installing, updating and removing a plugin MUST each be an action of the web API, taking the argument the command takes and answering with the `plugins` envelope the command answers with (`F6-R13`, `ARCH-R48`). |
+| **F6-R16** | Rehearsing an install, an update or a removal MUST be reachable over the web API, MUST write nothing, and MUST answer with the account the command's rehearsal gives (`F6-R1`, `F6-R9`, `F6-R11`). |
 
 ## Related
 

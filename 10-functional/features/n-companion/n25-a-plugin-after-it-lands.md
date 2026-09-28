@@ -122,6 +122,13 @@ the action route accepts no plugin verb, and the read table serves no plugin rea
 this). `N5-R10` and `N5-R11` wait on the same read. The rows stand as written,
 because the envelope already describes what they need.
 
+The core's side is required and scheduled. `F6-R14` requires what is installed
+to be a read of the web API, `F6-R15` requires installing, updating and removing
+to be actions of it, and `F6-R16` requires each to be rehearsable there; `0.18.0`
+locks all three. `F6-R14` also requires a record that cannot be read to be refused
+rather than answered with an empty list, which is the distinction `N25-R10` asks
+for and the envelope alone does not carry.
+
 | Row | What `plugins` carries | Not carried |
 |---|---|---|
 | `N25-R1` | `install.changes` (`path`, `puts`), `install.proofs`, `install.overrides`, `install.contests` | — |

@@ -189,6 +189,13 @@ capability is refused by name (`F6-R10`). `wiring` and `substitution` each have
 a settled report in the core, and `Command::Wiring` produces `Outcome::Wiring`
 from the command line. What all three lack is a route.
 
+**Serving them is required, and scheduled.** `F6-R14` requires what is installed
+to be a read of the web API, `F6-R15` requires installing, updating and removing a
+plugin to be actions of it, and `F6-R16` requires each of those to be rehearsable
+there. `F4-R26` requires the wiring to be a read, `F4-R27` requires choosing which
+service fills a capability to be an action, and `F4-R28` requires that choice to be
+rehearsable. `0.18.0`, which is planned, locks all six as goals.
+
 So they are a different kind of row from everything else here. Every other
 envelope in this register is a decision waiting to be made; these three have no
 decision about the companion that can reach them while no route serves them.
@@ -201,7 +208,9 @@ operator chooses, and lemonfiber does not choose by install order*. The contract
 models that choice, down to `whose: 'operator'`.
 
 There is nowhere in the companion to make that choice, and nowhere on the wire
-to read that it is waiting.
+to read that it is waiting. `F4-R26` requires the read that says it is waiting,
+and `F4-R27` the action that makes it: for a contested capability too, recorded
+and journalled as the command records it, and read back as the operator's.
 
 ## Guided setup
 

@@ -110,7 +110,7 @@ AWAITING_A_VERSION = {
         [f"N4-R{n}" for n in range(1, 25)],
     ),
     "N5": (
-        "N5 requires N1, whose app side no version schedules, F4, locked by 0.16.0, released, and F5, locked by 0.17.0",
+        "N5 requires N1, whose app side no version schedules, F4, whose last goals 0.18.0 locks, and F5, whose last goals 0.17.0 locks",
         [f"N5-R{n}" for n in range(1, 14)],
     ),
     "N6": (
@@ -170,7 +170,7 @@ AWAITING_A_VERSION = {
         [f"N24-R{n}" for n in range(1, 11)],
     ),
     "N25": (
-        "N25 requires N1, whose app side no version schedules, N5, which no version schedules, F5, whose last goals 0.17.0 locks, and F6, locked by 0.16.0, released",
+        "N25 requires N1, whose app side no version schedules, N5, which awaits a version itself, F5, whose last goals 0.17.0 locks, and F6, whose last goals 0.18.0 locks",
         [f"N25-R{n}" for n in range(1, 11)],
     ),
     "N26": (
