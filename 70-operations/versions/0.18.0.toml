@@ -54,14 +54,51 @@
 # a stack only over the web API (N1-R16), and this version is the one putting the rest
 # of what it reaches there on the wire, so they ship with it.
 #
-# 43 goals, seeded from the roadmap milestone this version serves;
+# `A7-R15`, `C1-R15`, `C4-R15`, `C6-R18`, `E3-R16`, `G7-R14` and `G8-R15` to `G8-R18`
+# each joined a feature whose other goals a released version locks, and no version held
+# them. `C6-R18` and `E3-R16` are built. `C1-R15` is met for a contributed check and not
+# for a declared proof, which an install does not keep and doctor does not run.
+# `C4-R15` needs the support bundle to record installed plugins, and `G7-R14` needs
+# what the health summary carries to say an item is acknowledged, which changes the
+# contract. `A7-R15` needs this specification to say how a rotated credential reaches
+# a plugin. `G8-R15` to `G8-R18` hold only because no recipe runs, and F8 makes recipes
+# run.
+#
+# `A2-R16` and `D3-R14` are two more the companion needs on the wire (N15): what setup
+# settled, read as facts on a read that offers no setup, and a walkthrough's steps each
+# naming the job they belong to.
+#
+# The architecture rows are here because `check_goal_coverage` reads `20-architecture/`
+# too, and a row no version locks is reached by no gate. Those it exempts are the
+# principles, the restatements and the dormant ones; the rest are work:
+#
+# - `ARCH-R2`, `ARCH-R19`, `ARCH-R70` to `ARCH-R72`, `ARCH-R75` to `ARCH-R77`,
+#   `ARCH-R97`, `ARCH-R103` and `ARCH-R104` are built and cited by no commit; the core's
+#   tracker names the commits that landed them.
+# - `ARCH-R3`, `ARCH-R6`, `ARCH-R11` to `ARCH-R14`, `ARCH-R20`, `ARCH-R23`, `ARCH-R43`,
+#   `ARCH-R44`, `ARCH-R83` to `ARCH-R91`, `ARCH-R94`, `ARCH-R95`, `ARCH-R98`,
+#   `ARCH-R100`, `ARCH-R101` and `ARCH-R123` to `ARCH-R130` are cited, and the core's
+#   tracker named none of them.
+# - `ARCH-R5`, `ARCH-R35`, `ARCH-R42` and `ARCH-R45` are part met in the core, and
+#   `ARCH-R36`, `ARCH-R38`, `ARCH-R40` and `ARCH-R99` in the web surface, the brand and
+#   the SDKs.
+# - `ARCH-R9`, `ARCH-R10`, `ARCH-R15`, `ARCH-R18`, `ARCH-R25`, `ARCH-R41`, `ARCH-R96`
+#   and `ARCH-R105` are not met, and `ARCH-R78` to `ARCH-R82` are the capability set a
+#   client reads (N1).
+#
+# `ARCH-R38`, `ARCH-R40` and `ARCH-R41` are the brand's, so `brand` is searched, and
+# `ARCH-R81`, `ARCH-R99` and `ARCH-R129` bind a client, so the two SDKs are. None of the
+# three is tagged: the brand releases on its own clock, and the SDKs take the contract
+# a release attaches.
+#
+# 119 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
 status  = "planned"
 repos   = ["lemonfiber"]
-satisfied_in = ["lemonfiber", "lemonfiber-web"]
+satisfied_in = ["lemonfiber", "lemonfiber-web", "brand", "sdk-ts", "sdk-php"]
 goals   = [
     "F8-R1",
     "F8-R2",
@@ -106,6 +143,82 @@ goals   = [
     "G10-R9",
     "G10-R10",
     "G10-R11",
+    "A7-R15",
+    "C1-R15",
+    "C4-R15",
+    "C6-R18",
+    "E3-R16",
+    "G7-R14",
+    "G8-R15",
+    "G8-R16",
+    "G8-R17",
+    "G8-R18",
+    "A2-R16",
+    "D3-R14",
+    "ARCH-R2",
+    "ARCH-R3",
+    "ARCH-R5",
+    "ARCH-R6",
+    "ARCH-R9",
+    "ARCH-R10",
+    "ARCH-R11",
+    "ARCH-R12",
+    "ARCH-R13",
+    "ARCH-R14",
+    "ARCH-R15",
+    "ARCH-R18",
+    "ARCH-R19",
+    "ARCH-R20",
+    "ARCH-R23",
+    "ARCH-R25",
+    "ARCH-R35",
+    "ARCH-R36",
+    "ARCH-R38",
+    "ARCH-R40",
+    "ARCH-R41",
+    "ARCH-R42",
+    "ARCH-R43",
+    "ARCH-R44",
+    "ARCH-R45",
+    "ARCH-R70",
+    "ARCH-R71",
+    "ARCH-R72",
+    "ARCH-R75",
+    "ARCH-R76",
+    "ARCH-R77",
+    "ARCH-R78",
+    "ARCH-R79",
+    "ARCH-R80",
+    "ARCH-R81",
+    "ARCH-R82",
+    "ARCH-R83",
+    "ARCH-R84",
+    "ARCH-R85",
+    "ARCH-R86",
+    "ARCH-R87",
+    "ARCH-R88",
+    "ARCH-R89",
+    "ARCH-R90",
+    "ARCH-R91",
+    "ARCH-R94",
+    "ARCH-R95",
+    "ARCH-R96",
+    "ARCH-R97",
+    "ARCH-R98",
+    "ARCH-R99",
+    "ARCH-R100",
+    "ARCH-R101",
+    "ARCH-R103",
+    "ARCH-R104",
+    "ARCH-R105",
+    "ARCH-R123",
+    "ARCH-R124",
+    "ARCH-R125",
+    "ARCH-R126",
+    "ARCH-R127",
+    "ARCH-R128",
+    "ARCH-R129",
+    "ARCH-R130",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

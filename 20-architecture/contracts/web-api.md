@@ -457,7 +457,7 @@ parses either way:
 |---|---|---|
 | Still in flight | `202` | the identical envelope the accepting reply carried |
 | Finished | `200` | the equivalent command's machine-readable output |
-| Stopped | `500` | the error envelope the failure renders |
+| Stopped on a failure | the status the failure warrants — `404` for something named that the stack does not have, `400` for a request asked wrongly, `500` otherwise | the error envelope the failure renders |
 | Ended before it finished | `200` | the `job` envelope, saying whether the name was released or let go |
 | Not a name this run issued | `404` | a refusal, not the name repeated back |
 

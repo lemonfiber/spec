@@ -5,8 +5,7 @@ kind: feature
 area: A
 audience: operator
 status: accepted
-maturity: shipped
-shipped: 0.2.0
+maturity: building
 labels: [ux, wiring]
 requires: []
 relates: [A1, A3, A4, G1, G4]
@@ -103,6 +102,15 @@ decided is not deciding it again. A rule against offering first-run setup that
 also hid its outcome would leave an operator unable to find out what their own
 stack had been configured to do, which is not what `N1-R4` declines.
 
+The web API serves none of those facts in a form a surface can read as facts.
+`GET /api/setup` answers with the wizard's standing: whether setup is on offer, and
+a plan of what applying would write rather than what the stack holds. The `setup`
+document that states the data root, the protocols and the service user is written
+only by the command line, and the configuration listing says a value is the
+operator's without saying whether setup wrote it.
+`A2-R16` is the read that answers both questions `N15` asks: what setup settled,
+and whether this stack is set up at all.
+
 ## States
 
 | State | Meaning |
@@ -154,6 +162,7 @@ resume, roll back, or start over.
 | **A2-R13** | In a non-interactive context, the wizard MUST fail with a message naming the required flags, and MUST NOT block on stdin. |
 | **A2-R14** | When configuration already exists, lemonfiber MUST direct the operator to reconfiguration rather than re-running setup. |
 | **A2-R15** | Total elapsed time for an operator with prerequisites in hand SHOULD be under 15 minutes ([NFR](../../../00-overview/vision.md#what-success-looks-like)). |
+| **A2-R16** | The web API MUST serve what setup settled — the data root, the protocols and the service user — read from the configuration as it stands, together with whether this stack is set up, on a read that offers no setup and changes nothing (`N15-R1`, `N15-R2`). |
 
 ## Related
 

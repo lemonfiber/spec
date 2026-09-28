@@ -100,25 +100,21 @@ Two properties:
 
 ```mermaid
 flowchart TD
-    api[Docker Engine API] -->|stats, state| poll[Poller ~1 Hz]
-    api -->|log streams| lstream[Log reader]
-    svc[Service REST APIs] -->|queue, health| spoll[Service poller]
-    fsw[Filesystem] -->|space, hardlink| fscheck[Storage probe]
+    api[Docker Engine API] -->|stats, state| gather[Gather]
+    svc[Service REST APIs] -->|queue, health| gather
+    fsw[Filesystem] -->|space, hardlink| gather
 
-    poll --> ch[(channel)]
-    lstream --> ch
-    spoll --> ch
-    fscheck --> ch
-
-    ch --> state[App state]
-    state --> render[Render loop]
-    state --> health[Health summary]
+    gather -->|one owned snapshot| render[Render loop]
+    gather -->|one owned snapshot| stream[Event stream]
+    gather --> health[Health summary]
     health --> notify[Notifications]
 ```
 
-Every producer sends **owned snapshots** through a channel; nothing shares mutable
-state with the render loop (`ARCH-R16`). A slow service API delays its own panel
-and nothing else.
+A gather asks each source in turn and returns **one owned snapshot**
+(`ARCH-R24`). The terminal receives it from the task that ran the gather; the
+web surface receives its rendering on the event stream. Nothing shares mutable
+state with the render loop (`ARCH-R16`). Because the sources are asked in turn, a
+slow one holds back the whole snapshot, which `ARCH-R25` forbids.
 
 ### Reads and writes take different paths
 
@@ -161,7 +157,7 @@ it can be rolled back (`E4-R1`).
 | **ARCH-R21** | Import MUST hardlink where the filesystem permits, and degradation MUST be detected rather than absorbed. |
 | **ARCH-R22** | The five ways an item can silently fail to arrive MUST be distinguishable. |
 | **ARCH-R23** | Form closure MUST be resolved before protocol intersection. |
-| **ARCH-R24** | Every observation producer MUST send owned snapshots through a channel. |
+| **ARCH-R24** | Observation MUST be gathered into one owned snapshot per gather, and each surface MUST receive that snapshot, or its rendering, by value. |
 | **ARCH-R25** | A slow or failed observation source MUST NOT delay unrelated panels. |
 | **ARCH-R26** | Seed MUST check availability and drift before any write, and MUST verify by reading back. |
 

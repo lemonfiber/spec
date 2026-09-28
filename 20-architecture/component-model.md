@@ -259,16 +259,22 @@ The single most important runtime rule ([B3-R4](../10-functional/features/b-runn
 
 ```mermaid
 flowchart LR
-    poll[Docker poller<br/>~1 Hz] -->|snapshot| ch[(channel)]
-    logs[Log streams] -->|lines| ch
-    input[Terminal events] --> loop
-    ch --> loop[Render loop]
+    gather[Gather task] -->|one owned snapshot| loop[Render loop]
+    keys[Keyboard thread] -->|keys| kch[(channel)]
+    walk[Walk] -->|steps| wch[(channel)]
+    act[Action task] -->|outcome| loop
+    kch --> loop
+    wch --> loop
     loop --> draw[Draw frame]
 ```
 
-Background tasks **own** their data and send owned snapshots through a channel.
-The render loop never awaits Docker, never holds a lock across a draw, and never
-shares mutable state with a poller.
+The render loop takes everything by value. A gather runs on a task of its own and
+hands back one owned snapshot when it finishes, and the next starts a tick later;
+keys arrive on a channel from a thread reading the keyboard; a walk's steps arrive
+on a channel; an action runs on a task of its own and hands back its outcome. The
+loop holds no lock and shares no mutable state with any of them (`ARCH-R16`). The
+one thing it awaits in place is the stack's declaration of its forms, read from
+disk, which `ARCH-R15` forbids.
 
 This avoids the failure that makes most TUIs feel broken — input freezing while
 something slow happens — and sidesteps the borrow-checker friction that shared
@@ -298,24 +304,26 @@ stack (`C1-R8`).
 ## Seed: one client per API shape
 
 ```rust
-trait ServiceClient {
+trait Client {
     async fn identity(&self) -> Result<Identity>;
     async fn register_download_client(&self, dc: &DownloadClient) -> Result<()>;
     async fn register_root_folder(&self, rf: &RootFolder) -> Result<()>;
+    // … updating and testing a download client, root folders, quality profiles
 }
 ```
 
-| Implementation | Serves |
-|----------------|--------|
-| `ServarrClient` | Sonarr, Radarr, Lidarr, Prowlarr |
-| `SabnzbdClient` | SABnzbd |
-| `QbittorrentClient` | qBittorrent |
-| `SeerrClient` | Seerr |
-| `BinderyClient` | Bindery |
+`Client` is the Servarr shape's port, and `Servarr` is the one implementation of
+it. Each client implements a narrower port for each other thing asked of its
+service — `Transfers` of `Qbittorrent` and `Sabnzbd`, `Indexers` and `AppSync` of
+`Prowlarr`, `Requests` of `Seerr`, `Subtitles` of `Bazarr`, `Aggregators` of
+`Bindery`, and more besides.
 
-The manifest's `api.kind` selects the implementation
-([contract](contracts/stack-manifest.md#api)), so adding a service that reuses an
-existing shape needs no Rust at all.
+The manifest's `api.kind` selects the client
+([contract](contracts/stack-manifest.md#api)). A service declaring
+`api.kind = "servarr"`, an `api.version`, a port and media types is seeded from
+that declaration alone. What an import carries from a Servarr service, and which
+service a music format is applied to, are keyed by service id, which `ARCH-R18`
+forbids.
 
 Every write goes through the journal (`E4-R1`) and consults drift state before
 overwriting (`C9-R3`).
@@ -340,7 +348,7 @@ the server runs only when asked (`G1-R5`).
 | **ARCH-R13** | `--dry-run` MUST use the same construction path as execution. |
 | **ARCH-R14** | Compose invocation and Docker API access MUST live in separate modules with no cross-dependency. |
 | **ARCH-R15** | The render loop MUST NOT await I/O or hold a lock across a frame. |
-| **ARCH-R16** | Background tasks MUST send owned snapshots rather than share mutable state. |
+| **ARCH-R16** | The render loop MUST take what a background task produces by value — a gathered snapshot, a key, a walk's step, an action's outcome — and MUST share no mutable state with the task that produced it. |
 | **ARCH-R17** | `unverified` MUST be a distinct variant in the finding type, not a severity value. |
 | **ARCH-R18** | Service clients MUST be selected by manifest `api.kind`, never by hardcoded service name. |
 | **ARCH-R19** | Web assets MUST be embedded in the binary; no runtime toolchain MAY be required. |
