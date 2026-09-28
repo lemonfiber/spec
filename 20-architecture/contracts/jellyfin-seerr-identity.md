@@ -118,15 +118,15 @@ both are the identity wiring.
    only an administrator: the session cookie the sign-in set, carried by the
    transport onto this call, is what authorises it.
 
-Both writes carry `Content-Type: application/json` for their JSON bodies, because
-Seerr's framework only parses a body it is told is JSON and silently drops one it
-is not.
+Every JSON body is sent with `Content-Type: application/json`, because Seerr's
+framework only parses a body it is told is JSON and silently drops one it is not.
 
 ### Every later sign-in
 
 The owner's session is what lemonfiber reads and writes Seerr with on later runs,
 and a session is opened by the same `POST /api/v1/auth/jellyfin` with
-`{ "username", "password" }` only. Once Seerr holds a Jellyfin address, it refuses
+`{ "username": "admin", "password": "<the minted Jellyfin password>" }` and
+nothing else. Once Seerr holds a Jellyfin address, it refuses
 any sign-in that names one with `500` (`Jellyfin hostname already configured`),
 whatever `initialized` says, and signs in against the address it holds.
 
