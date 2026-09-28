@@ -123,6 +123,10 @@ class Copies(unittest.TestCase):
         (shared / "ruff.toml").write_text(RUFF, encoding="utf-8")
         (shared / "hooks" / "pre-push").write_text(HOOK, encoding="utf-8")
         (shared / "gates" / "a_gate.py").write_text(GATE, encoding="utf-8")
+        # The real block, as the gate every repository runs reads it. The
+        # fixture repository carries no workflow, so it holds none to the block;
+        # `test_superseded_runs.py` is where workflows are.
+        shutil.copy(HERE.parent / "shared" / "concurrency.yml", shared)
         self.manifest(f"{self.digest(LOGO)}  .github/logo.svg  brand:assets/logo/lockup.svg")
 
         # The repo under test also carries the file the manifest names as the
@@ -194,6 +198,15 @@ class Agreeing(Copies):
         code, out = self.check()
         self.assertEqual(code, 0, out)
         self.assertIn("match their one home", out)
+
+    def test_a_workflow_carrying_the_concurrency_group(self):
+        self.write(".github/workflows/ci.yml", (
+            "on: [pull_request]\n"
+            + (self.canonical / "shared" / "concurrency.yml").read_text(encoding="utf-8")
+            + "jobs:\n  check:\n    runs-on: ubuntu-latest\n"))
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertIn("carries the concurrency group", out)
 
     def test_an_asset_the_repo_does_not_carry_is_not_asked_for(self):
         # The manifest lists what a copy must equal, not what a repo must have.
@@ -415,6 +428,13 @@ class Drifted(Copies):
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn(".markdownlint.jsonc differs from the canonical copy", out)
+
+    def test_a_pull_request_workflow_without_the_concurrency_group(self):
+        # The hygiene gate is where every repository meets Q-R75, through this.
+        self.write(".github/workflows/ci.yml", "on: [pull_request]\njobs: {}\n")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn(".github/workflows/ci.yml runs on a pull request", out)
 
     def test_a_lefthook_config(self):
         # Not a style preference: `core.hooksPath` makes it inert, and the one

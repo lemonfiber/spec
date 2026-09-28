@@ -1,0 +1,88 @@
+# Cancels a pull request's runs on the heads a push to it replaced, for the
+# workflows here that cannot do it themselves (Q-R75).
+#
+# attribution, commitlint, dco, explain, hygiene, labeler, security,
+# spec-references and workflow-pins are reusable workflows that this
+# repository's pull requests also run directly. A concurrency group declared in
+# one is evaluated in each caller's context, where it is the caller's own group,
+# so none of them carries one. Every consuming repository pins each of them by
+# revision, so a change to one also moves every one of those pins.
+#
+# So this asks the API. A run is cancelled when it is a `pull_request` run on
+# this pull request's branch, its head is not the one just pushed, and it was
+# created before this run was: a run for a newer push is left to the run that
+# push starts. A push to `main`, a tag and a merge queue are other events, and
+# nothing here reads them. `check_shared_files.py` refuses a reusable workflow a
+# pull request runs directly in a repository without this file.
+name: cancel-superseded
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions: {}
+
+# A pull request pushed again cancels the run on its old head, which nobody
+# will read and which holds runners the org shares (Q-R75). Every other event
+# is grouped by its own run, so it is never cancelled and never cancels.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  cancel:
+    # A fork's pull request is handed a token that cannot cancel a run.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Cancel this pull request's runs on the heads it replaced
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.head_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          mine=$(gh api "repos/${REPO}/actions/runs/${RUN_ID}" --jq .created_at)
+
+          # Every status a run that has not finished can be in. The API takes
+          # one at a time.
+          superseded=$(
+            for state in requested waiting pending queued in_progress; do
+              gh api --paginate -X GET "repos/${REPO}/actions/runs" \
+                -f event=pull_request -f branch="$BRANCH" -f status="$state" -f per_page=100
+            done | jq -r --arg head "$HEAD_SHA" --arg repo "$REPO" --arg mine "$mine" '
+              .workflow_runs[]
+              | select(.head_sha != $head
+                  and .head_repository.full_name == $repo
+                  and .created_at < $mine)
+              | .id' | sort -u
+          )
+
+          if [ -z "$superseded" ]; then
+            echo "No run on a replaced head is still going."
+            exit 0
+          fi
+
+          for run in $superseded; do
+            # A run can finish between the listing and the cancel, and the API
+            # answers that with 409. Anything else is a failure to cancel.
+            if said=$(gh api -X POST "repos/${REPO}/actions/runs/${run}/cancel" 2>&1); then
+              echo "Cancelled run ${run}."
+              continue
+            fi
+            case "$said" in
+            *"HTTP 409"*)
+              echo "Run ${run} had already finished."
+              ;;
+            *)
+              echo "::error::Run ${run} could not be cancelled: ${said}"
+              exit 1
+              ;;
+            esac
+          done

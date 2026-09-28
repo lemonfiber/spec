@@ -38,6 +38,7 @@ brand's own.
 | [hooks/commit-msg](hooks/commit-msg) | each repo's `.githooks/commit-msg` | Byte-identical, in the repos [adoption.toml](adoption.toml) names |
 | — | each repo's `.githooks/pre-commit` | Not shared: the fast checks are different in each. Its *absence* is not checked, and a hook-manager config in its place is refused |
 | [gates/no_open_codeql_alert.py](gates/no_open_codeql_alert.py) | each repo's `scripts/no_open_codeql_alert.py` | Byte-identical, in the repos [adoption.toml](adoption.toml) names |
+| [concurrency.yml](concurrency.yml) | each workflow a pull request runs, as its own `concurrency` block | The same group and `cancel-in-progress: true`, read rather than byte-compared ([Q-R75](../40-quality/ci-cd.md#a-push-replaces-the-run-it-supersedes)) |
 | — | each repo's `CLAUDE.md` | Byte-identical, in every repository. Its home is this repository's own root copy, not a file here: the one link in it is relative to a repository root |
 | [assets.sha256](assets.sha256) | — | Digests of the brand assets repos carry copies of |
 | [adoption.toml](adoption.toml) | — | Which repository carries which of the two adopted kinds above |
@@ -200,6 +201,11 @@ The `shared-files` job in the hygiene gate, which runs
 calling repository. It fails on a config that differs, a shared word that is
 missing, a lint rule that has been dropped or silenced, and a brand asset that has
 been edited in place instead of copied again.
+
+It fails on a workflow a pull request runs whose concurrency group is not the
+one in `concurrency.yml`, and on a group that could cancel a push to `main` or a
+tag; [`scripts/check_superseded_runs.py`](../scripts/check_superseded_runs.py)
+is that half.
 
 It also fails on a file added to this directory that no check there looks at,
 because a shared file nothing compares is copied into every repository and held to
