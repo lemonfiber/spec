@@ -27,10 +27,10 @@
 # G9 stays: a mobile client is handed a stack it did not configure, which is the same
 # question this version answers for a plugin.
 #
-# 49 goals, seeded from the roadmap milestone this version serves;
+# 60 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
-# Twenty-one of them were added after staging, each reviewed as a goal change (OPS-R31).
+# Thirty-two of them were added after staging, each reviewed as a goal change (OPS-R31).
 #
 # `E1-R1` went out with 0.14.0 unmet: every image in the stack is still named by tag,
 # and the requirement forbids resolving one that way. It is locked here with the
@@ -64,6 +64,30 @@
 # stack's own and survives re-issue. It carries no credential and expires. The certificate
 # is announced before it is replaced. Without them the companion refuses every real stack,
 # because it pins a certificate and the stack presents none (ADR-0017, ADR-0018, ADR-0025).
+#
+# `C6-R21` closes Jellyfin's cross-origin reads to the household front door. It is the
+# fourth requirement ADR-0029 decided, beside `D6-R15`, `D6-R16` and `G5-R14`: the decline
+# address is served from the front door's origin, and Jellyfin answers every origin until
+# its allow-list names that one. It ships with them (OPS-R31).
+#
+# `C6-R20`, `C6-R22` to `C6-R25` and `D1-R19` to `D1-R21` are ADR-0032's request gate.
+# `C6-R20` keeps an administrative credential on another service to the one
+# household-tier service ADR-0029 confines for the decline address. Seerr is household
+# tier and holds Sonarr's, Radarr's and Jellyfin's, because `D1-R17` registers each \*arr
+# with it by that \*arr's key and `D1-R7` initialises it through Jellyfin's administrator.
+# The gate holds those credentials instead and hands Seerr a token per route, answers a
+# fixed list of calls it builds itself, forwards a removal one id at a time and records
+# it, and refuses the rest. The decline service and the gate are the two confined
+# services the household tier reaches the stack through, so they ship together
+# (OPS-R31).
+#
+# `ARCH-R4` and `ARCH-R27` are refusals the platform and the manifest owe from their
+# first version and nothing makes. A stack declaring a `min_cli_version` above the
+# running binary is read as though it declared none, and Linux with Docker Desktop is
+# read as native Linux, so the service user is asked for where ownership is cosmetic and
+# the autostart check asks a service manager Docker Desktop does not use. Both are
+# locked here rather than later because this version hands the bundled stack to plugins
+# and catalogues that move at their own pace (OPS-R31).
 version = "0.17.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — what the bundled stack can do, and where a plugin comes from"
@@ -120,6 +144,17 @@ goals   = [
     "N1-R49",
     "N1-R62",
     "C6-R19",
+    "C6-R20",
+    "C6-R21",
+    "C6-R22",
+    "C6-R23",
+    "C6-R24",
+    "C6-R25",
+    "D1-R19",
+    "D1-R20",
+    "D1-R21",
+    "ARCH-R4",
+    "ARCH-R27",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

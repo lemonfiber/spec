@@ -106,13 +106,13 @@
       "version": "0.17.0",
       "status": "staged",
       "milestone": "M14",
-      "goals": 49
+      "goals": 60
     },
     {
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 119
+      "goals": 121
     },
     {
       "version": "0.19.0",
@@ -1098,7 +1098,8 @@
       "shipped": null,
       "milestones": [
         "M4",
-        "M8"
+        "M8",
+        "M14"
       ],
       "milestone": "M4",
       "priority": null,
@@ -1117,6 +1118,10 @@
         {
           "version": "0.12.0",
           "status": "released"
+        },
+        {
+          "version": "0.17.0",
+          "status": "staged"
         },
         {
           "version": "0.4.0",
