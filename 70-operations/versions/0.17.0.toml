@@ -27,10 +27,10 @@
 # G9 stays: a mobile client is handed a stack it did not configure, which is the same
 # question this version answers for a plugin.
 #
-# 60 goals, seeded from the roadmap milestone this version serves;
+# 62 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
-# Thirty-two of them were added after staging, each reviewed as a goal change (OPS-R31).
+# Thirty-four of them were added after staging, each reviewed as a goal change (OPS-R31).
 #
 # `E1-R1` went out with 0.14.0 unmet: every image in the stack is still named by tag,
 # and the requirement forbids resolving one that way. It is locked here with the
@@ -64,6 +64,11 @@
 # stack's own and survives re-issue. It carries no credential and expires. The certificate
 # is announced before it is replaced. Without them the companion refuses every real stack,
 # because it pins a certificate and the stack presents none (ADR-0017, ADR-0018, ADR-0025).
+#
+# `N1-R73` and `N1-R74` are the typed half of the same act. The companion asks a person
+# who typed the material to compare a short code against what the stack shows, so the
+# stack shows that code beside the material, folded the way the companion folds it.
+# Without them typed pairing asks for a comparison against nothing (OPS-R31).
 #
 # `C6-R21` closes Jellyfin's cross-origin reads to the household front door. It is the
 # fourth requirement ADR-0029 decided, beside `D6-R15`, `D6-R16` and `G5-R14`: the decline
@@ -143,6 +148,8 @@ goals   = [
     "N1-R48",
     "N1-R49",
     "N1-R62",
+    "N1-R73",
+    "N1-R74",
     "C6-R19",
     "C6-R20",
     "C6-R21",

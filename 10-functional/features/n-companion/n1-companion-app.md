@@ -89,6 +89,13 @@ A person types as little as possible. The app is pointed at a stack by scanning
 a code the operator's own surfaces can display, and falls back to typed entry
 where a camera is unavailable or declined.
 
+Typed entry has no software comparison behind it, so the person makes one. The
+app shows a short code folded from the whole fingerprint, and the stack shows the
+same code beside the material it produced. Both sides fold it the same way
+(`N1-R73`), and the stack shows it wherever it shows the material (`N1-R74`): a
+code the app asks somebody to check against a screen that does not carry it is a
+confirmation nobody can give.
+
 Whatever the route, the app exchanges the credential **once** at `/api/session`
 for a session, and carries that session in `X-Lemonfiber-Token` afterwards. The
 credential is not kept to be re-sent: a secret held for one exchange is a smaller
@@ -368,6 +375,8 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R70** | A subscription that has delivered nothing, neither a value nor the heartbeat, for twice the heartbeat interval the contract states (`ARCH-R61`) MUST be treated as broken. From then on its last value MUST be shown as stale with when it was read (`N1-R9`), and a summary it carried MUST read unknown rather than healthy. |
 | **N1-R71** | A subscription that broke or could not be opened MUST be reopened on a cadence the screen states, and MUST NOT be reopened more often than that. Nothing held from before the break MUST be presented as current until the reopened subscription delivers a value. |
 | **N1-R72** | A subscription MUST be held only while a screen showing what it carries is in front of the operator. It MUST be closed when that screen is left, and at the screen's first wake after the app leaves the foreground; it MUST NOT be opened or read while the app is in the background. |
+| **N1-R73** | The comparable form (`N1-R50`, `N1-R51`) MUST be derived the same way wherever it is shown: SHA-256 over the fingerprint written as its sixty-four lower-case hexadecimal characters; the first sixteen bytes of that digest, each taken modulo thirty-two as an index into the alphabet `23456789ABCDEFGHJKLMNPQRSTUVWXYZ`; written as four groups of four joined by hyphens. The fingerprint of sixty-four `0` characters MUST give `22VK-KPHH-NKH9-TUWA`, and that of sixty-four `f` characters `Z9JL-Q3PK-BZ6M-HRQZ`. |
+| **N1-R74** | Wherever the stack displays pairing material, it MUST display the comparable form of the fingerprint that material carries (`N1-R73`), in its human-readable and its machine-readable output alike, so that typed entry has something to be compared against (`N1-R50`). |
 
 ## Related
 
