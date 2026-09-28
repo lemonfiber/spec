@@ -173,7 +173,14 @@ answering with what the change comes to.
 The choice is the same change whichever surface made it: one setting, journalled,
 and read back as the operator's (`whose: operator`). It is rehearsable over the API
 as it is at the command line, because what a substitution would leave unfilled is
-worth reading only before it is agreed to.
+worth reading only before it is agreed to. Why these are writes of the web API while
+a credential's replacement stays at the terminal is
+[ADR-0031](../../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md).
+
+The operator may say why they chose, on either surface. The reason is recorded with
+the choice and read back as its `why`, as the stack's own reason is for a choice it
+shipped, so a choice read months later says what it was for. A choice made with no
+reason is read back with none: nothing supplies one on the operator's behalf.
 
 ### On the companion
 
@@ -257,8 +264,9 @@ change rather than reported after it.
 | **F4-R24** | What a capability's probe must show MUST be declared by the vocabulary and where it is asked MUST be declared by the claimant; a probe requiring a credential MUST be reported as unproven when run with none, and MUST NOT be reported as failed. |
 | **F4-R25** | A capability's probe MUST be satisfiable by a service holding none of the operator's own data, and a binding asserting a count above zero MUST be refused. A contributed check MUST NOT be held to either, because a check reports on a running stack rather than gating an install. |
 | **F4-R26** | What the stack wires to what MUST be served as a read of the web API answering with the `wiring` envelope the command answers with, carrying how each link was settled — a contest with every claimant, a choice with whose it was and what it was chosen over — and every capability something asks for and nothing fills (`F4-R8`, `F4-R9`, `ARCH-R47`). |
-| **F4-R27** | Choosing which service fills a capability, including one that stands contested, MUST be an action of the web API taking the capability and the service the command takes and answering with the `substitution` envelope the command answers with; the choice MUST be recorded and journalled as the command records it, and MUST be read back as the operator's (`F4-R10`, `ARCH-R48`). |
+| **F4-R27** | Choosing which service fills a capability, including one that stands contested, MUST be an action of the web API taking the capability, the service and the reason the command takes and answering with the `substitution` envelope the command answers with; the choice MUST be recorded and journalled as the command records it, and MUST be read back as the operator's (`F4-R10`, `F4-R29`, `ARCH-R48`). |
 | **F4-R28** | Choosing which service fills a capability MUST be rehearsable over the web API, MUST write nothing when rehearsed, and MUST answer with what fills the capability now, what would fill it and what the change would leave unfilled (`F4-R11`). |
+| **F4-R29** | Choosing which service fills a capability MUST take an optional reason, alike at the command line and as the web API action (`ARCH-R48`); a reason given MUST be recorded with the choice and read back as the choice's `why` wherever the choice is read, and a choice given none MUST be read back with none. |
 
 ## Related
 

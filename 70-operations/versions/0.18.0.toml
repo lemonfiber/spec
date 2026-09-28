@@ -19,7 +19,13 @@
 # produces any of them. The companion reaches a stack only over the web API (N1-R16),
 # so its N5 and N25 cannot be answered until the core serves these.
 #
-# 19 goals, seeded from the roadmap milestone this version serves;
+# `F4-R29` gives that choice an optional reason, taken alike by `lemonfiber wiring fill`
+# and the web API action and read back as the choice's `why`. The command takes no
+# reason and records every operator's choice with none, so N5's "with their reason if
+# they gave one" has nothing to show. It changes the command and the API together
+# (ARCH-R48), so it ships with `F4-R27`.
+#
+# 20 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -43,6 +49,7 @@ goals   = [
     "F4-R26",
     "F4-R27",
     "F4-R28",
+    "F4-R29",
     "F6-R14",
     "F6-R15",
     "F6-R16",

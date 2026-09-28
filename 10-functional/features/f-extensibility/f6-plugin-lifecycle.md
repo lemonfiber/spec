@@ -100,7 +100,9 @@ API's as the command line's (`G1-R1`). The read answers with the envelope
 `lemonfiber plugin installed` answers with, and each of the three is an action
 taking the argument the command takes and answering as the command does
 (`ARCH-R47`, `ARCH-R48`). Each can be rehearsed over the API, and a rehearsal there
-writes nothing, exactly as one at the command line does.
+writes nothing, exactly as one at the command line does. Why these are writes of the
+web API while a credential's replacement stays at the terminal is
+[ADR-0031](../../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md).
 
 A record that cannot be read is refused over the API as it is at the command line.
 An empty list is the answer for a machine with nothing installed, and a surface that

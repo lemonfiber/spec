@@ -58,7 +58,7 @@ The contract distinguishes a choice the stack made from one the operator made.
 The app never makes the first look like the second, and never presents its own
 default as either. Where the stack settled something outright there is nothing
 to ask; where it did not, the app asks and records the answer as the operator's,
-with their reason if they gave one.
+with their reason if they gave one (`F4-R29`).
 
 ### What a substitution leaves unfilled is said before it is agreed to
 
