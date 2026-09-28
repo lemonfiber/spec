@@ -71,14 +71,15 @@ AWAITING_A_VERSION = {
     "F1": ("the other thirteen F1 goals are locked by 0.15.0, released", ["F1-R1"]),
     # The companion keeps these two, as it keeps N1's app side, and takes no release.
     # Its tests/Arch/TheNamesThisProductGivesTest.php holds G2-R14 and
-    # tests/Templates/EveryTargetIsBigEnoughToHitTest.php holds G3-R16.
+    # tests/Templates/EveryTargetIsBigEnoughToHitTest.php holds G3-R16, and
+    # app-modules/operator/tests/View/Components/ScreenClosesTest.php holds G3-R17.
     "G2": (
         "the companion keeps G2-R14 and takes no release; the other thirteen G2 goals are locked by 0.9.0, released",
         ["G2-R14"],
     ),
     "G3": (
-        "the companion keeps G3-R16 and takes no release; the rest of G3 is split across 0.9.0 and 0.10.0, both released",
-        ["G3-R16"],
+        "the companion keeps G3-R16 and G3-R17 and takes no release; the rest of G3 is split across 0.9.0 and 0.10.0, both released",
+        ["G3-R16", "G3-R17"],
     ),
     "G10": (
         "0.18.0 locks the G10 goals the core answers for; playback and the door a member faces wait on the core",

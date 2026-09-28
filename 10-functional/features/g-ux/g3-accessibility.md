@@ -113,6 +113,19 @@ reaches for when something has gone wrong, often one-handed, often in the dark
 behind a rack — and they are the ones whose drawn extent is a single line of
 small text.
 
+### The navigation says where you are
+
+The companion keeps its sections in a bar along the bottom of every screen, and
+the bar marks one of them as the section being shown. That mark is how a person
+knows where a screen they reached by tapping through belongs, and a screen
+reader announces it as *selected*. Marking the wrong one is worse than marking
+none: a service opened from the list of services, with the bar lit on health,
+tells a sighted person and a listening one the same wrong thing.
+
+So the section being shown is the one marked, and no other is. A screen reached
+from more than one place belongs to one section, the one whose subject it is:
+a service's page is under services wherever the tap came from.
+
 ### Layout adapts rather than assumes
 
 Content reflows for narrow terminals and small viewports. No horizontal scrolling
@@ -169,6 +182,7 @@ or types slowly. Where a timeout exists it is generous, stated, and extendable.
 | **G3-R14** | Severity in log output MUST be present as text, not only as colour. |
 | **G3-R15** | Text the product did not author MUST NOT be able to alter terminal state, on any surface that shows it. |
 | **G3-R16** | On a surface operated by touch, every control MUST present a target at least as large as the platform's own stated minimum — 44 points on iOS, 48 density-independent pixels on Android — measured on what responds to a touch rather than on what is drawn inside it. A control whose drawn extent is smaller MUST have its target enlarged around it rather than its text made larger. |
+| **G3-R17** | On a surface whose navigation between sections stays on screen, the section being shown MUST be the one marked as current, to sight and to assistive technology alike, and no other section MAY be marked; a screen reached from more than one section MUST be marked as the section whose subject it is. |
 
 ## Related
 
