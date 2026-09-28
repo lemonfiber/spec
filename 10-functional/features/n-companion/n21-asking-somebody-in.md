@@ -82,6 +82,22 @@ The stack refuses to take the password off the account it signs in with, and
 the app shows that refusal with its reason rather than hiding the person from the
 list.
 
+### What lapsed on the way past is said, in two words
+
+An invitation stands for a window, and one nobody claimed in time is withdrawn on
+the way past: the next invitation the stack is asked for sweeps it, and a rehearsed
+one names what that sweep would take. What becomes of the account depends on whose
+it was. An offer nobody ever took up is removed, and the stack names it under
+`withdrawn`. An account somebody had been in, reset and not claimed again in time,
+is switched off and kept, because removing it would take what they watched with it;
+the stack names it under `suspended`, and offering it again or reissuing it switches
+it back on.
+
+Both are invitations the stack withdrew, which is what `N21-R10` asks to be shown.
+They arrive on the answer to `invite`, and are shown with it. An operator who
+invited somebody last week and hears nothing learns from this whether the account
+is gone or waiting to be reissued.
+
 ### A rehearsed invitation made nothing
 
 As everywhere (`N6-R1`). Here it decides whether somebody has an account.
@@ -108,6 +124,8 @@ As everywhere (`N6-R1`). Here it decides whether somebody has an account.
   that was asked for.
 - **Handing over declined by the platform's sharing.** Nothing was sent, and the
   address is still on screen to hand over another way.
+- **A reset that lapsed.** The account is switched off and kept, and is shown as
+  `suspended` on the answer it arrived on, apart from an offer that was removed.
 
 ## Requirements
 
@@ -141,13 +159,14 @@ material, and `reissue` takes a name.
 | `N21-R7` | `reissue`, answered with an `invitation` whose standing is `reset` | — |
 | `N21-R8` | The refusal, as `error` | — |
 | `N21-R9` | `rehearsed` | — |
-| `N21-R10` | `withdrawn` | — |
+| `N21-R10` | `withdrawn`: offers nobody took up, removed. `suspended`: accounts somebody had been in, reset and not claimed again in time, switched off and kept. On a rehearsal, each names what would be | — |
 
-**`D6-R13` is not a row here.** An invitation nobody claimed is withdrawn, and
+**`D6-R13` is not a row here.** An offer nobody claimed is withdrawn, and
 withdrawal removes the account, so there is no member left to re-issue to without
 naming their access again. `reissue` makes an *existing* account claimable. Asking
 again after a lapse is `invite`, which takes the access afresh — and nothing on the
-wire keeps what the lapsed invitation granted to offer back.
+wire keeps what the lapsed invitation granted to offer back. A lapsed reset is the
+exception: its account is kept, switched off, and `reissue` switches it back on.
 
 **The decline address is not carried.** `D6-R15` puts one on every invitation;
 `invitation` has no field for it, so the app hands over the one address it has.

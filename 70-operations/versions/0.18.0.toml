@@ -11,12 +11,15 @@
 # bundled service; the first-run flows that some substitutions need — creating an
 # account, claiming a server, reading a token back — are these.
 #
-# F8 is Draft. OPS-R30 forbids a Draft requirement being a goal, so this version cannot
-# stage until F8 is Accepted. That is a review decision about ADR-0022's flow rules —
-# pairs rather than lists, the static check, the approval at rehearsal — and not a
-# scheduling one, so it is recorded here rather than taken by whoever stages next.
+# `F6-R14` to `F6-R16` and `F4-R26` to `F4-R28` put what 0.16.0 built at the command
+# line on the web API: what is installed, installing, updating and removing a plugin and
+# rehearsing each; what the stack wires to what; and choosing which service fills a
+# capability, a contested one included, with the choice read back as the operator's.
+# The contract publishes `plugins`, `wiring` and `substitution`, and no route or action
+# produces any of them. The companion reaches a stack only over the web API (N1-R16),
+# so its N5 and N25 cannot be answered until the core serves these.
 #
-# 13 goals, seeded from the roadmap milestone this version serves;
+# 19 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -37,6 +40,12 @@ goals   = [
     "F8-R11",
     "F8-R12",
     "F8-R13",
+    "F4-R26",
+    "F4-R27",
+    "F4-R28",
+    "F6-R14",
+    "F6-R15",
+    "F6-R16",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

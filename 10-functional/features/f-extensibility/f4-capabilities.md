@@ -160,11 +160,27 @@ A capability carries probes. Claiming it and failing its probes is a verificatio
 and a plugin that fails verification is not installed. A capability whose probes cannot be
 run is reported as unproven — never as satisfied.
 
+### The question and its answer are on every surface
+
+A contest is refused pending the operator's choice, so the choice has to be makeable
+wherever the operator is (`G1-R1`). The wiring is a read of the web API, answering
+with the envelope `lemonfiber wiring` answers with: every link, how each was
+settled — a contest with its claimants, a choice with whose it was and what it was
+chosen over — and what nothing fills. Choosing which service fills a capability is
+an action taking the capability and the service `lemonfiber wiring fill` takes, and
+answering with what the change comes to.
+
+The choice is the same change whichever surface made it: one setting, journalled,
+and read back as the operator's (`whose: operator`). It is rehearsable over the API
+as it is at the command line, because what a substitution would leave unfilled is
+worth reading only before it is agreed to.
+
 ### On the companion
 
 A capability this refuses as `contested` is refused pending a choice, and the
 companion is a surface where that choice can be made
-([N5](../n-companion/n5-connecting-the-stack.md)). What it may not do is settle
+([N5](../n-companion/n5-connecting-the-stack.md)), over the web API (`F4-R26` to
+`F4-R28`). What it may not do is settle
 it: `N5-R1` forbids the app resolving a contest by default, by install order or
 by any ordering of its own, which is the same prohibition this feature puts on
 the core.
@@ -240,6 +256,9 @@ change rather than reported after it.
 | **F4-R23** | A name MUST NOT appear both in the core capability vocabulary and in the set of capabilities a manifest may require of lemonfiber, and the two sets MUST be published as separate artefacts. |
 | **F4-R24** | What a capability's probe must show MUST be declared by the vocabulary and where it is asked MUST be declared by the claimant; a probe requiring a credential MUST be reported as unproven when run with none, and MUST NOT be reported as failed. |
 | **F4-R25** | A capability's probe MUST be satisfiable by a service holding none of the operator's own data, and a binding asserting a count above zero MUST be refused. A contributed check MUST NOT be held to either, because a check reports on a running stack rather than gating an install. |
+| **F4-R26** | What the stack wires to what MUST be served as a read of the web API answering with the `wiring` envelope the command answers with, carrying how each link was settled — a contest with every claimant, a choice with whose it was and what it was chosen over — and every capability something asks for and nothing fills (`F4-R8`, `F4-R9`, `ARCH-R47`). |
+| **F4-R27** | Choosing which service fills a capability, including one that stands contested, MUST be an action of the web API taking the capability and the service the command takes and answering with the `substitution` envelope the command answers with; the choice MUST be recorded and journalled as the command records it, and MUST be read back as the operator's (`F4-R10`, `ARCH-R48`). |
+| **F4-R28** | Choosing which service fills a capability MUST be rehearsable over the web API, MUST write nothing when rehearsed, and MUST answer with what fills the capability now, what would fill it and what the change would leave unfilled (`F4-R11`). |
 
 ## Related
 
