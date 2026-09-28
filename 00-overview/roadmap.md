@@ -242,7 +242,7 @@ can complete setup, over the core with no surface-specific logic.
 
 Setup is completable from the web surface
 ([G1-R14](../10-functional/features/g-ux/g1-interface-tiers.md)), so it writes. The
-C6 goals guarding a writable loopback API are staged in `0.9.0`.
+C6 goals guarding a writable loopback API are locked by `0.9.0`.
 
 ---
 
@@ -259,9 +259,9 @@ management acts without reverting an operator's manual choices.
 ## M9 — Lifecycle & maintenance
 
 Living with a running stack (`0.13.0`–`0.15.0`): reconfiguration, migration, uninstall,
-notifications, remote control, autostart & boot persistence, hosting lemonfiber's
-own long-running commands, stack and self updates, rollback, and the service
-catalogue.
+credentials, remote control, autostart & boot persistence, hosting lemonfiber's
+own long-running commands, stack and self updates, backup, rollback, the journal,
+customisation and the service catalogue.
 
 **Exit criteria:** every lifecycle operation is reversible or explicitly
 confirmed, and an unattended stack recovers across a reboot.
@@ -302,7 +302,7 @@ of use behind it before `1.0.0` freezes it.
 
 ## M14 — The platform
 
-`0.16.0` and `0.17.0`. Other people's stacks, and the surface that makes them
+`0.16.0`–`0.18.0`. Other people's stacks, and the surface that makes them
 possible. F3–F8 and F10 are Accepted; recipes (F8) are locked by `0.18.0`.
 
 | Deliverable | Notes | Version |
@@ -317,17 +317,16 @@ possible. F3–F8 and F10 are Accepted; recipes (F8) are locked by `0.18.0`.
 | The plugin catalogue | F5 — reviewed, signed, and an operator's own source on the same technical terms with unreviewed said plainly | `0.17.0` |
 | Mobile client handoff | G9 — a household member's phone reaches the library in one step | `0.17.0` |
 | Plugins and wiring over the API | F6-R14 to F6-R16 and F4-R26 to F4-R28 — what is installed, installing, updating and removing, the wiring, and the operator's choice of what fills a capability, served where the companion reaches them | `0.18.0` |
-| Recipes and named adapters | F8 — the ordered calls that turn a first-run flow into data, and what they may carry where ([ADR-0022](decisions/0022-a-recipe-declares-pairs-not-lists.md)) | unscheduled |
+| Recipes and named adapters | F8 — the ordered calls that turn a first-run flow into data, and what they may carry where ([ADR-0022](decisions/0022-a-recipe-declares-pairs-not-lists.md)) | `0.18.0` |
 
-**Recipes are held back deliberately.** A manifest describes a container whose reach
-lemonfiber fixes, so the worst one can do is fail to parse. A recipe runs with
-lemonfiber's own authority on behalf of a manifest a stranger wrote, and it is the
-riskiest mechanism in this design — it should not arrive before anybody has operated
-the simplest plugin there is. It has no version because inserting one renumbers every
-release behind it, which is a decision about the train rather than about plugins.
+**Recipes come last of the three, deliberately.** A manifest describes a container
+whose reach lemonfiber fixes, so the worst one can do is fail to parse. A recipe runs
+with lemonfiber's own authority on behalf of a manifest a stranger wrote, and it is
+the riskiest mechanism in this design — so it arrives in `0.18.0`, after two versions
+of operating the simplest plugin there is.
 
-**The capability work is split across the two**, and the difference is visible to an
-operator rather than internal. `0.16.0` ships the vocabulary and the converted wiring: a
+**The capability work is split across `0.16.0` and `0.17.0`**, and the difference is
+visible to an operator rather than internal. `0.16.0` ships the vocabulary and the converted wiring: a
 plugin can claim a capability, be refused for claiming one it cannot demonstrate, and take
 over one another *plugin* was filling. `0.17.0` ships the bundled declarations, which is
 what makes a plugin able to stand in for a *bundled* service. The model has to exist
@@ -345,7 +344,7 @@ it puts the stack back.
 
 **Exit criteria for `0.17.0`:** a plugin replaces a bundled service, and nothing that
 consumed that service's capability had to be changed for it to work. The first-run flows
-that some substitutions need wait for F8.
+that some substitutions need wait for F8, which `0.18.0` locks.
 
 ---
 
@@ -392,6 +391,7 @@ than a dashboard.
 
 | Deliverable | Notes |
 |-------------|-------|
+| Notification back-ends | B9 — self-hostable delivery channels, and a message confirmed delivered rather than fired into the dark |
 | Metrics & dashboards | K1 — exported, not screen-scraped |
 | Uptime monitoring | K2 — the stack notices its own absence |
 
