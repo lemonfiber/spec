@@ -49,7 +49,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0028](0028-a-supported-major-is-data-proved-by-its-own-recordings.md) | A supported major is data the stack declares, proved by its own recordings | Accepted |
 | [0029](0029-a-household-service-declines-an-invitation-with-one-key.md) | A household service declines an invitation, holding one media-server key and nothing else | Accepted |
 | [0030](0030-a-declared-failure-is-its-own-verdict.md) | An assertion declared to fail on a recording is reported as failing as declared | Accepted |
-| [0031](0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md) | Installing a plugin and choosing a filler are web API writes; replacing a credential is not | Proposed |
+| [0031](0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md) | Installing a plugin and choosing a filler are web API writes; replacing a credential is not | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
