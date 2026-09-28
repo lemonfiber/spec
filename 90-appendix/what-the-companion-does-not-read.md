@@ -194,7 +194,8 @@ to be a read of the web API, `F6-R15` requires installing, updating and removing
 plugin to be actions of it, and `F6-R16` requires each of those to be rehearsable
 there. `F4-R26` requires the wiring to be a read, `F4-R27` requires choosing which
 service fills a capability to be an action, and `F4-R28` requires that choice to be
-rehearsable. `0.18.0`, which is planned, locks all six as goals.
+rehearsable. `0.18.0`, which is planned, locks all six as goals, with `F4-R29`,
+which gives the choice an optional reason on both surfaces.
 
 So they are a different kind of row from everything else here. Every other
 envelope in this register is a decision waiting to be made; these three have no
@@ -210,7 +211,8 @@ models that choice, down to `whose: 'operator'`.
 There is nowhere in the companion to make that choice, and nowhere on the wire
 to read that it is waiting. `F4-R26` requires the read that says it is waiting,
 and `F4-R27` the action that makes it: for a contested capability too, recorded
-and journalled as the command records it, and read back as the operator's.
+and journalled as the command records it, and read back as the operator's, with
+their reason where they gave one (`F4-R29`).
 
 ## Guided setup
 
