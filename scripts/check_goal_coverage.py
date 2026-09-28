@@ -74,8 +74,8 @@ AWAITING_A_VERSION = {
         ["G8-R15", "G8-R16", "G8-R17", "G8-R18"],
     ),
     "G10": (
-        "no version schedules G10; what it requires, D4, D6 and G1, is locked by 0.11.0 at the latest, all released",
-        [f"G10-R{n}" for n in range(1, 14)],
+        "0.18.0 locks the G10 goals the core answers for; playback and the door a member faces wait on the core",
+        ["G10-R4", "G10-R7", "G10-R8", "G10-R12", "G10-R13"],
     ),
     # The companion app takes no release of its own yet (30-repos/lemonfiber-companion.md),
     # so nothing schedules N1's app side. Its stack side, the pairing material the stack
