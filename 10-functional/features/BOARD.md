@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 11 building, 47 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 38 shipped, 7 built, 13 building, 45 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -78,18 +78,19 @@ code, and the two move independently.
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
 | [F4](f-extensibility/f4-capabilities.md) | The capability vocabulary | F | operator | accepted | `0.16.0`, `0.18.0` |
+| [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | accepted | `0.17.0` |
 | [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | accepted | `0.16.0`, `0.18.0` |
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | accepted | `0.16.0` |
 | [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | F | operator | accepted | `0.16.0`, `0.17.0` |
 | [F10](f-extensibility/f10-authoring.md) | Writing a plugin | F | operator | accepted | `0.16.0`, `0.17.0` |
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
+| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0` |
 
 ## Planned — specified, not yet built
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.22.0` |
-| [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | accepted | `0.17.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.18.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
 | [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
@@ -109,7 +110,6 @@ code, and the two move independently.
 | [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.23.0` |
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.22.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.22.0` |
-| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0` |
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | — |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | — |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
