@@ -66,9 +66,13 @@ do.
 4. **They sit behind the guards every other write does.** The per-run token or
    session in a header (`ARCH-R52`, `ARCH-R76`), `Origin` and `Host` checked
    against the bound address (`ARCH-R53`), protection against cross-site
-   request forgery (`C6-R10`), and a capability set scoped to the credential
-   that asked (`ARCH-R80`). `uninstall`, `restore` and `reset` are already web
-   API writes on those terms.
+   request forgery (`C6-R10`), and the core's refusal of anything a credential
+   is not entitled to (`G10-R3`): a household member is granted a short list of
+   reads and refused every other command, so none of these writes reaches one.
+   `uninstall`, `restore` and `reset` are already web API writes on those
+   terms. The capability read that would show a client that answer
+   (`ARCH-R80`) is not served yet; it reports the refusal and does not enforce
+   it.
 5. **The yes is the offer that was read.** Each of these is two requests with a
    decision between them: a rehearsal states what the write would do, and the
    write does it. Between the two, what was read can move. A manifest at the
