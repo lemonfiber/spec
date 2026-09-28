@@ -457,13 +457,21 @@ parses either way:
 |---|---|---|
 | Still in flight | `202` | the identical envelope the accepting reply carried |
 | Finished | `200` | the equivalent command's machine-readable output |
-| Stopped on a failure | the status the failure warrants — `404` for something named that the stack does not have, `400` for a request asked wrongly, `500` otherwise | the error envelope the failure renders |
+| Stopped on a failure | the status the failure warrants — `404` for something named that the stack does not have, `400` for a request asked wrongly, `409` for work that found other work holding the stack, `500` otherwise | the error envelope the failure renders |
 | Ended before it finished | `200` | the `job` envelope, saying whether the name was released or let go |
 | Not a name this run issued | `404` | a refusal, not the name repeated back |
 
 Status rather than a field, because the alternative is a shape only this endpoint has — and a
 second serialisation of an outcome the contract already describes is the drift `ARCH-R47`
 exists to prevent.
+
+Work that found other work holding the stack is none of the refusals above. Nothing it named
+was missing, nothing about it was asked wrongly, and the machine did not fail: the stack does
+one lifecycle operation at a time (`B6-R8`), and this one waited its turn and did not get it.
+It is the one stopped job whose right answer is the same request sent again once the other
+work is done, so it has a status of its own, `409`. Told `500`, a client words a failure of
+the machine about a stack that was working and busy, and cannot do what `B6` asks of it —
+show that another operation is in progress (`ARCH-R135`).
 
 Work ended before it finished has no outcome to give, and it ended one of two ways. A
 client released its name, or nothing asked about work with no ending of its own for long
@@ -534,6 +542,7 @@ generation has not been used.
 | **ARCH-R132** | Work ended before it finished MUST be answered, when its name is redeemed or released, with whether the name was released or the work was let go because nothing asked about it, and MUST be told apart from work that finished, work that stopped on a failure and work still in flight (`N23-R13`). |
 | **ARCH-R133** | The contract artefact MUST describe the body every web API route takes, the setup routes' included — the answer to each question setup asks, and the choice a recovery takes — generated from the types the server reads a request into, so that a client builds a request from the artefact rather than from the server's source (`ARCH-R56`, `G1-R14`). |
 | **ARCH-R134** | The contract artefact MUST publish every action the web API takes, with each argument it takes, the argument's type and the consent the action asks for before it writes, generated from what the server reads; an SDK MUST generate the actions it offers from that list, so that an action or argument the core adds reaches a client as a regenerated diff (`ARCH-R47`, `ARCH-R48`, `ARCH-R58`). |
+| **ARCH-R135** | Work stopped because other work held the stack MUST be answered with `409`, and MUST NOT be given the status of a failure of the machine, so that a client can say another operation is in progress (`B6-R8`) and offer the same request again once it is done. |
 
 ## Shapes are generated; semantics are not
 

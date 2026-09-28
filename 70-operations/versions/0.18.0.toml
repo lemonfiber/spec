@@ -97,7 +97,12 @@
 # three is tagged: the brand releases on its own clock, and the SDKs take the contract
 # a release attaches.
 #
-# 121 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R135` gives work that found other work holding the stack its own status. The core
+# serialises lifecycle operations (B6-R8) and answers the one that waited its turn in vain
+# with `500`, which a client can only word as a failure of the machine; B6 asks it to say
+# another operation is in progress instead. It is a status on the web API, so it ships
+# with the rest of what this version puts there.
+# 122 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -227,6 +232,7 @@ goals   = [
     "ARCH-R128",
     "ARCH-R129",
     "ARCH-R130",
+    "ARCH-R135",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
