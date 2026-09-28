@@ -249,9 +249,14 @@ outcome makes the reply an acknowledgement rather than an answer.
 
 ### Rehearsing
 
-Every command rehearses under `--dry-run`, and every action takes the same request as
-the argument `dry_run`. A rehearsal writes nothing and answers with the envelope the
-command's rehearsal renders, and that envelope says it was a rehearsal (`ARCH-R131`).
+`--dry-run` is one flag over every command, and the core decides for each command how it
+answers it: a read runs as it always does, a command that changes something reports what
+it would do and changes nothing, and a command whose effect cannot be known without
+producing it refuses the flag with its reason — a walkthrough, a searching trace and the
+disruptive checks. An action takes the same request as the argument `dry_run` and
+answers it as its command does. A rehearsal writes nothing and answers with the envelope
+the command's rehearsal renders, and that envelope says it was a rehearsal; an action
+whose command refuses the flag refuses the argument with the same reason (`ARCH-R131`).
 
 The statement is required because nothing else on the wire can stand in for it. Several
 actions answer an unconfirmed request with a reading of what they would do, and that
@@ -525,7 +530,7 @@ generation has not been used.
 | **ARCH-R82** | The capability set MUST be readable again within a session, and MUST carry when it was read as any other reading does. |
 | **ARCH-R99** | A client MUST refuse a base address that is not loopback unless it was given a certificate pin for that stack, and MUST enforce that pin during the TLS handshake so that no request is written to a peer it has not verified. A client MUST NOT offer any means of reaching a non-loopback address without a pin, or of weakening verification ([ADR-0025](../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)). |
 | **ARCH-R129** | A definition in the contract artefact MUST NOT take a name an SDK's generator writes itself, and SDK generation MUST refuse such an artefact, naming the definition and the kind that carries it, rather than emit one name describing two shapes. |
-| **ARCH-R131** | Every action MUST take the rehearsal its command's `--dry-run` gives as the argument `dry_run`; given it, the action MUST write nothing and MUST answer with the envelope the command's rehearsal renders, and that envelope MUST say it was a rehearsal in a field other than `confirmed`, so that a rehearsal and an unconfirmed reading are told apart (`F1-R2`, `ARCH-R47`, `N13-R10`). |
+| **ARCH-R131** | Every action whose command reports a rehearsal under `--dry-run` MUST take that rehearsal as the argument `dry_run`; given it, the action MUST write nothing and MUST answer with the envelope the command's rehearsal renders, and that envelope MUST say it was a rehearsal in a field other than `confirmed`, so that a rehearsal and an unconfirmed reading are told apart. An action whose command refuses `--dry-run` MUST refuse `dry_run` with the reason the command gives (`F1-R2`, `ARCH-R47`, `ARCH-R48`, `N13-R10`). |
 | **ARCH-R132** | Work ended before it finished MUST be answered, when its name is redeemed or released, with whether the name was released or the work was let go because nothing asked about it, and MUST be told apart from work that finished, work that stopped on a failure and work still in flight (`N23-R13`). |
 
 ## Shapes are generated; semantics are not
