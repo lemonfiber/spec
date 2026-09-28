@@ -1,16 +1,16 @@
 # What the wire carries that the companion does not read
 
-**Status:** Register · **Measured 25 September 2026**, against the companion at `73bbe5a` and the core at `5e151aa`
+**Status:** Register · **Measured 28 September 2026**, against the companion at `dab906bd` and the core at `950df25b`
 
-The stack **publishes** sixty-two envelopes and **serves** fifty-eight. The
-companion app follows twenty-five of them. This is the other thirty-seven, written
-down so that what fills them is a decision somebody made rather than whatever the
-next person happened to notice.
+The stack **publishes** sixty-two envelopes and **serves** fifty-seven. The
+companion app follows thirty-nine of them. This is the other twenty-three,
+written down so that what fills them is a decision somebody made rather than
+whatever the next person happened to notice.
 
-Four of the sixty-two are published and not served. They are not envelopes the
+Five of the sixty-two are published and not served. They are not envelopes the
 app has not got to; they are envelopes it cannot reach. Three have a heading of
-their own below, and the fourth, `pull`, is a line of the command line's own,
-said in the next section.
+their own below, `setup` is marked so under *Guided setup*, and the fifth,
+`pull`, is a line of the command line's own, said in the next section.
 
 It is a register of **facts**, not of requirements. No row here proposes a
 screen. `N1-R17` is the rule that matters: a field wants a requirement before it
@@ -23,40 +23,74 @@ requirement asks for this* remains a complete answer.
 Reproducible, from the companion's checkout:
 
 ```
-ls vendor/lemonfiber/sdk-php/src/Generated/*Envelope.php | wc -l   # 62
-Tests\Support\WhatTheReadersRead::envelopes()                      # 25
-git grep -l '<Name>Envelope' -- app-modules bridge                 # 28 of the 62 names
+ls vendor/lemonfiber/sdk-php/src/Generated/*Envelope.php | wc -l                 # 62
+Tests\Support\WhatTheReadersRead::envelopes()                                    # 39
+git grep -lw '<Name>Envelope' -- app-modules bridge/src ':!*/tests/*'            # 40 of the 62 names
 ```
 
 | | |
 |---|---|
 | Envelopes the SDK ships | **62** |
-| Followed by a reader | **25** |
-| Not followed | **37** |
-| — never referenced anywhere in the app | **34** |
-| — referenced but not followed | **3** |
+| Followed by a reader | **39** |
+| Not followed | **23** |
+| — never named by the app's code, tests aside | **21** |
+| — named but not followed | **2** |
 
-*Referenced* means named under `app-modules` or `bridge`. Four of the
-thirty-four, `Credentials`, `Lifecycle`, `Start` and `Wiring`, are named by the
-app's root test suite and by nothing it ships.
+The companion measures the same thing and states it. Its
+`tests/Feature/EveryActionTheStackOffersTest.php` puts every kind the SDK ships
+in one of three lists: `OFFERED`, held to exactly the envelopes
+`WhatTheReadersRead::envelopes()` answers with, which is thirty-nine;
+`ELSEWHERE`, `Setup` and `Wizard`, each excused by `N1-R4`; and `NOT_YET`, the
+other twenty-one. Its `.docs/requirements/what-a-screen-owes.md` says 62, 39, 21
+and 2, and that test holds the page to what the lists come to. This register
+counts the same way and agrees with it: *named* means named in a file under
+`app-modules` or `bridge/src` outside a `tests` directory.
 
-`Admission`, `Pull` and `Word` are the three referenced without being followed.
-The app reads admission through `Admitted` rather than through the envelope, and
+The grep answers forty names rather than forty-one, because `Log` is followed
+without being named: a log window arrives through the SDK's `LogWindow`, held in
+its envelopes, and `WhatTheReadersRead` seats the reads on it all the same.
+Three of the twenty-one are named by tests and by nothing the app ships: `Start`
+and `Wiring` by the app's root test suite, and `Word` by a test of the
+development stand-in, under `app-modules/dx/tests`.
+
+`Admission` and `Pull` are the two named without being followed. The app reads
+admission through `Admitted` rather than through the envelope, and its code
 names `AdmissionEnvelope` only in the development stand-in that answers for a
 stack. `Pull` carries a bare string, and is named in that stand-in's comments.
-`Word` is what `/api/explain` answers with when one word is asked for, and is
-named only in a test of that stand-in: the app asks for the whole glossary, which
-answers with `Glossary`. `Word` has a row below; `Admission` and `Pull` have
-none, and these sentences are their entry.
+`Word` is what `/api/explain` answers with when one word is asked for: the app
+asks for the whole glossary, which answers with `Glossary`. `Word` has a row
+below; `Admission` and `Pull` have none, and these sentences are their entry.
+
+From the core's checkout, `contract/web-api.contract.json` publishes sixty-two
+kinds. Fifty-three are the variants of `Outcome`, in
+`crates/lemonfiber-core/src/app/outcome.rs`, each written by the command that
+produces it; the other nine are written with `Envelope::new` where they arise. A
+kind is served when `crates/lemonfiber-api` answers with it: through a command
+its reads (`read/table.rs`), its actions (`actions/named.rs`) or setup's
+endpoints (`setup.rs`) build, or an envelope it writes itself — `admission`,
+`error`, `job` and `log`, and on the event stream `dashboard`, `start` and
+`step`.
+
+| | |
+|---|---|
+| Kinds the contract publishes | **62** |
+| Served over HTTP | **57** |
+| Published and not served | **5** |
+
+`plugins`, `wiring` and `substitution` are not served because no read, action or
+endpoint builds `Command::Plugins` or `Command::Wiring`. `pull` and `setup` are
+written only by the command line, in `crates/lemonfiber/src/engine.rs` and
+`crates/lemonfiber/src/setup.rs`; the HTTP crate names both only to describe them
+in the contract, and setup's endpoints answer with `wizard`.
 
 **`pull` is the command line's alone.** Its bare strings are the lines
 `docker compose pull` prints, which the command line writes under that kind as
 they arrive. No read, action or event produces it over HTTP: the `pull` action
 answers with a job whose outcome is `lifecycle`, and nothing is said on the event
-stream while it runs. `N2-R24` asks the app to offer the fetch, and records the
-progress it cannot show.
+stream while it runs. `N2-R24` asks the app to offer the fetch, and `N2` records
+the progress that does not reach it.
 
-## What the twenty-five answer
+## What the thirty-nine answer
 
 Each is followed by a reader in `app-modules/sdk`. The requirements are the
 rows in the companion's `.docs/requirements/` that name the envelope, its
@@ -68,29 +102,43 @@ not to read, with the reason.
 |---|---|---|---|
 | `Alerts` | `N10-R8`, `N10-R11` | `what-leaves-a-machine.md` | 2 |
 | `Archives` | `N6-R9`, `N6-R11` | `what-a-machine-keeps.md` | 0 |
+| `Backup` | `N6-R1`, `N6-R2`, `N6-R3`, `N6-R4` | `what-a-machine-keeps.md` | 2 |
 | `Bandwidth` | `N10-R4`, `N10-R5`, `N10-R6`, `N10-R7` | `what-leaves-a-machine.md` | 11 |
+| `Bundle` | `N22-R3`, `N22-R4`, `N22-R5`, `N22-R6`, `N22-R7`, `N22-R9` | `asking-for-help.md` | 0 |
+| `Clients` | `N9-R8`, `N9-R9`, `N9-R11` | `who-gets-in.md` | 0 |
 | `Config` | `F7-R3`, `F7-R4`, `F7-R10`, `F7-R11`, `F7-R12`; `N1-R5` | `what-a-machine-says.md`; `what-the-rules-keep.md` | 5 |
+| `Credentials` | `N9-R1`, `N9-R2`, `N9-R3`, `N9-R4`, `N9-R11` | `who-gets-in.md` | 6 |
+| `Dashboard` | `G7-R5`, `G7-R8`, `G7-R9`, `G7-R10`, `N1-R67`, `N1-R69`, `N2-R1`; `N23-R6`, `N23-R7`, `N23-R8` | `the-one-line.md`; `what-a-machine-says.md` | 9 |
 | `Doctor` | `N2-R3`, `G4-R4`, `C1-R15`, `F7-R3` | `what-a-machine-says.md`, `reaching-a-stack.md` | 6 |
 | `Error` | `G4-R2` | `what-the-rules-keep.md` | 3 |
 | `Forms` | `N2-R7`; `N18-R9` | `the-screens-themselves.md`; `running-part-of-it.md` | 3 |
+| `FrontDoor` | `N9-R9`, `N9-R10`, `N9-R11` | `who-gets-in.md` | 0 |
 | `Glossary` | `N15-R3`, `N15-R4`, `N15-R9`, `N15-R10` | `what-the-words-mean.md` | 0 |
 | `Held` | none outright; see below | `what-the-rules-keep.md` | 2 |
 | `History` | `N11-R1`, `N11-R2`, `N11-R3`, `N11-R5`, `N11-R9`, `N11-R10` | `what-was-done-here.md` | 0 |
-| `Hosting` | `N16-R5`, `N16-R6`, `N16-R13`, `N16-R14` | `what-a-machine-says.md` | 5 |
+| `Hosting` | `N10-R10`, `N23-R1`, `N23-R2`, `N23-R3`, `N23-R4`, `N23-R5` | `what-a-machine-says.md` | 3 |
 | `Household` | `N2-R11`, `N2-R14`, `D7-R3`, `D7-R4`, `D7-R7`, `N3-R4`, `N3-R5`, `N3-R6`, `N3-R7` | `reaching-a-stack.md`, `what-a-machine-says.md`, `what-the-rules-keep.md` | 12 |
+| `Invitation` | `N9-R5`, `N9-R6`; `N21-R2`, `N21-R5`, `N21-R6`, `N21-R9`, `N21-R10` | `who-gets-in.md`; `asking-somebody-in.md` | 0 |
 | `Job` | `N1-R41` | `reaching-a-stack.md` | 1 |
+| `Lifecycle` | `N2-R7`, `N16-R6`, `N6-R1`, `N18-R3`, `N7-R5` | `what-a-machine-says.md`, `the-screens-themselves.md` | 19 |
 | `Log` | `N2-R10`; `G3-R10` | `reaching-a-stack.md`; `what-the-rules-keep.md` | 0 |
+| `Migration` | `N7-R5`, `N7-R6`, `N7-R11`, `N7-R12`, `N7-R13`, `N7-R14` | `moving-in.md` | 5 |
+| `Music` | `N8-R3`, `N24-R2`, `N24-R10` | `choosing-how-good.md` | 0 |
 | `Outbound` | `N10-R1`, `N10-R2`, `N10-R3`, `N10-R12`, `F7-R9` | `what-leaves-a-machine.md` | 0 |
 | `Preview` | `N18-R4`, `N18-R5` | `running-part-of-it.md` | 4 |
-| `Provenance` | `N11-R7`, `N11-R8`; `N11-R6` in part | `what-was-done-here.md` | 0 |
+| `Provenance` | `N11-R6`, `N11-R7`, `N11-R8` | `what-was-done-here.md` | 0 |
+| `Quality` | `N8-R2`, `N8-R3`, `N24-R2`, `N24-R3`, `N24-R5`, `N24-R10` | `choosing-how-good.md` | 1 |
 | `Repair` | `N2-R4`, `N2-R6` | `reaching-a-stack.md` | 2 |
+| `Restore` | `N6-R1`, `N6-R2`, `N6-R5`, `N6-R10` | `what-a-machine-keeps.md` | 6 |
 | `SelfUpdate` | `N14-R1`, `N14-R2`, `N14-R5`, `N14-R6`, `N14-R7`, `N14-R8` | `what-is-running-here.md` | 4 |
 | `Space` | `N12-R1`, `N12-R2`, `N12-R3`, `N12-R4`, `N12-R6`, `N12-R9`, `N12-R10` | `how-full-a-machine-is.md` | 8 |
 | `Status` | `N2-R7`, `N2-R21`, `B2-R15`; `N18-R1`, `N18-R3`, `N18-R6` | `reaching-a-stack.md`, `what-a-machine-says.md`; `running-part-of-it.md` | 7 |
 | `Stored` | `N6-R7`, `N6-R11` | `what-a-machine-keeps.md` | 1 |
-| `Stuck` | `N2-R9`, `N16-R10`, `N16-R12` | `reaching-a-stack.md`, `what-a-machine-says.md` | 0 |
+| `Stuck` | `N2-R9`, `N16-R10`, `N16-R12`, `N16-R13`, `N23-R9` | `reaching-a-stack.md`, `what-a-machine-says.md` | 0 |
 | `Trace` | `N8-R4`, `N8-R5`, `N8-R6`, `N8-R8`, `N8-R9` | `where-an-item-got-to.md` | 0 |
 | `Update` | `N2-R15`, `N2-R16`, `N2-R19`, `N2-R20`, `N2-R22`, `E5-R6`, `E5-R10`; `N14-R3`, `N14-R4` | `reaching-a-stack.md`, `what-a-machine-says.md`; `what-is-running-here.md` | 21 |
+| `Upgrade` | `N24-R4` | `choosing-how-good.md` | 0 |
+| `Walkthrough` | `N15-R6`, `N15-R7`, `N15-R8`, `N15-R9` | `watching-one-thing-arrive.md` | 0 |
 
 `Held` is the shelf a member sees, drawn by the household module's
 `WhatYouCanWatch`. The one row that names it is `N3-R14`, which it does not
@@ -113,17 +161,11 @@ already carries.
 setting answers them otherwise, and this app makes none, which is also why
 `N10-R9`, a rehearsed alert, is not drawn.
 
-`Hosting`'s five are `caveat`, `changed`, and per command `definition`,
-`output` and `runs`.
+`Hosting`'s three are `caveat`, and per command `definition` and `runs`.
 
 `History` does not answer `N11-R4`, the reason a change was made: the envelope
 carries no such field, because the stack's journal records none, and `because`
 is why putting a change back stops short rather than why it was made.
-
-`Provenance` answers `N11-R6` in part. Image, upstream and licence are drawn,
-and the version the service is `pinned` at stands where the digest belongs:
-the envelope carries no digest, because the stack pins by tag, and `E1-R1`
-requires a digest with the tag beside it.
 
 `Config`, `Doctor` and `Outbound` carry the same `origin` on each setting, each
 finding and each service: bundled, operator, a named plugin, a named plugin's
@@ -135,14 +177,15 @@ what an unmarked row is, which is how the stack's own terminal draws them. An
 origin that cannot be read refuses the reading rather than defaulting to bundled
 (`F7-R11`).
 
-## Why nothing caught this
+## What watches the envelopes
 
 The companion has a machine-checked register for unread fields,
 `WhatTheContractCarriesThatNothingReadsTest`, and its rule is that every path
 on an envelope the app reads is either followed to a reader or listed with a
-reason. Ninety-seven rows, over five hundred and sixty-five paths.
+reason. A hundred and forty-three rows, over the one thousand and twenty-seven
+paths the contract declares on the thirty-nine envelopes the app reads.
 
-**It cannot see any of the thirty-seven**, and the reason is one line of its own
+**It cannot see any of the twenty-three**, and the reason is one line of its own
 scaffolding:
 
 ```php
@@ -152,9 +195,12 @@ foreach (WhatTheReadersRead::envelopes() as $envelope) {
 It walks the envelopes a reader already reads. An envelope nothing touches
 contributes no paths, so it can never be flagged — the blind spot is exactly the
 shape of the gap. The rule watches fields arriving on envelopes the app already
-knows about; nothing watches whole envelopes the app has never opened.
+knows about.
 
-That is a gap in its own right, and it is not what this register is for.
+Whole envelopes are held by `EveryActionTheStackOffersTest`, which names every
+kind in one of its three lists, so a kind the stack adds fails there as
+unclassified. `NOT_YET` claims only that somebody looked: it carries no reason
+and no account of what the envelope holds. This register is that account.
 
 ---
 
@@ -166,12 +212,10 @@ companion's `connecting-the-stack.md`.
 
 | Envelope | What it carries |
 |---|---|
-| `plugins` **(not served)** | Which plugins are installed, and one being installed now — `install` and `installed`. The whole of what an operator opens a plugin screen to see. |
-| `wiring` **(not served)** | Which service asks for which capability, and how each is settled: `outright`, `each`, **`contested`** with its claimants, or **`chosen`** with what it was chosen over, `whose` choice it was — `stack` or **`operator`** — and why. Plus `unfilled`: services asking for something nothing answers. |
+| `plugins` **(not served)** | Which plugins are `installed`, and what installing, updating or removing one came to — `install`, `update` and `removal` — and every capability the operator chose one of a plugin's services to fill, `substituted`. The whole of what an operator opens a plugin screen to see. |
+| `wiring` **(not served)** | Which service asks for which capability, and how each is settled: `outright`, `each`, **`contested`** with its claimants, **`chosen`** with what it was chosen over, `whose` choice it was — `stack` or **`operator`** — and why, or `unfilled`. Plus `unfilled`: services asking for something nothing answers. |
 | `substitution` **(not served)** | Applying one service in place of another for a capability: who asked for it, what it was `was` and is `now`, the setting that carries it, and `leaves_unfilled` — what the swap breaks. |
-| `catalogue` | What the stack could run and does not: each service's `criticality`, what it `describes`, and `without_it` — what the household loses by not having it. Plus `removed`, with the reason and what replaced it. |
-| `bundle` | A support export: its `pieces`, what is `missing`, when it was `taken` and against which versions, and `terms` — whether filenames are revealed, what else is, and over what `window`. |
-| `beside` | Ports a service asks to be reachable on beside the front door, with a `stance` of unchanged, pending, blocked or applied. |
+| `catalogue` | What each service is for — every service the stack's manifest holds, not only the ones a form would start: its `criticality`, what it `describes`, and `without_it` — what the household loses by not having it. Plus `removed`, with the reason and what replaced it. |
 
 **Three of these are not served at all.** `wiring`, `substitution` and
 `plugins` are published in the contract and generated into the SDK, and no HTTP
@@ -206,10 +250,11 @@ rehearsable. `0.18.0`, which is planned, locks all six as goals, with `F4-R29`,
 which gives the choice an optional reason on both surfaces.
 
 So they are a different kind of row from everything else here. Every other
-envelope in this register is a decision waiting to be made; these three have no
-decision about the companion that can reach them while no route serves them.
-The companion records the same for `N5`: `N5-R2`, `N5-R4`, `N5-R7`, `N5-R10`,
-`N5-R11` and `N5-R13` cannot be answered there until a read exists.
+envelope in this register is a decision waiting to be made, or, for `setup` and
+`wizard`, one `N1-R4` has made; these three have no decision about the companion
+that can reach them while no route serves them. The companion records the same
+for `N5`: `N5-R2`, `N5-R4`, `N5-R7`, `N5-R10`, `N5-R11` and `N5-R13` cannot be
+answered there until a read exists.
 
 **The `wiring` row names a choice nothing can make.** The core will not resolve
 a contested capability — the command line says *nothing wires to it until the
@@ -224,52 +269,48 @@ their reason where they gave one (`F4-R29`).
 
 ## Guided setup
 
+The companion excuses `setup` and `wizard` under `N1-R4`: setup is performed at
+the machine, and the app says so rather than offering it.
+
 | Envelope | What it carries |
 |---|---|
 | `wizard` | Where first run has got to: `at` one of fourteen named stages from `welcome` through `vpn`, `credentials`, `library`, `household` to `review`; whether it `asks`, whether it was `offered`, and the `phase`. |
-| `setup` | What setup settled: the `data_root`, which `protocols` are on, the `service_user`, and whether it was `applied`, `abandoned` or was `already-set-up`. |
-| `step` | One step of a running job, as a stage — `choosing`, `searching`, `grabbing`, `downloading`, `importing`, `scanning`, `available` — with what was `said` and the detail under it. |
-| `walkthrough` | A first acquisition narrated end to end: the `lines` it produced, whether it ran `in_background`, whether the thing was `already_here`, and a `handover` naming what to do next. |
+| `setup` **(not served)** | What setup settled: the `data_root`, which `protocols` are on, the `service_user`, and whether it was `applied`, `abandoned` or was `already-set-up`. Written by the command line's own setup; the setup endpoints answer with `wizard`. |
+| `step` | One step of a walkthrough while it runs, on the event stream: its stage — `choosing`, `searching`, `grabbing`, `downloading`, `importing`, `scanning`, `available` — with what was `said` and the `detail` under it. The app follows a running walkthrough by asking after its job, and reads its lines from the record it finishes with. |
 | `word` | One entry of the glossary, alone: `word`, `short`, `deep`, `also_called` and `forms`, from `GET /api/explain?word=`. `N15-R11` asks for it where the glossary the app holds has no entry. |
 
-## Backups and recovery
+## Putting things back
 
-The companion's `app-modules/backups` holds no code, and its README names `N6`
-as the requirement for taking a copy and putting it back. The listing half of
-`N6` is read: `archives` and `stored`, above, drawn by
-`WhatThisMachineKeepsHere`. These four rows are the acts, and the companion
-records `N6-R1` to `N6-R6`, `N6-R8` and `N6-R10` as asked for and not drawn,
-because it offers none of them.
+Copies are read: `archives`, `backup` and `restore`, above. These two put the
+stack back without one.
 
 | Envelope | What it carries |
 |---|---|
-| `backup` | A snapshot being taken: its `scope` — whole stack, one service, or an existing project with its trees — the `path`, what was `pruned`, whether it was `rehearsed`, and the `pace` it moved at against a budget. |
-| `restore` | A snapshot being put back: what it was restored `from_version`, the `scope`, and whether anything was `relocated` from where it used to live. |
-| `undo` | Reversing what was done: what was `reversed` — a removal, a restore, a write — what was `left` and why, and whether it was `rehearsed`. |
-| `reset` | Putting configuration back: what was `reverted`, with a diff per path, and which connections went with it. |
+| `undo` | Putting back one run of changes — the last repair, or a run named by the stamp its entry in the history carries: what was `reversed`, each with what it `does` — remove, restore, delete, withdraw, repin or reconfigure — what was `left` and `noted` and why, and whether it was `rehearsed`. |
+| `reset` | Putting configuration back to lemonfiber's own: what was `reverted`, with a diff per path, and which connections went with it. |
 
-## Getting content in
+## Moving in
+
+The survey of what is already on the machine, `migration`, is read, drawn by
+`WhatIsAlreadyOnThisMachine`. These are the acts, and the companion records
+`N7-R1` to `N7-R4`, carrying out a mode, and `N7-R7` to `N7-R10` and `N7-R15` to
+`N7-R17`, the `seed` action, as asked for and not drawn.
 
 | Envelope | What it carries |
 |---|---|
 | `adoption` | Taking over an existing setup: what would be `upgrade`d, service by service, with the verdict, the reason, whether it was `refused` and whether it wants a backup first. Plus a `stance` and what to `back_up`. |
+| `beside` | Standing lemonfiber beside a setup already on the machine — A5's beside mode: where each service would listen instead, as `ports` with the `service`, the port it moves `from` and the one it moves `to`; where the Compose file that says so was `written`; the `refusal` where nothing was; and a `stance` of unchanged, pending, blocked or applied. |
+| `replacement` | Standing in place of a setup already on the machine — A5's replace mode, which stops that project's containers and deletes none: what `would_stop`, what was `stopped`, what is `still_running`, the `refusal` where nothing was, and a `stance`. `N7-R18` asks for it. |
 | `import` | What an existing setup brings across: what is `carried`, what is `not_carried` and because of what, and what `would_carry`. |
-| `migration` | Moving in alongside something already running: what is `carrying` over, the port `beside` moves, and `conflicts` with what holds them. |
 | `seed` | What the stack wires up on the operator's behalf, each wiring with a severity that names the breakage and its remediation, and what is `unsupported` and why. |
-| `quality` | The quality presets: each with its resolution, what it `means`, size per hour, whether it `needs_transcoding_here`, and whether the operator has `customised` it. |
-| `music` | The same for audio: format, scope, size per hour, and what the choice `means`. |
 
 ## A service's life
 
 | Envelope | What it carries |
 |---|---|
-| `lifecycle` | Starting, stopping, restarting and fetching images: the `action`, the `command`, the `condition` — inactive, degraded, partial, active — what is `held`, and the `plan` with what it dropped. It is what the `pull` action answers with, which `N2-R24` asks for. |
 | `start` | A bare string: one line of what a start is waiting for, on the event stream, the newest replacing the one before. `N2-R23` asks for it. |
-| `removal` | Removing a person's access: what was `revoked` and how widely, how many `requests` they had, and the `findings`. `N13-R1`, `N13-R3` and `N13-R19` ask for it. |
-| `replacement` | Standing in place of a setup already on the machine — A5's replace mode, which stops that project's containers and deletes none: what `would_stop`, what was `stopped`, what is `still_running`, the `refusal` where nothing was, and a `stance`. `N7-R18` asks for it. |
 | `uninstall` | Taking the stack off: an agreement, the bytes, what is `foreign` and left behind, and a `confidence` naming what could not be read. `N13` asks for it. |
 | `watch` | The data-root guard, once the data location it was guarding was lost: the `forms` it stopped, whether stopping them succeeded (`stopped`) and the `reason`, and on a rehearsal what it `would` keep — the `root`, how often it looks (`every`) and the `command` it would run. Over HTTP it is a job that lives only while somebody asks about it. `N23-R11`, `N23-R12` and `N23-R13` ask for it, and `N8-R7` for the reason it stopped. |
-| `upgrade` | Moving media to a new preset: per media type, the preset, size per hour and the outcome. |
 | `version` | What is running and what has shipped: the binary, and a `changelog` of releases with what each `delivers`, what it `patches`, whether it is `user_facing` and whether it was `withdrawn`. |
 | `stop-seeding` | Stopping a torrent: the download, its `standing` — never imported, seeding at a ratio, or left alone — and what stopping it costs. |
 
@@ -277,8 +318,4 @@ because it offers none of them.
 
 | Envelope | What it carries |
 |---|---|
-| `invitation` | Inviting somebody in: the address, how many `hours` it stands for, whether it was `linked`, and what was `applied` — which libraries, what filtering, whether unrated material is held back, and whether they may make requests. |
-| `credentials` | Every secret the stack holds: its `origin` — operator, service or lemonfiber — its `state` from absent through active, stale, invalid, rotating to superseded, which services `consume` it, its `location` and `fingerprint`. |
-| `clients` | Which apps work on which devices: `support` rated good, workable, poor or fallback, with a `caution` and an `instead`, plus what to say when nothing is installed and when it only works at home. |
-| `front-door` | How the household reaches the stack: the address, what is `beside` it and what each is `facing`, and whether the address was `derived` or chosen. |
-| `dashboard` | The whole front page in one envelope: alerts with severity, meaning, what they affect and their remedies, alongside the door. |
+| `removal` | Removing a person's access: how widely it was `revoked` — everywhere, the media server only, or nothing — how many `requests` they had, whether they ask through the request service, and the `findings`. `N13-R1`, `N13-R3` and `N13-R19` ask for it. |
