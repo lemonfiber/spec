@@ -1,7 +1,8 @@
 # ADR-0031: Installing a plugin and choosing a filler are web API writes; replacing a credential is not
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-28
+**Decided:** 2026-09-28, by the maintainer, Wessel Verheij: with the yes to each of these writes being the offer its rehearsal answered, rather than a bare confirm.
 
 ## Context
 
@@ -68,6 +69,17 @@ do.
    request forgery (`C6-R10`), and a capability set scoped to the credential
    that asked (`ARCH-R80`). `uninstall`, `restore` and `reset` are already web
    API writes on those terms.
+5. **The yes is the offer that was read.** Each of these is two requests with a
+   decision between them: a rehearsal states what the write would do, and the
+   write does it. Between the two, what was read can move. A manifest at the
+   named path can be replaced, a newer version can land, another plugin can
+   come to claim the capability, and a choice made meanwhile can settle the
+   contest another way. So each rehearsal answers an offer, a name built from
+   what it read. The write takes that offer as its yes, builds the name again
+   from what is there now, and refuses where the two differ, naming what moved.
+   A bare `confirm` is not a yes to any of the four over the API. This is how
+   `repair`, `restore`, `stop-seeding` and `uninstall` already take theirs.
+   The command takes the same offer (`ARCH-R48`) (`F6-R17`, `F4-R30`).
 
 ## Alternatives considered
 
@@ -75,7 +87,7 @@ do.
 |--------|-------------|
 | **Terminal only, like a credential's replacement** | Leaves N5 and N25 unanswerable, and leaves a contest the companion can show with nowhere to answer it. Neither of the reasons the credential exception rests on applies: no secret travels, and a forged request can only choose among what is already on the machine. |
 | **Read over the API, act at the terminal** | Serves the question and not its answer. An operator told on their phone that a capability is contested and refused has been told about a broken link they cannot mend from there, which is the state `F4-R8` exists to keep short. |
-| **The yes is the rehearsal's own name, as `stop-seeding` asks** | `stop-seeding` is the one request on the surface that destroys something outside the machine's own filesystem. Every change these acts make is on the machine, journalled, and put back through the journal. Requiring the rehearsal's name would put a second agreement step on writes the journal already puts back. |
+| **A bare `confirm`, with the journal as the safety net** | The journal puts a change back after it lands; it does not stop a yes from agreeing to something other than what was shown. A manifest replaced between the rehearsal and the yes would install terms nobody read, and a contest settled meanwhile would be overridden by a choice made against a wiring that no longer stands. Undoing afterwards is repair, not consent. Every other write that shows the operator something and then acts on the answer already takes the offer. |
 | **Install from a URL or a git source over the API** | The command takes a path, and `ARCH-R48` forbids the API taking more. A source fetched on a request's say-so reaches the network on behalf of whoever sent the request, which is a different risk from reading a path already on the machine. |
 
 ## Consequences
@@ -87,6 +99,9 @@ do.
   document.
 - A choice carries the operator's reason on both surfaces, so a choice read
   later says what it was for (`F4-R29`, `N5`).
+- A yes agrees to what the operator read and nothing else. A manifest, a
+  version or a wiring that moved after the rehearsal is refused by name, not
+  applied.
 
 ### Negative
 
@@ -95,6 +110,9 @@ do.
   a weakness in them is a weakness for all of them.
 - Installing from a remote source is offered on neither surface, because the
   command takes only a path.
+
+- Each of the four becomes two requests with a name carried between them, so
+  a client that sent a bare `confirm` is refused and has to rehearse first.
 
 ### Neutral
 
@@ -112,8 +130,8 @@ do.
 
 ## Related
 
-- [F6](../../10-functional/features/f-extensibility/f6-plugin-lifecycle.md) — the plugin lifecycle, and `F6-R14` to `F6-R16`
-- [F4](../../10-functional/features/f-extensibility/f4-capabilities.md) — the capability vocabulary, and `F4-R26` to `F4-R29`
+- [F6](../../10-functional/features/f-extensibility/f6-plugin-lifecycle.md) — the plugin lifecycle, and `F6-R14` to `F6-R17`
+- [F4](../../10-functional/features/f-extensibility/f4-capabilities.md) — the capability vocabulary, and `F4-R26` to `F4-R30`
 - [N5](../../10-functional/features/n-companion/n5-connecting-the-stack.md) — what connects to what, on the companion
 - [N25](../../10-functional/features/n-companion/n25-a-plugin-after-it-lands.md) — a plugin after it lands
 - [The web API contract](../../20-architecture/contracts/web-api.md) — the credential exception, and the guards

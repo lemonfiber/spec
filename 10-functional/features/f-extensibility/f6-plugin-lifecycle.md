@@ -168,6 +168,7 @@ see why something is absent will try again.
 | **F6-R14** | What is installed MUST be served as a read of the web API answering with the `plugins` envelope the command answers with (`ARCH-R47`), and a plugin record that cannot be read MUST be refused with the error envelope rather than answered as nothing installed. |
 | **F6-R15** | Installing, updating and removing a plugin MUST each be an action of the web API, taking the argument the command takes and answering with the `plugins` envelope the command answers with (`F6-R13`, `ARCH-R48`). |
 | **F6-R16** | Rehearsing an install, an update or a removal MUST be reachable over the web API, MUST write nothing, and MUST answer with the account the command's rehearsal gives (`F6-R1`, `F6-R9`, `F6-R11`). |
+| **F6-R17** | Rehearsing an install, an update or a removal MUST answer with an offer naming what it read; the act MUST take that offer as its yes, alike at the command line and over the web API (`ARCH-R48`), MUST build it again from what is there when it runs, and MUST be refused, naming what moved, where the two differ ([ADR-0031](../../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)). |
 
 ## Related
 
