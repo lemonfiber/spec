@@ -249,6 +249,48 @@ class Refusals(Spec):
         self.assertIn("2 integrity problem(s).", out)
 
 
+class Statuses(Spec):
+    """A document says one status, in both places it says it."""
+
+    def feature(self, front, header):
+        return self.doc(
+            "notes/x9.md",
+            f"---\nid: X9\nstatus: {front}\n---\n\n# X9\n\n**Status:** {header} · **Area:** X\n",
+        )
+
+    def test_the_same_status_in_either_case_is_clean(self):
+        self.feature("accepted", "Accepted")
+        self.assertEqual(run_main()[0], 0)
+
+    def test_an_accepted_document_still_headed_draft_is_named(self):
+        self.feature("accepted", "Draft")
+        code, out = run_main()
+        self.assertEqual(code, 1, out)
+        self.assertIn(
+            "notes/x9.md: front matter says status accepted "
+            "and the **Status:** line says Draft",
+            out,
+        )
+
+    def test_only_the_first_status_line_is_compared(self):
+        self.doc(
+            "notes/x9.md",
+            "---\nstatus: accepted\n---\n\n**Status:** Accepted\n\n"
+            "Quoting another:\n\n**Status:** Draft\n",
+        )
+        self.assertEqual(run_main()[0], 0)
+
+    def test_a_document_with_one_of_the_two_says_nothing_to_compare(self):
+        self.doc("a.md", "---\nstatus: accepted\n---\n\n# A\n")
+        self.doc("b.md", "# B\n\n**Status:** Draft\n")
+        self.doc("c.md", "---\nid: C\n---\n\n**Status:** Draft\n")
+        self.assertEqual(run_main()[0], 0)
+
+    def test_front_matter_is_read_only_at_the_top(self):
+        self.doc("d.md", "# D\n\n---\nstatus: accepted\n---\n\n**Status:** Draft\n")
+        self.assertEqual(run_main()[0], 0)
+
+
 class Reading(Spec):
     """What counts as a definition, since everything else is measured against it."""
 

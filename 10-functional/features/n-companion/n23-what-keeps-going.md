@@ -14,7 +14,7 @@ relates: [N2, N8, N10, N16]
 
 # N23 — What keeps going, and what stopped moving
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

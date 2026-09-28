@@ -5,6 +5,7 @@ Verifies:
   - every cited requirement/ADR identifier resolves to a definition
   - no requirement ID is defined twice (IDs are permanent and unique, GOV-R8)
   - every internal Markdown link resolves to a real file
+  - a document's `**Status:**` line says what its front matter says
   - the counts this repository's own prose states match what it contains
   - each version manifest's stated goal count matches the goals it locks
 
@@ -28,6 +29,13 @@ REGISTRY = pathlib.Path("30-repos/repos.toml")
 VERSIONS = pathlib.Path("70-operations/versions")
 
 LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:)([^)#]+)(?:#[^)]*)?\)")
+
+#: The two places a document states its status: the front matter a tool reads,
+#: and the bold line under the title a person reads. The first `**Status:**` line
+#: is the one compared, as `spec_check.py` reads it, because a document may quote
+#: another status further down.
+FRONTMATTER_STATUS = re.compile(r"^status:\s*(\S+)", re.MULTILINE)
+HEADER_STATUS = re.compile(r"^\*\*Status:\*\*\s*(\w+)", re.MULTILINE)
 
 #: The words both silence refusals carry. A governed sentence that has gone is a
 #: different fault from a number that is wrong, and only the second is repaired by
@@ -133,6 +141,32 @@ def check_links():
             resolved = (p.parent / target).resolve()
             if not resolved.exists():
                 problems.append(f"{p.relative_to(ROOT)}: broken link -> {target}")
+    return problems
+
+
+def check_statuses():
+    """Every document whose two statuses disagree, named with both.
+
+    The citation gates read the front matter, so a document accepted there
+    and still headed *Draft* is citable while it tells a reader it is not, and
+    one headed *Accepted* over a draft front matter tells them the opposite.
+    Accepting a document means changing both lines.
+    """
+    problems = []
+    for p in md_files():
+        text = p.read_text(encoding="utf-8")
+        if not text.startswith("---\n"):
+            continue
+        head, _, _ = text[len("---\n"):].partition("\n---\n")
+        front = FRONTMATTER_STATUS.search(head)
+        header = HEADER_STATUS.search(text)
+        if not front or not header:
+            continue
+        if front.group(1).lower() != header.group(1).lower():
+            problems.append(
+                f"{p.relative_to(ROOT)}: front matter says status {front.group(1)} "
+                f"and the **Status:** line says {header.group(1)}"
+            )
     return problems
 
 
@@ -455,6 +489,7 @@ def main() -> int:
     for msg in (
         check_ids()
         + check_links()
+        + check_statuses()
         + counts
         + check_manifest_repos()
     ):

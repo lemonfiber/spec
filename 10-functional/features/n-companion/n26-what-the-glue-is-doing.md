@@ -14,7 +14,7 @@ relates: [N2, N3, N4, N8, N11, N12, N16, N24]
 
 # N26 — What the glue is doing
 
-**Status:** Draft · **Audience:** Both · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Both · **Area:** N — Companion
 
 ---
 
