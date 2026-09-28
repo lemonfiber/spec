@@ -244,9 +244,25 @@ EXEMPT_FROM_A_VERSION = {
     "ARCH-R39": "principle",
 }
 
-REASON = re.compile(
-    r"^(?:restates (?P<ids>[A-Z]+\d*-R\d+(?:, [A-Z]+\d*-R\d+)*)|principle|dormant until \S.*)$"
-)
+REQUIREMENT = re.compile(r"^[A-Z]+\d*-R\d+$")
+RESTATES = "restates "
+DORMANT = "dormant until "
+
+
+def restated_by(reason: str) -> list[str] | None:
+    """What an exemption's reason restates, `[]` for one that restates nothing.
+
+    `None` for a reason that is none of the three: `restates <IDs>` with the IDs
+    comma-separated, `principle`, or `dormant until <trigger>` with a trigger.
+    """
+    if reason == "principle":
+        return []
+    if reason.startswith(DORMANT):
+        return [] if reason[len(DORMANT):].strip() else None
+    if not reason.startswith(RESTATES):
+        return None
+    ids = reason[len(RESTATES):].split(", ")
+    return ids if all(REQUIREMENT.match(rid) for rid in ids) else None
 
 
 def declared() -> dict[str, str]:
@@ -328,6 +344,17 @@ def stale(defined: dict[str, str], locked: set[str]) -> list[str]:
     return gone
 
 
+def unreached(rid: str, ids: list[str], everything: dict[str, str], locked: set[str]) -> list[str]:
+    """What a restatement names that no version reaches."""
+    gone = []
+    for restated in ids:
+        if restated not in everything:
+            gone.append(f"{rid} restates {restated}, which no accepted document defines")
+        elif restated not in locked:
+            gone.append(f"{rid} restates {restated}, which no version locks — lock one of them")
+    return gone
+
+
 def stale_exemptions(
     architecture: dict[str, str], everything: dict[str, str], locked: set[str]
 ) -> list[str]:
@@ -345,20 +372,14 @@ def stale_exemptions(
         if rid not in architecture:
             gone.append(f"{rid} is defined by no accepted architecture document — delete its exemption")
             continue
-        reading = REASON.match(reason)
-        if reading is None:
+        ids = restated_by(reason)
+        if ids is None:
             gone.append(
                 f"{rid} is exempted as {reason!r}, which is not `restates <IDs>`, "
                 "`principle` or `dormant until <trigger>`"
             )
             continue
-        for restated in (reading.group("ids") or "").split(", "):
-            if not restated:
-                continue
-            if restated not in everything:
-                gone.append(f"{rid} restates {restated}, which no accepted document defines")
-            elif restated not in locked:
-                gone.append(f"{rid} restates {restated}, which no version locks — lock one of them")
+        gone.extend(unreached(rid, ids, everything, locked))
     return gone
 
 

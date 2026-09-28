@@ -314,11 +314,22 @@ class TheRealTree(unittest.TestCase):
         flat = [rid for _, ids in gate.AWAITING_A_VERSION.values() for rid in ids]
         self.assertEqual(sorted(flat), sorted(set(flat)))
 
+    def test_a_reason_is_read_for_what_it_restates(self):
+        self.assertEqual(gate.restated_by("principle"), [])
+        self.assertEqual(gate.restated_by("dormant until the first release candidate"), [])
+        self.assertEqual(gate.restated_by("restates X1-R1, X1-R2"), ["X1-R1", "X1-R2"])
+
+    def test_a_reason_that_is_none_of_the_three_is_refused(self):
+        for reason in ("restates", "restates ", "restates X1-R1,X1-R2", "restates x1-r1",
+                       "dormant until ", "dormant until  ", "principles", "", "a principle"):
+            with self.subTest(reason=reason):
+                self.assertIsNone(gate.restated_by(reason))
+
     def test_every_exemption_gives_one_of_the_three_reasons(self):
         for rid, reason in gate.EXEMPT_FROM_A_VERSION.items():
             with self.subTest(rid=rid):
                 self.assertRegex(rid, r"^ARCH-R\d+$")
-                self.assertIsNotNone(gate.REASON.match(reason), reason)
+                self.assertIsNotNone(gate.restated_by(reason), reason)
 
 
 if __name__ == "__main__":
