@@ -262,6 +262,25 @@ a release tag cancel nothing: what runs there is the record of the branch and
 the build of a release, and each has a ref of its own that a pull request's run
 never shares.
 
+Every such workflow carries the one block in
+[`shared/concurrency.yml`](../shared/concurrency.yml), which keys a pull
+request's runs on its ref and every other event on its own run. The hygiene
+gate's `shared-files` job holds each repository to it through
+`check_superseded_runs.py`, which runs from this repository's `main` and so
+reaches every caller without moving a pin. It refuses a workflow a pull request
+runs without the block, a group that cancels and is not the block, a job with a
+group of its own in a workflow a pull request runs, and two workflows sharing
+the name the group is keyed on. A job waiting in a group is replaced by the next
+one to arrive whatever `cancel-in-progress` says, which is why a job's group is
+refused there even when it cancels nothing.
+
+The reusable workflows this repository's own pull requests also run directly
+cannot carry the block: a group declared in one is evaluated in each caller's
+context, where it is the caller's own. They are covered by `cancel-superseded`,
+which cancels this pull request's runs on the heads a push replaced through the
+API. `homebrew-tap`, `website-docs.lemonfiber.app` and `website-lemonfiber.app`
+are reported by the check rather than refused, and are named in it.
+
 ## Requirements
 
 | ID | Requirement |

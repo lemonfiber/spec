@@ -59,6 +59,7 @@ jobs:
           coverage run --append scripts/test_spec_check.py
           coverage run --append scripts/test_integrity.py
           coverage run --append scripts/test_shared_files.py
+          coverage run --append scripts/test_superseded_runs.py
           coverage run --append scripts/test_next_id.py
           coverage run --append scripts/test_gen_repos.py
           coverage run --append scripts/test_gen_contrast.py

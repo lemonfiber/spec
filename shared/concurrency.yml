@@ -1,0 +1,10 @@
+# The concurrency group every workflow a pull request runs carries (Q-R75).
+#
+# A pull request's runs share one group, keyed on its ref, so a push to it
+# cancels the run on the head it replaced. Every other event is keyed on its own
+# run: a push to `main`, a tag, a merge queue, a schedule and a `workflow_run`
+# are never cancelled and never cancel. `check_shared_files.py` holds each
+# workflow's own block to this one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true

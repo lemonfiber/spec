@@ -15,6 +15,10 @@ The two directories a repository adopts from rather than is required to carry â€
 which is where adoption is stated. Without it, a gate a repository never took and
 one it deleted last week arrive here as the same silence.
 
+One block is carried rather than a file: the concurrency group in
+``shared/concurrency.yml``, which every workflow a pull request runs holds as its
+own. ``check_superseded_runs.py`` compares them (Q-R75).
+
 Usage, from the root of the repository being checked::
 
     check_shared_files.py --canonical <path to a spec checkout> --repo owner/name
@@ -29,6 +33,8 @@ import pathlib
 import subprocess
 import sys
 import tomllib
+
+import check_superseded_runs
 
 # The members of `shared/` this file names. Named here rather than at each use so
 # the accounting below and the checks above cannot come to mean different files.
@@ -49,6 +55,7 @@ GUIDE = "AGENTS.md"
 GATES = "gates"
 HOOKS = "hooks"
 RUFF = "ruff.toml"
+CONCURRENCY = pathlib.Path(check_superseded_runs.HOME).name
 ADOPTION = "adoption.toml"
 
 #: The list of repositories the register answers for, relative to a spec checkout.
@@ -624,7 +631,7 @@ def adoption(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str
 # compares because they are not copies. `README.md` documents the directory,
 # `assets.sha256` is the manifest `assets()` reads, and `adoption.toml` is the
 # register `register()` reads â€” none of the three is a file any repo carries.
-COMPARED = {MARKDOWNLINT, TYPOS, HOOKS, RUFF, GATES}
+COMPARED = {MARKDOWNLINT, TYPOS, HOOKS, RUFF, GATES, CONCURRENCY}
 NOT_A_COPY = {"README.md", "assets.sha256", ADOPTION}
 
 
@@ -684,6 +691,7 @@ def main() -> int:
         + adoption(repo, canonical, name)
         + manager(repo)
         + codeowners(repo, canonical, name)
+        + check_superseded_runs.superseded(repo, canonical, name)
     )
     if problems:
         for problem in problems:
@@ -691,8 +699,9 @@ def main() -> int:
         print(f"\n{len(problems)} shared file(s) out of step with {canonical / 'shared'}.")
         return 1
     print("shared files: lint configs, brand assets, the agent pointer and CODEOWNERS "
-          "match their one home, and the hooks and gate scripts here are the ones "
-          "this repository declares")
+          "match their one home, the hooks and gate scripts here are the ones "
+          "this repository declares, and every workflow a pull request runs "
+          "carries the concurrency group")
     return 0
 
 
