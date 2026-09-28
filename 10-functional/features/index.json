@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 104,
-    "requirements": 1544,
+    "requirements": 1546,
     "areas": "A–N"
   },
   "versions": [
@@ -112,13 +112,13 @@
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 43
+      "goals": 119
     },
     {
       "version": "0.19.0",
       "status": "planned",
       "milestone": "M11",
-      "goals": 56
+      "goals": 59
     },
     {
       "version": "0.20.0",
@@ -192,10 +192,11 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.2.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M3"
+        "M3",
+        "M14"
       ],
       "milestone": "M3",
       "priority": null,
@@ -212,6 +213,10 @@
         "G4"
       ],
       "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        },
         {
           "version": "0.2.0",
           "status": "released"
@@ -370,10 +375,11 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.13.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M9"
+        "M9",
+        "M14"
       ],
       "milestone": "M9",
       "priority": null,
@@ -392,6 +398,10 @@
         {
           "version": "0.13.0",
           "status": "released"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         }
       ],
       "path": "a-getting-started/a7-credential-management.md"
@@ -730,12 +740,13 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.8.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M2",
         "M3",
-        "M6"
+        "M6",
+        "M14"
       ],
       "milestone": "M2",
       "priority": null,
@@ -757,6 +768,10 @@
         {
           "version": "0.1.0",
           "status": "released"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         },
         {
           "version": "0.2.0",
@@ -844,10 +859,11 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.7.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M5"
+        "M5",
+        "M14"
       ],
       "milestone": "M5",
       "priority": null,
@@ -863,6 +879,10 @@
         "G8"
       ],
       "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        },
         {
           "version": "0.7.0",
           "status": "released"
@@ -915,8 +935,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.10.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M7",
         "M14"
@@ -942,6 +962,10 @@
         {
           "version": "0.17.0",
           "status": "staged"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         },
         {
           "version": "0.9.0",
@@ -1145,10 +1169,11 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.4.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M4"
+        "M4",
+        "M14"
       ],
       "milestone": "M4",
       "priority": null,
@@ -1164,6 +1189,10 @@
         "G6"
       ],
       "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        },
         {
           "version": "0.4.0",
           "status": "released"
@@ -1492,7 +1521,8 @@
       "shipped": null,
       "milestones": [
         "M4",
-        "M9"
+        "M9",
+        "M14"
       ],
       "milestone": "M4",
       "priority": null,
@@ -1512,6 +1542,10 @@
         {
           "version": "0.14.0",
           "status": "released"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         },
         {
           "version": "0.3.0",
@@ -2220,10 +2254,11 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.5.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M5"
+        "M5",
+        "M14"
       ],
       "milestone": "M5",
       "priority": null,
@@ -2241,6 +2276,10 @@
       ],
       "versions": [
         {
+          "version": "0.18.0",
+          "status": "planned"
+        },
+        {
           "version": "0.5.0",
           "status": "released"
         }
@@ -2254,12 +2293,13 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "built",
+      "maturity": "building",
       "shipped": null,
       "milestones": [
         "M7",
         "M8",
-        "M9"
+        "M9",
+        "M14"
       ],
       "milestone": "M7",
       "priority": null,
@@ -2286,6 +2326,10 @@
         {
           "version": "0.14.0",
           "status": "released"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         }
       ],
       "path": "g-ux/g8-privacy.md"

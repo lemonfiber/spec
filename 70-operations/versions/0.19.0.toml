@@ -1,6 +1,13 @@
 # Glue — cross-seeding, announce-driven grabbing, quality-profile sync and subtitles.
 #
-# 56 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R28`, `ARCH-R30` and `ARCH-R34` are the platform matrix's rows no earlier version
+# holds: a Windows data root outside the WSL2 filesystem detected and explained,
+# `/dev/dri` detected and passed through on Linux, and the Docker API reached over a
+# named pipe on Windows. Two of the three need a Windows binary, and Windows is not a
+# release target: the core's `Cargo.toml` names the four it builds. This version is
+# where Windows becomes one, and the three ship with it.
+#
+# 59 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.19.0"
 milestone = "M11"   # Ecosystem glue
@@ -64,6 +71,9 @@ goals   = [
     "H4-R12",
     "H4-R13",
     "H4-R14",
+    "ARCH-R28",
+    "ARCH-R30",
+    "ARCH-R34",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

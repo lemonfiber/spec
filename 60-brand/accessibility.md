@@ -55,10 +55,9 @@ refreshed, and the table follows on the next run.
 ## What the measurements decide
 
 **The body-safe set is whatever the table says it is.** A pairing at AA or
-better may carry body text; one below it may not, and no list needs keeping.
-That is the whole of `DES-R15`, and it is why the list that used to sit here is
-gone: it was a second statement of the table, and it was the half that went
-stale.
+better may carry body text; one below it may not, and this page keeps no list
+beside the table. That is the whole of `DES-R15`: a list is a second statement of
+the table, and a second statement is the half that goes stale.
 
 **Both surfaces are measured, not just the default.** A pairing is about a
 foreground *and* a ground, and the same token can clear AA on `paper` and fail
@@ -90,11 +89,13 @@ would fail. The theme switch is a contrast decision, not just a mood one.
 ## The contract this creates
 
 The [design-token contract](../20-architecture/contracts/design-tokens.md#what-the-tokens-must-guarantee)
-requires every body-text pairing to meet AA, and a CI check verifies it. Two
-checks, in two repositories, and neither is a person reading a table:
-`brand:scripts/check_tokens.py` refuses a token change that puts a failing
-pairing into body use, and the integrity job here refuses a page that has
-drifted from the tokens.
+requires every body-text pairing to meet AA. Two checks, in two repositories,
+and neither is a person reading a table: `brand:scripts/check_tokens.py` fails a
+token change under which `ink`, `ink-soft`, `text-muted`, `leaf` or `fiber-deep`
+falls below AA on `paper`, and the integrity job here refuses a page that has
+drifted from the tokens. The brand check reads that list of five and `paper`
+alone; `canvas`, the ink theme and `text-faint` are measured in the table above
+and by nothing in CI.
 
 A new or changed token that would put a failing pairing into body use is a
 **contract violation**, not a design preference.

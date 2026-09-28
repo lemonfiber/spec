@@ -113,7 +113,7 @@ forms       = ["library", "full"]
 | `without_it` | string | ✔ | The consequence of its absence (`F2-R2`) |
 | `upstream` | string | ✔ | Project URL, so the operator can judge the thing rather than the wrapper |
 | `license` | string | ✔ | SPDX identifier. **Not** required to be OSI-approved — see below. |
-| `forms` | array | ✔ | Which forms the service joins. Every entry MUST name a form the stack declares. |
+| `forms` | array | ✔ | Which forms the service joins. Every entry MUST name a form the stack declares (`ARCH-R96`). The core refuses an empty list and compares no entry with the stack's forms. |
 
 `description` and `without_it` are required of a plugin for the same reason they
 are required of a bundled service: the catalogue exists to convert an inventory
@@ -319,10 +319,14 @@ ignored:
 ## What lemonfiber writes
 
 A plugin's service gets **its own profile**, named for the plugin, which is
-added to the closure of each form the plugin declared. Its own profile rather
-than an existing one, because a profile is the unit that starts and stops
-together, and a stranger's service joining `tv` would mean `lemonfiber up tv`
-could no longer be described without naming what is installed.
+added to the closure of each form the plugin declared (`ARCH-R96`). Its own
+profile rather than an existing one, because a profile is the unit that starts
+and stops together, and a stranger's service joining `tv` would mean
+`lemonfiber up tv` could no longer be described without naming what is installed.
+
+The core writes that profile as `plugin-<id>` and adds it to no form's closure: an
+install starts it alone, a removal takes it down alone, and `lemonfiber up <form>`
+names only the profiles the stack's own forms declare. `0.18.0` locks `ARCH-R96`.
 
 From the declaration above, lemonfiber generates:
 
@@ -555,18 +559,19 @@ why     = "The path the health probe asks for is one this image serves."
 | `why` | string | ✔ | Why this is worth asserting. A proof nobody can justify is one nobody will maintain. |
 | `expected` | array of tables | | Recordings this proof fails on, each with the constraint it fails and the reason — see [What an assertion is declared to fail on](#what-an-assertion-is-declared-to-fail-on) |
 
-`F3-R1` has named a plugin's proofs among what its manifest declares since the
-feature was written, and `F3-R3` runs them in the existing verification engine.
-There was no block to declare them in, which left an author two bad options:
-carry them in a second file the installer never reads, or leave `F3-R4` — *a
-plugin whose proofs do not pass is not installed* — with nothing to evaluate.
+`F3-R1` names a plugin's proofs among what its manifest declares, `F3-R3` runs
+them in the existing verification engine, and `[[proof]]` is where they are
+declared — so `F3-R4`, *a plugin whose proofs do not pass is not installed*, has
+something to evaluate.
 
 **`expect` must constrain the body.** A status is a claim about the network
 path, not about the service: Docker publishes a port by putting a proxy in front
 of it, and that proxy accepts a connection before knowing whether anything
-inside is listening. A manifest whose every proof asserts only a status is
+inside is listening. A manifest whose every proof asserts only a status MUST be
 refused, naming the proofs, because it has declared nothing a replaced container
-would fail.
+would fail (`ARCH-R105`). The core holds a `[[claim.probe]]` to its probe's body
+constraints and holds a `[[proof]]` to nothing of the kind: a proof whose `expect`
+is a status alone is installed and run as written. `0.18.0` locks `ARCH-R105`.
 
 ### What an expectation may say
 

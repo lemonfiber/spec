@@ -74,17 +74,20 @@ contracts, are the spec's; the detailed how is the repo's.**
 | Check | Enforces |
 |-------|----------|
 | `spec-check` | Governance — every change cites a spec identifier ([GOV](../50-governance/cross-repo-ci.md)) |
-| Token parity | `tokens.css` and `tokens.json` hold identical values (`ARCH-R38`) |
-| **Contrast check** | Every body-text pairing meets WCAG AA (`ARCH-R40`, [baseline](../60-brand/accessibility.md)) |
+| `tokens` (`scripts/check_tokens.py`) | Every colour in `tokens.json` appears in `tokens.css` as `--lf-color-<name>` with the same value; `ink`, `ink-soft`, `text-muted`, `leaf` and `fiber-deep` each meet WCAG AA on `paper`; `--self-test` first holds the arithmetic to ratios WCAG states |
 
-The contrast check is the notable one: it computes the ratios in
-[accessibility](../60-brand/accessibility.md) and fails on a body pairing below
-AA. A recolour that looks fine and fails a meter is caught here, not in the web UI.
+The check compares colours only: the font, size, space and radius groups, the
+stylesheet's `--lf-color-text` and the ink theme are not compared, so `ARCH-R38`'s
+identical values are checked for colours alone. The contrast half computes the
+ratio of each of those five colours on `paper` and fails on one below AA; no other
+surface, and neither theme's other pairings, are measured, so it covers part of
+what `ARCH-R40` asks. A recolour that looks fine and fails that meter is caught
+here, not in the web UI.
 
 ## Publishing
 
-A tagged release will publish `@lemonfiber/brand` to the registry; no tag has been
-cut, so consumers pin a commit instead. Either way a consumer bumps the pin
+`@lemonfiber/brand` is not published to a registry and has no tags, so consumers
+pin a commit. A consumer moves the pin
 deliberately (cite `GOV-R12`) to pick up a brand change — the
 [token contract](../20-architecture/contracts/design-tokens.md#versioning) keeps
 brand and binary decoupled, so a recolour never surprises a shipped `lemonfiber`.

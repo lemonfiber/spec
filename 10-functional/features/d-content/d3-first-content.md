@@ -5,8 +5,7 @@ kind: feature
 area: D
 audience: operator
 status: accepted
-maturity: shipped
-shipped: 0.4.0
+maturity: building
 labels: [ux]
 relates: [A2, C7, D6, D9, G6]
 ---
@@ -95,6 +94,11 @@ progress indicator standing in for it. A spinner where *Importing…* belongs is
 precisely the loss this feature exists to prevent: the operator learns that
 something is happening rather than what.
 
+A step reaches a surface on the web API's event stream, which every client shares,
+and a walk started from the web API is answered with a job's name. So each step
+names the job it belongs to (`D3-R14`): without it, a surface that started a walk
+has a stream of steps and no way to tell its own walk's from another's.
+
 *It ends by handing over* becomes `N15-R7` — where the walkthrough names what to
 do next, that is shown. A hand-off arriving without its destinations is a
 walkthrough that stopped rather than one that ended.
@@ -148,6 +152,7 @@ the operator was in another room.
 | **D3-R11** | Content already present MUST be detected rather than re-acquired. |
 | **D3-R12** | A library scan MUST be triggered so imported content is immediately visible. |
 | **D3-R13** | The walkthrough MUST be runnable at any time, not only at end of setup. |
+| **D3-R14** | A `step` event on the web API's event stream said by a walk a job names MUST carry that job's name, as the walk's accepting reply carried it, so that a surface can tie each step to the walk it started (`D3-R3`, `N15-R5`). |
 
 ## Related
 

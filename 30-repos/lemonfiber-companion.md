@@ -122,12 +122,13 @@ train.** Area N is specified in full because the specification leads everywhere
 in this project; the app is built against what the main repositories have already
 shipped rather than the other way round.
 
-Twenty-five of its twenty-six features are accepted. One is draft:
-[`N13`](../10-functional/features/n-companion/n13-taking-away.md) (taking away).
-Every accepted requirement in
-area N is citable, and no version locks any of them: `N1` is not scheduled, and
-every other feature in the area requires it. They wait in
-`check_goal_coverage.AWAITING_A_VERSION` until the app joins the train.
+All twenty-six of its features are accepted. Every requirement in area N is
+citable, and the only ones a version locks are the stack's side of pairing, which
+`0.17.0` locks: `N1-R18`, `N1-R47` to `N1-R49` and `N1-R62`. The rest of `N1` is not
+scheduled, and every other feature in the area requires it. They wait in
+`check_goal_coverage.AWAITING_A_VERSION` until the app joins the train, beside the
+two outside area N the app keeps: `G2-R14`, a name this product gives rendered as
+declared in every locale, and `G3-R16`, a touch target the platform's own minimum.
 
 So it tracks `main` and takes no releases while it catches up. When it has, it is
 pinned with the rest of the repositories the way every other one is

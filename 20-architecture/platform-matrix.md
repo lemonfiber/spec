@@ -26,6 +26,10 @@ Linux-native versus Linux-Desktop matters because file ownership is real in one
 and mapped in the other — so `PUID`/`PGID` is load-bearing in one and cosmetic in
 the other.
 
+The core has the four environments and does not detect the fourth: it never asks
+the daemon for a Desktop context, so every Linux machine is read as Linux native
+(`ARCH-R27`).
+
 ## The matrix
 
 | Concern | macOS | Linux native | Linux Desktop | Windows (WSL2) |
@@ -77,9 +81,11 @@ extra_hosts:
   - "host.docker.internal:host-gateway"
 ```
 
-Without it, native-mode Jellyfin silently fails to be reachable from Seerr — the
-container cannot resolve the name, and the symptom is "Seerr can't see my
-library" with nothing in any log explaining why.
+Without it, native-mode Jellyfin would be unreachable from Seerr — the container
+cannot resolve the name, and the symptom is "Seerr can't see my library" with
+nothing in any log explaining why. Native mode is never accepted on native Linux,
+because Docker there can hardware-transcode (section 2): the wizard refuses the
+choice, so no stack reaches this failure and none carries the entry.
 
 ### 4. Autostart differs three ways
 
@@ -119,7 +125,7 @@ question must earn its place.
 | **ARCH-R28** | On Windows, a data root outside the WSL2 filesystem MUST be detected and its consequence explained. |
 | **ARCH-R29** | Native Jellyfin mode MUST be offered only where Docker cannot hardware-transcode. |
 | **ARCH-R30** | On Linux, `/dev/dri` presence MUST be detected and passthrough enabled where available. |
-| **ARCH-R31** | On native Linux Docker, `host.docker.internal` MUST be provided via `host-gateway` where native Jellyfin is used. |
+| **ARCH-R31** | Native Jellyfin mode MUST NOT be accepted on native Linux Docker, the one environment where `host.docker.internal` does not resolve without a `host-gateway` entry. |
 | **ARCH-R32** | Autostart MUST be configured per environment, and the prerequisite verified rather than assumed. |
 | **ARCH-R33** | PUID/PGID MUST be requested only on native Linux Docker. |
 | **ARCH-R34** | The Docker API transport MUST adapt to named pipes on Windows and Unix sockets elsewhere. |

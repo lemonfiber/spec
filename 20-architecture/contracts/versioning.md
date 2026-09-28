@@ -18,12 +18,15 @@ binary, the stack it operates, and the manifest format between them.
 | Version | Owns | Scheme |
 |---------|------|--------|
 | `lemonfiber` binary | The tool | Semver |
-| `stack_version` | The service set and forms | Semver |
+| Stack content | The service set and forms | The `lemonfiber-media-stack` commit the binary's `assets/media-stack` submodule pins |
 | `schema_version` | The manifest **format** | Monotonic integer |
 
-They are separate because they change for different reasons. Bumping Sonarr's
-pinned tag changes `stack_version` and nothing else. Adding a manifest field
-changes `schema_version`. Fixing a TUI bug changes only the binary.
+They are separate because they change for different reasons. An image pin changes
+the stack, which reaches a binary when its `assets/media-stack` submodule is moved
+to the commit carrying it. A manifest field changes the format, which [before the
+first release candidate](#before-the-first-release-candidate) changes in place at
+`schema_version = 1`. A TUI fix changes only the binary. The stack's own
+`stack_version` is read and reported, and stays at `0.1.0` through every pin change.
 
 ## Why `schema_version` is an integer, not semver
 
@@ -51,6 +54,9 @@ flowchart TD
 Three distinct refusals, three distinct messages. Collapsing them into "invalid
 manifest" would leave the operator guessing which of three unrelated problems
 they have.
+
+The core makes the first and the last. It parses `min_cli_version` and compares it
+with nothing, so the middle refusal, which `ARCH-R4` requires, is never made.
 
 ## Where skew is caught
 
@@ -207,7 +213,7 @@ binary that arrives carries its own stack and reads it at build-proven parity.
 
 | ID | Requirement |
 |----|-------------|
-| **ARCH-R1** | The binary, stack content and manifest format MUST version independently. |
+| **ARCH-R1** | The binary, the stack content and the manifest format MUST version independently: the binary by its semver version, the stack content by the `lemonfiber-media-stack` commit the binary's `assets/media-stack` submodule pins, and the format by its integer `schema_version`. |
 | **ARCH-R2** | `schema_version` MUST be a monotonic integer, not semver. |
 | **ARCH-R3** | An unsupported `schema_version` MUST be refused with both the found and supported versions named. |
 | **ARCH-R4** | A stack declaring a `min_cli_version` above the running binary MUST be refused, naming the required version. |

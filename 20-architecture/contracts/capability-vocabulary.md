@@ -254,9 +254,12 @@ carries is the point of it.
 
 ### A refusal is evidence; a status alone usually is not
 
-`ARCH-R105` refuses a manifest whose every proof constrains only a status,
-because Docker publishes a port by putting a proxy in front of it and that proxy
-accepts a connection before knowing whether anything inside is listening.
+A binding is held to its probe: where the published probe lists body
+constraints, a binding whose `expect` carries none of them is refused, naming the
+probe and the constraints that would show it. The reason is that Docker publishes
+a port by putting a proxy in front of it, and that proxy accepts a connection
+before knowing whether anything inside is listening. `ARCH-R105` asks the same of
+a manifest's proofs, and the core holds no `[[proof]]` to it.
 
 A `guarded` probe is the exception the rule leaves room for, and the reason is
 worth stating rather than looking like an inconsistency. **A `401` is not

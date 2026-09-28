@@ -5,8 +5,7 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-maturity: shipped
-shipped: 0.7.0
+maturity: building
 labels: [verification, security]
 relates: [A7, B4, C1, G8]
 ---
