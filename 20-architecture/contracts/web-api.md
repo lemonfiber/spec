@@ -532,6 +532,8 @@ generation has not been used.
 | **ARCH-R129** | A definition in the contract artefact MUST NOT take a name an SDK's generator writes itself, and SDK generation MUST refuse such an artefact, naming the definition and the kind that carries it, rather than emit one name describing two shapes. |
 | **ARCH-R131** | Every action whose command reports a rehearsal under `--dry-run` MUST take that rehearsal as the argument `dry_run`; given it, the action MUST write nothing and MUST answer with the envelope the command's rehearsal renders, and that envelope MUST say it was a rehearsal in a field other than `confirmed`, so that a rehearsal and an unconfirmed reading are told apart. An action whose command refuses `--dry-run` MUST refuse `dry_run` with the reason the command gives (`F1-R2`, `ARCH-R47`, `ARCH-R48`, `N13-R10`). |
 | **ARCH-R132** | Work ended before it finished MUST be answered, when its name is redeemed or released, with whether the name was released or the work was let go because nothing asked about it, and MUST be told apart from work that finished, work that stopped on a failure and work still in flight (`N23-R13`). |
+| **ARCH-R133** | The contract artefact MUST describe the body every web API route takes, the setup routes' included — the answer to each question setup asks, and the choice a recovery takes — generated from the types the server reads a request into, so that a client builds a request from the artefact rather than from the server's source (`ARCH-R56`, `G1-R14`). |
+| **ARCH-R134** | The contract artefact MUST publish every action the web API takes, with each argument it takes, the argument's type and the consent the action asks for before it writes, generated from what the server reads; an SDK MUST generate the actions it offers from that list, so that an action or argument the core adds reaches a client as a regenerated diff (`ARCH-R47`, `ARCH-R48`, `ARCH-R58`). |
 
 ## Shapes are generated; semantics are not
 
@@ -539,6 +541,14 @@ Two SDKs hand-writing this contract would be two sources of truth for it, and a 
 be a third. So the **shapes** — fields, types, optionality, permitted enum values — are
 generated from the server's own `serde` types into one artefact that every SDK consumes
 ([ADR-0014](../../00-overview/decisions/0014-one-generated-contract-for-every-sdk.md)).
+
+The artefact describes what the server answers with, kind by kind. It does not describe what
+a request carries: the body each setup step takes — an answer to one of the wizard's
+questions, the choice a recovery takes — and the actions `POST /api/actions/<name>` accepts,
+with the arguments each takes and the consent it asks for, are the server's types and no
+published shape. A client that sends one copies it from the server's source, and nothing
+holds that copy to the server. `ARCH-R133` puts the request bodies in the artefact, and
+`ARCH-R134` the actions, so that a client generates both as it generates the kinds.
 
 Everything above that a schema cannot express stays here, in prose, and every SDK implements
 it and tests it: the heartbeat, resumption that does not present pre-gap values as current,

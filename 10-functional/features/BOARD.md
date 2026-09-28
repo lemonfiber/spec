@@ -70,7 +70,7 @@ code, and the two move independently.
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.18.0`, `0.2.0`, `0.8.0` |
 | [C4](c-trust/c4-support-bundle.md) | Support bundle | C | operator | accepted | `0.18.0`, `0.7.0` |
 | [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.17.0`, `0.18.0`, `0.9.0` |
-| [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.12.0`, `0.4.0` |
+| [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.12.0`, `0.17.0`, `0.4.0` |
 | [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.18.0`, `0.4.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |

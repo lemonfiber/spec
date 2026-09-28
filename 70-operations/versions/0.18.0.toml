@@ -68,6 +68,12 @@
 # settled, read as facts on a read that offers no setup, and a walkthrough's steps each
 # naming the job they belong to.
 #
+# `ARCH-R133` and `ARCH-R134` put what a request carries in the contract beside what an
+# answer carries: the bodies the setup routes take, and every action with its arguments
+# and the consent it asks for, generated so that an SDK generates them too. Without them
+# setup from the web (`G1-R14`) is built against the server's source, and a client meets
+# an action the core added only when a new kind arrives with it.
+#
 # The architecture rows are here because `check_goal_coverage` reads `20-architecture/`
 # too, and a row no version locks is reached by no gate. Those it exempts are the
 # principles, the restatements and the dormant ones; the rest are work:
@@ -91,7 +97,7 @@
 # three is tagged: the brand releases on its own clock, and the SDKs take the contract
 # a release attaches.
 #
-# 119 goals, seeded from the roadmap milestone this version serves;
+# 121 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -117,6 +123,8 @@ goals   = [
     "A5-R14",
     "ARCH-R131",
     "ARCH-R132",
+    "ARCH-R133",
+    "ARCH-R134",
     "B2-R17",
     "B2-R18",
     "B2-R19",
