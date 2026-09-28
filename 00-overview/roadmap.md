@@ -318,6 +318,7 @@ possible. F3–F8 and F10 are Accepted; recipes (F8) are locked by `0.18.0`.
 | Mobile client handoff | G9 — a household member's phone reaches the library in one step | `0.17.0` |
 | Plugins and wiring over the API | F6-R14 to F6-R16 and F4-R26 to F4-R29 — what is installed, installing, updating and removing, the wiring, and the operator's choice of what fills a capability with their reason for it, served where the companion reaches them ([ADR-0031](decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)) | `0.18.0` |
 | Recipes and named adapters | F8 — the ordered calls that turn a first-run flow into data, and what they may carry where ([ADR-0022](decisions/0022-a-recipe-declares-pairs-not-lists.md)) | `0.18.0` |
+| The household's web surface | G10 — a member signs in through the same form and is shown what the core says they may do, with approval and allowance stated before they ask and refusals read as refusals; playback and the door a member faces wait on the core | `0.18.0` |
 
 **Recipes come last of the three, deliberately.** A manifest describes a container
 whose reach lemonfiber fixes, so the worst one can do is fail to parse. A recipe runs

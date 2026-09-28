@@ -25,13 +25,24 @@
 # they gave one" has nothing to show. It changes the command and the API together
 # (ARCH-R48), so it ships with `F4-R27`.
 #
-# 20 goals, seeded from the roadmap milestone this version serves;
+# `G10-R1` to `G10-R3`, `G10-R5`, `G10-R6` and `G10-R9` to `G10-R11` are the household's
+# web surface that the core already answers for: signing in decides what is drawn, what
+# a member may do and may watch is read from the core, approval and allowance are
+# stated before a member asks, refusals read as refusals, and a member removed from
+# the household is signed out at the next refused call. The rest of G10 waits on the
+# core. `G10-R4`, `G10-R7` and `G10-R8` need playback, which the core does not stream to
+# a member yet (ADR-0027). `G10-R12` and `G10-R13` need the core to say which service
+# faces a member and whether it answers from where they are. The web surface is where
+# these are built, so `lemonfiber-web` is searched; it is not tagged.
+#
+# 28 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
 status  = "planned"
 repos   = ["lemonfiber"]
+satisfied_in = ["lemonfiber", "lemonfiber-web"]
 goals   = [
     "F8-R1",
     "F8-R2",
@@ -53,6 +64,14 @@ goals   = [
     "F6-R14",
     "F6-R15",
     "F6-R16",
+    "G10-R1",
+    "G10-R2",
+    "G10-R3",
+    "G10-R5",
+    "G10-R6",
+    "G10-R9",
+    "G10-R10",
+    "G10-R11",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

@@ -112,7 +112,7 @@
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 20
+      "goals": 28
     },
     {
       "version": "0.19.0",
@@ -2308,8 +2308,10 @@
       "status": "accepted",
       "maturity": "planned",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
       "priority": "P2",
       "labels": [
         "web",
@@ -2328,7 +2330,12 @@
         "G6",
         "N3"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        }
+      ],
       "path": "g-ux/g10-household-web.md"
     },
     {
