@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 104,
-    "requirements": 1533,
+    "requirements": 1544,
     "areas": "A–N"
   },
   "versions": [
@@ -112,7 +112,7 @@
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 30
+      "goals": 43
     },
     {
       "version": "0.19.0",
@@ -302,7 +302,8 @@
       "maturity": "shipped",
       "shipped": "0.13.0",
       "milestones": [
-        "M9"
+        "M9",
+        "M14"
       ],
       "milestone": "M9",
       "priority": null,
@@ -322,6 +323,10 @@
         {
           "version": "0.13.0",
           "status": "released"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         }
       ],
       "path": "a-getting-started/a5-migration.md"
@@ -443,7 +448,8 @@
       "shipped": "0.8.0",
       "milestones": [
         "M6",
-        "M9"
+        "M9",
+        "M14"
       ],
       "milestone": "M6",
       "priority": null,
@@ -462,6 +468,10 @@
         {
           "version": "0.15.0",
           "status": "released"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         },
         {
           "version": "0.8.0",
@@ -1020,7 +1030,8 @@
       "shipped": "0.7.0",
       "milestones": [
         "M4",
-        "M5"
+        "M5",
+        "M14"
       ],
       "milestone": "M4",
       "priority": null,
@@ -1037,6 +1048,10 @@
         "F1"
       ],
       "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        },
         {
           "version": "0.4.0",
           "status": "released"
@@ -1096,7 +1111,8 @@
       "maturity": "shipped",
       "shipped": "0.4.0",
       "milestones": [
-        "M4"
+        "M4",
+        "M14"
       ],
       "milestone": "M4",
       "priority": null,
@@ -1111,6 +1127,10 @@
         "G2"
       ],
       "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        },
         {
           "version": "0.4.0",
           "status": "released"
@@ -1253,6 +1273,10 @@
         {
           "version": "0.17.0",
           "status": "staged"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         }
       ],
       "path": "d-content/d6-household-identity.md"

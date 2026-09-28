@@ -247,6 +247,24 @@ browser tab that closes mid-repair does not orphan the work. The identifier is *
 — see [a job's outcome](#a-jobs-outcome) — because a name that cannot be turned back into an
 outcome makes the reply an acknowledgement rather than an answer.
 
+### Rehearsing
+
+`--dry-run` is one flag over every command, and the core decides for each command how it
+answers it: a read runs as it always does, a command that changes something reports what
+it would do and changes nothing, and a command whose effect cannot be known without
+producing it refuses the flag with its reason — a walkthrough, a searching trace and the
+disruptive checks. An action takes the same request as the argument `dry_run` and
+answers it as its command does. A rehearsal writes nothing and answers with the envelope
+the command's rehearsal renders, and that envelope says it was a rehearsal; an action
+whose command refuses the flag refuses the argument with the same reason (`ARCH-R131`).
+
+The statement is required because nothing else on the wire can stand in for it. Several
+actions answer an unconfirmed request with a reading of what they would do, and that
+reading carries `confirmed: false`. So does a rehearsal of the same action. A client that
+inferred one from the other would label a rehearsal as a cost waiting to be agreed to, or
+a reading as something that had been tried and written nothing, and each is a different
+sentence to show somebody.
+
 ### Setting up
 
 ```
@@ -440,11 +458,19 @@ parses either way:
 | Still in flight | `202` | the identical envelope the accepting reply carried |
 | Finished | `200` | the equivalent command's machine-readable output |
 | Stopped | `500` | the error envelope the failure renders |
+| Ended before it finished | `200` | the `job` envelope, saying whether the name was released or let go |
 | Not a name this run issued | `404` | a refusal, not the name repeated back |
 
 Status rather than a field, because the alternative is a shape only this endpoint has — and a
 second serialisation of an outcome the contract already describes is the drift `ARCH-R47`
 exists to prevent.
+
+Work ended before it finished has no outcome to give, and it ended one of two ways. A
+client released its name, or nothing asked about work with no ending of its own for long
+enough and it was let go. The two are different news to whoever comes back to the name:
+the first is somebody's decision, and the second is a guard that stopped guarding because
+the screen watching it went away. So the answer says which, and neither is told as work
+that finished or work still going (`ARCH-R132`).
 
 The stream is not the mechanism. A client that reconnects sends the last id it saw, and a
 client connecting for the first time has none to send, so an event announcing the end reaches
@@ -504,6 +530,8 @@ generation has not been used.
 | **ARCH-R82** | The capability set MUST be readable again within a session, and MUST carry when it was read as any other reading does. |
 | **ARCH-R99** | A client MUST refuse a base address that is not loopback unless it was given a certificate pin for that stack, and MUST enforce that pin during the TLS handshake so that no request is written to a peer it has not verified. A client MUST NOT offer any means of reaching a non-loopback address without a pin, or of weakening verification ([ADR-0025](../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)). |
 | **ARCH-R129** | A definition in the contract artefact MUST NOT take a name an SDK's generator writes itself, and SDK generation MUST refuse such an artefact, naming the definition and the kind that carries it, rather than emit one name describing two shapes. |
+| **ARCH-R131** | Every action whose command reports a rehearsal under `--dry-run` MUST take that rehearsal as the argument `dry_run`; given it, the action MUST write nothing and MUST answer with the envelope the command's rehearsal renders, and that envelope MUST say it was a rehearsal in a field other than `confirmed`, so that a rehearsal and an unconfirmed reading are told apart. An action whose command refuses `--dry-run` MUST refuse `dry_run` with the reason the command gives (`F1-R2`, `ARCH-R47`, `ARCH-R48`, `N13-R10`). |
+| **ARCH-R132** | Work ended before it finished MUST be answered, when its name is redeemed or released, with whether the name was released or the work was let go because nothing asked about it, and MUST be told apart from work that finished, work that stopped on a failure and work still in flight (`N23-R13`). |
 
 ## Shapes are generated; semantics are not
 

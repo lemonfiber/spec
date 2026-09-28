@@ -96,6 +96,16 @@ silently overwritten on upgrade
 ([ADR-0005](../../../00-overview/decisions/0005-embedded-stack-assets.md)); the
 operator is shown a diff.
 
+### A full reset agrees to what it showed
+
+Putting everything back to lemonfiber's state is the one act here that discards an
+operator's edits on purpose, so it is shown first: the edits it would revert and the
+connections that go with them. Showing and doing are two requests, and between them
+an edit can be made or a connection can change. So the yes is the offer that reading
+answered, not a bare confirmation, and the reset builds the offer again from what it
+finds when it runs and refuses by name where the two differ. What it reverts is what
+the operator read (`C9-R16`).
+
 ## States
 
 Per managed value:
@@ -145,6 +155,7 @@ Per managed value:
 | **C9-R13** | Locally modified materialised stack files MUST be detected by content and MUST NOT be overwritten on upgrade without a diff and confirmation. |
 | **C9-R14** | Loss of the expected-state record MUST be reported, with re-baselining offered. |
 | **C9-R15** | A value the service still holds as lemonfiber wrote it, where lemonfiber's intent has since moved on, MUST be bringable up to date on request rather than only reported. |
+| **C9-R16** | Reading what a full reset would revert MUST answer with an offer naming the edits and connections it read; the reset MUST take that offer as its yes, alike at the command line and over the web API (`ARCH-R48`), MUST build it again from what it finds when it runs, and MUST be refused, naming what moved, where the two differ. A bare `confirm` MUST NOT be a yes to a reset over the web API (`C9-R12`, `N6-R8`). |
 
 ## Related
 
