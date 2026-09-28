@@ -58,6 +58,20 @@ find is a word that does not get looked up on a phone.
 The short form is what appears in place. The longer one is available and does not
 lead.
 
+### A word the held glossary lacks can be asked for
+
+The app explains words from the glossary it holds. Where that glossary has no
+entry for a word the operator meets, the app offers to ask the stack for that one
+word, and explains it from the answer the same way: the short gloss in place, the
+longer one available, and what else it is called. The stack matches the word
+against the other forms it writes it in, so an inflection it sent is found under
+the word it belongs to.
+
+Asking is the operator's act, one word at a time. It is never a read the app
+makes for each word a screen renders, which would turn a screen of findings into
+a screen of requests (`N1-R65`). Where the stack has no entry either, the word is
+shown as it came, unexplained.
+
 ### What a thing is also called is part of what it means
 
 The vocabulary carries alternative names, and they are what somebody arriving
@@ -107,7 +121,9 @@ behind is the one on the phone (`N1-R1`).
 ## Edge cases
 
 - **A word used in a finding that the glossary does not carry.** Shown as it
-  came, unexplained, rather than given a definition the app made up.
+  came, unexplained, rather than given a definition the app made up. Asking the
+  stack for it is offered; where the stack has no entry either, that is its
+  answer, and not a failure to retry.
 - **A walkthrough that ran while the app was closed.** Its lines are shown as a
   record, not replayed as though they were arriving.
 - **A job that moved backwards a stage.** Shown as the stage it is at; the app
@@ -129,6 +145,15 @@ behind is the one on the phone (`N1-R1`).
 | **N15-R8** | *Already here* MUST be reported as its own outcome and MUST NOT be rendered as a search that found nothing. |
 | **N15-R9** | The app MUST NOT define a word the glossary does not carry, and MUST NOT substitute its own term for one the vocabulary gives. |
 | **N15-R10** | A stage, glossary or setup state that could not be read MUST be told apart from idle. |
+| **N15-R11** | Where the glossary the app holds has no entry for a word, the app MUST offer to ask the stack for that one word, and MUST explain it from the answer on `N15-R3` and `N15-R4`'s terms. Asking MUST be an act of the operator's and MUST NOT be a read per rendered word (`N1-R65`, `N1-R66`). Where the stack has no entry either, the word MUST be shown as it came (`N15-R9`). |
+
+## Notes
+
+**What the contract carries for `N15-R11`.** `GET /api/explain?word=` answers the
+`word` kind for one entry — `word`, `short`, `deep`, `also_called` and `forms` —
+where the bare read answers `glossary` with every entry. A word the stack does not
+explain is refused as absent, at `404`, with the error envelope, which is the
+answer that it has no entry rather than a stack that failed.
 
 ## Related
 

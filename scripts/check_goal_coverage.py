@@ -90,7 +90,7 @@ AWAITING_A_VERSION = {
     ),
     "N15": (
         "N15 requires N1, whose app side no version schedules, and G2, locked by 0.9.0, released",
-        [f"N15-R{n}" for n in range(1, 11)],
+        [f"N15-R{n}" for n in range(1, 12)],
     ),
     "N18": (
         "N18 requires N1, whose app side no version schedules, and B1, whose last goals 0.17.0 locks",
@@ -98,7 +98,7 @@ AWAITING_A_VERSION = {
     ),
     "N2": (
         "N2 requires N1, whose app side no version schedules, and C1, C3 and G7, locked by 0.8.0 at the latest, all released",
-        [f"N2-R{n}" for n in range(1, 23)],
+        [f"N2-R{n}" for n in range(1, 25)],
     ),
     # N3-R8 is withdrawn, and a withdrawn row is never a goal.
     "N3": (
@@ -133,6 +133,11 @@ AWAITING_A_VERSION = {
         "N12 requires N1, whose app side no version schedules, and D5, locked by 0.12.0, released",
         [f"N12-R{n}" for n in range(1, 11)],
     ),
+    # N13-R8 is withdrawn, and a withdrawn row is never a goal.
+    "N13": (
+        "N13 requires N1, whose app side no version schedules, and A6, locked by 0.13.0, released",
+        [f"N13-R{n}" for n in range(1, 21) if n != 8],
+    ),
     "N14": (
         "N14 requires N1, whose app side no version schedules, and E2, locked by 0.14.0, released",
         [f"N14-R{n}" for n in range(1, 9)],
@@ -163,7 +168,7 @@ AWAITING_A_VERSION = {
     ),
     "N23": (
         "N23 requires N1, whose app side no version schedules, B10, locked by 0.15.0, released, and C7, locked by 0.6.0, released",
-        [f"N23-R{n}" for n in range(1, 11)],
+        [f"N23-R{n}" for n in range(1, 14)],
     ),
     "N24": (
         "N24 requires N1, whose app side no version schedules, and D2 and D3, locked by 0.4.0, released",
@@ -179,7 +184,7 @@ AWAITING_A_VERSION = {
     ),
     "N7": (
         "N7 requires N1, whose app side no version schedules, and A5, locked by 0.13.0, released",
-        [f"N7-R{n}" for n in range(1, 18)],
+        [f"N7-R{n}" for n in range(1, 19)],
     ),
 }
 

@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**104 features** in areas A–N, **1515 requirements**.
+**104 features** in areas A–N, **1531 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -121,7 +121,7 @@ code, and the two move independently.
 | [N10](n-companion/n10-nobody-watching.md) | What the stack does when nobody is watching | N | operator | accepted | — |
 | [N11](n-companion/n11-the-record.md) | What was done, and where it came from | N | operator | accepted | — |
 | [N12](n-companion/n12-making-room.md) | Running out of room | N | operator | accepted | — |
-| [N13](n-companion/n13-taking-away.md) | Taking something away | N | operator | draft | — |
+| [N13](n-companion/n13-taking-away.md) | Taking something away | N | operator | accepted | — |
 | [N14](n-companion/n14-what-version.md) | What is running, and what is newer | N | operator | accepted | — |
 | [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | accepted | — |
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |

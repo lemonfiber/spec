@@ -9,7 +9,7 @@ maturity: planned
 priority: P3
 labels: [mobile, storage, wiring, ux]
 requires: [N1, A5]
-relates: [D1, A6, E3, N2]
+relates: [D1, A6, E3, N2, N13]
 ---
 
 # N7 — Moving in beside what is already there
@@ -113,6 +113,21 @@ costs in room, and what would fix it. The fix is the operator's to take: it is
 their library on their disks, and the stack does not force it. The app shows the
 cost and offers the remedy as its own act, never as a step folded into a move.
 
+### Replacing says what it would stop, what stopped, and what is still running
+
+Replacement is the mode that stops somebody's working stack: it stops the
+containers of the project already here and deletes none of them, so the operator
+can start their old stack again ([A5](../a-getting-started/a5-migration.md)).
+It is three lists, and an operator reads all three. What it would stop is what
+is agreed to. What stopped and what is still running are the outcome, and *still
+running* is the one a success message would omit.
+
+The stack's stance says whether the stop was carried out, not whether everything
+stopped: a replacement can be `applied` with services still up. The app shows the
+stance as given beside what is still running, and does not present a replacement
+that left the old stack half up as done. It has not replaced anything; it has
+doubled it.
+
 ### What cannot be taken over is named
 
 A service the stack found and cannot adopt is named as unsupported, with the
@@ -145,10 +160,10 @@ operator will search for.
 
 | State | Meaning |
 |-------|---------|
-| Unchanged | Nothing has been taken over. What would be is shown. |
-| Pending | A move is agreed and not finished. Never rendered as done. |
-| Blocked | The stack refused, and the refusal is shown with its reason. |
-| Applied | It finished. What was not carried is shown alongside what was. |
+| Unchanged | The stance: it already holds what was asked for. Nothing to apply and nothing to agree to. |
+| Pending | The stance: staged and not applied — nobody has agreed to it yet, or it was rehearsed. What it would do is shown. Never rendered as done. |
+| Blocked | The stance: the stack refused, and the refusal is shown with its reason. |
+| Applied | The stance: it was carried out. What was not carried, and for a replacement what is still running, is shown alongside. |
 | Unassessable | A wiring could not be judged. Shown as its own answer, not as sound. |
 | Unknown | The move could not be read. Never rendered as unchanged. |
 
@@ -162,6 +177,9 @@ operator will search for.
   and what was not carried, rather than treating it as new.
 - **A refusal the operator can do nothing about.** Still shown. An operator who
   cannot see why a thing did not happen will try it again.
+- **A replacement where some of the old services refuse to stop.** They are shown
+  under *still running*, beside the stance, and the replacement is not shown as
+  done.
 
 ## Acceptance criteria
 
@@ -184,6 +202,7 @@ operator will search for.
 | **N7-R15** | The app MUST offer a wiring run, and MUST show each connection with the state the stack gave it. *Skipped* MUST NOT be rendered as failed, and a connection kept because the operator changed it MUST NOT be rendered as wired or as drift to repair (`D1-R3`, `D1-R5`, `D1-R6`). |
 | **N7-R16** | Where a connection is kept because the operator changed it, the app MUST say it is kept; where the operator's value and lemonfiber's both moved, the app MUST show what the service holds beside what lemonfiber would write. The app MUST NOT offer to overwrite the operator's value (`N19-R4`). |
 | **N7-R17** | A write a service rejected MUST be shown with the service's own words, and MUST NOT be paraphrased (`D1-R11`). |
+| **N7-R18** | A replacement MUST show what it would stop before it is agreed to, and afterwards what stopped and what is still running. It MUST NOT be presented as done while anything it replaces is still running, whatever its stance says, and its agreement MUST name what it would stop and MUST NOT be carried forward from another screen or another operation (`N13-R7`). |
 
 ## Notes
 
@@ -199,6 +218,7 @@ operator will search for.
 | `N7-R15` | `seed`, from the `seed` action: each wiring's `state` — wired, already-wired, drifted, stale, conflicted, adopted, unmanaged, observed, would-wire, would-adopt, skipped, failed, refused — with the `reason` or `detail` each carries; `assessment`, `unsupported` and `rehearsed` | Whether a run was interrupted (`D1-R13`). A pass reports what it attempted, not what it did not reach |
 | `N7-R16` | `drifted` says an operator-changed value was kept; `conflicted` carries `ours` and `yours` side by side | The value itself on `drifted`, which carries none. `unmanaged` withholds the value by design, so a secret among what the stack takes on is never shown |
 | `N7-R17` | `failed` carries the service's own words in `detail` | — |
+| `N7-R18` | `replacement`: `project`, `would_stop`, `stopped`, `still_running`, `refusal` and `stance`. Unconfirmed, `migrate-replace` answers `pending` with what it would stop. `applied` is the stance of a replacement that carried out its stops, including one that left services in `still_running` | **A replacement cannot be carried out from the app.** The HTTP route refuses `migrate-replace` with `confirm`, so `stopped`, `still_running` and `applied` never answer the app's own act. **Nor does it carry an agreement:** the action takes a bare `confirm`, and nothing on the wire names what was agreed to |
 
 `N7-R13` is written as an offer that stands on its own for a reason the contract
 makes plain: `forced` is always false. Folding the remedy into a move would be
