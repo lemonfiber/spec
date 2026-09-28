@@ -50,6 +50,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0029](0029-a-household-service-declines-an-invitation-with-one-key.md) | A household service declines an invitation, holding one media-server key and nothing else | Accepted |
 | [0030](0030-a-declared-failure-is-its-own-verdict.md) | An assertion declared to fail on a recording is reported as failing as declared | Accepted |
 | [0031](0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md) | Installing a plugin and choosing a filler are web API writes; replacing a credential is not | Accepted |
+| [0032](0032-the-request-service-reaches-the-arrs-through-a-gate.md) | The request service reaches the \*arrs and the media server through a gate, holding only the gate's tokens | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

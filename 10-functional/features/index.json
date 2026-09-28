@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 104,
-    "requirements": 1546,
+    "requirements": 1553,
     "areas": "A–N"
   },
   "versions": [
@@ -1094,8 +1094,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.12.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M4",
         "M8"
