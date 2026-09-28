@@ -39,6 +39,16 @@ Starting therefore waits for each service to report **healthy**, and reports
 progress per service. An operator told "started" who then gets connection refused
 has been lied to.
 
+### Progress reaches every surface, and says whose it is
+
+A terminal shows what the container engine writes while it pulls and while it
+starts, and what the wait after it is still waiting for. A start or a fetch asked
+for over the web API is answered with a job name and nothing else, so everything it
+says afterwards comes down the event stream (`B2-R18`). One stream carries every
+job's lines, so a line a job said names that job; a surface following the start it
+asked for tells that start's lines from another's by the name it was answered with,
+not by when they happen to arrive (`B2-R19`).
+
 ### Every operation states what it will affect before doing it
 
 Stopping `hunt` while `tv` is also running stops six services, four of which
@@ -67,6 +77,13 @@ was never measured, is not.
 This is stated by the stack rather than worked out by whatever is displaying it.
 A surface that estimates is a second opinion with less to go on, and there is no
 version of that which is better than the first one being honest.
+
+Fetching a form's images is one of these operations. It stops nothing, and it is
+the one whose length depends entirely on the line: what it waits on is the images
+coming down, and the status reading says so beside what starting, stopping and
+restarting disturb, so a surface away from the machine can say before a fetch that
+it may take long and use a lot of the line without putting a figure on either
+(`B2-R17`).
 
 ### Individual services are addressable
 
@@ -156,6 +173,9 @@ Per form: `inactive`, `partial` (some services healthy), `active` (all healthy),
 | **B2-R14** | Concurrent lifecycle operations MUST be serialised, not raced. |
 | **B2-R15** | Native-mode Jellyfin MUST report as host-managed and MUST NOT be started or stopped by lemonfiber. |
 | **B2-R16** | Every operation MUST state, before it acts, whether the disturbance it causes is bounded — naming that bound — or open-ended, and MUST NOT leave a surface to estimate it. |
+| **B2-R17** | The status reading's `disturbs` MUST carry an entry for fetching a form's images, stating that fetch as open-ended and naming what it waits on as the images coming down the line, so that a surface can say before a fetch that it may take long and use a lot of the line without estimating either (`B2-R16`, `N2-R24`). |
+| **B2-R18** | The lines the container engine writes while pulling images MUST reach the web API's event stream as `pull` events, for a fetch and for a start that pulls, as they reach a terminal (`B2-R12`, `N2-R24`). |
+| **B2-R19** | A `start` or `pull` line on the event stream said by work a job names MUST carry that job's name, as the work's accepting reply carried it, so that a surface can tie each line to the start or fetch it asked for (`B2-R2`, `N2-R23`). |
 
 ## Related
 

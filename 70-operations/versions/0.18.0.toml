@@ -39,7 +39,22 @@
 # faces a member and whether it answers from where they are. The web surface is where
 # these are built, so `lemonfiber-web` is searched; it is not tagged.
 #
-# 30 goals, seeded from the roadmap milestone this version serves;
+# `B2-R17` to `B2-R19`, `D6-R17`, `D6-R18`, `A5-R13`, `A5-R14`, `C9-R16`, `D2-R13` to
+# `D2-R15`, `ARCH-R131` and `ARCH-R132` are what the web API has to carry for accepted
+# companion requirements to be answerable. Each is a field or an argument the core does
+# not serve: a fetch with no entry in what the status reading says it disturbs and no
+# progress on the event stream; start lines that name no job; no way to ask an action for
+# a rehearsal, so a rehearsal cannot be told from an unconfirmed reading; a household
+# member's removal, a replacement and a full reset that take a bare `confirm` rather than
+# the offer their reading answered, which `D6-R17`, `A5-R13` and `C9-R16` settle by the
+# rule ADR-0031 sets for the plugin writes; a guard released and one let go that answer alike; a
+# removal that says nothing of watch history; a survey that names no configuration or
+# library; and a quality reading that offers no presets, says nothing about future
+# acquisitions and states no upgrade's cost. The companion reaches a stack only over the
+# web API (N1-R16), and this version is the one putting the rest of what it reaches there
+# on the wire, so they ship with it.
+#
+# 43 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -61,6 +76,19 @@ goals   = [
     "F8-R11",
     "F8-R12",
     "F8-R13",
+    "A5-R13",
+    "A5-R14",
+    "ARCH-R131",
+    "ARCH-R132",
+    "B2-R17",
+    "B2-R18",
+    "B2-R19",
+    "C9-R16",
+    "D2-R13",
+    "D2-R14",
+    "D2-R15",
+    "D6-R17",
+    "D6-R18",
     "F4-R26",
     "F4-R27",
     "F4-R28",

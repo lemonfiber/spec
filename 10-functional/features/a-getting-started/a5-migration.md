@@ -47,6 +47,11 @@ existing setup and reports what it found before proposing anything:
 
 The survey output is a plain statement of findings. Nothing is modified.
 
+Where each service keeps its configuration and where its library is are findings
+like any other, so the survey's machine-readable answer carries both for every
+service it found, or says it could not read them. No surface works either out
+from a service's name or its ports (`A5-R14`).
+
 ### Adoption, not replacement
 
 The default posture is **adopt**: keep the operator's existing services, config,
@@ -62,6 +67,13 @@ replacement is offered but never preselected.
 
 Side-by-side deserves emphasis: it lets a cautious operator evaluate with zero
 risk, which is exactly what this audience wants.
+
+Replacement is the mode that stops somebody's running services, so its yes is the
+offer its reading answered rather than a bare confirmation. The reading names what
+it would stop; between reading it and agreeing, a container can be started or a
+project can change. The replacement builds the offer again from what is running
+when it acts and refuses by name where the two differ, so what stops is what the
+operator was shown (`A5-R13`).
 
 ### The library is never moved without explicit instruction
 
@@ -156,6 +168,8 @@ rehearsed run here to the same labelling `N6-R1` requires everywhere else.
 | **A5-R10** | An existing layout that breaks hardlinks MUST be reported with its cost quantified, and a remedy offered but not forced. |
 | **A5-R11** | Port conflicts with existing services MUST be detected before any plan is proposed. |
 | **A5-R12** | Unsupported existing components MUST be named as unsupported rather than silently ignored. |
+| **A5-R13** | Reading what a replacement would stop MUST answer with an offer naming what it would stop; the replacement MUST take that offer as its yes, alike at the command line and over the web API (`ARCH-R48`), MUST build it again from what is running when it acts, and MUST be refused, naming what moved, where the two differ (`N7-R18`). |
+| **A5-R14** | The survey's `migration` envelope MUST carry, for each service it found, where that service's configuration is read from and where its library is, or MUST say that either could not be read, so that no surface works them out from a service's name or ports (`A5-R2`, `N7-R11`). |
 
 ## Related
 

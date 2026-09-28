@@ -119,6 +119,15 @@ happens to their watch history and outstanding requests. Partial removal — no
 longer able to watch but requests still arriving — is a confusing state to leave
 behind.
 
+What the removal says about watch history is part of its machine-readable answer,
+beside the requests it counts, so a surface that is not the terminal states it in
+the stack's words rather than its own (`D6-R18`). And the yes to a removal is the
+offer its reading answered, not a bare confirmation: reading what removing somebody
+costs and agreeing to it are two requests, and between them a request can be made
+or an account can change. The removal builds the offer again from what the services
+hold when it runs and refuses by name where anything moved, so a yes agrees to the
+cost that was read (`D6-R17`).
+
 ### LAN-only, and said plainly
 
 Household access works on the home network. Watching from elsewhere is not
@@ -207,6 +216,8 @@ Per household member:
 | **D6-R14** | lemonfiber MUST NOT grant household members any access to lemonfiber itself. |
 | **D6-R15** | An invitation MUST carry a decline address whose page offers the invitee a refusal of that invitation only, served by a service the stack keeps running under its restart policy beside the household front door, at the household binding tier, and never by a process whose lifetime is an operator's session — the CLI, the TUI or `lemonfiber ui` (`G1-R5`); who built the serving image does not matter. |
 | **D6-R16** | A refusal MUST make the invitation unclaimable at once, MUST be kept by the stack until the core reads it, and the core MUST report it as the invitation's standing, `declined`, told apart from one that lapsed (`expired`). |
+| **D6-R17** | Reading what removing a household member costs MUST answer with an offer naming what it read; the removal MUST take that offer as its yes, alike at the command line and over the web API (`ARCH-R48`), MUST build it again from what the media server and the request service hold when it runs, and MUST be refused, naming what moved, where the two differ. A bare `confirm` MUST NOT be a yes to a removal over the web API (`N13-R7`). |
+| **D6-R18** | The `removal` envelope MUST state what removing the person does to their watch history, in the stack's words, in the reading before the removal and in the answer after it runs, so that no surface writes that statement itself (`D6-R9`, `N13-R19`). |
 
 ## Related
 

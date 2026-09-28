@@ -45,6 +45,11 @@ Each preset states its practical consequence — approximate size per hour and
 whether a typical client will need to transcode — because that's what the choice
 actually costs.
 
+What may be chosen is the stack's vocabulary, so the quality reading carries it: the
+presets on offer, the formats music may take, and the kinds of media a preset may be
+chosen for. A surface offers those and nothing of its own, and a list kept anywhere
+else goes stale the day the stack's own list changes (`D2-R13`).
+
 ### Presets map to community-maintained profiles
 
 Presets are a friendly surface over Recyclarr's TRaSH-guide profiles, not a
@@ -82,6 +87,13 @@ protects that work from being reverted.
 Changing a preset affects future acquisitions. It does not retroactively upgrade
 an existing library unless the operator explicitly asks for that — which is a
 large, bandwidth-expensive operation and must never be a side effect.
+
+Both halves are said by the stack in its machine-readable answers. A choice says
+that it shapes what is fetched next and changes nothing already here (`D2-R14`), and
+an upgrade says what it costs in total for each kind of media, worked out from what
+the library holds, or that it could not be worked out. A rate per hour is not a
+cost, and a surface that multiplied one by a guess at the library's length would be
+estimating what the stack can read (`D2-R15`).
 
 ### On the companion
 
@@ -142,6 +154,9 @@ choices that could not be read is told apart from there being none (`N8-R9`).
 | **D2-R10** | Projected storage requirement MUST be compared against available space, with a warning where implausible. |
 | **D2-R11** | Media types without a resolution axis MUST present appropriate alternative options. |
 | **D2-R12** | A preset yielding no matching releases MUST be reported distinctly from an indexer failure. |
+| **D2-R13** | The `quality` envelope MUST carry the presets a choice may be made from, the formats music may take and the kinds of media a preset may be chosen for, each in the plain terms the command takes it in, so that no surface keeps its own list (`D2-R1`, `D2-R5`, `N24-R1`). |
+| **D2-R14** | The `quality` envelope answering a choice MUST state, in the stack's words, that the choice shapes future acquisitions only and changes nothing already in the library (`D2-R6`, `N24-R4`). |
+| **D2-R15** | The `upgrade` envelope MUST state, for each kind of media, what upgrading it costs in total, worked out by the stack from what the library holds, or MUST say that the cost could not be worked out; it MUST NOT leave a surface to derive a total from a rate per hour (`D2-R7`, `N24-R4`). |
 
 ## Related
 
