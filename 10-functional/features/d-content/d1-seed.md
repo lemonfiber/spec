@@ -5,8 +5,7 @@ kind: feature
 area: D
 audience: operator
 status: accepted
-maturity: shipped
-shipped: 0.12.0
+maturity: building
 labels: [seed, wiring]
 relates: [A7, C9, D2, E3]
 ---
@@ -155,6 +154,19 @@ Idempotence is not rehearsal. Running seed twice changing nothing is a property
 of the operation; a run that deliberately writes nothing is a rehearsal, and
 `N7-R10` holds it to the labelling `N6-R1` requires everywhere else.
 
+### The request service reaches the \*arrs through a gate
+
+Seerr is household tier, and a key to Sonarr, Radarr or Jellyfin is administration
+of that service. So the connections *Sonarr, Radarr → Seerr* and *Jellyfin → Seerr*
+are made through the request gate
+([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)).
+Seerr is registered with each \*arr at the gate's route for it and holds a token
+lemonfiber minted for that route; the gate holds the \*arr's key (`D1-R19`). Once
+Seerr is initialised, lemonfiber speaks to it with Seerr's own key, and the
+administrator's password the initialising sign-in carried is rotated (`D1-R20`). A
+stack whose Seerr already holds the keys has them taken back, each move proved
+through Seerr before anything is revoked (`D1-R21`).
+
 ## States
 
 Per connection:
@@ -208,6 +220,9 @@ Per connection:
 | **D1-R16** | Seeding MUST replace qBittorrent's temporary WebUI password with a generated one and record it where the forwarded-port push reads it. |
 | **D1-R17** | Each \*arr that fulfils requests MUST be registered with the request service as a fulfilment target, and one absent from the stack MUST NOT be. |
 | **D1-R18** | Every connection named in the wiring graph MUST be made where the services at both ends are in the stack, and each MUST be proven against the service that received it rather than against a stand-in for it. |
+| **D1-R19** | The request service MUST reach each fulfilling \*arr and Jellyfin only through the request gate: each \*arr MUST be registered with it at the gate's route for that \*arr and with the token lemonfiber minted for that route, never with the \*arr's own key, and it MUST be left holding no Jellyfin API key and no Jellyfin administrator's session ([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
+| **D1-R20** | Once the request service is initialised, lemonfiber MUST authenticate to it with the request service's own API key and MUST NOT send it the media server administrator's password; the password the initialising sign-in carried MUST be rotated once that sign-in completes. |
+| **D1-R21** | Where the request service is found holding a credential of an \*arr or of Jellyfin, lemonfiber MUST move it to the request gate and prove the move through the request service before revoking anything, MUST then revoke or rotate every credential the request service held, and MUST report any consumer the rotation could not update. |
 
 ## Related
 

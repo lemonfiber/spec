@@ -177,6 +177,7 @@ listening, not what was intended.
 | Household service needs to be reachable but the network is untrusted | Explain the trade-off; do not silently expose. |
 | A plugin adds a service that will listen | It declares which tier it belongs in, and lemonfiber assigns the address. A plugin that could write its own address could put an admin surface on the LAN without touching anything this feature inspects. |
 | A household service needs another service's administrative credential | Only for one operation that must answer at any hour, held alone, through fixed calls, and confined (`C6-R20`). Anything else keeps to the admin tier. |
+| The request service needs to reach the \*arrs and Jellyfin | Through the request gate, which holds their credentials and hands the request service only tokens of its own, answers a fixed list of calls and refuses the rest (`C6-R22`–`C6-R25`, [ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
 | The front door's address changes | Jellyfin's allowed origin changes with it (`C6-R21`). An empty list is never written, because Jellyfin reads it as every origin. |
 | A plugin's service is bound to the wrong tier | Caught the way every other wrong binding is caught: by checking what is actually listening against the policy (`C6-R13`), not by trusting what was declared. |
 
@@ -203,8 +204,12 @@ listening, not what was intended.
 | **C6-R17** | The interface household services publish on MUST be operator-configurable through a single documented setting, and where it defaults to all interfaces that MUST be stated plainly alongside its consequences. |
 | **C6-R18** | A service an installed plugin adds MUST be bound by the tier lemonfiber assigns from the classification the plugin declared, and a plugin MUST NOT be able to declare an address, an interface or a published port mapping. |
 | **C6-R19** | Replacing a certificate a companion may have pinned MUST be announced before it is replaced, naming re-pairing as the consequence; where renewal is performed by something lemonfiber does not control, that MUST be stated when the pairing material is produced rather than discovered at the next renewal ([ADR-0025](../../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)). |
-| **C6-R20** | A household-tier service MAY hold a credential that is administrative on another service only where one operation must be answerable at household reach at any hour. It MUST then hold that credential alone, MUST perform only that operation through a fixed set of calls, and MUST be confined: no data mount, a read-only root, no kernel capabilities, and no network reach beyond the service it acts on and the port it publishes. No other household-tier service MAY hold such a credential. |
+| **C6-R20** | A household-tier service MAY hold a credential that is administrative on another service only where one operation must be answerable at household reach at any hour. It MUST then hold that credential alone, MUST perform only that operation through a fixed set of calls, and MUST be confined: no data mount, a read-only root, no kernel capabilities, and no network reach beyond the service it acts on and the port it publishes. No other household-tier service MAY hold such a credential or an administrator's session on another service, and one that acts on another service's API MUST do so only through the request gate ([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
 | **C6-R21** | Jellyfin's cross-origin allow-list MUST name the household front door's origin and nothing else, MUST follow a change of that address, and MUST NOT be written empty or as a wildcard. |
+| **C6-R22** | The request gate MUST publish no port and MUST be reachable only from the request service, which MUST have no other network path to Sonarr, Radarr or Jellyfin. It MUST be confined: no data mount, no engine socket, a read-only root, no kernel capabilities, no egress, and network reach only to the services it acts on ([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
+| **C6-R23** | The request gate MUST answer only the calls ADR-0032 lists, by method and path, MUST build every upstream request itself from the parameters and body fields that list names, checking each write's body against what the upstream holds, MUST refuse every other call without forwarding it, and MUST NOT pass an upstream administrator's session to the request service. |
+| **C6-R24** | The request gate MUST hold the upstream credentials itself and MUST give the request service only tokens lemonfiber minted, one per upstream, kept by the gate only as hashes and by lemonfiber nowhere; each token MUST be rotatable, proven before the one it replaces is revoked, and revocable alone. |
+| **C6-R25** | The request gate MUST record every call it refuses and every removal it forwards, with its time, route, method and path and never a token, a query string or a body, and a diagnostic check MUST report each since it last read the record. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber-media-stack` publishes the household
 tier on a configurable address; `lemonfiber` reports the observed binding under
@@ -213,7 +218,9 @@ side that produces pairing material. Under `C6-R20`, the decline service's own
 repository builds a confined image, `lemonfiber-media-stack` runs it and stops
 giving Homepage the Jellyfin key, and `lemonfiber` mints the service's key and no
 longer publishes `JELLYFIN_API_KEY`. Under `C6-R21`, `lemonfiber` writes and checks
-Jellyfin's allow-list.
+Jellyfin's allow-list. Under `C6-R22`–`C6-R25`, the request gate's own repository
+builds its confined image, `lemonfiber-media-stack` runs it and moves Seerr off the
+default network, and `lemonfiber` mints the gate's tokens and writes its files.
 
 ## Related
 

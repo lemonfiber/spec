@@ -64,13 +64,17 @@ DOCUMENT_STATUS = re.compile(r"^\*\*Status:\*\*\s*(\w+)", re.MULTILINE)
 # requirement is a decision about what ships when, and a gate is the wrong place
 # to make one.
 AWAITING_A_VERSION = {
-    # C6-R20 lets one household-tier service hold a credential administrative on
-    # another and forbids it to every other, while D1-R17 registers each *arr with the
-    # request service, which is household tier, by that *arr's own key. No version can
-    # lock both until a decision changes the architecture one of them describes.
+    # ADR-0032 decides how C6-R20 and D1-R17 both hold: the request service reaches
+    # the *arrs and Jellyfin through a gate that holds their credentials. Locking
+    # these adds goals to a staged version, which is a change of its own under
+    # review (OPS-R31), so they wait here until it is made.
     "C6": (
-        "C6-R20 contradicts D1-R17 and waits on a decision changing the architecture; C6-R19 is locked by 0.17.0, C6-R18 by 0.18.0, and the rest of C6 by 0.9.0 and 0.10.0, both released",
-        ["C6-R20", "C6-R21"],
+        "C6-R20 and the request gate's rows wait on 0.17.0's goal change for ADR-0032; C6-R19 is locked by 0.17.0, C6-R18 by 0.18.0, and the rest of C6 by 0.9.0 and 0.10.0, both released",
+        ["C6-R20", "C6-R21", "C6-R22", "C6-R23", "C6-R24", "C6-R25"],
+    ),
+    "D1": (
+        "the request gate's rows wait on 0.17.0's goal change for ADR-0032; the rest of D1 is locked by 0.4.0 and 0.12.0, both released",
+        ["D1-R19", "D1-R20", "D1-R21"],
     ),
     # Locking these adds goals to a staged version, which is a change of its own under
     # review (OPS-R31), so they wait here until it is made.
