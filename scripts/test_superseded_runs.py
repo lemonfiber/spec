@@ -239,6 +239,9 @@ class Unreadable(Repository):
     def test_a_line_that_is_not_a_key(self):
         self.refuses("on: pull_request\n? complex\n" + JOBS, "not a key this reader knows")
 
+    def test_a_colon_with_nothing_after_it_but_more_text(self):
+        self.refuses("on: pull_request\nname:ci\n" + JOBS, "not a key this reader knows")
+
     def test_a_quote_that_never_closes(self):
         self.refuses(workflow("on: pull_request", 'concurrency:\n  group: "open\n'), "unclosed quote")
 

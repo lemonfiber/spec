@@ -53,7 +53,7 @@ REPORTED = frozenset({
 
 # `key: value`, `key:`, and a quoted key, which is how `"on":` is written by
 # anyone whose YAML reads a bare `on` as `true`.
-ENTRY = re.compile(r"""^(?P<key>"[^"]*"|'[^']*'|[\w.-]+)[ \t]*:(?:[ \t]+(?P<value>.*))?$""")
+ENTRY = re.compile(r"""^(?P<key>"[^"]*"|'[^']*'|[\w.-]+)[ \t]*:(?P<value>.*)$""")
 
 
 class Unread(ValueError):
@@ -103,9 +103,9 @@ def entries(lines: list[tuple[int, str]]) -> list[tuple[str | None, str, list]]:
             found.append((None, body[1:].strip(), []))
             continue
         matched = ENTRY.match(body)
-        if matched is None:
+        if matched is None or matched["value"][:1] not in {"", " ", "\t"}:
             raise Unread(f"{body!r} is not a key this reader knows")
-        found.append((unquote(matched["key"]), matched["value"] or "", []))
+        found.append((unquote(matched["key"]), matched["value"].strip(), []))
     return found
 
 
