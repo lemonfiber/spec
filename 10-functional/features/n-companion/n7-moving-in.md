@@ -14,7 +14,7 @@ relates: [D1, A6, E3, N2]
 
 # N7 — Moving in beside what is already there
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

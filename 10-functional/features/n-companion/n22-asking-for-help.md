@@ -14,7 +14,7 @@ relates: [N2, N4]
 
 # N22 — Asking for help
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

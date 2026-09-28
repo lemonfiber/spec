@@ -14,7 +14,7 @@ relates: [N6, N11, N20]
 
 # N25 — A plugin after it lands
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

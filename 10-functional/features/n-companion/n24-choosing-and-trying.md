@@ -14,7 +14,7 @@ relates: [N8, N15, N19]
 
 # N24 — Choosing how good, and trying one
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 

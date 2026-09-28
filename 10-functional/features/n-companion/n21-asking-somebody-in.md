@@ -14,7 +14,7 @@ relates: [N3, N9, N13, N4]
 
 # N21 — Asking somebody in
 
-**Status:** Draft · **Audience:** Operator · **Area:** N — Companion
+**Status:** Accepted · **Audience:** Operator · **Area:** N — Companion
 
 ---
 
