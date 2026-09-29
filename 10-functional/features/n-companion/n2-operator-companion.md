@@ -45,10 +45,15 @@ rather than a blank. Beneath it is what is wrong, worst first.
 ### A finding carries its remedy, and the remedy is offered
 
 Every problem lemonfiber raises carries a code, what it means in plain language,
-and what to do ([G4](../g-ux/g4-error-model.md)). Where the product can put it
-right itself, the repair is offered here on the same terms it is offered
-anywhere: what it would do, what else changes, whether it can be undone, and a
-confirmation before it happens.
+and what to do ([G4](../g-ux/g4-error-model.md)). The meaning and what to do are
+on the finding; the code is one step away, available and not leading (`G4-R4`).
+A finding about a service carries its code to the log view its card opens, where
+it is said above the lines, and a finding about the machine, which has no log to
+open, carries it in the detail at the foot of its card.
+
+Where the product can put it right itself, the repair is offered here on the
+same terms it is offered anywhere: what it would do, what else changes, whether
+it can be undone, and a confirmation before it happens.
 
 A repair is never carried out because the operator tapped the finding.
 
@@ -173,7 +178,7 @@ type a provider password into over a LAN.
 |----|-------------|
 | **N2-R1** | The app MUST open on the overall verdict, and MUST render `unknown` as its own answer rather than as healthy or as an absence. |
 | **N2-R2** | Findings MUST be ordered by severity, worst first. |
-| **N2-R3** | Every finding shown MUST carry its code, its plain-language meaning, and its remedy, in the words the core produced. |
+| **N2-R3** | Every finding shown MUST carry its plain-language meaning and its remedy, in the words the core produced. Its code MUST be available from it and MUST NOT lead (`G4-R4`): a finding about a service MUST carry its code to the log view it opens, and a finding about the machine MUST carry it in the detail at the foot of the finding. |
 | **N2-R4** | Where the core offers a repair, the app MUST offer it, and MUST state what it does, what else it affects, and whether it can be undone, before asking for confirmation. |
 | **N2-R5** | A repair MUST NOT be carried out without an explicit confirmation distinct from the act of viewing the finding. |
 | **N2-R6** | A repair confirmed against one reading MUST NOT be carried out if the reading has changed; the app MUST refuse and re-offer. |
