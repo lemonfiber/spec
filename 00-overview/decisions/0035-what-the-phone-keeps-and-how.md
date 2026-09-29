@@ -28,9 +28,11 @@ rather than a file for exactly this reason: a file in the app's own storage is
 readable by a device backup, by a rooted device, and by whatever a restore puts it
 back onto.
 
-**The framework's own key sits beside the data.** NativePHP generates an `APP_KEY`
-per install and keeps it as a plain file in the app's private storage, next to the
-database. Encrypting with it would put the key in the same place as what it locks.
+**On Android the framework's own key sits beside the data.** NativePHP generates an
+`APP_KEY` per install. On iOS it keeps it in the Keychain; on Android it keeps it as a
+plain file in the app's private storage, next to the database, so encrypting with it
+there would put the key in the same place as what it locks. One way of sealing has to
+hold on both.
 
 **The app is modular, and one store would not stay small.** Every module that decides
 something about a stack would add its tables, queries and migrations to whichever
@@ -142,7 +144,7 @@ package it adapts, and never a capability.
 | **One store: a kernel port and one implementation in `vault`** | The first design. Every module that keeps something would add its tables, queries and migrations to `vault`, which would grow with every feature and become the place every change has to go through. An adapter per owner keeps each small and keeps the boundary rules meaningful. |
 | **The store inside each capability** | Keeps each owner's queries beside its decisions, and puts Laravel's database into modules the architecture keeps framework-free (A1, A7): a capability that can reach a database is one that can be run wrong. |
 | **Each store adapter seals** | Every adapter would receive plain values and have to remember to seal them. Sealing in the capability makes a plain value unrepresentable at a store port. |
-| **Laravel's `Crypt` with the framework's `APP_KEY`** | The key is a plain file in the same private storage as the database, so anything that can read one can read the other. It stops only somebody opening the file by hand. |
+| **Laravel's `Crypt` with the framework's `APP_KEY`** | On Android the key is a plain file in the same private storage as the database, so anything that can read one can read the other, and it stops only somebody opening the file by hand. A key the app makes and keeps in secure storage holds on both platforms. |
 | **Keep only what names nobody, in a plain file excluded from backups** | Would leave out the household's readings, and relies on the device's sandbox alone: a rooted device reads it. |
 | **An encrypted database file (SQLCipher)** | Not something NativePHP's SQLite offers; it would mean patching the packager's native build on both platforms for what per-value encryption already gives. |
 | **Eloquent models with encrypted casts** | The encrypted cast is bound to the application's encrypter unless overridden, models would cross into screens, and a model is a second place a row's meaning is decided. |
