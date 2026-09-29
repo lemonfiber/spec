@@ -108,7 +108,14 @@
 # come back (N16-R6) was told nothing fell short; and a service left created behind a
 # dependency that never became ready read as stopped, which dropped the form the operator
 # had just started from what the stack counts as brought.
-# 124 goals, seeded from the roadmap milestone this version serves;
+#
+# `ARCH-R136` and `ARCH-R137` are the contract `F9-R2` and `F9-R5` are built on. A
+# bundled service declared its capabilities in `provides` with nothing binding a probe
+# to a request and a recording, so there was no evidence to judge and no gate to refuse
+# a pin that lost one. They give the stack manifest the claim a plugin already carries,
+# and put every bundled claim through its recordings before a stack change merges and
+# before a tag.
+# 126 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -241,6 +248,8 @@ goals   = [
     "ARCH-R129",
     "ARCH-R130",
     "ARCH-R135",
+    "ARCH-R136",
+    "ARCH-R137",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
