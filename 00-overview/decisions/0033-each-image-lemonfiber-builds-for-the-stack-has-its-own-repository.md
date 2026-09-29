@@ -29,6 +29,7 @@ compromise of either is bounded by what that one holds (ADR-0029 §6, ADR-0032's
 containment table).
 
 **They share almost no code.**
+
 - The decline service makes three fixed Jellyfin calls.
 - The gate builds a fixed list of \*arr and Jellyfin calls from Seerr's requests.
 - The core has no Jellyfin or \*arr client to reuse: its calls live inside
@@ -38,12 +39,14 @@ containment table).
   lines.
 
 **They change for different reasons.**
+
 - A Seerr release that changes its \*arr calls changes the gate and nothing else.
 - A Jellyfin line that changes how a policy is written changes the decline service.
 - A vulnerability in one is patched, released and re-pinned without touching the
   other.
 
 **The organisation already names its parts one way.**
+
 - Governed product repositories are `lemonfiber-<role>`: `lemonfiber-web`,
   `lemonfiber-companion`, `lemonfiber-media-stack`, `lemonfiber-plugins`.
 - Clients are `sdk-<language>`. Plugins, which are data a stranger could have
