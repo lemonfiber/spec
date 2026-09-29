@@ -102,7 +102,13 @@
 # with `500`, which a client can only word as a failure of the machine; B6 asks it to say
 # another operation is in progress instead. It is a status on the web API, so it ships
 # with the rest of what this version puts there.
-# 122 goals, seeded from the roadmap milestone this version serves;
+#
+# `B2-R20` and `B2-R21` are what a start that failed owes the operator. A start whose
+# command failed read back no service at all, so a companion asked to name what did not
+# come back (N16-R6) was told nothing fell short; and a service left created behind a
+# dependency that never became ready read as stopped, which dropped the form the operator
+# had just started from what the stack counts as brought.
+# 124 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -133,6 +139,8 @@ goals   = [
     "B2-R17",
     "B2-R18",
     "B2-R19",
+    "B2-R20",
+    "B2-R21",
     "C9-R16",
     "D2-R13",
     "D2-R14",

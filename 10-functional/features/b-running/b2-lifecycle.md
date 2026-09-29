@@ -115,7 +115,23 @@ This serves debugging, learning, and the operator who wants to run it themselves
 
 Per-service status distinguishes: not created, created but stopped, starting,
 healthy, unhealthy, restart-looping, and stopped-with-error. "Up" is not a
-status — it's an ambiguity. See [G7](../g-ux/g7-health-summary.md) for the
+status — it's an ambiguity.
+
+A container a start created and that never ran is not stopped. lemonfiber never
+creates a container without starting it, so one left created is a start that did
+not happen — most often because something it depends on never became ready — and
+it is reported as `failed`. Reported as stopped, it would read as something the
+operator turned off, and a form holding it would stop counting as brought the
+moment the operator asked for it.
+
+### A start that did not complete says what did not come back
+
+A start can fail before anything settles: the engine refuses it, or a dependency
+never becomes ready and the service that needs it is left created. The report
+still names the state of every service the start addressed, and of the services
+those depend on, read once when the start ends rather than waited for. A failed
+start that says nothing about any service reads as one where nothing fell short,
+which is the opposite of what happened. See [G7](../g-ux/g7-health-summary.md) for the
 one-line rollup.
 
 ## States
@@ -130,7 +146,7 @@ Per service:
 | `healthy` | Running and passing health checks |
 | `unhealthy` | Running but failing health checks |
 | `crash-looping` | Repeatedly exiting and restarting |
-| `failed` | Exited non-zero and not restarting |
+| `failed` | Exited non-zero and not restarting, or created by a start and never run |
 
 Per form: `inactive`, `partial` (some services healthy), `active` (all healthy),
 `degraded` (running with at least one failure).
@@ -146,6 +162,8 @@ Per form: `inactive`, `partial` (some services healthy), `active` (all healthy),
 | Port conflict on start | Name the port, the service, and the conflicting process where the OS allows. |
 | Image missing locally | Pull it, with progress. Don't fail with "no such image". |
 | Image pull fails | Report which image and why; leave already-started services running. |
+| A dependency never becomes ready, and the service needing it is left created | Report the dependency as it stands and the service as `failed`, not stopped, and keep counting the form the operator asked for. |
+| The start command itself fails | Read every addressed service and its dependencies once, and report each one's state; never report that no service fell short. |
 | Stopping a shared service | Refuse if another active form requires it; name that form. |
 | Gluetun stopped while qBittorrent runs | Stop qBittorrent first. Ordering within the `torrent` profile is enforced. |
 | Restart requested for a native-mode Jellyfin | Report that it's host-managed and print the platform-specific command; do not attempt to control the OS service manager. |
@@ -176,6 +194,8 @@ Per form: `inactive`, `partial` (some services healthy), `active` (all healthy),
 | **B2-R17** | The status reading's `disturbs` MUST carry an entry for fetching a form's images, stating that fetch as open-ended and naming what it waits on as the images coming down the line, so that a surface can say before a fetch that it may take long and use a lot of the line without estimating either (`B2-R16`, `N2-R24`). |
 | **B2-R18** | The lines the container engine writes while pulling images MUST reach the web API's event stream as `pull` events, for a fetch and for a start that pulls, as they reach a terminal (`B2-R12`, `N2-R24`). |
 | **B2-R19** | A `start` or `pull` line on the event stream said by work a job names MUST carry that job's name, as the work's accepting reply carried it, so that a surface can tie each line to the start or fetch it asked for (`B2-R2`, `N2-R23`). |
+| **B2-R20** | A start that did not complete MUST report the state of every service it addressed and of the services those depend on, read once when it ends and without waiting for any of them to settle, and MUST NOT report that no service fell short (`B2-R3`, `N16-R6`). |
+| **B2-R21** | A container a start created and that never ran MUST be reported as `failed`, not `stopped`, and a form holding it MUST go on counting as brought (`B2-R10`). |
 
 ## Related
 
