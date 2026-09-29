@@ -191,11 +191,11 @@ AWAITING_A_VERSION = {
         [f"N26-R{n}" for n in range(1, 20)],
     ),
     "N27": (
-        "N27 requires N1 and N4, whose app side no version schedules; the app takes no release",
+        "N27 requires N1 and N4, whose app side no version schedules; what they require is locked by 0.11.0 at the latest, released",
         [f"N27-R{n}" for n in range(1, 23)],
     ),
     "N28": (
-        "N28 requires N1 and N2, whose app side no version schedules, and N27; the app takes no release",
+        "N28 requires N1 and N2, whose app side no version schedules, and N27; what N1 and N2 require is locked by 0.11.0 at the latest, released",
         [f"N28-R{n}" for n in range(1, 13)],
     ),
     "N7": (
