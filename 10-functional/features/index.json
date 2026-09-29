@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 105,
-    "requirements": 1581,
+    "features": 106,
+    "requirements": 1593,
     "areas": "A–N"
   },
   "versions": [
@@ -3822,6 +3822,36 @@
       ],
       "versions": [],
       "path": "n-companion/n27-what-the-phone-keeps.md"
+    },
+    {
+      "id": "N28",
+      "title": "Finding your way",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "N2",
+        "N27"
+      ],
+      "relates": [
+        "N3",
+        "N4",
+        "G2",
+        "G3"
+      ],
+      "versions": [],
+      "path": "n-companion/n28-finding-your-way.md"
     }
   ]
 }

@@ -68,6 +68,7 @@ SDK, already generated from `web-api.contract.json`
 | The household's screens | [N3](../10-functional/features/n-companion/n3-household-companion.md) |
 | Device permissions, secure storage, app lock, notifications | [N4](../10-functional/features/n-companion/n4-native-integration.md) |
 | What the phone keeps between launches | [N27](../10-functional/features/n-companion/n27-what-the-phone-keeps.md) |
+| The top bar, the tabs, the menu and the words on them | [N28](../10-functional/features/n-companion/n28-finding-your-way.md) |
 
 ## Standards
 
