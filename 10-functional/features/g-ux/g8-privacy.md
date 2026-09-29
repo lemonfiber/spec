@@ -51,6 +51,8 @@ listed:
 | Update check | Determine if a newer lemonfiber exists | Yes — disableable |
 | IP echo service | Verify VPN egress ([C2](../c-trust/c2-vpn-verification.md)) | Yes — disables leak detection |
 | TRaSH guide source | Sync quality profiles | Yes — disables preset sync |
+| Plugin catalogue release | Resolve a plugin installed by name, through an index whose signature is checked ([F5](../f-extensibility/f5-plugin-catalogue.md)) | Yes — install from a named source instead |
+| A plugin's named git source | Fetch the revision being installed or updated, and ask whether it can still be reached when the operator lists plugins or runs the doctor | Yes — install from a local path instead |
 
 Nothing else. The list is short by design and is testable.
 

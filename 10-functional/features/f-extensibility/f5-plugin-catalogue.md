@@ -52,13 +52,21 @@ contribution; one that passes there has gone stale, and does. The acceptance bar
 mechanical before it is human. A human then reads
 the diff, which is possible precisely because a plugin is data.
 
-Releases from the catalogue are signed. An operator installing from the catalogue is
-relying on: a schema that was checked, proofs that ran, a person who read it, and a
-signature that ties what they fetched to what was reviewed.
+Releases from the catalogue are signed. A release is a tag whose assets are an index —
+each plugin id with its origin, the revision that was reviewed and the digest of its
+manifest there — and a signature over exactly that index, made with a key pair whose
+public half lemonfiber carries and checks offline
+([ADR-0034](../../../00-overview/decisions/0034-a-catalogue-release-is-signed-with-a-key-the-binary-carries.md)).
+An operator installing from the catalogue is relying on: a schema that was checked,
+proofs that ran, a maintainer who merged it, and a signature that ties what they
+fetched to what was reviewed.
 
 ### An operator may install from anywhere, and is told what that means
 
-`lemonfiber plugin add` accepts a git URL or a local path. The manifest is validated, the
+`lemonfiber plugin install` accepts a plugin's name, a git URL or a local path. A name is
+resolved only through a catalogue index whose signature verified, and installs the
+revision the index names. A git URL may name a revision (`<url>@<rev>`); either way it is
+pinned to the commit it resolves to, and that commit is what is recorded. The manifest is validated, the
 proofs are run, and the same rules about undeclared reach apply — the technical bar does
 not move. What moves is what lemonfiber claims: an unreviewed plugin is installed as
 unreviewed, said at install and carried on the plugin afterwards.
@@ -83,7 +91,9 @@ A plugin reaching a host it did not declare is a refusal, not a log line.
 Where a plugin came from, which revision, and what signed it are recorded when it is
 installed and readable afterwards. A plugin whose source can no longer be reached does
 not become untrusted retroactively — but it does become unupdatable, and that is said
-rather than discovered at the next attempt.
+rather than discovered at the next attempt. Whether a source can still be reached is
+asked when the operator lists what is installed or runs the doctor, and never in the
+background; a local path that is no longer there cannot be reached.
 
 ### The catalogue is not a single point of failure
 
@@ -121,6 +131,8 @@ something they remember is answered rather than told it does not exist.
 | A plugin declares a host it never reaches | Allowed. Declaring more than is used is conservative, and the account says what was declared. |
 | A recipe reaches a host the manifest did not declare | Refuse the plugin. The account of what leaves this machine must stay complete. |
 | A plugin's source disappears after installation | Keep it running, mark it unupdatable, and say so rather than failing at the next update attempt. |
+| A plugin installed from a local path whose directory is gone | The same: it cannot be reached, so it is unupdatable. |
+| An install by name finds an index whose signature does not verify, or none | Refuse the install and resolve nothing through that index. Installing from a named source is unaffected. |
 | A catalogue contribution's proofs fail in CI | Refuse the contribution before merge. The catalogue never serves a plugin whose proofs did not pass. |
 | A contribution's proof fails on a recording its manifest declares it fails on | Accept it on that proof, and name it as failing as declared with its reason, never as passed (`F5-R13`, `F10-R13`). |
 | An operator asks whether a plugin was reviewed | Answerable from the installed plugin itself, not only from the catalogue. |
@@ -129,7 +141,7 @@ something they remember is answered rather than told it does not exist.
 
 | ID | Requirement |
 |----|-------------|
-| **F5-R1** | A reviewed plugin catalogue MUST exist as a git repository in the project's organisation, and every plugin MUST enter it by reviewed pull request. |
+| **F5-R1** | A reviewed plugin catalogue MUST exist as a git repository in the project's organisation, and every plugin MUST enter it by a pull request that passes the catalogue's checks, with signed commits, merged by a maintainer. |
 | **F5-R2** | *Superseded by [F5-R13](f5-plugin-catalogue.md): a proof failing as declared does not refuse a contribution. The number is not reused.* |
 | **F5-R3** | Catalogue releases MUST be signed, and a signature that does not verify MUST be refused. |
 | **F5-R4** | An operator MUST be able to install a plugin from a git source or local path they name. |
@@ -142,6 +154,7 @@ something they remember is answered rather than told it does not exist.
 | **F5-R11** | A plugin whose origin can no longer be fetched MUST keep working and MUST be reported as unupdatable. |
 | **F5-R12** | Two plugins of the same name from different origins MUST be refused, naming both origins. |
 | **F5-R13** | The catalogue's CI MUST validate every manifest against the published schema and run every declared proof, and MUST refuse a contribution any of whose proofs is neither passed nor failing as declared ([`F10-R13`](f10-authoring.md)). A proof failing as declared MUST be named as such and MUST NOT be counted as passed. |
+| **F5-R14** | An install by name MUST resolve the name only through a catalogue index whose signature verified against the key lemonfiber carries, and MUST install the revision that index names. |
 
 ## Related
 
