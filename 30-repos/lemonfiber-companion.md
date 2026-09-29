@@ -103,6 +103,13 @@ SDK rule structural rather than advisory: `modules/sdk` and the development-only
 `modules/dx` are the only manifests requiring `lemonfiber/sdk-php`, so a screen that names the SDK is a shadow
 dependency and fails resolution. `N1-R16` stops being a rule a reviewer applies.
 
+A capability that keeps something between launches holds its store inside itself,
+walled off rather than split into a module of its own: the framework only in its
+`src/Internal/Store` and its `database/migrations`, the store reached only through a
+port the capability declares and the composition root binds, and its tables named for
+it and read by nobody else
+([ADR-0035](../00-overview/decisions/0035-what-the-phone-keeps-and-how.md)).
+
 The architecture document in that repository lists every rule beside the
 mechanism enforcing it, and a test reads that column and fails when the two
 disagree — in either direction. A rule table that can quietly go out of date is
@@ -116,7 +123,7 @@ worse than none, because people stop reading it once they trust it.
 | A paired fingerprint decides which machine it will talk to | [ADR-0018](../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md) |
 | A screen paints what it knows before it reaches the stack | [ADR-0019](../00-overview/decisions/0019-a-screen-paints-before-it-reaches-the-stack.md) |
 | An action the stack did not receive did not happen | [ADR-0020](../00-overview/decisions/0020-an-action-the-stack-did-not-receive-did-not-happen.md) |
-| What the phone keeps: decided by the capability it belongs to, stored by an adapter of its own, sealed with a key the platform holds | [ADR-0035](../00-overview/decisions/0035-what-the-phone-keeps-and-how.md) |
+| What the phone keeps: decided and stored by the capability it belongs to, its store walled inside it, sealed with a key the platform holds | [ADR-0035](../00-overview/decisions/0035-what-the-phone-keeps-and-how.md) |
 
 ## It follows the main repos rather than gating them
 
