@@ -78,6 +78,15 @@ the source of truth for both, and there is no separate, gentler treatment for th
 services this project happens to ship. A version does not go out with a bundled claim
 its own probes refuse.
 
+The evidence is the plugin's, in the stack manifest: each capability a service
+provides carries a claim binding every probe to a request and a response recorded
+from the pinned image, under `recordings/<service>/` in the stack repository
+([stack-manifest](../../../20-architecture/contracts/stack-manifest.md#serviceclaim--the-evidence-for-what-it-provides),
+`ARCH-R136`). A pin bump that moves a digest re-records in the same change. Every
+claim is judged against its recordings on every change to the stack and again
+before lemonfiber is tagged; a refuted probe refuses both, and one that cannot be
+judged is reported unproven rather than counted (`ARCH-R137`).
+
 ### Substitution stops being a rewrite
 
 The test of whether this landed is not that the declarations exist. It is that replacing

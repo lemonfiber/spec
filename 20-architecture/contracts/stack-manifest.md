@@ -176,6 +176,7 @@ media_types = ["tv"]
 | `asks_for` | string | | What it asks for there. Never blank, including for a service that reaches nothing (`F2-R10`). |
 | `media_types` | array | | Which media types it handles; drives root-folder seeding. One or more of `tv`, `movies`, `music`, `books`, `comics`. |
 | `provides` | array | | The capabilities this service provides, in the published [capability vocabulary](capability-vocabulary.md). A name the vocabulary does not carry fails validation, named (`ARCH-R110`). |
+| `claim` | array of tables | ✔ if `provides` | One per capability in `provides`: the probes that demonstrate it, each bound to a request on this service and a recorded response. See [`[[service.claim]]`](#serviceclaim--the-evidence-for-what-it-provides) (`ARCH-R136`). |
 | `depends_on` | array | | **Same profile only.** Cross-profile entries fail validation (`B1-R14`). |
 | `grants` | array | | Extra kernel capabilities granted to the container, e.g. `["NET_ADMIN"]`. Any entry beyond an allow-list fails validation. Spelled `capabilities` until `0.16.0`; that spelling is still accepted and always will be, because a rename is not a reason to refuse to read somebody's own stack description. |
 | `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`) |
@@ -221,6 +222,63 @@ and Unpackerr watches the filesystem; Homepage and Caddy are configured by
 lemonfiber writing a file rather than by anything asking them a question. A
 capability is something one service asks another for while both are running, and
 nothing asks these four — so there is nothing to stand in for.
+
+### `[[service.claim]]` — the evidence for what it provides
+
+`provides` is a declaration. A claim is the evidence for it, in exactly the shape a
+plugin's [`[[claim]]`](plugin-manifest.md#claim--the-probes-a-core-name-is-demonstrated-by)
+takes, so a bundled service and a plugin standing in for it are held to one contract
+by one reader:
+
+```toml
+[[service]]
+id       = "jellyfin"
+provides = ["media.serve", "identity.source"]
+
+[[service.claim]]
+capability = "media.serve"
+
+[[service.claim.probe]]
+id      = "guarded"
+request = { method = "GET", path = "/Items" }
+expect  = { status = 401 }
+fixture = "recordings/jellyfin/media-serve-guarded.json"
+
+[[service.claim.probe]]
+id      = "catalogue"
+request = { method = "GET", path = "/Items" }
+expect  = { status = 200, json_has_keys = ["Items", "TotalRecordCount"] }
+fixture = "recordings/jellyfin/media-serve-catalogue.json"
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `capability` | string | ✔ | A capability in this service's `provides` |
+| `probe[].id` | string | ✔ | Names a probe the capability declares. Every one of them, exactly once. |
+| `probe[].request` | table | ✔ | `method`, `path`, and optionally `accept`, on this service. As a plugin's [request](plugin-manifest.md#what-a-request-may-ask-for). |
+| `probe[].expect` | table | ✔ | What the answer must be, within what the probe permits. |
+| `probe[].fixture` | string | ✔ | The recorded response, under `recordings/<service id>/` in the stack directory. |
+
+**The binding rules are the plugin's, unchanged** (`ARCH-R109`): every probe the
+capability declares is bound, no binding names a probe it does not declare, every
+expectation is one the probe permits, and each is refused by naming the probe. A
+recording is the file a plugin's is, [one response recorded from the pinned
+image](plugin-manifest.md#what-a-recording-is) (`ARCH-R120`), and its
+`recorded_from` MUST name this service's own `image@digest`. Moving a pin therefore
+means re-recording in the same change: a recording naming another digest is refused
+rather than trusted.
+
+**Every bundled claim is judged against its recordings before a release is tagged**
+(`ARCH-R137`), in the stack repository's CI on every change and in lemonfiber's
+release gate against the stack it embeds. A probe the recording refutes refuses the
+change and the tag, naming the service, the capability and the probe; that is
+`F9-R5`'s *no gentler treatment for being bundled*, because a plugin's claim failing
+the same probe is refused the same way. A probe that cannot be judged — its
+recording absent, unreadable, or of another request — is reported unproven, naming
+the recording, and is never counted as demonstrated (`ARCH-R122`).
+
+The four services that provide nothing carry no claim, and there is nothing to
+prove for them: a claim with no capability in `provides` to answer is refused.
 
 ### `reaches` and `asks_for` — the errand, where the errand is decided
 
@@ -471,6 +529,12 @@ Validation reports **every** violation in one pass, each naming its location
 | No wiring names its own `by` as `to` or `filled_by` | Wiring named |
 | No two wirings carry the same `by` and `asks`, or the same `by` and `to` | Both wirings named |
 | Every `depends_on` edge is also declared as a by-name `[[wiring]]` | Service and target named (`F4-R12`, `F9-R4`) |
+| Every capability in `provides` has exactly one `[[service.claim]]` | Service and capability named (`ARCH-R136`) |
+| Every `[[service.claim]]` names a capability in the service's `provides` | Service and capability named (`ARCH-R136`) |
+| Every probe a claimed capability declares is bound, and no binding names one it does not declare | Service, capability and probe named (`ARCH-R109`) |
+| A binding's expectation is one the probe permits | Service, probe and constraint named (`ARCH-R109`) |
+| Every `fixture` is under `recordings/<service id>/` and names a recording that exists | Service and path named (`ARCH-R136`) |
+| Every recording's `recorded_from` is the service's own `image@digest` | Service, recording and both images named (`ARCH-R136`) |
 | Manifest services match `compose.yml` services exactly | Divergence listed both ways |
 
 That last rule matters more than it looks: a manifest describing a service that
