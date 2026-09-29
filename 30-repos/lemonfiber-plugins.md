@@ -112,6 +112,13 @@ A release is signed (`F5-R3`), and the signature covers exactly what was reviewe
 artefacts — one capability, two consumers, and the earlier consumer sets the date
 ([ADR-0023](../00-overview/decisions/0023-a-pin-is-a-digest.md)).
 
+What is reviewed is the register, so what a release signs is an index of it: each
+plugin id with its origin, the revision reviewed and the digest of its manifest there.
+A release workflow here writes `index.json`, signs it with cosign using the key held as
+the `CATALOGUE_SIGNING_KEY` secret, and publishes both on the tag, and it fails rather
+than publish an index it could not sign
+([ADR-0034](../00-overview/decisions/0034-a-catalogue-release-is-signed-with-a-key-the-binary-carries.md)).
+
 ## What it never becomes
 
 **Not a runtime dependency.** An installed plugin keeps working with this repository

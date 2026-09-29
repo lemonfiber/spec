@@ -115,7 +115,12 @@
 # a pin that lost one. They give the stack manifest the claim a plugin already carries,
 # and put every bundled claim through its recordings before a stack change merges and
 # before a tag.
-# 126 goals, seeded from the roadmap milestone this version serves;
+#
+# `F5-R14` is what installing a plugin by its name rests on. `F5-R3` signs a catalogue
+# release and refuses a signature that does not verify, and says nothing about what an
+# install by name may resolve through; without this an unsigned index, or a revision
+# other than the one reviewed, would satisfy the letter of it (ADR-0034).
+# 127 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -250,6 +255,7 @@ goals   = [
     "ARCH-R135",
     "ARCH-R136",
     "ARCH-R137",
+    "F5-R14",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

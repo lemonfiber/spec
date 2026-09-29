@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 104,
-    "requirements": 1558,
+    "requirements": 1559,
     "areas": "A–N"
   },
   "versions": [
@@ -112,7 +112,7 @@
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 126
+      "goals": 127
     },
     {
       "version": "0.19.0",
@@ -1806,6 +1806,10 @@
         {
           "version": "0.17.0",
           "status": "staged"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         }
       ],
       "path": "f-extensibility/f5-plugin-catalogue.md"

@@ -34,7 +34,9 @@ Every release MUST produce artifacts for macOS (arm64 and x86_64), Linux (gnu an
 musl), and Windows, built by the release pipeline rather than by hand. Each
 artifact MUST carry a checksum and a verifiable signature, so an operator can
 confirm that what they downloaded is what was published and not something
-substituted in transit.
+substituted in transit. The signing mechanism is the one the plugin catalogue
+already uses, with a key of the release pipeline's own
+([ADR-0034](../../../00-overview/decisions/0034-a-catalogue-release-is-signed-with-a-key-the-binary-carries.md)).
 
 ### The paths people install through
 
