@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-09-29
-**Decided:** 2026-09-29, by the maintainer, Wessel Verheij: readings, preferences and markers kept in the app's SQLite database, each owned by the module that decides about it, with every payload encrypted under a key the platform's secure storage holds.
+**Decided:** 2026-09-29, by the maintainer, Wessel Verheij: readings, preferences and markers kept in the app's SQLite database, each decided by the capability it belongs to and stored by a small adapter of its own, with every payload sealed before it reaches a store, under a key the platform's secure storage holds.
 
 ## Context
 
@@ -38,6 +38,11 @@ module held the store, until that module held everything
 ([`30-repos/lemonfiber-companion.md`](../../30-repos/lemonfiber-companion.md), *How
 it is laid out*).
 
+**A capability holds no framework.** The companion's architecture keeps its capability
+modules free of Laravel, so that a decision cannot be run wrong, and lets only adapter
+modules touch storage (its rules A1 and A7). An adapter may use the kernel and the one
+package it adapts, and never a capability.
+
 ## Decision
 
 1. **The phone keeps three kinds of thing, and nothing else.**
@@ -57,22 +62,26 @@ it is laid out*).
    (`N1-R24`), an agreement (`N13-R7`) or a repair offer, which is something one
    agrees to and so must always be fresh.
 
-2. **Each module keeps its own.** A module that decides about something keeps it:
+2. **Each owner decides, and a small adapter of its own stores.** The capability a
+   thing belongs to decides what is kept, when it is pruned and what counts as new:
    `health` its readings and the problem markers, `updates` its readings and the
    release markers, `household` its readings and the request markers, `stacks` what
    runs, where the operator was, the order of the stacks and how long readings are
-   kept, `connection` the lock period and `device` the notification kinds. Each owns
-   its tables, named with its own prefix (`health_readings`), its migrations in its
-   own `database/migrations`, a store port in its `Api` and the one class in its
-   `Internal` that queries them. No module reads another's tables; one that needs
-   another's data asks that module's port.
+   kept, `connection` the lock period and `device` the notification kinds. Each asks a
+   kernel port of its own, and an adapter module of its own implements it —
+   `health-kept`, `updates-kept`, `household-kept`, `stacks-kept`, `connection-kept`,
+   `device-kept` — adapting Laravel's database and nothing else. That adapter owns its
+   tables, named with its owner's prefix (`health_readings`), and its migrations in its
+   own `database/migrations`. No adapter reads another's tables; one owner that needs
+   another's data asks that owner's capability. Capabilities stay free of the
+   framework, and no module grows with every feature.
 
 3. **Queries are intents, written once.** A store port speaks the app's language —
-   `keep`, `newest`, `forget` — and never a row or a column. Behind it one class holds
-   one private, named method per query over Laravel's query builder, and turns rows
-   into values in one place. There is no Eloquent model and no hand-written SQL. Every
-   store port is proven twice: one contract suite runs against its fake and against
-   its SQLite implementation.
+   `keep`, `newest`, `forget` — and never a row or a column. Behind it, in the owner's
+   adapter, one class holds one private, named method per query over Laravel's query
+   builder with an injected connection, and turns rows into values in one place. There
+   is no Eloquent model, no facade and no hand-written SQL. Every store port is proven
+   twice: one contract suite runs against its fake and against its SQLite adapter.
 
 4. **Every payload is sealed with a key the platform holds.** On first use the app
    generates a 32-byte data key and keeps it in the platform's secure storage at the
@@ -82,7 +91,9 @@ it is laid out*).
    readable: the kind, when it was read and the version of its shape. The stack is
    stored as a keyed hash rather than its identity, so a row on disk cannot be tied to
    a stack without the key. One kernel port, `Sealed`, does the sealing, and the
-   `vault` module implements it; every module seals through it.
+   `vault` module implements it. **The owning capability seals before it asks its
+   store**: a store port accepts a sealed payload and a stack's keyed hash, never a
+   plain value, so a store adapter never sees what it keeps.
 
 5. **Every row carries the version of its shape** (`N1-R32`). A reading of a shape this
    build does not know is discarded, because it can always be read again; a
@@ -110,13 +121,15 @@ it is laid out*).
 
 9. **The rules above are tests.** They join the companion's architecture document,
    each beside the test that enforces it:
-   - a table belongs to one module: it carries that module's prefix, is created in
-     that module's migrations and is named in no other module's code;
-   - database code lives only in a module's store class and its migrations: no
-     Eloquent anywhere, no raw SQL, and no database facade outside those files;
+   - a table belongs to one adapter: it carries its owner's prefix, is created in that
+     adapter's migrations and is named in no other module's code;
+   - database code lives only in a store adapter's query class and its migrations: no
+     Eloquent anywhere, no raw SQL, no database facade, and `Illuminate\Database`
+     nowhere outside adapters (the companion's A1 and A7, unchanged);
    - sealing goes through one port: the `Crypt` facade and the `Encrypter` class
-     appear only in `vault`'s implementation of `Sealed`, and a test writes a value
-     and reads the raw database file to find no trace of it;
+     appear only in `vault`'s implementation of `Sealed`; no store port takes a type
+     but a sealed payload, a stack's keyed hash and the bookkeeping beside them; and a
+     test writes a value and reads the raw database file to find no trace of it;
    - no store method takes a session, a credential or pairing material, and no kept
      value holds one (`N1-R23`);
    - every kept value declares the version of its shape, and every shape ever written
@@ -126,7 +139,9 @@ it is laid out*).
 
 | Option | Why it lost |
 |--------|-------------|
-| **One store: a kernel port and one implementation in `vault`** | The first design. Every module that keeps something would add its tables, queries and migrations to `vault`, which would grow with every feature and become the place every change has to go through. Ownership by the module that decides keeps each small and keeps the boundary rules meaningful. |
+| **One store: a kernel port and one implementation in `vault`** | The first design. Every module that keeps something would add its tables, queries and migrations to `vault`, which would grow with every feature and become the place every change has to go through. An adapter per owner keeps each small and keeps the boundary rules meaningful. |
+| **The store inside each capability** | Keeps each owner's queries beside its decisions, and puts Laravel's database into modules the architecture keeps framework-free (A1, A7): a capability that can reach a database is one that can be run wrong. |
+| **Each store adapter seals** | Every adapter would receive plain values and have to remember to seal them. Sealing in the capability makes a plain value unrepresentable at a store port. |
 | **Laravel's `Crypt` with the framework's `APP_KEY`** | The key is a plain file in the same private storage as the database, so anything that can read one can read the other. It stops only somebody opening the file by hand. |
 | **Keep only what names nobody, in a plain file excluded from backups** | Would leave out the household's readings, and relies on the device's sandbox alone: a rooted device reads it. |
 | **An encrypted database file (SQLCipher)** | Not something NativePHP's SQLite offers; it would mean patching the packager's native build on both platforms for what per-value encryption already gives. |

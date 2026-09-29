@@ -116,7 +116,7 @@ worse than none, because people stop reading it once they trust it.
 | A paired fingerprint decides which machine it will talk to | [ADR-0018](../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md) |
 | A screen paints what it knows before it reaches the stack | [ADR-0019](../00-overview/decisions/0019-a-screen-paints-before-it-reaches-the-stack.md) |
 | An action the stack did not receive did not happen | [ADR-0020](../00-overview/decisions/0020-an-action-the-stack-did-not-receive-did-not-happen.md) |
-| What the phone keeps, owned by the module that decides about it and sealed with a key the platform holds | [ADR-0035](../00-overview/decisions/0035-what-the-phone-keeps-and-how.md) |
+| What the phone keeps: decided by the capability it belongs to, stored by an adapter of its own, sealed with a key the platform holds | [ADR-0035](../00-overview/decisions/0035-what-the-phone-keeps-and-how.md) |
 
 ## It follows the main repos rather than gating them
 
