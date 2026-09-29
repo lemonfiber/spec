@@ -71,8 +71,8 @@ belongs in the menu. The first thing on it, where anything is new, is *What's ne
 
 A tab, a menu item, a button and a section heading name what they open or do, in a
 word or a few. A sentence is for explaining, beside a label, and never is one. The
-words are the plain ones (`G2-R3`): *Problems* rather than *findings*, *Passwords*
-rather than *credentials*, *Storage* rather than *disk*.
+words are the plain ones (`G2-R3`, `G2-R15`): *Problems* rather than *findings*,
+*Passwords* rather than *credentials*, *Storage* rather than *disk*.
 
 ## States
 
@@ -106,7 +106,7 @@ rather than *credentials*, *Storage* rather than *disk*.
 | **N28-R6** | The menu MUST begin with the current stack and *What's new* with its count, and MUST end with the stack's settings and App settings. |
 | **N28-R7** | Every menu item MUST carry an icon and a label, and the icon MUST NOT stand in for the label (`N4-R21`). |
 | **N28-R8** | The health screen MUST show how the stack stands and what is wrong, MUST offer *What's new* first where anything is new, and MUST NOT list the menu's items. |
-| **N28-R9** | A tab, a menu item, a button and a section heading MUST name what it opens or does in at most three words, and MUST NOT be a sentence; a sentence MAY explain beside it. |
+| **N28-R9** | A tab, a menu item, a button and a section heading MUST name what it opens or does in at most three words, and MUST NOT be a sentence; a sentence MAY explain beside it (`G2-R15`). |
 | **N28-R10** | A screen the connected stack does not offer MUST keep its menu item, and opening it MUST say what would provide it (`N1-R30`). |
 | **N28-R11** | With no stack paired there MUST be no menu, top-bar switcher or bottom bar (`N1-R35`), and while the app is locked none of them MUST be drawn (`N4-R24`). |
 | **N28-R12** | Labels MUST wrap rather than be cut off at the phone's text size, and a shortened stack name MUST be read whole to a screen reader (`N4-R14`). |

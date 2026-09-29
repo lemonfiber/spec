@@ -74,8 +74,8 @@ AWAITING_A_VERSION = {
     # tests/Templates/EveryTargetIsBigEnoughToHitTest.php holds G3-R16, and
     # app-modules/operator/tests/View/Components/ScreenClosesTest.php holds G3-R17.
     "G2": (
-        "the companion keeps G2-R14 and takes no release; the other thirteen G2 goals are locked by 0.9.0, released",
-        ["G2-R14"],
+        "the companion keeps G2-R14 and takes no release; G2-R15 binds every surface and no version schedules it yet; the other thirteen G2 goals are locked by 0.9.0, released",
+        ["G2-R14", "G2-R15"],
     ),
     "G3": (
         "the companion keeps G3-R16 and G3-R17 and takes no release; the rest of G3 is split across 0.9.0 and 0.10.0, both released",
