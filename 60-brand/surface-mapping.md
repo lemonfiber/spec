@@ -89,14 +89,23 @@ system's contrast and reduced-motion settings and its light and dark modes,
 without any of them being built a second time here. Overriding that look to
 reach the web UI's palette would spend exactly what it was chosen for.
 
+Colour is the exception, because the platform does not supply it. The renderer
+the companion is built on paints text black unless it is told otherwise, in
+light and dark mode alike. Its widgets take a palette of the renderer's own, not
+the operating system's. Left to "the platform", a phone in dark mode shows black
+text on a near-black ground. So the companion asserts its neutral colours as well
+as its accent: each as a role with a light value and a dark value, taken from the
+brand's paper theme and its ink theme. The reader's light or dark setting chooses
+between them, and every text-on-surface pairing is measured in both.
+
 So the mapping is the TUI's shape rather than the web's, for a different reason.
 The TUI takes a subset because a terminal cannot render more. The companion takes
 a subset because taking more would make it a worse app:
 
 | Brand token | Companion mapping |
 |-------------|-------------------|
-| `lemon` | The accent role — the one place brand colour is asserted |
-| `ink` / paper | Left to the platform's theme roles, which honour the reader's setting |
+| `lemon` | The accent role, with `ink` set on it, in both modes |
+| `paper`, `pith`, `ink`, `line`, `text-muted` | The surface, raised-surface, text, line and muted-text roles, with the ink theme's values in dark mode |
 | Everything else | Not mapped; the platform's own spacing, radii, type and elevation |
 
 **Where the brand is worn in full is the app icon and the launch mark**, which
@@ -129,7 +138,7 @@ full on the web, restrained in the TUI, none in machine output.
 | **DES-R12** | The TUI MUST map colour *roles*, not exact hex values, so a user's terminal theme remains legible. |
 | **DES-R13** | The SVG marks MUST NOT be used in the TUI or CLI; an ASCII rendering MUST be used where a mark is shown. |
 | **DES-R14** | Machine-readable CLI output MUST carry no brand colour or logo. |
-| **DES-R24** | The companion app MUST map brand colour to the platform's theme roles rather than asserting token values, so the reader's light, dark and contrast settings are honoured. |
+| **DES-R24** | The companion app MUST assert colour only through theme roles that each carry a light and a dark value, chosen by the reader's setting: `lemon` as the accent with `ink` on it, and the brand's `paper`, `pith`, `ink`, `line` and `text-muted` as its surface, raised-surface, text, line and muted-text roles, with the ink theme's values in dark mode. It MUST NOT assert a colour outside those roles, and every text-on-surface pairing it uses MUST meet WCAG AA in both modes. |
 | **DES-R25** | The companion app MUST NOT ship Bricolage Grotesque as an interface font, and MUST render text in the platform's face at the reader's chosen size. |
 | **DES-R26** | The companion app MUST NOT override the platform's spacing, radii, elevation or motion with brand values. |
 | **DES-R27** | The companion app's icon and launch mark MUST carry the full brand, and are the only surfaces of the app that do. |
