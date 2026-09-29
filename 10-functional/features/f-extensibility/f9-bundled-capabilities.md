@@ -87,7 +87,6 @@ claim is judged against its recordings on every change to the stack and again
 before lemonfiber is tagged; a refuted probe refuses both, and one that cannot be
 judged is reported unproven rather than counted (`ARCH-R137`).
 
-
 ### Substitution stops being a rewrite
 
 The test of whether this landed is not that the declarations exist. It is that replacing
