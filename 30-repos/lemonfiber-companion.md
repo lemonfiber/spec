@@ -67,6 +67,7 @@ SDK, already generated from `web-api.contract.json`
 | The operator's screens | [N2](../10-functional/features/n-companion/n2-operator-companion.md) |
 | The household's screens | [N3](../10-functional/features/n-companion/n3-household-companion.md) |
 | Device permissions, secure storage, app lock, notifications | [N4](../10-functional/features/n-companion/n4-native-integration.md) |
+| What the phone keeps between launches | [N27](../10-functional/features/n-companion/n27-what-the-phone-keeps.md) |
 
 ## Standards
 
@@ -114,6 +115,7 @@ worse than none, because people stop reading it once they trust it.
 | A paired fingerprint decides which machine it will talk to | [ADR-0018](../00-overview/decisions/0018-trusting-a-stack-over-the-local-network.md) |
 | A screen paints what it knows before it reaches the stack | [ADR-0019](../00-overview/decisions/0019-a-screen-paints-before-it-reaches-the-stack.md) |
 | An action the stack did not receive did not happen | [ADR-0020](../00-overview/decisions/0020-an-action-the-stack-did-not-receive-did-not-happen.md) |
+| What the phone keeps, owned by the module that decides about it and sealed with a key the platform holds | [ADR-0035](../00-overview/decisions/0035-what-the-phone-keeps-and-how.md) |
 
 ## It follows the main repos rather than gating them
 

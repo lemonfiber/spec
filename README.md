@@ -59,7 +59,7 @@ freely.
 | Section | Contents | Read this if… |
 |---------|----------|---------------|
 | **[00-overview](00-overview/)** | Vision, glossary, roadmap, and all Architecture Decision Records | …you want the *why* behind any choice |
-| **[10-functional](10-functional/)** | The 104-feature catalogue, numbered requirements, and nine user journeys | …you're deciding what to build or verifying it got built |
+| **[10-functional](10-functional/)** | The 105-feature catalogue, numbered requirements, and nine user journeys | …you're deciding what to build or verifying it got built |
 | **[20-architecture](20-architecture/)** | System context, component model, platform matrix, inter-repo contracts | …you're implementing across the lemonfiber ↔ lemonfiber-media-stack seam |
 | **[30-repos](30-repos/)** | Per-repo technical specs | …you're working inside one repo |
 | **[40-quality](40-quality/)** | Code standards, comment policy, testing, CI/CD, security | …you're writing or reviewing a PR |
@@ -104,7 +104,7 @@ trailers and PR bodies — **never in code comments**
 
 | Section | Status | Contents |
 |---------|--------|----------|
-| 00-overview | Accepted | Vision, glossary, roadmap, 34 ADRs |
+| 00-overview | Accepted | Vision, glossary, roadmap, 35 ADRs |
 | 10-functional | Accepted | The [feature board](10-functional/features/BOARD.md) — features, requirements, areas — and 9 journeys |
 | 20-architecture | Accepted | System context, component model, data flow, platform matrix, 10 contracts |
 | 30-repos | Accepted | All thirteen repos: `spec`, `lemonfiber` (+ TUI + reference), `lemonfiber-web`, `lemonfiber-companion`, `sdk-ts`, `sdk-php`, `lemonfiber-media-stack`, `lemonfiber-plugins`, `brand`, `homebrew-tap`, `website-lemonfiber.app`, `website-docs.lemonfiber.app`, `.github` |

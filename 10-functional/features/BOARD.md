@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**104 features** in areas A–N, **1559 requirements**.
+**105 features** in areas A–N, **1581 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 30 shipped, 6 built, 22 building, 45 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 30 shipped, 6 built, 22 building, 46 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -135,6 +135,7 @@ code, and the two move independently.
 | [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
 | [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | — |
 | [N26](n-companion/n26-what-the-glue-is-doing.md) | What the glue is doing | N | both | accepted | — |
+| [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | — |
 
 ## Withdrawn — no longer to be built
 

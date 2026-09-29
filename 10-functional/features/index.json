@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 104,
-    "requirements": 1559,
+    "features": 105,
+    "requirements": 1581,
     "areas": "A–N"
   },
   "versions": [
@@ -3791,6 +3791,37 @@
       ],
       "versions": [],
       "path": "n-companion/n26-what-the-glue-is-doing.md"
+    },
+    {
+      "id": "N27",
+      "title": "What the phone keeps",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": [
+        "mobile",
+        "storage",
+        "security",
+        "ux"
+      ],
+      "requires": [
+        "N1",
+        "N4"
+      ],
+      "relates": [
+        "N2",
+        "N3",
+        "N13",
+        "G3"
+      ],
+      "versions": [],
+      "path": "n-companion/n27-what-the-phone-keeps.md"
     }
   ]
 }
