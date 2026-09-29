@@ -39,11 +39,16 @@ Tapping the name opens the list of stacks as a sheet: each with a glyph and a wo
 or two for how it stands, the current one marked, and *Add a stack* at the end.
 Choosing one opens it on the tab the operator last used there (`N27-R16`).
 
+Signing in to a stack shows the name, which opens the same sheet, and nothing else of
+the bar: no menu and no tabs until the stack has let the operator in.
+
 ### The bottom bar
 
 Four tabs: **Health**, **Services**, **Updates**, **Repairs**. A tab holding
 something new carries a mark (`N27-R21`). The tab for the screen on view is shown as
-current; a screen reached from the menu shows none as current.
+current, and so is the tab a screen belongs to: what one service is doing and what it
+has been saying belong to **Services**, and mark it. A screen reached from the menu
+shows none as current.
 
 ### The menu
 
@@ -55,12 +60,24 @@ about the stack, in five groups:
 |-------|-------|
 | **Household** | Requests · Allowance · Stuck downloads · Follow a download |
 | **Access** | Invite someone · Front door · Watch apps · Passwords |
-| **Machine** | Storage · Backups · After a restart · Already installed · Other programs · About |
+| **Machine** | Storage · Backups · After a restart · Already installed · Other programs · About · Uninstall |
 | **Settings** | General · Quality · Connections · Bandwidth · Outgoing traffic · Alerts · History · Sources |
-| **Help** | Get help · Glossary |
+| **Help** | Get help · Glossary · Services explained |
 
 At its foot, the stack's own settings and **App settings** (`N27-R14` to `N27-R18`).
 Every item carries an icon beside its label, never in place of it.
+
+*Allowance* is the operator's reading of what each member of the household may ask
+for and how much of it is left, on a screen of its own with the menu like every
+other.
+
+A screen that is one step of something begun elsewhere is reached from where it
+begins, not from the menu: taking a copy, putting the configuration back, and
+guarding where the data is kept while the operator watches.
+
+Until the app has *What's new* and the settings screens (`N27-R14` to `N27-R20`),
+their items are in the menu all the same, and opening one says it is not in this
+version of the app yet.
 
 ### Health is about health
 
@@ -98,17 +115,17 @@ words are the plain ones (`G2-R3`, `G2-R15`): *Problems* rather than *findings*,
 
 | ID | Requirement |
 |----|-------------|
-| **N28-R1** | Every screen about a stack MUST have a top bar holding a control that opens the menu and the stack's name. |
+| **N28-R1** | Every screen about a stack, other than signing in to it (`N28-R11`), MUST have a top bar holding a control that opens the menu and the stack's name. |
 | **N28-R2** | The stack's name in the top bar MUST open the list of stacks, each with its glyph and a short word for how it stands and the current one marked, and the list MUST offer adding a stack. |
 | **N28-R3** | Choosing a stack from that list MUST open it on the tab the operator last used for it (`N27-R16`). |
-| **N28-R4** | The bottom bar MUST hold exactly four tabs — Health, Services, Updates and Repairs — and MUST mark as current only the tab whose screen is on view. |
-| **N28-R5** | Every screen about a stack that is not one of the four tabs MUST be reachable from the menu in the groups this page names, and MUST NOT be reached only from another screen's body. |
+| **N28-R4** | The bottom bar MUST hold exactly four tabs — Health, Services, Updates and Repairs — and MUST mark as current only the tab whose screen is on view, or the tab the screen on view belongs to; what one service is doing and its log belong to Services. |
+| **N28-R5** | Every screen about a stack that is not one of the four tabs, a screen belonging to one of them (`N28-R4`) or one step of something begun on another screen MUST be reachable from the menu in the groups this page names, and MUST NOT be reached only from another screen's body. |
 | **N28-R6** | The menu MUST begin with the current stack and *What's new* with its count, and MUST end with the stack's settings and App settings. |
 | **N28-R7** | Every menu item MUST carry an icon and a label, and the icon MUST NOT stand in for the label (`N4-R21`). |
 | **N28-R8** | The health screen MUST show how the stack stands and what is wrong, MUST offer *What's new* first where anything is new, and MUST NOT list the menu's items. |
 | **N28-R9** | A tab, a menu item, a button and a section heading MUST name what it opens or does in at most three words, and MUST NOT be a sentence; a sentence MAY explain beside it (`G2-R15`). |
-| **N28-R10** | A screen the connected stack does not offer MUST keep its menu item, and opening it MUST say what would provide it (`N1-R30`). |
-| **N28-R11** | With no stack paired there MUST be no menu, top-bar switcher or bottom bar (`N1-R35`), and while the app is locked none of them MUST be drawn (`N4-R24`). |
+| **N28-R10** | A screen the connected stack does not offer MUST keep its menu item, and opening it MUST say what would provide it (`N1-R30`); a screen this version of the app does not have yet MUST keep its menu item too, and opening it MUST say so. |
+| **N28-R11** | With no stack paired there MUST be no menu, top-bar switcher or bottom bar (`N1-R35`), and while the app is locked none of them MUST be drawn (`N4-R24`). Signing in to a stack MUST show the switcher and MUST NOT show the menu or the bottom bar. |
 | **N28-R12** | Labels MUST wrap rather than be cut off at the phone's text size, and a shortened stack name MUST be read whole to a screen reader (`N4-R14`). |
 
 ## Notes
