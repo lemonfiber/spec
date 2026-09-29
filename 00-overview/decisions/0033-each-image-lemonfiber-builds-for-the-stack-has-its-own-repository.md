@@ -1,7 +1,8 @@
 # ADR-0033: Each image lemonfiber builds for the stack has its own repository, named for the service it runs
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-09-29
+**Decided:** 2026-09-29, by the maintainer, Wessel Verheij: accepted as proposed, with the names `lemonfiber-decline` and `lemonfiber-request-gate`.
 
 ## Context
 

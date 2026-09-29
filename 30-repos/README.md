@@ -28,6 +28,8 @@ flowchart TD
         sdk["sdk-ts<br/>the TypeScript client"]
         sdkphp["sdk-php<br/>the PHP client"]
         stack["lemonfiber-media-stack<br/>Compose + manifest"]
+        decline["lemonfiber-decline<br/>the decline service"]
+        gate["lemonfiber-request-gate<br/>the request gate"]
         plugins["lemonfiber-plugins<br/>the reviewed catalogue"]
         tap["homebrew-tap<br/>generated formula"]
         site["website-lemonfiber.app<br/>the public frontpage"]
@@ -59,6 +61,8 @@ flowchart TD
 | `sdk-ts` | [sdk-ts.md](sdk-ts.md) | TypeScript | Owns the stream's hard parts so no consumer reimplements them |
 | `sdk-php` | [sdk-php.md](sdk-php.md) | PHP | The same contract, implemented as a peer rather than translated |
 | `lemonfiber-media-stack` | [lemonfiber-media-stack.md](lemonfiber-media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
+| `lemonfiber-decline` | [lemonfiber-decline.md](lemonfiber-decline.md) | Rust | An image the stack runs; holds one Jellyfin key and answers the household |
+| `lemonfiber-request-gate` | [lemonfiber-request-gate.md](lemonfiber-request-gate.md) | Rust | An image the stack runs; holds the \*arr keys and publishes no port |
 | `lemonfiber-plugins` | [lemonfiber-plugins.md](lemonfiber-plugins.md) | TOML | Reviewed and signed, and never a runtime dependency |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website-lemonfiber.app` | [website-lemonfiber.md](website-lemonfiber.md) | Astro | The org is the motor; roadmap read, not written |
@@ -66,7 +70,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those thirteen are the repositories this specification governs, which is not the
+Those fifteen are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))

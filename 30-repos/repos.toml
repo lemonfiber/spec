@@ -83,6 +83,24 @@ lang = "YAML/TOML"
 note = "Runs standalone; the compose rules CI enforces"
 
 [[repo]]
+name = "lemonfiber-decline"
+node = "decline"
+group = "impl"
+label = "lemonfiber-decline<br/>the decline service"
+spec = ["lemonfiber-decline.md"]
+lang = "Rust"
+note = "An image the stack runs; holds one Jellyfin key and answers the household"
+
+[[repo]]
+name = "lemonfiber-request-gate"
+node = "gate"
+group = "impl"
+label = "lemonfiber-request-gate<br/>the request gate"
+spec = ["lemonfiber-request-gate.md"]
+lang = "Rust"
+note = "An image the stack runs; holds the \\*arr keys and publishes no port"
+
+[[repo]]
 name = "lemonfiber-plugins"
 node = "plugins"
 group = "impl"

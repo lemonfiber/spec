@@ -55,6 +55,16 @@ gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
+name = "lemonfiber-decline"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "lemonfiber-request-gate"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
 name = "sdk-php"
 gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]
