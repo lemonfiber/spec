@@ -174,7 +174,7 @@ This is the honest form of parity across a device boundary: the surface offers
 everything, and reachability is a condition it reports rather than a capability
 it lacks.
 
-### A frame reads once, and again only when it said it would
+### A frame reads once, and again only when it declared it would
 
 A screen paints before it reaches the stack (`N1-R25`), and what it paints is
 built from values the frame goes on to read many times — a template asks for a
@@ -191,7 +191,7 @@ and the cost lands on the thing the app exists to keep an eye on.
 
 So the reading is an act the screen performs, once, and everything the frame
 asks afterwards is answered from what came back. Beyond that, a screen reaches a
-stack when it said it would (`N1-R27`) or when the operator did something —
+stack on the cadence it declares (`N1-R27`) or when the operator did something —
 never because a value was read, a key was pressed, or a screen was rebuilt
 (`N1-R38`).
 
@@ -207,14 +207,14 @@ A screen showing it holds a subscription rather than reading, and the
 subscription is that screen's one read (`N1-R67`). Opening it is a call like any
 other, bounded like any other (`N1-R68`). Once it is open, what the core sends
 arrives on the core's cadence, to every listener at once, and the screen takes
-what has already arrived on a cadence it states. Taking it does not reach the
+what has already arrived on a cadence it declares. Taking it does not reach the
 stack, because nothing is sent (`N1-R69`).
 
 A stream can go quiet without failing, so silence has a bound, and the bound is
 the contract's: the core breaks silence with a heartbeat, and twice its interval
 with nothing heard is a broken stream (`ARCH-R61`). From then on the last value
 is a stale one, and a summary that was healthy is not healthy any more; it is
-unknown (`N1-R70`). A broken subscription is reopened on a stated cadence
+unknown (`N1-R70`). A broken subscription is reopened on a declared cadence
 (`N1-R71`).
 
 A subscription is held only while somebody is looking at what it carries. A
@@ -227,6 +227,12 @@ A value read four hours ago, shown without saying so, is the failure this
 product's own dashboard rules exist to prevent. Anything the app shows from a
 previous connection is marked with when it was read, and is never mixed
 indistinguishably with a live reading.
+
+A screen that refreshes on its own does not tell the operator how often. The
+cadence is declared by the screen, where a test holds it, and not printed: a line
+saying how often a screen looks is machinery, and it says nothing about whether
+what is shown is current. What does say that is the age a reading carries once
+it is no longer current (`N1-R9`), so that is what the operator is shown.
 
 ### First-run setup does not cross the boundary
 
@@ -329,7 +335,7 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R24** | A reading the app retained from an earlier session MAY be shown on opening, and MUST carry when it was read as `N1-R9` requires; the confirmation of an action just performed MUST NOT be served from a retained value. |
 | **N1-R25** | A screen that reads from a stack MUST publish its first frame before issuing the read, and that frame MUST be built from what the app already holds ([ADR-0019](../../../00-overview/decisions/0019-a-screen-paints-before-it-reaches-the-stack.md)). |
 | **N1-R26** | Every call the app makes MUST carry a bounded timeout short enough that a refused reach returns the screen to the operator, and the bound MUST NOT be raised to accommodate a slow stack. |
-| **N1-R27** | A screen whose content can change while it is open MUST refresh on a stated cadence, and MUST NOT rely on the operator leaving and returning to see a change. |
+| **N1-R27** | A screen whose content can change while it is open MUST refresh on a cadence the screen declares, where a test holds it, and MUST NOT rely on the operator leaving and returning to see a change. The cadence MUST NOT be shown to the operator; what shows whether a value is current is the age `N1-R9` requires. |
 | **N1-R28** | An indeterminate progress indicator MUST be shown only where the app holds nothing to show, and MUST NOT replace a retained reading that could be shown with its age. |
 | **N1-R29** | The app MUST establish, before offering an action, whether the connected stack supports it by reading the capability set the API declares (`ARCH-R78`), and MUST NOT determine this by attempting the action or by deriving it from a version number. |
 | **N1-R30** | An action the connected stack is too old to offer MUST be reported as unavailable on that stack, naming what would provide it, and MUST NOT be hidden (`N1-R3`) or presented as a failure of the operator's request. A capability that is present but unconfigured, and one the credential may not use, MUST each be reported as themselves rather than as absence (`ARCH-R79`). |
@@ -368,12 +374,12 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R63** | The app MUST decide which machine pairing material refers to from that identifier alone, and MUST NOT infer it from the address or the fingerprint. Material carrying an identifier the device already holds MUST replace what is held for that stack — its address, its pinned fingerprint and its name — rather than add a second. |
 | **N1-R64** | A re-pairing that changes the pinned fingerprint MUST discard the session held for that stack; a re-pairing that does not MUST keep it, consistent with `N1-R45`. A different certificate is a different key, and a session obtained under the old one is not carried across it. |
 | **N1-R65** | A screen MUST perform at most one read of a stack per frame it publishes, however many values that frame goes on to read from what came back. A value read more than once MUST be answered from what the screen holds rather than by reaching the stack again. |
-| **N1-R66** | Beyond that read, a screen MUST reach a stack only on the cadence it states (`N1-R27`) or in answer to an act of the operator's. It MUST NOT reach one because a value was read, a key was pressed, or a screen was rebuilt (`N1-R38`). |
+| **N1-R66** | Beyond that read, a screen MUST reach a stack only on the cadence it declares (`N1-R27`) or in answer to an act of the operator's. It MUST NOT reach one because a value was read, a key was pressed, or a screen was rebuilt (`N1-R38`). |
 | **N1-R67** | A screen MAY hold a subscription to the stack's event stream in place of reading, and opening it MUST count as that screen's one read (`N1-R65`). Each value the stream delivers MUST be rendered from what the subscription holds, and MUST NOT be a reason to reach the stack again ([ADR-0026](../../../00-overview/decisions/0026-a-screen-may-hold-the-stream.md)). |
 | **N1-R68** | A screen MUST publish its first frame before opening a subscription (`N1-R25`), and opening it MUST carry the bounded timeout every call carries (`N1-R26`). Once the subscription is open, that timeout MUST NOT bound how long it is held. |
-| **N1-R69** | A screen MUST take what a subscription has delivered on a cadence it states (`N1-R27`), and taking it MUST NOT wait for a value that has not arrived. |
+| **N1-R69** | A screen MUST take what a subscription has delivered on a cadence it declares (`N1-R27`), and taking it MUST NOT wait for a value that has not arrived. |
 | **N1-R70** | A subscription that has delivered nothing, neither a value nor the heartbeat, for twice the heartbeat interval the contract states (`ARCH-R61`) MUST be treated as broken. From then on its last value MUST be shown as stale with when it was read (`N1-R9`), and a summary it carried MUST read unknown rather than healthy. |
-| **N1-R71** | A subscription that broke or could not be opened MUST be reopened on a cadence the screen states, and MUST NOT be reopened more often than that. Nothing held from before the break MUST be presented as current until the reopened subscription delivers a value. |
+| **N1-R71** | A subscription that broke or could not be opened MUST be reopened on a cadence the screen declares (`N1-R27`), and MUST NOT be reopened more often than that. Nothing held from before the break MUST be presented as current until the reopened subscription delivers a value. |
 | **N1-R72** | A subscription MUST be held only while a screen showing what it carries is in front of the operator. It MUST be closed when that screen is left, and at the screen's first wake after the app leaves the foreground; it MUST NOT be opened or read while the app is in the background. |
 | **N1-R73** | The comparable form (`N1-R50`, `N1-R51`) MUST be derived the same way wherever it is shown: SHA-256 over the fingerprint written as its sixty-four lower-case hexadecimal characters; the first sixteen bytes of that digest, each taken modulo thirty-two as an index into the alphabet `23456789ABCDEFGHJKLMNPQRSTUVWXYZ`; written as four groups of four joined by hyphens. The fingerprint of sixty-four `0` characters MUST give `22VK-KPHH-NKH9-TUWA`, and that of sixty-four `f` characters `Z9JL-Q3PK-BZ6M-HRQZ`. |
 | **N1-R74** | Wherever the stack displays pairing material, it MUST display the comparable form of the fingerprint that material carries (`N1-R73`), in its human-readable and its machine-readable output alike, so that typed entry has something to be compared against (`N1-R50`). |

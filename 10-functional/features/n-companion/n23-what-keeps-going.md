@@ -81,7 +81,7 @@ often it looks, and the command it would run when that location goes.
 
 Started over the web API, the guard is a job with no ending of its own, and the
 stack keeps such a job only while somebody asks about it. The app asks while its
-screen is open, on the cadence it states (`N1-R27`), and releases the guard when
+screen is open, on the cadence it declares (`N1-R27`), and releases the guard when
 the screen is left. So the guard lives only while this screen keeps asking, and
 the app says so plainly — before it starts and for as long as it runs. A guard
 that is meant to outlive the screen is a hosted one, offered above as an act of
@@ -186,7 +186,7 @@ operator there ([N8](n8-what-comes-in.md)) rather than to a count.
 | **N23-R9** | Where a queue could not be read, or a service's queue is one lemonfiber cannot read, the app MUST say so, naming each service and its reason where the stack names them, and MUST NOT present the list as complete (`C7-R11`, `C7-R15`). |
 | **N23-R10** | A stuck item MUST lead to its trace (`N8-R4`), and MUST NOT lead only to a count. |
 | **N23-R11** | The app MUST offer starting the data-root guard for forms the operator names, as an act of its own, and before it starts MUST say what it would guard and what it would do: the data location, how often it looks, and the command it would run when that location is lost (`C5-R7`, `C5-R8`). A refusal to start MUST be shown with the stack's reason. |
-| **N23-R12** | The app MUST say plainly, before the guard starts and for as long as it runs, that it lives only while this screen keeps asking about it and stops when the screen is left. While the screen is open the app MUST ask about it on the cadence it states (`N1-R27`), and when the screen is left it MUST release it. A guard started this way MUST NOT be presented as hosted (`N23-R1`). |
+| **N23-R12** | The app MUST say plainly, before the guard starts and for as long as it runs, that it lives only while this screen keeps asking about it and stops when the screen is left. While the screen is open the app MUST ask about it on the cadence it declares (`N1-R27`), and when the screen is left it MUST release it. A guard started this way MUST NOT be presented as hosted (`N23-R1`). |
 | **N23-R13** | A guard that saw the data location go MUST be shown with the forms it stopped, whether stopping them succeeded, and why it ended (`N8-R7`); one that did not succeed MUST NOT be shown as having stopped them. A guard ended without an outcome — released, or let go because nothing asked — and a guard the stack no longer knows MUST each be told apart from one that saw the data location go, and from one still guarding. |
 
 ## Notes
