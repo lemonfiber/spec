@@ -8,3 +8,6 @@ ratatui = "ratatui"
 Ratatui = "Ratatui"
 lemonfiber = "lemonfiber"
 Servarr = "Servarr"
+# Laravel's encryption class is spelled this way, and the spec names it.
+Encrypter = "Encrypter"
+encrypter = "encrypter"

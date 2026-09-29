@@ -74,8 +74,8 @@ AWAITING_A_VERSION = {
     # tests/Templates/EveryTargetIsBigEnoughToHitTest.php holds G3-R16, and
     # app-modules/operator/tests/View/Components/ScreenClosesTest.php holds G3-R17.
     "G2": (
-        "the companion keeps G2-R14 and takes no release; the other thirteen G2 goals are locked by 0.9.0, released",
-        ["G2-R14"],
+        "the companion keeps G2-R14 and takes no release; G2-R15 binds every surface and no version schedules it yet; the other thirteen G2 goals are locked by 0.9.0, released",
+        ["G2-R14", "G2-R15"],
     ),
     "G3": (
         "the companion keeps G3-R16 and G3-R17 and takes no release; the rest of G3 is split across 0.9.0 and 0.10.0, both released",
@@ -189,6 +189,14 @@ AWAITING_A_VERSION = {
     "N26": (
         "N26 requires N1, whose app side no version schedules, H1, H2 and H3, locked by 0.19.0, H6 and H8, locked by 0.20.0, and K1, locked by 0.22.0",
         [f"N26-R{n}" for n in range(1, 20)],
+    ),
+    "N27": (
+        "N27 requires N1 and N4, whose app side no version schedules; what they require is locked by 0.11.0 at the latest, released",
+        [f"N27-R{n}" for n in range(1, 23)],
+    ),
+    "N28": (
+        "N28 requires N1 and N2, whose app side no version schedules, and N27; what N1 and N2 require is locked by 0.11.0 at the latest, released",
+        [f"N28-R{n}" for n in range(1, 13)],
     ),
     "N7": (
         "N7 requires N1, whose app side no version schedules, and A5, locked by 0.13.0, released",

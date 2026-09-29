@@ -53,6 +53,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0032](0032-the-request-service-reaches-the-arrs-through-a-gate.md) | The request service reaches the \*arrs and the media server through a gate, holding only the gate's tokens | Accepted |
 | [0033](0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md) | Each image lemonfiber builds for the stack has its own repository, named for the service it runs | Accepted |
 | [0034](0034-a-catalogue-release-is-signed-with-a-key-the-binary-carries.md) | A catalogue release is signed with a key pair, and lemonfiber carries the public half | Accepted |
+| [0035](0035-what-the-phone-keeps-and-how.md) | What the phone keeps, and how | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

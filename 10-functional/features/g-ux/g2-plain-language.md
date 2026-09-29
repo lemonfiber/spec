@@ -168,6 +168,7 @@ Per term or concept:
 | **G2-R12** | Explanations MUST be versioned alongside the behaviour they describe. |
 | **G2-R13** | Every acronym in shipped text MUST resolve to a glossary entry, or to a word declared ordinary and carrying the reason it is. |
 | **G2-R14** | The names lemonfiber gives its own things — the words that also name a file, a command or an argument — MUST be declared, and every locale MUST render a declared name as declared and translate only the text around it. |
+| **G2-R15** | On every surface, the label of a control, a tab, a menu item or a section heading MUST name what it opens or does in at most three words and MUST NOT be a sentence; a sentence MAY explain beside it, and a name declared under `G2-R14` counts as one word. |
 
 ### Two of these are stated as properties, and why
 
