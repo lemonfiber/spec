@@ -100,6 +100,18 @@ part of a default run, and state what they will disturb and for how long.
 Diagnostics emit structured output as well as human output, so results can be
 scripted, monitored, or attached to a [support bundle](c4-support-bundle.md).
 
+### A finding names its service as the operator knows it
+
+A finding about a service carries the service's identifier, which is what a command
+takes and what a script matches on, and beside it the name the stack gives that service
+in front of an operator. The identifier is a key, not a name: `qbittorrent` is not how
+anybody writes qBittorrent, and a surface cannot recover the one from the other, since
+capitalising an identifier guesses at a name the stack has already written down.
+
+So the report carries both, and the words lemonfiber writes for a finding use the name.
+A title reads "Gluetun tunnel", never "gluetun tunnel". A command in a remedy keeps the
+identifier, because that is what the command takes.
+
 ## States
 
 Per check: `pass`, `warn`, `fail`, `unverified`, `skipped` (not applicable).
@@ -145,6 +157,7 @@ failure), `unknown` (checks could not run).
 | **C1-R13** | Setup MUST use the same checks as diagnostics, not a parallel implementation. |
 | **C1-R14** | Filesystem check timeouts MUST accommodate network and external storage. |
 | **C1-R15** | A proof an installed plugin declares MUST run as a check like any other — under a bounded timeout, reporting the same verdicts — MUST be attributed to the plugin, and an error inside it MUST be reported as that plugin's check error rather than as a finding about the stack. |
+| **C1-R16** | A finding about a service MUST carry, beside the service's identifier, the name the stack gives that service in front of an operator, and the title lemonfiber writes for a finding MUST name a service by that name, never by its identifier. |
 
 ## Related
 

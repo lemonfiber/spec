@@ -120,7 +120,12 @@
 # release and refuses a signature that does not verify, and says nothing about what an
 # install by name may resolve through; without this an unsigned index, or a revision
 # other than the one reviewed, would satisfy the letter of it (ADR-0034).
-# 127 goals, seeded from the roadmap milestone this version serves;
+#
+# `C1-R16` and `C4-R16` are what the Health screens and a support bundle need to name a
+# finding. A finding carried its service's identifier and no name, so a phone could only
+# print `gluetun` where the operator knows Gluetun, and the core's own titles did the
+# same; and a bundle's findings gave no code, which is what somebody helping searches by.
+# 129 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -179,6 +184,8 @@ goals   = [
     "A7-R15",
     "C1-R15",
     "C4-R15",
+    "C1-R16",
+    "C4-R16",
     "C6-R18",
     "E3-R16",
     "G7-R14",

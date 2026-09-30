@@ -77,6 +77,13 @@ Any hit is a hard failure, not a warning: the bundle isn't written.
 This is a belt-and-braces check on the allow-list — the one place where a bug
 costs the operator a published secret.
 
+### A finding is named by its code
+
+The diagnosis in a bundle gives each finding its code beside its title, wherever the
+finding carries one ([G4](../g-ux/g4-error-model.md)). A person helping works from the
+code: it is the stable handle an answer is searched for by, and the one thing two
+people reading two different screens can be sure they are both looking at.
+
 ### Bounded and predictable
 
 Logs are truncated to a useful recent window rather than shipping gigabytes. The
@@ -129,6 +136,7 @@ size is stated before writing.
 | **C4-R13** | Media filename redaction MUST be offered. |
 | **C4-R14** | Insufficient disk space MUST be detected before collection begins. |
 | **C4-R15** | A bundle MUST record which plugins are installed, with origin, version and whether each was reviewed. It MUST NOT collect a plugin's own configuration, and MUST say that it was withheld and why, naming the plugin. |
+| **C4-R16** | The diagnosis a bundle holds MUST give each finding's code beside the finding, wherever the finding carries one. |
 
 ## Related
 
