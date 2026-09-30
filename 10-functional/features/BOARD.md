@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**106 features** in areas A–N, **1596 requirements**.
+**106 features** in areas A–N, **1598 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -84,7 +84,7 @@ code, and the two move independently.
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.18.0`, `0.5.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0`, `0.18.0` |
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
-| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0` |
+| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0` |
 
 ## Planned — specified, not yet built
 
@@ -111,7 +111,7 @@ code, and the two move independently.
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.22.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.22.0` |
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | — |
-| [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | — |
+| [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
 | [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | — |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |

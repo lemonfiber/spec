@@ -74,6 +74,14 @@
 # setup from the web (`G1-R14`) is built against the server's source, and a client meets
 # an action the core added only when a new kind arrives with it.
 #
+# `ARCH-R138` and `ARCH-R139` give every refusal a code that says why, listed in the
+# contract so that an SDK generates the list. Four refusals shared `403` and a sentence,
+# and a client could tell a session the stack no longer admits from an account that may
+# not ask only by parsing English, so the companion read an ended session as a refusal of
+# entitlement and never offered to sign in again. `N1-R75` and `N3-R17` are the
+# companion's reading of those codes; `ARCH-R77` now asks the code, not the status, to
+# say whether sending something else would help.
+#
 # The architecture rows are here because `check_goal_coverage` reads `20-architecture/`
 # too, and a row no version locks is reached by no gate. Those it exempts are the
 # principles, the restatements and the dormant ones; the rest are work:
@@ -125,14 +133,14 @@
 # finding. A finding carried its service's identifier and no name, so a phone could only
 # print `gluetun` where the operator knows Gluetun, and the core's own titles did the
 # same; and a bundle's findings gave no code, which is what somebody helping searches by.
-# 129 goals, seeded from the roadmap milestone this version serves;
+# 133 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
 status  = "planned"
 repos   = ["lemonfiber"]
-satisfied_in = ["lemonfiber", "lemonfiber-web", "brand", "sdk-ts", "sdk-php"]
+satisfied_in = ["lemonfiber", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion"]
 goals   = [
     "F8-R1",
     "F8-R2",
@@ -153,6 +161,10 @@ goals   = [
     "ARCH-R132",
     "ARCH-R133",
     "ARCH-R134",
+    "ARCH-R138",
+    "ARCH-R139",
+    "N1-R75",
+    "N3-R17",
     "B2-R17",
     "B2-R18",
     "B2-R19",
