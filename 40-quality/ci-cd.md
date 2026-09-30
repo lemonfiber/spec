@@ -337,6 +337,20 @@ is the count from before the diff — and the new-issue check has already refuse
 it on its own. A raise the gate cannot check is refused on the same reasoning as
 a base it cannot read.
 
+That raise is also how a pull request that fixes issues standing on `main` gets
+through the gate:
+
+1. It raises `allowed-open` in the repository's own sonar workflow to exactly
+   the number of issues open on `main`, and the ratchet accepts that raise.
+2. It merges, and the issues it fixes leave `main`.
+3. A follow-up pull request lowers `allowed-open` to what is left, usually 0.
+
+The raise is needed because the open total the gate compares against the
+allowance is the count on `main`, and SonarCloud reports no issue as fixed by a
+pull request: until the fix has merged, the issues it removes still count
+against it. Nor can the count be taken from the pull request's own branch:
+SonarCloud's Free plan cannot read branch analyses.
+
 ## Related
 
 - [testing-strategy.md](testing-strategy.md) — what the test stages run
