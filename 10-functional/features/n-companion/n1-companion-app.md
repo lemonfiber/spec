@@ -96,6 +96,12 @@ same code beside the material it produced. Both sides fold it the same way
 code the app asks somebody to check against a screen that does not carry it is a
 confirmation nobody can give.
 
+What the stack says beside the material, it says to every surface at once, so it
+is in words each of them can show (`N1-R76`). A terminal says how to replace the
+certificate as the command that does it, and any other surface in its own way. A
+sentence naming the command would have the app telling the operator to type
+something into a phone that has nowhere to type it.
+
 Whatever the route, the app exchanges the credential **once** at `/api/session`
 for a session, and carries that session in `X-Lemonfiber-Token` afterwards. The
 credential is not kept to be re-sent: a secret held for one exchange is a smaller
@@ -384,6 +390,7 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R73** | The comparable form (`N1-R50`, `N1-R51`) MUST be derived the same way wherever it is shown: SHA-256 over the fingerprint written as its sixty-four lower-case hexadecimal characters; the first sixteen bytes of that digest, each taken modulo thirty-two as an index into the alphabet `23456789ABCDEFGHJKLMNPQRSTUVWXYZ`; written as four groups of four joined by hyphens. The fingerprint of sixty-four `0` characters MUST give `22VK-KPHH-NKH9-TUWA`, and that of sixty-four `f` characters `Z9JL-Q3PK-BZ6M-HRQZ`. |
 | **N1-R74** | Wherever the stack displays pairing material, it MUST display the comparable form of the fingerprint that material carries (`N1-R73`), in its human-readable and its machine-readable output alike, so that typed entry has something to be compared against (`N1-R50`). |
 | **N1-R75** | The app MUST read a refusal whose code says the request carried nothing the stack admits as a session that has ended (`N1-R44`, `ARCH-R138`), and MUST NOT read a refusal with any other code as one. |
+| **N1-R76** | What the stack says beside pairing material MUST be in words every surface can show, and MUST NOT name a command of one surface; how the certificate is replaced (`C6-R19`) MUST be said by each surface in its own way. |
 
 ## Related
 

@@ -27,10 +27,10 @@
 # G9 stays: a mobile client is handed a stack it did not configure, which is the same
 # question this version answers for a plugin.
 #
-# 62 goals, seeded from the roadmap milestone this version serves;
+# 64 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
-# Thirty-four of them were added after staging, each reviewed as a goal change (OPS-R31).
+# Thirty-six of them were added after staging, each reviewed as a goal change (OPS-R31).
 #
 # `E1-R1` went out with 0.14.0 unmet: every image in the stack is still named by tag,
 # and the requirement forbids resolving one that way. It is locked here with the
@@ -69,6 +69,11 @@
 # who typed the material to compare a short code against what the stack shows, so the
 # stack shows that code beside the material, folded the way the companion folds it.
 # Without them typed pairing asks for a comparison against nothing (OPS-R31).
+#
+# `G9-R13` and `N1-R76` keep the hand-off and the pairing material in words every surface
+# can show. Both are produced once and shown by the terminal, the web interface and the
+# companion alike, and both named terminal commands the companion cannot carry out. The
+# next step now travels as a remedy each surface renders in its own way (OPS-R31).
 #
 # `C6-R21` closes Jellyfin's cross-origin reads to the household front door. It is the
 # fourth requirement ADR-0029 decided, beside `D6-R15`, `D6-R16` and `G5-R14`: the decline
@@ -129,6 +134,7 @@ goals   = [
     "G9-R10",
     "G9-R11",
     "G9-R12",
+    "G9-R13",
     "E1-R1",
     "B1-R16",
     "B1-R17",
@@ -150,6 +156,7 @@ goals   = [
     "N1-R62",
     "N1-R73",
     "N1-R74",
+    "N1-R76",
     "C6-R19",
     "C6-R20",
     "C6-R21",
