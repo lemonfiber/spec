@@ -17,17 +17,21 @@
 # check should catch it first; the second is what notices when it did not — a
 # scan that failed, a rule that changed, a merge that went around. A repository
 # still working a backlog down declares what is left as `allowed-open`, and the
-# gate refuses any number above it. That number can only go down, and it is
-# written in the caller's own workflow where it can be read without a login.
+# gate refuses any number above it. That number is written in the caller's own
+# workflow where it can be read without a login.
 #
-# "Only down" was a sentence in this comment and nothing else. A pull request
-# runs the workflow file its own head declares, so a diff that brings three new
-# issues could raise `allowed-open` to three in the same breath and this gate
-# would agree. The first step below reads the caller's file on the base branch
-# and compares. A number above what the branch already declares is refused, and
-# a base this gate cannot read is refused too wherever the pull request declares
-# anything above zero — not knowing whether the ratchet held is not the same as
-# it having held. Zero needs no comparison; no count is below it.
+# It is a ratchet (Q-R67). A pull request runs the workflow file its own head
+# declares, so a diff that brings three new issues could raise `allowed-open` to
+# three in the same breath. The first step below reads the caller's file on the
+# base branch and compares. A lower number is accepted. A higher one is
+# accepted only as far as the count of issues standing against the base branch:
+# the backlog may be declared, headroom may not. That raise is how a pull request
+# that fixes the backlog gets through, since the open count is the base branch's
+# and SonarCloud reports no issue as fixed by a pull request; a follow-up then
+# lowers the number to what is left. A raise whose standing count this gate
+# cannot read is refused, and so is any number above zero on a base it cannot
+# read — not knowing whether the ratchet held is not the same as it having held.
+# Zero needs no comparison; no count is below it.
 #
 # The Sonar comment body is fetched at runtime and only pattern-matched, never
 # interpolated into the shell. Works whether the scan is CI-driven or SonarCloud
