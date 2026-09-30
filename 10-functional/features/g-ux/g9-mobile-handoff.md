@@ -61,9 +61,19 @@ such, never offered as the default.
 
 After the hand-off, lemonfiber queries the media server for the new device or
 session and asserts it registered — turning "the phone connected" into an observed
-fact. Because completing the sign-in needs the person to act on their device, this
-proof is **semi-interactive**: until the person finishes, the result is *pending*,
-distinct from *failed*.
+fact. *New* is a device that was not signed in to the account when the code was
+first given: the devices signed in then are written down with the moment, so a
+phone the person already had is never read as the one just handed over. Because
+completing the sign-in needs the person to act on their device, this proof is
+**semi-interactive**: until the person finishes, the result is *pending*, distinct
+from *failed*.
+
+### It says what it says in words every surface can show
+
+The hand-off is one answer, given to every surface that asks for it, and each of
+them shows the same reason and the same steps. So neither names a command: the next thing to do — invite the person, ask again, start the server,
+record the address — travels as a remedy each surface renders in its own way, a
+command in a terminal and a control in an app.
 
 ## States
 
@@ -104,6 +114,7 @@ distinct from *failed*.
 | **G9-R10** | A device unreachable from its network MUST be reported as a reachability problem, not a client fault. |
 | **G9-R11** | Session state MUST be reflected honestly; a signed-out device MUST NOT continue to read as connected. |
 | **G9-R12** | Provisioning, code issue, and the connection proof MUST each be reachable non-interactively. |
+| **G9-R13** | The hand-off's reason and steps MUST be in words every surface can show and MUST NOT name a command of one surface; the next thing to do MUST be carried as a remedy that each surface renders in its own way. |
 
 ## Related
 

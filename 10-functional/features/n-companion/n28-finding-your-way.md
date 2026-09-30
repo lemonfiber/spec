@@ -59,7 +59,7 @@ about the stack, in five groups:
 | Group | Items |
 |-------|-------|
 | **Household** | Requests · Allowance · Stuck downloads · Follow a download |
-| **Access** | Invite someone · Front door · Watch apps · Passwords |
+| **Access** | Invite someone · Front door · Watch apps · Passwords · Pair a phone |
 | **Machine** | Storage · Backups · After a restart · Already installed · Other programs · About · Uninstall |
 | **Settings** | General · Quality · Connections · Bandwidth · Outgoing traffic · Alerts · History · Sources |
 | **Help** | Get help · Glossary · Services explained |
@@ -74,6 +74,10 @@ other.
 A screen that is one step of something begun elsewhere is reached from where it
 begins, not from the menu: taking a copy, putting the configuration back, and
 guarding where the data is kept while the operator watches.
+
+A screen that details one thing another screen shows is reached from that screen:
+*Versions*, which is what *About* says is running, told release by release. Put in
+the menu beside *About* it would be a second item for one question.
 
 Until the app has *What's new* and the settings screens (`N27-R14` to `N27-R20`),
 their items are in the menu all the same, and opening one says it is not in this
@@ -119,7 +123,7 @@ words are the plain ones (`G2-R3`, `G2-R15`): *Problems* rather than *findings*,
 | **N28-R2** | The stack's name in the top bar MUST open the list of stacks, each with its glyph and a short word for how it stands and the current one marked, and the list MUST offer adding a stack. |
 | **N28-R3** | Choosing a stack from that list MUST open it on the tab the operator last used for it (`N27-R16`). |
 | **N28-R4** | The bottom bar MUST hold exactly four tabs — Health, Services, Updates and Repairs — and MUST mark as current only the tab whose screen is on view, or the tab the screen on view belongs to; what one service is doing and its log belong to Services. |
-| **N28-R5** | Every screen about a stack that is not one of the four tabs, a screen belonging to one of them (`N28-R4`) or one step of something begun on another screen MUST be reachable from the menu in the groups this page names, and MUST NOT be reached only from another screen's body. |
+| **N28-R5** | Every screen about a stack that is not one of the four tabs, a screen belonging to one of them (`N28-R4`), one step of something begun on another screen, or a screen detailing one thing another screen shows MUST be reachable from the menu in the groups this page names, and MUST NOT be reached only from another screen's body. |
 | **N28-R6** | The menu MUST begin with the current stack and *What's new* with its count, and MUST end with the stack's settings and App settings. |
 | **N28-R7** | Every menu item MUST carry an icon and a label, and the icon MUST NOT stand in for the label (`N4-R21`). |
 | **N28-R8** | The health screen MUST show how the stack stands and what is wrong, MUST offer *What's new* first where anything is new, and MUST NOT list the menu's items. |
