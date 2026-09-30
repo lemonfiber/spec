@@ -173,19 +173,21 @@ problem — one token, never recycled, and the thing an operator searches for �
 page listing what each one means is where that search lands, and a page that claims to
 list every code is making a promise about the crates rather than about itself.
 
-A hand-written list of them cannot keep that promise. Codes are declared beside the
-code that raises them rather than in a central table, which is deliberate: a code and
-its meaning move together, and no release can quietly recycle a number. It also means
-there is nothing to read them off. So a code added beside what raises it costs nothing
-and breaks nothing, and the list goes on saying it is complete while it is not.
+A hand-written list of them cannot keep that promise, because nothing holds it to
+the crates. So every code is declared once, in one registry in `lemonfiber-error`,
+beside the line that says what it means, and the code that raises it names it from
+there. The macro that declares a code also lists it, so there is no declaration a
+reader could fail to account for.
 
-So the inventory is read from the declarations themselves — every code the crates
-declare outside their tests — and emitted sorted into an artefact committed beside
-them; a test compares the two, and the generator and the test read through the same
-eyes so neither can be right about a list the other is wrong about. A declaration the
-reader cannot account for fails the build rather than being dropped from the list
-silently, which is the only failure that would make the artefact lie in the direction
-that matters.
+The registry holds only codes something raises: a test fails when a declared code is
+named nowhere in the code a release is built from. A code nothing raises leaves the
+registry, and its number is kept on the registry's list of retired numbers, which no
+declaration may take again. No release can quietly recycle a number.
+
+So the inventory is read from the registry — every code it declares — and emitted
+sorted into an artefact committed beside it, and a test compares the two. The page
+that says what each code means is held to that artefact in both directions, so it
+lists every code a release can raise and nothing else.
 
 What stays written is what generation cannot say: what a code means, and what to do
 about it. Generation fixes the boundary of that document; the words inside it are a
