@@ -28,6 +28,8 @@ up to a number published earlier.
 
 Usage:
   fan_out_pins.py --repo <consumer checkout> --spec <spec checkout with tags> --tag vX.Y.Z
+  fan_out_pins.py --consumers
+  fan_out_pins.py --reach < <the app installation's repositories, one per line>
 
 Rewrites files in place and prints what it touched. The caller decides what to do
 about it by looking at the checkout, which is the one account of what happened
@@ -35,7 +37,8 @@ that cannot disagree with itself.
 
 Exit 0 = the question was asked and answered, whether or not anything was
 rewritten. Exit 2 = **could not ask** — no spec checkout, a tag this checkout
-does not hold, or a pin it cannot resolve. Never 1: a consumer with nothing
+does not hold, a pin it cannot resolve, or, under `--reach`, an installation
+that lists nothing or holds none of the map. Never 1: a consumer with nothing
 stale is the ordinary case and the commonest one, and a script that failed on it
 would teach its caller to ignore the code that means something went wrong.
 """
@@ -43,6 +46,7 @@ would teach its caller to ignore the code that means something went wrong.
 from __future__ import annotations
 
 import argparse
+import os
 import pathlib
 import re
 import sys
@@ -69,6 +73,15 @@ REGISTRY = pathlib.Path("30-repos/repos.toml")
 #: time a tag was cut.
 ITSELF = "spec"
 
+#: The step output `--reach` writes. `fan-out-pins.yml` reads it by name when it
+#: mints the write token, and `test_fan_out_workflow.py` holds the two to one
+#: spelling.
+REACHABLE = "named"
+
+#: Ends the multi-line `REACHABLE` output. A repository name is letters, digits,
+#: `.`, `-` and `_`, and never holds a space, so no line of the list can be this.
+DELIMITER = "END OF REACHABLE"
+
 
 def consumers(registry: pathlib.Path = REGISTRY) -> list[str]:
     """Every governed repository but this one, in the order the map lists them.
@@ -85,6 +98,90 @@ def consumers(registry: pathlib.Path = REGISTRY) -> list[str]:
         for one in named.get("repo", [])
         if str(one.get("name", "")) != ITSELF
     ]
+
+
+def within_reach(named: list[str], installed: set[str]) -> tuple[list[str], list[str]]:
+    """The consumers the app's installation holds, and the ones it does not.
+
+    A token is minted for a list of repositories, and GitHub refuses the whole
+    mint when one of them is absent from the installation. Minted for the map as
+    it stands, one repository declared before it is created, or never given the
+    app, costs every other repository its bump.
+
+    Both lists keep the map's order.
+    """
+    return (
+        [one for one in named if one in installed],
+        [one for one in named if one not in installed],
+    )
+
+
+def reach(listed: str, registry: pathlib.Path = REGISTRY) -> int:
+    """Answer the workflow's question of which consumers the fan-out can visit.
+
+    `listed` is the installation's repositories, one name per line. The command
+    line reads it from standard input rather than from a path it names, so there
+    is no path for a caller to point anywhere else. The reachable ones go to the
+    step's `REACHABLE` output, which the write token is minted for. Every one skipped is named twice — as a warning annotation and in
+    the job summary — because a repository left behind in silence is the state
+    this workflow exists to end.
+
+    Exit 2 where the answer cannot be trusted: an installation that listed
+    nothing, or a map with nothing on it the app can reach. The second matters
+    beyond the count. An empty `repositories` input does not mint a token for no
+    repositories; it mints one for every repository the app is installed on.
+    """
+    output = os.environ.get("GITHUB_OUTPUT")
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+
+    if not (output and summary):
+        print(
+            "::error::--reach writes the step's output and its summary, and the runner "
+            "names no file for one of them. It is run by the workflow, not by hand."
+        )
+        return 2
+
+    installed = {line.strip() for line in listed.splitlines() if line.strip()}
+
+    if not installed:
+        print(
+            "::error::the app's installation listed no repositories, so which of the "
+            "consumers exist and can be reached cannot be told from here."
+        )
+        return 2
+
+    named = consumers(registry)
+    reachable, skipped = within_reach(named, installed)
+
+    if not reachable:
+        print(
+            f"::error::none of the {len(named)} repositories on the map is in the app's "
+            "installation. Minting for an empty list would reach every repository the "
+            "app holds, so nothing is minted."
+        )
+        return 2
+
+    for one in skipped:
+        print(
+            f"::warning::{one} is on the map and not in the app's installation — it does "
+            "not exist yet, or the app is not installed on it. Skipped: no bump was opened there."
+        )
+
+    print(f"::notice::{len(named)} repositories on the map, {len(reachable)} within the app's reach")
+
+    with open(output, "a", encoding="utf-8") as out:
+        out.write(f"{REACHABLE}<<{DELIMITER}\n" + "\n".join(reachable) + f"\n{DELIMITER}\n")
+
+    if skipped:
+        with open(summary, "a", encoding="utf-8") as said:
+            said.write("### Skipped: on the map, not in the app's installation\n\n")
+            said.writelines(f"- {one}\n" for one in skipped)
+            said.write(
+                "\nEach does not exist yet or does not have the app installed. Nothing was "
+                "bumped there, and nothing will be until it does.\n\n"
+            )
+
+    return 0
 
 
 def rewritten(text: str, workflow: str, was: str, now: str, tag: str) -> str:
@@ -183,11 +280,20 @@ def main() -> int:
         action="store_true",
         help="print every governed repository but this one, and do nothing else",
     )
+    parsed.add_argument(
+        "--reach",
+        action="store_true",
+        help="read the app installation's repositories from standard input; write which consumers "
+        "it holds to the step's output, name the rest, and do nothing else",
+    )
     args = parsed.parse_args()
 
     if args.consumers:
         print("\n".join(consumers()))
         return 0
+
+    if args.reach:
+        return reach(sys.stdin.read())
 
     if not (args.repo and args.spec and args.tag):
         print("::error::--repo, --spec and --tag are all required to bump a pin.")

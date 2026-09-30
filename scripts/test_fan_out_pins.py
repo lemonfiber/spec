@@ -27,6 +27,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
@@ -423,6 +424,125 @@ class WhoItVisits(unittest.TestCase):
         self.assertGreater(len(named), 1)
         self.assertNotIn("spec", named)
         self.assertIn("lemonfiber", named)
+
+
+def outputs_in(text: str) -> dict[str, list[str]]:
+    """The step outputs a `GITHUB_OUTPUT` file holds, each as its lines."""
+    found: dict[str, list[str]] = {}
+    lines = iter(text.splitlines())
+
+    for line in lines:
+        name, _, ends = line.partition("<<")
+        found[name] = list(iter(lines.__next__, ends))
+
+    return found
+
+
+class WhatTheAppCanReach(unittest.TestCase):
+    """Which consumers the write token is minted for, and which are named and left."""
+
+    MAP = '[[repo]]\nname = "spec"\n\n[[repo]]\nname = "zulu"\n\n[[repo]]\nname = "unmade"\n\n[[repo]]\nname = "alpha"\n'
+
+    def setUp(self):
+        self.root = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, True)
+
+        self.registry = self.root / "repos.toml"
+        self.registry.write_text(self.MAP, encoding="utf-8")
+        self.output = self.root / "output"
+        self.summary = self.root / "summary.md"
+        self.output.touch()
+        self.summary.touch()
+
+        env = {"GITHUB_OUTPUT": str(self.output), "GITHUB_STEP_SUMMARY": str(self.summary)}
+        patched = unittest.mock.patch.dict(os.environ, env)
+        patched.start()
+        self.addCleanup(patched.stop)
+
+    def installed(self, *names: str) -> int:
+        with contextlib.redirect_stdout(io.StringIO()) as said:
+            answered = fan_out_pins.reach("".join(f"{one}\n" for one in names), self.registry)
+        self.said = said.getvalue()
+        return answered
+
+    def test_the_split_keeps_the_map_order(self):
+        reachable, skipped = fan_out_pins.within_reach(["zulu", "unmade", "alpha", "gone"], {"alpha", "zulu"})
+        self.assertEqual(reachable, ["zulu", "alpha"])
+        self.assertEqual(skipped, ["unmade", "gone"])
+
+    def test_the_token_is_minted_for_the_reachable_ones_only(self):
+        # `unmade` is declared on the map and absent from the installation. Minted
+        # for it, the token is refused for every repository, not just that one.
+        self.assertEqual(self.installed("alpha", "zulu", "spec", "somebody-elses"), 0)
+
+        written = outputs_in(self.output.read_text(encoding="utf-8"))
+        self.assertEqual(written, {fan_out_pins.REACHABLE: ["zulu", "alpha"]})
+
+    def test_a_skipped_repository_is_a_warning_naming_it(self):
+        self.installed("alpha", "zulu")
+
+        self.assertIn("::warning::unmade is on the map and not in the app's installation", self.said)
+        self.assertNotIn("::warning::alpha", self.said)
+        self.assertIn("3 repositories on the map, 2 within the app's reach", self.said)
+
+    def test_a_skipped_repository_is_named_in_the_summary(self):
+        self.installed("alpha", "zulu")
+
+        said = self.summary.read_text(encoding="utf-8")
+        self.assertIn("- unmade\n", said)
+        self.assertNotIn("- alpha", said)
+
+    def test_nothing_skipped_writes_no_summary(self):
+        self.assertEqual(self.installed("alpha", "zulu", "unmade"), 0)
+
+        self.assertEqual(self.summary.read_text(encoding="utf-8"), "")
+        self.assertNotIn("::warning::", self.said)
+
+    def test_blank_lines_in_the_listing_are_not_repositories(self):
+        self.installed("", "alpha", "  ", "zulu")
+
+        written = outputs_in(self.output.read_text(encoding="utf-8"))
+        self.assertEqual(written[fan_out_pins.REACHABLE], ["zulu", "alpha"])
+
+    def test_an_installation_listing_nothing_is_could_not_ask(self):
+        self.assertEqual(self.installed(), 2)
+
+        self.assertIn("listed no repositories", self.said)
+        self.assertEqual(self.output.read_text(encoding="utf-8"), "")
+
+    def test_a_listing_of_blank_lines_is_a_listing_of_nothing(self):
+        self.assertEqual(self.installed("", "  "), 2)
+
+        self.assertIn("listed no repositories", self.said)
+
+    def test_a_map_the_app_reaches_none_of_mints_nothing(self):
+        # An empty `repositories` input mints for the whole installation, which is
+        # the widest token this workflow could hold. No output is written, so the
+        # write mint never has an empty list to be given.
+        self.assertEqual(self.installed("somebody-elses"), 2)
+
+        self.assertIn("none of the 3 repositories on the map", self.said)
+        self.assertEqual(self.output.read_text(encoding="utf-8"), "")
+
+    def test_run_by_hand_it_refuses_rather_than_writing_nowhere(self):
+        del os.environ["GITHUB_OUTPUT"]
+
+        self.assertEqual(self.installed("alpha"), 2)
+        self.assertIn("run by the workflow", self.said)
+
+    def test_the_real_map_answers_through_the_command_line(self):
+        was = pathlib.Path.cwd()
+        os.chdir(pathlib.Path(__file__).parent.parent)
+        self.addCleanup(os.chdir, was)
+        sys.argv = ["fan_out_pins.py", "--reach"]
+        with (
+            unittest.mock.patch("sys.stdin", io.StringIO("lemonfiber\n")),
+            contextlib.redirect_stdout(io.StringIO()),
+        ):
+            self.assertEqual(fan_out_pins.main(), 0)
+
+        written = outputs_in(self.output.read_text(encoding="utf-8"))
+        self.assertEqual(written[fan_out_pins.REACHABLE], ["lemonfiber"])
 
 
 class TheRevisionItWrites(ARepositoryAndASpec, unittest.TestCase):

@@ -35,19 +35,25 @@ import subprocess
 import tempfile
 import unittest
 
+import fan_out_pins
 import yaml
 
 HERE = pathlib.Path(__file__).resolve().parent
 WORKFLOW = HERE.parent / ".github" / "workflows" / "fan-out-pins.yml"
 JOB = "fan-out-pins"
 STEP = "Open the bump wherever one is owed"
+REACH = "Who holds a pin, and which of them the app can reach"
+#: The `id` of the mint whose token opens the bumps; the other mint only lists.
+WRITER = "token"
 
-#: Stands in for `gh`. Three subcommands, answered by what was asked:
+#: Stands in for `gh`. Four subcommands, answered by what was asked:
 #:
 #: `repo clone`  — lays down a checkout seeded from GH_FIXTURE, unless the
 #:                 repository is named in GH_CLONE_FAILS.
 #: `pr list`     — prints GH_PR_EXISTS, which the step reads as a count.
 #: `pr create`   — records the call and succeeds, unless named in GH_CREATE_FAILS.
+#: `api`         — prints GH_INSTALLED as the installation's repositories, one
+#:                 per line, unless GH_API_FAILS is set.
 GH_STUB = """#!/bin/sh
 set -eu
 printf '%s\\n' "$*" >> "${GH_LOG}"
@@ -69,6 +75,11 @@ case "$1 $2" in
   ;;
 "pr list")
   printf '%s\\n' "${GH_PR_EXISTS:-0}"
+  exit 0
+  ;;
+"api "*)
+  [ -z "${GH_API_FAILS:-}" ] || exit 1
+  printf '%s' "${GH_INSTALLED:-}"
   exit 0
   ;;
 "pr create")
@@ -104,15 +115,30 @@ exec "${REAL_GIT}" "$@"
 """
 
 
-def the_step() -> str:
+def the_step(named: str = STEP) -> str:
     """The step's shell, read out of the committed workflow."""
+    return a_step(named)["run"]
+
+
+def a_step(named: str) -> dict:
     described = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
 
     for step in described["jobs"][JOB]["steps"]:
-        if step.get("name") == STEP:
-            return step["run"]
+        if step.get("name") == named:
+            return step
 
-    raise AssertionError(f"no step named {STEP!r} in {WORKFLOW}")
+    raise AssertionError(f"no step named {named!r} in {WORKFLOW}")
+
+
+def the_mints() -> list[dict]:
+    """Every app token the job asks for, in the order it asks."""
+    described = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+
+    return [
+        one
+        for one in described["jobs"][JOB]["steps"]
+        if str(one.get("uses", "")).startswith("actions/create-github-app-token")
+    ]
 
 
 def a_pin(workflow: str, sha: str) -> str:
@@ -311,6 +337,90 @@ class TheLoop(unittest.TestCase):
         self.assertIn("refused: alpha", said)
 
 
+class WhoItCanReach(unittest.TestCase):
+    """The step that decides which repositories the write token is minted for."""
+
+    MAP = '[[repo]]\nname = "spec"\n\n[[repo]]\nname = "alpha"\n\n[[repo]]\nname = "unmade"\n\n[[repo]]\nname = "beta"\n'
+
+    def setUp(self):
+        self.root = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, True)
+
+        self.spec = self.root / "spec"
+        (self.spec / "scripts").mkdir(parents=True)
+        for name in ("fan_out_pins.py", "workflow_pins.py"):
+            shutil.copy(HERE / name, self.spec / "scripts" / name)
+        (self.spec / "30-repos").mkdir()
+        (self.spec / "30-repos" / "repos.toml").write_text(self.MAP, encoding="utf-8")
+
+        self.bin = self.root / "bin"
+        self.bin.mkdir()
+        (self.bin / "gh").write_text(GH_STUB, encoding="utf-8")
+        (self.bin / "gh").chmod(0o755)
+
+        self.log = self.root / "gh.log"
+        self.output = self.root / "output"
+        self.summary = self.root / "summary.md"
+        for where in (self.log, self.output, self.summary):
+            where.touch()
+
+    def run_step(self, **extra) -> subprocess.CompletedProcess:
+        env = {
+            **os.environ,
+            "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
+            "GH_TOKEN": "t",
+            "GH_LOG": str(self.log),
+            "RUNNER_TEMP": str(self.root),
+            "GITHUB_OUTPUT": str(self.output),
+            "GITHUB_STEP_SUMMARY": str(self.summary),
+            **extra,
+        }
+
+        return subprocess.run(
+            ["bash", "-c", the_step(REACH)],
+            capture_output=True,
+            text=True,
+            env=env,
+            cwd=self.spec,
+        )
+
+    def test_a_repository_not_in_the_installation_is_skipped_and_named(self):
+        ran = self.run_step(GH_INSTALLED="alpha\nbeta\nspec\n")
+
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        self.assertIn("::warning::unmade is on the map and not in the app's installation", ran.stdout)
+        self.assertIn("- unmade\n", self.summary.read_text(encoding="utf-8"))
+
+        written = self.output.read_text(encoding="utf-8")
+        self.assertIn(f"{fan_out_pins.REACHABLE}<<", written)
+        self.assertIn("\nalpha\nbeta\n", written)
+        self.assertNotIn("unmade", written)
+
+    def test_it_asks_the_installation_and_reads_every_page(self):
+        self.run_step(GH_INSTALLED="alpha\n")
+
+        asked = self.log.read_text(encoding="utf-8")
+        self.assertIn("/installation/repositories", asked)
+        self.assertIn("--paginate", asked)
+
+    def test_a_listing_that_fails_stops_the_run_before_any_mint(self):
+        # Not read as an installation holding nothing. Under `pipefail` a failed
+        # producer is easy to lose; the listing is captured and its exit tested.
+        ran = self.run_step(GH_API_FAILS="1")
+
+        self.assertNotEqual(ran.returncode, 0)
+        self.assertIn("could not be listed", ran.stdout)
+        # Stopped at the listing, not carried on to report an empty one.
+        self.assertNotIn("listed no repositories", ran.stdout)
+        self.assertEqual(self.output.read_text(encoding="utf-8"), "")
+
+    def test_an_installation_holding_none_of_the_map_fails_the_run(self):
+        ran = self.run_step(GH_INSTALLED="somebody-elses\n")
+
+        self.assertNotEqual(ran.returncode, 0)
+        self.assertEqual(self.output.read_text(encoding="utf-8"), "")
+
+
 class TheStepIsTheOneThatRuns(unittest.TestCase):
     """Read from the committed YAML, so this cannot drift from CI."""
 
@@ -338,15 +448,38 @@ class TheStepIsTheOneThatRuns(unittest.TestCase):
         # token that cannot do it fails at the mint — on 2026-09-22 one that was
         # not asked got as far as twelve rejected pushes, reported as twelve
         # repositories refusing a branch.
-        described = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-        minted = next(
-            one
-            for one in described["jobs"][JOB]["steps"]
-            if str(one.get("uses", "")).startswith("actions/create-github-app-token")
-        )
+        minted = next(one for one in the_mints() if one.get("id") == WRITER)
 
         for asked in ("contents", "pull-requests", "workflows"):
             self.assertEqual(minted["with"][f"permission-{asked}"], "write")
+
+    def test_the_write_token_is_minted_for_the_reachable_list_and_no_other(self):
+        # The name is the script's constant, so the output it writes and the
+        # output read here cannot be spelled two ways.
+        minted = next(one for one in the_mints() if one.get("id") == WRITER)
+        reached = a_step(REACH)
+
+        self.assertEqual(
+            minted["with"]["repositories"],
+            f"${{{{ steps.{reached['id']}.outputs.{fan_out_pins.REACHABLE} }}}}",
+        )
+
+    def test_the_listing_token_reads_metadata_and_nothing_else(self):
+        # It is the one token here scoped to the whole installation, which is
+        # only tolerable because it can do nothing but read the list.
+        listing = next(one for one in the_mints() if one.get("id") != WRITER)
+        asked = {key: value for key, value in listing["with"].items() if key.startswith("permission-")}
+
+        self.assertEqual(asked, {"permission-metadata": "read"})
+        self.assertNotIn("repositories", listing["with"])
+        self.assertEqual(
+            a_step(REACH)["env"]["GH_TOKEN"],
+            f"${{{{ steps.{listing['id']}.outputs.token }}}}",
+        )
+
+    def test_the_job_mints_two_tokens_and_no_third(self):
+        # A third would be a token this file's two tests above say nothing about.
+        self.assertEqual(len(the_mints()), 2)
 
 
 if __name__ == "__main__":
