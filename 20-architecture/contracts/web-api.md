@@ -137,16 +137,38 @@ over is the only form `--out` can take on a screen. The name is resolved beneath
 directory rather than followed, so one carrying a path, or climbing out of that directory, is
 refused by name.
 
-### When a read is refused
+### When a request is refused
 
-The body of a refusal is the error envelope, the same one `--json` renders, so the status is
-the only thing that tells one refusal from another — and they are worth telling apart:
+The body of every refusal is the error envelope, the same one `--json` renders, and its
+problem's `code` names why the request was refused. The status says which kind of refusal it
+is:
 
 | Refused because | Status |
 |---|---|
 | What the request named, this product does not have | `404` |
 | The request could not be answered as it was asked | `400` |
+| The password offered at the door was wrong, or none is configured | `401` |
+| Anything else about who is asking or where they asked from | `403` |
+| Too many wrong answers at the door lately | `429` |
 | Nothing about the request was wrong; the machine could not answer it | `500` |
+
+A status groups refusals; the code tells them apart. Four different facts share `403`:
+
+- The request carried nothing this run admits. Signing in again helps.
+- It said it came from somewhere this server is not.
+- The caller proved who they are, and this is not theirs.
+- The media server could not say whether the caller is still anybody.
+
+Each of these has its own remedy, and a client that read them from the status alone would
+offer one remedy for all four. So a client decides what a refusal means from its code. It
+never decides from the sentence, which is written for a person and may be reworded.
+
+A code is one of the core's problem codes. It is stable, never recycled, and listed with
+every other code the core raises. The artefact lists every code a refusal may carry, with
+the status each is answered with ([below](#the-refusals-it-lists)), so an SDK generates the
+list rather than copying it. A refusal carrying no code, or a code the client does not
+know, is read by its status alone. That is what a client meeting an older or a newer
+server can still rely on.
 
 The line between the first two is what the request was *for*. A word this product does not
 explain is absent — the word is the whole of what `/api/explain` was asked for, and there is
@@ -209,10 +231,10 @@ header** to read and a client has one thing to hold rather than two.
 | The password was wrong, or none is configured | `401` |
 | Too many wrong answers lately | `429`, saying how long is left |
 
-`401` here rather than the `403` every other refusal answers with, and the difference is the
-whole reason to distinguish them: `403` means *nothing you can send would help*, which is
-true of a missing token and false of a wrong password. A client that cannot tell the two
-apart cannot know whether offering a login is worth anything.
+`401` is the door's alone. A wrong password is answered where it was offered, so a client
+reading `401` knows that the password it just sent is the thing to change. Every other
+refusal, including a session this run no longer admits, answers `403`, and what tells a
+client that signing in again would help is the refusal's code, not its status.
 
 ### The session
 
@@ -222,8 +244,12 @@ password changes — which is what makes changing the password a way to end a se
 somebody else is holding, rather than only a way to stop the next one.
 
 Neither is a rule a client may keep its own version of. The server refuses an expired or
-voided session exactly as it refuses a wrong one, and a client that cached the verdict would
-be a second opinion about who is admitted.
+voided session exactly as it refuses a wrong one, with the same status, sentence and code.
+A client that cached the verdict would be a second opinion about who is admitted. Sessions
+live only as long as the process that opened them, so a session from an earlier run is
+refused the same way too. A client holding one learns only that what it carries is no
+longer admitted, and the remedy is to sign in again. Naming which secret failed would tell
+somebody guessing which one to keep guessing at.
 
 ### Wrong answers are counted
 
@@ -530,7 +556,7 @@ generation has not been used.
 | **ARCH-R74** | A refused read MUST carry a status that distinguishes what the request named and this product does not have, from a request that could not be answered as it was asked, from a failure of the machine; the body MUST be the error envelope in every case, and the status of a failure of the machine MUST NOT be given to either of the others. |
 | **ARCH-R75** | The operator's password MUST be exchanged for a session by one request and MUST NOT be required by any other. |
 | **ARCH-R76** | A session's secret MUST travel in the same header the per-run token does, so the surface reads one credential header. |
-| **ARCH-R77** | A refusal a caller could correct by sending something else MUST be distinguished by status from one nothing they could send would satisfy, and a refusal for too many failed attempts MUST say how long is left. |
+| **ARCH-R77** | A refusal a caller could correct by sending something else MUST be distinguished by its code from one nothing they could send would satisfy, and a refusal for too many failed attempts MUST say how long is left. |
 | **ARCH-R78** | The API MUST expose the set of capabilities the stack can perform, and a client MUST NOT derive that set from a version number. |
 | **ARCH-R79** | A capability MUST be reported as available, present but unconfigured, or present but not permitted to this credential; a capability the stack does not have MUST be absent rather than reported as false. |
 | **ARCH-R80** | The capability set MUST be scoped to the credential that asked, so that it carries the core's existing answer about what a household member may do rather than a second one. |
@@ -543,6 +569,8 @@ generation has not been used.
 | **ARCH-R133** | The contract artefact MUST describe the body every web API route takes, the setup routes' included — the answer to each question setup asks, and the choice a recovery takes — generated from the types the server reads a request into, so that a client builds a request from the artefact rather than from the server's source (`ARCH-R56`, `G1-R14`). |
 | **ARCH-R134** | The contract artefact MUST publish every action the web API takes, with each argument it takes, the argument's type and the consent the action asks for before it writes, generated from what the server reads; an SDK MUST generate the actions it offers from that list, so that an action or argument the core adds reaches a client as a regenerated diff (`ARCH-R47`, `ARCH-R48`, `ARCH-R58`). |
 | **ARCH-R135** | Work stopped because other work held the stack MUST be answered with `409`, and MUST NOT be given the status of a failure of the machine, so that a client can say another operation is in progress (`B6-R8`) and offer the same request again once it is done. |
+| **ARCH-R138** | Every refusal the web API answers with MUST carry the error envelope as its body, and its problem code MUST name why the request was refused. Refusals that share a status and call for different remedies MUST carry different codes. A client MUST decide what a refusal means from its code and MUST NOT decide it from the sentence. A client MUST read a refusal that carries no code, or a code it does not know, by its status alone. |
+| **ARCH-R139** | The contract artefact MUST list every code a refusal may carry, with the code's registry name, the status it is answered with and its description. An SDK MUST generate its list of refusal codes from that list and MUST NOT keep one of its own. |
 
 ## Shapes are generated; semantics are not
 
@@ -563,6 +591,36 @@ Everything above that a schema cannot express stays here, in prose, and every SD
 it and tests it: the heartbeat, resumption that does not present pre-gap values as current,
 the token's placement, and the refusal on mismatch. **This document is normative for what the
 surface means; the artefact is normative for what it looks like.** Neither restates the other.
+
+### The refusals it lists
+
+A refusal's body is a kind the artefact already describes, `error`, and a problem's `code` is
+a string there, because the core raises hundreds of codes and most of them reach a client
+only to be shown. The few that a client branches on are the codes a refusal carries, so the
+artefact lists those beside the kinds, keyed by code:
+
+```json
+"refusals": {
+  "ADMIT-4": {
+    "name": "NOT_ADMITTED",
+    "status": 403,
+    "description": "Raised when a request carried no token or session this run admits."
+  }
+}
+```
+
+- `name` is the code's name in the core's registry.
+- `status` is the one status the refusal is answered with.
+- `description` is the registry's own line about it.
+
+An SDK generates a typed list from this, a value per code, and reads a refusal's code into
+it. A code the list does not name reads as none (`ARCH-R138`). No SDK and no client keeps a
+hand-written copy of the list: a copy is a second place to update, and the one that was not
+updated is the one that reads a new refusal as an old one.
+
+The list is additive in the way the kinds are. A code is added when the core begins to
+refuse with it, and it keeps its spelling and its number for good. Adding one leaves
+`api_version` alone.
 
 ## How the artefact reaches an SDK
 

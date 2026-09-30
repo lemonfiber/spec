@@ -383,6 +383,7 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R72** | A subscription MUST be held only while a screen showing what it carries is in front of the operator. It MUST be closed when that screen is left, and at the screen's first wake after the app leaves the foreground; it MUST NOT be opened or read while the app is in the background. |
 | **N1-R73** | The comparable form (`N1-R50`, `N1-R51`) MUST be derived the same way wherever it is shown: SHA-256 over the fingerprint written as its sixty-four lower-case hexadecimal characters; the first sixteen bytes of that digest, each taken modulo thirty-two as an index into the alphabet `23456789ABCDEFGHJKLMNPQRSTUVWXYZ`; written as four groups of four joined by hyphens. The fingerprint of sixty-four `0` characters MUST give `22VK-KPHH-NKH9-TUWA`, and that of sixty-four `f` characters `Z9JL-Q3PK-BZ6M-HRQZ`. |
 | **N1-R74** | Wherever the stack displays pairing material, it MUST display the comparable form of the fingerprint that material carries (`N1-R73`), in its human-readable and its machine-readable output alike, so that typed entry has something to be compared against (`N1-R50`). |
+| **N1-R75** | The app MUST read a refusal whose code says the request carried nothing the stack admits as a session that has ended (`N1-R44`, `ARCH-R138`), and MUST NOT read a refusal with any other code as one. |
 
 ## Related
 

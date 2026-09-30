@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 106,
-    "requirements": 1596,
+    "requirements": 1598,
     "areas": "A–N"
   },
   "versions": [
@@ -112,7 +112,7 @@
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 129
+      "goals": 133
     },
     {
       "version": "0.19.0",
@@ -2986,6 +2986,10 @@
         {
           "version": "0.17.0",
           "status": "staged"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         }
       ],
       "path": "n-companion/n1-companion-app.md"
@@ -3036,8 +3040,10 @@
       "status": "accepted",
       "maturity": "planned",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
       "priority": "P2",
       "labels": [
         "mobile",
@@ -3056,7 +3062,12 @@
         "G6",
         "G9"
       ],
-      "versions": [],
+      "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        }
+      ],
       "path": "n-companion/n3-household-companion.md"
     },
     {

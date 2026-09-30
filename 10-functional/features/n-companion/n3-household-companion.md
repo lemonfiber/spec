@@ -142,6 +142,7 @@ does not hold a second copy of them.
 | **N3-R14** | What a member may watch MUST be the core's answer; the player MUST NOT hold a second copy of a library, an age limit or an entitlement. |
 | **N3-R15** | Where the media server cannot be reached, playback MUST be declined with the reason, and MUST NOT be queued or shown as buffering. |
 | **N3-R16** | The player MUST NOT implement request, approval or allowance logic of its own. |
+| **N3-R17** | A refusal whose code says the household could not be asked MUST be reported as the media server not answering. It MUST NOT sign the member out, and MUST NOT be reported as the account lacking entitlement (`ARCH-R138`). |
 
 ## Related
 
