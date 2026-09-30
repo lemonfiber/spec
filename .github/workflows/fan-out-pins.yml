@@ -103,22 +103,51 @@ jobs:
           echo "commit=$commit" >>"$GITHUB_OUTPUT"
           echo "::notice::${TAG} names ${commit}"
 
-      - name: Who holds a pin on this repository
+      # The map says who holds a pin; only the installation says who can be
+      # reached. A repository is declared on the map before it is created, and
+      # the write token below is refused outright if one name it is minted for
+      # is absent from the installation — so that name would cost every other
+      # repository its bump.
+      #
+      # This token reads the installation's list and nothing else: metadata,
+      # read, which every installation holds. It is scoped to the whole
+      # installation because that list is what it is for.
+      - name: Mint a token that can list the installation
+        id: lister
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }} # zizmor: ignore[github-app] -- read-only metadata; the installation's list is what it is for
+          permission-metadata: read
+
+      # Every repository on the map the installation does not hold is skipped
+      # and named, as a warning and in the summary. A repository it does hold
+      # goes on to the bump, and a failure there still fails the run.
+      - name: Who holds a pin, and which of them the app can reach
         id: who
+        env:
+          GH_TOKEN: ${{ steps.lister.outputs.token }}
         run: |
           set -euo pipefail
-          named=$(python3 scripts/fan_out_pins.py --consumers)
-          echo "::notice::$(echo "$named" | wc -l | tr -d ' ') repositories on the map"
-          {
-            echo "named<<EOF"
-            echo "$named"
-            echo "EOF"
-          } >>"$GITHUB_OUTPUT"
+          listed="${RUNNER_TEMP}/installed"
 
-      # Scoped to the repositories on the map and to this run. The token can open
-      # a pull request in each and do nothing else; it is minted once rather than
-      # per repository, because a mint per repository is a dozen more chances for
-      # the thing that opens the bump to be the thing that fails.
+          # Captured to a file and its exit tested, so a failed listing stops
+          # here rather than reading as an installation holding nothing.
+          if ! gh api --paginate /installation/repositories \
+               --jq '.repositories[].name' >"$listed"; then
+            echo "::error::the app's installation could not be listed, so which"\
+              "repositories exist and can be reached is unknown."
+            exit 1
+          fi
+
+          python3 scripts/fan_out_pins.py --reach <"$listed"
+
+      # Scoped to the repositories on the map the installation holds, and to this
+      # run. The token can open a pull request in each and do nothing else; it is
+      # minted once rather than per repository, because a mint per repository is
+      # a dozen more chances for the thing that opens the bump to be the thing
+      # that fails.
       #
       # **The app needs `workflows: write`, and `contents: write` is not enough.**
       # GitHub refuses a push from an app that creates or updates anything under
@@ -143,8 +172,13 @@ jobs:
       # twelve clones, twelve rewrites and twelve rejected pushes before anyone
       # learns which permission was missing — and the run reports it as twelve
       # repositories refusing a branch. Asking narrows the token to what this
-      # workflow actually uses, and turns the one that is absent into a failure
-      # at this step, naming it, before a single repository is touched.
+      # workflow actually uses, and turns an absent one into a failure at this
+      # step, before a single repository is touched. GitHub's answer does not say
+      # which one is absent:
+      #
+      #     The permissions requested are not granted to this installation.
+      #
+      # and the cure is on the app's installation, not in this file.
       - name: Mint a token that can reach them
         id: token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0

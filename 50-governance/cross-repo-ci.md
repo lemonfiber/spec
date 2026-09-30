@@ -396,6 +396,14 @@ named nor leave one it would. And it visits the repositories `30-repos/repos.tom
 lists rather than a second copy of that list, so the day somebody adds a
 fourteenth repository is not the day the fan-out quietly stops covering the org.
 
+The map can name a repository before it exists, and the app's token is refused
+whole if one repository it is minted for is outside the app's installation. So
+the fan-out first asks the installation which repositories it holds, mints only
+for those, and names every one it skipped — a warning on the run and a list in
+its summary. A skipped repository gets no bump until it exists and the app is
+installed on it; one the installation holds and the bump fails in still fails
+the run.
+
 **It does not replace the dependency bot and is not racing it.** The bot proposes
 whatever tag existed when it ran; this fires from the tag itself. The difference
 is the one that cost an afternoon — see below.
@@ -415,8 +423,11 @@ refusal arrives as
 which reads like a branch problem and is a permission one. It is worth knowing
 before reading one of these logs: the first run, on `v1.0.10`, measured all
 twelve repositories correctly, rewrote the one stale pin correctly, and failed
-there. A granted permission also has to be *approved* for each installation
-before it takes effect, so granting it on the app is half the job.
+there. The fan-out asks for `workflows: write` by name when it mints, so an
+installation without it fails at the mint, before any repository is touched, and
+is answered only `The permissions requested are not granted to this
+installation.` A granted permission also has to be *approved* for each
+installation before it takes effect, so granting it on the app is half the job.
 
 Until this existed the bump was done by hand, and that was the reason to keep the
 check off the required list on a default branch: a gate whose remedy nothing

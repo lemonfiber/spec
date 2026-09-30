@@ -220,8 +220,13 @@ jobs:
   # Loud, because the cost of this failing is invisible from every repository it
   # affects: fifteen of them go on pinning what they already have and nothing
   # tells them a revision they could take exists.
+  #
+  # This job alone, and not the fan-out: the fan-out carries its own `told`, which
+  # says that a number was cut and not taken everywhere. Hung off the fan-out as
+  # well, this one would post for a failed fan-out that no number was cut, when
+  # one was.
   told:
-    needs: [publish-pin-tag, fan-out]
+    needs: publish-pin-tag
     if: failure()
     uses: ./.github/workflows/discord-notify.yml
     with:
