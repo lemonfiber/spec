@@ -39,8 +39,9 @@ Tapping the name opens the list of stacks as a sheet: each with a glyph and a wo
 or two for how it stands, the current one marked, and *Add a stack* at the end.
 Choosing one opens it on the tab the operator last used there (`N27-R16`).
 
-Signing in to a stack shows the name, which opens the same sheet, and nothing else of
-the bar: no menu and no tabs until the stack has let the operator in.
+Signing in to a stack shows the name, which opens the same sheet, and the menu, so the
+stack's settings and App settings stay in reach while the stack will not let the
+operator in. It shows no tabs until the stack has let the operator in.
 
 ### The bottom bar
 
@@ -119,7 +120,7 @@ words are the plain ones (`G2-R3`, `G2-R15`): *Problems* rather than *findings*,
 
 | ID | Requirement |
 |----|-------------|
-| **N28-R1** | Every screen about a stack, other than signing in to it (`N28-R11`), MUST have a top bar holding a control that opens the menu and the stack's name. |
+| **N28-R1** | Every screen about a stack MUST have a top bar holding a control that opens the menu and the stack's name. |
 | **N28-R2** | The stack's name in the top bar MUST open the list of stacks, each with its glyph and a short word for how it stands and the current one marked, and the list MUST offer adding a stack. |
 | **N28-R3** | Choosing a stack from that list MUST open it on the tab the operator last used for it (`N27-R16`). |
 | **N28-R4** | The bottom bar MUST hold exactly four tabs — Health, Services, Updates and Repairs — and MUST mark as current only the tab whose screen is on view, or the tab the screen on view belongs to; what one service is doing and its log belong to Services. |
@@ -129,7 +130,7 @@ words are the plain ones (`G2-R3`, `G2-R15`): *Problems* rather than *findings*,
 | **N28-R8** | The health screen MUST show how the stack stands and what is wrong, MUST offer *What's new* first where anything is new, and MUST NOT list the menu's items. |
 | **N28-R9** | A tab, a menu item, a button and a section heading MUST name what it opens or does in at most three words, and MUST NOT be a sentence; a sentence MAY explain beside it (`G2-R15`). |
 | **N28-R10** | A screen the connected stack does not offer MUST keep its menu item, and opening it MUST say what would provide it (`N1-R30`); a screen this version of the app does not have yet MUST keep its menu item too, and opening it MUST say so. |
-| **N28-R11** | With no stack paired there MUST be no menu, top-bar switcher or bottom bar (`N1-R35`), and while the app is locked none of them MUST be drawn (`N4-R24`). Signing in to a stack MUST show the switcher and MUST NOT show the menu or the bottom bar. |
+| **N28-R11** | With no stack paired there MUST be no menu, top-bar switcher or bottom bar (`N1-R35`), and while the app is locked none of them MUST be drawn (`N4-R24`). Signing in to a stack MUST show the switcher and the menu, and MUST NOT show the bottom bar. |
 | **N28-R12** | Labels MUST wrap rather than be cut off at the phone's text size, and a shortened stack name MUST be read whole to a screen reader (`N4-R14`). |
 
 ## Notes
