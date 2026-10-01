@@ -190,7 +190,7 @@ type a provider password into over a LAN.
 | **N2-R12** | The app MUST NOT offer to set or change a credential's value. |
 | **N2-R13** | A reading older than the current session MUST carry its age wherever it is shown, including on the opening verdict. |
 | **N2-R14** | Where the contract does not carry something a requirement here asks the app to state, the app MUST NOT substitute a value of its own; the gap MUST be raised against the contract (`N1-R17`) and the requirement MUST be answered there. |
-| **N2-R15** | The app MUST report whether the stack is current, has an update pending, or is stale, as the stack reported it, and MUST NOT derive that answer by comparing version strings of its own. |
+| **N2-R15** | The app MUST report where the stack stands on updates — current, with updates available, or how the last update ended — as the stack reported it ([E1](../e-maintenance/e1-stack-updates.md)), and MUST NOT derive that answer by comparing version strings of its own. Whether the release notes match the running build is a separate fact (`N14-R7`) and MUST NOT be reported as the stack's standing. |
 | **N2-R16** | Where an update is pending, the app MUST distinguish a release the household will notice from one it will not, and MUST NOT present a withdrawn release as an update. |
 | **N2-R17** | Applying an update MUST be confirmed before it runs, and the confirmation MUST name the services it would change. |
 | **N2-R18** | The app MUST report how an applied update ended for each service, and MUST distinguish *updated*, *not fetched*, *not started* and *not reached* from one another rather than reporting a single failure. |
