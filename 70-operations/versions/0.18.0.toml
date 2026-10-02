@@ -145,7 +145,11 @@
 # replacement end with when the offer they were given has moved (`N2-R6`, `A5-R13`). The
 # companion re-offers on that refusal and reports any other, and it could only tell the two
 # apart by the sentence, which `ARCH-R138` forbids.
-# 137 goals, seeded from the roadmap milestone this version serves;
+#
+# `B1-R21` has a form's introspection name the services it would start that are already
+# running. The companion drew every service of a form as one a start would bring up, right
+# under the outcome of a start that brought them all up (`N18-R10`).
+# 138 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -291,6 +295,7 @@ goals   = [
     "ARCH-R140",
     "ARCH-R141",
     "ARCH-R142",
+    "B1-R21",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
