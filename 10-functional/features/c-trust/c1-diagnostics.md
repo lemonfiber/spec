@@ -112,6 +112,18 @@ So the report carries both, and the words lemonfiber writes for a finding use th
 A title reads "Gluetun tunnel", never "gluetun tunnel". A command in a remedy keeps the
 identifier, because that is what the command takes.
 
+### A wrong check says when it began
+
+A check found wrong carries its onset: when the stack first saw it wrong since it last saw
+it right. It is the stack's fact, kept with the condition it already tracks for
+notifications ([B5](../b-running/b5-notifications.md)), so it survives a restart of
+lemonfiber and is the same on every surface that reports the check. A check that comes right
+and goes wrong again began again, and carries the later time.
+
+It is what lets a surface say a problem is newer than the last one somebody saw
+([N27](../n-companion/n27-what-the-phone-keeps.md)): a problem has no number and no order of
+its own, and a time it began is the one order the stack can vouch for.
+
 ## States
 
 Per check: `pass`, `warn`, `fail`, `unverified`, `skipped` (not applicable).
@@ -158,6 +170,7 @@ failure), `unknown` (checks could not run).
 | **C1-R14** | Filesystem check timeouts MUST accommodate network and external storage. |
 | **C1-R15** | A proof an installed plugin declares MUST run as a check like any other — under a bounded timeout, reporting the same verdicts — MUST be attributed to the plugin, and an error inside it MUST be reported as that plugin's check error rather than as a finding about the stack. |
 | **C1-R16** | A finding about a service MUST carry, beside the service's identifier, the name the stack gives that service in front of an operator, and the title lemonfiber writes for a finding MUST name a service by that name, never by its identifier. |
+| **C1-R17** | A check reported wrong MUST carry its onset, the time the stack first saw it wrong since it last saw it right; the onset MUST survive a restart of lemonfiber and MUST be the same on every surface that reports the check, and a check that comes right and goes wrong again MUST carry the later time. |
 
 ## Related
 

@@ -64,6 +64,7 @@ GET /api/hosting      GET /api/uninstall
 GET /api/migration    GET /api/held?…
 GET /api/history
 GET /api/update?…
+GET /api/news
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -130,6 +131,14 @@ saying a guarantee the operator believes is in force is not.
 `/api/front-door` takes none, because the question takes none: which one address the household
 is given is derived from what the stack runs rather than asked for, so a parameter here would be
 a way for one surface to be told a different door from another.
+
+`/api/news` takes none, because what is new is decided by whoever reads it rather than by the
+stack. It answers with the items a surface can mark as new, newest first within each kind: the
+releases in the stack's record, each by its version; the household's requests, each by its
+number; and the checks found wrong, each by its check and its onset (`C1-R17`). Each carries
+the stack's own words for it. The stack keeps no record of what anybody has seen, because what
+one phone has seen is not what another has, and a stack that kept it would be keeping a
+person's reading habits. `lemonfiber news --json` is the same document.
 
 `/api/bundle/{name}` is the one read that does not answer with an envelope. It answers with
 the bundle itself, because a browser has no path on the host to be told and handing the file
@@ -202,6 +211,13 @@ the same confusion `Reading::Stale` exists to prevent one layer down.
 **A resumed stream does not lie about what it missed.** On reconnect a client may hold values
 gathered before the gap. Those are `Stale` by definition, and must be presented as such
 rather than as current.
+
+**What is newest rides the stream, and the items do not.** A `news` event names the newest few
+identifiers of each kind `/api/news` lists, when any of them changes and when a client
+connects. A surface that marks what is new can then say whether anything is, and how much,
+from the stream it already holds, and reads `/api/news` only on the screen that lists the
+items — rather than reading three answers for every stack on every frame of every screen to
+draw a mark on a tab.
 
 ## Getting in
 
@@ -571,6 +587,8 @@ generation has not been used.
 | **ARCH-R135** | Work stopped because other work held the stack MUST be answered with `409`, and MUST NOT be given the status of a failure of the machine, so that a client can say another operation is in progress (`B6-R8`) and offer the same request again once it is done. |
 | **ARCH-R138** | Every refusal the web API answers with MUST carry the error envelope as its body, and its problem code MUST name why the request was refused. Refusals that share a status and call for different remedies MUST carry different codes. A client MUST decide what a refusal means from its code and MUST NOT decide it from the sentence. A client MUST read a refusal that carries no code, or a code it does not know, by its status alone. |
 | **ARCH-R139** | The contract artefact MUST list every code a refusal may carry, with the code's registry name, the status it is answered with and its description. An SDK MUST generate its list of refusal codes from that list and MUST NOT keep one of its own. |
+| **ARCH-R140** | The web API MUST answer `GET /api/news` with, for each of updates, requests and problems, the items newest first, each with its identifier — a release's version, a request's number, a check and its onset (`C1-R17`) — and the stack's own words for it, and the response MUST be identical to `lemonfiber news --json` (`ARCH-R47`). |
+| **ARCH-R141** | The event stream MUST carry a `news` event naming, for each kind `ARCH-R140` lists, the identifiers of its ten newest items, sent when a client connects and whenever any of them changes. |
 
 ## Shapes are generated; semantics are not
 

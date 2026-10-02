@@ -81,10 +81,12 @@ there, after the lock.
 ### What is new
 
 For each stack, the phone notes the newest update, request and problem the operator has
-seen. Anything newer, of a kind the operator wants marked, is new. The tab it belongs
-to carries a mark, and *What's new* lists every new item across the stacks, filtered by
-kind and by stack. Opening an item marks it as seen; *Mark all as seen* clears the list.
-A mark is announced to a screen reader and never shown by colour alone.
+seen. Anything newer, of a kind the operator wants marked, is new. An update is newer by
+its place in the stack's record, a request by its number, and a problem by when it began
+(`C1-R17`), which are the orders the stack itself vouches for (`ARCH-R140`). The tab it
+belongs to carries a mark, and *What's new* lists every new item across the stacks,
+filtered by kind and by stack. Opening an item marks it as seen; *Mark all seen* clears
+the list. A mark is announced to a screen reader and never shown by colour alone.
 
 ## States
 
