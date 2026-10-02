@@ -140,7 +140,12 @@
 # notifications, and C1-R17 puts that onset on every wrong check it reports. ARCH-R140 is
 # the one read that lists what can be new, and ARCH-R141 names the newest of each kind on
 # the event stream, so a phone can mark a tab without reading every stack on every frame.
-# 136 goals, seeded from the roadmap milestone this version serves;
+#
+# `ARCH-R142` lists among the artefact's refusals the codes a repair, a restore and a
+# replacement end with when the offer they were given has moved (`N2-R6`, `A5-R13`). The
+# companion re-offers on that refusal and reports any other, and it could only tell the two
+# apart by the sentence, which `ARCH-R138` forbids.
+# 137 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -285,6 +290,7 @@ goals   = [
     "C1-R17",
     "ARCH-R140",
     "ARCH-R141",
+    "ARCH-R142",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
