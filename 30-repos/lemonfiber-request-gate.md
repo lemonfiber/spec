@@ -23,14 +23,16 @@ the gate's tokens.
 
 | Holds | Does not hold |
 |---|---|
-| One Rust binary crate, with the core's lints, deny policy and coverage floor | The compose entry or its networks, which are `lemonfiber-media-stack`'s |
+| One Rust binary crate, with the core's lints, deny policy and coverage floor, depending on the core's crates at a pinned core commit | The compose entry or its networks, which are `lemonfiber-media-stack`'s |
 | One Dockerfile, ending on a distroless static base as a non-root user | Any credential: keys and token hashes arrive as files the core writes |
 | The call list, and recordings proving it against the pinned Seerr and every supported line | Code shared with `lemonfiber-decline` |
 | The containment ADR-0032 requires, stated as what it needs from the stack | |
 
 ## Releasing
 
-A signed `vX.Y.Z` tag on `main` builds `linux/amd64` and `linux/arm64` under one
-index with a software bill of materials and a provenance attestation, and opens a
-pull request on `lemonfiber-media-stack` setting the service's `tag` and `digest`.
-Nothing is published from a branch.
+On the train ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md) §3–§4).
+A version that lists this repository in `repos` tags it at `v<version>` before the
+core. The signed tag builds `linux/amd64` and `linux/arm64` under one index with a
+software bill of materials and a provenance attestation, and opens a pull request on
+`lemonfiber-media-stack` setting the service's `tag` and `digest`. The core is tagged
+once the stack it embeds pins that digest. Nothing is published from a branch.
