@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-09-29
-**Decided:** 2026-09-29, by the maintainer, Wessel Verheij: accepted as proposed, with the names `lemonfiber-decline` and `lemonfiber-request-gate`.
+**Decided:** 2026-09-29, by the maintainer, Wessel Verheij: accepted as proposed, with the names `lemonfiber-decline` and `lemonfiber-request-gate`. Revised 2026-10-03, by the maintainer: each repository depends on the core's crates at a pinned core commit, and is released on the train, tagged before the core.
 
 ## Context
 
@@ -67,8 +67,10 @@ embeds. Nothing in the organisation publishes a container image yet.
 **Each image lemonfiber builds for the stack has its own repository, named
 `lemonfiber-` followed by the service's id in the stack manifest. The image carries
 the service id as its name. A repository builds exactly one image, publishes it by
-digest, and proposes that digest to the stack. Nothing is shared between two such
-repositories but the organisation's shared workflows, gates and hooks.**
+digest, and proposes that digest to the stack. It may depend on the core's crates at
+a pinned core commit, and on no other such repository. It is released on the train:
+a version that lists it is tagged on it first, and on the core once the stack pins
+what that tag published.**
 
 ### 1. Names
 
@@ -86,7 +88,10 @@ rule, and its id is chosen with that in mind.
 
 - **One Rust binary crate.** The core's toolchain, lints, `cargo-deny` policy and
   coverage floor apply, through the same shared workflows (`Q-R` rows apply as they
-  do to `lemonfiber`).
+  do to `lemonfiber`). It may depend on the core's library crates, such as
+  `lemonfiber-error` and `lemonfiber-ports`, through a git dependency pinned to one
+  core commit. The pin moves to the commit the train is releasing, so the image and
+  the core it ships with agree on every type they share.
 - **One Dockerfile.** A multi-stage build ends on a distroless static base as a
   non-root user, with no shell and no package manager.
 - **Its recordings.** The upstream calls it makes are proved against every
@@ -101,7 +106,9 @@ rule, and its id is chosen with that in mind.
 
 ### 3. Publishing
 
-A signed tag `vX.Y.Z` on `main` is the only thing that publishes.
+A signed tag `vX.Y.Z` on `main` is the only thing that publishes. The tag is the
+train's: `execute-version` makes it, at the version being released, on every such
+repository the version's manifest lists in `repos`.
 
 1. CI builds `linux/amd64` and `linux/arm64` and pushes both under one
    multi-architecture index.
@@ -111,6 +118,8 @@ A signed tag `vX.Y.Z` on `main` is the only thing that publishes.
    exists (ADR-0023 §6). Until then the image is published unsigned, and everything
    that reads it reports the signature as unproven, never as verified (ADR-0023 §4).
 4. Nothing is published from a branch, and a tag is never moved.
+5. The repository declares the version it is tagged at, as every stream the train
+   tags does (`OPS-R35`).
 
 ### 4. Reaching the stack
 
@@ -121,13 +130,27 @@ compose entry still carries the containment the service's ADR requires. The core
 takes the stack through its submodule as it does for every other service. The
 release that embeds it states the jump, as for any service (`E1-R2`).
 
-### 5. No shared library, for now
+**The train runs in two steps when a version lists such a repository.**
 
-The two repositories do not share a crate. The scaffolding they have in common is
-small, and a shared library would put both trust boundaries' release and review on
-one dependency: a change made for the gate would ship in the decline service's next
-build, whether or not that service needed it. A third lemonfiber-built service
-reopens this.
+1. `execute-version` gates the version as it always does, then tags each listed
+   lemonfiber-built image's repository at `v<version>`, and stops.
+2. Each tag publishes its image and opens its pull request on the stack. Once those
+   merge and the core's submodule takes the stack that pins them, `execute-version`
+   runs again. It checks that the embedded stack pins each listed service at the tag
+   `v<version>` and at the digest that tag published, and only then tags the core and
+   every other stream.
+
+The core is never tagged over a stack that pins an image from another version, so
+what the release states is what it embeds.
+
+### 5. The core's crates are shared; nothing else is
+
+Such a repository may depend on the core's library crates at a pinned core commit
+(§2). The pin is the train's, so an image released with a version is built against
+the core that version tags. Two such repositories never depend on each other, and
+there is no shared crate between them: a change made for the gate never ships in
+the decline service's build. A third lemonfiber-built service reopens a library of
+their own.
 
 ### 6. Governance
 
@@ -139,15 +162,17 @@ Each repository, like every other the specification governs:
 - takes updates through Dependabot (ADR-0016), with every action pinned to a SHA
   (ADR-0009).
 
-Its version is its own semver. The stack records which version of each it pins.
+Its version is the train's. A version that lists it in `repos` tags it at
+`v<version>`, and the stack records which version of each it pins.
 
 ## Alternatives considered
 
 | Option | Why it lost |
 |--------|-------------|
 | **One repository, two images** (`lemonfiber-stack-services`, a Cargo workspace building both) | It shares CI and tooling, which the shared workflows already give. What it adds is coupling: a workspace-wide dependency bump rebuilds and re-releases both, a review of the gate's call list sits beside the household-facing page, and "the only code that ever holds the \*arr keys" is no longer one repository an auditor can read end to end. The two are separated at runtime for their credentials, and separating their source keeps that boundary where it can be seen. |
-| **Two crates in `lemonfiber`** (`crates/lemonfiber-decline`, `crates/lemonfiber-gate`) | The core is the operator's tool, a binary on the release train. These are long-running services in the household's stack. Building their images in the core puts container publishing and two more trust boundaries in its CI, and ties a gate fix for a Seerr change to the core's release. It also contradicts ADR-0029 §1 as written. |
+| **Two crates in `lemonfiber`** (`crates/lemonfiber-decline`, `crates/lemonfiber-gate`) | The core is the operator's tool, a binary on the release train. These are long-running services in the household's stack. Building their images in the core puts container publishing and two more trust boundaries in its CI, and puts each service's review beside the core's. It also contradicts ADR-0029 §1 as written. |
 | **Source in `lemonfiber-media-stack`** | That repository declares the stack and runs standalone. It is reviewed as YAML and TOML (ADR-0004), and has no Rust toolchain. Code in it would make a compose change and an image build one review, and the digest it pins would be of an image built from itself. |
+| **Each image released on its own clock** (its own semver, tagged whenever it changes) | An image and the core share types through the core's crates, and the stack the core embeds pins the image. Released apart, a core version could embed an image built against another core, and the release would state a stack nobody released together. The train already cuts the streams that ship together, and these ship with the core. |
 | **A shared "service kit" crate from the start** | It serves two consumers with a few hundred lines. It becomes a third repository and a coupling point before anything has shown what is genuinely shared. |
 | **Bare names** (`decline-service`, `request-gate`) | In the organisation's listing, they read as third-party projects beside `plugin-*`, and they drop the link to the service id that makes an image traceable to its source. |
 | **Longer names** (`lemonfiber-invitation-decline`, `lemonfiber-seerr-gate`) | Each breaks the one-name rule, since the service id would differ, or names the current upstream (Seerr) in something meant to outlive it. |
@@ -158,7 +183,7 @@ Its version is its own semver. The stack records which version of each it pins.
 
 - Each credential's code lives in one repository, and a review, an audit or a CVE
   response reads exactly that.
-- A change for one upstream releases one image.
+- A change for one upstream changes one image's source.
 - An operator traces a running container to its source by name alone.
 - The pattern is fixed for any later lemonfiber-built service.
 
@@ -168,10 +193,14 @@ Its version is its own semver. The stack records which version of each it pins.
 - The small scaffolding is written twice.
 - Until the signing mechanism lands, both images are published unsigned and reported
   as unproven.
+- A fix to one of these images reaches operators only with a version of the train, and a
+  version that lists one runs `execute-version` twice.
+- A core change to a crate one of them depends on can break its build when
+  the train moves its pin.
 
 ### Neutral
 
-- Release cadence is per image. What the operator runs is still decided in one
+- Release cadence is the train's. What the operator runs is still decided in one
   place, the stack manifest the core embeds.
 
 ## Revisit if
