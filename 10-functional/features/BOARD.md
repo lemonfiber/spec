@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 21 shipped, 5 built, 32 building, 47 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 21 shipped, 6 built, 32 building, 46 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -48,6 +48,7 @@ code, and the two move independently.
 | [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.14.0`, `0.18.0`, `0.3.0` |
 | [E4](e-maintenance/e4-rollback.md) | Rollback | E | operator | accepted | `0.14.0` |
 | [E5](e-maintenance/e5-changelog.md) | Changelog & release notes | E | operator | accepted | `0.14.0` |
+| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
 
 ## Building — work has started and is not finished
 
@@ -93,7 +94,6 @@ code, and the two move independently.
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.22.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.18.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
-| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
 | [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.19.0` |
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.19.0` |
