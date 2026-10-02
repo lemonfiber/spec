@@ -589,6 +589,7 @@ generation has not been used.
 | **ARCH-R139** | The contract artefact MUST list every code a refusal may carry, with the code's registry name, the status it is answered with and its description. An SDK MUST generate its list of refusal codes from that list and MUST NOT keep one of its own. |
 | **ARCH-R140** | The web API MUST answer `GET /api/news` with, for each of updates, requests and problems, the items newest first, each with its identifier — a release's version, a request's number, a check and its onset (`C1-R17`) — and the stack's own words for it, and the response MUST be identical to `lemonfiber news --json` (`ARCH-R47`). |
 | **ARCH-R141** | The event stream MUST carry a `news` event naming, for each kind `ARCH-R140` lists, the identifiers of its ten newest items, sent when a client connects and whenever any of them changes. |
+| **ARCH-R142** | Work refused because the consent it was given names an offer or a listing that has since moved MUST end with a problem code the artefact lists among its refusals, with the status that work is answered with when its name is redeemed, so that a client can re-offer rather than report a failure (`N2-R6`, `A5-R13`, `ARCH-R138`). |
 
 ## Shapes are generated; semantics are not
 
@@ -639,6 +640,14 @@ updated is the one that reads a new refusal as an old one.
 The list is additive in the way the kinds are. A code is added when the core begins to
 refuse with it, and it keeps its spelling and its number for good. Adding one leaves
 `api_version` alone.
+
+A refusal that says the operator's yes no longer matches what they agreed to is one a client
+branches on, whatever route ends with it. A repair, a restore or a replacement takes the offer
+its reading answered as its yes, and refuses it when what it would act on has moved since
+(`N2-R6`, `A5-R13`). That refusal is how a client knows to read again and offer the new
+answer, rather than report a failure, so its code is listed here beside the web API's own. It
+ends long-running work rather than a request, so it carries the status the work is answered
+with when its name is redeemed, which a client reads beside the code, as it reads any other.
 
 ## How the artefact reaches an SDK
 
