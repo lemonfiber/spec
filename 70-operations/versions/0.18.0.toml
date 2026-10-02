@@ -133,7 +133,14 @@
 # finding. A finding carried its service's identifier and no name, so a phone could only
 # print `gluetun` where the operator knows Gluetun, and the core's own titles did the
 # same; and a bundle's findings gave no code, which is what somebody helping searches by.
-# 133 goals, seeded from the roadmap milestone this version serves;
+#
+# `C1-R17`, `ARCH-R140` and `ARCH-R141` are what the companion's *What's new* (N27-R19 to
+# N27-R21) is read from. A problem had no order on the wire, so nothing could say one was
+# newer than the last one seen; the stack already keeps when each condition began, for
+# notifications, and C1-R17 puts that onset on every wrong check it reports. ARCH-R140 is
+# the one read that lists what can be new, and ARCH-R141 names the newest of each kind on
+# the event stream, so a phone can mark a tab without reading every stack on every frame.
+# 136 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -275,6 +282,9 @@ goals   = [
     "ARCH-R136",
     "ARCH-R137",
     "F5-R14",
+    "C1-R17",
+    "ARCH-R140",
+    "ARCH-R141",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
