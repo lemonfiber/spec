@@ -304,8 +304,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.13.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M9",
         "M14"
@@ -413,8 +413,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.8.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M2",
         "M6",
@@ -458,8 +458,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.8.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M6",
         "M9",
@@ -640,7 +640,7 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "built",
+      "maturity": "building",
       "shipped": null,
       "milestones": [
         "M9"
@@ -1054,8 +1054,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.7.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M4",
         "M5",
@@ -1141,8 +1141,8 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.4.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M4",
         "M14"
@@ -1282,8 +1282,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.11.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M8",
         "M14"
@@ -2091,8 +2091,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.9.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M7"
       ],
@@ -2123,8 +2123,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.10.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M7"
       ],
@@ -2191,8 +2191,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.11.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
         "M7",
         "M8",

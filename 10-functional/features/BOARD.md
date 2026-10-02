@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 30 shipped, 6 built, 22 building, 47 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 21 shipped, 5 built, 32 building, 47 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -20,10 +20,7 @@ code, and the two move independently.
 | [A1](a-getting-started/a1-prerequisites.md) | Prerequisites & account guidance | A | operator | accepted | `0.2.0` |
 | [A3](a-getting-started/a3-credential-validation.md) | Credential validation | A | operator | accepted | `0.13.0` |
 | [A4](a-getting-started/a4-reconfiguration.md) | Reconfiguration | A | operator | accepted | `0.13.0` |
-| [A5](a-getting-started/a5-migration.md) | Migration from an existing stack | A | operator | accepted | `0.13.0` |
 | [A6](a-getting-started/a6-uninstall.md) | Clean uninstall | A | operator | accepted | `0.13.0` |
-| [B1](b-running/b1-forms.md) | Forms & partial stacks | B | operator | accepted | `0.8.0` |
-| [B2](b-running/b2-lifecycle.md) | Lifecycle control | B | operator | accepted | `0.8.0` |
 | [B4](b-running/b4-logs.md) | Log viewing | B | operator | accepted | `0.8.0` |
 | [B5](b-running/b5-notifications.md) | Notifications & alerting | B | both | accepted | `0.5.0` |
 | [B10](b-running/b10-hosting.md) | Hosting long-running commands | B | operator | accepted | `0.13.0` |
@@ -32,27 +29,20 @@ code, and the two move independently.
 | [C5](c-trust/c5-storage.md) | Storage & hardlink management | C | operator | accepted | `0.6.0` |
 | [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.6.0` |
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
-| [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.7.0` |
-| [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.4.0` |
 | [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0` |
 | [D5](d-content/d5-disk-space.md) | Disk space management | D | operator | accepted | `0.12.0` |
-| [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0` |
 | [D7](d-content/d7-approval-quotas.md) | Request approval & quotas | D | both | accepted | `0.12.0` |
 | [D8](d-content/d8-parental-controls.md) | Parental controls | D | both | accepted | `0.12.0` |
 | [D9](d-content/d9-pipeline-trace.md) | "Where is my show?" pipeline trace | D | both | accepted | `0.4.0` |
 | [D10](d-content/d10-bandwidth.md) | Bandwidth & scheduling | D | operator | accepted | `0.12.0` |
 | [G1](g-ux/g1-interface-tiers.md) | Interface tiers | G | both | accepted | `0.9.0` |
-| [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.9.0` |
-| [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0` |
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.5.0` |
-| [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.11.0` |
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | G | household | accepted | `0.11.0` |
 
 ## Built — every requirement met, waiting for its version to be released
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
-| [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.14.0`, `0.17.0` |
 | [E2](e-maintenance/e2-self-update.md) | Self-update | E | operator | accepted | `0.14.0` |
 | [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.14.0`, `0.18.0`, `0.3.0` |
@@ -64,14 +54,21 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [A2](a-getting-started/a2-setup-wizard.md) | Setup wizard | A | operator | accepted | `0.18.0`, `0.2.0` |
+| [A5](a-getting-started/a5-migration.md) | Migration from an existing stack | A | operator | accepted | `0.13.0`, `0.18.0` |
 | [A7](a-getting-started/a7-credential-management.md) | Credential management & rotation | A | operator | accepted | `0.13.0`, `0.18.0` |
+| [B1](b-running/b1-forms.md) | Forms & partial stacks | B | operator | accepted | `0.1.0`, `0.17.0`, `0.18.0`, `0.8.0` |
+| [B2](b-running/b2-lifecycle.md) | Lifecycle control | B | operator | accepted | `0.15.0`, `0.18.0`, `0.8.0` |
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.5.0`, `1.0.0` |
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
+| [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.18.0`, `0.2.0`, `0.8.0` |
 | [C4](c-trust/c4-support-bundle.md) | Support bundle | C | operator | accepted | `0.18.0`, `0.7.0` |
 | [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.17.0`, `0.18.0`, `0.9.0` |
+| [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.18.0`, `0.4.0`, `0.7.0` |
 | [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.12.0`, `0.17.0`, `0.4.0` |
+| [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.18.0`, `0.4.0` |
 | [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.18.0`, `0.4.0` |
+| [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
@@ -81,6 +78,9 @@ code, and the two move independently.
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | accepted | `0.16.0` |
 | [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | F | operator | accepted | `0.16.0`, `0.17.0` |
 | [F10](f-extensibility/f10-authoring.md) | Writing a plugin | F | operator | accepted | `0.16.0`, `0.17.0` |
+| [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.9.0` |
+| [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
+| [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.10.0`, `0.11.0`, `0.17.0` |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.18.0`, `0.5.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0`, `0.18.0` |
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |

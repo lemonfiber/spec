@@ -5,8 +5,7 @@ kind: feature
 area: D
 audience: both
 status: accepted
-maturity: shipped
-shipped: 0.11.0
+maturity: building
 labels: [household, security]
 relates: [C6, D1, D4, D7, D8, G6]
 ---

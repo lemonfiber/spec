@@ -26,6 +26,11 @@ mean both. It is the state [OPS-R54](../../70-operations/staging.md) can actuall
 gate on: `shipped` means out in a released version, so demanding it *before* a
 release is a gate nothing could ever pass.
 
+A requirement added to a `built` or `shipped` feature reopens it: it is
+`building` again until the implementation tracker ticks every requirement it
+defines, and `status_lint.py` refuses a catalogue that says otherwise
+([OPS-R73](../../70-operations/staging.md)).
+
 ## How to read a feature doc
 
 Each follows the same shape:

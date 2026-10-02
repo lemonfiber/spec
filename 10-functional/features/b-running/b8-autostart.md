@@ -5,7 +5,7 @@ kind: feature
 area: B
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 labels: [updates, cli]
 requires: [B5]
 relates: [B2, C2, C5]

@@ -144,6 +144,7 @@ class TheGateRefusesAnUnbuiltRequirement(Catalogue):
         and would pass a gate written to the narrower sentence people quote."""
         self.feature("B6", "planned")
         self.feature("B10", "shipped")
+        self.tracker("B10-R1")
         self.manifest("0.15.0", ["B6-R1", "B10-R1"])
         code, said = self.act("0.15.0")
         self.assertEqual(code, 1)
@@ -173,16 +174,24 @@ class TheNarrowing(Catalogue):
         self.assertEqual(code, 0)
         self.assertIn("no-stubs: every requirement this version locks is built", said)
 
-    def test_a_finished_feature_is_not_asked_of_the_tracker(self):
-        """`built` and `shipped` answer for every requirement, so an empty tracker
-        cannot refuse one. Without this the gate would demand a tick for work that
-        shipped before the tracker had a row shape."""
+    def test_a_finished_feature_passes_on_what_the_tracker_ticks(self):
         self.feature("E1", "built", area="e-maintenance")
-        self.tracker()
+        self.tracker("E1-R1", "E1-R2")
         self.manifest("0.14.0", ["E1-R1", "E1-R2"])
         code, said = self.act("0.14.0")
         self.assertEqual(code, 0)
         self.assertIn("2 of them built", said)
+
+    def test_a_finished_feature_is_asked_of_the_tracker_too(self):
+        """0.17.0's shape: D6 says `shipped`, and the decline address it gained
+        after shipping is ticked nowhere. The catalogue's word is not enough."""
+        self.feature("D6", "shipped", requirements=16, area="d-content")
+        self.tracker(*(f"D6-R{n}" for n in range(1, 15)))
+        self.manifest("0.17.0", ["D6-R14", "D6-R15", "D6-R16"])
+        code, said = self.act("0.17.0")
+        self.assertEqual(code, 1)
+        self.assertIn("not built: D6-R15, D6-R16", said)
+        self.assertIn("the catalogue calls D6 `shipped`", said)
 
     def test_a_planned_feature_is_refused_even_where_the_tracker_ticks_it(self):
         """The one refusal `gate.py` would not make.
@@ -214,6 +223,7 @@ class WhatNoVersionLocks(Catalogue):
         it, and the only run in a position to notice is one already looking at
         the feature that holds it."""
         self.feature("F3", "shipped", requirements=5, area="f-extensibility")
+        self.tracker("F3-R1", "F3-R2")
         self.manifest("0.16.0", ["F3-R1", "F3-R2"])
         code, said = self.act("0.16.0")
         self.assertEqual(code, 0)
@@ -227,6 +237,7 @@ class WhatNoVersionLocks(Catalogue):
         may give, and trains a reader to read past the warning."""
         self.feature("F3", "shipped", requirements=5, area="f-extensibility",
                      retired=(3, 4))
+        self.tracker("F3-R1", "F3-R2")
         self.manifest("0.16.0", ["F3-R1", "F3-R2"])
         code, said = self.act("0.16.0")
         self.assertEqual(code, 0)
@@ -238,6 +249,7 @@ class WhatNoVersionLocks(Catalogue):
     def test_it_counts_what_every_manifest_locks_and_not_only_this_one(self):
         """A requirement another version carries is not a hole in the train."""
         self.feature("F3", "shipped", requirements=4, area="f-extensibility")
+        self.tracker("F3-R1", "F3-R2")
         self.manifest("0.16.0", ["F3-R1", "F3-R2"])
         self.manifest("0.17.0", ["F3-R3", "F3-R4"])
         code, said = self.act("0.16.0")
@@ -260,6 +272,7 @@ class WhatIsNotAFeature(Catalogue):
         """0.10.0 locks six `ARCH-R` goals. They name no feature and never will;
         a gate silent about them cannot be told from one that approved them."""
         self.feature("C6", "shipped", area="c-trust")
+        self.tracker("C6-R1")
         self.manifest("0.10.0", ["ARCH-R55", "ARCH-R58", "C6-R1"])
         code, said = self.act("0.10.0")
         self.assertEqual(code, 0)
@@ -345,10 +358,13 @@ class TheRuleItself(unittest.TestCase):
         self.assertEqual(check_no_stubs.UNSTARTED, ("planned", "withdrawn"))
         self.assertEqual(check_no_stubs.PARTWAY, "building")
 
-    def test_a_finished_feature_answers_for_every_requirement(self):
+    def test_a_finished_feature_defers_to_the_tracker_as_well(self):
         for state in ("built", "shipped"):
             self.assertEqual(
-                check_no_stubs.unfinished(["X1-R1"], {"maturity": state}, set()), []
+                check_no_stubs.unfinished(
+                    ["X1-R1", "X1-R2"], {"maturity": state}, {"X1-R1"}
+                ),
+                ["X1-R2"],
             )
 
     def test_an_unstarted_feature_answers_for_none_of_them(self):
