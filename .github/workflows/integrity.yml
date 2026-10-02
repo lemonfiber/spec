@@ -60,6 +60,16 @@ jobs:
       # prose.
       - name: The bundled-service count matches the stack
         run: python3 scripts/check_services.py
+      # The binary's tracker, read over the wire for the same reason: a feature
+      # this repository calls finished has to be ticked whole there, and a change
+      # here that adds a requirement to one without reopening it is refused before
+      # it merges rather than in the binary's next pull request (OPS-R73).
+      - name: A finished feature is ticked whole in the binary's tracker
+        run: |
+          set -euo pipefail
+          curl -fsSL --proto '=https' --tlsv1.2 --retry 3 -o tracker.md \
+            https://raw.githubusercontent.com/lemonfiber/lemonfiber/main/IMPLEMENTATION-STATUS.md
+          python3 scripts/status_lint.py --status tracker.md --spec . --only reopened
       # Every surface a script writes, regenerated and compared against what is
       # committed. `accessibility.md` is why this has to be a gate rather than a
       # convention: the page states that whether the palette meets AA is a

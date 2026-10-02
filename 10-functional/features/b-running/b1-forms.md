@@ -5,8 +5,7 @@ kind: feature
 area: B
 audience: operator
 status: accepted
-maturity: shipped
-shipped: 0.8.0
+maturity: building
 labels: [cli, wiring]
 relates: [B2, F2]
 ---

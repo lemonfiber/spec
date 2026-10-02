@@ -14,17 +14,22 @@ of 25 manifests lock only part of at least one feature, and `0.1.0` locks two of
 B1's fifteen — so a feature spanning two versions can never be finished when the
 first of them ships. The rule now asks about what a version actually carries.
 
-Three states answer for the whole feature and one does not:
+Two states answer for the whole feature, and the tracker answers for the rest:
 
-  built, shipped      every requirement of it is finished, so any subset is
-  planned, withdrawn  none of it is, so no subset is
-  building            some are and some are not, and the catalogue does not say
-                      which — so the tracker is asked, requirement by requirement
+  planned, withdrawn  none of it is built, so no subset is
+  building, built,    the tracker is asked, requirement by requirement, and a
+  shipped             requirement it does not tick is not built
 
-That last line is where the two records are held against each other. A `planned`
-feature with ticked requirements is refused here even though `gate.py` would pass
-them, because a catalogue calling a feature untouched and a tracker calling its
-requirements done cannot both be right.
+`built` and `shipped` used to answer for every requirement on their own. They
+cannot: a requirement added to a finished feature is not built by being added,
+and D6 and G5 said `shipped` while the decline address 0.17.0 locks in them was
+built nowhere. `status_lint.py` refuses a finished feature with an unticked
+requirement (OPS-R73); this asks the tracker anyway, so the gate does not rest on
+that check having run.
+
+A `planned` feature with ticked requirements is refused here even though
+`gate.py` would pass them, because a catalogue calling a feature untouched and a
+tracker calling its requirements done cannot both be right.
 
 Two silences are refused rather than tolerated, because both would read as a pass:
 
@@ -51,7 +56,8 @@ from gate import done_ids, within_cwd
 from manifest_repos import VERSIONS_DIR, manifest_for
 from patterns import REQ_DEF, REQ_RETIRED_ROW
 
-#: Maturities that answer for every requirement the feature defines.
+#: Maturities that claim every requirement the feature defines, which the tracker
+#: still answers for one requirement at a time.
 FINISHED = ("built", "shipped")
 #: Maturities that answer for none of them.
 UNSTARTED = ("planned", "withdrawn")
@@ -106,10 +112,7 @@ def locked_everywhere() -> set[str]:
 
 def unfinished(goals: list[str], front: dict, done: set[str]) -> list[str]:
     """Which of one feature's locked goals are not built, in the order given."""
-    state = front.get("maturity")
-    if state in FINISHED:
-        return []
-    if state == PARTWAY:
+    if front.get("maturity") in (*FINISHED, PARTWAY):
         return [goal for goal in goals if goal not in done]
     return list(goals)
 
@@ -158,6 +161,10 @@ def verdict(goals: list[str], features: dict[str, dict], done: set[str],
                      f"{built} of them built   {front.get('title', '')}")
         if short:
             lines.append(f"      not built: {', '.join(short)}")
+            if front.get("maturity") in FINISHED:
+                lines.append(f"      the catalogue calls {feature} "
+                             f"`{front.get('maturity')}` and the tracker does not "
+                             "tick these, so it is `building` again (OPS-R73)")
 
     if elsewhere:
         lines.append("  · outside the feature catalogue, not OPS-R54's subject: "

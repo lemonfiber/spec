@@ -37,14 +37,26 @@ doing so, each found in the field rather than imagined:
      leaves every row in it undecidable, and a gate that stops looking reports
      success about the rows it could read.
 
+  7. A finished feature holding a requirement nobody ticked. `built` and
+     `shipped` say every requirement is met, and a requirement added to such a
+     feature afterwards is not: D6 and G5 said `shipped` while the decline
+     address they had since gained was not built at all. Such a feature is
+     `building` again until the tracker ticks each requirement (OPS-R73).
+
 Usage:
-  status_lint.py --status <IMPLEMENTATION-STATUS.md> --spec <spec repo root>
+  status_lint.py --status <IMPLEMENTATION-STATUS.md> --spec <spec repo root> [--only reopened]
+
+`--only reopened` asks check 7 alone. The specification's own CI asks it of the
+binary's tracker as it stands, so a change here that adds a requirement to a
+finished feature without reopening it is refused before it merges; the other
+checks judge the tracker's own claims and stay with the repository that keeps it.
 
 Exit 0 = every claim backed; 1 = claims that are not (named); 2 = usage.
 """
 from __future__ import annotations
 
 import argparse
+import glob
 import pathlib
 import re
 import sys
@@ -54,9 +66,11 @@ import tomllib
 # imported rather than restated: a second copy is a second thing to change, and
 # the ceiling below is exactly what goes wrong when a reader of definitions is
 # spelled as a reader of mentions.
+import metafm
 import tracker
+from catalogue import FEATURE_DOCS
 from integrity import REQ_DEF, elsewhere
-from patterns import CITE, RANGE
+from patterns import CITE, RANGE, REQ_RETIRED_ROW
 from tracker import DONE, LEGACY_WIDTH, REQUIREMENT_COLUMNS, STATUS_COLUMNS
 
 HEADING = re.compile(r"^##\s+(M[0-9.]+)\b")
@@ -319,10 +333,43 @@ def unreadable(status, lines) -> list[str]:
     ]
 
 
+#: The maturities that say every requirement of a feature is met.
+FINISHED = ("built", "shipped")
+
+
+def reopened(status, lines, spec: pathlib.Path) -> list[str]:
+    """Finished features holding a requirement the tracker does not tick.
+
+    Asked of every requirement the feature defines, headstones left out, rather
+    than of the ones a version locks: the claim `built` makes is about all of
+    them, and a requirement no version locks yet is still one the claim covers.
+    """
+    done = ticked(lines)
+    faults = []
+    for path in sorted(glob.glob(str(spec / FEATURE_DOCS))):
+        front = metafm.load(path) or {}
+        if front.get("maturity") not in FINISHED:
+            continue
+        text = pathlib.Path(path).read_text(encoding="utf-8")
+        missing = sorted(
+            set(REQ_DEF.findall(text)) - set(REQ_RETIRED_ROW.findall(text)) - done,
+            key=lambda one: int(one.partition("-R")[2]),
+        )
+        if missing:
+            faults.append(
+                f"{status}: {front.get('id')} is `{front['maturity']}` in the "
+                f"catalogue, and the tracker ticks none of {', '.join(missing)}. A "
+                "requirement added to a finished feature reopens it: set it "
+                "`building` until each is ticked (OPS-R73)."
+            )
+    return faults
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--status", required=True)
     parser.add_argument("--spec", required=True)
+    parser.add_argument("--only", choices=["reopened"])
     args = parser.parse_args()
 
     status = within_cwd(args.status)
@@ -335,7 +382,7 @@ def main() -> int:
         return 2
 
     lines = status.read_text(encoding="utf-8").splitlines()
-    faults = [
+    faults = reopened(status, lines, spec) if args.only else [
         *overshooting(status, lines, defined(spec)),
         *misnamed(status, lines, manifests(spec)[0]),
         *unlocked(status, lines, manifests(spec)[1]),
@@ -343,6 +390,7 @@ def main() -> int:
         *misplaced_glyph(status, lines),
         *miscolumned(status, lines),
         *unreadable(status, lines),
+        *reopened(status, lines, spec),
     ]
 
     for fault in faults:
@@ -350,6 +398,9 @@ def main() -> int:
     if faults:
         print(f"\nstatus-lint: {len(faults)} claim(s) the spec does not back.")
         return 1
+    if args.only:
+        print("status-lint: every finished feature is ticked whole in the tracker.")
+        return 0
     print("status-lint: every claim in the tracker is backed by the spec.")
     return 0
 
