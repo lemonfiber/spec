@@ -99,6 +99,14 @@ The operator can ask what a form will do before running it: the profiles it
 expands to, the services that will start, which were filtered out and why, and
 the approximate memory footprint.
 
+Among the services it would start, it names those already running. Starting a
+form that is partly up leaves what is running as it is, so a running service
+listed as one the start would bring up says something about the stack that is
+not true — and says it right after a start, when every service in the form is
+running and the introspection still lists each as one that would start. Where
+what is running could not be read, the introspection says so rather than guess
+either way (`B1-R21`).
+
 The footprint is the stack's estimate, not a measurement. Each service may declare
 the memory it expects to need; a form's footprint is the sum over the services it
 would start, and the services that declare nothing are named beside it, so a sum
@@ -212,6 +220,7 @@ operator would notice is a form of their own the app does not believe exists.
 | **B1-R18** | A service MAY declare the memory it expects to need; a form's introspection MUST report the sum over the services it would start as the stack's estimate, MUST name the services that declare none, and MUST NOT present it as a measurement. |
 | **B1-R19** | Where a form is active, the condition status reports for the whole stack MUST be worked out over the services the active forms hold and those present, and MUST NOT count a service that is neither. |
 | **B1-R20** | Status MUST NOT list among its services a service an active form's closure filtered out while that service is not present; it is reported as filtered (`B1-R17`). |
+| **B1-R21** | A form's introspection MUST name, among the services it would start, those already running, and MUST NOT present one of them as a service that starting the form would bring up; where what is running could not be read, it MUST say so rather than present every service as one that would start. |
 
 ## Related
 

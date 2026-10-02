@@ -101,8 +101,8 @@ AWAITING_A_VERSION = {
         [f"N15-R{n}" for n in range(1, 12)],
     ),
     "N18": (
-        "N18 requires N1, whose app side no version schedules, and B1, whose last goals 0.17.0 locks",
-        [f"N18-R{n}" for n in range(1, 10)],
+        "N18 requires N1, whose app side no version schedules, and B1, whose last goal 0.18.0 locks",
+        [f"N18-R{n}" for n in range(1, 11)],
     ),
     "N2": (
         "N2 requires N1, whose app side no version schedules, and C1, C3 and G7, locked by 0.8.0 at the latest, all released",

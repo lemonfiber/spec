@@ -64,6 +64,12 @@ start, which would be filtered and why, and roughly what it would cost to run.
 That is a rehearsal, and it is labelled as one — never phrased as though those
 services had started.
 
+A service the form holds that is already running is shown as already running,
+not as one the start would bring up. Otherwise the screen right after a start
+says everything is running above a list saying each of those services would
+start. Where the stack could not read what is running, the app says that once,
+above a list that still says what would start (`N18-R10`, `B1-R21`).
+
 The footprint is an estimate the stack declares, not a measurement of what is
 running. Shown as the second, it is a number the operator will believe and act
 on.
@@ -101,6 +107,7 @@ crossed.
 | **N18-R7** | The app MUST hold no copy of the form or profile vocabulary; the names, their members and their intent MUST be the stack's answer. |
 | **N18-R8** | The app MUST NOT start or stop a form on its own initiative, including on a schedule or a threshold (`N2`). |
 | **N18-R9** | Forms or profiles that could not be read MUST be told apart from none being active. |
+| **N18-R10** | Before a form is started, a service it holds that is already running MUST be shown as already running, and MUST NOT be shown as one the start would bring up (`B1-R21`). |
 
 ## Notes
 
