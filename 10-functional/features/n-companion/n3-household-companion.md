@@ -42,6 +42,12 @@ gets this. An operator signs in and gets [N2](n2-operator-companion.md) as well.
 There is no setting that switches between them, and no build that contains only
 one.
 
+A member signs in on the same screen the operator does, with their household
+account's name and password. The operator leaves the name empty and types the
+machine's own password. The app does not ask which of the two somebody is: the
+stack decides from what was offered. A refusal does not say which of the two was
+not recognised, because the stack does not say either (`N3-R18`).
+
 ### Entitlement is the core's answer, never a hidden button
 
 What a member may do is decided by the core and rendered here. The app does not
@@ -143,6 +149,7 @@ does not hold a second copy of them.
 | **N3-R15** | Where the media server cannot be reached, playback MUST be declined with the reason, and MUST NOT be queued or shown as buffering. |
 | **N3-R16** | The player MUST NOT implement request, approval or allowance logic of its own. |
 | **N3-R17** | A refusal whose code says the household could not be asked MUST be reported as the media server not answering. It MUST NOT sign the member out, and MUST NOT be reported as the account lacking entitlement (`ARCH-R138`). |
+| **N3-R18** | A member MUST be able to sign in to a stack from the app with their household account's name and password, on the same screen the operator signs in on, and a refusal MUST NOT say which of the two was not recognised. |
 
 ## Related
 
