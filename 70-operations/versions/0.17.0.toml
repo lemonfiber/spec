@@ -89,7 +89,9 @@
 # fixed list of calls it builds itself, forwards a removal one id at a time and records
 # it, and refuses the rest. The decline service and the gate are the two confined
 # services the household tier reaches the stack through, so they ship together
-# (OPS-R31).
+# (OPS-R31). Each is its own repository building its own image (ADR-0033), so both are
+# streams this version cuts: they are tagged first, the stack pins the images those tags
+# publish, and the core that embeds the stack is tagged after.
 #
 # `ARCH-R4` and `ARCH-R27` are refusals the platform and the manifest owe from their
 # first version and nothing makes. A stack declaring a `min_cli_version` above the
@@ -102,8 +104,8 @@ version = "0.17.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — what the bundled stack can do, and where a plugin comes from"
 status  = "staged"
-repos   = ["lemonfiber"]
-satisfied_in = ["lemonfiber", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-plugins"]
+repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate"]
+satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-plugins"]
 goals   = [
     "F9-R1",
     "F9-R2",
