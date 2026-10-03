@@ -168,7 +168,7 @@ AWAITING_A_VERSION = {
     ),
     "N21": (
         "N21 requires N1, whose app side no version schedules, and D6, whose last goals 0.17.0 locks",
-        [f"N21-R{n}" for n in range(1, 11)],
+        [f"N21-R{n}" for n in range(1, 12)],
     ),
     "N22": (
         "N22 requires N1, whose app side no version schedules, and C4, locked by 0.7.0, released",

@@ -49,6 +49,13 @@ address over as it came — as text, and as a code another phone can scan from t
 one's screen. It builds no address of its own, and it sends nothing itself: the
 operator hands it over through the device's own sharing, to whomever they choose.
 
+The stack also gives every invitation the address that turns it down (`D6-R15`,
+`G5-R14`). The text handed over carries it after the invitation's own address, as
+the stack gave it, so a person who does not want the account can refuse it without
+asking the operator. The code stays the invitation's own address: a code is
+scanned to open one address, and the one a person scans is the one to sign in with
+(`N21-R11`).
+
 An address that is a number can stop working when a router hands the number to
 something else, and the stack says so with the invitation. That caution goes
 wherever the address goes.
@@ -141,6 +148,7 @@ As everywhere (`N6-R1`). Here it decides whether somebody has an account.
 | **N21-R8** | A refusal about a person MUST be shown with the stack's reason and the name that was asked for, and MUST NOT be rendered as an error to retry. |
 | **N21-R9** | A rehearsed invitation MUST be labelled as a rehearsal (`N6-R1`), and MUST NOT be presented as an account that exists. |
 | **N21-R10** | Invitations the stack withdrew on the way past MUST be shown with the answer they arrived on, and MUST NOT be dropped. |
+| **N21-R11** | Where the stack gives an invitation the address that turns it down, the text handed over MUST carry that address as the stack gave it, after the invitation's own address, and the code another device can scan MUST remain the invitation's own address (`G5-R14`). |
 
 ## Notes
 
@@ -160,6 +168,7 @@ material, and `reissue` takes a name.
 | `N21-R8` | The refusal, as `error` | — |
 | `N21-R9` | `rehearsed` | — |
 | `N21-R10` | `withdrawn`: offers nobody took up, removed. `suspended`: accounts somebody had been in, reset and not claimed again in time, switched off and kept. On a rehearsal, each names what would be | — |
+| `N21-R11` | `decline`, the address that turns the invitation down | — |
 
 **`D6-R13` is not a row here.** An offer nobody claimed is withdrawn, and
 withdrawal removes the account, so there is no member left to re-issue to without
@@ -167,9 +176,6 @@ naming their access again. `reissue` makes an *existing* account claimable. Aski
 again after a lapse is `invite`, which takes the access afresh — and nothing on the
 wire keeps what the lapsed invitation granted to offer back. A lapsed reset is the
 exception: its account is kept, switched off, and `reissue` switches it back on.
-
-**The decline address is not carried.** `D6-R15` puts one on every invitation;
-`invitation` has no field for it, so the app hands over the one address it has.
 
 ## Related
 
