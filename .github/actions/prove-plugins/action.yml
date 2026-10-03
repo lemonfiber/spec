@@ -1,0 +1,158 @@
+# Prove every registered plugin with the candidate build of the core commit the
+# run is about to tag — OPS-R68, OPS-R72.
+#
+# The commit is settled here, once, and handed back as `core`. The job that tags
+# holds its checkout of the core at exactly that commit, so what is tagged is what
+# the plugins were proved with, however far the core's default branch has moved
+# since.
+#
+# The candidate is built the way the core's release builds it: the `dist` profile,
+# the toolchain `rust-toolchain.toml` pins, the lockfile as committed, and every
+# submodule the binary embeds, for the host this runs on — which the job running
+# this makes the one the release builds its Linux archive on. That host's target
+# triple is also the name the release gives the build, which is the name the
+# reader looks for.
+#
+# Every plugin is proved through one reader: `plugin-template`'s, at the commit the
+# registry pins. No code from a registered plugin runs here.
+#
+# Nothing here takes a token. The core, the template and every registered plugin
+# are public, and the job running this holds no secret, because building runs every
+# dependency's build script.
+name: prove-plugins
+description: Build the candidate core and prove every registered plugin riding the version with it.
+inputs:
+  version:
+    description: The version being cut, X.Y.Z.
+    required: true
+outputs:
+  core:
+    description: The core commit the candidate was built from and the plugins were proved with.
+    value: ${{ steps.core.outputs.sha }}
+runs:
+  using: composite
+  steps:
+    # The reader and the gate need `tomllib`, which the build host's own Python
+    # predates.
+    - name: Python for the gate and the reader
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: "3.12"
+
+    - name: Settle the core commit this run cuts
+      id: core
+      shell: bash
+      env:
+        OWNER: ${{ github.repository_owner }}
+      run: |
+        set -euo pipefail
+        # The default branch's head: the commit the tagging job's clone checks out.
+        heads="$(git ls-remote "https://github.com/${OWNER}/lemonfiber.git" HEAD)" || heads=""
+        sha="${heads%%[[:space:]]*}"
+        if [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+          echo "::error::could not read the core's head commit: '${heads}'"
+          exit 1
+        fi
+        echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+        echo "the candidate is lemonfiber @ ${sha}."
+
+    - name: Build the candidate
+      id: build
+      shell: bash
+      env:
+        OWNER: ${{ github.repository_owner }}
+        CORE: ${{ steps.core.outputs.sha }}
+      run: |
+        set -euo pipefail
+        git clone --quiet --no-checkout --filter=blob:none \
+          "https://github.com/${OWNER}/lemonfiber.git" checkouts/lemonfiber
+        git -C checkouts/lemonfiber checkout --quiet --detach "$CORE"
+        git -C checkouts/lemonfiber submodule update --init --recursive --depth 1
+        cd checkouts/lemonfiber
+        # Asked inside the checkout, so the answer is the pinned toolchain's.
+        host="$(rustc -vV | sed -n 's/^host: //p')"
+        [ -n "$host" ] || { echo "::error::the core's toolchain names no host target"; exit 1; }
+        cargo build --locked --profile dist --target "$host" -p lemonfiber
+        echo "build=${host}" >> "$GITHUB_OUTPUT"
+        echo "binary=checkouts/lemonfiber/target/${host}/dist/lemonfiber" >> "$GITHUB_OUTPUT"
+
+    - name: Fetch the reader the registry pins
+      id: reader
+      shell: bash
+      env:
+        OWNER: ${{ github.repository_owner }}
+      run: |
+        set -euo pipefail
+        # What the snippet prints goes to a file, so a refusal is shown from there.
+        if ! python3 - <<'PY' > reader.txt; then
+        import pathlib, sys
+        sys.path.insert(0, "scripts")
+        import check_plugins
+        pin = check_plugins.load_reader(pathlib.Path(check_plugins.REGISTRY))
+        print(f"{pin['repo']}\t{pin['commit']}\t{pin['path']}")
+        PY
+          cat reader.txt
+          exit 1
+        fi
+        IFS=$'\t' read -r repo commit path < reader.txt
+        git init --quiet reader
+        git -C reader fetch --quiet --depth 1 "https://github.com/${OWNER}/${repo}.git" "$commit"
+        git -C reader checkout --quiet --detach FETCH_HEAD
+        if [ "$(git -C reader rev-parse HEAD)" != "$commit" ] || [ ! -f "reader/${path}" ]; then
+          echo "::error::${repo} at ${commit} holds no ${path}"
+          exit 1
+        fi
+        echo "reader=reader/${path}" >> "$GITHUB_OUTPUT"
+        echo "the reader is ${repo}'s ${path} @ ${commit}."
+
+    - name: Prove every registered plugin with it
+      shell: bash
+      env:
+        OWNER: ${{ github.repository_owner }}
+        VERSION: ${{ inputs.version }}
+        BUILD: ${{ steps.build.outputs.build }}
+        BINARY: ${{ steps.build.outputs.binary }}
+        READER: ${{ steps.reader.outputs.reader }}
+      run: |
+        set -euo pipefail
+        # Cloned by the registry rather than by the manifest: a plugin is an input
+        # to this gate and never a stream the train cuts (OPS-R59), so it appears in
+        # neither `repos` nor `satisfied_in` and nothing here tags it.
+        #
+        # A clone that fails is not swallowed. The gate names a plugin it could not
+        # reach as a failure, and a `|| true` here would turn that into a plugin it
+        # was never asked about.
+        if ! python3 - <<'PY' > plugins.txt; then
+        import pathlib, sys
+        sys.path.insert(0, "scripts")
+        import check_plugins
+        for index, entry in enumerate(
+            check_plugins.load_registry(pathlib.Path(check_plugins.REGISTRY))
+        ):
+            # Every registered plugin, not only the ones that ride this version:
+            # what a plugin targets is the plugin's own declaration, so the gate
+            # cannot know which ones ride until it has them. A malformed entry is
+            # left for the gate to name rather than skipped here.
+            if check_plugins.malformed(entry, index):
+                continue
+            print(f"{entry['repo']}\t{entry.get('ref', 'main')}")
+        PY
+          cat plugins.txt
+          exit 1
+        fi
+        args=()
+        while IFS=$'\t' read -r repo ref; do
+          [ -n "$repo" ] || continue
+          if git clone --quiet --depth 1 --branch "$ref" \
+            "https://github.com/${OWNER}/${repo}.git" "plugins/${repo}"; then
+            echo "cloned ${repo}@${ref}."
+          else
+            echo "::warning::${repo}@${ref} could not be cloned; the gate will name it."
+          fi
+          args+=(--checkout "${repo}=plugins/${repo}")
+        done < plugins.txt
+        schema=$(sed -nE 's/^pub const SCHEMA_VERSION: u32 = ([0-9]+);.*/\1/p' \
+          checkouts/lemonfiber/crates/lemonfiber-manifest/src/lib.rs | head -1)
+        [ -n "$schema" ] || { echo "::error::could not read the schema this release carries"; exit 1; }
+        python3 scripts/check_plugins.py --version "$VERSION" --schema "$schema" \
+          --candidate "$BINARY" --build "$BUILD" --reader "$READER" "${args[@]}"
