@@ -7,6 +7,12 @@
 # flip to released and the announcement fire — release-finalize and
 # release-announce, both on the `release: published` event. Nothing is claimed
 # released before it is. Maintainer-only; dry_run defaults on.
+#
+# A version that cuts a repository building one of the stack's own images is
+# executed twice (ADR-0033 §4). The first run tags those repositories and stops.
+# Once the stack pins the image each tag published, and the core's submodule
+# embeds that stack, the second run checks those pins and tags everything else.
+# `train_step.py` reads which run this is from the repositories themselves.
 name: execute-version
 on:
   workflow_dispatch:
@@ -91,6 +97,11 @@ jobs:
             git clone --quiet --filter=blob:none \
               "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${r}.git" "checkouts/${r}"
           done < needed.txt
+      - name: Which step of the train this run is (ADR-0033 §4)
+        id: step
+        env:
+          VERSION: ${{ inputs.version }}
+        run: python3 scripts/train_step.py --version "$VERSION" --tag "v${VERSION}"
       - name: Gate — every goal satisfied (OPS-R34)
         env:
           VERSION: ${{ inputs.version }}
@@ -149,6 +160,13 @@ jobs:
           echo "compat ok: binary ${VERSION} >= min_cli ${mincli}, schema ${schema}"
           pin=$(git -C checkouts/lemonfiber/assets/media-stack rev-parse HEAD)
           echo "STACK_PIN=${pin}" >> "$GITHUB_ENV"
+      - name: The embedded stack pins each image at this tag (ADR-0033 §4)
+        if: ${{ steps.step.outputs.step == 'streams' }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python3 scripts/check_image_pins.py --version "$VERSION" --tag "v${VERSION}" \
+            --stack checkouts/lemonfiber/assets/media-stack/stack.toml
       - name: Check for release blockers (OPS-R44)
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
@@ -223,7 +241,8 @@ jobs:
           # the tag whose version the workspace carries, so tagging v0.5.0 over a
           # workspace still saying 0.4.0 produces a tag nothing will build — which
           # is exactly what happened once, and cost a deleted tag to undo. Checked
-          # before the dry-run boundary so a dry run catches it too.
+          # before the dry-run boundary so a dry run catches it too. What is read is
+          # every stream still to be tagged, which `train_step.py` wrote.
           mismatched=0
           while read -r r; do
             [ -n "$r" ] || continue
@@ -245,12 +264,15 @@ jobs:
             else
               echo "${r} declares ${declared}."
             fi
-          done < repos.txt
+          done < declaring.txt
           [ "$mismatched" -eq 0 ] || exit 1
 
       - name: Dry run — stop before tagging
         if: ${{ inputs.dry_run }}
-        run: echo "::notice title=Dry run::Gate, compat and blockers passed. Re-run with dry_run=false to tag and release."
+        env:
+          STEP: ${{ steps.step.outputs.step }}
+        run: |
+          echo "::notice title=Dry run::Gate, compat and blockers passed. This is the ${STEP} step; it would tag $(paste -sd, tagging.txt). Re-run with dry_run=false to tag."
       - name: Tag the target repos
         if: ${{ !inputs.dry_run }}
         env:
@@ -265,9 +287,15 @@ jobs:
             gh api --method POST "repos/${OWNER}/${r}/git/refs" \
               -f ref="refs/tags/v${VERSION}" -f sha="${sha}"
             echo "tagged ${r} @ ${sha:0:8} as v${VERSION}"
-          done < repos.txt
+          done < tagging.txt
+      - name: Images tagged — run again once the core embeds them
+        if: ${{ !inputs.dry_run && steps.step.outputs.step == 'images' }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          echo "::notice title=Images tagged::$(paste -sd, tagging.txt) carry v${VERSION}. Once lemonfiber-media-stack pins the image each tag published and the core's submodule takes that stack, run execute-version again: it checks those pins and tags every other stream."
       - name: Tagged — publish to finish
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && steps.step.outputs.step == 'streams' }}
         env:
           VERSION: ${{ inputs.version }}
         run: |

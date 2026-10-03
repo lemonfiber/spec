@@ -18,6 +18,10 @@
 #         the repository has no page of its own.
 # lang  : what a contributor will be writing.
 # note  : the one thing about it that is not true of its neighbours.
+# service: the stack service whose image the repository builds, which makes it
+#         `lemonfiber-<service>` (ADR-0033 §1). The train tags a repository
+#         carrying it before the core, and the core once the embedded stack pins
+#         what that tag published (ADR-0033 §4). Absent everywhere else.
 
 [[repo]]
 name = "spec"
@@ -90,6 +94,7 @@ label = "lemonfiber-decline<br/>the decline service"
 spec = ["lemonfiber-decline.md"]
 lang = "Rust"
 note = "An image the stack runs; holds one Jellyfin key and answers the household"
+service = "decline"
 
 [[repo]]
 name = "lemonfiber-request-gate"
@@ -99,6 +104,7 @@ label = "lemonfiber-request-gate<br/>the request gate"
 spec = ["lemonfiber-request-gate.md"]
 lang = "Rust"
 note = "An image the stack runs; holds the \\*arr keys and publishes no port"
+service = "request-gate"
 
 [[repo]]
 name = "lemonfiber-plugins"

@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-09-29
-**Decided:** 2026-09-29, by the maintainer, Wessel Verheij: accepted as proposed, with the names `lemonfiber-decline` and `lemonfiber-request-gate`. Revised 2026-10-03, by the maintainer: each repository depends on the core's crates at a pinned core commit, and is released on the train, tagged before the core.
+**Decided:** 2026-09-29, by the maintainer, Wessel Verheij: accepted as proposed, with the names `lemonfiber-decline` and `lemonfiber-request-gate`. Revised 2026-10-03, by the maintainer: each repository depends on the core's crates at a pinned core commit, and is released on the train, tagged before the core. Revised again 2026-10-03, by the maintainer: a pre-release tags each repository at the pre-release tag in the same two steps, so an image reaches the stack before its version releases.
 
 ## Context
 
@@ -106,9 +106,11 @@ rule, and its id is chosen with that in mind.
 
 ### 3. Publishing
 
-A signed tag `vX.Y.Z` on `main` is the only thing that publishes. The tag is the
-train's: `execute-version` makes it, at the version being released, on every such
-repository the version's manifest lists in `repos`.
+A signed tag on `main` is the only thing that publishes: the version's own tag
+`vX.Y.Z`, or a pre-release tag `vX.Y.Z-<identifier>` (`OPS-R61`). Every such tag
+is the train's. `execute-version` makes the version's tag and `prerelease-version`
+makes a pre-release's, each on every such repository the version's manifest lists
+in `repos`.
 
 1. CI builds `linux/amd64` and `linux/arm64` and pushes both under one
    multi-architecture index.
@@ -118,8 +120,8 @@ repository the version's manifest lists in `repos`.
    exists (ADR-0023 §6). Until then the image is published unsigned, and everything
    that reads it reports the signature as unproven, never as verified (ADR-0023 §4).
 4. Nothing is published from a branch, and a tag is never moved.
-5. The repository declares the version it is tagged at, as every stream the train
-   tags does (`OPS-R35`).
+5. The repository declares the version it is tagged at, pre-release identifier
+   included, as every stream the train tags does (`OPS-R35`, `OPS-R66`).
 
 ### 4. Reaching the stack
 
@@ -130,18 +132,36 @@ compose entry still carries the containment the service's ADR requires. The core
 takes the stack through its submodule as it does for every other service. The
 release that embeds it states the jump, as for any service (`E1-R2`).
 
-**The train runs in two steps when a version lists such a repository.**
+The train knows such a repository by its entry in `30-repos/repos.toml`, whose
+`service` field names the service whose image it builds. A version's manifest
+lists it in `repos` like any other stream, and marks it no further.
 
-1. `execute-version` gates the version as it always does, then tags each listed
-   lemonfiber-built image's repository at `v<version>`, and stops.
+**The train cuts a tag in two steps when a version lists such a repository.** The
+tag is the version's own when `execute-version` cuts it, and a pre-release tag when
+`prerelease-version` does.
+
+1. The lane runs every check it runs before tagging, then tags each listed
+   lemonfiber-built image's repository at that tag, and stops.
 2. Each tag publishes its image and opens its pull request on the stack. Once those
-   merge and the core's submodule takes the stack that pins them, `execute-version`
-   runs again. It checks that the embedded stack pins each listed service at the tag
-   `v<version>` and at the digest that tag published, and only then tags the core and
-   every other stream.
+   merge and the core's submodule takes the stack that pins them, the lane runs
+   again with the same tag. It checks that the embedded stack pins each listed
+   service at that tag and at the digest that tag published. Only then does it
+   record the pre-release, where the tag is one, and tag the core and every other
+   stream.
 
-The core is never tagged over a stack that pins an image from another version, so
-what the release states is what it embeds.
+The lane reads which step it is on from the repositories. A run in which a listed
+image's repository lacks the tag is the first step, and tags each one that lacks
+it. A run in which every one carries it is the second.
+
+**A pre-release is how a lemonfiber-built image reaches the stack before its
+version releases.** `v<version>-pre.N` publishes each listed image under that tag,
+the stack pins those digests, and the core that embeds them is the pre-release
+that tests them. The version's own tag then publishes each image again under
+`v<version>`, the stack repins to those digests, and the core is tagged over that
+stack.
+
+The core is never tagged over a stack that pins an image from another tag, so what
+a release or a pre-release states is what it embeds.
 
 ### 5. The core's crates are shared; nothing else is
 
@@ -194,7 +214,8 @@ Its version is the train's. A version that lists it in `repos` tags it at
 - Until the signing mechanism lands, both images are published unsigned and reported
   as unproven.
 - A fix to one of these images reaches operators only with a version of the train, and a
-  version that lists one runs `execute-version` twice.
+  version that lists one runs `execute-version` twice, and `prerelease-version`
+  twice for each pre-release.
 - A core change to a crate one of them depends on can break its build when
   the train moves its pin.
 

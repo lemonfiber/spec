@@ -119,6 +119,12 @@ jobs:
       # their bump is a claim about that loop and nothing else held it.
       - name: The fan-out is shown opening a bump and refusing a silence (OPS-R48, Q-R66)
         run: python3 scripts/test_fan_out_workflow.py
+      # Not a coverage suite: it runs the release lanes' own steps out of the
+      # committed workflows against a stubbed registry and local remotes, and
+      # checks that a core is never tagged over a stack pinning another tag's
+      # image (ADR-0033 §4, Q-R66). The scripts it calls are measured above.
+      - name: The train is shown tagging images before the core (Q-R66)
+        run: python3 scripts/test_train_workflows.py
       # The same shape once more, on the gate that closes a pull request. Closing
       # somebody's work is the most consequential thing any gate here does, and
       # the two faults it must never confuse — the contributor's and its own —
