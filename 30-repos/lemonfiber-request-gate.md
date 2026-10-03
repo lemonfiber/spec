@@ -31,8 +31,11 @@ the gate's tokens.
 ## Releasing
 
 On the train ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md) §3–§4).
-A version that lists this repository in `repos` tags it at `v<version>` before the
-core. The signed tag builds `linux/amd64` and `linux/arm64` under one index with a
-software bill of materials and a provenance attestation, and opens a pull request on
+Its entry in `repos.toml` carries `service = "request-gate"`, which is how the train
+knows it. A version that lists this repository in `repos` tags it before the core:
+at `v<version>`, and at `v<version>-<identifier>` for each pre-release. Each signed
+tag builds `linux/amd64` and `linux/arm64` under one index with a software bill of
+materials and a provenance attestation, and opens a pull request on
 `lemonfiber-media-stack` setting the service's `tag` and `digest`. The core is tagged
-once the stack it embeds pins that digest. Nothing is published from a branch.
+at the same tag once the stack it embeds pins that digest. Nothing is published from
+a branch.

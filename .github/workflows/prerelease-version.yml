@@ -16,6 +16,13 @@
 # channel, and the binary repository's announce path refuses on the pre-release
 # flag rather than relying on being unconfigured (OPS-R63).
 #
+# A pre-release of a version that cuts a repository building one of the stack's
+# own images is cut in the same two runs as the release (ADR-0033 §4). The first
+# tags those repositories at the pre-release tag and stops. Once the stack pins
+# the image each tag published, and the core's submodule embeds that stack, the
+# second run checks those pins, records the pre-release and tags everything else.
+# `train_step.py` reads which run this is from the repositories themselves.
+#
 # Maintainer-only; dry_run defaults on.
 name: prerelease-version
 on:
@@ -132,6 +139,13 @@ jobs:
               "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${r}.git" "checkouts/${r}"
           done < needed.txt
 
+      - name: Which step of the train this run is (ADR-0033 §4)
+        id: step
+        env:
+          VERSION: ${{ inputs.version }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: python3 scripts/train_step.py --version "$VERSION" --tag "$TAG"
+
       # The one check that does not refuse. Its answer is what the pre-release
       # exists to carry, so it is captured rather than acted on — and captured
       # as JSON, because the record keeps the goals by name (OPS-R62, OPS-R65).
@@ -216,6 +230,15 @@ jobs:
             exit 1
           fi
           echo "compat ok: binary ${VERSION} >= min_cli ${mincli}, schema ${schema}"
+
+      - name: The embedded stack pins each image at this tag (ADR-0033 §4, OPS-R66)
+        if: ${{ steps.step.outputs.step == 'streams' }}
+        env:
+          VERSION: ${{ inputs.version }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          python3 scripts/check_image_pins.py --version "$VERSION" --tag "$TAG" \
+            --stack checkouts/lemonfiber/assets/media-stack/stack.toml
 
       # What the artefacts will actually embed, so the record answers "which build
       # of the stack went out with it" from the file alone (OPS-R65).
@@ -317,6 +340,8 @@ jobs:
           # pre-release tag over a workspace declaring the plain version produces a
           # tag nothing will build. The pre-release identifier has to be in the
           # manifest too, which is the whole reason this is checked and not assumed.
+          # What is read is every stream still to be tagged, which `train_step.py`
+          # wrote.
           mismatched=0
           while read -r r; do
             [ -n "$r" ] || continue
@@ -338,23 +363,25 @@ jobs:
             else
               echo "${r} declares ${declared}."
             fi
-          done < repos.txt
+          done < declaring.txt
           [ "$mismatched" -eq 0 ] || exit 1
 
       - name: Dry run — stop before recording anything
         if: ${{ inputs.dry_run }}
         env:
           TAG: ${{ steps.tag.outputs.tag }}
+          STEP: ${{ steps.step.outputs.step }}
           SUMMARY: ${{ steps.verdict.outputs.summary }}
           UNMET: ${{ steps.verdict.outputs.unmet }}
         run: |
-          echo "::notice title=Dry run::${TAG} would go out with ${SUMMARY}. Unmet: ${UNMET:-none}. Re-run with dry_run=false to record and tag."
+          echo "::notice title=Dry run::${TAG} would go out with ${SUMMARY}. Unmet: ${UNMET:-none}. This is the ${STEP} step; it would tag $(paste -sd, tagging.txt). Re-run with dry_run=false to record and tag."
 
       # Recorded before the tag, not after. The binary repository's changelog job
       # reads this record to write the verdict onto the release body, and a tag
       # cut before the record is merged would produce a build with nothing to read.
+      # Recorded in the run that tags the core, since its pins are the record's.
       - name: Record it on the manifest (OPS-R65)
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && steps.step.outputs.step == 'streams' }}
         uses: ./.github/actions/manifest-transition
         with:
           version: ${{ inputs.version }}
@@ -374,7 +401,7 @@ jobs:
       # Bounded rather than open-ended, and the timeout is a refusal rather than a
       # shrug: nothing is tagged, so nothing has to be undone.
       - name: Wait for the record to land on main (OPS-R62, OPS-R65)
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && steps.step.outputs.step == 'streams' }}
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           OWNER: ${{ github.repository_owner }}
@@ -413,10 +440,17 @@ jobs:
             gh api --method POST "repos/${OWNER}/${r}/git/refs" \
               -f ref="refs/tags/${TAG}" -f sha="${sha}"
             echo "tagged ${r} @ ${sha:0:8} as ${TAG}"
-          done < repos.txt
+          done < tagging.txt
+
+      - name: Images tagged — run again once the core embeds them
+        if: ${{ !inputs.dry_run && steps.step.outputs.step == 'images' }}
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          echo "::notice title=Images tagged::$(paste -sd, tagging.txt) carry ${TAG}. Once lemonfiber-media-stack pins the image each tag published and the core's submodule takes that stack, run prerelease-version again with the same identifier: it checks those pins, records the pre-release and tags every other stream."
 
       - name: Tagged — review and publish to finish
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && steps.step.outputs.step == 'streams' }}
         env:
           TAG: ${{ steps.tag.outputs.tag }}
           SUMMARY: ${{ steps.verdict.outputs.summary }}
