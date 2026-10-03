@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-09-28
-**Decided:** 2026-09-28, by the maintainer, Wessel Verheij: accepted with Seerr's removals of a title with its files forwarded through the gate rather than refused, and locked in 0.17.0.
+**Decided:** 2026-09-28, by the maintainer, Wessel Verheij: accepted with Seerr's removals of a title with its files forwarded through the gate rather than refused, and locked in 0.17.0. Revised 2026-10-03, by the maintainer: the calls are stated as Seerr v3.5.0 makes them, the gate's own answers are fixed, and the core writes into each Jellyfin route the majors the gate forwards to.
 
 ## Context
 
@@ -135,9 +135,14 @@ the upstream request itself:
 - a body built from the fields named below;
 - its own credential for that upstream.
 
-Seerr's token, headers and any other parameter are dropped. Paths match
-case-insensitively, as the upstreams match them. **Every call not listed is refused with
-`403`, is not forwarded, and is recorded.**
+Seerr's token, headers and any other parameter are dropped, `X-Forwarded-For` with
+them, so Jellyfin logs the gate's address for every sign-in. The one exception is the
+device a Jellyfin sign-in comes from (below). Paths match case-insensitively, as the
+upstreams match them. **Every call not listed is refused with `403`, is not forwarded,
+and is recorded.** So is a listed call whose parameters or body fail the checks below.
+The list is read before the token: a call off the list is refused and recorded whatever
+token it carries, and a call on the list without its route's token is answered `401`,
+is not forwarded, and is not recorded.
 
 **Sonarr and Radarr**, under `/{id}/api/v3`. Rows naming `/movie` answer on a Radarr
 route only; rows naming `/series`, `/episode` or `/languageprofile` answer on a Sonarr
@@ -159,7 +164,7 @@ route only:
 | GET | `/series/lookup` | Before adding a series, and a title lookup | `term` only |
 | GET | `/episode` | Re-monitoring requested seasons | `seriesId` only |
 | POST | `/series` | A series request | Body built from `tvdbId`, `title`, `qualityProfileId`, `languageProfileId`, `seasons[].seasonNumber`, `seasons[].monitored`, `tags`, `seasonFolder`, `monitored`, `monitorNewItems`, `rootFolderPath`, `seriesType`, `addOptions.ignoreEpisodesWithFiles`, `addOptions.searchForMissingEpisodes`. The same profile, root folder, tag and not-yet-held checks apply. |
-| PUT | `/series` | More seasons of a series Sonarr holds | The gate reads the series itself. It changes only `monitored` and each season's `monitored` from false to true, and adds tags. Everything else goes back as Sonarr holds it. |
+| PUT | `/series` | More seasons of a series Sonarr holds | The gate reads the series itself. It changes only the series' `monitored` and each requested season's `monitored`, and each only from false to true, and adds tags. Everything else goes back as Sonarr holds it. |
 | PUT | `/episode/monitor` | Re-monitoring requested episodes | `episodeIds`, and `monitored` must be `true` |
 | POST | `/command` | Starting a search, refreshing download tracking | `name` is `MoviesSearch` with `movieIds` (Radarr), `MissingEpisodeSearch` with `seriesId` (Sonarr), or `RefreshMonitoredDownloads` (both), and nothing else |
 | DELETE | `/movie/{id}` | *Remove from Radarr* | The id alone from the path, read as an integer, and the query parameters `deleteFiles` and `addImportExclusion`, each a boolean, and nothing else. No body. Recorded (§4). |
@@ -168,33 +173,47 @@ route only:
 **Jellyfin**, under `/jellyfin`. These calls carry no token, because they answer to
 the member's own credential or to nobody's:
 
-| Method | Path | Seerr's use |
-|--------|------|-------------|
-| GET | `/System/Info/Public` | The server's name |
-| POST | `/Users/AuthenticateByName` | Sign-in, owner and member |
-| POST | `/QuickConnect/Initiate` | Quick Connect sign-in |
-| GET | `/QuickConnect/Connect` | The same, with `secret` only |
-| POST | `/Users/AuthenticateWithQuickConnect` | The same |
-| GET, HEAD | `/UserImage` | A member's avatar, with `UserId` only |
+| Method | Path | Seerr's use | What the gate sends |
+|--------|------|-------------|---------------------|
+| GET | `/System/Info/Public` | The server's name | No credential |
+| POST | `/Users/AuthenticateByName` | Sign-in, owner and member | Body built from `Username` and `Pw`, on Seerr's device |
+| POST | `/QuickConnect/Initiate` | Quick Connect sign-in | No body, on Seerr's device |
+| GET | `/QuickConnect/Connect` | The same | `secret` only, on Seerr's device |
+| POST | `/Users/AuthenticateWithQuickConnect` | The same | Body built from `Secret`, on Seerr's device |
+| GET, HEAD | `/UserImage` | A member's avatar | `UserId` only, no credential |
+
+**Seerr's device.** Jellyfin opens a sign-in's session on the device the call names,
+and Seerr ends it at sign-out by that device's id (`DELETE /Devices`, below). Each
+sign-in therefore goes upstream as `Client="Seerr"`, `Device="Seerr"`, the gate's own
+`Version`, and the `DeviceId` Seerr sent, where that id meets the `DELETE /Devices` rule.
+A sign-in from any other device, or from none, is refused. Calls under the gate's own
+key go upstream as `lemonfiber-request-gate`, so Jellyfin's device list names the
+sessions Seerr opens as Seerr's and the gate's key as the gate's.
 
 **No administrator session passes through.** Where a sign-in's answer is an
 administrator's, the gate ends that session (`POST /Sessions/Logout`, presenting its
 token). It hands Seerr the answer with `AccessToken` replaced by a random value that
 opens nothing. `User.Policy.IsAdministrator` goes through unchanged, which is what
 lets Seerr initialise. A member's answer goes through as it came: its token is the
-member's own, under the member's policy.
+member's own, under the member's policy. An answer the gate cannot read as either, and
+an administrator's answer whose session it cannot end, go back to nobody: the gate
+answers `502`.
 
 These calls require the Jellyfin token, and go upstream under the gate's own key:
 
-| Method | Path | Seerr's use |
-|--------|------|-------------|
-| GET | `/System/Info` | Settings test |
-| GET | `/Users` | Importing members (`D6-R1`) |
-| GET | `/Users/{id}`, `/Users/{id}/Views` | Library discovery |
-| GET | `/Library/MediaFolders` | The same |
-| GET | `/Items`, `/Items/Latest` | Library scans and item lookups |
-| GET | `/Shows/{id}/Seasons`, `/Shows/{id}/Episodes` | The same |
-| DELETE | `/Devices` | Ending a Seerr-opened session at sign-out. `Id` must be one Seerr assigns: `BOT_seerr`, or a base64 value that decodes to `BOT_seerr` or to `BOT_seerr_` and a name. |
+| Method | Path | Seerr's use | Query parameters |
+|--------|------|-------------|------------------|
+| GET | `/System/Info` | Settings test | — |
+| GET | `/Users` | Importing members (`D6-R1`) | — |
+| GET | `/Users/{id}`, `/Users/{id}/Views` | Library discovery | — |
+| GET | `/Library/MediaFolders` | The same | — |
+| GET | `/Items` | Library scans and item lookups | `SortBy`, `SortOrder`, `IncludeItemTypes`, `Recursive`, `StartIndex`, `ParentId`, `collapseBoxSetItems`, `ids`, `fields` |
+| GET | `/Items/Latest` | The recently-added scan | `Limit`, `ParentId`, `userId` |
+| GET | `/Shows/{id}/Seasons` | Library scans | — |
+| GET | `/Shows/{id}/Episodes` | The same | `seasonId`, `fields` |
+| DELETE | `/Devices` | Ending a Seerr-opened session at sign-out | `Id`, which must be one Seerr assigns: `BOT_seerr`, or a base64 value that decodes to `BOT_seerr` or to `BOT_seerr_` and a name |
+
+An `{id}` in a path is letters, digits and hyphens only.
 
 The gate answers two calls itself, and forwards neither:
 
@@ -213,13 +232,28 @@ calls answer `401`.
 **Removals are forwarded.** Seerr's *remove from Radarr* and *remove from Sonarr*
 remove a title, and with `deleteFiles` its files, one id at a time. The gate builds
 each removal from the id and the two named parameters, so a removal cannot carry
-anything else, and records it. This is a removal the operator makes from Seerr. It
-sits beside [H6](../../10-functional/features/h-glue/h6-library-cleanup.md)'s planned
-and confirmed cleanup (`H6-R2`–`H6-R4`) rather than replacing it: H6 is lemonfiber
+anything else, and records it before forwarding it. A removal it cannot record, it does
+not forward. This is a removal the operator makes from Seerr. It sits beside
+[H6](../../10-functional/features/h-glue/h6-library-cleanup.md)'s planned and confirmed
+cleanup (`H6-R2`–`H6-R4`) rather than replacing it: H6 is lemonfiber
 choosing what to remove, and this is Seerr passing on a removal somebody chose there.
 
 **Refused, though Seerr makes them:** `POST /tag` and `PUT /tag/{id}`. Seerr makes them
 only when a target tags requests by requester. The core does not turn that on.
+
+**What the gate answers.** Every answer the gate makes itself has an empty body, except
+the `503` that names an upstream version outside the supported ones (§6).
+
+| Situation | Answer |
+|-----------|--------|
+| A call off the list, or on it with parameters or a body the checks refuse | `403`, not forwarded, recorded |
+| A call on the list without its route's token | `401`, not forwarded, not recorded |
+| The upstream file cannot be read | `503`, nothing recorded |
+| A read the gate makes for its own checks is answered with an error | That status |
+| The upstream does not answer, or answers a read for the gate's checks with something it cannot read | `502` |
+| A sign-in answer the gate cannot read, or an administrator's whose session it cannot end | `502`, the answer goes back to nobody |
+| A removal the gate cannot record | `503`, not forwarded |
+| A forwarded call | The upstream's status and body, with `Content-Type`, `ETag` and `Last-Modified` and no other header |
 
 ### 4. Confinement
 
@@ -307,7 +341,7 @@ that.
 |-----------|--------------|
 | **The gate is down** | Seerr's calls fail to connect. A request Seerr tries to send is marked failed, as it is for an \*arr that is down. It surfaces as failing in lemonfiber's dashboard (`D4-R8`), and is sent when retried from Seerr. Its scans and download tracking fail and resume. Members cannot sign in, and Seerr sessions already open continue. The restart policy brings the gate back, and the doctor reports it from its container health. The core's own reads of Seerr do not pass through the gate and are unaffected. |
 | **A token is revoked, or Seerr holds a stale one** | The gate answers `401` on that route and forwards nothing. The doctor hashes what Seerr holds and names the route whose token the gate does not accept. The next seed mints and proves a new one (§2). |
-| **An upstream changes its API** | The gate reads each upstream's version: `GET /system/status` under its own key, and `GET /System/Info/Public`. It does so at start and after each change to the upstream file, and forwards only to a supported major: Servarr API v3, and the Jellyfin lines the stack declares ([ADR-0028](0028-a-supported-major-is-data-proved-by-its-own-recordings.md)). Outside them, every call on the route answers `503` naming the version found, and the doctor reports it, as `D1-R12` requires of seed. A change within a major reaches the gate only with a new pin (`E1`), and §7's recordings prove it first. |
+| **An upstream changes its API** | The gate asks each route's upstream its version on the first call that reaches the route, once that call is on the list and carries the route's token, and holds the answer until the core writes that route differently in the upstream file. It forwards only to a supported major. An \*arr is on Servarr API v3 when `GET /api/v3/system/status` succeeds under the gate's own key; one that answers with an error has that status handed back, and is asked again on the next call. Jellyfin is supported when the first number of the `Version` that `GET /System/Info/Public` answers is one of the majors the stack declares ([ADR-0028](0028-a-supported-major-is-data-proved-by-its-own-recordings.md)), which the core writes into the Jellyfin route of the upstream file from the stack manifest; a route naming no major supports none. Outside them, every call on the route answers `503` with the plain-text body `Jellyfin <version> is not a version this gate supports`, and the doctor reports it, as `D1-R12` requires of seed. A change within a major reaches the gate only with a new pin (`E1`), and §7's recordings prove it first. |
 | **Seerr calls an endpoint not on the list** | `403`, not forwarded, recorded. The doctor names the call. The feature behind it fails in Seerr, and the rest keeps working. No call is ever forwarded because it is unknown. |
 | **The gate's Jellyfin key or an \*arr key stops authenticating** | The upstream answers `401` and the gate passes that status to Seerr. The doctor reports which credential failed, and the next seed re-reads or re-mints it. |
 
