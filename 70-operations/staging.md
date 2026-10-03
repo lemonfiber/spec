@@ -287,8 +287,38 @@ plugin. What the train needs is a different fact — which release it gated
 against — and each plugin states it in a file of its own.
 
 Every run that would cut a tag — a release and a pre-release alike — re-reads both
-pins and re-reads the report the plugin's own proofs left, and **a plugin that no
-longer validates blocks the run**.
+pins and **proves each riding plugin itself**, and **a plugin that no longer
+validates blocks the run**.
+
+### The gate proves each plugin with the build it is about to tag
+
+A plugin's own proofs run through its reader, which fetches the release
+`targets.toml` names and asks it about the plugin. The report that leaves,
+`proofs.json`, is the plugin's record against that release — and that release is
+published. The version being cut is not: its binary is published by the tag this
+run is deciding whether to cut. No plugin can hold a report against it, so the gate
+does not ask for one.
+
+It makes the report itself instead:
+
+| Step | What happens |
+|------|--------------|
+| Settle | The core's head commit is read once. The job that tags holds its checkout of the core at exactly that commit, so what is tagged is what the plugins were proved with, however far the core has moved since. |
+| Build | The candidate binary is built from that commit the way the core's release builds it: the `dist` profile, the pinned toolchain, the committed lockfile, every embedded submodule, on the host the release builds its Linux archive on. |
+| Prove | In the gate's own clone of each riding plugin, the candidate goes where the reader keeps a fetched release, `.lemonfiber/<version>/<build>/lemonfiber`; `targets.toml` names the version being cut; the committed report is removed. The plugin's own `.github/` is removed and `plugin-template`'s reader, at the commit [`plugins.toml`](plugins.toml) pins, goes where a reader sits. It runs unchanged and writes a fresh report naming that version. |
+| Read | The gate reads that report, and nothing else, against the table below. |
+
+**No code from a registered plugin runs in the train.** Each plugin carries a copy
+of the reader for its own CI, and the gate does not run it: what it takes from a
+plugin is data — the manifest, the recordings, the release it targets — and the
+reader that asks the candidate about that data is the one the registry pins. A
+change to the reader reaches the train as a reviewed change to that pin.
+
+The proving runs in a job of its own, ahead of the job that holds the release
+token, and holding no secret: building runs every dependency's build script, which
+does not belong beside a token that can tag every repository. The build is most of
+the run's time — minutes, against seconds for the proofs, which answer from
+recordings.
 
 ### A plugin the gate cannot find is not a plugin that passed
 
@@ -303,7 +333,9 @@ and silence reads as a pass. So each of these fails the run **by name**:
 | Its manifest is absent, unreadable, or declares no `schema_version` | Named |
 | It cannot say which release it targets — no `targets.toml`, unreadable, or naming none | Named |
 | Its manifest pins a generation this release does not carry | Named, with both numbers |
-| Its proof report is absent, unreadable, or was run against another version | Named |
+| Its proofs do not run or do not finish with the candidate | Named, with what the reader said |
+| Its reader fetched a release of its own rather than using the candidate | Named — it proved something other than what is being cut |
+| The report its run wrote is unreadable, or names another version | Named |
 | Its report names no proof, or names one that is anything but passed or failing as declared | Named — including `unrun`, which is not a passing proof (`F3-R5`) |
 
 A proof failing as declared ([`F10-R13`](../10-functional/features/f-extensibility/f10-authoring.md))
@@ -528,10 +560,10 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R65** | Every pre-release MUST be recorded in its version's manifest with its tag, the date it was cut, the goals unmet when it was cut, and the submodule pins it embedded, so the manifest answers what went out before the release without reading the forge. |
 | **OPS-R66** | A pre-release MUST pass every check `execute-version` runs before tagging apart from the goal gate — cross-stream compatibility, release blockers, the declared version, and the plugin gate — and MUST record its pins the way `OPS-R35` requires of a release. A pre-release relaxes the goal gate and nothing else. |
 | **OPS-R67** | Every plugin the release train gates on MUST be registered under `70-operations/` with the repository holding it and the paths of the files the gate reads. The manifest generation a plugin is written in and the release it is validated against MUST be declared by the plugin itself and MUST NOT be restated in the registry. A registered plugin MUST NOT be a stream the train cuts and MUST NOT be named by any version manifest; it is an input to the gate and MUST NOT be tagged by it. |
-| **OPS-R68** | Every run that would cut a tag MUST re-validate every registered plugin riding that version against the manifest generation the release carries and MUST re-read the report its proofs left, and MUST refuse the run where one no longer validates, naming the plugin and what failed. |
+| **OPS-R68** | Every run that would cut a tag MUST build the candidate binary from the core commit it cuts and MUST prove every registered plugin riding that version itself, running that plugin's own proofs with the candidate in the gate's own checkout of the plugin through the reader the registry pins to a commit of the plugin template, and MUST validate each against the manifest generation the release carries. It MUST refuse the run where one no longer validates, naming the plugin and what failed, and MUST tag the core at the commit the candidate was built from. The report a plugin commits is its record against the release it targets and MUST NOT be required to name the version being cut. The run MUST NOT execute code from a registered plugin's repository. |
 | **OPS-R69** | *Superseded by [OPS-R72](staging.md): a proof failing as declared is named and does not fail the run. The number is not reused.* |
 | **OPS-R70** | Every lane that cuts a release tag MUST run the goal gate against the commit being tagged and MUST refuse unless every goal that version locks is satisfied, naming the unmet ones. A verdict taken at any other commit MUST NOT stand in for it, and a lane that cannot run the gate MUST refuse rather than tag — a gate that does not run MUST NOT read as one that passed. `execute-version` is one such lane and MUST NOT be the only one gated. A hotfix to an already-released version is exempt, because it delivers no goals of its own (`OPS-R37`). |
-| **OPS-R72** | A registered plugin the gate cannot reach, that cannot say which release it targets, whose manifest or proof report is absent or unreadable, or whose report names no proof or names one that is neither passed nor failing as declared ([`F10-R13`](../10-functional/features/f-extensibility/f10-authoring.md)), MUST fail the run by name. A proof failing as declared MUST be named in what the gate reports and MUST NOT be counted as passed. The gate MUST NOT pass over what it could not read, and MUST NOT report success about the part it could. |
+| **OPS-R72** | A registered plugin the gate cannot reach, that cannot say which release it targets, whose manifest is absent or unreadable, whose proofs do not run with the candidate or write no readable report naming the version being cut, or whose report names no proof or names one that is neither passed nor failing as declared ([`F10-R13`](../10-functional/features/f-extensibility/f10-authoring.md)), MUST fail the run by name. A proof failing as declared MUST be named in what the gate reports and MUST NOT be counted as passed. The gate MUST NOT pass over what it could not read, and MUST NOT report success about the part it could. |
 | **OPS-R58** | A manifest MUST say where the work satisfying its goals landed, and the goal gate MUST search exactly those repositories. Where a manifest does not say, the streams it cuts are what is searched. A repository named there MUST NOT be tagged for being named: what a version *cuts* and where its goals were *satisfied* are separate lists, and a goal satisfied in a repository the gate does not search MUST be reported unmet rather than passed over. |
 
 ## Related
