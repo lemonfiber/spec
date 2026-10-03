@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-09-28
-**Decided:** 2026-09-28, by the maintainer, Wessel Verheij: accepted with Seerr's removals of a title with its files forwarded through the gate rather than refused, and locked in 0.17.0.
+**Decided:** 2026-09-28, by the maintainer, Wessel Verheij: accepted with Seerr's removals of a title with its files forwarded through the gate rather than refused, and locked in 0.17.0. Revised 2026-10-03, by the maintainer: the calls are stated as Seerr v3.5.0 makes them, the gate's own answers are fixed, and the core writes into each Jellyfin route the majors the gate forwards to.
 
 ## Context
 
