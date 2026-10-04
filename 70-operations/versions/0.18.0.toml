@@ -153,7 +153,7 @@
 # `N3-R18` lets a member sign in from the app with their household account. The core
 # admits a name and a password and the web surface already offers both, but the
 # companion sent a password only, so a member could not sign in from the phone at all.
-# 139 goals, seeded from the roadmap milestone this version serves;
+# 136 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 version = "0.18.0"
 milestone = "M14"   # The platform
@@ -172,9 +172,6 @@ goals   = [
     "F8-R8",
     "F8-R9",
     "F8-R10",
-    "F8-R11",
-    "F8-R12",
-    "F8-R13",
     "A5-R13",
     "A5-R14",
     "ARCH-R131",
