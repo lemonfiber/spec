@@ -174,3 +174,9 @@ goals   = [
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
+
+[[prerelease]]
+tag = "v0.17.0-pre.1"
+cut_on = "2026-10-04"
+unmet = ["F9-R2", "F9-R6", "G5-R14", "D6-R15", "D6-R16"]
+pins = { lemonfiber-media-stack = "4c7bc56170fcede649f652334fb3a0691810d7a7", lemonfiber-web = "830de5553a52ceea51dd8d76168aa11cef7373c3" }
