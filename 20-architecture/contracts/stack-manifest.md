@@ -162,12 +162,12 @@ media_types = ["tv"]
 | `image` | string | ✔ | Without tag or digest |
 | `digest` | string | ✔ | `sha256:…` of the multi-architecture index. What actually runs (`E1-R1`). |
 | `tag` | string | ✔ | The human-readable version the digest corresponds to. Recorded and shown; never resolved at run time. |
-| `port` | integer | | Primary UI/API port. Omitted for services with no listener. |
+| `port` | integer | | Primary UI/API port. Omitted for a service with no listener, and for one whose only listener is reached across internal networks and published nowhere, as the request gate's is ([ADR-0032](../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
 | `bind` | enum | ✔ if `port` | `loopback` \| `lan`. Enforces [C6](../../10-functional/features/c-trust/c6-web-security.md)'s two-tier policy. |
 | `health` | table | | See below. Absent means lifecycle waits on container state only. |
 | `api` | table | | How lemonfiber talks to it for [seeding](../../10-functional/features/d-content/d1-seed.md). Absent means no API integration. |
 | `criticality` | enum | ✔ | `critical` \| `core` \| `important` \| `enhancing` \| `optional` (`F2-R3`) |
-| `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`). |
+| `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`), except on a service whose image lemonfiber builds from its own code, which carries `Hippocratic-3.0` and nothing else. Such a service is told by its `image`: it is under `ghcr.io/lemonfiber/`, where lemonfiber publishes the images it builds and nothing else ([ADR-0033](../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)). |
 | `upstream` | string | ✔ | Project URL, for maintenance review (`F2-R14`) |
 | `last_release` | string | ✔ | `YYYY-MM-DD`. The **latest upstream release**, not the pinned one — an abandonment signal, refreshed when the pin is reviewed (`F2-R14`) |
 | `describes` | string | ✔ | What it does *for the operator* (`F2-R1`) |
@@ -216,12 +216,14 @@ that file is generated from **this field**: a capability no service here declare
 fails the generation, which is how `F9-R3` — *a capability nothing implements
 MUST NOT be published* — is enforced by the artefact refusing to be built.
 
-Four bundled services declare nothing, and that is the answer rather than an
+A bundled service that declares nothing has given an answer rather than made an
 omission. Recyclarr writes quality profiles into other services' configuration
 and Unpackerr watches the filesystem; Homepage and Caddy are configured by
-lemonfiber writing a file rather than by anything asking them a question. A
-capability is something one service asks another for while both are running, and
-nothing asks these four — so there is nothing to stand in for.
+lemonfiber writing a file rather than by anything asking them a question; the
+request gate carries the request service's asks rather than answering any of its
+own, and the decline service answers an invitee's browser rather than another
+service. A capability is something one service asks another for while both are
+running, and nothing asks these — so there is nothing to stand in for.
 
 ### `[[service.claim]]` — the evidence for what it provides
 
@@ -463,9 +465,9 @@ is. `to` is that spelling: it names a service, it carries the reason, and
 anything that lists the stack's wiring shows it as by-name rather than as an ask
 that happened to resolve to one candidate.
 
-**The stack has exactly one.** qBittorrent is inside Gluetun's network
-namespace, and it is worth writing down why that is genuinely about one service
-rather than an ask for `network.egress-guard` resolved late:
+**qBittorrent's is the one most worth spelling out.** qBittorrent is inside
+Gluetun's network namespace, and it is worth writing down why that is genuinely
+about one service rather than an ask for `network.egress-guard` resolved late:
 
 - What is shared is a **container's namespace**, not an errand. `network_mode:
   service:gluetun` makes two containers one network entity. There is no
@@ -481,8 +483,10 @@ rather than an ask for `network.egress-guard` resolved late:
   service asks another for while both are running; this is two containers being
   co-scheduled as one.
 
-So it stays by name, it says why, and the exception is legible. Everything else
-in the stack asks.
+So it stays by name, it says why, and the exception is legible. The stack's
+other by-name links say why the same way: each is a service configured in
+another's own terms, or making another's own calls, so it is about that service.
+Everything else in the stack asks.
 
 ### What this does not cover
 
@@ -511,7 +515,7 @@ Validation reports **every** violation in one pass, each naming its location
 | `digest` present and well-formed | Service named (`E1-R1`) |
 | `tag` is not `latest` or otherwise floating | Service named (`E1-R1`) |
 | `bind` present when `port` is | Service named |
-| `license` is a recognised OSI identifier | Service and licence named (`F2-R5`) |
+| `license` is a recognised OSI identifier, or `Hippocratic-3.0` where `image` is under `ghcr.io/lemonfiber/` — and only `Hippocratic-3.0` there | Service and licence named (`F2-R5`) |
 | `last_release` is `YYYY-MM-DD` and not in the future | Service and value named (`F2-R14`) |
 | `reaches` and `asks_for` declared together or not at all | Service and the declared half named (`F2-R10`) |
 | `asks_for` is not blank where it is declared | Service named (`F2-R10`) |
@@ -714,8 +718,8 @@ why = "It has no network namespace of its own — it is inside this one containe
 
 Note `qbittorrent.depends_on = ["gluetun"]` — legal because both are in
 `torrent`, and the single permitted cross-service dependency in the stack
-(`B1-R14`). It is also the stack's only by-name wiring, and the `[[wiring]]`
-entry above is where it says so.
+(`B1-R14`). It is also a by-name wiring, and the `[[wiring]]` entry above is
+where it says so.
 
 Note `seerr.bind = "lan"` against everything else's `loopback` — the two-tier
 policy expressed as data rather than as a rule someone has to remember.

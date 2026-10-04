@@ -92,8 +92,10 @@ is protected, which is a trademark matter, not a software-freedom one.
 
 ## Note on bundled services
 
-Every service the stack orchestrates is OSI-licensed open source. The
-authoritative per-service licence is the `license` field on each `[[service]]`
+Every service the stack orchestrates is OSI-licensed open source, except the
+images lemonfiber builds from its own code, which carry lemonfiber's own
+licence, `Hippocratic-3.0`, like the rest of its code (`F2-R5`). The authoritative
+per-service licence is the `license` field on each `[[service]]`
 in [`stack.toml`](../30-repos/lemonfiber-media-stack.md#the-service-inventory), which is
 what the manifest contract validates; this table groups every one of them
 using the same SPDX identifiers.
@@ -104,6 +106,7 @@ using the same SPDX identifiers.
 | GPL-2.0-only | Jellyfin, SABnzbd, qBittorrent |
 | MIT | Bindery, Seerr, Gluetun, FlareSolverr, Recyclarr, Unpackerr |
 | Apache-2.0 | NZBHydra2, Caddy |
+| Hippocratic-3.0 | The request gate, the decline service — lemonfiber's own ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)) |
 
 **Our licence choice has no effect on theirs, and theirs has none on ours.**
 `lemonfiber-media-stack` distributes configuration that *references* public
