@@ -7,8 +7,11 @@
 # release target: the core's `Cargo.toml` names the four it builds. This version is
 # where Windows becomes one, and the three ship with it.
 #
-# 59 goals, seeded from the roadmap milestone this version serves;
+# 60 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
+# `ARCH-R153` is browsing the catalogue over the web API, answered from the verified
+# index, so the companion lists what can be installed rather than taking a typed name.
+#
 version = "0.19.0"
 milestone = "M11"   # Ecosystem glue
 delivers  = "Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles"
@@ -74,6 +77,7 @@ goals   = [
     "ARCH-R28",
     "ARCH-R30",
     "ARCH-R34",
+    "ARCH-R153",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

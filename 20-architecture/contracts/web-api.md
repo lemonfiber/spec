@@ -65,6 +65,7 @@ GET /api/migration    GET /api/held?…
 GET /api/history
 GET /api/update?…
 GET /api/news
+GET /api/plugins       GET /api/wiring
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -306,6 +307,59 @@ reading carries `confirmed: false`. So does a rehearsal of the same action. A cl
 inferred one from the other would label a rehearsal as a cost waiting to be agreed to, or
 a reading as something that had been tried and written nothing, and each is a different
 sentence to show somebody.
+
+### A plugin, and what fills a capability
+
+```
+POST /api/actions/plugin-install    POST /api/actions/plugin-update
+POST /api/actions/plugin-remove     POST /api/actions/wiring-fill
+```
+
+What is installed and what the stack wires to what are read as their commands answer
+them, `GET /api/plugins` and `GET /api/wiring`. A record or a wiring that cannot be read
+is refused with a code the artefact lists, and is never answered with an empty list: an
+empty list says nothing is installed, which is a different sentence from *this could not
+be read* (`ARCH-R145`).
+
+The four writes take what their commands take ([ADR-0031](../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)):
+
+| Action | Arguments | Answers |
+|--------|-----------|---------|
+| `plugin-install` | `source`, `dry_run`, `offer`, `approved` | a job, then `plugins` |
+| `plugin-update` | `plugin`, `source`, `dry_run`, `offer`, `approved` | a job, then `plugins` |
+| `plugin-remove` | `plugin`, `dry_run`, `offer` | a job, then `plugins` |
+| `wiring-fill` | `capability`, `service`, `reason`, `dry_run`, `offer` | `substitution` |
+
+**The yes is the offer.** Each rehearsal answers an offer built from what it read, and
+the write takes that offer, builds it again from what is there now, and refuses where the
+two differ, naming what moved. A bare `confirm` is no yes to any of the four (`ARCH-R146`).
+
+**A source is any the command takes**: a catalogue name, a git repository or a path on
+the machine ([ADR-0036](../../00-overview/decisions/0036-a-plugin-may-come-from-any-source-the-command-takes.md)).
+A git source is fetched over https from a public host; a name resolving to a loopback,
+private or link-local address is refused, checked when the fetch is made and for every
+redirect (`ARCH-R152`). The rehearsal names the revision it fetched, and the offer is
+built from it.
+
+**What a recipe would send is agreed to as itself.** A rehearsal whose recipe would
+carry a value to an external host lists each pair: the value's name, where it comes from,
+and the destination by name, never a resolved address. The write takes the approval of
+each pair in `approved`, apart from `offer`, and refuses where one is missing; the offer
+still covers the list, so a pair that changed is refused as a moved offer (`ARCH-R147`).
+The rehearsal lists the recipe's steps in order and names each adapter as lemonfiber's
+(`ARCH-R148`), and a call refused because an external name answered from inside the
+network ends with a code of its own, apart from a network that failed (`ARCH-R149`).
+Every recipe, pair, destination and adapter field is present on a rehearsal and on the
+record, an empty list where there is none, so *none* is never confused with *not read*
+(`ARCH-R150`).
+
+The installed plugins and the wiring each ride the event stream as their envelope: a
+`plugins` event and a `wiring` event, sent when a client connects and whenever either
+changes, an install that leaves a capability contested included (`ARCH-R151`).
+
+Browsing what the catalogue offers is `GET /api/plugins/catalogue`, answered from the
+verified index as `lemonfiber plugin catalogue --json` answers it, and listing nothing
+the index's signature does not cover (`ARCH-R153`).
 
 ### Setting up
 
@@ -590,6 +644,15 @@ generation has not been used.
 | **ARCH-R140** | The web API MUST answer `GET /api/news` with, for each of updates, requests and problems, the items newest first, each with its identifier — a release's version, a request's number, a check and its onset (`C1-R17`) — and the stack's own words for it, and the response MUST be identical to `lemonfiber news --json` (`ARCH-R47`). |
 | **ARCH-R141** | The event stream MUST carry a `news` event naming, for each kind `ARCH-R140` lists, the identifiers of its ten newest items, sent when a client connects and whenever any of them changes. |
 | **ARCH-R142** | Work refused because the consent it was given names an offer or a listing that has since moved MUST end with a problem code the artefact lists among its refusals, with the status that work is answered with when its name is redeemed, so that a client can re-offer rather than report a failure (`N2-R6`, `A5-R13`, `ARCH-R138`). |
+| **ARCH-R145** | The web API MUST answer `GET /api/plugins` and `GET /api/wiring` with the envelopes `lemonfiber plugin installed --json` and `lemonfiber wiring --json` answer, and a record or a wiring that cannot be read MUST be refused with a problem code the artefact lists, and MUST NOT be answered with an empty list. |
+| **ARCH-R146** | The actions `plugin-install`, `plugin-update`, `plugin-remove` and `wiring-fill` MUST take `dry_run` and `offer`, MUST refuse a bare `confirm` as consent, and MUST end with a listed problem code when the offer they were given has moved. |
+| **ARCH-R147** | A rehearsal whose recipe would carry a value to an external host MUST list each pair as the value's name, its origin and the destination by name, never a resolved address; the write MUST take the approval of each pair as an argument apart from `offer`, and MUST refuse where any pair is not approved. |
+| **ARCH-R148** | A rehearsal MUST list the steps its recipe would run, in order, and MUST name each adapter a step uses as lemonfiber's. |
+| **ARCH-R149** | A call refused because an external name resolved to a loopback, private or link-local address MUST end with a listed problem code apart from the one a failed network ends with. |
+| **ARCH-R150** | Every recipe, pair, destination and adapter field MUST be present on a rehearsal and on the installed record, an empty list where there is none. |
+| **ARCH-R151** | The event stream MUST carry a `plugins` event and a `wiring` event, each with its envelope, sent when a client connects and whenever the installed record or the wiring changes. |
+| **ARCH-R152** | A git source named to `plugin-install` or `plugin-update` MUST be fetched over https from a host that resolves to no loopback, private or link-local address, checked when the fetch is made and for every redirect, and a source refused so MUST end with a listed problem code. |
+| **ARCH-R153** | The web API MUST answer `GET /api/plugins/catalogue` with the plugins the verified catalogue index lists, as `lemonfiber plugin catalogue --json` answers, and MUST NOT list an entry the index's signature does not cover. |
 
 ## Shapes are generated; semantics are not
 

@@ -113,7 +113,7 @@ code, and the two move independently.
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | — |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
-| [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | — |
+| [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | `0.18.0` |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
 | [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | accepted | — |
 | [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | accepted | — |
@@ -128,12 +128,12 @@ code, and the two move independently.
 | [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
 | [N18](n-companion/n18-running-part-of-it.md) | Running part of it on purpose | N | operator | accepted | — |
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
-| [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | accepted | — |
+| [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | accepted | `0.18.0` |
 | [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | — |
 | [N22](n-companion/n22-asking-for-help.md) | Asking for help | N | operator | accepted | — |
 | [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
 | [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
-| [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | — |
+| [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0` |
 | [N26](n-companion/n26-what-the-glue-is-doing.md) | What the glue is doing | N | both | accepted | — |
 | [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | — |
 | [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |

@@ -54,6 +54,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0033](0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md) | Each image lemonfiber builds for the stack has its own repository, named for the service it runs | Accepted |
 | [0034](0034-a-catalogue-release-is-signed-with-a-key-the-binary-carries.md) | A catalogue release is signed with a key pair, and lemonfiber carries the public half | Accepted |
 | [0035](0035-what-the-phone-keeps-and-how.md) | What the phone keeps, and how | Accepted |
+| [0036](0036-a-plugin-may-come-from-any-source-the-command-takes.md) | A plugin may come from any source the command takes, over the web API too | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

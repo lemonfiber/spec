@@ -3,6 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-09-28
 **Decided:** 2026-09-28, by the maintainer, Wessel Verheij: with the yes to each of these writes being the offer its rehearsal answered, rather than a bare confirm.
+**Amended:** 2026-10-04 by [ADR-0036](0036-a-plugin-may-come-from-any-source-the-command-takes.md), which lets the actions take every source the command takes.
 
 ## Context
 

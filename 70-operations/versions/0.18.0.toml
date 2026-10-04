@@ -153,8 +153,13 @@
 # `N3-R18` lets a member sign in from the app with their household account. The core
 # admits a name and a password and the web surface already offers both, but the
 # companion sent a password only, so a member could not sign in from the phone at all.
-# 136 goals, seeded from the roadmap milestone this version serves;
+# 177 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
+# `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
+# the two reads, the four writes taking the offer, a recipe's pairs and steps agreed to as
+# themselves, and a git source fetched only from a public host (ADR-0036). With them the
+# companion's N5, N20 and N25 can be answered, so every row of the three is a goal here too.
+#
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
@@ -298,6 +303,47 @@ goals   = [
     "ARCH-R141",
     "ARCH-R142",
     "B1-R21",
+    "ARCH-R145",
+    "ARCH-R146",
+    "ARCH-R147",
+    "ARCH-R148",
+    "ARCH-R149",
+    "ARCH-R150",
+    "ARCH-R151",
+    "ARCH-R152",
+    "N5-R1",
+    "N5-R2",
+    "N5-R3",
+    "N5-R4",
+    "N5-R5",
+    "N5-R6",
+    "N5-R7",
+    "N5-R8",
+    "N5-R9",
+    "N5-R10",
+    "N5-R11",
+    "N5-R12",
+    "N5-R13",
+    "N20-R1",
+    "N20-R2",
+    "N20-R3",
+    "N20-R4",
+    "N20-R5",
+    "N20-R6",
+    "N20-R7",
+    "N20-R8",
+    "N20-R9",
+    "N20-R10",
+    "N25-R1",
+    "N25-R2",
+    "N25-R3",
+    "N25-R4",
+    "N25-R5",
+    "N25-R6",
+    "N25-R7",
+    "N25-R8",
+    "N25-R9",
+    "N25-R10",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
