@@ -1,6 +1,7 @@
 # Flip a version manifest's status via an auto-merged, verified PR — OPS-R32,
 # carrying the generated files that have to move with it.
-# Shared by stage/track/finalize so the signed-commit dance lives in one place.
+# Shared by stage/track/finalize and the pre-release lane, so the signed-commit
+# dance lives in one place.
 # The commit is made through the contents API, which marks it verified (so it
 # satisfies the signed-commits rule on main) and fills author/committer from the
 # App token — a [bot] identity, so it's DCO-exempt and needs no sign-off. An
@@ -44,7 +45,8 @@ inputs:
 runs:
   using: composite
   steps:
-    - shell: bash
+    - name: Write the transition and what is generated from it
+      shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
         OWNER: ${{ github.repository_owner }}
@@ -91,6 +93,19 @@ runs:
         python3 scripts/gen_roadmap_table.py
         python3 scripts/gen_board.py
 
+    # A step of its own so the branch handling can be run apart from the
+    # generators, against a stubbed `gh`.
+    - name: Open the record on a branch rebuilt from main
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        OWNER: ${{ github.repository_owner }}
+        VERSION: ${{ inputs.version }}
+        STATUS: ${{ inputs.status }}
+        PRERELEASE: ${{ inputs.prerelease }}
+      run: |
+        set -euo pipefail
+        man="70-operations/versions/${VERSION}.toml"
         # Named for what is being recorded rather than for the status, because a
         # pre-release leaves the status where it was: two of them against one
         # staged version would otherwise want the same branch.
@@ -99,8 +114,18 @@ runs:
           what="prerelease-${PRERELEASE#v}"
         fi
         branch="release/${VERSION}-${what}"
+        # A branch left by an earlier run is deleted rather than written onto. It
+        # is behind main by whatever merged since, and its pull request may still
+        # be open when that run stopped waiting for it, so creating either again
+        # would refuse and a re-run could never get past this step. Deleting the
+        # branch closes that pull request; resetting it to main's head instead
+        # would leave GitHub calling the pull request merged.
+        if gh api "repos/${OWNER}/spec/git/ref/heads/${branch}" --silent 2>/dev/null; then
+          gh api --method DELETE "repos/${OWNER}/spec/git/refs/heads/${branch}"
+          echo "deleted the ${branch} an earlier run left."
+        fi
         base=$(gh api "repos/${OWNER}/spec/git/ref/heads/main" --jq '.object.sha')
-        gh api --method POST "repos/${OWNER}/spec/git/refs" -f ref="refs/heads/${branch}" -f sha="$base" || true
+        gh api --method POST "repos/${OWNER}/spec/git/refs" -f ref="refs/heads/${branch}" -f sha="$base" --silent
         # Author/committer omitted: GitHub fills them from the token (the App bot,
         # DCO-exempt) and marks the commit verified.
         if [ -n "$PRERELEASE" ]; then

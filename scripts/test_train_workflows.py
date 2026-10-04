@@ -9,6 +9,12 @@ that the pin check runs before the core is tagged and refuses a stack that does
 not pin the tag, and that the tag loop, the declared-version check and the
 pre-release record read the lists the step settled.
 
+A run stopped part-way is finished by running it again. The tag loop passes over a
+repository already carrying the tag at the commit it would tag and refuses one
+carrying it elsewhere; a pre-release already recorded on main is not recorded
+again, but held to the pins this run embeds; and the record's branch is rebuilt
+from main, so a branch and pull request an earlier run left do not refuse it.
+
 The plugin gate runs in a job of its own, ahead of the one that mints the release
 token and holding no secret, on the host the core's release builds on. It settles
 the core commit, builds the candidate from it, fetches the reader the registry pins
@@ -59,6 +65,10 @@ NOTICES = ("Images tagged", "Tagged")
 CLONE = "Read the manifest and clone its repos"
 HOLD = "Hold the core at the commit its plugins were proved with"
 PLUGINS = "plugins"
+RECORDED = "A record already on main names this build"
+TRANSITION = HERE.parent / ".github" / "actions" / "manifest-transition" / "action.yml"
+REBUILT = "Open the record on a branch rebuilt from main"
+SHA = "b" * 40
 
 DIGEST = "sha256:" + "a" * 64
 
@@ -66,6 +76,24 @@ DIGEST = "sha256:" + "a" * 64
 DOCKER = f"""#!/bin/sh
 case " ${{DOCKER_MISSING:-}} " in *" $4 "*) echo "ERROR: $4: not found" >&2; exit 1 ;; esac
 printf '%s' '{{"digest": "{DIGEST}"}}'
+"""
+
+#: Stands in for `gh`. Logs every call; `GH_HELD` lists `repo=sha` for each
+#: repository already carrying the tag, and `GH_BRANCH_LEFT` says an earlier run
+#: left its record branch behind.
+GH = f"""#!/bin/sh
+printf '%s\\n' "$*" >> "$GH_LOG"
+case "$*" in
+  "api repos/"*"/git/ref/tags/"*)
+    repo=$(printf '%s' "$2" | cut -d/ -f3)
+    for pair in ${{GH_HELD:-}}; do
+      case "$pair" in "$repo="*) printf '%s\\n' "${{pair#*=}}"; exit 0 ;; esac
+    done
+    echo "gh: Not Found (HTTP 404)" >&2; exit 1 ;;
+  "api repos/"*"/git/ref/heads/main "*) echo "{SHA}" ;;
+  "api repos/"*"/git/ref/heads/"*) [ -n "${{GH_BRANCH_LEFT:-}}" ] || exit 1 ;;
+  "pr create "*) echo "https://github.com/o/spec/pull/1" ;;
+esac
 """
 
 
@@ -130,9 +158,19 @@ class TheWiring(unittest.TestCase):
                 self.assertIn(STREAMS_ONLY, second)
 
     def test_a_pre_release_is_recorded_in_the_run_that_tags_the_core(self):
-        """Recorded in the first step, the second would refuse the tag as already cut."""
+        """The record carries the pins of the core this run tags, which the first step has not settled."""
         for name in RECORDS:
             self.assertIn(STREAMS_ONLY, step("prerelease-version.yml", name)["if"])
+
+    def test_a_tag_already_recorded_is_not_recorded_again(self):
+        """A re-run after the record reached main goes straight to the check and the tag."""
+        for name in RECORDS:
+            self.assertIn("steps.read.outputs.recorded != 'true'", step("prerelease-version.yml", name)["if"])
+        self.assertEqual(step("prerelease-version.yml", RECORDED)["if"],
+                         "${{ steps.read.outputs.recorded == 'true' }}")
+        for before in (PINS.split(" (")[0], "Read the pins these artefacts will carry"):
+            self.assertLess(position("prerelease-version.yml", before), position("prerelease-version.yml", RECORDED))
+        self.assertLess(position("prerelease-version.yml", RECORDED), position("prerelease-version.yml", TAG_LOOP))
 
 
 class TheSteps(unittest.TestCase):
@@ -236,6 +274,138 @@ class TheSteps(unittest.TestCase):
                 done = self.run_step(workflow, PINS, DOCKER_MISSING=f"ghcr.io/lemonfiber/decline:{tag}")
                 self.assertEqual(done.returncode, 1)
                 self.assertIn("is not published", done.stdout)
+
+    def stub_gh(self):
+        (self.bin / "gh").write_text(GH, encoding="utf-8")
+        (self.bin / "gh").chmod(0o755)
+        self.log = self.root / "gh.log"
+        self.log.write_text("", encoding="utf-8")
+
+    def calls(self) -> list[str]:
+        return self.read("gh.log").splitlines()
+
+    def tagging(self, held: str = "") -> tuple[subprocess.CompletedProcess, str]:
+        """The tag loop over the core, with `held` naming what already carries the tag."""
+        self.stub_gh()
+        self.stream("lemonfiber")
+        (self.root / "tagging.txt").write_text("lemonfiber\n", encoding="utf-8")
+        head = subprocess.run(["git", "-C", "checkouts/lemonfiber", "rev-parse", "HEAD"], cwd=self.root,
+                              capture_output=True, text=True, check=True).stdout.strip()
+        return head, held.replace("HEAD", head)
+
+    def test_the_tag_loop_tags_a_repository_that_lacks_the_tag(self):
+        for workflow, (_, tag) in LANES.items():
+            with self.subTest(workflow):
+                self.fresh()
+                head, _ = self.tagging()
+                done = self.run_step(workflow, TAG_LOOP, GH_LOG=str(self.log), OWNER="o")
+                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                self.assertIn(f"api --method POST repos/o/lemonfiber/git/refs -f ref=refs/tags/{tag} -f sha={head}",
+                              self.calls())
+
+    def test_the_tag_loop_passes_over_a_repository_carrying_the_tag_at_its_commit(self):
+        """A run that stopped part-way through the loop is finished by running it again."""
+        for workflow, (_, tag) in LANES.items():
+            with self.subTest(workflow):
+                self.fresh()
+                head, held = self.tagging("lemonfiber=HEAD")
+                done = self.run_step(workflow, TAG_LOOP, GH_LOG=str(self.log), OWNER="o", GH_HELD=held)
+                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                self.assertIn(f"lemonfiber already carries {tag} @ {head[:8]}.", done.stdout)
+                self.assertFalse([call for call in self.calls() if "POST" in call])
+
+    def test_the_tag_loop_refuses_a_repository_carrying_the_tag_elsewhere(self):
+        for workflow, (_, tag) in LANES.items():
+            with self.subTest(workflow):
+                self.fresh()
+                head, _ = self.tagging()
+                done = self.run_step(workflow, TAG_LOOP, GH_LOG=str(self.log), OWNER="o",
+                                     GH_HELD=f"lemonfiber={SHA}")
+                self.assertEqual(done.returncode, 1)
+                self.assertIn(f"::error::lemonfiber carries {tag} at {SHA[:8]}, not {head[:8]}", done.stdout)
+                self.assertFalse([call for call in self.calls() if "POST" in call])
+
+    def manifest(self, recorded: str = ""):
+        """0.2.0 as staged, holding `recorded` as its pre-release records."""
+        (self.root / "70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nstatus = "staged"\nrepos = ["lemonfiber", "lemonfiber-decline"]\n'
+            + recorded, encoding="utf-8")
+
+    def test_reading_the_manifest_says_whether_the_tag_is_recorded(self):
+        record = f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n'
+        for recorded, says in (("", "false"), (record, "true")):
+            with self.subTest(says):
+                self.fresh()
+                self.manifest(recorded)
+                (self.bin / "git").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+                (self.bin / "git").chmod(0o755)
+                done = self.run_step("prerelease-version.yml", CLONE, GH_TOKEN="t", OWNER="o")
+                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                self.assertIn(f"recorded={says}\n", self.read("output"))
+
+    def test_a_record_naming_the_pins_this_run_embeds_lets_the_tag_go_on(self):
+        self.fresh()
+        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n')
+        done = self.run_step("prerelease-version.yml", RECORDED, STEP="streams", PINS=f"stack={SHA}")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("tagging without recording again", done.stdout)
+
+    def test_a_record_naming_other_pins_is_refused(self):
+        """The tag and the record would otherwise describe two builds."""
+        self.fresh()
+        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n')
+        done = self.run_step("prerelease-version.yml", RECORDED, STEP="streams", PINS=f"stack={'c' * 40}")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("::error::v0.2.0-pre.1 is recorded with pins", done.stderr)
+
+    def test_a_record_while_an_image_lacks_the_tag_is_refused(self):
+        self.fresh()
+        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n')
+        done = self.run_step("prerelease-version.yml", RECORDED, STEP="images", PINS=f"stack={SHA}")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("while an image still lacks it", done.stderr)
+
+
+class TheRecordBranch(unittest.TestCase):
+    """The record's branch is rebuilt from main, so a re-run is never refused by its own leftovers."""
+
+    def setUp(self):
+        self.root = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, True)
+        self.bin = self.root / "bin"
+        self.bin.mkdir()
+        (self.bin / "gh").write_text(GH, encoding="utf-8")
+        (self.bin / "gh").chmod(0o755)
+        for path in ("70-operations/versions/0.2.0.toml", "00-overview/roadmap.md",
+                     "10-functional/features/index.json"):
+            (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / path).write_text("written\n", encoding="utf-8")
+        self.log = self.root / "gh.log"
+        self.log.write_text("", encoding="utf-8")
+
+    def run_action(self, **extra) -> tuple[subprocess.CompletedProcess, list[str]]:
+        steps = yaml.safe_load(TRANSITION.read_text(encoding="utf-8"))["runs"]["steps"]
+        run = next(one for one in steps if one.get("name") == REBUILT)["run"]
+        env = {**os.environ, "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}", "GH_LOG": str(self.log),
+               "OWNER": "o", "VERSION": "0.2.0", "STATUS": "staged", "PRERELEASE": "v0.2.0-pre.1", **extra}
+        done = subprocess.run(["bash", "-e", "-c", run], capture_output=True, text=True,
+                              cwd=self.root, env=env, check=False)
+        return done, self.log.read_text(encoding="utf-8").splitlines()
+
+    def test_a_branch_an_earlier_run_left_is_deleted_before_it_is_made_again(self):
+        done, calls = self.run_action(GH_BRANCH_LEFT="1")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        deleted = calls.index("api --method DELETE repos/o/spec/git/refs/heads/release/0.2.0-prerelease-0.2.0-pre.1")
+        made = calls.index("api --method POST repos/o/spec/git/refs "
+                           f"-f ref=refs/heads/release/0.2.0-prerelease-0.2.0-pre.1 -f sha={SHA} --silent")
+        self.assertLess(deleted, made)
+        self.assertTrue(calls[-1].startswith("pr merge https://github.com/o/spec/pull/1"))
+
+    def test_a_first_run_makes_the_branch_without_deleting_anything(self):
+        done, calls = self.run_action()
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertFalse([call for call in calls if "DELETE" in call])
+        self.assertEqual(len([call for call in calls if call.startswith("api --method PUT")]), 3)
 
 
 class ThePluginGateWiring(unittest.TestCase):
