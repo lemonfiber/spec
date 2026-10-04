@@ -277,12 +277,26 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
+          TAG="v${VERSION}"
           while read -r r; do
             [ -n "$r" ] || continue
             sha=$(git -C "checkouts/${r}" rev-parse HEAD)
+            # A run that stopped part-way through this loop is finished by running
+            # it again: a repository already carrying the tag at this commit is
+            # passed over. One carrying it at another commit is refused, since a
+            # tag cut twice is two artefacts answering to one name.
+            held=$(gh api "repos/${OWNER}/${r}/git/ref/tags/${TAG}" --jq '.object.sha' 2>/dev/null || true)
+            if [ "$held" = "$sha" ]; then
+              echo "${r} already carries ${TAG} @ ${sha:0:8}."
+              continue
+            fi
+            if [ -n "$held" ]; then
+              echo "::error::${r} carries ${TAG} at ${held:0:8}, not ${sha:0:8}"
+              exit 1
+            fi
             gh api --method POST "repos/${OWNER}/${r}/git/refs" \
-              -f ref="refs/tags/v${VERSION}" -f sha="${sha}"
-            echo "tagged ${r} @ ${sha:0:8} as v${VERSION}"
+              -f ref="refs/tags/${TAG}" -f sha="${sha}"
+            echo "tagged ${r} @ ${sha:0:8} as ${TAG}"
           done < tagging.txt
       - name: Images tagged — run again once the core embeds them
         if: ${{ !inputs.dry_run && steps.step.outputs.step == 'images' }}
