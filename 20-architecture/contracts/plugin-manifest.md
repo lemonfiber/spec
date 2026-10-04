@@ -201,6 +201,8 @@ config_path = "/config"
 | `takes_data` | bool | | `true` if it needs the data root mounted. Default `false`. |
 | `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). At most one service of a plugin may declare a given core name — see below. |
 | `config_path` | string | | Where inside the container the one configuration directory is mounted. Default `/config`. |
+| `api` | table | | The adapter lemonfiber reaches it through, in `stack.toml`'s shape. `kind` and `key_source` from the published set — see below. |
+| `listens` | integer | ✔ if `api` | The port it answers on inside the stack's network, where lemonfiber and the services that ask reach it. As `stack.toml`. |
 
 ### The image is named by digest
 
@@ -292,6 +294,28 @@ asks for it and no published contract defines it, so two services both declaring
 would be refusing something with no consequence, which is the defect a stand-in
 gate is warned against in the other direction.
 
+### `api` names an adapter lemonfiber already has
+
+A plugin's service may declare `api` in the stack manifest's own shape
+([`api`](stack-manifest.md#api)): `kind` names one of the adapters lemonfiber
+implements and `key_source` where the service's credential is read. Naming one is
+how a plugin's service is reached by whatever asks for a capability it claims:
+lemonfiber registers it with the services that ask, through that adapter, as it
+registers a bundled service declaring the same, and nothing that asks changes
+(`F9-R6`).
+
+The set is fixed and published as `contract/adapters.json`, generated from the
+kinds and key sources lemonfiber implements (`F8-R13`, `ARCH-R143`). A plugin
+cannot add to it: no field lets a manifest supply an adapter (`F8-R11`), and a
+`kind` or `key_source` outside the set is refused, naming it and the set
+(`F8-R12`). A service declaring `api` declares `listens` too, as the stack's own
+services do (`ARCH-R144`).
+
+A service declaring no `api` is operated generically, as `F1-R10` and `F1-R11`
+promise for a service lemonfiber does not know: whatever asks for a capability it
+fills is told that nothing here can register it there, rather than being left
+unwired without a word.
+
 ### A plugin may not declare itself `critical`
 
 `critical` means *its failure has consequences outside the machine*, and in the
@@ -314,7 +338,6 @@ ignored:
 | `host_managed` | Native-mode lifecycle is the operating system's (`B2-R15`). A plugin cannot install a system service. |
 | `profile` | Assigned, not declared — see below. |
 | `environment` | Arbitrary variables into a container lemonfiber generates. The two things an image is usually told this way are where its data lives and where its library is, and both are declarations here — `config_path` and `media_types` — checked and bounded. A free-form pair is neither, and is how a plugin would configure its way past what the format says it does. |
-| `api` | How lemonfiber talks to a service for seeding. A plugin naming an adapter is the subject of the version that introduces recipes; until then a plugin's service is operated generically, as `F1-R10` and `F1-R11` already promise for a service lemonfiber does not know. |
 | `last_release` | An abandonment signal maintained by the people reviewing the bundled pins (`F2-R14`). Self-reported by a plugin it would signal nothing. |
 
 ## What lemonfiber writes
@@ -1131,6 +1154,8 @@ unreadable.
 | **ARCH-R127** | Wiring MUST be declared per service, a manifest declaring more than one service MUST name the service each wiring is about, and a service MUST NOT carry two. |
 | **ARCH-R128** | A proof and a contributed check MUST name which of the plugin's services they ask where the plugin declares more than one, and one that does not MUST be refused by name rather than resolved to whichever service is read first. |
 | **ARCH-R130** | A `[[proof]]` and a `doctor.check` row MUST be able to carry `expected`, a list of entries each naming a recording, the verdict `fails`, the constraint of its `expect` that fails there (with its place where the constraint is key-wise), and a reason. An entry missing any of them, naming a verdict other than `fails` or a recording that does not exist, naming a constraint or place its assertion's `expect` does not make, or naming a recording another entry of the same assertion names MUST be refused by name, and a `[[claim.probe]]` MUST have no such field. |
+| **ARCH-R143** | The set of adapters a plugin's service may name MUST be published as `contract/adapters.json`, generated from the adapter kinds and key sources lemonfiber implements, and regenerating it MUST produce no diff. |
+| **ARCH-R144** | A service declaring `api`, bundled or a plugin's, MUST declare `listens`, the port it answers on inside the stack's network, and lemonfiber MUST reach it at that port rather than at its published port or at a port named in lemonfiber's source. |
 
 ## Related
 

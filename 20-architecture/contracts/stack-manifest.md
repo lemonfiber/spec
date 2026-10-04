@@ -166,6 +166,7 @@ media_types = ["tv"]
 | `bind` | enum | ✔ if `port` | `loopback` \| `lan`. Enforces [C6](../../10-functional/features/c-trust/c6-web-security.md)'s two-tier policy. |
 | `health` | table | | See below. Absent means lifecycle waits on container state only. |
 | `api` | table | | How lemonfiber talks to it for [seeding](../../10-functional/features/d-content/d1-seed.md). Absent means no API integration. |
+| `listens` | integer | ✔ if `api` | The port it answers on inside the stack's network. See [`api`](#api). |
 | `criticality` | enum | ✔ | `critical` \| `core` \| `important` \| `enhancing` \| `optional` (`F2-R3`) |
 | `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`), except on a service whose image lemonfiber builds from its own code, which carries `Hippocratic-3.0` and nothing else. Such a service is told by its `image`: it is under `ghcr.io/lemonfiber/`, where lemonfiber publishes the images it builds and nothing else ([ADR-0033](../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)). |
 | `upstream` | string | ✔ | Project URL, for maintenance review (`F2-R14`) |
@@ -373,6 +374,13 @@ the VPN's forwarded-port push authenticates against the same WebUI API, so the
 recorded value has to reach the stack's environment and not only lemonfiber's own
 store.
 
+`listens` is where lemonfiber and the services that ask reach it: the port the
+service answers on inside the stack's network, which is not always the one it
+publishes. SABnzbd publishes 8085 and answers on 8080. Without it the inside
+port is a constant in lemonfiber's source, and a service standing in for one that
+listens elsewhere would be registered at a port it does not answer on
+(`ARCH-R144`).
+
 **Bindery is deliberately its own kind.** It is not a Servarr application, and
 Prowlarr's app sync does not cover it (`D1-R15`).
 
@@ -533,6 +541,7 @@ Validation reports **every** violation in one pass, each naming its location
 | No wiring names its own `by` as `to` or `filled_by` | Wiring named |
 | No two wirings carry the same `by` and `asks`, or the same `by` and `to` | Both wirings named |
 | Every `depends_on` edge is also declared as a by-name `[[wiring]]` | Service and target named (`F4-R12`, `F9-R4`) |
+| Every service with an `api` declares `listens` | Service named (`ARCH-R144`) |
 | Every capability in `provides` has exactly one `[[service.claim]]` | Service and capability named (`ARCH-R136`) |
 | Every `[[service.claim]]` names a capability in the service's `provides` | Service and capability named (`ARCH-R136`) |
 | Every probe a claimed capability declares is bound, and no binding names one it does not declare | Service, capability and probe named (`ARCH-R109`) |
