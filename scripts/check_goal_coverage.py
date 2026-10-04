@@ -117,10 +117,6 @@ AWAITING_A_VERSION = {
         "N4 requires N1, whose app side no version schedules, and G3, locked by 0.10.0 at the latest, released",
         [f"N4-R{n}" for n in range(1, 25)],
     ),
-    "N5": (
-        "N5 requires N1, whose app side no version schedules, F4, whose last goals 0.18.0 locks, and F5, whose last goals 0.17.0 locks",
-        [f"N5-R{n}" for n in range(1, 14)],
-    ),
     "N6": (
         "N6 requires N1, whose app side no version schedules, and E3, locked by 0.14.0 at the latest, released",
         [f"N6-R{n}" for n in range(1, 12)],
@@ -162,10 +158,6 @@ AWAITING_A_VERSION = {
         "N19 requires N1, whose app side no version schedules, and F1, locked by 0.15.0, released",
         [f"N19-R{n}" for n in range(1, 11)],
     ),
-    "N20": (
-        "N20 requires N1, whose app side no version schedules, and F8, locked by 0.18.0",
-        [f"N20-R{n}" for n in range(1, 11)],
-    ),
     "N21": (
         "N21 requires N1, whose app side no version schedules, and D6, whose last goals 0.17.0 locks",
         [f"N21-R{n}" for n in range(1, 12)],
@@ -181,10 +173,6 @@ AWAITING_A_VERSION = {
     "N24": (
         "N24 requires N1, whose app side no version schedules, and D2 and D3, locked by 0.4.0, released",
         [f"N24-R{n}" for n in range(1, 11)],
-    ),
-    "N25": (
-        "N25 requires N1, whose app side no version schedules, N5, which awaits a version itself, F5, whose last goals 0.17.0 locks, and F6, whose last goals 0.18.0 locks",
-        [f"N25-R{n}" for n in range(1, 11)],
     ),
     "N26": (
         "N26 requires N1, whose app side no version schedules, H1, H2 and H3, locked by 0.19.0, H6 and H8, locked by 0.20.0, and K1, locked by 0.22.0",
