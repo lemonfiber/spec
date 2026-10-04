@@ -77,17 +77,26 @@ only service whose failure can affect the operator outside their own machine.
 Each service's licence, upstream project, and pinned version — so the operator
 can verify the open-source claim rather than take it on faith.
 
-**Every bundled service is OSI-licensed**: GPL-3.0 (Prowlarr, Sonarr, Radarr,
-Lidarr, Bazarr, Calibre-Web-Automated, Homepage), GPL-2.0 (Jellyfin, SABnzbd,
-qBittorrent), MIT (Seerr, Gluetun, FlareSolverr, Recyclarr, Unpackerr,
-Bindery, Audiobookshelf), Apache-2.0 (NZBHydra2, Caddy).
+**Every bundled service lemonfiber does not build is OSI-licensed**: GPL-3.0
+(Prowlarr, Sonarr, Radarr, Lidarr, Bazarr, Calibre-Web-Automated, Homepage),
+GPL-2.0 (Jellyfin, SABnzbd, qBittorrent), MIT (Seerr, Gluetun, FlareSolverr,
+Recyclarr, Unpackerr, Bindery, Audiobookshelf), Apache-2.0 (NZBHydra2, Caddy).
+
+The services whose images lemonfiber builds from its own code — the request gate
+and the decline service
+([ADR-0033](../../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md))
+— carry lemonfiber's own licence, `Hippocratic-3.0`, as the rest of its code
+does ([licence rationale](../../../90-appendix/license-rationale.md)). Their
+source is public, so their licence is verified the same way, and it is
+source-available rather than open source.
 
 ### Inclusion criteria are explicit
 
 A service enters the stack only if it is open source under an OSI-approved
-licence, publishes native `linux/arm64` and `linux/amd64` images, is actively
-maintained, does something no included service already does, and works without a
-paid tier.
+licence — or, where lemonfiber builds its image from its own code, carries
+lemonfiber's own licence (`F2-R5`) — publishes native `linux/arm64` and
+`linux/amd64` images, is actively maintained, does something no included service
+already does, and works without a paid tier.
 
 Stating the criteria makes "why isn't X included?" answerable, and makes
 additions a judgement against a standard rather than a matter of taste.
@@ -147,7 +156,7 @@ stack rather than with this document.
 | **F2-R2** | Every service MUST state the consequence of its absence. |
 | **F2-R3** | Every service MUST carry a criticality level. |
 | **F2-R4** | Every service MUST record its licence, upstream project, and pinned version. |
-| **F2-R5** | Every bundled service MUST be under an OSI-approved licence. |
+| **F2-R5** | Every bundled service MUST be under an OSI-approved licence, except a service whose image lemonfiber builds from its own code, which MUST carry lemonfiber's own licence (Hippocratic-3.0). |
 | **F2-R6** | Every bundled service MUST publish native `linux/arm64` and `linux/amd64` images. |
 | **F2-R7** | Inclusion criteria MUST be stated explicitly. |
 | **F2-R8** | Notable exclusions MUST be recorded with reasons. |

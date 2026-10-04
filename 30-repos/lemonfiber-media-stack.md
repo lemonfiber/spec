@@ -45,7 +45,7 @@ lemonfiber-media-stack/
 
 ## How `compose.yml` is assembled
 
-Twenty services in one file is a file nobody reads. `compose.yml` therefore
+Twenty-odd services in one file is a file nobody reads. `compose.yml` therefore
 defines **no services of its own**: it `include:`s one fragment per profile from
 `compose/`, so the file you open to change television automation is `tv.yml` and
 contains Sonarr and nothing else. The manifest's profile list and the directory
@@ -80,8 +80,10 @@ already defines, which is what the storage overlay does.
 
 ## The service inventory
 
-20 services, all verified `linux/arm64` + `linux/amd64`, all OSI-licensed
-(2026-07). Full descriptions in
+22 services, all verified `linux/arm64` + `linux/amd64`. Every one lemonfiber
+does not build is OSI-licensed (2026-07); the request gate and the decline
+service, whose images lemonfiber builds from its own code, carry
+`Hippocratic-3.0` (`F2-R5`). Full descriptions in
 [F2](../10-functional/features/f-extensibility/f2-service-catalogue.md); the
 canonical data is in `stack.toml`.
 
@@ -93,7 +95,7 @@ canonical data is in `stack.toml`.
 | `tv` / `movies` / `music` | sonarr / radarr / lidarr |
 | `books` | bindery |
 | `subs` | bazarr |
-| `media` | jellyfin, seerr, calibre-web-automated, audiobookshelf, navidrome |
+| `media` | jellyfin, seerr, request-gate, decline, calibre-web-automated, audiobookshelf, navidrome |
 | `tuning` | recyclarr, unpackerr |
 | `dash` | homepage |
 | `proxy` | caddy |
@@ -204,7 +206,7 @@ each app's API during seeding, not something the overlay does. It is applied wit
 | Binding tier matches the manifest | `C6-R1`, `C6-R2` |
 | Killswitch routing | `C2-R12` |
 | No floating tags | `E1-R1` |
-| SPDX licence check | Every service OSI-licensed (`F2-R5`) |
+| SPDX licence check | Every service OSI-licensed, or `Hippocratic-3.0` where its image is under `ghcr.io/lemonfiber/` (`F2-R5`) |
 | arm64 + amd64 manifest present | `F2-R6` |
 | Negative tests for each rule above | `REPO-R37` |
 
@@ -251,7 +253,7 @@ CI then holds it to every rule above. This is the whole of
 | **REPO-R17** | CI MUST validate every form with `docker compose config`. |
 | **REPO-R18** | CI MUST verify manifest ↔ compose parity. |
 | **REPO-R19** | CI MUST reject cross-profile `depends_on`, multi-mount services, and floating tags. |
-| **REPO-R20** | CI MUST verify every service declares an OSI licence and publishes arm64 + amd64 images. |
+| **REPO-R20** | CI MUST verify every service declares an OSI licence, or `Hippocratic-3.0` where lemonfiber builds its image from its own code (`F2-R5`), and publishes arm64 + amd64 images. |
 | **REPO-R21** | The VPN port-forwarding up/down command pair MUST push and release the client's listen port. |
 | **REPO-R22** | Port forwarding MUST default off and activate only for capable providers. |
 | **REPO-R23** | Adding a service MUST require only data edits — compose, manifest, forms — and no code change. |

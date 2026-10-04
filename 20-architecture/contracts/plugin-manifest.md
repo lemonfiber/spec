@@ -121,10 +121,11 @@ into a judgement about severity, and a plugin that appears in `lemonfiber ps`
 without them puts a name in front of an operator and nothing else.
 
 **The licence is declared but not constrained.** Every bundled service is
-OSI-licensed and `F2-R5` fails validation on anything else, because the bundled
-set is a curated list this project stands behind. A plugin is not: the operator
-chose it. Refusing to install proprietary software on somebody's own machine
-would be `F1`'s objection exactly — the tool standing between an operator and
+OSI-licensed, bar the images lemonfiber builds from its own code, which carry
+lemonfiber's own licence, and `F2-R5` fails validation on anything else, because
+the bundled set is a curated list this project stands behind. A plugin is not:
+the operator chose it. Refusing to install proprietary software on somebody's
+own machine would be `F1`'s objection exactly — the tool standing between an operator and
 their stack. So the licence is **recorded and shown**, including on the
 `lemonfiber plugins` read (`F7-R5`), and the operator decides. A plugin whose
 licence is absent is refused; one whose licence is merely not open is installed
