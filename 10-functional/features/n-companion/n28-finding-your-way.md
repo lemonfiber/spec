@@ -132,6 +132,7 @@ words are the plain ones (`G2-R3`, `G2-R15`): *Problems* rather than *findings*,
 | **N28-R10** | A screen the connected stack does not offer MUST keep its menu item, and opening it MUST say what would provide it (`N1-R30`); a screen this version of the app does not have yet MUST keep its menu item too, and opening it MUST say so. |
 | **N28-R11** | With no stack paired there MUST be no menu, top-bar switcher or bottom bar (`N1-R35`), and while the app is locked none of them MUST be drawn (`N4-R24`). Signing in to a stack MUST show the switcher and the menu, and MUST NOT show the bottom bar. |
 | **N28-R12** | Labels MUST wrap rather than be cut off at the phone's text size, and a shortened stack name MUST be read whole to a screen reader (`N4-R14`). |
+| **N28-R13** | A screen opened over another MUST offer the platform's own way back: its back control and, on iOS, the edge swipe. A screen with nothing beneath it MUST NOT offer one. |
 
 ## Notes
 

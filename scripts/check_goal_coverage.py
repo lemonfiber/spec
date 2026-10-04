@@ -196,7 +196,7 @@ AWAITING_A_VERSION = {
     ),
     "N28": (
         "N28 requires N1 and N2, whose app side no version schedules, and N27; what N1 and N2 require is locked by 0.11.0 at the latest, released",
-        [f"N28-R{n}" for n in range(1, 13)],
+        [f"N28-R{n}" for n in range(1, 14)],
     ),
     "N7": (
         "N7 requires N1, whose app side no version schedules, and A5, locked by 0.13.0, released",
