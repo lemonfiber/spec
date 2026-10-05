@@ -31,7 +31,13 @@
 # service hands its whole configuration, the indexer accounts and their keys among it, to
 # anything that can reach it, and the indexer.search claim (`F9-R2`) could not be proven
 # honestly. Its claim is recorded off a fresh container seeded this way.
-# 74 goals, seeded from the roadmap milestone this version serves;
+#
+# `ARCH-R154` and `ARCH-R155` are the networks a plugin's service joins when it stands in
+# for one of the stack's: only where it is the settled filler of what the stack service
+# fills, never a network kept for a link by name, and moved with the choice that settles
+# it. Without them a stand-in for `F9-R6` either cannot be reached or reaches further than
+# the service it replaced.
+# 76 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
 # Thirty-six of them were added after staging, each reviewed as a goal change (OPS-R31).
@@ -121,6 +127,8 @@ goals   = [
     "F8-R13",
     "ARCH-R143",
     "ARCH-R144",
+    "ARCH-R154",
+    "ARCH-R155",
     "F5-R1",
     "F5-R13",
     "F5-R3",
