@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**111 features** in areas A–N, **1687 requirements**.
+**111 features** in areas A–N, **1689 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 18 shipped, 6 built, 36 building, 50 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 17 shipped, 6 built, 37 building, 50 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -32,7 +32,6 @@ code, and the two move independently.
 | [D5](d-content/d5-disk-space.md) | Disk space management | D | operator | accepted | `0.12.0` |
 | [D8](d-content/d8-parental-controls.md) | Parental controls | D | both | accepted | `0.12.0` |
 | [D9](d-content/d9-pipeline-trace.md) | "Where is my show?" pipeline trace | D | both | accepted | `0.4.0` |
-| [D10](d-content/d10-bandwidth.md) | Bandwidth & scheduling | D | operator | accepted | `0.12.0` |
 | [G1](g-ux/g1-interface-tiers.md) | Interface tiers | G | both | accepted | `0.9.0` |
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | G | household | accepted | `0.11.0` |
 
@@ -69,6 +68,7 @@ code, and the two move independently.
 | [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0`, `0.19.0` |
 | [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0`, `0.19.0` |
 | [D7](d-content/d7-approval-quotas.md) | Request approval & quotas | D | both | accepted | `0.12.0`, `0.18.0` |
+| [D10](d-content/d10-bandwidth.md) | Bandwidth & scheduling | D | operator | accepted | `0.12.0`, `0.18.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |

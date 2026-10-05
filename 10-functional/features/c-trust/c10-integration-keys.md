@@ -7,7 +7,7 @@ audience: operator
 status: accepted
 maturity: planned
 labels: [security, web]
-relates: [C6, F12, F13, G1, B5]
+relates: [C6, D10, F12, F13, G1, B5]
 ---
 
 # C10 — Integration keys
@@ -43,7 +43,12 @@ companion, and gives it one scope:
 The reply that minted a key is the only place its secret ever appears. It also carries the
 stack's address and certificate pin, which is everything a client on another machine needs
 to connect ([ADR-0025](../../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)).
-The core keeps a digest only.
+The core keeps a digest only. Every secret begins with the same short prefix, so a value
+shaped like a key can be told from a token or a session without being looked up.
+
+Where the stack has never been served encrypted on the network, there is no address yet for
+a client elsewhere to reach. The key is minted all the same: the reply carries the pin, no
+address, and a caution saying how to serve the stack so another machine can connect.
 
 ### Minting over the web asks for the password again
 
@@ -69,13 +74,18 @@ something the core can verify, and the listing says so.
 
 Keys are listed by name, scope, minting time and last use, and revoked by name. A revoked
 key is refused at its next request. Every mint and revoke is journaled and raises an
-operator alert naming the key and its scope.
+operator alert naming the key and its scope. A mint is journaled as reversible, and undoing
+it revokes the key. A revoke is journaled as not reversible, because a revoked key is never
+made good again: the remedy is to mint a new one.
 
 ### What a key may call is published
 
 Each action declares whether a key may call it, and the contract lists those that may. The
-list starts as restarting a service, running the doctor, applying a stack update, and
-pausing or resuming downloads.
+list starts as restarting a service, running the doctor with the checks that disturb the
+system, applying a stack update, and pausing or resuming downloads
+([D10](../d-content/d10-bandwidth.md)). Each entry says whether the action disturbs the
+running system and whether it can be rehearsed, so a client can rehearse an action first
+and offer the real call after.
 
 ## States
 
@@ -89,11 +99,15 @@ pausing or resuming downloads.
 
 | Situation | Behaviour |
 |---|---|
-| A key is presented over plain HTTP from another machine | Refused. A key is accepted off loopback only over the TLS the pin verifies. |
+| A key is presented over plain HTTP from another machine | Refused before the key is checked, with a refusal code of its own. A key is accepted off loopback only over the TLS the pin verifies. |
+| A request arrives over a connection whose origin cannot be placed | Treated as coming from another machine over plain HTTP, and refused the same way. |
 | A key's member account is removed from the household | Refused from then on, listed as orphaned. |
 | Two keys are minted under one name | Refused, naming the existing key. A name identifies one key. |
 | A key asks for an action not on the list | Refused, naming the key's scope and that the action is not callable by a key. |
-| Many wrong keys in a short time | Counted against the same surface-wide limit as wrong passwords. |
+| Many wrong keys in a short time | A value shaped like a key that matches no key counts against the same surface-wide limit as wrong passwords. |
+| A revoked or orphaned key keeps being presented | Refused as a wrong token is, and not counted: it is a key the stack knows, not a guess, and counting it would let a forgotten integration lock the operator out. |
+| A key is presented while the limit holds | Refused with the wait before the key is checked, a right key included. A right key does not reset the count. |
+| A key is minted before the stack has been served encrypted on the network | Minted. The reply carries the pin and no address, and says how to serve the stack so another machine can connect. |
 | The password changes | Sessions end (C6). Keys stay, since they were minted deliberately and are revoked deliberately. |
 | A member tries to mint a key while the setting is off | Refused, saying the operator has not allowed members to mint keys. |
 | A member tries to mint a key for another account | Refused. A member mints only `member:` keys for themselves. |
@@ -107,16 +121,16 @@ pausing or resuming downloads.
 | **C10-R1** | An operator MUST be able to mint a named key with exactly one scope, `read`, `act` or `member:<account>`, at the command line and over the web API. |
 | **C10-R2** | Over the web API, only an operator session MUST be able to mint or revoke a key, except as `C10-R15` allows a member, and minting MUST require the operator password in the same request. A key MUST NOT be able to mint, list or revoke keys, whatever its scope. |
 | **C10-R3** | A key's secret MUST appear only in the reply that minted it, sent with `Cache-Control: no-store`, and MUST be stored only as a digest. No read, listing, log, support bundle, alert or journal entry MUST carry it. |
-| **C10-R4** | The mint reply MUST carry the stack's address and its certificate pin beside the secret. |
+| **C10-R4** | The mint reply MUST carry the stack's certificate pin beside the secret, and the stack's address where it has been served encrypted on the network. Where it has not, the reply MUST carry no address and MUST say how to serve the stack so another machine can connect. |
 | **C10-R5** | A key MUST survive a restart and MUST travel in `X-Lemonfiber-Token`. A revoked, orphaned or unknown key MUST be refused exactly as a wrong token is, with the same status, sentence and code, from its next request. |
 | **C10-R6** | Keys MUST be listed by name, scope, state, minting time and last use, without their secrets, and MUST be revocable by name, at the command line and over the web API. |
 | **C10-R7** | A `read` key MUST be admitted to every served read and the event stream and to no action. |
 | **C10-R8** | An `act` key MUST be admitted to what `read` admits and to exactly the actions the contract publishes as callable by a key. Any other action MUST be refused, naming the key's scope. |
-| **C10-R9** | The actions callable by a key MUST be published in the contract. Uninstalling, any action on a credential, a key or the password, installing, updating or removing a plugin, a reset and a restore MUST NOT be callable by a key. |
+| **C10-R9** | The actions callable by a key MUST be published in the contract, each saying whether it disturbs the running system and whether it can be rehearsed. Uninstalling, any action on a credential, a key or the password, installing, updating or removing a plugin, a reset and a restore MUST NOT be callable by a key. |
 | **C10-R10** | A `member:<account>` key MUST be admitted to exactly what that account's own session admits, and MUST be refused once the account leaves the household. |
-| **C10-R11** | A key MUST NOT be accepted from another machine except over the TLS its pin verifies. |
-| **C10-R12** | Every mint and revoke MUST be journaled and MUST raise an operator alert naming the key and its scope. |
-| **C10-R13** | Wrong keys MUST count against the same surface-wide limit as wrong passwords. |
+| **C10-R11** | A key MUST NOT be accepted from another machine except over the TLS its pin verifies. A key presented from another machine without it, or over a connection whose origin cannot be placed, MUST be refused before it is checked, with a refusal code of its own. |
+| **C10-R12** | Every mint and revoke MUST be journaled and MUST raise an operator alert naming the key and its scope. A mint MUST be journaled as reversible, its undo revoking the key, and a revoke MUST be journaled as not reversible. |
+| **C10-R13** | A presented value shaped like a key that matches no key MUST count against the same surface-wide limit as wrong passwords, and a revoked or orphaned key MUST NOT. While that limit holds, a request carrying a value shaped like a key MUST be refused with the wait before the value is checked, and a right key MUST NOT reset the count. |
 | **C10-R14** | Minting a key under a name another key holds MUST be refused, naming that key. |
 | **C10-R15** | A setting, off by default and changeable only by the operator, MUST decide whether household members may mint keys. While it is on, a member session MUST be able to mint and revoke a `member:` key scoped to that member alone, and MUST NOT be able to mint any other scope or a key for another account. |
 | **C10-R16** | A member-minted key MUST be listed to the operator, marked as member-minted, and MUST be revocable by the operator as well as by the member. Its mint and revoke MUST be journaled and MUST alert the operator (`C10-R12`). |
