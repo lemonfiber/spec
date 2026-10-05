@@ -74,8 +74,13 @@ its way. A title's page has one primary action, and its label is the title's
 state: Play, Ask, Waiting for approval, On its way, Out on a date. Nothing a member
 sees names a service, a size or how the stack stands, and the stack is *the house*
 ([G2](../g-ux/g2-plain-language.md)); a failure reads as what it means to them, in
-the core's words. What a title is, its artwork and where it plays from are the
-core's answers ([D11](../d-content/d11-watching-what-the-house-holds.md)).
+the core's words. Where nothing arrives from the house for the core to voice —
+the house cannot be reached, its certificate is not the one the phone was paired
+with, or it speaks a version this app does not — the app says so in a household
+sentence of its own, such as *Can't reach the house right now*, and does not
+present it as the house's words. What a title is, its artwork and where it plays
+from are the core's answers
+([D11](../d-content/d11-watching-what-the-house-holds.md)).
 
 ### Knowing whether it is coming
 
@@ -133,6 +138,7 @@ does not hold a second copy of them.
 |-----------|-----------|
 | The stack is unreachable | Their own requests are shown from the last read, marked with when. Asking for something new is declined rather than queued, because a queued request is a promise the app cannot keep. |
 | A member's request failed because the stack is broken | They are told it did not work and that the operator has been told. They are not shown the fault. |
+| Nothing arrives from the house: it cannot be reached, its certificate is not the one paired, or it speaks a version this app does not | The app's own household sentence, such as *Can't reach the house right now*, with no technical term, and not presented as the house's words. |
 | A member is also the operator | One sign-in, both applications. They are not asked to choose a mode. |
 | A title is already held | Said so before they ask for it again. |
 | A member is removed from the household while signed in | The next call is refused by the core, and the app returns to signed-out rather than continuing to render what it had. |
@@ -162,7 +168,7 @@ does not hold a second copy of them.
 | **N3-R17** | A refusal whose code says the household could not be asked MUST be reported to the operator as the media server not answering, and to a member as their library not answering right now, in the core's household sentence (`G4-R16`). It MUST NOT sign the member out, and MUST NOT be reported as the account lacking entitlement (`ARCH-R138`). |
 | **N3-R18** | A member MUST be able to sign in to a stack from the app with their household account's name and password, on the same screen the operator signs in on, and a refusal MUST NOT say which of the two was not recognised. |
 | **N3-R19** | A member's application MUST have a bottom bar of exactly four tabs (Home, Search, Requests and Profile), and MUST have no side menu. Profile MUST hold *Switch house*, App settings, and *Remove this house from the phone*. The tab whose screen is on view, or the tab the screen on view belongs to, MUST be the only one marked current (`G3-R17`). |
-| **N3-R20** | Every sentence a member's screen shows about the stack MUST be the core's household sentence (`G4-R16`), rendered and not composed (`N3-R2`). A sentence about the phone itself (no network, the local network refused, nowhere to keep a stack) MUST be the app's own, in household words (`G2-R16`). The conditions `N1-R10` tells apart MUST each reach a member as a sentence and a remedy of its own. |
+| **N3-R20** | Every sentence a member's screen shows about the stack that the core voices MUST be the core's household sentence (`G4-R16`), rendered and not composed (`N3-R2`). Where the core cannot voice an obstacle because nothing from the house arrives — the house cannot be reached, its certificate does not match the one paired (`N1-R20`), or it speaks a version this app does not (`N1-R13`) — the app MUST show its own household sentence, in plain words with no technical term (`G2-R16`), and MUST NOT present it as the house's own words. A sentence about the phone itself (no network, the local network refused, nowhere to keep a stack) MUST be the app's own, in household words (`G2-R16`). The conditions `N1-R10` tells apart MUST each reach a member as a sentence and a remedy of its own. |
 | **N3-R21** | A member MUST be able to search for a title and ask for it from the app. A search MUST show only what the core answers under that member's limits (`D8-R8`). Before the member asks, the title MUST say, in the core's words, whether it is already here, already on its way, needs approval, and what it leaves of their allowance (`N3-R4`, `N3-R5`, `D4-R5`, `D4-R10`, `D7-R15`). The ask MUST be the core's action. |
 | **N3-R22** | A title's page MUST carry one primary action whose label follows the title's state as the core answers it: *Play* where it is here and playable from where the phone is; *Play*, not usable, with the reason beside it, where it is here and cannot be played from where the phone is (`N3-R15`); *Ask* where it may be asked for; and otherwise the state itself (waiting for approval, on its way, out on a date, or not available), shown as the action and not usable. The action MUST NOT be hidden in any state. |
 | **N3-R23** | Home MUST lead with the member's own titles: what they were part-way through, what they asked for that has arrived, and what they asked for that is on its way. Everything else on Home comes after those. A shelf with nothing in it MUST NOT be drawn. |
