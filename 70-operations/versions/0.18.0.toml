@@ -127,7 +127,9 @@
 # `F5-R14` is what installing a plugin by its name rests on. `F5-R3` signs a catalogue
 # release and refuses a signature that does not verify, and says nothing about what an
 # install by name may resolve through; without this an unsigned index, or a revision
-# other than the one reviewed, would satisfy the letter of it (ADR-0034).
+# other than the one reviewed, would satisfy the letter of it (ADR-0034). `F5-R15` holds
+# an install by name to the newest index this machine has verified, so a release the
+# catalogue replaced still verifies and is still refused.
 #
 # `C1-R16` and `C4-R16` are what the Health screens and a support bundle need to name a
 # finding. A finding carried its service's identifier and no name, so a phone could only
@@ -153,7 +155,7 @@
 # `N3-R18` lets a member sign in from the app with their household account. The core
 # admits a name and a password and the web surface already offers both, but the
 # companion sent a password only, so a member could not sign in from the phone at all.
-# 177 goals, seeded from the roadmap milestone this version serves;
+# 178 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the four writes taking the offer, a recipe's pairs and steps agreed to as
@@ -298,6 +300,7 @@ goals   = [
     "ARCH-R136",
     "ARCH-R137",
     "F5-R14",
+    "F5-R15",
     "C1-R17",
     "ARCH-R140",
     "ARCH-R141",
