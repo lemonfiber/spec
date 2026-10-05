@@ -95,6 +95,19 @@ something that happens once and cannot be undone by a second arrival; and it
 expires because an account nobody claimed within 48 hours is removed rather than
 left standing as a way in that nobody is watching.
 
+**The stack takes an invitation back when its window closes**, whether or not a
+lemonfiber process is running, because a way in that waits for the operator's
+next command stands open for as long as the operator is away. The decline service
+checks once a minute. An account nobody was ever seen in is removed; one somebody
+has been in, which is a reset nobody took up, is switched off and kept, because it
+holds what they watched. It removes an account only where a read made just before
+the removal shows the account is the one the invitation names, under the same issue
+time, with no password, no administrator's rights and nobody ever seen in it;
+anything else, or a read that does not answer, switches it off or leaves it as it
+is. The core reports an invitation taken back either way as `expired`, and never as
+an account that went missing
+([ADR-0029](../../../00-overview/decisions/0029-a-household-service-declines-an-invitation-with-one-key.md) §2a).
+
 The operator never chooses or transmits someone else's password.
 
 The QR code matters more than it looks: the recipient is usually holding the
@@ -189,7 +202,7 @@ Per household member:
 | Situation | Behaviour |
 |-----------|-----------|
 | Invitation link intercepted on the LAN | Single-use and short-lived. State that it grants account creation to whoever opens it. Whoever holds the decline address can refuse the invitation, which costs a re-issue and grants nothing. |
-| Invitation expires unused | Re-issuable without recreating the account definition. |
+| Invitation expires unused | The stack takes it back within a minute: an account nobody was seen in is removed, and a reset is switched off. The core reports it as `expired`. Re-issuable without recreating the account definition. |
 | Invitee declines | The account is disabled at once and can no longer be claimed. The core reports the invitation as `declined` rather than `expired`, and the account stays, disabled, until the operator removes it or re-issues the invitation. |
 | Decline address opened after the invitation was claimed or lapsed | Says the invitation is no longer open, and changes nothing. |
 | The stack is stopped when the invitee opens the decline address | Nothing answers, as with the sign-in address. The invitation stays `invited` until it lapses. |
@@ -228,6 +241,7 @@ Per household member:
 | **D6-R18** | The `removal` envelope MUST state what removing the person does to their watch history, in the stack's words, in the reading before the removal and in the answer after it runs, so that no surface writes that statement itself (`D6-R9`, `N13-R19`). |
 | **D6-R19** | The core MUST answer a member's session with the member's display name as the media server holds it. |
 | **D6-R20** | The core MUST answer the operator's session with what a member invited with the household's default access and allowance would be told and could watch, and MUST NOT read or name any member's requests, allowance or watch history to answer it. |
+| **D6-R21** | When an invitation's window closes, the stack MUST take it back without a lemonfiber process running: an account nobody was ever seen in MUST be removed, and one somebody has been in MUST be switched off and kept. An account MUST be removed only where reads made just before the removal show that the core's invitation table names it under the same issue time, that it is not an administrator, that it has no password, and that nobody has ever signed in to it or used it; on any other answer, or none, it MUST be switched off or left as it is. A declined invitation MUST NOT be taken back. The core MUST report an invitation taken back this way as `expired`, and MUST NOT report a removed one as an account that went missing. |
 
 ## Related
 

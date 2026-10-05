@@ -6,7 +6,7 @@ The decline service: the one image that answers an invitation's decline address.
 Rust, one crate, one image.
 
 **Implements:** [ADR-0029](../00-overview/decisions/0029-a-household-service-declines-an-invitation-with-one-key.md),
-for `D6-R15`, `D6-R16` and `G5-R14`. Its place in the organisation is
+for `D6-R15`, `D6-R16`, `D6-R21` and `G5-R14`. Its place in the organisation is
 [ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md).
 
 ---
@@ -15,8 +15,10 @@ for `D6-R15`, `D6-R16` and `G5-R14`. Its place in the organisation is
 
 The source of `ghcr.io/lemonfiber/decline`, which the stack runs as the service
 `decline`. It answers three routes on its own origin, a page naming what would be
-declined, the refusal, and its health, and makes three fixed Jellyfin calls with
-the one API key minted for it alone.
+declined, the refusal, and its health. Once a minute it takes back every invitation
+whose window has closed. It makes five fixed Jellyfin calls with the one API key
+minted for it alone, and changes an account in one of two ways: it switches it off,
+or, under the guards ADR-0029 §2a states, removes it.
 
 ## What it holds, and what it does not
 
@@ -24,7 +26,7 @@ the one API key minted for it alone.
 |---|---|
 | One Rust binary crate, with the core's lints, deny policy and coverage floor, depending on the core's crates at a pinned core commit | The compose entry, which is `lemonfiber-media-stack`'s |
 | One Dockerfile, ending on a distroless static base as a non-root user | Any credential: the key and the invitation table arrive as files the core writes |
-| Recordings of its three Jellyfin calls on every supported line (ADR-0028) | Code shared with `lemonfiber-request-gate` |
+| Recordings of its Jellyfin calls on every supported line (ADR-0028) | Code shared with `lemonfiber-request-gate` |
 | The containment ADR-0029 §6 requires, stated as what it needs from the stack | |
 
 ## Releasing

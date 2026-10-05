@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-09-25
-**Decided:** 2026-09-25, by the maintainer, Wessel Verheij: with the D6-R15 rewording, the new C6 requirement, CorsHosts naming the household front-door origin, and Homepage holding no Jellyfin key.
+**Decided:** 2026-09-25, by the maintainer, Wessel Verheij: with the D6-R15 rewording, the new C6 requirement, CorsHosts naming the household front-door origin, and Homepage holding no Jellyfin key. Revised 2026-10-05, by the maintainer: the service also takes back every invitation whose window closes, removing an account nobody was ever seen in with `DELETE /Users/{id}` under five guards read just before the call, and switching off one somebody has been in (§2a).
 
 ## Context
 
@@ -20,9 +20,9 @@ the stack has no service to answer the address.
 **What an invitation is, on the server.** An invitation is a Jellyfin account with
 no password. Signing in with its name and an empty password succeeds, and setting
 a password from that session claims it. Both hold on 10.10.3, 10.11.11 and 12.1,
-measured on 2026-09-25. The core dates an invitation from Jellyfin's activity log.
-It removes an unclaimed account after 48 hours, the next time it issues an
-invitation. It keeps nothing of its own.
+measured on 2026-09-25. The core dates an invitation from what it recorded when it
+made the offer, and from Jellyfin's activity log. An invitation stands for 48 hours
+(`D6-R3`).
 
 **What makes an account unclaimable, measured on all three lines:**
 
@@ -80,9 +80,11 @@ A decline page on its own port is a different origin from Jellyfin.
 **A lemonfiber-built decline service, pinned by digest and run by the stack at the
 household tier, answers the decline address. It holds one Jellyfin API key minted
 for it alone. It disables the invited account the moment the invitee refuses, and
-records the refusal for the core. The browser only ever talks to the service's own
-origin, so the stack closes Jellyfin's CORS. A declined account is kept, disabled,
-until the operator acts.**
+records the refusal for the core. When an invitation's window closes it takes the
+invitation back: it removes an account nobody was ever seen in, and switches off one
+somebody has been in. The browser only ever talks to the service's own origin, so
+the stack closes Jellyfin's CORS. A declined account is kept, disabled, until the
+operator acts.**
 
 ### 1. The service
 
@@ -97,6 +99,10 @@ until the operator acts.**
 | `GET /decline/{token}` | A page naming what would be declined, or saying the invitation is no longer open (`D6-R15`). |
 | `POST /decline/{token}` | The refusal |
 | `GET /health` | Whether it is running. The key is proved once after each change to the key file, not on every poll. |
+
+- **What it does unasked.** Once a minute it reads the invitation table for
+  invitations whose window has closed, and takes each back (§2a). No route starts
+  it, and nothing a browser sends reaches it.
 
 ### 2. What a refusal does, in order
 
@@ -117,16 +123,63 @@ until the operator acts.**
 5. Answer the page. A second refusal of the same invitation says it is already
    declined, and writes nothing.
 
-The service makes those three calls to Jellyfin and no others. It acts only on
-account ids the core's table names, and the only field it ever changes is
-`IsDisabled`, from `false` to `true`.
+### 2a. What a lapse does
+
+Once a minute the service reads the table. An invitation whose lapse time has
+passed, that nobody declined, and that the service has not yet taken back is taken
+back in this order:
+
+1. Read the account with `GET /Users/{id}`, and whether it was claimed since the
+   issue time, with the `own-writes` strategy as a refusal reads it. A claimed
+   account, an administrator, an account already disabled, and one the server no
+   longer holds are left as they are.
+2. Read the table again, just before the call. The row must still name the same
+   account under the same issue time; where it does not, the core has offered the
+   account again, and the account is left as it is.
+3. Remove the account with `DELETE /Users/{id}` only where every one of these holds
+   on the reads of steps 1 and 2:
+
+   | Guard | Read from |
+   |-------|-----------|
+   | The id is one the core's table names | The table |
+   | It is not an administrator | `Policy.IsAdministrator` |
+   | It has no password | `HasPassword` is `false`, and no `UserPasswordChanged` entry for it is later than the issue time. On a line whose `claimed` strategy is `own-writes` (12.x, which reports `HasPassword` as `true` for every account), the entry alone decides. The core writes the line's strategy into the table. |
+   | Nobody has ever been seen in it | Neither `LastLoginDate` nor `LastActivityDate` is set |
+   | The issue time and the account id still match the table's row | The second read of the table, and the `Id` the account answers with |
+
+4. Otherwise, where the account is unclaimed and switched on, switch it off: write
+   its policy back in full with `IsDisabled=true`. That is a reset nobody took up,
+   or an account a guard left in doubt. **Nothing is removed on doubt**: a guard
+   that fails, or a read that does not answer, switches the account off or leaves
+   it as it is, and a read that does not answer is tried again a minute later.
+5. Record the outcome in the service's own state directory, beside the refusals:
+   the invitation, the account, its name, the issue time, the time, and whether it
+   was removed, switched off, or left as it was and why. A recorded invitation is
+   not taken back again. That record is how the core tells an account taken back
+   at its lapse from one that vanished for another reason.
+
+A declined invitation is never taken back: §3 keeps it for the operator.
+
+### 2b. What the service may do, and nothing else
+
+The service makes five calls to Jellyfin and no others: `GET /Users/{id}`,
+`GET /System/ActivityLog/Entries`, `POST /Users/{id}/Policy`, `DELETE /Users/{id}`,
+and `GET /System/Info` for the one proof after a key change. It acts only on
+account ids the core's table names. Its whole effect on the server is one of two
+changes to such an account:
+
+- **`IsDisabled` from `false` to `true`**, on a refusal, or at a lapse.
+- **The account removed**, at a lapse, and only under the five guards of §2a.
+
+It never switches an account back on, never changes any other field, and never
+removes an account a refusal names.
 
 ### 3. A declined account is kept, disabled, until the operator acts
 
-Three rules replace the 48-hour removal for a declined account:
+Three rules replace the 48-hour lapse for a declined account:
 
-- **The expiry sweep skips it.** An account with a refusal record is never removed
-  as `expired`.
+- **Neither sweep takes it.** An account with a refusal record is never taken back
+  at its lapse, by the service or by the core.
 - **The core reads its standing from the record and the account together:**
 
 | Refusal record | Account | Reported as |
@@ -134,6 +187,14 @@ Three rules replace the 48-hour removal for a declined account:
 | Present | Disabled and unclaimed | `declined` (`D6-R16`, `N9-R7`) |
 | Absent | Disabled | `suspended`: disabled by the operator, or by the server's own lockout |
 | Present | Still enabled, because the write failed | `declined`, not yet enforced. The core disables it on that read, as it holds the administrator's session. |
+
+An invitation taken back at its lapse is read from the lapse record the same way:
+
+| Lapse record | Account | Reported as |
+|--------------|---------|-------------|
+| Switched off, for the offer the core holds | Disabled and unclaimed | `expired`, not `suspended` |
+| Removed, for the offer the core holds | Gone | `expired`, until the core records its next offer. Never reported as an account that went missing. |
+| Absent | Gone | Nothing: the core does not report it |
 
 - **The operator decides what happens next.** They remove it (`D6-R8`), or
   re-issue it (`D6-R13`). Re-issuing re-enables the account and resets it, with a
@@ -151,9 +212,10 @@ containment:
 - **It has one consumer.**
 - **Jellyfin lists it by name**, so an operator reading Jellyfin's own key list
   can see what holds it.
-- **It carries a last-used date.** The service uses it only for a refusal or for
-  the one proof after a key change, so the doctor can compare that date with the
-  refusal records and name a use neither explains.
+- **It carries a last-used date.** The service uses it only for a refusal, for an
+  invitation taken back at its lapse, or for the one proof after a key change, and
+  records each of the first two. The doctor compares that date with the refusal and
+  lapse records and names a use none of them explains.
 
 The service sends it in `Authorization: MediaBrowser … Token="…"`, the one scheme
 every supported line accepts.
@@ -165,9 +227,10 @@ directory, owner-only (`A7-R8`), mounted read-only. It is not passed as an
 environment variable, because `docker compose config` and `docker inspect` print
 the environment, which `A7-R3` refuses. The core writes a second read-only file at
 each invitation: the invitation table, holding each token only as a hash, with its
-account id, issue time and lapse time. The refusal record is the only thing the
-service writes. The key joins the credential inventory: *Jellyfin decline key —
-used by the decline service — generated by lemonfiber* (`A7-R1`).
+account id, issue time and lapse time, and the line's `claimed` strategy. The
+refusal record and the lapse record are the only things the service writes. The
+key joins the credential inventory: *Jellyfin decline key — used by the decline
+service — generated by lemonfiber* (`A7-R1`).
 
 **Rotation** follows `A7-R4` to `A7-R6`:
 
@@ -202,10 +265,11 @@ decline container can reach. None of it makes the key weaker.
 |---------|-----------------|
 | One network shared only with Jellyfin, plus the network its published port needs. It is not on the network the administrative services share. | Reaching the \*arrs, the download clients or any other service |
 | Read-only root filesystem, non-root user, every kernel capability dropped, `no-new-privileges` | Persisting or escalating inside the container |
-| No data-root mount, no engine socket, no mount except its configuration directory: key (read-only), invitation table (read-only), refusals (read-write) | Reading the library or controlling the stack directly |
+| No data-root mount, no engine socket, no mount except its configuration directory: key (read-only), invitation table (read-only), refusals and lapses (read-write) | Reading the library or controlling the stack directly |
 | A memory limit, and a rate limit on `POST` | Using it to exhaust the host, or to guess tokens quickly |
 | 128-bit random tokens, held only as hashes | Recovering a live token from the service's files |
-| Three fixed server-side calls, on account ids from the core's table only, and no route that forwards | Using it as a general path into Jellyfin, which is `C6-R12`'s concern |
+| Five fixed server-side calls (§2b), on account ids from the core's table only, and no route that forwards. `DELETE /Users/{id}` is the one call type a lapse adds, and it is made only under the five guards of §2a. | Using it as a general path into Jellyfin, which is `C6-R12`'s concern |
+| Removal only of an account nobody was seen in, that has no password and no administrator's rights, named by the core's table under the issue time it still holds | Using the service to remove somebody's account, or what they watched with it |
 
 **Egress.** Compose cannot stop a container on a bridge network from reaching the
 internet. The service needs no egress, and where the engine can refuse it, it is
@@ -214,9 +278,9 @@ containment, and the doctor says so (`A7-R9`).
 
 ### 7. Same origin, and Jellyfin's CORS closed
 
-**The page reaches Jellyfin only through its own origin.** The service is a
-same-origin proxy of exactly the three calls above: it makes them server-side, for
-the one account a valid token names, and passes nothing else through. The browser
+**The page reaches Jellyfin only through its own origin.** A refusal is made of
+the calls in §2 alone: the service makes them server-side, for the one account a
+valid token names, and passes nothing else through. The browser
 never calls Jellyfin.
 
 **The stack then closes Jellyfin's CORS.** At seed, the core writes `CorsHosts` as
@@ -259,11 +323,14 @@ already does.
 
 ### 9. Across majors (ADR-0028)
 
-The service's three calls and its header scheme answered identically on 10.10.3,
+The calls a refusal makes, and the header scheme, answered identically on 10.10.3,
 10.11.11 and 12.1. Because the core's table gives it each invitation's issue time,
-it uses the `own-writes` strategy on every line and needs nothing from a line's
-profile. It still reads which line is running, and refuses to act on a line
-outside the window. Its recordings join the matrix, and CI runs its calls against
+it reads a claim with the `own-writes` strategy on every line. The one thing it
+takes from a line's profile is its `claimed` strategy, which the core writes into
+the table, so that a removal on a line that does not report `HasPassword` rests on
+`own-writes` alone. `DELETE /Users/{id}`, like `own-writes`, has yet to be proved
+against a recording. It still reads which line is running, and refuses to act on a
+line outside the window. Its recordings join the matrix, and CI runs its calls against
 every supported line.
 
 ## Alternatives considered
@@ -284,6 +351,8 @@ every supported line.
 
 - A refusal takes effect the moment it is made, whether or not any lemonfiber
   process is running. Jellyfin enforces it at sign-in and on every held token.
+- An invitation stops being claimable at Jellyfin within a minute of its window
+  closing, whether or not any lemonfiber process is running.
 - `declined` is reported apart from `expired` and from the operator's own
   `suspended`, from facts the stack keeps.
 - Jellyfin's CORS is closed, which it is not today.
@@ -299,7 +368,10 @@ every supported line.
   what Jellyfin allows.
 - Egress is refused only where the engine can refuse it.
 - A declined account stays on the server until the operator acts, where an
-  expired one is removed.
+  expired one is taken back.
+- The service can remove an account. The guards confine that to an account nobody
+  was ever seen in, so what a wrong removal costs is a re-issue, but it is a call
+  that cannot be undone.
 - Closing CORS breaks any browser client served from an origin the list does not
   name.
 - Homepage's dashboard loses its Jellyfin widget's numbers, because Homepage
