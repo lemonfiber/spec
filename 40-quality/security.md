@@ -139,7 +139,7 @@ outstanding (`Q-R59`). The checks we can enforce, we enforce — and stay green:
 | Dependency-Update-Tool | Dependabot on every repo ([ADR-0016](../00-overview/decisions/0016-dependabot-over-renovate.md)) |
 | Dangerous-Workflow | No untrusted input in `run:`; fork PRs never see secrets |
 | Branch-Protection | PR-required, signed commits, strict status checks, linear history, conversation-resolution |
-| Fuzzing | `cargo-fuzz` targets over the manifest parser and its validation; a smoke run on every PR that touches them, a long run weekly, corpus carried between runs |
+| Fuzzing | `cargo-fuzz` targets over what arrives from outside: the stack manifest and its validation, a plugin manifest, dates, a web API request's query, action arguments and `Host` and `Origin` headers, the environment file, compose files, and a backup archive read back; a smoke run on every PR that touches them, a long run weekly, corpus carried between runs |
 | Security-Policy / License / Maintained / CI-Tests | Present and green |
 
 Some checks are **structurally capped** for a solo, pre-release, ethical-source
