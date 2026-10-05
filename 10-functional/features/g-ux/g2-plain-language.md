@@ -92,6 +92,20 @@ a name a translator will reasonably translate.
 A short explanation with an optional longer one. The newcomer isn't buried and
 the curious aren't stonewalled.
 
+### A member is never shown the machine
+
+The household watches films; the operator runs the machine that serves them. A
+member's surface speaks only about what they asked for, what they can watch and
+what they can do next. Where an operator reads *the disk is full*, a member reads
+that there is no room for new things right now. Where an operator reads a size, a
+member reads what it means for their allowance. The domain term, its explanation
+and the figure all stay on the operator's side, and the stack itself is *the
+house* (`G2-R16`).
+
+So the commitments above are the operator's. Each concept has one term per
+audience: the operator's on an operator's surface, the household's on a member's
+(`G2-R3`).
+
 ### Errors are the highest-value place for this
 
 An error is read by someone who is stuck, and often anxious. It's where jargon
@@ -146,18 +160,18 @@ Per term or concept:
 | Message would be very long inline | Lead with one sentence; link to depth. |
 | Non-English operator | Out of scope for 1.0; write text that translates cleanly — avoid idiom and cultural reference. |
 | Explanation drifts from behaviour | Explanations live beside the behaviour they describe so they version together. |
-| Household-facing text | Seerr and Jellyfin own their own wording; lemonfiber doesn't rewrite it. |
+| Household-facing text | Seerr and Jellyfin own the wording of their own screens. What lemonfiber itself says to the household follows `G2-R16`, wherever it is shown. |
 | A name that is also an ordinary word in another language | Declare it. A translator handed *form* will write the word their dictionary gives, and that word names something else. |
 
 ## Acceptance criteria
 
 | ID | Requirement |
 |----|-------------|
-| **G2-R1** | Domain terms MUST carry an inline explanation wherever they appear in the interface. |
+| **G2-R1** | On an operator's surface, domain terms MUST carry an inline explanation wherever they appear. A member's surface shows none (`G2-R16`). |
 | **G2-R2** | Explanations MUST state purpose and consequence, not formal definition. |
-| **G2-R3** | One concept MUST use one term consistently across all surfaces and messages. |
-| **G2-R4** | Sizes, durations and rates MUST be contextualised where the consequence is knowable. |
-| **G2-R5** | Plain language MUST accompany the domain term, not replace it. |
+| **G2-R3** | One concept MUST use one term consistently across all surfaces and messages for each audience: the operator's term on an operator's surface, and the household's on a member's surface (`G2-R16`). |
+| **G2-R4** | On an operator's surface, sizes, durations and rates MUST be contextualised where the consequence is knowable. A member's surface states the consequence in place of the figure (`G2-R16`). |
+| **G2-R5** | On an operator's surface, plain language MUST accompany the domain term, not replace it. On a member's surface, household words replace it (`G2-R16`). |
 | **G2-R6** | Extended explanation MUST be available on request and MUST NOT be mandatory. |
 | **G2-R7** | Explanations MUST be dismissible and disableable. |
 | **G2-R8** | An explanation MUST NOT explain by resemblance, and MUST NOT talk a cost away. |
@@ -168,6 +182,7 @@ Per term or concept:
 | **G2-R13** | Every acronym in shipped text MUST resolve to a glossary entry, or to a word declared ordinary and carrying the reason it is. |
 | **G2-R14** | The names lemonfiber gives its own things — the words that also name a file, a command or an argument — MUST be declared, and every locale MUST render a declared name as declared and translate only the text around it. |
 | **G2-R15** | On every surface, the label of a control, a tab, a menu item or a section heading MUST name what it opens or does in at most three words and MUST NOT be a sentence; a sentence MAY explain beside it, and a name declared under `G2-R14` counts as one word. |
+| **G2-R16** | A member's surface MUST NOT show a service's name, a domain term, a size, a rate, an address, a version, a stage of the pipeline, or how the stack stands, and MUST say what it says in household words, leading with what the member can do. Where it names the stack it MUST call it *the house*. A member's surface is any screen drawn for a household member's session on any surface, any notification sent to a member, and any text lemonfiber places where the household asks for things. |
 
 ### Two of these are stated as properties, and why
 

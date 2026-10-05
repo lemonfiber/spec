@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 106,
-    "requirements": 1607,
+    "requirements": 1610,
     "areas": "A–N"
   },
   "versions": [
@@ -112,7 +112,7 @@
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 178
+      "goals": 181
     },
     {
       "version": "0.19.0",
@@ -1326,10 +1326,11 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.12.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M8"
+        "M8",
+        "M14"
       ],
       "milestone": "M8",
       "priority": null,
@@ -1347,6 +1348,10 @@
         {
           "version": "0.12.0",
           "status": "released"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         }
       ],
       "path": "d-content/d7-approval-quotas.md"
@@ -2098,7 +2103,8 @@
       "maturity": "building",
       "shipped": null,
       "milestones": [
-        "M7"
+        "M7",
+        "M14"
       ],
       "milestone": "M7",
       "priority": null,
@@ -2113,6 +2119,10 @@
         "G4"
       ],
       "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        },
         {
           "version": "0.9.0",
           "status": "released"
@@ -2163,10 +2173,11 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.5.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M5"
+        "M5",
+        "M14"
       ],
       "milestone": "M5",
       "priority": null,
@@ -2181,6 +2192,10 @@
         "G2"
       ],
       "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        },
         {
           "version": "0.5.0",
           "status": "released"

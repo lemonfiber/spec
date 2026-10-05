@@ -137,7 +137,7 @@ Per request:
 | **D4-R4** | The request surface MUST offer only content types the active configuration can deliver. |
 | **D4-R5** | Content already in the library MUST be reported as such rather than accepted as a request. |
 | **D4-R6** | Unreleased content MUST be accepted and marked awaiting release, not failed. |
-| **D4-R7** | "Nothing available at the configured quality" MUST be communicated distinctly from a generic failure. |
+| **D4-R7** | "Nothing available at the configured quality" MUST be communicated to the operator distinctly from a generic failure. A member is told it has not been found yet, in the core's household sentence (`G4-R16`). |
 | **D4-R8** | Pending and failing requests MUST surface in lemonfiber's dashboard. |
 | **D4-R9** | Household members MUST NOT require any lemonfiber account or access. |
 | **D4-R10** | A request for something already requested MUST NOT create a second request, and the person asking MUST be told it is already on its way. |
