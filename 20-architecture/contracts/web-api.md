@@ -283,6 +283,14 @@ stack has been served encrypted on the network. It is sent with `Cache-Control: 
 as every reply here is. `GET /api/keys` lists the keys without their secrets, and
 `DELETE /api/keys/{name}` revokes one. A key is refused at all three, whatever its scope.
 
+A household member reaches the same three routes for keys of their own. Their mint names
+`member:` and themselves as the scope and gives their own password, which the media server
+checks as it checks their sign-in, counted against the same limits; it is refused with a
+code of its own while the operator has not turned `LEMONFIBER_MEMBER_KEYS` on. Their listing
+holds only the keys scoped to them, they revoke only those, and a key that is not theirs is
+answered as one that does not exist. Turning the setting off stops members minting, not
+revoking.
+
 A key's secret begins with `lfk_`, so the guard can tell a value shaped like a key from a
 token or a session without looking it up. That is what it counts: a value shaped like a key
 that matches no key counts against [the limit wrong passwords meet](#wrong-answers-are-counted).

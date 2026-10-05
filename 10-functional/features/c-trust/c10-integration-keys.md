@@ -52,15 +52,21 @@ address, and a caution saying how to serve the stack so another machine can conn
 
 ### Minting over the web asks for the password again
 
-From the web console or the companion, only an operator session may mint or revoke, and
-minting asks for the password in the same request. A key never mints, lists or revokes keys.
+From the web console or the companion, only an operator session may mint or revoke, except
+as a member may for themselves (below), and minting asks for the password in the same
+request. A key never mints, lists or revokes keys.
 
 ### A member may mint their own, once the operator allows it
 
-A setting, off until the operator turns it on, lets a household member mint and revoke a
-`member:` key for themselves from the companion or the household web. Such a key is scoped
-to that member alone, shown once like any other, and the operator sees it in the listing
-and can revoke it. This is how a member connects an assistant through
+A setting, `LEMONFIBER_MEMBER_KEYS`, off until the operator turns it on, lets a household
+member mint a `member:` key for themselves from the companion or the household web. Minting
+asks for the member's own password in the same request, checked by the media server as
+their sign-in is and counted against the same limits, for the reason the operator's mint
+asks for theirs. Such a key is scoped to that member alone, shown once like any other, and
+the operator sees it in the listing and can revoke it. A member's own listing shows only
+their keys, and they revoke only those: another member's key is, to them, no key at all.
+Turning the setting off stops new mints; a member can still revoke the keys they already
+hold, since a revoke only takes access away. This is how a member connects an assistant through
 [F13](../f-extensibility/f13-mcp.md): turning the setting on is what lets a member's data
 reach a program they chose.
 
@@ -109,9 +115,11 @@ and offer the real call after.
 | A key is presented while the limit holds | Refused with the wait before the key is checked, a right key included. A right key does not reset the count. |
 | A key is minted before the stack has been served encrypted on the network | Minted. The reply carries the pin and no address, and says how to serve the stack so another machine can connect. |
 | The password changes | Sessions end (C6). Keys stay, since they were minted deliberately and are revoked deliberately. |
-| A member tries to mint a key while the setting is off | Refused, saying the operator has not allowed members to mint keys. |
+| A member tries to mint a key while the setting is off | Refused with a code of its own, saying the operator has not allowed members to mint keys, before their password is checked. |
 | A member tries to mint a key for another account | Refused. A member mints only `member:` keys for themselves. |
-| The operator turns the setting off | Members can no longer mint. Keys they already minted stay until revoked, and the listing marks them as member-minted. |
+| A member gives a wrong password when minting | Refused as a wrong password is, and counted against the same limits as a sign-in. |
+| A member names a key that is not theirs | Listed, revoked and refused as a key that does not exist. |
+| The operator turns the setting off | Members can no longer mint. Keys they already minted stay until revoked, members can still revoke their own, and the listing marks them as member-minted. |
 | A key is presented while the web surface is loopback-bound | Admitted from this machine. A client elsewhere cannot reach it, which is C6's binding, not the key's refusal. |
 
 ## Acceptance criteria
@@ -132,8 +140,8 @@ and offer the real call after.
 | **C10-R12** | Every mint and revoke MUST be journaled and MUST raise an operator alert naming the key and its scope. A mint MUST be journaled as reversible, its undo revoking the key, and a revoke MUST be journaled as not reversible. |
 | **C10-R13** | A presented value shaped like a key that matches no key MUST count against the same surface-wide limit as wrong passwords, and a revoked or orphaned key MUST NOT. While that limit holds, a request carrying a value shaped like a key MUST be refused with the wait before the value is checked, and a right key MUST NOT reset the count. |
 | **C10-R14** | Minting a key under a name another key holds MUST be refused, naming that key. |
-| **C10-R15** | A setting, off by default and changeable only by the operator, MUST decide whether household members may mint keys. While it is on, a member session MUST be able to mint and revoke a `member:` key scoped to that member alone, and MUST NOT be able to mint any other scope or a key for another account. |
-| **C10-R16** | A member-minted key MUST be listed to the operator, marked as member-minted, and MUST be revocable by the operator as well as by the member. Its mint and revoke MUST be journaled and MUST alert the operator (`C10-R12`). |
+| **C10-R15** | A setting, `LEMONFIBER_MEMBER_KEYS`, off by default and changeable only by the operator, MUST decide whether household members may mint keys. While it is on, a member session MUST be able to mint a `member:` key scoped to that member alone, giving their own password again in the same request, checked by the media server and counted against the same limits as their sign-in, and MUST NOT be able to mint any other scope or a key for another account. While it is off, a member's mint MUST be refused with a refusal code of its own, and a member MUST still be able to revoke the keys scoped to them. |
+| **C10-R16** | A member-minted key MUST be listed to the operator, marked as member-minted, and MUST be revocable by the operator as well as by the member. Its mint and revoke MUST be journaled and MUST alert the operator (`C10-R12`). A member's listing MUST show only the keys scoped to them, and a key that is not theirs MUST be answered to them as a key that does not exist. |
 | **C10-R17** | Every key MUST carry a purpose chosen when it is minted, `home-assistant`, `mcp` or `other`, shown in the listing as the minter's declaration rather than as anything the core verified. |
 
 ## Related
