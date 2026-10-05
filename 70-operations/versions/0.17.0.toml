@@ -27,7 +27,11 @@
 # G9 stays: a mobile client is handed a stack it did not configure, which is the same
 # question this version answers for a plugin.
 #
-# 69 goals, seeded from the roadmap milestone this version serves;
+# `D1-R22` to `D1-R26` are NZBHydra2's authentication, turned on by seed: without it the
+# service hands its whole configuration, the indexer accounts and their keys among it, to
+# anything that can reach it, and the indexer.search claim (`F9-R2`) could not be proven
+# honestly. Its claim is recorded off a fresh container seeded this way.
+# 74 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 #
 # Thirty-six of them were added after staging, each reviewed as a goal change (OPS-R31).
@@ -176,6 +180,11 @@ goals   = [
     "D1-R21",
     "ARCH-R4",
     "ARCH-R27",
+    "D1-R22",
+    "D1-R23",
+    "D1-R24",
+    "D1-R25",
+    "D1-R26",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
