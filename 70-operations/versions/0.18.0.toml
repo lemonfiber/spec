@@ -178,20 +178,27 @@
 # with the offer as the yes; `C10-R15` to `C10-R17` let a member mint their own key once the
 # operator allows it, and give every key a declared purpose. `integration-mcp` is searched,
 # not tagged. Its member tools grow with 0.19.0's reads (D11).
-# 231 goals, seeded from the roadmap milestone this version serves;
+# 232 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the four writes taking the offer, a recipe's pairs and steps agreed to as
 # themselves, and a git source fetched only from a public host (ADR-0036). With them the
 # companion's N5, N20 and N25 can be answered, so every row of the three is a goal here too.
 #
+# `D6-R21` has the decline service take back an invitation whose window closes: it removes
+# an account nobody was seen in, under guards read just before the call, and switches off
+# a reset. Without it a lapsed invitation stays claimable at Jellyfin until a lemonfiber
+# process next reads the household. The decline service is its own repository (ADR-0033),
+# so this version cuts it, before the core.
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
+
 status  = "planned"
-repos   = ["lemonfiber"]
-satisfied_in = ["lemonfiber", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
+repos   = ["lemonfiber", "lemonfiber-decline"]
+satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
 goals   = [
+    "D6-R21",
     "F8-R1",
     "F8-R2",
     "F8-R3",

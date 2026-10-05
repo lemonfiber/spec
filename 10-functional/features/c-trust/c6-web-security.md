@@ -116,9 +116,11 @@ authentication bug would expose all of them.
 
 The tiers sort *surfaces*: whatever can control the stack sits at `127.0.0.1`.
 A credential can cross that line without a surface doing so, and one does: the
-page that declines an invitation (`D6-R15`) faces the household at any hour, and
-disabling a Jellyfin account needs a credential that is administrative there. No
-Jellyfin version offers anything narrower
+decline service closes an invitation nobody took up, when the invitee refuses it at
+its decline address (`D6-R15`) and when its window closes (`D6-R21`). It faces the
+household and acts at any hour, and disabling or removing a Jellyfin account needs
+a credential that is administrative there. No Jellyfin version offers anything
+narrower
 ([ADR-0029](../../../00-overview/decisions/0029-a-household-service-declines-an-invitation-with-one-key.md)).
 
 So the exception is narrow and stated. A household-tier service may hold such a
