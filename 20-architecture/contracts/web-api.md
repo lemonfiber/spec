@@ -296,9 +296,9 @@ connect over the TLS the pin verifies, not to send a different key.
 
 The actions a key may call are published in the artefact as `key_callable`. Each entry
 names the action, says whether it disturbs the running system, and says whether it takes
-`dry_run`, so a client can rehearse it first and offer the real call after. Both are read
-from the core's own account of each command rather than written beside the list. The list
-starts as:
+`dry_run`, so a client can rehearse it first and offer the real call after. Whether it takes
+`dry_run` is read from the core's own account of each command rather than written beside the
+list. The list starts as:
 
 ```
 POST /api/actions/restart          POST /api/actions/diagnose
