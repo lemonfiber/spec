@@ -188,13 +188,14 @@ Three rules replace the 48-hour lapse for a declined account:
 | Absent | Disabled | `suspended`: disabled by the operator, or by the server's own lockout |
 | Present | Still enabled, because the write failed | `declined`, not yet enforced. The core disables it on that read, as it holds the administrator's session. |
 
-An invitation taken back at its lapse is read from the lapse record the same way:
+An invitation taken back at its lapse is read from the core's own offer record and the
+lapse record:
 
-| Lapse record | Account | Reported as |
-|--------------|---------|-------------|
-| Switched off, for the offer the core holds | Disabled and unclaimed | `expired`, not `suspended` |
-| Removed, for the offer the core holds | Gone | `expired`, until the core records its next offer. Never reported as an account that went missing. |
-| Absent | Gone | Nothing: the core does not report it |
+| Offer the core holds | Lapse record | Account | Reported as |
+|----------------------|--------------|---------|-------------|
+| Lapsed | Any | Disabled and unclaimed | `expired`, not `suspended`, whoever switched it off |
+| Any | Removed, for that offer | Gone | `expired`, until the core records its next offer. Never reported as an account that went missing. |
+| Any | No removal for that offer | Gone | Nothing: the core does not report it |
 
 - **The operator decides what happens next.** They remove it (`D6-R8`), or
   re-issue it (`D6-R13`). Re-issuing re-enables the account and resets it, with a
