@@ -65,6 +65,7 @@ GET /api/migration    GET /api/held?…
 GET /api/history
 GET /api/update?…
 GET /api/news
+GET /api/plugins       GET /api/wiring
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
