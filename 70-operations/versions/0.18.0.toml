@@ -155,7 +155,14 @@
 # `N3-R18` lets a member sign in from the app with their household account. The core
 # admits a name and a password and the web surface already offers both, but the
 # companion sent a password only, so a member could not sign in from the phone at all.
-# 178 goals, seeded from the roadmap milestone this version serves;
+#
+# `G2-R16`, `G4-R16` and `D7-R15` are the household spoken to in its own words: no
+# service, size, address or state of the stack on any member's surface, a household
+# sentence and remedy beside every refusal the core answers to a member, and an
+# allowance stated as what it leaves room for. The core's member notices, the ones it
+# places where the household asks, and the refusals `G10` and `N3-R17` render are all
+# core text, so they ship with the household's web surface.
+# 181 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the four writes taking the offer, a recipe's pairs and steps agreed to as
@@ -190,6 +197,9 @@ goals   = [
     "N1-R75",
     "N3-R17",
     "N3-R18",
+    "G2-R16",
+    "G4-R16",
+    "D7-R15",
     "B2-R17",
     "B2-R18",
     "B2-R19",

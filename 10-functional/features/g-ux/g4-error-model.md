@@ -152,11 +152,12 @@ with an embedded API key are the classic leak.
 | **G4-R8** | Errors MUST NOT contain credentials or secrets. |
 | **G4-R9** | Repeated identical errors MUST be reported once with a count. |
 | **G4-R10** | A failure during error handling MUST NOT loop or cascade. |
-| **G4-R11** | Errors originating in a service MUST include that service's own message verbatim as detail. |
+| **G4-R11** | On an operator's surface, errors originating in a service MUST include that service's own message verbatim as detail. A member's surface shows none (`G2-R16`). |
 | **G4-R12** | Multiple plausible causes MUST be listed by likelihood rather than asserted as certain. |
 | **G4-R13** | Non-interactive errors MUST go to stderr with a meaningful exit code and MUST NOT prompt. |
 | **G4-R14** | File paths in errors MUST be shown in full. |
 | **G4-R15** | Transient failures MUST be retried before reporting, and distinguished from persistent ones. |
+| **G4-R16** | Every refusal and every obstacle the core answers to a household member's session MUST carry a sentence written for the household, and a remedy the member can act on, beside its code (`ARCH-R138`). The sentence MUST name no service, size, address or state of the stack (`G2-R16`), and a fault of the stack MUST read as not working right now with the operator told (`N3-R10`). |
 
 ## Related
 

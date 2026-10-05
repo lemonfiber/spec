@@ -145,7 +145,7 @@ Per member: `within-quota`, `near-quota`, `quota-exhausted`, `unlimited`.
 |----|-------------|
 | **D7-R1** | Approval policy MUST be selectable in plain language, with per-member override supported. |
 | **D7-R2** | Quotas MUST be expressed in terms the household understands — requests per period or volume per period. |
-| **D7-R3** | Estimated size MUST be shown before a request is submitted. |
+| **D7-R3** | On an operator's surface, estimated size MUST be shown before a request is submitted. A member is told what it leaves of their allowance (`D7-R15`). |
 | **D7-R4** | Estimates MUST be labelled as estimates. |
 | **D7-R5** | A request exceeding remaining quota MUST be blocked at submission, stating the limit and reset time. |
 | **D7-R6** | Pending requests MUST be approvable from lemonfiber without opening Seerr. |
@@ -155,8 +155,9 @@ Per member: `within-quota`, `near-quota`, `quota-exhausted`, `unlimited`.
 | **D7-R10** | Quota MUST be evaluated at submission and MUST NOT be re-evaluated in flight. |
 | **D7-R11** | Duplicate requests MUST NOT consume quota more than once. |
 | **D7-R12** | Partially available content MUST charge quota only for the missing portion. |
-| **D7-R13** | Critical disk state MUST block requests with disk stated as the reason, distinct from quota. |
+| **D7-R13** | Critical disk state MUST block requests, with disk stated to the operator as the reason, distinct from quota. A member is told as `D7-R15` says. |
 | **D7-R14** | Operator requests MUST NOT be quota-limited. |
+| **D7-R15** | Before a member asks, what a request would use of their allowance MUST be stated as what it leaves room for, in titles of each kind counted against the allowance, and MUST NOT be stated as a size. An estimate MUST still say it is one (`D7-R4`). A request blocked for want of room on the disk MUST be told to a member as the house having no room for new things right now, and MUST NOT be told as their own limit. |
 
 ## Related
 
