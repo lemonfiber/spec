@@ -19,10 +19,10 @@ flowchart LR
 
 | | Web UI | TUI | Companion | CLI |
 |---|--------|-----|-----------|-----|
-| Logo (SVG) | ✅ full | ⚠️ ASCII mark only | ✅ app icon and launch mark | ⚠️ ASCII mark, optional |
-| Colour palette | ✅ all tokens | ⚠️ mapped to terminal capability | ⚠️ mapped to platform theme roles | ❌ terminal default |
-| Bricolage Grotesque | ✅ | ❌ terminal font, not ours | ❌ the platform's face, and the reader's size | ❌ |
-| Space / radius / shadow | ✅ | ❌ meaningless | ⚠️ the platform's, not ours | ❌ |
+| Logo (SVG) | ✅ full | ⚠️ ASCII mark only | ✅ app icon, launch mark, outlined mark in the app | ⚠️ ASCII mark, optional |
+| Colour palette | ✅ all tokens | ⚠️ mapped to terminal capability | ✅ the brand's tokens, as two themes | ❌ terminal default |
+| Bricolage Grotesque | ✅ | ❌ terminal font, not ours | ❌ the wordmark only; text in Golos Text and DM Mono | ❌ |
+| Space / radius / shadow | ✅ | ❌ meaningless | ✅ the brand's spacing and radii; hairlines rather than shadow | ❌ |
 | The *voice* (plain, warm, precise) | ✅ | ✅ | ✅ | ✅ |
 
 The last row is the point: what actually carries across all four isn't the
@@ -77,46 +77,34 @@ forbids control sequences in redirected output).
 The CLI's brand is the word `lemonfiber` and the voice. An optional ASCII mark may
 appear in interactive help; it never appears in machine output.
 
-## Companion — the platform's look, wearing our name
+## Companion — two themes, one brand
 
-The companion app is the one surface where deferring to somebody else's design
-language is the *reason* it was built that way.
+The companion is two applications in one: what a member of the household sees,
+and what the operator sees ([N3](../10-functional/features/n-companion/n3-household-companion.md),
+[N2](../10-functional/features/n-companion/n2-operator-companion.md)). Each has a
+theme, and whose session a screen is drawn for decides which (`DES-R28`).
 
-Its components are the platform's own — SwiftUI on iOS, Jetpack Compose on
-Android ([ADR-0017](../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)).
-That is what buys the accessibility tree, the reader's own text size, the
-system's contrast and reduced-motion settings and its light and dark modes,
-without any of them being built a second time here. Overriding that look to
-reach the web UI's palette would spend exactly what it was chosen for.
+**The member theme is dark and led by artwork.** The ground is the ink theme's
+darkest surface, artwork carries the colour, and lemon is the one thing on a
+screen to press. A member is never shown how the stack stands, so the member
+theme has no severity colours at all.
 
-Colour is the exception, because the platform does not supply it. The renderer
-the companion is built on paints text black unless it is told otherwise, in
-light and dark mode alike. Its widgets take a palette of the renderer's own, not
-the operating system's. Left to "the platform", a phone in dark mode shows black
-text on a near-black ground. So the companion asserts its neutral colours as well
-as its accent: each as a role with a light value and a dark value, taken from the
-brand's paper theme and its ink theme. The reader's light or dark setting chooses
-between them, and every text-on-surface pairing is measured in both.
+**The operator theme is the web console's language on a phone.** Ink ground,
+hairline rules, small radii, DM Mono wherever a figure is read, and the severity
+colours, each with a shape of its own.
 
-So the mapping is the TUI's shape rather than the web's, for a different reason.
-The TUI takes a subset because a terminal cannot render more. The companion takes
-a subset because taking more would make it a worse app:
+Both are built from the brand's tokens and nothing else. Artwork is the one thing
+on screen the palette does not govern, because it is the household's films rather
+than lemonfiber's colour (`DES-R31`). Both honour the reader's text size,
+reduced motion and increased contrast, and every pairing is measured (`DES-R15`).
 
-| Brand token | Companion mapping |
-|-------------|-------------------|
-| `lemon` | The accent role, with `ink` set on it, in both modes |
-| `paper`, `pith`, `ink`, `line`, `text-muted` | The surface, raised-surface, text, line and muted-text roles, with the ink theme's values in dark mode |
-| Everything else | Not mapped; the platform's own spacing, radii, type and elevation |
+The components underneath are the platform's own — SwiftUI on iOS, Jetpack
+Compose on Android ([ADR-0017](../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)) —
+which is what gives the app the platform's accessibility tree.
 
 **Where the brand is worn in full is the app icon and the launch mark**, which
-are ours, are not a reading surface, and are where somebody recognises the
-product on a home screen.
-
-**The wordmark is not re-typeset.** Bricolage Grotesque is not shipped as an
-interface font here — the interface is set in whatever face the platform and the
-reader have chosen, at whatever size they chose. `DES-R6` already forbids
-re-typesetting the wordmark from its outlined form, and that holds on a phone as
-anywhere else.
+are ours and are where somebody recognises the product on a home screen. Inside
+the app a mark is the outlined asset, never re-typeset (`DES-R6`, `DES-R35`).
 
 ## Why this asymmetry is stated, not hidden
 
@@ -138,10 +126,19 @@ full on the web, restrained in the TUI, none in machine output.
 | **DES-R12** | The TUI MUST map colour *roles*, not exact hex values, so a user's terminal theme remains legible. |
 | **DES-R13** | The SVG marks MUST NOT be used in the TUI or CLI; an ASCII rendering MUST be used where a mark is shown. |
 | **DES-R14** | Machine-readable CLI output MUST carry no brand colour or logo. |
-| **DES-R24** | The companion app MUST assert colour only through theme roles that each carry a light and a dark value, chosen by the reader's setting: `lemon` as the accent with `ink` on it, and the brand's `paper`, `pith`, `ink`, `line` and `text-muted` as its surface, raised-surface, text, line and muted-text roles, with the ink theme's values in dark mode. It MUST NOT assert a colour outside those roles, and every text-on-surface pairing it uses MUST meet WCAG AA in both modes. |
-| **DES-R25** | The companion app MUST NOT ship Bricolage Grotesque as an interface font, and MUST render text in the platform's face at the reader's chosen size. |
-| **DES-R26** | The companion app MUST NOT override the platform's spacing, radii, elevation or motion with brand values. |
-| **DES-R27** | The companion app's icon and launch mark MUST carry the full brand, and are the only surfaces of the app that do. |
+| **DES-R24** | *Superseded by [DES-R28](surface-mapping.md)–[DES-R31](surface-mapping.md): the companion draws with a member theme and an operator theme, chosen by whose session it is, built on the brand's tokens. The number is not reused.* |
+| **DES-R25** | *Superseded by [DES-R32](surface-mapping.md): the companion sets its text in Golos Text and its figures in DM Mono, at the reader's chosen size. The number is not reused.* |
+| **DES-R26** | *Superseded by [DES-R33](surface-mapping.md) and [DES-R34](surface-mapping.md): the companion takes its spacing and radii from the brand's tokens, and its motion stops under reduced motion. The number is not reused.* |
+| **DES-R27** | *Superseded by [DES-R35](surface-mapping.md): the icon and launch mark carry the full brand, and a mark inside the app is the outlined asset. The number is not reused.* |
+| **DES-R28** | The companion MUST draw every screen with one of two themes: the member theme on a screen drawn for a household member's session, and the operator theme on a screen drawn for the operator's session, decided as `N3-R1` decides the application. It MUST NOT offer a setting that chooses between them. A screen drawn for no session MUST use the member theme. |
+| **DES-R29** | The member theme MUST draw, whatever the platform's light or dark setting, on the ink theme's `canvas` (#100F0A), raise on `ink-soft`, and set text in `paper` and `text-muted` at their ink-theme values. `lemon`, with `ink` on it, MUST be the fill of the one primary action on a screen and of nothing else at scale, and `fiber` MUST be used only as signal: a watched-progress line and a new-item mark. The member theme MUST NOT use the severity tokens (`DES-R36`). |
+| **DES-R30** | The operator theme MUST draw, whatever the platform's light or dark setting, on `ink` with `line` hairlines one pixel wide, raise on `ink-soft`, and set text in `paper`, `text-muted` and `text-faint` at their ink-theme values. It MUST use `lemon` for the operator's own actions, `fiber` for activity, and the severity tokens (`DES-R36`) for how a thing stands. Each severity MUST be drawn with a shape of its own as well as its colour (`G3-R1`). |
+| **DES-R31** | Artwork a stack serves (a poster, a backdrop, a still) is content and not asserted colour: `DES-R1` to `DES-R3` govern every colour the companion asserts and do not govern the pixels of artwork. The companion MUST NOT derive an asserted colour from artwork. A scrim over artwork MUST be `canvas` or `ink` running to transparent. |
+| **DES-R32** | The companion MUST set interface text in Golos Text, and figures, identifiers, timestamps and log text in DM Mono, both bundled with the app and never fetched at run time. Text MUST scale with the platform's text-size setting, a size the theme names being the size at the platform's default. Bricolage Grotesque MUST appear only in the outlined wordmark (`DES-R6`). |
+| **DES-R33** | The companion MUST take every colour, spacing, radius and type value from the brand's `tokens.json` at one pinned brand commit, and MUST hardcode none. Radii MUST be the brand's `sm` and `md` (3 and 4 px), with `pill` only on a chip or a button. |
+| **DES-R34** | The companion MAY animate press feedback, screen transitions and cross-fades. Under the platform's reduced-motion setting, every animation MUST stop or become a fade, nothing MUST play or advance on its own, and nothing MUST flash (`G3-R6`). |
+| **DES-R35** | The companion's icon and launch mark MUST carry the full brand. A mark or wordmark inside the app MUST be the outlined asset (`DES-R5`, `DES-R6`), and MUST NOT stand in for a title, a label or a control. |
+| **DES-R36** | The brand's tokens MUST include the severity colours `ok` and `alarm` and the tints `warn-tint` and `alarm-tint`, each with a paper and an ink value, with `fiber` serving as warning. They MUST be measured with every other token (`DES-R15`, `DES-R16`), and every surface that draws severity MUST take it from them. |
 
 ## Related
 

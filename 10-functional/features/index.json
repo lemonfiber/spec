@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 107,
-    "requirements": 1621,
+    "requirements": 1631,
     "areas": "A–N"
   },
   "versions": [
@@ -3141,6 +3141,7 @@
       "relates": [
         "D7",
         "D8",
+        "D11",
         "G5",
         "G6",
         "G9"

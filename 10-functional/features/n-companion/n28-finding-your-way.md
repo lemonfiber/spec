@@ -120,11 +120,11 @@ words are the plain ones (`G2-R3`, `G2-R15`): *Problems* rather than *findings*,
 
 | ID | Requirement |
 |----|-------------|
-| **N28-R1** | Every screen about a stack MUST have a top bar holding a control that opens the menu and the stack's name. |
+| **N28-R1** | Every operator screen about a stack MUST have a top bar holding a control that opens the menu and the stack's name. |
 | **N28-R2** | The stack's name in the top bar MUST open the list of stacks, each with its glyph and a short word for how it stands and the current one marked, and the list MUST offer adding a stack. |
 | **N28-R3** | Choosing a stack from that list MUST open it on the tab the operator last used for it (`N27-R16`). |
 | **N28-R4** | The bottom bar MUST hold exactly four tabs — Health, Services, Updates and Repairs — and MUST mark as current only the tab whose screen is on view, or the tab the screen on view belongs to; what one service is doing and its log belong to Services. |
-| **N28-R5** | Every screen about a stack that is not one of the four tabs, a screen belonging to one of them (`N28-R4`), one step of something begun on another screen, or a screen detailing one thing another screen shows MUST be reachable from the menu in the groups this page names, and MUST NOT be reached only from another screen's body. |
+| **N28-R5** | Every operator screen about a stack that is not one of the four tabs, a screen belonging to one of them (`N28-R4`), one step of something begun on another screen, or a screen detailing one thing another screen shows MUST be reachable from the menu in the groups this page names, and MUST NOT be reached only from another screen's body. |
 | **N28-R6** | The menu MUST begin with the current stack and *What's new* with its count, and MUST end with the stack's settings and App settings. |
 | **N28-R7** | Every menu item MUST carry an icon and a label, and the icon MUST NOT stand in for the label (`N4-R21`). |
 | **N28-R8** | The health screen MUST show how the stack stands and what is wrong, MUST offer *What's new* first where anything is new, and MUST NOT list the menu's items. |
@@ -141,8 +141,8 @@ wireframe on 2026-09-29. Changing one is a change to this page. The screens they
 keep their titles for now; bringing every title, heading and button into line with
 `N28-R9` is the plain-language pass that follows.
 
-**The household's surface is not this page.** A member sees two screens
-([N3](n3-household-companion.md)), and they need no menu.
+**The household's surface is not this page.** A member finds their way by four
+tabs and no menu ([N3](n3-household-companion.md), `N3-R19`).
 
 ## Related
 

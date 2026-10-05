@@ -9,7 +9,7 @@ maturity: planned
 priority: P2
 labels: [mobile, household, ux]
 requires: [N1, D4, D6]
-relates: [D7, D8, G5, G6, G9]
+relates: [D7, D8, D11, G5, G6, G9]
 ---
 
 # N3 — The household's companion
@@ -65,6 +65,17 @@ approval, and whether they have allowance left
 ([D7](../d-content/d7-approval-quotas.md)).
 
 Somebody who has run out is told so before they ask, not after.
+
+### Four tabs, and nothing technical behind any of them
+
+A member's app is Home, Search, Requests and Profile. Home leads with their own
+titles: what they were watching, what arrived that they asked for, and what is on
+its way. A title's page has one primary action, and its label is the title's
+state: Play, Ask, Waiting for approval, On its way, Out on a date. Nothing a member
+sees names a service, a size or how the stack stands, and the stack is *the house*
+([G2](../g-ux/g2-plain-language.md)); a failure reads as what it means to them, in
+the core's words. What a title is, its artwork and where it plays from are the
+core's answers ([D11](../d-content/d11-watching-what-the-house-holds.md)).
 
 ### Knowing whether it is coming
 
@@ -126,7 +137,7 @@ does not hold a second copy of them.
 | A title is already held | Said so before they ask for it again. |
 | A member is removed from the household while signed in | The next call is refused by the core, and the app returns to signed-out rather than continuing to render what it had. |
 | Parental limits hide a title | It is not shown. The app does not display a title it then refuses to request. |
-| The media server cannot be reached while away from home | Playback is declined, saying the stack cannot be reached from here. Nothing buffers and nothing is queued. |
+| The media server cannot be reached while away from home | Play is shown and not usable, saying that watching works at home. Nothing buffers and nothing is queued. |
 
 ## Acceptance criteria
 
@@ -150,6 +161,12 @@ does not hold a second copy of them.
 | **N3-R16** | The player MUST NOT implement request, approval or allowance logic of its own. |
 | **N3-R17** | A refusal whose code says the household could not be asked MUST be reported to the operator as the media server not answering, and to a member as their library not answering right now, in the core's household sentence (`G4-R16`). It MUST NOT sign the member out, and MUST NOT be reported as the account lacking entitlement (`ARCH-R138`). |
 | **N3-R18** | A member MUST be able to sign in to a stack from the app with their household account's name and password, on the same screen the operator signs in on, and a refusal MUST NOT say which of the two was not recognised. |
+| **N3-R19** | A member's application MUST have a bottom bar of exactly four tabs (Home, Search, Requests and Profile), and MUST have no side menu. Profile MUST hold *Switch house*, App settings, and *Remove this house from the phone*. The tab whose screen is on view, or the tab the screen on view belongs to, MUST be the only one marked current (`G3-R17`). |
+| **N3-R20** | Every sentence a member's screen shows about the stack MUST be the core's household sentence (`G4-R16`), rendered and not composed (`N3-R2`). A sentence about the phone itself (no network, the local network refused, nowhere to keep a stack) MUST be the app's own, in household words (`G2-R16`). The conditions `N1-R10` tells apart MUST each reach a member as a sentence and a remedy of its own. |
+| **N3-R21** | A member MUST be able to search for a title and ask for it from the app. A search MUST show only what the core answers under that member's limits (`D8-R8`). Before the member asks, the title MUST say, in the core's words, whether it is already here, already on its way, needs approval, and what it leaves of their allowance (`N3-R4`, `N3-R5`, `D4-R5`, `D4-R10`, `D7-R15`). The ask MUST be the core's action. |
+| **N3-R22** | A title's page MUST carry one primary action whose label follows the title's state as the core answers it: *Play* where it is here and playable from where the phone is; *Play*, not usable, with the reason beside it, where it is here and cannot be played from where the phone is (`N3-R15`); *Ask* where it may be asked for; and otherwise the state itself (waiting for approval, on its way, out on a date, or not available), shown as the action and not usable. The action MUST NOT be hidden in any state. |
+| **N3-R23** | Home MUST lead with the member's own titles: what they were part-way through, what they asked for that has arrived, and what they asked for that is on its way. Everything else on Home comes after those. A shelf with nothing in it MUST NOT be drawn. |
+| **N3-R24** | Every title MUST carry its name as text. Where the core serves no artwork for a title, it MUST be drawn as a poster lettered with its name. |
 
 ## Related
 

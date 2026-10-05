@@ -143,7 +143,7 @@ behind is the one on the phone (`N1-R1`).
 | **N15-R6** | A walkthrough's lines MUST be carried as given and MUST NOT be reconstructed or reordered. |
 | **N15-R7** | Where a walkthrough names what to do next, that MUST be shown. |
 | **N15-R8** | *Already here* MUST be reported as its own outcome and MUST NOT be rendered as a search that found nothing. |
-| **N15-R9** | The app MUST NOT define a word the glossary does not carry, and MUST NOT substitute its own term for one the vocabulary gives. |
+| **N15-R9** | On an operator's screen, the app MUST NOT define a word the glossary does not carry, and MUST NOT substitute its own term for one the vocabulary gives. A member's screen uses the household's words (`G2-R16`). |
 | **N15-R10** | A stage, glossary or setup state that could not be read MUST be told apart from idle. |
 | **N15-R11** | Where the glossary the app holds has no entry for a word, the app MUST offer to ask the stack for that one word, and MUST explain it from the answer on `N15-R3` and `N15-R4`'s terms. Asking MUST be an act of the operator's and MUST NOT be a read per rendered word (`N1-R65`, `N1-R66`). Where the stack has no entry either, the word MUST be shown as it came (`N15-R9`). |
 
