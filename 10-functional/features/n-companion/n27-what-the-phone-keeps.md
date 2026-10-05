@@ -55,6 +55,16 @@ confirmation of one (`N1-R24`). A phone with no secure storage keeps nothing and
 so; a phone whose key has gone — restored onto another device, its keychain reset —
 clears what it had kept, keeps its pairings and says once that it did.
 
+### Artwork is held, never kept
+
+Posters and backdrops are drawn from memory and gone when the app closes. They
+come from the location the core states for each title, through the media
+server's guarded front door, on the session's own grant, over a connection pinned to
+the certificate the core states for that door — never from an address the app
+put together ([D11](../d-content/d11-watching-what-the-house-holds.md)). A title the
+core has no artwork for is drawn as its lettered poster, so a cold start draws
+immediately and the art arrives as it loads.
+
 ### How long, and clearing it
 
 The operator chooses how long readings are kept: any whole number of days from 1 to
@@ -119,7 +129,7 @@ the list. A mark is announced to a screen reader and never shown by colour alone
 
 | ID | Requirement |
 |----|-------------|
-| **N27-R1** | The app MUST keep between launches only readings of a stack's health, what it runs, its updates and its household; the operator's settings on this page; and, per stack and kind, an identifier of the newest item seen. It MUST NOT keep anything else a stack sends. |
+| **N27-R1** | The app MUST keep between launches only readings of a stack's health, what it runs, its updates and its household; the operator's settings on this page; and, per stack and kind, an identifier of the newest item seen. It MUST NOT keep anything else a stack sends, artwork included (`N27-R23`). |
 | **N27-R2** | The app MUST NOT keep a repair offer, an agreement (`N13-R7`), an action the stack did not receive (`N1-R41`) or the confirmation of an action (`N1-R24`), and MUST NOT keep a credential, a session token or pairing material outside the storage `N4-R5` defines (`N1-R23`). |
 | **N27-R3** | Everything kept MUST be encrypted with a key held in the platform's secure storage and readable only while the device is unlocked, and MUST NOT be encrypted with a key kept in the application's own files. |
 | **N27-R4** | A kept row MUST identify its stack only by a keyed hash, and MUST NOT store the stack's identity, name or address in the clear. |
@@ -141,6 +151,9 @@ the list. A mark is announced to a screen reader and never shown by colour alone
 | **N27-R20** | *What's new* MUST list every item marked as new across the stacks, filterable by kind and by stack; opening an item MUST mark it as seen, and the list MUST offer marking everything seen. |
 | **N27-R21** | A tab holding an item marked as new MUST carry a mark that a screen reader announces, and the mark MUST NOT rely on colour alone (`N4-R21`). |
 | **N27-R22** | Nothing kept MUST be drawn while the app is locked (`N4-R24`). |
+| **N27-R23** | Artwork MUST be held in memory only, for as long as the app runs. It MUST NOT be written to a disk cache, the platform's URL cache, a temporary file or a backup. It MUST be dropped when the stack it came from is removed from the phone or its session ends, and MUST NOT be drawn while the app is locked (`N27-R22`). |
+| **N27-R24** | Artwork MUST be fetched only from a location the core states for it (`D11-R3`), which the media server's guarded front door serves ([ADR-0027](../../../00-overview/decisions/0027-a-member-plays-what-the-core-authorised.md)), on a request the app makes itself carrying the grant of the session the screen is drawn for. The app MUST NOT compose an artwork address, MUST NOT carry a credential in an address, and MUST NOT log one (`N1-R15`). |
+| **N27-R25** | Artwork MUST be fetched over TLS pinned to the certificate the core states for the guarded front door (`D11-R7`), as the core's own API is pinned to the stack (`N1-R22`). An answer presenting any other certificate MUST be refused, and the title drawn as its lettered poster (`N3-R24`). |
 
 ## Notes
 

@@ -149,6 +149,13 @@ Nothing here edits a credential's value. The app can report that a credential is
 refused and offer the reconciliation lemonfiber already has; it is not a place to
 type a provider password into over a LAN.
 
+### Seeing what the household sees
+
+The operator runs everything a member uses, so the operator can open the member's
+application as a member would meet it: the household's default access and
+allowance, in the member theme, marked as a preview. It is nobody in particular.
+A named member's requests and what they watched stay theirs.
+
 ## States
 
 | State | Meaning |
@@ -200,6 +207,7 @@ type a provider password into over a LAN.
 | **N2-R22** | Where the stack reports that a change an update would make cannot be undone, the confirmation MUST say so before it is agreed to, and MUST name the services it is true of. |
 | **N2-R23** | While a start the operator asked for runs, the app MUST show what the stack says it is waiting for, from the `start` lines on the event stream, and MUST NOT put a progress indicator of its own in their place (`B2-R2`). |
 | **N2-R24** | The app MUST offer fetching a form's images ahead of starting it, and before the fetch runs MUST say that it may take long and may use a lot of the line, without putting a duration or a size of its own on either (`B2-R12`, `B2-R16`, `N2-R8`). What the fetch came to MUST be shown from the stack's answer. |
+| **N2-R25** | The operator MUST be able to open the member's application as a member with the household's default access and allowance would see it, drawn in the member theme from what the core answers for such a member (`D6-R20`). It MUST be marked as a preview on every screen, and MUST NOT show a named member's requests, allowance or watch history. |
 
 ## Notes
 
