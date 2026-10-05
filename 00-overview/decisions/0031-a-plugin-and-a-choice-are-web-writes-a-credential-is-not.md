@@ -4,6 +4,7 @@
 **Date:** 2026-09-28
 **Decided:** 2026-09-28, by the maintainer, Wessel Verheij: with the yes to each of these writes being the offer its rehearsal answered, rather than a bare confirm.
 **Amended:** 2026-10-04 by [ADR-0036](0036-a-plugin-may-come-from-any-source-the-command-takes.md), which lets the actions take every source the command takes.
+**Amended:** 2026-10-05 by [ADR-0037](0037-an-integration-key-is-minted-where-the-operator-proves-themself.md), which makes minting and revoking an integration key the one credential write the web API takes.
 
 ## Context
 

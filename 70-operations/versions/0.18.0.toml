@@ -167,7 +167,18 @@
 # disagreeing, so an author's editor checks the manifest against what that release
 # reads. It is built in `plugin-template` and recorded in the core's implementation
 # status beside `F10-R7`, as that row is.
-# 182 goals, seeded from the roadmap milestone this version serves;
+# `C10-R1` to `C10-R14` give a program that runs beside the stack its own credential: a
+# named key with one scope, minted at the command line or over the web API with the
+# password given again, shown once beside the stack's address and pin, and revoked by name
+# (ADR-0037). `F12-R1` to `F12-R13` are the first program to hold one, Home Assistant,
+# through `sdk-python`; both repositories are searched, neither is tagged. `L3-R1` to
+# `L3-R8` are the image of lemonfiber a NAS installs from a template, built by the release
+# with the templates under `packaging/` (ADR-0038). `F13-R1` to `F13-R11` are an MCP
+# server over the same keys, its tools generated from the contract, its writes rehearsed
+# with the offer as the yes; `C10-R15` to `C10-R17` let a member mint their own key once the
+# operator allows it, and give every key a declared purpose. `integration-mcp` is searched,
+# not tagged. Its member tools grow with 0.19.0's reads (D11).
+# 231 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the four writes taking the offer, a recipe's pairs and steps agreed to as
@@ -179,7 +190,7 @@ milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
 status  = "planned"
 repos   = ["lemonfiber"]
-satisfied_in = ["lemonfiber", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion"]
+satisfied_in = ["lemonfiber", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
 goals   = [
     "F8-R1",
     "F8-R2",
@@ -363,6 +374,55 @@ goals   = [
     "N25-R9",
     "N25-R10",
     "F10-R17",
+    "C10-R1",
+    "C10-R2",
+    "C10-R3",
+    "C10-R4",
+    "C10-R5",
+    "C10-R6",
+    "C10-R7",
+    "C10-R8",
+    "C10-R9",
+    "C10-R10",
+    "C10-R11",
+    "C10-R12",
+    "C10-R13",
+    "C10-R14",
+    "F12-R1",
+    "F12-R2",
+    "F12-R3",
+    "F12-R4",
+    "F12-R5",
+    "F12-R6",
+    "F12-R7",
+    "F12-R8",
+    "F12-R9",
+    "F12-R10",
+    "F12-R11",
+    "F12-R12",
+    "F12-R13",
+    "L3-R1",
+    "L3-R2",
+    "L3-R3",
+    "L3-R4",
+    "L3-R5",
+    "L3-R6",
+    "L3-R7",
+    "L3-R8",
+    "C10-R15",
+    "C10-R16",
+    "C10-R17",
+    "F13-R1",
+    "F13-R2",
+    "F13-R3",
+    "F13-R4",
+    "F13-R5",
+    "F13-R6",
+    "F13-R7",
+    "F13-R8",
+    "F13-R9",
+    "F13-R10",
+    "F13-R11",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

@@ -70,6 +70,21 @@ gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
+name = "sdk-python"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "integration-home-assistant"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "integration-mcp"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
 name = "lemonfiber-media-stack"
 gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]

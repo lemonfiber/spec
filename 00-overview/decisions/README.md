@@ -55,6 +55,8 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0034](0034-a-catalogue-release-is-signed-with-a-key-the-binary-carries.md) | A catalogue release is signed with a key pair, and lemonfiber carries the public half | Accepted |
 | [0035](0035-what-the-phone-keeps-and-how.md) | What the phone keeps, and how | Accepted |
 | [0036](0036-a-plugin-may-come-from-any-source-the-command-takes.md) | A plugin may come from any source the command takes, over the web API too | Accepted |
+| [0037](0037-an-integration-key-is-minted-where-the-operator-proves-themself.md) | An integration key is a credential the web API may mint, where the operator proves themself again | Accepted |
+| [0038](0038-lemonfiber-ships-as-an-image-that-holds-the-hosts-docker.md) | lemonfiber ships as an image that holds the host's Docker | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

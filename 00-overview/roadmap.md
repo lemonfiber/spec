@@ -320,6 +320,10 @@ possible. F3–F8 and F10 are Accepted; recipes (F8) are locked by `0.18.0`.
 | Plugins and wiring over the API | F6-R14 to F6-R16 and F4-R26 to F4-R29 — what is installed, installing, updating and removing, the wiring, and the operator's choice of what fills a capability with their reason for it, served where the companion reaches them ([ADR-0031](decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)) | `0.18.0` |
 | Recipes and named adapters | F8 — the ordered calls that turn a first-run flow into data, and what they may carry where ([ADR-0022](decisions/0022-a-recipe-declares-pairs-not-lists.md)) | `0.18.0` |
 | The household's web surface | G10 — a member signs in through the same form and is shown what the core says they may do, with approval and allowance stated before they ask and refusals read as refusals; playback and the door a member faces wait on the core | `0.18.0` |
+| Integration keys | C10 — a named key with one scope, `read`, `act` or `member:<account>`, minted at the command line or over the web API with the password given again, shown once and revoked by name ([ADR-0037](decisions/0037-an-integration-key-is-minted-where-the-operator-proves-themself.md)) | `0.18.0` |
+| Home Assistant | F12 — the stack's health, alerts, a short list of controls and a member's own library in Home Assistant, through `sdk-python` and an integration key | `0.18.0` |
+| The image for a NAS | L3 — an image of lemonfiber built by the release, with templates for Unraid, TrueNAS SCALE, Synology and Compose, holding the host's Docker as a native install does ([ADR-0038](decisions/0038-lemonfiber-ships-as-an-image-that-holds-the-hosts-docker.md)) | `0.18.0` |
+| An assistant's way in | F13 — an MCP server for operators and members over integration keys, its tools generated from the contract and its writes rehearsed, with members let in only once the operator allows it | `0.18.0` |
 
 **Recipes come last of the three, deliberately.** A manifest describes a container
 whose reach lemonfiber fixes, so the worst one can do is fail to parse. A recipe runs

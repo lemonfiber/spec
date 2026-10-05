@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**107 features** in areas A–N, **1632 requirements**.
+**111 features** in areas A–N, **1681 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 18 shipped, 6 built, 35 building, 47 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 18 shipped, 6 built, 35 building, 51 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -92,9 +92,12 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.23.0` |
+| [C10](c-trust/c10-integration-keys.md) | Integration keys | C | operator | accepted | `0.18.0` |
 | [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.19.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
+| [F12](f-extensibility/f12-home-assistant.md) | Home Assistant | F | operator | accepted | `0.18.0` |
+| [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0` |
 | [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0`, `0.19.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.20.0` |
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.20.0` |
@@ -111,6 +114,7 @@ code, and the two move independently.
 | [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.24.0` |
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.23.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.23.0` |
+| [L3](l-release/l3-nas-image.md) | The image for a NAS | L | operator | accepted | `0.18.0` |
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | — |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
