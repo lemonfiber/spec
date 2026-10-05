@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 107,
-    "requirements": 1632,
+    "features": 111,
+    "requirements": 1681,
     "areas": "A–N"
   },
   "versions": [
@@ -112,7 +112,7 @@
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 182
+      "goals": 231
     },
     {
       "version": "0.19.0",
@@ -1096,6 +1096,40 @@
         }
       ],
       "path": "c-trust/c9-drift.md"
+    },
+    {
+      "id": "C10",
+      "title": "Integration keys",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
+      "priority": null,
+      "labels": [
+        "security",
+        "web"
+      ],
+      "requires": [],
+      "relates": [
+        "C6",
+        "F12",
+        "F13",
+        "G1",
+        "B5"
+      ],
+      "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        }
+      ],
+      "path": "c-trust/c10-integration-keys.md"
     },
     {
       "id": "D1",
@@ -2118,6 +2152,76 @@
       "path": "f-extensibility/f11-executing-contributed-code.md"
     },
     {
+      "id": "F12",
+      "title": "Home Assistant",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
+      "priority": null,
+      "labels": [
+        "extensibility",
+        "observability",
+        "household",
+        "web"
+      ],
+      "requires": [],
+      "relates": [
+        "C10",
+        "C6",
+        "B5",
+        "G2",
+        "K1"
+      ],
+      "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        }
+      ],
+      "path": "f-extensibility/f12-home-assistant.md"
+    },
+    {
+      "id": "F13",
+      "title": "An assistant's way in",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
+      "priority": null,
+      "labels": [
+        "extensibility",
+        "household",
+        "web"
+      ],
+      "requires": [],
+      "relates": [
+        "C10",
+        "F12",
+        "G2",
+        "D11"
+      ],
+      "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        }
+      ],
+      "path": "f-extensibility/f13-mcp.md"
+    },
+    {
       "id": "G1",
       "title": "Interface tiers",
       "area": "G",
@@ -3036,6 +3140,37 @@
       "relates": [],
       "versions": [],
       "path": "l-release/l2-v2-release.md"
+    },
+    {
+      "id": "L3",
+      "title": "The image for a NAS",
+      "area": "L",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [
+        "M14"
+      ],
+      "milestone": "M14",
+      "priority": null,
+      "labels": [
+        "release"
+      ],
+      "requires": [],
+      "relates": [
+        "L1",
+        "C6",
+        "E2"
+      ],
+      "versions": [
+        {
+          "version": "0.18.0",
+          "status": "planned"
+        }
+      ],
+      "path": "l-release/l3-nas-image.md"
     },
     {
       "id": "N1",

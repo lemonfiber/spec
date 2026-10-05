@@ -253,6 +253,24 @@ reading `401` knows that the password it just sent is the thing to change. Every
 refusal, including a session this run no longer admits, answers `403`, and what tells a
 client that signing in again would help is the refusal's code, not its status.
 
+### An integration key
+
+A program that runs beside the stack for months, such as Home Assistant, holds neither the
+per-run token nor a session. It holds a key the operator minted for it under a name and
+with one scope, `read`, `act` or `member:<account>`
+([C10](../../10-functional/features/c-trust/c10-integration-keys.md),
+[ADR-0037](../../00-overview/decisions/0037-an-integration-key-is-minted-where-the-operator-proves-themself.md)).
+
+A key travels in `X-Lemonfiber-Token`, so the surface still reads one credential header. It
+survives a restart, is refused exactly as a wrong token is once revoked, and is accepted
+from another machine only over the TLS its pin verifies. The actions an `act` key may call
+are published in the contract, and every other action is refused to a key, naming its
+scope.
+
+Minting and revoking are the one credential write the web API takes. Only an operator
+session may make them, minting asks for the password in the same request, and the secret
+appears once, in the mint reply, beside the stack's address and certificate pin.
+
 ### The session
 
 A session **expires**, on an absolute clock rather than on use: a window left open all week

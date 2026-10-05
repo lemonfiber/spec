@@ -78,6 +78,33 @@ lang = "PHP"
 note = "The same contract, implemented as a peer rather than translated"
 
 [[repo]]
+name = "sdk-python"
+node = "sdkpy"
+group = "impl"
+label = "sdk-python<br/>the Python client"
+spec = ["sdk-python.md"]
+lang = "Python"
+note = "An asynchronous and a synchronous client over one generated contract"
+
+[[repo]]
+name = "integration-home-assistant"
+node = "homeassistant"
+group = "impl"
+label = "integration-home-assistant<br/>lemonfiber in Home Assistant"
+spec = ["integration-home-assistant.md"]
+lang = "Python"
+note = "The first program to hold an integration key rather than a person's credential"
+
+[[repo]]
+name = "integration-mcp"
+node = "mcp"
+group = "impl"
+label = "integration-mcp<br/>lemonfiber for AI assistants"
+spec = ["integration-mcp.md"]
+lang = "Python"
+note = "Every tool generated from the contract, so an assistant can do nothing the web API does not offer"
+
+[[repo]]
 name = "lemonfiber-media-stack"
 node = "stack"
 group = "impl"
@@ -196,6 +223,21 @@ label = "contract artefact"
 from = "lemonfiber-companion"
 to = "sdk-php"
 label = "pinned; every call goes through it"
+
+[[edge]]
+from = "lemonfiber"
+to = "sdk-python"
+label = "contract artefact"
+
+[[edge]]
+from = "integration-home-assistant"
+to = "sdk-python"
+label = "vendored at a pinned commit"
+
+[[edge]]
+from = "integration-mcp"
+to = "sdk-python"
+label = "vendored at a pinned commit"
 
 [[edge]]
 from = "lemonfiber-plugins"
