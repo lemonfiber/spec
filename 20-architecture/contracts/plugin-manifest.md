@@ -372,9 +372,11 @@ plex:
 directory, the same source lemonfiber chose, mounted where the image actually
 reads it.
 
-That is the whole of it, and the whole of what it can ever be. There is no field
-in `plugin.toml` that adds a line to this, which is what makes "what can this
-plugin reach" answerable from the format rather than from the instance.
+That is the whole of it, and the whole of what it can ever be, apart from the
+stack's own networks a stand-in joins, which [follow from the stack](#the-networks-it-joins)
+rather than from anything the plugin says. There is no field in `plugin.toml` that
+adds a line to this, which is what makes "what can this plugin reach" answerable from
+the format rather than from the instance.
 
 lemonfiber also writes the stack's own wiring for it, from the same declaration
 and by the same argument — a plugin that supplies no Compose entry supplies no
@@ -416,6 +418,31 @@ The `${DATA_ROOT}:/data` mount appears only where `takes_data` is `true`, and
 when it appears it is the **single** data mount — [ADR-0006](../../00-overview/decisions/0006-single-data-mount.md)'s
 rule holds for a plugin by construction rather than by review, because there is
 no second mount to declare.
+
+### The networks it joins
+
+A plugin's service that stands in for nothing is on the stack's default network, as
+every service that names none is. A plugin's service that is the settled filler of one
+of the stack's asks — the service the operator chose for an ask one service answers, or
+a claimant of an ask every claimant answers — joins exactly the networks of the stack
+service it stands in for: the one that speaks the adapter it names, provides the
+capability asked for, and, where that service files media, files a medium it files too.
+Those are the networks whatever asked reaches the stack's own over, and the stand-in is
+reached over the same ones (`F9-R6`). It joins the default network only where that
+stack service is on it, so a stand-in for a service the stack keeps off the default
+network is kept off it too.
+
+A network on which every other service reaches the stack service by name is not
+joined: such a link is about that one service, never about whatever stands in for it,
+so a stand-in would never be reached over it and would only gain a route to what is
+there. The networks are read from the stack's own compose files, never from a plugin's
+document, and a plugin has no field in which to name one.
+
+Choosing which service fills an ask changes what the affected plugins' services join,
+so the choice rewrites those plugins' Compose documents in the same journalled change
+as the setting, and a choice and the reach it grants move together. A plugin that
+claims what the stack's own service still answers joins nothing beyond the default
+network.
 
 ## `[[claim]]` — the probes a core name is demonstrated by
 
@@ -1156,6 +1183,8 @@ unreadable.
 | **ARCH-R130** | A `[[proof]]` and a `doctor.check` row MUST be able to carry `expected`, a list of entries each naming a recording, the verdict `fails`, the constraint of its `expect` that fails there (with its place where the constraint is key-wise), and a reason. An entry missing any of them, naming a verdict other than `fails` or a recording that does not exist, naming a constraint or place its assertion's `expect` does not make, or naming a recording another entry of the same assertion names MUST be refused by name, and a `[[claim.probe]]` MUST have no such field. |
 | **ARCH-R143** | The set of adapters a plugin's service may name MUST be published as `contract/adapters.json`, generated from the adapter kinds and key sources lemonfiber implements, and regenerating it MUST produce no diff. |
 | **ARCH-R144** | A service declaring `api`, bundled or a plugin's, MUST declare `listens`, the port it answers on inside the stack's network, and lemonfiber MUST reach it at that port rather than at its published port or at a port named in lemonfiber's source. |
+| **ARCH-R154** | A plugin's service MUST join a network of the stack's only where it is the settled filler of an ask that a stack service on that network fills, speaks the adapter that service speaks and, where that service files media, files one of its media; it MUST NOT join a network on which every other service reaches that stack service by name, and the networks MUST be read from the stack's own compose files and never from a plugin's document. |
+| **ARCH-R155** | Choosing which service fills an ask MUST rewrite, in the same journalled change as the setting, the Compose document of every installed plugin whose service's networks the choice changes. |
 
 ## Related
 
