@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 18 shipped, 6 built, 35 building, 51 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 18 shipped, 6 built, 36 building, 50 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -76,6 +76,7 @@ code, and the two move independently.
 | [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | accepted | `0.16.0`, `0.18.0` |
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | accepted | `0.16.0` |
+| [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | F | operator | accepted | `0.16.0`, `0.17.0` |
 | [F10](f-extensibility/f10-authoring.md) | Writing a plugin | F | operator | accepted | `0.16.0`, `0.17.0`, `0.18.0` |
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.18.0`, `0.9.0` |
@@ -94,7 +95,6 @@ code, and the two move independently.
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.23.0` |
 | [C10](c-trust/c10-integration-keys.md) | Integration keys | C | operator | accepted | `0.18.0` |
 | [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.19.0` |
-| [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
 | [F12](f-extensibility/f12-home-assistant.md) | Home Assistant | F | operator | accepted | `0.18.0` |
 | [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0` |
