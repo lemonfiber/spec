@@ -31,10 +31,14 @@ templates say so plainly
 
 ### One image per release, built from that release's binary
 
-The release workflow builds `ghcr.io/lemonfiber/lemonfiber` for `linux/amd64` and
-`linux/arm64` from the binaries it has just built, signs it and attests it, as it does every
-other artefact ([L1](l1-release-engineering.md)). The image holds the binary and nothing
-else: no shell, no package manager, no second process.
+Once the release workflow has built a release and left it as a draft, the core repository's
+`release-image.yml` builds `ghcr.io/lemonfiber/lemonfiber` for `linux/amd64` and
+`linux/arm64` from that release's own binaries, after checking each against its digest and
+its attestation. It signs and attests the image as it does every other artefact
+([L1](l1-release-engineering.md)), and puts the templates on the draft before it is
+published. The image holds the binary and the two things it runs to drive the stack, the
+Docker command line and its Compose plugin, and nothing else: no shell, no package manager, no
+second process.
 
 ### A template per platform, attached to the release
 
@@ -46,15 +50,19 @@ template and the image it names are versioned together.
 ### The stack's directory has one path
 
 Compose resolves a bind mount on the host, not in the container that asked. So the stack's
-directory is mounted at the same path inside the container as it has on the host, and
-lemonfiber refuses to start a stack when it is not, naming the mount.
+directory is mounted at the same path inside the container as it has on the host, and so is
+the data location its services mount. lemonfiber asks Docker which host path stands behind
+each one and refuses to start a stack when either differs, naming the mount. A check it
+cannot make, because Docker cannot be reached or does not know the container, refuses too.
 
 ### The web surface keeps C6's binding
 
-The templates publish the web surface on the host's loopback. Publishing it on the LAN is
-the operator's choice, and lemonfiber still refuses a binding beyond loopback until a
-password is set ([C6](../c-trust/c6-web-security.md)). The terminal UI is reached with
-`docker exec`.
+The container shares the host's network namespace rather than having one of its own.
+lemonfiber reaches the stack's services on the host's loopback, where they publish their
+ports, and a container's own loopback is not the host's. So the web surface, bound to
+loopback as it is everywhere, is on the host's loopback. Offering it to the LAN is the
+operator's choice, and lemonfiber still refuses a binding beyond loopback until a password is
+set ([C6](../c-trust/c6-web-security.md)). The terminal UI is reached with `docker exec`.
 
 ### Updating means a new image
 

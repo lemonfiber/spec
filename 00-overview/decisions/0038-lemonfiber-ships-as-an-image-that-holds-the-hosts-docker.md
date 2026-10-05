@@ -49,6 +49,12 @@ repository on the release train for files that change only when the image does.
 ## Consequences
 
 - [L3](../../10-functional/features/l-release/l3-nas-image.md) gains its requirements.
+- The container shares the host's network namespace. lemonfiber reaches the stack's
+  services on the host's loopback, and a container's own loopback is not the host's, so the
+  templates run it on the host's network and the web surface's loopback binding is the
+  host's loopback.
+- The image carries the Docker command line and its Compose plugin beside the binary,
+  because lemonfiber drives the stack by running `docker compose`.
 - Self-update defers inside the image, as it does under a package manager
   ([E2](../../10-functional/features/e-maintenance/e2-self-update.md)).
 - App-store listings (Unraid Community Applications, the TrueNAS catalogue) are requests to
