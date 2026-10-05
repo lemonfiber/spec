@@ -466,18 +466,19 @@ The payload is `kind: "capabilities"`, whose data maps a capability name to its 
 ```json
 { "api_version": 1, "kind": "capabilities",
   "data": { "capabilities": {
-      "plugins":     "available",
-      "wiring-fill": "available",
-      "update":      "unconfigured",
-      "invite":      "unpermitted" } } }
+      "/api/plugins":             "available",
+      "/api/actions/wiring-fill": "available",
+      "/api/actions/pull":        "unconfigured",
+      "/api/actions/invite":      "unpermitted" } } }
 ```
 
-**A capability's name is the surface's own name for the request.** Every action is named
-as `POST /api/actions/<name>` names it, and every read as `GET /api/<name>` names it, and
-the set is generated from the lists the surface routes by, so a request the surface gains
-is a capability it declares with nothing else to keep in step. A client already holds
-these names, because they are what it calls. What a client shows for one is its own words
-and not the stack's.
+**A capability's name is the path the surface serves the request at**: `/api/actions/<name>`
+for an action and `/api/<name>` for a read. The set is generated from the lists the surface
+routes by, so a request the surface gains is a capability it declares with nothing else to
+keep in step, and a client already holds these names, because they are what it calls. A read
+and an action may share a word, and they are two requests — reading what an uninstall would
+take is not taking it — so each has a key of its own. What a client shows for one is its own
+words and not the stack's.
 
 Four answers, and the difference between them is the whole point — each is a different
 sentence to show somebody:
@@ -698,7 +699,7 @@ generation has not been used.
 | **ARCH-R75** | The operator's password MUST be exchanged for a session by one request and MUST NOT be required by any other. |
 | **ARCH-R76** | A session's secret MUST travel in the same header the per-run token does, so the surface reads one credential header. |
 | **ARCH-R77** | A refusal a caller could correct by sending something else MUST be distinguished by its code from one nothing they could send would satisfy, and a refusal for too many failed attempts MUST say how long is left. |
-| **ARCH-R78** | The API MUST expose the set of capabilities the stack can perform, each named by the action or read the surface serves it as, and a client MUST NOT derive that set from a version number. |
+| **ARCH-R78** | The API MUST expose the set of capabilities the stack can perform, each named by the path the surface serves it at, and a client MUST NOT derive that set from a version number. |
 | **ARCH-R79** | A capability MUST be reported as available, present but unconfigured, or present but not permitted to this credential; a capability the stack does not have MUST be absent rather than reported as false. |
 | **ARCH-R80** | The capability set MUST be scoped to the credential that asked, so that it carries the core's existing answer about what a household member may do rather than a second one. |
 | **ARCH-R81** | A client MUST treat a capability name it does not recognise as one it does not understand, and MUST NOT refuse the payload for containing it. |
