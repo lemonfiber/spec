@@ -178,7 +178,9 @@
 # with the offer as the yes; `C10-R15` to `C10-R17` let a member mint their own key once the
 # operator allows it, and give every key a declared purpose. `integration-mcp` is searched,
 # not tagged. Its member tools grow with 0.19.0's reads (D11).
-# 232 goals, seeded from the roadmap milestone this version serves;
+# `D10-R15` and `D10-R16` pause and resume every download client in one request, and keep a
+# pause until somebody resumes it; the pair is on the list of actions a key may call.
+# 234 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the four writes taking the offer, a recipe's pairs and steps agreed to as
@@ -430,6 +432,8 @@ goals   = [
     "F13-R9",
     "F13-R10",
     "F13-R11",
+    "D10-R15",
+    "D10-R16",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 111,
-    "requirements": 1687,
+    "requirements": 1684,
     "areas": "A–N"
   },
   "versions": [
@@ -106,13 +106,13 @@
       "version": "0.17.0",
       "status": "staged",
       "milestone": "M14",
-      "goals": 74
+      "goals": 69
     },
     {
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 232
+      "goals": 234
     },
     {
       "version": "0.19.0",
@@ -1118,6 +1118,7 @@
       "requires": [],
       "relates": [
         "C6",
+        "D10",
         "F12",
         "F13",
         "G1",
@@ -1480,10 +1481,11 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.12.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M8"
+        "M8",
+        "M14"
       ],
       "milestone": "M8",
       "priority": null,
@@ -1502,6 +1504,10 @@
         {
           "version": "0.12.0",
           "status": "released"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         }
       ],
       "path": "d-content/d10-bandwidth.md"

@@ -5,8 +5,7 @@ kind: feature
 area: D
 audience: operator
 status: accepted
-maturity: shipped
-shipped: 0.12.0
+maturity: building
 labels: [network]
 requires: [B5]
 relates: [C2, C7, D5]
@@ -85,6 +84,20 @@ A one-off "unrestricted for the next hour" for when the operator wants something
 now and knows nobody else is affected. Time-boxed, so it can't be forgotten and
 left on.
 
+### Pausing every download client at once
+
+Sometimes the line is wanted now: a call is about to start, or a guest is about to play
+something. The operator pauses every download client the stack runs, qBittorrent and
+SABnzbd alike, in one request, and resumes them the same way, at the command line or over
+the web API. The outcome names each client with what it read back afterwards, so a client
+that did not take the request shows up by name rather than being assumed paused. A
+rehearsal says what each client is doing now and what the request would change, and
+changes nothing.
+
+A pause holds until somebody resumes it. A schedule boundary, a temporary override, a new
+month or a lifted cap leaves a paused client paused, because a pause is the operator's
+decision and none of those are.
+
 ### On the companion
 
 A share is a share of something, and `N10-R4` requires the app to say whether the
@@ -118,6 +131,7 @@ that could not be read are told apart from there being none (`N10-R12`).
 | `overridden` | Temporary override in force, with expiry |
 | `cap-warning` | Approaching a declared data cap |
 | `cap-exceeded` | Cap reached; configured behaviour applied |
+| `paused` | Every download client paused by the operator, until resumed |
 
 ## Edge cases
 
@@ -135,6 +149,9 @@ that could not be read are told apart from there being none (`N10-R12`).
 | VPN adds overhead | Note that measured throughput through the tunnel is lower than raw connection speed. |
 | Household member streaming from Jellyfin | Local traffic isn't limited. Only external transfers are shaped. |
 | Very slow connection | Warn if limits would make transfers impractically slow. |
+| One client cannot be reached during a pause or resume | The others are paused or resumed anyway, and the outcome names the unreachable one as not reached. |
+| Resumed while a spent cap holds the clients stopped | Resumed as asked. The outcome says the cap is spent, so its configured behaviour applies again at the next check. |
+| Paused, then the month turns over or the cap is lifted | Stays paused until resumed. |
 
 ## Acceptance criteria
 
@@ -154,6 +171,8 @@ that could not be read are told apart from there being none (`N10-R12`).
 | **D10-R12** | lemonfiber MUST limit only its own services and MUST NOT perform system-wide traffic shaping. |
 | **D10-R13** | Applied limits MUST be verified as accepted, and actual throughput exceeding a limit MUST be reported. |
 | **D10-R14** | Local playback traffic MUST NOT be subject to bandwidth limits. |
+| **D10-R15** | Every download client the stack runs MUST be pausable and resumable in one request, at the command line and over the web API. The outcome MUST name each client with what it read back afterwards, and a rehearsal MUST change nothing. |
+| **D10-R16** | A pause MUST hold until it is resumed. A schedule boundary, a temporary override, a new month or a lifted cap MUST NOT resume a paused client. |
 
 ## Related
 

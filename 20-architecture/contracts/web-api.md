@@ -271,6 +271,44 @@ Minting and revoking are the one credential write the web API takes. Only an ope
 session may make them, minting asks for the password in the same request, and the secret
 appears once, in the mint reply, beside the stack's address and certificate pin.
 
+```
+GET    /api/keys
+POST   /api/keys
+DELETE /api/keys/{name}
+```
+
+`POST /api/keys` takes `{ "name": …, "scope": …, "purpose": …, "password": … }`. The reply
+is the envelope under its own kind, carrying the secret, the pin, and the address where the
+stack has been served encrypted on the network. It is sent with `Cache-Control: no-store`,
+as every reply here is. `GET /api/keys` lists the keys without their secrets, and
+`DELETE /api/keys/{name}` revokes one. A key is refused at all three, whatever its scope.
+
+A key's secret begins with `lfk_`, so the guard can tell a value shaped like a key from a
+token or a session without looking it up. That is what it counts: a value shaped like a key
+that matches no key counts against [the limit wrong passwords meet](#wrong-answers-are-counted).
+A revoked or orphaned key is refused as a wrong token is and not counted. While the limit
+holds, a request carrying a value shaped like a key is answered `429` before the value is
+checked.
+
+A key presented from another machine over plain HTTP, or over a connection whose origin
+cannot be placed, is refused before it is checked, with a code of its own: the remedy is to
+connect over the TLS the pin verifies, not to send a different key.
+
+The actions a key may call are published in the artefact as `key_callable`. Each entry
+names the action, says whether it disturbs the running system, and says whether it takes
+`dry_run`, so a client can rehearse it first and offer the real call after. Both are read
+from the core's own account of each command rather than written beside the list. The list
+starts as:
+
+```
+POST /api/actions/restart          POST /api/actions/diagnose
+POST /api/actions/update           POST /api/actions/downloads-pause
+POST /api/actions/downloads-resume
+```
+
+An `act` key asking for any other action is refused, naming its scope, and a `read` key is
+refused every action.
+
 ### The session
 
 A session **expires**, on an absolute clock rather than on use: a window left open all week
