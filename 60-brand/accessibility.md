@@ -46,6 +46,10 @@ three surfaces are the grounds anything is ever set on: `paper` is the default,
 | `line-soft` | #E4DCC7 | 1.28 · fails | 1.11 · fails | 13.26 · AAA |
 | `text-muted` | #565344 | 7.21 · AAA | 6.26 · AA | 2.35 · fails |
 | `text-faint` | #6A6756 | 5.31 · AA | 4.61 · AA | 3.18 · AA large |
+| `ok` | #55701E | 5.26 · AA | 4.56 · AA | 3.21 · AA large |
+| `alarm` | #A82717 | 6.60 · AA | 5.73 · AA | 2.56 · fails |
+| `warn-tint` | #FBEBD8 | 1.09 · fails | 1.06 · fails | 15.52 · AAA |
+| `alarm-tint` | #F7E2DD | 1.16 · fails | 1.01 · fails | 14.57 · AAA |
 
 `tokens.json` here is a distribution copy. The brand maintains it, and
 [`shared/assets.sha256`](../shared/assets.sha256) holds this copy byte-identical

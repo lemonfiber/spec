@@ -42,11 +42,11 @@ e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  public/brand/n
 # equal to the brand's own, so the two checks in series mean the application
 # paints what the brand says and not what somebody typed.
 
-2b371ef835b8e52e74c83c6c1e6719abe01d5a5ed6226ca85db588d9ec68045c  app-modules/design/resources/tokens.json  brand:tokens/tokens.json
+32548c774fa39f2614094826cc6c77bc35a2cce244df6b817ead2e200518ca5c  app-modules/design/resources/tokens.json  brand:tokens/tokens.json
 
 # The accessibility page measures the palette rather than quoting it, so the
 # spec needs the palette in its own tree: a generator cannot reach another
 # repository, and the three ratios that went wrong here went wrong precisely
 # because nothing local could be checked against.
 
-2b371ef835b8e52e74c83c6c1e6719abe01d5a5ed6226ca85db588d9ec68045c  60-brand/tokens.json  brand:tokens/tokens.json
+32548c774fa39f2614094826cc6c77bc35a2cce244df6b817ead2e200518ca5c  60-brand/tokens.json  brand:tokens/tokens.json
