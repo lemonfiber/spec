@@ -162,7 +162,12 @@
 # allowance stated as what it leaves room for. The core's member notices, the ones it
 # places where the household asks, and the refusals `G10` and `N3-R17` render are all
 # core text, so they ship with the household's web surface.
-# 181 goals, seeded from the roadmap milestone this version serves;
+# `F10-R17` has the template plugin's manifest name, as a `#:schema` line, the manifest
+# schema published with the release its `targets.toml` names, and its CI refuse the two
+# disagreeing, so an author's editor checks the manifest against what that release
+# reads. It is built in `plugin-template` and recorded in the core's implementation
+# status beside `F10-R7`, as that row is.
+# 182 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the four writes taking the offer, a recipe's pairs and steps agreed to as
@@ -357,6 +362,7 @@ goals   = [
     "N25-R8",
     "N25-R9",
     "N25-R10",
+    "F10-R17",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
