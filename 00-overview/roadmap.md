@@ -44,11 +44,12 @@ stub** — a release refuses while a requirement it locks is not yet built
 | `0.16.0` | M14 | Plugins — what one is, installing one, and what that leaves readable | Released |
 | `0.17.0` | M14 | Plugins — what the bundled stack can do, and where a plugin comes from | Staged |
 | `0.18.0` | M14 | Plugins — the calls that configure what one installed, and what they may carry where | Planned |
-| `0.19.0` | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
-| `0.20.0` | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
-| `0.21.0` | M12 | Safely reachable — remote access and one account | Planned |
-| `0.22.0` | M13 | See everything — metrics, dashboards, uptime | Planned |
-| `0.23.0` | M15 | Runs without Docker — engine abstraction, Podman, native | Planned |
+| `0.19.0` | M16 | The household's library: find, ask for and play, under the member's own limits | Planned |
+| `0.20.0` | M11 | Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles | Planned |
+| `0.21.0` | M11 | Ecosystem glue: self-healing, cleanup, transcoding, statistics | Planned |
+| `0.22.0` | M12 | Safely reachable — remote access and one account | Planned |
+| `0.23.0` | M13 | See everything — metrics, dashboards, uptime | Planned |
+| `0.24.0` | M15 | Runs without Docker — engine abstraction, Podman, native | Planned |
 | `1.0.0` | M6 | The dashboard — a bare `lemonfiber` opens it. Everything specced is built, and the interfaces stop moving. | Planned |
 
 ### Patch releases (hotfixes)
@@ -286,7 +287,7 @@ following only the README.
 
 ---
 
-## The rest of the way to `1.0.0` (M11–M15)
+## The rest of the way to `1.0.0` (M11–M16)
 
 These were once sequenced behind a second epoch opening at `2.0.0`. There is no
 second epoch: `1.0.0` means everything specced is built and the interfaces stop
@@ -349,9 +350,28 @@ that some substitutions need wait for F8, which `0.18.0` locks.
 
 ---
 
+## M16 — The household's library
+
+`0.19.0`. What a member can find, ask for and play, on their own account and under
+their own limits ([ADR-0027](decisions/0027-a-member-plays-what-the-core-authorised.md)).
+
+| Deliverable | Notes |
+|-------------|-------|
+| Playing on the member's own account | D11 — a grant on the member's media-server account, and a guard in front of every byte the media server serves |
+| What a title is, and where it is served | D11 — artwork, details, how far through a member got, and where each title streams, all read as the member |
+| Searching and asking | D4-R15, D4-R16 — a member's own search and ask, answered by the core under their limits |
+| The member's name, and a default member | D6-R19, D6-R20 — a greeting, and the member's side the operator previews without reading anybody's |
+| The household's web surface, playing | G10-R4, G10-R7, G10-R8 — asking and playing in the browser, on the same reads |
+
+**Exit criteria:** a member finds a title they may watch, sees its artwork and what it
+is, and plays it at home on their own account; a title outside their limits is never
+offered, located or streamed.
+
+---
+
 ## M11 — Ecosystem glue
 
-`0.19.0`–`0.20.0`. The integrations a mature stack grows into, each one *verified*
+`0.20.0`–`0.21.0`. The integrations a mature stack grows into, each one *verified*
 rather than merely wired.
 
 | Deliverable | Notes |
@@ -372,7 +392,7 @@ presence in a configuration file.
 
 ## M12 — Safely reachable
 
-`0.21.0`. Reaching the stack from outside the house without opening it to the
+`0.22.0`. Reaching the stack from outside the house without opening it to the
 world.
 
 | Deliverable | Notes |
@@ -387,7 +407,7 @@ port exposed to the internet, signing in once.
 
 ## M13 — See everything
 
-`0.22.0`. The stack's own telemetry, for the operator who wants graphs rather
+`0.23.0`. The stack's own telemetry, for the operator who wants graphs rather
 than a dashboard.
 
 | Deliverable | Notes |
@@ -403,7 +423,7 @@ notification the trust checks already know how to send.
 
 ## M15 — Runs anywhere
 
-`0.23.0`. The container engine becomes one implementation behind an
+`0.24.0`. The container engine becomes one implementation behind an
 abstraction rather than an assumption, which lifts the single-engine non-goal
 ([ADR-0010](decisions/0010-engine-abstraction-for-v2.md)).
 
@@ -412,7 +432,7 @@ abstraction rather than an assumption, which lifts the single-engine non-goal
 | Container-engine abstraction | One port, Docker behind it; nothing above it names an engine |
 | Podman | A first-class alternative, not a compatibility shim |
 | Native, without containers | Services run as processes; the same manifest describes both |
-| Upgrade in place | An existing install moves to `0.23.0` keeping its configuration and data |
+| Upgrade in place | An existing install moves to `0.24.0` keeping its configuration and data |
 
 **Exit criteria:** the same stack starts, passes doctor and serves media under
 Docker, under Podman, and with no container runtime present.

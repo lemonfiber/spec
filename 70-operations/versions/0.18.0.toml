@@ -34,8 +34,8 @@
 # a member may do and may watch is read from the core, approval and allowance are
 # stated before a member asks, refusals read as refusals, and a member removed from
 # the household is signed out at the next refused call. The rest of G10 waits on the
-# core. `G10-R4`, `G10-R7` and `G10-R8` need playback, which the core does not stream to
-# a member yet (ADR-0027). `G10-R12` and `G10-R13` need the core to say which service
+# core. `G10-R4`, `G10-R7` and `G10-R8` need playback, which 0.19.0 locks with the reads
+# that serve it (D11). `G10-R12` and `G10-R13` need the core to say which service
 # faces a member and whether it answers from where they are. The web surface is where
 # these are built, so `lemonfiber-web` is searched; it is not tagged.
 #

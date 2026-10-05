@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**106 features** in areas A–N, **1610 requirements**.
+**107 features** in areas A–N, **1621 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 19 shipped, 6 built, 34 building, 46 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 18 shipped, 6 built, 35 building, 47 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -29,7 +29,6 @@ code, and the two move independently.
 | [C5](c-trust/c5-storage.md) | Storage & hardlink management | C | operator | accepted | `0.6.0` |
 | [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.6.0` |
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
-| [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0` |
 | [D5](d-content/d5-disk-space.md) | Disk space management | D | operator | accepted | `0.12.0` |
 | [D8](d-content/d8-parental-controls.md) | Parental controls | D | both | accepted | `0.12.0` |
 | [D9](d-content/d9-pipeline-trace.md) | "Where is my show?" pipeline trace | D | both | accepted | `0.4.0` |
@@ -67,7 +66,8 @@ code, and the two move independently.
 | [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.12.0`, `0.17.0`, `0.4.0` |
 | [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.18.0`, `0.4.0` |
 | [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.18.0`, `0.4.0` |
-| [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0` |
+| [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0`, `0.19.0` |
+| [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0`, `0.19.0` |
 | [D7](d-content/d7-approval-quotas.md) | Request approval & quotas | D | both | accepted | `0.12.0`, `0.18.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
@@ -91,25 +91,26 @@ code, and the two move independently.
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
-| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.22.0` |
+| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.23.0` |
+| [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.19.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
-| [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0` |
-| [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.19.0` |
-| [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.19.0` |
-| [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `0.19.0` |
-| [H4](h-glue/h4-subtitles.md) | Subtitles | H | both | accepted | `0.19.0` |
-| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `0.20.0` |
-| [H6](h-glue/h6-library-cleanup.md) | Library cleanup | H | both | accepted | `0.20.0` |
-| [H7](h-glue/h7-transcoding.md) | Transcoding | H | operator | accepted | `0.20.0` |
-| [H8](h-glue/h8-stats.md) | Playback statistics | H | both | accepted | `0.20.0` |
-| [I1](i-remote-access/i1-remote-access.md) | Remote access for the household | I | both | accepted | `0.21.0` |
-| [I2](i-remote-access/i2-identity.md) | Household identity & single sign-on | I | both | accepted | `0.21.0` |
-| [J1](j-runtime/j1-engine-abstraction.md) | Container-engine abstraction | J | operator | draft | `0.23.0` |
-| [J2](j-runtime/j2-podman.md) | Running under Podman | J | operator | draft | `0.23.0` |
-| [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.23.0` |
-| [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.22.0` |
-| [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.22.0` |
+| [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0`, `0.19.0` |
+| [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.20.0` |
+| [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.20.0` |
+| [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `0.20.0` |
+| [H4](h-glue/h4-subtitles.md) | Subtitles | H | both | accepted | `0.20.0` |
+| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `0.21.0` |
+| [H6](h-glue/h6-library-cleanup.md) | Library cleanup | H | both | accepted | `0.21.0` |
+| [H7](h-glue/h7-transcoding.md) | Transcoding | H | operator | accepted | `0.21.0` |
+| [H8](h-glue/h8-stats.md) | Playback statistics | H | both | accepted | `0.21.0` |
+| [I1](i-remote-access/i1-remote-access.md) | Remote access for the household | I | both | accepted | `0.22.0` |
+| [I2](i-remote-access/i2-identity.md) | Household identity & single sign-on | I | both | accepted | `0.22.0` |
+| [J1](j-runtime/j1-engine-abstraction.md) | Container-engine abstraction | J | operator | draft | `0.24.0` |
+| [J2](j-runtime/j2-podman.md) | Running under Podman | J | operator | draft | `0.24.0` |
+| [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.24.0` |
+| [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.23.0` |
+| [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.23.0` |
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | — |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |

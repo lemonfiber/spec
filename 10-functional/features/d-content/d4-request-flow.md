@@ -5,10 +5,9 @@ kind: feature
 area: D
 audience: household
 status: accepted
-maturity: shipped
-shipped: 0.11.0
+maturity: building
 labels: [household]
-relates: [D1, D6, D7, D8, G6]
+relates: [D1, D6, D7, D8, D11, G6]
 ---
 
 # D4 — Household request flow
@@ -95,6 +94,15 @@ No lemonfiber account, no lemonfiber URL, no awareness that it exists. The
 boundary is deliberate: household members should be unable to affect the stack's
 operation even accidentally.
 
+### A member searches and asks on their own account
+
+A member's own session searches and asks through the core, which checks their
+allowance and their limits before the request reaches the request service. A
+search offers only what that member may watch and ask for, and each title says
+whether it is here, already asked for, or may be asked for. The session is the
+member's media-server account ([D6](d6-household-identity.md)); there is still no
+lemonfiber account.
+
 ## States
 
 Per request:
@@ -145,6 +153,8 @@ Per request:
 | **D4-R12** | A library scan MUST complete before a request is reported available. |
 | **D4-R13** | Content a requester lacks permission for MUST NOT be offered. |
 | **D4-R14** | Repeated fulfilment failure MUST stop retrying silently and MUST notify both requester and operator. |
+| **D4-R15** | A member's search, and every list of titles offered to a member to ask for, MUST be answered by the core under that member's limits, and MUST NOT offer a title the member may not watch or ask for (`D8-R8`, `D8-R9`). Each title MUST say whether it is here, already asked for, or may be asked for (`D4-R5`, `D4-R10`). |
+| **D4-R16** | A member MUST be able to ask for a title through lemonfiber's web API on their own session. The core MUST check the member's allowance and limits before the request reaches the request service, and MUST answer with what became of it in the household's words (`G4-R16`). |
 
 ## Related
 
