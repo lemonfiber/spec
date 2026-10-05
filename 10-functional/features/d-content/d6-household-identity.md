@@ -161,6 +161,15 @@ how it gets left behind anyway. `N13-R19` carries `D6-R9` to the phone: what
 removal does to watch history and to requests is stated before it is agreed to,
 with every finding in the stack's words.
 
+### A member's name, and a member who is nobody in particular
+
+A member's session is answered with the member's display name as the media
+server holds it, so a surface can greet them without asking. The operator can
+also be answered with what a member invited with the household's defaults would
+be told and could watch — the household's default access and allowance, read
+for nobody — so the member's side can be seen without reading any member's
+requests or watch history.
+
 ## States
 
 Per household member:
@@ -217,6 +226,8 @@ Per household member:
 | **D6-R16** | A refusal MUST make the invitation unclaimable at once, MUST be kept by the stack until the core reads it, and the core MUST report it as the invitation's standing, `declined`, told apart from one that lapsed (`expired`). |
 | **D6-R17** | Reading what removing a household member costs MUST answer with an offer naming what it read; the removal MUST take that offer as its yes, alike at the command line and over the web API (`ARCH-R48`), MUST build it again from what the media server and the request service hold when it runs, and MUST be refused, naming what moved, where the two differ. A bare `confirm` MUST NOT be a yes to a removal over the web API (`N13-R7`). |
 | **D6-R18** | The `removal` envelope MUST state what removing the person does to their watch history, in the stack's words, in the reading before the removal and in the answer after it runs, so that no surface writes that statement itself (`D6-R9`, `N13-R19`). |
+| **D6-R19** | The core MUST answer a member's session with the member's display name as the media server holds it. |
+| **D6-R20** | The core MUST answer the operator's session with what a member invited with the household's default access and allowance would be told and could watch, and MUST NOT read or name any member's requests, allowance or watch history to answer it. |
 
 ## Related
 

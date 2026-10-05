@@ -82,8 +82,8 @@ AWAITING_A_VERSION = {
         ["G3-R16", "G3-R17"],
     ),
     "G10": (
-        "0.18.0 locks the G10 goals the core answers for; playback and the door a member faces wait on the core",
-        ["G10-R4", "G10-R7", "G10-R8", "G10-R12", "G10-R13"],
+        "0.18.0 locks the G10 goals the core answers for, and 0.19.0 those that play; the door a member faces waits on the core",
+        ["G10-R12", "G10-R13"],
     ),
     # The companion app takes no release of its own yet (30-repos/lemonfiber-companion.md),
     # so nothing schedules N1's app side. Its stack side, the pairing material the stack
@@ -147,11 +147,11 @@ AWAITING_A_VERSION = {
         [f"N14-R{n}" for n in range(1, 9)],
     ),
     "N16": (
-        "N16 requires N1, whose app side no version schedules, and K2, locked by 0.22.0",
+        "N16 requires N1, whose app side no version schedules, and K2, locked by 0.23.0",
         [f"N16-R{n}" for n in range(1, 15)],
     ),
     "N17": (
-        "N17 requires N1, whose app side no version schedules, and B9, locked by 0.22.0",
+        "N17 requires N1, whose app side no version schedules, and B9, locked by 0.23.0",
         [f"N17-R{n}" for n in range(1, 12)],
     ),
     "N19": (
@@ -175,7 +175,7 @@ AWAITING_A_VERSION = {
         [f"N24-R{n}" for n in range(1, 11)],
     ),
     "N26": (
-        "N26 requires N1, whose app side no version schedules, H1, H2 and H3, locked by 0.19.0, H6 and H8, locked by 0.20.0, and K1, locked by 0.22.0",
+        "N26 requires N1, whose app side no version schedules, H1, H2 and H3, locked by 0.20.0, H6 and H8, locked by 0.21.0, and K1, locked by 0.23.0",
         [f"N26-R{n}" for n in range(1, 20)],
     ),
     "N27": (

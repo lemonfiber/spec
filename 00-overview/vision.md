@@ -134,7 +134,7 @@ Named explicitly so they're rejected on purpose rather than forgotten.
 
 | Deferred | Status |
 |----------|--------|
-| **Remote access for the household** | Watching from outside the home. Deferred because every easy candidate had a proprietary control plane (Tailscale). It is scheduled for `0.21.0` as [I1](../10-functional/features/i-remote-access/i1-remote-access.md), built on a self-hosted overlay (Headscale + self-hosted relay). Household features stay **LAN-only** until it lands. See [roadmap](roadmap.md#m12--safely-reachable). |
+| **Remote access for the household** | Watching from outside the home. Deferred because every easy candidate had a proprietary control plane (Tailscale). It is scheduled for `0.22.0` as [I1](../10-functional/features/i-remote-access/i1-remote-access.md), built on a self-hosted overlay (Headscale + self-hosted relay). Household features stay **LAN-only** until it lands. See [roadmap](roadmap.md#m12--safely-reachable). |
 
 ### Formerly non-goals
 

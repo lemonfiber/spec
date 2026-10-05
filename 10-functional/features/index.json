@@ -1,8 +1,8 @@
 {
   "generated_by": "scripts/gen_board.py",
   "counts": {
-    "features": 106,
-    "requirements": 1610,
+    "features": 107,
+    "requirements": 1621,
     "areas": "A–N"
   },
   "versions": [
@@ -117,29 +117,35 @@
     {
       "version": "0.19.0",
       "status": "planned",
-      "milestone": "M11",
-      "goals": 60
+      "milestone": "M16",
+      "goals": 14
     },
     {
       "version": "0.20.0",
       "status": "planned",
       "milestone": "M11",
-      "goals": 59
+      "goals": 60
     },
     {
       "version": "0.21.0",
+      "status": "planned",
+      "milestone": "M11",
+      "goals": 59
+    },
+    {
+      "version": "0.22.0",
       "status": "planned",
       "milestone": "M12",
       "goals": 29
     },
     {
-      "version": "0.22.0",
+      "version": "0.23.0",
       "status": "planned",
       "milestone": "M13",
       "goals": 40
     },
     {
-      "version": "0.23.0",
+      "version": "0.24.0",
       "status": "planned",
       "milestone": "M15",
       "goals": 42
@@ -693,7 +699,7 @@
       ],
       "versions": [
         {
-          "version": "0.22.0",
+          "version": "0.23.0",
           "status": "planned"
         }
       ],
@@ -1216,10 +1222,11 @@
       "audience": "household",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.11.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M8"
+        "M8",
+        "M16"
       ],
       "milestone": "M8",
       "priority": null,
@@ -1232,12 +1239,17 @@
         "D6",
         "D7",
         "D8",
+        "D11",
         "G6"
       ],
       "versions": [
         {
           "version": "0.11.0",
           "status": "released"
+        },
+        {
+          "version": "0.19.0",
+          "status": "planned"
         }
       ],
       "path": "d-content/d4-request-flow.md"
@@ -1286,7 +1298,8 @@
       "shipped": null,
       "milestones": [
         "M8",
-        "M14"
+        "M14",
+        "M16"
       ],
       "milestone": "M8",
       "priority": null,
@@ -1314,6 +1327,10 @@
         },
         {
           "version": "0.18.0",
+          "status": "planned"
+        },
+        {
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -1454,6 +1471,44 @@
         }
       ],
       "path": "d-content/d10-bandwidth.md"
+    },
+    {
+      "id": "D11",
+      "title": "Watching what the house holds",
+      "area": "D",
+      "audience": "household",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [
+        "M16"
+      ],
+      "milestone": "M16",
+      "priority": "P2",
+      "labels": [
+        "household",
+        "security",
+        "network"
+      ],
+      "requires": [
+        "D6",
+        "D8",
+        "G5"
+      ],
+      "relates": [
+        "B1",
+        "D4",
+        "G10",
+        "N3"
+      ],
+      "versions": [
+        {
+          "version": "0.19.0",
+          "status": "planned"
+        }
+      ],
+      "path": "d-content/d11-watching-what-the-house-holds.md"
     },
     {
       "id": "E1",
@@ -2409,7 +2464,8 @@
       "maturity": "planned",
       "shipped": null,
       "milestones": [
-        "M14"
+        "M14",
+        "M16"
       ],
       "milestone": "M14",
       "priority": "P2",
@@ -2433,6 +2489,10 @@
       "versions": [
         {
           "version": "0.18.0",
+          "status": "planned"
+        },
+        {
+          "version": "0.19.0",
           "status": "planned"
         }
       ],
@@ -2465,7 +2525,7 @@
       ],
       "versions": [
         {
-          "version": "0.19.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2498,7 +2558,7 @@
       ],
       "versions": [
         {
-          "version": "0.19.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2530,7 +2590,7 @@
       ],
       "versions": [
         {
-          "version": "0.19.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2562,7 +2622,7 @@
       ],
       "versions": [
         {
-          "version": "0.19.0",
+          "version": "0.20.0",
           "status": "planned"
         }
       ],
@@ -2593,7 +2653,7 @@
       ],
       "versions": [
         {
-          "version": "0.20.0",
+          "version": "0.21.0",
           "status": "planned"
         }
       ],
@@ -2624,7 +2684,7 @@
       ],
       "versions": [
         {
-          "version": "0.20.0",
+          "version": "0.21.0",
           "status": "planned"
         }
       ],
@@ -2656,7 +2716,7 @@
       ],
       "versions": [
         {
-          "version": "0.20.0",
+          "version": "0.21.0",
           "status": "planned"
         }
       ],
@@ -2688,7 +2748,7 @@
       ],
       "versions": [
         {
-          "version": "0.20.0",
+          "version": "0.21.0",
           "status": "planned"
         }
       ],
@@ -2723,7 +2783,7 @@
       ],
       "versions": [
         {
-          "version": "0.21.0",
+          "version": "0.22.0",
           "status": "planned"
         }
       ],
@@ -2757,7 +2817,7 @@
       ],
       "versions": [
         {
-          "version": "0.21.0",
+          "version": "0.22.0",
           "status": "planned"
         }
       ],
@@ -2789,7 +2849,7 @@
       ],
       "versions": [
         {
-          "version": "0.23.0",
+          "version": "0.24.0",
           "status": "planned"
         }
       ],
@@ -2822,7 +2882,7 @@
       ],
       "versions": [
         {
-          "version": "0.23.0",
+          "version": "0.24.0",
           "status": "planned"
         }
       ],
@@ -2854,7 +2914,7 @@
       ],
       "versions": [
         {
-          "version": "0.23.0",
+          "version": "0.24.0",
           "status": "planned"
         }
       ],
@@ -2885,7 +2945,7 @@
       ],
       "versions": [
         {
-          "version": "0.22.0",
+          "version": "0.23.0",
           "status": "planned"
         }
       ],
@@ -2917,7 +2977,7 @@
       ],
       "versions": [
         {
-          "version": "0.22.0",
+          "version": "0.23.0",
           "status": "planned"
         }
       ],
