@@ -149,6 +149,12 @@ that runs the same commands the catalogue's CI runs. Beginning from something th
 validates and proves is the difference between an afternoon and a weekend, and it means
 the first thing an author sees is the bar they will be held to.
 
+Its manifest opens with a `#:schema` line naming the manifest schema published with the
+release its `targets.toml` names, so an editor that reads TOML schemas checks the file
+as it is typed, against what that release reads rather than against `main`. CI refuses
+the line and `targets.toml` naming different releases, so the version train moving the
+one moves the other.
+
 ### Shipping one needs nothing but a git repository
 
 A plugin is published by pushing it somewhere an operator can fetch from. The catalogue
@@ -208,6 +214,7 @@ Per plugin, while it is being written:
 | **F10-R14** | An assertion whose failure on a declared recording is not the one declared MUST be reported as failed and MUST fail the proving run: where the declared constraint holds, naming the declaration as stale; where a constraint the declaration does not name is judged false, naming the declared constraint and every constraint that failed. |
 | **F10-R15** | A declaration MUST apply only to the recording it names. Against any other recording and against the live service, the assertion MUST be held to its own expectation, and the declaration MUST NOT change its verdict. |
 | **F10-R16** | An assertion MUST be reported as failing as declared only where it was run against the named recording and its expectation was judged false there. One that could not be run there MUST be reported unproven, and a declaration MUST NOT stand in for a run. |
+| **F10-R17** | The template plugin's manifest MUST name, in the form an editor reads, the manifest schema published with the lemonfiber release its `targets.toml` names, and its CI MUST refuse the two naming different releases. |
 
 ## Related
 
