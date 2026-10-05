@@ -34,9 +34,10 @@ and the key has to live somewhere that set-up already has.
 
 1. **A catalogue release is a tag in `lemonfiber-plugins` whose release carries two
    assets:** `index.json`, which maps each plugin id to its origin, the revision the
-   catalogue reviewed and the digest of the manifest at that revision, and
-   `index.json.sig`, a cosign signature over exactly those bytes. The index is what was
-   reviewed, so it is what is signed (`REPO-R57`).
+   catalogue reviewed and the digest of the manifest at that revision, and carries a
+   `serial` each release raises above the last; and `index.json.sig`, a cosign
+   signature over exactly those bytes. The index is what was reviewed, so it is what
+   is signed (`REPO-R57`).
 
 2. **The signature is a cosign P-256 key-pair signature.** The private key is held only
    as the `lemonfiber-plugins` Actions secret `CATALOGUE_SIGNING_KEY`, with its password
@@ -47,7 +48,9 @@ and the key has to live somewhere that set-up already has.
    compiled into the binary. Installing by name fetches the index and its signature from
    the release, verifies one against the other with the key the binary carries, and only
    then resolves the name. Nothing else is asked of anybody: no log, no certificate
-   authority, no key server.
+   authority, no key server. An index whose serial is lower than the highest one this
+   machine has verified is refused, so a release the catalogue has replaced cannot be
+   served in its place.
 
 4. **A signature that does not verify is refused**, and so is an index with none, for an
    install by name. An index is the catalogue's claim to have reviewed something; an

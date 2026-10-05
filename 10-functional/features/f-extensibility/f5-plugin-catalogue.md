@@ -133,6 +133,7 @@ something they remember is answered rather than told it does not exist.
 | A plugin's source disappears after installation | Keep it running, mark it unupdatable, and say so rather than failing at the next update attempt. |
 | A plugin installed from a local path whose directory is gone | The same: it cannot be reached, so it is unupdatable. |
 | An install by name finds an index whose signature does not verify, or none | Refuse the install and resolve nothing through that index. Installing from a named source is unaffected. |
+| An install by name finds a verified index older than one this machine has already verified | Refuse the install and resolve nothing through it. A release the catalogue has replaced is not served again by anyone able to repeat an old answer. |
 | A catalogue contribution's proofs fail in CI | Refuse the contribution before merge. The catalogue never serves a plugin whose proofs did not pass. |
 | A contribution's proof fails on a recording its manifest declares it fails on | Accept it on that proof, and name it as failing as declared with its reason, never as passed (`F5-R13`, `F10-R13`). |
 | An operator asks whether a plugin was reviewed | Answerable from the installed plugin itself, not only from the catalogue. |
@@ -155,6 +156,7 @@ something they remember is answered rather than told it does not exist.
 | **F5-R12** | Two plugins of the same name from different origins MUST be refused, naming both origins. |
 | **F5-R13** | The catalogue's CI MUST validate every manifest against the published schema and run every declared proof, and MUST refuse a contribution any of whose proofs is neither passed nor failing as declared ([`F10-R13`](f10-authoring.md)). A proof failing as declared MUST be named as such and MUST NOT be counted as passed. |
 | **F5-R14** | An install by name MUST resolve the name only through a catalogue index whose signature verified against the key lemonfiber carries, and MUST install the revision that index names. |
+| **F5-R15** | An install by name MUST refuse a verified index whose serial is lower than the highest serial this machine has verified, and MUST resolve nothing through it. |
 
 ## Related
 
