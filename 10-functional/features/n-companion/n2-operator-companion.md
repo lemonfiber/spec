@@ -155,6 +155,8 @@ The operator runs everything a member uses, so the operator can open the member'
 application as a member would meet it: the household's default access and
 allowance, in the member theme, marked as a preview. It is nobody in particular.
 A named member's requests and what they watched stay theirs.
+It opens from *View as member* in the operator's menu
+([N28](n28-finding-your-way.md)).
 
 ## States
 

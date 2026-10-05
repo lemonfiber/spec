@@ -59,7 +59,7 @@ about the stack, in five groups:
 
 | Group | Items |
 |-------|-------|
-| **Household** | Requests · Allowance · Stuck downloads · Follow a download |
+| **Household** | Requests · Allowance · Stuck downloads · Follow a download · View as member |
 | **Access** | Invite someone · Front door · Watch apps · Passwords · Pair a phone |
 | **Machine** | Storage · Backups · After a restart · Already installed · Other programs · About · Uninstall |
 | **Settings** | General · Quality · Connections · Bandwidth · Outgoing traffic · Alerts · History · Sources |
@@ -71,6 +71,12 @@ Every item carries an icon beside its label, never in place of it.
 *Allowance* is the operator's reading of what each member of the household may ask
 for and how much of it is left, on a screen of its own with the menu like every
 other.
+
+*View as member* opens the member's application as a member with the household's
+default access and allowance would see it, marked as a preview (`N2-R25`). It is
+not an operator screen, and it is in the menu all the same: the member's app has no
+menu of its own, so it opens over the operator's screens and the platform's way back
+returns to them (`N28-R13`).
 
 A screen that is one step of something begun elsewhere is reached from where it
 begins, not from the menu: taking a copy, putting the configuration back, and
@@ -124,7 +130,7 @@ words are the plain ones (`G2-R3`, `G2-R15`): *Problems* rather than *findings*,
 | **N28-R2** | The stack's name in the top bar MUST open the list of stacks, each with its glyph and a short word for how it stands and the current one marked, and the list MUST offer adding a stack. |
 | **N28-R3** | Choosing a stack from that list MUST open it on the tab the operator last used for it (`N27-R16`). |
 | **N28-R4** | The bottom bar MUST hold exactly four tabs — Health, Services, Updates and Repairs — and MUST mark as current only the tab whose screen is on view, or the tab the screen on view belongs to; what one service is doing and its log belong to Services. |
-| **N28-R5** | Every operator screen about a stack that is not one of the four tabs, a screen belonging to one of them (`N28-R4`), one step of something begun on another screen, or a screen detailing one thing another screen shows MUST be reachable from the menu in the groups this page names, and MUST NOT be reached only from another screen's body. |
+| **N28-R5** | Every operator screen about a stack that is not one of the four tabs, a screen belonging to one of them (`N28-R4`), one step of something begun on another screen, or a screen detailing one thing another screen shows MUST be reachable from the menu in the groups this page names, and MUST NOT be reached only from another screen's body. The menu's **Household** group MUST also hold *View as member*, which opens the member's application as `N2-R25` describes. |
 | **N28-R6** | The menu MUST begin with the current stack and *What's new* with its count, and MUST end with the stack's settings and App settings. |
 | **N28-R7** | Every menu item MUST carry an icon and a label, and the icon MUST NOT stand in for the label (`N4-R21`). |
 | **N28-R8** | The health screen MUST show how the stack stands and what is wrong, MUST offer *What's new* first where anything is new, and MUST NOT list the menu's items. |
