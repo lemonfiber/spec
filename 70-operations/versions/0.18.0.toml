@@ -215,7 +215,10 @@
 # Assistant keys a config entry and its device by it, which neither the address nor the
 # certificate pin can be, so it lands before the integration's member slice (`F12-R2`,
 # `F12-R9`).
-# 321 goals, seeded from the roadmap milestone this version serves;
+# `B3-R17` puts each download client's paused state on the dashboard, so the pause and
+# resume switch `F12-R8` provides shows what the clients say rather than what it last
+# asked, without calling an action to find out.
+# 322 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -556,6 +559,7 @@ goals   = [
     "ARCH-R171",
     "B3-R16",
     "ARCH-R163",
+    "B3-R17",
 ]
 
 # The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion
