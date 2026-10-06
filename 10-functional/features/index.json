@@ -112,7 +112,7 @@
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 237
+      "goals": 302
     },
     {
       "version": "0.19.0",
@@ -154,7 +154,7 @@
       "version": "1.0.0",
       "status": "planned",
       "milestone": "M6",
-      "goals": 17
+      "goals": 19
     }
   ],
   "features": [
@@ -3188,7 +3188,8 @@
       "maturity": "building",
       "shipped": null,
       "milestones": [
-        "M14"
+        "M14",
+        "M6"
       ],
       "milestone": "M14",
       "priority": "P1",
@@ -3217,6 +3218,10 @@
         },
         {
           "version": "0.18.0",
+          "status": "planned"
+        },
+        {
+          "version": "1.0.0",
           "status": "planned"
         }
       ],

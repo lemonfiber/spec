@@ -69,7 +69,7 @@ AWAITING_A_VERSION = {
     # a hand-run with a real VPN provider on the owner's own hardware — not on a
     # decision, and not on anything a runner can reach.
     "F1": ("the other thirteen F1 goals are locked by 0.15.0, released", ["F1-R1"]),
-    # The companion keeps these two, as it keeps N1's app side, and takes no release.
+    # The companion keeps these two and takes no release of its own.
     # Its tests/Arch/TheNamesThisProductGivesTest.php holds G2-R14 and
     # tests/Templates/EveryTargetIsBigEnoughToHitTest.php holds G3-R16, and
     # app-modules/operator/tests/View/Components/ScreenClosesTest.php holds G3-R17.
@@ -85,109 +85,102 @@ AWAITING_A_VERSION = {
         "0.18.0 locks the G10 goals the core answers for, and 0.19.0 those that play; the door a member faces waits on the core",
         ["G10-R12", "G10-R13"],
     ),
-    # The companion app takes no release of its own yet (30-repos/lemonfiber-companion.md),
-    # so nothing schedules N1's app side. Its stack side, the pairing material the stack
-    # produces and the certificate it announces, is locked by 0.17.0.
-    "N1": (
-        "what N1 requires is locked by 0.11.0 at the latest, all released; the app takes no release, and 0.17.0 locks the stack's side of pairing",
-        [f"N1-R{n}" for n in range(1, 73) if n not in (18, 47, 48, 49, 62)],
-    ),
     "N11": (
-        "N11 requires N1, whose app side no version schedules, and E4, locked by 0.14.0, released",
+        "N11 requires N1, whose app side 1.0.0 completes, and E4, locked by 0.14.0, released",
         [f"N11-R{n}" for n in range(1, 11)],
     ),
     "N15": (
-        "N15 requires N1, whose app side no version schedules, and G2, locked by 0.9.0, released",
+        "N15 requires N1, whose app side 1.0.0 completes, and G2, locked by 0.9.0, released",
         [f"N15-R{n}" for n in range(1, 12)],
     ),
     "N18": (
-        "N18 requires N1, whose app side no version schedules, and B1, whose last goal 0.18.0 locks",
+        "N18 requires N1, whose app side 1.0.0 completes, and B1, whose last goal 0.18.0 locks",
         [f"N18-R{n}" for n in range(1, 11)],
     ),
     "N2": (
-        "N2 requires N1, whose app side no version schedules, and C1, C3 and G7, locked by 0.8.0 at the latest, all released",
+        "N2 requires N1, whose app side 1.0.0 completes, and C1, C3 and G7, locked by 0.8.0 at the latest, all released",
         [f"N2-R{n}" for n in range(1, 27)],
     ),
     # N3-R8 is withdrawn, and a withdrawn row is never a goal.
     "N3": (
-        "N3 requires N1, whose app side no version schedules, and D4 and D6, locked by 0.11.0, released",
+        "N3 requires N1, whose app side 1.0.0 completes, and D4 and D6, locked by 0.11.0, released",
         [f"N3-R{n}" for n in range(1, 25) if n not in (8, 17, 18)],
     ),
     "N4": (
-        "N4 requires N1, whose app side no version schedules, and G3, locked by 0.10.0 at the latest, released",
+        "N4 requires N1, whose app side 1.0.0 completes, and G3, locked by 0.10.0 at the latest, released",
         [f"N4-R{n}" for n in range(1, 25)],
     ),
     "N6": (
-        "N6 requires N1, whose app side no version schedules, and E3, locked by 0.14.0 at the latest, released",
+        "N6 requires N1, whose app side 1.0.0 completes, and E3, locked by 0.14.0 at the latest, released",
         [f"N6-R{n}" for n in range(1, 12)],
     ),
     "N8": (
-        "N8 requires N1, whose app side no version schedules, and D2, locked by 0.4.0, released",
+        "N8 requires N1, whose app side 1.0.0 completes, and D2, locked by 0.4.0, released",
         [f"N8-R{n}" for n in range(1, 10)],
     ),
     "N9": (
-        "N9 requires N1, whose app side no version schedules, and D6, locked by 0.11.0, released",
+        "N9 requires N1, whose app side 1.0.0 completes, and D6, locked by 0.11.0, released",
         [f"N9-R{n}" for n in range(1, 12)],
     ),
     "N10": (
-        "N10 requires N1, whose app side no version schedules, and G8, locked by 0.14.0 at the latest, released",
+        "N10 requires N1, whose app side 1.0.0 completes, and G8, locked by 0.14.0 at the latest, released",
         [f"N10-R{n}" for n in range(1, 13)],
     ),
     "N12": (
-        "N12 requires N1, whose app side no version schedules, and D5, locked by 0.12.0, released",
+        "N12 requires N1, whose app side 1.0.0 completes, and D5, locked by 0.12.0, released",
         [f"N12-R{n}" for n in range(1, 11)],
     ),
     # N13-R8 is withdrawn, and a withdrawn row is never a goal.
     "N13": (
-        "N13 requires N1, whose app side no version schedules, and A6, locked by 0.13.0, released",
+        "N13 requires N1, whose app side 1.0.0 completes, and A6, locked by 0.13.0, released",
         [f"N13-R{n}" for n in range(1, 21) if n != 8],
     ),
     "N14": (
-        "N14 requires N1, whose app side no version schedules, and E2, locked by 0.14.0, released",
+        "N14 requires N1, whose app side 1.0.0 completes, and E2, locked by 0.14.0, released",
         [f"N14-R{n}" for n in range(1, 9)],
     ),
     "N16": (
-        "N16 requires N1, whose app side no version schedules, and K2, locked by 0.23.0",
+        "N16 requires N1, whose app side 1.0.0 completes, and K2, locked by 0.23.0",
         [f"N16-R{n}" for n in range(1, 15)],
     ),
     "N17": (
-        "N17 requires N1, whose app side no version schedules, and B9, locked by 0.23.0",
+        "N17 requires N1, whose app side 1.0.0 completes, and B9, locked by 0.23.0",
         [f"N17-R{n}" for n in range(1, 12)],
     ),
     "N19": (
-        "N19 requires N1, whose app side no version schedules, and F1, locked by 0.15.0, released",
+        "N19 requires N1, whose app side 1.0.0 completes, and F1, locked by 0.15.0, released",
         [f"N19-R{n}" for n in range(1, 11)],
     ),
     "N21": (
-        "N21 requires N1, whose app side no version schedules, and D6, whose last goals 0.17.0 locks",
+        "N21 requires N1, whose app side 1.0.0 completes, and D6, whose last goals 0.17.0 locks",
         [f"N21-R{n}" for n in range(1, 12)],
     ),
     "N22": (
-        "N22 requires N1, whose app side no version schedules, and C4, locked by 0.7.0, released",
+        "N22 requires N1, whose app side 1.0.0 completes, and C4, locked by 0.7.0, released",
         [f"N22-R{n}" for n in range(1, 11)],
     ),
     "N23": (
-        "N23 requires N1, whose app side no version schedules, B10, locked by 0.15.0, released, and C7, locked by 0.6.0, released",
+        "N23 requires N1, whose app side 1.0.0 completes, B10, locked by 0.15.0, released, and C7, locked by 0.6.0, released",
         [f"N23-R{n}" for n in range(1, 14)],
     ),
     "N24": (
-        "N24 requires N1, whose app side no version schedules, and D2 and D3, locked by 0.4.0, released",
+        "N24 requires N1, whose app side 1.0.0 completes, and D2 and D3, locked by 0.4.0, released",
         [f"N24-R{n}" for n in range(1, 11)],
     ),
     "N26": (
-        "N26 requires N1, whose app side no version schedules, H1, H2 and H3, locked by 0.20.0, H6 and H8, locked by 0.21.0, and K1, locked by 0.23.0",
+        "N26 requires N1, whose app side 1.0.0 completes, H1, H2 and H3, locked by 0.20.0, H6 and H8, locked by 0.21.0, and K1, locked by 0.23.0",
         [f"N26-R{n}" for n in range(1, 20)],
     ),
     "N27": (
-        "N27 requires N1 and N4, whose app side no version schedules; what they require is locked by 0.11.0 at the latest, released",
+        "N27 requires N1, whose app side 1.0.0 completes, and N4, whose app side no version schedules; what they require is locked by 0.11.0 at the latest, released",
         [f"N27-R{n}" for n in range(1, 26)],
     ),
     "N28": (
-        "N28 requires N1 and N2, whose app side no version schedules, and N27; what N1 and N2 require is locked by 0.11.0 at the latest, released",
+        "N28 requires N1, whose app side 1.0.0 completes, N2, whose app side no version schedules, and N27; what N1 and N2 require is locked by 0.11.0 at the latest, released",
         [f"N28-R{n}" for n in range(1, 15)],
     ),
     "N7": (
-        "N7 requires N1, whose app side no version schedules, and A5, locked by 0.13.0, released",
+        "N7 requires N1, whose app side 1.0.0 completes, and A5, locked by 0.13.0, released",
         [f"N7-R{n}" for n in range(1, 19)],
     ),
 }
