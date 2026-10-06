@@ -884,8 +884,14 @@ on    = "install"
 
 [[recipe.input]]
 name   = "admin-password"
+origin = "operator"
+ask    = "The password you gave Komga's admin account"
+secret = true
+
+[[recipe.input]]
+name   = "sonarr-key"
 origin = "credential-store"
-of     = "komga"
+of     = "sonarr"
 
 [[recipe.step]]
 id      = "sign-in"
@@ -902,9 +908,19 @@ call    = { method  = "POST", to = "komga", path = "/api/v1/libraries",
             headers = { Authorization = "Bearer {{token}}" } }
 expect  = { status = 200 }
 
+[[recipe.step]]
+id      = "series"
+call    = { method  = "GET", to = "sonarr", path = "/api/v3/series",
+            headers = { X-Api-Key = "{{sonarr-key}}" } }
+expect  = { status = 200 }
+
 [[recipe.pair]]
 value = "admin-password"
 to    = "komga"
+
+[[recipe.pair]]
+value = "sonarr-key"
+to    = "sonarr"
 
 [[recipe.pair]]
 value = "token"
@@ -917,8 +933,9 @@ to    = "komga"
 | `on` | string | | `install` or `demand`. Absent means `install`. |
 | `input[].name` | string | ✔ | One word, unique among the recipe's inputs and captures. |
 | `input[].origin` | string | ✔ | `credential-store` or `operator`. |
-| `input[].of` | string | for `credential-store` | The service whose credential lemonfiber already holds. |
+| `input[].of` | string | for `credential-store` | The service of the stack's whose credential lemonfiber already holds. Never one of this plugin's own: lemonfiber holds no key for those. |
 | `input[].ask` | string | for `operator` | The sentence the operator is asked, in one line. |
+| `input[].secret` | boolean | | For `operator`: `true` where the value may be a secret, so a terminal takes it without showing it. Absent means `false`. |
 | `step[].call.method` | string | ✔ | `GET`, `POST`, `PUT`, `PATCH` or `DELETE`. |
 | `step[].call.to` | string | ✔ | A service id in this stack, or a DNS name outside it. Never an address, a range or a bare host port (`F8-R8`). Never a substitution. |
 | `step[].call.path` | string | ✔ | Written out, but for a query value, which may substitute an earlier capture or an input. |
@@ -964,8 +981,18 @@ it (`F8-R3`):
 |--------|------------|---------|
 | `stack-service` | a capture | the step's `to` is a service in this stack |
 | `external-response` | a capture | the step's `to` is a name outside it |
-| `credential-store` | an input | `of` names a service whose credential lemonfiber holds |
-| `operator` | an input | it is supplied when the recipe runs, as `--input <name>=<value>` at the command line and in `inputs` over the web API |
+| `credential-store` | an input | `of` names a service of the stack's whose credential lemonfiber holds, never one of this plugin's own |
+| `operator` | an input | it is supplied when the recipe runs: asked for at a terminal, given as `--input <name>=<value>` at the command line, or in `inputs` over the web API |
+
+**An operator input is asked for when it is not given.** At a terminal, the
+command line asks for each input a recipe of that act needs and was not handed
+with `--input`, in the sentence `ask` writes, and takes one marked `secret`
+without showing what is typed. Without a terminal, and over the web API, a
+missing input is refused as `PLUGIN-34`, naming each one missing, so a client can
+ask for exactly those; an input no recipe of that act asks for is refused the same
+way, naming it. What an operator supplies is never part of the offer, never
+journalled, and never repeated back — not in a report, not in a refusal, and not
+in the prompt's own echo.
 
 An origin that disagrees with where the value comes from is refused, naming
 both. Written rather than derived, so that what the rehearsal and the record say
@@ -1257,6 +1284,8 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | No `{{name}}` in a header's name (`F8-R2`) | Step and header named, as `PLUGIN-33` |
 | Every `origin` is one of the four, and agrees with where the value comes from (`F8-R3`) | Value named, with both origins |
 | A credential-store value is carried, by a pair or a `{{name}}`, only to the service it belongs to (`F8-R16`) | Input, its service and the destination named |
+| Every credential-store input's `of` is a service of the stack's whose credential lemonfiber holds, never one of this plugin's own (`F8-R3`) | Input and service named |
+| `input[].secret` is a boolean, and only on an `operator` input | Input named |
 | Every `to` is a service in this stack with a published port, or a DNS name of two labels or more (`F8-R4`, `F8-R8`) | Destination named |
 | Every `when` names an earlier step or an earlier value | Guard and name given |
 | Every `retry` is within the published bounds | Bound named |
