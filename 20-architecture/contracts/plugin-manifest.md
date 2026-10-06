@@ -1009,6 +1009,27 @@ destination. A plugin may present a credential lemonfiber holds, which is what a
 first-run flow against a bundled service needs; it may not take one somewhere,
 which is what lemonfiber holding it is for.
 
+What a credential is traded for is held the same way. Every value captured by a
+step whose call carries a credential-store value, or a value already held to a
+service this way, is held to that same service, so presenting a password and
+reading back a token does not free the token to go anywhere the password could
+not. Reading the manifest follows this through every step, guards or not, and
+refuses a pair or a `{{name}}` carrying such a capture anywhere else exactly as it
+refuses the credential itself.
+
+**And again at the call** (`F8-R17`). Reading the manifest is the first check, not
+the only one. While a recipe runs, every value it holds carries the destinations it
+may be sent to: the destinations its pairs name, narrowed, for a credential-store
+value and everything held to its service as above, to that service alone. Before a
+call is sent, every value it carries is held to that call's `to`, and a value bound
+for a host outside the stack is held to the approvals this act was given as well,
+as `<value>@<destination>`. A call carrying a value anywhere else is not sent: the
+step comes to `withheld`, the recipe ends there, and the act ends with `PLUGIN-38`,
+naming the value, the destination and the step, never what the value holds. A
+manifest the reading passed meets this refusal only where the reading missed
+something, and what it missed is then a call that was not made rather than a value
+somewhere it may not be.
+
 ### Where a call goes
 
 A destination is one of two things and never a third (`F8-R4`):
@@ -1096,7 +1117,8 @@ after the plugin's proofs and the stack's checks hold and before the record is
 written. A removal runs none. Where one fails, the install goes back as an
 install whose proofs failed goes back, and the act ends with a problem: `PLUGIN-35`
 where a call was refused because its host stands for an address not out on the
-internet, and `PLUGIN-36` where a step failed any other way — nothing answered, the
+internet, `PLUGIN-38` where a call was withheld because a value it carries may not go
+where it was going (`F8-R17`), and `PLUGIN-36` where a step failed any other way — nothing answered, the
 answer was not the one it expects, a capture found nothing, or the answer was larger
 than a recipe reads. The problem's detail names the recipe, the step and each call
 that had already landed somewhere and cannot be put back from here, and its `steps`
@@ -1302,7 +1324,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | No `{{name}}` in a header's name (`F8-R2`) | Step and header named, as `PLUGIN-33` |
 | Every call's `path` is a plain absolute path (`F8-R2`) | Step named, with what is wrong with it, as `PLUGIN-37` |
 | Every `origin` is one of the four, and agrees with where the value comes from (`F8-R3`) | Value named, with both origins |
-| A credential-store value is carried, by a pair or a `{{name}}`, only to the service it belongs to (`F8-R16`) | Input, its service and the destination named |
+| A credential-store value, and every value captured by a step that carried one, is carried, by a pair or a `{{name}}`, only to the service it belongs to (`F8-R16`) | Value, the service it is held to and the destination named |
 | Every credential-store input's `of` is a service of the stack's whose credential lemonfiber holds, never one of this plugin's own (`F8-R3`) | Input and service named |
 | `input[].secret` is a boolean, and only on an `operator` input | Input named |
 | Every `to` is a service in this stack with a published port, or a DNS name of two labels or more (`F8-R4`, `F8-R8`) | Destination named |
