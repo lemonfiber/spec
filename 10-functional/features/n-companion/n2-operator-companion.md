@@ -158,6 +158,10 @@ A named member's requests and what they watched stay theirs.
 It opens from *View as member* in the operator's menu
 ([N28](n28-finding-your-way.md)).
 
+The preview is read only. Asking for something from it would be a real request
+made under the operator, so the control that asks is drawn and cannot be used,
+and a note beside it says a preview cannot ask.
+
 ## States
 
 | State | Meaning |
@@ -210,6 +214,7 @@ It opens from *View as member* in the operator's menu
 | **N2-R23** | While a start the operator asked for runs, the app MUST show what the stack says it is waiting for, from the `start` lines on the event stream, and MUST NOT put a progress indicator of its own in their place (`B2-R2`). |
 | **N2-R24** | The app MUST offer fetching a form's images ahead of starting it, and before the fetch runs MUST say that it may take long and may use a lot of the line, without putting a duration or a size of its own on either (`B2-R12`, `B2-R16`, `N2-R8`). What the fetch came to MUST be shown from the stack's answer. |
 | **N2-R25** | The operator MUST be able to open the member's application as a member with the household's default access and allowance would see it, drawn in the member theme from what the core answers for such a member (`D6-R20`). It MUST be marked as a preview on every screen, and MUST NOT show a named member's requests, allowance or watch history. |
+| **N2-R26** | The member's application opened as a preview (`N2-R25`) MUST NOT send any request, allowance spend or other change to the stack. A control that would do so on a member's own session MUST be drawn and MUST NOT be usable, with a note saying a preview cannot do it. |
 
 ## Notes
 
