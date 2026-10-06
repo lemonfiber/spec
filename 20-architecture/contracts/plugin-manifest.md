@@ -942,7 +942,10 @@ place, because some first-run flows are written that way: Plex is claimed with
 side of a `name=value`, and what it carries is percent-encoded when it is put
 there. It may stand nowhere else in the path: `to`, the path's segments and the
 query's names are written out, so no destination is worked out while running and
-no call is assembled out of something that came back (`F8-R2`).
+no call is assembled out of something that came back (`F8-R2`). A header's name is
+written out too: it is a fixed identifier of the protocol, not a place for a value,
+so a `{{name}}` in one is refused with a code of its own, `PLUGIN-33`, and the
+manifest answers with that code whatever else is wrong with it, listing every fault.
 
 They are also what makes the pair check bite. Every `{{name}}` in a call, a query
 value's included, is a flow from that value to that call's destination, so the set of flows a recipe
@@ -1238,6 +1241,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | A `[[recipe]]` is declared and `requires.capabilities` does not name `recipe.run` | Capability named, never a version |
 | Every `{{name}}` in a call is an earlier capture or an input, and a pair carries it to that call's `to` (`F8-R5`) | Value and destination named |
 | No `{{name}}` in a call's `to`, or in its `path` but for a query value (`F8-R2`) | Step and field named |
+| No `{{name}}` in a header's name (`F8-R2`) | Step and header named, as `PLUGIN-33` |
 | Every `origin` is one of the four, and agrees with where the value comes from (`F8-R3`) | Value named, with both origins |
 | A credential-store value is carried, by a pair or a `{{name}}`, only to the service it belongs to (`F8-R16`) | Input, its service and the destination named |
 | Every `to` is a service in this stack with a published port, or a DNS name of two labels or more (`F8-R4`, `F8-R8`) | Destination named |
