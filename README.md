@@ -7,11 +7,18 @@
 
 <h1 align="center">Specification</h1>
 
-The single source of truth for the Lemonfiber project: what it is, why it's
-built this way, and the standards every repo in the org is held to.
+Lemonfiber is a fully open-source, self-hosted media automation stack you can
+run in narrow parts — "just search", "just download", "everything" — driven by
+one binary that sets itself up. This repository is its specification: what the
+product must do, why it is built the way it is, and the standards every
+repository in the organisation is held to.
 
-This repo contains **no code**. It spans the implementation repos and owns every
-cross-cutting decision between them.
+It contains **no code**. Every change to the code cites a requirement written
+here first.
+
+**Looking for how to install or use lemonfiber?** That is
+[docs.lemonfiber.app](https://docs.lemonfiber.app), which also renders this
+specification, searchable, at [docs.lemonfiber.app/spec](https://docs.lemonfiber.app/spec/).
 
 <p align="center">
   <a href="https://github.com/lemonfiber/spec/actions/workflows/integrity.yml"><img alt="integrity" src="https://github.com/lemonfiber/spec/actions/workflows/integrity.yml/badge.svg"></a>
@@ -21,29 +28,12 @@ cross-cutting decision between them.
 
 ---
 
-## The org at a glance
+## The repositories
 
-| Repo | What it is | Language | Licence |
-|------|-----------|----------|---------|
-| **[spec](https://github.com/lemonfiber/spec)** | This repo. Functional + technical specification. | Markdown | CC BY-SA 4.0 |
-| **[lemonfiber](https://github.com/lemonfiber/lemonfiber)** | The `lemonfiber` binary — CLI, TUI and web UI that sets up, runs, and diagnoses the stack. | Rust | Hippocratic 3.0 |
-| **[lemonfiber-media-stack](https://github.com/lemonfiber/lemonfiber-media-stack)** | Docker Compose definitions, service profiles, app configs. | YAML/TOML | Hippocratic 3.0 |
-| **[lemonfiber-plugins](https://github.com/lemonfiber/lemonfiber-plugins)** | The reviewed plugin catalogue — where a plugin is registered to be found, never a runtime dependency. | TOML | Hippocratic 3.0 |
-| **[lemonfiber-web](https://github.com/lemonfiber/lemonfiber-web)** | The web surface — a single-page app over the binary's local HTTP API ([ADR-0011](00-overview/decisions/0011-web-surface-as-a-fifth-repo.md)). | TypeScript | Hippocratic 3.0 |
-| **[lemonfiber-companion](https://github.com/lemonfiber/lemonfiber-companion)** | The phone surface — a native app that operates a stack through `sdk-php` ([ADR-0017](00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)). | PHP | Hippocratic 3.0 |
-| **[sdk-ts](https://github.com/lemonfiber/sdk-ts)** | The TypeScript API client, `@lemonfiber/sdk-ts` ([ADR-0013](00-overview/decisions/0013-an-sdk-owns-the-api-client.md)). | TypeScript | Hippocratic 3.0 |
-| **[sdk-php](https://github.com/lemonfiber/sdk-php)** | The PHP API client, generated from the same contract ([ADR-0014](00-overview/decisions/0014-one-generated-contract-for-every-sdk.md)). | PHP | Hippocratic 3.0 |
-| **[website-lemonfiber.app](https://github.com/lemonfiber/website-lemonfiber.app)** | The public frontpage — roadmap, progress and repo state read from the org at build time. | Astro | Hippocratic 3.0 |
-| **[website-docs.lemonfiber.app](https://github.com/lemonfiber/website-docs.lemonfiber.app)** | The documentation site — each repo's own docs, pinned and rendered ([ADR-0015](00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)). | Astro | Hippocratic 3.0 |
-| **[brand](https://github.com/lemonfiber/brand)** | Design system — logo, colour, type tokens. `@lemonfiber/brand`. | CSS/SVG | Marks proprietary; tokens/docs open |
-| **[homebrew-tap](https://github.com/lemonfiber/homebrew-tap)** | The Homebrew formula — a placeholder until `lemonfiber`'s release CI generates it at `1.0.0` (`L1-R3`). | Ruby | Hippocratic 3.0 |
-| **[.github](https://github.com/lemonfiber/.github)** | Org-wide community health files, inherited by every repo. | Markdown | CC BY-SA 4.0 |
-
-All thirteen are live. The org's `plugin-*` repositories — plugins and their template — sit outside this map ([30-repos](30-repos/README.md)).
-
-**In one sentence:** a fully open-source, self-hosted media automation stack you
-can run in narrow slices — "just search", "just download", "everything" —
-driven by a single cross-platform binary that sets itself up.
+[30-repos](30-repos/README.md) lists every repository this specification
+governs, what each one is, and how they depend on each other. That table is
+generated from [`30-repos/repos.toml`](30-repos/repos.toml), so it is always
+complete.
 
 ---
 
@@ -107,19 +97,18 @@ trailers and PR bodies — **never in code comments**
 | 00-overview | Accepted | Vision, glossary, roadmap, 38 ADRs |
 | 10-functional | Accepted | The [feature board](10-functional/features/BOARD.md) — features, requirements, areas — and 9 journeys |
 | 20-architecture | Accepted | System context, component model, data flow, platform matrix, 10 contracts |
-| 30-repos | Accepted | All thirteen repos: `spec`, `lemonfiber` (+ TUI + reference), `lemonfiber-web`, `lemonfiber-companion`, `sdk-ts`, `sdk-php`, `lemonfiber-media-stack`, `lemonfiber-plugins`, `brand`, `homebrew-tap`, `website-lemonfiber.app`, `website-docs.lemonfiber.app`, `.github` |
+| 30-repos | Accepted | A page per repository, and the [repository map](30-repos/README.md) |
 | 40-quality | Accepted | Comment policy, code standards, testing, CI/CD, security, definition of done |
 | 50-governance | Accepted | Canonical spec rule, change lifecycle, cross-repo CI, contributing |
 | 60-brand | Accepted | Brand rules, surface mapping, accessibility contract |
 | 70-operations | Accepted | Releasing, setup registry, project workflow, maintainers |
 
-The v1 spec is complete and **the ecosystem is specified** (areas H–K plus F3;
-the runtime pillar J, the companion area N apart from N1, N11 and N15, and F8, F11
-and G10 are Draft).
-Implementation is under way: the
-[version train](00-overview/roadmap.md#the-version-train) runs to 1.0, and
-[releases](https://github.com/lemonfiber/lemonfiber/releases) say where it has
-reached.
+Each feature page states its own status at the top; the
+[feature board](10-functional/features/BOARD.md) shows them all in one place.
+Implementation is under way: the [roadmap](00-overview/roadmap.md) plans the
+releases up to 1.0, and the
+[releases](https://github.com/lemonfiber/lemonfiber/releases) show how far it
+has got.
 
 This is a spec-first project: the functional spec landed before the technical one
 deliberately, so that **every architectural decision can be justified against a
