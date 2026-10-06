@@ -921,7 +921,7 @@ to    = "komga"
 | `input[].ask` | string | for `operator` | The sentence the operator is asked, in one line. |
 | `step[].call.method` | string | ✔ | `GET`, `POST`, `PUT`, `PATCH` or `DELETE`. |
 | `step[].call.to` | string | ✔ | A service id in this stack, or a DNS name outside it. Never an address, a range or a bare host port (`F8-R8`). Never a substitution. |
-| `step[].call.path` | string | ✔ | Written out. Never a substitution. |
+| `step[].call.path` | string | ✔ | Written out, but for a query value, which may substitute an earlier capture or an input. |
 | `step[].call.headers` | table | | Headers the call carries. A value may substitute an earlier capture or an input. |
 | `step[].call.body` | string | | The body the call carries. It may substitute an earlier capture or an input. |
 | `step[].capture[].name` | string | ✔ | One word, unique within the recipe. |
@@ -936,13 +936,16 @@ to    = "komga"
 and `body` are it. Without them a recipe can name a destination and capture a
 value and has no way to carry one to the other — which is every first-run flow
 this feature exists for, since creating an account and reading back a token is
-worth nothing if the token cannot then be presented. They are the only places a
-`{{name}}` is read: `to` and `path` are written out, so no destination is worked
-out while running and no call is assembled out of something that came back
-(`F8-R2`).
+worth nothing if the token cannot then be presented. A query value is the third
+place, because some first-run flows are written that way: Plex is claimed with
+`POST /:/claim?token=…`. After the path's `?`, a `{{name}}` may stand on the value
+side of a `name=value`, and what it carries is percent-encoded when it is put
+there. It may stand nowhere else in the path: `to`, the path's segments and the
+query's names are written out, so no destination is worked out while running and
+no call is assembled out of something that came back (`F8-R2`).
 
-They are also what makes the pair check bite. Every `{{name}}` in a call is a
-flow from that value to that call's destination, so the set of flows a recipe
+They are also what makes the pair check bite. Every `{{name}}` in a call, a query
+value's included, is a flow from that value to that call's destination, so the set of flows a recipe
 could produce is computable by reading it — and a flow with no
 `[[recipe.pair]]` behind it fails validation before a call is made
 ([ADR-0022](../../00-overview/decisions/0022-a-recipe-declares-pairs-not-lists.md)).
@@ -1224,7 +1227,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | Every `doctor.check` carries a `doctor.remedy` naming it | Check named |
 | A `[[recipe]]` is declared and `requires.capabilities` does not name `recipe.run` | Capability named, never a version |
 | Every `{{name}}` in a call is an earlier capture or an input, and a pair carries it to that call's `to` (`F8-R5`) | Value and destination named |
-| No `{{name}}` in a call's `to` or `path` (`F8-R2`) | Step and field named |
+| No `{{name}}` in a call's `to`, or in its `path` but for a query value (`F8-R2`) | Step and field named |
 | Every `origin` is one of the four, and agrees with where the value comes from (`F8-R3`) | Value named, with both origins |
 | Every `to` is a service in this stack with a published port, or a DNS name of two labels or more (`F8-R4`, `F8-R8`) | Destination named |
 | Every `when` names an earlier step or an earlier value | Guard and name given |
