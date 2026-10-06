@@ -218,7 +218,11 @@
 # `B3-R17` puts each download client's paused state on the dashboard, so the pause and
 # resume switch `F12-R8` provides shows what the clients say rather than what it last
 # asked, without calling an action to find out.
-# 322 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R164` has the rehearsal of each rehearsable action a key may call answer an offer,
+# and a call carrying it refused where the stack moved since, as the plugin writes are;
+# a call carrying none acts as before. Home Assistant's controls rehearse and then act
+# (`F12-R8`), so what they carry out is what they were shown.
+# 323 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -548,6 +552,7 @@ goals   = [
     "ARCH-R159",
     "ARCH-R160",
     "ARCH-R161",
+    "ARCH-R164",
     "ARCH-R162",
     "ARCH-R170",
     "A4-R13",
