@@ -426,8 +426,11 @@ built from it.
 **A recipe runs on install or on demand**, as its manifest says. An install recipe
 runs inside `plugin-install` and `plugin-update`; a demand recipe runs only through
 `plugin-run`, which names the plugin and the recipe. `inputs` carries each value a
-recipe asks the operator for, as `name=value`, and is refused naming any input no
-recipe of that act asks for and any it asks for that is missing.
+recipe asks the operator for, as `name=value`, on `plugin-install`, `plugin-update`
+and `plugin-run` alike. Until every one is given the act is refused as `PLUGIN-34`,
+naming each input missing, so a client can ask the operator for exactly those; one no
+recipe of that act asks for is refused the same way, naming it. An input is never part
+of the offer and is never repeated back.
 
 **What a recipe would send is agreed to as itself.** A rehearsal whose recipe would
 carry a value to an external host lists each pair: the value's name, where it comes from,
