@@ -1,0 +1,91 @@
+# Where every goal of every unreleased version stands — OPS-R76, OPS-R77.
+#
+# Reads every repository a version is satisfied in at its default branch, and
+# every open pull request in them, and writes the report to the `state` branch:
+# STATE.md for a person, state.json for a script. One commit, replaced each run,
+# because the report is a reading of now; what changed and when is in the
+# repositories it reads. `just goals <version>` writes the same from local
+# checkouts.
+#
+# Hourly, on demand, and whenever a manifest or the report's own code changes on
+# `main`, so a goal moved between versions shows where it went within the run.
+name: state
+
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "70-operations/versions/**"
+      - "scripts/goals.py"
+      - "scripts/open_prs.sh"
+      - "scripts/status_check.py"
+      - ".github/workflows/state.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: state
+  cancel-in-progress: true
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      # The one write: replacing the `state` branch's single commit.
+      contents: write
+    steps:
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Clone every repository a version is satisfied in
+        run: |
+          set -euo pipefail
+          python3 scripts/status_check.py repos --spec . > repos.txt
+          # Whole history, no file contents: the report reads every commit
+          # message and two files at the tip, and a citation it cannot see reads
+          # as work never done.
+          while read -r r; do
+            [ -n "$r" ] || continue
+            git clone --quiet --filter=blob:none "https://github.com/lemonfiber/${r}.git" "checkouts/${r}"
+          done < repos.txt
+
+      - name: Every open pull request in them, for claims
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          mapfile -t repos < repos.txt
+          bash scripts/open_prs.sh "$OWNER" "${repos[@]}" > prs.json
+
+      - name: Write the report
+        run: |
+          set -euo pipefail
+          args=()
+          while read -r r; do [ -n "$r" ] && args+=(--checkout "${r}=checkouts/${r}"); done < repos.txt
+          python3 scripts/goals.py --spec . "${args[@]}" --ref HEAD --prs prs.json \
+            --markdown STATE.md --json state.json
+          cat STATE.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Replace the state branch with it
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir publish
+          mv STATE.md state.json publish/
+          cd publish
+          git init -q -b state
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add STATE.md state.json
+          git commit -q -m "chore(state): where every unreleased version stands"
+          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" state
