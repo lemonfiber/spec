@@ -133,6 +133,15 @@ saying a guarantee the operator believes is in force is not.
 is given is derived from what the stack runs rather than asked for, so a parameter here would be
 a way for one surface to be told a different door from another.
 
+`/api/requests` answers with the household and what each member has asked for, the same
+document `lemonfiber household --json` writes. Each request carries what a member's own screen
+needs to show it without asking anything else: the kind of title it is, the year that title came
+out, when it arrived on the media server, and the identifier the media server holds it under,
+which is the identifier `/api/held` names it by, so a request that has arrived can be found on
+the shelf. A value that cannot be known is left out rather than written as an empty one: the year
+until a request has been handed to the service that files it, and the arrival and the identifier
+until the title is on the media server (`ARCH-R161`).
+
 `/api/news` takes none, because what is new is decided by whoever reads it rather than by the
 stack. It answers with the items a surface can mark as new, newest first within each kind: the
 releases in the stack's record, each by its version; the household's requests, each by its
@@ -770,6 +779,7 @@ generation has not been used.
 | **ARCH-R158** | A member's stream MUST emit the heartbeat, resume and mark values gathered before a gap as stale as the operator's does (`ARCH-R50`, `ARCH-R51`), and MUST end when the member is removed or their key is revoked. |
 | **ARCH-R159** | The contract artefact MUST list every read the web API serves, each with its path, the query parameters it takes and whether each may be given more than once, and the kind it answers with or that it answers with a file, generated from the tables the surface routes and refuses reads by rather than written beside them. |
 | **ARCH-R160** | Each action the artefact publishes as callable by a key MUST also say whether calling it again with the same arguments leaves the stack as calling it once did. |
+| **ARCH-R161** | Each request in the household document `GET /api/requests` and `lemonfiber household --json` answer with MUST carry the kind of title it asked for, the year that title came out, when it arrived on the media server, and the identifier the media server holds it under, as `GET /api/held` names it. The year MUST be absent until the request has been handed to the service that files it, and the arrival and the identifier MUST be absent until the title is on the media server, never present as null. |
 | **ARCH-R162** | The event stream MUST carry an `alert` event when an alert starts and when it resolves, carrying what happened, what it means, what to do, its severity and which way it went, and an identity that is the same for an onset and the resolution that ends it and differs for each recurrence. |
 
 ## Shapes are generated; semantics are not
