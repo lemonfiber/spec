@@ -76,7 +76,8 @@ other.
 default access and allowance would see it, marked as a preview (`N2-R25`). It is
 not an operator screen, and it is in the menu all the same: the member's app has no
 menu of its own, so it opens over the operator's screens and the platform's way back
-returns to them (`N28-R13`).
+returns to them (`N28-R13`). The preview's mark carries a way back as well, because a
+member's screens offer nothing else that leads to the operator's (`N28-R14`).
 
 A screen that is one step of something begun elsewhere is reached from where it
 begins, not from the menu: taking a copy, putting the configuration back, and
@@ -139,6 +140,7 @@ words are the plain ones (`G2-R3`, `G2-R15`): *Problems* rather than *findings*,
 | **N28-R11** | With no stack paired there MUST be no menu, top-bar switcher or bottom bar (`N1-R35`), and while the app is locked none of them MUST be drawn (`N4-R24`). Signing in to a stack MUST show the switcher and the menu, and MUST NOT show the bottom bar. |
 | **N28-R12** | Labels MUST wrap rather than be cut off at the phone's text size, and a shortened stack name MUST be read whole to a screen reader (`N4-R14`). |
 | **N28-R13** | A screen opened over another MUST offer the platform's own way back: its back control and, on iOS, the edge swipe. A screen with nothing beneath it MUST NOT offer one. |
+| **N28-R14** | Every screen of the member's application opened as a preview (`N2-R25`) MUST carry, in the mark that says it is a preview, a control that returns to the operator's screen it was opened from, as well as the platform's own way back (`N28-R13`). |
 
 ## Notes
 
