@@ -70,6 +70,7 @@ from dataclasses import dataclass
 import metafm
 from catalogue import FEATURE_DOCS
 from integrity import elsewhere
+from paths import within_cwd
 from patterns import REQ_DEF, REQ_RETIRED_ROW
 
 #: Where a repository keeps its tracker.
@@ -111,6 +112,38 @@ class Row:
         return self.state == DONE
 
 
+def table_faults(table: dict, here: str, seen: set[str]) -> list[str]:
+    """What is wrong with one `[[requirement]]` table, noting its identifier as seen."""
+    faults = [f"{here}: carries `{key}`, which is not one of {', '.join(REQUIRED + OPTIONAL)}"
+              for key in table if key not in REQUIRED + OPTIONAL]
+    faults += [f"{here}: has no `{key}`" for key in REQUIRED if key not in table]
+    ident, state = table.get("id"), table.get("state")
+    if ident is not None:
+        faults += identifier_faults(ident, here, seen)
+    if state is not None and state not in STATES:
+        faults.append(f"{here}: `{state}` is not one of {', '.join(STATES)}")
+    evidence = table.get("evidence", [])
+    if not isinstance(evidence, list) or not all(isinstance(e, str) and e for e in evidence):
+        faults.append(f"{here}: `evidence` has to be a list of paths")
+    elif state == DONE and not evidence:
+        faults.append(f"{here}: {ident} is done and names no evidence; name the code and "
+                      "the test that hold it")
+    landed = table.get("landed")
+    if landed is not None and (not isinstance(landed, str) or not SHA.match(landed)):
+        faults.append(f"{here}: `landed` has to be a commit's hexadecimal name")
+    return faults
+
+
+def identifier_faults(ident: object, here: str, seen: set[str]) -> list[str]:
+    """Whether a row's identifier is one, and the first row to name it."""
+    if not isinstance(ident, str) or not IDENTIFIER.match(ident):
+        return [f"{here}: `{ident}` is not a requirement identifier"]
+    if ident in seen:
+        return [f"{here}: {ident} is recorded twice; one row says where a requirement stands"]
+    seen.add(ident)
+    return []
+
+
 def shape(data: dict, where: str) -> list[str]:
     """What is wrong with the file's shape, before anything it says is read."""
     faults = [f"{where}: `{key}` is not something a tracker holds; only "
@@ -121,34 +154,10 @@ def shape(data: dict, where: str) -> list[str]:
     seen: set[str] = set()
     for number, table in enumerate(tables, start=1):
         here = f"{where}, requirement {number}"
-        if not isinstance(table, dict):
+        if isinstance(table, dict):
+            faults += table_faults(table, here, seen)
+        else:
             faults.append(f"{here}: is not a table")
-            continue
-        faults += [f"{here}: carries `{key}`, which is not one of "
-                   f"{', '.join(REQUIRED + OPTIONAL)}"
-                   for key in table if key not in REQUIRED + OPTIONAL]
-        faults += [f"{here}: has no `{key}`" for key in REQUIRED if key not in table]
-        ident, state = table.get("id"), table.get("state")
-        if ident is not None:
-            if not isinstance(ident, str) or not IDENTIFIER.match(ident):
-                faults.append(f"{here}: `{ident}` is not a requirement identifier")
-            elif ident in seen:
-                faults.append(f"{here}: {ident} is recorded twice; one row says "
-                              "where a requirement stands")
-            else:
-                seen.add(ident)
-        if state is not None and state not in STATES:
-            faults.append(f"{here}: `{state}` is not one of {', '.join(STATES)}")
-        evidence = table.get("evidence", [])
-        if not isinstance(evidence, list) or not all(isinstance(e, str) and e
-                                                     for e in evidence):
-            faults.append(f"{here}: `evidence` has to be a list of paths")
-        elif state == DONE and not evidence:
-            faults.append(f"{here}: {ident} is done and names no evidence; name "
-                          "the code and the test that hold it")
-        landed = table.get("landed")
-        if landed is not None and (not isinstance(landed, str) or not SHA.match(landed)):
-            faults.append(f"{here}: `landed` has to be a commit's hexadecimal name")
     return faults
 
 
@@ -312,13 +321,14 @@ def reopened(spec: pathlib.Path, done: set[str]) -> list[str]:
 
 
 def pairs(specs: list[str], flag: str) -> dict[str, pathlib.Path]:
-    """`name=path` arguments as a mapping, refusing one that is not."""
+    """`name=path` arguments as a mapping, refusing one that is not or that
+    leaves the working directory."""
     found = {}
     for spec in specs:
         name, sep, raw = spec.partition("=")
         if not sep or not name or not raw:
             raise Unreadable(f"{flag} wants name=path, got {spec!r}")
-        found[name] = pathlib.Path(raw)
+        found[name] = within_cwd(raw)
     return found
 
 
@@ -348,7 +358,7 @@ def main() -> int:
     names.add_argument("--spec", required=True)
     args = parser.parse_args()
 
-    spec = pathlib.Path(args.spec)
+    spec = within_cwd(args.spec)
     if not (spec / "70-operations" / "versions").is_dir():
         print(f"::error::no version manifests under {spec}")
         return 2
@@ -361,17 +371,18 @@ def main() -> int:
                         for name, path in pairs(args.tracker, "--tracker").items()]
             done = done_in(trackers)
             if args.legacy:
-                done |= legacy_done(pathlib.Path(args.legacy))
+                done |= legacy_done(within_cwd(args.legacy))
             return report(reopened(spec, done),
                           "every finished feature is done whole across the trackers.")
-        status = pathlib.Path(args.status)
-        rows = read(status, pathlib.Path(args.repo_root).resolve().name)
+        status = within_cwd(args.status)
+        root = within_cwd(args.repo_root)
+        rows = read(status, root.name)
         if rows is None:
-            print(f"status-check: no tracker in this shape at {status} — nothing to check")
+            print(f"status-check: no tracker in this shape at {args.status} — nothing to check")
             return 0
         siblings = pairs(args.sibling, "--sibling")
-        return report(check(rows, str(status), spec, pathlib.Path(args.repo_root), siblings),
-                      f"every row of {status} is backed.")
+        return report(check(rows, args.status, spec, root, siblings),
+                      f"every row of {args.status} is backed.")
     except Unreadable as refused:
         for line in str(refused).splitlines():
             print(f"::error::{line}")

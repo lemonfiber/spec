@@ -38,17 +38,9 @@ import tomllib
 
 import status_check
 import tracker
+from paths import within_cwd
 from patterns import CITE, LANDED, RANGE
 from patterns import SPEC_TRAILER as TRAILER
-
-
-def within_cwd(raw: str) -> pathlib.Path:
-    """Resolve a CLI-supplied path, refusing anything outside the working tree."""
-    path = pathlib.Path(raw).resolve()
-    if not path.is_relative_to(pathlib.Path.cwd().resolve()):
-        print(f"::error::path escapes the working directory: {raw}")
-        raise SystemExit(2)
-    return path
 
 
 def git(path: pathlib.Path, *args: str) -> str:

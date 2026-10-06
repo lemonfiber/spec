@@ -188,8 +188,9 @@ class EachClaimIsBacked(Tree):
 
 class TheShapeIsRefusedBeforeItIsRead(Tree):
     def refused(self, body):
+        path = self.tracker(body)
         with self.assertRaises(status_check.Unreadable) as caught:
-            status_check.read(self.tracker(body), "repo")
+            status_check.read(path, "repo")
         return str(caught.exception)
 
     def test_an_absent_file_is_no_tracker(self):

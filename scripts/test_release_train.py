@@ -396,9 +396,10 @@ class PerRepositoryTrackers(Workspace):
     def test_a_tracker_that_cannot_be_read_stops_the_gate(self):
         self.repo("checkouts/lf")
         self.tracker("checkouts/lf", '[[requirement]]\nid = "C1-R3"\nstate = "done"\n')
+        repos = gate.parse_repos(["lf=checkouts/lf"])
         out = io.StringIO()
         with contextlib.redirect_stdout(out), self.assertRaises(SystemExit) as exit:
-            gate.trackers(gate.parse_repos(["lf=checkouts/lf"]))
+            gate.trackers(repos)
         self.assertEqual(exit.exception.code, 2)
         self.assertIn("names no evidence", out.getvalue())
 
