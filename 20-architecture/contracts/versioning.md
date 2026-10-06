@@ -164,6 +164,16 @@ Every payload carries `api_version`. Additive changes leave it alone; removing o
 retyping a field increments it. Scripts can assert on it rather than
 pattern-matching output shapes.
 
+A narrower break lands without moving it only as a declaration: the field, how it moved
+and why, written into the core's list of declared breaks under the version it was
+accepted at. The check holding the contract to its committed surface accepts exactly that
+change and refuses every other, another change to the same field included. Moving
+`api_version` leaves a declaration accepting nothing.
+
+| Field | Under | Moved | Why |
+|-------|-------|-------|-----|
+| `PluginPair.approval` | 1 | May be absent, from 0.18.0 | A pair to a service in the stack carries nothing off the machine and asks for no approval, so it carries none. A pair to an external host carries one. |
+
 ## What a release declares about the stack it carries
 
 `schema_version` protects a reader from a manifest it cannot parse, and the embedded

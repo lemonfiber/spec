@@ -418,14 +418,17 @@ carry a value to an external host lists each pair: the value's name, where it co
 and the destination by name, never a resolved address. The write takes the approval of
 each pair in `approved`, apart from `offer`, and refuses where one is missing; the offer
 still covers the list, so a pair that changed is refused as a moved offer (`ARCH-R147`).
+A pair to a service in the stack is listed too and carries no `approval`: nothing it
+carries leaves the machine, so there is nothing to agree to, and an approval written for
+it is refused as one no pair asks for.
 An approval is given to the act that carries it and to no other: a pair approved at
 install is asked for again by a demand recipe that carries it, and by each run of it.
 The rehearsal lists the recipe's steps in order and names each adapter as lemonfiber's
 (`ARCH-R148`), and a call refused because an external name answered from inside the
 network ends with a code of its own, apart from a network that failed (`ARCH-R149`).
 Every recipe, pair, destination and adapter field is present on a rehearsal and on the
-record, an empty list where there is none, so *none* is never confused with *not read*
-(`ARCH-R150`).
+record, an empty list where there is none, so *none* is never confused with *not read*;
+a pair's `approval` is present exactly where the pair leaves the machine (`ARCH-R150`).
 
 The installed plugins and the wiring each ride the event stream as their envelope: a
 `plugins` event and a `wiring` event, sent when a client connects and whenever either
@@ -731,7 +734,7 @@ generation has not been used.
 | **ARCH-R147** | A rehearsal whose recipe would carry a value to an external host MUST list each pair as the value's name, its origin and the destination by name, never a resolved address; the write MUST take the approval of each pair as an argument apart from `offer`, and MUST refuse where any pair is not approved. |
 | **ARCH-R148** | A rehearsal MUST list the steps its recipe would run, in order, and MUST name each adapter a step uses as lemonfiber's. |
 | **ARCH-R149** | A call refused because an external name resolved to a loopback, private or link-local address MUST end with a listed problem code apart from the one a failed network ends with. |
-| **ARCH-R150** | Every recipe, pair, destination and adapter field MUST be present on a rehearsal and on the installed record, an empty list where there is none. |
+| **ARCH-R150** | Every recipe, pair, destination and adapter field MUST be present on a rehearsal and on the installed record, an empty list where there is none, except a pair's `approval`, which MUST be present exactly where the pair carries a value to an external host. |
 | **ARCH-R151** | The event stream MUST carry a `plugins` event and a `wiring` event, each with its envelope, sent when a client connects and whenever the installed record or the wiring changes. |
 | **ARCH-R152** | A git source named to `plugin-install` or `plugin-update` MUST be fetched over https from a host that resolves to no loopback, private or link-local address, checked when the fetch is made and for every redirect, and a source refused so MUST end with a listed problem code. |
 | **ARCH-R153** | The web API MUST answer `GET /api/plugins/catalogue` with the plugins the verified catalogue index lists, as `lemonfiber plugin catalogue --json` answers, and MUST NOT list an entry the index's signature does not cover. |
