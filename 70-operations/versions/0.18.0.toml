@@ -190,7 +190,13 @@
 # and what they are playing and nothing of the operator's. `F12-R5` asks for active streams,
 # `F12-R9` for what a member is playing and `F12-R7` for state that follows the stream, and
 # the core refused every member the stream, so this version holds the three with them.
-# 305 goals, seeded from the roadmap milestone this version serves;
+#
+# `ARCH-R159` and `ARCH-R160` put in the artefact what the MCP server generates its tools
+# from: every read the surface serves, with its path, its parameters and the kind it
+# answers with, and whether repeating each action a key may call is safe. Without them
+# `F13-R2` would generate from a list somebody wrote, and `F13-R5` could not state whether a
+# write is idempotent.
+# 307 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -515,6 +521,8 @@ goals   = [
     "ARCH-R156",
     "ARCH-R157",
     "ARCH-R158",
+    "ARCH-R159",
+    "ARCH-R160",
 ]
 
 # The companion's N1 rows that are built are locked here, where the companion is searched:
