@@ -5,7 +5,7 @@ kind: feature
 area: L
 audience: operator
 status: accepted
-maturity: planned
+maturity: built
 labels: [release]
 relates: [L1, C6, E2]
 ---
