@@ -79,17 +79,20 @@ printf '%s' '{{"digest": "{DIGEST}"}}'
 """
 
 #: Stands in for `gh`. Logs every call; `GH_HELD` lists `repo=sha` for each
-#: repository already carrying the tag, and `GH_BRANCH_LEFT` says an earlier run
-#: left its record branch behind.
+#: repository already carrying the tag, `GH_REFS_FAIL` makes the tag lookup itself
+#: fail, and `GH_BRANCH_LEFT` says an earlier run left its record branch behind.
+#: The lookup answers as `matching-refs` filtered to the exact tag does: the commit
+#: where the tag is held, and nothing at all where it is not.
 GH = f"""#!/bin/sh
 printf '%s\\n' "$*" >> "$GH_LOG"
 case "$*" in
-  "api repos/"*"/git/ref/tags/"*)
+  "api repos/"*"/git/matching-refs/tags/"*)
+    [ -z "${{GH_REFS_FAIL:-}}" ] || {{ echo "gh: Server Error (HTTP 502)" >&2; exit 1; }}
     repo=$(printf '%s' "$2" | cut -d/ -f3)
     for pair in ${{GH_HELD:-}}; do
       case "$pair" in "$repo="*) printf '%s\\n' "${{pair#*=}}"; exit 0 ;; esac
     done
-    echo "gh: Not Found (HTTP 404)" >&2; exit 1 ;;
+    exit 0 ;;
   "api repos/"*"/git/ref/heads/main "*) echo "{SHA}" ;;
   "api repos/"*"/git/ref/heads/"*) [ -n "${{GH_BRANCH_LEFT:-}}" ] || exit 1 ;;
   "pr create "*) echo "https://github.com/o/spec/pull/1" ;;
@@ -323,6 +326,17 @@ class TheSteps(unittest.TestCase):
                                      GH_HELD=f"lemonfiber={SHA}")
                 self.assertEqual(done.returncode, 1)
                 self.assertIn(f"::error::lemonfiber carries {tag} at {SHA[:8]}, not {head[:8]}", done.stdout)
+                self.assertFalse([call for call in self.calls() if "POST" in call])
+
+    def test_the_tag_loop_stops_where_the_tag_cannot_be_looked_up(self):
+        """A lookup that failed says nothing about the tag, so nothing is tagged on it."""
+        for workflow in LANES:
+            with self.subTest(workflow):
+                self.fresh()
+                self.tagging()
+                done = self.run_step(workflow, TAG_LOOP, GH_LOG=str(self.log), OWNER="o", GH_REFS_FAIL="1")
+                self.assertNotEqual(done.returncode, 0)
+                self.assertNotIn("carries", done.stdout)
                 self.assertFalse([call for call in self.calls() if "POST" in call])
 
     def manifest(self, recorded: str = ""):
