@@ -284,8 +284,11 @@ jobs:
             # A run that stopped part-way through this loop is finished by running
             # it again: a repository already carrying the tag at this commit is
             # passed over. One carrying it at another commit is refused, since a
-            # tag cut twice is two artefacts answering to one name.
-            held=$(gh api "repos/${OWNER}/${r}/git/ref/tags/${TAG}" --jq '.object.sha' 2>/dev/null || true)
+            # tag cut twice is two artefacts answering to one name. The lookup lists
+            # matching refs, which answers an empty list where there is no tag, so a
+            # failed call stops the run rather than reading as a tag held elsewhere.
+            held=$(gh api "repos/${OWNER}/${r}/git/matching-refs/tags/${TAG}" \
+              --jq ".[] | select(.ref == \"refs/tags/${TAG}\") | .object.sha")
             if [ "$held" = "$sha" ]; then
               echo "${r} already carries ${TAG} @ ${sha:0:8}."
               continue
