@@ -66,6 +66,7 @@ GET /api/history
 GET /api/update?…
 GET /api/news
 GET /api/plugins       GET /api/wiring
+GET /api/playing
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -155,6 +156,22 @@ the bundle itself, because a browser has no path on the host to be told and hand
 over is the only form `--out` can take on a screen. The name is resolved beneath the bundles
 directory rather than followed, so one carrying a path, or climbing out of that directory, is
 refused by name.
+
+### What is playing
+
+```
+GET /api/playing
+```
+
+The `playing` envelope `lemonfiber playing --json` prints: every session the media server is
+playing now, each naming the member watching and what they are watching, so how many are
+playing is read off the list rather than kept beside it. The operator, and a `read` or `act`
+key, are answered with every session. A member, and a key scoped to one, are answered with
+their own sessions and nobody else's (`ARCH-R156`).
+
+The narrowing is the command's, not the reply's. What runs names the member who asked,
+whatever the request named, as it does for the household row and the held shelf, so there is
+no path on which another member's session is read and then left out.
 
 ### When a request is refused
 
