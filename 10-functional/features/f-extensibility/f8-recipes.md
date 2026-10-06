@@ -213,7 +213,7 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | **F8-R6** | The flow check MUST be performed statically, before any of the recipe's calls is made. |
 | **F8-R7** | A pair carrying a value to an external host MUST be approved by the operator at rehearsal, named as that value and that destination, and MUST NOT be approved implicitly by approving the installation. |
 | **F8-R8** | A recipe MUST name an in-stack destination by its service id and an external destination by a DNS name, and a manifest containing an address literal, a network range or a bare host port MUST be refused. |
-| **F8-R9** | A destination declared external that resolves to a loopback, private or link-local address MUST be refused at the call, and the resolution MUST be checked on each call rather than once. |
+| **F8-R9** | A destination declared external that resolves to any address not out on the internet, as the plugin manifest contract classes addresses, MUST be refused at the call; the resolution MUST be checked on each call rather than once, every address it answers with MUST be checked, the call MUST connect only to the addresses checked, and no redirect MUST be followed. |
 | **F8-R10** | A recipe MUST NOT reach any host, service or value the manifest has not declared. |
 | **F8-R11** | A plugin MAY name one of a published, fixed set of lemonfiber-implemented adapters for flows recipes cannot express, and MUST NOT supply an adapter of its own. |
 | **F8-R12** | Naming an adapter this lemonfiber does not implement MUST be refused, naming the adapter and the set that is available. |

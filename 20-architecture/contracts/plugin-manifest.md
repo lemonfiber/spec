@@ -994,11 +994,24 @@ A destination is one of two things and never a third (`F8-R4`):
   labels. It is reached over https on port 443 and nothing else. A one-label name
   that names no such service is refused, because it is neither.
 
-An external name is resolved **before every call**, and the call is refused
-where any address it answers with is loopback, private, link-local,
-unique-local or unspecified, an IPv4 address carried inside an IPv6 one
-included (`F8-R9`). The call is then made to the addresses that were checked and
-no others, so a name answering differently a moment later is not asked again.
+An external name is resolved **before every call**, once, and the call is
+refused where any address it answers with is not out on the internet (`F8-R9`).
+The call is then made to the addresses that were checked and no others, so a
+name answering differently a moment later is not asked again.
+
+An address is not out on the internet where it is classed, by what the address
+is rather than by a list of hosts, as any of these:
+
+| Family | Classes |
+|--------|---------|
+| IPv4 | loopback `127/8`, unspecified `0/8`, private `10/8` `172.16/12` `192.168/16`, link-local `169.254/16` (where cloud metadata answers), shared `100.64/10`, IETF protocol `192.0.0/24`, documentation `192.0.2/24` `198.51.100/24` `203.0.113/24`, benchmarking `198.18/15`, multicast `224/4`, reserved `240/4`, broadcast `255.255.255.255` |
+| IPv6 | loopback, unspecified, unique-local `fc00::/7`, link-local `fe80::/10`, site-local `fec0::/10`, multicast `ff00::/8`, documentation `2001:db8::/32` `3fff::/20`, benchmarking `2001:2::/48` |
+| IPv4 inside IPv6 | mapped `::ffff:0:0/96`, compatible `::/96`, NAT64 `64:ff9b::/96` `64:ff9b:1::/48`, 6to4 `2002::/16`, Teredo `2001::/32`: the IPv4 address each carries is classed as itself |
+
+An address written as the host is read as the address it is however it is
+written — dotted decimal, a single number, octal, hexadecimal or a short form
+such as `127.1` — and classed before anything is asked, so no spelling reaches a
+resolver that would read it as an address.
 That refusal ends with a code of its own, apart from a network that failed
 (`ARCH-R149`). A call follows no redirect: a `3xx` is an answer, and a guard may
 branch on it.

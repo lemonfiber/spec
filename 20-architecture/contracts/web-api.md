@@ -415,9 +415,10 @@ two differ, naming what moved. A bare `confirm` is no yes to any of the five (`A
 
 **A source is any the command takes**: a catalogue name, a git repository or a path on
 the machine ([ADR-0036](../../00-overview/decisions/0036-a-plugin-may-come-from-any-source-the-command-takes.md)).
-A git source is fetched over https from a public host; a name resolving to a loopback,
-private or link-local address is refused, checked when the fetch is made and for every
-redirect (`ARCH-R152`). The rehearsal names the revision it fetched, and the offer is
+A git source is fetched over https from a public host; a name resolving to any address
+not out on the internet, as the plugin manifest contract classes addresses, is refused,
+every address it answers with checked when the fetch is made, the fetch connecting only
+to those, and no redirect followed (`ARCH-R152`). The rehearsal names the revision it fetched, and the offer is
 built from it.
 
 **A recipe runs on install or on demand**, as its manifest says. An install recipe
@@ -749,7 +750,7 @@ generation has not been used.
 | **ARCH-R149** | A call refused because an external name resolved to a loopback, private or link-local address MUST end with a listed problem code apart from the one a failed network ends with. |
 | **ARCH-R150** | Every recipe, pair, destination and adapter field MUST be present on a rehearsal and on the installed record, an empty list where there is none, except a pair's `approval`, which MUST be present exactly where the pair carries a value to an external host. |
 | **ARCH-R151** | The event stream MUST carry a `plugins` event and a `wiring` event, each with its envelope, sent when a client connects and whenever the installed record or the wiring changes. |
-| **ARCH-R152** | A git source named to `plugin-install` or `plugin-update` MUST be fetched over https from a host that resolves to no loopback, private or link-local address, checked when the fetch is made and for every redirect, and a source refused so MUST end with a listed problem code. |
+| **ARCH-R152** | A git source named to `plugin-install` or `plugin-update` MUST be fetched over https from a host none of whose addresses is one the plugin manifest contract classes as not out on the internet, every address checked when the fetch is made, the fetch connecting only to those and following no redirect, and a source refused so MUST end with a listed problem code. |
 | **ARCH-R153** | The web API MUST answer `GET /api/plugins/catalogue` with the plugins the verified catalogue index lists, as `lemonfiber plugin catalogue --json` answers, and MUST NOT list an entry the index's signature does not cover. |
 | **ARCH-R156** | The web API MUST answer `GET /api/playing` with every session the media server is playing now, each naming the member watching and what they are watching, as `lemonfiber playing --json` answers. A member, and a key scoped to one, MUST be answered with their own sessions only, narrowed by the command that runs rather than filtered from every session. |
 | **ARCH-R157** | A member, and a key scoped to one, MUST be admitted to the event stream narrowed to them: it MUST carry their own household row, their held shelf and what they are playing, each as the read answering it answers that member, and MUST NOT carry anything gathered for the operator. |
