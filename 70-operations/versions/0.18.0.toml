@@ -182,7 +182,9 @@
 # pause until somebody resumes it; the pair is on the list of actions a key may call.
 # `F8-R14` and `F8-R15` say when a recipe runs: on install, during an install and an
 # update, or on demand, through `plugin run` with approvals of its own. `F8-R16` keeps a
-# credential lemonfiber holds going back only to the service it belongs to.
+# credential lemonfiber holds going back only to the service it belongs to. `G4-R17` has
+# the problem a failed recipe ends with carry what every step came to as data, beside
+# the sentence, so a client reads what landed without parsing it.
 #
 # `ARCH-R156` to `ARCH-R158` are what Home Assistant reads that the core did not serve:
 # what the media server is playing, for the operator every session and for a member their
@@ -205,7 +207,7 @@
 # `ARCH-R161` gives each of a member's requests what their own screen shows it by: the
 # kind of title, its year, when it arrived and the identifier their shelf names it by, so
 # `F12-R9` can show a member's requests without asking the stack anything more.
-# 309 goals, seeded from the roadmap milestone this version serves;
+# 310 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -317,6 +319,7 @@ goals   = [
     "N3-R18",
     "G2-R16",
     "G4-R16",
+    "G4-R17",
     "D7-R15",
     "B2-R17",
     "B2-R18",

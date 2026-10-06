@@ -88,6 +88,28 @@ The operator sees the plain explanation first, with the raw error, exit code, or
 service response available on request. Hiding it would obstruct the experienced
 operator; leading with it would lose everyone else.
 
+### A failure part-way through steps says what each came to
+
+Some work is a run of steps, and a failure in one of them leaves the ones before it
+done. A plugin's recipe is that: a call that reached another service, or a host
+outside the machine, changed something an install going back cannot reach into.
+So a problem that ends such a run carries, beside its detail, every step the run
+declares, in order, as data:
+
+```json
+"steps": [
+  { "recipe": "adopt", "step": "sign-in", "came": "answered", "landed": false },
+  { "recipe": "adopt", "step": "claim",   "came": "refused",  "landed": false },
+  { "recipe": "adopt", "step": "create",  "came": "not-reached", "landed": false }
+]
+```
+
+`came` is one of `answered`, `skipped`, `not-reached`, `unreachable`, `refused`,
+`unexpected`, `uncaptured` and `oversized`, and `landed` says whether that step
+reached somewhere other than the plugin's own services. A client reads what landed
+from the data rather than from the sentence. Every other problem carries no
+`steps` at all, so a client that has never met one reads every problem as it did.
+
 ### Errors never blame the operator
 
 "Invalid configuration" implies fault and offers nothing. "This path doesn't
@@ -157,6 +179,7 @@ with an embedded API key are the classic leak.
 | **G4-R14** | File paths in errors MUST be shown in full. |
 | **G4-R15** | Transient failures MUST be retried before reporting, and distinguished from persistent ones. |
 | **G4-R16** | Every refusal and every obstacle the core answers to a household member's session MUST carry a sentence written for the household, and a remedy the member can act on, beside its code (`ARCH-R138`). The sentence MUST name no service, size, address or state of the stack (`G2-R16`), and a fault of the stack MUST read as not working right now with the operator told (`N3-R10`). |
+| **G4-R17** | A problem that ends a run of recipe steps part-way MUST carry, as data beside its detail, every step the run declares in order, each with what it came to and whether it landed somewhere other than the plugin's own services; every other problem MUST carry no such field. |
 
 ## Related
 

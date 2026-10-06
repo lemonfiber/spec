@@ -1051,8 +1051,8 @@ An address written as the host is read as the address it is however it is
 written — dotted decimal, a single number, octal, hexadecimal or a short form
 such as `127.1` — and classed before anything is asked, so no spelling reaches a
 resolver that would read it as an address.
-That refusal ends with a code of its own, apart from a network that failed
-(`ARCH-R149`). A call follows no redirect: a `3xx` is an answer, and a guard may
+That refusal ends with a code of its own, `PLUGIN-35`, apart from a network that
+failed (`ARCH-R149`). A call follows no redirect: a `3xx` is an answer, and a guard may
 branch on it.
 
 ### Branching, and waiting
@@ -1094,15 +1094,21 @@ A recipe runs **on install** or **on demand**, as `on` says.
 An install recipe runs during an install and an update, in the order declared,
 after the plugin's proofs and the stack's checks hold and before the record is
 written. A removal runs none. Where one fails, the install goes back as an
-install whose proofs failed goes back, and the report names each call that had
-already landed somewhere and cannot be put back from here.
+install whose proofs failed goes back, and the act ends with a problem: `PLUGIN-35`
+where a call was refused because its host stands for an address not out on the
+internet, and `PLUGIN-36` where a step failed any other way — nothing answered, the
+answer was not the one it expects, a capture found nothing, or the answer was larger
+than a recipe reads. The problem's detail names the recipe, the step and each call
+that had already landed somewhere and cannot be put back from here, and its `steps`
+carry what every step came to as data (`G4-R17`). A recipe that holds is reported on
+the install, every step with what it came to.
 
 A demand recipe runs only through `lemonfiber plugin run <plugin> <recipe>` and
 the `plugin-run` action. Its reading lists the steps and pairs, its offer covers
 them, and its approvals are given to that act and to no other: approving a pair
 at install is not approving it for a demand recipe, and approving it for one run
 is not approving it for the next (`ARCH-R147`). A demand recipe that fails
-changes no install record, and reports what landed.
+changes no install record, and ends with the same problem, saying what landed.
 
 A pair carrying a value to a host outside the stack is approved as itself, as
 `<value>@<destination>`; a pair to a service in this stack is listed on the
