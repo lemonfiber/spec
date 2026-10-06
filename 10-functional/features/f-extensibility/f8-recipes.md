@@ -63,6 +63,23 @@ this plugin send, and where* can be answered by reading the manifest rather than
 running it and watching. Relaxing the bound later would not cost elegance; it would cost
 the only mechanism that makes recipes safe to offer.
 
+### A recipe runs on install, or when it is asked for
+
+Most recipes are first-run flows: the account created, the server claimed, the
+library pointed at. Those run as part of installing the plugin, after its proofs
+and the stack's own checks hold and before it is recorded as installed, and again
+when it is updated. If one fails, the install goes back like any install that does
+not hold, and the account says which calls had already landed somewhere it cannot
+reach back into.
+
+Some are not first-run flows: a re-claim after a token was revoked, a library
+added after the fact. A recipe says which it is. One that runs **on demand** runs
+only when the operator asks for that recipe by name, with a rehearsal, an offer and
+approvals of its own: what was agreed to at install covers the install, and a
+demand recipe that carries a value out of the machine is agreed to again, each time
+it is run. One that fails changes nothing about what is installed, and says what
+landed. A recipe that says neither runs on install, which is what a recipe is for.
+
 ### What a recipe may carry is declared as pairs
 
 Declaring the secrets a plugin holds and the hosts it reaches, as two separate lists,
@@ -171,6 +188,8 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | The manifest names an adapter that does not exist | Refuse, naming the adapter and listing what is available. |
 | A plugin needs a destination it cannot know until it runs | Not expressible, and not worked around. The honest answer is a declaration form that is still statically bounded, decided once for everybody. |
 | An operator has switched off a plugin's reach | Its recipes report that nothing was asked, rather than failing as though the destination were down (`G8-R16`). |
+| A demand recipe carries a pair the operator approved at install | It is asked for again. An approval belongs to the act that carried it. |
+| An install recipe fails after a call to an external host landed | The install goes back, and the account names that call as one that cannot be undone from here. |
 
 ## Acceptance criteria
 
@@ -189,6 +208,8 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | **F8-R11** | A plugin MAY name one of a published, fixed set of lemonfiber-implemented adapters for flows recipes cannot express, and MUST NOT supply an adapter of its own. |
 | **F8-R12** | Naming an adapter this lemonfiber does not implement MUST be refused, naming the adapter and the set that is available. |
 | **F8-R13** | The set of adapters MUST be published rather than discovered. |
+| **F8-R14** | A recipe MUST declare whether it runs on install or on demand, and a recipe declaring neither MUST run on install; an install recipe MUST run during an install and an update, after the plugin's proofs and the stack's checks hold and before the install is recorded, and a failure MUST put the install back and name each call that had already reached somewhere. |
+| **F8-R15** | A demand recipe MUST run only when asked for by name, with its own rehearsal, offer and approvals, and an approval MUST NOT carry over from another act or another run; a demand recipe that fails MUST change no install record and MUST name each call that had already reached somewhere. |
 
 ## Related
 

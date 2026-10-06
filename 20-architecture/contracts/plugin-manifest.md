@@ -83,10 +83,9 @@ schema_version = 1
 [requires]        # what the plugin needs of lemonfiber
 ```
 
-`[[secret]]` and `[[override]]` are declared here and, in this version, are
-always empty in practice: capturing a value is a recipe, and recipes arrive with
-[F8](../../10-functional/features/f-extensibility/f8-recipes.md). They are part
-of the format now because `F3-R17` and `F3-R18` fail validation on an
+`[[secret]]` and `[[override]]` are filled in by a manifest whose recipes capture
+or change anything ([F8](../../10-functional/features/f-extensibility/f8-recipes.md)),
+and are absent otherwise. `F3-R17` and `F3-R18` fail validation on an
 *undeclared* secret or override, and a format with no place to declare one
 cannot enforce that.
 
@@ -707,11 +706,9 @@ and what is wrong with it. It is not evaluated as a missing member: an assertion
 nothing can evaluate is one that silently checks less than it says, which is
 `ARCH-R91` pointed at an expectation.
 
-`[[recipe.step]].capture.from` is a different dialect — `json.token`, a dotted
-path — and is deliberately left alone here. Nothing resolves it yet, because
-nothing runs a recipe; it is aligned with this by
-[F8](../../10-functional/features/f-extensibility/f8-recipes.md), in the change
-that makes it run.
+`[[recipe.step]].capture.from` reads an answer with these same keys, so one
+dialect says where a value is, whether a proof is asserting about it or a recipe
+is taking it.
 
 Three verdicts, never two (`F3-R5`, `F4-R7`): passed, failed, and could not be
 run. The third is reported as unproven and is never counted as the first.
@@ -876,25 +873,38 @@ that capability — the same rule `recipe.run` gets below, and for the same reas
 a build that read a row it could not run and dropped it would install a plugin
 whose declared behaviour is wider than its actual one.
 
-## `[[recipe]]` — declarable before it is runnable
+## `[[recipe]]` — ordered calls, bounded by reading
 
 ```toml
 [[recipe]]
 id    = "adopt-existing-library"
 title = "Point it at the comics the stack already files"
 why   = "…"
+on    = "install"
+
+[[recipe.input]]
+name   = "admin-password"
+origin = "credential-store"
+of     = "komga"
 
 [[recipe.step]]
 id      = "sign-in"
-call    = { method = "POST", to = "komga", path = "/api/v1/login" }
+call    = { method  = "POST", to = "komga", path = "/api/v1/login",
+            body    = "{\"password\":\"{{admin-password}}\"}" }
 expect  = { status = 200 }
-capture = [{ name = "token", from = "json.token", origin = "stack-service" }]
+capture = [{ name = "token", from = "token", origin = "stack-service" }]
+retry   = { times = 5, every = "6s", until = { status = 200 } }
 
 [[recipe.step]]
 id      = "create"
+when    = { step = "sign-in", status = 200 }
 call    = { method  = "POST", to = "komga", path = "/api/v1/libraries",
             headers = { Authorization = "Bearer {{token}}" } }
 expect  = { status = 200 }
+
+[[recipe.pair]]
+value = "admin-password"
+to    = "komga"
 
 [[recipe.pair]]
 value = "token"
@@ -903,36 +913,138 @@ to    = "komga"
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `step[].call.method` | string | ✔ | |
-| `step[].call.to` | string | ✔ | A service id in this stack, or a DNS name outside it. Never an address, a range or a bare host port (`F8-R8`). |
-| `step[].call.path` | string | ✔ | |
-| `step[].call.headers` | table | | Headers the call carries. A value may substitute an earlier capture. |
-| `step[].call.body` | string | | The body the call carries. A value may substitute an earlier capture. |
+| `id` | string | ✔ | One word of ASCII letters, digits, `-` and `_`, unique within the plugin. |
+| `on` | string | | `install` or `demand`. Absent means `install`. |
+| `input[].name` | string | ✔ | One word, unique among the recipe's inputs and captures. |
+| `input[].origin` | string | ✔ | `credential-store` or `operator`. |
+| `input[].of` | string | for `credential-store` | The service whose credential lemonfiber already holds. |
+| `input[].ask` | string | for `operator` | The sentence the operator is asked, in one line. |
+| `step[].call.method` | string | ✔ | `GET`, `POST`, `PUT`, `PATCH` or `DELETE`. |
+| `step[].call.to` | string | ✔ | A service id in this stack, or a DNS name outside it. Never an address, a range or a bare host port (`F8-R8`). Never a substitution. |
+| `step[].call.path` | string | ✔ | Written out. Never a substitution. |
+| `step[].call.headers` | table | | Headers the call carries. A value may substitute an earlier capture or an input. |
+| `step[].call.body` | string | | The body the call carries. It may substitute an earlier capture or an input. |
+| `step[].capture[].name` | string | ✔ | One word, unique within the recipe. |
+| `step[].capture[].from` | string | ✔ | Where in the answer it is read: an expectation key (below), or `header.<name>`. |
+| `step[].capture[].origin` | string | ✔ | `stack-service` or `external-response`. |
+| `step[].when` | table | | `{ step, status }` or `{ value, equals }`. The step is skipped where it does not hold. |
+| `step[].retry` | table | | `{ times, every, until }`, `until` being `{ status }` or `{ value, equals }`. |
+| `pair[].value` | string | ✔ | A captured value's or an input's name. |
+| `pair[].to` | string | ✔ | A destination as `call.to` writes it. |
 
 **A call needs somewhere to put what an earlier step captured**, and `headers`
 and `body` are it. Without them a recipe can name a destination and capture a
 value and has no way to carry one to the other — which is every first-run flow
 this feature exists for, since creating an account and reading back a token is
-worth nothing if the token cannot then be presented.
+worth nothing if the token cannot then be presented. They are the only places a
+`{{name}}` is read: `to` and `path` are written out, so no destination is worked
+out while running and no call is assembled out of something that came back
+(`F8-R2`).
 
-They are also what makes the pair check bite. Every `{{capture}}` in a call is a
+They are also what makes the pair check bite. Every `{{name}}` in a call is a
 flow from that value to that call's destination, so the set of flows a recipe
 could produce is computable by reading it — and a flow with no
 `[[recipe.pair]]` behind it fails validation before a call is made
 ([ADR-0022](../../00-overview/decisions/0022-a-recipe-declares-pairs-not-lists.md)).
-A `call` with nowhere to substitute into would make that analysis a check over an
-empty set.
+A guard can skip a step and never add one, so the set is every substitution in
+every step whatever the guards say: a flow a guard usually skips is still a flow.
 
-[F8](../../10-functional/features/f-extensibility/f8-recipes.md) governs what the
-calls may do; this says where they are written. A step names a method, an
-in-stack service or an external DNS name, and a path; it may capture values out
-of a response, substitute earlier captures into a later call, branch on a status
-or a captured value, and wait a bounded number of times. Every value it could
-carry to every destination it could reach is declared as a `[[recipe.pair]]`, and
-a flow with no pair behind it fails validation before a call is made.
+### Where a value comes from
 
-**Nothing runs one yet, and the manifest says so rather than implying it.**
-Running a recipe is a capability a manifest asks for by name:
+Every value a recipe carries has one of four origins, and the manifest writes
+it (`F8-R3`):
+
+| Origin | Written on | Held to |
+|--------|------------|---------|
+| `stack-service` | a capture | the step's `to` is a service in this stack |
+| `external-response` | a capture | the step's `to` is a name outside it |
+| `credential-store` | an input | `of` names a service whose credential lemonfiber holds |
+| `operator` | an input | it is supplied when the recipe runs, as `--input <name>=<value>` at the command line and in `inputs` over the web API |
+
+An origin that disagrees with where the value comes from is refused, naming
+both. Written rather than derived, so that what the rehearsal and the record say
+about a value is what the manifest's author said, and a manifest that says
+something false about it is refused rather than corrected.
+
+### Where a call goes
+
+A destination is one of two things and never a third (`F8-R4`):
+
+- **A service in this stack**: a `to` naming one of the stack's services or one
+  of this plugin's own. lemonfiber reaches it at `127.0.0.1` on the port it
+  publishes there, and a call to a service that publishes none is refused when
+  the manifest is read. Another plugin's services are not a destination.
+- **A host outside it**: any other `to`, which is a DNS name of at least two
+  labels. It is reached over https on port 443 and nothing else. A one-label name
+  that names no such service is refused, because it is neither.
+
+An external name is resolved **before every call**, and the call is refused
+where any address it answers with is loopback, private, link-local,
+unique-local or unspecified, an IPv4 address carried inside an IPv6 one
+included (`F8-R9`). The call is then made to the addresses that were checked and
+no others, so a name answering differently a moment later is not asked again.
+That refusal ends with a code of its own, apart from a network that failed
+(`ARCH-R149`). A call follows no redirect: a `3xx` is an answer, and a guard may
+branch on it.
+
+### Branching, and waiting
+
+A step may carry `when`, and is skipped where it does not hold: `{ step, status }`
+holds where that earlier step was made and answered that status, and
+`{ value, equals }` where that earlier capture or input holds exactly that text.
+A guard names only what came before it. There are no jumps, so a recipe runs
+each step at most once, in the order written, and always ends.
+
+A step may carry `retry`, and is made again until `until` holds or `times` is
+spent. The bounds are published and are this contract's, not a manifest's:
+
+| Bound | At most |
+|-------|---------|
+| `retry.times` | 10 |
+| `retry.every` | 30 seconds |
+| A recipe's retries, waited out in all | 5 minutes |
+| One call, from asking to its last byte | 30 seconds |
+| One answer's body | 1 MiB |
+
+A step whose retries are spent fails the recipe, naming the call and what it
+last answered. A value larger than the bounds allow is refused when the manifest
+is read, naming the bound.
+
+### What a capture reads
+
+`capture.from` is an expectation key as `[[proof]]` writes one: a member name, or
+a JSON Pointer with the selector this contract defines. A body that is not JSON
+has nothing to read, and the capture fails the step. `header.<name>` reads that
+header of the answer instead, the first where it arrived twice. A member whose
+own name begins `header.` is reached by its pointer. Nothing else is read: a
+status is branched on by `when`, never captured.
+
+### When a recipe runs
+
+A recipe runs **on install** or **on demand**, as `on` says.
+
+An install recipe runs during an install and an update, in the order declared,
+after the plugin's proofs and the stack's checks hold and before the record is
+written. A removal runs none. Where one fails, the install goes back as an
+install whose proofs failed goes back, and the report names each call that had
+already landed somewhere and cannot be put back from here.
+
+A demand recipe runs only through `lemonfiber plugin run <plugin> <recipe>` and
+the `plugin-run` action. Its reading lists the steps and pairs, its offer covers
+them, and its approvals are given to that act and to no other: approving a pair
+at install is not approving it for a demand recipe, and approving it for one run
+is not approving it for the next (`ARCH-R147`). A demand recipe that fails
+changes no install record, and reports what landed.
+
+A pair carrying a value to a host outside the stack is approved as itself, as
+`<value>@<destination>`; a pair to a service in this stack is listed on the
+reading and asks for no approval, because nothing it carries leaves the machine.
+
+A value a recipe captures is a declared `[[secret]]` and is kept, beside the
+settings, in a file only its owner reads. It is taken away with the plugin. An
+input is read when the recipe runs and is not kept.
+
+### Running one is asked for by name
 
 ```toml
 [requires]
@@ -940,15 +1052,12 @@ capabilities = ["service.add", "service.health.http", "recipe.run"]
 ```
 
 A lemonfiber that does not offer `recipe.run` refuses such a manifest **by naming
-that capability** (`F3-R21`, `ARCH-R90`), which is the honest failure. The
-alternative — parsing the block and skipping it — would install a plugin whose
-declared behaviour is wider than its actual one, and that is the tolerated
-unknown `ARCH-R91` exists to refuse.
+that capability** (`F3-R21`, `ARCH-R90`). Parsing the block and skipping it would
+install a plugin whose declared behaviour is wider than its actual one, and that
+is the tolerated unknown `ARCH-R91` exists to refuse.
 
-The block is in the format before its engine is for the same reason `[[secret]]`
-and `[[override]]` are: a rule that cannot be stated for want of a field is not
-being enforced, and adding the field later would make every manifest written
-against this version wrong.
+[F8](../../10-functional/features/f-extensibility/f8-recipes.md) governs what the
+calls may do; this says where they are written and what bounds them.
 
 ## `[[secret]]` and `[[override]]` — declared before they are held
 
@@ -1114,6 +1223,13 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | Every contributed identity is namespaced, and none is one the point records as bundled | Both named |
 | Every `doctor.check` carries a `doctor.remedy` naming it | Check named |
 | A `[[recipe]]` is declared and `requires.capabilities` does not name `recipe.run` | Capability named, never a version |
+| Every `{{name}}` in a call is an earlier capture or an input, and a pair carries it to that call's `to` (`F8-R5`) | Value and destination named |
+| No `{{name}}` in a call's `to` or `path` (`F8-R2`) | Step and field named |
+| Every `origin` is one of the four, and agrees with where the value comes from (`F8-R3`) | Value named, with both origins |
+| Every `to` is a service in this stack with a published port, or a DNS name of two labels or more (`F8-R4`, `F8-R8`) | Destination named |
+| Every `when` names an earlier step or an earlier value | Guard and name given |
+| Every `retry` is within the published bounds | Bound named |
+| Every `capture.from` is an expectation key or `header.<name>` | Key named, with what is wrong with it |
 
 A manifest that fails any of these is refused outright — never partly applied,
 never applied on the strength of the parts that did parse (`F3-R2`).
