@@ -151,10 +151,15 @@ class EachClaimIsBacked(Tree):
         (vendored / "z9.md").write_text("| **Z9-R9** | Something MUST happen. |\n")
         self.assertIn("defined nowhere", self.faults(ROW.replace("B1-R1", "Z9-R9"))[0])
 
-    def test_a_retired_requirement(self):
+    def test_a_retired_requirement_no_version_locked(self):
+        self.feature("B1", "building", 3, retired=(3,))
+        faults = self.faults(ROW.replace("B1-R1", "B1-R3").replace('"done"', '"partial"'))
+        self.assertEqual(len(faults), 1)
+        self.assertIn("withdrawn or superseded and no version locked it", faults[0])
+
+    def test_a_retired_requirement_a_version_shipped_stays_recorded(self):
         self.feature("B1", "building", 3, retired=(1,))
-        faults = self.faults(ROW)
-        self.assertTrue(any("withdrawn or superseded" in f for f in faults))
+        self.assertEqual(self.faults(ROW), [])
 
     def test_a_done_row_no_version_carries(self):
         faults = self.faults(ROW.replace("B1-R1", "B1-R3"))

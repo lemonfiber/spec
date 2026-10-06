@@ -41,9 +41,9 @@ optionally, the commit it landed in where no commit cites it. Prose about why th
 is the way it is belongs beside the code.
 
 **A row is checked** ([OPS-R75](../../70-operations/staging.md)): the requirement exists
-and is not retired, it appears once, a done row names evidence and the evidence
-exists, a done row is one some version locks, and a landed commit is in that
-repository's history. `scripts/status_check.py` holds the shape and the checks.
+and appears once, a retired one only where a version locked it first; a done row names
+evidence and the evidence exists; a done row is one some version locks; and a landed
+commit is in that repository's history. `scripts/status_check.py` holds the shape and the checks.
 
 The binary's milestone-arranged rows move to this shape, each requirement taking the
 evidence its deliverable row linked to. `IMPLEMENTATION-STATUS.md` stays, generated from

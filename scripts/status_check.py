@@ -31,8 +31,9 @@ This checks one of them against the specification and against the repository
 it sits in:
 
   * the file has the shape above, and nothing else;
-  * every identifier is a requirement the specification defines and has not
-    retired, and none appears twice;
+  * every identifier is a requirement the specification defines, and none
+    appears twice; a retired one only where a version locked it before it was
+    retired, because what that version shipped is still a fact;
   * a `done` row names evidence, and every path it names exists, and every
     `::text` occurs in its file;
   * a `done` row is locked by some version, because work no version carries is
@@ -258,9 +259,9 @@ def check(rows: list[Row], where: str, spec: pathlib.Path, root: pathlib.Path,
         if row.id not in defined:
             faults.append(f"{where}: {row.id} is defined nowhere in the specification")
             continue
-        if row.id in retired:
-            faults.append(f"{where}: {row.id} is withdrawn or superseded, so nothing "
-                          "can be built against it")
+        if row.id in retired and row.id not in carried:
+            faults.append(f"{where}: {row.id} is withdrawn or superseded and no version "
+                          "locked it, so nothing was built against it")
         if row.done and row.id not in carried:
             faults.append(f"{where}: {row.id} is done and no version locks it, so no "
                           "release would carry it; a version has to lock it first")
