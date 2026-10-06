@@ -251,6 +251,18 @@ class TheCatalogueAgreesWithEveryTracker(Tree):
         self.assertIn("B1-R2, B1-R3", said)
         self.assertIn("OPS-R73", said)
 
+    def test_a_shipped_feature_is_held_to_the_same(self):
+        """D6's shape: shipped, and a requirement added after it shipped."""
+        self.feature("B1", "shipped", 2)
+        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW)}"])
+        self.assertEqual(code, 1)
+        self.assertIn("B1 is `shipped`", said)
+
+    def test_a_retired_number_is_not_asked_for(self):
+        self.feature("B1", "built", 2, retired=(2,))
+        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW)}"])
+        self.assertEqual(code, 0, said)
+
     def test_a_building_feature_is_not_asked(self):
         code, _ = run_main(["catalogue", "--spec", "spec"])
         self.assertEqual(code, 0)
