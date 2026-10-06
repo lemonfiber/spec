@@ -220,6 +220,14 @@ from the stream it already holds, and reads `/api/news` only on the screen that 
 items — rather than reading three answers for every stack on every frame of every screen to
 draw a mark on a tab.
 
+**An alert rides the stream as it happens.** An `alert` event is sent when an alert starts and
+again when it resolves, carrying what the dashboard's alert says: what happened, what it means
+for the household, what to do, how much it matters and which way it went. It also carries an
+identity that names the alert rather than the event, the same on an onset and on the resolution
+that ends it and different for the next time the same thing goes wrong, so a client can close
+what it opened without comparing sentences. A client connecting is not sent the alerts already
+said; the dashboard's own list is where those are (`ARCH-R162`).
+
 ### A member's stream
 
 The stream above is the operator's view: the dashboard, the log lines, what setup is doing.
@@ -762,6 +770,7 @@ generation has not been used.
 | **ARCH-R158** | A member's stream MUST emit the heartbeat, resume and mark values gathered before a gap as stale as the operator's does (`ARCH-R50`, `ARCH-R51`), and MUST end when the member is removed or their key is revoked. |
 | **ARCH-R159** | The contract artefact MUST list every read the web API serves, each with its path, the query parameters it takes and whether each may be given more than once, and the kind it answers with or that it answers with a file, generated from the tables the surface routes and refuses reads by rather than written beside them. |
 | **ARCH-R160** | Each action the artefact publishes as callable by a key MUST also say whether calling it again with the same arguments leaves the stack as calling it once did. |
+| **ARCH-R162** | The event stream MUST carry an `alert` event when an alert starts and when it resolves, carrying what happened, what it means, what to do, its severity and which way it went, and an identity that is the same for an onset and the resolution that ends it and differs for each recurrence. |
 
 ## Shapes are generated; semantics are not
 
