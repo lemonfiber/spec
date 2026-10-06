@@ -316,8 +316,10 @@ cannot be placed, is refused before it is checked, with a code of its own: the r
 connect over the TLS the pin verifies, not to send a different key.
 
 The actions a key may call are published in the artefact as `key_callable`. Each entry
-names the action, says whether it disturbs the running system, and says whether it takes
-`dry_run`, so a client can rehearse it first and offer the real call after. Whether it takes
+names the action, says whether it disturbs the running system, says whether it takes
+`dry_run`, so a client can rehearse it first and offer the real call after, and says whether
+calling it again with the same arguments leaves the stack as one call did, so a client can
+tell a person whether repeating it is safe (`ARCH-R160`). Whether it takes
 `dry_run` is read from the core's own account of each command rather than written beside the
 list. The list starts as:
 
@@ -755,6 +757,8 @@ generation has not been used.
 | **ARCH-R156** | The web API MUST answer `GET /api/playing` with every session the media server is playing now, each naming the member watching and what they are watching, as `lemonfiber playing --json` answers. A member, and a key scoped to one, MUST be answered with their own sessions only, narrowed by the command that runs rather than filtered from every session. |
 | **ARCH-R157** | A member, and a key scoped to one, MUST be admitted to the event stream narrowed to them: it MUST carry their own household row, their held shelf and what they are playing, each as the read answering it answers that member, and MUST NOT carry anything gathered for the operator. |
 | **ARCH-R158** | A member's stream MUST emit the heartbeat, resume and mark values gathered before a gap as stale as the operator's does (`ARCH-R50`, `ARCH-R51`), and MUST end when the member is removed or their key is revoked. |
+| **ARCH-R159** | The contract artefact MUST list every read the web API serves, each with its path, the query parameters it takes and whether each may be given more than once, and the kind it answers with or that it answers with a file, generated from the tables the surface routes and refuses reads by rather than written beside them. |
+| **ARCH-R160** | Each action the artefact publishes as callable by a key MUST also say whether calling it again with the same arguments leaves the stack as calling it once did. |
 
 ## Shapes are generated; semantics are not
 
@@ -770,6 +774,14 @@ with the arguments each takes and the consent it asks for, are the server's type
 published shape. A client that sends one copies it from the server's source, and nothing
 holds that copy to the server. `ARCH-R133` puts the request bodies in the artefact, and
 `ARCH-R134` the actions, so that a client generates both as it generates the kinds.
+
+Nor did it describe where anything is asked for. Every SDK held its own list of the reads,
+written by hand and checked against the `## Reading` block above, which is a fourth copy of a
+table the surface already routes by. `ARCH-R159` puts the reads in the artefact: each path the
+surface serves a read at, the query parameters it takes and whether each may be given more
+than once, and the kind it answers with, or that it answers with a file. They are generated
+from the tables the surface routes and refuses by, so a read the surface gains is a read every
+client generates.
 
 Everything above that a schema cannot express stays here, in prose, and every SDK implements
 it and tests it: the heartbeat, resumption that does not present pre-gap values as current,
