@@ -240,7 +240,10 @@ The name sits on the envelope rather than in `data`, so what a kind carries is t
 whoever said it, and a client ties each line to the start, fetch or walk it asked for by the
 name the accepting reply gave it (`B2-R19`, `D3-R14`). The lines the container engine writes
 while pulling images are `pull` events, for a fetch and for a start that pulls, and the
-command line's `--json` says them under the same kind (`B2-R18`, `ARCH-R48`). A `pull` line is
+command line's `--json` says them under the same kind (`B2-R18`, `ARCH-R48`). A start fetches
+the images it lacks before it starts anything and then starts with nothing left to fetch, so
+its `pull` lines all come before its `start` lines and a fetch that failed is said before
+anything was started. A `pull` line is
 state, as a `start` line is: a client connecting is given the newest, because the line says
 where the work has got to and a fetch says hundreds of them. A `step` is a record, because a
 step missed is a hole in the walk.
