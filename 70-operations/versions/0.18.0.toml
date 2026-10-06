@@ -196,7 +196,12 @@
 # answers with, and whether repeating each action a key may call is safe. Without them
 # `F13-R2` would generate from a list somebody wrote, and `F13-R5` could not state whether a
 # write is idempotent.
-# 307 goals, seeded from the roadmap milestone this version serves;
+#
+# `ARCH-R162` sends each alert down the stream at onset and at resolution, with an
+# identity pairing the two, which is what `F12-R6` fires a Home Assistant event from; read
+# off the dashboard's list instead, an onset and its resolution could only be matched by
+# their wording.
+# 308 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -523,6 +528,7 @@ goals   = [
     "ARCH-R158",
     "ARCH-R159",
     "ARCH-R160",
+    "ARCH-R162",
 ]
 
 # The companion's N1 rows that are built are locked here, where the companion is searched:
