@@ -38,8 +38,13 @@ Two silences are refused rather than tolerated, because both would read as a pas
   * a `maturity` vocabulary that no longer holds the names this rule is written
     in, which is how a schema rename turns a gate off without touching it.
 
+The tracker is every searched repository's `status.toml`, read from the
+checkouts `--repo` names exactly as `gate.py` reads them, and `--status` adds a
+tracker still kept as Markdown tables.
+
 Usage:
-  check_no_stubs.py --version X.Y.Z --status <IMPLEMENTATION-STATUS.md>
+  check_no_stubs.py --version X.Y.Z --repo <name>=<path> [...]
+                    [--status <IMPLEMENTATION-STATUS.md>]
 
 Exit 0 = every requirement the version locks is built; 1 = named ones are not;
 2 = the question could not be answered.
@@ -52,7 +57,7 @@ import sys
 import tomllib
 
 import catalogue
-from gate import done_ids, within_cwd
+from gate import done_ids, parse_repos, tracked_done, trackers, within_cwd
 from manifest_repos import VERSIONS_DIR, manifest_for
 from patterns import REQ_DEF, REQ_RETIRED_ROW
 
@@ -185,7 +190,8 @@ def verdict(goals: list[str], features: dict[str, dict], done: set[str],
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--version", required=True)
-    ap.add_argument("--status", required=True)
+    ap.add_argument("--repo", action="append", default=[], metavar="name=path")
+    ap.add_argument("--status")
     args = ap.parse_args()
 
     path = manifest_for(args.version)
@@ -197,10 +203,17 @@ def main() -> int:
         print(f"::error::{path.name} locks no goals")
         return 2
 
-    status = within_cwd(args.status)
-    if not status.is_file():
-        print(f"::error::no tracker at {status}")
+    if not (args.repo or args.status):
+        print("::error::no --repo and no --status, so there is no tracker to read and "
+              "every requirement would be called unbuilt for want of looking")
         return 2
+    done = tracked_done(trackers(parse_repos(args.repo))) if args.repo else set()
+    if args.status:
+        status = within_cwd(args.status)
+        if not status.is_file():
+            print(f"::error::no tracker at {status}")
+            return 2
+        done |= done_ids(status)
 
     features = catalogue.features()
     if not features:
@@ -211,7 +224,7 @@ def main() -> int:
         print(f"::error::{complaint}")
         return 2
 
-    code, lines = verdict(goals, features, done_ids(status), locked_everywhere())
+    code, lines = verdict(goals, features, done, locked_everywhere())
     if lines:
         print(f"no-stubs: {path.name} — the {len(goals)} requirements it locks\n")
         print("\n".join(lines))

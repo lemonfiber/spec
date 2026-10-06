@@ -1,23 +1,31 @@
 #!/usr/bin/env python3
-"""Release readiness gate — OPS-R34.
+"""Release readiness gate — OPS-R34, OPS-R74.
 
 A version is releasable only when every locked goal is satisfied, and a goal is
 satisfied only when BOTH hold:
 
-  1. a merged commit in a target repo cites its ID in a `Spec:` trailer, and
-  2. the implementation-status tracker marks it done — a row whose **status
-     column** bears ✅ and which names the ID, directly or via a range like
-     `C1-R1..R12`.
+  1. a merged commit in a searched repository cites its ID in a `Spec:` trailer,
+     or the row recording it names the commit it landed in, and
+  2. a searched repository's tracker records it done: a `[[requirement]]` row in
+     the `status.toml` at that repository's root whose state is `done`
+     (`status_check.py` has the format).
 
 Citation without a tick is work in flight; a tick without a citation is an
 unauditable claim. Requiring both is the defence in depth OPS-R34 specifies.
 
+Each searched repository's tracker is read from its checkout, so naming the
+repositories is naming the trackers. `--status` reads a tracker still kept as
+Markdown tables, which the binary's was until it moved to one row per
+requirement; a done row there names its requirements in a column or a range like
+`C1-R1..R12`, and may name its commit as ``landed in `<sha>` ``.
+
 Usage:
   gate.py --manifest <versions/X.toml> \\
           --repo <name>=<path> [--repo <name>=<path> ...] \\
-          --status <path to IMPLEMENTATION-STATUS.md>
+          [--status <path to IMPLEMENTATION-STATUS.md>]
 
-Exit 0 = every goal satisfied (releasable); 1 = goals unmet (named); 2 = usage.
+Exit 0 = every goal satisfied (releasable); 1 = goals unmet (named); 2 = usage,
+or a tracker that cannot be read.
 """
 from __future__ import annotations
 
@@ -28,6 +36,7 @@ import subprocess
 import sys
 import tomllib
 
+import status_check
 import tracker
 from patterns import CITE, LANDED, RANGE
 from patterns import SPEC_TRAILER as TRAILER
@@ -106,6 +115,53 @@ def done_ids(status: pathlib.Path) -> set[str]:
     for row in done_rows(status):
         done.update(claimed(row))
     return done
+
+
+def trackers(repo_paths: dict[str, pathlib.Path]) -> list[status_check.Row]:
+    """Every row of every searched repository's tracker.
+
+    A repository keeping none contributes nothing and is named, so a run that
+    found no tracker where one was expected says so. One that cannot be read
+    stops the gate rather than being read as empty: a tracker nobody could read
+    reports success about nothing.
+    """
+    rows: list[status_check.Row] = []
+    for name, path in repo_paths.items():
+        try:
+            found = status_check.read(path / status_check.FILE, name)
+        except status_check.Unreadable as broken:
+            for line in str(broken).splitlines():
+                print(f"::error::{line}")
+            raise SystemExit(2) from broken
+        if found is None:
+            print(f"{name}: no {status_check.FILE} in the per-requirement shape")
+            continue
+        rows += found
+    return rows
+
+
+def tracked_done(rows: list[status_check.Row]) -> set[str]:
+    """Requirements a per-requirement tracker records done."""
+    return {row.id for row in rows if row.done}
+
+
+def tracked_landed(rows: list[status_check.Row], repo_paths: dict[str, pathlib.Path]) -> set[str]:
+    """Done requirements whose row names a commit in its own repository's history.
+
+    Checked against the repository the row sits in, which is the only one a
+    commit it names can be in: the same rule `landed_ids` applies to a Markdown
+    row, scoped to where the row was written.
+    """
+    landed: set[str] = set()
+    for row in rows:
+        if not (row.done and row.landed):
+            continue
+        if reachable(repo_paths[row.repo], row.landed):
+            landed.add(row.id)
+        else:
+            print(f"::warning::{row.repo} records {row.id} as landed in {row.landed} "
+                  "and its history has no such commit, so it counts for nothing")
+    return landed
 
 
 def landed_ids(status: pathlib.Path, repo_paths: dict[str, pathlib.Path]) -> set[str]:
@@ -211,19 +267,19 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--repo", action="append", default=[], metavar="name=path")
-    ap.add_argument("--status", required=True)
+    ap.add_argument("--status")
     ap.add_argument("--format", choices=("human", "json"), default="human")
     a = ap.parse_args()
 
     manifest = within_cwd(a.manifest)
     repos = parse_repos(a.repo)
-    status = within_cwd(a.status)
-    results = evaluate(
-        load_goals(manifest),
-        cited_ids(repos),
-        done_ids(status),
-        landed_ids(status, repos),
-    )
+    rows = trackers(repos)
+    done, landed = tracked_done(rows), tracked_landed(rows, repos)
+    if a.status:
+        status = within_cwd(a.status)
+        done |= done_ids(status)
+        landed |= landed_ids(status, repos)
+    results = evaluate(load_goals(manifest), cited_ids(repos), done, landed)
     unmet = [r["id"] for r in results if not (r["cited"] and r["done"])]
 
     if a.format == "json":

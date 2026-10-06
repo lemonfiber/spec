@@ -90,11 +90,19 @@ integrity:
 check-meta:
     python3 scripts/check_frontmatter.py
 
-# The question OPS-R54 asks at release, runnable long before the tag. The tracker
-# is the binary repository's IMPLEMENTATION-STATUS.md, from a clone under
-# checkouts/ the way execute-version arranges one.
-no-stubs version status="checkouts/lemonfiber/IMPLEMENTATION-STATUS.md":
-    python3 scripts/check_no_stubs.py --version {{version}} --status {{status}}
+# The question OPS-R54 asks at release, runnable long before the tag. The trackers
+# are each searched repository's status.toml, from clones under checkouts/ the way
+# execute-version arranges them, and the binary's IMPLEMENTATION-STATUS.md while
+# it still keeps one.
+no-stubs version:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    args=()
+    while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done \
+      < <(python3 scripts/manifest_repos.py --version {{version}} --for searched)
+    legacy=checkouts/lemonfiber/IMPLEMENTATION-STATUS.md
+    if [ -f "$legacy" ]; then args+=(--status "$legacy"); fi
+    python3 scripts/check_no_stubs.py --version {{version}} "${args[@]}"
 
 # Regenerate the feature board (index.json, each area's board.json, BOARD.md) from frontmatter + manifests.
 board:

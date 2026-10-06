@@ -156,7 +156,12 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          python3 scripts/check_no_stubs.py --version "$VERSION" \
+          set -euo pipefail
+          # The same trackers the goal gate reads: each searched repository's
+          # status.toml, and the binary's Markdown one while it still keeps it.
+          args=()
+          while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < searched.txt
+          python3 scripts/check_no_stubs.py --version "$VERSION" "${args[@]}" \
             --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md"
       - name: Cross-stream compatibility (OPS-R35)
         env:
