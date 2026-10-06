@@ -969,6 +969,16 @@ both. Written rather than derived, so that what the rehearsal and the record say
 about a value is what the manifest's author said, and a manifest that says
 something false about it is refused rather than corrected.
 
+**A credential goes back to its own service, and nowhere else** (`F8-R16`). A value
+the credential store holds for a service may be carried to that service and to no
+other destination: not another service of the stack's, not one of this plugin's
+own, and not a host outside. A pair carrying one anywhere but its `of`, and a
+`{{name}}` putting one into a call to anywhere but its `of`, are each refused when
+the manifest is read, naming the input, the service it belongs to and the
+destination. A plugin may present a credential lemonfiber holds, which is what a
+first-run flow against a bundled service needs; it may not take one somewhere,
+which is what lemonfiber holding it is for.
+
 ### Where a call goes
 
 A destination is one of two things and never a third (`F8-R4`):
@@ -1229,6 +1239,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | Every `{{name}}` in a call is an earlier capture or an input, and a pair carries it to that call's `to` (`F8-R5`) | Value and destination named |
 | No `{{name}}` in a call's `to`, or in its `path` but for a query value (`F8-R2`) | Step and field named |
 | Every `origin` is one of the four, and agrees with where the value comes from (`F8-R3`) | Value named, with both origins |
+| A credential-store value is carried, by a pair or a `{{name}}`, only to the service it belongs to (`F8-R16`) | Input, its service and the destination named |
 | Every `to` is a service in this stack with a published port, or a DNS name of two labels or more (`F8-R4`, `F8-R8`) | Destination named |
 | Every `when` names an earlier step or an earlier value | Guard and name given |
 | Every `retry` is within the published bounds | Bound named |
