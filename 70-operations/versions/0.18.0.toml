@@ -201,7 +201,11 @@
 # identity pairing the two, which is what `F12-R6` fires a Home Assistant event from; read
 # off the dashboard's list instead, an onset and its resolution could only be matched by
 # their wording.
-# 308 goals, seeded from the roadmap milestone this version serves;
+#
+# `ARCH-R161` gives each of a member's requests what their own screen shows it by: the
+# kind of title, its year, when it arrived and the identifier their shelf names it by, so
+# `F12-R9` can show a member's requests without asking the stack anything more.
+# 309 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -528,6 +532,7 @@ goals   = [
     "ARCH-R158",
     "ARCH-R159",
     "ARCH-R160",
+    "ARCH-R161",
     "ARCH-R162",
 ]
 
