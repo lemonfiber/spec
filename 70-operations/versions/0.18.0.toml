@@ -210,7 +210,12 @@
 # `B3-R16` puts the free space of both volumes a stack fills on the dashboard, the data
 # volume and the services' own, so `F12-R5` can provide disk free per mount from the
 # stream rather than from a read it would poll.
-# 320 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R163` has the capabilities answer say which stack is answering, by the identifier
+# pairing material already carries, to every credential a member's key included. Home
+# Assistant keys a config entry and its device by it, which neither the address nor the
+# certificate pin can be, so it lands before the integration's member slice (`F12-R2`,
+# `F12-R9`).
+# 321 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -550,6 +555,7 @@ goals   = [
     "ARCH-R169",
     "ARCH-R171",
     "B3-R16",
+    "ARCH-R163",
 ]
 
 # The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion

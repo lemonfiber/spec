@@ -594,6 +594,17 @@ exists to prevent. `unpermitted` is how that answer arrives, and it is deliberat
 distinguishable from `unconfigured`, because "you may not" and "nobody has set this up" are
 not the same news.
 
+**It says which stack is answering.** Beside the capabilities the data carries `stack`, the
+stack's own identifier: the one pairing material carries
+([N1-R62](../../10-functional/features/n-companion/n1-companion-app.md)), minted once and kept,
+the same across a change of address and a replacement of the certificate. A client holding
+several stacks, or meeting one again at a new address, tells them apart by it. Neither the
+address nor the certificate's fingerprint can serve, because each changes in exactly the cases a
+client most needs to recognise the machine, and the envelope's `host` names the machine an
+answer is about rather than the stack giving it. It is carried to every credential that may read
+the capabilities, a member's key included, because recognising a stack is not something a
+credential's scope can make anybody unentitled to (`ARCH-R163`).
+
 **It is read, not pushed, and it can change under a client.** Configuring storage turns
 `snapshots` from `unconfigured` to `available` without the session ending. So it is an
 ordinary read: it carries the age every other reading carries
@@ -880,6 +891,7 @@ generation has not been used.
 | **ARCH-R160** | Each action the artefact publishes as callable by a key MUST also say whether calling it again with the same arguments leaves the stack as calling it once did, judged by the state the stack ends in rather than by whether the work is done again. |
 | **ARCH-R161** | Each request in the household document `GET /api/requests` and `lemonfiber household --json` answer with MUST carry the kind of title it asked for, the year that title came out, when it arrived on the media server, and the identifier the media server holds it under, as `GET /api/held` names it. The year MUST be absent until the request has been handed to the service that files it, and the arrival and the identifier MUST be absent until the title is on the media server, never present as null. |
 | **ARCH-R162** | The event stream MUST carry an `alert` event when an alert starts and when it resolves, carrying what happened, what it means, what to do, its severity and which way it went, and an identity that is the same for an onset and the resolution that ends it and differs for each recurrence. |
+| **ARCH-R163** | The capabilities answer MUST carry the stack's own identifier, the one pairing material carries (`N1-R62`), to every credential it answers, a key scoped to a member included, and MUST NOT carry the address, the certificate's fingerprint or the envelope's `host` in its place. |
 | **ARCH-R165** | The web API MUST read an `Idempotency-Key` header on an action request as the name of the attempt it is, and MUST carry out an action request without one as an attempt of its own. |
 | **ARCH-R166** | An action request carrying the key of an attempt the same caller sent and the web API still remembers MUST be answered with what that attempt was answered with — the same job name, or the same status and envelope, a failure included — and MUST NOT run the action again; one arriving while that attempt is still being carried out MUST wait for its answer. Work that ends without an answer MUST be answered `500` with a problem code the artefact lists, to the first send and to every send waiting on it, and its attempt MUST be forgotten. A request refused before its action is reached MUST NOT be kept as an attempt. |
 | **ARCH-R167** | An action request carrying a key the same caller already sent with another action or other arguments MUST be refused with a problem code the artefact lists, at `400`, and MUST NOT run. |
