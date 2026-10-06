@@ -938,7 +938,7 @@ to    = "komga"
 | `input[].secret` | boolean | | For `operator`: `true` where the value may be a secret, so a terminal takes it without showing it. Absent means `false`. |
 | `step[].call.method` | string | ✔ | `GET`, `POST`, `PUT`, `PATCH` or `DELETE`. |
 | `step[].call.to` | string | ✔ | A service id in this stack, or a DNS name outside it. Never an address, a range or a bare host port (`F8-R8`). Never a substitution. |
-| `step[].call.path` | string | ✔ | Written out, but for a query value, which may substitute an earlier capture or an input. |
+| `step[].call.path` | string | ✔ | A plain absolute path: one leading `/`, then segments and an optional query. Written out, but for a query value, which may substitute an earlier capture or an input. |
 | `step[].call.headers` | table | | Headers the call carries. A value may substitute an earlier capture or an input. |
 | `step[].call.body` | string | | The body the call carries. It may substitute an earlier capture or an input. |
 | `step[].capture[].name` | string | ✔ | One word, unique within the recipe. |
@@ -1020,6 +1020,18 @@ A destination is one of two things and never a third (`F8-R4`):
 - **A host outside it**: any other `to`, which is a DNS name of at least two
   labels. It is reached over https on port 443 and nothing else. A one-label name
   that names no such service is refused, because it is neither.
+
+**Where a call goes is the destination, never the path.** A call's address is built
+from the scheme, host and port its destination gives it, and the path is set on
+that address rather than written after it. So the path is a plain absolute path:
+it begins with exactly one `/`, and holds no `@`, `\`, `#`, whitespace or control
+character, no percent-encoded `/`, `\`, `@`, `#` or `.`, and no `.` or `..`
+segment — any of which could make the text after a host read as another host, or
+walk somewhere the destination does not name. A manifest whose path is anything
+else is refused with a code of its own, `PLUGIN-37`, whatever else is wrong with
+it. A value substituted into a query value is percent-encoded, and a call whose
+built address names any host or port other than its destination's is refused
+before it is sent.
 
 An external name is resolved **before every call**, once, and the call is
 refused where any address it answers with is not out on the internet (`F8-R9`).
@@ -1282,6 +1294,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | Every `{{name}}` in a call is an earlier capture or an input, and a pair carries it to that call's `to` (`F8-R5`) | Value and destination named |
 | No `{{name}}` in a call's `to`, or in its `path` but for a query value (`F8-R2`) | Step and field named |
 | No `{{name}}` in a header's name (`F8-R2`) | Step and header named, as `PLUGIN-33` |
+| Every call's `path` is a plain absolute path (`F8-R2`) | Step named, with what is wrong with it, as `PLUGIN-37` |
 | Every `origin` is one of the four, and agrees with where the value comes from (`F8-R3`) | Value named, with both origins |
 | A credential-store value is carried, by a pair or a `{{name}}`, only to the service it belongs to (`F8-R16`) | Input, its service and the destination named |
 | Every credential-store input's `of` is a service of the stack's whose credential lemonfiber holds, never one of this plugin's own (`F8-R3`) | Input and service named |
