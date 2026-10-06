@@ -4,9 +4,9 @@
 # frozen at stage-version (OPS-R30).
 #
 # G5-R6, G5-R7 and G8-R13 arrive from 0.10.0 (OPS-R31): each needs the
-# invitation or the household member this version introduces. G5-R7 is already
-# built in two of its three places — after setup and on the dashboard — and what
-# it still owes is the third, an address on an invitation.
+# invitation or the household member this version introduces. G5-R7 asks for the
+# address in three places — after setup, on the dashboard and on an invitation —
+# and the third is what this version brings.
 version = "0.11.0"
 milestone = "M8"   # Household & content
 delivers  = "The household asks — requests, identity, client apps"

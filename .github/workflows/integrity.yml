@@ -51,6 +51,8 @@ jobs:
         run: python3 scripts/check_binding_order.py
       - name: Every accepted requirement is on the release train
         run: python3 scripts/check_goal_coverage.py
+      - name: A manifest comment says why a goal is there, not how far it has got
+        run: python3 scripts/check_manifest_comments.py
       # The one number here that lives in another repository. `lemonfiber-media-stack`
       # guards its own prose against its own manifest; this is the half the spec was
       # missing, which is why ten pages here said nineteen services through the day a
