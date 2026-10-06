@@ -1,12 +1,16 @@
 # **The dashboard.** `lemonfiber` with no subcommand opens a live view of the stack — the capability the whole of v1 has been building toward, and the reason this is 1.0.0 rather than another minor. Released through the signed, multi-platform pipeline on all three platforms.
 #
-# 17 goals, seeded from the roadmap milestone this version serves;
+# 19 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
+# `N1-R2` and `N1-R5` are the companion's parity with every other surface, in what it
+# offers and in what it lets an operator set; they are cited in `lemonfiber-companion`,
+# which is searched and not tagged.
 version = "1.0.0"
 milestone = "M6"   # Live TUI
 delivers  = "The dashboard — a bare `lemonfiber` opens it. Everything specced is built, and the interfaces stop moving."
 status  = "planned"
 repos   = ["lemonfiber"]
+satisfied_in = ["lemonfiber", "lemonfiber-companion"]
 goals   = [
     "B3-R1",
     "B3-R4",
@@ -25,6 +29,8 @@ goals   = [
     "L1-R8",
     "L1-R9",
     "L1-R10",
+    "N1-R2",
+    "N1-R5",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
