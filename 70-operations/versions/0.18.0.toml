@@ -183,7 +183,14 @@
 # `F8-R14` and `F8-R15` say when a recipe runs: on install, during an install and an
 # update, or on demand, through `plugin run` with approvals of its own. `F8-R16` keeps a
 # credential lemonfiber holds going back only to the service it belongs to.
-# 302 goals, seeded from the roadmap milestone this version serves;
+#
+# `ARCH-R156` to `ARCH-R158` are what Home Assistant reads that the core did not serve:
+# what the media server is playing, for the operator every session and for a member their
+# own, and a stream a member is admitted to, carrying their household row, their held shelf
+# and what they are playing and nothing of the operator's. `F12-R5` asks for active streams,
+# `F12-R9` for what a member is playing and `F12-R7` for state that follows the stream, and
+# the core refused every member the stream, so this version holds the three with them.
+# 305 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -505,6 +512,9 @@ goals   = [
     "F13-R11",
     "D10-R15",
     "D10-R16",
+    "ARCH-R156",
+    "ARCH-R157",
+    "ARCH-R158",
 ]
 
 # The companion's N1 rows that are built are locked here, where the companion is searched:

@@ -147,6 +147,22 @@ over is the only form `--out` can take on a screen. The name is resolved beneath
 directory rather than followed, so one carrying a path, or climbing out of that directory, is
 refused by name.
 
+### What is playing
+
+```
+GET /api/playing
+```
+
+The `playing` envelope `lemonfiber playing --json` prints: every session the media server is
+playing now, each naming the member watching and what they are watching, so how many are
+playing is read off the list rather than kept beside it. The operator, and a `read` or `act`
+key, are answered with every session. A member, and a key scoped to one, are answered with
+their own sessions and nobody else's (`ARCH-R156`).
+
+The narrowing is the command's, not the reply's. What runs names the member who asked,
+whatever the request named, as it does for the household row and the held shelf, so there is
+no path on which another member's session is read and then left out.
+
 ### When a request is refused
 
 The body of every refusal is the error envelope, the same one `--json` renders, and its
@@ -219,6 +235,19 @@ connects. A surface that marks what is new can then say whether anything is, and
 from the stream it already holds, and reads `/api/news` only on the screen that lists the
 items — rather than reading three answers for every stack on every frame of every screen to
 draw a mark on a tab.
+
+### A member's stream
+
+The stream above is the operator's view: the dashboard, the log lines, what setup is doing.
+None of it is narrowed to anybody, so it is never handed to a member. A member, and a key
+scoped to one, are admitted to a stream of their own instead. It carries their household row,
+their held shelf and what they are playing, each as the read that answers it answers that
+member, and nothing gathered for the operator (`ARCH-R157`).
+
+It is the same stream in every other respect. It beats at the same interval, it resumes from
+the same event id, and a value gathered before a gap is stale on it as on the operator's. It
+ends when the member is removed or their key is revoked, as the operator's ends when the
+operator's credential does (`ARCH-R158`).
 
 ## Getting in
 
@@ -738,6 +767,9 @@ generation has not been used.
 | **ARCH-R151** | The event stream MUST carry a `plugins` event and a `wiring` event, each with its envelope, sent when a client connects and whenever the installed record or the wiring changes. |
 | **ARCH-R152** | A git source named to `plugin-install` or `plugin-update` MUST be fetched over https from a host that resolves to no loopback, private or link-local address, checked when the fetch is made and for every redirect, and a source refused so MUST end with a listed problem code. |
 | **ARCH-R153** | The web API MUST answer `GET /api/plugins/catalogue` with the plugins the verified catalogue index lists, as `lemonfiber plugin catalogue --json` answers, and MUST NOT list an entry the index's signature does not cover. |
+| **ARCH-R156** | The web API MUST answer `GET /api/playing` with every session the media server is playing now, each naming the member watching and what they are watching, as `lemonfiber playing --json` answers. A member, and a key scoped to one, MUST be answered with their own sessions only, narrowed by the command that runs rather than filtered from every session. |
+| **ARCH-R157** | A member, and a key scoped to one, MUST be admitted to the event stream narrowed to them: it MUST carry their own household row, their held shelf and what they are playing, each as the read answering it answers that member, and MUST NOT carry anything gathered for the operator. |
+| **ARCH-R158** | A member's stream MUST emit the heartbeat, resume and mark values gathered before a gap as stale as the operator's does (`ARCH-R50`, `ARCH-R51`), and MUST end when the member is removed or their key is revoked. |
 
 ## Shapes are generated; semantics are not
 
