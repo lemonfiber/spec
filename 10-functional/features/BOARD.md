@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**111 features** in areas A–N, **1697 requirements**.
+**111 features** in areas A–N, **1698 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -57,7 +57,7 @@ code, and the two move independently.
 | [A7](a-getting-started/a7-credential-management.md) | Credential management & rotation | A | operator | accepted | `0.13.0`, `0.18.0` |
 | [B1](b-running/b1-forms.md) | Forms & partial stacks | B | operator | accepted | `0.1.0`, `0.17.0`, `0.18.0`, `0.8.0` |
 | [B2](b-running/b2-lifecycle.md) | Lifecycle control | B | operator | accepted | `0.15.0`, `0.18.0`, `0.8.0` |
-| [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.5.0`, `1.0.0` |
+| [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.18.0`, `0.2.0`, `0.8.0` |
