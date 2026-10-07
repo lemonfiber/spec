@@ -42,6 +42,7 @@ project should be operable from one page.
 | 10 | Enable **GitHub Pages** (source: Actions) | `spec` | The redirects that stand where the book stood |
 | 11 | Enable **private vulnerability reporting** | all | Security disclosure path |
 | 12 | Add `CNAME docs → lemonfiber.github.io` in Cloudflare DNS, proxied; enable **GitHub Pages** (source: Actions) with custom domain `docs.lemonfiber.app` | `website-docs.lemonfiber.app` | [docs.lemonfiber.app](https://docs.lemonfiber.app) resolves and serves |
+| 12a | Add `CNAME contribute → lemonfiber.github.io` in Cloudflare DNS, proxied; enable **GitHub Pages** (source: Actions) with custom domain `contribute.lemonfiber.app` | `website-contribute.lemonfiber.app` | `https://contribute.lemonfiber.app` resolves and serves |
 | 13 | Turn on **Always Use HTTPS** and set the zone's SSL/TLS mode to **Full** | zone | `http://docs.lemonfiber.app` answers `301` to `https://`, and the hop to GitHub stays encrypted |
 | 14 | Apply the **Bulk Redirect** list for the surfaces that moved to the documentation site — **outstanding**, see [the rules](#the-redirect-list-specifically) | zone | Every URL the marketing site published for a moved page answers `301` to its new address |
 

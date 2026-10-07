@@ -170,6 +170,15 @@ lang = "Astro"
 note = "It renders; it does not own — every page pinned to the repo that wrote it"
 
 [[repo]]
+name = "website-contribute.lemonfiber.app"
+node = "contribute"
+group = "impl"
+label = "website-contribute.lemonfiber.app<br/>the contributor site"
+spec = ["website-contribute.md"]
+lang = "Astro"
+note = "How the project is run, rendered from the repositories that run it"
+
+[[repo]]
 name = "brand"
 node = "brand"
 group = "impl"
@@ -263,6 +272,21 @@ label = "docs submodule, pinned"
 from = "brand"
 to = "website-docs.lemonfiber.app"
 label = "docs submodule, pinned"
+
+[[edge]]
+from = "spec"
+to = "website-contribute.lemonfiber.app"
+label = "governance submodule, pinned"
+
+[[edge]]
+from = "lemonfiber"
+to = "website-contribute.lemonfiber.app"
+label = "architecture submodule, pinned"
+
+[[edge]]
+from = "brand"
+to = "website-contribute.lemonfiber.app"
+label = "brand submodule, pinned"
 
 [[edge]]
 from = ".github"

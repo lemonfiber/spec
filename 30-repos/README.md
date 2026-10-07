@@ -37,6 +37,7 @@ flowchart TD
         tap["homebrew-tap<br/>generated formula"]
         site["website-lemonfiber.app<br/>the public frontpage"]
         docs["website-docs.lemonfiber.app<br/>the documentation site"]
+        contribute["website-contribute.lemonfiber.app<br/>the contributor site"]
         brand["brand<br/>design tokens"]
     end
 
@@ -54,6 +55,9 @@ flowchart TD
     brand -->|values mirrored| site
     lemonfiber -->|docs submodule, pinned| docs
     brand -->|docs submodule, pinned| docs
+    spec -->|governance submodule, pinned| contribute
+    lemonfiber -->|architecture submodule, pinned| contribute
+    brand -->|brand submodule, pinned| contribute
     gh -.->|inherited by| impl
     spec -.->|governs all| impl
 ```
@@ -76,10 +80,11 @@ flowchart TD
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website-lemonfiber.app` | [website-lemonfiber.md](website-lemonfiber.md) | Astro | The org is the motor; roadmap read, not written |
 | `website-docs.lemonfiber.app` | [website-docs.md](website-docs.md) | Astro | It renders; it does not own — every page pinned to the repo that wrote it |
+| `website-contribute.lemonfiber.app` | [website-contribute.md](website-contribute.md) | Astro | How the project is run, rendered from the repositories that run it |
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those eighteen are the repositories this specification governs, which is not the
+Those nineteen are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))

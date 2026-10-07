@@ -89,7 +89,7 @@ Decisions about a repository outside this organisation, such as
 | A claim made with the developer command line opens with an empty signed commit carrying `Spec:` and a sign-off; a claim made from the website adds the repository's `status.toml` row as `open` | This row; the requirement is not yet written |
 | A repository holds at most three open pull requests opened by people and agents, the organisation's bots not counted; the command line refuses a fourth claim, a bot comments, and the board flags the repository | This row; the requirement is not yet written |
 | The release train's tracker and planning issues are retired: the board's version page replaces the tracker, and a release blocker is a list in the manifest | This row; the requirement is not yet written |
-| Contributor material moves to a site of its own, apart from the documentation site | This row; the requirement is not yet written |
+| Contributor material moves to a site of its own, apart from the documentation site | [REPO-R73 to REPO-R81](../30-repos/website-contribute.md), [REPO-R69, REPO-R72](../30-repos/website-docs.md) |
 | The specification is rendered on `lemonfiber.app`, not on the documentation site | This row; the requirement and the ADR superseding ADR-0015 on it are not yet written |
 | The documentation site stays on Astro Starlight, extended | This row |
 

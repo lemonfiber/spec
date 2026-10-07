@@ -37,11 +37,9 @@ that also holds the thing it describes, and reaches this site as a git submodule
 pinned to an exact revision, symlinked into a Starlight content collection. Nothing is
 fetched during a build.
 
-- [`lemonfiber/.docs/`](https://github.com/lemonfiber/lemonfiber) — the architecture
-  notes a contributor reads before touching the crate
-- [`brand/.docs/`](https://github.com/lemonfiber/brand) — colour, type and logo rules
+- each repo's own guides — the SDKs' `docs/guide.md`, the integrations, the command
+  reference and the plugin template
 - each repo's `README.md` — its own front door
-- [`.github`](https://github.com/lemonfiber/.github) — conduct, security, contributing
 
 The **specification is mirrored the same way**, from a pinned revision of
 `spec` — it is the largest body of prose the org has, and a reader
@@ -53,7 +51,20 @@ document, because they are that repo's files at a revision the site names on the
 
 What *is* written here is the connective tissue — navigation, landing pages, and the
 task-shaped guides that mirrored prose does not provide because it was written for a
-repository rather than for a reader arriving from a search box.
+repository rather than for a reader arriving from a search box. An authored page says
+what it needs in its own words and links the normative page for the rule; where it
+would only restate that page, the page is mirrored instead (`REPO-R70`).
+
+**Two readers, two topics.** Every authored page declares who it is for: *Use*, for
+somebody running lemonfiber — install, run, fix, the commands, the error codes — and
+*Build on*, for somebody writing against it — the web API, the SDKs, plugins, Home
+Assistant and assistants. The sidebar is built per topic from that declaration
+(`REPO-R69`). Somebody changing lemonfiber is a third reader, and the
+[contributor site](website-contribute.md) is theirs.
+
+**Contributor material is not here.** How a change gets in, the rules for people and
+agents, the architecture notes, the brand rules and the map of the repositories are
+the [contributor site](website-contribute.md)'s to publish (`REPO-R72`).
 
 **Project status is not here.** The roadmap, the board, what is built and the list of
 releases change whenever the org does, and they live on the
@@ -118,11 +129,16 @@ prose as well as authored prose — this is the only build that sees all of it a
 | **REPO-R52** | The specification MUST be rendered on this site from a pinned revision of `spec`, and MUST NOT be published from any second site. |
 | **REPO-R53** | A URL that this site or a retired rendering of the specification published MUST continue to resolve, by redirect, to the page that replaced it, including a page that moved to the frontpage. |
 | **REPO-R68** | The site MUST NOT render project status: the roadmap, the board, what is built and the list of releases are the frontpage's to publish. |
+| **REPO-R69** | Every authored page MUST declare its audience, `use` or `build`; the navigation MUST be built per audience from that declaration, and a check MUST refuse a page that declares none or sits under another audience's tree. |
+| **REPO-R70** | An authored page MUST NOT restate a normative page another repository owns; that page MUST be mirrored instead. |
+| **REPO-R71** | The build MUST publish a provenance index mapping every route to its repository, path and revision. |
+| **REPO-R72** | The site MUST NOT publish contributor material — how a change gets in, the governance rules, the architecture notes, the brand rules and the map of the repositories — which the contributor site publishes. |
 
 ## Related
 
 - [ADR-0015 The documentation site renders content it does not own](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)
 - [ADR-0004 Four-repo split](../00-overview/decisions/0004-four-repo-split.md)
 - [website-lemonfiber.app](website-lemonfiber.md) — the frontpage, which reads live state rather than a pin
+- [website-contribute.lemonfiber.app](website-contribute.md) — the contributor site
 - [brand](brand.md) — the tokens the site consumes
 - [50-governance](../50-governance/) — the transparency commitment it serves
