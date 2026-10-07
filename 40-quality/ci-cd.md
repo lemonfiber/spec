@@ -313,7 +313,9 @@ same names.
 repository against an upstream compares what it would commit with what its
 open branch already carries, and leaves the branch alone where they match. A
 newer upstream move cancels a bump still running, whose result it would
-overwrite.
+overwrite. `check_superseded_runs.py` lets a group of its own cancel only on a
+workflow that nothing but a dispatch or a schedule starts, which no push and no
+tag can reach.
 
 **A cache is written by `main`.** A pull request can read its own caches and its
 base branch's, never another pull request's, so a cache saved on one pull
