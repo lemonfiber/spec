@@ -129,6 +129,10 @@ class Runner:
             outputs = {}
         act = context(**self.ctx_args)
         act["needs"] = {"checks": {"outputs": outputs, "result": self.checks_outcome}}
+        status = "success" if self.checks_outcome == "success" else "failure"
+        if not decides(self.workflow["jobs"]["act"]["if"], act, status=status):
+            # A job that does not start publishes nothing.
+            return {}, here, []
         act, there = self.job("act", act)
         publish = self.workflow["jobs"]["act"]["steps"][-1]
         verdicts = json.loads(substitute(publish["env"]["VERDICTS"], act))
@@ -144,7 +148,7 @@ class Generation(unittest.TestCase):
             said = checks["outputs"][gen_gates.slug(check)]
             # The plan runs first, before any step that reads a pull request's
             # files, and is the one step whose output a verdict may read.
-            self.assertEqual(re.findall(r"steps\.([\w-]+)\.outputs", said), ["plan"], check)
+            self.assertEqual(set(re.findall(r"steps\.([\w-]+)\.outputs", said)), {"plan"}, check)
             self.assertIn(".outcome", said, check)
 
     def test_the_checks_job_holds_no_secret_and_reads_only(self):
@@ -313,9 +317,24 @@ class Behaviour(unittest.TestCase):
         self.assertFalse([s for s in here + there if s.startswith(("labeler", "spec-check"))])
 
     def test_a_reusables_own_job_condition_skips_its_check(self):
-        verdicts, _, there = Runner(ctx_args={"head_repo": "someone/core"}).run()
+        # goals classifies only a pull request whose head is here, so a push skips it.
+        verdicts, _, there = Runner(ctx_args={"event_name": "push"}).run()
         self.assertEqual(verdicts["goals--classify"], "skipped")
         self.assertFalse([s for s in there if s.startswith("goals")])
+
+    def test_a_fork_pull_request_publishes_nothing(self):
+        # Every context act would publish is absent, so a required one is
+        # waiting, never green; the caller's own fork jobs answer instead.
+        verdicts, _, there = Runner(ctx_args={"head_repo": "someone/core"}).run()
+        self.assertEqual(verdicts, {})
+        self.assertEqual(there, [])
+
+    def test_a_plan_that_refused_leaves_no_check_green_or_skipped(self):
+        verdicts, here, _ = Runner(plan={}).run()
+        self.assertEqual(len(verdicts), len(gen_gates.CHECKS))
+        for key, said in verdicts.items():
+            self.assertEqual(said, gen_gates.UNREPORTED, key)
+        self.assertFalse([s for s in here if not s.endswith("--fresh")])
 
     def test_a_fork_pull_request_starts_no_act(self):
         said = generated()["jobs"]["act"]["if"]
@@ -389,6 +408,13 @@ class Scripts(unittest.TestCase):
                                      "GITHUB_OUTPUT": str(self.out)})
         self.assertEqual(said.returncode, 0)
 
+    def test_a_check_with_no_conclusion_fails_the_job(self):
+        for conclusion in (gen_gates.UNREPORTED, ""):
+            said = bash(gen_gates.HELD, {"VERDICTS": json.dumps({"x--y": "success", "x--z": conclusion}),
+                                         "GITHUB_OUTPUT": str(self.out)})
+            self.assertEqual(said.returncode, 1, conclusion)
+            self.assertIn("x / z failed", said.stdout)
+
 
 class Recorder(http.server.BaseHTTPRequestHandler):
     received: ClassVar[list] = []
@@ -447,6 +473,13 @@ class Publishing(unittest.TestCase):
         for _, _, body in Recorder.received:
             self.assertEqual(body["conclusion"], "failure")
             self.assertIn("did not report", body["output"]["summary"])
+
+    def test_a_plan_that_refused_publishes_every_check_failed(self):
+        verdicts, _, _ = Runner(plan={}).run()
+        self.publish(verdicts, checks="hygiene dco goals")
+        self.assertEqual(len(Recorder.received), 3)
+        for _, _, body in Recorder.received:
+            self.assertEqual(body["conclusion"], "failure", body["name"])
 
     def test_a_check_that_could_not_be_published_fails_the_job_and_is_named(self):
         Recorder.answer = 403

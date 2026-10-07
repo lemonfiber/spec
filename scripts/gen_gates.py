@@ -21,7 +21,8 @@ What a check's own job did, each check's steps still do:
   a step its reusable lets fail does not stop the ones after it;
 - a check's conclusion is failure where one of its steps failed, skipped where
   the caller skipped it or its reusable's job condition was false, and success
-  otherwise;
+  otherwise; one the plan gave no answer for, because it refused, is published
+  as failed, never skipped;
 - a step that needs a write token runs in `act`, where it reads what the check's
   earlier steps wrote through the `checks` job's outputs.
 
@@ -342,10 +343,25 @@ def carried(check: Check, job: dict, read_only: bool, outputs: dict[str, str]) -
     )
 
 
-def verdict(gate: str, failing: str) -> str:
-    """A check's conclusion as an expression: skipped, failure or success."""
+#: The conclusion of a check the plan said nothing about. The publish step reads
+#: any word but success, failure and skipped as a check that did not report.
+UNREPORTED = "unreported"
+
+
+def planned(plan: str) -> str:
+    """Whether the plan answered for a check, given the expression reading its answer.
+
+    A plan that refused wrote no answer at all, and a check with no answer ran
+    nothing: read as "not asked for", it would be published as skipped, which a
+    branch's required list accepts.
+    """
+    return f"{plan} == 'true' || {plan} == 'false'"
+
+
+def verdict(plan: str, gate: str, failing: str) -> str:
+    """A check's conclusion as an expression: unreported, skipped, failure or success."""
     failed = f"({failing}) && 'failure' || 'success'" if failing else "'success'"
-    return f"${{{{ !({gate}) && 'skipped' || {failed} }}}}"
+    return f"${{{{ !({planned(plan)}) && '{UNREPORTED}' || !({gate}) && 'skipped' || {failed} }}}}"
 
 
 PLAN = r"""set -euo pipefail
@@ -397,7 +413,7 @@ HELD = r"""set -euo pipefail
 python3 - <<'PY'
 import json, os
 said = json.loads(os.environ["VERDICTS"])
-failed = sorted(key for key, conclusion in said.items() if conclusion == "failure")
+failed = sorted(key for key, conclusion in said.items() if conclusion not in ("success", "skipped"))
 for key in failed:
     print(f"::error::{key.replace('--', ' / ')} failed. Its steps above say why.")
 raise SystemExit(1 if failed else 0)
@@ -532,7 +548,9 @@ def build() -> str:
             # The verdict is an expression over the steps' outcomes, which the
             # runner sets. No step writes it, so no step a pull request's files
             # can reach decides another check's conclusion.
-            outputs[key] = here_verdicts[key] = verdict(runs(check, job), failing_here)
+            outputs[key] = here_verdicts[key] = verdict(
+                f"steps.plan.outputs.{check.group}", runs(check, job), failing_here
+            )
             if failing_there:
                 verdicts[key] = (
                     f"${{{{ needs.checks.outputs.{key} == 'success' && ({failing_there}) "
@@ -541,7 +559,9 @@ def build() -> str:
             else:
                 verdicts[key] = f"${{{{ needs.checks.outputs.{key} }}}}"
         else:
-            verdicts[key] = verdict(asked_in_act(check, job), failing_there)
+            verdicts[key] = verdict(
+                f"needs.checks.outputs.plan--{check.group}", asked_in_act(check, job), failing_there
+            )
 
     missing = unlisted()
     if missing:
