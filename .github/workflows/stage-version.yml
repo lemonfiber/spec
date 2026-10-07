@@ -1,8 +1,9 @@
-# Open a version's staging period — OPS-R30, R32, R33, R43, R49, R50, R52.
+# Open a version's staging period — OPS-R30, R32, R33, R49, R50, R52, R83.
 #
 # Validates the version is stageable (planned, goals defined, nothing else in
 # flight), flips the manifest to
-# staged, opens the tracking issue, and announces to #maintainers. Maintainer-only.
+# staged, and announces to #maintainers with a link to its page on the roadmap.
+# No issue tracks it (OPS-R83). Maintainer-only.
 name: stage-version
 on:
   workflow_dispatch:
@@ -17,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
-      goals: ${{ steps.issue.outputs.goals }}
+      goals: ${{ steps.goals.outputs.goals }}
     steps:
       - name: Gate to maintainers
         env:
@@ -65,38 +66,26 @@ jobs:
           version: ${{ inputs.version }}
           status: staged
           token: ${{ steps.token.outputs.token }}
-      - name: Open the tracking issue (OPS-R43)
-        id: issue
+      - name: Count the goals it locks
+        id: goals
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          OWNER: ${{ github.repository_owner }}
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          python3 - "$VERSION" > body.md <<'PY'
-          import sys, tomllib
-          d = tomllib.load(open(f"70-operations/versions/{sys.argv[1]}.toml", "rb"))
-          print(f"## Release {d['version']} — 0/{len(d['goals'])} goals\n")
-          for g in d["goals"]:
-              print(f"- [ ] `{g}`")
-          print("\n_staged — the tracker updates this as goals land (OPS-R43)._")
-          PY
-          echo "goals=$(grep -c '^- \[' body.md)" >> "$GITHUB_OUTPUT"
-          gh issue create --repo "${OWNER}/spec" \
-            --title "Release ${VERSION} — tracker" \
-            --body-file body.md
+          goals=$(python3 -c "import sys, tomllib; print(len(tomllib.load(open(f'70-operations/versions/{sys.argv[1]}.toml', 'rb'))['goals']))" "$VERSION")
+          echo "goals=${goals}" >> "$GITHUB_OUTPUT"
       - name: Announce staging (OPS-R50)
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           VERSION: ${{ inputs.version }}
-          GOALS: ${{ steps.issue.outputs.goals }}
+          GOALS: ${{ steps.goals.outputs.goals }}
         run: echo "::notice::Staged ${VERSION} with ${GOALS} goals."
   announce:
     needs: stage
     uses: ./.github/workflows/discord-notify.yml
     with:
       title: "📦 Staged ${{ inputs.version }}"
-      body: "${{ needs.stage.outputs.goals }} goals locked. Tracking issue opened."
+      body: "${{ needs.stage.outputs.goals }} goals locked. Where each stands: https://lemonfiber.app/roadmap/${{ inputs.version }}/"
       color: "10181046"
     secrets:
       webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}

@@ -1,5 +1,5 @@
 # Where every goal of every version stands, and the board snapshot — OPS-R76,
-# OPS-R77, OPS-R80, OPS-R81, OPS-R82.
+# OPS-R77, OPS-R80, OPS-R81, OPS-R82, OPS-R83.
 #
 # Reads every repository a version is satisfied in at its default branch, and
 # every open pull request in them, and writes the report (STATE.md for a person,
@@ -13,6 +13,10 @@
 # A repository that cannot be cloned or read is named in both files, its goals
 # read unknown, and the rest is still published. The frontpage is asked to
 # rebuild only when the snapshot's content changed since the one published.
+#
+# Each run then asks the release gate about the version in flight and moves it
+# to `releasable` once every goal it locks is met and its manifest lists no
+# blocker. No issue tracks it: the frontpage's page for the version does.
 #
 # Runs when a manifest, a feature, the repository map or the report's own code
 # changes on `main`; when a repository says its tracker moved; on demand; and
@@ -36,6 +40,7 @@ on:
       - "scripts/catalogue.py"
       - "scripts/gen_board.py"
       - "scripts/goals.py"
+      - "scripts/in_flight.py"
       - "scripts/open_prs.sh"
       - "scripts/status_check.py"
       - ".github/workflows/state.yml"
@@ -57,6 +62,8 @@ jobs:
       contents: write
     outputs:
       changed: ${{ steps.publish.outputs.changed }}
+      became_releasable: ${{ steps.judge.outputs.became_releasable }}
+      version: ${{ steps.judge.outputs.version }}
     steps:
       - name: Check out the spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -130,6 +137,74 @@ jobs:
             board.json
           if-no-files-found: error
           retention-days: 90
+
+      - name: The version in flight
+        id: flight
+        run: echo "version=$(python3 scripts/in_flight.py version)" >> "$GITHUB_OUTPUT"
+
+      - name: Judge it with the release gate
+        id: judge
+        if: steps.flight.outputs.version
+        env:
+          VERSION: ${{ steps.flight.outputs.version }}
+        run: |
+          set -euo pipefail
+          args=()
+          while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done \
+            < <(python3 scripts/manifest_repos.py --version "$VERSION" --for searched)
+          legacy=checkouts/lemonfiber/IMPLEMENTATION-STATUS.md
+          if [ -f "$legacy" ]; then args+=(--status "$legacy"); fi
+          set +e
+          python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" "${args[@]}" \
+            --format json > result.json
+          judged=$?
+          set -e
+          if [ "$judged" -gt 1 ]; then
+            cat result.json
+            echo "::error::the release gate exited ${judged} rather than judging ${VERSION}."
+            exit "$judged"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          releasable=$(python3 -c "import json; print(json.load(open('result.json'))['releasable'])")
+          if [ "$releasable" != "True" ]; then
+            echo "${VERSION} is not releasable yet."
+            exit 0
+          fi
+          if ! python3 scripts/in_flight.py blockers --version "$VERSION"; then
+            echo "every goal of ${VERSION} is met, and its manifest lists a blocker."
+            exit 0
+          fi
+          echo "became_releasable=true" >> "$GITHUB_OUTPUT"
+
+      - name: Mint the release App token
+        id: token
+        if: steps.judge.outputs.became_releasable == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Move it to releasable
+        if: steps.judge.outputs.became_releasable == 'true'
+        uses: ./.github/actions/manifest-transition
+        with:
+          version: ${{ steps.judge.outputs.version }}
+          status: releasable
+          token: ${{ steps.token.outputs.token }}
+
+  announce:
+    needs: report
+    if: needs.report.outputs.became_releasable == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      title: "✅ ${{ needs.report.outputs.version }} is releasable"
+      body: "Every locked goal is satisfied and nothing blocks it. Run execute-version to cut it."
+      color: "3066993"
+    secrets:
+      webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}
 
   rebuild:
     needs: report
