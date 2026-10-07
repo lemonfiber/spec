@@ -2,7 +2,7 @@
   "generated_by": "scripts/gen_board.py",
   "counts": {
     "features": 111,
-    "requirements": 1696,
+    "requirements": 1697,
     "areas": "A–N"
   },
   "versions": [
@@ -112,7 +112,7 @@
       "version": "0.18.0",
       "status": "planned",
       "milestone": "M14",
-      "goals": 312
+      "goals": 318
     },
     {
       "version": "0.19.0",
@@ -277,10 +277,11 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.13.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": [
-        "M9"
+        "M9",
+        "M14"
       ],
       "milestone": "M9",
       "priority": null,
@@ -299,6 +300,10 @@
         {
           "version": "0.13.0",
           "status": "released"
+        },
+        {
+          "version": "0.18.0",
+          "status": "planned"
         }
       ],
       "path": "a-getting-started/a4-reconfiguration.md"

@@ -747,6 +747,65 @@ Names do not outlive the run that issued them. Work in flight does not survive t
 doing it, so a record that outlived the run would describe jobs nothing is running; a name from
 an earlier run is therefore one this run never issued.
 
+### An action sent again
+
+```
+POST /api/actions/<name>
+Idempotency-Key: <key>
+```
+
+A client that sent an action and heard nothing back cannot tell a request that never
+arrived from an answer that never reached it. The safe thing for it to do is send the same
+action again, and a stack that could not recognise the second send would restart twice or
+pause twice. So an action request may carry an `Idempotency-Key` naming the attempt it is,
+and a request without one is an attempt of its own (`ARCH-R165`). It serves the retry inside
+one attempt and nothing longer (`N1-R42`, [ADR-0020](../../00-overview/decisions/0020-an-action-the-stack-did-not-receive-did-not-happen.md)).
+
+The same key sent again by the same caller while its attempt is remembered is answered
+with what the first send was answered with: the same job name for work that runs on, and
+the same status and envelope for an action answered on the spot, a failure included. The
+action runs once. A second send that arrives while the first is still being carried out
+waits for the first one's answer rather than starting the action beside it (`ARCH-R166`).
+The caller is whoever the guard admitted: the terminal's token, the operator, a household
+member, or a key by its name.
+
+A request refused before its action is reached — a body it cannot read, an action it does
+not name, an argument refused, a caller not permitted — is not an attempt. Nothing ran, so
+nothing is kept, and the same request sent again is ruled on again.
+
+Work that ends without an answer — stopped, or fallen over — is answered `500` with a
+code of its own, to the first send and to every send waiting on it, and its attempt is
+forgotten: it reached no answer to give again, so the same key sent afterwards runs the
+action again. A send never waits on an attempt that will not answer (`ARCH-R166`).
+
+**A key names one attempt, so it names one action and its arguments.** The same key sent
+with another action or other arguments is refused with its own code at `400`, and nothing
+runs under it (`ARCH-R167`). Answering it with the first send's outcome would hand a client
+an answer to a request it did not make, and running it would run two attempts under one
+name.
+
+What is remembered is held in memory and nowhere else, and does not outlive the run, as
+the work it names does not. Each caller has their own, and how long and how many are the
+operator's two settings, read again at every send so a change holds from the next one:
+
+| Setting | Holds | Default | May be |
+|---|---|---|---|
+| `LEMONFIBER_IDEMPOTENCY_MINUTES` | how long an attempt is remembered from its first send | `30` | a whole number from 1 to 1440 |
+| `LEMONFIBER_IDEMPOTENCY_KEYS` | how many attempts one caller has remembered at once | `256` | a whole number from 1 to 4096 |
+
+Half an hour is the lease a job's name is kept for, so a second send answered with a name
+is answered while that name can still be redeemed. Past the count, a caller's next attempt
+lets go of that caller's oldest answered one, so one caller sending many keys never pushes
+out another's. An attempt still being carried out is never let go, by age or for room:
+letting it go would let its second send run the action beside it (`ARCH-R168`). Each
+setting is changed as any setting is, and shown with where it came from (`A4-R13`).
+
+A key is one to 255 visible ASCII characters, `!` to `~`, given once. Anything else — an
+empty value, a longer one, a space, a character outside ASCII, the header given twice — is
+refused with its own code at `400` before anything runs, because a key that cannot be read
+the same way twice is one a second send could not be recognised by (`ARCH-R169`). The
+header means nothing outside `/api/actions/<name>`.
+
 ### The payload's type
 
 `data` differs by `kind`, so a client exposes it **typed by its kind** rather than as
@@ -821,6 +880,11 @@ generation has not been used.
 | **ARCH-R160** | Each action the artefact publishes as callable by a key MUST also say whether calling it again with the same arguments leaves the stack as calling it once did, judged by the state the stack ends in rather than by whether the work is done again. |
 | **ARCH-R161** | Each request in the household document `GET /api/requests` and `lemonfiber household --json` answer with MUST carry the kind of title it asked for, the year that title came out, when it arrived on the media server, and the identifier the media server holds it under, as `GET /api/held` names it. The year MUST be absent until the request has been handed to the service that files it, and the arrival and the identifier MUST be absent until the title is on the media server, never present as null. |
 | **ARCH-R162** | The event stream MUST carry an `alert` event when an alert starts and when it resolves, carrying what happened, what it means, what to do, its severity and which way it went, and an identity that is the same for an onset and the resolution that ends it and differs for each recurrence. |
+| **ARCH-R165** | The web API MUST read an `Idempotency-Key` header on an action request as the name of the attempt it is, and MUST carry out an action request without one as an attempt of its own. |
+| **ARCH-R166** | An action request carrying the key of an attempt the same caller sent and the web API still remembers MUST be answered with what that attempt was answered with — the same job name, or the same status and envelope, a failure included — and MUST NOT run the action again; one arriving while that attempt is still being carried out MUST wait for its answer. Work that ends without an answer MUST be answered `500` with a problem code the artefact lists, to the first send and to every send waiting on it, and its attempt MUST be forgotten. A request refused before its action is reached MUST NOT be kept as an attempt. |
+| **ARCH-R167** | An action request carrying a key the same caller already sent with another action or other arguments MUST be refused with a problem code the artefact lists, at `400`, and MUST NOT run. |
+| **ARCH-R168** | Attempts MUST be held in memory only and per caller, each for the minutes `LEMONFIBER_IDEMPOTENCY_MINUTES` names from its first send, `30` where it names none, and up to the count `LEMONFIBER_IDEMPOTENCY_KEYS` names, `256` where it names none, both read at each send; a caller's attempt past that count MUST let go of that caller's oldest answered attempt and of no other caller's, and an attempt still being carried out MUST NOT be let go, by age or for room. |
+| **ARCH-R169** | An `Idempotency-Key` MUST be one to 255 visible ASCII characters given once; an action request carrying anything else under that header MUST be refused with a problem code the artefact lists, at `400`, before anything runs. |
 | **ARCH-R170** | SDK generation MUST refuse a `$ref` in the contract artefact that it cannot resolve to a definition in the vendored copy, naming the reference and the file it appears in, and MUST write nothing when it refuses. |
 
 ## Shapes are generated; semantics are not
