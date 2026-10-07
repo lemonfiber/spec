@@ -79,6 +79,12 @@ FILE = "status.toml"
 #: Where a repository whose rows run past a thousand lines keeps one file per feature.
 DIRECTORY = "status"
 
+#: What a tracker split by feature, and a version manifest, are each kept as.
+TOML = "*.toml"
+
+#: Where the version manifests are, each naming its goals and its repositories.
+VERSIONS = pathlib.Path("70-operations") / "versions"
+
 #: The states a row may be in. Only the first counts towards a release.
 STATES = ("done", "partial", "open")
 DONE = STATES[0]
@@ -236,7 +242,7 @@ def load(root: pathlib.Path, repo: str) -> list[Row] | None:
     if single.is_file() and split.is_dir():
         raise Unreadable(f"{repo} keeps both {FILE} and {DIRECTORY}/; keep one")
     if split.is_dir():
-        files = sorted(split.glob("*.toml"))
+        files = sorted(split.glob(TOML))
         try:
             return gathered([(f.name, f.read_text(encoding="utf-8")) for f in files], repo)
         except UnicodeDecodeError as broken:
@@ -257,24 +263,21 @@ def requirements(spec: pathlib.Path) -> tuple[set[str], set[str]]:
     return defined, retired
 
 
+def manifests(spec: pathlib.Path) -> list[dict]:
+    """Every version manifest, read, the template apart."""
+    return [tomllib.loads(path.read_text(encoding="utf-8"))
+            for path in sorted((spec / VERSIONS).glob(TOML)) if path.stem != "TEMPLATE"]
+
+
 def locked(spec: pathlib.Path) -> set[str]:
     """Every requirement some version manifest locks."""
-    found: set[str] = set()
-    for path in (spec / "70-operations" / "versions").glob("*.toml"):
-        if path.stem != "TEMPLATE":
-            found.update(tomllib.loads(path.read_text(encoding="utf-8")).get("goals", []))
-    return found
+    return {goal for data in manifests(spec) for goal in data.get("goals", [])}
 
 
 def searched(spec: pathlib.Path) -> list[str]:
     """Every repository some version is satisfied in, which is every tracker."""
-    found: set[str] = set()
-    for path in (spec / "70-operations" / "versions").glob("*.toml"):
-        if path.stem == "TEMPLATE":
-            continue
-        data = tomllib.loads(path.read_text(encoding="utf-8"))
-        found.update(data.get("satisfied_in", data.get("repos", [])))
-    return sorted(found)
+    return sorted({repo for data in manifests(spec)
+                   for repo in data.get("satisfied_in", data.get("repos", []))})
 
 
 def reachable(root: pathlib.Path, sha: str) -> bool:
@@ -413,7 +416,7 @@ def main() -> int:
     args = parser.parse_args()
 
     spec = within_cwd(args.spec)
-    if not (spec / "70-operations" / "versions").is_dir():
+    if not (spec / VERSIONS).is_dir():
         print(f"::error::no version manifests under {spec}")
         return 2
     try:
