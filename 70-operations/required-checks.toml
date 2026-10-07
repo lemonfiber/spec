@@ -73,6 +73,20 @@ why = "per-module legs of a run-time matrix; the aggregate `mutation testing` is
 prefix = "runs ("
 why = "per-profile legs of a run-time matrix; the aggregate `the stack starts` is required"
 
+# Freshness of a vendored client. Each asks whether what a repository pins is
+# still the newest thing its upstream has, and reads the upstream's head rather
+# than anything the pull request changed, so as a requirement it would gate every
+# change on a fact none of them can affect. The bump bots open the pull request
+# that takes the new upstream, and that pull request answers the question by
+# passing every other required check on the new pin.
+[[exempt]]
+name = "sdk-drift"
+why = "reads the upstream SDK's head, not the change; the bump pull request answers it"
+
+[[exempt]]
+name = "contract-drift"
+why = "reads the core's contract at its head, not the change; the bump pull request answers it"
+
 # Push- and release-triggered jobs. They are not pull-request gates: they run
 # after a merge or on a tag, so on a pull request there is nothing to require.
 [[exempt]]
