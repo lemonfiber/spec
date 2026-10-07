@@ -89,9 +89,13 @@ Decisions about a repository outside this organisation, such as
 | A claim made with the developer command line opens with an empty signed commit carrying `Spec:` and a sign-off; a claim made from the website adds the repository's `status.toml` row as `open` | This row; the requirement is not yet written |
 | A repository holds at most three open pull requests opened by people and agents, the organisation's bots not counted; the command line refuses a fourth claim, a bot comments, and the board flags the repository | This row; the requirement is not yet written |
 | The release train's tracker and planning issues are retired: the board's version page replaces the tracker, and a release blocker is a list in the manifest | This row; the requirement is not yet written |
-| Contributor material moves to a site of its own, apart from the documentation site | This row; the requirement is not yet written |
-| The specification is rendered on `lemonfiber.app`, not on the documentation site | This row; the requirement and the ADR superseding ADR-0015 on it are not yet written |
-| The documentation site stays on Astro Starlight, extended | This row |
+| Contributor material moves to a site of its own, apart from the documentation site | [ADR-0040](../00-overview/decisions/0040-three-sites-each-with-one-reader.md), [REPO-R69 to REPO-R73](../30-repos/website-contribute.md), [REPO-R80](../30-repos/website-docs.md) |
+| The specification is rendered on `lemonfiber.app`, not on the documentation site | [ADR-0040](../00-overview/decisions/0040-three-sites-each-with-one-reader.md), [REPO-R79](../30-repos/website-lemonfiber.md) |
+| The documentation site stays on Astro Starlight, extended | [ADR-0040](../00-overview/decisions/0040-three-sites-each-with-one-reader.md) |
+| The developer command line has a repository of its own, `tool-lfdev`, and installs as `lfdev` | [tool-lfdev](../30-repos/tool-lfdev.md), [REPO-R74](../30-repos/tool-lfdev.md) |
+| `lfdev` is written against Python's standard library alone | [REPO-R74](../30-repos/tool-lfdev.md) |
+| The contributor site is the repository `website-contribute.lemonfiber.app`, served at `contribute.lemonfiber.app` | [website-contribute.lemonfiber.app](../30-repos/website-contribute.md) |
+| `lemonfiber.app` renders the specification at the commit of `spec` the board snapshot read, and rebuilds it on the same event as the board | [REPO-R79](../30-repos/website-lemonfiber.md) |
 
 ## Requirements
 

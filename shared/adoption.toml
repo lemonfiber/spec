@@ -111,6 +111,16 @@ gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
+name = "website-contribute.lemonfiber.app"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "tool-lfdev"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
 name = "brand"
 gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]
