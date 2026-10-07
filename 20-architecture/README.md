@@ -28,6 +28,8 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [platform-matrix.md](platform-matrix.md) | The five cross-platform differences that actually bite |
 | [contracts/stack-manifest.md](contracts/stack-manifest.md) | **`stack.toml`** — the lemonfiber ↔ lemonfiber-media-stack interface, full schema |
 | [contracts/plugin-manifest.md](contracts/plugin-manifest.md) | **`plugin.toml`** — the lemonfiber ↔ plugin interface, and the Compose entry lemonfiber writes from it |
+| [contracts/plugin-manifest-proof.md](contracts/plugin-manifest-proof.md) | **`plugin.toml` `[[proof]]`** — what must hold before a plugin is installed |
+| [contracts/plugin-manifest-recipe.md](contracts/plugin-manifest-recipe.md) | **`plugin.toml` `[[recipe]]`** — the ordered calls a plugin may declare, bounded by reading |
 | [contracts/capability-vocabulary.md](contracts/capability-vocabulary.md) | **`capability-vocabulary.json`** — what a service can do, what demonstrates it, and who may claim one |
 | [contracts/extension-points.md](contracts/extension-points.md) | **`extension-points.json`** — where a plugin may add a row to a register lemonfiber already runs |
 | [contracts/download-client.md](contracts/download-client.md) | Registering SABnzbd/qBittorrent into a Servarr app — the `fields` schema and per-app category |
