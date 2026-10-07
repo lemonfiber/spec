@@ -236,6 +236,7 @@ class TheSonarGateAsksTheBatch(unittest.TestCase):
             "SONAR_TOKEN": token,
             "PROJECT": "",
             "ALLOWED": "0",
+            "CODE": "true",
             "REPO": "lemonfiber/spec",
             "BASE_SHA": BASE,
             "HEAD_SHA": HEAD,
@@ -290,6 +291,17 @@ class TheSonarGateAsksTheBatch(unittest.TestCase):
     def test_an_open_count_within_the_allowance_passes(self):
         code, out = self.run_step(CURL_OPEN_TOTAL=3, ALLOWED=3)
         self.assertEqual(code, 0, out)
+
+    def test_a_batch_that_touches_no_code_asks_no_pull_request(self):
+        code, out = self.run_step(CODE="false", CURL_PR_TOTAL_12=2)
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("pullRequest=", self.curl_log.read_text(encoding="utf-8"))
+        self.assertIn("No code changed", self.summarised())
+
+    def test_a_batch_that_touches_no_code_still_holds_the_open_count(self):
+        code, out = self.run_step(CODE="false", CURL_OPEN_TOTAL=3)
+        self.assertEqual(code, 1)
+        self.assertIn("3 open issues against lemonfiber_spec", out)
 
     def test_no_token_is_refused_rather_than_passed(self):
         code, out = self.run_step(token="")

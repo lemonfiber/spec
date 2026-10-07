@@ -27,23 +27,83 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Whether this change reaches anything an analysis reads. Markdown is most of
+  # what this repository changes and neither analysis reads it: the Python one
+  # reads `.py` files and the Actions one the workflows. Anything that is not
+  # Markdown runs both, and so does a change with no base to compare against.
+  scope:
+    name: what changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Every commit, so the base is here to compare against, and no file
+          # contents but the checkout's: the comparison reads trees.
+          fetch-depth: 0
+          filter: blob:none
+      - id: diff
+        env:
+          # A pull request's base, a merge group's, or on a push the commit
+          # before it. A schedule has none.
+          BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE}" ] || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "No commit to compare against, so both analyses run."
+            exit 0
+          fi
+          changed="$(git diff --no-renames --name-only "${BASE}" HEAD)"
+          code=false
+          while IFS= read -r path; do
+            case "${path}" in
+            '' | *.md) ;;
+            *) code=true ;;
+            esac
+          done <<< "${changed}"
+          echo "code=${code}" >> "$GITHUB_OUTPUT"
+          if [ "${code}" = false ]; then
+            echo "Only Markdown changed, so neither analysis runs."
+          fi
+
   analyze:
+    needs: scope
+    # Runs whatever `what changed` said, because a matrix job skipped whole
+    # reports with its matrix unexpanded and the required `analyze (actions)`
+    # and `analyze (python)` would never appear. Where only Markdown changed its
+    # steps skip instead, and each language reports success having analysed
+    # nothing.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       security-events: write
+    env:
+      CODE: ${{ needs.scope.result != 'success' || needs.scope.outputs.code == 'true' }}
     strategy:
       fail-fast: false
       matrix:
         language: [actions, python]
     steps:
+      - name: Only Markdown changed, so nothing is analysed
+        if: env.CODE != 'true'
+        env:
+          LANGUAGE: ${{ matrix.language }}
+        run: echo "::notice::Only Markdown changed, and no ${LANGUAGE} analysis reads it, so none runs."
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: env.CODE == 'true'
         with:
           persist-credentials: false
       - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v3
+        if: env.CODE == 'true'
         with:
           languages: ${{ matrix.language }}
       - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v3
+        if: env.CODE == 'true'
 
   # The analysis finding something is not the same as anything stopping it: the
   # check GitHub raises beside it is neutral on every pull request here, so
@@ -61,7 +121,7 @@ jobs:
   # has no analysis of, by language and by name, so it produces a red check that
   # says what is missing rather than a skipped one that says nothing.
   alerts:
-    needs: analyze
+    needs: [scope, analyze]
     if: ${{ !cancelled() }}
     permissions:
       contents: read
@@ -69,6 +129,10 @@ jobs:
     uses: ./.github/workflows/codeql-alerts.yml
     with:
       analysis: ${{ needs.analyze.result }}
+      # Whether the analysis above ran at all. Where only Markdown changed it
+      # did not, and the gate says so rather than refusing a commit with no
+      # analysis; a skipped call would report as `alerts`, not `alerts / alerts`.
+      code: ${{ needs.scope.result != 'success' || needs.scope.outputs.code == 'true' }}
       # The original rather than a copy: this repository is where the gate is
       # maintained, and a repository that carried a second copy of its own file
       # would be the first place the two could disagree.

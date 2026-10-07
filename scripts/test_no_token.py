@@ -55,7 +55,8 @@ printf '%s' "${GH_ANSWER:-}"
 """
 
 # Stand in for `curl`, which is reached only once a token is present. It answers
-# every request with the status in CURL_STATUS and an empty body.
+# every request with the status in CURL_STATUS and the body in CURL_BODY, empty
+# unless a test sets one.
 CURL_STUB = """#!/bin/sh
 set -eu
 out=""
@@ -67,14 +68,18 @@ for arg in "$@"; do
   prev=$arg
 done
 if [ -n "$out" ]; then
-  : > "$out"
+  printf '%s' "${CURL_BODY:-}" > "$out"
 fi
 printf '%s' "${CURL_STATUS:-404}"
 """
 
 # The wait between polls, which is five minutes of real time the assertions do not
-# need. Only the tokened case reaches it.
-SLEEP_STUB = "#!/bin/sh\nexit 0\n"
+# need. Only the tokened case reaches it. Each wait is logged to SLEEP_LOG, so a
+# test can say whether the step polled at all.
+SLEEP_STUB = """#!/bin/sh
+printf 'slept\\n' >> "${SLEEP_LOG:-/dev/null}"
+exit 0
+"""
 
 
 def step_script() -> str:
@@ -84,8 +89,11 @@ def step_script() -> str:
     return named[0]["run"]
 
 
-class NoToken(unittest.TestCase):
-    """The step, run against a stubbed GitHub with no SonarCloud token."""
+class Harness:
+    """The step, run against a stubbed GitHub, `curl` and `sleep`.
+
+    A mixin rather than a test case, so it holds no tests of its own: each suite
+    that drives the step pairs it with `unittest.TestCase`."""
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
@@ -99,11 +107,14 @@ class NoToken(unittest.TestCase):
             stub.write_text(body, encoding="utf-8")
             stub.chmod(0o755)
         self.log = self.tmp / "gh.log"
+        self.slept = self.tmp / "sleep.log"
         self.summary = self.tmp / "summary.md"
         self.summary.touch()
 
-    def run_step(self, *, author, token="", gh_fails=False):
-        """Run the step as the pull request of `author`, with `token` as SONAR_TOKEN."""
+    def run_step(self, *, author, token="", gh_fails=False, **extra):
+        """Run the step as the pull request of `author`, with `token` as SONAR_TOKEN.
+
+        `extra` overrides or adds environment, so a test names only what it varies."""
         work = self.tmp / "work"
         work.mkdir(exist_ok=True)
         env = {
@@ -120,10 +131,13 @@ class NoToken(unittest.TestCase):
             "MARKER": "<!-- lemonfiber:issue-gate -->",
             "PROJECT": "",
             "ALLOWED": "0",
+            "CODE": "true",
             "GH_LOG": str(self.log),
+            "SLEEP_LOG": str(self.slept),
         }
         if gh_fails:
             env["GH_FAILS"] = "1"
+        env.update({key: str(value) for key, value in extra.items()})
         done = subprocess.run(
             ["bash", str(self.script)],
             cwd=work,
@@ -136,6 +150,10 @@ class NoToken(unittest.TestCase):
 
     def verdict(self) -> str:
         return self.summary.read_text(encoding="utf-8")
+
+
+class NoToken(Harness, unittest.TestCase):
+    """The step with no SonarCloud token."""
 
     # --- the two runs are told apart -----------------------------------------
 
