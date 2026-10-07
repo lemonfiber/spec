@@ -54,6 +54,7 @@ jobs:
         run: |
           coverage run scripts/test_release_train.py
           coverage run --append scripts/test_release_trackers.py
+          coverage run --append scripts/test_release_images.py
           coverage run --append scripts/test_redirects.py
           coverage run --append scripts/test_status_lint.py
           coverage run --append scripts/test_no_stubs.py
