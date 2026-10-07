@@ -386,6 +386,18 @@ POST /api/actions/update           POST /api/actions/downloads-pause
 POST /api/actions/downloads-resume
 ```
 
+**A rehearsal of one of these answers an offer, and the real call may carry it back.** The
+rehearsal of each action that takes `dry_run` answers, beside what it would do, an offer built
+from what it read, as the plugin writes' rehearsals do. A call carrying that offer builds it
+again from what is there now and is refused where the two differ, naming what moved, with a
+problem code the artefact lists among its refusals: a restart rehearsed against one set of
+services is not carried out against another, and an update rehearsed against one release is not
+carried out against the next. A call carrying no offer acts as it does without one, because
+these are calls a program makes on a schedule as well as after asking somebody, and none of them
+installs anything a rehearsal would have to be read for. `key_callable` says, entry by entry,
+whether an action answers an offer, so a client knows which of its calls can carry one
+(`ARCH-R164`).
+
 An `act` key asking for any other action is refused, naming its scope, and a `read` key is
 refused every action.
 
@@ -892,6 +904,7 @@ generation has not been used.
 | **ARCH-R161** | Each request in the household document `GET /api/requests` and `lemonfiber household --json` answer with MUST carry the kind of title it asked for, the year that title came out, when it arrived on the media server, and the identifier the media server holds it under, as `GET /api/held` names it. The year MUST be absent until the request has been handed to the service that files it, and the arrival and the identifier MUST be absent until the title is on the media server, never present as null. |
 | **ARCH-R162** | The event stream MUST carry an `alert` event when an alert starts and when it resolves, carrying what happened, what it means, what to do, its severity and which way it went, and an identity that is the same for an onset and the resolution that ends it and differs for each recurrence. |
 | **ARCH-R163** | The capabilities answer MUST carry the stack's own identifier, the one pairing material carries (`N1-R62`), to every credential it answers, a key scoped to a member included, and MUST NOT carry the address, the certificate's fingerprint or the envelope's `host` in its place. |
+| **ARCH-R164** | The rehearsal of each action the artefact publishes as callable by a key and as taking `dry_run` MUST answer an offer built from what it read. A call carrying that offer MUST be refused, with a problem code the artefact lists, where the offer built from what is there now differs, and a call carrying no offer MUST act as it would without one. Each `key_callable` entry MUST say whether the action answers an offer. |
 | **ARCH-R165** | The web API MUST read an `Idempotency-Key` header on an action request as the name of the attempt it is, and MUST carry out an action request without one as an attempt of its own. |
 | **ARCH-R166** | An action request carrying the key of an attempt the same caller sent and the web API still remembers MUST be answered with what that attempt was answered with — the same job name, or the same status and envelope, a failure included — and MUST NOT run the action again; one arriving while that attempt is still being carried out MUST wait for its answer. Work that ends without an answer MUST be answered `500` with a problem code the artefact lists, to the first send and to every send waiting on it, and its attempt MUST be forgotten. A request refused before its action is reached MUST NOT be kept as an attempt. |
 | **ARCH-R167** | An action request carrying a key the same caller already sent with another action or other arguments MUST be refused with a problem code the artefact lists, at `400`, and MUST NOT run. |
