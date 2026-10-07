@@ -2,7 +2,7 @@
 """The train's two steps and its plugin gate, shown in the workflows that run them —
 ADR-0033 §4, OPS-R68, Q-R66.
 
-`train_step.py` and `check_image_pins.py` are measured in `test_release_train.py`.
+`train_step.py` and `check_image_pins.py` are measured in `test_release_images.py`.
 What decides whether a core is tagged over a stack pinning another tag's image is
 how `execute-version` and `prerelease-version` wire them: which step a run is on,
 that the pin check runs before the core is tagged and refuses a stack that does
