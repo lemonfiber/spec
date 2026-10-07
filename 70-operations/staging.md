@@ -45,7 +45,7 @@ goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs
 lemonfiber-media-stack = "fbdafe0"   # the submodule commit that shipped
 ```
 
-Staging writes it, the tracker reads it, the gate checks it, and publishing
+Staging writes it, the report reads it, the gate checks it, and publishing
 flips its `status`, records its `pins` and stamps the date it went out. The full
 contract is in [`versions/README.md`](versions/README.md).
 
@@ -62,8 +62,8 @@ stateDiagram-v2
     [*] --> planned
     planned --> staged: stage-version — locks the goals
     staged --> in_progress: work has begun — the version people are building
-    in_progress --> releasable: tracker sees every goal satisfied
-    staged --> releasable: tracker sees every goal satisfied
+    in_progress --> releasable: the report's gate run sees every goal satisfied
+    staged --> releasable: the report's gate run sees every goal satisfied
     releasable --> released: execute-version — gate ✓ → tag → draft → publish
     staged --> released: ⚡ fast lane — goals already met
     released --> yanked: a shipped release is withdrawn
@@ -548,14 +548,13 @@ implementing them are built per repo.
 | **Goal-advance comment** | A PR advancing a goal gets a self-updating comment linking the tracker and the goal's coverage |
 | **Compat gate** | A required check fails a merge that would break `schema_version` / `min_cli_version` agreement for the staged version |
 | **Out-of-scope advisory** | During staging, a PR citing outside the locked goals gets a non-blocking advisory routing it to the next version |
-| **Tracker issue** | Staging opens a self-updating issue — goal checklist and burndown — that flips to `releasable` at full coverage |
-| **Release-blocker linkage** | An issue labelled `release-blocker` for a version links to the tracker and blocks execute until closed |
-| **Next-version issue** | Releasing opens the next version's planning issue, seeded from the next `planned` manifest's goals |
+| **Releasable flip** | Every run of the report runs the gate on the version in flight and moves it to `releasable` at full coverage; the frontpage's page for the version shows where each goal stands, and no issue tracks it |
+| **Release blockers** | A manifest's `blockers` list blocks the releasable flip and execute until it is empty |
 | **Drift watchdog** | A scheduled check flags a locked goal whose requirement was withdrawn or superseded |
 | **Submodule bump** | A `lemonfiber-media-stack` release opens a `lemonfiber` PR bumping the submodule pin, gated by the `build.rs` compat check |
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
 | **Bump ordering** | An automated bump does not merge itself while a repository downstream of it is running a required check the merge would discard |
-| **Issue lifecycle** | Releasing closes the issues opened for that version — its tracker, and any drift the watchdog raised |
+| **Issue lifecycle** | Releasing closes any drift issue the watchdog raised for that version |
 | **Release from the trunk** | A version is tagged on `main`; a hotfix to a shipped version branches from its tag and merges back |
 | **Discord cadence** | Staging and progress milestones (25/50/75/100%) post to `#maintainers`; execute posts to `#releases` |
 
@@ -616,6 +615,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R30** | Staging a version MUST lock its goals as an explicit list of `Accepted` requirement IDs, seeded from the roadmap milestone it serves and editable before the lock; a `Draft` or `Withdrawn` requirement MUST NOT be a goal. |
 | **OPS-R31** | After staging, changing a version's locked goals MUST require review and MUST be announced to the maintainer channel. |
 | **OPS-R79** | A version manifest's comments MUST say why a goal is in the version and MUST NOT state how far a goal has got; a check MUST refuse a comment sentence that names a requirement and says it is built, met, done or partial, or names where it landed, and MUST name the file, the line and the words. |
+| **OPS-R83** | Every run of the report from `OPS-R76` MUST run the release gate on the version in flight and MUST move a `staged` or `in_progress` version to `releasable` when every goal it locks is satisfied and its manifest lists no blocker; where the version stands MUST be read from the frontpage's page for it, and no issue MUST be opened to track it. |
 | **OPS-R32** | A version MUST progress through `planned → staged → releasable → released` — optionally through `in_progress` between `staged` and `releasable`, with `yanked` terminal — and each transition MUST be recorded in its manifest. |
 | **OPS-R33** | A `release/<version>` branch MAY exist only to carry a hotfix to an already-released version; it MUST be cut from that version's tag and deleted once its fixes are merged back to `main`. |
 | **OPS-R34** | `execute-version` MUST refuse unless every locked goal is satisfied — a merged PR cites its ID **and** the implementation-status tracker marks it done — and the refusal MUST name the unmet goals. Where no merged commit cites a goal and none can, a done row MAY name the merged commit that finished it instead; the gate MUST verify that commit is in a searched repository's history, MUST report which goals were satisfied that way, and MUST NOT accept a row naming a commit it cannot find. |
@@ -627,9 +627,9 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R40** | A PR that advances a locked goal MUST receive a self-updating comment linking the version tracker and the goal's current coverage. |
 | **OPS-R41** | A required check MUST fail any merge that would break `schema_version` / `min_cli_version` agreement for the staged version. |
 | **OPS-R42** | During a staging period, a PR whose citations fall outside the locked goals MUST receive a non-blocking advisory routing it to the next version. |
-| **OPS-R43** | Staging MUST open a self-updating tracking issue — a goal checklist with a burndown — that reflects coverage and flips the version to `releasable` at full coverage. |
-| **OPS-R44** | An issue labelled `release-blocker` for a version MUST link to that version's tracker and MUST block execute until it closes. |
-| **OPS-R45** | Releasing a version MUST open the next version's planning issue, seeded from the goals of the next `planned` manifest. |
+| **OPS-R43** | *Superseded by [OPS-R83](staging.md): the report moves a version to `releasable`, the frontpage shows its progress, and no tracking issue is opened. The number is not reused.* |
+| **OPS-R44** | A version's manifest MUST list what blocks its release under `blockers`, each entry saying what blocks it and where it is being dealt with, and the releasable transition, a pre-release and execute MUST refuse while the list is not empty, naming each entry. |
+| **OPS-R45** | *Withdrawn: the frontpage's roadmap shows the next version and its goals, so no planning issue is opened. The number is not reused.* |
 | **OPS-R46** | A scheduled check MUST flag a locked goal whose requirement became `Withdrawn` or `Superseded`. |
 | **OPS-R47** | A `lemonfiber-media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep. |
@@ -637,7 +637,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R49** | A version MUST be released from `main`: the tag names a commit on the trunk, and no long-lived release branch is cut. A hotfix to an already-released version MUST branch from that version's tag and MUST be merged back to `main`. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |
 | **OPS-R52** | At most one version MAY be `staged` or `releasable` at a time; `stage-version` MUST refuse while another version is still in flight. Hotfix patches are exempt. |
-| **OPS-R55** | Releasing a version MUST close the issues opened for it — the tracker from `OPS-R43` and any drift issue from `OPS-R46` — so an open issue about a version means something is still owed. |
+| **OPS-R55** | Releasing a version MUST close any drift issue from `OPS-R46` opened for it, so an open issue about a version means something is still owed. |
 | **OPS-R54** | A version MUST NOT be released while a requirement it locks is not built, and a refusal MUST name those requirements. A requirement is built where the implementation-status tracker ticks it and the feature holding it is `building`, `built` or `shipped`; where that feature is `planned` or `withdrawn`, none of them is, whatever the tracker says. The catalogue's `built` or `shipped` does not answer for a requirement on its own, because a requirement added to a finished feature is not built by being added (`OPS-R73`). A major ships no stubs, and neither does any version before it. The subject is the requirements a version **carries**, not the whole of every feature it touches: partial locking is the norm — 24 of 25 manifests lock part of at least one feature, and `0.1.0` locks two of `B1`'s fifteen — so a feature spanning two versions could never be finished when the first of them shipped, and the wider rule was one nothing had ever satisfied. `built` is the state that makes this checkable at all: `shipped` means out in a released version, so requiring it before release would be a gate no version could ever pass. |
 | **OPS-R73** | A feature that is `maturity: built` or `maturity: shipped` MUST have every requirement it defines ticked by the implementation-status tracker, withdrawn numbers apart. A requirement added to a finished feature MUST return it to `building`, and it stays there until the tracker ticks each requirement. A check MUST refuse a catalogue that calls a feature finished while the tracker leaves one of its requirements unticked, and MUST name the feature and the requirements. |
 | **OPS-R74** | Every repository named in some version's `satisfied_in` MUST keep its implementation status in a `status.toml` at its root — or, where its rows would run past a thousand lines, in one `status/<feature>.toml` per feature holding only that feature's rows — one row per requirement, each naming the requirement, its state (`done`, `partial` or `open`), the evidence that holds it by path (the code and the test) and, optionally, the commit it landed in. A pull request that changes whether a requirement is met MUST change that row. The release gate and the no-stubs gate MUST read every searched repository's tracker, and a requirement is done where any of them records it done. |
