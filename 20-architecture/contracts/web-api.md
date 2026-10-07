@@ -356,7 +356,10 @@ The actions a key may call are published in the artefact as `key_callable`. Each
 names the action, says whether it disturbs the running system, says whether it takes
 `dry_run`, so a client can rehearse it first and offer the real call after, and says whether
 calling it again with the same arguments leaves the stack as one call did, so a client can
-tell a person whether repeating it is safe (`ARCH-R160`). Whether it takes
+tell a person whether repeating it is safe (`ARCH-R160`). That is read by where the stack ends
+up, not by whether the work is done again: a second restart takes the services down a second
+time and leaves them running, as the first did, so a restart is idempotent; an update moves to
+whatever is newest by the time it is called, so it is not. Whether it takes
 `dry_run` is read from the core's own account of each command rather than written beside the
 list. The list starts as:
 
@@ -798,7 +801,7 @@ generation has not been used.
 | **ARCH-R157** | A member, and a key scoped to one, MUST be admitted to the event stream narrowed to them: it MUST carry their own household row, their held shelf and what they are playing, each as the read answering it answers that member, and MUST NOT carry anything gathered for the operator. |
 | **ARCH-R158** | A member's stream MUST emit the heartbeat, resume and mark values gathered before a gap as stale as the operator's does (`ARCH-R50`, `ARCH-R51`), and MUST end when the member is removed or their key is revoked. |
 | **ARCH-R159** | The contract artefact MUST list every read the web API serves, each with its path, the query parameters it takes and whether each may be given more than once, and the kind it answers with or that it answers with a file, generated from the tables the surface routes and refuses reads by rather than written beside them. |
-| **ARCH-R160** | Each action the artefact publishes as callable by a key MUST also say whether calling it again with the same arguments leaves the stack as calling it once did. |
+| **ARCH-R160** | Each action the artefact publishes as callable by a key MUST also say whether calling it again with the same arguments leaves the stack as calling it once did, judged by the state the stack ends in rather than by whether the work is done again. |
 | **ARCH-R161** | Each request in the household document `GET /api/requests` and `lemonfiber household --json` answer with MUST carry the kind of title it asked for, the year that title came out, when it arrived on the media server, and the identifier the media server holds it under, as `GET /api/held` names it. The year MUST be absent until the request has been handed to the service that files it, and the arrival and the identifier MUST be absent until the title is on the media server, never present as null. |
 | **ARCH-R162** | The event stream MUST carry an `alert` event when an alert starts and when it resolves, carrying what happened, what it means, what to do, its severity and which way it went, and an identity that is the same for an onset and the resolution that ends it and differs for each recurrence. |
 
