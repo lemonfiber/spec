@@ -11,8 +11,9 @@ opened to merged, and what is asked of the maintainer.
 ## Where to start
 
 Start at the report of where every goal of every unreleased version stands:
-`STATE.md` on this repository's `state` branch, written every hour by
-`state.yml`, or `just goals <version>` from local checkouts. It says what is
+the summary of the newest run of this repository's `state` workflow, which
+writes it every hour and keeps each generation as that run's artifact, or
+`just goals <version>` from local checkouts. It says what is
 met, what is built but not marked, what an open pull request is working on, and
 what nobody has started. Pick work from it.
 

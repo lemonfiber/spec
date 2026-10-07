@@ -2,8 +2,8 @@
 
 Orientation for a focused session in this repo.
 
-> **Start at the report** of where every unreleased version stands: `STATE.md` on
-> the `state` branch, or `just goals <version>`. **Then the rules** every
+> **Start at the report** of where every unreleased version stands: the summary
+> of the newest run of the `state` workflow, or `just goals <version>`. **Then the rules** every
 > repository shares: [working in the repositories](50-governance/working-in-the-repositories.md)
 > and [the rules for agents](50-governance/ai-contributors.md). This file holds
 > only what is true of the spec repository.
