@@ -436,29 +436,24 @@ form that admission takes in a repository that has to defer it, and a deferral
 recorded under it names the work it waits on — which is now landed, so those are
 the deferrals to review rather than to renew.
 
-### When two freshness gates are red at once
+### Freshness of a vendored client reports, and the bump pull request judges
 
 A repository can hold more than one check of this shape: *is what we pin still
-what they have?* `workflow-pins` asks it of the shared workflows, `sdk-drift` and
-`contract-drift` ask it of a vendored client. Each is independently reasonable
-and each is required where it runs.
+what they have?* `workflow-pins` asks it of the shared workflows and is required
+where it runs. `sdk-drift` and `contract-drift` ask it of a vendored client, and
+run on every pull request without being required (`70-operations/required-checks.toml`).
 
-Together they have a failure mode neither has alone. **When two of them are red
-on `main` at the same time, nothing merges at all** — the pull request that fixes
-one still fails the other, in both directions, so neither can go first. It is not
-a deadlock between two changes; it is a deadlock over every change, because both
-gates read `main`'s state rather than the branch's.
+The difference is what moves. The shared workflows change when this repository
+releases them, and their pin wave is one pull request per repository. A vendored
+client's upstream moves on every merge there, and the check reads the upstream's
+head rather than anything the pull request changed. Required, it would gate every
+change downstream on a fact none of them can affect.
 
-On 2026-09-22 it happened twice. `lemonfiber-web` had #128 bumping the pins and
-failing `sdk-drift`, and #127 taking the client and failing `workflow-pins`;
-`sdk-php` had the same pair. Both were resolved the only way the rule allows: one
-commit doing both. That is the remedy, and it is worth knowing before spending an
-hour looking for the one PR that will unblock the others.
-
-What makes it rare is that both gates have to go stale on the same afternoon,
-which is what a tag here landing while `lemonfiber` was also moving produced. What
-makes it survivable is that the fan-out now closes one of the two before anybody
-notices it opened.
+So the question is answered where it belongs. When an upstream moves, its bump
+bot opens the pull request that takes the new pin, and that pull request passes
+or fails on every other required check run against the new client. A red drift
+check on any other pull request says the pin is behind; it does not stop the
+change.
 
 ## Related
 

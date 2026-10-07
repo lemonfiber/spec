@@ -65,6 +65,32 @@ permissions:
   contents: read
 jobs:
   toggle:
+    # Most events this answers have an answer in the event itself, and a runner
+    # started to read it and stop holds a slot the organisation's twenty are short
+    # of (Q-R76). So the event decides first, before a runner is assigned:
+    #
+    #   a run that did not succeed cannot complete the required set;
+    #   a run on a branch of this repository that a person started cannot flag,
+    #   because only someone with write access pushes one, and a head a
+    #   maintainer pushed is not awaiting one (OPS-R26) — a run from a fork, or
+    #   one a bot started, is a pull request a maintainer may not have seen, and
+    #   is read in full;
+    #   a close or a review clears a label, so one that carries no label has
+    #   nothing to clear, and a review that neither approves nor asks for changes
+    #   clears nothing.
+    #
+    # The label is named here as well as in LABEL below because a job's
+    # condition is decided before its environment exists.
+    if: >-
+      (github.event_name == 'workflow_run'
+        && github.event.workflow_run.conclusion == 'success'
+        && (github.event.workflow_run.head_repository.full_name != github.repository
+          || github.event.workflow_run.actor.type == 'Bot'))
+      || (github.event_name != 'workflow_run'
+        && contains(github.event.pull_request.labels.*.name, 'awaiting-maintainer')
+        && (github.event_name != 'pull_request_review'
+          || github.event.review.state == 'approved'
+          || github.event.review.state == 'changes_requested'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

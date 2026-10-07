@@ -56,13 +56,14 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": ["M5", "M6"],
+      "milestones": ["M5", "M14", "M6"],
       "milestone": "M5",
       "priority": null,
       "labels": ["tui", "verification"],
       "requires": ["G7"],
       "relates": ["B2", "B4", "C2", "G1"],
       "versions": [
+        {"version": "0.18.0", "status": "planned"},
         {"version": "0.5.0", "status": "released"},
         {"version": "1.0.0", "status": "planned"}
       ],

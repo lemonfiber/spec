@@ -57,6 +57,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0036](0036-a-plugin-may-come-from-any-source-the-command-takes.md) | A plugin may come from any source the command takes, over the web API too | Accepted |
 | [0037](0037-an-integration-key-is-minted-where-the-operator-proves-themself.md) | An integration key is a credential the web API may mint, where the operator proves themself again | Accepted |
 | [0038](0038-lemonfiber-ships-as-an-image-that-holds-the-hosts-docker.md) | lemonfiber ships as an image that holds the host's Docker | Accepted |
+| [0039](0039-each-repository-records-what-it-built.md) | Each repository records what it built, one row per requirement | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

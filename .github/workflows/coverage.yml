@@ -53,10 +53,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           coverage run scripts/test_release_train.py
+          coverage run --append scripts/test_release_trackers.py
           coverage run --append scripts/test_redirects.py
           coverage run --append scripts/test_status_lint.py
           coverage run --append scripts/test_no_stubs.py
           coverage run --append scripts/test_manifest_comments.py
+          coverage run --append scripts/test_status_check.py
+          coverage run --append scripts/test_goals.py
           coverage run --append scripts/test_spec_check.py
           coverage run --append scripts/test_integrity.py
           coverage run --append scripts/test_shared_files.py
@@ -84,6 +87,10 @@ jobs:
           coverage run --append scripts/test_generated.py
           coverage run --append scripts/test_check_required.py
           coverage run --append scripts/test_goals_change.py
+          coverage run --append scripts/test_workflow_expression.py
+          coverage run --append scripts/test_job_conditions.py
+          coverage run --append scripts/test_gen_gates.py
+          coverage run --append scripts/test_line_cap.py
           coverage report --fail-under=100
       # Not a coverage suite: it reads `.coveragerc` against the directories it
       # names and fails on a file omitted from measurement without a reason beside

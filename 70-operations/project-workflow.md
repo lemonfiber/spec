@@ -115,6 +115,17 @@ Restating the routing rule ([issue-routing](../50-governance/issue-routing.md))
 because it shapes the workflow: a feature request is filed against `spec`, not an
 implementation repo. It becomes a requirement first, then work.
 
+## Who is working on what
+
+**Opening a pull request is how work is claimed**, a draft one included, and its
+`Spec:` lines say what it claims (`OPS-R77`). There is no other register: the
+report of [where every version stands](staging.md#where-every-version-stands)
+reads every open pull request in every repository a version is satisfied in and
+shows each goal one cites as claimed, naming the pull request. Before starting a
+goal, read it there; if it is claimed, coordinate with whoever holds that pull
+request instead of opening a second one. A claim ends when its pull request
+merges or closes.
+
 ## Requirements
 
 | ID | Requirement |
@@ -128,6 +139,7 @@ implementation repo. It becomes a requirement first, then work.
 | **OPS-R21** | PR commit subjects MUST follow the conventional-commit format, enforced by a commit-lint check. |
 | **OPS-R22** | PRs MUST be auto-labelled by changed path. |
 | **OPS-R51** | Each repo MUST ship a pre-commit hook that runs the fast CI-blocking checks locally — formatting, DCO sign-off, conventional-commit subject, a `Spec:` citation, and typo/markdown lint — and MUST NOT duplicate the slow gates (tests, clippy, coverage). |
+| **OPS-R77** | Work on a requirement MUST be claimed by opening a pull request, a draft one allowed, whose body or commits cite it in a `Spec:` line, and the report from `OPS-R76` MUST show every goal an open pull request cites as claimed, naming the pull request. A goal that report shows claimed MUST NOT be started in a second pull request without the claimant agreeing. |
 
 ## Related
 

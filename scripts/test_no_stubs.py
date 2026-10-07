@@ -345,6 +345,27 @@ class BadInput(Catalogue):
         self.assertEqual(code, 2)
         self.assertIn("no tracker at", said)
 
+    def test_no_tracker_named_at_all_is_refused(self):
+        self.feature("B6", "building")
+        self.manifest("0.15.0", ["B6-R1"])
+        code, said = run_main(["--version", "0.15.0"])
+        self.assertEqual(code, 2)
+        self.assertIn("no --repo and no --status", said)
+
+    def test_a_repository_tracker_answers_as_the_markdown_one_does(self):
+        """Each searched repository's status.toml, read the way the goal gate reads it (OPS-R74)."""
+        self.feature("B6", "building")
+        self.manifest("0.15.0", ["B6-R1", "B6-R2"])
+        repo = pathlib.Path("checkouts/web")
+        repo.mkdir(parents=True)
+        (repo / "f").write_text("x")
+        (repo / "status.toml").write_text(
+            '[[requirement]]\nid = "B6-R1"\nstate = "done"\nevidence = ["f"]\n', encoding="utf-8")
+        code, said = run_main(["--version", "0.15.0", "--repo", "web=checkouts/web"])
+        self.assertEqual(code, 1)
+        self.assertIn("not built: B6-R2", said)
+        self.assertNotIn("B6-R1,", said)
+
     def test_a_version_that_is_not_a_version_is_refused(self):
         code, _ = self.act("../../etc/passwd")
         self.assertEqual(code, 1)

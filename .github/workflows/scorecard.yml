@@ -7,7 +7,7 @@
 # of repositories against a list of files.
 #
 # The triggers stay with the caller and cannot move here. `branch_protection_rule`
-# and `push` are events about the calling repository, and a reusable workflow is
+# and the schedule are events about the calling repository, and a reusable workflow is
 # not a place events arrive — it is a place a job goes. So each caller keeps a
 # short file naming when to ask, and this holds what is asked.
 #
@@ -39,10 +39,12 @@ on:
   # A change to this repository's protection is a change to its posture, and it
   # is the one event that says so without waiting for the week to turn.
   branch_protection_rule:
+  # Weekly on the default branch, which is where the score is read from. A push
+  # to `main` is not a trigger: the checks Scorecard scores are settings and
+  # policies that a commit rarely moves, and a run on every merge holds a runner
+  # to publish the same number again (Q-R76).
   schedule:
     - cron: "0 6 * * 1"
-  push:
-    branches: [main]
 
 permissions:
   contents: read

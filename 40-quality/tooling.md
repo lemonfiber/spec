@@ -368,6 +368,29 @@ command nobody described, are both refused — the second because it is the stat
 in which this has no sentence to read and would report that every claim in the
 repository is honest.
 
+### No file outgrows a reader
+
+No tracked file in any repository is over 1,000 lines. Generated output counts:
+a generated file is read in every diff that moves it, by whoever reads a vendored
+copy, and by the generator downstream of it. One that outgrows a reader is split
+where it is generated, so the generator writes a directory rather than one long
+document.
+
+Two kinds of file are not counted, and the list is closed. Lockfiles (`*.lock`
+and `package-lock.json`) are written by a package manager and nobody reads them
+line by line. Images and fonts are binary or, for an SVG, drawn rather than read.
+
+One kind of file is held to the cap through other files. A file
+[`generated.py`](../scripts/generated.py) registers as generated from `sources` is
+read through those sources, and some cannot be split: a workflow that runs every
+check as one job is one file by what it is. It passes where every source is a
+tracked file within the cap, and is refused naming the source that is not.
+
+`hygiene / lines` runs [`check_line_cap.py`](../scripts/check_line_cap.py), which
+holds the cap and the list. It names each file over the cap, its line count and
+the cap. It reports rather than gates while repositories still hold files over
+the cap (`Q-R81`).
+
 ## A pin is a copy, and a copy goes stale
 
 Anti-drift above covers what the tooling copies. It does not cover what a
@@ -513,6 +536,7 @@ All are one-time and free. Everything else runs from committed config.
 | **Q-R71** | A repository that cannot yet satisfy `Q-R68` MUST state that in the workflow that would gate it — the reason, the work it waits on, and the date the deferral is reviewed — and the check MUST keep reporting until the gate is turned on. |
 | **Q-R73** | Where a shared file is carried by some repositories and not others, adoption MUST be declared rather than inferred from the file's presence, and the drift check MUST refuse a repository that declares a file it does not carry and one that carries a file it has not declared, naming the file and the repository in each. |
 | **Q-R74** | The adoption register MUST be the only record of which repository carries which shared file and MUST hold a row for every repository in the organisation; the drift check MUST refuse a repository it holds no row for, and MUST refuse a register that is absent, unreadable or names no repository rather than reading one as an organisation that has adopted nothing. |
+| **Q-R81** | A tracked file in a repository MUST NOT be over 1,000 lines, generated output included; lockfiles, images and fonts are not counted, and a file the repository registers as generated from sources is held to the cap through those sources, each of which MUST be within it. The shared hygiene workflow MUST check every repository against the one cap and list, and its refusal MUST name the file, its line count and the cap. |
 
 ## Related
 

@@ -1,5 +1,5 @@
 # Reusable hygiene checks: workflow lint, spelling, links, invite codes, markdown,
-# and the shared files those tools read.
+# the length of every tracked file, and the shared files those tools read.
 # Called by each repo:  uses: lemonfiber/spec/.github/workflows/hygiene.yml@main
 # One definition, no drift (Q-R56).
 #
@@ -325,6 +325,41 @@ jobs:
           python3 "$canonical/scripts/check_shared_files.py" \
             --canonical "$canonical" \
             --repo "$REPO"
+
+  # No tracked file over 1,000 lines, generated output included; lockfiles, images
+  # and fonts are not counted. The cap and that list are in the script, read from
+  # `main` like the shared files above, so every repository is held to one rule.
+  lines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check out the canonical copy
+        if: github.repository != 'lemonfiber/spec'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: main
+          path: .spec-canonical
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: No tracked file is longer than the cap
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$REPO" = "lemonfiber/spec" ]; then
+            reader=scripts/check_line_cap.py
+          else
+            reader=.spec-canonical/scripts/check_line_cap.py
+          fi
+          python3 "$reader" --root .
 
   markdown:
     runs-on: ubuntu-latest

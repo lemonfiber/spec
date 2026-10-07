@@ -203,7 +203,26 @@
 # `ARCH-R170` binds the SDKs' generators: the contract is a directory whose definitions
 # are reached by a path to their own file, and a reference a generator cannot resolve is
 # refused rather than described as a field that accepts anything.
-# 318 goals, seeded from the roadmap milestone this version serves;
+#
+# `ARCH-R171` puts each service of the stack manifest in a file of its own, named by the
+# root's `include` list, so the manifest stays readable as the stack grows. It binds the
+# parser in the core, where a missing, repeated or unlisted file is refused by name.
+# `B3-R16` puts the free space of both volumes a stack fills on the dashboard, the data
+# volume and the services' own, so `F12-R5` can provide disk free per mount from the
+# stream rather than from a read it would poll.
+# `ARCH-R163` has the capabilities answer say which stack is answering, by the identifier
+# pairing material already carries, to every credential a member's key included. Home
+# Assistant keys a config entry and its device by it, which neither the address nor the
+# certificate pin can be, so it lands before the integration's member slice (`F12-R2`,
+# `F12-R9`).
+# `B3-R17` puts each download client's paused state on the dashboard, so the pause and
+# resume switch `F12-R8` provides shows what the clients say rather than what it last
+# asked, without calling an action to find out.
+# `ARCH-R164` has the rehearsal of each rehearsable action a key may call answer an offer,
+# and a call carrying it refused where the stack moved since, as the plugin writes are;
+# a call carrying none acts as before. Home Assistant's controls rehearse and then act
+# (`F12-R8`), so what they carry out is what they were shown.
+# 323 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -533,6 +552,7 @@ goals   = [
     "ARCH-R159",
     "ARCH-R160",
     "ARCH-R161",
+    "ARCH-R164",
     "ARCH-R162",
     "ARCH-R170",
     "A4-R13",
@@ -541,6 +561,10 @@ goals   = [
     "ARCH-R167",
     "ARCH-R168",
     "ARCH-R169",
+    "ARCH-R171",
+    "B3-R16",
+    "ARCH-R163",
+    "B3-R17",
 ]
 
 # The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion

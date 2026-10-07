@@ -98,8 +98,9 @@ jobs:
           # under the wrong headline, on the one report anybody reads to know
           # where a release stands.
           set +e
-          python3 scripts/gate.py --manifest "$man" "${args[@]}" \
-            --status checkouts/lemonfiber/IMPLEMENTATION-STATUS.md --format json > result.json
+          legacy=checkouts/lemonfiber/IMPLEMENTATION-STATUS.md
+          if [ -f "$legacy" ]; then args+=(--status "$legacy"); fi
+          python3 scripts/gate.py --manifest "$man" "${args[@]}" --format json > result.json
           judged=$?
           set -e
           if [ "$judged" -gt 1 ]; then
