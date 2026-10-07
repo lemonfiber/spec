@@ -134,14 +134,20 @@ LEGACY = "IMPLEMENTATION-STATUS.md"
 def tracker(name: str, path: pathlib.Path, ref: str) -> list[status_check.Row]:
     """A repository's tracker as it stands at `ref`, refusing one that is not there.
 
-    A tracker still in the milestone shape is read through its Markdown page the
-    way the gate reads it, a done row standing for each requirement it names.
+    `status.toml`, or a `status/` directory split by feature. A tracker still in
+    the milestone shape is read through its Markdown page the way the gate reads
+    it, a done row standing for each requirement it names.
     """
-    shown = git(path, "show", f"{ref}:{status_check.FILE}")
-    if shown.returncode != 0:
-        raise Unread(f"{name} keeps no {status_check.FILE} at {ref} (OPS-R74), and a "
-                     "tracker that was not read is not one that records nothing")
+    listed = git(path, "ls-tree", "--name-only", f"{ref}:{status_check.DIRECTORY}")
     try:
+        if listed.returncode == 0:
+            files = [(f, git(path, "show", f"{ref}:{status_check.DIRECTORY}/{f}").stdout)
+                     for f in listed.stdout.split() if f.endswith(".toml")]
+            return status_check.gathered(files, name)
+        shown = git(path, "show", f"{ref}:{status_check.FILE}")
+        if shown.returncode != 0:
+            raise Unread(f"{name} keeps no tracker at {ref} (OPS-R74), and a tracker "
+                         "that was not read is not one that records nothing")
         rows = status_check.parse(shown.stdout, f"{name}:{status_check.FILE}", name)
     except status_check.Unreadable as broken:
         raise Unread(str(broken)) from broken

@@ -140,6 +140,14 @@ class EachVerdictFromTheStateThatEarnsIt(Train):
         self.assertEqual(found["A1-R2"]["verdict"], "met")
         self.assertEqual(found["A1-R4"]["verdict"], "unmarked")
 
+    def test_a_tracker_split_by_feature_is_read_whole(self):
+        self.git("core", "rm", "-q", "status.toml")
+        (pathlib.Path("core") / "status").mkdir()
+        self.commit("core", "status/A1.toml",
+                    'requirement = [{ id = "A1-R2", state = "done", evidence = ["README"] }]\n')
+        found, _ = self.report()
+        self.assertEqual(found["A1-R2"]["verdict"], "met")
+
     def test_a_working_tree_edit_changes_nothing(self):
         (pathlib.Path("core") / "status.toml").write_text(
             '[[requirement]]\nid = "A1-R2"\nstate = "done"\nevidence = ["README"]\n', encoding="utf-8")
@@ -198,7 +206,7 @@ class Refusals(Train):
     def test_a_repository_keeping_no_tracker(self):
         self.git("app", "rm", "-q", "status.toml")
         self.git("app", "commit", "-q", "-m", "chore: gone", "-m", "Spec: GOV-R12")
-        self.assert_refused(self.checkouts(), "app keeps no status.toml")
+        self.assert_refused(self.checkouts(), "app keeps no tracker")
 
     def test_an_unreadable_tracker(self):
         self.commit("core", "status.toml", "[[requirement]\n")
