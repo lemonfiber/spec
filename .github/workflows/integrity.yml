@@ -70,6 +70,10 @@ jobs:
           curl -fsSL --proto '=https' --tlsv1.2 --retry 3 -o tracker.md \
             https://raw.githubusercontent.com/lemonfiber/lemonfiber/main/IMPLEMENTATION-STATUS.md
           python3 scripts/status_lint.py --status tracker.md --spec . --only reopened
+      # `gen_gates.py` reads the reusable workflows and writes `gates.yml`, which
+      # takes a YAML reader; the version is the one the coverage job installs.
+      - name: Install the YAML reader the gates generator uses
+        run: pip install --disable-pip-version-check --only-binary ":all:" pyyaml==6.0.3
       # Every surface a script writes, regenerated and compared against what is
       # committed. `accessibility.md` is why this has to be a gate rather than a
       # convention: the page states that whether the palette meets AA is a

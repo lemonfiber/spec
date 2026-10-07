@@ -34,6 +34,12 @@ on:
         description: When set, open a Forum thread of this name for the message.
         type: string
         default: ""
+      build-log:
+        description: >-
+          The message reports a `workflow_run` to the public build log, which
+          carries only the runs OPS-R24 names.
+        type: boolean
+        default: false
     secrets:
       webhook:
         required: false
@@ -43,6 +49,20 @@ permissions:
 
 jobs:
   post:
+    # The build log carries every run for a protected branch, a tag, a release,
+    # a schedule or a dispatch, and a pull request's run only where it failed,
+    # timed out or could not start (OPS-R24). A pull request is pushed far more
+    # often than `main` moves, and its green run is already answered on the pull
+    # request. Which runs are posted is read from the event here, before a runner
+    # is assigned, so a run that will not be posted starts nothing (Q-R76). Every
+    # other message this posts is unconditional.
+    if: >-
+      !inputs.build-log
+      || (github.event.workflow_run.event != 'pull_request'
+        && github.event.workflow_run.event != 'pull_request_target')
+      || github.event.workflow_run.conclusion == 'failure'
+      || github.event.workflow_run.conclusion == 'timed_out'
+      || github.event.workflow_run.conclusion == 'startup_failure'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

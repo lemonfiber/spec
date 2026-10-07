@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate every generated file and say who owns the one that moved.
 
-Four surfaces here are written by a script and compared against what is
+Several surfaces here are written by a script and compared against what is
 committed. The comparison was four bare `git diff --exit-code` lines, so a
 contributor who edited one of them by hand saw a diff of their own change and no
 statement of what had happened: not which of the four generators owns the file,
@@ -89,6 +89,12 @@ GENERATED = (
         recipe="python3 scripts/gen_contrast.py",
         paths=("60-brand/accessibility.md",),
         owns="the contrast table",
+    ),
+    Generated(
+        generator="scripts/gen_gates.py",
+        recipe="python3 scripts/gen_gates.py",
+        paths=(".github/workflows/gates.yml",),
+        owns="the whole file, from the reusable workflows each check names",
     ),
 )
 
