@@ -48,8 +48,16 @@ Ordered by what the operator needs to see first, not by what's easiest to render
 | **VPN** | Tunnel state, exit IP and country, forwarded port, and whether the download client's egress matches |
 | **Transfers** | Active downloads with name, protocol, progress, speed, ETA |
 | **Queue** | Per-\*arr queue depth, plus anything stuck ([C7](../c-trust/c7-queue-health.md)) |
-| **Storage** | Free space, projected exhaustion, hardlink status |
+| **Storage** | Free space on the data volume and on the services' volume, projected exhaustion, hardlink status |
 | **Services** | Per-service state, grouped by profile |
+
+Free space is read on two volumes, because a stack fills two. The data volume holds the
+library and the downloads, and is what exhaustion is projected against. The services' volume
+holds every service's own configuration and databases, which grow with the library and stop
+the services outright when it fills — often a small system disk the data volume was put beside
+for exactly that reason. Each is its own reading: one that could not be read this refresh is
+unknown, never zero, and does not make the other unknown. Where both are one volume, they
+read the same.
 
 The VPN row is placed second, above transfers, deliberately: it is the only item
 on the screen with consequences outside the machine.
@@ -128,6 +136,7 @@ question.
 | **B3-R13** | Any panel MUST be viewable in isolation. |
 | **B3-R14** | Idle refresh MUST sustain 1 Hz below 2% CPU, and lemonfiber's resident memory SHOULD stay under 50 MB. |
 | **B3-R15** | Durations and ETAs MUST derive from one clock source and MUST never render negative. |
+| **B3-R16** | The dashboard MUST carry the free space on the data volume and on the volume the services' configuration and databases are kept on, each as a reading of its own that is unknown rather than zero where it could not be read. |
 
 ## Related
 
