@@ -346,24 +346,8 @@ jobs:
 
       - name: Check for release blockers (OPS-R44, OPS-R66)
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          OWNER: ${{ github.repository_owner }}
           VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          { echo spec; cat needed.txt; } > allrepos.txt
-          blockers=0
-          while read -r repo; do
-            [ -n "$repo" ] || continue
-            n=$(gh issue list --repo "${OWNER}/${repo}" --state open \
-              --label release-blocker --label "v${VERSION}" --json number --jq 'length')
-            if [ "$n" -gt 0 ]; then
-              echo "::error::${n} open release-blocker(s) labelled v${VERSION} in ${repo}"
-              blockers=$((blockers + n))
-            fi
-          done < allrepos.txt
-          [ "$blockers" -eq 0 ] || { echo "::error::pre-release blocked — resolve the blockers first."; exit 1; }
-          echo "no release blockers."
+        run: python3 scripts/in_flight.py blockers --version "$VERSION"
 
       - name: The repos declare the pre-release being cut (OPS-R66)
         env:
