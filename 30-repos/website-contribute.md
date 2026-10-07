@@ -57,3 +57,4 @@ contributor needs that no repository's own page provides.
 - [ADR-0015 The documentation site renders content it does not own](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)
 - [website-docs.lemonfiber.app](website-docs.md), [website-lemonfiber.app](website-lemonfiber.md)
 - [tool-lfdev](tool-lfdev.md) — the command line whose guide it renders
+- [website-kit](website-kit.md) — the mirror machinery this site takes by commit

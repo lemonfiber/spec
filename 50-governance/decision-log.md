@@ -97,6 +97,12 @@ Decisions about a repository outside this organisation, such as
 | The contributor site is the repository `website-contribute.lemonfiber.app`, served at `contribute.lemonfiber.app` | [website-contribute.lemonfiber.app](../30-repos/website-contribute.md) |
 | `lemonfiber.app` renders the specification at the commit of `spec` the board snapshot read, and rebuilds it on the same event as the board | [REPO-R79](../30-repos/website-lemonfiber.md) |
 
+## 2026-10-08
+
+| Decision | Where it lives |
+|---|---|
+| The machinery the documentation and contributor sites share lives once, in `website-kit`, a package each site takes by commit as it takes `brand`; nothing is published to a registry | [REPO-R84, REPO-R85](../30-repos/website-kit.md) |
+
 ## Requirements
 
 | ID | Requirement |

@@ -29,6 +29,8 @@ WORDS = {
     8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "twelve",
     13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen",
     17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty",
+    21: "twenty-one", 22: "twenty-two", 23: "twenty-three", 24: "twenty-four",
+    25: "twenty-five",
 }
 
 #: The diagram, found by its fence. `flowchart TD` is in the opening line so a
@@ -52,7 +54,7 @@ TABLE = re.compile(r"^\| Repo \| Spec \| Language \|.*(?:\n\|.*)*", re.MULTILINE
 #: file nor `repos.toml` — a plugin's home is the reviewed catalogue (`F5-R1`) —
 #: so the old sentence was wrong by two and nothing went red, because nothing here
 #: enumerates the org. A generated number is only honest about what it counts.
-SENTENCE = re.compile(r"\bThose (\w+) are the repositories this specification governs\b")
+SENTENCE = re.compile(r"\bThose ([\w-]+) are the repositories this specification governs\b")
 
 
 def repos() -> list[dict]:

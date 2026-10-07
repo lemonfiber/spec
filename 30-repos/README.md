@@ -38,6 +38,7 @@ flowchart TD
         site["website-lemonfiber.app<br/>the public frontpage"]
         docs["website-docs.lemonfiber.app<br/>the documentation site"]
         contribute["website-contribute.lemonfiber.app<br/>the contributor site"]
+        kit["website-kit<br/>what both sites run"]
         lfdev["tool-lfdev<br/>the developer command line"]
         brand["brand<br/>design tokens"]
     end
@@ -59,6 +60,8 @@ flowchart TD
     spec -->|board snapshot, specification| site
     spec -->|board snapshot| lfdev
     lemonfiber -->|docs submodule, pinned| contribute
+    kit -->|taken by commit| docs
+    kit -->|taken by commit| contribute
     gh -.->|inherited by| impl
     spec -.->|governs all| impl
 ```
@@ -82,11 +85,12 @@ flowchart TD
 | `website-lemonfiber.app` | [website-lemonfiber.md](website-lemonfiber.md) | Astro | The org is the motor; roadmap read, not written |
 | `website-docs.lemonfiber.app` | [website-docs.md](website-docs.md) | Astro | It renders; it does not own — every page pinned to the repo that wrote it |
 | `website-contribute.lemonfiber.app` | [website-contribute.md](website-contribute.md) | Astro | How to change the code; links to the rules on the frontpage rather than rendering them |
+| `website-kit` | [website-kit.md](website-kit.md) | TypeScript | One copy of the mirror machinery, taken by each site at a commit |
 | `tool-lfdev` | [tool-lfdev.md](tool-lfdev.md) | Python | Every write is a pull request under the person's own credentials |
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those twenty are the repositories this specification governs, which is not the
+Those twenty-one are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))

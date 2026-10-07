@@ -131,3 +131,4 @@ prose as well as authored prose — this is the only build that sees all of it a
 - [website-contribute.lemonfiber.app](website-contribute.md) — the contributor site
 - [brand](brand.md) — the tokens the site consumes
 - [50-governance](../50-governance/) — the transparency commitment it serves
+- [website-kit](website-kit.md) — the mirror machinery this site takes by commit

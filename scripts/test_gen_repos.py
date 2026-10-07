@@ -118,6 +118,14 @@ class Generating(Tree, unittest.TestCase):
     def test_the_count_is_a_word_and_matches_the_registry(self):
         self.assertIn("Those three are the repositories this specification governs", self.run_gen())
 
+    def test_a_hyphenated_count_is_found_and_rewritten(self):
+        # Past twenty the word carries a hyphen, and a sentence the generator
+        # wrote must be one it can find again on the next run.
+        self.readme.write_text(
+            README.replace("Those nine are", "Those twenty-one are"), encoding="utf-8"
+        )
+        self.assertIn("Those three are the repositories this specification governs", self.run_gen())
+
     def test_a_row_the_registry_does_not_name_is_gone(self):
         out = self.run_gen()
         self.assertNotIn("stale", out)
@@ -170,7 +178,7 @@ class Diagramming(Tree, unittest.TestCase):
 class Refusing(Tree, unittest.TestCase):
     def test_a_count_past_the_words_refuses_rather_than_writing_a_digit(self):
         with self.assertRaises(SystemExit) as raised:
-            self.gen.word(21)
+            self.gen.word(26)
         self.assertIn("counting words", str(raised.exception))
 
     def test_a_readme_with_no_table_refuses(self):
