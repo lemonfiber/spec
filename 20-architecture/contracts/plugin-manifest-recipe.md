@@ -81,6 +81,7 @@ to    = "komga"
 | `step[].retry` | table | | `{ times, every, until }`, `until` being `{ status }` or `{ value, equals }`. |
 | `pair[].value` | string | ✔ | A captured value's or an input's name. |
 | `pair[].to` | string | ✔ | A destination as `call.to` writes it. |
+| `pair[].release` | string | | Why a capture from a service in this stack is carried to another destination, in one sentence the operator is shown at consent (`F8-R18`). Refused on a pair it frees nothing on (`F8-R16`). |
 
 **A call needs somewhere to put what an earlier step captured**, and `headers`
 and `body` are it. Without them a recipe can name a destination and capture a
@@ -142,25 +143,38 @@ destination. A plugin may present a credential lemonfiber holds, which is what a
 first-run flow against a bundled service needs; it may not take one somewhere,
 which is what lemonfiber holding it is for.
 
-What a credential is traded for is held the same way. Every value captured by a
-step whose call carries a credential-store value, or a value already held to a
-service this way, is held to that same service, so presenting a password and
-reading back a token does not free the token to go anywhere the password could
-not. Reading the manifest follows this through every step, guards or not, and
-refuses a pair or a `{{name}}` carrying such a capture anywhere else exactly as it
-refuses the credential itself.
+**What a service answers is held to that service** (`F8-R16`). Every value
+captured from the answer of a service in this stack, one of this plugin's own
+included, is held to that service because it came from there, whatever it holds
+and whatever the call that read it carried. It may be carried back to that service
+freely. Carrying it to any other destination needs a pair that releases it:
+
+```toml
+[[recipe.pair]]
+value   = "library-id"
+to      = "sonarr"
+release = "Sonarr files new series into the library Komga just made, so it needs that library's id."
+```
+
+A pair or a `{{name}}` carrying such a capture anywhere else with no release
+behind it is refused when the manifest is read, naming the value, the service it
+was read from and the destination. A `release` frees a capture and nothing else.
+On a pair carrying a credential-store value, an operator's input, an external
+host's answer, or a capture back to its own service, it is refused, naming the
+pair, because a release the operator weighs for nothing teaches them to stop
+weighing releases.
 
 A guard decides a call as surely as a substitution feeds one. A `when` or a
-`retry.until` that reads a value held to a service makes the step it guards a
-carrier of that value: reading the manifest refuses one on a step to anywhere but
-that service, and what the step captures is held to it as though its call had
-carried the value. Otherwise which calls a recipe makes, and where, would answer
-questions about a credential that no call carries.
+`retry.until` that reads a held value makes the step it guards a carrier of that
+value. Reading the manifest refuses one on a step to anywhere the value may not go,
+exactly as it refuses the value in the call. Otherwise which calls a recipe makes,
+and where, would answer questions about a value that no call carries.
 
 **And again at the call** (`F8-R17`). Reading the manifest is the first check, not
 the only one. While a recipe runs, every value it holds carries the destinations it
-may be sent to: the destinations its pairs name, narrowed, for a credential-store
-value and everything held to its service as above, to that service alone. Before a
+may be sent to: a credential-store value its own service alone, a capture from a
+service in this stack that service and each destination of a released pair the
+operator approved in this act, and any other value the destinations its pairs name. Before a
 call is sent, every value it carries is held to that call's `to`, and a value bound
 for a host outside the stack is held to the approvals this act was given as well,
 as `<value>@<destination>`. A call carrying a value anywhere else is not sent: the
@@ -169,13 +183,6 @@ naming the value, the destination and the step, never what the value holds. A
 manifest the reading passed meets this refusal only where the reading missed
 something, and what it missed is then a call that was not made rather than a value
 somewhere it may not be.
-
-The call reads what a value holds as well as how it came by it. A value that holds
-a credential lemonfiber holds for a service of the stack's, whole or written into a
-longer value, is held to that service however the recipe came by it: read back out
-of the service it was given to, or out of one that answers without asking for it.
-Otherwise a service's own storage would be a way to turn a credential into a value
-nothing marked.
 
 ### Where a call goes
 
@@ -283,8 +290,12 @@ is not approving it for the next (`ARCH-R147`). A demand recipe that fails
 changes no install record, and ends with the same problem, saying what landed.
 
 A pair carrying a value to a host outside the stack is approved as itself, as
-`<value>@<destination>`; a pair to a service in this stack is listed on the
-reading and asks for no approval, because nothing it carries leaves the machine.
+`<value>@<destination>`, and so is a pair carrying a release. The consent names
+a released pair as the value, the service it was read from, the destination and
+the `release` sentence, and an act with any released pair not approved does not
+proceed (`F8-R18`). Any other pair to a service in this stack is listed on the
+reading and asks for no approval, because it carries nothing out of the machine
+and nothing away from the service it came from.
 
 A value a recipe captures is a declared `[[secret]]` and is kept, beside the
 settings, in a file only its owner reads. It is taken away with the plugin. An
