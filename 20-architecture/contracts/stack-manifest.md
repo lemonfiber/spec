@@ -266,7 +266,7 @@ fixture = "recordings/jellyfin/media-serve-catalogue.json"
 capability declares is bound, no binding names a probe it does not declare, every
 expectation is one the probe permits, and each is refused by naming the probe. A
 recording is the file a plugin's is, [one response recorded from the pinned
-image](plugin-manifest.md#what-a-recording-is) (`ARCH-R120`), and its
+image](plugin-manifest-proof.md#what-a-recording-is) (`ARCH-R120`), and its
 `recorded_from` MUST name this service's own `image@digest`. Moving a pin therefore
 means re-recording in the same change: a recording naming another digest is refused
 rather than trusted.
