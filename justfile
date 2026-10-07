@@ -108,7 +108,7 @@ no-stubs version:
 # uncited, claimed by an open pull request, or open — read from the sibling
 # checkouts beside this one (or under `root`) at their origin/main, never their
 # working trees, and every open pull request in them. The state workflow
-# publishes the same for every unreleased version as its run's `state` artifact
+# publishes the same for every version as its run's `state` artifact
 # (OPS-R76, OPS-R77).
 goals version="" root="..":
     #!/usr/bin/env bash

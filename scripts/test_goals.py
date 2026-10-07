@@ -104,6 +104,15 @@ class Train(unittest.TestCase):
 
 
 class WhatAReaderIsTold(Train):
+    def test_a_released_version_is_one_line_on_the_page(self):
+        code, said = run_main([*self.checkouts(), "--markdown", "STATE.md"])
+        self.assertEqual(code, 0, said)
+        page = pathlib.Path("STATE.md").read_text(encoding="utf-8")
+        self.assertIn("## 0.2.0 — planned", page)
+        self.assertNotIn("## 0.1.0", page)
+        self.assertIn("| 0.1.0 | released | 0 of 1 |", page)
+
+
     def test_the_format_the_sources_and_when(self):
         _, data = self.report()
         self.assertEqual(data["format"], goals.FORMAT)
@@ -136,11 +145,12 @@ class EachVerdictFromTheStateThatEarnsIt(Train):
         found, data = self.report("--prs", "prs.json")
         verdicts = {ident: g["verdict"] for ident, g in found.items()}
         self.assertEqual(verdicts, {"A1-R1": "met", "A1-R2": "unmarked", "A1-R3": "uncited",
-                                    "A1-R4": "unmarked", "A1-R5": "claimed"})
+                                    "A1-R4": "unmarked", "A1-R5": "claimed", "A1-R9": "open"})
         self.assertEqual(found["A1-R5"]["partial_in"], ["core"])
         self.assertEqual(found["A1-R5"]["claims"][0]["draft"], True)
-        self.assertEqual([v["version"] for v in data["versions"]], ["0.2.0"],
-                         "a released version is not on the report")
+        self.assertEqual([(v["version"], v["status"]) for v in data["versions"]],
+                         [("0.1.0", "released"), ("0.2.0", "planned")],
+                         "a released version is on the report, with its goals")
 
     def test_a_row_naming_where_it_landed_stands_for_a_citation(self):
         sha = self.git("core", "rev-parse", "HEAD")

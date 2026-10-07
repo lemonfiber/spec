@@ -1,4 +1,4 @@
-# Where every goal of every unreleased version stands — OPS-R76, OPS-R77.
+# Where every goal of every version stands — OPS-R76, OPS-R77.
 #
 # Reads every repository a version is satisfied in at its default branch, and
 # every open pull request in them, and publishes the report as this run's

@@ -168,9 +168,11 @@ records why it is a file per repository and a row per requirement.
 
 The gate answers one question about one version. Picking up work asks more of
 each goal: is it met, is it built and not yet recorded, is somebody already on
-it, or is nobody. `scripts/goals.py` answers all four for every version not yet
-released, from the sources the gate reads, so the two cannot disagree
-(`OPS-R76`). The `state` workflow writes it every hour and publishes each
+it, or is nobody. `scripts/goals.py` answers all four for every version, from the
+sources the gate reads, so the two cannot disagree (`OPS-R76`). A released version
+is on it too, so how much of what shipped is recorded done is read from the same
+place as what is left: `state.json` holds every goal of it, and `STATE.md` gives it
+one line. The `state` workflow writes it every hour and publishes each
 generation as that run's `state` artifact: `STATE.md` for a person, which is also
 the run's summary, and `state.json` for a script. `just goals <version>` writes
 the same from local checkouts, reading each at its `origin/main` rather than
@@ -193,8 +195,8 @@ field added does not, so a reader checks `format` and ignores what it does not k
 | `generated_at` | When it was written, UTC, `YYYY-MM-DDTHH:MM:SSZ` |
 | `ref` | The revision each repository was read at, as given to `goals.py` |
 | `sources` | The full commit read of `spec` and of every repository, by name |
-| `versions[]` | Every version not yet released, in train order |
-| `versions[].version`, `.status` | The manifest's version and status |
+| `versions[]` | Every version, released and yanked ones included, in train order |
+| `versions[].version`, `.status` | The manifest's version and its `status` as the manifest states it, `released` and `yanked` included |
 | `versions[].milestone`, `.delivers` | The manifest's milestone and what it delivers, or `null` where it names none |
 | `versions[].goals[]` | Each goal: `id`, `verdict` (below), and the evidence behind it |
 | `goals[].cited_in` | Each merged commit citing it, as `repo@sha` |
@@ -631,7 +633,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R73** | A feature that is `maturity: built` or `maturity: shipped` MUST have every requirement it defines ticked by the implementation-status tracker, withdrawn numbers apart. A requirement added to a finished feature MUST return it to `building`, and it stays there until the tracker ticks each requirement. A check MUST refuse a catalogue that calls a feature finished while the tracker leaves one of its requirements unticked, and MUST name the feature and the requirements. |
 | **OPS-R74** | Every repository named in some version's `satisfied_in` MUST keep its implementation status in a `status.toml` at its root — or, where its rows would run past a thousand lines, in one `status/<feature>.toml` per feature holding only that feature's rows — one row per requirement, each naming the requirement, its state (`done`, `partial` or `open`), the evidence that holds it by path (the code and the test) and, optionally, the commit it landed in. A pull request that changes whether a requirement is met MUST change that row. The release gate and the no-stubs gate MUST read every searched repository's tracker, and a requirement is done where any of them records it done. |
 | **OPS-R75** | A repository's tracker MUST be refused where it keeps both a `status.toml` and a `status/` directory, where a file under `status/` holds another feature's row, or where a row names a requirement the specification does not define, names one it retired before any version locked it, names one twice, records one done with no evidence, names evidence that does not exist, or names a landed commit its repository's history does not hold. A tracker that cannot be read MUST stop the gate rather than be read as empty. |
-| **OPS-R76** | A report MUST say, for every goal of every version not yet released, whether it is met, cited and recorded done nowhere, recorded done and cited nowhere, claimed by an open pull request, or open, read from the same sources and revisions as the release gate. It MUST be published where a person and a script can read it without a checkout, refreshed at least hourly, and the same report MUST be producible locally from checkouts at their default branch rather than their working trees. Its machine-readable form MUST name its format and the commit of every source it was read from, each generation MUST stay fetchable once published, and publishing it MUST NOT commit to the specification. |
+| **OPS-R76** | A report MUST say, for every goal of every version, released ones included, whether it is met, cited and recorded done nowhere, recorded done and cited nowhere, claimed by an open pull request, or open, read from the same sources and revisions as the release gate. It MUST be published where a person and a script can read it without a checkout, refreshed at least hourly, and the same report MUST be producible locally from checkouts at their default branch rather than their working trees. Its machine-readable form MUST name its format and the commit of every source it was read from, each generation MUST stay fetchable once published, and publishing it MUST NOT commit to the specification. |
 | **OPS-R57** | A manifest whose `status` is `released` MUST carry `released_on`, the UTC date its release was published, as `YYYY-MM-DD`. The transition to `released` MUST write it from the publication the transition responds to; it MUST NOT be entered by hand, and no earlier status may carry it. |
 | **OPS-R60** | A version MAY be published as a pre-release before it is releasable. A pre-release MUST NOT move the version's `status`, MUST NOT write `released_on` or `released_as`, and MUST NOT be recorded as the release; the manifest MUST go on answering where the version is. |
 | **OPS-R61** | A pre-release MUST be identifiable as one in its tag, in what the release it publishes says, and in the manifest record, and MUST NOT carry the version's own tag. Its tag MUST be that version with a pre-release identifier appended, so it orders below the version it precedes; the identifier MUST NOT be one `ARCH-R43` gives another meaning to. The distinction MUST NOT rest on the forge's own pre-release flag, which every version below `1.0.0` carries and which therefore separates nothing. |

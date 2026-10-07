@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Where every goal of every unreleased version stands, and who is working on it.
+"""Where every goal of every version stands, and who is working on it.
 
 The release gate answers one question about one version: is every goal met. A
 person or an agent picking up work asks more of each goal than that, and asked it
 of the repositories by hand until this: is it met, is it built and not yet
 recorded, is somebody already working on it, or is nobody. This answers all four
-for every version not yet released, from the same sources the gate reads, so its
+for every version on the train, released ones included, from the same sources the
+gate reads, so its
 verdicts and the gate's cannot differ (OPS-R76):
 
   met        cited by a merged commit, or landed where a row names it, and
@@ -31,7 +32,9 @@ Usage:
   goals.py --checkout <name>=<path> [...] [--ref origin/main] [--prs prs.json]
            [--version X.Y.Z ...] [--markdown STATE.md] [--json state.json]
 
-With no `--version`, every manifest that is neither released nor yanked. Exit 0
+With no `--version`, every manifest. `state.json` holds every goal of each; the page
+gives a released or yanked version one line, since nothing on it is left to pick
+up. Exit 0
 having written what was asked; 2 where something could not be read.
 
 `state.json` is what a script reads, and its shape is documented in
@@ -43,6 +46,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import functools
 import json
 import pathlib
 import re
@@ -63,7 +67,7 @@ REVISION = re.compile(r"^[A-Za-z0-9_.@^~/][A-Za-z0-9_.@^~/-]*$")
 #: The shape of `state.json`. A field removed, renamed or given another meaning
 #: raises it; a field added does not, so a reader checks it and ignores the rest.
 FORMAT = 1
-#: The states a manifest leaves the train in.
+#: The states a manifest has once it has shipped, which the page gives one line.
 FINISHED = ("released", "yanked")
 #: The order verdicts are reported in: what somebody can act on first.
 VERDICTS = ("claimed", "unmarked", "uncited", "open", "met")
@@ -115,6 +119,7 @@ def git(path: pathlib.Path, *args: str) -> subprocess.CompletedProcess:
                           text=True, check=False)
 
 
+@functools.cache
 def citations(name: str, path: pathlib.Path, ref: str) -> dict[str, list[str]]:
     """Each requirement a merged commit cites, with where: `repo@sha`."""
     if git(path, "rev-parse", "--is-shallow-repository").stdout.strip() != "false":
@@ -139,6 +144,7 @@ def citations(name: str, path: pathlib.Path, ref: str) -> dict[str, list[str]]:
 LEGACY = "IMPLEMENTATION-STATUS.md"
 
 
+@functools.cache
 def tracker(name: str, path: pathlib.Path, ref: str) -> list[status_check.Row]:
     """A repository's tracker as it stands at `ref`, refusing one that is not there.
 
@@ -216,15 +222,13 @@ def as_data(report: list[tuple[dict, list[Standing]]], ref: str, sources: dict[s
 
 
 def manifests(spec: pathlib.Path, wanted: list[str]) -> list[dict]:
-    """The manifests asked for, or every one still on the train, in train order."""
+    """The manifests asked for, or every one, in train order."""
     found = []
     for path in (spec / VERSIONS).glob("*.toml"):
         if path.stem == "TEMPLATE":
             continue
         data = tomllib.loads(path.read_text(encoding="utf-8"))
         if wanted and data["version"] not in wanted:
-            continue
-        if not wanted and data.get("status", "planned") in FINISHED:
             continue
         found.append(data)
     missing = set(wanted) - {data["version"] for data in found}
@@ -264,35 +268,48 @@ def standing(manifest: dict, checkouts: dict[str, pathlib.Path], ref: str,
 
 
 def markdown(report: list[tuple[dict, list[Standing]]], ref: str) -> str:
-    """The report as a page a person reads."""
+    """The report as a page a person reads: what is still to do, then what shipped."""
     source = (f"Read from each repository at `{ref}`. Written by `scripts/goals.py`; "
               "`just goals <version>` writes the same from local checkouts (OPS-R76).")
-    out = ["# Where every unreleased version stands", "", source, ""]
+    out = ["# Where every version stands", "", source, ""]
     for manifest, goals in report:
-        counts = {verdict: sum(g.verdict == verdict for g in goals) for verdict in VERDICTS}
-        summary = ", ".join(f"{counts[v]} {v}" for v in VERDICTS if counts[v])
-        out += [f"## {manifest['version']} — {manifest.get('status', 'planned')}", "",
-                f"{len(goals)} goals: {summary}.", ""]
-        for verdict in VERDICTS:
-            rows = [g for g in goals if g.verdict == verdict]
-            if not rows:
-                continue
-            fold = verdict == "met"
-            out += (["<details><summary>Met</summary>", ""] if fold
-                    else [f"### {HEADINGS[verdict]}", ""])
-            out += ["| Goal | Done in | Partial in | Cited in | Claimed by |",
-                    "|---|---|---|---|---|"]
-            for g in rows:
-                claimed = ", ".join(
-                    f"[{c['repo']}#{c['number']}]({c['url']}){' (draft)' if c['draft'] else ''}"
-                    for c in g.claims)
-                cited = ", ".join(g.cited_in[:3] + g.landed_in[:1])
-                if len(g.cited_in) > 3:
-                    cited += f" and {len(g.cited_in) - 3} more"
-                out.append(f"| {g.id} | {', '.join(g.done_in)} | {', '.join(g.partial_in)} | "
-                           f"{cited} | {claimed} |")
-            out += ["", "</details>", ""] if fold else [""]
+        if manifest.get("status", "planned") not in FINISHED:
+            out += standing_page(manifest, goals)
+    finished = [(m, goals) for m, goals in report if m.get("status", "planned") in FINISHED]
+    if finished:
+        out += ["## Released", "", "| Version | Status | Goals met |", "|---|---|---|"]
+        out += [f"| {m['version']} | {m['status']} | "
+                f"{sum(g.verdict == 'met' for g in goals)} of {len(goals)} |"
+                for m, goals in finished]
     return "\n".join(out).rstrip("\n") + "\n"
+
+
+def standing_page(manifest: dict, goals: list[Standing]) -> list[str]:
+    """One version still on the train: its counts, then its goals by verdict."""
+    counts = {verdict: sum(g.verdict == verdict for g in goals) for verdict in VERDICTS}
+    summary = ", ".join(f"{counts[v]} {v}" for v in VERDICTS if counts[v])
+    out = [f"## {manifest['version']} — {manifest.get('status', 'planned')}", "",
+           f"{len(goals)} goals: {summary}.", ""]
+    for verdict in VERDICTS:
+        rows = [g for g in goals if g.verdict == verdict]
+        if not rows:
+            continue
+        fold = verdict == "met"
+        out += (["<details><summary>Met</summary>", ""] if fold
+                else [f"### {HEADINGS[verdict]}", ""])
+        out += ["| Goal | Done in | Partial in | Cited in | Claimed by |",
+                "|---|---|---|---|---|"]
+        for g in rows:
+            claimed = ", ".join(
+                f"[{c['repo']}#{c['number']}]({c['url']}){' (draft)' if c['draft'] else ''}"
+                for c in g.claims)
+            cited = ", ".join(g.cited_in[:3] + g.landed_in[:1])
+            if len(g.cited_in) > 3:
+                cited += f" and {len(g.cited_in) - 3} more"
+            out.append(f"| {g.id} | {', '.join(g.done_in)} | {', '.join(g.partial_in)} | "
+                       f"{cited} | {claimed} |")
+        out += ["", "</details>", ""] if fold else [""]
+    return out
 
 
 def pairs(specs: list[str]) -> dict[str, pathlib.Path]:
@@ -315,6 +332,10 @@ def main() -> int:
     parser.add_argument("--markdown")
     parser.add_argument("--json", dest="json_out")
     args = parser.parse_args()
+    # Every version reads the same repositories at the same revision, so each is
+    # read once per run; a run starts from nothing, whatever ran before it.
+    citations.cache_clear()
+    tracker.cache_clear()
     if not REVISION.match(args.ref):
         print(f"::error::`{args.ref}` is not a revision")
         return 2
