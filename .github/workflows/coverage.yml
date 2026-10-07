@@ -53,6 +53,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           coverage run scripts/test_release_train.py
+          coverage run --append scripts/test_release_trackers.py
           coverage run --append scripts/test_redirects.py
           coverage run --append scripts/test_status_lint.py
           coverage run --append scripts/test_no_stubs.py
