@@ -138,6 +138,11 @@ jobs:
       # silence (Q-R66).
       - name: A run with nothing to gate says so (Q-R64, Q-R66)
         run: python3 scripts/test_no_token.py
+      # The same step, handed a change that touches no code: it answers at once
+      # rather than waiting for a summary no scan will write, and the open count
+      # still blocks above the allowance (Q-R64, Q-R67).
+      - name: A change that touches no code is answered at once (Q-R64, Q-R67)
+        run: python3 scripts/test_no_code.py
       # The same shape, on the event a merge queue asks on. Every workflow `main`
       # requires a context of declares it, and the steps that read a pull
       # request are run without one and shown refusing a batch they cannot read

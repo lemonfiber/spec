@@ -61,6 +61,11 @@ on:
         type: string
         required: false
         default: scripts/no_open_codeql_alert.py
+      code:
+        description: "Whether the change reaches any code, as the caller's `what changed` job decided it. False where every changed path is one no code-judging job reads, so the caller ran no analysis; the gate then has no analysis of this commit to ask about, says so, and passes, since a change that touches no code cannot bring an alert. Anything the caller could not decide passes true."
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   contents: read
@@ -91,7 +96,19 @@ jobs:
           GATE: ${{ inputs.gate }}
         run: python3 "${GATE}" --self-test
 
+      # In place of the alert query, which refuses a commit carrying no
+      # analysis. The caller analysed nothing because nothing an analysis reads
+      # changed, and a skipped step is missing from the log, so the reason is
+      # said under a name of its own.
+      - name: No code changed, so no analysis was run
+        if: ${{ !inputs.code }}
+        run: |
+          said="Every path this change touches is one no code-judging job reads, so the caller ran no CodeQL analysis and no alert can come from it."
+          echo "::notice::${said}"
+          printf '### No CodeQL analysis to gate\n\n%s\n' "$said" >> "$GITHUB_STEP_SUMMARY"
+
       - name: No open CodeQL alert reaches main
+        if: inputs.code
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
