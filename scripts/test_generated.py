@@ -66,7 +66,7 @@ class TheRegistry(unittest.TestCase):
         self.assertEqual(generated.listing(out), 0)
         rows = [line.split("\t") for line in out.getvalue().splitlines()]
         self.assertEqual(
-            len(rows), sum(len(e.paths) for e in generated.GENERATED)
+            len(rows), sum(len(e.every()) for e in generated.GENERATED)
         )
         self.assertIn(
             ["30-repos/README.md", "scripts/gen_repos.py", "python3 scripts/gen_repos.py"],
@@ -158,6 +158,20 @@ class TheRun(unittest.TestCase):
         with mock.patch.object(generated, "_git", return_value=done):
             self.assertEqual(generated.moved(["a.md", "b.md"]), ["a.md", "b.md"])
 
+    def test_moved_names_a_written_file_nobody_committed(self):
+        changed = mock.Mock(returncode=0, stdout="a.md\n")
+        untracked = mock.Mock(returncode=0, stdout="new/board.json\na.md\n")
+        with mock.patch.object(generated, "_git", side_effect=[changed, untracked]):
+            self.assertEqual(
+                generated.moved(["a.md", "new/board.json"]), ["a.md", "new/board.json"]
+            )
+
+    def test_moved_says_nothing_when_git_cannot_list_untracked_files(self):
+        changed = mock.Mock(returncode=0, stdout="")
+        untracked = mock.Mock(returncode=128, stdout="")
+        with mock.patch.object(generated, "_git", side_effect=[changed, untracked]):
+            self.assertIsNone(generated.moved(["a.md"]))
+
     def test_moved_says_nothing_rather_than_nothing_found_when_git_fails(self):
         done = mock.Mock(returncode=128, stdout="")
         with mock.patch.object(generated, "_git", return_value=done):
@@ -167,6 +181,28 @@ class TheRun(unittest.TestCase):
         with mock.patch.object(generated.subprocess, "run") as ran:
             generated._git("diff")
         self.assertEqual(ran.call_args[0][0][:3], ["git", "-C", str(generated.ROOT)])
+
+
+class FoundByShape(unittest.TestCase):
+    def test_a_file_matching_a_pattern_is_one_the_generator_writes(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            root = pathlib.Path(scratch)
+            for area in ("b-two", "a-one"):
+                (root / area).mkdir()
+                (root / area / "board.json").write_text("{}", encoding="utf-8")
+            entry = generated.Generated(
+                generator="g.py", recipe="r", paths=("index.json",), owns="o",
+                patterns=("*/board.json",),
+            )
+            with mock.patch.object(generated, "ROOT", root):
+                self.assertEqual(
+                    entry.every(), ["index.json", "a-one/board.json", "b-two/board.json"]
+                )
+                with mock.patch.object(generated, "GENERATED", (entry,)):
+                    self.assertIs(generated.owner_of("b-two/board.json"), entry)
+
+    def test_an_entry_with_no_pattern_writes_what_it_lists(self):
+        self.assertEqual(ONE.every(), list(ONE.paths))
 
 
 class TheBanner(unittest.TestCase):

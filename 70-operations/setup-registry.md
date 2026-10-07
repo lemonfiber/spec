@@ -154,8 +154,8 @@ page that stands where it stood.
 of them, and all seventy-nine are derived from this repository's own tree: the
 ten `…/README` directory indexes, whose target drops the `README` segment;
 `10-functional/features/BOARD`, whose target is lowercase; and the sixty-eight
-`/roadmap/<feature>` pages, whose target is the feature's path in
-`10-functional/features/index.json`. Run this from the repository root to emit
+`/roadmap/<feature>` pages, whose target is the feature's path in its area's
+`board.json`, which `10-functional/features/index.json` names. Run this from the repository root to emit
 them as the two-column CSV a Bulk Redirect list is uploaded from:
 
 ```sh
@@ -169,8 +169,10 @@ for section in sorted(p for p in pathlib.Path().glob("[0-9][0-9]-*") if p.is_dir
             print(f"https://lemonfiber.app/spec/{route},{DOCS}/spec/{md.parent.as_posix()}/")
         elif route != route.lower():
             print(f"https://lemonfiber.app/spec/{route},{DOCS}/spec/{route.lower()}/")
-for f in json.loads(pathlib.Path("10-functional/features/index.json").read_text())["features"]:
-    print(f"https://lemonfiber.app/roadmap/{f['id'].lower()},{DOCS}/spec/10-functional/features/{f['path'][:-3]}/")
+FEATURES = pathlib.Path("10-functional/features")
+for board in json.loads((FEATURES / "index.json").read_text())["areas"].values():
+    for f in json.loads((FEATURES / board).read_text())["features"]:
+        print(f"https://lemonfiber.app/roadmap/{f['id'].lower()},{DOCS}/spec/10-functional/features/{f['path'][:-3]}/")
 PY
 ```
 

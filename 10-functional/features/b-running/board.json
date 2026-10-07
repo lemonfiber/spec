@@ -1,0 +1,192 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "area": "B",
+  "features": [
+    {
+      "id": "B1",
+      "title": "Forms & partial stacks",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M2", "M6", "M14"],
+      "milestone": "M2",
+      "priority": null,
+      "labels": ["cli", "wiring"],
+      "requires": [],
+      "relates": ["B2", "F2"],
+      "versions": [
+        {"version": "0.1.0", "status": "released"},
+        {"version": "0.17.0", "status": "releasable"},
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.8.0", "status": "released"}
+      ],
+      "path": "b-running/b1-forms.md"
+    },
+    {
+      "id": "B2",
+      "title": "Lifecycle control",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M6", "M9", "M14"],
+      "milestone": "M6",
+      "priority": null,
+      "labels": ["cli"],
+      "requires": ["G7"],
+      "relates": ["B1", "B3", "B8"],
+      "versions": [
+        {"version": "0.15.0", "status": "released"},
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.8.0", "status": "released"}
+      ],
+      "path": "b-running/b2-lifecycle.md"
+    },
+    {
+      "id": "B3",
+      "title": "Live dashboard",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M5", "M6"],
+      "milestone": "M5",
+      "priority": null,
+      "labels": ["tui", "verification"],
+      "requires": ["G7"],
+      "relates": ["B2", "B4", "C2", "G1"],
+      "versions": [
+        {"version": "0.5.0", "status": "released"},
+        {"version": "1.0.0", "status": "planned"}
+      ],
+      "path": "b-running/b3-dashboard.md"
+    },
+    {
+      "id": "B4",
+      "title": "Log viewing",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.8.0",
+      "milestones": ["M6"],
+      "milestone": "M6",
+      "priority": null,
+      "labels": ["tui"],
+      "requires": ["G4"],
+      "relates": ["B3", "C1", "C4"],
+      "versions": [
+        {"version": "0.8.0", "status": "released"}
+      ],
+      "path": "b-running/b4-logs.md"
+    },
+    {
+      "id": "B5",
+      "title": "Notifications & alerting",
+      "area": "B",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.5.0",
+      "milestones": ["M5"],
+      "milestone": "M5",
+      "priority": null,
+      "labels": ["notifications"],
+      "requires": [],
+      "relates": ["B3", "C1", "C7", "C8", "D4", "G4"],
+      "versions": [
+        {"version": "0.5.0", "status": "released"}
+      ],
+      "path": "b-running/b5-notifications.md"
+    },
+    {
+      "id": "B6",
+      "title": "Controlling a stack on another machine",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M9"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["cli", "network"],
+      "requires": [],
+      "relates": ["B2", "C6", "G1"],
+      "versions": [
+        {"version": "0.15.0", "status": "released"}
+      ],
+      "path": "b-running/b6-remote-stack.md"
+    },
+    {
+      "id": "B8",
+      "title": "Autostart & boot persistence",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M9"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["updates", "cli"],
+      "requires": ["B5"],
+      "relates": ["B2", "C2", "C5"],
+      "versions": [
+        {"version": "0.15.0", "status": "released"}
+      ],
+      "path": "b-running/b8-autostart.md"
+    },
+    {
+      "id": "B9",
+      "title": "Open notification back-ends",
+      "area": "B",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M13"],
+      "milestone": "M13",
+      "priority": "P2",
+      "labels": ["notifications", "verification"],
+      "requires": ["B5"],
+      "relates": ["G8"],
+      "versions": [
+        {"version": "0.23.0", "status": "planned"}
+      ],
+      "path": "b-running/b9-notification-backends.md"
+    },
+    {
+      "id": "B10",
+      "title": "Hosting long-running commands",
+      "area": "B",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.13.0",
+      "milestones": ["M9"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["cli", "storage", "household"],
+      "requires": ["C5", "D7", "G4"],
+      "relates": ["B2", "B5", "B8", "G1"],
+      "versions": [
+        {"version": "0.15.0", "status": "released"}
+      ],
+      "path": "b-running/b10-hosting.md"
+    }
+  ]
+}
