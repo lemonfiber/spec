@@ -1,26 +1,40 @@
-# Where every goal of every version stands — OPS-R76, OPS-R77.
+# Where every goal of every version stands, and the board snapshot — OPS-R76,
+# OPS-R77, OPS-R80, OPS-R81, OPS-R82.
 #
 # Reads every repository a version is satisfied in at its default branch, and
-# every open pull request in them, and publishes the report as this run's
-# `state` artifact: STATE.md for a person, state.json for a script. Each
-# generation stays fetchable from its run for the artifact's retention, and
-# state.json names the commit of every source it read, so a copy vendored
-# elsewhere says what it is a reading of. Nothing is committed: a commit an hour
-# would run every check this repository has, every hour. `just goals <version>`
-# writes the same from local checkouts.
+# every open pull request in them, and writes the report (STATE.md for a person,
+# state.json for a script) and the board snapshot the frontpage renders
+# (board.json, in the shape 70-operations/board-format.md documents). Each run
+# replaces the assets of the `board` release with them, so the newest is always
+# at one address that needs no credentials, and uploads them as the run's
+# `state` artifact, kept ninety days as the history. Nothing is committed: a
+# commit an hour would run every check this repository has, every hour.
 #
-# Hourly, on demand, and whenever a manifest or the report's own code changes on
-# `main`, so a goal moved between versions shows where it went within the run.
+# A repository that cannot be cloned or read is named in both files, its goals
+# read unknown, and the rest is still published. The frontpage is asked to
+# rebuild only when the snapshot's content changed since the one published.
+#
+# Runs when a manifest, a feature, the repository map or the report's own code
+# changes on `main`; when a repository says its tracker moved; on demand; and
+# hourly, as the backstop for anything no event announced. A release is recorded
+# by a push to its manifest, which is one of those paths.
 name: state
 
 on:
   schedule:
     - cron: "41 * * * *"
   workflow_dispatch:
+  repository_dispatch:
+    types: [tracker-moved]
   push:
     branches: [main]
     paths:
       - "70-operations/versions/**"
+      - "10-functional/features/**"
+      - "30-repos/repos.toml"
+      - "scripts/board.py"
+      - "scripts/catalogue.py"
+      - "scripts/gen_board.py"
       - "scripts/goals.py"
       - "scripts/open_prs.sh"
       - "scripts/status_check.py"
@@ -29,14 +43,20 @@ on:
 permissions:
   contents: read
 
+# One run at a time, and the newest waiting one goes next: a run cancelled while
+# it replaces the release's assets would leave them from two different readings.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   report:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.publish.outputs.changed }}
     steps:
       - name: Check out the spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -46,39 +66,78 @@ jobs:
       - name: Clone every repository a version is satisfied in
         run: |
           set -euo pipefail
-          python3 scripts/status_check.py repos --spec . > repos.txt
           # Whole history, no file contents: the report reads every commit
-          # message and two files at the tip, and a citation it cannot see reads
-          # as work never done.
+          # message and a few files at the tip, and a citation it cannot see
+          # reads as work never done. A repository that cannot be cloned is left
+          # out, and the report names it rather than stopping.
+          : > cloned.txt
           while read -r r; do
             [ -n "$r" ] || continue
-            git clone --quiet --filter=blob:none "https://github.com/lemonfiber/${r}.git" "checkouts/${r}"
-          done < repos.txt
+            if git clone --quiet --filter=blob:none "https://github.com/lemonfiber/${r}.git" "checkouts/${r}"; then
+              echo "$r" >> cloned.txt
+            else
+              echo "::warning::could not clone ${r}; the report names it and its goals read unknown"
+            fi
+          done < <(python3 scripts/status_check.py repos --spec .)
 
-      - name: Every open pull request in them, for claims
+      - name: Every open pull request in them, and the open rfc issues
         env:
           GH_TOKEN: ${{ github.token }}
           OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
-          mapfile -t repos < repos.txt
+          mapfile -t repos < cloned.txt
           bash scripts/open_prs.sh "$OWNER" "${repos[@]}" > prs.json
+          gh api "repos/${OWNER}/spec/issues?labels=rfc&state=open&per_page=100" > issues.json
 
-      - name: Write the report
+      - name: Write the report and the snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           args=()
-          while read -r r; do [ -n "$r" ] && args+=(--checkout "${r}=checkouts/${r}"); done < repos.txt
+          while read -r r; do [ -n "$r" ] && args+=(--checkout "${r}=checkouts/${r}"); done < cloned.txt
           python3 scripts/goals.py --spec . "${args[@]}" --ref HEAD --prs prs.json \
             --markdown STATE.md --json state.json
+          # The hash the newest published snapshot carries, where there is one.
+          gh release download board --pattern board.sha256 --output published.sha256 --clobber \
+            || rm -f published.sha256
+          python3 scripts/board.py "${args[@]}" --ref HEAD --prs prs.json --issues issues.json \
+            --json board.json --hash board.sha256 --previous published.sha256 --changed changed.txt
           cat STATE.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Publish this generation
+      - name: Publish it as the board release
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! gh release view board > /dev/null 2>&1; then
+            gh release create board --target main --prerelease --latest=false \
+              --title "Board snapshot" \
+              --notes "The newest board snapshot and report, replaced on every run of the state workflow. Not a release of the specification; see 70-operations/board-format.md."
+          fi
+          gh release upload board board.json board.sha256 state.json STATE.md --clobber
+          echo "changed=$(cat changed.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Keep this generation
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: state
           path: |
             STATE.md
             state.json
+            board.json
           if-no-files-found: error
           retention-days: 90
+
+  rebuild:
+    needs: report
+    if: needs.report.outputs.changed == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/rebuild-site.yml
+    with:
+      because: "the board snapshot changed"
+    secrets:
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}

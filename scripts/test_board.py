@@ -313,6 +313,25 @@ class TheHash(Board):
                          written)
         self.assertNotEqual(board.content_hash({**data, "ref": "elsewhere"}), written)
 
+    def test_changed_against_what_was_published(self):
+        self.snapshot("--hash", "board.sha256")
+        same = pathlib.Path("board.sha256").read_text(encoding="utf-8")
+        pathlib.Path("published.sha256").write_text(same, encoding="utf-8")
+        self.snapshot("--previous", "published.sha256", "--changed", "changed.txt")
+        self.assertEqual(pathlib.Path("changed.txt").read_text(encoding="utf-8"), "false\n",
+                         "a run over the same sources asks for no rebuild")
+        pathlib.Path("published.sha256").write_text("0" * 64 + "\n", encoding="utf-8")
+        self.snapshot("--previous", "published.sha256", "--changed", "changed.txt")
+        self.assertEqual(pathlib.Path("changed.txt").read_text(encoding="utf-8"), "true\n")
+
+    def test_nothing_published_before_is_a_change(self):
+        self.snapshot("--previous", "absent.sha256", "--changed", "changed.txt")
+        self.assertEqual(pathlib.Path("changed.txt").read_text(encoding="utf-8"), "true\n")
+        self.snapshot("--changed", "changed.txt")
+        self.assertEqual(pathlib.Path("changed.txt").read_text(encoding="utf-8"), "true\n")
+        self.assertTrue(board.changed(None, "x"))
+        self.assertFalse(board.changed("x\n", "x"))
+
 
 if __name__ == "__main__":
     unittest.main()
