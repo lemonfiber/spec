@@ -24,6 +24,11 @@ Spec: B2-R1, B2-R2
 
 Put the same IDs in your PR body. Done.
 
+To find something to pick up, use the board on lemonfiber.app or `lfdev next`;
+a requirement an open pull request already cites is claimed, so talk to its
+author first. A repository holds at most three open pull requests at once
+([working in the repositories](working-in-the-repositories.md)).
+
 ### "I want to change how the product behaves"
 
 Open a **spec PR first**.
@@ -34,6 +39,11 @@ Open a **spec PR first**.
 
 The spec PR is usually small — one row in a requirements table and a paragraph
 explaining the behaviour. It's not an essay.
+
+From outside the maintainers, the spec PR is a proposal: a Draft with no
+identifier, which gets its identifiers when a maintainer approves it. The
+website's propose form composes one and opens it under your own account, and
+`lfdev propose` does the same from a terminal ([RFC process](rfc-process.md)).
 
 **Why the extra step:** it separates *"should the product do this?"* from
 *"is this code good?"*. Reviewed together, working code tends to win the first

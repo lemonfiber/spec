@@ -199,6 +199,16 @@ The closing comment is covered in [contributing.md](contributing.md#when-your-pr
 in short: thank them, state the rule and why, link the spec, give copy-pasteable
 steps, and say explicitly that the work isn't rejected — it's sequenced.
 
+**GOV-R56**: the one click is made for them when the citation starts to resolve. A
+pull request closed for citing an identifier the specification did not yet define is
+waiting on that definition, not refused. When a push to the specification's `main`
+defines it, the pull request is reopened with a comment saying the citation now
+resolves, and `spec-check` runs again on the reopen.
+
+| ID | Requirement |
+|----|-------------|
+| **GOV-R56** | When the specification defines an identifier, a pull request that `spec-check` closed for citing it MUST be reopened automatically, with a comment saying the citation now resolves. |
+
 ## In a merge queue
 
 A repository whose default branch merges through a **merge queue** runs its
