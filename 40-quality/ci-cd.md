@@ -298,7 +298,7 @@ no base to compare against, decides nothing, and every job runs.
 
 The gates that judge documentation run on every change: markdown, links, typos,
 spec references, a tracker's generator check, secret scanning, DCO and
-attribution.
+attribution, whatever else changed.
 
 Each skipped job is skipped by a job-level `if:` rather than by a `paths:`
 filter, so it still reports, as skipped, and a skipped required check satisfies
