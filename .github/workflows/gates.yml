@@ -73,6 +73,7 @@ jobs:
       hygiene--links: ${{ !((steps.plan.outputs.hygiene == 'true')) && 'skipped' || (steps.hygiene--links--0.outcome == 'failure' || steps.hygiene--links--1.outcome == 'failure' || steps.hygiene--links--2.outcome == 'failure') && 'failure' || 'success' }}
       hygiene--invite: ${{ !((steps.plan.outputs.hygiene == 'true')) && 'skipped' || (steps.hygiene--invite--0.outcome == 'failure' || steps.hygiene--invite--1.outcome == 'failure') && 'failure' || 'success' }}
       hygiene--shared-files: ${{ !((steps.plan.outputs.hygiene == 'true')) && 'skipped' || (steps.hygiene--shared-files--0.outcome == 'failure' || steps.hygiene--shared-files--1.outcome == 'failure' || steps.hygiene--shared-files--2.outcome == 'failure' || steps.hygiene--shared-files--3.outcome == 'failure') && 'failure' || 'success' }}
+      hygiene--lines: ${{ !((steps.plan.outputs.hygiene == 'true')) && 'skipped' || (steps.hygiene--lines--0.outcome == 'failure' || steps.hygiene--lines--1.outcome == 'failure' || steps.hygiene--lines--2.outcome == 'failure' || steps.hygiene--lines--3.outcome == 'failure') && 'failure' || 'success' }}
       hygiene--markdown: ${{ !((steps.plan.outputs.hygiene == 'true')) && 'skipped' || (steps.hygiene--markdown--0.outcome == 'failure' || steps.hygiene--markdown--1.outcome == 'failure') && 'failure' || 'success' }}
       workflow-pins--workflow-pins: ${{ !((steps.plan.outputs.workflow-pins == 'true')) && 'skipped' || (steps.workflow-pins--workflow-pins--0.outcome == 'failure' || steps.workflow-pins--workflow-pins--1.outcome == 'failure' || steps.workflow-pins--workflow-pins--2.outcome == 'failure' || steps.workflow-pins--workflow-pins--3.outcome == 'failure') && 'failure' || 'success' }}
       security--gitleaks: ${{ !((steps.plan.outputs.security == 'true')) && 'skipped' || (steps.security--gitleaks--0.outcome == 'failure' || steps.security--gitleaks--1.outcome == 'failure' || steps.security--gitleaks--2.outcome == 'failure') && 'failure' || 'success' }}
@@ -592,6 +593,51 @@ jobs:
           --repo "$REPO"
       continue-on-error: true
       timeout-minutes: 10
+    - name: 'hygiene / lines: an empty workspace, as its own runner had'
+      id: hygiene--lines--fresh
+      if: ${{ (steps.plan.outputs.hygiene == 'true') }}
+      run: find "$GITHUB_WORKSPACE" -mindepth 1 -delete
+    - name: 'hygiene / lines: actions/checkout'
+      id: hygiene--lines--0
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / lines: Check out the canonical copy'
+      id: hygiene--lines--1
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--lines--0.outcome != 'failure') && (github.repository != 'lemonfiber/spec') }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        repository: lemonfiber/spec
+        ref: main
+        path: .spec-canonical
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / lines: actions/setup-python'
+      id: hygiene--lines--2
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--lines--0.outcome != 'failure') && (steps.hygiene--lines--1.outcome != 'failure') }}
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: '3.12'
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / lines: No tracked file is longer than the cap'
+      id: hygiene--lines--3
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--lines--0.outcome != 'failure') && (steps.hygiene--lines--1.outcome != 'failure') && (steps.hygiene--lines--2.outcome != 'failure') }}
+      env:
+        REPO: ${{ github.repository }}
+      run: |
+        if [ "$REPO" = "lemonfiber/spec" ]; then
+          reader=scripts/check_line_cap.py
+        else
+          reader=.spec-canonical/scripts/check_line_cap.py
+        fi
+        python3 "$reader" --root .
+      continue-on-error: true
+      timeout-minutes: 10
     - name: 'hygiene / markdown: an empty workspace, as its own runner had'
       id: hygiene--markdown--fresh
       if: ${{ (steps.plan.outputs.hygiene == 'true') }}
@@ -943,9 +989,9 @@ jobs:
       env:
         VERDICTS: '{"spec-check--spec-check": "${{ !((steps.plan.outputs.spec-check == ''true'')) && ''skipped'' || (steps.spec-check--spec-check--0.outcome == ''failure'' || steps.spec-check--spec-check--1.outcome == ''failure'' || steps.spec-check--spec-check--2.outcome == ''failure'' || steps.spec-check--spec-check--3.outcome == ''failure'' || steps.spec-check--spec-check--4.outcome == ''failure'' || steps.spec-check--spec-check--7.outcome == ''failure'' || steps.spec-check--spec-check--8.outcome == ''failure'' || steps.spec-check--spec-check--9.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--actionlint": "${{ !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--actionlint--0.outcome == ''failure'' || steps.hygiene--actionlint--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--pins": "${{ !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--pins--0.outcome == ''failure'' || steps.hygiene--pins--1.outcome
           == ''failure'') && ''failure'' || ''success'' }}", "hygiene--typos": "${{ !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--typos--0.outcome == ''failure'' || steps.hygiene--typos--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--links": "${{ !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure'' || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome == ''failure'' || steps.hygiene--shared-files--2.outcome
-          == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'') && ''failure''
-          || ''success'' }}", "security--osv-scanner": "${{ !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !((steps.plan.outputs.commitlint == ''true''))
-          && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
+          == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome
+          == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome
+          == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
       run: |
         set -euo pipefail
         python3 - <<'PY'
@@ -1132,9 +1178,9 @@ jobs:
         HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
         NAMES: ${{ inputs.names }}
         CHECKS: ${{ inputs.checks }}
-        LISTED: '[["spec-check", "spec-check", "spec-check--spec-check"], ["hygiene", "actionlint", "hygiene--actionlint"], ["hygiene", "pins", "hygiene--pins"], ["hygiene", "typos", "hygiene--typos"], ["hygiene", "links", "hygiene--links"], ["hygiene", "invite", "hygiene--invite"], ["hygiene", "shared-files", "hygiene--shared-files"], ["hygiene", "markdown", "hygiene--markdown"], ["workflow-pins", "workflow-pins", "workflow-pins--workflow-pins"], ["security", "gitleaks", "security--gitleaks"], ["security", "osv-scanner", "security--osv-scanner"], ["dco", "dco", "dco--dco"], ["attribution", "attribution", "attribution--attribution"], ["commitlint", "commitlint", "commitlint--commitlint"], ["labeler", "label", "labeler--label"], ["goals", "classify", "goals--classify"]]'
-        VERDICTS: '{"spec-check--spec-check": "${{ needs.checks.outputs.spec-check--spec-check == ''success'' && (steps.spec-check--spec-check--6.outcome == ''failure'') && ''failure'' || needs.checks.outputs.spec-check--spec-check }}", "hygiene--actionlint": "${{ needs.checks.outputs.hygiene--actionlint }}", "hygiene--pins": "${{ needs.checks.outputs.hygiene--pins }}", "hygiene--typos": "${{ needs.checks.outputs.hygiene--typos }}", "hygiene--links": "${{ needs.checks.outputs.hygiene--links }}", "hygiene--invite": "${{ needs.checks.outputs.hygiene--invite }}", "hygiene--shared-files": "${{ needs.checks.outputs.hygiene--shared-files }}", "hygiene--markdown": "${{ needs.checks.outputs.hygiene--markdown }}", "workflow-pins--workflow-pins": "${{ needs.checks.outputs.workflow-pins--workflow-pins }}", "security--gitleaks": "${{ needs.checks.outputs.security--gitleaks }}", "security--osv-scanner": "${{ needs.checks.outputs.security--osv-scanner }}", "dco--dco": "${{ needs.checks.outputs.dco--dco
-          }}", "attribution--attribution": "${{ needs.checks.outputs.attribution--attribution }}", "commitlint--commitlint": "${{ needs.checks.outputs.commitlint--commitlint }}", "labeler--label": "${{ !((needs.checks.outputs.plan--labeler == ''true'')) && ''skipped'' || (steps.labeler--label--0.outcome == ''failure'') && ''failure'' || ''success'' }}", "goals--classify": "${{ !((needs.checks.outputs.plan--goals == ''true'') && (github.event.pull_request.head.repo.full_name == github.repository)) && ''skipped'' || (steps.goals--classify--0.outcome == ''failure'' || steps.goals--classify--1.outcome == ''failure'' || steps.goals--classify--2.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
+        LISTED: '[["spec-check", "spec-check", "spec-check--spec-check"], ["hygiene", "actionlint", "hygiene--actionlint"], ["hygiene", "pins", "hygiene--pins"], ["hygiene", "typos", "hygiene--typos"], ["hygiene", "links", "hygiene--links"], ["hygiene", "invite", "hygiene--invite"], ["hygiene", "shared-files", "hygiene--shared-files"], ["hygiene", "lines", "hygiene--lines"], ["hygiene", "markdown", "hygiene--markdown"], ["workflow-pins", "workflow-pins", "workflow-pins--workflow-pins"], ["security", "gitleaks", "security--gitleaks"], ["security", "osv-scanner", "security--osv-scanner"], ["dco", "dco", "dco--dco"], ["attribution", "attribution", "attribution--attribution"], ["commitlint", "commitlint", "commitlint--commitlint"], ["labeler", "label", "labeler--label"], ["goals", "classify", "goals--classify"]]'
+        VERDICTS: '{"spec-check--spec-check": "${{ needs.checks.outputs.spec-check--spec-check == ''success'' && (steps.spec-check--spec-check--6.outcome == ''failure'') && ''failure'' || needs.checks.outputs.spec-check--spec-check }}", "hygiene--actionlint": "${{ needs.checks.outputs.hygiene--actionlint }}", "hygiene--pins": "${{ needs.checks.outputs.hygiene--pins }}", "hygiene--typos": "${{ needs.checks.outputs.hygiene--typos }}", "hygiene--links": "${{ needs.checks.outputs.hygiene--links }}", "hygiene--invite": "${{ needs.checks.outputs.hygiene--invite }}", "hygiene--shared-files": "${{ needs.checks.outputs.hygiene--shared-files }}", "hygiene--lines": "${{ needs.checks.outputs.hygiene--lines }}", "hygiene--markdown": "${{ needs.checks.outputs.hygiene--markdown }}", "workflow-pins--workflow-pins": "${{ needs.checks.outputs.workflow-pins--workflow-pins }}", "security--gitleaks": "${{ needs.checks.outputs.security--gitleaks }}", "security--osv-scanner": "${{ needs.checks.outputs.security--osv-scanner
+          }}", "dco--dco": "${{ needs.checks.outputs.dco--dco }}", "attribution--attribution": "${{ needs.checks.outputs.attribution--attribution }}", "commitlint--commitlint": "${{ needs.checks.outputs.commitlint--commitlint }}", "labeler--label": "${{ !((needs.checks.outputs.plan--labeler == ''true'')) && ''skipped'' || (steps.labeler--label--0.outcome == ''failure'') && ''failure'' || ''success'' }}", "goals--classify": "${{ !((needs.checks.outputs.plan--goals == ''true'') && (github.event.pull_request.head.repo.full_name == github.repository)) && ''skipped'' || (steps.goals--classify--0.outcome == ''failure'' || steps.goals--classify--1.outcome == ''failure'' || steps.goals--classify--2.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
       run: |
         set -euo pipefail
         python3 - <<'PY'

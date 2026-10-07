@@ -74,6 +74,7 @@ CHECKS = (
     Check("hygiene", HYGIENE, "links"),
     Check("hygiene", HYGIENE, "invite"),
     Check("hygiene", HYGIENE, "shared-files"),
+    Check("hygiene", HYGIENE, "lines"),
     Check("hygiene", HYGIENE, "markdown"),
     Check("workflow-pins", "workflow-pins.yml", "workflow-pins"),
     Check("security", "security.yml", "gitleaks"),
