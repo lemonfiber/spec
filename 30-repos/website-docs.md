@@ -3,9 +3,13 @@
 **Status:** Proposed
 
 The documentation site at `docs.lemonfiber.app`. Astro Starlight, static,
-Hippocratic 3.0. Almost nothing it publishes is **written here** — the pages are
-each repo's own documentation, pinned to a revision and rendered
+Hippocratic 3.0. It is for an operator or an integrator following instructions, in
+two topics: *Use* and *Build on*. Almost nothing it publishes is **written here** — the
+pages are each repo's own documentation, pinned to a revision and rendered
 ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
+The specification is rendered on the [frontpage](website-lemonfiber.md) and contributor
+material on the [contributor site](website-contribute.md)
+([ADR-0040](../00-overview/decisions/0040-three-sites-each-with-one-reader.md)).
 
 **Implements:** the org's user-facing documentation and the *build-in-the-open*
 commitment of [governance](../50-governance/); consumes [`brand`](brand.md)
@@ -26,9 +30,7 @@ also mean rebuilding Starlight's sidebar, search and version switcher inside a b
 site that has no use for them.
 
 It is not folded into `spec` either. `spec` is where the specification is written and
-checked; this site is where it is read. Publishing it from the repo that authors it
-would mean maintaining a second site, with a second visual language and a second
-search index, for a reader who was already here.
+checked; what an operator follows is written in the repositories that build it.
 
 ## The one property to remember
 
@@ -37,19 +39,16 @@ that also holds the thing it describes, and reaches this site as a git submodule
 pinned to an exact revision, symlinked into a Starlight content collection. Nothing is
 fetched during a build.
 
-- [`lemonfiber/.docs/`](https://github.com/lemonfiber/lemonfiber) — the architecture
-  notes a contributor reads before touching the crate
-- [`brand/.docs/`](https://github.com/lemonfiber/brand) — colour, type and logo rules
-- each repo's `README.md` — its own front door
-- [`.github`](https://github.com/lemonfiber/.github) — conduct, security, contributing
+- the core's generated command reference and its contract artefacts
+- each SDK's guide, and the plugin template
+- [`.github`](https://github.com/lemonfiber/.github) — conduct, security, where to ask
 
-The **specification is mirrored the same way**, from a pinned revision of
-`spec` — it is the largest body of prose the org has, and a reader
-searching the documentation for a requirement should find it rather than be sent to a
-different domain. It is rendered here and authored there: identifiers are still
-checked by `integrity.py` in `spec`, and a mirrored page's edit link points at `spec`.
 This is what makes the pages trustworthy: they cannot quietly drift from the repo they
 document, because they are that repo's files at a revision the site names on the page.
+
+Every authored page declares which of the two topics it serves, and the navigation is
+built per topic from that declaration. A page that restates a page another repository
+owns is a second copy that drifts; that page is mirrored instead.
 
 What *is* written here is the connective tissue — navigation, landing pages, and the
 task-shaped guides that mirrored prose does not provide because it was written for a
@@ -115,14 +114,20 @@ prose as well as authored prose — this is the only build that sees all of it a
 | **REPO-R49** | Every mirrored page MUST show the upstream revision it was rendered from, and that revision's date. |
 | **REPO-R50** | Every user-facing string authored in this repository MUST come from the message catalogue and MUST NOT be written into a template. |
 | **REPO-R51** | The published site MUST load no font, script, style or tracker from a third party at run time. |
-| **REPO-R52** | The specification MUST be rendered on this site from a pinned revision of `spec`, and MUST NOT be published from any second site. |
+| **REPO-R52** | *Superseded by [REPO-R79](website-lemonfiber.md): the specification is rendered on the frontpage, at the revision the board snapshot read. The number is not reused.* |
 | **REPO-R53** | A URL that this site or a retired rendering of the specification published MUST continue to resolve, by redirect, to the page that replaced it, including a page that moved to the frontpage. |
 | **REPO-R68** | The site MUST NOT render project status: the roadmap, the board, what is built and the list of releases are the frontpage's to publish. |
+| **REPO-R80** | The site MUST NOT render the specification or contributor material; a route it published for either MUST redirect to the page that replaced it on the frontpage or the contributor site. |
+| **REPO-R81** | Every authored page MUST declare its topic, `use` or `build`; the navigation MUST be built per topic from that declaration, and a check MUST refuse a page with none or one under the other topic's tree. |
+| **REPO-R82** | An authored page MUST NOT restate a normative page another repository owns; that page MUST be mirrored instead. |
+| **REPO-R83** | The build MUST publish a provenance index mapping every route it renders to the repository, the path and the revision it was rendered from. |
 
 ## Related
 
 - [ADR-0015 The documentation site renders content it does not own](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)
 - [ADR-0004 Four-repo split](../00-overview/decisions/0004-four-repo-split.md)
-- [website-lemonfiber.app](website-lemonfiber.md) — the frontpage, which reads live state rather than a pin
+- [ADR-0040 Three sites, each for one reader](../00-overview/decisions/0040-three-sites-each-with-one-reader.md)
+- [website-lemonfiber.app](website-lemonfiber.md) — the frontpage, which reads live state rather than a pin, and renders the specification
+- [website-contribute.lemonfiber.app](website-contribute.md) — the contributor site
 - [brand](brand.md) — the tokens the site consumes
 - [50-governance](../50-governance/) — the transparency commitment it serves

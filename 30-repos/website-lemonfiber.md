@@ -4,9 +4,9 @@
 
 The public frontpage at the root of the org. Astro, static, Hippocratic 3.0.
 It is the project's home: the pitch, the roadmap, the board of features and
-requirements, the repositories, the work in flight, the releases and the
-proposals. None of that is **authored here** — it is read from the org at build
-time.
+requirements, the repositories, the work in flight, the releases, the proposals
+and the specification itself. None of that is **authored here** — it is read from
+the org at build time.
 
 **Implements:** the org's public presence and the *build-in-the-open* commitment
 of [governance](../50-governance/); consumes [`brand`](brand.md)
@@ -55,6 +55,12 @@ facts, and it would go stale the first time nobody regenerated it.
 | `/pick/` | the goals of the version in flight and the next that nobody has claimed |
 | `/releases/`, `/releases/<version>/` | what each release delivered, from the core's changelog |
 | `/proposals/` | Draft features and requirements, open proposal pull requests and open `rfc` issues |
+| `/spec/` | the specification, every page with an anchor per requirement, at the commit of `spec` the snapshot read |
+
+The specification is rendered here, not on the documentation site
+([ADR-0040](../00-overview/decisions/0040-three-sites-each-with-one-reader.md)): a
+requirement on the board and its text on the specification page are then the same
+revision. `spec` stays its home, where it is written, checked and edited.
 
 Every view is a page that works without script, and a filter is part of its
 address, so a filtered view is a link. An interactive part is a framework island
@@ -102,6 +108,7 @@ CI reuses the shared workflows (`spec-check`, `hygiene`, `security`, `dco`,
 | **REPO-R65** | Every view MUST be usable without script, and every filter MUST be expressed in the address so that a filtered view can be linked; script MUST be bundled with the site and served from it. |
 | **REPO-R66** | Every fact the site renders from the snapshot MUST link to the file in git that owns it. |
 | **REPO-R67** | The site MUST meet WCAG 2.1 AA in both themes, checked by an automated sweep on every pull request. |
+| **REPO-R79** | The specification MUST be rendered on this site, from the commit of `spec` the board snapshot read, rebuilt with the board, with an anchor for every requirement and an edit link to its source in `spec`; it MUST NOT be published from any second site. |
 
 ## Related
 
@@ -109,5 +116,7 @@ CI reuses the shared workflows (`spec-check`, `hygiene`, `security`, `dco`,
 - [brand](brand.md) — the tokens the site consumes
 - [roadmap](../00-overview/roadmap.md) — the milestones the versions serve
 - [where every version stands](../70-operations/staging.md#where-every-version-stands) — the report whose snapshot it renders
+- [ADR-0040 Three sites, each for one reader](../00-overview/decisions/0040-three-sites-each-with-one-reader.md)
 - [website-docs.lemonfiber.app](website-docs.md) — the documentation, which renders no project status
+- [website-contribute.lemonfiber.app](website-contribute.md) — the contributor site, which links here for the rules
 - [50-governance](../50-governance/) — the transparency commitment it serves

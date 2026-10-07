@@ -170,6 +170,24 @@ lang = "Astro"
 note = "It renders; it does not own — every page pinned to the repo that wrote it"
 
 [[repo]]
+name = "website-contribute.lemonfiber.app"
+node = "contribute"
+group = "impl"
+label = "website-contribute.lemonfiber.app<br/>the contributor site"
+spec = ["website-contribute.md"]
+lang = "Astro"
+note = "How to change the code; links to the rules on the frontpage rather than rendering them"
+
+[[repo]]
+name = "tool-lfdev"
+node = "lfdev"
+group = "impl"
+label = "tool-lfdev<br/>the developer command line"
+spec = ["tool-lfdev.md"]
+lang = "Python"
+note = "Every write is a pull request under the person's own credentials"
+
+[[repo]]
 name = "brand"
 node = "brand"
 group = "impl"
@@ -262,6 +280,21 @@ label = "docs submodule, pinned"
 [[edge]]
 from = "brand"
 to = "website-docs.lemonfiber.app"
+label = "docs submodule, pinned"
+
+[[edge]]
+from = "spec"
+to = "website-lemonfiber.app"
+label = "board snapshot, specification"
+
+[[edge]]
+from = "spec"
+to = "tool-lfdev"
+label = "board snapshot"
+
+[[edge]]
+from = "lemonfiber"
+to = "website-contribute.lemonfiber.app"
 label = "docs submodule, pinned"
 
 [[edge]]

@@ -2,6 +2,9 @@
 
 **Status:** Proposed
 **Date:** 2026-08-23
+**Superseded in part by** [ADR-0040](0040-three-sites-each-with-one-reader.md): the
+specification is rendered on the frontpage and contributor material on a site of its
+own.
 
 ## Context
 

@@ -37,6 +37,8 @@ flowchart TD
         tap["homebrew-tap<br/>generated formula"]
         site["website-lemonfiber.app<br/>the public frontpage"]
         docs["website-docs.lemonfiber.app<br/>the documentation site"]
+        contribute["website-contribute.lemonfiber.app<br/>the contributor site"]
+        lfdev["tool-lfdev<br/>the developer command line"]
         brand["brand<br/>design tokens"]
     end
 
@@ -54,6 +56,9 @@ flowchart TD
     brand -->|values mirrored| site
     lemonfiber -->|docs submodule, pinned| docs
     brand -->|docs submodule, pinned| docs
+    spec -->|board snapshot, specification| site
+    spec -->|board snapshot| lfdev
+    lemonfiber -->|docs submodule, pinned| contribute
     gh -.->|inherited by| impl
     spec -.->|governs all| impl
 ```
@@ -76,10 +81,12 @@ flowchart TD
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website-lemonfiber.app` | [website-lemonfiber.md](website-lemonfiber.md) | Astro | The org is the motor; roadmap read, not written |
 | `website-docs.lemonfiber.app` | [website-docs.md](website-docs.md) | Astro | It renders; it does not own — every page pinned to the repo that wrote it |
+| `website-contribute.lemonfiber.app` | [website-contribute.md](website-contribute.md) | Astro | How to change the code; links to the rules on the frontpage rather than rendering them |
+| `tool-lfdev` | [tool-lfdev.md](tool-lfdev.md) | Python | Every write is a pull request under the person's own credentials |
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those eighteen are the repositories this specification governs, which is not the
+Those twenty are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))
@@ -115,8 +122,19 @@ documentation site shows the `.docs/`, README and policy files of `lemonfiber`,
 `lemonfiber-media-stack`, `lemonfiber-plugins`, `brand`, `homebrew-tap`, `.github`
 and `plugin-template`, each pinned to an exact revision and rendered rather than
 copied ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
-The specification is mirrored the same way, and is published from there rather than
-from a book of its own.
+The specification is not among them: it is rendered on the frontpage, at the revision
+the board snapshot read
+([ADR-0040](../00-overview/decisions/0040-three-sites-each-with-one-reader.md)).
+
+**The repositories a contributor works in → `website-contribute.lemonfiber.app`
+(submodules).** The contributor site renders each repository's `README.md` and
+`AGENTS.md`, the core's architecture notes and the developer command line's guide, pinned
+the same way, and links to the specification's rules on the frontpage.
+
+**`spec` → `website-lemonfiber.app` and `tool-lfdev` (the board snapshot).** The report
+publishes one snapshot of where every version stands; the frontpage renders it and the
+specification at the revision it read, and `lfdev` answers from the same file
+([board snapshot](../70-operations/board-format.md)).
 
 **Everything ← `spec` (governance).** No change to any of them lands without
 citing this repository ([50-governance](../50-governance/)).

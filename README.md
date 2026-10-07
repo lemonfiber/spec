@@ -94,7 +94,7 @@ trailers and PR bodies — **never in code comments**
 
 | Section | Status | Contents |
 |---------|--------|----------|
-| 00-overview | Accepted | Vision, glossary, roadmap, 39 ADRs |
+| 00-overview | Accepted | Vision, glossary, roadmap, 40 ADRs |
 | 10-functional | Accepted | The [feature board](10-functional/features/BOARD.md) — features, requirements, areas — and 9 journeys |
 | 20-architecture | Accepted | System context, component model, data flow, platform matrix, 10 contracts |
 | 30-repos | Accepted | A page per repository, and the [repository map](30-repos/README.md) |
