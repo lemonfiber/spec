@@ -429,6 +429,10 @@ class Refusals(unittest.TestCase):
     def test_a_source_that_is_not_there(self):
         self.refused("one.yml could not be read")
 
+    def test_a_job_in_a_source_that_no_check_names(self):
+        self.source(self.STEP + "  other:\n" + self.STEP)
+        self.refused("one.yml job 'other' is in a reusable gates.yml is made of", "Add it to CHECKS")
+
     def test_a_job_that_is_not_there(self):
         self.source(self.STEP)
         with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "other"),)):

@@ -455,6 +455,23 @@ HEADER = """\
 """
 
 
+def unlisted() -> list[str]:
+    """Every job a source reusable holds that no check names.
+
+    A job added to a reusable is a context a caller's branch can require, and a
+    gates.yml that left it out would never publish it: the pull request waits on
+    a check that cannot arrive. So every job of every source is a check here, or
+    the generator refuses.
+    """
+    named = {(check.source, check.job) for check in CHECKS}
+    missing = []
+    for source in dict.fromkeys(check.source for check in CHECKS):
+        for job in (load(source).get("jobs") or {}):
+            if (source, job) not in named:
+                missing.append(f".github/workflows/{source} job {job!r}")
+    return missing
+
+
 def build() -> str:
     """The text of gates.yml."""
     groups = list(dict.fromkeys(check.group for check in CHECKS))
@@ -490,6 +507,12 @@ def build() -> str:
         else:
             verdicts[key] = verdict(asked_in_act(check, job), failing_there)
 
+    missing = unlisted()
+    if missing:
+        raise Refused(
+            f"{', '.join(missing)} is in a reusable gates.yml is made of and in no check "
+            f"there, so it would never be published. Add it to CHECKS in scripts/gen_gates.py"
+        )
     checks_job = {
         "runs-on": "ubuntu-latest",
         "timeout-minutes": 60,
