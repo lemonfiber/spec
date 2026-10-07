@@ -65,7 +65,7 @@ it does not know, and ignores fields it does not know.
 | `versions[]` | Each manifest in train order: `version`, `status`, `milestone`, `delivers`, `released_on`, `released_as`, `repos`, `satisfied_in`, `prereleases`, and `goals` (each with `id`, `verdict` and the evidence `state.json` gives a goal) |
 | `trackers[]` | Each repository a version is satisfied in: `repo`, `present`, and `rows` (each with `id`, `state`, `evidence`, `landed`) |
 | `pulls[]` | Each open pull request in those repositories: `repo`, `number`, `url`, `title`, `author`, `bot`, `draft`, `created_at`, `updated_at`, `head` (its branch), and `cites` (the identifiers its body and commits cite in `Spec:` lines) |
-| `repos[]` | Each repository in `30-repos/repos.toml`: `name`, `group`, `lang`, `note`, `pages` (its specification pages), `open_pulls`, `tracker` (`present`, `absent` or `unread`) |
+| `repos[]` | Each repository in `30-repos/repos.toml`, the map's and the ungoverned ones (group `ungoverned`): `name`, `group`, `lang`, `note`, `pages` (its specification pages), `open_pulls`, `tracker` (`present`, `absent` or `unread`, or `null` where no version is satisfied in it) |
 | `releases[]` | Each release the core's changelog records: `version`, `tag`, `released_on`, `delivers`, and `groups` (each with `title` and `entries`, each entry with `summary`, `requirements` and `reference`) |
 | `proposals[]` | Each Draft feature and Draft requirement, and each open `rfc` issue: `kind`, `id` or `number`, `title`, `url` |
 

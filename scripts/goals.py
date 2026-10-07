@@ -370,6 +370,51 @@ def pairs(specs: list[str]) -> dict[str, pathlib.Path]:
     return found
 
 
+@dataclass
+class Reading:
+    """Everything one run reads: each version with its goals, the commit of every
+    source, what could not be read, the checkouts and the open pull requests."""
+
+    report: list[tuple[dict, list[Standing]]]
+    sources: dict[str, str]
+    unread: dict[str, str]
+    checkouts: dict[str, pathlib.Path]
+    prs: dict[str, list[dict]]
+
+
+def read(spec_arg: str, checkout_args: list[str], ref: str, prs_arg: str | None,
+         versions: list[str]) -> Reading:
+    """Read every source once, raising `Unread` only for what stops the whole
+    report: the spec, an argument or the pull request file.
+
+    Every version reads the same repositories at the same revision, so each is
+    read once per run; a run starts from nothing, whatever ran before it."""
+    citations.cache_clear()
+    tracker.cache_clear()
+    if not REVISION.match(ref):
+        raise Unread(f"`{ref}` is not a revision")
+    unread: dict[str, str] = {}
+    checkouts = pairs(checkout_args)
+    spec = within_cwd(spec_arg)
+    sources = {"spec": revision("spec", spec, "HEAD")}
+    for name, path in checkouts.items():
+        try:
+            sources[name] = revision(name, path, ref)
+        except Unread as broken:
+            unread[name] = str(broken)
+    prs = json.loads(within_cwd(prs_arg).read_text(encoding="utf-8")) if prs_arg else {}
+    claimed = claims(prs)
+    report = [(m, standing(m, checkouts, ref, claimed, unread))
+              for m in manifests(spec, versions)]
+    return Reading(report, sources, unread, checkouts, prs)
+
+
+def warn(unread: dict[str, str]) -> None:
+    """One annotation per repository that could not be read."""
+    for repo, reason in sorted(unread.items()):
+        print(f"::warning::{repo} was not read, and the goals searched there read unknown: {reason}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--spec", default=".")
@@ -380,34 +425,15 @@ def main() -> int:
     parser.add_argument("--markdown")
     parser.add_argument("--json", dest="json_out")
     args = parser.parse_args()
-    # Every version reads the same repositories at the same revision, so each is
-    # read once per run; a run starts from nothing, whatever ran before it.
-    citations.cache_clear()
-    tracker.cache_clear()
-    if not REVISION.match(args.ref):
-        print(f"::error::`{args.ref}` is not a revision")
-        return 2
-    unread: dict[str, str] = {}
     try:
-        checkouts = pairs(args.checkout)
-        spec = within_cwd(args.spec)
-        sources = {"spec": revision("spec", spec, "HEAD")}
-        for name, path in checkouts.items():
-            try:
-                sources[name] = revision(name, path, args.ref)
-            except Unread as broken:
-                unread[name] = str(broken)
-        prs = json.loads(within_cwd(args.prs).read_text(encoding="utf-8")) if args.prs else {}
-        claimed = claims(prs)
-        report = [(m, standing(m, checkouts, args.ref, claimed, unread))
-                  for m in manifests(spec, args.version)]
+        reading = read(args.spec, args.checkout, args.ref, args.prs, args.version)
     except (Unread, OSError, json.JSONDecodeError) as broken:
         print(f"::error::{broken}")
         return 2
-    for repo, reason in sorted(unread.items()):
-        print(f"::warning::{repo} was not read, and the goals searched there read unknown: {reason}")
-    page = markdown(report, args.ref, unread)
-    data = as_data(report, args.ref, sources, unread, datetime.datetime.now(datetime.UTC))
+    warn(reading.unread)
+    page = markdown(reading.report, args.ref, reading.unread)
+    data = as_data(reading.report, args.ref, reading.sources, reading.unread,
+                   datetime.datetime.now(datetime.UTC))
     if args.markdown:
         within_cwd(args.markdown).write_text(page, encoding="utf-8")
     if args.json_out:
@@ -415,7 +441,6 @@ def main() -> int:
     if not (args.markdown or args.json_out):
         print(page, end="")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

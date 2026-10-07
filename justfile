@@ -126,6 +126,27 @@ goals version="" root="..":
     python3 "$spec/scripts/goals.py" --spec "$(python3 -c 'import os,sys;print(os.path.relpath(sys.argv[1]))' "$spec")" \
       "${args[@]}" --ref origin/main --prs "$prs"
 
+# The board snapshot the frontpage renders (70-operations/board-format.md), written
+# to checkouts/board.json from the sibling checkouts beside this one (or under
+# `root`) at their origin/main. Each is cloned under checkouts/ without a working
+# tree, from the sibling rather than the network, and every open pull request in
+# them is read from the forge. The state workflow publishes the same (OPS-R80).
+board-snapshot root="..":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    repos=$(python3 scripts/status_check.py repos --spec .)
+    args=()
+    for r in $repos; do
+      git -C "{{root}}/$r" fetch -q origin
+      [ -d "checkouts/$r" ] || git clone -q --no-checkout "{{root}}/$r" "checkouts/$r"
+      git -C "checkouts/$r" fetch -q "$(cd "{{root}}/$r" && pwd)" '+refs/remotes/origin/*:refs/remotes/origin/*'
+      args+=(--checkout "$r=checkouts/$r")
+    done
+    bash scripts/open_prs.sh lemonfiber $repos > checkouts/prs.json
+    python3 scripts/board.py "${args[@]}" --ref origin/main --prs checkouts/prs.json \
+      --json checkouts/board.json --hash checkouts/board.sha256
+    echo "board: checkouts/board.json"
+
 # Regenerate the feature board (index.json, each area's board.json, BOARD.md) from frontmatter + manifests.
 board:
     python3 scripts/gen_board.py
