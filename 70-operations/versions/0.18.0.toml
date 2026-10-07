@@ -56,13 +56,10 @@
 #
 # `A7-R15`, `C1-R15`, `C4-R15`, `C6-R18`, `E3-R16`, `G7-R14` and `G8-R15` to `G8-R18`
 # each joined a feature whose other goals a released version locks, and no version held
-# them. `C6-R18` and `E3-R16` are built. `C1-R15` is met for a contributed check and not
-# for a declared proof, which an install does not keep and doctor does not run.
-# `C4-R15` needs the support bundle to record installed plugins, and `G7-R14` needs
-# what the health summary carries to say an item is acknowledged, which changes the
-# contract. `A7-R15` needs this specification to say how a rotated credential reaches
-# a plugin. `G8-R15` to `G8-R18` hold only because no recipe runs, and F8 makes recipes
-# run.
+# them. `C4-R15` records installed plugins in the support bundle, and `G7-R14` puts an
+# acknowledgement on what the health summary carries, which changes the contract.
+# `A7-R15` needs this specification to say how a rotated credential reaches a plugin.
+# `G8-R15` to `G8-R18` bind recipes, which F8 makes run.
 #
 # `A2-R16` and `D3-R14` are two more the companion needs on the wire (N15): what setup
 # settled, read as facts on a read that offers no setup, and a walkthrough's steps each
@@ -85,9 +82,8 @@
 # The architecture rows are here because `check_goal_coverage` reads `20-architecture/`
 # too, and a row no version locks is reached by no gate. Those it exempts are the
 # principles, the restatements and the dormant ones; the rest are locked here, and
-# `ARCH-R78` to `ARCH-R82` among them are the capability set a client reads (N1). Which
-# of them are built is for the core's implementation status to say, where the release
-# gate reads it.
+# `ARCH-R78` to `ARCH-R82` among them are the capability set a client reads (N1). Where
+# each stands is for the trackers to say, where the release gate reads it.
 #
 # `ARCH-R38`, `ARCH-R40` and `ARCH-R41` are the brand's, so `brand` is searched, and
 # `ARCH-R81`, `ARCH-R99` and `ARCH-R129` bind a client, so the two SDKs are. None of the
@@ -154,8 +150,8 @@
 # `F10-R17` has the template plugin's manifest name, as a `#:schema` line, the manifest
 # schema published with the release its `targets.toml` names, and its CI refuse the two
 # disagreeing, so an author's editor checks the manifest against what that release
-# reads. It is built in `plugin-template` and recorded in the core's implementation
-# status beside `F10-R7`, as that row is.
+# reads. The work is in `plugin-template`, which no version searches, so its row is in
+# the binary's tracker beside `F10-R7`'s.
 # `C10-R1` to `C10-R14` give a program that runs beside the stack its own credential: a
 # named key with one scope, minted at the command line or over the web API with the
 # password given again, shown once beside the stack's address and pin, and revoked by name
@@ -535,8 +531,8 @@ goals   = [
     "ARCH-R170",
 ]
 
-# The companion's N1 rows that are built are locked here, where the companion is searched:
-# 65 of them, `N1-R29` to `N1-R31` among them because the capability set they read is
+# The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion
+# is searched, `N1-R29` to `N1-R31` among them because the capability set they read is
 # `ARCH-R78`'s, served in this version. `N1-R2` and `N1-R5` are parity, every action and
 # every setting another surface offers, which is claimed when the interfaces stop moving:
 # 1.0.0.

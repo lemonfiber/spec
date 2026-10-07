@@ -51,11 +51,13 @@ generated:
     python3 scripts/generated.py
 
 # Nothing scheduled before what it requires, nothing binding resting on
-# something unagreed, and every accepted requirement on the release train.
+# something unagreed, every accepted requirement on the release train, and no
+# manifest comment saying how far a goal has got.
 ordering:
     python3 scripts/check_order.py
     python3 scripts/check_binding_order.py
     python3 scripts/check_goal_coverage.py
+    python3 scripts/check_manifest_comments.py
 
 # Turn on the repository's own git hooks. Once per clone.
 hooks:

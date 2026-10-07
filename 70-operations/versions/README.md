@@ -89,6 +89,14 @@ is the answer somebody can act on rather than a number they have to trust.
 - And what it shipped *as*: read `released_as` where there is one, `version`
   otherwise. A patch records the line it closed rather than a manifest of its
   own, so the train stays serial and the record still names the tag.
+- A comment says **why** a goal is in the version — what it needs, what needs
+  it, why it ships now — and never how far it has got. Where a goal stands is
+  its repository's `status.toml`, which the gate reads; a comment saying it too is
+  a second record nothing compares with the work. `check_manifest_comments.py`
+  refuses a sentence that names a requirement and says it is built, met, done or
+  partial, or where it landed ([OPS-R79](../staging.md)). The words are narrow
+  on purpose: what a thing is *built on* or *built against*, and a sentence that
+  names no requirement, are other uses and pass.
 - A comment opening `# <n> goals` is checked against the `goals` list beneath it
   by `just integrity`, and `just counts` rewrites it. It is a number a person
   types into a data file nothing mechanical reads, so a scope change under
