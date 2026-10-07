@@ -61,18 +61,20 @@ class Check:
     """The job inside the reusable."""
 
 
+HYGIENE = "hygiene.yml"
+
 #: Every check, in the order `checks` runs them. The group names are the ones
 #: every caller already gives the jobs that call each reusable, which is what
 #: puts `hygiene / typos` in a branch's required list.
 CHECKS = (
     Check("spec-check", "spec-check.yml", "spec-check"),
-    Check("hygiene", "hygiene.yml", "actionlint"),
-    Check("hygiene", "hygiene.yml", "pins"),
-    Check("hygiene", "hygiene.yml", "typos"),
-    Check("hygiene", "hygiene.yml", "links"),
-    Check("hygiene", "hygiene.yml", "invite"),
-    Check("hygiene", "hygiene.yml", "shared-files"),
-    Check("hygiene", "hygiene.yml", "markdown"),
+    Check("hygiene", HYGIENE, "actionlint"),
+    Check("hygiene", HYGIENE, "pins"),
+    Check("hygiene", HYGIENE, "typos"),
+    Check("hygiene", HYGIENE, "links"),
+    Check("hygiene", HYGIENE, "invite"),
+    Check("hygiene", HYGIENE, "shared-files"),
+    Check("hygiene", HYGIENE, "markdown"),
     Check("workflow-pins", "workflow-pins.yml", "workflow-pins"),
     Check("security", "security.yml", "gitleaks"),
     Check("security", "security.yml", "osv-scanner"),
@@ -96,6 +98,9 @@ MOVED = {
 #: what publishing a check run needs, and runs no third-party code.
 READ = {"contents": "read"}
 WRITE = {"contents": "read", "pull-requests": "write", "issues": "write", "checks": "write"}
+
+#: The condition every step and job that must run after a failure carries.
+UNLESS_CANCELLED = "${{ !cancelled() }}"
 
 #: A step's reference to an earlier step's result.
 STEP_REF = re.compile(r"\bsteps\.([A-Za-z0-9_-]+)\.(outputs|outcome|conclusion)\b(?:\.([A-Za-z0-9_-]+))?")
@@ -156,7 +161,7 @@ def job_of(check: Check, read: dict) -> dict:
     return job
 
 
-def writes(check: Check, read: dict, job: dict) -> bool:
+def writes(read: dict, job: dict) -> bool:
     """Whether the reusable or its job asks for any write permission."""
     held = {**(read.get("permissions") or {}), **(job.get("permissions") or {})}
     return any(level == "write" for level in held.values())
@@ -166,7 +171,7 @@ def place(check: Check, read: dict, job: dict) -> None:
     """Refuse a check that writes and is put nowhere a write token is held."""
     if check.group in ACTING:
         return
-    if writes(check, read, job) and (check.group, check.job) not in MOVED:
+    if writes(read, job) and (check.group, check.job) not in MOVED:
         raise Refused(
             f".github/workflows/{check.source} asks for a write permission, and gates.yml "
             f"would run job {check.job!r} on a read-only token. Name it in ACTING, or name "
@@ -234,77 +239,98 @@ def asked_in_act(check: Check, job: dict) -> str:
     return both(asked, own)
 
 
-def carried(check: Check, job: dict, read_only: bool, outputs: dict[str, str]) -> tuple[list, list, str, str]:
-    """A check's steps for `checks` and for `act`, and the expressions of its verdict.
+class Carrier:
+    """One check's steps, carried into `checks` and `act` with the guards its own job gave them.
 
-    The verdict is a pair of expressions: the steps whose failure fails the check
-    in `checks`, and the same in `act`, each a `||` of `outcome == 'failure'`.
+    `here` and `there` are the steps for `checks` and for `act`; `failing_here`
+    and `failing_there` the outcomes that fail the check in each; `chain_here` and
+    `chain_there` the outcomes a later step in the same job waits on.
     """
-    base = slug(check)
-    timeout = job.get("timeout-minutes", 10)
-    env = job.get("env") or {}
-    moved = MOVED.get((check.group, check.job), frozenset())
-    here, there = [], []
-    ids: dict[str, str] = {}
-    chain_here: list[str] = []
-    chain_there: list[str] = []
-    failing_here: list[str] = []
-    failing_there: list[str] = []
-    gate_here = runs(check, job)
-    gate_there = asked_in_act(check, job)
 
-    # Each check starts from an empty workspace, as its own runner did, so
-    # nothing one check checked out or wrote is read by the next.
-    (here if read_only else there).append({
-        "name": f"{check.group} / {check.job}: an empty workspace, as its own runner had",
-        "id": f"{base}--fresh",
-        "if": f"${{{{ {gate_here if read_only else gate_there} }}}}",
-        "run": 'find "$GITHUB_WORKSPACE" -mindepth 1 -delete',
-    })
+    def __init__(self, check: Check, job: dict, read_only: bool, outputs: dict[str, str]):
+        self.check = check
+        self.base = slug(check)
+        self.timeout = job.get("timeout-minutes", 10)
+        self.env = job.get("env") or {}
+        self.moved = MOVED.get((check.group, check.job), frozenset())
+        self.read_only = read_only
+        self.outputs = outputs
+        self.ids: dict[str, str] = {}
+        self.here: list = []
+        self.there: list = []
+        self.chain_here: list[str] = []
+        self.chain_there: list[str] = []
+        self.failing_here: list[str] = []
+        self.failing_there: list[str] = []
+        self.gate_here = runs(check, job)
+        self.gate_there = asked_in_act(check, job)
+        # Each check starts from an empty workspace, as its own runner did, so
+        # nothing one check checked out or wrote is read by the next.
+        (self.here if read_only else self.there).append({
+            "name": f"{check.group} / {check.job}: an empty workspace, as its own runner had",
+            "id": f"{self.base}--fresh",
+            "if": f"${{{{ {self.gate_here if read_only else self.gate_there} }}}}",
+            "run": 'find "$GITHUB_WORKSPACE" -mindepth 1 -delete',
+        })
+        for index, original in enumerate(job.get("steps") or []):
+            self.carry(index, dict(original))
 
-    for index, original in enumerate(job.get("steps") or []):
-        step = dict(original)
+    def carry(self, index: int, step: dict) -> None:
+        """One step, into the job it belongs in, guarded as its own job guarded it."""
         own = condition(str(step.pop("if"))) if "if" in step else ""
         if own and STATUS.search(own):
-            raise Refused(f"{check.source} job {check.job!r} has a step deciding by a status function: {own}")
+            raise Refused(
+                f"{self.check.source} job {self.check.job!r} has a step deciding by a status function: {own}"
+            )
         tolerated = bool(step.pop("continue-on-error", False))
         old_id = step.pop("id", None)
-        new_id = f"{base}--{old_id or index}"
-        name = step.get("name") or step.get("uses", "").split("@")[0] or f"step {index + 1}"
-        goes_there = (not read_only) or step.get("name") in moved
-        if goes_there:
-            step = walk(step, lambda text: exported(text, ids, outputs))
-            own = exported(own, ids, outputs) if own else ""
-            if read_only:
-                # A step moved out of a read-only check runs where the steps
-                # before it, which ran in `checks`, succeeded.
-                reached = f"{base}--reached-{index}"
-                outputs[reached] = f"${{{{ {both(*chain_here) or 'true'} }}}}"
-                gate = both(gate_there, f"needs.checks.outputs.{reached} == 'true'", *chain_there, own)
-            else:
-                gate = both(gate_there, *chain_there, own)
-            target, failing, chain = there, failing_there, chain_there
+        new_id = f"{self.base}--{old_id or index}"
+        name = step.pop("name", None) or step.get("uses", "").split("@")[0] or f"step {index + 1}"
+        if not self.read_only or name in self.moved:
+            step, gate, target, failing, chain = self.for_act(index, step, own)
         else:
-            step = walk(step, lambda text: renamed(text, ids))
-            own = renamed(own, ids) if own else ""
-            gate = both(gate_here, *chain_here, own)
-            target, failing, chain = here, failing_here, chain_here
-        if env:
-            step["env"] = {**env, **(step.get("env") or {})}
-        step.pop("name", None)
+            step = walk(step, lambda text: renamed(text, self.ids))
+            gate = both(self.gate_here, *self.chain_here, renamed(own, self.ids) if own else "")
+            target, failing, chain = self.here, self.failing_here, self.chain_here
+        if self.env:
+            step["env"] = {**self.env, **(step.get("env") or {})}
         target.append({
-            "name": f"{check.group} / {check.job}: {name}",
+            "name": f"{self.check.group} / {self.check.job}: {name}",
             "id": new_id,
             "if": f"${{{{ {gate} }}}}",
             **step,
             "continue-on-error": True,
-            "timeout-minutes": timeout,
+            "timeout-minutes": self.timeout,
         })
-        ids[old_id or str(index)] = new_id
+        self.ids[old_id or str(index)] = new_id
         if not tolerated:
             failing.append(f"steps.{new_id}.outcome == 'failure'")
             chain.append(f"steps.{new_id}.outcome != 'failure'")
-    return here, there, " || ".join(failing_here), " || ".join(failing_there)
+
+    def for_act(self, index: int, step: dict, own: str) -> tuple[dict, str, list, list, list]:
+        """A step that runs in `act`, reading earlier steps through the `checks` job's outputs."""
+        step = walk(step, lambda text: exported(text, self.ids, self.outputs))
+        own = exported(own, self.ids, self.outputs) if own else ""
+        if self.read_only:
+            # A step moved out of a read-only check runs where the steps before
+            # it, which ran in `checks`, succeeded.
+            reached = f"{self.base}--reached-{index}"
+            self.outputs[reached] = f"${{{{ {both(*self.chain_here) or 'true'} }}}}"
+            gate = both(self.gate_there, f"needs.checks.outputs.{reached} == 'true'", *self.chain_there, own)
+        else:
+            gate = both(self.gate_there, *self.chain_there, own)
+        return step, gate, self.there, self.failing_there, self.chain_there
+
+
+def carried(check: Check, job: dict, read_only: bool, outputs: dict[str, str]) -> tuple[list, list, str, str]:
+    """A check's steps for `checks` and for `act`, and what fails the check in each."""
+    carrier = Carrier(check, job, read_only, outputs)
+    return (
+        carrier.here,
+        carrier.there,
+        " || ".join(carrier.failing_here),
+        " || ".join(carrier.failing_there),
+    )
 
 
 def verdict(gate: str, failing: str) -> str:
@@ -534,7 +560,7 @@ def build() -> str:
             *here_steps,
             {
                 "name": "Every check that ran here held",
-                "if": "${{ !cancelled() }}",
+                "if": UNLESS_CANCELLED,
                 "env": {"VERDICTS": json.dumps(here_verdicts)},
                 "run": HELD,
             },
@@ -542,7 +568,7 @@ def build() -> str:
     }
     act_job = {
         "needs": "checks",
-        "if": "${{ !cancelled() }}",
+        "if": UNLESS_CANCELLED,
         "runs-on": "ubuntu-latest",
         "timeout-minutes": 30,
         "permissions": WRITE,
@@ -550,7 +576,7 @@ def build() -> str:
             *there_steps,
             {
                 "name": "Publish each check under the name the branch requires",
-                "if": "${{ !cancelled() }}",
+                "if": UNLESS_CANCELLED,
                 "env": {
                     "GH_TOKEN": "${{ github.token }}",
                     "HEAD_SHA": "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}",
@@ -619,7 +645,10 @@ Dumper.add_representer(Literal, _literal)
 
 
 #: A pinned action and the version its comment names, as a reusable writes it.
-PINNED = re.compile(r"^\s*(?:-\s+)?uses:\s*(?P<ref>\S+@[0-9a-f]{40})\s*#\s*(?P<version>\S.*?)\s*$", re.MULTILINE)
+PINNED = re.compile(r"uses: (?P<ref>[^\s@]+@[0-9a-f]{40}) # (?P<version>\S[^\n]*)")
+
+#: A pinned action as the dumper writes it, at the end of its line.
+DUMPED = re.compile(r"uses: (?P<ref>[^\s@]+@[0-9a-f]{40})$", re.MULTILINE)
 
 
 def versions() -> dict[str, str]:
@@ -633,7 +662,7 @@ def versions() -> dict[str, str]:
     found: dict[str, str] = {}
     for source in dict.fromkeys(check.source for check in CHECKS):
         for match in PINNED.finditer((WORKFLOWS / source).read_text(encoding="utf-8")):
-            ref, version = match.group("ref"), match.group("version")
+            ref, version = match.group("ref"), match.group("version").rstrip()
             if found.setdefault(ref, version) != version:
                 raise Refused(f"{ref} is called {found[ref]!r} in one reusable and {version!r} in another")
     return found
@@ -651,7 +680,7 @@ def dump(workflow: dict) -> str:
             raise Refused(f"{ref} is pinned with no version comment in the reusable that calls it")
         return f"{line} # {named[ref]}"
 
-    return re.sub(r"^\s*(?:-\s+)?uses:\s*(?P<ref>\S+@[0-9a-f]{40})$", comment, text, flags=re.MULTILINE)
+    return DUMPED.sub(comment, text)
 
 
 def main(argv: list[str] | None = None) -> int:

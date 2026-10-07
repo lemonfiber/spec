@@ -28,14 +28,14 @@ import math
 import re
 from dataclasses import dataclass
 
-TOKEN = re.compile(
-    r"""\s*(?:
-      (?P<number>0x[0-9a-fA-F]+|-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)
-    | (?P<string>'(?:[^']|'')*')
-    | (?P<op>==|!=|<=|>=|&&|\|\||[!<>()\[\],.*])
-    | (?P<name>[A-Za-z_][A-Za-z0-9_-]*)
-    )""",
-    re.VERBOSE,
+#: The token kinds, each its own simple pattern, tried in this order at each place.
+TOKENS = (
+    ("number", re.compile(r"0x[0-9a-fA-F]+")),
+    ("number", re.compile(r"-?\d+\.?\d*(?:[eE][+-]?\d+)?")),
+    ("number", re.compile(r"-?\.\d+(?:[eE][+-]?\d+)?")),
+    ("string", re.compile(r"'(?:[^']|'')*'")),
+    ("op", re.compile(r"==|!=|<=|>=|&&|\|\||[!<>()\[\],.*]")),
+    ("name", re.compile(r"[A-Za-z_][A-Za-z0-9_-]*")),
 )
 
 
@@ -55,16 +55,18 @@ def tokens(text: str) -> list[Token]:
     if text.startswith("${{") and text.endswith("}}"):
         text = text[3:-2]
     found: list[Token] = []
-    at = 0
-    while at < len(text):
-        if text[at:].strip() == "":
-            break
-        match = TOKEN.match(text, at)
-        if not match or match.end() == at:
-            raise Unsupported(f"cannot read {text[at:]!r}")
-        kind = match.lastgroup
-        found.append(Token(kind, match.group(kind)))
-        at = match.end()
+    where = 0
+    while text[where:].strip():
+        while text[where].isspace():
+            where += 1
+        token = next(
+            (Token(kind, match.group(0)) for kind, pattern in TOKENS if (match := pattern.match(text, where))),
+            None,
+        )
+        if token is None:
+            raise Unsupported(f"cannot read {text[where:]!r}")
+        found.append(token)
+        where += len(token.text)
     return found
 
 
@@ -306,23 +308,38 @@ class Parser:
     @staticmethod
     def index(value, key):
         if key == "*":
-            if isinstance(value, dict):
-                return Filtered(value.values())
-            if isinstance(value, list):
-                return Filtered(value)
-            return Filtered()
+            return filtered(value)
         if isinstance(value, Filtered):
             return Filtered(item for item in (Parser.index(one, key) for one in value) if item is not None)
         if isinstance(value, dict):
-            if isinstance(key, str):
-                for name, item in value.items():
-                    if name.casefold() == key.casefold():
-                        return item
-            return None
-        if isinstance(value, list) and isinstance(key, float) and key.is_integer():
-            whole = int(key)
-            return value[whole] if 0 <= whole < len(value) else None
+            return named(value, key)
+        if isinstance(value, list):
+            return at(value, key)
         return None
+
+
+def filtered(value) -> Filtered:
+    """What a `*` filter makes of a value: an object's values, an array's items, or nothing."""
+    if isinstance(value, dict):
+        return Filtered(value.values())
+    if isinstance(value, list):
+        return Filtered(value)
+    return Filtered()
+
+
+def named(value: dict, key):
+    """An object's property, read whatever its case; null where it has none."""
+    if not isinstance(key, str):
+        return None
+    return next((item for name, item in value.items() if name.casefold() == key.casefold()), None)
+
+
+def at(value: list, key):
+    """An array's item at a whole-number index; null anywhere else."""
+    if not (isinstance(key, float) and key.is_integer()):
+        return None
+    whole = int(key)
+    return value[whole] if 0 <= whole < len(value) else None
 
 
 def evaluate(expression: str, context: dict, status: str = "success"):

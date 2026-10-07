@@ -90,6 +90,9 @@ class Properties(unittest.TestCase):
         self.assertIsNone(value("nothing.here"))
         self.assertIsNone(value("github.event_name.length"))
 
+    def test_a_number_does_not_index_an_object(self):
+        self.assertIsNone(value("github[1]"))
+
     def test_an_array_index(self):
         self.assertEqual(value("matrix.items[1]"), "b")
         self.assertIsNone(value("matrix.items[5]"))
@@ -120,7 +123,8 @@ class Operators(unittest.TestCase):
 
     def test_and_binds_tighter_than_or(self):
         self.assertEqual(value("false && 'x' || 'y'"), "y")
-        self.assertEqual(value("true || false && false"), True)
+        self.assertTrue(value("true || false && false"))
+        self.assertEqual(value("'a' || 'b' && ''"), "a")
 
     def test_not_and_parentheses(self):
         self.assertIs(value("!(true && false)"), True)
