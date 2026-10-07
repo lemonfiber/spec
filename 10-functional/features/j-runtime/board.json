@@ -1,0 +1,66 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "area": "J",
+  "features": [
+    {
+      "id": "J1",
+      "title": "Container-engine abstraction",
+      "area": "J",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M15"],
+      "milestone": "M15",
+      "priority": "P1",
+      "labels": ["runtime", "verification"],
+      "requires": [],
+      "relates": ["C2", "C5", "B1"],
+      "versions": [
+        {"version": "0.24.0", "status": "planned"}
+      ],
+      "path": "j-runtime/j1-engine-abstraction.md"
+    },
+    {
+      "id": "J2",
+      "title": "Running under Podman",
+      "area": "J",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M15"],
+      "milestone": "M15",
+      "priority": "P2",
+      "labels": ["runtime", "network", "verification"],
+      "requires": [],
+      "relates": ["J1", "C2", "C5"],
+      "versions": [
+        {"version": "0.24.0", "status": "planned"}
+      ],
+      "path": "j-runtime/j2-podman.md"
+    },
+    {
+      "id": "J3",
+      "title": "Running natively, without containers",
+      "area": "J",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "draft",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M15"],
+      "milestone": "M15",
+      "priority": "P3",
+      "labels": ["runtime", "network", "verification"],
+      "requires": [],
+      "relates": ["J1", "C2"],
+      "versions": [
+        {"version": "0.24.0", "status": "planned"}
+      ],
+      "path": "j-runtime/j3-native.md"
+    }
+  ]
+}

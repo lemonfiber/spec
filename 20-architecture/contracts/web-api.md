@@ -66,6 +66,7 @@ GET /api/history
 GET /api/update?…
 GET /api/news
 GET /api/plugins       GET /api/wiring
+GET /api/playing
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -156,6 +157,22 @@ over is the only form `--out` can take on a screen. The name is resolved beneath
 directory rather than followed, so one carrying a path, or climbing out of that directory, is
 refused by name.
 
+### What is playing
+
+```
+GET /api/playing
+```
+
+The `playing` envelope `lemonfiber playing --json` prints: every session the media server is
+playing now, each naming the member watching and what they are watching, so how many are
+playing is read off the list rather than kept beside it. The operator, and a `read` or `act`
+key, are answered with every session. A member, and a key scoped to one, are answered with
+their own sessions and nobody else's (`ARCH-R156`).
+
+The narrowing is the command's, not the reply's. What runs names the member who asked,
+whatever the request named, as it does for the household row and the held shelf, so there is
+no path on which another member's session is read and then left out.
+
 ### When a request is refused
 
 The body of every refusal is the error envelope, the same one `--json` renders, and its
@@ -184,7 +201,7 @@ never decides from the sentence, which is written for a person and may be reword
 
 A code is one of the core's problem codes. It is stable, never recycled, and listed with
 every other code the core raises. The artefact lists every code a refusal may carry, with
-the status each is answered with ([below](#the-refusals-it-lists)), so an SDK generates the
+the status each is answered with ([the refusals it lists](web-api-artefact.md#the-refusals-it-lists)), so an SDK generates the
 list rather than copying it. A refusal carrying no code, or a code the client does not
 know, is read by its status alone. That is what a client meeting an older or a newer
 server can still rely on.
@@ -730,6 +747,65 @@ Names do not outlive the run that issued them. Work in flight does not survive t
 doing it, so a record that outlived the run would describe jobs nothing is running; a name from
 an earlier run is therefore one this run never issued.
 
+### An action sent again
+
+```
+POST /api/actions/<name>
+Idempotency-Key: <key>
+```
+
+A client that sent an action and heard nothing back cannot tell a request that never
+arrived from an answer that never reached it. The safe thing for it to do is send the same
+action again, and a stack that could not recognise the second send would restart twice or
+pause twice. So an action request may carry an `Idempotency-Key` naming the attempt it is,
+and a request without one is an attempt of its own (`ARCH-R165`). It serves the retry inside
+one attempt and nothing longer (`N1-R42`, [ADR-0020](../../00-overview/decisions/0020-an-action-the-stack-did-not-receive-did-not-happen.md)).
+
+The same key sent again by the same caller while its attempt is remembered is answered
+with what the first send was answered with: the same job name for work that runs on, and
+the same status and envelope for an action answered on the spot, a failure included. The
+action runs once. A second send that arrives while the first is still being carried out
+waits for the first one's answer rather than starting the action beside it (`ARCH-R166`).
+The caller is whoever the guard admitted: the terminal's token, the operator, a household
+member, or a key by its name.
+
+A request refused before its action is reached — a body it cannot read, an action it does
+not name, an argument refused, a caller not permitted — is not an attempt. Nothing ran, so
+nothing is kept, and the same request sent again is ruled on again.
+
+Work that ends without an answer — stopped, or fallen over — is answered `500` with a
+code of its own, to the first send and to every send waiting on it, and its attempt is
+forgotten: it reached no answer to give again, so the same key sent afterwards runs the
+action again. A send never waits on an attempt that will not answer (`ARCH-R166`).
+
+**A key names one attempt, so it names one action and its arguments.** The same key sent
+with another action or other arguments is refused with its own code at `400`, and nothing
+runs under it (`ARCH-R167`). Answering it with the first send's outcome would hand a client
+an answer to a request it did not make, and running it would run two attempts under one
+name.
+
+What is remembered is held in memory and nowhere else, and does not outlive the run, as
+the work it names does not. Each caller has their own, and how long and how many are the
+operator's two settings, read again at every send so a change holds from the next one:
+
+| Setting | Holds | Default | May be |
+|---|---|---|---|
+| `LEMONFIBER_IDEMPOTENCY_MINUTES` | how long an attempt is remembered from its first send | `30` | a whole number from 1 to 1440 |
+| `LEMONFIBER_IDEMPOTENCY_KEYS` | how many attempts one caller has remembered at once | `256` | a whole number from 1 to 4096 |
+
+Half an hour is the lease a job's name is kept for, so a second send answered with a name
+is answered while that name can still be redeemed. Past the count, a caller's next attempt
+lets go of that caller's oldest answered one, so one caller sending many keys never pushes
+out another's. An attempt still being carried out is never let go, by age or for room:
+letting it go would let its second send run the action beside it (`ARCH-R168`). Each
+setting is changed as any setting is, and shown with where it came from (`A4-R13`).
+
+A key is one to 255 visible ASCII characters, `!` to `~`, given once. Anything else — an
+empty value, a longer one, a space, a character outside ASCII, the header given twice — is
+refused with its own code at `400` before anything runs, because a key that cannot be read
+the same way twice is one a second send could not be recognised by (`ARCH-R169`). The
+header means nothing outside `/api/actions/<name>`.
+
 ### The payload's type
 
 `data` differs by `kind`, so a client exposes it **typed by its kind** rather than as
@@ -804,138 +880,22 @@ generation has not been used.
 | **ARCH-R160** | Each action the artefact publishes as callable by a key MUST also say whether calling it again with the same arguments leaves the stack as calling it once did, judged by the state the stack ends in rather than by whether the work is done again. |
 | **ARCH-R161** | Each request in the household document `GET /api/requests` and `lemonfiber household --json` answer with MUST carry the kind of title it asked for, the year that title came out, when it arrived on the media server, and the identifier the media server holds it under, as `GET /api/held` names it. The year MUST be absent until the request has been handed to the service that files it, and the arrival and the identifier MUST be absent until the title is on the media server, never present as null. |
 | **ARCH-R162** | The event stream MUST carry an `alert` event when an alert starts and when it resolves, carrying what happened, what it means, what to do, its severity and which way it went, and an identity that is the same for an onset and the resolution that ends it and differs for each recurrence. |
+| **ARCH-R165** | The web API MUST read an `Idempotency-Key` header on an action request as the name of the attempt it is, and MUST carry out an action request without one as an attempt of its own. |
+| **ARCH-R166** | An action request carrying the key of an attempt the same caller sent and the web API still remembers MUST be answered with what that attempt was answered with — the same job name, or the same status and envelope, a failure included — and MUST NOT run the action again; one arriving while that attempt is still being carried out MUST wait for its answer. Work that ends without an answer MUST be answered `500` with a problem code the artefact lists, to the first send and to every send waiting on it, and its attempt MUST be forgotten. A request refused before its action is reached MUST NOT be kept as an attempt. |
+| **ARCH-R167** | An action request carrying a key the same caller already sent with another action or other arguments MUST be refused with a problem code the artefact lists, at `400`, and MUST NOT run. |
+| **ARCH-R168** | Attempts MUST be held in memory only and per caller, each for the minutes `LEMONFIBER_IDEMPOTENCY_MINUTES` names from its first send, `30` where it names none, and up to the count `LEMONFIBER_IDEMPOTENCY_KEYS` names, `256` where it names none, both read at each send; a caller's attempt past that count MUST let go of that caller's oldest answered attempt and of no other caller's, and an attempt still being carried out MUST NOT be let go, by age or for room. |
+| **ARCH-R169** | An `Idempotency-Key` MUST be one to 255 visible ASCII characters given once; an action request carrying anything else under that header MUST be refused with a problem code the artefact lists, at `400`, before anything runs. |
+| **ARCH-R170** | SDK generation MUST refuse a `$ref` in the contract artefact that it cannot resolve to a definition in the vendored copy, naming the reference and the file it appears in, and MUST write nothing when it refuses. |
 
-## Shapes are generated; semantics are not
+## The artefact
 
-Two SDKs hand-writing this contract would be two sources of truth for it, and a third would
-be a third. So the **shapes** — fields, types, optionality, permitted enum values — are
-generated from the server's own `serde` types into one artefact that every SDK consumes
-([ADR-0014](../../00-overview/decisions/0014-one-generated-contract-for-every-sdk.md)).
-
-The artefact describes what the server answers with, kind by kind. It does not describe what
-a request carries: the body each setup step takes — an answer to one of the wizard's
-questions, the choice a recovery takes — and the actions `POST /api/actions/<name>` accepts,
-with the arguments each takes and the consent it asks for, are the server's types and no
-published shape. A client that sends one copies it from the server's source, and nothing
-holds that copy to the server. `ARCH-R133` puts the request bodies in the artefact, and
-`ARCH-R134` the actions, so that a client generates both as it generates the kinds.
-
-Nor did it describe where anything is asked for. Every SDK held its own list of the reads,
-written by hand and checked against the `## Reading` block above, which is a fourth copy of a
-table the surface already routes by. `ARCH-R159` puts the reads in the artefact: each path the
-surface serves a read at, the query parameters it takes and whether each may be given more
-than once, and the kind it answers with, or that it answers with a file. They are generated
-from the tables the surface routes and refuses by, so a read the surface gains is a read every
-client generates.
-
-Everything above that a schema cannot express stays here, in prose, and every SDK implements
-it and tests it: the heartbeat, resumption that does not present pre-gap values as current,
-the token's placement, and the refusal on mismatch. **This document is normative for what the
-surface means; the artefact is normative for what it looks like.** Neither restates the other.
-
-### The refusals it lists
-
-A refusal's body is a kind the artefact already describes, `error`, and a problem's `code` is
-a string there, because the core raises hundreds of codes and most of them reach a client
-only to be shown. The few that a client branches on are the codes a refusal carries, so the
-artefact lists those beside the kinds, keyed by code:
-
-```json
-"refusals": {
-  "ADMIT-4": {
-    "name": "NOT_ADMITTED",
-    "status": 403,
-    "description": "Raised when a request carried no token or session this run admits."
-  }
-}
-```
-
-- `name` is the code's name in the core's registry.
-- `status` is the one status the refusal is answered with.
-- `description` is the registry's own line about it.
-
-An SDK generates a typed list from this, a value per code, and reads a refusal's code into
-it. A code the list does not name reads as none (`ARCH-R138`). No SDK and no client keeps a
-hand-written copy of the list: a copy is a second place to update, and the one that was not
-updated is the one that reads a new refusal as an old one.
-
-The list is additive in the way the kinds are. A code is added when the core begins to
-refuse with it, and it keeps its spelling and its number for good. Adding one leaves
-`api_version` alone.
-
-A refusal that says the operator's yes no longer matches what they agreed to is one a client
-branches on, whatever route ends with it. A repair, a restore or a replacement takes the offer
-its reading answered as its yes, and refuses it when what it would act on has moved since
-(`N2-R6`, `A5-R13`). That refusal is how a client knows to read again and offer the new
-answer, rather than report a failure, so its code is listed here beside the web API's own. It
-ends long-running work rather than a request, so it carries the status the work is answered
-with when its name is redeemed, which a client reads beside the code, as it reads any other.
-
-## How the artefact reaches an SDK
-
-An SDK does not ask the server for the contract while it builds. It carries a copy. A build
-that fetched would depend on a host being reachable, and two builds of the same commit could
-produce different types.
-
-So the artefact travels as a **vendored file pinned to an exact revision**. `lemonfiber`
-publishes it with every release; an SDK fetches it once, records the revision it came from
-beside the copy, and every build after that reads only what is on disk. Taking a contract
-change then becomes a deliberate act that arrives as a diff somebody reads, rather than
-something that happens to a build nobody was watching.
-
-The pin is a revision rather than a version number because a revision names exactly one
-artefact: the vendored bytes can always be checked against what that revision served, which
-is what makes the copy verifiable rather than merely present.
-
-Three guards sit either side of the copy. Regenerating from it must produce no diff, so a
-stale generated tree fails CI rather than shipping. Generation refuses an artefact whose
-`api_version` it does not implement, naming both versions and writing nothing — types that
-compile and lie are worse than a build that stops, and a refusal that does not say which two
-versions disagreed sends somebody looking for what it already knew.
-
-The third guard is about the artefact's own legibility, and it is the one nothing suggested
-until it was needed. An artefact can be valid, generated, pinned, regenerated without a diff,
-and still not be read the same way twice — which is worse than being unreadable, because
-nothing stops. A `$ref` beside a constraint is that shape: a draft-07 reader discards what
-accompanies a reference, a 2020-12 reader applies both, and the draft a schema declares says
-nothing about which of the two a generator happens to be.
-
-It reached both SDKs once. A verdict carrying a diagnosis was described as a reference to the
-diagnosis sitting beside the property naming the verdict. The TypeScript generator kept the
-property and dropped the reference, so both such verdicts became a type holding the verdict's
-name and none of the diagnosis — no summary, no meaning, no remedies. The PHP generator kept
-the reference and dropped the property, so both became the diagnosis with nothing to say which
-verdict it belonged to: two verdicts collapsed into one shape, and five arrived as four. Each
-discarded exactly what the other kept, and both produced output that compiled and analysed
-clean, which is why neither side said so.
-
-So the artefact is held to one reading, and a generator meeting a shape that has two refuses it
-rather than choosing. An annotation is not a constraint — a described reference means one thing
-to every reader, and stays ordinary company.
-
-The fourth guard is the same failure one step along: an artefact every reader agrees about, in
-which two authorities have chosen one name. A generator writes names of its own beside the ones
-the artefact gives it — the object every kind hangs off, the union of every kind the server may
-send, the envelope each kind carries, one type per kind. Where it flattens a kind's definitions
-into a single scope, those two sets share that scope, and nothing holds them apart.
-
-It reached one SDK once. The `plugins` kind gained a definition named `Kind` — *the kind of
-value a key must hold*, five and closed — while the TypeScript generator writes `Kind` for the
-union of every kind the server may send. Both were emitted. The compiler reports a duplicate
-identifier in a generated file, the union becomes an error type, and every use of it fails
-somewhere else: a literal kind is not assignable to `Kind`, a type parameter cannot index
-`ByKind`, a payload arrives `unknown`. Six errors across three files, one of them generated and
-two of them never touched, and not one of them naming a contract. The PHP SDK never saw it,
-because it inlines a kind's definitions into an alias scoped to one class — which is why this
-is a rule about the artefact rather than about whichever generator happens to flatten.
-
-So a definition's name is its own, and where a generator has already claimed one, generation
-says so at the point it would collide rather than leaving it to whatever the output does next.
-The name moves in the artefact: the names a generator writes are an SDK's published surface,
-and moving one of those instead would break every caller to spare the producer a rename.
+The shapes the surface exchanges are generated from the server's own types into one
+artefact every SDK consumes. What it carries, the refusals it lists and how it reaches an
+SDK are on [their own page](web-api-artefact.md).
 
 ## Related
 
+- [web-api-artefact](web-api-artefact.md) — the generated artefact, and how it reaches an SDK
 - [sdk-ts](../../30-repos/sdk-ts.md) — the TypeScript client implementing this contract
 - [versioning.md](versioning.md) — `api_version` and the envelope it belongs to
 - [design-tokens.md](design-tokens.md) — the other contract `lemonfiber-web` consumes

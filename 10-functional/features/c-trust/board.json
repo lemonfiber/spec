@@ -1,0 +1,216 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "area": "C",
+  "features": [
+    {
+      "id": "C1",
+      "title": "Diagnostics",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M2", "M3", "M6", "M14"],
+      "milestone": "M2",
+      "priority": null,
+      "labels": ["verification"],
+      "requires": [],
+      "relates": ["C2", "C3", "C5", "C7", "C8", "C9", "G4", "G7"],
+      "versions": [
+        {"version": "0.1.0", "status": "released"},
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.2.0", "status": "released"},
+        {"version": "0.8.0", "status": "released"}
+      ],
+      "path": "c-trust/c1-diagnostics.md"
+    },
+    {
+      "id": "C2",
+      "title": "VPN verification",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.6.0",
+      "milestones": ["M5"],
+      "milestone": "M5",
+      "priority": null,
+      "labels": ["vpn", "network", "verification"],
+      "requires": ["B5"],
+      "relates": ["A3", "B8", "C1"],
+      "versions": [
+        {"version": "0.6.0", "status": "released"}
+      ],
+      "path": "c-trust/c2-vpn-verification.md"
+    },
+    {
+      "id": "C3",
+      "title": "Auto-remediation",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.7.0",
+      "milestones": ["M5"],
+      "milestone": "M5",
+      "priority": null,
+      "labels": ["verification"],
+      "requires": ["C4", "G4"],
+      "relates": ["C1", "C9"],
+      "versions": [
+        {"version": "0.7.0", "status": "released"}
+      ],
+      "path": "c-trust/c3-auto-remediation.md"
+    },
+    {
+      "id": "C4",
+      "title": "Support bundle",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M5", "M14"],
+      "milestone": "M5",
+      "priority": null,
+      "labels": ["verification", "security"],
+      "requires": [],
+      "relates": ["A7", "B4", "C1", "G8"],
+      "versions": [
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.7.0", "status": "released"}
+      ],
+      "path": "c-trust/c4-support-bundle.md"
+    },
+    {
+      "id": "C5",
+      "title": "Storage & hardlink management",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.6.0",
+      "milestones": ["M3", "M5"],
+      "milestone": "M3",
+      "priority": null,
+      "labels": ["storage", "verification"],
+      "requires": [],
+      "relates": ["A2", "A4", "C1", "D5"],
+      "versions": [
+        {"version": "0.2.0", "status": "released"},
+        {"version": "0.6.0", "status": "released"}
+      ],
+      "path": "c-trust/c5-storage.md"
+    },
+    {
+      "id": "C6",
+      "title": "Web UI security & binding policy",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M7", "M14"],
+      "milestone": "M7",
+      "priority": null,
+      "labels": ["security", "web"],
+      "requires": [],
+      "relates": ["A7", "B6", "C1", "D6"],
+      "versions": [
+        {"version": "0.10.0", "status": "released"},
+        {"version": "0.17.0", "status": "releasable"},
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.9.0", "status": "released"}
+      ],
+      "path": "c-trust/c6-web-security.md"
+    },
+    {
+      "id": "C7",
+      "title": "Queue health & stuck items",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.6.0",
+      "milestones": ["M5"],
+      "milestone": "M5",
+      "priority": null,
+      "labels": ["queue", "verification"],
+      "requires": ["B3", "B5"],
+      "relates": ["C1", "C3", "C8", "D9"],
+      "versions": [
+        {"version": "0.6.0", "status": "released"}
+      ],
+      "path": "c-trust/c7-queue-health.md"
+    },
+    {
+      "id": "C8",
+      "title": "Provider health & quota tracking",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.7.0",
+      "milestones": ["M5"],
+      "milestone": "M5",
+      "priority": null,
+      "labels": ["verification"],
+      "requires": ["B5"],
+      "relates": ["A1", "A3", "C7"],
+      "versions": [
+        {"version": "0.7.0", "status": "released"}
+      ],
+      "path": "c-trust/c8-provider-health.md"
+    },
+    {
+      "id": "C9",
+      "title": "Config drift detection & seed policy",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M4", "M5", "M14"],
+      "milestone": "M4",
+      "priority": null,
+      "labels": ["seed", "verification"],
+      "requires": [],
+      "relates": ["A5", "C3", "D1", "E3", "F1"],
+      "versions": [
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.4.0", "status": "released"},
+        {"version": "0.7.0", "status": "released"}
+      ],
+      "path": "c-trust/c9-drift.md"
+    },
+    {
+      "id": "C10",
+      "title": "Integration keys",
+      "area": "C",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "built",
+      "shipped": null,
+      "milestones": ["M14"],
+      "milestone": "M14",
+      "priority": null,
+      "labels": ["security", "web"],
+      "requires": [],
+      "relates": ["C6", "D10", "F12", "F13", "G1", "B5"],
+      "versions": [
+        {"version": "0.18.0", "status": "planned"}
+      ],
+      "path": "c-trust/c10-integration-keys.md"
+    }
+  ]
+}

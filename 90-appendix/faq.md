@@ -127,9 +127,10 @@ them. Only the marks themselves are reserved.
 ### Is it finished?
 
 No. The specification is complete and the binary is in active development. The
-roadmap is published, and a per-deliverable implementation status names the pull
-request that made each claim true, so a claim there is checkable rather than
-asserted — check them before depending on a capability.
+roadmap is published, and each repository's `status.toml` records, requirement by
+requirement, whether it is done and the code and test that hold it, so a claim
+there is checkable rather than asserted — check them before depending on a
+capability.
 
 ### Can I add a service?
 

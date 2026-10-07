@@ -30,7 +30,9 @@ lemonfiber-media-stack/
 ├── compose/
 │   ├── _common.yml             shared service defaults, via `extends:`
 │   └── <profile>.yml           one fragment per profile — 12 of them
-├── stack.toml                  the manifest — see contract
+├── stack.toml                  the manifest's root — see contract
+├── services/
+│   └── <id>.toml               one file per service, named by stack.toml's `include`
 ├── .env.example                every variable documented inline
 ├── stacks/
 │   └── compose.storage.nas.yml overlay: NAS/copy mode
@@ -236,11 +238,12 @@ qbittorrent waits on gluetun.
 
 ## Adding a service
 
-Three data edits, no Rust (`F1-R5`):
+Four data edits, no Rust (`F1-R5`):
 
 1. A service block in the `compose/<profile>.yml` fragment for its one profile.
-2. A `[[service]]` in `stack.toml` — ports, health, api, criticality, licence.
-3. Add its profile to whichever forms should carry it.
+2. A `[[service]]` in `services/<id>.toml` — ports, health, api, criticality, licence.
+3. Its file added to `include` in `stack.toml`.
+4. Add its profile to whichever forms should carry it.
 
 CI then holds it to every rule above. This is the whole of
 [J8](../10-functional/journeys/j8-customising.md)'s "add a service" path.

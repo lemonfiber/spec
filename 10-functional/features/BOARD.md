@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**111 features** in areas A–N, **1696 requirements**.
+**111 features** in areas A–N, **1698 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 17 shipped, 8 built, 41 building, 44 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 16 shipped, 8 built, 42 building, 44 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -19,7 +19,6 @@ code, and the two move independently.
 |----|---------|------|----------|--------|----------|
 | [A1](a-getting-started/a1-prerequisites.md) | Prerequisites & account guidance | A | operator | accepted | `0.2.0` |
 | [A3](a-getting-started/a3-credential-validation.md) | Credential validation | A | operator | accepted | `0.13.0` |
-| [A4](a-getting-started/a4-reconfiguration.md) | Reconfiguration | A | operator | accepted | `0.13.0` |
 | [A6](a-getting-started/a6-uninstall.md) | Clean uninstall | A | operator | accepted | `0.13.0` |
 | [B4](b-running/b4-logs.md) | Log viewing | B | operator | accepted | `0.8.0` |
 | [B5](b-running/b5-notifications.md) | Notifications & alerting | B | both | accepted | `0.5.0` |
@@ -53,11 +52,12 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [A2](a-getting-started/a2-setup-wizard.md) | Setup wizard | A | operator | accepted | `0.18.0`, `0.2.0` |
+| [A4](a-getting-started/a4-reconfiguration.md) | Reconfiguration | A | operator | accepted | `0.13.0`, `0.18.0` |
 | [A5](a-getting-started/a5-migration.md) | Migration from an existing stack | A | operator | accepted | `0.13.0`, `0.18.0` |
 | [A7](a-getting-started/a7-credential-management.md) | Credential management & rotation | A | operator | accepted | `0.13.0`, `0.18.0` |
 | [B1](b-running/b1-forms.md) | Forms & partial stacks | B | operator | accepted | `0.1.0`, `0.17.0`, `0.18.0`, `0.8.0` |
 | [B2](b-running/b2-lifecycle.md) | Lifecycle control | B | operator | accepted | `0.15.0`, `0.18.0`, `0.8.0` |
-| [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.5.0`, `1.0.0` |
+| [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.18.0`, `0.2.0`, `0.8.0` |

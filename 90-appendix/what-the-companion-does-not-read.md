@@ -61,7 +61,7 @@ stack. `Pull` carries a bare string, and is named in that stand-in's comments.
 asks for the whole glossary, which answers with `Glossary`. `Word` has a row
 below; `Admission` and `Pull` have none, and these sentences are their entry.
 
-From the core's checkout, `contract/web-api.contract.json` publishes sixty-two
+From the core's checkout, `contract/web-api/` publishes sixty-two
 kinds. Fifty-three are the variants of `Outcome`, in
 `crates/lemonfiber-core/src/app/outcome.rs`, each written by the command that
 produces it; the other nine are written with `Envelope::new` where they arise. A
@@ -229,7 +229,7 @@ so an action outside that list is refused before a command is built. Recorded in
 open.
 
 **The kind exists because the command line produces it, which is why the
-generated surface lists it.** `contract/web-api.surface.json` maps every kind to
+generated surface lists it.** `contract/web-api-surface/index.json` maps every kind to
 its type, including these three, and that file is not evidence of a route.
 `Outcome::Plugins` is produced by `Command::Plugins`, which the core and the
 command line run; nothing on the HTTP surface asks for it. A register that read

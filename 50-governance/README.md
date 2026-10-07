@@ -43,9 +43,11 @@ None of those would have surfaced while writing an implementation.
 |-----|--------|
 | [canonical-spec.md](canonical-spec.md) | What "canonical" means; the `GOV-R` requirement namespace; scope |
 | [change-lifecycle.md](change-lifecycle.md) | Spec PR first, then implementation. The ordering that makes it real. |
+| [decision-log.md](decision-log.md) | Every maintainer decision, dated, and where it lives in the spec |
 | [cross-repo-ci.md](cross-repo-ci.md) | What the bot verifies, and what it does when a PR doesn't conform |
 | [contributing.md](contributing.md) | The human-facing guide — what to do, in order |
 | [ai-contributors.md](ai-contributors.md) | The canonical rules for AI agents — referenced by every repo's `AGENTS.md` |
+| [working-in-the-repositories.md](working-in-the-repositories.md) | Where to start, where to work, and taking a pull request from opened to merged |
 | [dco.md](dco.md) | Sign-off (DCO) and inbound=outbound licensing |
 | [overrides.md](overrides.md) | The maintainer override, its audit trail, and when it's legitimate |
 | [issue-routing.md](issue-routing.md) | Which repo an issue belongs in, and how it moves |

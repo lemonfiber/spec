@@ -88,11 +88,15 @@ section can go on naming what it forbids.
 
 For any repo:
 
-1. That repo's `AGENTS.md` — what the repo is, its one load-bearing property.
+1. The report of where every unreleased version stands, which says what is
+   open and what somebody is already working on
+   ([working in the repositories](working-in-the-repositories.md)).
+2. That repo's `AGENTS.md` — what the repo is, its one load-bearing property.
    (`CLAUDE.md` points to the same file.)
-2. The repo's spec section under [`30-repos/`](../30-repos/) and whatever
+3. The repo's spec section under [`30-repos/`](../30-repos/) and whatever
    feature/architecture sections it implements.
-3. This document and [contributing](contributing.md).
+4. This document, [working in the repositories](working-in-the-repositories.md)
+   and [contributing](contributing.md).
 
 Do **not** start editing before the cited requirement is identified. The spec is
 large; the right move is to find the requirement the change serves, then work

@@ -281,6 +281,53 @@ which cancels this pull request's runs on the heads a push replaced through the
 API. `homebrew-tap`, `website-docs.lemonfiber.app` and `website-lemonfiber.app`
 are reported by the check rather than refused, and are named in it.
 
+## A runner is spent on assurance
+
+Twenty jobs at a time is the whole budget, and a job costs a runner's start-up
+whether it then works for ten minutes or six seconds. So the count of jobs is
+held down as hard as their minutes, and nothing changes what any check asks.
+
+**A job that would do nothing does not start.** Where the event alone answers
+whether a job has anything to do — a `workflow_run` that did not succeed, a
+pull request run nobody will be told about — the answer is a job-level `if:`,
+which is evaluated before a runner is assigned. A step that exits early still
+cost a runner to reach.
+
+**The shared gates run on two runners, not sixteen.** `gates.yml` runs every
+read-only check in one job: spec-check's reading, the seven hygiene checks,
+both security scans, workflow pins, DCO, attribution and commit lint. A second
+job, which holds the write permissions, closes a pull request spec-check
+refuses, applies labels and goals, and publishes each check as its own check
+run under the name the branch's required list already holds, `hygiene / typos`
+where a caller's job is `hygiene`, with that check's own conclusion. Third-party
+tools never run beside a write token. A check the first job did not report is
+published as failed, so a runner lost mid-job reads as red, not as missing.
+
+`gates.yml` is generated from the reusable workflows that define each check, by
+`scripts/gen_gates.py`, and a gate refuses a generated file that has drifted
+from them. Those reusables stay the definition, and a pull request from a fork,
+whose token cannot publish a check run, runs them as their own jobs under the
+same names.
+
+**A bump that changes nothing is not pushed.** A bot that regenerates a
+repository against an upstream compares what it would commit with what its
+open branch already carries, and leaves the branch alone where they match. A
+newer upstream move cancels a bump still running, whose result it would
+overwrite. `check_superseded_runs.py` lets a group of its own cancel only on a
+workflow that nothing but a dispatch or a schedule starts, which no push and no
+tag can reach.
+
+**A cache is written by `main`.** A pull request can read its own caches and its
+base branch's, never another pull request's, so a cache saved on one pull
+request's ref serves only that pull request while evicting `main`'s against the
+repository's limit. Caches are saved from a push to `main` only, and every job
+whose cache a pull request restores also runs there.
+
+**An analysis runs where its language changed.** On a pull request, CodeQL's
+`actions` analysis runs when the change touches `.github/`, and reports success
+having analysed nothing otherwise. A push to `main` and the weekly schedule
+analyse every language.
+
 ## Requirements
 
 | ID | Requirement |
@@ -296,6 +343,11 @@ are reported by the check rather than refused, and are named in it.
 | **Q-R64** | Open SonarCloud issues MUST be zero, enforced as a blocking CI check independent of the Sonar plan's own quality gate, since the free plan's gate cannot be configured to this standard (`Q-R63`). |
 | **Q-R67** | A repository that has not yet reached zero MUST declare what it still carries, in its own workflow, as a number that MUST NOT increase beyond what already stands against the branch it merges into. |
 | **Q-R75** | A workflow a pull request runs MUST cancel that pull request's run it supersedes when the pull request is pushed again, and MUST NOT cancel a run for a push to a protected branch or for a tag. |
+| **Q-R76** | A job whose only outcome for an event is to do nothing MUST be skipped by a job-level condition the event answers, so that no runner starts for it. |
+| **Q-R77** | The shared gates a repository calls MUST run on at most two runners per caller, a read-only one running every check and one holding the write permissions, and MUST publish each check under the context name the branch requires with that check's own conclusion; a check that did not report MUST be published as failed. The single-runner workflow MUST be generated from the reusables that define each check, CI MUST refuse it when it has drifted from them, and a pull request from a fork MUST run those reusables as separate jobs under the same names. |
+| **Q-R78** | An automated bump MUST NOT push when what it would commit is identical to what its open branch already carries, and a newer upstream move MUST cancel a bump run still in progress. |
+| **Q-R79** | A build cache MUST be saved only from a push to the protected branch, and every job whose cache a pull request restores MUST also run on that push. |
+| **Q-R80** | On a pull request, a CodeQL analysis of the `actions` language MUST run when the change touches `.github/` and MAY otherwise report success without analysing; a push to the protected branch and the scheduled run MUST analyse every language. |
 
 ### Reaching zero from a backlog
 

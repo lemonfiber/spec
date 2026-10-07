@@ -130,8 +130,39 @@ version's tag, carrying only the fix, deleted once the fix is merged back to
 goal counts as satisfied only when **both** hold:
 
 1. a **merged PR cites its ID** in a `Spec:` trailer (the automatable claim), and
-2. the [implementation status](https://github.com/lemonfiber/lemonfiber/blob/main/IMPLEMENTATION-STATUS.md)
-   marks it done (the human attestation).
+2. the implementation-status tracker marks it done (the human attestation).
+
+The tracker is not one file. Every repository a version is satisfied in keeps
+its own `status.toml` at its root, one short row per requirement it has worked
+on, and changes it in the pull request that changes what it says (`OPS-R74`). A
+row names the requirement, its state (`done`, `partial` or `open`), the evidence
+that holds it — the code and the test, by path — and, where no commit cites it,
+the commit it landed in:
+
+```toml
+requirement = [
+  { id = "F8-R6", state = "done", evidence = ["crates/lemonfiber-plugin/src/refusing/recipes.rs", "crates/lemonfiber-plugin/src/refusing/recipes/tests.rs::a_flow_no_pair_declares_is_refused"], landed = "6409706" },
+]
+```
+
+A repository whose rows would run past a thousand lines keeps them in a
+`status/` directory instead, one `<feature>.toml` per feature in the same shape,
+each holding only its own feature's rows. Nothing else records the same thing:
+no Markdown copy of a tracker is committed, and the page a person reads is the
+generated report of where every version stands.
+
+A requirement is done when any searched repository's tracker records it done.
+The gate reads the trackers from the same checkouts it reads citations from, so
+naming where a version is satisfied names its trackers too. Each tracker is
+checked on its own (`OPS-R75`): an identifier the specification does not define,
+a done row naming no evidence or evidence that is not there, and a commit the
+history does not hold are each refused. A done row no version locks yet is
+recorded like any other: the companion takes no release of its own, and every
+accepted requirement is already held to a version or to a declared wait by
+`scripts/check_goal_coverage.py`.
+`scripts/status_check.py` holds the format and the checks;
+[ADR-0039](../00-overview/decisions/0039-each-repository-records-what-it-built.md)
+records why it is a file per repository and a row per requirement.
 
 Citation proves someone did the work and said which requirement it served; the
 status file proves a human agrees it is complete. Requiring both is defence in
@@ -527,6 +558,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R29** | Every release MUST be scoped by a version manifest under `70-operations/versions/`, which is the single source of truth for the version's status, target repos, and locked goals. |
 | **OPS-R30** | Staging a version MUST lock its goals as an explicit list of `Accepted` requirement IDs, seeded from the roadmap milestone it serves and editable before the lock; a `Draft` or `Withdrawn` requirement MUST NOT be a goal. |
 | **OPS-R31** | After staging, changing a version's locked goals MUST require review and MUST be announced to the maintainer channel. |
+| **OPS-R79** | A version manifest's comments MUST say why a goal is in the version and MUST NOT state how far a goal has got; a check MUST refuse a comment sentence that names a requirement and says it is built, met, done or partial, or names where it landed, and MUST name the file, the line and the words. |
 | **OPS-R32** | A version MUST progress through `planned → staged → releasable → released` — optionally through `in_progress` between `staged` and `releasable`, with `yanked` terminal — and each transition MUST be recorded in its manifest. |
 | **OPS-R33** | A `release/<version>` branch MAY exist only to carry a hotfix to an already-released version; it MUST be cut from that version's tag and deleted once its fixes are merged back to `main`. |
 | **OPS-R34** | `execute-version` MUST refuse unless every locked goal is satisfied — a merged PR cites its ID **and** the implementation-status tracker marks it done — and the refusal MUST name the unmet goals. Where no merged commit cites a goal and none can, a done row MAY name the merged commit that finished it instead; the gate MUST verify that commit is in a searched repository's history, MUST report which goals were satisfied that way, and MUST NOT accept a row naming a commit it cannot find. |
@@ -551,6 +583,8 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R55** | Releasing a version MUST close the issues opened for it — the tracker from `OPS-R43` and any drift issue from `OPS-R46` — so an open issue about a version means something is still owed. |
 | **OPS-R54** | A version MUST NOT be released while a requirement it locks is not built, and a refusal MUST name those requirements. A requirement is built where the implementation-status tracker ticks it and the feature holding it is `building`, `built` or `shipped`; where that feature is `planned` or `withdrawn`, none of them is, whatever the tracker says. The catalogue's `built` or `shipped` does not answer for a requirement on its own, because a requirement added to a finished feature is not built by being added (`OPS-R73`). A major ships no stubs, and neither does any version before it. The subject is the requirements a version **carries**, not the whole of every feature it touches: partial locking is the norm — 24 of 25 manifests lock part of at least one feature, and `0.1.0` locks two of `B1`'s fifteen — so a feature spanning two versions could never be finished when the first of them shipped, and the wider rule was one nothing had ever satisfied. `built` is the state that makes this checkable at all: `shipped` means out in a released version, so requiring it before release would be a gate no version could ever pass. |
 | **OPS-R73** | A feature that is `maturity: built` or `maturity: shipped` MUST have every requirement it defines ticked by the implementation-status tracker, withdrawn numbers apart. A requirement added to a finished feature MUST return it to `building`, and it stays there until the tracker ticks each requirement. A check MUST refuse a catalogue that calls a feature finished while the tracker leaves one of its requirements unticked, and MUST name the feature and the requirements. |
+| **OPS-R74** | Every repository named in some version's `satisfied_in` MUST keep its implementation status in a `status.toml` at its root — or, where its rows would run past a thousand lines, in one `status/<feature>.toml` per feature holding only that feature's rows — one row per requirement, each naming the requirement, its state (`done`, `partial` or `open`), the evidence that holds it by path (the code and the test) and, optionally, the commit it landed in. A pull request that changes whether a requirement is met MUST change that row. The release gate and the no-stubs gate MUST read every searched repository's tracker, and a requirement is done where any of them records it done. |
+| **OPS-R75** | A repository's tracker MUST be refused where it keeps both a `status.toml` and a `status/` directory, where a file under `status/` holds another feature's row, or where a row names a requirement the specification does not define, names one it retired before any version locked it, names one twice, records one done with no evidence, names evidence that does not exist, or names a landed commit its repository's history does not hold. A tracker that cannot be read MUST stop the gate rather than be read as empty. |
 | **OPS-R57** | A manifest whose `status` is `released` MUST carry `released_on`, the UTC date its release was published, as `YYYY-MM-DD`. The transition to `released` MUST write it from the publication the transition responds to; it MUST NOT be entered by hand, and no earlier status may carry it. |
 | **OPS-R60** | A version MAY be published as a pre-release before it is releasable. A pre-release MUST NOT move the version's `status`, MUST NOT write `released_on` or `released_as`, and MUST NOT be recorded as the release; the manifest MUST go on answering where the version is. |
 | **OPS-R61** | A pre-release MUST be identifiable as one in its tag, in what the release it publishes says, and in the manifest record, and MUST NOT carry the version's own tag. Its tag MUST be that version with a pre-release identifier appended, so it orders below the version it precedes; the identifier MUST NOT be one `ARCH-R43` gives another meaning to. The distinction MUST NOT rest on the forge's own pre-release flag, which every version below `1.0.0` carries and which therefore separates nothing. |

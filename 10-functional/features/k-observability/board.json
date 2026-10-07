@@ -1,0 +1,46 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "area": "K",
+  "features": [
+    {
+      "id": "K1",
+      "title": "Metrics & dashboards",
+      "area": "K",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M13"],
+      "milestone": "M13",
+      "priority": "P2",
+      "labels": ["observability", "verification"],
+      "requires": [],
+      "relates": ["B3", "G7"],
+      "versions": [
+        {"version": "0.23.0", "status": "planned"}
+      ],
+      "path": "k-observability/k1-metrics.md"
+    },
+    {
+      "id": "K2",
+      "title": "Uptime monitoring",
+      "area": "K",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M13"],
+      "milestone": "M13",
+      "priority": "P2",
+      "labels": ["observability", "verification"],
+      "requires": ["B5"],
+      "relates": ["G7"],
+      "versions": [
+        {"version": "0.23.0", "status": "planned"}
+      ],
+      "path": "k-observability/k2-uptime.md"
+    }
+  ]
+}

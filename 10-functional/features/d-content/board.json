@@ -1,0 +1,236 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "area": "D",
+  "features": [
+    {
+      "id": "D1",
+      "title": "Service auto-wiring",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M4", "M8", "M14"],
+      "milestone": "M4",
+      "priority": null,
+      "labels": ["seed", "wiring"],
+      "requires": [],
+      "relates": ["A7", "C9", "D2", "E3"],
+      "versions": [
+        {"version": "0.12.0", "status": "released"},
+        {"version": "0.17.0", "status": "releasable"},
+        {"version": "0.4.0", "status": "released"}
+      ],
+      "path": "d-content/d1-seed.md"
+    },
+    {
+      "id": "D2",
+      "title": "Quality presets in plain language",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M4", "M14"],
+      "milestone": "M4",
+      "priority": null,
+      "labels": ["quality"],
+      "requires": [],
+      "relates": ["C9", "D1", "D5", "G2"],
+      "versions": [
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.4.0", "status": "released"}
+      ],
+      "path": "d-content/d2-quality-presets.md"
+    },
+    {
+      "id": "D3",
+      "title": "First-content walkthrough",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M4", "M14"],
+      "milestone": "M4",
+      "priority": null,
+      "labels": ["ux"],
+      "requires": [],
+      "relates": ["A2", "C7", "D6", "D9", "G6"],
+      "versions": [
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.4.0", "status": "released"}
+      ],
+      "path": "d-content/d3-first-content.md"
+    },
+    {
+      "id": "D4",
+      "title": "Household request flow",
+      "area": "D",
+      "audience": "household",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M8", "M16"],
+      "milestone": "M8",
+      "priority": null,
+      "labels": ["household"],
+      "requires": [],
+      "relates": ["D1", "D6", "D7", "D8", "D11", "G6"],
+      "versions": [
+        {"version": "0.11.0", "status": "released"},
+        {"version": "0.19.0", "status": "planned"}
+      ],
+      "path": "d-content/d4-request-flow.md"
+    },
+    {
+      "id": "D5",
+      "title": "Disk space management",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.12.0",
+      "milestones": ["M8"],
+      "milestone": "M8",
+      "priority": null,
+      "labels": ["storage"],
+      "requires": ["B5"],
+      "relates": ["C5", "C7", "D2"],
+      "versions": [
+        {"version": "0.12.0", "status": "released"}
+      ],
+      "path": "d-content/d5-disk-space.md"
+    },
+    {
+      "id": "D6",
+      "title": "Household identity & invitations",
+      "area": "D",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M8", "M14", "M16"],
+      "milestone": "M8",
+      "priority": null,
+      "labels": ["household", "security"],
+      "requires": [],
+      "relates": ["C6", "D1", "D4", "D7", "D8", "G6"],
+      "versions": [
+        {"version": "0.11.0", "status": "released"},
+        {"version": "0.17.0", "status": "releasable"},
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.19.0", "status": "planned"}
+      ],
+      "path": "d-content/d6-household-identity.md"
+    },
+    {
+      "id": "D7",
+      "title": "Request approval & quotas",
+      "area": "D",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M8", "M14"],
+      "milestone": "M8",
+      "priority": null,
+      "labels": ["household"],
+      "requires": [],
+      "relates": ["D4", "D5", "D6", "D8"],
+      "versions": [
+        {"version": "0.12.0", "status": "released"},
+        {"version": "0.18.0", "status": "planned"}
+      ],
+      "path": "d-content/d7-approval-quotas.md"
+    },
+    {
+      "id": "D8",
+      "title": "Parental controls",
+      "area": "D",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.12.0",
+      "milestones": ["M8"],
+      "milestone": "M8",
+      "priority": null,
+      "labels": ["household"],
+      "requires": [],
+      "relates": ["D4", "D6", "D7", "G2"],
+      "versions": [
+        {"version": "0.12.0", "status": "released"}
+      ],
+      "path": "d-content/d8-parental-controls.md"
+    },
+    {
+      "id": "D9",
+      "title": "\"Where is my show?\" pipeline trace",
+      "area": "D",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.4.0",
+      "milestones": ["M4"],
+      "milestone": "M4",
+      "priority": null,
+      "labels": ["verification", "ux"],
+      "requires": [],
+      "relates": ["B4", "C3", "C7", "D3", "D4"],
+      "versions": [
+        {"version": "0.4.0", "status": "released"}
+      ],
+      "path": "d-content/d9-pipeline-trace.md"
+    },
+    {
+      "id": "D10",
+      "title": "Bandwidth & scheduling",
+      "area": "D",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M8", "M14"],
+      "milestone": "M8",
+      "priority": null,
+      "labels": ["network"],
+      "requires": ["B5"],
+      "relates": ["C2", "C7", "D5"],
+      "versions": [
+        {"version": "0.12.0", "status": "released"},
+        {"version": "0.18.0", "status": "planned"}
+      ],
+      "path": "d-content/d10-bandwidth.md"
+    },
+    {
+      "id": "D11",
+      "title": "Watching what the house holds",
+      "area": "D",
+      "audience": "household",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M16"],
+      "milestone": "M16",
+      "priority": "P2",
+      "labels": ["household", "security", "network"],
+      "requires": ["D6", "D8", "G5"],
+      "relates": ["B1", "D4", "G10", "N3"],
+      "versions": [
+        {"version": "0.19.0", "status": "planned"}
+      ],
+      "path": "d-content/d11-watching-what-the-house-holds.md"
+    }
+  ]
+}

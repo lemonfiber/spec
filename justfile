@@ -51,11 +51,13 @@ generated:
     python3 scripts/generated.py
 
 # Nothing scheduled before what it requires, nothing binding resting on
-# something unagreed, and every accepted requirement on the release train.
+# something unagreed, every accepted requirement on the release train, and no
+# manifest comment saying how far a goal has got.
 ordering:
     python3 scripts/check_order.py
     python3 scripts/check_binding_order.py
     python3 scripts/check_goal_coverage.py
+    python3 scripts/check_manifest_comments.py
 
 # Turn on the repository's own git hooks. Once per clone.
 hooks:
@@ -88,13 +90,21 @@ integrity:
 check-meta:
     python3 scripts/check_frontmatter.py
 
-# The question OPS-R54 asks at release, runnable long before the tag. The tracker
-# is the binary repository's IMPLEMENTATION-STATUS.md, from a clone under
-# checkouts/ the way execute-version arranges one.
-no-stubs version status="checkouts/lemonfiber/IMPLEMENTATION-STATUS.md":
-    python3 scripts/check_no_stubs.py --version {{version}} --status {{status}}
+# The question OPS-R54 asks at release, runnable long before the tag. The trackers
+# are each searched repository's status.toml, from clones under checkouts/ the way
+# execute-version arranges them, and the binary's IMPLEMENTATION-STATUS.md while
+# it still keeps one.
+no-stubs version:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    args=()
+    while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done \
+      < <(python3 scripts/manifest_repos.py --version {{version}} --for searched)
+    legacy=checkouts/lemonfiber/IMPLEMENTATION-STATUS.md
+    if [ -f "$legacy" ]; then args+=(--status "$legacy"); fi
+    python3 scripts/check_no_stubs.py --version {{version}} "${args[@]}"
 
-# Regenerate the feature board (index.json + BOARD.md) from frontmatter + manifests.
+# Regenerate the feature board (index.json, each area's board.json, BOARD.md) from frontmatter + manifests.
 board:
     python3 scripts/gen_board.py
 

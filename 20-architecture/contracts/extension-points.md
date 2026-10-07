@@ -140,7 +140,7 @@ singles out as worse than a failing check.
 Publishing the name here rather than writing it into the manifest contract keeps
 it a fact about the register rather than a convention an author has to remember,
 and it means a point added later brings its own capability with it. It is the
-same shape as `recipe.run` in [plugin-manifest](plugin-manifest.md#recipe--declarable-before-it-is-runnable),
+same shape as `recipe.run` in [plugin-manifest](plugin-manifest-recipe.md),
 and for the same reason.
 
 ## `doctor.check`
@@ -159,7 +159,7 @@ door beside it.
 | `expect` | What the answer must be. The same vocabulary a proof's expectation uses, and the same rule: a status alone is not enough unless it is a refusal. |
 | `why` | Why this is worth checking. A check nobody can justify is one nobody will maintain. |
 | `fixture` | The recorded response the check is proved against in CI (`F10-R4`) |
-| `expected` | The recordings the check fails on, each with the verdict `fails`, the constraint of `expect` that fails there and a reason, for a check whose passing state cannot be recorded. Failing there on that constraint alone is reported as failing as declared; passing there, or failing on any other constraint, fails the run, and the live service is held to `expect` regardless. An entry may name the same file as `fixture`. The shape is [plugin-manifest's](plugin-manifest.md#what-an-assertion-is-declared-to-fail-on) (`F10-R12`–`F10-R16`, `ARCH-R130`). |
+| `expected` | The recordings the check fails on, each with the verdict `fails`, the constraint of `expect` that fails there and a reason, for a check whose passing state cannot be recorded. Failing there on that constraint alone is reported as failing as declared; passing there, or failing on any other constraint, fails the run, and the live service is held to `expect` regardless. An entry may name the same file as `fixture`. The shape is [plugin-manifest's](plugin-manifest-proof.md#what-an-assertion-is-declared-to-fail-on) (`F10-R12`–`F10-R16`, `ARCH-R130`). |
 | `timeout_s` | Bounded, and bounded here rather than by the plugin's opinion (`C1-R7`) |
 | `service` | Which of the plugin's services the finding is about, and the one the check asks. Required where the plugin declares more than one; defaults to the only one where it declares one. |
 

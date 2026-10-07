@@ -130,7 +130,7 @@ The proposed behaviour, as submitted:
     run("git", "add", path)
     run("python3", "scripts/gen_board.py")  # keep the board fresh so CI passes
     run("git", "add", "10-functional/features/index.json",
-        "10-functional/features/BOARD.md")
+        "10-functional/features/BOARD.md", *glob.glob("10-functional/features/*/board.json"))
     run("git", "commit", "-s", "-m", f"docs(rfc): scaffold Draft {fid} from RFC #{num}",
         "-m", f"Auto-scaffolded on maintainer approval of #{num}. Draft, not binding.")
     run("git", "push", "-u", "origin", branch)

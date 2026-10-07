@@ -391,7 +391,8 @@ class TheRecordBranch(unittest.TestCase):
         (self.bin / "gh").write_text(GH, encoding="utf-8")
         (self.bin / "gh").chmod(0o755)
         for path in ("70-operations/versions/0.2.0.toml", "00-overview/roadmap.md",
-                     "10-functional/features/index.json"):
+                     "10-functional/features/index.json",
+                     "10-functional/features/a-one/board.json"):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_text("written\n", encoding="utf-8")
         self.log = self.root / "gh.log"
@@ -419,7 +420,7 @@ class TheRecordBranch(unittest.TestCase):
         done, calls = self.run_action()
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertFalse([call for call in calls if "DELETE" in call])
-        self.assertEqual(len([call for call in calls if call.startswith("api --method PUT")]), 3)
+        self.assertEqual(len([call for call in calls if call.startswith("api --method PUT")]), 4)
 
 
 class ThePluginGateWiring(unittest.TestCase):
