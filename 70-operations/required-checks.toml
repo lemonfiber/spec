@@ -148,14 +148,3 @@ why = "moves the awaiting-maintainer label, and judges nothing"
 [[exempt]]
 name = "SonarCloud Code Analysis"
 why = "the analysis app's own status, which does not post on every pull request; the gate is `gate / gate`"
-
-# The line cap, while it reports. Repositories still hold files over it, so
-# requiring it now would refuse every pull request in them for a file the pull
-# request did not touch. Each run names every file over the cap.
-[[exempt]]
-name = "hygiene / lines"
-why = "reports files over the line cap; repositories still hold some, and requiring it would refuse pull requests that touch none of them"
-
-[[exempt]]
-name = "lines"
-why = "the same job under the bare name this repository's own run gives it"
