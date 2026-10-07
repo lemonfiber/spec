@@ -127,9 +127,18 @@ class ATree(unittest.TestCase):
         self.assertEqual(code, 1, said)
         self.assertIn("a check that read nothing has not passed", said)
 
-    def test_a_directory_git_cannot_read_is_refused(self):
+    def test_a_directory_that_is_not_there_is_refused(self):
         out = io.StringIO()
         code = cap.main(["--root", str(self.root / "missing")], out=out)
+
+        self.assertEqual(code, 1)
+        self.assertIn("git could not list", out.getvalue())
+
+    def test_a_directory_that_is_not_a_repository_is_refused(self):
+        bare = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, bare, ignore_errors=True)
+        out = io.StringIO()
+        code = cap.main(["--root", str(bare)], out=out)
 
         self.assertEqual(code, 1)
         self.assertIn("git could not list", out.getvalue())

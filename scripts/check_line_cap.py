@@ -69,11 +69,17 @@ def tracked(root: pathlib.Path) -> list[str] | None:
     A listing that did not happen is not a listing of nothing, and the caller
     refuses rather than reporting a clean tree.
     """
-    listed = subprocess.run(
-        ["git", "-C", str(root), "ls-files", "--stage", "-z"],
-        capture_output=True,
-        check=False,
-    )
+    # The root is the working directory rather than an argument, so no path given on
+    # the command line reaches git's own arguments.
+    try:
+        listed = subprocess.run(
+            ["git", "ls-files", "--stage", "-z"],
+            cwd=root,
+            capture_output=True,
+            check=False,
+        )
+    except OSError:
+        return None
     if listed.returncode != 0:
         return None
     paths = []
