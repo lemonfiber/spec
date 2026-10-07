@@ -12,7 +12,8 @@
 ```
 $ git clone https://github.com/lemonfiber/lemonfiber-media-stack ~/dev/media-stack
 $ vim ~/dev/media-stack/compose.yml        # add a service
-$ vim ~/dev/media-stack/stack.toml         # declare it
+$ vim ~/dev/media-stack/services/x.toml    # declare it
+$ vim ~/dev/media-stack/stack.toml         # name its file in `include`
 $ lemonfiber up tv --stack-dir ~/dev/media-stack
 
   ✓ manifest valid    schema_version 1 · 20 services · 10 forms

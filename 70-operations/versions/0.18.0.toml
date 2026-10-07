@@ -203,7 +203,11 @@
 # `ARCH-R170` binds the SDKs' generators: the contract is a directory whose definitions
 # are reached by a path to their own file, and a reference a generator cannot resolve is
 # refused rather than described as a field that accepts anything.
-# 318 goals, seeded from the roadmap milestone this version serves;
+#
+# `ARCH-R171` puts each service of the stack manifest in a file of its own, named by the
+# root's `include` list, so the manifest stays readable as the stack grows. It binds the
+# parser in the core, where a missing, repeated or unlisted file is refused by name.
+# 319 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -541,6 +545,7 @@ goals   = [
     "ARCH-R167",
     "ARCH-R168",
     "ARCH-R169",
+    "ARCH-R171",
 ]
 
 # The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion
