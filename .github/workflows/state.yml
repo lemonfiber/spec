@@ -1,11 +1,13 @@
 # Where every goal of every unreleased version stands — OPS-R76, OPS-R77.
 #
 # Reads every repository a version is satisfied in at its default branch, and
-# every open pull request in them, and writes the report to the `state` branch:
-# STATE.md for a person, state.json for a script. One commit, replaced each run,
-# because the report is a reading of now; what changed and when is in the
-# repositories it reads. `just goals <version>` writes the same from local
-# checkouts.
+# every open pull request in them, and publishes the report as this run's
+# `state` artifact: STATE.md for a person, state.json for a script. Each
+# generation stays fetchable from its run for the artifact's retention, and
+# state.json names the commit of every source it read, so a copy vendored
+# elsewhere says what it is a reading of. Nothing is committed: a commit an hour
+# would run every check this repository has, every hour. `just goals <version>`
+# writes the same from local checkouts.
 #
 # Hourly, on demand, and whenever a manifest or the report's own code changes on
 # `main`, so a goal moved between versions shows where it went within the run.
@@ -35,9 +37,6 @@ jobs:
   report:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    permissions:
-      # The one write: replacing the `state` branch's single commit.
-      contents: write
     steps:
       - name: Check out the spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -74,18 +73,12 @@ jobs:
             --markdown STATE.md --json state.json
           cat STATE.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Replace the state branch with it
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          mkdir publish
-          mv STATE.md state.json publish/
-          cd publish
-          git init -q -b state
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add STATE.md state.json
-          git commit -q -m "chore(state): where every unreleased version stands"
-          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" state
+      - name: Publish this generation
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: state
+          path: |
+            STATE.md
+            state.json
+          if-no-files-found: error
+          retention-days: 90

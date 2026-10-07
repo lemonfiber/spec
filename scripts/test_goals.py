@@ -59,6 +59,7 @@ class Train(unittest.TestCase):
         self.manifest("0.1.0", "released", ["A1-R9"], ["core"])
         (pathlib.Path("70-operations/versions") / "TEMPLATE.toml").write_text(
             'version = "X"\ngoals = []\n', encoding="utf-8")
+        self.repo(".", "Spec: GOV-R12")
         self.repo("core", "Spec: A1-R1, A1-R2")
         self.repo("app", "Spec: A1-R4")
         self.commit("app", "status.toml", "", "Spec: GOV-R12")
@@ -100,6 +101,24 @@ class Train(unittest.TestCase):
         self.assertEqual(code, 0, said)
         data = json.loads(pathlib.Path("state.json").read_text(encoding="utf-8"))
         return {g["id"]: g for v in data["versions"] for g in v["goals"]}, data
+
+
+class WhatAReaderIsTold(Train):
+    def test_the_format_the_sources_and_when(self):
+        _, data = self.report()
+        self.assertEqual(data["format"], goals.FORMAT)
+        self.assertEqual(data["sources"], {"spec": self.git(".", "rev-parse", "HEAD"),
+                                           "core": self.git("core", "rev-parse", "HEAD"),
+                                           "app": self.git("app", "rev-parse", "HEAD")})
+        self.assertRegex(data["generated_at"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
+        self.assertEqual(data["versions"][0]["milestone"], None)
+
+    def test_a_spec_that_is_no_checkout_is_refused(self):
+        shutil.rmtree(".git")
+        code, said = run_main([*self.checkouts(), "--json", "state.json"])
+        self.assertEqual(code, 2)
+        self.assertIn("spec:", said)
+        self.assertFalse(pathlib.Path("state.json").exists())
 
 
 class EachVerdictFromTheStateThatEarnsIt(Train):
@@ -201,7 +220,7 @@ class Refusals(Train):
         self.assert_refused([*self.checkouts(), "--ref=--output=x"], "is not a revision")
 
     def test_a_ref_that_is_not_there(self):
-        self.assert_refused([*self.checkouts(), "--ref", "nowhere"], "no history at nowhere")
+        self.assert_refused([*self.checkouts(), "--ref", "nowhere"], "`nowhere` names no commit")
 
     def test_a_repository_keeping_no_tracker(self):
         self.git("app", "rm", "-q", "status.toml")

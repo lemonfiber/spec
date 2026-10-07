@@ -33,11 +33,16 @@ Usage:
 
 With no `--version`, every manifest that is neither released nor yanked. Exit 0
 having written what was asked; 2 where something could not be read.
+
+`state.json` is what a script reads, and its shape is documented in
+`70-operations/staging.md`: `format` says which shape it is, `sources` the commit
+of the spec and of every repository it was read from, and `generated_at` when.
 """
 
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import pathlib
 import re
@@ -55,6 +60,9 @@ from patterns import CITE, LANDED, SPEC_TRAILER, ordered
 VERSIONS = pathlib.Path("70-operations/versions")
 #: A revision as git names one, and never something git would read as an option.
 REVISION = re.compile(r"^[A-Za-z0-9_.@^~/][A-Za-z0-9_.@^~/-]*$")
+#: The shape of `state.json`. A field removed, renamed or given another meaning
+#: raises it; a field added does not, so a reader checks it and ignores the rest.
+FORMAT = 1
 #: The states a manifest leaves the train in.
 FINISHED = ("released", "yanked")
 #: The order verdicts are reported in: what somebody can act on first.
@@ -111,9 +119,9 @@ def citations(name: str, path: pathlib.Path, ref: str) -> dict[str, list[str]]:
     """Each requirement a merged commit cites, with where: `repo@sha`."""
     if git(path, "rev-parse", "--is-shallow-repository").stdout.strip() != "false":
         raise Unread(f"{name} is a shallow clone, so its oldest citations are missing")
+    # The exit status goes unread: `revision()` has already refused a ref that
+    # names no commit, and the log of one that does has nothing left to fail on.
     log = git(path, "log", ref, "--format=%H%x1f%B%x1e")
-    if log.returncode != 0:
-        raise Unread(f"{name}: no history at {ref}: {log.stderr.strip()}")
     found: dict[str, list[str]] = {}
     for record in log.stdout.split("\x1e"):
         if "\x1f" not in record:
@@ -181,6 +189,30 @@ def claims(prs: dict[str, list[dict]]) -> dict[str, list[dict]]:
             for ident in cited:
                 found.setdefault(ident, []).append(claim)
     return found
+
+
+def revision(name: str, path: pathlib.Path, ref: str) -> str:
+    """The commit `ref` names in one checkout, in full, so a reader can fetch it."""
+    found = git(path, "rev-parse", "--verify", "--end-of-options", f"{ref}^{{commit}}")
+    if found.returncode != 0:
+        raise Unread(f"{name}: `{ref}` names no commit: {found.stderr.strip()}")
+    return found.stdout.strip()
+
+
+def as_data(report: list[tuple[dict, list[Standing]]], ref: str, sources: dict[str, str],
+            now: datetime.datetime) -> dict:
+    """The report for a script: its format, what it was read from and when, and each goal."""
+    return {
+        "format": FORMAT,
+        "generated_at": now.astimezone(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "ref": ref,
+        "sources": sources,
+        "versions": [
+            {"version": m["version"], "status": m.get("status", "planned"),
+             "milestone": m.get("milestone"), "delivers": m.get("delivers"),
+             "goals": [g.as_json() for g in goals]}
+            for m, goals in report],
+    }
 
 
 def manifests(spec: pathlib.Path, wanted: list[str]) -> list[dict]:
@@ -288,17 +320,18 @@ def main() -> int:
         return 2
     try:
         checkouts = pairs(args.checkout)
+        spec = within_cwd(args.spec)
+        sources = {"spec": revision("spec", spec, "HEAD")}
+        sources |= {name: revision(name, path, args.ref) for name, path in checkouts.items()}
         prs = json.loads(within_cwd(args.prs).read_text(encoding="utf-8")) if args.prs else {}
         claimed = claims(prs)
         report = [(m, standing(m, checkouts, args.ref, claimed))
-                  for m in manifests(within_cwd(args.spec), args.version)]
+                  for m in manifests(spec, args.version)]
     except (Unread, OSError, json.JSONDecodeError) as unread:
         print(f"::error::{unread}")
         return 2
     page = markdown(report, args.ref)
-    data = {"ref": args.ref, "versions": [
-        {"version": m["version"], "status": m.get("status", "planned"),
-         "goals": [g.as_json() for g in goals]} for m, goals in report]}
+    data = as_data(report, args.ref, sources, datetime.datetime.now(datetime.UTC))
     if args.markdown:
         within_cwd(args.markdown).write_text(page, encoding="utf-8")
     if args.json_out:
