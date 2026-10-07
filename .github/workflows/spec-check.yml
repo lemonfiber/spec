@@ -235,13 +235,20 @@ jobs:
           echo "::notice::${said}"
           printf '### spec-check on a merge group\n\n%s\n' "$said" >> "$GITHUB_STEP_SUMMARY"
 
-      # Only the implementation repo keeps a tracker; every other caller skips this.
-      - name: The tracker claims only what the spec backs
+      # Every repository a version is satisfied in keeps a status.toml, or a
+      # status/ directory split by feature (OPS-R74),
+      # and each row is checked against the spec and this tree on the pull request
+      # that changes it (OPS-R75): a requirement that exists, evidence that is
+      # there, a landed commit in this history. A file in another repository that
+      # a row names is checked where every checkout is present, by the gate.
+      # A repository keeping none passes with a line saying so.
+      - name: The tracker claims only what the spec and the tree back
         run: |
+          set -euo pipefail
+          python3 .spec-canonical/scripts/status_check.py check \
+            --spec .spec-canonical --repo-root .
           if [ -f IMPLEMENTATION-STATUS.md ]; then
             python3 .spec-canonical/scripts/status_lint.py \
               --status IMPLEMENTATION-STATUS.md \
               --spec .spec-canonical
-          else
-            echo "no IMPLEMENTATION-STATUS.md here — nothing to check"
           fi
