@@ -508,7 +508,7 @@ each pair in `approved`, apart from `offer`, and refuses where one is missing; t
 still covers the list, so a pair that changed is refused as a moved offer (`ARCH-R147`).
 A pair releasing a value a service of the stack answered with is agreed to the same way,
 and the rehearsal lists it with its `release`, the sentence the manifest gives for carrying
-the value away from that service (`F8-R18`). Any other pair to a service in the stack is
+the value away from that service, and its `from`, the service it was read from (`F8-R18`). Any other pair to a service in the stack is
 listed too and carries no `approval`: what it carries neither leaves the machine nor leaves
 the service it came from, so there is nothing to agree to, and an approval written for it is
 refused as one no pair asks for.
@@ -520,7 +520,7 @@ network ends with a code of its own, apart from a network that failed (`ARCH-R14
 Every recipe, pair, destination and adapter field is present on a rehearsal and on the
 record, an empty list where there is none, so *none* is never confused with *not read*;
 a pair's `approval` is present exactly where the pair leaves the machine or carries a
-release, and its `release` exactly where it carries one (`ARCH-R150`).
+release, and its `release` and `from` exactly where it carries one (`ARCH-R150`).
 
 The installed plugins and the wiring each ride the event stream as their envelope: a
 `plugins` event and a `wiring` event, sent when a client connects and whenever either
@@ -893,10 +893,10 @@ generation has not been used.
 | **ARCH-R142** | Work refused because the consent it was given names an offer or a listing that has since moved MUST end with a problem code the artefact lists among its refusals, with the status that work is answered with when its name is redeemed, so that a client can re-offer rather than report a failure (`N2-R6`, `A5-R13`, `ARCH-R138`). |
 | **ARCH-R145** | The web API MUST answer `GET /api/plugins` and `GET /api/wiring` with the envelopes `lemonfiber plugin installed --json` and `lemonfiber wiring --json` answer, and a record or a wiring that cannot be read MUST be refused with a problem code the artefact lists, and MUST NOT be answered with an empty list. |
 | **ARCH-R146** | The actions `plugin-install`, `plugin-update`, `plugin-remove`, `plugin-run` and `wiring-fill` MUST take `dry_run` and `offer`, MUST refuse a bare `confirm` as consent, and MUST end with a listed problem code when the offer they were given has moved. |
-| **ARCH-R147** | A rehearsal whose recipe would carry a value to an external host, or carry a value by a pair releasing it, MUST list each pair as the value's name, its origin and the destination by name, never a resolved address, and a released pair with its release; the write MUST take the approval of each such pair as an argument apart from `offer`, and MUST refuse where any is not approved. |
+| **ARCH-R147** | A rehearsal whose recipe would carry a value to an external host, or carry a value by a pair releasing it, MUST list each pair as the value's name, its origin and the destination by name, never a resolved address, and a released pair with its release and the service it was read from; the write MUST take the approval of each such pair as an argument apart from `offer`, and MUST refuse where any is not approved. |
 | **ARCH-R148** | A rehearsal MUST list the steps its recipe would run, in order, and MUST name each adapter a step uses as lemonfiber's. |
 | **ARCH-R149** | A call refused because an external name resolved to a loopback, private or link-local address MUST end with a listed problem code apart from the one a failed network ends with. |
-| **ARCH-R150** | Every recipe, pair, destination and adapter field MUST be present on a rehearsal and on the installed record, an empty list where there is none, except a pair's `approval`, which MUST be present exactly where the pair carries a value to an external host or carries a release, and its `release`, which MUST be present exactly where the pair carries one. |
+| **ARCH-R150** | Every recipe, pair, destination and adapter field MUST be present on a rehearsal and on the installed record, an empty list where there is none, except a pair's `approval`, which MUST be present exactly where the pair carries a value to an external host or carries a release, and its `release` and `from`, which MUST be present exactly where the pair carries a release. |
 | **ARCH-R151** | The event stream MUST carry a `plugins` event and a `wiring` event, each with its envelope, sent when a client connects and whenever the installed record or the wiring changes. |
 | **ARCH-R152** | A git source named to `plugin-install` or `plugin-update` MUST be fetched over https from a host none of whose addresses is one the plugin manifest contract classes as not out on the internet, every address checked when the fetch is made, the fetch connecting only to those and following no redirect, and a source refused so MUST end with a listed problem code. |
 | **ARCH-R153** | The web API MUST answer `GET /api/plugins/catalogue` with the plugins the verified catalogue index lists, as `lemonfiber plugin catalogue --json` answers, and MUST NOT list an entry the index's signature does not cover. |

@@ -824,8 +824,8 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | No `{{name}}` in a header's name (`F8-R2`) | Step and header named, as `PLUGIN-33` |
 | Every call's `path` is a plain absolute path (`F8-R2`) | Step named, with what is wrong with it, as `PLUGIN-37` |
 | Every `origin` is one of the four, and agrees with where the value comes from (`F8-R3`) | Value named, with both origins |
-| A credential-store value is carried, by a pair or a `{{name}}`, or read by a guard, only to the service it belongs to, and a capture from a service in this stack only to that service or by a pair releasing it (`F8-R16`) | Value, the service it is held to and the destination named |
-| A pair's `release` is on a capture from a service in this stack carried to another destination, and nowhere else (`F8-R16`) | Pair named |
+| A credential-store value, and every capture from a call that carried or read one, is carried, by a pair or a `{{name}}`, or read by a guard, only to the service it belongs to, and any other capture from a service in this stack only to that service or by a pair releasing it (`F8-R16`) | Value, the service it is held to and the destination named |
+| A pair's `release` is on a capture from a service in this stack, by a call that carried and read no credential-store value, carried to another destination, and nowhere else (`F8-R16`) | Pair named |
 | Every credential-store input's `of` is a service of the stack's whose credential lemonfiber holds, never one of this plugin's own (`F8-R3`) | Input and service named |
 | `input[].secret` is a boolean, and only on an `operator` input | Input named |
 | Every `to` is a service in this stack with a published port, or a DNS name of two labels or more (`F8-R4`, `F8-R8`) | Destination named |

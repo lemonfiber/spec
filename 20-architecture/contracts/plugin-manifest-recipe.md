@@ -145,9 +145,9 @@ which is what lemonfiber holding it is for.
 
 **What a service answers is held to that service** (`F8-R16`). Every value
 captured from the answer of a service in this stack, one of this plugin's own
-included, is held to that service because it came from there, whatever it holds
-and whatever the call that read it carried. It may be carried back to that service
-freely. Carrying it to any other destination needs a pair that releases it:
+included, is held to that service because it came from there, whatever it holds.
+It may be carried back to that service freely. Carrying it to any other destination
+needs a pair that releases it, where the call that read it carried no credential:
 
 ```toml
 [[recipe.pair]]
@@ -156,12 +156,21 @@ to      = "sonarr"
 release = "Sonarr files new series into the library Komga just made, so it needs that library's id."
 ```
 
+**What a credential buys is held as the credential is** (`F8-R16`). A value captured
+from a call that carried a credential-store value, or whose guard read one, is held to
+that credential's service exactly as the credential is: back to it, and nowhere else,
+and no release frees it. A session a service hands back for its key is as good as the
+key, and a sentence the operator approves is not a reason for the key to leave. A
+release frees only a capture from a call that carried no credential, which is what a
+first-run flow between two services needs: the id of a library one of them made, not
+the means to act as it.
+
 A pair or a `{{name}}` carrying such a capture anywhere else with no release
 behind it is refused when the manifest is read, naming the value, the service it
 was read from and the destination. A `release` frees a capture and nothing else.
-On a pair carrying a credential-store value, an operator's input, an external
-host's answer, or a capture back to its own service, it is refused, naming the
-pair, because a release the operator weighs for nothing teaches them to stop
+On a pair carrying a credential-store value, a value captured from a call that
+carried or read one, an operator's input, an external host's answer, or a capture back
+to its own service, it is refused, naming the pair, because a release the operator weighs for nothing teaches them to stop
 weighing releases.
 
 A guard decides a call as surely as a substitution feeds one. A `when` or a
@@ -172,8 +181,9 @@ and where, would answer questions about a value that no call carries.
 
 **And again at the call** (`F8-R17`). Reading the manifest is the first check, not
 the only one. While a recipe runs, every value it holds carries the destinations it
-may be sent to: a credential-store value its own service alone, a capture from a
-service in this stack that service and each destination of a released pair the
+may be sent to: a credential-store value and every value captured from a call that
+carried or read one its own service alone, any other capture from a service in this
+stack that service and each destination of a released pair the
 operator approved in this act, and any other value the destinations its pairs name. Before a
 call is sent, every value it carries is held to that call's `to`, and a value bound
 for a host outside the stack is held to the approvals this act was given as well,
@@ -291,8 +301,8 @@ changes no install record, and ends with the same problem, saying what landed.
 
 A pair carrying a value to a host outside the stack is approved as itself, as
 `<value>@<destination>`, and so is a pair carrying a release. The consent names
-a released pair as the value, the service it was read from, the destination and
-the `release` sentence, and an act with any released pair not approved does not
+a released pair as the value, the service it was read from (`from`), the destination
+and the `release` sentence, and an act with any released pair not approved does not
 proceed (`F8-R18`). Any other pair to a service in this stack is listed on the
 reading and asks for no approval, because it carries nothing out of the machine
 and nothing away from the service it came from.
