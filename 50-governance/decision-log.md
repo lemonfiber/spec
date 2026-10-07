@@ -72,9 +72,10 @@ Decisions about a repository outside this organisation, such as
 | A manifest comment never says how far a goal has got, and a lint with a narrow, tested word list refuses it with a clear message | spec#659 |
 | Every decision lands as a pull request on this specification the same day, with a dated log for decisions about the process | `GOV-R49` |
 | The kept-and-where half of the companion's register moves into the companion's tracker, and the register's disagreements with the code are fixed | This row |
-| The policy in `AGENTS.md`, the AI contributors' rules and the working notes kept outside the repositories moves into this section; every `AGENTS.md` points first at the report, then at this section; subagents work in worktrees and the main session in the main checkout | This row |
+| The policy in `AGENTS.md`, the AI contributors' rules and the working notes kept outside the repositories moves into this section; every `AGENTS.md` points first at the report, then at this section; subagents work in worktrees and the main session in the main checkout | [GOV-R50, GOV-R51](working-in-the-repositories.md) |
 | `IMPLEMENTATION-STATUS.md` is no longer committed once the documentation site's roadmap reads the report, and is generated until then; a tracker stays under 1,000 lines, split into `status/<feature>.toml` where it would not | spec#654 |
-| An agent checks CI on every pull request it owns while it waits on any one, and fixes reds at once | This row |
+| An agent checks CI on every pull request it owns while it waits on any one, and fixes reds at once | [GOV-R53](working-in-the-repositories.md) |
+| The forge is read through REST only, a pull request's checks at most every ten minutes; the spec, the binary and `sdk-php` no longer require a pull request to be up to date, so a branch is rebased only on a real conflict | [GOV-R52, GOV-R54](working-in-the-repositories.md) |
 
 ## Requirements
 

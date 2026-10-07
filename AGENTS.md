@@ -2,9 +2,11 @@
 
 Orientation for a focused session in this repo.
 
-> **Common rules for every lemonfiber repo** live in
-> [50-governance/ai-contributors.md](50-governance/ai-contributors.md). This file
-> is the spec-repo-specific header; the shared rules are canonical there.
+> **Start at the report** of where every unreleased version stands: `STATE.md` on
+> the `state` branch, or `just goals <version>`. **Then the rules** every
+> repository shares: [working in the repositories](50-governance/working-in-the-repositories.md)
+> and [the rules for agents](50-governance/ai-contributors.md). This file holds
+> only what is true of the spec repository.
 
 ## What this repo is
 
@@ -62,6 +64,6 @@ traces to a requirement — a decision citing nothing should be challenged.
 
 ## Conventions & preferences
 
-- Commits carry **no** AI/Co-Authored-By attribution.
-- Propose before writing; wait for approval before committing.
+- A requirement, an ADR or a promise the spec makes is the maintainer's to
+  decide; its wording is not ([what goes to the maintainer](50-governance/working-in-the-repositories.md#what-goes-to-the-maintainer)).
 - Maintained by NightWorks.io · community on [Discord](https://discord.nightworks.io).
