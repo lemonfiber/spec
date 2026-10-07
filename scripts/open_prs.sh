@@ -15,7 +15,7 @@ first=1
 for repo in "$@"; do
   listed=$(gh api graphql -f query="$query" -F owner="$owner" -F name="$repo" \
     --jq '[.data.repository.pullRequests.nodes[] | {number, url, isDraft, body, commits: [.commits.nodes[].commit | {message}]}]')
-  [ "$first" = 1 ] || printf ','
+  [[ "$first" = 1 ]] || printf ','
   first=0
   printf '"%s":%s' "$repo" "$listed"
 done

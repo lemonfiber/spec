@@ -52,7 +52,6 @@ import pathlib
 import re
 import subprocess
 import sys
-import tomllib
 from dataclasses import dataclass, field
 
 import status_check
@@ -61,7 +60,6 @@ from gate import claimed as row_claims
 from paths import within_cwd
 from patterns import CITE, LANDED, SPEC_TRAILER, ordered
 
-VERSIONS = pathlib.Path("70-operations/versions")
 #: A revision as git names one, and never something git would read as an option.
 REVISION = re.compile(r"^[A-Za-z0-9_.@^~/][A-Za-z0-9_.@^~/-]*$")
 #: The shape of `state.json`. A field removed, renamed or given another meaning
@@ -107,6 +105,17 @@ class Standing:
         if self.done_in:
             return "uncited"
         return "open"
+
+    def record(self, name: str, path: pathlib.Path, row, ref: str) -> None:
+        """What one repository's tracker row says of this goal."""
+        if row.state == "partial":
+            self.partial_in.append(name)
+        if not row.done:
+            return
+        if name not in self.done_in:
+            self.done_in.append(name)
+        if row.landed and landed(path, row.landed, ref):
+            self.landed_in.append(f"{name}@{row.landed[:10]}")
 
     def as_json(self) -> dict:
         return {"id": self.id, "verdict": self.verdict, "cited_in": self.cited_in,
@@ -223,14 +232,8 @@ def as_data(report: list[tuple[dict, list[Standing]]], ref: str, sources: dict[s
 
 def manifests(spec: pathlib.Path, wanted: list[str]) -> list[dict]:
     """The manifests asked for, or every one, in train order."""
-    found = []
-    for path in (spec / VERSIONS).glob("*.toml"):
-        if path.stem == "TEMPLATE":
-            continue
-        data = tomllib.loads(path.read_text(encoding="utf-8"))
-        if wanted and data["version"] not in wanted:
-            continue
-        found.append(data)
+    found = [data for data in status_check.manifests(spec)
+             if not wanted or data["version"] in wanted]
     missing = set(wanted) - {data["version"] for data in found}
     if missing:
         raise Unread(f"no manifest for {', '.join(sorted(missing))}")
@@ -247,24 +250,22 @@ def standing(manifest: dict, checkouts: dict[str, pathlib.Path], ref: str,
                      "and no checkout of it was given")
     goals = {ident: Standing(ident) for ident in manifest.get("goals", [])}
     for name in searched:
-        path = checkouts[name]
-        for ident, where in citations(name, path, ref).items():
-            if ident in goals:
-                goals[ident].cited_in += where
-        for row in tracker(name, path, ref):
-            if row.id not in goals:
-                continue
-            if row.done:
-                if name not in goals[row.id].done_in:
-                    goals[row.id].done_in.append(name)
-                if row.landed and landed(path, row.landed, ref):
-                    goals[row.id].landed_in.append(f"{name}@{row.landed[:10]}")
-            elif row.state == "partial":
-                goals[row.id].partial_in.append(name)
+        read_repository(goals, name, checkouts[name], ref)
     for ident, found in claimed.items():
         if ident in goals:
             goals[ident].claims = found
     return list(goals.values())
+
+
+def read_repository(goals: dict[str, Standing], name: str, path: pathlib.Path,
+                    ref: str) -> None:
+    """What one repository's history and tracker say of each goal."""
+    for ident, where in citations(name, path, ref).items():
+        if ident in goals:
+            goals[ident].cited_in += where
+    for row in tracker(name, path, ref):
+        if row.id in goals:
+            goals[row.id].record(name, path, row, ref)
 
 
 def markdown(report: list[tuple[dict, list[Standing]]], ref: str) -> str:

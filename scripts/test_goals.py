@@ -120,7 +120,7 @@ class WhatAReaderIsTold(Train):
                                            "core": self.git("core", "rev-parse", "HEAD"),
                                            "app": self.git("app", "rev-parse", "HEAD")})
         self.assertRegex(data["generated_at"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
-        self.assertEqual(data["versions"][0]["milestone"], None)
+        self.assertIsNone(data["versions"][0]["milestone"])
 
     def test_a_spec_that_is_no_checkout_is_refused(self):
         shutil.rmtree(".git")
@@ -147,7 +147,7 @@ class EachVerdictFromTheStateThatEarnsIt(Train):
         self.assertEqual(verdicts, {"A1-R1": "met", "A1-R2": "unmarked", "A1-R3": "uncited",
                                     "A1-R4": "unmarked", "A1-R5": "claimed", "A1-R9": "open"})
         self.assertEqual(found["A1-R5"]["partial_in"], ["core"])
-        self.assertEqual(found["A1-R5"]["claims"][0]["draft"], True)
+        self.assertTrue(found["A1-R5"]["claims"][0]["draft"])
         self.assertEqual([(v["version"], v["status"]) for v in data["versions"]],
                          [("0.1.0", "released"), ("0.2.0", "planned")],
                          "a released version is on the report, with its goals")
