@@ -388,8 +388,8 @@ tracked file within the cap, and is refused naming the source that is not.
 
 `hygiene / lines` runs [`check_line_cap.py`](../scripts/check_line_cap.py), which
 holds the cap and the list. It names each file over the cap, its line count and
-the cap. It reports rather than gates while repositories still hold files over
-the cap (`Q-R81`).
+the cap. It judges, so it is required like every check that does (`Q-R81`,
+`Q-R68`).
 
 ## A pin is a copy, and a copy goes stale
 
