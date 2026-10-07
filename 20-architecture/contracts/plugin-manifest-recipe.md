@@ -150,6 +150,13 @@ not. Reading the manifest follows this through every step, guards or not, and
 refuses a pair or a `{{name}}` carrying such a capture anywhere else exactly as it
 refuses the credential itself.
 
+A guard decides a call as surely as a substitution feeds one. A `when` or a
+`retry.until` that reads a value held to a service makes the step it guards a
+carrier of that value: reading the manifest refuses one on a step to anywhere but
+that service, and what the step captures is held to it as though its call had
+carried the value. Otherwise which calls a recipe makes, and where, would answer
+questions about a credential that no call carries.
+
 **And again at the call** (`F8-R17`). Reading the manifest is the first check, not
 the only one. While a recipe runs, every value it holds carries the destinations it
 may be sent to: the destinations its pairs name, narrowed, for a credential-store
@@ -162,6 +169,13 @@ naming the value, the destination and the step, never what the value holds. A
 manifest the reading passed meets this refusal only where the reading missed
 something, and what it missed is then a call that was not made rather than a value
 somewhere it may not be.
+
+The call reads what a value holds as well as how it came by it. A value that holds
+a credential lemonfiber holds for a service of the stack's, whole or written into a
+longer value, is held to that service however the recipe came by it: read back out
+of the service it was given to, or out of one that answers without asking for it.
+Otherwise a service's own storage would be a way to turn a credential into a value
+nothing marked.
 
 ### Where a call goes
 
@@ -255,7 +269,10 @@ where it was going (`F8-R17`), and `PLUGIN-36` where a step failed any other way
 answer was not the one it expects, a capture found nothing, or the answer was larger
 than a recipe reads. The problem's detail names the recipe, the step and each call
 that had already landed somewhere and cannot be put back from here, and its `steps`
-carry what every step came to as data (`G4-R17`). A recipe that holds is reported on
+carry what every step came to as data (`G4-R17`). Neither repeats a value: an answer
+that was not the one a step expects is said as which constraint did not hold where,
+never as what the answer held there, and what a call carried or an operator gave is
+named, never shown. A recipe that holds is reported on
 the install, every step with what it came to.
 
 A demand recipe runs only through `lemonfiber plugin run <plugin> <recipe>` and
