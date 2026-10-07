@@ -190,6 +190,12 @@
 # off the dashboard's list instead, an onset and its resolution could only be matched by
 # their wording.
 #
+# `ARCH-R165` to `ARCH-R169` make the core honour the `Idempotency-Key` each SDK already
+# sends with an action: the same key sent again is answered with the first send's answer
+# and the action runs once, so a client that heard nothing back can send it again. How
+# long and how many are remembered are two settings, and `A4-R13` holds them to a range
+# when they are set.
+#
 # `ARCH-R161` gives each of a member's requests what their own screen shows it by: the
 # kind of title, its year, when it arrived and the identifier their shelf names it by, so
 # `F12-R9` can show a member's requests without asking the stack anything more.
@@ -197,7 +203,7 @@
 # `ARCH-R170` binds the SDKs' generators: the contract is a directory whose definitions
 # are reached by a path to their own file, and a reference a generator cannot resolve is
 # refused rather than described as a field that accepts anything.
-# 312 goals, seeded from the roadmap milestone this version serves;
+# 318 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -529,6 +535,12 @@ goals   = [
     "ARCH-R161",
     "ARCH-R162",
     "ARCH-R170",
+    "A4-R13",
+    "ARCH-R165",
+    "ARCH-R166",
+    "ARCH-R167",
+    "ARCH-R168",
+    "ARCH-R169",
 ]
 
 # The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion
