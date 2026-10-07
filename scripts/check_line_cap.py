@@ -138,6 +138,18 @@ def counted(root: pathlib.Path, path: str) -> int | None:
     return lines_in(target.read_bytes())
 
 
+def unheld(root: pathlib.Path, sources: tuple[str, ...], tracked: set[str]) -> list[str]:
+    """Why each source a generated file is read through does not hold it to the cap."""
+    reasons = []
+    for source in sources:
+        held = counted(root, source) if source in tracked else None
+        if held is None:
+            reasons.append(f"it is generated from {source}, which is not a tracked file")
+        elif held > CAP:
+            reasons.append(f"it is generated from {source}, which is {held} lines")
+    return reasons
+
+
 def over(root: pathlib.Path, paths: list[str]) -> list[tuple[str, int, str]]:
     """Every counted path over the cap, longest first: the path, its count, and why.
 
@@ -146,24 +158,15 @@ def over(root: pathlib.Path, paths: list[str]) -> list[tuple[str, int, str]]:
     which source.
     """
     found = []
-    tracked_paths = set(paths)
+    tracked = set(paths)
     through = registered(root)
     for path in paths:
-        if exempt(path):
-            continue
-        count = counted(root, path)
+        count = None if exempt(path) else counted(root, path)
         if count is None or count <= CAP:
             continue
         sources = through.get(path)
-        if not sources:
-            found.append((path, count, ""))
-            continue
-        for source in sources:
-            held = counted(root, source) if source in tracked_paths else None
-            if held is None:
-                found.append((path, count, f"it is generated from {source}, which is not a tracked file"))
-            elif held > CAP:
-                found.append((path, count, f"it is generated from {source}, which is {held} lines"))
+        reasons = unheld(root, sources, tracked) if sources else [""]
+        found.extend((path, count, why) for why in reasons)
     return sorted(found, key=lambda one: (-one[1], one[0], one[2]))
 
 
