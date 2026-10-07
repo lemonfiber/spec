@@ -179,6 +179,15 @@ lang = "Astro"
 note = "How to change the code; links to the rules on the frontpage rather than rendering them"
 
 [[repo]]
+name = "website-kit"
+node = "kit"
+group = "impl"
+label = "website-kit<br/>what both sites run"
+spec = ["website-kit.md"]
+lang = "TypeScript"
+note = "One copy of the mirror machinery, taken by each site at a commit"
+
+[[repo]]
 name = "tool-lfdev"
 node = "lfdev"
 group = "impl"
@@ -296,6 +305,16 @@ label = "board snapshot"
 from = "lemonfiber"
 to = "website-contribute.lemonfiber.app"
 label = "docs submodule, pinned"
+
+[[edge]]
+from = "website-kit"
+to = "website-docs.lemonfiber.app"
+label = "taken by commit"
+
+[[edge]]
+from = "website-kit"
+to = "website-contribute.lemonfiber.app"
+label = "taken by commit"
 
 [[edge]]
 from = ".github"
