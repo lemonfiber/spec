@@ -281,6 +281,40 @@ which cancels this pull request's runs on the heads a push replaced through the
 API. `homebrew-tap`, `website-docs.lemonfiber.app` and `website-lemonfiber.app`
 are reported by the check rather than refused, and are named in it.
 
+## A change that touches no code
+
+A pull request that changes only documentation holds runners for a build, a test
+suite, a coverage run and an analysis that cannot answer differently than they
+did on its base. So a repository's code-judging jobs ask a `what changed` job
+first, and skip where every changed path is one none of them reads.
+
+The classification is an allowlist, and it fails safe. A path counts as code-free
+only where the repository names it as one no code-judging job reads: its Markdown
+outside anything a test or generator reads, its docs directory, its tracker,
+`LICENSE`, its issue templates. Everything else is code, so a new kind of file
+runs every job, and so does any change to a workflow, a build file, a lockfile,
+a generated contract or a source file. A `what changed` job that fails, or finds
+no base to compare against, decides nothing, and every job runs.
+
+The gates that judge documentation run on every change: markdown, links, typos,
+spec references, a tracker's generator check, secret scanning, DCO and
+attribution.
+
+Each skipped job is skipped by a job-level `if:` rather than by a `paths:`
+filter, so it still reports, as skipped, and a skipped required check satisfies
+branch protection. Three shapes need more than that, because they report under
+a different name when skipped:
+
+- A job that calls a reusable workflow reports as the caller's job name alone,
+  `gate` rather than `gate / gate`, so it is never skipped. `sonar-gate` and
+  `codeql-alerts` take `code: false` instead and answer at once: no analysis
+  ran, and none was needed.
+- A matrix job reports with its matrix unexpanded, so a required
+  `analyze (rust)` goes missing. Its steps are skipped instead, and the job
+  reports success having analysed nothing.
+- A check another service posts, such as `SonarCloud Code Analysis`, appears
+  only where its scan ran, so a repository requiring one keeps the scan.
+
 ## Requirements
 
 | ID | Requirement |

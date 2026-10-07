@@ -69,6 +69,11 @@ on:
         type: number
         required: false
         default: 0
+      code:
+        description: "Whether the change reaches any code, as the caller's `what changed` job decided it. False where every changed path is one no code-judging job reads, so the caller ran no scan; the gate then waits for no summary and counts no new issue, says so, and still holds the open count to `allowed-open`. Anything the caller could not decide passes true."
+        type: boolean
+        required: false
+        default: true
     secrets:
       sonar-token:
         required: false
@@ -240,6 +245,7 @@ jobs:
           MARKER: "<!-- lemonfiber:issue-gate -->"
           PROJECT: ${{ inputs.project }}
           ALLOWED: ${{ inputs.allowed-open }}
+          CODE: ${{ inputs.code }}
         run: |
           set -euo pipefail
 
@@ -351,6 +357,23 @@ jobs:
             echo "::notice::${open} open issues, below the declared allowance of ${ALLOWED}; lower it"
           else
             standing=$(printf "\n\n> Open issues against \`%s\`: **%s**." "$project" "$open")
+          fi
+
+          # A change the caller found to touch no code was not scanned, so no
+          # summary is coming and the wait below would spend its whole timeout
+          # on one. Nothing it changed is a line SonarCloud analyses, so it can
+          # carry no new issue. The open count is the repository's rather than
+          # the change's, and still blocks above the allowance.
+          if [ "$CODE" = false ]; then
+            said="Every path this pull request changes is one no code-judging job reads, so no SonarCloud analysis ran and no new issue can come from it."
+            if [ -n "$open" ] && [ "$open" -gt "$ALLOWED" ]; then
+              verdict "### ❌ Issue gate failed · ${said} The project carries more open issues than it declares, which blocks every pull request here until the backlog is back under the allowance (\`Q-R67\`)."
+              echo "::error::${open} open issues against ${project}; this repository declares allowed-open: ${ALLOWED} (Q-R67)"
+              exit 1
+            fi
+            verdict "### ✅ Issue gate passed · ${said}"
+            echo "No code changed, so no analysis ran and no new issue was counted."
+            exit 0
           fi
 
           # The summary is read for *when it was written*, and for nothing else.
@@ -489,6 +512,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.sonar-token }}
           PROJECT: ${{ inputs.project }}
           ALLOWED: ${{ inputs.allowed-open }}
+          CODE: ${{ inputs.code }}
           REPO: ${{ github.repository }}
           BASE_SHA: ${{ github.event.merge_group.base_sha }}
           HEAD_SHA: ${{ github.event.merge_group.head_sha }}
@@ -534,6 +558,15 @@ jobs:
             refuse "${open} open issues against ${project}; this repository declares allowed-open: ${ALLOWED} (Q-R64, Q-R67). They are at https://sonarcloud.io/project/issues?id=${project}&resolved=false"
           fi
           echo "Open issues against ${project}: ${open}, within allowed-open: ${ALLOWED}."
+
+          # A batch that touches no code was not scanned, so SonarCloud holds no
+          # new-issue count for any pull request in it, and none could carry a
+          # new issue.
+          if [ "$CODE" = false ]; then
+            printf "### ✅ Issue gate passed this batch\n\nNo code changed, so no analysis ran and no new issue was counted; %s open against \`%s\` within \`allowed-open: %s\`.\n" \
+              "$open" "$project" "$ALLOWED" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
 
           # The pull requests in the batch, read off the commits the queue built.
           # A squash queue lands one commit per pull request, its subject ending

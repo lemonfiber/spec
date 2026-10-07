@@ -120,6 +120,7 @@ class NoToken(unittest.TestCase):
             "MARKER": "<!-- lemonfiber:issue-gate -->",
             "PROJECT": "",
             "ALLOWED": "0",
+            "CODE": "true",
             "GH_LOG": str(self.log),
         }
         if gh_fails:
