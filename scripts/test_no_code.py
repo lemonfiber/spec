@@ -23,7 +23,7 @@ import unittest
 from test_no_token import Harness
 
 
-class NoCode(Harness):
+class NoCode(Harness, unittest.TestCase):
     """The step on a pull request with a token, its caller having found no code."""
 
     def run_with(self, *, code="false", open_issues=0):

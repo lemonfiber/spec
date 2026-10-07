@@ -89,8 +89,11 @@ def step_script() -> str:
     return named[0]["run"]
 
 
-class Harness(unittest.TestCase):
-    """The step, run against a stubbed GitHub, `curl` and `sleep`."""
+class Harness:
+    """The step, run against a stubbed GitHub, `curl` and `sleep`.
+
+    A mixin rather than a test case, so it holds no tests of its own: each suite
+    that drives the step pairs it with `unittest.TestCase`."""
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
@@ -149,7 +152,7 @@ class Harness(unittest.TestCase):
         return self.summary.read_text(encoding="utf-8")
 
 
-class NoToken(Harness):
+class NoToken(Harness, unittest.TestCase):
     """The step with no SonarCloud token."""
 
     # --- the two runs are told apart -----------------------------------------
