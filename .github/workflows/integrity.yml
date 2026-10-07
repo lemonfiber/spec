@@ -62,16 +62,31 @@ jobs:
       # prose.
       - name: The bundled-service count matches the stack
         run: python3 scripts/check_services.py
-      # The binary's tracker, read over the wire for the same reason: a feature
-      # this repository calls finished has to be ticked whole there, and a change
-      # here that adds a requirement to one without reopening it is refused before
-      # it merges rather than in the binary's next pull request (OPS-R73).
-      - name: A finished feature is ticked whole in the binary's tracker
+      # Every repository's tracker, read over the wire for the same reason: a
+      # feature this repository calls finished has to be done whole across them,
+      # and a change here that adds a requirement to one without reopening it is
+      # refused before it merges rather than in some repository's next pull
+      # request (OPS-R73, OPS-R74). A repository keeping no status.toml is read as
+      # recording nothing; a fetch that fails for any other reason stops the step.
+      - name: A finished feature is done whole across the trackers
         run: |
           set -euo pipefail
+          args=()
+          while read -r r; do
+            # The tracker alone, at the default branch: status.toml, or status/
+            # where a repository splits it by feature. A clone that fails stops
+            # the step rather than reading as a repository that built nothing.
+            git clone --quiet --depth 1 --filter=blob:none --sparse \
+              "https://github.com/lemonfiber/${r}.git" "checkouts/trackers/${r}"
+            git -C "checkouts/trackers/${r}" sparse-checkout set --no-cone /status.toml /status/
+            args+=(--tracker "${r}=checkouts/trackers/${r}")
+          done < <(python3 scripts/status_check.py repos --spec .)
           curl -fsSL --proto '=https' --tlsv1.2 --retry 3 -o tracker.md \
-            https://raw.githubusercontent.com/lemonfiber/lemonfiber/main/IMPLEMENTATION-STATUS.md
-          python3 scripts/status_lint.py --status tracker.md --spec . --only reopened
+            https://raw.githubusercontent.com/lemonfiber/lemonfiber/main/IMPLEMENTATION-STATUS.md \
+            || rm -f tracker.md
+          legacy=()
+          if [ -f tracker.md ]; then legacy=(--legacy tracker.md); fi
+          python3 scripts/status_check.py catalogue --spec . "${args[@]}" "${legacy[@]}"
       # Every surface a script writes, regenerated and compared against what is
       # committed. `accessibility.md` is why this has to be a gate rather than a
       # convention: the page states that whether the palette meets AA is a
