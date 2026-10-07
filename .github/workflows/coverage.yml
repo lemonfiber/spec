@@ -62,6 +62,7 @@ jobs:
           coverage run --append scripts/test_status_check.py
           coverage run --append scripts/test_goals.py
           coverage run --append scripts/test_board.py
+          coverage run --append scripts/test_in_flight.py
           coverage run --append scripts/test_spec_check.py
           coverage run --append scripts/test_integrity.py
           coverage run --append scripts/test_shared_files.py
