@@ -10,12 +10,11 @@ opened to merged, and what is asked of the maintainer.
 
 ## Where to start
 
-Start at the report of where every goal of every unreleased version stands:
-the summary of the newest run of this repository's `state` workflow, which
-writes it every hour and keeps each generation as that run's artifact, or
-`just goals <version>` from local checkouts. It says what is
-met, what is built but not marked, what an open pull request is working on, and
-what nobody has started. Pick work from it.
+Start at where every goal of every unreleased version stands: the
+[roadmap and board on lemonfiber.app](../30-repos/website-lemonfiber.md), rendered
+from the snapshot the `state` workflow publishes, or `just goals <version>` from
+local checkouts. They say what is met, what is built but not marked, what an open
+pull request is working on, and what nobody has started. Pick work from it.
 
 Then this section: [the rules for agents](ai-contributors.md), the
 [change lifecycle](change-lifecycle.md), [contributing](contributing.md) and
@@ -43,6 +42,40 @@ carry the `Spec:` lines of the requirements it works on. The report reads every
 open pull request in every repository and shows the requirement as claimed.
 There is no other register: a claim that is not a pull request is invisible to
 everyone else.
+
+A pull request needs a commit before it can open. A claim made with the developer
+command line opens with an empty signed commit carrying the `Spec:` line and a
+sign-off; a claim made from the website adds the requirement's row to the
+repository's tracker as `open`, which is true while the work is in progress and
+which the same pull request turns `done` with its evidence (`GOV-R57`).
+
+## At most three open pull requests
+
+A repository holds at most three open pull requests opened by people and agents;
+the organisation's bots (`dependabot`, the release App) are not counted. The cap
+keeps the shared CI moving and every pull request owned. It is held softly: the
+developer command line refuses to open a fourth, a bot comments on one that is
+opened anyway, and the board flags the repository (`GOV-R58`). Before opening a
+pull request, merge or close one.
+
+## The developer command line
+
+What contributors repeat in every repository is one tool, `lfdev`, kept in
+[`tool-lfdev`](../30-repos/tool-lfdev.md): reading the board, finding something to
+pick up, claiming it, proposing a change or reporting a gap, recording that a
+requirement is built, reading a pull request's checks, asking what blocks it, and
+recording a decision (`GOV-R59`). It reads the project from the published board
+snapshot, the same file the website renders, and reads and writes the forge
+through REST.
+
+## Contributing from the website
+
+The website helps a contributor compose a change and creates nothing itself. Its
+forms build the change, a proposal or a tracker row, and submitting opens GitHub,
+prefilled, under the person's own account, where they open the pull request, or
+the issue that becomes one. No bot or server acts on their behalf (`GOV-R60`).
+Every action it offers is also a command of `lfdev`, named beside the action, so
+the website is never the only way to do anything (`GOV-R61`).
 
 ## Commits
 
@@ -157,6 +190,11 @@ Facts about the tools, each of which has produced a wrong conclusion:
 | **GOV-R52** | A branch MUST be rebased locally with signed commits, and only where it conflicts with its base; it MUST NOT be updated through the forge, which leaves the commits unsigned, and MUST be squashed onto its merge base rather than onto the default branch. |
 | **GOV-R53** | The author of a pull request MUST check CI on every pull request they own while they wait on any one, and MUST fix a red check at once, before starting new work. |
 | **GOV-R54** | An agent MUST read a pull request's checks through the forge's REST interface, at most once every ten minutes, and MUST NOT poll in a loop. |
+| **GOV-R57** | A claim made with the developer command line MUST open its pull request with an empty signed commit carrying the claimed `Spec:` line and a sign-off; a claim made from the website MUST add the requirement's row to the repository's tracker as `open`. |
+| **GOV-R58** | A repository MUST NOT hold more than three open pull requests opened by people and agents, the organisation's bots not counted; the developer command line MUST refuse to open a fourth, a bot MUST comment on a fourth that is opened anyway, and the board MUST flag the repository. |
+| **GOV-R59** | The operations contributors repeat (reading the board, finding work, claiming, proposing, reporting a gap, recording status, reading checks, asking what blocks a pull request, recording a decision) MUST be commands of one developer command line kept in an organisation repository, tested like the gates, and reading the forge through REST only. |
+| **GOV-R60** | The organisation's website MUST NOT create a branch, commit, issue or pull request itself: it MUST compose the change in the visitor's browser and open the forge, prefilled, under the visitor's own account, and no bot or server MUST act on the visitor's behalf. |
+| **GOV-R61** | Every action the organisation's website offers a contributor MUST also be a command of the developer command line, and the website MUST name that command beside the action. |
 | **GOV-R55** | An agent MUST NOT open an issue, file a report upstream, call a language model from a workflow, print a secret, or change a repository or organisation setting without the maintainer. |
 
 ## Related
