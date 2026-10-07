@@ -89,6 +89,32 @@ service it belongs to and nowhere else — not to another service of the stack, 
 a service the plugin itself runs, not out of the machine. A plugin may use a key on
 the door it opens; it may not take the key away.
 
+### What a service answers stays with it
+
+A value a recipe reads out of the answer of a service in the stack belongs to that
+service, whatever it holds. A token, an id, a path and a sentence all look like text,
+and nothing reading the text can tell which of them matters somewhere else. A rule
+holding only what looks like a credential, or what a credential was traded for, leaves
+every other value free, and a service's own storage is then a way to carry what it
+keeps anywhere a pair names. So every capture from a service in the stack is held to
+that service because of where it came from, not what it holds, and it may go back to
+that service freely.
+
+Carrying one anywhere else is a **release**. The pair that carries it says so and
+says why, in a sentence the operator reads:
+
+```toml
+[[recipe.pair]]
+value   = "library-id"
+to      = "sonarr"
+release = "Sonarr files new series into the library Komga just made, so it needs that library's id."
+```
+
+The operator agrees to a release at install consent, as itself, the way they agree to
+a pair leaving the machine. The consent screen names the value, the service it was read
+from, where it is going and the plugin's reason. A release frees a capture and never a
+credential: a value the credential store holds goes to its own service, released or not.
+
 ### What a recipe may carry is declared as pairs
 
 Declaring the secrets a plugin holds and the hosts it reaches, as two separate lists,
@@ -177,8 +203,8 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 |-------|---------|
 | `flows-declared` | Every flow the recipe could produce has a declared pair behind it |
 | `undeclared-flow` | A value could reach a destination no pair permits; refused at validation |
-| `awaiting-approval` | A pair carrying a value out of the machine has been stated and not yet agreed to |
-| `approved` | The operator agreed to each outward pair, named |
+| `awaiting-approval` | A pair carrying a value out of the machine, or releasing one a service answered with, has been stated and not yet agreed to |
+| `approved` | The operator agreed to each outward and each released pair, named |
 | `address-literal` | The manifest names an address rather than a name; refused |
 | `resolved-inward` | A destination declared external answered with a private, loopback or link-local address; refused at the call |
 | `adapter-unknown` | The manifest names an adapter this lemonfiber does not implement |
@@ -188,7 +214,7 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | Situation | Behaviour |
 |-----------|-----------|
 | A recipe could send a captured secret somewhere no pair allows | Refuse at validation. The flow is computable from the manifest, so this is found before a call is made rather than after two have landed. |
-| A pair is declared and the operator declines it | The install does not proceed. A declined disclosure is not something to route around by installing anyway and failing later. |
+| A pair leaving the machine, or a released pair, is declared and the operator declines it | The install does not proceed. A declined disclosure is not something to route around by installing anyway and failing later. |
 | A manifest declares a pair it never uses | Allowed. Declaring more than is used is conservative, and the account says what was declared. |
 | A manifest names `192.168.1.1` | Refuse. A recipe names services and hosts; it does not address machines. |
 | An external name resolves into the home network | Refuse at the call, naming the name and what it answered. Checked per call, because the answer can change between them. |
@@ -198,7 +224,9 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | A plugin needs a destination it cannot know until it runs | Not expressible, and not worked around. The honest answer is a declaration form that is still statically bounded, decided once for everybody. |
 | An operator has switched off a plugin's reach | Its recipes report that nothing was asked, rather than failing as though the destination were down (`G8-R16`). |
 | A recipe carries a credential lemonfiber holds for one service to another, or to one of the plugin's own | Refuse at validation, naming the credential, whose it is and where it was going. A credential goes back to its own service and nowhere else. |
-| A recipe presents a credential to its service, captures the token it answers with, and carries the token somewhere else | Refuse at validation, as for the credential itself. What a credential was traded for is held as the credential is. |
+| A recipe presents a credential to its service, captures the token it answers with, and carries the token somewhere else | Refuse at validation unless the pair carrying it releases it. The token is the service's because the service answered with it, as every capture from a service is. |
+| A recipe carries a value read from one service of the stack to another with no release on the pair | Refuse at validation, naming the value, the service it was read from and the destination. |
+| A pair carries a release where it frees nothing: a credential-store value, an operator's input, an external answer, or a capture going back to its own service | Refuse at validation, naming the pair. A release the operator would weigh for nothing teaches them to stop weighing releases. |
 | A call would carry a value somewhere reading the manifest allowed nothing to go, or outside without the approval of its pair | Refuse at the call, before anything is sent, naming the value, the destination and the step, and end the recipe. Reading the manifest is the first check and the call is the second, so a gap in the first is not a leak. |
 | A demand recipe carries a pair the operator approved at install | It is asked for again. An approval belongs to the act that carried it. |
 | An install recipe fails after a call to an external host landed | The install goes back, and the account names that call as one that cannot be undone from here. |
@@ -222,8 +250,9 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | **F8-R13** | The set of adapters MUST be published rather than discovered. |
 | **F8-R14** | A recipe MUST declare whether it runs on install or on demand, and a recipe declaring neither MUST run on install; an install recipe MUST run during an install and an update, after the plugin's proofs and the stack's checks hold and before the install is recorded, and a failure MUST put the install back and name each call that had already reached somewhere. |
 | **F8-R15** | A demand recipe MUST run only when asked for by name, with its own rehearsal, offer and approvals, and an approval MUST NOT carry over from another act or another run; a demand recipe that fails MUST change no install record and MUST name each call that had already reached somewhere. |
-| **F8-R16** | A value a recipe takes from the credential store for a service, and every value captured by a step whose call carried one or whose guard read one, MUST be carried only to that service, and a pair, a call or a guard carrying or reading one for any other destination MUST fail validation. |
-| **F8-R17** | While a recipe runs, each value it holds MUST carry the destinations it may be sent to, a value holding a credential lemonfiber holds for a service MUST be held to that service however the recipe came by it, and a call carrying a value to any other destination, or to a host outside the stack without the approval of its pair, MUST be refused before it is sent, under a code of its own, ending the recipe. |
+| **F8-R16** | A value a recipe takes from the credential store for a service MUST be held to that service, and every value a recipe captures from the answer of a service in this stack MUST be held to that service by its origin, whatever it holds or was traded for; a pair, a call or a guard carrying or reading a held value for any other destination MUST fail validation, except a capture carried there by a pair carrying a release, and a release on a pair that frees nothing — a credential-store value, an operator's input, an external host's answer, or a capture going back to its own service — MUST fail validation. |
+| **F8-R17** | While a recipe runs, each value it holds MUST carry the destinations it may be sent to: a credential-store value its own service alone, a capture from a service in this stack that service and each destination of a released pair the operator approved in this act, and any other value the destinations its pairs name; a call carrying a value to any other destination, or to a host outside the stack without the approval of its pair, MUST be refused before it is sent, under a code of its own, ending the recipe. |
+| **F8-R18** | A release MUST be written on its `[[recipe.pair]]` as `release`, the sentence saying why the value is carried, and each released pair MUST be shown at install consent, and at every other act that carries it, as the value, the service it was read from, the destination and that sentence, and approved by the operator as itself; it MUST NOT be approved by approving the installation or another pair, and an act with a released pair not approved MUST NOT proceed. |
 
 ## Related
 
