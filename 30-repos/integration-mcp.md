@@ -20,7 +20,7 @@ It runs over stdio on a person's own machine, started straight from this reposit
 
 | | |
 |---|---|
-| **Generated** from `web-api.contract.json`, never edited by hand | A tool and a resource for every served read, a tool for every key-callable action, a rehearsal tool beside each action that can be rehearsed, and each write tool's annotations |
+| **Generated** from the `contract/web-api/` directory, never edited by hand | A tool and a resource for every served read, a tool for every key-callable action, a rehearsal tool beside each action that can be rehearsed, and each write tool's annotations |
 | **Written** | Each tool's description, in plain language and, for a member key, in the household's words; the two transports; configuration |
 
 A generator run that changes anything committed fails CI, and a test fails when a read or a

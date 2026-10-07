@@ -207,7 +207,7 @@ operator will search for.
 ## Notes
 
 **What the contract carries for the rows above.** Checked against the core's
-`contract/web-api.contract.json` and the actions its HTTP route accepts.
+`contract/web-api/` and the actions its HTTP route accepts.
 
 | Row | Carried | Not carried |
 |---|---|---|

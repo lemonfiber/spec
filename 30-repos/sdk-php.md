@@ -32,7 +32,7 @@ The split is the same in every SDK
 | **Generated** into `src/Generated/`, never edited by hand | Response shapes, endpoint paths and parameters, action names, event names, the wire version |
 | **Written**, once, in PHP | The stream's behaviour, the token's placement, the error model's wording |
 
-Everything generated comes from `web-api.contract.json`, which `lemonfiber`
+Everything generated comes from the `contract/web-api/` directory, which `lemonfiber`
 produces from the types that actually serialise the reply (`ARCH-R56`). A
 hand-written response shape here would be a second source of truth for the
 contract, which `ARCH-R58` forbids.
