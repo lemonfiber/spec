@@ -52,7 +52,6 @@ drift). Colour-coded by kind.
 | `good first issue` | help | Small, well-scoped, newcomer-friendly |
 | `help wanted` | help | Maintainers would welcome a contributor |
 | `blocked` | status | Waiting on something else |
-| `release-blocker` | status | Must be resolved before a staged version can release ([staging.md](staging.md), OPS-R44) |
 | `goals-change` | flag | Alters a staged or released version's locked goals; the `goals-change` check refuses such a change without it (OPS-R31) |
 | `scope:next` | triage | Out of the current staged version's scope; routed to the next ([staging.md](staging.md), OPS-R42) |
 | `wontfix` | resolution | Considered and declined |
@@ -72,9 +71,10 @@ cannot be implemented until its spec PR merges.
 
 ## Milestones
 
-Milestones mirror the [roadmap](../00-overview/roadmap.md): `M0` … `M6`. An issue
-or PR is assigned the milestone whose deliverable it serves, so roadmap progress
-is visible without a separate tracker.
+Milestones mirror the versions on the train, one per version, created by
+automation: a pull request citing a version's locked goal is assigned that
+version's milestone (`goal-automations.yml`). The roadmap's `M` milestones are
+what each version serves, and the manifest names which.
 
 ## Issue automation
 
@@ -83,11 +83,11 @@ is visible without a separate tracker.
 | **Templates** | Route by the "does it behave as specced?" question | `.github` (inherited) |
 | **spec-check** | Non-conforming PRs closed with guidance | reusable, in `spec` |
 | **Dependabot** | Groups dependency updates; `spec-check` supplies its `GOV-R12` citation | `.github/dependabot.yml`, per repo |
-| **Stale** | Marks inactive issues/PRs stale, then closes, with a grace period | reusable, in `spec` |
+| **Stale** | Marks inactive issues/PRs stale, then closes, with a grace period | one scheduled sweep in `spec`, over every repository |
 | **DCO check** | Verifies the sign-off on every commit | reusable, in `spec` |
 | **Commit-lint** | Enforces conventional-commit subjects for a clean changelog | reusable, in `spec` |
 | **Auto-labeler** | Labels PRs by changed path | reusable, in `spec` |
-| **Label sync** | Upserts the canonical label set into every repo | reusable, in `spec` |
+| **Label sync** | Upserts the canonical label set into every repo | one scheduled sweep in `spec`, over every repository |
 | **Triage** | Labels new issues `needs-triage` and assigns the covering maintainer | per repo → reusable |
 | **Discord notify** | Release, build-log, and maintainer-queue posts | reusable, in `spec` |
 
@@ -134,8 +134,9 @@ merges or closes.
 | **OPS-R11** | Branch and commit types MUST share the conventional-commit vocabulary. |
 | **OPS-R12** | The same canonical label set MUST exist on every repo, applied by automation rather than by hand. |
 | **OPS-R13** | `spec-change` and `needs-spec` labels MUST exist and MUST reflect the canonical-spec workflow. |
-| **OPS-R14** | Milestones MUST mirror the roadmap. |
+| **OPS-R14** | Milestones MUST mirror the versions on the train, one per version, created by automation. |
 | **OPS-R15** | A stale policy MUST have a generous grace period and an easy reopen path. |
+| **OPS-R84** | The stale policy and the canonical label set MUST be applied to every repository from one scheduled workflow in the specification, not by a schedule in each repository. |
 | **OPS-R21** | PR commit subjects MUST follow the conventional-commit format, enforced by a commit-lint check. |
 | **OPS-R22** | PRs MUST be auto-labelled by changed path. |
 | **OPS-R51** | Each repo MUST ship a pre-commit hook that runs the fast CI-blocking checks locally — formatting, DCO sign-off, conventional-commit subject, a `Spec:` citation, and typo/markdown lint — and MUST NOT duplicate the slow gates (tests, clippy, coverage). |
