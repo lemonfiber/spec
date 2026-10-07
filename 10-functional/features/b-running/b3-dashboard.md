@@ -46,7 +46,7 @@ Ordered by what the operator needs to see first, not by what's easiest to render
 |---------|-------|
 | **Health summary** | One line: everything fine, or *n* things need attention ([G7](../g-ux/g7-health-summary.md)) |
 | **VPN** | Tunnel state, exit IP and country, forwarded port, and whether the download client's egress matches |
-| **Transfers** | Active downloads with name, protocol, progress, speed, ETA |
+| **Transfers** | Active downloads with name, protocol, progress, speed, ETA, and whether each download client is paused |
 | **Queue** | Per-\*arr queue depth, plus anything stuck ([C7](../c-trust/c7-queue-health.md)) |
 | **Storage** | Free space on the data volume and on the services' volume, projected exhaustion, hardlink status |
 | **Services** | Per-service state, grouped by profile |
@@ -58,6 +58,13 @@ the services outright when it fills — often a small system disk the data volum
 for exactly that reason. Each is its own reading: one that could not be read this refresh is
 unknown, never zero, and does not make the other unknown. Where both are one volume, they
 read the same.
+
+Transfers also say, for each download client the stack runs, whether it is paused. A paused
+client shows no active downloads, which reads exactly like a quiet one, and a pause holds until
+somebody resumes it ([D10](../d-content/d10-bandwidth.md)) — so without it a screen showing
+nothing downloading cannot say whether that is because nothing was asked for or because
+somebody stopped it a week ago. Each is what the client read back, and one that could not be
+asked is unknown, never running and never paused.
 
 The VPN row is placed second, above transfers, deliberately: it is the only item
 on the screen with consequences outside the machine.
@@ -137,6 +144,7 @@ question.
 | **B3-R14** | Idle refresh MUST sustain 1 Hz below 2% CPU, and lemonfiber's resident memory SHOULD stay under 50 MB. |
 | **B3-R15** | Durations and ETAs MUST derive from one clock source and MUST never render negative. |
 | **B3-R16** | The dashboard MUST carry the free space on the data volume and on the volume the services' configuration and databases are kept on, each as a reading of its own that is unknown rather than zero where it could not be read. |
+| **B3-R17** | The dashboard MUST carry, for each download client the stack runs, whether it is paused, as the client reads it back, and unknown where it could not be asked. |
 
 ## Related
 
