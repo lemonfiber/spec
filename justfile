@@ -104,6 +104,28 @@ no-stubs version:
     if [ -f "$legacy" ]; then args+=(--status "$legacy"); fi
     python3 scripts/check_no_stubs.py --version {{version}} "${args[@]}"
 
+# Where every goal of a version stands — met, cited and unrecorded, recorded and
+# uncited, claimed by an open pull request, or open — read from the sibling
+# checkouts beside this one (or under `root`) at their origin/main, never their
+# working trees, and every open pull request in them. The state workflow
+# publishes the same for every version as its run's `state` artifact
+# (OPS-R76, OPS-R77).
+goals version="" root="..":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    spec=$(pwd)
+    repos=$(python3 scripts/status_check.py repos --spec .)
+    cd "{{root}}"
+    for r in $repos; do git -C "$r" fetch -q origin; done
+    prs=$(mktemp ./.goals-prs.XXXXXX)
+    trap 'rm -f "$prs"' EXIT
+    bash "$spec/scripts/open_prs.sh" lemonfiber $repos > "$prs"
+    args=()
+    for r in $repos; do args+=(--checkout "$r=$r"); done
+    if [ -n "{{version}}" ]; then args+=(--version "{{version}}"); fi
+    python3 "$spec/scripts/goals.py" --spec "$(python3 -c 'import os,sys;print(os.path.relpath(sys.argv[1]))' "$spec")" \
+      "${args[@]}" --ref origin/main --prs "$prs"
+
 # Regenerate the feature board (index.json, each area's board.json, BOARD.md) from frontmatter + manifests.
 board:
     python3 scripts/gen_board.py
