@@ -317,6 +317,16 @@ class Behaviour(unittest.TestCase):
         self.assertEqual(verdicts["goals--classify"], "skipped")
         self.assertFalse([s for s in there if s.startswith("goals")])
 
+    def test_a_fork_pull_request_starts_no_act(self):
+        said = generated()["jobs"]["act"]["if"]
+        self.assertFalse(decides(said, context(head_repo="someone/core")))
+        self.assertFalse(decides(said, context(head_repo="someone/core"), status="failure"))
+        self.assertTrue(decides(said, context()))
+        self.assertTrue(decides(said, context(), status="failure"))
+        for event in ("merge_group", "push"):
+            self.assertTrue(decides(said, context(event_name=event)), event)
+        self.assertFalse(decides(said, context(), status="cancelled"))
+
     def test_a_checks_job_that_reported_nothing_leaves_every_verdict_empty(self):
         verdicts, _, _ = Runner(checks_outcome="failure").run()
         for check in gen_gates.CHECKS:

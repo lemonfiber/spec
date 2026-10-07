@@ -103,6 +103,14 @@ WRITE = {"contents": "read", "pull-requests": "write", "issues": "write", "check
 #: The condition every step and job that must run after a failure carries.
 UNLESS_CANCELLED = "${{ !cancelled() }}"
 
+#: `act`'s own condition. A fork's pull request is answered by the caller's
+#: per-reusable jobs, so `act` refuses one itself rather than relying on the
+#: caller's condition to keep its write token away from a fork's head.
+ACT_RUNS = (
+    "${{ !cancelled() && !(github.event_name == 'pull_request'"
+    " && github.event.pull_request.head.repo.full_name != github.repository) }}"
+)
+
 #: A step's reference to an earlier step's result.
 STEP_REF = re.compile(r"\bsteps\.([A-Za-z0-9_-]+)\.(outputs|outcome|conclusion)\b(?:\.([A-Za-z0-9_-]+))?")
 
@@ -478,7 +486,8 @@ HEADER = """\
 # an empty workspace, each step only where the steps before it in the same check
 # succeeded. `act` labels, classifies and closes, and publishes every check as a
 # check run with that check's own conclusion. A check that reported nothing is
-# published as failed.
+# published as failed. `act` runs for no pull request from a fork, whatever the
+# caller's condition says.
 """
 
 
@@ -569,7 +578,7 @@ def build() -> str:
     }
     act_job = {
         "needs": "checks",
-        "if": UNLESS_CANCELLED,
+        "if": ACT_RUNS,
         "runs-on": "ubuntu-latest",
         "timeout-minutes": 30,
         "permissions": WRITE,

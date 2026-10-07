@@ -28,7 +28,8 @@
 # an empty workspace, each step only where the steps before it in the same check
 # succeeded. `act` labels, classifies and closes, and publishes every check as a
 # check run with that check's own conclusion. A check that reported nothing is
-# published as failed.
+# published as failed. `act` runs for no pull request from a fork, whatever the
+# caller's condition says.
 name: gates
 on:
   workflow_call:
@@ -1005,7 +1006,7 @@ jobs:
         PY
   act:
     needs: checks
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
