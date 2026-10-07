@@ -286,16 +286,17 @@ jobs:
         printf '### spec-check on a merge group\n\n%s\n' "$said" >> "$GITHUB_STEP_SUMMARY"
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'spec-check / spec-check: The tracker claims only what the spec backs'
+    - name: 'spec-check / spec-check: The tracker claims only what the spec and the tree back'
       id: spec-check--spec-check--9
       if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--7.outcome != 'failure') && (steps.spec-check--spec-check--8.outcome != 'failure') }}
       run: |
+        set -euo pipefail
+        python3 .spec-canonical/scripts/status_check.py check \
+          --spec .spec-canonical --repo-root .
         if [ -f IMPLEMENTATION-STATUS.md ]; then
           python3 .spec-canonical/scripts/status_lint.py \
             --status IMPLEMENTATION-STATUS.md \
             --spec .spec-canonical
-        else
-          echo "no IMPLEMENTATION-STATUS.md here — nothing to check"
         fi
       continue-on-error: true
       timeout-minutes: 10
