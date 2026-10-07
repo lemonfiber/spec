@@ -10,6 +10,11 @@ Two kinds of file are not counted, and the list is written here and nowhere else
 the lockfiles a package manager writes and nobody reads line by line, and the
 images and fonts that are binary or, in an SVG's case, drawn rather than read.
 
+A file a repository's `scripts/generated.py` registers with `sources` is read
+through those sources, so it is held to the cap through them: it passes where every
+source is tracked and within the cap, and is refused naming a source that is not.
+The registry is read as data, never run.
+
 Usage, from the root of the repository being checked::
 
     check_line_cap.py --root .
@@ -20,6 +25,7 @@ tree could not be listed.
 from __future__ import annotations
 
 import argparse
+import ast
 import os
 import pathlib
 import subprocess
@@ -45,6 +51,38 @@ ASSETS = frozenset(
 #: The `git ls-files --stage` modes of what is not a file's own text: a submodule
 #: and a symbolic link. Neither has lines of its own to count.
 NOT_TEXT = frozenset({"160000", "120000"})
+
+
+#: Where a repository registers the files it generates, relative to its root.
+REGISTRY = "scripts/generated.py"
+
+
+def registered(root: pathlib.Path) -> dict[str, tuple[str, ...]]:
+    """Every generated file a repository registers, to the sources it is read through.
+
+    A file registered without sources maps to none, and is counted like any other.
+
+    Read from the registry's syntax rather than by importing it: the check runs
+    over trees it was not written in, and running one of their scripts to learn
+    which of their files to count would run whatever the script does. An entry
+    whose fields are not written as literals registers nothing.
+    """
+    registry = root / REGISTRY
+    if not registry.is_file():
+        return {}
+    held: dict[str, tuple[str, ...]] = {}
+    for node in ast.walk(ast.parse(registry.read_text(encoding="utf-8"))):
+        if not (isinstance(node, ast.Call) and getattr(node.func, "id", None) == "Generated"):
+            continue
+        fields = {}
+        for keyword in node.keywords:
+            try:
+                fields[keyword.arg] = ast.literal_eval(keyword.value)
+            except ValueError:
+                continue
+        sources = tuple(fields.get("sources") or ())
+        held.update(dict.fromkeys(fields.get("paths") or (), sources))
+    return held
 
 
 def exempt(path: str) -> bool:
@@ -92,23 +130,50 @@ def tracked(root: pathlib.Path) -> list[str] | None:
     return paths
 
 
-def over(root: pathlib.Path, paths: list[str]) -> list[tuple[str, int]]:
-    """Every counted path over the cap, with its line count, longest first."""
+def counted(root: pathlib.Path, path: str) -> int | None:
+    """How many lines a tracked path holds, or None where it is not a file here."""
+    target = root / path
+    if not target.is_file():
+        return None
+    return lines_in(target.read_bytes())
+
+
+def over(root: pathlib.Path, paths: list[str]) -> list[tuple[str, int, str]]:
+    """Every counted path over the cap, longest first: the path, its count, and why.
+
+    A registered generated file over the cap is held to its sources: it is named
+    only where a source is missing or is itself over the cap, and the reason says
+    which source.
+    """
     found = []
+    tracked_paths = set(paths)
+    through = registered(root)
     for path in paths:
         if exempt(path):
             continue
-        target = root / path
-        if not target.is_file():
+        count = counted(root, path)
+        if count is None or count <= CAP:
             continue
-        count = lines_in(target.read_bytes())
-        if count > CAP:
-            found.append((path, count))
-    return sorted(found, key=lambda pair: (-pair[1], pair[0]))
+        sources = through.get(path)
+        if not sources:
+            found.append((path, count, ""))
+            continue
+        for source in sources:
+            held = counted(root, source) if source in tracked_paths else None
+            if held is None:
+                found.append((path, count, f"it is generated from {source}, which is not a tracked file"))
+            elif held > CAP:
+                found.append((path, count, f"it is generated from {source}, which is {held} lines"))
+    return sorted(found, key=lambda one: (-one[1], one[0], one[2]))
 
 
-def refusal(path: str, count: int) -> str:
+def refusal(path: str, count: int, why: str = "") -> str:
     """What one file over the cap is told."""
+    if why:
+        return (
+            f"{path} is {count} lines, over the cap of {CAP}, and is held to its sources: "
+            f"{why}. Split the source."
+        )
     return (
         f"{path} is {count} lines, over the cap of {CAP}. Split it by what it holds; "
         f"a generated file is split where it is generated."
@@ -133,10 +198,11 @@ def main(argv: list[str] | None = None, out=sys.stdout) -> int:
         return 1
 
     found = over(args.root, paths)
-    for path, count in found:
-        print(f"::error file={path}::{refusal(path, count)}", file=out)
+    for path, count, why in found:
+        print(f"::error file={path}::{refusal(path, count, why)}", file=out)
     if found:
-        print(f"{len(found)} of {len(paths)} tracked file(s) are over {CAP} lines.", file=out)
+        named = len({path for path, _, _ in found})
+        print(f"{named} of {len(paths)} tracked file(s) are over {CAP} lines.", file=out)
         return 1
     print(f"{len(paths)} tracked file(s), none over {CAP} lines.", file=out)
     return 0

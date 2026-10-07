@@ -165,6 +165,96 @@ class ATree(unittest.TestCase):
         self.assertEqual(code, 0, said)
 
 
+class AGeneratedFile(ATree):
+    """A file the repository's registry says is generated, and from what."""
+
+    def register(self, path: str, sources: str, *, literal: bool = True) -> None:
+        value = sources if literal else "SOURCES"
+        registry = self.root / "scripts" / "generated.py"
+        registry.parent.mkdir(parents=True, exist_ok=True)
+        registry.write_text(
+            f"SOURCES = {sources}\n"
+            "GENERATED = (\n"
+            "    Generated(\n"
+            '        generator="scripts/gen.py",\n'
+            f'        paths=("{path}",),\n'
+            f"        sources={value},\n"
+            "    ),\n"
+            ")\n",
+            encoding="utf-8",
+        )
+        git(self.root, "add", "scripts/generated.py")
+
+    def test_one_whose_sources_are_within_the_cap_passes(self):
+        self.put("gates.yml", cap.CAP + 50)
+        self.put("parts/a.yml", 400)
+        self.put("parts/b.yml", 600)
+        self.register("gates.yml", '("parts/a.yml", "parts/b.yml")')
+
+        code, said = self.run_check()
+
+        self.assertEqual(code, 0, said)
+
+    def test_one_whose_source_is_over_the_cap_is_refused_naming_the_source(self):
+        self.put("gates.yml", cap.CAP + 50)
+        self.put("parts/a.yml", 400)
+        self.put("parts/b.yml", cap.CAP + 2)
+        self.register("gates.yml", '("parts/a.yml", "parts/b.yml")')
+
+        code, said = self.run_check()
+
+        self.assertEqual(code, 1, said)
+        self.assertIn(
+            "gates.yml is 1050 lines, over the cap of 1000, and is held to its sources: "
+            "it is generated from parts/b.yml, which is 1002 lines.",
+            said,
+        )
+        self.assertNotIn("parts/a.yml", said)
+        self.assertIn("parts/b.yml is 1002 lines", said)
+        self.assertIn("2 of 4 tracked file(s) are over 1000 lines.", said)
+
+    def test_one_whose_source_is_not_tracked_is_refused_naming_the_source(self):
+        self.put("gates.yml", cap.CAP + 50)
+        self.put("parts/a.yml", 400, tracked=False)
+        self.register("gates.yml", '("parts/a.yml",)')
+
+        code, said = self.run_check()
+
+        self.assertEqual(code, 1, said)
+        self.assertIn("it is generated from parts/a.yml, which is not a tracked file", said)
+
+    def test_one_registered_without_sources_is_counted(self):
+        self.put("board.json", cap.CAP + 1)
+        self.register("board.json", "()")
+
+        code, said = self.run_check()
+
+        self.assertEqual(code, 1, said)
+        self.assertIn("board.json is 1001 lines, over the cap of 1000. Split it", said)
+
+    def test_an_unregistered_file_over_the_cap_is_still_refused(self):
+        self.put("gates.yml", cap.CAP + 50)
+        self.put("parts/a.yml", 400)
+        self.put("other.yml", cap.CAP + 1)
+        self.register("gates.yml", '("parts/a.yml",)')
+
+        code, said = self.run_check()
+
+        self.assertEqual(code, 1, said)
+        self.assertIn("other.yml is 1001 lines", said)
+        self.assertNotIn("gates.yml", said)
+
+    def test_sources_not_written_as_a_literal_register_nothing(self):
+        self.put("gates.yml", cap.CAP + 50)
+        self.put("parts/a.yml", 400)
+        self.register("gates.yml", '("parts/a.yml",)', literal=False)
+
+        code, said = self.run_check()
+
+        self.assertEqual(code, 1, said)
+        self.assertIn("gates.yml is 1050 lines, over the cap of 1000. Split it", said)
+
+
 class Counting(unittest.TestCase):
     def test_a_last_line_without_a_newline_is_a_line(self):
         self.assertEqual(cap.lines_in(b"a\nb"), 2)

@@ -63,6 +63,12 @@ class Generated:
     the repository root. A feature area gains a board file that no list names, so
     the files are found by their shape rather than written out."""
 
+    sources: tuple[str, ...] = ()
+    """The files it is generated from, relative to the repository root, where the
+    generated file is read through them rather than on its own. The line cap holds
+    such a file to its sources instead of counting it (Q-R81); empty, it is counted
+    like any other file."""
+
     def every(self) -> list[str]:
         """Every file it writes as the tree stands: the listed ones, then the found."""
         found = sorted(
