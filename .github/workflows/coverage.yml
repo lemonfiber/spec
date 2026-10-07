@@ -87,6 +87,9 @@ jobs:
           coverage run --append scripts/test_generated.py
           coverage run --append scripts/test_check_required.py
           coverage run --append scripts/test_goals_change.py
+          coverage run --append scripts/test_workflow_expression.py
+          coverage run --append scripts/test_job_conditions.py
+          coverage run --append scripts/test_gen_gates.py
           coverage run --append scripts/test_line_cap.py
           coverage report --fail-under=100
       # Not a coverage suite: it reads `.coveragerc` against the directories it
