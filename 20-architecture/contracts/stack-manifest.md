@@ -32,7 +32,9 @@ guarantee quietly stops being true.
 
 ## File location
 
-`stack.toml`, at the root of a stack directory, beside `compose.yml`.
+`stack.toml`, at the root of a stack directory, beside `compose.yml`. Each service
+is declared in a file of its own, `services/<id>.toml`, and `stack.toml` names
+every one of those files in its `include` list.
 
 ## Top-level structure
 
@@ -40,12 +42,53 @@ guarantee quietly stops being true.
 schema_version = 1
 stack_version  = "1.0.0"
 min_cli_version = "0.4.0"
+include = ["services/sonarr.toml", "services/radarr.toml"]  # one per service
 
 [[profile]]  # 12 of these
 [[form]]     # 11 of these
-[[service]]  # 19 of these
-[[wiring]]   # one per link between two of them
+[[wiring]]   # one per link between two services
+[[removed]]  # one per service the catalogue no longer carries
 ```
+
+Each file `include` names holds one `[[service]]`, with its `[[service.claim]]`
+tables, and nothing else:
+
+```toml
+# services/sonarr.toml
+[[service]]
+id = "sonarr"
+# …
+```
+
+## `include` — where each service is
+
+The manifest is a root and a file per service, so that no file grows with the stack
+and a service's whole description is read in one place. The root keeps what is about
+more than one service — the profiles, the forms, the wiring between services and the
+services the catalogue no longer carries — and `include` names each service's file,
+in the order the manifest lists the services.
+
+Membership is the list, never the directory. A file is part of the stack because
+`include` names it, so a file left in `services/` that nothing names is refused rather
+than read: a directory listing that decided membership would make a stray or a
+half-deleted file a service.
+
+The rules, each refused by name, every violation in one pass (`F1-R9`, `ARCH-R171`):
+
+- An entry is a path relative to the stack root, of the form `services/<id>.toml`.
+  Anything else — another directory, another extension, a `..` — names the entry.
+- An entry names a file that exists. A missing one names the entry.
+- No entry appears twice.
+- Every `.toml` file in `services/` is named by an entry. One that is not names the
+  file.
+- A service file holds exactly one `[[service]]`, whose `id` is the `<id>` its file is
+  named for, and no other top-level key. A file holding none, two, a mismatched `id`
+  or a `[[profile]]` names the file and what it holds.
+- `stack.toml` itself holds no `[[service]]`.
+
+The format changes in place at `schema_version = 1`, because no release candidate has
+shipped ([versioning](versioning.md#before-the-first-release-candidate)): the stack is
+embedded, and the build refuses a stack its parser cannot read.
 
 ## `schema_version`
 
@@ -515,6 +558,10 @@ Validation reports **every** violation in one pass, each naming its location
 | Rule | Failure |
 |------|---------|
 | `schema_version` supported | Both versions named |
+| Every `include` entry is `services/<id>.toml`, names a file that exists, and appears once | Entry named (`ARCH-R171`) |
+| Every `.toml` file in `services/` is named by `include` | File named (`ARCH-R171`) |
+| A service file holds one `[[service]]` whose `id` matches its file name, and nothing else | File and what it holds named (`ARCH-R171`) |
+| `stack.toml` holds no `[[service]]` | Each one named (`ARCH-R171`) |
 | Every `id` unique within its kind | Duplicate named |
 | Every `service.profile` references a declared profile | Both named |
 | Every `form.profiles` entry references a declared profile | Both named |
@@ -556,13 +603,21 @@ one, and it fails in confusing ways at runtime.
 
 ## Worked example
 
-The real stack, abridged to one service per profile. The full file lives in
+The real stack, abridged to one service per profile. The root comes first and each
+service file follows it, headed by its path. The full stack lives in
 `lemonfiber-media-stack`.
 
 ```toml
 schema_version  = 1
 stack_version   = "1.0.0"
 min_cli_version = "0.4.0"
+include = [
+  "services/prowlarr.toml",
+  "services/gluetun.toml",
+  "services/qbittorrent.toml",
+  "services/sonarr.toml",
+  "services/seerr.toml",
+]
 
 # ── Profiles ────────────────────────────────────────────────
 [[profile]]
@@ -633,7 +688,19 @@ profiles = ["proxy"]
 
 # … movies, music, books, auto, full
 
-# ── Services ────────────────────────────────────────────────
+# ── Wiring ──────────────────────────────────────────────────
+[[wiring]]
+by   = "seerr"
+asks = "identity.source"
+
+[[wiring]]
+by  = "qbittorrent"
+to  = "gluetun"
+why = "It has no network namespace of its own — it is inside this one container's."
+```
+
+```toml
+# services/prowlarr.toml
 [[service]]
 id = "prowlarr"
 name = "Prowlarr"
@@ -649,7 +716,10 @@ license = "GPL-3.0-only"
 upstream = "https://github.com/Prowlarr/Prowlarr"
 describes = "Holds your indexer accounts in one place and shares them with everything else"
 without_it = "Every app needs indexers configured separately"
+```
 
+```toml
+# services/gluetun.toml
 [[service]]
 id = "gluetun"
 name = "Gluetun"
@@ -663,7 +733,10 @@ upstream = "https://github.com/qdm12/gluetun"
 describes = "Routes torrent traffic through your VPN and blocks it if the VPN drops"
 without_it = "Your home IP is visible to every peer"
 grants = ["NET_ADMIN"]
+```
 
+```toml
+# services/qbittorrent.toml
 [[service]]
 id = "qbittorrent"
 name = "qBittorrent"
@@ -680,7 +753,10 @@ upstream = "https://github.com/qbittorrent/qBittorrent"
 describes = "Downloads torrents"
 without_it = "No torrent downloads"
 depends_on = ["gluetun"]
+```
 
+```toml
+# services/sonarr.toml
 [[service]]
 id = "sonarr"
 name = "Sonarr"
@@ -697,7 +773,10 @@ upstream = "https://github.com/Sonarr/Sonarr"
 describes = "Watches for new episodes and fetches them"
 without_it = "Find and download episodes yourself"
 media_types = ["tv"]
+```
 
+```toml
+# services/seerr.toml
 [[service]]
 id = "seerr"
 name = "Seerr"
@@ -713,21 +792,11 @@ license = "MIT"
 upstream = "https://github.com/seerr-team/seerr"
 describes = "Where the household asks for things"
 without_it = "Requests come to you in person"
-
-# ── Wiring ──────────────────────────────────────────────────
-[[wiring]]
-by   = "seerr"
-asks = "identity.source"
-
-[[wiring]]
-by  = "qbittorrent"
-to  = "gluetun"
-why = "It has no network namespace of its own — it is inside this one container's."
 ```
 
 Note `qbittorrent.depends_on = ["gluetun"]` — legal because both are in
 `torrent`, and the single permitted cross-service dependency in the stack
-(`B1-R14`). It is also a by-name wiring, and the `[[wiring]]` entry above is
+(`B1-R14`). It is also a by-name wiring, and the `[[wiring]]` entry in the root is
 where it says so.
 
 Note `seerr.bind = "lan"` against everything else's `loopback` — the two-tier
@@ -736,6 +805,12 @@ policy expressed as data rather than as a rule someone has to remember.
 ## Compatibility
 
 See [versioning](versioning.md).
+
+## Requirements
+
+| ID | Requirement |
+|----|-------------|
+| **ARCH-R171** | A stack manifest MUST declare each service in a file of its own, `services/<id>.toml`, named by the root manifest's `include` list, which alone decides membership. lemonfiber MUST refuse, naming it, an entry that is not of that form, names no file, or appears twice; a file in `services/` no entry names; a service file holding anything but one `[[service]]` whose `id` matches its name; and a `[[service]]` in the root manifest. |
 
 ## Related
 
