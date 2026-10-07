@@ -77,6 +77,21 @@ Decisions about a repository outside this organisation, such as
 | Each generation of the report is published where it stays fetchable, as a workflow artifact or release asset, with the revisions it read recorded in it; nothing is committed hourly; the documentation site vendors a copy of `state.json` with its provenance, and its format is held stable and documented | spec#657 |
 | An agent checks CI on every pull request it owns while it waits on any one, and fixes reds at once | [GOV-R53](working-in-the-repositories.md) |
 | The forge is read through REST only, a pull request's checks at most every ten minutes; the spec, the binary and `sdk-php` no longer require a pull request to be up to date, so a branch is rebased only on a real conflict | [GOV-R52, GOV-R54](working-in-the-repositories.md) |
+| The roadmap, the board, the repositories, the work in flight, the releases and the proposals are on `lemonfiber.app`, rendered from the report's snapshot; the documentation site renders no project status. This replaces the rows above that had the documentation site's roadmap read the report and vendor `state.json`: `IMPLEMENTATION-STATUS.md` goes once the frontpage reads the snapshot and the documentation site no longer mirrors it | [REPO-R39, REPO-R64](../30-repos/website-lemonfiber.md), [REPO-R68](../30-repos/website-docs.md) |
+| The changelog is published at `lemonfiber.app/releases/`, from the core's changelog JSON | [REPO-R64](../30-repos/website-lemonfiber.md) |
+| The snapshot is published as the assets of a rolling `board` release in `spec`, replaced on each run, and as the run's artifact; it is a new `board.json` beside `state.json`, whose `format: 1` is unchanged | [OPS-R80, OPS-R81](../70-operations/board-format.md) |
+| A repository the report cannot read is listed under `unread`, its goals read `unknown`, and the report still publishes; the release gate still refuses | [OPS-R76](../70-operations/staging.md) |
+| The report runs when a manifest, the catalogue or a tracker changes on a default branch and when a release is published, and hourly | [OPS-R82](../70-operations/board-format.md) |
+| Where the snapshot cannot be read, the frontpage's build fails and the previous deployment stays live; no committed copy stands in | [REPO-R40](../30-repos/website-lemonfiber.md) |
+| The board's interactive parts are a framework island (Preact or Svelte), bundled with the site | [REPO-R65](../30-repos/website-lemonfiber.md) |
+| The website helps a contributor compose a change and never creates anything itself: its forms build the change, and submitting opens GitHub prefilled under the person's own account, where they open the pull request, or the issue that becomes one; no bot or server acts on their behalf | This row; the requirement is not yet written |
+| A proposal or a gap enters as a pull request adding a Draft proposal with no identifier, and identifiers are allocated when a maintainer approves it; the RFC issue form stays an optional entry a maintainer converts | This row; the requirement is not yet written |
+| A claim made with the developer command line opens with an empty signed commit carrying `Spec:` and a sign-off; a claim made from the website adds the repository's `status.toml` row as `open` | This row; the requirement is not yet written |
+| A repository holds at most three open pull requests opened by people and agents, the organisation's bots not counted; the command line refuses a fourth claim, a bot comments, and the board flags the repository | This row; the requirement is not yet written |
+| The release train's tracker and planning issues are retired: the board's version page replaces the tracker, and a release blocker is a list in the manifest | This row; the requirement is not yet written |
+| Contributor material moves to a site of its own, apart from the documentation site | This row; the requirement is not yet written |
+| The specification is rendered on `lemonfiber.app`, not on the documentation site | This row; the requirement and the ADR superseding ADR-0015 on it are not yet written |
+| The documentation site stays on Astro Starlight, extended | This row |
 
 ## Requirements
 

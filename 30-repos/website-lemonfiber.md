@@ -3,8 +3,10 @@
 **Status:** Proposed
 
 The public frontpage at the root of the org. Astro, static, Hippocratic 3.0.
-Its roadmap and status are **not authored here** — they are read from the org at
-build time.
+It is the project's home: the pitch, the roadmap, the board of features and
+requirements, the repositories, the work in flight, the releases and the
+proposals. None of that is **authored here** — it is read from the org at build
+time.
 
 **Implements:** the org's public presence and the *build-in-the-open* commitment
 of [governance](../50-governance/); consumes [`brand`](brand.md)
@@ -23,41 +25,60 @@ what each repo owns.
 
 ## The one property to remember
 
-**The org is the motor.** A maintainer never edits this repo to move a milestone,
-mark a deliverable done, or list a release. Those facts live where they are
-already kept current — the GitHub API, and two files under governance's existing
-discipline:
+**The org is the motor.** A maintainer never edits this repo to release a version,
+mark a requirement built, or list a pull request. Those facts live in the
+repositories that own them, and the specification's report joins them into one
+[snapshot of where every version stands](../70-operations/staging.md#where-every-version-stands):
+the version manifests, the catalogue of features and requirements, every
+repository's tracker, every open pull request and what it cites, and the
+releases, each with the revision it was read at.
 
-- [`lemonfiber/IMPLEMENTATION-STATUS.md`](https://github.com/lemonfiber/lemonfiber/blob/main/IMPLEMENTATION-STATUS.md)
-  — the milestones and per-deliverable status (✅ / ◐ / ☐)
-- [`10-functional/features/index.json`](../10-functional/features/index.json) — the
-  specification's generated counts
+The site reads that snapshot at build time and renders it; it computes nothing
+but sorting, filtering and counting what the snapshot holds. When a fact changes
+in the repository that owns it, the report publishes a new snapshot, the site
+rebuilds, and the page moves. Every fact it shows links to the file in git that
+owns it, so a reader can check it and a contributor can change it there.
 
-The site reads them at build time and renders them. When a maintainer pushes to
-the repo that owns a fact, CI rebuilds and the site moves. This is what makes the
-page trustworthy: it cannot quietly drift from reality, because it holds no copy
-of reality to drift from.
+Where the snapshot cannot be read, the build fails and the published site stays
+as it was. A committed copy of the snapshot would be a second record of the same
+facts, and it would go stale the first time nobody regenerated it.
+
+## Views
+
+| Route | Answers |
+|---|---|
+| `/roadmap/`, `/roadmap/<version>/` | every version in train order, its status and the verdict on each of its goals |
+| `/board/` | the features by maturity: planned, building, built, shipped |
+| `/features/<id>/` | one feature and every requirement it defines, with the verdict, evidence, citations and claims for each |
+| `/repos/`, `/repos/<name>/` | what each repository has built, its tracker and its open pull requests |
+| `/in-flight/` | every open pull request in the org and what it cites |
+| `/pick/` | the goals of the version in flight and the next that nobody has claimed |
+| `/releases/`, `/releases/<version>/` | what each release delivered, from the core's changelog |
+| `/proposals/` | Draft features and requirements, open proposal pull requests and open `rfc` issues |
+
+Every view is a page that works without script, and a filter is part of its
+address, so a filtered view is a link. An interactive part is a framework island
+bundled with the site and served from it.
 
 ## What's in it
 
 ```
 website-lemonfiber.app/
-├── src/lib/github.ts   the motor — build-time fetch + Markdown parse
-├── src/data/seed.ts    committed fallback snapshot (never truth when live)
+├── src/lib/            the readers — the snapshot, and the GitHub API for what it does not hold
 ├── src/data/site.ts    site metadata, tagline and promises; the service / profile / form model
 ├── src/i18n/           the rest of the site's copy
 ├── src/components/      Nav · Footer · Console · FormsSwitcher · RepoCard · …
-├── src/pages/           index · transparency · contribute · 404
+├── src/pages/           index · the views above · transparency · contribute · 404
 └── src/styles/tokens.css  design tokens mirrored from brand
 ```
 
 ## How it stays fresh
 
-Deployed to GitHub Pages by CI. The deploy workflow rebuilds on a daily schedule
-and on a `repository_dispatch` (`rebuild-site`) that sibling repos fire after a
-push or release — so a change to the roadmap propagates without anyone touching
-this repo. If GitHub is unreachable during a build, the committed seed keeps the
-build green and live data overrides it on the next successful run.
+Deployed to GitHub Pages by CI. The deploy workflow rebuilds when the
+specification's report publishes a snapshot whose content changed, which it
+announces with a `repository_dispatch` (`rebuild-site`), and on a schedule as the
+backstop. Every view states when the snapshot was generated, so a reader can see
+how old it is.
 
 ## Maintenance
 
@@ -71,16 +92,22 @@ CI reuses the shared workflows (`spec-check`, `hygiene`, `security`, `dco`,
 
 | ID | Requirement |
 |----|-------------|
-| **REPO-R39** | The roadmap, progress and repository state the site shows MUST be derived at build time from the org — the GitHub API and the canonical Markdown (`00-overview/roadmap.md`, `lemonfiber/IMPLEMENTATION-STATUS.md`) — never transcribed into this repo. |
-| **REPO-R40** | Every remote fetch MUST fall back to a committed snapshot so a build succeeds offline or rate-limited; live data MUST override the snapshot whenever it is reachable. |
+| **REPO-R39** | The roadmap, the board, progress and repository state the site shows MUST be rendered at build time from the snapshot of where every version stands that the specification publishes, never transcribed into this repo. |
+| **REPO-R40** | Where the snapshot cannot be read, or names a `format` the site does not know, the build MUST fail and the published site MUST stay as it was; no committed copy of what the snapshot holds MAY stand in for it. A read of the GitHub API for a fact the snapshot does not hold MAY fall back to a committed snapshot. |
 | **REPO-R41** | Visual tokens — colour, type, spacing — MUST mirror [`brand`](brand.md); the site MUST NOT define an independent palette or type scale. |
 | **REPO-R42** | The site MUST be static and MUST load no third-party fonts, scripts or trackers at runtime. |
 | **REPO-R43** | Presentation logic MUST NOT live in the data layer; the motor returns data and components render it. |
-| **REPO-R44** | Deployment MUST rebuild on sibling-repo events (a `repository_dispatch`) and on a schedule, so the site tracks the org without a maintainer editing it. |
+| **REPO-R44** | Deployment MUST rebuild when the specification reports a snapshot whose content changed, and on a schedule, so the site tracks the org without a maintainer editing it. |
+| **REPO-R64** | The site MUST publish the roadmap, the board, a page per feature with its requirements, a page per repository, the open pull requests, the unclaimed goals, the releases and the proposals, and each MUST state when the snapshot it renders was generated and the revisions it was read at. |
+| **REPO-R65** | Every view MUST be usable without script, and every filter MUST be expressed in the address so that a filtered view can be linked; script MUST be bundled with the site and served from it. |
+| **REPO-R66** | Every fact the site renders from the snapshot MUST link to the file in git that owns it. |
+| **REPO-R67** | The site MUST meet WCAG 2.1 AA in both themes, checked by an automated sweep on every pull request. |
 
 ## Related
 
 - [ADR-0004 Four-repo split](../00-overview/decisions/0004-four-repo-split.md)
 - [brand](brand.md) — the tokens the site consumes
-- [roadmap](../00-overview/roadmap.md) — the milestones it renders
+- [roadmap](../00-overview/roadmap.md) — the milestones the versions serve
+- [where every version stands](../70-operations/staging.md#where-every-version-stands) — the report whose snapshot it renders
+- [website-docs.lemonfiber.app](website-docs.md) — the documentation, which renders no project status
 - [50-governance](../50-governance/) — the transparency commitment it serves
