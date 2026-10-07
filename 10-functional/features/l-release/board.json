@@ -1,0 +1,64 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "area": "L",
+  "features": [
+    {
+      "id": "L1",
+      "title": "v1 release engineering",
+      "area": "L",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M6"],
+      "milestone": "M6",
+      "priority": "P1",
+      "labels": ["release", "cli", "verification"],
+      "requires": [],
+      "relates": [],
+      "versions": [
+        {"version": "1.0.0", "status": "planned"}
+      ],
+      "path": "l-release/l1-release-engineering.md"
+    },
+    {
+      "id": "L2",
+      "title": "v2 release",
+      "area": "L",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "withdrawn",
+      "maturity": "withdrawn",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P1",
+      "labels": ["release", "verification"],
+      "requires": [],
+      "relates": [],
+      "versions": [],
+      "path": "l-release/l2-v2-release.md"
+    },
+    {
+      "id": "L3",
+      "title": "The image for a NAS",
+      "area": "L",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "built",
+      "shipped": null,
+      "milestones": ["M14"],
+      "milestone": "M14",
+      "priority": null,
+      "labels": ["release"],
+      "requires": [],
+      "relates": ["L1", "C6", "E2"],
+      "versions": [
+        {"version": "0.18.0", "status": "planned"}
+      ],
+      "path": "l-release/l3-nas-image.md"
+    }
+  ]
+}

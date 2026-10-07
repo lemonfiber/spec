@@ -140,7 +140,7 @@ runs:
         # One commit per file, collapsed by the squash merge. The contents API
         # writes one path at a time; a file the generators left unchanged is
         # skipped, so an unchanged board does not produce an empty commit.
-        for path in "$man" 00-overview/roadmap.md 10-functional/features/index.json; do
+        for path in "$man" 00-overview/roadmap.md 10-functional/features/index.json 10-functional/features/*/board.json; do
           remote=$(gh api "repos/${OWNER}/spec/contents/${path}?ref=${branch}" --jq '.content' | tr -d '\n')
           local=$(base64 < "$path" | tr -d '\n')
           [ "$remote" = "$local" ] && { echo "${path} is unchanged."; continue; }

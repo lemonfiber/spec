@@ -96,7 +96,7 @@ check-meta:
 no-stubs version status="checkouts/lemonfiber/IMPLEMENTATION-STATUS.md":
     python3 scripts/check_no_stubs.py --version {{version}} --status {{status}}
 
-# Regenerate the feature board (index.json + BOARD.md) from frontmatter + manifests.
+# Regenerate the feature board (index.json, each area's board.json, BOARD.md) from frontmatter + manifests.
 board:
     python3 scripts/gen_board.py
 

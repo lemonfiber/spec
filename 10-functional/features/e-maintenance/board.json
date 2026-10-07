@@ -1,0 +1,109 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "area": "E",
+  "features": [
+    {
+      "id": "E1",
+      "title": "Stack updates",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "built",
+      "shipped": null,
+      "milestones": ["M9", "M14"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["updates"],
+      "requires": [],
+      "relates": ["A5", "C9", "E2", "E3", "E4"],
+      "versions": [
+        {"version": "0.14.0", "status": "released"},
+        {"version": "0.17.0", "status": "releasable"}
+      ],
+      "path": "e-maintenance/e1-stack-updates.md"
+    },
+    {
+      "id": "E2",
+      "title": "Self-update",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "built",
+      "shipped": null,
+      "milestones": ["M9"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["updates"],
+      "requires": [],
+      "relates": ["C4", "E1", "G8"],
+      "versions": [
+        {"version": "0.14.0", "status": "released"}
+      ],
+      "path": "e-maintenance/e2-self-update.md"
+    },
+    {
+      "id": "E3",
+      "title": "Backup & restore",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "built",
+      "shipped": null,
+      "milestones": ["M4", "M9", "M14"],
+      "milestone": "M4",
+      "priority": null,
+      "labels": ["storage", "updates"],
+      "requires": [],
+      "relates": ["A5", "A6", "A7", "E1", "E4"],
+      "versions": [
+        {"version": "0.14.0", "status": "released"},
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.3.0", "status": "released"}
+      ],
+      "path": "e-maintenance/e3-backup-restore.md"
+    },
+    {
+      "id": "E4",
+      "title": "Rollback",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "built",
+      "shipped": null,
+      "milestones": ["M9"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["updates"],
+      "requires": [],
+      "relates": ["A4", "C3", "C9", "E1", "E3"],
+      "versions": [
+        {"version": "0.14.0", "status": "released"}
+      ],
+      "path": "e-maintenance/e4-rollback.md"
+    },
+    {
+      "id": "E5",
+      "title": "Changelog & release notes",
+      "area": "E",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "built",
+      "shipped": null,
+      "milestones": ["M9"],
+      "milestone": "M9",
+      "priority": "P2",
+      "labels": ["updates", "verification"],
+      "requires": [],
+      "relates": ["E1", "E2"],
+      "versions": [
+        {"version": "0.14.0", "status": "released"}
+      ],
+      "path": "e-maintenance/e5-changelog.md"
+    }
+  ]
+}

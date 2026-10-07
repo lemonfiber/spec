@@ -1,0 +1,166 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "area": "H",
+  "features": [
+    {
+      "id": "H1",
+      "title": "Cross-seeding",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M11"],
+      "milestone": "M11",
+      "priority": "P1",
+      "labels": ["seed", "storage", "wiring", "verification"],
+      "requires": [],
+      "relates": ["C5", "D1"],
+      "versions": [
+        {"version": "0.20.0", "status": "planned"}
+      ],
+      "path": "h-glue/h1-cross-seed.md"
+    },
+    {
+      "id": "H2",
+      "title": "Announce-driven grabbing",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M11"],
+      "milestone": "M11",
+      "priority": "P1",
+      "labels": ["wiring", "queue", "verification", "notifications"],
+      "requires": [],
+      "relates": ["D1", "C7"],
+      "versions": [
+        {"version": "0.20.0", "status": "planned"}
+      ],
+      "path": "h-glue/h2-autobrr.md"
+    },
+    {
+      "id": "H3",
+      "title": "Quality-profile sync",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M11"],
+      "milestone": "M11",
+      "priority": "P1",
+      "labels": ["quality", "wiring", "verification", "stats"],
+      "requires": [],
+      "relates": ["D2"],
+      "versions": [
+        {"version": "0.20.0", "status": "planned"}
+      ],
+      "path": "h-glue/h3-quality-sync.md"
+    },
+    {
+      "id": "H4",
+      "title": "Subtitles",
+      "area": "H",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M11"],
+      "milestone": "M11",
+      "priority": "P1",
+      "labels": ["subtitles", "wiring", "verification", "quality"],
+      "requires": [],
+      "relates": ["D1"],
+      "versions": [
+        {"version": "0.20.0", "status": "planned"}
+      ],
+      "path": "h-glue/h4-subtitles.md"
+    },
+    {
+      "id": "H5",
+      "title": "Queue self-healing",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M11"],
+      "milestone": "M11",
+      "priority": "P2",
+      "labels": ["queue", "verification", "wiring"],
+      "requires": [],
+      "relates": ["C7"],
+      "versions": [
+        {"version": "0.21.0", "status": "planned"}
+      ],
+      "path": "h-glue/h5-queue-selfheal.md"
+    },
+    {
+      "id": "H6",
+      "title": "Library cleanup",
+      "area": "H",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M11"],
+      "milestone": "M11",
+      "priority": "P2",
+      "labels": ["storage", "verification", "wiring"],
+      "requires": [],
+      "relates": ["D5"],
+      "versions": [
+        {"version": "0.21.0", "status": "planned"}
+      ],
+      "path": "h-glue/h6-library-cleanup.md"
+    },
+    {
+      "id": "H7",
+      "title": "Transcoding",
+      "area": "H",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M11"],
+      "milestone": "M11",
+      "priority": "P3",
+      "labels": ["transcoding", "quality", "verification", "wiring"],
+      "requires": [],
+      "relates": ["C5"],
+      "versions": [
+        {"version": "0.21.0", "status": "planned"}
+      ],
+      "path": "h-glue/h7-transcoding.md"
+    },
+    {
+      "id": "H8",
+      "title": "Playback statistics",
+      "area": "H",
+      "audience": "both",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M11"],
+      "milestone": "M11",
+      "priority": "P3",
+      "labels": ["stats", "verification", "wiring"],
+      "requires": [],
+      "relates": ["D6", "G8"],
+      "versions": [
+        {"version": "0.21.0", "status": "planned"}
+      ],
+      "path": "h-glue/h8-stats.md"
+    }
+  ]
+}

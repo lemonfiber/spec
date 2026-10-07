@@ -58,6 +58,20 @@ class Generated:
     owns: str
     """The region of each file it writes, for a file it does not write whole."""
 
+    patterns: tuple[str, ...] = ()
+    """Globs for the files it writes one of per something that grows, relative to
+    the repository root. A feature area gains a board file that no list names, so
+    the files are found by their shape rather than written out."""
+
+    def every(self) -> list[str]:
+        """Every file it writes as the tree stands: the listed ones, then the found."""
+        found = sorted(
+            path.relative_to(ROOT).as_posix()
+            for pattern in self.patterns
+            for path in ROOT.glob(pattern)
+        )
+        return [*self.paths, *found]
+
 
 # Every file in this repository that a script writes. `gen_redirects.py` is not
 # here: it writes a site into a build directory rather than a file in the tree,
@@ -76,7 +90,8 @@ GENERATED = (
             "10-functional/features/index.json",
             "10-functional/features/BOARD.md",
         ),
-        owns="the whole of both files",
+        owns="the whole of every file",
+        patterns=("10-functional/features/*/board.json",),
     ),
     Generated(
         generator="scripts/gen_repos.py",
@@ -103,7 +118,7 @@ BANNER_LINES = 12
 def owner_of(path: str) -> Generated | None:
     """The generator that writes one path, or None where nothing does."""
     for entry in GENERATED:
-        if path in entry.paths:
+        if path in entry.every():
             return entry
     return None
 
@@ -139,7 +154,7 @@ def unbannered(entry: Generated) -> list[str]:
     which is the same fact in the only form JSON has for it.
     """
     missing = []
-    for path in entry.paths:
+    for path in entry.every():
         head = (ROOT / path).read_text(encoding="utf-8").splitlines()[:BANNER_LINES]
         if not any(entry.generator in line for line in head):
             missing.append(path)
@@ -189,7 +204,7 @@ def banners(out) -> int:
     if refused:
         return 1
 
-    counted = sum(len(entry.paths) for entry in GENERATED)
+    counted = sum(len(entry.every()) for entry in GENERATED)
     print(f"{counted} generated file(s) name the generator that writes them")
     return 0
 
@@ -206,15 +221,20 @@ def _git(*args: str) -> subprocess.CompletedProcess[str]:
 def moved(paths: list[str]) -> list[str] | None:
     """Which of `paths` differ from what is committed, or None if git could not say.
 
+    A path git does not track differs too: a generator that wrote a file nobody
+    committed has written something the committed tree does not hold.
+
     A comparison that did not happen is not a comparison that found nothing. The
     caller refuses on `None` rather than reporting a clean tree, because a git
     that cannot answer and a tree that matches look identical from the exit code
     of the thing that asked.
     """
-    asked = _git("diff", "--name-only", "--", *paths)
-    if asked.returncode != 0:
+    changed = _git("diff", "--name-only", "--", *paths)
+    untracked = _git("ls-files", "--others", "--exclude-standard", "--", *paths)
+    if changed.returncode != 0 or untracked.returncode != 0:
         return None
-    return [line for line in asked.stdout.splitlines() if line.strip()]
+    said = changed.stdout.splitlines() + untracked.stdout.splitlines()
+    return [line for line in dict.fromkeys(said) if line.strip()]
 
 
 def run(entry: Generated) -> str | None:
@@ -267,7 +287,7 @@ def check(out) -> int:
             print(f"{entry.generator} refused to write its output:\n{why}", file=out)
             return 1
 
-    every = [path for entry in GENERATED for path in entry.paths]
+    every = [path for entry in GENERATED for path in entry.every()]
     differs = moved(every)
     if differs is None:
         print(
@@ -298,7 +318,7 @@ def check(out) -> int:
 def listing(out) -> int:
     """The table, for a human and for the banner check that reads it."""
     for entry in GENERATED:
-        for path in entry.paths:
+        for path in entry.every():
             print(f"{path}\t{entry.generator}\t{entry.recipe}", file=out)
     return 0
 

@@ -1,0 +1,151 @@
+{
+  "generated_by": "scripts/gen_board.py",
+  "area": "A",
+  "features": [
+    {
+      "id": "A1",
+      "title": "Prerequisites & account guidance",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.2.0",
+      "milestones": ["M3"],
+      "milestone": "M3",
+      "priority": null,
+      "labels": ["verification", "ux"],
+      "requires": [],
+      "relates": ["A2", "A3", "C8", "G2"],
+      "versions": [
+        {"version": "0.2.0", "status": "released"}
+      ],
+      "path": "a-getting-started/a1-prerequisites.md"
+    },
+    {
+      "id": "A2",
+      "title": "Setup wizard",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M3", "M14"],
+      "milestone": "M3",
+      "priority": null,
+      "labels": ["ux", "wiring"],
+      "requires": [],
+      "relates": ["A1", "A3", "A4", "G1", "G4"],
+      "versions": [
+        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.2.0", "status": "released"}
+      ],
+      "path": "a-getting-started/a2-setup-wizard.md"
+    },
+    {
+      "id": "A3",
+      "title": "Credential validation",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.13.0",
+      "milestones": ["M3", "M9"],
+      "milestone": "M3",
+      "priority": null,
+      "labels": ["security", "verification"],
+      "requires": ["G4"],
+      "relates": ["A1", "A7", "C2", "C8"],
+      "versions": [
+        {"version": "0.13.0", "status": "released"},
+        {"version": "0.2.0", "status": "released"}
+      ],
+      "path": "a-getting-started/a3-credential-validation.md"
+    },
+    {
+      "id": "A4",
+      "title": "Reconfiguration",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M9", "M14"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["ux"],
+      "requires": [],
+      "relates": ["A2", "A5", "C5", "C9", "E4"],
+      "versions": [
+        {"version": "0.13.0", "status": "released"},
+        {"version": "0.18.0", "status": "planned"}
+      ],
+      "path": "a-getting-started/a4-reconfiguration.md"
+    },
+    {
+      "id": "A5",
+      "title": "Migration from an existing stack",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M9", "M14"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["ux", "storage"],
+      "requires": [],
+      "relates": ["A2", "A4", "C5", "E3", "F1"],
+      "versions": [
+        {"version": "0.13.0", "status": "released"},
+        {"version": "0.18.0", "status": "planned"}
+      ],
+      "path": "a-getting-started/a5-migration.md"
+    },
+    {
+      "id": "A6",
+      "title": "Clean uninstall",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "shipped",
+      "shipped": "0.13.0",
+      "milestones": ["M9"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["ux"],
+      "requires": [],
+      "relates": ["A4", "A7", "E3", "G4"],
+      "versions": [
+        {"version": "0.13.0", "status": "released"}
+      ],
+      "path": "a-getting-started/a6-uninstall.md"
+    },
+    {
+      "id": "A7",
+      "title": "Credential management & rotation",
+      "area": "A",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M9", "M14"],
+      "milestone": "M9",
+      "priority": null,
+      "labels": ["security"],
+      "requires": [],
+      "relates": ["A3", "A6", "C4", "D1", "G8"],
+      "versions": [
+        {"version": "0.13.0", "status": "released"},
+        {"version": "0.18.0", "status": "planned"}
+      ],
+      "path": "a-getting-started/a7-credential-management.md"
+    }
+  ]
+}

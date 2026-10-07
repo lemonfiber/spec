@@ -10,7 +10,8 @@ four areas (H–K) plus F3, catalogued below the v1 areas and sequenced before
 carries one release: L1 ships `1.0.0`, which is the scoped work of getting there
 rather than a summary of it. The generated [feature board](BOARD.md) lists every feature with
 how far it is built and the version it ships in; [`index.json`](index.json) is
-the same board for tools.
+the same board for tools: the counts, the version train, and the `board.json` in
+each area's directory that lists its features.
 
 Every feature carries two answers that are easy to confuse and are kept apart.
 **`status`** is about the specification — `draft` until it is agreed, then
