@@ -37,8 +37,9 @@ it sits in:
     retired, because what that version shipped is still a fact;
   * a `done` row names evidence, and every path it names exists, and every
     `::text` occurs in its file;
-  * a `done` row is locked by some version, because work no version carries is
-    work no release can ship;
+  * a `done` row no version locks is recorded like any other: work done ahead of
+    its version is a fact, and `check_goal_coverage.py` already holds every
+    accepted requirement to a version or to a declared wait;
   * a `landed` commit is in this repository's history.
 
 `catalogue` asks the question the specification's own CI asks of every tracker
@@ -328,9 +329,6 @@ def check(rows: list[Row], where: str, spec: pathlib.Path, root: pathlib.Path,
         if row.id in retired and row.id not in carried:
             faults.append(f"{where}: {row.id} is withdrawn or superseded and no version "
                           "locked it, so nothing was built against it")
-        if row.done and row.id not in carried:
-            faults.append(f"{where}: {row.id} is done and no version locks it, so no "
-                          "release would carry it; a version has to lock it first")
         faults += evidence_faults(row, where, root, siblings)
         if row.landed and not reachable(root, row.landed):
             faults.append(f"{where}: {row.id} names `{row.landed}` as where it landed, "

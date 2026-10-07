@@ -42,8 +42,9 @@ is the way it is belongs beside the code.
 
 **A row is checked** ([OPS-R75](../../70-operations/staging.md)): the requirement exists
 and appears once, a retired one only where a version locked it first; a done row names
-evidence and the evidence exists; a done row is one some version locks; and a landed
-commit is in that repository's history. `scripts/status_check.py` holds the shape and the checks.
+evidence and the evidence exists; and a landed commit is in that repository's history.
+A done row no version locks yet is recorded like any other, since work done ahead of
+its version is still a fact. `scripts/status_check.py` holds the shape and the checks.
 
 The binary's milestone-arranged rows move to this shape, each requirement taking the
 evidence its deliverable row linked to. **No Markdown copy of a tracker is committed**:

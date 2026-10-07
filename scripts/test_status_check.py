@@ -161,10 +161,8 @@ class EachClaimIsBacked(Tree):
         self.feature("B1", "building", 3, retired=(1,))
         self.assertEqual(self.faults(ROW), [])
 
-    def test_a_done_row_no_version_carries(self):
-        faults = self.faults(ROW.replace("B1-R1", "B1-R3"))
-        self.assertEqual(len(faults), 1)
-        self.assertIn("no version locks it", faults[0])
+    def test_a_done_row_no_version_carries_yet_is_recorded(self):
+        self.assertEqual(self.faults(ROW.replace("B1-R1", "B1-R3")), [])
 
     def test_evidence_naming_no_such_path(self):
         faults = self.faults(ROW.replace("src/thing.rs", "src/gone.rs"))
