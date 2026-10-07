@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-10-07
-**Decided:** 2026-10-07, by the maintainer, Wessel Verheij: a `status.toml` in every repository a version is satisfied in, in one shape, read by the release gate and the no-stubs gate together; one row per requirement naming its state, its evidence by path and test, and optionally the commit it landed in; the binary's deliverable rows migrated to that shape.
+**Decided:** 2026-10-07, by the maintainer, Wessel Verheij: a `status.toml` in every repository a version is satisfied in, in one shape, read by the release gate and the no-stubs gate together; one short row per requirement naming its state, its evidence by path and test, and optionally the commit it landed in; the binary's deliverable rows migrated to that shape; no Markdown copy of a tracker committed, the generated report being the page a person reads; and each tracker under a thousand lines, split into one file per feature where it would not be.
 
 ## Context
 
@@ -46,8 +46,11 @@ evidence and the evidence exists; a done row is one some version locks; and a la
 commit is in that repository's history. `scripts/status_check.py` holds the shape and the checks.
 
 The binary's milestone-arranged rows move to this shape, each requirement taking the
-evidence its deliverable row linked to. `IMPLEMENTATION-STATUS.md` stays, generated from
-the new file, for the web pages that render milestone progress from it.
+evidence its deliverable row linked to. **No Markdown copy of a tracker is committed**:
+`IMPLEMENTATION-STATUS.md` goes, and the page a person reads is the generated report of
+where every version stands, which reads every tracker at once. **A tracker stays under a
+thousand lines**: a row is one line, and a repository with more rows than that keeps one
+`status/<feature>.toml` per feature, each holding only its own feature's rows.
 
 ## Alternatives
 

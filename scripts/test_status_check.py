@@ -199,6 +199,12 @@ class TheShapeIsRefusedBeforeItIsRead(Tree):
     def test_the_milestone_shape_is_no_tracker(self):
         self.assertIsNone(status_check.read(self.tracker('[[milestone]]\nname = "M1"\n'), "repo"))
 
+    def test_bytes_that_are_not_text(self):
+        path = pathlib.Path("repo/status.toml")
+        path.write_bytes(b"\xff\xfe")
+        with self.assertRaises(status_check.Unreadable):
+            status_check.read(path, "repo")
+
     def test_toml_that_does_not_parse(self):
         self.assertIn("status.toml", self.refused("[[requirement]\n"))
 
@@ -247,12 +253,12 @@ class TheCatalogueAgreesWithEveryTracker(Tree):
         mine = self.tracker(ROW)
         theirs = self.tracker(ROW.replace("B1-R1", "B1-R2"), "web/status.toml")
         code, said = run_main(["catalogue", "--spec", "spec",
-                               "--tracker", f"repo={mine}", "--tracker", f"web={theirs}"])
+                               "--tracker", f"repo={mine.parent}", "--tracker", f"web={theirs.parent}"])
         self.assertEqual(code, 0, said)
 
     def test_a_finished_feature_missing_a_requirement_is_named(self):
         self.feature("B1", "built", 3)
-        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW)}"])
+        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW).parent}"])
         self.assertEqual(code, 1)
         self.assertIn("B1-R2, B1-R3", said)
         self.assertIn("OPS-R73", said)
@@ -260,13 +266,13 @@ class TheCatalogueAgreesWithEveryTracker(Tree):
     def test_a_shipped_feature_is_held_to_the_same(self):
         """D6's shape: shipped, and a requirement added after it shipped."""
         self.feature("B1", "shipped", 2)
-        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW)}"])
+        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW).parent}"])
         self.assertEqual(code, 1)
         self.assertIn("B1 is `shipped`", said)
 
     def test_a_retired_number_is_not_asked_for(self):
         self.feature("B1", "built", 2, retired=(2,))
-        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW)}"])
+        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW).parent}"])
         self.assertEqual(code, 0, said)
 
     def test_a_building_feature_is_not_asked(self):
@@ -278,36 +284,78 @@ class TheCatalogueAgreesWithEveryTracker(Tree):
         legacy = pathlib.Path("tracker.md")
         legacy.write_text(LEGACY_HEADER + "| x | `B1-R2` | ✅ | y |\n", encoding="utf-8")
         code, said = run_main(["catalogue", "--spec", "spec",
-                               "--tracker", f"repo={self.tracker(ROW)}", "--legacy", str(legacy)])
+                               "--tracker", f"repo={self.tracker(ROW).parent}", "--legacy", str(legacy)])
         self.assertEqual(code, 0, said)
+
+
+class ARepositoryPastAThousandLinesSplitsByFeature(Tree):
+    def split(self, files):
+        directory = self.root / "status"
+        directory.mkdir()
+        for name, body in files.items():
+            (directory / name).write_text(body, encoding="utf-8")
+
+    def test_each_feature_file_is_read(self):
+        self.split({"B1.toml": 'requirement = [\n  { id = "B1-R1", state = "done", evidence = ["src"] },\n]\n'})
+        rows = status_check.load(self.root, "repo")
+        self.assertEqual([row.id for row in rows], ["B1-R1"])
+
+    def test_a_row_in_another_features_file(self):
+        self.split({"C1.toml": 'requirement = [{ id = "B1-R1", state = "open" }]\n'})
+        with self.assertRaises(status_check.Unreadable) as caught:
+            status_check.load(self.root, "repo")
+        self.assertIn("belongs in status/B1.toml", str(caught.exception))
+
+    def test_a_requirement_in_two_files(self):
+        row = 'requirement = [{ id = "B1-R1", state = "open" }]\n'
+        self.split({"B1.toml": row, "B1.more.toml": row})
+        with self.assertRaises(status_check.Unreadable) as caught:
+            status_check.load(self.root, "repo")
+        self.assertIn("is also recorded in", str(caught.exception))
+
+    def test_both_shapes_at_once(self):
+        self.tracker(ROW)
+        self.split({"B1.toml": ""})
+        with self.assertRaises(status_check.Unreadable) as caught:
+            status_check.load(self.root, "repo")
+        self.assertIn("keeps both", str(caught.exception))
+
+    def test_bytes_that_are_not_text_in_a_feature_file(self):
+        (self.root / "status").mkdir()
+        (self.root / "status" / "B1.toml").write_bytes(b"\xff\xfe")
+        with self.assertRaises(status_check.Unreadable):
+            status_check.load(self.root, "repo")
+
+    def test_the_short_row_form_reads_as_the_table_form(self):
+        self.tracker('requirement = [\n  { id = "B1-R1", state = "done", evidence = ["src/thing.rs::a_thing_is_held"] },\n]\n')
+        self.assertEqual(status_check.load(self.root, "repo"),
+                         status_check.read(pathlib.Path("repo/status.toml"), "repo"))
 
 
 class TheCommandLine(Tree):
     def test_check_passes_and_refuses(self):
         self.tracker(ROW)
-        code, said = run_main(["check", "--spec", "spec", "--status", "repo/status.toml",
-                               "--repo-root", "repo"])
+        code, said = run_main(["check", "--spec", "spec", "--repo-root", "repo"])
         self.assertEqual(code, 0, said)
         self.tracker(ROW.replace("B1-R1", "Z9-R9"))
-        code, said = run_main(["check", "--spec", "spec", "--status", "repo/status.toml",
-                               "--repo-root", "repo", "--sibling", "web=web"])
+        code, said = run_main(["check", "--spec", "spec", "--repo-root", "repo", "--sibling", "web=web"])
         self.assertEqual(code, 1)
         self.assertIn("Z9-R9 is defined nowhere", said)
 
     def test_no_tracker_is_nothing_to_check(self):
-        code, said = run_main(["check", "--spec", "spec", "--status", "repo/status.toml"])
+        code, said = run_main(["check", "--spec", "spec", "--repo-root", "repo"])
         self.assertEqual(code, 0)
         self.assertIn("nothing to check", said)
 
     def test_an_unreadable_tracker_is_a_question_not_answered(self):
         self.tracker("[[requirement]\n")
-        code, said = run_main(["check", "--spec", "spec", "--status", "repo/status.toml"])
+        code, said = run_main(["check", "--spec", "spec", "--repo-root", "repo"])
         self.assertEqual(code, 2)
         self.assertIn("::error::", said)
 
     def test_a_sibling_that_is_not_name_equals_path(self):
         self.tracker(ROW)
-        code, said = run_main(["check", "--spec", "spec", "--status", "repo/status.toml",
+        code, said = run_main(["check", "--spec", "spec", "--repo-root", "repo",
                                "--sibling", "web"])
         self.assertEqual(code, 2)
         self.assertIn("name=path", said)

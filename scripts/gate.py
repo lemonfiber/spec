@@ -120,13 +120,13 @@ def trackers(repo_paths: dict[str, pathlib.Path]) -> list[status_check.Row]:
     rows: list[status_check.Row] = []
     for name, path in repo_paths.items():
         try:
-            found = status_check.read(path / status_check.FILE, name)
+            found = status_check.load(path, name)
         except status_check.Unreadable as broken:
             for line in str(broken).splitlines():
                 print(f"::error::{line}")
             raise SystemExit(2) from broken
         if found is None:
-            print(f"{name}: no {status_check.FILE} in the per-requirement shape")
+            print(f"{name}: no tracker in the per-requirement shape")
             continue
         rows += found
     return rows

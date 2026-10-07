@@ -150,8 +150,10 @@ jobs:
           set -euo pipefail
           args=()
           while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < searched.txt
-          python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" \
-            "${args[@]}" --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md"
+          # The binary's Markdown tracker, only while it still keeps one.
+          legacy=checkouts/lemonfiber/IMPLEMENTATION-STATUS.md
+          if [ -f "$legacy" ]; then args+=(--status "$legacy"); fi
+          python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" "${args[@]}"
       - name: Gate — no requirement it locks is unbuilt (OPS-R54)
         env:
           VERSION: ${{ inputs.version }}
@@ -161,8 +163,9 @@ jobs:
           # status.toml, and the binary's Markdown one while it still keeps it.
           args=()
           while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < searched.txt
-          python3 scripts/check_no_stubs.py --version "$VERSION" "${args[@]}" \
-            --status "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md"
+          legacy=checkouts/lemonfiber/IMPLEMENTATION-STATUS.md
+          if [ -f "$legacy" ]; then args+=(--status "$legacy"); fi
+          python3 scripts/check_no_stubs.py --version "$VERSION" "${args[@]}"
       - name: Cross-stream compatibility (OPS-R35)
         env:
           VERSION: ${{ inputs.version }}

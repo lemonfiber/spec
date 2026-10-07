@@ -71,20 +71,22 @@ jobs:
       - name: A finished feature is done whole across the trackers
         run: |
           set -euo pipefail
-          mkdir -p trackers
           args=()
           while read -r r; do
-            code=$(curl -sSL --proto '=https' --tlsv1.2 --retry 3 -o "trackers/${r}.toml" \
-              -w '%{http_code}' "https://raw.githubusercontent.com/lemonfiber/${r}/main/status.toml")
-            case "$code" in
-              200) args+=(--tracker "${r}=trackers/${r}.toml") ;;
-              404) echo "${r}: keeps no status.toml" ;;
-              *) echo "::error::reading ${r}'s status.toml answered ${code}"; exit 1 ;;
-            esac
+            # The tracker alone, at the default branch: status.toml, or status/
+            # where a repository splits it by feature. A clone that fails stops
+            # the step rather than reading as a repository that built nothing.
+            git clone --quiet --depth 1 --filter=blob:none --sparse \
+              "https://github.com/lemonfiber/${r}.git" "checkouts/trackers/${r}"
+            git -C "checkouts/trackers/${r}" sparse-checkout set --no-cone /status.toml /status/
+            args+=(--tracker "${r}=checkouts/trackers/${r}")
           done < <(python3 scripts/status_check.py repos --spec .)
           curl -fsSL --proto '=https' --tlsv1.2 --retry 3 -o tracker.md \
-            https://raw.githubusercontent.com/lemonfiber/lemonfiber/main/IMPLEMENTATION-STATUS.md
-          python3 scripts/status_check.py catalogue --spec . "${args[@]}" --legacy tracker.md
+            https://raw.githubusercontent.com/lemonfiber/lemonfiber/main/IMPLEMENTATION-STATUS.md \
+            || rm -f tracker.md
+          legacy=()
+          if [ -f tracker.md ]; then legacy=(--legacy tracker.md); fi
+          python3 scripts/status_check.py catalogue --spec . "${args[@]}" "${legacy[@]}"
       # Every surface a script writes, regenerated and compared against what is
       # committed. `accessibility.md` is why this has to be a gate rather than a
       # convention: the page states that whether the palette meets AA is a

@@ -2,17 +2,17 @@
 """A repository's implementation status, one row per requirement — OPS-R74, OPS-R75.
 
 Every repository a version is satisfied in keeps `status.toml` at its root, and
-changes it in the pull request that changes what it says. One table per
+changes it in the pull request that changes what it says. One short row per
 requirement the repository has worked on:
 
-    [[requirement]]
-    id = "F8-R6"
-    state = "done"
-    evidence = [
-      "crates/lemonfiber-plugin/src/refusing/recipes.rs",
-      "crates/lemonfiber-plugin/src/refusing/recipes/tests.rs::a_flow_no_pair_declares_is_refused",
+    requirement = [
+      { id = "F8-R6", state = "done", evidence = ["crates/lemonfiber-plugin/src/refusing/recipes.rs", "crates/lemonfiber-plugin/src/refusing/recipes/tests.rs::a_flow_no_pair_declares_is_refused"], landed = "6409706" },
     ]
-    landed = "64097060028ada772e859b1139db31b9e41cb0da"
+
+A repository whose rows would run past a thousand lines keeps them in a
+`status/` directory instead, one `<feature>.toml` per feature in the same shape,
+each holding only that feature's rows (`status/F8.toml`, `status/ARCH.toml`).
+Keeping both a `status.toml` and a `status/` directory is refused.
 
 `state` is `done`, `partial` or `open`. `evidence` names the code and the test
 that hold the requirement, each as one of:
@@ -30,7 +30,8 @@ The release gate reads these files (`gate.py`), and so does the no-stubs gate.
 This checks one of them against the specification and against the repository
 it sits in:
 
-  * the file has the shape above, and nothing else;
+  * the file has the shape above, and nothing else, and a file under `status/`
+    holds only its own feature's rows;
   * every identifier is a requirement the specification defines, and none
     appears twice; a retired one only where a version locked it before it was
     retired, because what that version shipped is still a fact;
@@ -46,9 +47,8 @@ defines done in one of them (OPS-R73). `repos` names the repositories whose
 trackers that is, read from every version manifest's `satisfied_in`.
 
 Usage:
-  status_check.py check --status status.toml --spec <spec root> [--repo-root .]
-                        [--sibling name=path ...]
-  status_check.py catalogue --spec <spec root> --tracker name=path [...]
+  status_check.py check --spec <spec root> [--repo-root .] [--sibling name=path ...]
+  status_check.py catalogue --spec <spec root> --tracker name=<checkout> [...]
                             [--legacy IMPLEMENTATION-STATUS.md]
   status_check.py repos --spec <spec root>
 
@@ -75,6 +75,8 @@ from patterns import REQ_DEF, REQ_RETIRED_ROW
 
 #: Where a repository keeps its tracker.
 FILE = "status.toml"
+#: Where a repository whose rows run past a thousand lines keeps one file per feature.
+DIRECTORY = "status"
 
 #: The states a row may be in. Only the first counts towards a release.
 STATES = ("done", "partial", "open")
@@ -161,29 +163,84 @@ def shape(data: dict, where: str) -> list[str]:
     return faults
 
 
-def read(path: pathlib.Path, repo: str) -> list[Row] | None:
-    """The rows of a repository's tracker, or None where it keeps none.
+def parse(text: str, where: str, repo: str) -> list[Row] | None:
+    """The rows a tracker's text holds, or None for the milestone shape.
 
     A tracker in the milestone shape the binary kept before this one is read as
     none: `gate.py` reads that one through its Markdown rendering. Anything else
     that does not parse is refused rather than read as empty, because a tracker
     nobody could read reports success about nothing.
     """
-    if not path.is_file():
-        return None
     try:
-        data = tomllib.loads(path.read_text(encoding="utf-8"))
-    except (tomllib.TOMLDecodeError, UnicodeDecodeError) as broken:
-        raise Unreadable(f"{path}: {broken}") from broken
+        data = tomllib.loads(text)
+    except tomllib.TOMLDecodeError as broken:
+        raise Unreadable(f"{where}: {broken}") from broken
     if "milestone" in data:
         return None
-    faults = shape(data, str(path))
+    faults = shape(data, where)
     if faults:
         raise Unreadable("\n".join(faults))
     return [
         Row(t["id"], t["state"], tuple(t.get("evidence", [])), t.get("landed"), repo)
         for t in data.get("requirement", [])
     ]
+
+
+def read(path: pathlib.Path, repo: str) -> list[Row] | None:
+    """The rows of one tracker file on disk, or None where there is none."""
+    if not path.is_file():
+        return None
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as broken:
+        raise Unreadable(f"{path}: {broken}") from broken
+    return parse(text, str(path), repo)
+
+
+def family(ident: str) -> str:
+    """The feature or namespace a requirement belongs to: `F8` for `F8-R6`."""
+    return ident.partition("-R")[0]
+
+
+def gathered(files: list[tuple[str, str]], repo: str) -> list[Row]:
+    """The rows of a `status/` directory, each file holding its own feature's only.
+
+    `files` is each file's name and text. A row in the wrong file, and a
+    requirement in two, are refused: the split is by feature so that a row is
+    found where its identifier says it is.
+    """
+    rows: list[Row] = []
+    seen: dict[str, str] = {}
+    faults = []
+    for name, text in sorted(files):
+        where = f"{DIRECTORY}/{name}"
+        for row in parse(text, where, repo) or []:
+            if family(row.id) != pathlib.Path(name).stem:
+                faults.append(f"{where}: {row.id} belongs in {DIRECTORY}/{family(row.id)}.toml")
+            if row.id in seen:
+                faults.append(f"{where}: {row.id} is also recorded in {seen[row.id]}")
+            seen[row.id] = where
+            rows.append(row)
+    if faults:
+        raise Unreadable("\n".join(faults))
+    return rows
+
+
+def load(root: pathlib.Path, repo: str) -> list[Row] | None:
+    """A repository's tracker from its checkout: `status.toml`, or `status/`.
+
+    None where it keeps neither, or keeps the milestone shape.
+    """
+    single, split = root / FILE, root / DIRECTORY
+    if single.is_file() and split.is_dir():
+        raise Unreadable(f"{repo} keeps both {FILE} and {DIRECTORY}/; keep one")
+    if split.is_dir():
+        files = sorted(split.glob("*.toml"))
+        try:
+            return gathered([(f.name, f.read_text(encoding="utf-8")) for f in files], repo)
+        except UnicodeDecodeError as broken:
+            raise Unreadable(f"{repo}: {broken}") from broken
+    return read(single, repo)
 
 
 def requirements(spec: pathlib.Path) -> tuple[set[str], set[str]]:
@@ -346,7 +403,6 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     commands = parser.add_subparsers(dest="command", required=True)
     one = commands.add_parser("check")
-    one.add_argument("--status", default=FILE)
     one.add_argument("--spec", required=True)
     one.add_argument("--repo-root", default=".")
     one.add_argument("--sibling", action="append", default=[], metavar="name=path")
@@ -367,22 +423,21 @@ def main() -> int:
             print("\n".join(searched(spec)))
             return 0
         if args.command == "catalogue":
-            trackers = [read(path, name) or []
+            trackers = [load(path, name) or []
                         for name, path in pairs(args.tracker, "--tracker").items()]
             done = done_in(trackers)
             if args.legacy:
                 done |= legacy_done(within_cwd(args.legacy))
             return report(reopened(spec, done),
                           "every finished feature is done whole across the trackers.")
-        status = within_cwd(args.status)
         root = within_cwd(args.repo_root)
-        rows = read(status, root.name)
+        rows = load(root, root.name)
         if rows is None:
-            print(f"status-check: no tracker in this shape at {args.status} — nothing to check")
+            print(f"status-check: no tracker in this shape under {args.repo_root} — nothing to check")
             return 0
         siblings = pairs(args.sibling, "--sibling")
-        return report(check(rows, args.status, spec, root, siblings),
-                      f"every row of {args.status} is backed.")
+        return report(check(rows, f"{root.name}'s tracker", spec, root, siblings),
+                      f"every row of the tracker under {args.repo_root} is backed.")
     except Unreadable as refused:
         for line in str(refused).splitlines():
             print(f"::error::{line}")

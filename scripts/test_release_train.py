@@ -365,7 +365,7 @@ class PerRepositoryTrackers(Workspace):
                 "--repo", "lf=checkouts/lf", "--repo", "web=checkouts/web"]
         code, said = run_main(gate, args)
         self.assertEqual(code, 1)
-        self.assertIn("lf: no status.toml", said)
+        self.assertIn("lf: no tracker", said)
         self.assertIn("✓ C1-R3", said)
         self.assertIn("✗ C1-R4", said)
 
