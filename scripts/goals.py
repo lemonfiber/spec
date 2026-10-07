@@ -15,9 +15,17 @@ verdicts and the gate's cannot differ (OPS-R76):
              or at least worked on, and nobody has checked and ticked it
   uncited    recorded done, and no merged commit cites it and no row names
              where it landed
+  unknown    not met in the repositories that could be read, and searched in
+             one that could not
   claimed    not met, and an open pull request cites it — a draft one
              included, which is how a claim is taken (OPS-R77)
   open       none of those
+
+A repository whose history or tracker cannot be read, or for which no checkout
+was given, is named under `unread` with the reason, and the rest of the report is
+still written. The release gate refuses a version it cannot judge; this answers
+more questions than the gate, and one absent tracker would otherwise hide every
+fact the others hold.
 
 A goal recorded `partial` somewhere says where, whichever of these it is.
 
@@ -35,7 +43,8 @@ Usage:
 With no `--version`, every manifest. `state.json` holds every goal of each; the page
 gives a released or yanked version one line, since nothing on it is left to pick
 up. Exit 0
-having written what was asked; 2 where something could not be read.
+having written what was asked, a repository that could not be read included; 2
+where the spec, an argument or the pull request file could not be read.
 
 `state.json` is what a script reads, and its shape is documented in
 `70-operations/staging.md`: `format` says which shape it is, `sources` the commit
@@ -68,11 +77,12 @@ FORMAT = 1
 #: The states a manifest has once it has shipped, which the page gives one line.
 FINISHED = ("released", "yanked")
 #: The order verdicts are reported in: what somebody can act on first.
-VERDICTS = ("claimed", "unmarked", "uncited", "open", "met")
+VERDICTS = ("claimed", "unmarked", "uncited", "unknown", "open", "met")
 HEADINGS = {
     "claimed": "In flight — an open pull request cites it",
     "unmarked": "Cited and recorded done nowhere — check it and record it",
     "uncited": "Recorded done and cited by no merged commit",
+    "unknown": "Unknown — searched in a repository that could not be read",
     "open": "Open — nobody has started",
     "met": "Met",
 }
@@ -92,12 +102,16 @@ class Standing:
     partial_in: list[str] = field(default_factory=list)
     landed_in: list[str] = field(default_factory=list)
     claims: list[dict] = field(default_factory=list)
+    #: Whether a repository it is searched in could not be read.
+    unread: bool = False
 
     @property
     def verdict(self) -> str:
         cited = bool(self.cited_in or self.landed_in)
         if cited and self.done_in:
             return "met"
+        if self.unread:
+            return "unknown"
         if self.claims:
             return "claimed"
         if self.cited_in:
@@ -215,13 +229,14 @@ def revision(name: str, path: pathlib.Path, ref: str) -> str:
 
 
 def as_data(report: list[tuple[dict, list[Standing]]], ref: str, sources: dict[str, str],
-            now: datetime.datetime) -> dict:
+            unread: dict[str, str], now: datetime.datetime) -> dict:
     """The report for a script: its format, what it was read from and when, and each goal."""
     return {
         "format": FORMAT,
         "generated_at": now.astimezone(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "ref": ref,
         "sources": sources,
+        "unread": [{"repo": repo, "reason": reason} for repo, reason in sorted(unread.items())],
         "versions": [
             {"version": m["version"], "status": m.get("status", "planned"),
              "milestone": m.get("milestone"), "delivers": m.get("delivers"),
@@ -241,38 +256,70 @@ def manifests(spec: pathlib.Path, wanted: list[str]) -> list[dict]:
 
 
 def standing(manifest: dict, checkouts: dict[str, pathlib.Path], ref: str,
-             claimed: dict[str, list[dict]]) -> list[Standing]:
-    """Each goal of one version, read where that version is satisfied."""
+             claimed: dict[str, list[dict]], unread: dict[str, str]) -> list[Standing]:
+    """Each goal of one version, read where that version is satisfied.
+
+    A repository that cannot be read is added to `unread` with the reason, once
+    for every version, and marks each goal of this one as searched where it was
+    not read."""
     searched = manifest.get("satisfied_in", manifest.get("repos", []))
-    absent = [name for name in searched if name not in checkouts]
-    if absent:
-        raise Unread(f"{manifest['version']} is satisfied in {', '.join(absent)}, "
-                     "and no checkout of it was given")
     goals = {ident: Standing(ident) for ident in manifest.get("goals", [])}
     for name in searched:
-        read_repository(goals, name, checkouts[name], ref)
+        if not read_where(goals, name, checkouts, ref, unread):
+            for goal in goals.values():
+                goal.unread = True
     for ident, found in claimed.items():
         if ident in goals:
             goals[ident].claims = found
     return list(goals.values())
 
 
+def read_where(goals: dict[str, Standing], name: str, checkouts: dict[str, pathlib.Path],
+               ref: str, unread: dict[str, str]) -> bool:
+    """Read one repository into `goals`, or record in `unread` why it could not
+    be; whether it was read. A repository already found unreadable is not tried
+    again."""
+    if name not in unread and name not in checkouts:
+        unread[name] = f"{name}: no checkout of it was given"
+    if name in unread:
+        return False
+    try:
+        read_repository(goals, name, checkouts[name], ref)
+    except Unread as broken:
+        unread[name] = str(broken)
+        return False
+    return True
+
+
 def read_repository(goals: dict[str, Standing], name: str, path: pathlib.Path,
                     ref: str) -> None:
-    """What one repository's history and tracker say of each goal."""
-    for ident, where in citations(name, path, ref).items():
+    """What one repository's history and tracker say of each goal.
+
+    Both are read before either is applied, so a repository whose tracker
+    cannot be read adds no citation either."""
+    cited = citations(name, path, ref)
+    rows = tracker(name, path, ref)
+    for ident, where in cited.items():
         if ident in goals:
             goals[ident].cited_in += where
-    for row in tracker(name, path, ref):
+    for row in rows:
         if row.id in goals:
             goals[row.id].record(name, path, row, ref)
 
 
-def markdown(report: list[tuple[dict, list[Standing]]], ref: str) -> str:
-    """The report as a page a person reads: what is still to do, then what shipped."""
+def markdown(report: list[tuple[dict, list[Standing]]], ref: str,
+             unread: dict[str, str]) -> str:
+    """The report as a page a person reads: what could not be read, what is still
+    to do, then what shipped."""
     source = (f"Read from each repository at `{ref}`. Written by `scripts/goals.py`; "
               "`just goals <version>` writes the same from local checkouts (OPS-R76).")
     out = ["# Where every version stands", "", source, ""]
+    if unread:
+        note = ("A goal searched in one of these reads unknown unless another "
+                "repository shows it met.")
+        out += ["## Not read", "", note, ""]
+        out += [f"- **{repo}**: {reason}" for repo, reason in sorted(unread.items())]
+        out += [""]
     for manifest, goals in report:
         if manifest.get("status", "planned") not in FINISHED:
             out += standing_page(manifest, goals)
@@ -340,20 +387,27 @@ def main() -> int:
     if not REVISION.match(args.ref):
         print(f"::error::`{args.ref}` is not a revision")
         return 2
+    unread: dict[str, str] = {}
     try:
         checkouts = pairs(args.checkout)
         spec = within_cwd(args.spec)
         sources = {"spec": revision("spec", spec, "HEAD")}
-        sources |= {name: revision(name, path, args.ref) for name, path in checkouts.items()}
+        for name, path in checkouts.items():
+            try:
+                sources[name] = revision(name, path, args.ref)
+            except Unread as broken:
+                unread[name] = str(broken)
         prs = json.loads(within_cwd(args.prs).read_text(encoding="utf-8")) if args.prs else {}
         claimed = claims(prs)
-        report = [(m, standing(m, checkouts, args.ref, claimed))
+        report = [(m, standing(m, checkouts, args.ref, claimed, unread))
                   for m in manifests(spec, args.version)]
-    except (Unread, OSError, json.JSONDecodeError) as unread:
-        print(f"::error::{unread}")
+    except (Unread, OSError, json.JSONDecodeError) as broken:
+        print(f"::error::{broken}")
         return 2
-    page = markdown(report, args.ref)
-    data = as_data(report, args.ref, sources, datetime.datetime.now(datetime.UTC))
+    for repo, reason in sorted(unread.items()):
+        print(f"::warning::{repo} was not read, and the goals searched there read unknown: {reason}")
+    page = markdown(report, args.ref, unread)
+    data = as_data(report, args.ref, sources, unread, datetime.datetime.now(datetime.UTC))
     if args.markdown:
         within_cwd(args.markdown).write_text(page, encoding="utf-8")
     if args.json_out:

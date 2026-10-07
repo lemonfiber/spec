@@ -6,9 +6,11 @@ done is met, cited and recorded nowhere is unmarked, recorded and cited nowhere
 is uncited, cited by an open pull request is claimed — a draft one included —
 and touched by nothing is open. Then the reading that makes the report safe to
 run against sibling checkouts: it reads a revision, never a working tree, so a
-tracker edited and not committed changes nothing. And the refusals: a shallow
-clone, a repository a version is satisfied in with no checkout given, a manifest
-asked for that is not there.
+tracker edited and not committed changes nothing. Then what it cannot read: a
+repository with no tracker, an unreadable one, a shallow clone, no checkout given
+or a revision that is not there is named, and its goals read unknown unless
+another repository shows them met. And the refusals: a manifest asked for that is
+not there, a spec that is no checkout, a pull request file that is not JSON.
 
 Stdlib unittest. Real git repositories in a temporary directory, because what is
 read — a commit message, a file at a revision — is what a patched reader would
@@ -212,11 +214,69 @@ class Refusals(Train):
     def test_a_checkout_that_is_not_name_equals_path(self):
         self.assert_refused(["--checkout", "core"], "name=path")
 
-    def test_a_repository_searched_with_no_checkout(self):
-        self.assert_refused(["--checkout", "core=core"], "no checkout of it was given")
-
     def test_a_version_with_no_manifest(self):
         self.assert_refused([*self.checkouts(), "--version", "9.9.9"], "no manifest for 9.9.9")
+
+    def test_a_ref_git_would_read_as_an_option(self):
+        self.assert_refused([*self.checkouts(), "--ref=--output=x"], "is not a revision")
+
+    def test_a_pull_request_file_that_is_not_json(self):
+        pathlib.Path("prs.json").write_text("{", encoding="utf-8")
+        self.assert_refused([*self.checkouts(), "--prs", "prs.json"], "::error::")
+
+
+class WhatCouldNotBeRead(Train):
+    """A repository that cannot be read is named, its goals read unknown unless
+    another shows them met, and the report is still written."""
+
+    def degraded(self, argv=None):
+        code, said = run_main([*(argv or self.checkouts()), "--json", "state.json",
+                               "--markdown", "STATE.md"])
+        self.assertEqual(code, 0, said)
+        data = json.loads(pathlib.Path("state.json").read_text(encoding="utf-8"))
+        found = {g["id"]: g["verdict"] for v in data["versions"] for g in v["goals"]}
+        unread = {u["repo"]: u["reason"] for u in data["unread"]}
+        return found, unread, data, said
+
+    def test_a_readable_report_names_nothing_unread(self):
+        _, unread, _, said = self.degraded()
+        self.assertEqual(unread, {})
+        self.assertNotIn("Not read", pathlib.Path("STATE.md").read_text(encoding="utf-8"))
+        self.assertEqual(said, "")
+
+    def test_a_repository_keeping_no_tracker(self):
+        self.commit("core", "status.toml",
+                    '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n')
+        self.git("app", "rm", "-q", "status.toml")
+        self.git("app", "commit", "-q", "-m", "chore: gone", "-m", "Spec: GOV-R12")
+        found, unread, _, said = self.degraded()
+        self.assertIn("app keeps no tracker", unread["app"])
+        self.assertIn("::warning::app was not read", said)
+        self.assertEqual(found["A1-R1"], "met", "met where it could be read is met")
+        self.assertEqual(found["A1-R2"], "unknown", "the unread repository may record it done")
+        self.assertEqual(found["A1-R9"], "open", "a version not searched there is unaffected")
+        page = pathlib.Path("STATE.md").read_text(encoding="utf-8")
+        self.assertIn("## Not read", page)
+        self.assertIn("- **app**: app keeps no tracker", page)
+        self.assertIn("### Unknown", page)
+
+    def test_an_unreadable_tracker_adds_no_citation_either(self):
+        self.commit("core", "status.toml", "[[requirement]\n")
+        prs = {"core": [{"number": 3, "url": "https://x/3", "isDraft": True,
+                         "body": "Spec: A1-R9", "commits": []}]}
+        pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
+        found, unread, data, _ = self.degraded([*self.checkouts(), "--prs", "prs.json"])
+        self.assertIn("status.toml", unread["core"])
+        self.assertEqual(found["A1-R9"], "unknown", "a claim does not say a goal is not met")
+        cited = {g["id"]: g["cited_in"] for v in data["versions"] for g in v["goals"]}
+        self.assertEqual(cited["A1-R1"], [])
+
+    def test_a_repository_searched_with_no_checkout(self):
+        found, unread, data, _ = self.degraded(["--checkout", "core=core"])
+        self.assertEqual(unread, {"app": "app: no checkout of it was given"})
+        self.assertEqual(found["A1-R1"], "unknown")
+        self.assertEqual(found["A1-R9"], "open")
+        self.assertNotIn("app", data["sources"])
 
     def test_a_shallow_clone(self):
         shutil.move("app", "app-origin")
@@ -224,26 +284,15 @@ class Refusals(Train):
                         f"file://{pathlib.Path('app-origin').resolve()}", "app"],
                        check=True, capture_output=True)
         self.commit("app-origin", "later", "x")
-        self.assert_refused(self.checkouts(), "shallow clone")
-
-    def test_a_ref_git_would_read_as_an_option(self):
-        self.assert_refused([*self.checkouts(), "--ref=--output=x"], "is not a revision")
+        _, unread, _, _ = self.degraded()
+        self.assertIn("shallow clone", unread["app"])
 
     def test_a_ref_that_is_not_there(self):
-        self.assert_refused([*self.checkouts(), "--ref", "nowhere"], "`nowhere` names no commit")
-
-    def test_a_repository_keeping_no_tracker(self):
-        self.git("app", "rm", "-q", "status.toml")
-        self.git("app", "commit", "-q", "-m", "chore: gone", "-m", "Spec: GOV-R12")
-        self.assert_refused(self.checkouts(), "app keeps no tracker")
-
-    def test_an_unreadable_tracker(self):
-        self.commit("core", "status.toml", "[[requirement]\n")
-        self.assert_refused(self.checkouts(), "status.toml")
-
-    def test_a_pull_request_file_that_is_not_json(self):
-        pathlib.Path("prs.json").write_text("{", encoding="utf-8")
-        self.assert_refused([*self.checkouts(), "--prs", "prs.json"], "::error::")
+        found, unread, data, _ = self.degraded([*self.checkouts(), "--ref", "nowhere"])
+        self.assertEqual(sorted(unread), ["app", "core"])
+        self.assertIn("`nowhere` names no commit", unread["core"])
+        self.assertEqual(set(found.values()), {"unknown"})
+        self.assertEqual(list(data["sources"]), ["spec"])
 
 
 if __name__ == "__main__":
