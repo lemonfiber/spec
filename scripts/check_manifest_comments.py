@@ -60,27 +60,34 @@ def blocks(text: str) -> list[list[tuple[int, str]]]:
     return found
 
 
+def sentences(block: list[tuple[int, str]]) -> list[tuple[str, int, list[tuple[int, int]]]]:
+    """Each sentence in one comment block, with where it starts in the joined text and
+    which line each part of that text came from."""
+    joined, starts = "", []
+    for number, words in block:
+        starts.append((len(joined), number))
+        joined += words + " "
+    found, offset = [], 0
+    for sentence in SENTENCE.split(joined.strip()):
+        at = joined.index(sentence, offset)
+        offset = at + len(sentence)
+        found.append((sentence, at, starts))
+    return found
+
+
 def claims(text: str) -> list[tuple[int, str, str]]:
     """Each sentence stating a goal's progress: the line its words are on, the words,
     and the sentence."""
     found = []
     for block in blocks(text):
-        joined, starts = "", []
-        for number, words in block:
-            starts.append((len(joined), number))
-            joined += words + " "
-        offset = 0
-        for sentence in SENTENCE.split(joined.strip()):
-            at = joined.index(sentence, offset)
-            offset = at + len(sentence)
-            if not CITE.search(sentence):
+        for sentence, at, starts in sentences(block):
+            match = CITE.search(sentence) and (STATE.search(sentence) or LANDED.search(sentence))
+            if not match:
                 continue
-            match = STATE.search(sentence) or LANDED.search(sentence)
-            if match:
-                where = at + match.start()
-                line = max(number for start, number in starts if start <= where)
-                quoted = sentence if len(sentence) <= QUOTED else sentence[:QUOTED].rstrip() + "…"
-                found.append((line, match.group(0), quoted))
+            where = at + match.start()
+            line = max(number for start, number in starts if start <= where)
+            quoted = sentence if len(sentence) <= QUOTED else sentence[:QUOTED].rstrip() + "…"
+            found.append((line, match.group(0), quoted))
     return found
 
 
