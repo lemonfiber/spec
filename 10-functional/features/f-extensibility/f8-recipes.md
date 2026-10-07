@@ -222,8 +222,8 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | **F8-R13** | The set of adapters MUST be published rather than discovered. |
 | **F8-R14** | A recipe MUST declare whether it runs on install or on demand, and a recipe declaring neither MUST run on install; an install recipe MUST run during an install and an update, after the plugin's proofs and the stack's checks hold and before the install is recorded, and a failure MUST put the install back and name each call that had already reached somewhere. |
 | **F8-R15** | A demand recipe MUST run only when asked for by name, with its own rehearsal, offer and approvals, and an approval MUST NOT carry over from another act or another run; a demand recipe that fails MUST change no install record and MUST name each call that had already reached somewhere. |
-| **F8-R16** | A value a recipe takes from the credential store for a service, and every value captured by a step whose call carried one, MUST be carried only to that service, and a pair or a call carrying one to any other destination MUST fail validation. |
-| **F8-R17** | While a recipe runs, each value it holds MUST carry the destinations it may be sent to, and a call carrying a value to any other destination, or to a host outside the stack without the approval of its pair, MUST be refused before it is sent, under a code of its own, ending the recipe. |
+| **F8-R16** | A value a recipe takes from the credential store for a service, and every value captured by a step whose call carried one or whose guard read one, MUST be carried only to that service, and a pair, a call or a guard carrying or reading one for any other destination MUST fail validation. |
+| **F8-R17** | While a recipe runs, each value it holds MUST carry the destinations it may be sent to, a value holding a credential lemonfiber holds for a service MUST be held to that service however the recipe came by it, and a call carrying a value to any other destination, or to a host outside the stack without the approval of its pair, MUST be refused before it is sent, under a code of its own, ending the recipe. |
 
 ## Related
 
