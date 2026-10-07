@@ -14,7 +14,9 @@ What it refuses, file by file under ``.github/workflows/``:
 
 - a workflow triggered by ``pull_request`` whose own group is not that one;
 - a group that cancels and is not that one. Keyed on the ref alone, a push to
-  ``main`` cancels the one before it;
+  ``main`` cancels the one before it. A workflow that only a dispatch or a
+  schedule starts is let through: no push and no tag reaches it, and a bump bot
+  is asked to cancel its stale run there (Q-R78);
 - a job's own group that cancels, and any job's own group in a workflow a pull
   request runs. A job waiting in a group is replaced by the next to arrive
   whatever ``cancel-in-progress`` says, so a push's job can be cancelled by one;
@@ -50,6 +52,11 @@ REPORTED = frozenset({
     "website-docs.lemonfiber.app",
     "website-lemonfiber.app",
 })
+
+#: The events a workflow can be started by that are neither a push nor a tag nor
+#: a pull request. A group of its own that cancels cannot reach a protected
+#: branch's run or a release's from a workflow started only by these.
+DISPATCHED = frozenset({"workflow_dispatch", "repository_dispatch", "schedule"})
 
 # `key: value`, `key:`, and a quoted key, which is how `"on":` is written by
 # anyone whose YAML reads a bare `on` as `true`.
@@ -159,6 +166,11 @@ def cancels(cancel: str | None) -> bool:
     return cancel is not None and cancel.strip().lower() != "false"
 
 
+def dispatched_only(named: list[str]) -> bool:
+    """Whether every event a workflow names is a dispatch or a schedule."""
+    return bool(named) and set(named) <= DISPATCHED
+
+
 def home(canonical: pathlib.Path) -> tuple[str, list[str]]:
     """The one group, read from its home, or why it could not be."""
     path = canonical / HOME
@@ -234,7 +246,7 @@ def refused(where: str, one: dict, group: str, wanted: str) -> list[str]:
             f"in lemonfiber/spec {HOME}, which cancels the run a push to it "
             f"supersedes and nothing else. Give it that block:\n{wanted}"
         )
-    elif cancels(cancel) and own != group:
+    elif cancels(cancel) and own != group and not dispatched_only(one["events"]):
         said.append(
             f"{where} cancels by the group {own!r}, which can cancel a run for a push "
             f"to a protected branch or a tag. Use the block in lemonfiber/spec "

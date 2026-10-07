@@ -17,7 +17,7 @@ clone never fails for lacking one.
 | Channel | Audience | Posts | Secret |
 |---------|----------|-------|--------|
 | `#releases` | public | A published release, with notes and install line | `DISCORD_ANNOUNCE_WEBHOOK` |
-| `#build-log` | public | Every workflow run, on completion (pass/fail) | `DISCORD_BUILD_WEBHOOK` |
+| `#build-log` | public | Every run on `main`, a tag, a schedule or a dispatch, and every pull request run that failed, on completion | `DISCORD_BUILD_WEBHOOK` |
 | `#awaiting-maintainer-action` | maintainers (private) | Items needing a decision: triage, review, main-branch breakage | `DISCORD_MAINTAINERS_WEBHOOK` |
 
 Release pings an **opt-in role** rather than `@everyone`: if the org variable
@@ -54,6 +54,20 @@ including codes that never existed, so a dead invite is indistinguishable from a
 live one over HTTP. The check is therefore on the text rather than the response:
 the shared `hygiene` workflow refuses a tracked file containing an invite code.
 
+## What the build log carries
+
+`#build-log` is the public record of what the branches and releases did, and of
+every pull request that went red. A pull request's green run is not in it: that
+answer is already on the pull request, and pull requests are pushed far more
+often than `main` moves, so posting them buries the runs a reader comes to the
+channel for. A run cancelled
+because a newer push replaced it is not a failure and is not posted either.
+
+Whether a run is posted is read from the `workflow_run` event itself — its
+event and its conclusion — in a job-level `if:` in the reusable notifier, so a
+run that will not be posted is skipped before a runner is assigned rather than
+started to say nothing.
+
 ## Secrets, safety, and forks
 
 The webhook URLs are org-level secrets (`--visibility all`). Two rules keep them
@@ -79,7 +93,12 @@ is a saved search, not a memory game:
 | `awaiting-maintainer` | Every check the branch requires has passed on the PR and no approving review has landed | The PR is reviewed, or the PR closes |
 
 `awaiting-maintainer` skips PRs opened **by a maintainer** — a maintainer's own PR
-is not awaiting one. As non-maintainers begin contributing, their green PRs surface
+is not awaiting one — and a head a maintainer pushed, which a maintainer is
+already acting on. Only someone with write access can push a branch to the
+repository, so a completed run on such a branch, started by a person rather than
+a bot, is skipped by a job-level `if:` before a runner is assigned, and so is a
+run that did not succeed, which cannot complete the required set. Runs from a
+fork and runs a bot started are evaluated in full. As non-maintainers begin contributing, their green PRs surface
 automatically. The live queue is
 `is:open label:needs-triage,awaiting-maintainer`.
 
@@ -118,9 +137,9 @@ and both review-routing and issue-assignment follow it.
 | ID | Requirement |
 |----|-------------|
 | **OPS-R23** | A published release MUST announce to the public announcement channel, mentioning the opt-in role when `DISCORD_RELEASE_ROLE_ID` is set and never `@everyone`. |
-| **OPS-R24** | Every workflow run MUST post its completion status (pass/fail) to the public build-log channel. |
+| **OPS-R24** | A workflow run for a push to a protected branch, a tag, a release, a schedule or a manual dispatch MUST post its completion status to the public build-log channel, and so MUST a pull request's run that failed, timed out or could not start. A pull request's run that succeeded, was cancelled or was skipped MUST NOT be posted, and whether to post MUST be decided without starting a runner. |
 | **OPS-R25** | A newly opened issue MUST be labelled `needs-triage` and assigned the covering maintainer from the generated CODEOWNERS. |
-| **OPS-R26** | A PR on which *every* status check the base branch requires has concluded successfully, without an approving review, MUST be labelled `awaiting-maintainer`, unless its author is a maintainer; the label MUST be removed once the PR is reviewed or closed. The flag MUST NOT be raised while a required check is pending or failing, nor before every workflow that supplies one has run. |
+| **OPS-R26** | A PR on which *every* status check the base branch requires has concluded successfully, without an approving review, MUST be labelled `awaiting-maintainer`, unless its author is a maintainer or a maintainer pushed its head; the label MUST be removed once the PR is reviewed or closed. The flag MUST NOT be raised while a required check is pending or failing, nor before every workflow that supplies one has run. |
 | **OPS-R27** | Items needing maintainer action MUST post to the private maintainer channel when its webhook is configured. |
 | **OPS-R28** | Every Discord integration MUST be gated on its webhook secret's presence, MUST NOT run in fork-PR context with the secret available, and MUST pass all event-derived text through the environment rather than a shell interpolation. |
 | **OPS-R53** | A notification body over Discord's embed limit MUST be split at line boundaries rather than truncated; where the channel is a Forum, the overflow MUST post as replies within one thread and the role ping MUST ride only the opening message. |

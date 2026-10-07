@@ -119,6 +119,19 @@ class Passing(Repository):
         self.write("bump.yml", workflow("on: workflow_dispatch", "concurrency: bump\n", name="bump"))
         self.assertEqual(self.check()[0], [])
 
+    def test_a_bump_a_newer_dispatch_cancels(self):
+        # A newer upstream move replaces a bump still running (Q-R78). Nothing
+        # starts this workflow but a dispatch or the schedule, so its group
+        # reaches no push and no tag.
+        self.write("contract-bump.yml", workflow(
+            "on:\n  workflow_dispatch:\n  schedule:\n    - cron: '50 7 * * 1'",
+            "concurrency:\n  group: contract-bump\n  cancel-in-progress: true\n",
+            name="contract-bump"))
+        self.write("rebuild.yml", workflow(
+            "on: [repository_dispatch]",
+            "concurrency:\n  group: rebuild\n  cancel-in-progress: true\n", name="rebuild"))
+        self.assertEqual(self.check()[0], [])
+
     def test_a_reusable_workflow_called_from_elsewhere_carries_none(self):
         self.write("gate.yml", workflow("on:\n  workflow_call:", ""))
         self.assertEqual(self.check()[0], [])
@@ -181,6 +194,17 @@ class Refusing(Repository):
             "on: push",
             "concurrency:\n  group: pages\n  cancel-in-progress: ${{ github.event_name == 'push' }}\n"))
         self.refused("deploy.yml cancels by the group 'pages'")
+
+    def test_a_cancelling_group_on_a_dispatch_that_a_push_also_starts(self):
+        self.write("bump.yml", workflow(
+            "on:\n  workflow_dispatch:\n  push:\n    branches: [main]",
+            "concurrency:\n  group: bump\n  cancel-in-progress: true\n", name="bump"))
+        self.refused("bump.yml cancels by the group 'bump'", "protected branch or a tag")
+
+    def test_a_cancelling_group_on_a_workflow_that_names_no_event(self):
+        self.write("bump.yml", "name: bump\nconcurrency:\n  group: bump\n"
+                   "  cancel-in-progress: true\n" + JOBS)
+        self.refused("bump.yml cancels by the group 'bump'")
 
     def test_a_reusable_workflow_that_cancels(self):
         self.write("gate.yml", workflow("on:\n  workflow_call:"))
