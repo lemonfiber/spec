@@ -55,6 +55,12 @@ What *is* written here is the connective tissue — navigation, landing pages, a
 task-shaped guides that mirrored prose does not provide because it was written for a
 repository rather than for a reader arriving from a search box.
 
+**Project status is not here.** The roadmap, the board, what is built and the list of
+releases change whenever the org does, and they live on the
+[frontpage](website-lemonfiber.md), which reads them live. This site renders pinned
+revisions for a reader following instructions, so a page of project status here would
+be as old as its pins. A route that held one redirects to the frontpage's page for it.
+
 ## What's in it
 
 ```
@@ -110,7 +116,8 @@ prose as well as authored prose — this is the only build that sees all of it a
 | **REPO-R50** | Every user-facing string authored in this repository MUST come from the message catalogue and MUST NOT be written into a template. |
 | **REPO-R51** | The published site MUST load no font, script, style or tracker from a third party at run time. |
 | **REPO-R52** | The specification MUST be rendered on this site from a pinned revision of `spec`, and MUST NOT be published from any second site. |
-| **REPO-R53** | A URL that a retired rendering of the specification published MUST continue to resolve, by redirect, to the page that replaced it. |
+| **REPO-R53** | A URL that this site or a retired rendering of the specification published MUST continue to resolve, by redirect, to the page that replaced it, including a page that moved to the frontpage. |
+| **REPO-R68** | The site MUST NOT render project status: the roadmap, the board, what is built and the list of releases are the frontpage's to publish. |
 
 ## Related
 
