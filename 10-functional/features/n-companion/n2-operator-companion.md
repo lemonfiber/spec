@@ -219,7 +219,7 @@ and a note beside it says a preview cannot ask.
 ## Notes
 
 **What the contract carries for `N2-R23` and `N2-R24`.** Checked against the core's
-`contract/web-api.contract.json`, its event stream and the actions its HTTP route
+`contract/web-api/`, its event stream and the actions its HTTP route
 accepts.
 
 | Row | Carried | Not carried |

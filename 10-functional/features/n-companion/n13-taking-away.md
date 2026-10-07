@@ -232,7 +232,7 @@ apart.
 ## Notes
 
 **What the contract carries for the rows above.** Checked against the core's
-`contract/web-api.contract.json` — the `removal` and `uninstall` kinds — and the
+`contract/web-api/` — the `removal` and `uninstall` kinds — and the
 actions its HTTP route accepts: `remove` for a person, `uninstall` for a tier.
 
 | Row | Carried | Not carried |

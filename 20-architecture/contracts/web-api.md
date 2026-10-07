@@ -801,6 +801,7 @@ generation has not been used.
 | **ARCH-R160** | Each action the artefact publishes as callable by a key MUST also say whether calling it again with the same arguments leaves the stack as calling it once did. |
 | **ARCH-R161** | Each request in the household document `GET /api/requests` and `lemonfiber household --json` answer with MUST carry the kind of title it asked for, the year that title came out, when it arrived on the media server, and the identifier the media server holds it under, as `GET /api/held` names it. The year MUST be absent until the request has been handed to the service that files it, and the arrival and the identifier MUST be absent until the title is on the media server, never present as null. |
 | **ARCH-R162** | The event stream MUST carry an `alert` event when an alert starts and when it resolves, carrying what happened, what it means, what to do, its severity and which way it went, and an identity that is the same for an onset and the resolution that ends it and differs for each recurrence. |
+| **ARCH-R170** | SDK generation MUST refuse a `$ref` in the contract artefact that it cannot resolve to a definition in the vendored copy, naming the reference and the file it appears in, and MUST write nothing when it refuses. |
 
 ## Shapes are generated; semantics are not
 
@@ -874,17 +875,31 @@ An SDK does not ask the server for the contract while it builds. It carries a co
 that fetched would depend on a host being reachable, and two builds of the same commit could
 produce different types.
 
-So the artefact travels as a **vendored file pinned to an exact revision**. `lemonfiber`
+So the artefact travels as a **vendored copy pinned to an exact revision**. `lemonfiber`
 publishes it with every release; an SDK fetches it once, records the revision it came from
 beside the copy, and every build after that reads only what is on disk. Taking a contract
 change then becomes a deliberate act that arrives as a diff somebody reads, rather than
 something that happens to a build nobody was watching.
 
+The artefact is a directory, `contract/web-api/`, so that no file in it outgrows a reader:
+
+- `index.json` carries `api_version` and names every other file: `kinds` maps each kind to
+  its file, and `key_callable`, `reads` and `refusals` each name the file holding that list.
+- `kinds/<kind>.json` is the schema of the envelope carrying that kind.
+- `defs/<Name>.json` is one definition. Every definition is here, whether one kind carries it
+  or nine, so a definition several kinds share is written once.
+- `key-callable.json`, `reads.json` and `refusals.json` are the lists the index names.
+
+A `$ref` is a path to a definition's file, resolved against the file it appears in:
+`../defs/Remedy.json` from a kind, `Code.json` from another definition. A definition's name is
+its file's name, and it describes one shape wherever it is reached. Each release carries the
+directory as one archive, `web-api.contract.tar.gz`, with `web-api/` at its root.
+
 The pin is a revision rather than a version number because a revision names exactly one
 artefact: the vendored bytes can always be checked against what that revision served, which
 is what makes the copy verifiable rather than merely present.
 
-Three guards sit either side of the copy. Regenerating from it must produce no diff, so a
+Three guards sit either side of the copy, and a fifth reads every reference in it. Regenerating from it must produce no diff, so a
 stale generated tree fails CI rather than shipping. Generation refuses an artefact whose
 `api_version` it does not implement, naming both versions and writing nothing — types that
 compile and lie are worse than a build that stops, and a refusal that does not say which two
@@ -930,6 +945,14 @@ So a definition's name is its own, and where a generator has already claimed one
 says so at the point it would collide rather than leaving it to whatever the output does next.
 The name moves in the artefact: the names a generator writes are an SDK's published surface,
 and moving one of those instead would break every caller to spare the producer a rename.
+
+The fifth guard is about a reference that leads nowhere. A generator that cannot resolve a
+`$ref` still has a field to describe, and the cheapest description is a type that accepts
+anything: it compiles, it analyses clean, and every value of that field reaches a caller
+unchecked. So generation refuses a reference it cannot resolve, naming the reference and the
+file it appears in, and writes nothing. A copy taken half-read, a definition missing from it,
+or a reference in a form the generator does not follow all stop the build where they are,
+rather than surfacing later as a field nothing checks (`ARCH-R170`).
 
 ## Related
 

@@ -44,7 +44,7 @@ The split is the same in every SDK
 | **Generated** into `src/lemonfiber/_generated/`, never edited by hand | Response shapes, endpoint paths and parameters, action names, event names, the wire version |
 | **Written**, once, in Python | The stream's behaviour, the token's placement, the pin, the error model's wording |
 
-Everything generated comes from `web-api.contract.json`. A generator run that changes
+Everything generated comes from the `contract/web-api/` directory. A generator run that changes
 anything committed fails CI.
 
 ## What it owns

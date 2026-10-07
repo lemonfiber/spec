@@ -128,7 +128,7 @@ write. The destination is settled by the stack rather than asked for.
 | `N22-R6` | `contents.missing` | — |
 | `N22-R7` | `contents.taken`: `at`, `lemonfiber`, `stack` | — |
 | `N22-R8` | The refusal, as `error`: its code, meaning, remedies, detail and cause | A field of its own naming the source. `C4-R5` asks for the source named, and the app can show it only where the refusal's words carry it |
-| `N22-R9` | The file is served at `/api/bundle/{name}` | That read answers with a file rather than an envelope, and `contract/web-api.contract.json` describes envelopes only. Fetching it through the SDK is `N1-R16`'s question, and where the SDK does not offer it `N1-R17` stops the work |
+| `N22-R9` | The file is served at `/api/bundle/{name}` | That read answers with a file rather than an envelope, and `contract/web-api/` describes envelopes only. Fetching it through the SDK is `N1-R16`'s question, and where the SDK does not offer it `N1-R17` stops the work |
 | `N22-R10` | — | Nothing is needed |
 
 `C4-R14` (room to write) and `C4-R15` (plugins, and their withheld configuration)

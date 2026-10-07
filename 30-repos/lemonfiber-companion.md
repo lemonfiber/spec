@@ -56,7 +56,7 @@ the core does not also make is the drift `G1-R2` exists to prevent.
 answer, rendered ([N3-R2](../10-functional/features/n-companion/n3-household-companion.md)).
 
 **No generated contract of its own.** The envelope shapes arrive through the
-SDK, already generated from `web-api.contract.json`
+SDK, already generated from the `contract/web-api/` directory
 ([ADR-0014](../00-overview/decisions/0014-one-generated-contract-for-every-sdk.md)).
 
 ## What it owns
