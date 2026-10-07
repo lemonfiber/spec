@@ -132,14 +132,15 @@ LEGACY = "IMPLEMENTATION-STATUS.md"
 
 
 def tracker(name: str, path: pathlib.Path, ref: str) -> list[status_check.Row]:
-    """A repository's tracker as it stands at `ref`, or no rows where it keeps none.
+    """A repository's tracker as it stands at `ref`, refusing one that is not there.
 
     A tracker still in the milestone shape is read through its Markdown page the
     way the gate reads it, a done row standing for each requirement it names.
     """
     shown = git(path, "show", f"{ref}:{status_check.FILE}")
     if shown.returncode != 0:
-        return []
+        raise Unread(f"{name} keeps no {status_check.FILE} at {ref} (OPS-R74), and a "
+                     "tracker that was not read is not one that records nothing")
     try:
         rows = status_check.parse(shown.stdout, f"{name}:{status_check.FILE}", name)
     except status_check.Unreadable as broken:

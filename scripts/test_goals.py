@@ -61,6 +61,8 @@ class Train(unittest.TestCase):
             'version = "X"\ngoals = []\n', encoding="utf-8")
         self.repo("core", "Spec: A1-R1, A1-R2")
         self.repo("app", "Spec: A1-R4")
+        self.commit("app", "status.toml", "", "Spec: GOV-R12")
+        self.commit("core", "status.toml", "", "Spec: GOV-R12")
 
     def tearDown(self):
         os.chdir(self.cwd)
@@ -192,6 +194,11 @@ class Refusals(Train):
 
     def test_a_ref_that_is_not_there(self):
         self.assert_refused([*self.checkouts(), "--ref", "nowhere"], "no history at nowhere")
+
+    def test_a_repository_keeping_no_tracker(self):
+        self.git("app", "rm", "-q", "status.toml")
+        self.git("app", "commit", "-q", "-m", "chore: gone", "-m", "Spec: GOV-R12")
+        self.assert_refused(self.checkouts(), "app keeps no status.toml")
 
     def test_an_unreadable_tracker(self):
         self.commit("core", "status.toml", "[[requirement]\n")
