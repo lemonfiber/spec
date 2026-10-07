@@ -113,7 +113,7 @@
 version = "0.17.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — what the bundled stack can do, and where a plugin comes from"
-status  = "staged"
+status  = "releasable"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate"]
 satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-plugins"]
 goals   = [

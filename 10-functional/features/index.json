@@ -104,7 +104,7 @@
     },
     {
       "version": "0.17.0",
-      "status": "staged",
+      "status": "releasable",
       "milestone": "M14",
       "goals": 76
     },
@@ -444,7 +444,7 @@
         },
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         },
         {
           "version": "0.18.0",
@@ -971,7 +971,7 @@
         },
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         },
         {
           "version": "0.18.0",
@@ -1166,7 +1166,7 @@
         },
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         },
         {
           "version": "0.4.0",
@@ -1358,7 +1358,7 @@
         },
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         },
         {
           "version": "0.18.0",
@@ -1583,7 +1583,7 @@
         },
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         }
       ],
       "path": "e-maintenance/e1-stack-updates.md"
@@ -1909,7 +1909,7 @@
       "versions": [
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         },
         {
           "version": "0.18.0",
@@ -2031,7 +2031,7 @@
       "versions": [
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         },
         {
           "version": "0.18.0",
@@ -2076,7 +2076,7 @@
         },
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         }
       ],
       "path": "f-extensibility/f9-bundled-capabilities.md"
@@ -2116,7 +2116,7 @@
         },
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         },
         {
           "version": "0.18.0",
@@ -2410,7 +2410,7 @@
         },
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         }
       ],
       "path": "g-ux/g5-front-door.md"
@@ -2563,7 +2563,7 @@
       "versions": [
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         }
       ],
       "path": "g-ux/g9-mobile-handoff.md"
@@ -3214,7 +3214,7 @@
       "versions": [
         {
           "version": "0.17.0",
-          "status": "staged"
+          "status": "releasable"
         },
         {
           "version": "0.18.0",
