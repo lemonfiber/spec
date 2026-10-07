@@ -5,7 +5,7 @@ kind: feature
 area: G
 audience: household
 status: accepted
-maturity: planned
+maturity: building
 priority: P2
 labels: [web, household, ux]
 requires: [D4, D6, G1]

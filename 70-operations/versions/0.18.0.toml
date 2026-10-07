@@ -84,21 +84,10 @@
 #
 # The architecture rows are here because `check_goal_coverage` reads `20-architecture/`
 # too, and a row no version locks is reached by no gate. Those it exempts are the
-# principles, the restatements and the dormant ones; the rest are work:
-#
-# - `ARCH-R2`, `ARCH-R19`, `ARCH-R70` to `ARCH-R72`, `ARCH-R75` to `ARCH-R77`,
-#   `ARCH-R97`, `ARCH-R103` and `ARCH-R104` are built and cited by no commit; the core's
-#   tracker names the commits that landed them.
-# - `ARCH-R3`, `ARCH-R6`, `ARCH-R11` to `ARCH-R14`, `ARCH-R20`, `ARCH-R23`, `ARCH-R43`,
-#   `ARCH-R44`, `ARCH-R83` to `ARCH-R91`, `ARCH-R94`, `ARCH-R95`, `ARCH-R98`,
-#   `ARCH-R100`, `ARCH-R101` and `ARCH-R123` to `ARCH-R130` are cited, and the core's
-#   tracker named none of them.
-# - `ARCH-R5`, `ARCH-R35`, `ARCH-R42` and `ARCH-R45` are part met in the core, and
-#   `ARCH-R36`, `ARCH-R38`, `ARCH-R40` and `ARCH-R99` in the web surface, the brand and
-#   the SDKs.
-# - `ARCH-R9`, `ARCH-R10`, `ARCH-R15`, `ARCH-R18`, `ARCH-R25`, `ARCH-R41`, `ARCH-R96`
-#   and `ARCH-R105` are not met, and `ARCH-R78` to `ARCH-R82` are the capability set a
-#   client reads (N1).
+# principles, the restatements and the dormant ones; the rest are locked here, and
+# `ARCH-R78` to `ARCH-R82` among them are the capability set a client reads (N1). Which
+# of them are built is for the core's implementation status to say, where the release
+# gate reads it.
 #
 # `ARCH-R38`, `ARCH-R40` and `ARCH-R41` are the brand's, so `brand` is searched, and
 # `ARCH-R81`, `ARCH-R99` and `ARCH-R129` bind a client, so the two SDKs are. None of the
