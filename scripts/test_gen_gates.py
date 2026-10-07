@@ -169,6 +169,50 @@ class Generation(unittest.TestCase):
             uses = step.get("uses", "")
             self.assertTrue(uses == "" or uses.startswith("actions/"), uses)
 
+    def test_a_consumer_runs_only_the_canonical_scripts(self):
+        # The one other reader a step may pick is spec's own, in a branch taken
+        # where the repository is lemonfiber/spec, which the plan refuses before
+        # any step runs. act's workspace holds spec at main and nothing else.
+        spec_branch = re.compile(r'^if \[ "\$(REPO|GITHUB_REPOSITORY)" = "lemonfiber/spec" \]; then$')
+        for name, job in generated()["jobs"].items():
+            for step in job["steps"]:
+                canonical: set[str] = set()
+                in_spec = False
+                for line in (raw.strip() for raw in step.get("run", "").splitlines()):
+                    if spec_branch.match(line):
+                        in_spec = True
+                        continue
+                    if in_spec:
+                        in_spec = not re.match(r"(else|elif|fi)\b", line)
+                        continue
+                    assigned = re.match(r"(\w+)=[\"']?([^\"'\s]*)", line)
+                    if assigned and ("scripts" in assigned[2] or "canonical" in assigned[2]):
+                        self.assertTrue(assigned[2].startswith(".spec-canonical"), (step["id"], line))
+                        canonical.add(assigned[1])
+                    ran = re.search(r"python3 [\"']?([^\"'\s]+)", line)
+                    if not ran or ran[1] in ("-", "-c"):
+                        continue
+                    said = ran[1]
+                    variable = re.match(r"\$\{?(\w+)", said)
+                    if name == "act":
+                        self.assertTrue(said.startswith("scripts/"), (step["id"], line))
+                    elif variable:
+                        self.assertIn(variable[1], canonical, (step["id"], line))
+                    else:
+                        self.assertTrue(said.startswith(".spec-canonical/"), (step["id"], line))
+
+    def test_every_checkout_drops_its_credentials_and_spec_is_read_at_main(self):
+        jobs = generated()["jobs"]
+        for name, job in jobs.items():
+            for step in job["steps"]:
+                if not step.get("uses", "").startswith("actions/checkout@"):
+                    continue
+                said = step.get("with", {})
+                self.assertIs(said.get("persist-credentials"), False, step["id"])
+                if said.get("repository") == "lemonfiber/spec" or name == "act":
+                    self.assertEqual(said.get("repository"), "lemonfiber/spec", step["id"])
+                    self.assertEqual(said.get("ref"), "main", step["id"])
+
     def test_every_source_step_is_carried_once(self):
         workflow = generated()
         carried = [s for job in workflow["jobs"].values() for s in job["steps"]]
