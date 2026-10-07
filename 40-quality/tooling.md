@@ -461,6 +461,19 @@ regenerates it, in the failure itself. A gate whose remedy the author has to go
 and find is a gate that gets routed around, and "the contract moved" is not an
 instruction.
 
+The refusal is not immediate. A repository that pins one moving as fast as
+this org's do would otherwise be refused for the minutes between every upstream
+merge and the automated pull request that takes it, which is a gate nobody can
+get past rather than one that puts anything in front of anybody. So `Q-R68`
+allows a commit 24 hours on the dependency's default branch before its absence
+is a fault: long enough for an automated bump to open, pass and merge, short
+enough that a stalled one is red the next day. A check may be stricter, as
+`workflow-pins` is; one that uses the window reads it from one named constant,
+so the number the gate applies and the number a reader is told cannot differ.
+What counts is a commit that changed something the repository reads — the
+workflow file a pin names, the files a site renders — not every commit on the
+branch.
+
 Where the catch-up needs a decision rather than a command, the gate waits, and
 `Q-R71` requires the waiting to be written in the workflow that would carry it,
 with the reason, the work it waits on, and the date it is looked at again. A
@@ -494,7 +507,7 @@ All are one-time and free. Everything else runs from committed config.
 | **Q-R58** | The docs site MUST render the specification from a pinned revision of `spec`, MUST link-check every page it publishes, authored and mirrored, and MUST be the only published rendering of the specification. |
 | **Q-R59** | A public supply-chain posture check (OpenSSF Scorecard) MUST run on each repo's default branch. |
 | **Q-R60** | Any tool requiring a secret or external app MUST be documented as a one-time manual setup step. |
-| **Q-R68** | Where a repository depends on another repository in this org at an exact revision, an automated check MUST run on every pull request, MUST fail where the pin is behind that dependency's default branch, naming the commits it has not taken, and MUST be a required status check on the default branch. |
+| **Q-R68** | Where a repository depends on another repository in this org at an exact revision, an automated check MUST run on every pull request, MUST fail where the pin has not taken a commit that changed something the repository reads from that dependency and has been on its default branch for longer than 24 hours, naming the commits it has not taken, and MUST be a required status check on the default branch. A check MAY fail sooner; one that lets a commit wait MUST read that window from a single named constant. |
 | **Q-R69** | A lockfile or equivalent record of what a build resolved MUST name the same revision as the declaration it resolves, and CI MUST fail where the two disagree. |
 | **Q-R70** | A check required under `Q-R68` MUST name, in the failure itself, the artefact that drifted and the command that brings it current. |
 | **Q-R71** | A repository that cannot yet satisfy `Q-R68` MUST state that in the workflow that would gate it — the reason, the work it waits on, and the date the deferral is reviewed — and the check MUST keep reporting until the gate is turned on. |
