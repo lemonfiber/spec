@@ -19,8 +19,9 @@ kept anywhere else.
 ## Where it is published
 
 Each run of the `state` workflow replaces the assets of a release named `board` in
-this repository with `board.json`, `state.json` and `STATE.md`, and uploads the same
-three as the run's `state` artifact. A release asset of a public repository downloads
+this repository with `board.json`, `state.json` and `STATE.md`, and `board.sha256`, the
+hash of `board.json` without `generated_at`; it uploads the first three as the run's
+`state` artifact. A release asset of a public repository downloads
 without credentials at a fixed address, so the newest snapshot is always at
 `https://github.com/lemonfiber/spec/releases/download/board/board.json` (`OPS-R81`);
 an artifact needs a token to download, and is kept for ninety days as the history.
@@ -34,8 +35,9 @@ the backstop for anything no event announced (`OPS-R82`). A scheduled run is not
 relied on to happen on time.
 
 The frontpage is asked to rebuild only when the snapshot's content changed: the run
-hashes `board.json` with `generated_at` removed and compares it with the hash the
-`board` release holds.
+hashes `board.json` with `generated_at` removed and compares it with the
+`board.sha256` the `board` release holds. A release with no hash yet counts as a
+change.
 
 ## A repository it cannot read
 

@@ -17,9 +17,13 @@ checkout at `--ref`.
 Usage:
   board.py --checkout <name>=<path> [...] [--ref origin/main] [--prs prs.json]
            [--issues issues.json] --json board.json [--hash board.sha256]
+           [--previous published.sha256 --changed changed.txt]
 
 `--hash` writes the SHA-256 of the snapshot with `generated_at` removed, so a
-run can tell whether the content changed since the last one. Exit 0 having
+run can tell whether the content changed since the last one. `--previous` names
+the hash the last published snapshot carried, and `--changed` the file to write
+`true` or `false` to: true where the content differs, or where nothing was
+published before, since a snapshot nobody has seen is news. Exit 0 having
 written it, a repository that could not be read included; 2 where the spec, an
 argument or an input file could not be read.
 """
@@ -272,6 +276,12 @@ def content_hash(data: dict) -> str:
     return hashlib.sha256(json.dumps(kept, sort_keys=True).encode("utf-8")).hexdigest()
 
 
+def changed(previous: str | None, current: str) -> bool:
+    """Whether the content moved since the hash the last published snapshot
+    carried; anything that is not a hash, or no hash at all, counts as moved."""
+    return previous is None or previous.strip() != current
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--checkout", action="append", default=[], metavar="name=path")
@@ -280,6 +290,8 @@ def main() -> int:
     parser.add_argument("--issues")
     parser.add_argument("--json", dest="json_out", required=True)
     parser.add_argument("--hash")
+    parser.add_argument("--previous")
+    parser.add_argument("--changed")
     args = parser.parse_args()
     try:
         reading = goals.read(".", args.checkout, args.ref, args.prs, [])
@@ -291,8 +303,14 @@ def main() -> int:
         return 2
     goals.warn(reading.unread)
     within_cwd(args.json_out).write_text(json.dumps(data, indent=1) + "\n", encoding="utf-8")
+    digest = content_hash(data)
     if args.hash:
-        within_cwd(args.hash).write_text(content_hash(data) + "\n", encoding="utf-8")
+        within_cwd(args.hash).write_text(digest + "\n", encoding="utf-8")
+    if args.changed:
+        before = within_cwd(args.previous) if args.previous else None
+        published = before.read_text(encoding="utf-8") if before and before.is_file() else None
+        moved = changed(published, digest)
+        within_cwd(args.changed).write_text(f"{str(moved).lower()}\n", encoding="utf-8")
     return 0
 
 
