@@ -50,3 +50,11 @@ e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  public/brand/n
 # because nothing local could be checked against.
 
 32548c774fa39f2614094826cc6c77bc35a2cce244df6b817ead2e200518ca5c  60-brand/tokens.json  brand:tokens/tokens.json
+
+# Home Assistant shows an integration's icon and logo from the PNG files in its own
+# `brand/` directory, so the integration carries the brand's exports for it.
+
+e89133eb651164cedd65e5a3ba6dab2fa9b63369d6bacba135485f9b601e8d06  custom_components/lemonfiber/brand/icon.png     brand:assets/logo/export/home-assistant/icon.png
+c4e5526ba54a625b57eb7657b621109847da63e758f59bd46dea8b577ab68a03  custom_components/lemonfiber/brand/icon@2x.png  brand:assets/logo/export/home-assistant/icon@2x.png
+77d0061b11560ba71f7d6366b2bbb4dc72fe4ae85bbe662ba629b2a44c64dd8e  custom_components/lemonfiber/brand/logo.png     brand:assets/logo/export/home-assistant/logo.png
+35d6eae64c90d37fbd6d0faedc0e52230f7fbaaed52419cc58ec59a2ce21e035  custom_components/lemonfiber/brand/logo@2x.png  brand:assets/logo/export/home-assistant/logo@2x.png
