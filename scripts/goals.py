@@ -65,6 +65,7 @@ from dataclasses import dataclass, field
 
 import status_check
 import tracker as markdown_tracker
+from claims import CAP, over_cap
 from gate import claimed as row_claims
 from paths import within_cwd
 from patterns import CITE, LANDED, SPEC_TRAILER, ordered
@@ -308,7 +309,7 @@ def read_repository(goals: dict[str, Standing], name: str, path: pathlib.Path,
 
 
 def markdown(report: list[tuple[dict, list[Standing]]], ref: str,
-             unread: dict[str, str]) -> str:
+             unread: dict[str, str], crowded: dict[str, int] | None = None) -> str:
     """The report as a page a person reads: what could not be read, what is still
     to do, then what shipped."""
     source = (f"Read from each repository at `{ref}`. Written by `scripts/goals.py`; "
@@ -319,6 +320,13 @@ def markdown(report: list[tuple[dict, list[Standing]]], ref: str,
                 "repository shows it met.")
         out += ["## Not read", "", note, ""]
         out += [f"- **{repo}**: {reason}" for repo, reason in sorted(unread.items())]
+        out += [""]
+    if crowded:
+        note = (f"Each holds more than {CAP} open pull requests from people and agents, "
+                "the organisation's bots not counted (GOV-R58). Merge or close one before "
+                "opening another.")
+        out += ["## Over the cap", "", note, ""]
+        out += [f"- **{repo}**: {n}" for repo, n in sorted(crowded.items())]
         out += [""]
     for manifest, goals in report:
         if manifest.get("status", "planned") not in FINISHED:
@@ -431,7 +439,7 @@ def main() -> int:
         print(f"::error::{broken}")
         return 2
     warn(reading.unread)
-    page = markdown(reading.report, args.ref, reading.unread)
+    page = markdown(reading.report, args.ref, reading.unread, over_cap(reading.prs))
     data = as_data(reading.report, args.ref, reading.sources, reading.unread,
                    datetime.datetime.now(datetime.UTC))
     if args.markdown:

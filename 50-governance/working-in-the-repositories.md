@@ -58,7 +58,9 @@ the organisation's bots (`dependabot`, the release App) are not counted. The cap
 keeps the shared CI moving and every pull request owned. It is held softly: the
 developer command line refuses to open a fourth, a bot comments on one that is
 opened anyway, and the board flags the repository (`GOV-R58`). Before opening a
-pull request, merge or close one.
+pull request, merge or close one. The comment comes from the shared `pr-cap`
+workflow, which each repository calls as a job named `cap`; the board, the report
+and that workflow all count through `scripts/claims.py`.
 
 ## The developer command line
 

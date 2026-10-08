@@ -43,6 +43,7 @@ import gen_board
 import goals
 import status_check
 from catalogue import features as load_features
+from claims import CAP, STALE_AFTER, is_bot
 from integrity import elsewhere
 from paths import within_cwd
 from patterns import CITE, REQ_DEF_ROW, SPEC_TRAILER, ordered
@@ -69,12 +70,6 @@ KEYWORDS = ("MUST", "SHOULD", "MAY")
 RETIRED = re.compile(r"^\*(Withdrawn|Superseded)\b")
 #: A feature's identifier, which is also how its requirements are prefixed.
 FEATURE_ID = re.compile(r"^[A-Z]\d+$")
-#: The open pull requests a repository holds from people and agents before the
-#: board flags it, the organisation's bots not counted (GOV-R58).
-CAP = 3
-#: How long a draft pull request goes without a commit before its claim is shown
-#: as stale.
-STALE_AFTER = datetime.timedelta(days=14)
 #: How the forge writes a time.
 STAMP = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -210,7 +205,7 @@ def pulls(prs: dict[str, list[dict]], now: datetime.datetime) -> list[dict]:
             out.append({
                 "repo": repo, "number": pr["number"], "url": pr["url"],
                 "title": pr.get("title"), "author": author,
-                "bot": (pr.get("author") or {}).get("__typename") == "Bot",
+                "bot": is_bot(pr),
                 "draft": draft, "created_at": pr.get("createdAt"),
                 "updated_at": pr.get("updatedAt"), "head": pr.get("headRefName"),
                 "last_commit_at": committed,

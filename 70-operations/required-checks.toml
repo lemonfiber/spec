@@ -31,6 +31,10 @@ name = "refs / comment"
 why = "posts the spec references a pull request touches, as a comment"
 
 [[exempt]]
+name = "cap / comment"
+why = "tells a pull request its repository is past the cap of open pull requests; the cap is held softly and refuses nothing"
+
+[[exempt]]
 name = "awaiting / notify"
 why = "tells the maintainers a pull request is ready; the readiness is decided elsewhere"
 
