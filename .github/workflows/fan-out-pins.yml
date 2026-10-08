@@ -150,7 +150,7 @@ jobs:
       # that fails.
       #
       # **The app needs `workflows: write`, and `contents: write` is not enough.**
-      # GitHub refuses a push from an app that creates or updates anything under
+      # GitHub refuses a commit from an app that creates or updates anything under
       # `.github/workflows/`, whatever else the token may do — and every change
       # this workflow makes is to a file under `.github/workflows/`, because that
       # is what a pin on a reusable workflow is. Without it the run gets as far as
@@ -172,7 +172,7 @@ jobs:
       #
       # **The four below are asked for by name, and that is the whole point.**
       # A token minted with whatever the app happens to hold gets as far as
-      # twelve clones, twelve rewrites and twelve rejected pushes before anyone
+      # twelve clones, twelve rewrites and twelve rejected commits before anyone
       # learns which permission was missing — and the run reports it as twelve
       # repositories refusing a branch. Asking narrows the token to what this
       # workflow actually uses, and turns an absent one into a failure at this
@@ -291,9 +291,15 @@ jobs:
               echo "::endgroup::"; continue
             fi
 
-            # Every open pull request here, as `number branch`, read once.
+            # Every open pull request this app opened here from the repository's
+            # own branches, as `number branch`, read once. Matched by branch name
+            # alone, a fork's pull request named like the bump would be retitled,
+            # closed or have its runs cancelled by this; only the app's own are its.
             if ! gh pr list --repo "${OWNER}/${repo}" --state open --limit 200 \
-                 --json number,headRefName --jq '.[] | "\(.number) \(.headRefName)"' \
+                 --json number,headRefName,isCrossRepository,author \
+                 --jq '.[] | select(.isCrossRepository | not)
+                       | select(.author.login == "app/lemonfiber-release-train")
+                       | "\(.number) \(.headRefName)"' \
                  >"${work}/${repo}.open"; then
               echo "::warning::${repo}'s open pull requests could not be listed"
               refused="${refused} ${repo}"
@@ -311,22 +317,17 @@ jobs:
               fi
               current="${current} ${repo}"
             else
-              git -C "$at" config user.name "lemonfiber-release-train[bot]"
-              git -C "$at" config user.email \
-                "lemonfiber-release-train[bot]@users.noreply.github.com"
-              git -C "$at" checkout -q -B "$branch"
-              git -C "$at" add -A
-              git -C "$at" commit -q -F "${work}/message"
-
-              # Pushed to an addressed remote rather than to `origin`, so no
-              # credential is written into the checkout. Forced, because the
-              # branch is rebuilt from `main` for every number. The remote's own
-              # sentence is kept: a protected branch, a missing permission and a
-              # network fault all read alike without it.
-              if ! git -C "$at" push -q --force \
-                   "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${repo}.git" \
-                   "$branch" 2>"${work}/refusal"; then
-                echo "::warning::${repo} would not take the branch: $(tr '\n' ' ' <"${work}/refusal")"
+              # Committed through the API as the app, so GitHub signs it: every
+              # consumer's `main` takes signed commits only, and a commit made
+              # here with git and pushed is one none of them could merge. The
+              # branch is rebuilt from `main` for every number, by way of a
+              # staging branch, so the pull request on it is never left holding
+              # no commits. What refused is kept: a protected branch, a missing
+              # permission and a network fault all read alike without it.
+              if ! python3 "${SPEC}/scripts/signed_pin_commit.py" \
+                   --repo "$at" --slug "${OWNER}/${repo}" --branch "$branch" \
+                   --message "${work}/message" >/dev/null 2>"${work}/refusal"; then
+                echo "::warning::${repo} would not take the bump: $(tr '\n' ' ' <"${work}/refusal")"
                 refused="${refused} ${repo}"
                 echo "::endgroup::"; continue
               fi
