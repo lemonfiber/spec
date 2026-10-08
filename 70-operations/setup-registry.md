@@ -27,6 +27,7 @@ project should be operable from one page.
 | 2 | Register the SSH **signing** key | GitHub → Settings → SSH keys → *signing* | Commit signatures verify |
 | 3 | **Uninstall** the **Renovate** GitHub App from the org | GitHub → Org → Settings → GitHub Apps | It is installed, has never opened a pull request, and is no longer read ([ADR-0016](../00-overview/decisions/0016-dependabot-over-renovate.md)) |
 | 4 | Create the org's **SonarQube Cloud** org, linked to GitHub | sonarcloud.io | Code quality + coverage |
+| 4a | Require a sign-off on web-based commits (`web_commit_signoff_required`) | GitHub → Org → Settings | A squash merge carries the merger's sign-off (`GOV-R29`) |
 | 5 | Add org secrets `DISCORD_ANNOUNCE_WEBHOOK`, `DISCORD_BUILD_WEBHOOK`, `DISCORD_MAINTAINERS_WEBHOOK` and org variable `DISCORD_RELEASE_ROLE_ID` (visibility: all) | GitHub → Org → Secrets/Variables → Actions | Release, build-log, and maintainer [notifications](notifications.md) |
 
 ### Per-repo (once each)
@@ -35,6 +36,7 @@ project should be operable from one page.
 |---|------|-------|-----------|
 | 6 | Branch protection: PR + signed commits + **strict** required checks (incl. SonarCloud), linear history, conversation-resolution, `enforce_admins` **on** | all | Governance is enforced, not advisory, and not exempt for the people who wrote it |
 | 6a | Pin every required status check to the app that reports it — **outstanding**, see [the unpinned checks](#the-unpinned-required-checks-specifically) | all | A required check with no app behind it can be reported by anything that can write a status, so the requirement is decorative |
+| 6b | A squash merge's commit message is the pull request's title and body (`squash_merge_commit_title: PR_TITLE`, `squash_merge_commit_message: PR_BODY`) | all | `main` keeps the body's `Spec:` line and sign-off, which `squash-message` holds the body to (`GOV-R62`) |
 | 7 | Add `SONAR_TOKEN` secret | every repo with a Sonar job | The Sonar scan, and the `Q-R64` issue gate — which warns rather than fails where the secret is missing |
 | 8 | Add a token that can push to `homebrew-tap` | `lemonfiber` | Release regenerates the formula, from `1.0.0` (`L1-R3`) |
 | 9 | Add npm publish auth (`NPM_TOKEN`) | `brand` | Publishing `@lemonfiber/brand` |

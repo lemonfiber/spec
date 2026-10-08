@@ -32,7 +32,7 @@ how the bot works is itself a change, and it cites a `GOV-R`.
 | **GOV-R2** | Every change to an implementation repo MUST cite at least one requirement, ADR, or governance ID. |
 | **GOV-R3** | A cited identifier MUST exist on the spec repository's default branch at the implementation change's merge-base. |
 | **GOV-R4** | Where a change implements new or altered behaviour, the corresponding spec change MUST be merged **before** the implementation change. |
-| **GOV-R5** | Citations MUST appear in a commit trailer and in the pull request body. |
+| **GOV-R5** | Citations MUST appear in a commit trailer and in the pull request body. The body's citation is the one the default branch keeps, because a squash merge writes the pull request's title and body as its commit message. |
 | **GOV-R6** | Citations MUST NOT appear in code comments. |
 | **GOV-R7** | A spec change that alters an accepted requirement MUST state which implementation repos are affected. |
 | **GOV-R8** | Requirement identifiers are permanent. A withdrawn requirement is marked withdrawn in place; its number is never reused. |

@@ -168,6 +168,9 @@ RULE_ROW = re.compile(
     r"^\| [^|]*\(\*\*([A-Z0-9-]+)\*\*\) \| [^|]+ \| `([a-z-]+)` \|$", re.MULTILINE
 )
 
+#: The heading that section opens with.
+COMMIT_SECTION = "## What a commit message has to carry"
+
 #: One edit to an acceptable message for each check, taking that rule away and
 #: nothing else. The keys are what the document is held to naming.
 BREAKS = {
@@ -189,10 +192,15 @@ class TheDocumentAndTheHookAgree(unittest.TestCase):
     """
 
     def stated(self) -> dict[str, str]:
-        """{check: requirement} as the contributing document states it."""
-        found = RULE_ROW.findall(
-            (ROOT / "50-governance" / "contributing.md").read_text(encoding="utf-8")
-        )
+        """{check: requirement} as the contributing document states it.
+
+        Read from the commit message's section alone. The page's table of what a
+        pull request carries is shaped the same, and its check reads the body,
+        which no commit hook sees.
+        """
+        text = (ROOT / "50-governance" / "contributing.md").read_text(encoding="utf-8")
+        _, _, section = text.partition(COMMIT_SECTION)
+        found = RULE_ROW.findall(section.split("\n### ", 1)[0])
         return {check: rule for rule, check in found}
 
     def test_the_table_was_actually_read(self) -> None:
