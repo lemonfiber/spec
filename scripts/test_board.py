@@ -18,6 +18,7 @@ Run:  python3 scripts/test_board.py
 from __future__ import annotations
 
 import contextlib
+import datetime
 import io
 import json
 import pathlib
@@ -154,7 +155,8 @@ class TheShape(Board):
         self.assertEqual(data["format"], board.FORMAT)
         self.assertEqual(list(data), ["format", "generated_at", "ref", "sources", "unread",
                                       "areas", "features", "requirements", "versions",
-                                      "trackers", "pulls", "repos", "releases", "proposals"])
+                                      "trackers", "pulls", "contested", "repos", "releases",
+                                      "proposals"])
         self.assertEqual(data["unread"], [])
         self.assertEqual(set(data["sources"]), {"spec", "core", "app", "lemonfiber"})
 
@@ -253,6 +255,67 @@ class PullsAndProposals(Board):
         data, _ = self.snapshot("--prs", "prs.json")
         self.assertEqual([r["open_pulls"] for r in data["repos"]], [0, 1, 0])
         self.assertIsNone(data["pulls"][0]["author"])
+
+    def write_prs(self, prs):
+        pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
+
+    def test_a_repository_over_the_cap_its_bots_not_counted(self):
+        people = [{"number": n, "url": f"https://x/{n}", "author": {"login": "p",
+                                                                    "__typename": "User"}}
+                  for n in range(1, board.CAP + 2)]
+        bot = {"number": 99, "url": "https://x/99", "author": {"login": "dependabot",
+                                                              "__typename": "Bot"}}
+        self.write_prs({"core": [*people, bot], "app": people[:board.CAP]})
+        data, _ = self.snapshot("--prs", "prs.json")
+        core = next(r for r in data["repos"] if r["name"] == "core")
+        self.assertEqual((core["open_pulls"], core["counted_pulls"], core["over_cap"]),
+                         (board.CAP + 2, board.CAP + 1, True))
+        spec = next(r for r in data["repos"] if r["name"] == "spec")
+        self.assertEqual((spec["counted_pulls"], spec["over_cap"]), (0, False))
+
+    def test_a_repository_at_the_cap_is_not_over_it(self):
+        self.write_prs({"core": [{"number": n, "url": f"https://x/{n}"}
+                                 for n in range(board.CAP)]})
+        data, _ = self.snapshot("--prs", "prs.json")
+        core = next(r for r in data["repos"] if r["name"] == "core")
+        self.assertEqual((core["counted_pulls"], core["over_cap"]), (board.CAP, False))
+
+    def test_a_draft_without_a_commit_for_too_long_is_stale(self):
+        now = datetime.datetime.now(datetime.UTC)
+
+        def ago(days):
+            return (now - datetime.timedelta(days=days)).strftime(board.STAMP)
+
+        old = board.STALE_AFTER.days + 1
+        self.write_prs({"core": [
+            {"number": 1, "url": "u", "isDraft": True,
+             "commits": [{"message": "a", "committedDate": ago(old + 5)},
+                         {"message": "b", "committedDate": ago(old)}]},
+            {"number": 2, "url": "u", "isDraft": True, "createdAt": ago(old + 5),
+             "commits": [{"message": "a", "committedDate": ago(1)}]},
+            {"number": 3, "url": "u", "isDraft": False,
+             "commits": [{"message": "a", "committedDate": ago(old)}]},
+            {"number": 4, "url": "u", "isDraft": True, "createdAt": ago(old), "commits": []},
+            {"number": 5, "url": "u", "isDraft": True}]})
+        data, _ = self.snapshot("--prs", "prs.json")
+        found = {p["number"]: p for p in data["pulls"]}
+        self.assertEqual(found[1]["last_commit_at"], ago(old), "the newest commit")
+        self.assertEqual({n: p["stale"] for n, p in found.items()},
+                         {1: True, 2: False, 3: False, 4: True, 5: False})
+        self.assertIsNone(found[4]["last_commit_at"])
+
+    def test_a_goal_claimed_by_more_than_one_pull_request(self):
+        def pr(number, cites, kind="User"):
+            return {"number": number, "url": f"https://x/{number}", "body": f"Spec: {cites}",
+                    "author": {"login": "p", "__typename": kind}}
+
+        self.write_prs({
+            "core": [pr(1, "A1-R2, A1-R9"), pr(2, "A1-R3"), pr(3, "A1-R3", "Bot")],
+            "app": [pr(4, "A1-R2, A1-R9"), pr(5, "A1-R4")]})
+        data, _ = self.snapshot("--prs", "prs.json")
+        self.assertEqual(data["contested"],
+                         [{"id": "A1-R2", "pulls": ["app#4", "core#1"]}],
+                         "a released version's goal and a bot's citation contest nothing")
 
     def test_the_pre_approval_feed(self):
         issues = [{"number": 4, "title": "RFC: a thing", "html_url": "https://x/i/4"},
