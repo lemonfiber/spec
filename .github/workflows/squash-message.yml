@@ -28,7 +28,9 @@ on:
 permissions:
   contents: read
 jobs:
-  check:
+  # Named as `dco` and `attribution` name theirs, so the context reads
+  # `squash-message` here and `squash-message / squash-message` in a caller.
+  squash-message:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -86,9 +88,9 @@ jobs:
   # once it passes. A fork's token cannot comment, so a fork's pull request
   # reads the same text in the check's summary instead.
   explain:
-    needs: check
+    needs: squash-message
     if: >-
-      !cancelled() && needs.check.outputs.needed != ''
+      !cancelled() && needs.squash-message.outputs.needed != ''
       && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
@@ -96,6 +98,6 @@ jobs:
     uses: ./.github/workflows/explain-check.yml
     with:
       check: squash-message
-      needed: ${{ needs.check.outputs.needed }}
+      needed: ${{ needs.squash-message.outputs.needed }}
       title: "What the squash commit on `main` needs"
-      body: ${{ needs.check.outputs.said }}
+      body: ${{ needs.squash-message.outputs.said }}
