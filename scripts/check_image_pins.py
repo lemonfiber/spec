@@ -12,6 +12,9 @@ The registry is asked through `docker buildx imagetools inspect`, which reads th
 index without pulling anything. A tag the registry does not hold is refused as
 unpublished.
 
+The stack is read as lemonfiber reads it: the root and each file its `include`
+names, joined in order (ARCH-R171), or a manifest from before the split as it is.
+
 Usage:
   check_image_pins.py --version X.Y.Z --tag <tag> --stack <stack.toml>
 
@@ -29,6 +32,7 @@ import sys
 import tomllib
 
 import manifest_repos
+import stack_manifest
 from manifest_repos import IMAGE_HOME
 from patterns import PRERELEASE_ID, VERSION
 
@@ -120,14 +124,22 @@ def main() -> int:
         print(f"::error::no stack manifest at {a.stack}", file=sys.stderr)
         return 1
 
-    wanted, said = {}, []
+    try:
+        text, unread = stack_manifest.joined(stack.read_text(encoding="utf-8"),
+                                             stack_manifest.on_disk(stack.parent))
+        declared = tomllib.loads(text)
+    except tomllib.TOMLDecodeError as broken:
+        print(f"::error::the stack manifest cannot be read: {broken}")
+        return 1
+    said = [f"the stack includes {entry}, which is not a service file beside it" for entry in unread]
+    wanted = {}
     for _, service, image in cut:
-        digest, unread = digest_of(f"{image}:{a.tag}")
-        if unread:
-            said.append(unread)
+        digest, missing = digest_of(f"{image}:{a.tag}")
+        if missing:
+            said.append(missing)
         else:
             wanted[service] = digest
-    said += problems(tomllib.loads(stack.read_text(encoding="utf-8")), a.tag, wanted)
+    said += problems(declared, a.tag, wanted)
     for problem in said:
         print(f"::error::{problem}")
     if said:

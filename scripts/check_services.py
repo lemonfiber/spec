@@ -2,7 +2,7 @@
 """The bundled-service count this repository states, against the stack that holds them.
 
 Ten pages said "nineteen services" and a twentieth had shipped. Nothing here read
-`stack.toml`, so nothing went red, and correcting them by hand only reset the clock:
+the stack manifest, so nothing went red, and correcting them by hand only reset the clock:
 the stack repository guards its own prose against its own manifest, and the spec held
 no copy to guard against.
 
@@ -46,6 +46,7 @@ import tomllib
 import urllib.error
 import urllib.request
 
+import stack_manifest
 from integrity import elsewhere
 
 #: Where the stack says what it composes, when nobody names a copy.
@@ -122,16 +123,21 @@ def read_stack(where: str) -> str:
 
 
 def services(text: str) -> int:
-    """How many services the manifest composes, refusing a manifest that holds none."""
+    """How many services the manifest composes, refusing a manifest that holds none.
+
+    The root's `include` list alone decides what the stack holds (ARCH-R171), so
+    the root is all this reads; a manifest from before the split counts its
+    inline `[[service]]` tables.
+    """
     try:
-        composed = tomllib.loads(text).get("service", [])
+        composed = stack_manifest.members(tomllib.loads(text))
     except tomllib.TOMLDecodeError as broken:
         print(f"::error::the stack manifest cannot be read: {broken}")
         raise SystemExit(2) from broken
     if not composed:
         print("::error::the stack manifest composes no service; this read the wrong file")
         raise SystemExit(2)
-    return len(composed)
+    return composed
 
 
 def governed(root: pathlib.Path) -> list[pathlib.Path]:
