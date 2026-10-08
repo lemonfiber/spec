@@ -65,6 +65,10 @@
 # settled, read as facts on a read that offers no setup, and a walkthrough's steps each
 # naming the job they belong to.
 #
+# `A2-R17` makes setup's wire step normative: after the stack starts, setup wires it as
+# `seed` does and reports each connection before it finishes, so a fresh install is one
+# stack rather than containers that cannot find each other.
+#
 # `ARCH-R133` and `ARCH-R134` put what a request carries in the contract beside what an
 # answer carries: the bodies the setup routes take, and every action with its arguments
 # and the consent it asks for, generated so that an SDK generates them too. Without them
@@ -227,7 +231,7 @@
 # and a call carrying it refused where the stack moved since, as the plugin writes are;
 # a call carrying none acts as before. Home Assistant's controls rehearse and then act
 # (`F12-R8`), so what they carry out is what they were shown.
-# 325 goals, seeded from the roadmap milestone this version serves;
+# 326 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -384,6 +388,7 @@ goals   = [
     "G8-R17",
     "G8-R18",
     "A2-R16",
+    "A2-R17",
     "D3-R14",
     "ARCH-R2",
     "ARCH-R3",

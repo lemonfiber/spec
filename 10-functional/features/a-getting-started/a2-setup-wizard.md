@@ -85,6 +85,16 @@ and prompt operators to kill the process mid-write.
 Quitting mid-wizard preserves answers. Returning resumes at the same step. The
 operator is never made to re-answer eleven questions because step 12 failed.
 
+### A started stack is wired before setup finishes
+
+Containers that run and know nothing of each other are not a working stack: the
+download clients are not in the automation apps, the indexers are not in the
+search, and the first request goes nowhere. Step 14 is what makes them one stack.
+It wires the services exactly as [`seed`](../d-content/d1-seed.md) does, and it says
+what it did with each connection, made, skipped or failed, before Finish prints
+anything (`A2-R17`). A stack that did not start is not wired, because there is
+nothing yet to answer the calls.
+
 ### On the companion
 
 The companion does not offer this, and the reason is not squeamishness: a phone
@@ -163,6 +173,7 @@ resume, roll back, or start over.
 | **A2-R14** | When configuration already exists, lemonfiber MUST direct the operator to reconfiguration rather than re-running setup. |
 | **A2-R15** | Total elapsed time for an operator with prerequisites in hand SHOULD be under 15 minutes ([NFR](../../../00-overview/vision.md#what-success-looks-like)). |
 | **A2-R16** | The web API MUST serve what setup settled — the data root, the protocols and the service user — read from the configuration as it stands, together with whether this stack is set up, on a read that offers no setup and changes nothing (`N15-R1`, `N15-R2`). |
+| **A2-R17** | After the start step, setup MUST wire the stack as `seed` does ([D1](../d-content/d1-seed.md)), and report each connection made, skipped or failed before it finishes; a stack that did not start is not wired. |
 
 ## Related
 
