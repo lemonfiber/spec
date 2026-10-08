@@ -85,3 +85,9 @@
 - name: ci
   color: 5a6772
   description: Pipelines, workflows, and release engineering
+- name: rfc
+  color: c5def5
+  description: A proposal opened through the issue form; a maintainer converts it into a proposal pull request
+- name: rfc:convert
+  color: 1d76db
+  description: A maintainer's word to turn this RFC issue into a proposal pull request

@@ -1,15 +1,16 @@
 name: RFC — propose a spec change
-description: Propose a new or changed requirement. The issue is the source of truth until a maintainer approves it; only an approved RFC becomes a spec PR.
+description: Propose a new or changed requirement without touching a file. A maintainer turns it into a proposal pull request, where it is discussed and decided.
 title: "RFC: "
 labels: ["rfc"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for proposing a change. **This issue is the source of truth for your
-        proposal** until a maintainer approves it and the resulting Draft merges —
-        no git needed. A maintainer will discuss it here and, if approved, the
-        automation opens a Draft spec PR linked to this issue.
+        Thanks for proposing a change — no git needed. A maintainer turns this issue
+        into a proposal pull request under `10-functional/proposals/`, crediting you,
+        and the proposal is discussed and decided there. Identifiers are allocated
+        only if it is approved. You can also open the pull request yourself, adding
+        the file as `10-functional/proposals/README.md` describes.
   - type: dropdown
     id: area
     attributes:
@@ -28,6 +29,7 @@ body:
         - "J — Runtime & platform"
         - "K — Observability"
         - "L — Release & distribution"
+        - "N — Companion"
     validations:
       required: true
   - type: input

@@ -681,5 +681,89 @@ class ManifestRepositories(Spec):
         self.assertIn("no repository was read", integrity.check_manifest_repos()[0])
 
 
+class Proposals(Spec):
+    """Draft proposals under 10-functional/proposals/, held to the RFC process's
+    shape (GOV-R40, GOV-R41)."""
+
+    GOOD = (
+        "---\nkind: proposal\narea: B\ntitle: Scheduled scans\namends: B3\nstatus: draft\n---\n\n"
+        "# Scheduled scans\n\n## Problem\n\nNone.\n\n## Proposed behaviour\n\n"
+        "- The dashboard MUST show the next scan.\n\n## Rationale\n\nBecause.\n"
+    )
+
+    def setUp(self):
+        super().setUp()
+        self.doc("10-functional/features/README.md", "# Features\n\n## B — Running it\n")
+        self.doc("10-functional/features/b-running/b3-live-dashboard.md", "# B3\n")
+        self.doc("50-governance/rules.md", "# Rules\n")
+        self.doc("10-functional/proposals/README.md", "# Proposals\n")
+        self.doc("10-functional/proposals/TEMPLATE.md", "# not checked\n")
+
+    def faults(self):
+        return integrity.check_proposals()
+
+    def test_a_proposal_in_shape(self):
+        self.doc("10-functional/proposals/scheduled-scans.md", self.GOOD)
+        self.assertEqual(self.faults(), [])
+
+    def test_a_gap_naming_the_silent_page(self):
+        self.doc("10-functional/proposals/a-gap.md",
+                 "---\nkind: gap\narea: B\ntitle: Silence\namends: 50-governance/rules.md\n"
+                 "status: draft\n---\n\n## What the specification does not say\n\nHow long.\n")
+        self.assertEqual(self.faults(), [])
+
+    def test_no_proposals_directory(self):
+        shutil.rmtree(self.root / "10-functional" / "proposals")
+        self.assertEqual(self.faults(), [])
+
+    def test_each_fault_named(self):
+        cases = {
+            "Bad_Name.md": (self.GOOD, "is not named with lower-case"),
+            "extra.md": (self.GOOD.replace("status: draft", "status: draft\nowner: me"), "fields the shape does not: owner"),
+            "kind.md": (self.GOOD.replace("kind: proposal", "kind: idea"), "has kind 'idea'"),
+            "area.md": (self.GOOD.replace("area: B", "area: Z"), "names area 'Z'"),
+            "title.md": (self.GOOD.replace("title: Scheduled scans", "title:"), "has no title"),
+            "status.md": (self.GOOD.replace("status: draft", "status: accepted"), "has status 'accepted'"),
+            "amends.md": (self.GOOD.replace("amends: B3", "amends: B9"), "amends 'B9'"),
+            "page.md": (self.GOOD.replace("amends: B3", "amends: 50-governance/none.md"), "amends '50-governance"),
+            "ids.md": (self.GOOD + "| **B3-R40** | x |\n", "defines an identifier"),
+            "nothing.md": (self.GOOD.replace("- The dashboard MUST show the next scan.", "Something."),
+                           "no statement under ## Proposed behaviour"),
+            "gap.md": ("---\nkind: gap\narea: B\ntitle: G\nstatus: draft\n---\n", "names no feature or page"),
+            "silent.md": ("---\nkind: gap\narea: B\ntitle: G\namends: B3\nstatus: draft\n---\n",
+                          "says nothing under ## What the specification does not say"),
+            "bare.md": ("# no front matter\n", "has no front matter"),
+        }
+        for name, (text, said) in cases.items():
+            with self.subTest(name):
+                path = self.doc(f"10-functional/proposals/{name}", text)
+                found = self.faults()
+                self.assertTrue(any(said in f and name in f for f in found), found)
+                path.unlink()
+
+    def test_only_markdown_belongs_there(self):
+        self.doc("10-functional/proposals/notes.txt", "x")
+        self.assertIn("only Markdown files belong here", " ".join(self.faults()))
+
+    def test_a_directory_there_is_passed_over(self):
+        (self.root / "10-functional" / "proposals" / "drafts").mkdir()
+        self.assertEqual(self.faults(), [])
+
+    def test_no_catalogue_means_no_area_resolves(self):
+        (self.root / "10-functional" / "features" / "README.md").unlink()
+        self.doc("10-functional/proposals/scheduled-scans.md", self.GOOD)
+        self.assertIn("names area 'B'", " ".join(self.faults()))
+
+    def test_a_section_found_or_not(self):
+        self.assertEqual(integrity.section("## A\nx\n## B\ny\n", "A"), "x")
+        self.assertEqual(integrity.section("## A\nx\n", "B"), "")
+
+    def test_main_refuses_a_proposal_out_of_shape(self):
+        self.doc("10-functional/proposals/bad.md", self.GOOD.replace("status: draft", "status: accepted"))
+        code, out = run_main()
+        self.assertEqual(code, 1)
+        self.assertIn("a proposal is draft until approved", out)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

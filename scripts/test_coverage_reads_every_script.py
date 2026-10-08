@@ -54,7 +54,6 @@ UNMEASURED = {
     "wrong answer is caught there rather than here",
     "scripts/gen_codeowners.py": "generates a file the forge validates on push",
     "scripts/gen_roadmap_table.py": "generates a table the integrity job diffs",
-    "scripts/rfc_scaffold.py": "writes a new RFC on request; gates nothing",
 }
 
 # The one `omit` entry that is a pattern rather than a file: the suites are not
