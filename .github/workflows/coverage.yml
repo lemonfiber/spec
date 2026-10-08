@@ -82,6 +82,7 @@ jobs:
           coverage run --append scripts/test_dco_check.py
           coverage run --append scripts/test_attribution.py
           coverage run --append scripts/test_commit_lint.py
+          coverage run --append scripts/test_squash_message.py
           coverage run --append scripts/test_order.py
           coverage run --append scripts/test_frontmatter.py
           coverage run --append scripts/test_spec_refs.py

@@ -1028,7 +1028,7 @@ jobs:
       run: |
         printf '%s\n\n%s\n' \
           "**\`spec-check\` closed this.** ${REASON}" \
-          "This is sequencing, not rejection. Add a \`Spec:\` trailer naming an identifier that already exists on \`spec@main\` — to a commit or to the pull request body, on its own line, e.g. \`Spec: OPS-R1\`. Routine maintenance cites \`GOV-R12\`. Changing behaviour? Merge the spec change first, then cite the new identifier. Reopen when it is ready; nothing here is lost." \
+          "This is sequencing, not rejection. Add a \`Spec:\` trailer naming an identifier that already exists on \`spec@main\` — on its own line in the pull request body, which the squash merge writes to \`main\`, e.g. \`Spec: OPS-R1\`. Routine maintenance cites \`GOV-R12\`. Changing behaviour? Merge the spec change first, then cite the new identifier. Reopen when it is ready; nothing here is lost." \
           > .close-comment.md
 
         # Closing needs a token that may write, and a pull request opened from

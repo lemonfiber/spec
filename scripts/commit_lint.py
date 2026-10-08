@@ -29,18 +29,23 @@ SUBJECT = re.compile(rf"^(?:{TYPES})(?:\([a-z0-9.\-]+\))?!?: .+")
 FORMAT = "%H%x00%s"
 
 
-def unconventional(out: str) -> list[str]:
-    """Every commit in what git said whose subject the changelog cannot read.
+# A merge and a revert are written by git, in git's words, and rewriting them to
+# pass would be editing what git recorded about what happened. The forge titles a
+# revert's pull request the same way.
+WRITTEN_BY_GIT = ("Merge ", "Revert ")
 
-    A merge and a revert are written by git, in git's words, and rewriting them
-    to pass would be editing what git recorded about what happened.
-    """
+
+def conventional(subject: str) -> bool:
+    """Whether the changelog can read this subject, or git wrote it."""
+    return subject.startswith(WRITTEN_BY_GIT) or bool(SUBJECT.match(subject))
+
+
+def unconventional(out: str) -> list[str]:
+    """Every commit in what git said whose subject the changelog cannot read."""
     bad = []
     for line in filter(None, out.splitlines()):
         sha, _, subject = line.partition("\x00")
-        if subject.startswith(("Merge ", "Revert ")):
-            continue
-        if not SUBJECT.match(subject):
+        if not conventional(subject):
             bad.append(f"{sha[:8]} {subject}")
     return bad
 
