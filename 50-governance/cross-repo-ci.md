@@ -444,7 +444,9 @@ rather than behind it. Its cost is the honest one and worth stating: this
 repository moves, so a repository green on Friday is behind on Monday without
 anyone touching it, and an author who changed none of it pays the bump. What
 makes that bearable is **OPS-R48** — `fan-out-pins.yml`, which opens the bump in
-every consumer rather than leaving it owed by all of them.
+every consumer rather than leaving it owed by all of them. It keeps one pull
+request per repository, on `ci/take-the-shared-workflows`, rebuilt and retitled
+for each number rather than opened beside the last (**OPS-R85**).
 
 It hangs off `publish-pin-tag` rather than off the merge, because the comment
 beside a pin carries the tag and the tag is what Dependabot compares: a fan-out
