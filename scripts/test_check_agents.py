@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import os
 import pathlib
 import sys
 import tempfile
@@ -80,6 +81,9 @@ class Main(unittest.TestCase):
     def test_what_it_says_and_its_exit(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)
+            was = pathlib.Path.cwd()
+            os.chdir(root)
+            self.addCleanup(os.chdir, was)
             code, out = run_main(root)
             self.assertEqual(code, 1)
             self.assertIn("::error file=AGENTS.md::there is no AGENTS.md", out)

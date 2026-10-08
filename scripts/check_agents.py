@@ -18,8 +18,9 @@ not, each reason named.
 from __future__ import annotations
 
 import argparse
-import pathlib
 import sys
+
+from paths import within_cwd
 
 #: The file, at a repository's root.
 FILE = "AGENTS.md"
@@ -65,7 +66,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=".")
     args = parser.parse_args()
-    path = pathlib.Path(args.root) / FILE
+    path = within_cwd(args.root) / FILE
     found = faults(path.read_text(encoding="utf-8") if path.is_file() else None)
     for fault in found:
         print(f"::error file={FILE}::{fault}")
