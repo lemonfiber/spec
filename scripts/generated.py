@@ -112,6 +112,12 @@ GENERATED = (
         owns="the contrast table",
     ),
     Generated(
+        generator="scripts/gen_rfc_areas.py",
+        recipe="python3 scripts/gen_rfc_areas.py",
+        paths=(".github/ISSUE_TEMPLATE/rfc.yml",),
+        owns="the area dropdown's options, from the catalogue page's headings",
+    ),
+    Generated(
         generator="scripts/gen_gates.py",
         recipe="python3 scripts/gen_gates.py",
         paths=(".github/workflows/gates.yml",),

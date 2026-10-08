@@ -120,7 +120,8 @@ class Board(Train):
         super().setUp()
         features = pathlib.Path("10-functional/features")
         (features / "a-start").mkdir(parents=True)
-        (features / "README.md").write_text("# Features\n\n## A — Getting started\n",
+        # A status after the name is the page's, not the name's.
+        (features / "README.md").write_text("# Features\n\n## A — Getting started · *Draft*\n",
                                             encoding="utf-8")
         (features / "a-start" / "a1-first-run.md").write_text(FEATURE, encoding="utf-8")
         (features / "a-start" / "a2-second-run.md").write_text(DRAFT, encoding="utf-8")

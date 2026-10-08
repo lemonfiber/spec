@@ -42,6 +42,8 @@ import tomllib
 import gen_board
 import goals
 import status_check
+from catalogue import FEATURES_README
+from catalogue import areas as area_names
 from catalogue import features as load_features
 from claims import CAP, STALE_AFTER, is_bot
 from integrity import elsewhere
@@ -59,11 +61,6 @@ CORE = "lemonfiber"
 REPOS = "30-repos/repos.toml"
 #: The group a repository outside the map is listed under.
 UNGOVERNED = "ungoverned"
-#: The catalogue's page, whose section headings name the areas.
-FEATURES_README = "10-functional/features/README.md"
-#: `## A — Getting started`: an area's letter and name, as the catalogue's page
-#: heads each section.
-AREA_HEADING = re.compile(r"^## ([A-Z]) — (.+)$", re.MULTILINE)
 #: The keywords of RFC 2119 a requirement can carry, strongest first.
 KEYWORDS = ("MUST", "SHOULD", "MAY")
 #: A retired row starts with one of these, in italics.
@@ -77,7 +74,7 @@ STAMP = "%Y-%m-%dT%H:%M:%SZ"
 def areas(features: dict[str, dict]) -> list[dict]:
     """Each area in use: its letter, the name the catalogue's page gives it, and
     the directory its features live in."""
-    names = dict(AREA_HEADING.findall(pathlib.Path(FEATURES_README).read_text(encoding="utf-8")))
+    names = area_names(pathlib.Path(FEATURES_README).read_text(encoding="utf-8"))
     directories = {fm["area"]: fm["path"].split("/")[2] for fm in features.values()}
     return [{"id": area, "name": names.get(area), "directory": directory}
             for area, directory in sorted(directories.items())]

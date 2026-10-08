@@ -31,10 +31,9 @@ import sys
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
-from integrity import AREA, PROPOSALS
-
-#: The catalogue's page, whose section headings name the areas.
-CATALOGUE = pathlib.Path("10-functional/features/README.md")
+from catalogue import FEATURES_README
+from catalogue import areas as area_names
+from integrity import PROPOSALS
 
 #: One call to the forge's API through `gh`: its arguments and the request
 #: body, then the JSON it answers with.
@@ -172,7 +171,7 @@ def open_proposal(env: Mapping[str, str], proposal: Proposal, api: Api) -> str:
 
 def main(env: Mapping[str, str] = os.environ, api: Api = gh) -> int:
     try:
-        areas = set(AREA.findall(CATALOGUE.read_text(encoding="utf-8")))
+        areas = set(area_names(pathlib.Path(FEATURES_README).read_text(encoding="utf-8")))
         proposal = render(env, areas)
         print(f"opened {open_proposal(env, proposal, api)} with {proposal.path}")
     except Refused as refused:
