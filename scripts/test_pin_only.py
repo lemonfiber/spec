@@ -60,6 +60,8 @@ class Forge:
                                    (OLD, OFF): "ahead", (OFF, "main"): "diverged",
                                    (NEW, OLD): "behind", (OLD, "main"): "ahead"}
         self.truncated: set[str] = set()
+        # The head each read of the pull request answers with, in turn; the last repeats.
+        self.heads = [HEAD]
         self.blobs: dict[str, str] = {}
         self.asked: list[list[str]] = []
 
@@ -79,7 +81,8 @@ class Forge:
         self.asked.append(args)
         path = args[0]
         if path == f"repos/{REPO}/pulls/7":
-            return {"head": {"sha": HEAD}, "base": {"sha": BASE}}
+            head = self.heads.pop(0) if len(self.heads) > 1 else self.heads[0]
+            return {"head": {"sha": head}, "base": {"sha": BASE}}
         if path == f"repos/{REPO}/compare/{BASE}...{HEAD}":
             return {"merge_base_commit": {"sha": MERGE_BASE}}
         for at, commit in ((0, MERGE_BASE), (1, HEAD)):
@@ -101,10 +104,10 @@ class Forge:
         raise AssertionError(f"unexpected call {args}")
 
 
-def run(forge: Forge) -> tuple[int, str]:
+def run(forge, head: str = HEAD) -> tuple[int, str]:
     out = io.StringIO()
     with contextlib.redirect_stdout(out):
-        code = pin_only.main(["--repo", REPO, "--number", "7"], api=forge)
+        code = pin_only.main(["--repo", REPO, "--number", "7", "--head", head], api=forge)
     return code, out.getvalue()
 
 
@@ -251,6 +254,166 @@ class Truncated(unittest.TestCase):
         self.assertIn(".github is added", said)
 
 
+SPEC_GATES = "lemonfiber/spec/.github/workflows/gates.yml"
+
+
+def steps(*step_lines: str) -> str:
+    """A workflow with one job whose steps are the lines given."""
+    return "on: [pull_request]\njobs:\n  one:\n    runs-on: ubuntu-latest\n    steps:\n" + "".join(step_lines)
+
+
+class Shapes(unittest.TestCase):
+    """Each way YAML can make the text judged differ from what Actions runs."""
+
+    def judged(self, before: str, after: str) -> tuple[int, str]:
+        return run(Forge({CI: (before, after)}))
+
+    def refused(self, before: str, after: str, *words: str) -> None:
+        code, said = self.judged(before, after)
+        self.assertEqual(code, 1, said)
+        for word in words:
+            self.assertIn(word, said)
+
+    def test_a_pin_inside_a_block_scalar(self):
+        script = "      - run: |\n          echo uses: {pin}@{sha}\n"
+        self.refused(steps(script.format(pin=SPEC_GATES, sha=OLD)), steps(script.format(pin=SPEC_GATES, sha=NEW)),
+                     "at jobs.one.steps.0.run")
+
+    def test_a_step_written_as_a_flow_mapping_is_a_step(self):
+        step = "      - {{uses: {pin}@{sha}}}\n"
+        code, said = self.judged(steps(step.format(pin=SPEC_GATES, sha=OLD)), steps(step.format(pin=SPEC_GATES, sha=NEW)))
+        self.assertEqual(code, 0, said)
+        self.refused(steps(step.format(pin=SPEC_GATES, sha=OLD)), steps(step.format(pin=SPEC_GATES, sha=OFF)),
+                     "is not on lemonfiber/spec main")
+
+    def test_an_anchor_and_an_alias(self):
+        text = "x: &p {pin}@{sha}\n" + steps("      - uses: *p\n")
+        self.refused(text.format(pin=SPEC_GATES, sha=OLD), text.format(pin=SPEC_GATES, sha=NEW),
+                     "two readers could take differently", "the anchor &p")
+
+    def test_an_alias_elsewhere_in_the_file(self):
+        text = "x: &p 1\ny: *p\n" + steps("      - uses: {pin}@{sha}\n")
+        self.refused(text.format(pin=SPEC_GATES, sha=OLD), text.format(pin=SPEC_GATES, sha=NEW), "two readers")
+
+    def test_an_alias_naming_no_anchor(self):
+        with self.assertRaisesRegex(pin_only.Unsafe, "an alias"):
+            pin_only.strict("a: *p\n")
+
+    def test_a_merge_key(self):
+        text = steps("      - <<: {{uses: {pin}@{sha}}}\n")
+        self.refused(text.format(pin=SPEC_GATES, sha=OLD), text.format(pin=SPEC_GATES, sha=NEW), "a merge key")
+
+    def test_an_explicit_tag(self):
+        text = steps("      - uses: !!str {pin}@{sha}\n")
+        self.refused(text.format(pin=SPEC_GATES, sha=OLD), text.format(pin=SPEC_GATES, sha=NEW), "the tag")
+
+    def test_a_key_given_twice(self):
+        text = steps("      - uses: {pin}@{sha}\n        uses: {pin}@" + OLD + "\n")
+        self.refused(text.format(pin=SPEC_GATES, sha=OLD), text.format(pin=SPEC_GATES, sha=NEW), "the key 'uses' twice")
+
+    def test_a_quoted_key_that_is_not_uses(self):
+        text = steps('      - "uses ": {pin}@{sha}\n        run: x\n')
+        self.refused(text.format(pin=SPEC_GATES, sha=OLD), text.format(pin=SPEC_GATES, sha=NEW), "at jobs.one.steps.0.uses ")
+
+    def test_an_escaped_key_that_is_uses_is_read_as_uses(self):
+        text = steps('      - "use\\x73": {pin}@{sha}\n')
+        code, said = self.judged(text.format(pin=SPEC_GATES, sha=OLD), text.format(pin=SPEC_GATES, sha=NEW))
+        self.assertEqual(code, 0, said)
+
+    def test_a_pin_in_a_comment(self):
+        text = steps("      # was {pin}@{sha}\n      - uses: {pin}@" + OLD + "\n")
+        self.refused(text.format(pin=SPEC_GATES, sha=OLD), text.format(pin=SPEC_GATES, sha=NEW),
+                     "somewhere Actions does not read as a workflow to call")
+
+    def test_a_value_continued_onto_the_next_line(self):
+        text = steps("      - uses: {pin}@{sha}\n          trailing\n")
+        self.refused(text.format(pin=SPEC_GATES, sha=OLD), text.format(pin=SPEC_GATES, sha=NEW), "at jobs.one.steps.0.uses")
+
+    def test_line_endings_changed(self):
+        self.refused(caller(), caller(gates=NEW).replace("\n", "\r\n"), "changes more than spec's pins")
+
+    def test_line_endings_kept(self):
+        code, said = self.judged(caller().replace("\n", "\r\n"), caller(gates=NEW).replace("\n", "\r\n"))
+        self.assertEqual(code, 0, said)
+
+    def test_a_value_spelt_another_way(self):
+        self.refused(caller() + "x: yes\n", caller(gates=NEW) + "x: true\n", "changes more than spec's pins")
+
+    def test_a_second_document(self):
+        self.refused(caller(), caller(gates=NEW) + "---\n", "changes more than spec's pins")
+        self.refused(caller() + "---\na: 1\n", caller(gates=NEW) + "---\na: 1\n", "two readers")
+
+    def test_a_pin_in_a_script_beside_the_workflows(self):
+        script = ".github/actions/setup/run.sh"
+        code, said = run(Forge({script: (f"echo {SPEC_GATES}@{OLD}\n", f"echo {SPEC_GATES}@{NEW}\n")}))
+        self.assertEqual(code, 1, said)
+        self.assertIn(f"{script} changes, and only a workflow's spec pins may", said)
+
+    def test_a_job_reordered(self):
+        before = "jobs:\n  a:\n    uses: x\n  b:\n    uses: y\n"
+        after = "jobs:\n  b:\n    uses: y\n  a:\n    uses: x\n"
+        self.refused(before, after, "changes more than spec's pins")
+
+    def test_a_list_grown_and_a_type_changed(self):
+        self.assertEqual(pin_only.differences([1], [1, 2]), ([()], []))
+        self.assertEqual(pin_only.differences({"a": 1}, {"b": 1}), ([()], []))
+        self.assertEqual(pin_only.differences({"a": "1"}, {"a": 1}), ([("a",)], []))
+        self.assertEqual(pin_only.differences({"a": [1]}, {"a": {"b": 1}}), ([("a",)], []))
+
+    def test_each_reading_stands_without_the_text_check(self):
+        # The text check refuses these first; the structure refuses them on its own too.
+        old, new = f"{SPEC_GATES}@{OLD}", f"lemonfiber/spec/.github/workflows/dco.yml@{NEW}"
+        self.assertEqual(pin_only.differences({"jobs": {"a": {"uses": old}}}, {"jobs": {"a": {"uses": new}}}),
+                         ([("jobs", "a", "uses")], []))
+        self.assertEqual(pin_only.differences({"a": 1, "b": 2}, {"b": 2, "a": 1}), ([()], []))
+        self.assertEqual(pin_only.differences({"a": 1}, {"a": True}), ([("a",)], []))
+        self.assertEqual(pin_only.differences({"x": {"a": {"uses": old}}}, {"x": {"a": {"uses": f"{SPEC_GATES}@{NEW}"}}}),
+                         ([("x", "a", "uses")], []))
+        keyed = {"jobs": {"a": {"steps": {"k": {"uses": f"{SPEC_GATES}@{OLD}"}}}}}
+        moved = {"jobs": {"a": {"steps": {"k": {"uses": f"{SPEC_GATES}@{NEW}"}}}}}
+        self.assertEqual(pin_only.differences(keyed, moved), ([("jobs", "a", "steps", "k", "uses")], []))
+
+    def test_a_pin_moved_at_a_place_that_is_not_uses(self):
+        old, new = f"{SPEC_GATES}@{OLD}", f"{SPEC_GATES}@{NEW}"
+        self.assertEqual(pin_only.differences({"jobs": {"a": {"with": {"x": old}}}},
+                                              {"jobs": {"a": {"with": {"x": new}}}}), ([("jobs", "a", "with", "x")], []))
+        self.assertEqual(pin_only.differences({"uses": old}, {"uses": new}), ([("uses",)], []))
+        self.assertEqual(pin_only.differences({"jobs": {"a": {"uses": old}}}, {"jobs": {"a": {"uses": new}}}),
+                         ([], [(SPEC_GATES, OLD, NEW)]))
+
+
+class StaleHead(unittest.TestCase):
+    """A verdict is about the commit the event named, and only while it is the head."""
+
+    def test_a_head_that_moved_before_the_run_read_it(self):
+        forge = Forge({CI: (caller(), caller(gates=NEW))})
+        forge.heads = [OFF]
+        code, said = run(forge)
+        self.assertEqual(code, 1, said)
+        self.assertIn(f"the pull request's head is {OFF[:8]}, not {HEAD[:8]}", said)
+
+    def test_a_head_that_moved_while_the_run_read_it(self):
+        forge = Forge({CI: (caller(), caller(gates=NEW))})
+        forge.heads = [HEAD, OFF]
+        code, said = run(forge)
+        self.assertEqual(code, 1, said)
+        self.assertIn("the commit this run was started for", said)
+
+    def test_every_read_names_the_commit_and_never_a_branch(self):
+        forge = Forge({CI: (caller(), caller(gates=NEW))})
+        run(forge)
+        reads = [a[0] for a in forge.asked]
+        self.assertIn(f"repos/{REPO}/git/trees/{HEAD}", reads)
+        self.assertIn(f"repos/{REPO}/compare/{BASE}...{HEAD}", reads)
+        self.assertFalse([r for r in reads if "ref=" in r or "/branches/" in r or "heads/" in r], reads)
+
+    def test_a_head_that_is_not_a_commit(self):
+        for head in ("main", "a" * 39, "A" * 40, ""):
+            with self.subTest(head):
+                code, said = run(Forge({}), head=head)
+                self.assertEqual(code, 2, said)
+
+
 class CannotRead(unittest.TestCase):
     def test_a_forge_that_refuses_is_a_failure_not_a_pass(self):
         def refusing(args, raw):
@@ -307,6 +470,22 @@ class TheWorkflow(unittest.TestCase):
         last = self.steps[-1]
         self.assertTrue(last["run"].startswith("python3 .spec-canonical/scripts/pin_only.py"))
         self.assertNotIn("${{", last["run"])
+        self.assertIn('--head "$HEAD_SHA"', last["run"])
+        self.assertEqual(last["env"]["HEAD_SHA"], "${{ github.event.pull_request.head.sha }}")
+
+    def test_the_caller_it_documents_runs_on_every_new_head_and_cancels_per_pull_request(self):
+        # GitHub attaches a pull_request_target run's checks to the pull request's head
+        # commit (on website-lemonfiber.app#133, run 37852167512's check suite named head
+        # 14c2666e, the pull request's head, while main was 577a86dd), and protection asks
+        # for the check on the commit it would merge. So each new head needs its own run.
+        documented = "\n".join(line[4:] for line in WORKFLOW.read_text(encoding="utf-8").splitlines()
+                               if line.startswith("#   "))
+        caller_text = documented[documented.index("on:"):documented.index("jobs:")]
+        shown = yaml.safe_load(caller_text)
+        self.assertEqual(set(shown[True]["pull_request_target"]["types"]), {"opened", "synchronize", "reopened"})
+        import check_superseded_runs
+        self.assertEqual(shown["concurrency"]["group"], check_superseded_runs.TARGET_GROUP)
+        self.assertIs(shown["concurrency"]["cancel-in-progress"], True)
 
     def test_it_refuses_any_event_but_pull_request_target(self):
         script = self.steps[0]["run"]

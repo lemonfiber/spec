@@ -6,12 +6,23 @@
 #   on:
 #     pull_request_target:
 #       types: [opened, synchronize, reopened]
+#   concurrency:
+#     group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+#     cancel-in-progress: true
 #   jobs:
 #     pin-only:
 #       permissions:
 #         contents: read
 #         pull-requests: read
 #       uses: lemonfiber/spec/.github/workflows/pin-only.yml@<sha> # v1.0.0
+#
+# `synchronize` and `reopened` matter as much as `opened`. The verdict is a check
+# on the head commit the event names, and branch protection asks for the check on
+# the commit it would merge, so a pass on one head does not stand for the next:
+# a push starts a run for the new head, and the old pass is on a commit that is
+# no longer the head. The group is keyed on the pull request's number, because
+# under `pull_request_target` `github.ref` is the base branch every pull request
+# shares, and a push cancels the run for the head it replaced and nothing else.
 #
 # Nothing of the pull request's is checked out or run. The script is spec's,
 # from its `main`, and reads the pull request's files through the API as text.
@@ -58,9 +69,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      # The workflows are read as YAML by a loader that refuses what could make
+      # one text mean two things, so a pin is judged where Actions reads it.
+      - name: Install the YAML reader
+        run: pip install --disable-pip-version-check --only-binary ":all:" pyyaml==6.0.3
+
       - name: The checks are the base branch's, or spec's pins moved forward
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
-        run: python3 .spec-canonical/scripts/pin_only.py --repo "$REPO" --number "$PR"
+          # The commit the event was for, which every read names; never the branch.
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 .spec-canonical/scripts/pin_only.py --repo "$REPO" --number "$PR" --head "$HEAD_SHA"
