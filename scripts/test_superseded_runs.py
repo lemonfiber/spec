@@ -106,6 +106,12 @@ class Passing(Repository):
         self.write("ci.yml", workflow(on))
         self.assertEqual(self.check()[0], [])
 
+    def test_a_pull_request_target_workflow_grouped_by_its_number(self):
+        target = f"concurrency:\n  group: {superseded.TARGET_GROUP}\n  cancel-in-progress: true\n"
+        self.write("pin-only.yml", workflow("on:\n  pull_request_target:\n    types: [opened, synchronize]", target))
+        self.write("ci.yml", workflow("on: [pull_request]", name="ci"))
+        self.assertEqual(self.check(), ([], ""))
+
     def test_a_workflow_no_pull_request_runs_needs_no_group(self):
         self.write("stale.yml", workflow("on:\n  schedule:\n    - cron: '0 0 * * *'", ""))
         self.assertEqual(self.check()[0], [])
@@ -182,6 +188,17 @@ class Refusing(Repository):
             "github.event_name == 'pull_request' && github.ref || github.run_id",
             "github.event.pull_request.number")))
         self.refused("ci.yml runs on a pull request")
+
+    def test_a_target_group_on_a_workflow_a_pull_request_also_starts(self):
+        target = f"concurrency:\n  group: {superseded.TARGET_GROUP}\n  cancel-in-progress: true\n"
+        self.write("pin-only.yml", workflow("on: [pull_request_target, push]", target))
+        self.refused("pin-only.yml cancels by the group")
+
+    def test_two_target_workflows_sharing_a_name(self):
+        target = f"concurrency:\n  group: {superseded.TARGET_GROUP}\n  cancel-in-progress: true\n"
+        self.write("a.yml", workflow("on: [pull_request_target]", target, name="pin-only"))
+        self.write("b.yml", workflow("on: [pull_request_target]", target, name="pin-only"))
+        self.refused("are both named 'pin-only'")
 
     def test_a_group_keyed_on_the_ref_alone_cancels_a_push_to_main(self):
         self.write("deploy.yml", workflow(

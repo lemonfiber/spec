@@ -16,7 +16,9 @@ What it refuses, file by file under ``.github/workflows/``:
 - a group that cancels and is not that one. Keyed on the ref alone, a push to
   ``main`` cancels the one before it. A workflow that only a dispatch or a
   schedule starts is let through: no push and no tag reaches it, and a bump bot
-  is asked to cancel its stale run there (Q-R78);
+  is asked to cancel its stale run there (Q-R78). So is one that only
+  ``pull_request_target`` starts, grouped by its pull request's number
+  (``TARGET_GROUP``), since under that event the ref is the base branch;
 - a job's own group that cancels, and any job's own group in a workflow a pull
   request runs. A job waiting in a group is replaced by the next to arrive
   whatever ``cancel-in-progress`` says, so a push's job can be cancelled by one;
@@ -57,6 +59,13 @@ REPORTED = frozenset({
 #: a pull request. A group of its own that cancels cannot reach a protected
 #: branch's run or a release's from a workflow started only by these.
 DISPATCHED = frozenset({"workflow_dispatch", "repository_dispatch", "schedule"})
+
+#: The group a workflow only `pull_request_target` starts cancels by. Under that
+#: event `github.ref` is the base branch every pull request shares, so the block
+#: would group each run by itself and cancel nothing. Keyed on the pull request's
+#: number, a push cancels the run for the head it replaced and nothing else, and
+#: no push to a branch or a tag starts such a workflow at all.
+TARGET_GROUP = "${{ github.workflow }}-${{ github.event.pull_request.number }}"
 
 # `key: value`, `key:`, and a quoted key, which is how `"on":` is written by
 # anyone whose YAML reads a bare `on` as `true`.
@@ -171,6 +180,11 @@ def dispatched_only(named: list[str]) -> bool:
     return bool(named) and set(named) <= DISPATCHED
 
 
+def target_only(one: dict) -> bool:
+    """Whether a workflow only `pull_request_target` starts, grouped by `TARGET_GROUP`."""
+    return set(one["events"]) == {"pull_request_target"} and (one["group"] or ("", None))[0] == TARGET_GROUP
+
+
 def home(canonical: pathlib.Path) -> tuple[str, list[str]]:
     """The one group, read from its home, or why it could not be."""
     path = canonical / HOME
@@ -246,7 +260,7 @@ def refused(where: str, one: dict, group: str, wanted: str) -> list[str]:
             f"in lemonfiber/spec {HOME}, which cancels the run a push to it "
             f"supersedes and nothing else. Give it that block:\n{wanted}"
         )
-    elif cancels(cancel) and own != group and not dispatched_only(one["events"]):
+    elif cancels(cancel) and own != group and not dispatched_only(one["events"]) and not target_only(one):
         said.append(
             f"{where} cancels by the group {own!r}, which can cancel a run for a push "
             f"to a protected branch or a tag. Use the block in lemonfiber/spec "
@@ -265,15 +279,16 @@ def refused(where: str, one: dict, group: str, wanted: str) -> list[str]:
 
 def shared_names(read: dict, group: str) -> list[str]:
     """Workflows grouped by the same name, which cancel each other's runs."""
-    named: dict[str, list[str]] = {}
+    named: dict[tuple[str, str], list[str]] = {}
     for where, one in read.items():
-        if (one["group"] or ("", None))[0] == group:
-            named.setdefault(one["name"] or where, []).append(where)
+        own = (one["group"] or ("", None))[0]
+        if own in (group, TARGET_GROUP):
+            named.setdefault((own, one["name"] or where), []).append(where)
     return [
         f"{' and '.join(files)} are both named {name!r}, and the group is keyed on "
         f"the name: each cancels the other's run on the same pull request. Name "
         f"them apart (Q-R75)"
-        for name, files in sorted(named.items())
+        for (_, name), files in sorted(named.items())
         if len(files) > 1
     ]
 
