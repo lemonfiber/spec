@@ -145,6 +145,14 @@ class TheGate(Isolated):
         code, said = run(root)
         self.assertEqual(code, 0, said)
 
+    def test_a_row_marked_draft_is_not_asked_to_be_scheduled(self):
+        root = tree(goals='"X1-R1"')
+        feature = root / gate.FEATURES / "features" / "x-thing" / "x1-thing.md"
+        text = feature.read_text(encoding="utf-8")
+        feature.write_text(text.replace("| The second thing.", "| *Draft:* The second thing."), encoding="utf-8")
+        code, said = run(root)
+        self.assertEqual(code, 0, said)
+
     def test_a_declared_entry_that_is_now_locked_is_refused(self):
         gate.AWAITING_A_VERSION["X1"] = ("a note naming 0.1.0", ["X1-R2"])
         code, said = run(tree())

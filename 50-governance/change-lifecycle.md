@@ -135,7 +135,10 @@ since anyone could merge a draft and implement against it in the same breath.
 The gate refuses a trailer citing one (`GOV-R48`), saying it is Draft and which
 document defines it. A requirement is Draft when the document defining it is: a
 feature's frontmatter `status:`, or the `**Status:**` line every other document
-opens with.
+opens with. It is also Draft when its own row opens with `*Draft:*`, which is how
+an approved proposal's requirement sits in an Accepted feature until a pull
+request removes the marker and so hardens it ([rfc-process.md](rfc-process.md)).
+A Draft row is never a version's goal.
 
 **A retired number is not a citation either, and the gate now says so**
 (`GOV-R47`). A withdrawal is recorded *in place*: the row stays so the number is

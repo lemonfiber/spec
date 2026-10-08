@@ -65,6 +65,8 @@ UNGOVERNED = "ungoverned"
 KEYWORDS = ("MUST", "SHOULD", "MAY")
 #: A retired row starts with one of these, in italics.
 RETIRED = re.compile(r"^\*(Withdrawn|Superseded)\b")
+#: A row marked Draft in place, ahead of the review that hardens it (GOV-R42).
+DRAFT_ROW = re.compile(r"^\*Draft:\*")
 #: A feature's identifier, which is also how its requirements are prefixed.
 FEATURE_ID = re.compile(r"^[A-Z]\d+$")
 #: How the forge writes a time.
@@ -87,11 +89,11 @@ def keyword(text: str) -> str | None:
 
 def status_of(text: str, draft: bool) -> str:
     """`withdrawn` or `superseded` where the row says so, `draft` where its
-    feature is, otherwise `accepted`."""
+    feature is or the row is marked `*Draft:*`, otherwise `accepted`."""
     retired = RETIRED.match(text)
     if retired:
         return retired.group(1).lower()
-    return "draft" if draft else "accepted"
+    return "draft" if draft or DRAFT_ROW.match(text) else "accepted"
 
 
 def requirement(ident: str, raw: str, owner: str, draft: bool, versions: list[str]) -> dict:
