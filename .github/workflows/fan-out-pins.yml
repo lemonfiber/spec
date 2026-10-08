@@ -167,7 +167,10 @@ jobs:
       # An installation does not take a newly granted permission until it is
       # approved for that installation, so granting it on the app is half of it.
       #
-      # **The three below are asked for by name, and that is the whole point.**
+      # `actions: write` is what cancels the checks still running on a bump this
+      # run replaces, on a branch it closes (OPS-R85).
+      #
+      # **The four below are asked for by name, and that is the whole point.**
       # A token minted with whatever the app happens to hold gets as far as
       # twelve clones, twelve rewrites and twelve rejected pushes before anyone
       # learns which permission was missing — and the run reports it as twelve
@@ -190,6 +193,7 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
           permission-workflows: write
+          permission-actions: write
 
       # Every repository is visited even after one of them fails, and the run
       # fails at the end naming which. Stopping at the first would leave the rest
@@ -197,6 +201,18 @@ jobs:
       # which is the state this workflow exists to end rather than to reproduce
       # more efficiently.
       - name: Open the bump wherever one is owed
+        # One pull request per repository, on one branch (OPS-R85). Each number
+        # rebuilds `ci/take-the-shared-workflows` from `main` with the pins it
+        # moves, force-moves the branch there, and retitles the open pull
+        # request to the number, or opens one where none is open. The consumer's
+        # own concurrency group, keyed by the pull request's ref, then cancels
+        # the checks still running for the number this replaces.
+        #
+        # A pull request this workflow opened per number before, on
+        # `ci/take-the-shared-workflows-at-v*`, is closed pointing at the rolling
+        # one, its branch deleted and its unfinished runs cancelled. Where `main`
+        # already holds every pin, an open rolling pull request is closed too: it
+        # proposes nothing any more.
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           OWNER: ${{ github.repository_owner }}
@@ -206,10 +222,54 @@ jobs:
           SPEC: ${{ github.workspace }}
         run: |
           set -uo pipefail
-          branch="ci/take-the-shared-workflows-at-${TAG}"
-          opened=""; current=""; refused=""
+          branch="ci/take-the-shared-workflows"
+          legacy="ci/take-the-shared-workflows-at-v"
+          title="ci(workflows): take the shared workflows at ${TAG}"
+          opened=""; moved=""; current=""; refused=""
 
           work=$(mktemp -d)
+
+          # Written to files rather than from here-documents: the step is indented
+          # inside YAML, and a here-document keeps that indentation.
+          printf '%s\n' \
+            "${title}" \
+            "" \
+            "A workflow this repository pins moved in the spec, so the pin behind" \
+            "it is a copy of something that has changed. \`workflow-pins\` names" \
+            "it on every pull request opened here until it is taken." \
+            "" \
+            "Only the pins whose own workflow moved are touched. A pin is measured" \
+            "against the one file it names, so a pin several numbers back whose" \
+            "file has not changed is current and is left alone." \
+            "" \
+            "Spec: OPS-R48, OPS-R85" \
+            "" \
+            "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
+            >"${work}/message"
+
+          printf '%s\n' \
+            "A workflow this repository pins moved in the spec at \`${TAG}\` (\`${COMMIT}\`)." \
+            "" \
+            "\`workflow-pins\` names it on every pull request opened here until it is taken, so this is opened for you rather than owed to you." \
+            "" \
+            "**Only the pins whose own workflow moved are in the diff.** A pin is measured against the one file it names, so a pin several numbers back whose file has not changed is current and is left where it is." \
+            "" \
+            "**One pull request, rebuilt for each number.** The fan-out keeps this branch and this pull request, rebuilds the branch from \`main\` when the spec publishes another number, and retitles it, so the checks of the number it replaces are cancelled rather than left running beside it." \
+            "" \
+            "Spec: OPS-R48, OPS-R85" \
+            "" \
+            "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
+            >"${work}/body"
+
+          # The runs of a branch being closed that have not finished, cancelled.
+          cancel_runs() {
+            gh run list --repo "${OWNER}/$1" --branch "$2" --limit 50 \
+              --json databaseId,status \
+              --jq '.[] | select(.status != "completed") | .databaseId' \
+              | while read -r id; do
+                  [ -n "$id" ] && gh run cancel "$id" --repo "${OWNER}/$1" >/dev/null || true
+                done
+          }
 
           for repo in $NAMED; do
             echo "::group::${repo}"
@@ -231,101 +291,89 @@ jobs:
               echo "::endgroup::"; continue
             fi
 
+            # Every open pull request here, as `number branch`, read once.
+            if ! gh pr list --repo "${OWNER}/${repo}" --state open --limit 200 \
+                 --json number,headRefName --jq '.[] | "\(.number) \(.headRefName)"' \
+                 >"${work}/${repo}.open"; then
+              echo "::warning::${repo}'s open pull requests could not be listed"
+              refused="${refused} ${repo}"
+              echo "::endgroup::"; continue
+            fi
+            rolling=$(awk -v b="$branch" '$2 == b { print $1; exit }' "${work}/${repo}.open")
+
             if [ -z "$(git -C "$at" status --porcelain)" ]; then
+              if [ -n "$rolling" ]; then
+                gh pr close "$rolling" --repo "${OWNER}/${repo}" --delete-branch \
+                  --comment "\`main\` already holds every pin this proposed, so there is nothing left to take." \
+                  >/dev/null || echo "::warning::${repo}#${rolling} could not be closed"
+                cancel_runs "$repo" "$branch"
+                rolling=""
+              fi
               current="${current} ${repo}"
-              echo "::endgroup::"; continue
-            fi
-
-            # A re-run, or a tag cut while the last bump was still open. The
-            # branch already carries this number, so there is nothing to add.
-            if gh pr list --repo "${OWNER}/${repo}" --head "$branch" \
-                 --state open --json number --jq 'length' | grep -qv '^0$'; then
-              echo "a pull request for ${TAG} is already open here"
-              current="${current} ${repo}"
-              echo "::endgroup::"; continue
-            fi
-
-            git -C "$at" config user.name "lemonfiber-release-train[bot]"
-            git -C "$at" config user.email \
-              "lemonfiber-release-train[bot]@users.noreply.github.com"
-            git -C "$at" checkout -q -b "$branch"
-            git -C "$at" add -A
-
-            # Written to a file rather than piped from a here-document. The body
-            # is indented inside this YAML and a here-document keeps whatever
-            # indentation it is given, which would put four spaces in front of
-            # every line of every commit message in the organisation.
-            printf '%s\n' \
-              "ci(workflows): take the shared workflows at ${TAG}" \
-              "" \
-              "A workflow this repository pins moved in the spec, so the pin behind" \
-              "it is a copy of something that has changed. \`workflow-pins\` names" \
-              "it on every pull request opened here until it is taken." \
-              "" \
-              "Only the pins whose own workflow moved are touched. A pin is measured" \
-              "against the one file it names — the scripts these workflows run are" \
-              "checked out at \`main\` on every run and reach here whatever the pin" \
-              "says — so a pin several numbers back whose file has not changed is" \
-              "current and is left alone." \
-              "" \
-              "Opened by the fan-out in \`spec\`, from the tag itself rather than" \
-              "from a schedule, so the revision written here is the one that has" \
-              "just become the one to hold." \
-              "" \
-              "Spec: OPS-R48" \
-              "" \
-              "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
-              >"${work}/message"
-
-            git -C "$at" commit -q -F "${work}/message"
-
-            # Pushed to an addressed remote rather than to `origin`. The clone
-            # carries no credential of its own — `gh` holds the token, `git` does
-            # not — and writing one into the checkout's config would leave it
-            # there for everything else the run does.
-            # The remote's own sentence is kept and printed. Without it this
-            # said only "would not take the branch", which is what a protected
-            # branch, a missing permission and a network fault all look like
-            # from here — and the one that actually happened was legible in the
-            # output being thrown away.
-            if ! git -C "$at" push -q \
-                 "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${repo}.git" \
-                 "$branch" 2>"${work}/refusal"; then
-              echo "::warning::${repo} would not take the branch: $(tr '\n' ' ' <"${work}/refusal")"
-              refused="${refused} ${repo}"
-              echo "::endgroup::"; continue
-            fi
-
-            if gh pr create --repo "${OWNER}/${repo}" --head "$branch" \
-                 --title "ci(workflows): take the shared workflows at ${TAG}" \
-                 --body "$(printf '%s\n' \
-                   "A workflow this repository pins moved in the spec at \`${TAG}\` (\`${COMMIT}\`)." \
-                   "" \
-                   "\`workflow-pins\` names it on every pull request opened here until it is taken, so this is opened for you rather than owed to you." \
-                   "" \
-                   "**Only the pins whose own workflow moved are in the diff.** A pin is measured against the one file it names — the scripts these workflows run are checked out at \`main\` on every run and reach here whatever the pin says — so a pin several numbers back whose file has not changed is current and is left where it is." \
-                   "" \
-                   "Opened from the tag rather than from a schedule, which is the difference between this and the dependency bot: a proposal computed on a timer names whatever number existed when it ran, and can land already behind one published since." \
-                   "" \
-                   "Spec: OPS-R48")"; then
-              opened="${opened} ${repo}"
             else
-              echo "::warning::${repo} would not take the pull request"
-              refused="${refused} ${repo}"
+              git -C "$at" config user.name "lemonfiber-release-train[bot]"
+              git -C "$at" config user.email \
+                "lemonfiber-release-train[bot]@users.noreply.github.com"
+              git -C "$at" checkout -q -B "$branch"
+              git -C "$at" add -A
+              git -C "$at" commit -q -F "${work}/message"
+
+              # Pushed to an addressed remote rather than to `origin`, so no
+              # credential is written into the checkout. Forced, because the
+              # branch is rebuilt from `main` for every number. The remote's own
+              # sentence is kept: a protected branch, a missing permission and a
+              # network fault all read alike without it.
+              if ! git -C "$at" push -q --force \
+                   "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/${repo}.git" \
+                   "$branch" 2>"${work}/refusal"; then
+                echo "::warning::${repo} would not take the branch: $(tr '\n' ' ' <"${work}/refusal")"
+                refused="${refused} ${repo}"
+                echo "::endgroup::"; continue
+              fi
+
+              if [ -n "$rolling" ]; then
+                if gh pr edit "$rolling" --repo "${OWNER}/${repo}" \
+                     --title "$title" --body-file "${work}/body" >/dev/null; then
+                  moved="${moved} ${repo}"
+                else
+                  echo "::warning::${repo}#${rolling} would not take the new title"
+                  refused="${refused} ${repo}"
+                fi
+              elif rolling=$(gh pr create --repo "${OWNER}/${repo}" --head "$branch" \
+                     --title "$title" --body-file "${work}/body"); then
+                rolling=${rolling##*/}
+                opened="${opened} ${repo}"
+              else
+                echo "::warning::${repo} would not take the pull request"
+                refused="${refused} ${repo}"
+              fi
             fi
+
+            # The per-number pull requests this replaced, closed and quietened.
+            awk -v l="$legacy" 'index($2, l) == 1 { print $1, $2 }' "${work}/${repo}.open" \
+              | while read -r number old; do
+                  if [ -n "$rolling" ]; then
+                    said="Replaced by #${rolling}, which the fan-out keeps for every number (OPS-R85)."
+                  else
+                    said="\`main\` already holds every pin this proposed; the fan-out keeps one pull request per repository now (OPS-R85)."
+                  fi
+                  gh pr close "$number" --repo "${OWNER}/${repo}" --delete-branch \
+                    --comment "$said" >/dev/null \
+                    && echo "closed ${repo}#${number}" \
+                    || echo "::warning::${repo}#${number} could not be closed"
+                  cancel_runs "$repo" "$old"
+                done
 
             echo "::endgroup::"
           done
 
-          # Each list is accumulated with a separating space in front, so the
-          # first name carries one it did not earn. Trimmed here rather than at
-          # every append, which would be the same fix written three times.
-          opened=${opened# }; current=${current# }; refused=${refused# }
+          opened=${opened# }; moved=${moved# }; current=${current# }; refused=${refused# }
 
           {
             echo "### ${TAG} — the bump, fanned out"
             echo
             echo "- opened:  ${opened:-none}"
+            echo "- moved:   ${moved:-none}"
             echo "- current: ${current:-none}"
             echo "- refused: ${refused:-none}"
           } >>"$GITHUB_STEP_SUMMARY"

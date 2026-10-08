@@ -46,17 +46,35 @@ REACH = "Who holds a pin, and which of them the app can reach"
 #: The `id` of the mint whose token opens the bumps; the other mint only lists.
 WRITER = "token"
 
-#: Stands in for `gh`. Four subcommands, answered by what was asked:
+#: Stands in for `gh`, answered by what was asked:
 #:
 #: `repo clone`  — lays down a checkout seeded from GH_FIXTURE, unless the
 #:                 repository is named in GH_CLONE_FAILS.
-#: `pr list`     — prints GH_PR_EXISTS, which the step reads as a count.
-#: `pr create`   — records the call and succeeds, unless named in GH_CREATE_FAILS.
+#: `pr list`     — prints GH_OPEN, the open pull requests as `number branch`
+#:                 lines, unless GH_LIST_FAILS is set.
+#: `pr create`   — records the call and prints the new pull request's address,
+#:                 unless the repository is named in GH_CREATE_FAILS.
+#: `pr edit`     — records the call, unless GH_EDIT_FAILS is set.
+#: `pr close`    — records the call.
+#: `run list`    — prints GH_RUNS, the unfinished runs' ids.
+#: `run cancel`  — records the call.
 #: `api`         — prints GH_INSTALLED as the installation's repositories, one
 #:                 per line, unless GH_API_FAILS is set.
+#:
+#: A `--body-file` given to `pr create` or `pr edit` is appended to GH_BODIES.
 GH_STUB = """#!/bin/sh
 set -eu
 printf '%s\\n' "$*" >> "${GH_LOG}"
+
+short=""; body=""; prev=""
+for word in "$@"; do
+  case "$prev" in
+  --repo) short=${word#*/} ;;
+  --body-file) body=$word ;;
+  esac
+  prev=$word
+done
+if [ -n "$body" ] && [ -n "${GH_BODIES:-}" ]; then cat "$body" >> "${GH_BODIES}"; fi
 
 case "$1 $2" in
 "repo clone")
@@ -74,22 +92,27 @@ case "$1 $2" in
   exit 0
   ;;
 "pr list")
-  printf '%s\\n' "${GH_PR_EXISTS:-0}"
+  [ -z "${GH_LIST_FAILS:-}" ] || exit 1
+  printf '%b' "${GH_OPEN:-}"
+  exit 0
+  ;;
+"pr create")
+  case " ${GH_CREATE_FAILS:-} " in *" ${short} "*) exit 1 ;; esac
+  printf 'created %s\\n' "${short:-?}" >> "${GH_CREATED}"
+  printf 'https://github.com/lemonfiber/%s/pull/7\\n' "${short}"
+  exit 0
+  ;;
+"pr edit")
+  [ -z "${GH_EDIT_FAILS:-}" ] || exit 1
+  exit 0
+  ;;
+"run list")
+  printf '%b' "${GH_RUNS:-}"
   exit 0
   ;;
 "api "*)
   [ -z "${GH_API_FAILS:-}" ] || exit 1
   printf '%s' "${GH_INSTALLED:-}"
-  exit 0
-  ;;
-"pr create")
-  prev=""
-  for word in "$@"; do
-    case "$prev" in --repo) short=${word#*/} ;; esac
-    prev=$word
-  done
-  case " ${GH_CREATE_FAILS:-} " in *" ${short:-} "*) exit 1 ;; esac
-  printf 'created %s\\n' "${short:-?}" >> "${GH_CREATED}"
   exit 0
   ;;
 esac
@@ -189,7 +212,8 @@ class TheLoop(unittest.TestCase):
         self.created = self.root / "created.log"
         self.pushes = self.root / "pushes.log"
         self.summary = self.root / "summary.md"
-        for where in (self.log, self.created, self.pushes, self.summary):
+        self.bodies = self.root / "bodies.md"
+        for where in (self.log, self.created, self.pushes, self.summary, self.bodies):
             where.touch()
 
     def git(self, *args):
@@ -232,6 +256,7 @@ class TheLoop(unittest.TestCase):
             "GH_LOG": str(self.log),
             "GH_CREATED": str(self.created),
             "GIT_PUSH_LOG": str(self.pushes),
+            "GH_BODIES": str(self.bodies),
             "GITHUB_STEP_SUMMARY": str(self.summary),
             **extra,
         }
@@ -251,13 +276,16 @@ class TheLoop(unittest.TestCase):
         self.assertIn("created alpha", self.created.read_text(encoding="utf-8"))
         self.assertIn("opened:  alpha", self.summary.read_text(encoding="utf-8"))
 
-    def test_the_branch_it_pushes_carries_the_tag(self):
+    def test_the_branch_it_pushes_is_the_one_it_keeps_and_is_forced(self):
+        # One branch per repository, rebuilt from `main` for every number
+        # (OPS-R85), so the push replaces what the last number left there.
         self.pinning(a_pin("dco.yml", self.first))
 
         self.run_step()
 
         pushed = self.pushes.read_text(encoding="utf-8")
-        self.assertIn("ci/take-the-shared-workflows-at-v1.0.9", pushed)
+        self.assertIn("--force", pushed)
+        self.assertTrue(pushed.rstrip().endswith(" ci/take-the-shared-workflows"), pushed)
         # To an addressed remote, not `origin` — the clone holds no credential.
         self.assertIn("github.com/lemonfiber/alpha.git", pushed)
         self.assertNotIn(" origin ", pushed)
@@ -273,14 +301,69 @@ class TheLoop(unittest.TestCase):
         self.assertEqual(self.created.read_text(encoding="utf-8"), "")
         self.assertIn("current: alpha", self.summary.read_text(encoding="utf-8"))
 
-    def test_an_open_pull_request_for_this_tag_is_not_opened_twice(self):
+    def test_an_open_bump_is_moved_and_retitled_rather_than_opened_beside(self):
         self.pinning(a_pin("dco.yml", self.first))
 
-        ran = self.run_step(GH_PR_EXISTS="1")
+        ran = self.run_step(GH_OPEN="5 ci/take-the-shared-workflows\\n9 feature/other\\n")
 
         self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
         self.assertEqual(self.created.read_text(encoding="utf-8"), "")
-        self.assertIn("already open here", ran.stdout)
+        log = self.log.read_text(encoding="utf-8")
+        self.assertIn(
+            "pr edit 5 --repo lemonfiber/alpha --title ci(workflows): take the shared workflows at v1.0.9",
+            log,
+        )
+        self.assertNotIn("pr close", log)
+        self.assertIn("moved:   alpha", self.summary.read_text(encoding="utf-8"))
+
+    def test_the_bump_is_titled_and_ended_as_its_squash_commit_needs(self):
+        # A conventional title, and a body ending with the citation and a
+        # sign-off, so `squash-message` holds nothing against it (GOV-R62).
+        self.pinning(a_pin("dco.yml", self.first))
+
+        self.run_step()
+
+        self.assertIn(
+            "--title ci(workflows): take the shared workflows at v1.0.9",
+            self.log.read_text(encoding="utf-8"),
+        )
+        body = self.bodies.read_text(encoding="utf-8").rstrip()
+        self.assertIn("\n\nSpec: OPS-R48, OPS-R85\n\n", body)
+        self.assertTrue(body.endswith(
+            "Signed-off-by: lemonfiber-release-train[bot] "
+            "<lemonfiber-release-train[bot]@users.noreply.github.com>"))
+
+    def test_a_bump_opened_per_number_is_closed_pointing_at_the_one_kept(self):
+        self.pinning(a_pin("dco.yml", self.first))
+
+        ran = self.run_step(
+            GH_OPEN="3 ci/take-the-shared-workflows-at-v1.0.8\\n4 feature/x\\n",
+            GH_RUNS="111\\n112\\n",
+        )
+
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        log = self.log.read_text(encoding="utf-8")
+        self.assertIn("pr close 3 --repo lemonfiber/alpha --delete-branch --comment Replaced by #7", log)
+        self.assertNotIn("pr close 4", log)
+        self.assertIn("run list --repo lemonfiber/alpha --branch ci/take-the-shared-workflows-at-v1.0.8", log)
+        self.assertIn("run cancel 111 --repo lemonfiber/alpha", log)
+        self.assertIn("run cancel 112 --repo lemonfiber/alpha", log)
+        self.assertIn("closed alpha#3", ran.stdout)
+
+    def test_a_current_repository_closes_the_bump_it_no_longer_needs(self):
+        # `main` took every pin some other way, so the open bump proposes
+        # nothing, and a per-number one is closed saying so.
+        self.pinning(a_pin("hygiene.yml", self.settled))
+
+        ran = self.run_step(
+            GH_OPEN="5 ci/take-the-shared-workflows\\n3 ci/take-the-shared-workflows-at-v1.0.8\\n"
+        )
+
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        log = self.log.read_text(encoding="utf-8")
+        self.assertIn("pr close 5 --repo lemonfiber/alpha --delete-branch", log)
+        self.assertIn("pr close 3 --repo lemonfiber/alpha --delete-branch --comment `main` already holds", log)
+        self.assertEqual(self.pushes.read_text(encoding="utf-8"), "")
         self.assertIn("current: alpha", self.summary.read_text(encoding="utf-8"))
 
     # --- what it refuses --------------------------------------------------
@@ -305,6 +388,24 @@ class TheLoop(unittest.TestCase):
         self.assertEqual(ran.returncode, 1)
         self.assertIn("would not take the branch", ran.stdout)
         self.assertEqual(self.created.read_text(encoding="utf-8"), "")
+
+    def test_open_pull_requests_that_could_not_be_listed_fail_the_run(self):
+        self.pinning(a_pin("dco.yml", self.first))
+
+        ran = self.run_step(GH_LIST_FAILS="1")
+
+        self.assertEqual(ran.returncode, 1)
+        self.assertIn("open pull requests could not be listed", ran.stdout)
+        self.assertEqual(self.pushes.read_text(encoding="utf-8"), "")
+
+    def test_a_bump_that_would_not_take_its_new_title_fails_the_run(self):
+        self.pinning(a_pin("dco.yml", self.first))
+
+        ran = self.run_step(GH_OPEN="5 ci/take-the-shared-workflows\\n", GH_EDIT_FAILS="1")
+
+        self.assertEqual(ran.returncode, 1)
+        self.assertIn("would not take the new title", ran.stdout)
+        self.assertIn("refused: alpha", self.summary.read_text(encoding="utf-8"))
 
     def test_a_pull_request_that_would_not_open_fails_the_run(self):
         self.pinning(a_pin("dco.yml", self.first))
@@ -450,7 +551,7 @@ class TheStepIsTheOneThatRuns(unittest.TestCase):
         # repositories refusing a branch.
         minted = next(one for one in the_mints() if one.get("id") == WRITER)
 
-        for asked in ("contents", "pull-requests", "workflows"):
+        for asked in ("contents", "pull-requests", "workflows", "actions"):
             self.assertEqual(minted["with"][f"permission-{asked}"], "write")
 
     def test_the_write_token_is_minted_for_the_reachable_list_and_no_other(self):
