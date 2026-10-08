@@ -22,7 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 FORM = ROOT / ".github" / "ISSUE_TEMPLATE" / "rfc.yml"
 
 #: The area dropdown's options, found by the field's id rather than a marker.
-OPTIONS = re.compile(r"(^    id: area\n(?:    .*\n)*?      options:\n)((?:        - .*\n)+)", re.MULTILINE)
+OPTIONS = re.compile(r"(^ {4}id: area\n(?: {4}.*\n)*? {6}options:\n)((?: {8}- .*\n)+)", re.MULTILINE)
 
 
 class Refused(Exception):

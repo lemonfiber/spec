@@ -59,8 +59,9 @@ class Written(unittest.TestCase):
         self.assertEqual(gen.written(once, catalogue.areas(PAGE)), once)
 
     def test_a_form_without_the_dropdown_is_refused(self):
+        form, names = FORM.replace("id: area", "id: place"), catalogue.areas(PAGE)
         with self.assertRaisesRegex(gen.Refused, "no `area` dropdown"):
-            gen.written(FORM.replace("id: area", "id: place"), catalogue.areas(PAGE))
+            gen.written(form, names)
 
     def test_a_page_with_no_area_is_refused(self):
         with self.assertRaisesRegex(gen.Refused, "heads no area"):
