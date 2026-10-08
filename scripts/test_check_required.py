@@ -193,6 +193,22 @@ class TheSilences(unittest.TestCase):
             check_required._run(["gh", "api", "whatever"])
         self.assertIn("not found", str(why.exception))
 
+    def test_a_protection_refused_to_the_token_names_the_permission(self):
+        denied = check_required.Unanswerable(
+            "`gh api ...` failed: gh: Resource not accessible by integration (HTTP 403)")
+        with mock.patch.object(check_required, "_run", side_effect=denied), \
+             self.assertRaises(check_required.Unanswerable) as why:
+            check_required.required_in("lemonfiber", ".github")
+        self.assertIn("lemonfiber/.github's branch protection could not be read (HTTP 403)", str(why.exception))
+        self.assertIn("Administration: read", str(why.exception))
+
+    def test_any_other_failure_to_read_protection_is_said_as_it_came(self):
+        missing = check_required.Unanswerable("`gh api ...` failed: Branch not protected (HTTP 404)")
+        with mock.patch.object(check_required, "_run", side_effect=missing), \
+             self.assertRaises(check_required.Unanswerable) as why:
+            check_required.required_in("lemonfiber", "spec")
+        self.assertIs(why.exception, missing)
+
     def test_an_unreadable_protection_is_not_a_clean_repository(self):
         with mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)), \
              mock.patch.object(check_required, "repositories", return_value=["brand"]), \

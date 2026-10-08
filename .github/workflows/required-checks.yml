@@ -61,6 +61,9 @@ jobs:
           # `||` rather than a bare call: the shell is `bash -e`, and the verdict
           # has to outlive the refusal that produced it or the job that sends the
           # finding on has nothing to read.
+          # `pipefail`, or the pipeline's status is `tee`'s and a refusal reads
+          # as a pass.
+          set -o pipefail
           verdict=0
           python3 scripts/check_required.py 2>&1 | tee "$RUNNER_TEMP/finding.txt" || verdict=$?
           {

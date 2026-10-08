@@ -145,13 +145,17 @@ def repositories(owner: str) -> list[str]:
 
 def required_in(owner: str, name: str) -> set[str]:
     """The contexts branch protection will refuse a merge over."""
-    raw = _run(
-        [
-            "gh", "api",
-            "repos/" + named(owner, "organisation") + "/" + named(name, "repository")
-            + "/branches/main/protection/required_status_checks",
-        ]
-    )
+    repo = named(owner, "organisation") + "/" + named(name, "repository")
+    try:
+        raw = _run(["gh", "api", f"repos/{repo}/branches/main/protection/required_status_checks"])
+    except Unanswerable as why:
+        if "HTTP 403" in str(why):
+            raise Unanswerable(
+                f"{repo}'s branch protection could not be read (HTTP 403): the token "
+                "this runs with needs the repository permission Administration: read, "
+                "and without it nothing can say whether a check here blocks a merge"
+            ) from why
+        raise
     return {c["context"] for c in json.loads(raw).get("checks", [])}
 
 
