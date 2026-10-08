@@ -1,14 +1,10 @@
-# Tell the website something changed — one definition, called by every repo it
-# mirrors.
+# Tell the website the board snapshot changed (REPO-R44).
 #
-# The site is a static build that reads the other repositories at build time: the
-# implementation status, the feature board, the releases. So it is only as current
-# as its last build, and until now the only things that rebuilt it were a push to
-# its own repository and a daily schedule. Everything else — a merge here, a
-# release cut, a roadmap moved — sat unpublished for up to a day.
-#
-# Its deploy workflow has always accepted a `rebuild-site` dispatch and said in its
-# own comments that siblings fired one. Nothing did. This is that.
+# The site is a static build, and everything it renders about the organisation
+# is read from the snapshot `state.yml` publishes: the board, the trackers, the
+# releases, and the commit of this repository its specification pages render.
+# `state.yml` calls this when it publishes a snapshot whose content changed; a
+# rebuild at any other moment would render the snapshot already published.
 name: rebuild-site
 
 on:
