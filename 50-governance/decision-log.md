@@ -145,6 +145,7 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | No step of `gates` runs code out of a pull request's tree: each action it calls is one known to read the tree as data; markdownlint is handed the tracked Markdown, read out of git, and the canonical configuration, never a configuration of the pull request's; OSV-Scanner runs in a container given the tree read-only and nothing of the job's, with every call analysis off; and a workflow edits or removes a sticky comment only where its own token wrote it | [Q-R82](../40-quality/ci-cd.md), [GOV-R33](cross-repo-ci.md) |
+| A pull request cannot change what its repository's checks run on its own say (option A): `pin-only`, run from the base branch on `pull_request_target` with a read-only token and nothing of the pull request checked out, fails any change under `.github/workflows/` or `.github/actions/` other than spec's pins moving forward along `main`, and such a change is merged by a maintainer by choice; it is required in every repository once that repository calls it | [Q-R83](../40-quality/ci-cd.md) |
 
 ## Requirements
 
