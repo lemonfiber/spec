@@ -10,10 +10,11 @@ This drives that step as CI drives it. The script is read out of the committed
 YAML through a YAML parser, so what runs here is the literal text that runs
 there — an edit to the workflow that breaks the loop fails this rather than
 being found by a tag six weeks later. `gh` is replaced on a PATH prefix by a stub
-that clones a fixture, answers whether a pull request already exists, and records
-the ones it is asked to open. `git` is the real one, except for `push`, which is
-intercepted the same way: the step is supposed to push to an addressed remote
-rather than to `origin`, and a test that let it try would be testing the network.
+that clones a fixture, answers whether a pull request already exists, records
+the ones it is asked to open, and answers the API calls the bump's commit is made
+with. `git` is the real one, except for `push`, which is intercepted and logged:
+the step makes its commit through the API so GitHub signs it, and a push is
+exactly what it must never do.
 
 The case worth the most is the last one. The step says every repository is
 visited even after one of them fails, because stopping at the first would leave
@@ -58,8 +59,14 @@ WRITER = "token"
 #: `pr close`    — records the call.
 #: `run list`    — prints GH_RUNS, the unfinished runs' ids.
 #: `run cancel`  — records the call.
-#: `api`         — prints GH_INSTALLED as the installation's repositories, one
-#:                 per line, unless GH_API_FAILS is set.
+#: `api graphql` — the commit: records the request on GH_COMMITS and prints a
+#:                 new commit, unless GH_COMMIT_FAILS is set.
+#: `api …/git/ref/heads/…` — whether a branch exists: yes only for the branches
+#:                 named in GH_REFS_EXIST.
+#: `api …/git/refs…` — a branch made, moved or removed: recorded on GH_REFS,
+#:                 refused when GH_REF_FAILS is set.
+#: `api`         — otherwise prints GH_INSTALLED as the installation's
+#:                 repositories, one per line, unless GH_API_FAILS is set.
 #:
 #: A `--body-file` given to `pr create` or `pr edit` is appended to GH_BODIES.
 GH_STUB = """#!/bin/sh
@@ -110,7 +117,26 @@ case "$1 $2" in
   printf '%b' "${GH_RUNS:-}"
   exit 0
   ;;
+"api graphql")
+  cat >> "${GH_COMMITS}"
+  printf '\n' >> "${GH_COMMITS}"
+  [ -z "${GH_COMMIT_FAILS:-}" ] || exit 1
+  printf '0123456789abcdef0123456789abcdef01234567\n'
+  exit 0
+  ;;
 "api "*)
+  case "$*" in
+  *git/ref/heads/*)
+    branch=${2##*/git/ref/heads/}
+    case " ${GH_REFS_EXIST:-} " in *" $branch "*) exit 0 ;; esac
+    exit 1
+    ;;
+  *git/refs*)
+    printf '%s\n' "$*" >> "${GH_REFS}"
+    [ -z "${GH_REF_FAILS:-}" ] || exit 1
+    exit 0
+    ;;
+  esac
   [ -z "${GH_API_FAILS:-}" ] || exit 1
   printf '%s' "${GH_INSTALLED:-}"
   exit 0
@@ -180,7 +206,7 @@ class TheLoop(unittest.TestCase):
 
         self.spec = self.root / "spec"
         (self.spec / "scripts").mkdir(parents=True)
-        for name in ("fan_out_pins.py", "workflow_pins.py"):
+        for name in ("fan_out_pins.py", "workflow_pins.py", "signed_pin_commit.py"):
             shutil.copy(HERE / name, self.spec / "scripts" / name)
 
         self.git("init", "-q", "-b", "main")
@@ -213,7 +239,10 @@ class TheLoop(unittest.TestCase):
         self.pushes = self.root / "pushes.log"
         self.summary = self.root / "summary.md"
         self.bodies = self.root / "bodies.md"
-        for where in (self.log, self.created, self.pushes, self.summary, self.bodies):
+        self.commits = self.root / "commits.log"
+        self.refs = self.root / "refs.log"
+        for where in (self.log, self.created, self.pushes, self.summary, self.bodies,
+                      self.commits, self.refs):
             where.touch()
 
     def git(self, *args):
@@ -257,6 +286,8 @@ class TheLoop(unittest.TestCase):
             "GH_CREATED": str(self.created),
             "GIT_PUSH_LOG": str(self.pushes),
             "GH_BODIES": str(self.bodies),
+            "GH_COMMITS": str(self.commits),
+            "GH_REFS": str(self.refs),
             "GITHUB_STEP_SUMMARY": str(self.summary),
             **extra,
         }
@@ -276,19 +307,45 @@ class TheLoop(unittest.TestCase):
         self.assertIn("created alpha", self.created.read_text(encoding="utf-8"))
         self.assertIn("opened:  alpha", self.summary.read_text(encoding="utf-8"))
 
-    def test_the_branch_it_pushes_is_the_one_it_keeps_and_is_forced(self):
-        # One branch per repository, rebuilt from `main` for every number
-        # (OPS-R85), so the push replaces what the last number left there.
+    def test_the_bump_is_committed_through_the_api_and_never_pushed(self):
+        # Every consumer's `main` takes signed commits only, and GitHub signs a
+        # commit it makes for the app. A commit made here and pushed is one no
+        # repository could merge, which is what the first rolling run did.
         self.pinning(a_pin("dco.yml", self.first))
 
-        self.run_step()
+        ran = self.run_step()
 
-        pushed = self.pushes.read_text(encoding="utf-8")
-        self.assertIn("--force", pushed)
-        self.assertTrue(pushed.rstrip().endswith(" ci/take-the-shared-workflows"), pushed)
-        # To an addressed remote, not `origin` — the clone holds no credential.
-        self.assertIn("github.com/lemonfiber/alpha.git", pushed)
-        self.assertNotIn(" origin ", pushed)
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        self.assertEqual(self.pushes.read_text(encoding="utf-8"), "")
+        made = self.commits.read_text(encoding="utf-8")
+        self.assertIn('"branchName": "ci/take-the-shared-workflows-staging"', made)
+        self.assertIn('"repositoryNameWithOwner": "lemonfiber/alpha"', made)
+        self.assertIn(
+            '"headline": "ci(workflows): take the shared workflows at v1.0.9"', made
+        )
+        self.assertIn('"path": ".github/workflows/ci.yml"', made)
+
+    def test_the_kept_branch_is_moved_to_the_commit_never_reset_to_main(self):
+        # The bump is made on a staging branch placed at `main`, and the kept
+        # branch is then moved to it, forced: a pull request whose head briefly
+        # held no commits of its own would be closed by GitHub (OPS-R85).
+        self.pinning(a_pin("dco.yml", self.first))
+
+        self.run_step(GH_REFS_EXIST="ci/take-the-shared-workflows")
+
+        moves = self.refs.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(len(moves), 3, moves)
+        self.assertIn("--method POST repos/lemonfiber/alpha/git/refs", moves[0])
+        self.assertIn("ref=refs/heads/ci/take-the-shared-workflows-staging", moves[0])
+        self.assertIn(
+            "--method PATCH repos/lemonfiber/alpha/git/refs/heads/ci/take-the-shared-workflows ",
+            moves[1] + " ",
+        )
+        self.assertIn("sha=0123456789abcdef0123456789abcdef01234567 -F force=true", moves[1])
+        self.assertIn(
+            "--method DELETE repos/lemonfiber/alpha/git/refs/heads/ci/take-the-shared-workflows-staging",
+            moves[2],
+        )
 
     def test_a_repository_with_nothing_stale_gets_nothing(self):
         # `hygiene.yml` has not moved since the pin, so there is nothing owed
@@ -332,6 +389,20 @@ class TheLoop(unittest.TestCase):
         self.assertTrue(body.endswith(
             "Signed-off-by: lemonfiber-release-train[bot] "
             "<lemonfiber-release-train[bot]@users.noreply.github.com>"))
+
+    def test_only_the_app_s_own_pull_requests_from_this_repository_are_its(self):
+        # A fork's pull request whose branch is named like the bump must not be
+        # retitled, closed or have its runs cancelled: the listing keeps only
+        # what the app opened from the repository's own branches.
+        self.pinning(a_pin("dco.yml", self.first))
+
+        self.run_step()
+
+        log = self.log.read_text(encoding="utf-8")
+        listed = log[log.index("pr list"):]
+        self.assertIn("isCrossRepository", listed)
+        self.assertIn("select(.isCrossRepository | not)", listed)
+        self.assertIn('select(.author.login == "app/lemonfiber-release-train")', listed)
 
     def test_a_bump_opened_per_number_is_closed_pointing_at_the_one_kept(self):
         self.pinning(a_pin("dco.yml", self.first))
@@ -380,14 +451,15 @@ class TheLoop(unittest.TestCase):
         self.assertIn("refused: alpha", self.summary.read_text(encoding="utf-8"))
         self.assertIn("no bump was opened in: alpha", ran.stdout)
 
-    def test_a_branch_that_would_not_push_fails_the_run(self):
+    def test_a_bump_that_could_not_be_committed_fails_the_run(self):
         self.pinning(a_pin("dco.yml", self.first))
 
-        ran = self.run_step(GIT_PUSH_FAILS="any")
+        ran = self.run_step(GH_COMMIT_FAILS="1")
 
         self.assertEqual(ran.returncode, 1)
-        self.assertIn("would not take the branch", ran.stdout)
+        self.assertIn("would not take the bump: the commit was not made", ran.stdout)
         self.assertEqual(self.created.read_text(encoding="utf-8"), "")
+        self.assertIn("refused: alpha", self.summary.read_text(encoding="utf-8"))
 
     def test_open_pull_requests_that_could_not_be_listed_fail_the_run(self):
         self.pinning(a_pin("dco.yml", self.first))
@@ -449,7 +521,7 @@ class WhoItCanReach(unittest.TestCase):
 
         self.spec = self.root / "spec"
         (self.spec / "scripts").mkdir(parents=True)
-        for name in ("fan_out_pins.py", "workflow_pins.py"):
+        for name in ("fan_out_pins.py", "workflow_pins.py", "signed_pin_commit.py"):
             shutil.copy(HERE / name, self.spec / "scripts" / name)
         (self.spec / "30-repos").mkdir()
         (self.spec / "30-repos" / "repos.toml").write_text(self.MAP, encoding="utf-8")
