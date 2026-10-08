@@ -554,6 +554,7 @@ implementing them are built per repo.
 | **Submodule bump** | A `lemonfiber-media-stack` release opens a `lemonfiber` PR bumping the submodule pin, gated by the `build.rs` compat check |
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
 | **Bump ordering** | An automated bump does not merge itself while a repository downstream of it is running a required check the merge would discard |
+| **One bump per repository** | An automated bump keeps one pull request per repository on one branch, rebuilt from `main` for each new version and retitled to it, rather than opening another beside it |
 | **Issue lifecycle** | Releasing closes any drift issue the watchdog raised for that version |
 | **Release from the trunk** | A version is tagged on `main`; a hotfix to a shipped version branches from its tag and merges back |
 | **Discord cadence** | Staging and progress milestones (25/50/75/100%) post to `#maintainers`; execute posts to `#releases` |
@@ -588,6 +589,22 @@ consumer's opinion, only that it may not discard a gate that is already running.
 Shortening the slow gate is the better fix and it is a separate one; while the
 two differ by an order of magnitude, the ordering is what keeps the difference
 from being fatal.
+
+### One bump per repository, rebuilt in place
+
+A bump that opened a pull request for every version left the older ones open: by
+the evening of 8 October 2026 `.github` held thirteen pin bumps, each running
+its checks against a version already superseded, on runners the organisation
+shares. Only the newest could ever be merged, and every other one was a cost
+with nothing to show for it.
+
+So an automated bump keeps one branch per repository and one pull request on it
+(`OPS-R85`). Each new version rebuilds the branch from `main` with the new
+change, moves it there, and retitles the open pull request to the new version,
+or opens one where none is open. The checks of the version it replaced are
+cancelled by the workflows' own concurrency group, which cancels a superseded
+run on the same branch. The pin fan-out keeps `ci/take-the-shared-workflows`;
+the client and contract bumps already keep a branch each.
 
 ### When a goal cannot be cited
 
@@ -633,6 +650,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R46** | A scheduled check MUST flag a locked goal whose requirement became `Withdrawn` or `Superseded`. |
 | **OPS-R47** | A `lemonfiber-media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep. |
+| **OPS-R85** | An automated bump MUST keep at most one open pull request per repository, on one branch it rebuilds from the default branch for each new version and whose pull request it retitles to that version; it MUST NOT open a pull request for a version beside one still open for an earlier version, and a pull request it opened for an earlier version on another branch MUST be closed, pointing at the one that replaces it. |
 | **OPS-R71** | An automated dependency bump MUST NOT merge itself while a repository that depends on it has an open automated bump whose required checks are still running and which that merge would discard; the deferral MUST be stated on the pull request, naming what it waits on. |
 | **OPS-R49** | A version MUST be released from `main`: the tag names a commit on the trunk, and no long-lived release branch is cut. A hotfix to an already-released version MUST branch from that version's tag and MUST be merged back to `main`. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |

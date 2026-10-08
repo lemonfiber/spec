@@ -128,6 +128,7 @@ Decisions about a repository outside this organisation, such as
 | The frontpage shows all twenty-two services the stack runs, lemonfiber's own request gate and decline service among them, and its build fails where its list and the stack manifest's `include` differ | This row, [ARCH-R171](../20-architecture/contracts/stack-manifest.md) |
 | The frontpage offers a claim on a page per goal, `/claim/<id>/`, linked from the work to pick up and from the requirement's row: a claimed goal names its pull requests and their authors and offers nothing, a met one says so, each repository shows its open pull requests against the cap and offers nothing at it, and the claim is offered as `lfdev claim <id>` and as the tracker row to paste in GitHub's editor, with the pull request's title and the `Spec:` and sign-off lines its body ends with | This row, [GOV-R57](working-in-the-repositories.md), [GOV-R58](working-in-the-repositories.md), [GOV-R62](cross-repo-ci.md) |
 | The frontpage's propose and gap forms are proved end to end from an account outside the organisation, by a checklist in the website's README that the maintainer runs | This row, [GOV-R60](working-in-the-repositories.md) |
+| The release train keeps one bump pull request per repository, on one branch rebuilt from `main` for each version and retitled to it; the pin fan-out's per-version pull requests are closed in favour of it | [OPS-R85](../70-operations/staging.md) |
 
 ## Requirements
 
