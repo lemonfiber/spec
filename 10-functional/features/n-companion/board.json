@@ -514,7 +514,7 @@
       "priority": "P2",
       "labels": ["mobile", "ux"],
       "requires": ["N1", "N2", "N27"],
-      "relates": ["N3", "N4", "G2", "G3"],
+      "relates": ["N3", "N4", "N25", "G2", "G3"],
       "versions": [],
       "path": "n-companion/n28-finding-your-way.md"
     }
