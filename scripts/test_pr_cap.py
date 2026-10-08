@@ -64,8 +64,9 @@ class Comment(unittest.TestCase):
         self.assertIn("- #50 (@?)", pr_cap.comment(pulls, 1))
 
     def test_a_pull_request_that_is_not_open(self):
+        pulls = [pull(1)]
         with self.assertRaisesRegex(LookupError, "#7 is not an open pull request"):
-            pr_cap.comment([pull(1)], 7)
+            pr_cap.comment(pulls, 7)
 
 
 class Main(unittest.TestCase):

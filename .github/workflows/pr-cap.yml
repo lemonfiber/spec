@@ -3,9 +3,11 @@
 # nothing; the comment is removed once the repository is within the cap again
 # and the pull request is reopened or marked ready.
 #
-# Safe on any pull request: it checks out only the spec repo, never the pull
-# request's code, reads the open pull requests through the API, and hands what it
-# read to the script as a file.
+# Safe on any pull request. In another repository it checks out only the spec
+# repo, never the pull request's code; in spec the workflow itself comes from the
+# pull request, so the script it runs comes from the same tree. It reads the open
+# pull requests through the API and hands them to the script as a file, and runs
+# no step on a fork's pull request.
 #
 # Both triggers, one file, as spec-references is: every other repo calls this
 # through `workflow_call`, and this repository runs it on its own pull requests.
@@ -30,11 +32,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # Another repository reads the script from spec's main, as spec-references
+      # does. Here the workflow itself comes from the pull request, so the script
+      # is read from the same tree rather than from a main it may not yet be on.
       - name: Check out the spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: lemonfiber/spec
-          ref: main
+          ref: ${{ github.repository == 'lemonfiber/spec' && github.sha || 'main' }}
           path: .spec-canonical
           persist-credentials: false
 
