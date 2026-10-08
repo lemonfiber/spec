@@ -103,7 +103,7 @@
       "versions": [
         {"version": "0.10.0", "status": "released"},
         {"version": "0.11.0", "status": "released"},
-        {"version": "0.17.0", "status": "releasable"}
+        {"version": "0.17.0", "status": "released"}
       ],
       "path": "g-ux/g5-front-door.md"
     },
@@ -187,7 +187,7 @@
       "requires": [],
       "relates": ["G6", "D6", "I1"],
       "versions": [
-        {"version": "0.17.0", "status": "releasable"}
+        {"version": "0.17.0", "status": "released"}
       ],
       "path": "g-ux/g9-mobile-handoff.md"
     },

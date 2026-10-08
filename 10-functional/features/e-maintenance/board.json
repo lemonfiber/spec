@@ -19,7 +19,7 @@
       "relates": ["A5", "C9", "E2", "E3", "E4"],
       "versions": [
         {"version": "0.14.0", "status": "released"},
-        {"version": "0.17.0", "status": "releasable"}
+        {"version": "0.17.0", "status": "released"}
       ],
       "path": "e-maintenance/e1-stack-updates.md"
     },

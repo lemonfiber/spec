@@ -18,7 +18,7 @@
       "requires": ["C6", "D6", "G1", "G4"],
       "relates": ["A4", "B2", "C1", "G3", "I1"],
       "versions": [
-        {"version": "0.17.0", "status": "releasable"},
+        {"version": "0.17.0", "status": "released"},
         {"version": "0.18.0", "status": "planned"},
         {"version": "1.0.0", "status": "planned"}
       ],

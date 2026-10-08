@@ -19,7 +19,7 @@
       "relates": ["B2", "F2"],
       "versions": [
         {"version": "0.1.0", "status": "released"},
-        {"version": "0.17.0", "status": "releasable"},
+        {"version": "0.17.0", "status": "released"},
         {"version": "0.18.0", "status": "planned"},
         {"version": "0.8.0", "status": "released"}
       ],

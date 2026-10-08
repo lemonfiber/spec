@@ -124,7 +124,7 @@
       "relates": ["A7", "B6", "C1", "D6"],
       "versions": [
         {"version": "0.10.0", "status": "released"},
-        {"version": "0.17.0", "status": "releasable"},
+        {"version": "0.17.0", "status": "released"},
         {"version": "0.18.0", "status": "planned"},
         {"version": "0.9.0", "status": "released"}
       ],
