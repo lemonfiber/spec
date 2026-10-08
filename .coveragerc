@@ -23,7 +23,6 @@ omit =
     scripts/gen_board.py
     scripts/gen_codeowners.py
     scripts/gen_roadmap_table.py
-    scripts/rfc_scaffold.py
 
 [report]
 exclude_also =

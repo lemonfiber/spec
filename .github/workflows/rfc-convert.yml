@@ -1,0 +1,71 @@
+# Turn an RFC issue into a proposal pull request when a maintainer labels it
+# `rfc:convert` (GOV-R40). The issue form stays a way in for somebody who will
+# not touch a file; the proposal is discussed and decided on the pull request,
+# and its identifiers are allocated only when it is approved (GOV-R41).
+#
+# The issue's fields are untrusted (GOV-R43): they reach
+# scripts/rfc_convert.py through the environment and are written only as text.
+name: rfc-convert
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rfc-convert-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  convert:
+    if: github.event.label.name == 'rfc:convert'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify the maintainer may write (GOV-R41)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.event.sender.login }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          perm=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          case "$perm" in
+            admin|maintain|write)
+              echo "${ACTOR} has ${perm} access" ;;
+            *)
+              echo "::error::${ACTOR} lacks write access (${perm}); nothing is converted"
+              exit 1 ;;
+          esac
+
+      # A commit the forge signs, and a pull request whose checks run: both take a
+      # token other than this run's own.
+      - name: Mint the release App token
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Write the proposal and open its pull request
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: python3 scripts/rfc_convert.py
