@@ -133,8 +133,13 @@ GENERATED = (
             ".github/workflows/dco.yml",
             ".github/workflows/attribution.yml",
             ".github/workflows/commitlint.yml",
+            ".github/workflows/squash-message.yml",
+            ".github/workflows/explain.yml",
+            ".github/workflows/explain-check.yml",
             ".github/workflows/labeler.yml",
             ".github/workflows/goal-automations.yml",
+            ".github/workflows/spec-references.yml",
+            ".github/workflows/pr-cap.yml",
         ),
     ),
 )
