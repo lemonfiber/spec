@@ -209,6 +209,9 @@
 # `ARCH-R171` puts each service of the stack manifest in a file of its own, named by the
 # root's `include` list, so the manifest stays readable as the stack grows. It binds the
 # parser in the core, where a missing, repeated or unlisted file is refused by name.
+# `ARCH-R172` has each release carry JSON schemas of the root manifest and of a service's
+# file, generated from the types the core reads them into, so a fork's CI can check one
+# without the binary; a claim's definition is the plugin manifest's own.
 # `B3-R16` puts the free space of both volumes a stack fills on the dashboard, the data
 # volume and the services' own, so `F12-R5` can provide disk free per mount from the
 # stream rather than from a read it would poll.
@@ -224,7 +227,7 @@
 # and a call carrying it refused where the stack moved since, as the plugin writes are;
 # a call carrying none acts as before. Home Assistant's controls rehearse and then act
 # (`F12-R8`), so what they carry out is what they were shown.
-# 324 goals, seeded from the roadmap milestone this version serves;
+# 325 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -565,6 +568,7 @@ goals   = [
     "ARCH-R168",
     "ARCH-R169",
     "ARCH-R171",
+    "ARCH-R172",
     "B3-R16",
     "ARCH-R163",
     "B3-R17",
