@@ -23,10 +23,6 @@ name = "labeler / label"
 why = "applies labels from a path map; it decides nothing about the change"
 
 [[exempt]]
-name = "label / label"
-why = "the same job under the name a different caller gives it"
-
-[[exempt]]
 name = "refs / comment"
 why = "posts the spec references a pull request touches, as a comment"
 
@@ -41,6 +37,10 @@ why = "tells the maintainers a pull request is ready; the readiness is decided e
 [[exempt]]
 name = "awaiting / toggle"
 why = "moves the awaiting-maintainer label, and judges nothing"
+
+[[exempt]]
+name = "gates / report"
+why = "labels, classifies and posts and removes the comments for the shared checks, and judges nothing; `gates / gates` is the verdict"
 
 [[exempt]]
 name = "goals / classify"

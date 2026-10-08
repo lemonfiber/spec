@@ -406,8 +406,10 @@ uses: lemonfiber/spec/.github/workflows/dco.yml@<sha> # v1.0.12
 ```
 
 `github-actions` is on in every one of these repositories on a daily schedule,
-with `lemonfiber/spec*` grouped ahead of the wildcard so a shared gate is never
-held behind a cooldown. The bump arrives as a pull request like any other.
+and it ignores `lemonfiber/spec*`: those pins are moved by the release train's one
+rolling bump pull request per repository (**OPS-R85**), which `pin-only` lets
+through as a move along spec's `main` (**Q-R83**), and a second bot proposing the
+same move would be a second pull request to close.
 
 `workflow-pins` and the bot answer different questions and neither replaces the
 other. The bot keeps a pin at the newest tag whether or not it matters; the check
