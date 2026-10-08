@@ -38,7 +38,7 @@ import re
 import sys
 import tomllib
 
-from patterns import REQ_DEF, REQ_RETIRED_ROW
+from patterns import REQ_DEF, REQ_DRAFT_ROW, REQ_RETIRED_ROW
 
 FEATURES = "10-functional"
 ARCHITECTURE = "20-architecture"
@@ -253,9 +253,10 @@ def declared() -> dict[str, str]:
 def accepted_requirements(root: pathlib.Path) -> dict[str, str]:
     """Every requirement an accepted feature defines, against the file defining it.
 
-    Less the rows a feature keeps only to retire a number. A withdrawn row is not
-    a requirement waiting for a version — OPS-R30 forbids it ever being a goal —
-    so counting it here asks for a lock the same rule refuses to allow.
+    Less the rows a feature keeps only to retire a number, and the rows marked
+    Draft. Neither is a requirement waiting for a version — OPS-R30 forbids
+    either being a goal — so counting it here asks for a lock the same rule
+    refuses to allow.
     """
     found: dict[str, str] = {}
     for md in sorted((root / FEATURES).rglob("*.md")):
@@ -263,7 +264,7 @@ def accepted_requirements(root: pathlib.Path) -> dict[str, str]:
         status = STATUS.search(text)
         if status is None or status.group(1) != "accepted":
             continue
-        retired = set(REQ_RETIRED_ROW.findall(text))
+        retired = set(REQ_RETIRED_ROW.findall(text)) | set(REQ_DRAFT_ROW.findall(text))
         for rid in REQ_DEF.findall(text):
             if rid not in retired:
                 found[rid] = str(md.relative_to(root))
@@ -282,7 +283,7 @@ def architecture_requirements(root: pathlib.Path) -> dict[str, str]:
         status = DOCUMENT_STATUS.search(text)
         if status is None or status.group(1) != "Accepted":
             continue
-        retired = set(REQ_RETIRED_ROW.findall(text))
+        retired = set(REQ_RETIRED_ROW.findall(text)) | set(REQ_DRAFT_ROW.findall(text))
         for rid in REQ_DEF.findall(text):
             if rid not in retired:
                 found[rid] = str(md.relative_to(root))

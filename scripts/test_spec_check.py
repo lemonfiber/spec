@@ -220,6 +220,18 @@ class Drafts(GateCase):
         self.assertEqual(code, 0)
         self.assertIn("cites X9-R1", out)
 
+    def test_a_row_marked_draft_in_an_accepted_feature_is_refused(self):
+        (self.root / SPEC / "x9.md").write_text(
+            DRAFT_FEATURE.replace("status: draft", "status: accepted")
+            + "| **X9-R2** | *Draft:* Something approved and not yet hardened. |\n",
+            encoding="utf-8",
+        )
+        code, out = self.check("Spec: X9-R2\n")
+        self.assertEqual(code, 1)
+        self.assertIn("X9-R2 is Draft: implementation must not cite it until it is Accepted (x9.md)", out)
+        code, _ = self.check("Spec: X9-R1\n")
+        self.assertEqual(code, 0, "the feature's other rows stay citable")
+
     def test_a_document_saying_nothing_of_itself_is_not_a_draft(self):
         code, _ = self.check("Spec: GOV-R12\n")
         self.assertEqual(code, 0)

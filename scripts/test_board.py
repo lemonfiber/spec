@@ -188,6 +188,8 @@ class TheShape(Board):
         self.assertEqual(found["A1-R5"]["status"], "withdrawn")
         self.assertIsNone(found["A1-R5"]["replaced_by"])
         self.assertEqual(found["A2-R1"]["status"], "draft")
+        self.assertEqual(board.status_of("*Draft:* The tool MAY sing.", False), "draft",
+                         "a row marked Draft in an accepted feature")
         self.assertEqual(found["GOV-R1"]["status"], "superseded")
         self.assertEqual(found["GOV-R1"]["replaced_by"], "GOV-R2")
         self.assertEqual(found["GOV-R1"]["owner"], "50-governance/rules.md")

@@ -19,6 +19,7 @@ from integrity import elsewhere
 from manifest_repos import cut, searched
 from patterns import IN_FLIGHT, REQ_DEF, REQ_RETIRED_ROW
 from patterns import VERSION as VERSION_RE
+from spec_check import draft_ids
 
 VERSIONS = pathlib.Path("70-operations/versions")
 
@@ -97,6 +98,10 @@ def unstageable(manifest: pathlib.Path, data: dict) -> list[str]:
                 "withdrawn or superseded, so not lockable as a goal "
                 f"(OPS-R30): {', '.join(withdrawn)}"
             )
+        drafted = draft_ids(pathlib.Path("."))
+        draft = [g for g in goals if g in drafted]
+        if draft:
+            problems.append(f"Draft, so not lockable as a goal (OPS-R30): {', '.join(draft)}")
 
     # Where the gate will look, checked at staging rather than discovered at
     # release (OPS-R58). A manifest naming a repository nobody can search is a

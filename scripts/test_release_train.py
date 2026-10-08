@@ -639,6 +639,20 @@ class CheckStageableTests(Workspace):
         self.assertIn("Q-R65", out)
         self.assertNotIn("Q-R64", out)
 
+    def test_a_draft_goal_is_refused_by_name(self):
+        """OPS-R30 locks Accepted requirements; a row marked Draft is not one yet."""
+        pathlib.Path("40-quality").mkdir(exist_ok=True)
+        pathlib.Path("40-quality/x.md").write_text(
+            "**Status:** Accepted\n\n"
+            "| **Q-R64** | text |\n"
+            "| **Q-R66** | *Draft:* approved and not yet hardened. |\n",
+            encoding="utf-8")
+        self.manifest("0.2.0", status="planned", goals=("Q-R64", "Q-R66"), repos=("lf",))
+        code, out = run_main(check_stageable, ["0.2.0"])
+        self.assertNotEqual(code, 0)
+        self.assertIn("Draft, so not lockable as a goal (OPS-R30): Q-R66", out)
+        self.assertNotIn("Q-R64", out)
+
     def test_a_version_locking_no_goal_is_refused_at_staging(self):
         """A manifest with an empty goal list has nothing to prove and nothing to fail.
 

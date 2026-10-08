@@ -41,8 +41,9 @@ flowchart TD
     dec -->|approve: proposal:approved| alloc[Automation allocates identifiers<br/>and moves the text into its feature as Draft]
     dec -->|decline| closed[Closed, unmerged]
     alloc --> review[Normal spec review of the Draft]
-    review -->|merged| hard[Hardened: Draft → Accepted]
+    review -->|merged| draft[Draft on main, in the pre-approval feed]
     review -->|rejected| closed
+    draft -->|a pull request removes the Draft marking| hard[Hardened: Draft → Accepted]
 ```
 
 ## The four steps
@@ -58,11 +59,14 @@ flowchart TD
    closes it unmerged to decline. The automation verifies the approver has write
    access before it does anything, so the label is a real gate.
 4. **Harden.** On approval the automation allocates the next free permanent
-   identifiers with `next_id.py`, moves the proposal's text into its feature or
-   page as `status: draft`, and pushes to the branch where the author allows edits
-   by maintainers, or opens a follow-up pull request crediting the author. From
-   there it is a normal [spec review](change-lifecycle.md); merging it hardens the
-   Draft to `Accepted`.
+   identifiers with `next_id.py` and moves the proposal's text into the
+   specification as Draft. A new feature is written with `status: draft`. Rows
+   added to an existing feature or page each open with `*Draft:*`, so the rest of
+   an Accepted feature stays as it was. It pushes to the branch where the author
+   allows edits by maintainers, or opens a follow-up pull request crediting the
+   author. That pull request is a normal [spec review](change-lifecycle.md), and
+   merging it puts the Draft on `main`. A later pull request that removes the
+   `*Draft:*` markers, or sets the feature's status to `accepted`, hardens it.
 
 ## Untrusted input
 
@@ -79,9 +83,9 @@ for human review — it never executes a field's contents.
 |----|-------------|
 | **GOV-R40** | A community proposal, or a report of a gap, MUST be opened as a pull request adding a Draft proposal with no identifier to the specification, from the website, the developer command line or by hand; an RFC issue MAY be opened and MUST be converted into such a pull request by a maintainer before its text is discussed. |
 | **GOV-R41** | The process MUST NOT allocate identifiers or move a proposal into the specification until a maintainer approves it, and the automation MUST verify the approver has write access before acting. |
-| **GOV-R42** | On approval, the automation MUST allocate the next free permanent identifiers and move the proposal into its feature or page at `status: draft`; nothing it writes MUST be `Accepted`. |
+| **GOV-R42** | On approval, the automation MUST allocate the next free permanent identifiers and move the proposal into the specification as Draft: a new feature at `status: draft`, and each row added to an existing feature or page opening with `*Draft:*`; nothing it writes MUST be `Accepted`. |
 | **GOV-R43** | The automation MUST treat a proposal's fields as untrusted: read through environment variables or files, never interpolated into a shell; the area MUST be validated against the areas the catalogue defines and the filename against a safe pattern before any write; and it MUST NOT execute field contents. |
-| **GOV-R44** | Merging an approved proposal MUST harden it (Draft → Accepted per the [change lifecycle](change-lifecycle.md)); a declined proposal MUST be closed unmerged. |
+| **GOV-R44** | An approved proposal MUST be hardened (Draft → Accepted per the [change lifecycle](change-lifecycle.md)) by a reviewed pull request that removes its Draft marking; a declined proposal MUST be closed unmerged. |
 | **GOV-R45** | The pre-approval feed MUST be rendered on the organisation's website from the board snapshot: open proposal pull requests, open `rfc` issues and the specification's `Draft` features and requirements. |
 
 ## Related

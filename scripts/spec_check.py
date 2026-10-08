@@ -38,7 +38,7 @@ import re
 import sys
 
 from integrity import elsewhere
-from patterns import ADR_FILE, CITE, CITE_ANY, REQ_DEF, REQ_DEF_ROW, SPEC_TRAILER
+from patterns import ADR_FILE, CITE, CITE_ANY, REQ_DEF, REQ_DEF_ROW, REQ_DRAFT_ROW, SPEC_TRAILER
 
 
 # Identifiers the spec defines.
@@ -113,10 +113,11 @@ def draft_ids(spec_dir: pathlib.Path) -> dict[str, str]:
     there — so existence alone passes it, and the ordering guarantee collapses:
     anyone could merge a draft and implement against it in the same breath.
 
-    The status is the document's, because that is where the spec records it. A
-    requirement row carries no status of its own until it is retired, and
-    `retired_ids` reads that. A row a Draft repeats from a document that is not
-    one stays citable: the agreed definition is the one that binds.
+    The status is the document's, or the row's where it opens with `*Draft:*`:
+    an approved proposal's requirement written into an Accepted feature ahead of
+    the review that hardens it. A retired row is `retired_ids`'s. A row a Draft
+    repeats from a document that is not one stays citable: the agreed definition
+    is the one that binds.
     """
     drafted: dict[str, str] = {}
     agreed: set[str] = set()
@@ -125,10 +126,11 @@ def draft_ids(spec_dir: pathlib.Path) -> dict[str, str]:
             continue
         text = p.read_text(encoding="utf-8", errors="ignore")
         rows = REQ_DEF.findall(text)
-        if document_status(text) != DRAFT:
-            agreed.update(rows)
-            continue
-        for rid in rows:
+        marked = set(REQ_DRAFT_ROW.findall(text))
+        if document_status(text) == DRAFT:
+            marked.update(rows)
+        agreed.update(rid for rid in rows if rid not in marked)
+        for rid in sorted(marked):
             drafted.setdefault(rid, p.relative_to(spec_dir).as_posix())
     return {rid: where for rid, where in drafted.items() if rid not in agreed}
 
