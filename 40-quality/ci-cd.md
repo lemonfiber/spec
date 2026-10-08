@@ -293,21 +293,35 @@ pull request run nobody will be told about — the answer is a job-level `if:`,
 which is evaluated before a runner is assigned. A step that exits early still
 cost a runner to reach.
 
-**The shared gates run on two runners, not sixteen.** `gates.yml` runs every
-read-only check in one job: spec-check's reading, the seven hygiene checks,
-both security scans, workflow pins, DCO, attribution and commit lint. A second
-job, which holds the write permissions, closes a pull request spec-check
-refuses, applies labels and goals, and publishes each check as its own check
-run under the name the branch's required list already holds, `hygiene / typos`
-where a caller's job is `hygiene`, with that check's own conclusion. Third-party
-tools never run beside a write token. A check the first job did not report is
-published as failed, so a runner lost mid-job reads as red, not as missing.
+**The shared checks are one job.** Measured on 107 pull request jobs on
+8 October 2026, the median job ran for 10 seconds and waited 5 minutes for a
+runner, nine minutes at the 90th percentile, and a pull request ran 25 to 64
+jobs. The wait is the cost, so every shared check that runs in seconds is a
+step of one job, `gates`:
+- spec-check's reading;
+- the hygiene checks;
+- both security scans;
+- workflow pins, DCO, attribution, commit lint and the squash message;
+- what the explainers detect.
+
+Each step runs whatever the steps of other checks concluded, so one run reports
+every failure. The run's summary lists each check with its result, and the job
+fails when any check failed. Branch protection requires that one context,
+`gates / gates`. The job holds no write permission, so a pull request from a
+fork runs it as it is.
+
+What writes to a pull request is a second job, `report`, which runs no
+third-party tool. It closes a pull request spec-check refuses, applies labels
+and goals, and posts and removes the citation and explainer comments. It judges
+nothing, and a fork's pull request, whose token cannot write, skips it.
+Nothing that used to run is dropped: the same checks run, packaged as steps.
+
+The tests, coverage, CodeQL's analysis and Sonar stay jobs of their own. They
+run for minutes rather than seconds, and some need a runner to themselves.
 
 `gates.yml` is generated from the reusable workflows that define each check, by
 `scripts/gen_gates.py`, and a gate refuses a generated file that has drifted
-from them. Those reusables stay the definition, and a pull request from a fork,
-whose token cannot publish a check run, runs them as their own jobs under the
-same names.
+from them. Those reusables stay the definition.
 
 **A bump that changes nothing is not pushed.** A bot that regenerates a
 repository against an upstream compares what it would commit with what its
@@ -378,7 +392,8 @@ a different name when skipped:
 | **Q-R67** | A repository that has not yet reached zero MUST declare what it still carries, in its own workflow, as a number that MUST NOT increase beyond what already stands against the branch it merges into. |
 | **Q-R75** | A workflow a pull request runs MUST cancel that pull request's run it supersedes when the pull request is pushed again, and MUST NOT cancel a run for a push to a protected branch or for a tag. |
 | **Q-R76** | A job whose only outcome for an event is to do nothing MUST be skipped by a job-level condition the event answers, so that no runner starts for it. |
-| **Q-R77** | The shared gates a repository calls MUST run on at most two runners per caller, a read-only one running every check and one holding the write permissions, and MUST publish each check under the context name the branch requires with that check's own conclusion; a check that did not report MUST be published as failed. The single-runner workflow MUST be generated from the reusables that define each check, CI MUST refuse it when it has drifted from them, and a pull request from a fork MUST run those reusables as separate jobs under the same names. |
+| **Q-R77** | *Superseded by [Q-R82](ci-cd.md): the shared checks are one job whose conclusion is the one context a branch requires, and no check is published as a check run of its own. The number is not reused.* |
+| **Q-R82** | The shared checks a pull request runs that take seconds MUST be steps of one job, each step running whatever the steps of other checks concluded, with the job's summary listing every check and its result and the job failing when any check failed; that job MUST hold no write permission, and branch protection MUST require it as one context. What writes to the pull request MUST be a separate job that runs no third-party tool and judges nothing. The job MUST be generated from the reusables that define each check, and CI MUST refuse it when it has drifted from them. |
 | **Q-R78** | An automated bump MUST NOT push when what it would commit is identical to what its open branch already carries, and a newer upstream move MUST cancel a bump run still in progress. |
 | **Q-R79** | A build cache MUST be saved only from a push to the protected branch, and every job whose cache a pull request restores MUST also run on that push. |
 | **Q-R80** | On a pull request, a CodeQL analysis of the `actions` language MUST run when the change touches `.github/` and MAY otherwise report success without analysing; a push to the protected branch and the scheduled run MUST analyse every language. |
