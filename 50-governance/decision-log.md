@@ -105,6 +105,7 @@ Decisions about a repository outside this organisation, such as
 | The machinery the documentation and contributor sites share lives once, in `website-kit`, a package each site takes by commit as it takes `brand`; nothing is published to a registry | [REPO-R84, REPO-R85](../30-repos/website-kit.md) |
 | What a credential buys is never released: a value captured from a call that carried or read a credential-store value is held to that credential's service as the credential is, and a `release` on it is refused | [F8-R16, F8-R17](../10-functional/features/f-extensibility/f8-recipes.md) |
 | A released pair carries `from`, the service its value was read from, on the rehearsal and on the record, beside its `release` | [ARCH-R147, ARCH-R150](../20-architecture/contracts/web-api.md) |
+| Every repository's `AGENTS.md` opens with the pointer to the board and the shared rules and holds no more than 120 lines, refused by `hygiene` otherwise; every repository's file is brought within it in the same release | [GOV-R50](working-in-the-repositories.md) |
 | An approved proposal lands as Draft: a new feature at `status: draft`, and rows added to an existing feature each opening with `*Draft:*`; a later reviewed pull request removing the marking hardens it | [GOV-R42, GOV-R44](rfc-process.md), [GOV-R48](canonical-spec.md) |
 
 ## Requirements

@@ -19,7 +19,9 @@ pull request is working on, and what nobody has started. Pick work from it.
 Then this section: [the rules for agents](ai-contributors.md), the
 [change lifecycle](change-lifecycle.md), [contributing](contributing.md) and
 this page. A repository's own `AGENTS.md` adds only what is true of that
-repository, and points here first (`GOV-R50`).
+repository, opens with a quoted block pointing at the board and then here, and
+holds no more than 120 lines; the `hygiene` workflow's `shared-files` job checks
+both (`GOV-R50`).
 
 ## Where the work happens
 
@@ -189,7 +191,7 @@ Facts about the tools, each of which has produced a wrong conclusion:
 
 | ID | Requirement |
 |----|-------------|
-| **GOV-R50** | Every repository's `AGENTS.md` MUST point first at the generated report of where every unreleased version stands and then at this section, and MUST NOT restate a rule this section or [ai-contributors.md](ai-contributors.md) holds. |
+| **GOV-R50** | Every repository's `AGENTS.md` MUST point first at the generated report of where every unreleased version stands and then at this section, MUST NOT restate a rule this section or [ai-contributors.md](ai-contributors.md) holds, and MUST hold no more than 120 lines; a check MUST refuse one whose first block after its title does not point at the report and this section, or that runs over the cap. |
 | **GOV-R51** | The main session MUST work in each repository's main checkout and a subagent MUST work in a worktree of its own; an agent MUST NOT write in a checkout it was not given, and MUST stage paths by name. |
 | **GOV-R52** | A branch MUST be rebased locally with signed commits, and only where it conflicts with its base; it MUST NOT be updated through the forge, which leaves the commits unsigned, and MUST be squashed onto its merge base rather than onto the default branch. |
 | **GOV-R53** | The author of a pull request MUST check CI on every pull request they own while they wait on any one, and MUST fix a red check at once, before starting new work. |

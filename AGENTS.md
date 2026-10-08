@@ -1,12 +1,11 @@
 # AGENTS.md — spec
 
-Orientation for a focused session in this repo.
-
-> **Start at the report** of where every unreleased version stands: the summary
-> of the newest run of the `state` workflow, or `just goals <version>`. **Then the rules** every
-> repository shares: [working in the repositories](50-governance/working-in-the-repositories.md)
-> and [the rules for agents](50-governance/ai-contributors.md). This file holds
-> only what is true of the spec repository.
+> **Start at the roadmap and board on [lemonfiber.app](https://lemonfiber.app),
+> rendered from the report of where every unreleased version stands. Then the
+> rules** every repository shares:
+> [working in the repositories](https://github.com/lemonfiber/spec/blob/main/50-governance/working-in-the-repositories.md)
+> and [the rules for agents](https://github.com/lemonfiber/spec/blob/main/50-governance/ai-contributors.md).
+> This file holds only what is true of this repository.
 
 ## What this repo is
 
@@ -28,8 +27,7 @@ the whole system explained in five minutes.
 - A behavioural change is a new/edited requirement; a contested decision is a new
   **ADR** (immutable — supersede, never edit).
 - Identifiers live in seven namespaces: feature (`A2-R4`), `GOV-R`, `ARCH-R`,
-  `REPO-R`, `Q-R`, `DES-R`, `OPS-R`. They belong in commit messages and PR bodies —
-  **never in code comments** (`GOV-R6`).
+  `REPO-R`, `Q-R`, `DES-R`, `OPS-R`.
 
 ## Before you commit
 
