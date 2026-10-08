@@ -1,32 +1,39 @@
 #!/usr/bin/env python3
-"""Write `gates.yml`, the shared gates on two runners, from the reusables that define them.
+"""Write `gates.yml`, the shared checks as one job, from the reusables that define them.
 
-A repository that calls the shared gates one reusable at a time spends sixteen
-runners on a pull request push, most of them for under ten seconds of work, out
-of the twenty the organisation has. `gates.yml` runs the same checks on two: a
-read-only `checks` job runs every check's steps in turn, and an `act` job, which
-holds the write permissions, does what a check does to the pull request and
-publishes each check as a check run under the name the branch already requires.
+A pull request that called the shared checks one reusable at a time ran a job
+for each, most of them for under ten seconds of work after minutes waiting for
+one of the organisation's twenty runners (Q-R82). `gates.yml` runs the same
+checks as steps of one read-only job, `gates`, whose conclusion is the one
+context a branch requires. A second job, `report`, which runs no third-party
+tool and judges nothing, does what a check does to the pull request: closes it,
+labels it, and posts and removes the comments.
 
 The reusables stay the definition. This script reads them and writes
 `gates.yml`, so a change to a check is made once, in its reusable, and the
 generated file follows; `generated.py` refuses a `gates.yml` that has drifted.
-A pull request from a fork, whose token cannot publish a check run, goes on
-calling the reusables as separate jobs.
+
+Each reusable job is one of four kinds:
+
+- a verdict, whose steps run in `gates` and whose result fails `gates`;
+- a detector, whose steps run in `gates` to answer a reporter, and whose result
+  fails nothing;
+- an actor, whose steps write and so run in `report`;
+- an explainer, a call to `explain-check.yml`, inlined into `report` as a step.
 
 What a check's own job did, each check's steps still do:
 
 - a check starts from an empty workspace, as its own runner would;
 - a step runs only where every step before it in the same check succeeded, and
   a step its reusable lets fail does not stop the ones after it;
-- a check's conclusion is failure where one of its steps failed, skipped where
-  the caller skipped it or its reusable's job condition was false, and success
-  otherwise; one the plan gave no answer for, because it refused, is published
-  as failed, never skipped;
-- a step that needs a write token runs in `act`, where it reads what the check's
-  earlier steps wrote through the `checks` job's outputs.
+- a check's result is failure where one of its steps failed, skipped where the
+  caller skipped it or its reusable's job condition was false, and success
+  otherwise; one the plan gave no answer for, because it refused, fails `gates`;
+- a step that needs a write token runs in `report`, where it reads what the
+  check's earlier steps wrote through the `gates` job's outputs, and a job's
+  outputs reach the jobs that needed it the same way.
 
-Third-party tools run only in `checks`, whose token can read and nothing more.
+`gates` lists every verdict and its result in the run's summary.
 
 Run:  python3 scripts/gen_gates.py           # write .github/workflows/gates.yml
       python3 scripts/gen_gates.py --check   # refuse a gates.yml that has drifted
@@ -48,12 +55,16 @@ WORKFLOWS = ROOT / ".github" / "workflows"
 OUTPUT = WORKFLOWS / "gates.yml"
 
 
+#: The four kinds of job a reusable holds, by where their steps run.
+VERDICT, DETECT, ACT, EXPLAIN = "verdict", "detect", "act", "explain"
+
+
 @dataclass(frozen=True)
 class Check:
-    """One check: the caller's job name for its reusable, and the job inside it."""
+    """One check: the caller's name for its reusable, the job inside it, and its kind."""
 
     group: str
-    """What a caller names the job that calls the reusable, `hygiene` in `hygiene / typos`."""
+    """The name a caller lists to run it, `hygiene` for every hygiene check."""
 
     source: str
     """The reusable that defines it, under `.github/workflows/`."""
@@ -61,12 +72,15 @@ class Check:
     job: str
     """The job inside the reusable."""
 
+    kind: str = VERDICT
+    """Where its steps run, and whether its result fails `gates`."""
+
 
 HYGIENE = "hygiene.yml"
+EXPLAIN_FILE = "explain.yml"
+SQUASH = "squash-message.yml"
 
-#: Every check, in the order `checks` runs them. The group names are the ones
-#: every caller already gives the jobs that call each reusable, which is what
-#: puts `hygiene / typos` in a branch's required list.
+#: Every check, in the order the jobs run them.
 CHECKS = (
     Check("spec-check", "spec-check.yml", "spec-check"),
     Check("hygiene", HYGIENE, "actionlint"),
@@ -83,30 +97,39 @@ CHECKS = (
     Check("dco", "dco.yml", "dco"),
     Check("attribution", "attribution.yml", "attribution"),
     Check("commitlint", "commitlint.yml", "commitlint"),
-    Check("labeler", "labeler.yml", "label"),
-    Check("goals", "goal-automations.yml", "classify"),
+    Check("squash-message", SQUASH, "squash-message"),
+    Check("explain", EXPLAIN_FILE, "detect", DETECT),
+    Check("labeler", "labeler.yml", "label", ACT),
+    Check("goals", "goal-automations.yml", "classify", ACT),
+    Check("refs", "spec-references.yml", "comment", ACT),
+    Check("cap", "pr-cap.yml", "comment", ACT),
+    Check("squash-message", SQUASH, "explain", EXPLAIN),
+    Check("explain", EXPLAIN_FILE, "citation", EXPLAIN),
+    Check("explain", EXPLAIN_FILE, "dco", EXPLAIN),
+    Check("explain", EXPLAIN_FILE, "mirror", EXPLAIN),
+    Check("explain", EXPLAIN_FILE, "status", EXPLAIN),
 )
 
-#: Checks whose every step writes to the pull request, so all of them run in `act`.
-ACTING = frozenset({"labeler", "goals"})
+#: The reusable an explainer calls, which is inlined into `report` as a step.
+EXPLAINER = "./.github/workflows/explain-check.yml"
 
 #: Steps of a read-only check that write, by the check and the step's name. They
-#: run in `act`, after the check's other steps have run in `checks`.
+#: run in `report`, after the check's other steps have run in `gates`.
 MOVED = {
     ("spec-check", "spec-check"): frozenset({"Close the pull request, naming what it cited"}),
 }
 
-#: The permissions each job holds. `act` holds what the acting steps need and
-#: what publishing a check run needs, and runs no third-party code.
-READ = {"contents": "read"}
-WRITE = {"contents": "read", "pull-requests": "write", "issues": "write", "checks": "write"}
+#: The permissions each job holds. `gates` reads, the pull request included, which
+#: the squash message is read from; `report` holds what the acting steps need and
+#: runs no third-party code.
+READ = {"contents": "read", "pull-requests": "read"}
+WRITE = {"contents": "read", "pull-requests": "write", "issues": "write"}
 
 #: The condition every step and job that must run after a failure carries.
 UNLESS_CANCELLED = "${{ !cancelled() }}"
 
-#: `act`'s own condition. A fork's pull request is answered by the caller's
-#: per-reusable jobs, so `act` refuses one itself rather than relying on the
-#: caller's condition to keep its write token away from a fork's head.
+#: `report`'s own condition. A fork's pull request is handed a token that cannot
+#: write, so `report` does not start for one; `gates` judges it all the same.
 ACT_RUNS = (
     "${{ !cancelled() && !(github.event_name == 'pull_request'"
     " && github.event.pull_request.head.repo.full_name != github.repository) }}"
@@ -121,7 +144,18 @@ STEP_REF = re.compile(r"\bsteps\.([A-Za-z0-9_-]+)\.(outputs|outcome|conclusion)\
 STATUS = re.compile(r"\b(success|failure|always|cancelled)\s*\(")
 
 #: Keys of a reusable's job this script knows what to do with.
-KNOWN_JOB_KEYS = frozenset({"runs-on", "timeout-minutes", "steps", "env", "if", "permissions", "name"})
+KNOWN_JOB_KEYS = frozenset(
+    {"runs-on", "timeout-minutes", "steps", "env", "if", "permissions", "name", "outputs"}
+)
+
+#: Keys of an explainer's job, a call to `explain-check.yml`.
+EXPLAINER_KEYS = frozenset({"uses", "with", "needs", "permissions", "if"})
+
+#: A reference to another job's output, which `report` reads through `gates`.
+NEEDS_REF = re.compile(r"\bneeds\.([A-Za-z0-9_-]+)\.outputs\.([A-Za-z0-9_-]+)\b")
+
+#: An explainer's input, as `explain-check.yml` reads it.
+INPUT_REF = re.compile(r"\$\{\{\s*inputs\.([A-Za-z0-9_-]+)\s*\}\}")
 
 
 class Refused(ValueError):
@@ -179,12 +213,12 @@ def writes(read: dict, job: dict) -> bool:
 
 def place(check: Check, read: dict, job: dict) -> None:
     """Refuse a check that writes and is put nowhere a write token is held."""
-    if check.group in ACTING:
+    if check.kind == ACT:
         return
     if writes(read, job) and (check.group, check.job) not in MOVED:
         raise Refused(
             f".github/workflows/{check.source} asks for a write permission, and gates.yml "
-            f"would run job {check.job!r} on a read-only token. Name it in ACTING, or name "
+            f"would run job {check.job!r} on a read-only token. Make it an actor, or name "
             f"the steps that write in MOVED"
         )
 
@@ -203,7 +237,7 @@ def renamed(text: str, ids: dict[str, str]) -> str:
 
 
 def exported(text: str, ids: dict[str, str], outputs: dict[str, str]) -> str:
-    """A moved step's expressions, reading earlier steps through `needs.checks.outputs`."""
+    """A moved step's expressions, reading earlier steps through `needs.gates.outputs`."""
 
     def swap(match: re.Match) -> str:
         old, kind, key = match.group(1), match.group(2), match.group(3)
@@ -212,7 +246,7 @@ def exported(text: str, ids: dict[str, str], outputs: dict[str, str]) -> str:
         name = f"{ids[old]}--{kind}" + (f"--{key}" if key else "")
         tail = f".{key}" if key else ""
         outputs[name] = f"${{{{ steps.{ids[old]}.{kind}{tail} }}}}"
-        return f"needs.checks.outputs.{name}"
+        return f"needs.gates.outputs.{name}"
 
     return STEP_REF.sub(swap, text)
 
@@ -243,16 +277,16 @@ def runs(check: Check, job: dict) -> str:
 
 
 def asked_in_act(check: Check, job: dict) -> str:
-    """The same question asked from `act`, which reads the plan through `checks`."""
-    asked = f"needs.checks.outputs.plan--{check.group} == 'true'"
+    """The same question asked from `report`, which reads the plan through `gates`."""
+    asked = f"needs.gates.outputs.plan--{check.group} == 'true'"
     own = condition(str(job["if"])) if "if" in job else ""
     return both(asked, own)
 
 
 class Carrier:
-    """One check's steps, carried into `checks` and `act` with the guards its own job gave them.
+    """One check's steps, carried into `gates` and `report` with the guards its own job gave them.
 
-    `here` and `there` are the steps for `checks` and for `act`; `failing_here`
+    `here` and `there` are the steps for `gates` and for `report`; `failing_here`
     and `failing_there` the outcomes that fail the check in each; `chain_here` and
     `chain_there` the outcomes a later step in the same job waits on.
     """
@@ -318,29 +352,100 @@ class Carrier:
             chain.append(f"steps.{new_id}.outcome != 'failure'")
 
     def for_act(self, index: int, step: dict, own: str) -> tuple[dict, str, list, list, list]:
-        """A step that runs in `act`, reading earlier steps through the `checks` job's outputs."""
-        step = walk(step, lambda text: exported(text, self.ids, self.outputs))
+        """A step that runs in `report`, reading earlier steps through the `gates` job's outputs."""
+        step = walk(step, lambda text: needed(exported(text, self.ids, self.outputs), self.check.source))
         own = exported(own, self.ids, self.outputs) if own else ""
         if self.read_only:
             # A step moved out of a read-only check runs where the steps before
             # it, which ran in `checks`, succeeded.
             reached = f"{self.base}--reached-{index}"
             self.outputs[reached] = f"${{{{ {both(*self.chain_here) or 'true'} }}}}"
-            gate = both(self.gate_there, f"needs.checks.outputs.{reached} == 'true'", *self.chain_there, own)
+            gate = both(self.gate_there, f"needs.gates.outputs.{reached} == 'true'", *self.chain_there, own)
         else:
             gate = both(self.gate_there, *self.chain_there, own)
         return step, gate, self.there, self.failing_there, self.chain_there
 
 
 def carried(check: Check, job: dict, read_only: bool, outputs: dict[str, str]) -> tuple[list, list, str, str]:
-    """A check's steps for `checks` and for `act`, and what fails the check in each."""
+    """A check's steps for `gates` and for `report`, and what fails the check in each.
+
+    A read-only job's own outputs are carried into the `gates` job's, so a job
+    that needed it reads them from `report` as `needs.gates.outputs`.
+    """
     carrier = Carrier(check, job, read_only, outputs)
+    if read_only:
+        for name, expression in (job.get("outputs") or {}).items():
+            outputs[f"{slug(check)}--out--{name}"] = renamed(str(expression), carrier.ids)
     return (
         carrier.here,
         carrier.there,
         " || ".join(carrier.failing_here),
         " || ".join(carrier.failing_there),
     )
+
+
+def needed(text: str, source: str) -> str:
+    """An expression reading another job of the same reusable, read through `gates`.
+
+    `report` is one job, so a job's `needs.<job>.outputs.<name>` is answered by
+    the output `carried` exported for that job. A job the reusable holds that no
+    check carries into `gates` is refused rather than read as empty.
+    """
+
+    def swap(match: re.Match) -> str:
+        job, name = match.group(1), match.group(2)
+        if job == "gates":
+            # Already read through `gates`, by `exported`.
+            return match.group(0)
+        for check in CHECKS:
+            if check.source == source and check.job == job and check.kind in (VERDICT, DETECT):
+                return f"needs.gates.outputs.{slug(check)}--out--{name}"
+        raise Refused(f".github/workflows/{source} reads needs.{job}.outputs.{name}, and {job!r} runs nowhere gates.yml reads from")
+
+    return NEEDS_REF.sub(swap, text)
+
+
+def inputs_of(text: str, given: dict) -> str:
+    """`explain-check.yml`'s text with each input replaced by what the explainer passed."""
+
+    def swap(match: re.Match) -> str:
+        name = match.group(1)
+        if name not in given:
+            raise Refused(f"explain-check.yml reads inputs.{name}, which an explainer does not pass")
+        return str(given[name]).rstrip("\n")
+
+    return INPUT_REF.sub(swap, text)
+
+
+def explainer(check: Check, job: dict) -> list:
+    """An explainer's call to `explain-check.yml`, as steps of `report`."""
+    unknown = sorted(set(job) - EXPLAINER_KEYS)
+    if job.get("uses") != EXPLAINER or unknown:
+        raise Refused(
+            f".github/workflows/{check.source} job {check.job!r} is an explainer and is not "
+            f"a plain call to {EXPLAINER}"
+        )
+    called = job_of(Check(check.group, "explain-check.yml", "explain"), load("explain-check.yml"))
+    given = job.get("with") or {}
+    own = needed(condition(str(job["if"])), check.source) if "if" in job else ""
+    gate = both(
+        f"needs.gates.outputs.plan--{check.group} == 'true'",
+        condition(str(called["if"])) if "if" in called else "",
+        own,
+    )
+    steps = []
+    for index, original in enumerate(called.get("steps") or []):
+        step = walk(dict(original), lambda text: needed(inputs_of(text, given), check.source))
+        name = step.pop("name", None) or f"step {index + 1}"
+        steps.append({
+            "name": f"{check.group} / {check.job}: {name}",
+            "id": f"{slug(check)}--{index}",
+            "if": f"${{{{ {gate} }}}}",
+            **step,
+            "continue-on-error": True,
+            "timeout-minutes": called.get("timeout-minutes", 10),
+        })
+    return steps
 
 
 #: The conclusion of a check the plan said nothing about. The publish step reads
@@ -413,97 +518,48 @@ HELD = r"""set -euo pipefail
 python3 - <<'PY'
 import json, os
 said = json.loads(os.environ["VERDICTS"])
-failed = sorted(key for key, conclusion in said.items() if conclusion not in ("success", "skipped"))
+lines = ["| Check | Result |", "|---|---|"]
+for key, conclusion in said.items():
+    shown = conclusion if conclusion in ("success", "failure", "skipped") else "did not report"
+    lines.append(f"| {key.replace('--', ' / ')} | {shown} |")
+with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+    summary.write("\n".join(lines) + "\n")
+failed = [key for key, conclusion in said.items() if conclusion not in ("success", "skipped")]
 for key in failed:
     print(f"::error::{key.replace('--', ' / ')} failed. Its steps above say why.")
 raise SystemExit(1 if failed else 0)
 PY
 """
 
-PUBLISH = r"""set -euo pipefail
-python3 - <<'PY'
-import json, os, urllib.request
-
-# Each check, as the caller's branch requires it: `hygiene / typos` where the
-# caller calls the reusable from a job named `hygiene`, or `typos` alone.
-listed = json.loads(os.environ["LISTED"])
-said = json.loads(os.environ["VERDICTS"])
-bare = os.environ["NAMES"] == "job"
-url = f"{os.environ['GITHUB_API_URL']}/repos/{os.environ['GITHUB_REPOSITORY']}/check-runs"
-details = (f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
-           f"/actions/runs/{os.environ['GITHUB_RUN_ID']}")
-asked = set(os.environ["CHECKS"].split())
-unpublished = []
-for group, job, key in listed:
-    if group not in asked:
-        continue
-    name = job if bare else f"{group} / {job}"
-    conclusion = said.get(key) or ""
-    if conclusion not in ("success", "failure", "skipped"):
-        # A check that reported nothing is a runner lost or a job cut short. It
-        # is published as failed, because a required check that never appears
-        # is read as waiting and one that appears green would be a lie.
-        summary = "This check did not report a conclusion, so it is published as failed."
-        conclusion = "failure"
-    else:
-        summary = f"The `{name}` check ran in the shared gates; its steps are in the run's log."
-    body = json.dumps({
-        "name": name,
-        "head_sha": os.environ["HEAD_SHA"],
-        "status": "completed",
-        "conclusion": conclusion,
-        "details_url": details,
-        "output": {"title": f"{name}: {conclusion}", "summary": summary},
-    }).encode()
-    request = urllib.request.Request(url, data=body, method="POST", headers={
-        "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-    })
-    try:
-        with urllib.request.urlopen(request, timeout=30) as answer:
-            print(f"{name}: {conclusion} (HTTP {answer.status})")
-    except Exception as error:  # every refusal is named below, none is swallowed
-        unpublished.append(f"{name} ({error})")
-for one in unpublished:
-    print(f"::error::{one} could not be published, so it is missing from the merge box.")
-raise SystemExit(1 if unpublished else 0)
-PY
-"""
-
 HEADER = """\
-# The shared gates on two runners. GENERATED by scripts/gen_gates.py from the
+# The shared checks as one job. GENERATED by scripts/gen_gates.py from the
 # reusable workflows each check names below; do not edit this file. Change the
 # reusable, then run `python3 scripts/gen_gates.py`. generated.py refuses a
-# copy that has drifted (Q-R77).
+# copy that has drifted (Q-R82).
 #
-# A caller lists the checks it runs, by the names it gives the jobs that would
-# call each reusable, and skips any of them for an event:
+# A caller lists the checks it runs, by group, and skips any of them for an
+# event:
 #
-#   gates:
-#     if: >-
-#       !(github.event_name == 'pull_request'
-#         && github.event.pull_request.head.repo.full_name != github.repository)
-#     permissions:
-#       contents: read
-#       pull-requests: write
-#       issues: write
-#       checks: write
-#     uses: lemonfiber/spec/.github/workflows/gates.yml@<sha>
-#     with:
-#       checks: spec-check hygiene workflow-pins security dco attribution commitlint labeler
-#       skip: ${{ github.event_name != 'pull_request' && 'labeler' || '' }}
+#   on:
+#     pull_request:
+#       types: [opened, edited, synchronize, reopened, ready_for_review]
+#   jobs:
+#     gates:
+#       permissions:
+#         contents: read
+#         pull-requests: write
+#         issues: write
+#       uses: lemonfiber/spec/.github/workflows/gates.yml@<sha>
+#       with:
+#         checks: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs cap
 #
-# A pull request from a fork is handed a token that cannot publish a check run,
-# so a caller keeps its jobs calling each reusable for that case alone, under
-# the condition above negated; they report under the same names.
-#
-# `checks` holds no write permission and runs every check's steps, each check in
+# `gates` holds no write permission and runs every check's steps, each check in
 # an empty workspace, each step only where the steps before it in the same check
-# succeeded. `act` labels, classifies and closes, and publishes every check as a
-# check run with that check's own conclusion. A check that reported nothing is
-# published as failed. `act` runs for no pull request from a fork, whatever the
-# caller's condition says.
+# succeeded. It lists each verdict in the run's summary and fails when one
+# failed, so a branch requires `gates / gates` alone, and a pull request from a
+# fork runs it as it is. `report` closes, labels, classifies and posts and
+# removes the comments; it judges nothing, runs no third-party tool, and starts
+# for no pull request from a fork.
 """
 
 
@@ -531,45 +587,30 @@ def build() -> str:
     there_steps: list = []
     outputs: dict[str, str] = {f"plan--{group}": f"${{{{ steps.plan.outputs.{group} }}}}" for group in groups}
     verdicts: dict[str, str] = {}
-    here_verdicts: dict[str, str] = {}
-    listed = []
     for check in CHECKS:
         read = load(check.source)
+        if check.kind == EXPLAIN:
+            there_steps += explainer(check, (read.get("jobs") or {}).get(check.job) or {})
+            continue
         job = job_of(check, read)
         place(check, read, job)
-        read_only = check.group not in ACTING
-        here, there, failing_here, failing_there = carried(check, job, read_only, outputs)
+        read_only = check.kind != ACT
+        here, there, failing_here, _ = carried(check, job, read_only, outputs)
         here_steps += here
         there_steps += there
-        key = slug(check)
-        display = job.get("name") or check.job
-        listed.append([check.group, display, key])
-        if read_only:
+        if check.kind == VERDICT:
             # The verdict is an expression over the steps' outcomes, which the
             # runner sets. No step writes it, so no step a pull request's files
             # can reach decides another check's conclusion.
-            outputs[key] = here_verdicts[key] = verdict(
-                f"steps.plan.outputs.{check.group}", runs(check, job), failing_here
-            )
-            if failing_there:
-                verdicts[key] = (
-                    f"${{{{ needs.checks.outputs.{key} == 'success' && ({failing_there}) "
-                    f"&& 'failure' || needs.checks.outputs.{key} }}}}"
-                )
-            else:
-                verdicts[key] = f"${{{{ needs.checks.outputs.{key} }}}}"
-        else:
-            verdicts[key] = verdict(
-                f"needs.checks.outputs.plan--{check.group}", asked_in_act(check, job), failing_there
-            )
+            verdicts[slug(check)] = verdict(f"steps.plan.outputs.{check.group}", runs(check, job), failing_here)
 
     missing = unlisted()
     if missing:
         raise Refused(
             f"{', '.join(missing)} is in a reusable gates.yml is made of and in no check "
-            f"there, so it would never be published. Add it to CHECKS in scripts/gen_gates.py"
+            f"there, so it would never run. Add it to CHECKS in scripts/gen_gates.py"
         )
-    checks_job = {
+    gates_job = {
         "runs-on": "ubuntu-latest",
         "timeout-minutes": 60,
         "permissions": READ,
@@ -589,35 +630,20 @@ def build() -> str:
             },
             *here_steps,
             {
-                "name": "Every check that ran here held",
+                "name": "Every check held",
                 "if": UNLESS_CANCELLED,
-                "env": {"VERDICTS": json.dumps(here_verdicts)},
+                "env": {"VERDICTS": json.dumps(verdicts)},
                 "run": HELD,
             },
         ],
     }
-    act_job = {
-        "needs": "checks",
+    report_job = {
+        "needs": "gates",
         "if": ACT_RUNS,
         "runs-on": "ubuntu-latest",
         "timeout-minutes": 30,
         "permissions": WRITE,
-        "steps": [
-            *there_steps,
-            {
-                "name": "Publish each check under the name the branch requires",
-                "if": UNLESS_CANCELLED,
-                "env": {
-                    "GH_TOKEN": "${{ github.token }}",
-                    "HEAD_SHA": "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}",
-                    "NAMES": "${{ inputs.names }}",
-                    "CHECKS": "${{ inputs.checks }}",
-                    "LISTED": json.dumps(listed),
-                    "VERDICTS": json.dumps(verdicts),
-                },
-                "run": PUBLISH,
-            },
-        ],
+        "steps": there_steps,
     }
     workflow = {
         "name": "gates",
@@ -625,25 +651,20 @@ def build() -> str:
             "workflow_call": {
                 "inputs": {
                     "checks": {
-                        "description": "The checks this caller runs, by the names of the jobs that would call each reusable, separated by spaces.",
+                        "description": "The checks this caller runs, by group, separated by spaces.",
                         "type": "string",
                         "default": " ".join(groups),
                     },
                     "skip": {
-                        "description": "Checks to publish as skipped for this event, separated by spaces.",
+                        "description": "Checks to skip for this event, separated by spaces.",
                         "type": "string",
                         "default": "",
-                    },
-                    "names": {
-                        "description": "`caller` publishes `hygiene / typos`; `job` publishes `typos`.",
-                        "type": "string",
-                        "default": "caller",
                     },
                 },
             },
         },
         "permissions": READ,
-        "jobs": {"checks": checks_job, "act": act_job},
+        "jobs": {"gates": gates_job, "report": report_job},
     }
     return HEADER + dump(workflow)
 
