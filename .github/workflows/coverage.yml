@@ -66,6 +66,7 @@ jobs:
           coverage run --append scripts/test_claims.py
           coverage run --append scripts/test_pr_cap.py
           coverage run --append scripts/test_assist.py
+          coverage run --append scripts/test_check_agents.py
           coverage run --append scripts/test_reopen_resolved.py
           coverage run --append scripts/test_rfc_convert.py
           coverage run --append scripts/test_proposal_approve.py

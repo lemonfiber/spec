@@ -326,6 +326,21 @@ jobs:
             --canonical "$canonical" \
             --repo "$REPO"
 
+      # AGENTS.md opens with the pointer to the board and the shared rules, and
+      # fits the cap (GOV-R50). A step of this job rather than a check of the
+      # script above, so it reaches a repository when that repository moves its
+      # pin of this workflow, not the moment the rule merges.
+      - name: AGENTS.md points first at the board and the shared rules
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$REPO" = "lemonfiber/spec" ]; then
+            canonical="."
+          else
+            canonical=".spec-canonical"
+          fi
+          python3 "$canonical/scripts/check_agents.py" --root .
+
   # No tracked file over 1,000 lines, generated output included; lockfiles, images
   # and fonts are not counted. The cap and that list are in the script, read from
   # `main` like the shared files above, so every repository is held to one rule.
