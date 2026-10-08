@@ -28,6 +28,7 @@ import unittest
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import board  # noqa: E402
+import claims  # noqa: E402
 from test_goals import LEGACY_HEADER, Train  # noqa: E402
 
 FEATURE = """---
@@ -157,8 +158,8 @@ class TheShape(Board):
                                       "areas", "features", "requirements", "versions",
                                       "trackers", "pulls", "claims", "contested", "repos",
                                       "releases", "proposals"])
-        self.assertEqual(data["claims"], {"cap": board.CAP,
-                                          "stale_days": board.STALE_AFTER.days})
+        self.assertEqual(data["claims"], {"cap": claims.CAP,
+                                          "stale_days": claims.STALE_AFTER.days})
         self.assertEqual(data["unread"], [])
         self.assertEqual(set(data["sources"]), {"spec", "core", "app", "lemonfiber"})
 
@@ -283,14 +284,14 @@ class PullsAndProposals(Board):
     def test_a_repository_over_the_cap_its_bots_not_counted(self):
         people = [{"number": n, "url": f"https://x/{n}", "author": {"login": "p",
                                                                     "__typename": "User"}}
-                  for n in range(1, board.CAP + 2)]
+                  for n in range(1, claims.CAP + 2)]
         bot = {"number": 99, "url": "https://x/99", "author": {"login": "dependabot",
                                                               "__typename": "Bot"}}
-        self.write_prs({"core": [*people, bot], "app": people[:board.CAP]})
+        self.write_prs({"core": [*people, bot], "app": people[:claims.CAP]})
         data, _ = self.snapshot("--prs", "prs.json")
         core = next(r for r in data["repos"] if r["name"] == "core")
         self.assertEqual((core["open_pulls"], core["counted_pulls"], core["over_cap"]),
-                         (board.CAP + 2, board.CAP + 1, True))
+                         (claims.CAP + 2, claims.CAP + 1, True))
         spec = next(r for r in data["repos"] if r["name"] == "spec")
         self.assertEqual((spec["counted_pulls"], spec["over_cap"]), (None, None))
         self.write_prs({"spec": [], "core": []})
@@ -301,10 +302,10 @@ class PullsAndProposals(Board):
 
     def test_a_repository_at_the_cap_is_not_over_it(self):
         self.write_prs({"core": [{"number": n, "url": f"https://x/{n}"}
-                                 for n in range(board.CAP)]})
+                                 for n in range(claims.CAP)]})
         data, _ = self.snapshot("--prs", "prs.json")
         core = next(r for r in data["repos"] if r["name"] == "core")
-        self.assertEqual((core["counted_pulls"], core["over_cap"]), (board.CAP, False))
+        self.assertEqual((core["counted_pulls"], core["over_cap"]), (claims.CAP, False))
 
     def test_a_draft_without_a_commit_for_too_long_is_stale(self):
         now = datetime.datetime.now(datetime.UTC)
@@ -312,7 +313,7 @@ class PullsAndProposals(Board):
         def ago(days):
             return (now - datetime.timedelta(days=days)).strftime(board.STAMP)
 
-        old = board.STALE_AFTER.days + 1
+        old = claims.STALE_AFTER.days + 1
         self.write_prs({"core": [
             {"number": 1, "url": "u", "isDraft": True,
              "commits": [{"message": "a", "committedDate": ago(old + 5)},

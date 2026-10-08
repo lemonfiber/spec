@@ -1,0 +1,79 @@
+# Reusable: tell a pull request that takes its repository past the cap of open
+# pull requests, which ones are open, and what to do (GOV-R58). It refuses
+# nothing; the comment is removed once the repository is within the cap again
+# and the pull request is reopened or marked ready.
+#
+# Safe on any pull request. In another repository it checks out only the spec
+# repo, never the pull request's code; in spec the workflow itself comes from the
+# pull request, so the script it runs comes from the same tree. It reads the open
+# pull requests through the API and hands them to the script as a file, and runs
+# no step on a fork's pull request.
+#
+# Both triggers, one file, as spec-references is: every other repo calls this
+# through `workflow_call`, and this repository runs it on its own pull requests.
+name: pr-cap
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  comment:
+    # A pull request from a fork gets a read-only token, so the comment could
+    # only fail; a bot's pull request is not counted, so it is owed none.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Another repository reads the script from spec's main, as spec-references
+      # does. Here the workflow itself comes from the pull request, so the script
+      # is read from the same tree rather than from a main it may not yet be on.
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ github.repository == 'lemonfiber/spec' && github.sha || 'main' }}
+          path: .spec-canonical
+          persist-credentials: false
+
+      - name: Write the comment, or nothing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$GH_REPO/pulls?state=open&per_page=100" --paginate --slurp \
+            | jq 'add // []' > pulls.json
+          python3 .spec-canonical/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
+
+      - name: Upsert or remove the sticky comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          id=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+                 --jq 'map(select(.body | startswith("<!-- pr-cap -->"))) | .[0].id // empty')
+          if [ -s comment.md ]; then
+            if [ -n "$id" ]; then
+              jq -Rs '{body: .}' comment.md | gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" --input - >/dev/null
+              echo "updated the cap comment $id"
+            else
+              jq -Rs '{body: .}' comment.md | gh api -X POST "repos/$GH_REPO/issues/$PR/comments" --input - >/dev/null
+              echo "commented: the repository is over the cap"
+            fi
+          elif [ -n "$id" ]; then
+            gh api -X DELETE "repos/$GH_REPO/issues/comments/$id" >/dev/null
+            echo "removed the cap comment $id: within the cap"
+          else
+            echo "within the cap; nothing to say"
+          fi

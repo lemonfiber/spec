@@ -113,6 +113,20 @@ class WhatAReaderIsTold(Train):
         self.assertIn("## 0.2.0 — planned", page)
         self.assertNotIn("## 0.1.0", page)
         self.assertIn("| 0.1.0 | released | 0 of 1 |", page)
+        self.assertNotIn("## Over the cap", page)
+
+    def test_a_repository_over_the_cap_is_named_on_the_page(self):
+        person = {"number": 1, "url": "u", "author": {"login": "p", "__typename": "User"},
+                  "body": "", "commits": []}
+        bot = {**person, "author": {"login": "dependabot", "__typename": "Bot"}}
+        prs = {"core": [person] * 4 + [bot], "app": [person] * 3 + [bot]}
+        pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
+        code, said = run_main([*self.checkouts(), "--prs", "prs.json", "--markdown", "STATE.md"])
+        self.assertEqual(code, 0, said)
+        page = pathlib.Path("STATE.md").read_text(encoding="utf-8")
+        self.assertIn("## Over the cap", page)
+        self.assertIn("- **core**: 4", page)
+        self.assertNotIn("- **app**", page)
 
 
     def test_the_format_the_sources_and_when(self):
