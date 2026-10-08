@@ -38,7 +38,7 @@ from spec_check import defined_ids, draft_ids, retired_ids
 #: How `spec-check` begins the comment it closes a pull request with.
 CLOSED_BY = "**`spec-check` closed this.**"
 #: The identifiers that comment names as not yet defined.
-UNKNOWN = re.compile(r"cited identifiers do not exist on spec@main: ([A-Z0-9, R-]+)")
+UNKNOWN = re.compile(r"cited identifiers do not exist on spec@main: ([A-Z0-9, -]+)")
 #: The account a workflow's own token acts as, which is who `spec-check` closes as.
 CLOSER = "github-actions[bot]"
 
