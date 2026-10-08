@@ -116,6 +116,7 @@ Decisions about a repository outside this organisation, such as
 | `sdk-ts` is kept by the web console's agent, which adds its client calls for the setup routes once the contract describes their bodies | This row; the bodies are [ARCH-R133](../20-architecture/contracts/web-api.md) |
 | The core publishes the setup routes' bodies in the contract (option a): `wizard::Answer` and `recovery::Choice` derive their schema, and the six setup routes are described with them | [ARCH-R133](../20-architecture/contracts/web-api.md) |
 | What's new (`news`, `news-items`) stays with the companion, and the web console does not mark new items | [N27](../10-functional/features/n-companion/n27-what-the-phone-keeps.md) |
+| The documentation site cuts a release's frozen build on its own nightly run after the release's day ends; release-finalize sends it no dispatch, since on the release day there is nothing it may cut | [REPO-R88, REPO-R89](../30-repos/website-docs.md) |
 
 ## Requirements
 
