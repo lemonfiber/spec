@@ -113,7 +113,8 @@
 version = "0.17.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — what the bundled stack can do, and where a plugin comes from"
-status  = "releasable"
+status  = "released"
+released_on = "2026-10-08"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate"]
 satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-plugins"]
 goals   = [
@@ -202,3 +203,7 @@ tag = "v0.17.0-pre.1"
 cut_on = "2026-10-04"
 unmet = ["F9-R2", "F9-R6", "G5-R14", "D6-R15", "D6-R16"]
 pins = { lemonfiber-media-stack = "4c7bc56170fcede649f652334fb3a0691810d7a7", lemonfiber-web = "830de5553a52ceea51dd8d76168aa11cef7373c3" }
+
+[pins]
+lemonfiber-media-stack = "091492c9c1e497fe4d0f022e5b2899a4946e9b3f"
+lemonfiber-web = "830de5553a52ceea51dd8d76168aa11cef7373c3"
