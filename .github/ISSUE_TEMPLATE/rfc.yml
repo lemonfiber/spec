@@ -1,3 +1,5 @@
+# The area options are written by scripts/gen_rfc_areas.py from the catalogue's
+# page; edit the page's headings, not the list.
 name: RFC — propose a spec change
 description: Propose a new or changed requirement without touching a file. A maintainer turns it into a proposal pull request, where it is discussed and decided.
 title: "RFC: "
