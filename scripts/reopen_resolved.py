@@ -101,7 +101,9 @@ def owed(repo: str, number: int, spec_dir: pathlib.Path, api: Api) -> list[str] 
     if not closes or (closes[-1].get("actor") or {}).get("login") != CLOSER:
         return None
     comments = api([f"repos/{repo}/issues/{number}/comments?per_page=100"])
-    closing = [c["body"] for c in comments if unknown_in(c["body"])]
+    # The closing comment is the one `spec-check` wrote: anyone can write its words.
+    closing = [c["body"] for c in comments
+               if (c.get("user") or {}).get("login") == CLOSER and unknown_in(c["body"])]
     if not closing:
         return None
     last = unknown_in(closing[-1])  # the newest closing comment decides

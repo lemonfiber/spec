@@ -48,11 +48,16 @@ jobs:
           TITLE: ${{ inputs.title }}
           BODY: ${{ inputs.body }}
           NEEDED: ${{ inputs.needed }}
+          # The account this workflow's token writes as. A comment is ours by
+          # its author: anyone can write the marker into a comment of their own.
+          SELF: github-actions[bot]
         run: |
           set -euo pipefail
           marker="<!-- explain:${CHECK} -->"
-          id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
-            --jq "[.[] | select(.body | contains(\"${marker}\"))] | last | .id // empty" || true)
+          export MARKER="$marker"
+          id=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+            --jq '.[] | select(.user.login == env.SELF and (.body | startswith(env.MARKER))) | .id' \
+            | sed -n '$p' || true)
           if [ "$NEEDED" != "true" ]; then
             # The contributor already satisfies this check — remove any stale
             # explainer and post nothing.

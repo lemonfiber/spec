@@ -132,6 +132,17 @@ jobs:
       # stood, which is the only way to know it is testing anything.
       - name: A PR citing a locked goal is shown landing in its milestone (OPS-R39, Q-R66)
         run: python3 scripts/test_milestone.py
+      # Not a coverage suite: it runs each sticky-comment step out of the committed
+      # workflows against a stubbed forge, whose comment listings the step's own
+      # jq filter reads, and checks that a comment is edited or removed only where
+      # this workflow's token wrote it, whatever marker a stranger's comment holds.
+      - name: A workflow edits only its own comments
+        run: python3 scripts/test_own_comments.py
+      # Not a coverage suite: it runs hygiene's markdown guard out of the committed
+      # workflow over built trees, and checks that a tree handing markdownlint a
+      # module is refused before the linter starts on the runner `gates` shares.
+      - name: The markdown check runs no code from the tree it lints
+        run: python3 scripts/test_markdown_runs_no_code.py
       # Not a coverage suite: it runs the fan-out's own step out of the committed
       # workflow against a stubbed `gh` and an intercepted `git push`, and checks
       # what it opens, what it leaves alone, and what it refuses (Q-R66). The

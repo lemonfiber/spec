@@ -165,7 +165,7 @@ the same rule of appearing only while it is true:
 
 | ID | Requirement |
 |----|-------------|
-| **GOV-R33** | A non-standard or PR-closing check MUST post a self-updating explainer comment describing what it does and how to satisfy it, via the shared reusable, **only when the contributor has not already satisfied the check** — and MUST remove the explainer once they do; it MUST NOT execute untrusted PR code. |
+| **GOV-R33** | A non-standard or PR-closing check MUST post a self-updating explainer comment describing what it does and how to satisfy it, via the shared reusable, **only when the contributor has not already satisfied the check** — and MUST remove the explainer once they do; it MUST NOT execute untrusted PR code, and it MUST find its explainer by the comment's author, the account the workflow writes as, as well as by its marker, never editing or removing a comment anybody else wrote. |
 
 ## The citation format
 

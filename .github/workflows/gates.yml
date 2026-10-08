@@ -21,11 +21,12 @@
 #
 # `gates` holds no write permission and runs every check's steps, each check in
 # an empty workspace, each step only where the steps before it in the same check
-# succeeded. It lists each verdict in the run's summary and fails when one
-# failed, so a branch requires `gates / gates` alone, and a pull request from a
-# fork runs it as it is. `report` closes, labels, classifies and posts and
-# removes the comments; it judges nothing, runs no third-party tool, and starts
-# for no pull request from a fork.
+# succeeded. No step runs code out of the pull request's tree, which is read as
+# data. It lists each verdict in the run's summary and fails when one failed, so
+# a branch requires `gates / gates` alone, and a pull request from a fork runs it
+# as it is. `report` closes, labels, classifies, and posts and removes the
+# comments, its own and no one else's; it judges nothing, runs no third-party
+# tool, and starts for no pull request from a fork.
 name: gates
 on:
   workflow_call:
@@ -656,9 +657,43 @@ jobs:
         persist-credentials: false
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'hygiene / markdown: markdownlint'
-      id: hygiene--markdown--1
+    - name: 'hygiene / markdown: The tree hands markdownlint no code'
+      id: hygiene--markdown--inert
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--markdown--0.outcome != 'failure') }}
+      run: |
+        python3 - <<'PY'
+        import os, re, sys
+        MODULES = {".markdownlint-cli2.cjs", ".markdownlint-cli2.mjs", ".markdownlint.cjs", ".markdownlint.mjs"}
+        DATA = {".markdownlint-cli2.jsonc", ".markdownlint-cli2.yaml", ".markdownlint.jsonc",
+                ".markdownlint.json", ".markdownlint.yaml", ".markdownlint.yml"}
+        LOADS = re.compile(r"customRules|markdownItPlugins|outputFormatters")
+        def escaped(text, *more):
+            # A workflow command's own escaping, so a file's name cannot write one.
+            for plain, coded in (("%", "%25"), ("\r", "%0D"), ("\n", "%0A"), *more):
+                text = text.replace(plain, coded)
+            return text
+        found = []
+        for top, dirs, files in os.walk("."):
+            dirs[:] = [one for one in dirs if one != ".git"]
+            for name in dirs + files:
+                path = os.path.join(top, name)[2:]
+                if name in MODULES:
+                    found.append((path, "is a configuration markdownlint would import and run"))
+                elif name in DATA and os.path.isfile(path):
+                    with open(path, encoding="utf-8", errors="replace") as read:
+                        if LOADS.search(read.read()):
+                            found.append((path, "names a module markdownlint would import and run"))
+        for path, said in found:
+            where = escaped(path, (":", "%3A"), (",", "%2C"))
+            print(f"::error file={where}::{escaped(path)} {said}. The shared markdown check runs no code from"
+                  " the tree it lints: write the configuration as JSONC or YAML, with the built-in rules.")
+        sys.exit(1 if found else 0)
+        PY
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / markdown: markdownlint'
+      id: hygiene--markdown--2
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--markdown--0.outcome != 'failure') && (steps.hygiene--markdown--inert.outcome != 'failure') }}
       uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0
       with:
         globs: '**/*.md'
@@ -826,6 +861,7 @@ jobs:
           scan
           source
           --allow-no-lockfiles
+          --no-call-analysis=go
           --recursive
           ./
       continue-on-error: true
@@ -1143,10 +1179,10 @@ jobs:
         VERDICTS: '{"spec-check--spec-check": "${{ !(steps.plan.outputs.spec-check == ''true'' || steps.plan.outputs.spec-check == ''false'') && ''unreported'' || !((steps.plan.outputs.spec-check == ''true'')) && ''skipped'' || (steps.spec-check--spec-check--0.outcome == ''failure'' || steps.spec-check--spec-check--1.outcome == ''failure'' || steps.spec-check--spec-check--2.outcome == ''failure'' || steps.spec-check--spec-check--3.outcome == ''failure'' || steps.spec-check--spec-check--4.outcome == ''failure'' || steps.spec-check--spec-check--7.outcome == ''failure'' || steps.spec-check--spec-check--8.outcome == ''failure'' || steps.spec-check--spec-check--9.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--actionlint": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--actionlint--0.outcome == ''failure'' || steps.hygiene--actionlint--1.outcome
           == ''failure'') && ''failure'' || ''success'' }}", "hygiene--pins": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--pins--0.outcome == ''failure'' || steps.hygiene--pins--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--typos": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--typos--0.outcome == ''failure'' || steps.hygiene--typos--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--links": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure'' || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome
           == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome == ''failure'' || steps.hygiene--shared-files--2.outcome == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene ==
-          ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome
-          == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco
-          == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped''
-          || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
+          ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--inert.outcome == ''failure'' || steps.hygiene--markdown--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome ==
+          ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco":
+          "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported''
+          || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
       run: |
         set -euo pipefail
         python3 - <<'PY'
@@ -1247,6 +1283,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         REPO: ${{ github.repository }}
         PR: ${{ github.event.pull_request.number }}
+        SELF: github-actions[bot]
       run: |
         set -euo pipefail
         python3 scripts/pr_goals.py --pr-text pr.txt > result.json
@@ -1318,10 +1355,10 @@ jobs:
             raise SystemExit(0)
 
         find = subprocess.run(
-            ["gh", "api", f"repos/{repo}/issues/{pr}/comments", "--jq",
-             f'[.[] | select(.body | startswith("{MARK}")) | .id] | first // empty'],
+            ["gh", "api", "--paginate", f"repos/{repo}/issues/{pr}/comments", "--jq",
+             f'.[] | select(.user.login == env.SELF and (.body | startswith("{MARK}"))) | .id'],
             capture_output=True, text=True)
-        existing = find.stdout.strip()
+        existing = next(iter(find.stdout.split()), "")
         if existing:
             gh("api", "--method", "PATCH", f"repos/{repo}/issues/comments/{existing}",
                "-f", f"body={body}")
@@ -1372,9 +1409,11 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
         PR: ${{ github.event.pull_request.number }}
+        SELF: github-actions[bot]
       run: |
         id=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
-               --jq 'map(select(.body | startswith("<!-- spec-references -->"))) | .[0].id // empty')
+               --jq '.[] | select(.user.login == env.SELF and (.body | startswith("<!-- spec-references -->"))) | .id' \
+               | sed -n 1p)
         if [ -n "$id" ]; then
           jq -Rs '{body: .}' comment.md | gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" --input - >/dev/null
           echo "updated spec-references comment $id"
@@ -1420,10 +1459,12 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
         PR: ${{ github.event.pull_request.number }}
+        SELF: github-actions[bot]
       run: |
         set -euo pipefail
         id=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
-               --jq 'map(select(.body | startswith("<!-- pr-cap -->"))) | .[0].id // empty')
+               --jq '.[] | select(.user.login == env.SELF and (.body | startswith("<!-- pr-cap -->"))) | .id' \
+               | sed -n 1p)
         if [ -s comment.md ]; then
           if [ -n "$id" ]; then
             jq -Rs '{body: .}' comment.md | gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" --input - >/dev/null
@@ -1450,11 +1491,14 @@ jobs:
         TITLE: What the squash commit on `main` needs
         BODY: ${{ needs.gates.outputs.squash-message--squash-message--out--said }}
         NEEDED: ${{ needs.gates.outputs.squash-message--squash-message--out--needed }}
+        SELF: github-actions[bot]
       run: |
         set -euo pipefail
         marker="<!-- explain:${CHECK} -->"
-        id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
-          --jq "[.[] | select(.body | contains(\"${marker}\"))] | last | .id // empty" || true)
+        export MARKER="$marker"
+        id=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+          --jq '.[] | select(.user.login == env.SELF and (.body | startswith(env.MARKER))) | .id' \
+          | sed -n '$p' || true)
         if [ "$NEEDED" != "true" ]; then
           # The contributor already satisfies this check — remove any stale
           # explainer and post nothing.
@@ -1492,11 +1536,14 @@ jobs:
 
           ${{ needs.gates.outputs.explain--detect--out--suggest }}
         NEEDED: ${{ needs.gates.outputs.explain--detect--out--citation == 'needed' && 'true' || 'false' }}
+        SELF: github-actions[bot]
       run: |
         set -euo pipefail
         marker="<!-- explain:${CHECK} -->"
-        id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
-          --jq "[.[] | select(.body | contains(\"${marker}\"))] | last | .id // empty" || true)
+        export MARKER="$marker"
+        id=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+          --jq '.[] | select(.user.login == env.SELF and (.body | startswith(env.MARKER))) | .id' \
+          | sed -n '$p' || true)
         if [ "$NEEDED" != "true" ]; then
           # The contributor already satisfies this check — remove any stale
           # explainer and post nothing.
@@ -1530,11 +1577,14 @@ jobs:
           attest. So if the DCO check passes with an unsigned merge commit in the
           range, that is by design, not a gap. See 50-governance/dco.md.
         NEEDED: ${{ needs.gates.outputs.explain--detect--out--dco == 'relevant' && 'true' || 'false' }}
+        SELF: github-actions[bot]
       run: |
         set -euo pipefail
         marker="<!-- explain:${CHECK} -->"
-        id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
-          --jq "[.[] | select(.body | contains(\"${marker}\"))] | last | .id // empty" || true)
+        export MARKER="$marker"
+        id=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+          --jq '.[] | select(.user.login == env.SELF and (.body | startswith(env.MARKER))) | .id' \
+          | sed -n '$p' || true)
         if [ "$NEEDED" != "true" ]; then
           # The contributor already satisfies this check — remove any stale
           # explainer and post nothing.
@@ -1563,11 +1613,14 @@ jobs:
         TITLE: 🪞 This page lives in another repository
         BODY: ${{ needs.gates.outputs.explain--detect--out--mirrors }}
         NEEDED: ${{ needs.gates.outputs.explain--detect--out--mirrors != '' && 'true' || 'false' }}
+        SELF: github-actions[bot]
       run: |
         set -euo pipefail
         marker="<!-- explain:${CHECK} -->"
-        id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
-          --jq "[.[] | select(.body | contains(\"${marker}\"))] | last | .id // empty" || true)
+        export MARKER="$marker"
+        id=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+          --jq '.[] | select(.user.login == env.SELF and (.body | startswith(env.MARKER))) | .id' \
+          | sed -n '$p' || true)
         if [ "$NEEDED" != "true" ]; then
           # The contributor already satisfies this check — remove any stale
           # explainer and post nothing.
@@ -1596,11 +1649,14 @@ jobs:
         TITLE: 📋 The tracker and this pull request's goals
         BODY: ${{ needs.gates.outputs.explain--detect--out--status }}
         NEEDED: ${{ needs.gates.outputs.explain--detect--out--status != '' && 'true' || 'false' }}
+        SELF: github-actions[bot]
       run: |
         set -euo pipefail
         marker="<!-- explain:${CHECK} -->"
-        id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
-          --jq "[.[] | select(.body | contains(\"${marker}\"))] | last | .id // empty" || true)
+        export MARKER="$marker"
+        id=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+          --jq '.[] | select(.user.login == env.SELF and (.body | startswith(env.MARKER))) | .id' \
+          | sed -n '$p' || true)
         if [ "$NEEDED" != "true" ]; then
           # The contributor already satisfies this check — remove any stale
           # explainer and post nothing.

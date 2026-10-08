@@ -213,6 +213,26 @@ class Generation(unittest.TestCase):
                     else:
                         self.assertTrue(said.startswith((".spec-canonical/", "scripts/")), (step["id"], line))
 
+    def test_gates_runs_only_actions_that_read_the_tree_as_data(self):
+        seen: list[str] = []
+        for step in generated()["jobs"]["gates"]["steps"]:
+            action = step.get("uses", "").split("@")[0]
+            if action:
+                self.assertIn(action, {**gen_gates.INERT, **gen_gates.GUARDED}, step["id"])
+            seen.append(action or step.get("id", ""))
+        for action, guard in gen_gates.GUARDED.items():
+            lint = seen.index(action)
+            self.assertTrue(seen[lint - 1].endswith(f"--{guard}"), seen[lint - 1])
+
+    def test_no_script_carries_an_expression(self):
+        for job in generated()["jobs"].values():
+            for step in job["steps"]:
+                self.assertNotIn("${{", step.get("run", ""), step.get("id"))
+
+    def test_the_scanner_reads_lockfiles_and_runs_no_go(self):
+        osv = next(s for s in generated()["jobs"]["gates"]["steps"] if s["id"] == "security--osv-scanner--1")
+        self.assertIn("--no-call-analysis=go", osv["with"]["scan-args"].split())
+
     def test_every_checkout_drops_its_credentials(self):
         for job in generated()["jobs"].values():
             for step in job["steps"]:
@@ -480,6 +500,44 @@ class Refusals(unittest.TestCase):
         self.source(self.STEP.replace("ubuntu-latest", "macos-latest"))
         self.refused("runs on 'macos-latest'")
 
+    def test_an_action_nobody_has_read(self):
+        self.source(self.STEP + "      - uses: someone/tool@" + "2" * 40 + " # v1\n")
+        self.refused("uses someone/tool", "name it in INERT or GUARDED")
+
+    def test_a_guarded_action_with_no_guard_before_it(self):
+        lint = "      - uses: DavidAnson/markdownlint-cli2-action@" + "3" * 40 + " # v24\n"
+        self.source(self.STEP + lint)
+        self.refused("uses DavidAnson/markdownlint-cli2-action with no step 'inert' before it")
+        self.source(self.STEP + lint + "      - id: inert\n        run: 'true'\n")
+        self.refused("with no step 'inert' before it")
+
+    def test_a_guarded_action_after_its_guard_is_carried(self):
+        lint = "      - uses: DavidAnson/markdownlint-cli2-action@" + "3" * 40 + " # v24\n"
+        self.source(self.STEP + "      - id: inert\n        run: 'true'\n" + lint)
+        self.assertIn("markdownlint-cli2-action@", gen_gates.build())
+
+    def test_an_actor_is_not_asked_about_its_actions(self):
+        # report runs only actions/ ones, which a test of the generated file holds.
+        self.source(self.STEP + "      - uses: someone/tool@" + "2" * 40 + " # v1\n",
+                    top="permissions:\n  pull-requests: write\n")
+        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.ACT),)):
+            self.assertIn("someone/tool@", gen_gates.build())
+
+    def test_a_script_carrying_an_expression(self):
+        self.source(self.STEP + "      - run: echo ${{ github.event.pull_request.title }}\n")
+        self.refused("has an expression in its script", "Pass it through env")
+
+    def test_an_explainer_script_carrying_an_expression(self):
+        called = (pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/explain-check.yml").read_text(
+            encoding="utf-8")
+        (self.tmp / "explain-check.yml").write_text(
+            called.replace('set -euo pipefail\n', 'set -euo pipefail\n          echo "${{ inputs.title }}"\n', 1),
+            encoding="utf-8")
+        self.source("    uses: ./.github/workflows/explain-check.yml\n"
+                    "    with:\n      check: x\n      title: t\n      body: b\n")
+        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)):
+            self.refused("explain-check.yml job 'explain' has an expression in its script")
+
     def test_a_write_permission_put_nowhere(self):
         self.source(self.STEP, top="permissions:\n  pull-requests: write\n")
         self.refused("asks for a write permission")
@@ -502,7 +560,7 @@ class Refusals(unittest.TestCase):
             self.refused("reads inputs.title, which an explainer does not pass")
 
     def test_a_job_read_that_nothing_carries(self):
-        self.source(self.STEP + "      - name: write\n        run: echo ${{ needs.elsewhere.outputs.x }}\n",
+        self.source(self.STEP + "      - name: write\n        run: echo \"$X\"\n        env:\n          X: ${{ needs.elsewhere.outputs.x }}\n",
                     top="permissions:\n  pull-requests: write\n")
         with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.ACT),)):
             self.refused("reads needs.elsewhere.outputs.x")
@@ -516,11 +574,11 @@ class Refusals(unittest.TestCase):
         self.refused("step deciding by a status function")
 
     def test_a_reference_to_a_step_that_is_not_earlier(self):
-        self.source(self.STEP + "      - run: echo ${{ steps.later.outputs.x }}\n")
+        self.source(self.STEP + "      - run: echo \"$X\"\n        env:\n          X: ${{ steps.later.outputs.x }}\n")
         self.refused("steps.later")
 
     def test_a_moved_step_referring_to_a_step_that_is_not_earlier(self):
-        self.source(self.STEP + "      - name: write\n        run: echo ${{ steps.later.outputs.x }}\n",
+        self.source(self.STEP + "      - name: write\n        run: echo \"$X\"\n        env:\n          X: ${{ steps.later.outputs.x }}\n",
                     top="permissions:\n  pull-requests: write\n")
         with mock.patch.object(gen_gates, "MOVED", {("one", "job"): frozenset({"write"})}):
             self.refused("steps.later")

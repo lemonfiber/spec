@@ -35,6 +35,14 @@ What a check's own job did, each check's steps still do:
 
 `gates` lists every verdict and its result in the run's summary.
 
+Every check in `gates` shares one runner, so a step that ran code out of a pull
+request's tree could change what each later step runs, the step that fails
+`gates` included. So no step there does: every action a check bound for `gates`
+uses is one named in `INERT`, which reads the tree as data, or one named in
+`GUARDED` that comes after the step refusing a tree that would hand it code;
+scripts are spec's own; and no script carries an expression, so what a pull
+request wrote reaches a shell only through `env`.
+
 Run:  python3 scripts/gen_gates.py           # write .github/workflows/gates.yml
       python3 scripts/gen_gates.py --check   # refuse a gates.yml that has drifted
 """
@@ -117,6 +125,28 @@ EXPLAINER = "./.github/workflows/explain-check.yml"
 #: run in `report`, after the check's other steps have run in `gates`.
 MOVED = {
     ("spec-check", "spec-check"): frozenset({"Close the pull request, naming what it cited"}),
+}
+
+#: Every action a step of `gates` may use, and what it does with the tree it is
+#: pointed at. `gates` runs every check on one runner, so one step that ran code
+#: out of a pull request's tree could rewrite what every later step runs, the
+#: verdict's own included. Each action here reads that tree as data; one not
+#: here is refused until somebody has read what it does with the files.
+INERT = {
+    "actions/checkout": "writes the tree and runs nothing in it: no hooks, no submodules",
+    "actions/setup-python": "installs the Python version the step names",
+    "raven-actions/actionlint": "parses the workflow files; shellcheck reads their scripts as text",
+    "crate-ci/typos": "reads text, and its TOML configuration",
+    "lycheeverse/lychee-action": "reads links, and its TOML configuration",
+    "google/osv-scanner-action/osv-scanner-action": "reads manifests and lockfiles; the step turns off Go call analysis",
+}
+
+#: An action that imports code from the tree it reads when the tree asks it to,
+#: and the id of the step that must come before it in the same check, refusing
+#: any tree that asks. The guard failing skips the action, as any failed step
+#: skips the ones after it in its check.
+GUARDED = {
+    "DavidAnson/markdownlint-cli2-action": "inert",
 }
 
 #: The permissions each job holds. `gates` reads, the pull request included, which
@@ -203,6 +233,44 @@ def job_of(check: Check, read: dict) -> dict:
             f"{job.get('runs-on')!r}, and every check in gates.yml shares one ubuntu-latest runner"
         )
     return job
+
+
+def vetted(check: Check, job: dict) -> None:
+    """Refuse a check bound for `gates` that uses an action nobody has read.
+
+    An action that is guarded is accepted only after the step that guards it.
+    """
+    seen: set[str] = set()
+    for step in job.get("steps") or []:
+        action = str(step.get("uses", "")).split("@")[0]
+        if action and action not in INERT:
+            guard = GUARDED.get(action)
+            if guard is None:
+                raise Refused(
+                    f".github/workflows/{check.source} job {check.job!r} uses {action}, which "
+                    f"gates.yml has not been told reads a pull request's tree as data. Read what it "
+                    f"does with the files it is pointed at, then name it in INERT or GUARDED"
+                )
+            if guard not in seen:
+                raise Refused(
+                    f".github/workflows/{check.source} job {check.job!r} uses {action} with no "
+                    f"step {guard!r} before it to refuse a tree that would hand it code"
+                )
+        seen.add(str(step.get("id", "")))
+
+
+def unexpanded(where: str, step: dict) -> None:
+    """Refuse a script that carries an expression.
+
+    An expression in a script is pasted into the shell before it runs, so text
+    a pull request wrote, its title or body, would run as commands. A step reads
+    such text through `env` and nowhere else.
+    """
+    if "${{" in str(step.get("run", "")):
+        raise Refused(
+            f"{where} has an expression in its script, which pastes what it reads into the "
+            f"shell. Pass it through env"
+        )
 
 
 def writes(read: dict, job: dict) -> bool:
@@ -326,6 +394,7 @@ class Carrier:
             raise Refused(
                 f"{self.check.source} job {self.check.job!r} has a step deciding by a status function: {own}"
             )
+        unexpanded(f".github/workflows/{self.check.source} job {self.check.job!r}", step)
         tolerated = bool(step.pop("continue-on-error", False))
         old_id = step.pop("id", None)
         new_id = f"{self.base}--{old_id or index}"
@@ -435,6 +504,7 @@ def explainer(check: Check, job: dict) -> list:
     )
     steps = []
     for index, original in enumerate(called.get("steps") or []):
+        unexpanded(".github/workflows/explain-check.yml job 'explain'", original)
         step = walk(dict(original), lambda text: needed(inputs_of(text, given), check.source))
         name = step.pop("name", None) or f"step {index + 1}"
         steps.append({
@@ -555,11 +625,12 @@ HEADER = """\
 #
 # `gates` holds no write permission and runs every check's steps, each check in
 # an empty workspace, each step only where the steps before it in the same check
-# succeeded. It lists each verdict in the run's summary and fails when one
-# failed, so a branch requires `gates / gates` alone, and a pull request from a
-# fork runs it as it is. `report` closes, labels, classifies and posts and
-# removes the comments; it judges nothing, runs no third-party tool, and starts
-# for no pull request from a fork.
+# succeeded. No step runs code out of the pull request's tree, which is read as
+# data. It lists each verdict in the run's summary and fails when one failed, so
+# a branch requires `gates / gates` alone, and a pull request from a fork runs it
+# as it is. `report` closes, labels, classifies, and posts and removes the
+# comments, its own and no one else's; it judges nothing, runs no third-party
+# tool, and starts for no pull request from a fork.
 """
 
 
@@ -595,6 +666,8 @@ def build() -> str:
         job = job_of(check, read)
         place(check, read, job)
         read_only = check.kind != ACT
+        if read_only:
+            vetted(check, job)
         here, there, failing_here, _ = carried(check, job, read_only, outputs)
         here_steps += here
         there_steps += there

@@ -133,6 +133,12 @@ Decisions about a repository outside this organisation, such as
 | The shared checks that run in seconds are one job per pull request, `gates`, each a step that runs whatever the others concluded, its summary listing every result and branch protection requiring it as one context; what writes to a pull request is a second job that judges nothing; the tests, coverage, CodeQL's analysis and Sonar stay jobs of their own | [Q-R82](../40-quality/ci-cd.md) |
 | The plugin reading lists each recipe input a plugin asks the operator for, with its name, its question and whether it is a secret, so a surface collects it before the yes; a secret input is never shown back | [F8-R19](../10-functional/features/f-extensibility/f8-recipes.md) |
 
+## 2026-10-09
+
+| Decision | Where it lives |
+|---|---|
+| No step of `gates` runs code out of a pull request's tree: each action it calls is one known to read the tree as data, markdownlint only after a step refuses a tree that would hand it a module, and the OSV scan without Go call analysis; and a workflow edits or removes a sticky comment only where its own token wrote it | [Q-R82](../40-quality/ci-cd.md), [GOV-R33](cross-repo-ci.md) |
+
 ## Requirements
 
 | ID | Requirement |
