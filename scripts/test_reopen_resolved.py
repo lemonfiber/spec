@@ -48,7 +48,7 @@ class Forge:
                  comments=(CLOSING,), fail_write=False):
         self.pull = {"state": state, "merged": merged}
         self.events = [{"event": "labeled"}, {"event": "closed", "actor": {"login": closer}}]
-        self.comments = [{"body": b} for b in comments]
+        self.comments = [{"body": b, "user": {"login": reopen.CLOSER}} for b in comments]
         self.writes = []
         self.fail_write = fail_write
 
@@ -133,6 +133,16 @@ class Owed(Spec):
         older = CLOSING.replace("A1-R9, GOV-R70", "Z9-R1")
         forge = Forge(comments=(older, CLOSING))
         self.assertEqual(reopen.owed("lemonfiber/core", 7, self.spec, forge), ["A1-R9", "GOV-R70"])
+
+    def test_a_closing_comment_somebody_else_wrote_decides_nothing(self):
+        # The pull request's author writes spec-check's words, naming what does resolve,
+        # under a close that was for something else.
+        older = CLOSING.replace("A1-R9, GOV-R70", "Z9-R1")
+        forge = Forge(comments=(older,))
+        forge.comments.append({"body": CLOSING, "user": {"login": "someone"}})
+        self.assertIsNone(reopen.owed("lemonfiber/core", 7, self.spec, forge))
+        forge.comments[-1] = {"body": CLOSING}
+        self.assertIsNone(reopen.owed("lemonfiber/core", 7, self.spec, forge), "no author at all")
 
     def test_candidates_from_the_search(self):
         found = reopen.candidates({"A1-R9"}, "lemonfiber", Forge())

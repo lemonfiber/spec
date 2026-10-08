@@ -54,9 +54,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
+          # The account this workflow's token writes as. A comment is ours by
+          # its author: anyone can write the marker into a comment of their own.
+          SELF: github-actions[bot]
         run: |
           id=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
-                 --jq 'map(select(.body | startswith("<!-- spec-references -->"))) | .[0].id // empty')
+                 --jq '.[] | select(.user.login == env.SELF and (.body | startswith("<!-- spec-references -->"))) | .id' \
+                 | sed -n 1p)
           if [ -n "$id" ]; then
             jq -Rs '{body: .}' comment.md | gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" --input - >/dev/null
             echo "updated spec-references comment $id"

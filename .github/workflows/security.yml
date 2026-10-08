@@ -138,6 +138,12 @@ jobs:
   # action's entrypoint still maps 128 to 0 without the flag, and warns; the flag
   # says it on purpose instead.
   #
+  # `--no-call-analysis=go` keeps the scan to reading manifests and lockfiles.
+  # The image is built on golang, so on a tree holding a `go.mod` the scanner
+  # would otherwise hand the tree's Go packages to the go toolchain for call
+  # analysis, and in `gates` that tree is a pull request's, on the runner every
+  # later verdict runs on: the container writes this job's environment files.
+  #
   # Upstream recommends its reusable workflow over calling this action directly,
   # because the action's behaviour may change within a patch release. Pinned by
   # SHA, such a change arrives as a Dependabot pull request that runs this gate
@@ -158,5 +164,6 @@ jobs:
             scan
             source
             --allow-no-lockfiles
+            --no-call-analysis=go
             --recursive
             ./

@@ -383,6 +383,43 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # markdownlint-cli2 imports a configuration written as a module
+      # (`.markdownlint-cli2.cjs`, `.markdownlint.mjs` and the like) and every
+      # module a configuration names under `customRules`, `markdownItPlugins` or
+      # `outputFormatters`, from the tree it lints. In `gates` that tree is a pull
+      # request's, on the runner every later verdict runs on, so a tree holding
+      # any of them is refused here and the linter is never started on it.
+      - name: The tree hands markdownlint no code
+        id: inert
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+          MODULES = {".markdownlint-cli2.cjs", ".markdownlint-cli2.mjs", ".markdownlint.cjs", ".markdownlint.mjs"}
+          DATA = {".markdownlint-cli2.jsonc", ".markdownlint-cli2.yaml", ".markdownlint.jsonc",
+                  ".markdownlint.json", ".markdownlint.yaml", ".markdownlint.yml"}
+          LOADS = re.compile(r"customRules|markdownItPlugins|outputFormatters")
+          def escaped(text, *more):
+              # A workflow command's own escaping, so a file's name cannot write one.
+              for plain, coded in (("%", "%25"), ("\r", "%0D"), ("\n", "%0A"), *more):
+                  text = text.replace(plain, coded)
+              return text
+          found = []
+          for top, dirs, files in os.walk("."):
+              dirs[:] = [one for one in dirs if one != ".git"]
+              for name in dirs + files:
+                  path = os.path.join(top, name)[2:]
+                  if name in MODULES:
+                      found.append((path, "is a configuration markdownlint would import and run"))
+                  elif name in DATA and os.path.isfile(path):
+                      with open(path, encoding="utf-8", errors="replace") as read:
+                          if LOADS.search(read.read()):
+                              found.append((path, "names a module markdownlint would import and run"))
+          for path, said in found:
+              where = escaped(path, (":", "%3A"), (",", "%2C"))
+              print(f"::error file={where}::{escaped(path)} {said}. The shared markdown check runs no code from"
+                    " the tree it lints: write the configuration as JSONC or YAML, with the built-in rules.")
+          sys.exit(1 if found else 0)
+          PY
       - name: markdownlint
         uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0
         with:

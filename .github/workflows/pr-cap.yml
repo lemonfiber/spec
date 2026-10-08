@@ -59,10 +59,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
+          # The account this workflow's token writes as. A comment is ours by
+          # its author: anyone can write the marker into a comment of their own.
+          SELF: github-actions[bot]
         run: |
           set -euo pipefail
           id=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
-                 --jq 'map(select(.body | startswith("<!-- pr-cap -->"))) | .[0].id // empty')
+                 --jq '.[] | select(.user.login == env.SELF and (.body | startswith("<!-- pr-cap -->"))) | .id' \
+                 | sed -n 1p)
           if [ -s comment.md ]; then
             if [ -n "$id" ]; then
               jq -Rs '{body: .}' comment.md | gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" --input - >/dev/null

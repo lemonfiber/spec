@@ -56,6 +56,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
+          # The account this workflow's token writes as. A comment is ours by
+          # its author: anyone can write the marker into a comment of their own.
+          SELF: github-actions[bot]
         run: |
           set -euo pipefail
           python3 scripts/pr_goals.py --pr-text pr.txt > result.json
@@ -127,10 +130,10 @@ jobs:
               raise SystemExit(0)
 
           find = subprocess.run(
-              ["gh", "api", f"repos/{repo}/issues/{pr}/comments", "--jq",
-               f'[.[] | select(.body | startswith("{MARK}")) | .id] | first // empty'],
+              ["gh", "api", "--paginate", f"repos/{repo}/issues/{pr}/comments", "--jq",
+               f'.[] | select(.user.login == env.SELF and (.body | startswith("{MARK}"))) | .id'],
               capture_output=True, text=True)
-          existing = find.stdout.strip()
+          existing = next(iter(find.stdout.split()), "")
           if existing:
               gh("api", "--method", "PATCH", f"repos/{repo}/issues/comments/{existing}",
                  "-f", f"body={body}")
