@@ -158,7 +158,8 @@ class TheShape(Board):
         self.assertEqual(list(data), ["format", "generated_at", "ref", "sources", "unread",
                                       "areas", "features", "requirements", "versions",
                                       "trackers", "pulls", "claims", "contested", "repos",
-                                      "releases", "proposals"])
+                                      "releases", "proposals", "tools"])
+        self.assertEqual(data["tools"], [])
         self.assertEqual(data["claims"], {"cap": claims.CAP,
                                           "stale_days": claims.STALE_AFTER.days})
         self.assertEqual(data["unread"], [])
@@ -395,6 +396,39 @@ class WhatCouldNotBeRead(Board):
         self.assertEqual(code, 2)
         self.assertIn("::error::", said)
         self.assertFalse(pathlib.Path("board.json").exists())
+
+
+class TheTools(Board):
+    def test_every_command_the_tool_lists_and_the_commit_read(self):
+        self.repo("tool-lfdev", "Spec: REPO-R76")
+        head = self.commit("tool-lfdev", "commands.json", json.dumps(
+            {"generated_by": "python -m lfdev.commands",
+             "commands": [{"name": "next", "purpose": "What to pick up"},
+                          {"name": "claim", "purpose": "Say you are on it"}]}))
+        data, said = self.snapshot("--tools", "tool-lfdev")
+        self.assertEqual(said, "")
+        self.assertEqual(data["tools"], [{"name": "next", "purpose": "What to pick up"},
+                                         {"name": "claim", "purpose": "Say you are on it"}])
+        self.assertEqual(data["sources"]["tool-lfdev"], head.strip())
+
+    def test_a_tool_checkout_without_the_list_is_unread_and_the_rest_written(self):
+        self.repo("tool-lfdev", "Spec: REPO-R76")
+        data, _ = self.snapshot("--tools", "tool-lfdev")
+        self.assertEqual(data["tools"], [])
+        self.assertNotIn("tool-lfdev", data["sources"])
+        self.assertIn({"repo": "tool-lfdev",
+                       "reason": f"commands.json could not be read at {pathlib.Path('tool-lfdev').resolve()}"},
+                      data["unread"])
+
+    def test_a_list_that_is_not_one_is_unread(self):
+        self.repo("tool-lfdev", "Spec: REPO-R76")
+        for text in ("not json", '{"commands": [{"name": "x"}]}', '{"commands": 3}'):
+            with self.subTest(text):
+                self.commit("tool-lfdev", "commands.json", text)
+                data, _ = self.snapshot("--tools", "tool-lfdev")
+                self.assertEqual(data["tools"], [])
+                (reason,) = [u["reason"] for u in data["unread"] if u["repo"] == "tool-lfdev"]
+                self.assertIn("commands.json is not a list of commands", reason)
 
 
 class TheHash(Board):

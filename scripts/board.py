@@ -14,10 +14,13 @@ Run from the root of the spec checkout. `--checkout`, `--ref` and `--prs` are
 forge's REST API lists them. The core's changelog is read from the `lemonfiber`
 checkout at `--ref`.
 
+`--tools` is a checkout of `tool-lfdev`, whose `commands.json` the snapshot lists
+as `tools[]`; one that cannot be read is listed under `unread`.
+
 Usage:
   board.py --checkout <name>=<path> [...] [--ref origin/main] [--prs prs.json]
-           [--issues issues.json] --json board.json [--hash board.sha256]
-           [--previous published.sha256 --changed changed.txt]
+           [--issues issues.json] [--tools <path>] --json board.json
+           [--hash board.sha256] [--previous published.sha256 --changed changed.txt]
 
 `--hash` writes the SHA-256 of the snapshot with `generated_at` removed, so a
 run can tell whether the content changed since the last one. `--previous` names
@@ -57,6 +60,9 @@ FORMAT = 1
 CHANGELOG = "reference/changelog"
 #: The repository whose changelog the releases are read from.
 CORE = "lemonfiber"
+#: The developer command line, and the file at its root listing every command.
+TOOL = "tool-lfdev"
+COMMANDS = "commands.json"
 #: Every repository in the organisation, the map's and the ungoverned ones.
 REPOS = "30-repos/repos.toml"
 #: The group a repository outside the map is listed under.
@@ -290,6 +296,24 @@ def releases(reading: goals.Reading, ref: str) -> list[dict]:
     return sorted(out, key=lambda r: ordered(r["version"]))
 
 
+def tools(checkout: pathlib.Path | None) -> tuple[list[dict], str | None, str | None]:
+    """Every command of the developer command line, as its `commands.json` lists
+    them at the checkout's HEAD; the commit read; and why nothing could be read,
+    where nothing could. No checkout asked for is no tools and nothing unread."""
+    if checkout is None:
+        return [], None, None
+    head = goals.git(checkout, "rev-parse", "HEAD")
+    shown = goals.git(checkout, "show", f"HEAD:{COMMANDS}")
+    if head.returncode != 0 or shown.returncode != 0:
+        return [], None, f"{COMMANDS} could not be read at {checkout}"
+    try:
+        listed = json.loads(shown.stdout)["commands"]
+        rows = [{"name": str(c["name"]), "purpose": str(c["purpose"])} for c in listed]
+    except (json.JSONDecodeError, KeyError, TypeError) as broken:
+        return [], None, f"{COMMANDS} is not a list of commands: {broken}"
+    return rows, head.stdout.strip(), None
+
+
 def proposals(features: dict[str, dict], requirements_: list[dict],
               issues: list[dict]) -> list[dict]:
     """The pre-approval feed: Draft features, Draft requirements, open `rfc` issues."""
@@ -304,8 +328,11 @@ def proposals(features: dict[str, dict], requirements_: list[dict],
 
 
 def snapshot(reading: goals.Reading, ref: str, issues: list[dict],
-             now: datetime.datetime) -> dict:
+             now: datetime.datetime, tool: pathlib.Path | None = None) -> dict:
     """The whole snapshot, in the documented shape."""
+    commands, tool_commit, tool_unread = tools(tool)
+    sources = {**reading.sources, **({TOOL: tool_commit} if tool_commit else {})}
+    unread = {**reading.unread, **({TOOL: tool_unread} if tool_unread else {})}
     feats = load_features()
     locked_by: dict[str, list[str]] = {}
     for manifest, _ in reading.report:
@@ -319,9 +346,9 @@ def snapshot(reading: goals.Reading, ref: str, issues: list[dict],
         "format": FORMAT,
         "generated_at": now.astimezone(datetime.UTC).strftime(STAMP),
         "ref": ref,
-        "sources": reading.sources,
+        "sources": sources,
         "unread": [{"repo": repo, "reason": reason}
-                   for repo, reason in sorted(reading.unread.items())],
+                   for repo, reason in sorted(unread.items())],
         "areas": areas(feats),
         "features": rows,
         "requirements": reqs,
@@ -333,6 +360,7 @@ def snapshot(reading: goals.Reading, ref: str, issues: list[dict],
         "repos": repos(listed, set(reading.prs), trackers_, reading.unread),
         "releases": releases(reading, ref),
         "proposals": proposals(feats, reqs, issues),
+        "tools": commands,
     }
 
 
@@ -359,12 +387,14 @@ def main() -> int:
     parser.add_argument("--hash")
     parser.add_argument("--previous")
     parser.add_argument("--changed")
+    parser.add_argument("--tools", metavar="path", help=f"a checkout of {TOOL}")
     args = parser.parse_args()
     try:
         reading = goals.read(".", args.checkout, args.ref, args.prs, [])
         issues = (json.loads(within_cwd(args.issues).read_text(encoding="utf-8"))
                   if args.issues else [])
-        data = snapshot(reading, args.ref, issues, datetime.datetime.now(datetime.UTC))
+        tool = within_cwd(args.tools) if args.tools else None
+        data = snapshot(reading, args.ref, issues, datetime.datetime.now(datetime.UTC), tool)
     except (goals.Unread, OSError, json.JSONDecodeError) as broken:
         print(f"::error::{broken}")
         return 2
