@@ -1,0 +1,51 @@
+# Ask tool-lfdev to take spec's scripts when they change (REPO-R74).
+#
+# `lfdev status` and `lfdev blocked` run a copy of these scripts, vendored in
+# tool-lfdev at a commit and held to spec's main by its `spec-drift` check.
+# Its `spec-bump` takes the copy on a schedule; this asks for it as soon as a
+# push here changes one of them, so the copy follows the change rather than the
+# calendar. The list is the one tool-lfdev's `lfdev/vendored_spec.py` copies.
+name: scripts-moved
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/status_check.py
+      - scripts/what_is_blocking.py
+      - scripts/catalogue.py
+      - scripts/integrity.py
+      - scripts/metafm.py
+      - scripts/paths.py
+      - scripts/patterns.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  tell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Mint a token that can reach tool-lfdev
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: tool-lfdev
+
+      - name: Ask tool-lfdev to take the scripts
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          gh api --method POST "repos/${OWNER}/tool-lfdev/actions/workflows/spec-bump.yml/dispatches" -f ref=main
+          echo "asked tool-lfdev to take spec's scripts."
