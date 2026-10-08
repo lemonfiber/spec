@@ -1,0 +1,71 @@
+# Reopen a pull request `spec-check` closed, once the identifier it cited is
+# defined (GOV-R56). The pull request was waiting on the definition, not
+# refused; when a push to main defines it, the one click reopening it costs is
+# made for its author, and `spec-check` runs again on the reopen.
+#
+# `scripts/reopen_resolved.py` decides. It reopens only a closed, unmerged pull
+# request whose newest `spec-check` closing comment names identifiers that all
+# resolve now, and that nobody closed again since.
+name: reopen-on-spec-merge
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
+
+permissions:
+  contents: read
+
+# Each push defines its own identifiers, so no run replaces another: they queue.
+concurrency:
+  group: reopen-on-spec-merge
+  cancel-in-progress: false
+
+jobs:
+  reopen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: What this push defined
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            echo "::notice::the push names no earlier commit this checkout holds, so nothing is compared"
+            : > push.diff
+            exit 0
+          fi
+          git diff --no-color "$BEFORE" "$AFTER" -- '*.md' > push.diff
+
+      # The pull requests are in every repository, and reopening one so that its
+      # checks run takes a token other than this run's own.
+      - name: Mint the release App token
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }} # zizmor: ignore[github-app] -- the pull requests it reopens are in any repository of the organisation
+          permission-pull-requests: write
+          permission-issues: write
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Reopen what now resolves
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          AFTER: ${{ github.sha }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          python3 scripts/reopen_resolved.py --spec-dir . --diff-file push.diff \
+            --sha "$AFTER" --owner "$OWNER"
