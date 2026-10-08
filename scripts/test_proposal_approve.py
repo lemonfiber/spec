@@ -161,12 +161,13 @@ class Amending(Tree):
                 approve.amendment(self.root, amends, ["x"], FAMILIES)
 
     def test_a_page_with_two_prefixes_or_no_table_is_refused(self):
+        proposal = PROPOSAL.format(amends="amends: 50-governance/rules.md\n")
         (self.root / "50-governance" / "rules.md").write_text(PAGE + "| **Q-R1** | Also. |\n", encoding="utf-8")
         with self.assertRaisesRegex(approve.Refused, "defines 2 identifier prefixes"):
-            self.plan(PROPOSAL.format(amends="amends: 50-governance/rules.md\n"))
+            self.plan(proposal)
         (self.root / "50-governance" / "rules.md").write_text("# Rules\n\n| **GOV-R1** | x |\n", encoding="utf-8")
         with self.assertRaisesRegex(approve.Refused, "no requirements table"):
-            self.plan(PROPOSAL.format(amends="amends: 50-governance/rules.md\n"))
+            self.plan(proposal)
 
 
 class NewFeature(Tree):
@@ -203,8 +204,9 @@ class Refusals(Tree):
             self.plan(GAP, "silence.md")
 
     def test_a_proposal_out_of_shape(self):
+        proposal = PROPOSAL.format(amends="amends: Z9\n")
         with self.assertRaisesRegex(approve.Refused, "not in the shape"):
-            self.plan(PROPOSAL.format(amends="amends: Z9\n"))
+            self.plan(proposal)
 
 
 class Api:
