@@ -39,7 +39,7 @@ Every check in `gates` shares one runner, so a step that ran code out of a pull
 request's tree could change what each later step runs, the step that fails
 `gates` included. So no step there does: every action a check bound for `gates`
 uses is one named in `INERT`, which reads the tree as data, or one named in
-`GUARDED` that comes after the step refusing a tree that would hand it code;
+`GUARDED` that comes after the step giving it a tree with nothing to import;
 scripts are spec's own; and no script carries an expression, so what a pull
 request wrote reaches a shell only through `env`.
 
@@ -138,15 +138,14 @@ INERT = {
     "raven-actions/actionlint": "parses the workflow files; shellcheck reads their scripts as text",
     "crate-ci/typos": "reads text, and its TOML configuration",
     "lycheeverse/lychee-action": "reads links, and its TOML configuration",
-    "google/osv-scanner-action/osv-scanner-action": "reads manifests and lockfiles; the step turns off Go call analysis",
 }
 
 #: An action that imports code from the tree it reads when the tree asks it to,
-#: and the id of the step that must come before it in the same check, refusing
-#: any tree that asks. The guard failing skips the action, as any failed step
-#: skips the ones after it in its check.
+#: and the id of the step that must come before it in the same check: the step
+#: that puts in its place a tree holding nothing it would import. That step
+#: failing skips the action, as any failed step skips the ones after it.
 GUARDED = {
-    "DavidAnson/markdownlint-cli2-action": "inert",
+    "DavidAnson/markdownlint-cli2-action": "markdown-only",
 }
 
 #: The permissions each job holds. `gates` reads, the pull request included, which

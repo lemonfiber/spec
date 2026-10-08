@@ -137,7 +137,7 @@ Decisions about a repository outside this organisation, such as
 
 | Decision | Where it lives |
 |---|---|
-| No step of `gates` runs code out of a pull request's tree: each action it calls is one known to read the tree as data, markdownlint only after a step refuses a tree that would hand it a module, and the OSV scan without Go call analysis; and a workflow edits or removes a sticky comment only where its own token wrote it | [Q-R82](../40-quality/ci-cd.md), [GOV-R33](cross-repo-ci.md) |
+| No step of `gates` runs code out of a pull request's tree: each action it calls is one known to read the tree as data; markdownlint is handed the tracked Markdown, read out of git, and the canonical configuration, never a configuration of the pull request's; OSV-Scanner runs in a container given the tree read-only and nothing of the job's, with every call analysis off; and a workflow edits or removes a sticky comment only where its own token wrote it | [Q-R82](../40-quality/ci-cd.md), [GOV-R33](cross-repo-ci.md) |
 
 ## Requirements
 
