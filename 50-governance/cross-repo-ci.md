@@ -203,7 +203,10 @@ steps, and say explicitly that the work isn't rejected — it's sequenced.
 pull request closed for citing an identifier the specification did not yet define is
 waiting on that definition, not refused. When a push to the specification's `main`
 defines it, the pull request is reopened with a comment saying the citation now
-resolves, and `spec-check` runs again on the reopen.
+resolves, and `spec-check` runs again on the reopen. `reopen-on-spec-merge` does
+this on every push to `main` that changes a page: it reopens a closed, unmerged pull
+request only where every identifier its newest closing comment named now resolves,
+and only where nobody has closed it since.
 
 | ID | Requirement |
 |----|-------------|
