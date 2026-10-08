@@ -601,6 +601,16 @@ That last rule matters more than it looks: a manifest describing a service that
 isn't in the compose file — or vice versa — is the most likely error when adding
 one, and it fails in confusing ways at runtime.
 
+## Published schemas
+
+Each release of lemonfiber carries a JSON schema of the root manifest,
+`contract/stack-manifest.schema.json`, and one of a service's file,
+`contract/stack-service.schema.json`, generated from the types lemonfiber reads
+them into, so an editor or a fork's CI can check a manifest without the binary. A
+`[[service.claim]]` is the plugin manifest's `[[claim]]`, so the service schema
+takes its definition from the plugin manifest's rather than restating it
+(`ARCH-R172`).
+
 ## Worked example
 
 The real stack, abridged to one service per profile. The root comes first and each
@@ -811,6 +821,7 @@ See [versioning](versioning.md).
 | ID | Requirement |
 |----|-------------|
 | **ARCH-R171** | A stack manifest MUST declare each service in a file of its own, `services/<id>.toml`, named by the root manifest's `include` list, which alone decides membership. lemonfiber MUST refuse, naming it, an entry that is not of that form, names no file, or appears twice; a file in `services/` no entry names; a service file holding anything but one `[[service]]` whose `id` matches its name; and a `[[service]]` in the root manifest. |
+| **ARCH-R172** | lemonfiber MUST publish, with each release, JSON schemas of the root manifest (`contract/stack-manifest.schema.json`) and of a service's file (`contract/stack-service.schema.json`), generated from the types it reads them into; the service schema's definition of a claim MUST be the plugin manifest's own. |
 
 ## Related
 
