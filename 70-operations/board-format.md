@@ -72,6 +72,7 @@ it does not know, and ignores fields it does not know.
 | `repos[]` | Each repository in `30-repos/repos.toml`, the map's and the ungoverned ones (group `ungoverned`): `name`, `group`, `lang`, `note`, `pages` (its specification pages), `open_pulls`, `counted_pulls` (those opened by people and agents, which the cap counts), `over_cap` (more than `claims.cap`), the three `null` where its pull requests were not read, `tracker` (`present`, `absent` or `unread`, or `null` where no version is satisfied in it) |
 | `releases[]` | Each release the core's changelog records: `version`, `tag`, `released_on`, `delivers`, and `groups` (each with `title` and `entries`, each entry with `summary`, `requirements` and `reference`) |
 | `proposals[]` | Each Draft feature and Draft requirement, and each open `rfc` issue: `kind`, `id` or `number`, `title`, `url` |
+| `tools[]` | Each command of the developer command line, `lfdev`, as `commands.json` at the root of `tool-lfdev` lists them: `name`, `purpose`. The commit read is `sources["tool-lfdev"]`; a list that cannot be read leaves `tools` empty and names `tool-lfdev` under `unread` |
 
 A goal's `verdict` is one of `state.json`'s (`met`, `unmarked`, `uncited`, `claimed`,
 `open`) or `unknown`, where it is searched in a repository listed under `unread` and

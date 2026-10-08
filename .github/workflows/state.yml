@@ -86,6 +86,11 @@ jobs:
               echo "::warning::could not clone ${r}; the report names it and its goals read unknown"
             fi
           done < <(python3 scripts/status_check.py repos --spec .)
+          # The developer command line, whose commands.json the snapshot lists as
+          # tools[]. No version is satisfied in it, so it is cloned on its own; one
+          # that cannot be cloned is named under unread by the snapshot.
+          git clone --quiet --filter=blob:none https://github.com/lemonfiber/tool-lfdev.git tool-lfdev \
+            || echo "::warning::could not clone tool-lfdev; the snapshot names it and lists no tools"
 
       - name: Every open pull request in them, and the open rfc issues
         env:
@@ -110,7 +115,7 @@ jobs:
           gh release download board --pattern board.sha256 --output published.sha256 --clobber \
             || rm -f published.sha256
           python3 scripts/board.py "${args[@]}" --ref HEAD --prs prs.json --issues issues.json \
-            --json board.json --hash board.sha256 --previous published.sha256 --changed changed.txt
+            --tools tool-lfdev --json board.json --hash board.sha256 --previous published.sha256 --changed changed.txt
           cat STATE.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish it as the board release
