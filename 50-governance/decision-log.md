@@ -118,6 +118,9 @@ Decisions about a repository outside this organisation, such as
 | What's new (`news`, `news-items`) stays with the companion, and the web console does not mark new items | [N27](../10-functional/features/n-companion/n27-what-the-phone-keeps.md) |
 | The documentation site cuts a release's frozen build on its own nightly run after the release's day ends; release-finalize sends it no dispatch, since on the release day there is nothing it may cut | [REPO-R88, REPO-R89](../30-repos/website-docs.md) |
 | The companion keeps what it implements only in its `status/<feature>.toml` tracker: its `.docs/requirements` pages are retired once the tracker holds every requirement they named, and the prose still worth keeping moves into the docblocks of the code that keeps each requirement | [OPS-R74](../70-operations/staging.md); this row |
+| The companion installs a plugin as drafted for N5, N20 and N25: it rehearses the install in full, approves each value that would leave the machine on its own and agrees to the install separately, and takes the source in one text field that explains the three shapes it may take | [N5](../10-functional/features/n-companion/n5-connecting-the-stack.md), [N20](../10-functional/features/n-companion/n20-what-a-plugin-may-send.md), [N25](../10-functional/features/n-companion/n25-a-plugin-after-it-lands.md) |
+| The companion takes no recipe inputs: a plugin whose recipe asks for one is rehearsed in full, and its install says the inputs are given at the web console or the terminal | [N17-R6](../10-functional/features/n-companion/n17-where-a-message-goes.md); this row |
+| The companion's plugin work lands in two pull requests: the list, installing, the rehearsal, agreeing and following first, then updating and removing | This row |
 
 ## Requirements
 
