@@ -74,6 +74,40 @@ answer, rather than report a failure, so its code is listed here beside the web 
 ends long-running work rather than a request, so it carries the status the work is answered
 with when its name is redeemed, which a client reads beside the code, as it reads any other.
 
+## What else each release publishes
+
+The kinds, reads, actions and refusals are what a client generates code from. Five more
+things are published beside them, each generated from what the core already holds, so that
+no reader keeps a hand-written copy of something the server knows.
+
+**The event stream.** `GET /api/events` sends events whose payloads are the server's types
+like any kind's. The artefact describes each event kind the stream emits with the schema of
+its payload, and the interval the heartbeat keeps (`ARCH-R61`), so a client generates the
+events it handles as it generates the kinds it reads (`ARCH-R173`).
+
+**Examples.** A schema says what may be sent; an example says what is. The artefact carries
+one example for each kind, each read and each action, taken from the core's golden test
+fixtures rather than written for the page, and CI validates every example against its schema,
+so an example that has stopped being true fails a build rather than a reader (`ARCH-R174`).
+
+**The code registry.** Every code the core raises has a family, a name, a severity, the exit
+code the command line ends with, the HTTP status the web API answers with, a summary, what it
+means, what to do about it, and the version it appeared in. The core publishes that registry
+as `contract/codes.json`, generated from the registry it raises from, and the reference page
+`reference/error-codes.md` is generated from that file. The refusals list above is the part
+of it a client branches on; the registry is the whole of it, for the reader who is shown a
+code and asks what it means (`ARCH-R175`).
+
+**What changed.** Each release attaches `contract-diff.json`: every kind, definition, read,
+action, refusal and event that release's artefact added, removed or changed against the
+previous release's. An SDK reading the diff knows what taking the release means before it
+regenerates, and the documentation shows it per release (`ARCH-R176`).
+
+**OpenAPI.** Tools that read OpenAPI and nothing else are given
+`contract/web-api.openapi.json`, generated from the artefact, and CI refuses it when it
+differs from what the artefact generates. The artefact stays the source; the OpenAPI
+document is a rendering of it (`ARCH-R177`).
+
 ## How the artefact reaches an SDK
 
 An SDK does not ask the server for the contract while it builds. It carries a copy. A build

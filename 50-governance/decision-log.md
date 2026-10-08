@@ -97,6 +97,7 @@ Decisions about a repository outside this organisation, such as
 | `lfdev` is written against Python's standard library alone | [REPO-R74](../30-repos/tool-lfdev.md) |
 | The contributor site is the repository `website-contribute.lemonfiber.app`, served at `contribute.lemonfiber.app` | [website-contribute.lemonfiber.app](../30-repos/website-contribute.md) |
 | `lemonfiber.app` renders the specification at the commit of `spec` the board snapshot read, and rebuilds it on the same event as the board | [REPO-R79](../30-repos/website-lemonfiber.md) |
+| Each release's contract artefact describes the event stream, carries an example of every kind, read and action from the core's golden fixtures validated in CI, and is accompanied by the code registry as `contract/codes.json`, a `contract-diff.json` against the previous release and a generated OpenAPI document (D24, D25, D26) | [ARCH-R173 to ARCH-R177](../20-architecture/contracts/web-api.md) |
 
 ## 2026-10-08
 
@@ -130,6 +131,7 @@ Decisions about a repository outside this organisation, such as
 | The frontpage's propose and gap forms are proved end to end from an account outside the organisation, by a checklist in the website's README that the maintainer runs | This row, [GOV-R60](working-in-the-repositories.md) |
 | The release train keeps one bump pull request per repository, on one branch rebuilt from `main` for each version and retitled to it; the pin fan-out's per-version pull requests are closed in favour of it | [OPS-R85](../70-operations/staging.md) |
 | The shared checks that run in seconds are one job per pull request, `gates`, each a step that runs whatever the others concluded, its summary listing every result and branch protection requiring it as one context; what writes to a pull request is a second job that judges nothing; the tests, coverage, CodeQL's analysis and Sonar stay jobs of their own | [Q-R82](../40-quality/ci-cd.md) |
+| The plugin reading lists each recipe input a plugin asks the operator for, with its name, its question and whether it is a secret, so a surface collects it before the yes; a secret input is never shown back | [F8-R19](../10-functional/features/f-extensibility/f8-recipes.md) |
 
 ## Requirements
 

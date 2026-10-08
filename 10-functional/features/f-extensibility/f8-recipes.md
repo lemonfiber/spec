@@ -80,6 +80,16 @@ demand recipe that carries a value out of the machine is agreed to again, each t
 it is run. One that fails changes nothing about what is installed, and says what
 landed. A recipe that says neither runs on install, which is what a recipe is for.
 
+### An input is asked for before the yes
+
+A recipe may ask the operator for a value it cannot find for itself: an account name, a
+token a service printed once. A surface asking for it only once the recipe is running asks at
+the moment the operator has already agreed, which is too late to decline on the strength of
+the question. So the plugin reading lists, for each recipe, every input it asks the operator
+for, with its name, the sentence it asks and whether the value may be a secret, and a surface
+collects them before the yes (`F8-R19`). A value given for a secret input is held and used and
+never shown back, by any reading or any answer.
+
 ### A credential goes back where it came from
 
 A recipe can bring in a credential lemonfiber already holds, because a first-run
@@ -255,6 +265,7 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | **F8-R16** | A value a recipe takes from the credential store for a service MUST be held to that service, and so MUST every value a recipe captures from a call that carried or read such a value, which no release frees; every other value a recipe captures from the answer of a service in this stack MUST be held to that service by its origin, whatever it holds; a pair, a call or a guard carrying or reading a held value for any other destination MUST fail validation, except a capture of that other kind carried there by a pair carrying a release, and a release on a pair that frees nothing — a credential-store value, a value captured from a call that carried or read one, an operator's input, an external host's answer, or a capture going back to its own service — MUST fail validation. |
 | **F8-R17** | While a recipe runs, each value it holds MUST carry the destinations it may be sent to: a credential-store value and every value captured from a call that carried or read one its own service alone, any other capture from a service in this stack that service and each destination of a released pair the operator approved in this act, and any other value the destinations its pairs name; a call carrying a value to any other destination, or to a host outside the stack without the approval of its pair, MUST be refused before it is sent, under a code of its own, ending the recipe. |
 | **F8-R18** | A release MUST be written on its `[[recipe.pair]]` as `release`, the sentence saying why the value is carried, and each released pair MUST be shown at install consent, and at every other act that carries it, as the value, the service it was read from, the destination and that sentence, and approved by the operator as itself; it MUST NOT be approved by approving the installation or another pair, and an act with a released pair not approved MUST NOT proceed. |
+| **F8-R19** | The plugin reading MUST list, for each recipe of a plugin, every input it asks the operator for, with its name, the question it asks and whether it is a secret, so that a surface can collect each before the operator agrees; a value given for a secret input MUST NOT be shown back by any reading or answer. |
 
 ## Related
 
