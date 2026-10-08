@@ -108,6 +108,14 @@ Decisions about a repository outside this organisation, such as
 | Stable documentation renders the commits each release recorded; a repository the release recorded nothing for is rendered at its default branch's last commit on or before the release date | [REPO-R88](../30-repos/website-docs.md) |
 | A released pair carries `from`, the service its value was read from, on the rehearsal and on the record, beside its `release` | [ARCH-R147, ARCH-R150](../20-architecture/contracts/web-api.md) |
 | An approved proposal lands as Draft: a new feature at `status: draft`, and rows added to an existing feature each opening with `*Draft:*`; a later reviewed pull request removing the marking hardens it | [GOV-R42, GOV-R44](rfc-process.md), [GOV-R48](canonical-spec.md) |
+| The web console lists, mints and revokes integration keys: the operator's password is typed for each mint and never kept, and the secret is shown once, in a panel that drops it when closed or on reload | [C10-R2, C10-R3](../10-functional/features/c-trust/c10-integration-keys.md) |
+| The web console installs, updates and removes plugins, bound to the offer: it draws the offer's whole manifest (what it writes, what it reaches, its verification, every released pair with its `release` and `from`) before the yes, and the yes names that offer | [F6-R15, F6-R17](../10-functional/features/f-extensibility/f6-plugin-lifecycle.md) |
+| The web console takes the operator's side of a mobile hand-off now; the member's side gets a design of its own later | [G9](../10-functional/features/g-ux/g9-mobile-handoff.md); the member's side is not yet a requirement |
+| The web console explains a domain term inline wherever it appears (option b): its own words and every glossary word or form found in what lemonfiber writes, with a switch kept per browser to turn explanations off | [G2-R1, G2-R7](../10-functional/features/g-ux/g2-plain-language.md) |
+| The web console draws the scannable hand-off code with one small, zero-dependency, MIT-licensed QR encoder taken as a runtime dependency, pinned exactly and rendered as inline SVG; the companion uses the same choice for its pairing code | This row, [G9-R2](../10-functional/features/g-ux/g9-mobile-handoff.md) |
+| `sdk-ts` is kept by the web console's agent, which adds its client calls for the setup routes once the contract describes their bodies | This row; the bodies are [ARCH-R133](../20-architecture/contracts/web-api.md) |
+| The core publishes the setup routes' bodies in the contract (option a): `wizard::Answer` and `recovery::Choice` derive their schema, and the six setup routes are described with them | [ARCH-R133](../20-architecture/contracts/web-api.md) |
+| What's new (`news`, `news-items`) stays with the companion, and the web console does not mark new items | [N27](../10-functional/features/n-companion/n27-what-the-phone-keeps.md) |
 
 ## Requirements
 
