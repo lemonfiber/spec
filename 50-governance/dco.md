@@ -51,6 +51,12 @@ A `dco` check runs on every PR ([project-workflow](../70-operations/project-work
 and fails if any commit lacks a valid `Signed-off-by` matching its author. Like
 `spec-check`, it closes the gap between a documented rule and an enforced one.
 
+A squash merge writes the pull request's body, not the branch's commits, to
+`main`, so the body carries each author's sign-off too.
+[`squash-message`](cross-repo-ci.md#the-squash-message) holds it to that
+(`GOV-R62`). GitHub appends the merger's own sign-off to the squash, as the
+organisation requires a sign-off on every commit made through the web.
+
 The sign-off is **separate from the cryptographic signature**: signing
 ([required on `main`](../70-operations/setup-registry.md)) proves *who* authored
 the commit; the DCO asserts they had the *right* to contribute it. A commit needs
@@ -67,7 +73,7 @@ other.
 | ID | Requirement |
 |----|-------------|
 | **GOV-R28** | Contributions MUST be licensed inbound under the same licence as the repo they land in; there MUST be no CLA or copyright assignment. |
-| **GOV-R29** | Every human commit MUST carry a valid DCO `Signed-off-by` line matching its author. Merge commits and bot-authored commits are exempt — GitHub authors them, so there is no human to attest. |
+| **GOV-R29** | Every human commit MUST carry a valid DCO `Signed-off-by` line matching its author. Merge commits and bot-authored commits are exempt — GitHub authors them, so there is no human to attest. A pull request's body MUST carry the sign-off of each human author of its commits, because a squash merge writes the body as the commit message on the default branch. |
 | **GOV-R30** | A `dco` check MUST run on every PR and MUST fail when any non-exempt commit lacks a valid sign-off. |
 | **GOV-R31** | The inbound licensing terms MUST be stated explicitly, given the licence is not OSI-approved. |
 

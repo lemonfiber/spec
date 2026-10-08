@@ -85,6 +85,7 @@ what each version serves, and the manifest names which.
 | **Dependabot** | Groups dependency updates; `spec-check` supplies its `GOV-R12` citation | `.github/dependabot.yml`, per repo |
 | **Stale** | Marks inactive issues/PRs stale, then closes, with a grace period | one scheduled sweep in `spec`, over every repository |
 | **DCO check** | Verifies the sign-off on every commit | reusable, in `spec` |
+| **Squash message** | Holds the PR title and body to what the squash commit on `main` needs: a conventional subject, the `Spec:` line and each author's sign-off | reusable, in `spec` |
 | **Commit-lint** | Enforces conventional-commit subjects for a clean changelog | reusable, in `spec` |
 | **Auto-labeler** | Labels PRs by changed path | reusable, in `spec` |
 | **Label sync** | Upserts the canonical label set into every repo | one scheduled sweep in `spec`, over every repository |

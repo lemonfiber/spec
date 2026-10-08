@@ -22,7 +22,8 @@ feat: health-gate service startup
 Spec: B2-R1, B2-R2
 ```
 
-Put the same IDs in your PR body. Done.
+Put the same IDs in your PR body, on a `Spec:` line, with your sign-off under it.
+The squash merge writes the body to `main` as the commit message. Done.
 
 To find something to pick up, use the board on lemonfiber.app or `lfdev next`;
 a requirement an open pull request already cites is claimed, so talk to its
@@ -100,6 +101,17 @@ and one hook says all four before any of that.
 The subject types are `feat fix docs refactor test chore ci perf build style
 revert`, optionally scoped (`feat(api):`) and optionally breaking (`feat!:`). A
 merge, a revert and a `fixup!` are written by git and are exempt, here and in CI.
+
+### What the pull request has to carry
+
+The squash merge writes the pull request's title and body to `main` as one
+commit, so they carry what that commit needs.
+
+| Rule | What it looks like | Check |
+|------|--------------------|-------|
+| A conventional title, the citation and each author's sign-off in the body (**GOV-R62**) | title `feat: health-gate service startup`; the body ending in `Spec: B2-R1, B2-R2` and `Signed-off-by: Your Name <you@example.com>` | `squash-message` |
+
+Editing the title or body re-runs the check; there is nothing to push.
 
 ### Turn the hook on, and none of the four costs a round trip
 

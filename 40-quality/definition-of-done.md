@@ -26,6 +26,7 @@ A change is done when **all** of these hold:
 - [ ] Cites a spec identifier that exists on the spec's `main` (`GOV-R2`, `GOV-R3`)
 - [ ] If it changed behaviour, the spec PR merged **first** (`GOV-R4`)
 - [ ] Citation is in a commit trailer **and** the PR body (`GOV-R5`)
+- [ ] The PR title is a conventional subject, and the body carries each author's sign-off (`GOV-R62`)
 - [ ] No requirement ID appears in any code comment (`GOV-R6`)
 
 ### Correctness

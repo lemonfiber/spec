@@ -180,9 +180,40 @@ as running.
 Spec: B2-R1, B2-R2
 ```
 
-And in the PR body — the same IDs, so a reviewer sees them without reading
-commits. The bot requires both because they serve different readers: the trailer
-is permanent provenance in `git log`, the body is context for review.
+And in the PR body, the same IDs on a `Spec:` line of their own. A squash
+merge in every repository takes the pull request's title and body as the commit
+message, so the body is what `main` keeps: its `Spec:` line is the permanent
+provenance in `git log`, and the one the release gate reads to decide that a goal
+landed. The trailer on the branch's commits is what the hooks check before a pull
+request exists. `spec-check` passes on a citation in either place, and
+`squash-message` holds the body to it (below).
+
+## The squash message
+
+A squash merge writes one commit to `main`: the pull request's title as its
+subject and the pull request's body as its message. GitHub then appends the
+merger's sign-off, because the organisation requires a sign-off on every commit
+made through the web. The branch's commit messages do not reach `main`. A body that leaves out the citation lands a commit the release gate
+cannot count, and a merged commit cannot gain a trailer afterwards.
+
+`squash-message` asks of the title and body what `main` will hold:
+
+| # | Check | Failure |
+|---|-------|---------|
+| 1 | The title is a conventional subject, as `OPS-R21` holds a commit's | Fail, naming the title |
+| 2 | The body carries a `Spec:` line, and every identifier on it resolves on `spec@main` | Fail, with the line to add or the identifier that does not resolve |
+| 3 | The body carries a `Signed-off-by` for each human author of the pull request's commits | Fail, with the line to add for each |
+
+A pull request a bot opened is exempt: nobody stands behind it to sign it off,
+which is why `dco` exempts a bot's commits. The check reads the pull request's
+title, body and commit authors and the specification, never the pull request's
+code. It runs on each edit of the pull request as well as on each push, in a
+workflow of its own, so fixing the body re-runs this one job rather than the
+repository's CI.
+
+| ID | Requirement |
+|----|-------------|
+| **GOV-R62** | A `squash-message` check MUST run on every pull request, on each edit of its title or body as well as each push, and MUST fail unless the title is a conventional subject, the body carries a `Spec:` line whose identifiers resolve on the specification's default branch, and the body carries a `Signed-off-by` line for each human author of its commits; a pull request a bot opened is exempt, and the check MUST NOT execute untrusted pull-request code. |
 
 ## Determining whether behaviour changed
 

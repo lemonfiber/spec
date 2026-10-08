@@ -108,8 +108,11 @@ ask for an up-to-date branch, and there is no merge queue (`GOV-R52`).
    declared somewhere else?
 3. The spec change it depends on has merged. A pull request citing an
    identifier that is not on `spec@main` is closed by `spec-check`.
-4. It opens ready for review. A draft is for work that is unfinished.
-5. Auto-merge is armed only once the pull request shows as blocked on its
+4. Its title is a conventional subject and its body ends in the `Spec:` line
+   and the author's sign-off: the squash merge writes the title and body to
+   `main` as the commit message (`GOV-R62`).
+5. It opens ready for review. A draft is for work that is unfinished.
+6. Auto-merge is armed only once the pull request shows as blocked on its
    checks and its base is a protected default branch. A stacked pull request's
    base is not protected, so auto-merge would merge it at once.
 
