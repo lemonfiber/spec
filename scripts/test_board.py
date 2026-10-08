@@ -28,7 +28,7 @@ import unittest
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import board  # noqa: E402
-from test_goals import Train  # noqa: E402
+from test_goals import LEGACY_HEADER, Train  # noqa: E402
 
 FEATURE = """---
 id: A1
@@ -204,7 +204,25 @@ class TheShape(Board):
         data, _ = self.snapshot()
         core = next(t for t in data["trackers"] if t["repo"] == "core")
         self.assertEqual(core, {"repo": "core", "present": True, "rows": [
-            {"id": "A1-R1", "state": "done", "evidence": ["README"], "landed": "abc1234"}]})
+            {"id": "A1-R1", "state": "done", "evidence": ["README"], "landed": "abc1234",
+             "path": "status.toml"}]})
+
+    def test_a_row_names_the_file_of_a_tracker_split_by_feature(self):
+        self.git("core", "rm", "-q", "status.toml")
+        pathlib.Path("core/status").mkdir()
+        self.commit("core", "status/A1.toml",
+                    '[[requirement]]\nid = "A1-R1"\nstate = "open"\nevidence = []\n')
+        data, _ = self.snapshot()
+        core = next(t for t in data["trackers"] if t["repo"] == "core")
+        self.assertEqual([r["path"] for r in core["rows"]], ["status/A1.toml"])
+
+    def test_a_row_names_the_markdown_tracker_it_was_read_from(self):
+        self.commit("core", "IMPLEMENTATION-STATUS.md",
+                    LEGACY_HEADER + "| x | `A1-R2` | ✅ | landed in `abc1234` |\n")
+        self.commit("core", "status.toml", '[[milestone]]\nname = "M1"\n')
+        data, _ = self.snapshot()
+        core = next(t for t in data["trackers"] if t["repo"] == "core")
+        self.assertEqual([r["path"] for r in core["rows"]], ["IMPLEMENTATION-STATUS.md"])
 
     def test_every_repository_with_its_tracker(self):
         data, _ = self.snapshot()

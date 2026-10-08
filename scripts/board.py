@@ -41,6 +41,7 @@ import tomllib
 
 import gen_board
 import goals
+import status_check
 from catalogue import features as load_features
 from integrity import elsewhere
 from paths import within_cwd
@@ -143,6 +144,17 @@ def versions(reading: goals.Reading) -> list[dict]:
             for m, standing in reading.report]
 
 
+def tracker_file(name: str, checkout: pathlib.Path, ref: str) -> str | None:
+    """The one file a repository's tracker rows are read from, or None for a
+    tracker split by feature, where each row is in its feature's own file."""
+    split = goals.git(checkout, "ls-tree", "--name-only", f"{ref}:{status_check.DIRECTORY}")
+    if split.returncode == 0:
+        return None
+    shown = goals.git(checkout, "show", f"{ref}:{status_check.FILE}").stdout
+    kept = status_check.parse(shown, f"{name}:{status_check.FILE}", name)
+    return status_check.FILE if kept is not None else goals.LEGACY
+
+
 def trackers(reading: goals.Reading, ref: str) -> list[dict]:
     """Each repository a version is satisfied in, and the rows its tracker holds."""
     searched = sorted({name for m, _ in reading.report
@@ -153,9 +165,13 @@ def trackers(reading: goals.Reading, ref: str) -> list[dict]:
             out.append({"repo": name, "present": False, "rows": []})
             continue
         rows = goals.tracker(name, reading.checkouts[name], ref)
+        kept_in = tracker_file(name, reading.checkouts[name], ref)
         out.append({"repo": name, "present": True,
                     "rows": [{"id": r.id, "state": r.state, "evidence": list(r.evidence),
-                              "landed": r.landed} for r in rows]})
+                              "landed": r.landed,
+                              "path": kept_in or f"{status_check.DIRECTORY}/"
+                                                 f"{status_check.family(r.id)}.toml"}
+                             for r in rows]})
     return out
 
 
