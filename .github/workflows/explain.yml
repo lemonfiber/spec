@@ -1,9 +1,16 @@
 # Post the explainers for the two checks that surprise a first-time contributor
 # anywhere in this organisation (GOV-R33) — the citation gate, which closes a
 # pull request rather than only failing it, and the DCO check, which skips merge
-# and bot commits. A detect job decides whether the advice is needed at all; the
-# explainer is posted only then, and removed once the pull request becomes
-# compliant. Advice where it helps, not noise where it doesn't.
+# and bot commits — and the advice `scripts/assist.py` gives: the citation that
+# fits a first-time contributor's change, where to edit a page a site mirrors,
+# and which cited goals the tracker has not caught up with. A detect job decides
+# whether each is needed at all; each explainer is posted only then, and removed
+# once the pull request no longer needs it. Advice where it helps, not noise
+# where it doesn't.
+#
+# The pull request's code is never run. The checkout is read as data — the
+# changed paths, the tracker and `mirrors.json` — and the rules are spec's own
+# script, checked out from spec's main beside it.
 #
 # Both checks run in every repository in the org, so the explanation is called
 # from every repository too:
@@ -34,10 +41,23 @@ jobs:
     outputs:
       citation: ${{ steps.d.outputs.citation }}
       dco: ${{ steps.d.outputs.dco }}
+      suggest: ${{ steps.a.outputs.suggest }}
+      mirrors: ${{ steps.a.outputs.mirrors }}
+      status: ${{ steps.a.outputs.status }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
+      # Another repository reads the script from spec's main, as pr-cap does.
+      # Here the workflow itself comes from the pull request, so the script is
+      # read from the same tree rather than from a main it may not yet be on.
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ github.repository == 'lemonfiber/spec' && github.sha || 'main' }}
+          path: .spec-canonical
           persist-credentials: false
       - id: d
         env:
@@ -67,6 +87,36 @@ jobs:
           else
             echo "dco=not-relevant" >> "$GITHUB_OUTPUT"
           fi
+      - id: a
+        name: The advice assist.py gives
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+          git diff --name-only "${BASE}...${HEAD}" > paths.txt
+          { printf '%s\n' "$PR_BODY"; git log --format=%B "${BASE}..${HEAD}"; } > text.txt
+          assist() { python3 .spec-canonical/scripts/assist.py "$@"; }
+          # Each answer can run to several lines, so each is written between
+          # delimiters no answer can contain.
+          emit() {
+            delimiter="EOF_$(openssl rand -hex 16)"
+            printf '%s<<%s\n%s\n%s\n' "$1" "$delimiter" "$2" "$delimiter" >> "$GITHUB_OUTPUT"
+          }
+          # Assigned before they are emitted, so a rule that could not answer
+          # fails the step rather than reading as one with nothing to say.
+          suggest=$(assist citation --paths paths.txt --text text.txt --association "$ASSOCIATION")
+          mirrors=""
+          if [ -f mirrors.json ]; then
+            mirrors=$(assist mirrors --paths paths.txt --mirrors mirrors.json --association "$ASSOCIATION")
+          fi
+          status=$(assist status --paths paths.txt --text text.txt --spec .spec-canonical --repo-root . --repo "$REPO")
+          emit suggest "$suggest"
+          emit mirrors "$mirrors"
+          emit status "$status"
   citation:
     needs: detect
     permissions:
@@ -84,6 +134,8 @@ jobs:
         body, on its own line, e.g. `Spec: OPS-R1`. Routine maintenance
         (dependencies, formatting, CI) cites `GOV-R12`. Changing behaviour? Open the
         spec PR first, then cite the new identifier. See 50-governance/contributing.md.
+
+        ${{ needs.detect.outputs.suggest }}
   dco:
     needs: detect
     permissions:
@@ -100,3 +152,25 @@ jobs:
         GitHub authors them (branch updates, auto-merges) and there is no human to
         attest. So if the DCO check passes with an unsigned merge commit in the
         range, that is by design, not a gap. See 50-governance/dco.md.
+  mirror:
+    needs: detect
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/explain-check.yml
+    with:
+      check: mirrored-page
+      needed: ${{ needs.detect.outputs.mirrors != '' && 'true' || 'false' }}
+      title: "🪞 This page lives in another repository"
+      body: ${{ needs.detect.outputs.mirrors }}
+  status:
+    needs: detect
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/explain-check.yml
+    with:
+      check: status-reminder
+      needed: ${{ needs.detect.outputs.status != '' && 'true' || 'false' }}
+      title: "📋 The tracker and this pull request's goals"
+      body: ${{ needs.detect.outputs.status }}

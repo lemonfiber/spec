@@ -149,6 +149,20 @@ primitive under it, and a repository with a surprising check of its own calls th
 one directly with its own wording. Neither is copied: an explanation in fifteen
 places is fifteen wordings the day one of them is improved.
 
+`explain.yml` also posts the advice `scripts/assist.py` gives, each piece under
+the same rule of appearing only while it is true:
+
+- **The citation that fits.** A first-time contributor's pull request with no
+  `Spec:` line is told `GOV-R40` where it adds a proposal and, where it changes
+  prose only, `GOV-R12` for a fix to wording, inside the citation explainer.
+- **Where a mirrored page lives.** A first-time contributor editing a page a site
+  renders from another repository, as the site's `mirrors.json` names it, is told
+  the repository and the file to edit instead.
+- **The tracker.** A pull request that cites a version's goals in a repository a
+  version is satisfied in, and leaves its `status.toml` or `status/` as it was,
+  is shown each cited goal's state there, so the row moves in the same pull
+  request (`OPS-R74`).
+
 | ID | Requirement |
 |----|-------------|
 | **GOV-R33** | A non-standard or PR-closing check MUST post a self-updating explainer comment describing what it does and how to satisfy it, via the shared reusable, **only when the contributor has not already satisfied the check** — and MUST remove the explainer once they do; it MUST NOT execute untrusted PR code. |
