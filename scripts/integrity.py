@@ -180,21 +180,14 @@ def amendable(name: str) -> bool:
     return (ROOT / name).is_file() and not elsewhere(ROOT / name)
 
 
-def proposal_faults(path: pathlib.Path, areas: set[str]) -> list[str]:
-    """What is wrong with one proposal file, each fault a sentence."""
-    text = path.read_text(encoding="utf-8")
-    front = metafm.parse(text)
-    if front is None:
-        return ["has no front matter; copy TEMPLATE.md"]
+def field_faults(front: dict, areas: set[str]) -> list[str]:
+    """What is wrong with a proposal's front matter."""
     faults = []
-    if not PROPOSAL_FILE.match(path.name):
-        faults.append("is not named with lower-case letters, digits and hyphens")
     unknown = sorted(set(front) - set(PROPOSAL_FIELDS))
     if unknown:
         faults.append(f"carries fields the shape does not: {', '.join(unknown)}")
-    kind = front.get("kind")
-    if kind not in PROPOSAL_KINDS:
-        faults.append(f"has kind {kind!r}; it is one of {', '.join(PROPOSAL_KINDS)}")
+    if front.get("kind") not in PROPOSAL_KINDS:
+        faults.append(f"has kind {front.get('kind')!r}; it is one of {', '.join(PROPOSAL_KINDS)}")
     if front.get("area") not in areas:
         faults.append(f"names area {front.get('area')!r}, which the catalogue does not hold")
     if not front.get("title"):
@@ -204,15 +197,32 @@ def proposal_faults(path: pathlib.Path, areas: set[str]) -> list[str]:
     amends = front.get("amends")
     if amends and not amendable(amends):
         faults.append(f"amends {amends!r}, which is neither a feature nor a page here")
-    if kind == "gap" and not amends:
-        faults.append("is a gap and names no feature or page that is silent (amends)")
+    return faults
+
+
+def body_faults(kind: str | None, amends: str | None, text: str) -> list[str]:
+    """What is wrong with what a proposal or a gap says."""
+    faults = []
     if REQ_DEF.search(text):
         faults.append("defines an identifier; identifiers are allocated on approval (GOV-R41)")
     if kind == "proposal" and not STATEMENT.search(section(text, "Proposed behaviour")):
         faults.append("has no statement under ## Proposed behaviour using MUST, SHOULD or MAY")
+    if kind == "gap" and not amends:
+        faults.append("is a gap and names no feature or page that is silent (amends)")
     if kind == "gap" and not section(text, "What the specification does not say"):
         faults.append("says nothing under ## What the specification does not say")
     return faults
+
+
+def proposal_faults(path: pathlib.Path, areas: set[str]) -> list[str]:
+    """What is wrong with one proposal file, each fault a sentence."""
+    text = path.read_text(encoding="utf-8")
+    front = metafm.parse(text)
+    if front is None:
+        return ["has no front matter; copy TEMPLATE.md"]
+    named = [] if PROPOSAL_FILE.match(path.name) else [
+        "is not named with lower-case letters, digits and hyphens"]
+    return named + field_faults(front, areas) + body_faults(front.get("kind"), front.get("amends"), text)
 
 
 def check_proposals():
