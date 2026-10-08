@@ -130,10 +130,11 @@ jobs:
       body: |
         This project is spec-led: every change cites a spec identifier that already
         exists on `main`, and `spec-check` fails without one — not to reject the
-        work, but to sequence it. Add a `Spec:` trailer to a commit **or** the PR
-        body, on its own line, e.g. `Spec: OPS-R1`. Routine maintenance
-        (dependencies, formatting, CI) cites `GOV-R12`. Changing behaviour? Open the
-        spec PR first, then cite the new identifier. See 50-governance/contributing.md.
+        work, but to sequence it. Add a `Spec:` line to the PR body, on its own
+        line, e.g. `Spec: OPS-R1`: the squash merge writes the body to `main`.
+        Routine maintenance (dependencies, formatting, CI) cites `GOV-R12`.
+        Changing behaviour? Open the spec PR first, then cite the new identifier.
+        See 50-governance/contributing.md.
 
         ${{ needs.detect.outputs.suggest }}
   dco:

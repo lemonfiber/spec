@@ -64,11 +64,11 @@ def citation(paths: list[str], text: str, association: str) -> str:
         return ""
     if any(path.startswith(PROPOSALS) for path in paths):
         return (f"This adds a proposal, so it cites the RFC process: add `Spec: {PROPOSAL_CITE}` "
-                "on its own line to the pull request's description or a commit.")
+                "on its own line to the pull request's description, which the squash merge writes to `main`.")
     if all(path.endswith(PROSE) for path in paths):
         return ("This changes prose only. Where it fixes wording and changes no rule, it is routine "
                 f"maintenance: add `Spec: {PROSE_CITE}` on its own line to the pull request's "
-                "description or a commit. Where it changes what a requirement says, cite that one.")
+                "description, which the squash merge writes to `main`. Where it changes what a requirement says, cite that one.")
     return ""
 
 

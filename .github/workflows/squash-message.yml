@@ -1,0 +1,101 @@
+# Reusable check that a pull request's title and body carry what its squash
+# commit on `main` needs (GOV-R62): a conventional subject, a `Spec:` line that
+# resolves, and a sign-off for each human author of its commits. A squash merge
+# writes the title and body as the commit, so the branch's commit messages do
+# not reach `main`. Repos call it; the spec repo self-triggers on PRs.
+#
+# Not in `gates.yml`, because it runs on an edit of the title or body as well as
+# on a push: a caller runs it as a workflow of its own,
+#
+#     on:
+#       pull_request:
+#         types: [opened, edited, synchronize, reopened]
+#     jobs:
+#       squash-message:
+#         permissions:
+#           contents: read
+#           pull-requests: write
+#         uses: lemonfiber/spec/.github/workflows/squash-message.yml@<sha> # vX
+#
+# so fixing the body re-runs this and nothing else. The pull request's code is
+# never checked out: its title, body and commit authors are read from the API.
+name: squash-message
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+# Each job asks for what it uses; only the explainer writes.
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      needed: ${{ steps.check.outputs.needed }}
+      said: ${{ steps.check.outputs.said }}
+    steps:
+      # Another repository reads the rules and identifiers from spec's main.
+      # Here a pull request may define the identifier its body cites, so both
+      # are read from the pull request's own tree, as `integrity.py` reads it.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ github.repository == 'lemonfiber/spec' && github.sha || 'main' }}
+          path: .spec-canonical
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      # The title and body as they are now, rather than as the event carried
+      # them: a re-run of an older run reads the current text. The commits
+      # endpoint lists at most 250 commits, which a squash-merged branch stays
+      # well inside.
+      - name: Read the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR}" \
+            --jq '{title, body, bot: (.user.type == "Bot")}' > pull.json
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR}/commits" \
+            --jq '.[] | {name: .commit.author.name, email: .commit.author.email, parents: (.parents | length)}' \
+            > commits.jsonl
+      - name: Check the squash message
+        id: check
+        run: |
+          set -uo pipefail
+          python3 .spec-canonical/scripts/squash_message.py \
+            --spec-dir .spec-canonical --pull pull.json --commits commits.jsonl > said.md
+          code=$?
+          cat said.md
+          cat said.md >> "$GITHUB_STEP_SUMMARY"
+          delimiter="EOF_$(openssl rand -hex 16)"
+          printf 'said<<%s\n%s\n%s\n' "$delimiter" "$(cat said.md)" "$delimiter" >> "$GITHUB_OUTPUT"
+          if [ "$code" -eq 1 ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          fi
+          exit "$code"
+  # The explainer GOV-R33 asks for, posted while the check fails and removed
+  # once it passes. A fork's token cannot comment, so a fork's pull request
+  # reads the same text in the check's summary instead.
+  explain:
+    needs: check
+    if: >-
+      !cancelled() && needs.check.outputs.needed != ''
+      && github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/explain-check.yml
+    with:
+      check: squash-message
+      needed: ${{ needs.check.outputs.needed }}
+      title: "What the squash commit on `main` needs"
+      body: ${{ needs.check.outputs.said }}
