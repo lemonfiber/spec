@@ -54,6 +54,14 @@ why = "explains a citation refusal in a comment; the refusal is spec-check's"
 name = "dco / explain"
 why = "explains a sign-off refusal in a comment; the refusal is dco's"
 
+[[exempt]]
+name = "mirror / explain"
+why = "tells a first-time contributor where a mirrored page is edited, in a comment"
+
+[[exempt]]
+name = "status / explain"
+why = "shows the tracker state of the goals a pull request cites, in a comment"
+
 # Complement legs. Each carries a condition that is false on a pull request
 # (`sonar-gate`'s is false on a merge group too) and is therefore always skipped
 # on one. Requiring one would deadlock the branch permanently: a skipped check
