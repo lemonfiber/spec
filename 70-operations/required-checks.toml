@@ -51,6 +51,10 @@ name = "citation / explain"
 why = "explains a citation refusal in a comment; the refusal is spec-check's"
 
 [[exempt]]
+name = "explain / explain"
+why = "explains a squash-message refusal in a comment, in spec's own runs; the refusal is squash-message's"
+
+[[exempt]]
 name = "dco / explain"
 why = "explains a sign-off refusal in a comment; the refusal is dco's"
 
