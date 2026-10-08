@@ -41,7 +41,9 @@ Work is claimed by opening a pull request, a draft one included, whose commits
 carry the `Spec:` lines of the requirements it works on. The report reads every
 open pull request in every repository and shows the requirement as claimed.
 There is no other register: a claim that is not a pull request is invisible to
-everyone else.
+everyone else. The board shows a goal cited by more than one open pull request
+as contested, and a draft pull request with no commit for more than fourteen days as a
+stale claim.
 
 A pull request needs a commit before it can open. A claim made with the developer
 command line opens with an empty signed commit carrying the `Spec:` line and a

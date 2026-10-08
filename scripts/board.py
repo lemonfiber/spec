@@ -41,6 +41,7 @@ import tomllib
 
 import gen_board
 import goals
+import status_check
 from catalogue import features as load_features
 from integrity import elsewhere
 from paths import within_cwd
@@ -68,6 +69,14 @@ KEYWORDS = ("MUST", "SHOULD", "MAY")
 RETIRED = re.compile(r"^\*(Withdrawn|Superseded)\b")
 #: A feature's identifier, which is also how its requirements are prefixed.
 FEATURE_ID = re.compile(r"^[A-Z]\d+$")
+#: The open pull requests a repository holds from people and agents before the
+#: board flags it, the organisation's bots not counted (GOV-R58).
+CAP = 3
+#: How long a draft pull request goes without a commit before its claim is shown
+#: as stale.
+STALE_AFTER = datetime.timedelta(days=14)
+#: How the forge writes a time.
+STAMP = "%Y-%m-%dT%H:%M:%SZ"
 
 
 def areas(features: dict[str, dict]) -> list[dict]:
@@ -135,6 +144,17 @@ def versions(reading: goals.Reading) -> list[dict]:
             for m, standing in reading.report]
 
 
+def tracker_file(name: str, checkout: pathlib.Path, ref: str) -> str | None:
+    """The one file a repository's tracker rows are read from, or None for a
+    tracker split by feature, where each row is in its feature's own file."""
+    split = goals.git(checkout, "ls-tree", "--name-only", f"{ref}:{status_check.DIRECTORY}")
+    if split.returncode == 0:
+        return None
+    shown = goals.git(checkout, "show", f"{ref}:{status_check.FILE}").stdout
+    kept = status_check.parse(shown, f"{name}:{status_check.FILE}", name)
+    return status_check.FILE if kept is not None else goals.LEGACY
+
+
 def trackers(reading: goals.Reading, ref: str) -> list[dict]:
     """Each repository a version is satisfied in, and the rows its tracker holds."""
     searched = sorted({name for m, _ in reading.report
@@ -145,9 +165,13 @@ def trackers(reading: goals.Reading, ref: str) -> list[dict]:
             out.append({"repo": name, "present": False, "rows": []})
             continue
         rows = goals.tracker(name, reading.checkouts[name], ref)
+        kept_in = tracker_file(name, reading.checkouts[name], ref)
         out.append({"repo": name, "present": True,
                     "rows": [{"id": r.id, "state": r.state, "evidence": list(r.evidence),
-                              "landed": r.landed} for r in rows]})
+                              "landed": r.landed,
+                              "path": kept_in or f"{status_check.DIRECTORY}/"
+                                                 f"{status_check.family(r.id)}.toml"}
+                             for r in rows]})
     return out
 
 
@@ -159,21 +183,58 @@ def cites(pr: dict) -> list[str]:
     return sorted(found, key=ordered_id)
 
 
-def pulls(prs: dict[str, list[dict]]) -> list[dict]:
-    """Each open pull request, with what it cites."""
+def last_commit(pr: dict) -> str | None:
+    """When the newest commit of a pull request was made, as the forge lists them
+    oldest first."""
+    commits = pr.get("commits") or []
+    return commits[-1].get("committedDate") if commits else None
+
+
+def stale(draft: bool, since: str | None, now: datetime.datetime) -> bool:
+    """Whether a draft's claim has gone without a commit for longer than
+    `STALE_AFTER`. A pull request ready for review is not a claim waiting on work."""
+    if not draft or since is None:
+        return False
+    then = datetime.datetime.strptime(since, STAMP).replace(tzinfo=datetime.UTC)
+    return now - then > STALE_AFTER
+
+
+def pulls(prs: dict[str, list[dict]], now: datetime.datetime) -> list[dict]:
+    """Each open pull request, with what it cites and whether its claim is stale."""
     out = []
     for repo, listed in sorted(prs.items()):
         for pr in listed:
             author = (pr.get("author") or {}).get("login")
+            draft = bool(pr.get("isDraft"))
+            committed = last_commit(pr)
             out.append({
                 "repo": repo, "number": pr["number"], "url": pr["url"],
                 "title": pr.get("title"), "author": author,
                 "bot": (pr.get("author") or {}).get("__typename") == "Bot",
-                "draft": bool(pr.get("isDraft")), "created_at": pr.get("createdAt"),
+                "draft": draft, "created_at": pr.get("createdAt"),
                 "updated_at": pr.get("updatedAt"), "head": pr.get("headRefName"),
+                "last_commit_at": committed,
+                "stale": stale(draft, committed or pr.get("createdAt"), now),
                 "cites": cites(pr),
             })
     return out
+
+
+def contested(reading: goals.Reading, listed: list[dict]) -> list[dict]:
+    """Each goal of a version not yet out that more than one open pull request
+    from people or agents cites, with those pull requests as `repo#number`."""
+    open_goals = {goal for manifest, _ in reading.report
+                  if manifest.get("status") not in goals.FINISHED
+                  for goal in manifest.get("goals", [])}
+    claims: dict[str, list[str]] = {}
+    for pr in listed:
+        if pr["bot"]:
+            continue
+        for ident in pr["cites"]:
+            if ident in open_goals:
+                claims.setdefault(ident, []).append(f"{pr['repo']}#{pr['number']}")
+    return [{"id": ident, "pulls": claims[ident]}
+            for ident in sorted(claims, key=ordered_id) if len(claims[ident]) > 1]
 
 
 def tracker_state(name: str, present: dict[str, bool], unread: dict[str, str]) -> str | None:
@@ -186,17 +247,27 @@ def tracker_state(name: str, present: dict[str, bool], unread: dict[str, str]) -
     return "present" if present[name] else "absent"
 
 
-def repos(listed: list[dict], trackers_: list[dict], unread: dict[str, str]) -> list[dict]:
+def repos(listed: list[dict], read: set[str], trackers_: list[dict],
+          unread: dict[str, str]) -> list[dict]:
     """Every repository in the organisation, the map's and the ungoverned ones,
-    with its open pull requests and its tracker."""
+    with its open pull requests, how many of them the cap counts, and its tracker.
+    The counts are null for a repository whose pull requests were not read, since
+    nought would say that it holds none."""
     data = tomllib.loads(pathlib.Path(REPOS).read_text(encoding="utf-8"))
     present = {t["repo"]: t["present"] for t in trackers_}
     rows = data.get("repo", []) + [{**r, "group": UNGOVERNED} for r in data.get("ungoverned", [])]
-    return [{"name": repo["name"], "group": repo.get("group"), "lang": repo.get("lang"),
-             "note": repo.get("note"), "pages": repo.get("spec", []),
-             "open_pulls": sum(p["repo"] == repo["name"] for p in listed),
-             "tracker": tracker_state(repo["name"], present, unread)}
-            for repo in rows]
+    out = []
+    for repo in rows:
+        own = [p for p in listed if p["repo"] == repo["name"]]
+        counted = sum(not p["bot"] for p in own) if repo["name"] in read else None
+        out.append({"name": repo["name"], "group": repo.get("group"),
+                    "lang": repo.get("lang"), "note": repo.get("note"),
+                    "pages": repo.get("spec", []),
+                    "open_pulls": len(own) if counted is not None else None,
+                    "counted_pulls": counted,
+                    "over_cap": counted > CAP if counted is not None else None,
+                    "tracker": tracker_state(repo["name"], present, unread)})
+    return out
 
 
 def releases(reading: goals.Reading, ref: str) -> list[dict]:
@@ -249,10 +320,10 @@ def snapshot(reading: goals.Reading, ref: str, issues: list[dict],
     rows = gen_board.build_rows(feats, gen_board.load_versions())
     reqs = requirements(feats, locked_by)
     trackers_ = trackers(reading, ref)
-    listed = pulls(reading.prs)
+    listed = pulls(reading.prs, now)
     return {
         "format": FORMAT,
-        "generated_at": now.astimezone(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated_at": now.astimezone(datetime.UTC).strftime(STAMP),
         "ref": ref,
         "sources": reading.sources,
         "unread": [{"repo": repo, "reason": reason}
@@ -263,7 +334,9 @@ def snapshot(reading: goals.Reading, ref: str, issues: list[dict],
         "versions": versions(reading),
         "trackers": trackers_,
         "pulls": listed,
-        "repos": repos(listed, trackers_, reading.unread),
+        "claims": {"cap": CAP, "stale_days": STALE_AFTER.days},
+        "contested": contested(reading, listed),
+        "repos": repos(listed, set(reading.prs), trackers_, reading.unread),
         "releases": releases(reading, ref),
         "proposals": proposals(feats, reqs, issues),
     }
