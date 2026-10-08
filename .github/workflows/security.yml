@@ -1,14 +1,14 @@
 # Reusable security checks: secret scanning (gitleaks CLI) and dependency
-# vulnerabilities (osv-scanner, through the action Google publishes for it).
+# vulnerabilities (osv-scanner, from the image Google publishes for its action).
 # Q-R53, Q-R56.
 #
 # Dependabot reads a `uses:` and nothing else — no regular expressions, and by
 # its own parser no `docker://` reference either. A version written into a `run:`
 # block here is therefore a version nobody advances, and a scanner that predates
-# a rule class finds fewer secrets while still reporting green.
-#
-# osv-scanner is called as a pinned action, which puts it back under
-# `github-actions`. gitleaks cannot be: see the note over that job.
+# a rule class finds fewer findings while still reporting green. Neither scanner
+# here is called as an action, each for the reason written over its job, so each
+# is followed by the same watch: a step that fails once the version it ran has
+# been behind the latest release for a month.
 name: security
 
 on:
@@ -88,8 +88,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           STALE_DAYS: "30"
+          TOOL: gitleaks
+          RELEASES: gitleaks/gitleaks
+          KNOB: GITLEAKS_VERSION
         run: |
           set -euo pipefail
+
+          # One watch, run after each scanner this workflow fetches by hand.
+          # TOOL names it, RELEASES is where it publishes, and KNOB names the
+          # variable above that holds the version it ran.
+          version="${!KNOB}"
 
           # `gh` prints its own error body on stdout, so a failed call arrives
           # here looking like an answer. Only a release tag with a date is
@@ -98,7 +106,7 @@ jobs:
           tag=""
           dated=""
           for attempt in 1 2 3; do
-            answer=$(gh api repos/gitleaks/gitleaks/releases/latest \
+            answer=$(gh api "repos/${RELEASES}/releases/latest" \
               --jq '"\(.tag_name) \(.published_at)"' 2>/dev/null || true)
             tag=$(echo "$answer" | cut -d" " -f1)
             dated=$(echo "$answer" | cut -d" " -f2)
@@ -113,57 +121,108 @@ jobs:
           done
 
           if [ -z "$tag" ]; then
-            echo "::error::Could not read the latest gitleaks release in three attempts, so this run does not know whether it scanned with a current scanner."
+            echo "::error::Could not read the latest ${TOOL} release in three attempts, so this run does not know whether it scanned with a current scanner."
             exit 1
           fi
 
-          if [ "$tag" = "v${GITLEAKS_VERSION}" ]; then
-            echo "gitleaks ${GITLEAKS_VERSION} is the current release."
+          if [ "$tag" = "v${version}" ]; then
+            echo "${TOOL} ${version} is the current release."
             exit 0
           fi
 
           age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
           if [ "$age" -gt "$STALE_DAYS" ]; then
-            echo "::error::This scanned with gitleaks ${GITLEAKS_VERSION}; ${tag} has been out ${age} days. Raise GITLEAKS_VERSION in lemonfiber/spec .github/workflows/security.yml — rules published since ${GITLEAKS_VERSION} are not being applied to any repository."
+            echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml — what ${TOOL} has learnt since ${version} is not being applied to any repository."
             exit 1
           fi
-          echo "::notice::gitleaks ${tag} is ${age} days old; this scanned with ${GITLEAKS_VERSION}. Raise GITLEAKS_VERSION in lemonfiber/spec .github/workflows/security.yml when convenient."
+          echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml when convenient."
 
-  # The action is a container action running `ghcr.io/google/osv-scanner-action`
-  # at the version its own tag names, so the pin below is what fixes the scanner
-  # version — and Dependabot advances it under `github-actions`.
+  # osv-scanner runs from the image Google publishes for its action, by digest,
+  # in a container this step starts itself. The action would start it with the
+  # tree mounted writable and the job's environment files mounted beside it, so
+  # whatever ran in the container could set what every later step of `gates`
+  # runs. Here the container is handed the tree read-only and nothing else: no
+  # token, no file of the job's, no capability. It keeps its network, which is
+  # how it asks OSV about each package it reads.
   #
-  # `--allow-no-lockfiles` is what used to be the `exit 128` arm of a hand-rolled
-  # exit-code dance: a repository with no manifest to read is not a finding. The
-  # action's entrypoint still maps 128 to 0 without the flag, and warns; the flag
-  # says it on purpose instead.
+  # `--no-call-analysis=all` keeps the scan to reading manifests and lockfiles.
+  # Call analysis builds the tree's code to see what it calls: the image is built
+  # on golang and analyses Go by default, and Rust's analysis runs build scripts.
   #
-  # `--no-call-analysis=go` keeps the scan to reading manifests and lockfiles.
-  # The image is built on golang, so on a tree holding a `go.mod` the scanner
-  # would otherwise hand the tree's Go packages to the go toolchain for call
-  # analysis, and in `gates` that tree is a pull request's, on the runner every
-  # later verdict runs on: the container writes this job's environment files.
+  # `--allow-no-lockfiles`: a repository with no manifest to read is not a
+  # finding.
   #
-  # Upstream recommends its reusable workflow over calling this action directly,
-  # because the action's behaviour may change within a patch release. Pinned by
-  # SHA, such a change arrives as a Dependabot pull request that runs this gate
-  # first. The reusable workflow would also demand `security-events: write` from
-  # every caller, in order to file the findings on a Code Scanning page —
-  # findings this job already prints, and fails on, in the run itself.
+  # Dependabot reads no version out of a `run:` block, so the version is watched
+  # by the step after the scan, as gitleaks' is. OSV_IMAGE carries OSV_VERSION
+  # as its tag and pins the digest that tag named when it was written.
   osv-scanner:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      OSV_VERSION: "2.6.0"
+      OSV_IMAGE: ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: OSV-Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@a345acffa64b0eaede81a3d9aae6141214d9c8fc # v2.6.0
-        with:
-          scan-args: |-
-            scan
-            source
-            --allow-no-lockfiles
-            --no-call-analysis=go
-            --recursive
-            ./
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --volume "${GITHUB_WORKSPACE}:/src:ro" --workdir /src \
+            --entrypoint /root/osv-scanner \
+            "$OSV_IMAGE" \
+            scan source --allow-no-lockfiles --no-call-analysis=all --recursive ./
+      - name: The pinned OSV-Scanner is not far behind the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STALE_DAYS: "30"
+          TOOL: OSV-Scanner
+          RELEASES: google/osv-scanner-action
+          KNOB: OSV_VERSION
+        run: |
+          set -euo pipefail
+
+          # One watch, run after each scanner this workflow fetches by hand.
+          # TOOL names it, RELEASES is where it publishes, and KNOB names the
+          # variable above that holds the version it ran.
+          version="${!KNOB}"
+
+          # `gh` prints its own error body on stdout, so a failed call arrives
+          # here looking like an answer. Only a release tag with a date is
+          # believed. Three attempts, because this reddens a security gate in
+          # every repository and one blocked API call is not staleness.
+          tag=""
+          dated=""
+          for attempt in 1 2 3; do
+            answer=$(gh api "repos/${RELEASES}/releases/latest" \
+              --jq '"\(.tag_name) \(.published_at)"' 2>/dev/null || true)
+            tag=$(echo "$answer" | cut -d" " -f1)
+            dated=$(echo "$answer" | cut -d" " -f2)
+            if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
+              [[ "$dated" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T ]]; then
+              break
+            fi
+            tag=""
+            if [ "$attempt" -lt 3 ]; then
+              sleep "$((attempt * 5))"
+            fi
+          done
+
+          if [ -z "$tag" ]; then
+            echo "::error::Could not read the latest ${TOOL} release in three attempts, so this run does not know whether it scanned with a current scanner."
+            exit 1
+          fi
+
+          if [ "$tag" = "v${version}" ]; then
+            echo "${TOOL} ${version} is the current release."
+            exit 0
+          fi
+
+          age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
+          if [ "$age" -gt "$STALE_DAYS" ]; then
+            echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml — what ${TOOL} has learnt since ${version} is not being applied to any repository."
+            exit 1
+          fi
+          echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml when convenient."

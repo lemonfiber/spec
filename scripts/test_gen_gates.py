@@ -229,9 +229,25 @@ class Generation(unittest.TestCase):
             for step in job["steps"]:
                 self.assertNotIn("${{", step.get("run", ""), step.get("id"))
 
-    def test_the_scanner_reads_lockfiles_and_runs_no_go(self):
+    def test_the_scanner_runs_shut_in_and_builds_nothing(self):
         osv = next(s for s in generated()["jobs"]["gates"]["steps"] if s["id"] == "security--osv-scanner--1")
-        self.assertIn("--no-call-analysis=go", osv["with"]["scan-args"].split())
+        words = osv["run"].split("docker run", 1)[1].split()
+        self.assertNotIn("uses", osv)
+        for word in ("--no-call-analysis=all", "--cap-drop", "no-new-privileges", '"${GITHUB_WORKSPACE}:/src:ro"'):
+            self.assertIn(word, words)
+        self.assertFalse([w for w in words if w == "-e" or w.startswith(("--env", "--privileged", "--network=host", "--mount"))], words)
+        self.assertEqual([w for w in words if w.startswith(("--volume", "-v"))], ["--volume"])
+        image = osv["env"]["OSV_IMAGE"]
+        self.assertRegex(image, r"^ghcr\.io/google/osv-scanner-action:v[0-9.]+@sha256:[0-9a-f]{64}$")
+        self.assertIn(f":v{osv['env']['OSV_VERSION']}@", image)
+
+    def test_each_hand_fetched_scanner_is_watched_by_one_script(self):
+        steps = generated()["jobs"]["gates"]["steps"]
+        watches = [s for s in steps if s["name"].endswith("is not far behind the latest release")]
+        self.assertEqual({s["env"]["KNOB"] for s in watches}, {"GITLEAKS_VERSION", "OSV_VERSION"})
+        self.assertEqual(len({s["run"] for s in watches}), 1)
+        for watch in watches:
+            self.assertIn(watch["env"]["KNOB"], watch["env"])
 
     def test_every_checkout_drops_its_credentials(self):
         for job in generated()["jobs"].values():
@@ -507,13 +523,13 @@ class Refusals(unittest.TestCase):
     def test_a_guarded_action_with_no_guard_before_it(self):
         lint = "      - uses: DavidAnson/markdownlint-cli2-action@" + "3" * 40 + " # v24\n"
         self.source(self.STEP + lint)
-        self.refused("uses DavidAnson/markdownlint-cli2-action with no step 'inert' before it")
-        self.source(self.STEP + lint + "      - id: inert\n        run: 'true'\n")
-        self.refused("with no step 'inert' before it")
+        self.refused("uses DavidAnson/markdownlint-cli2-action with no step 'markdown-only' before it")
+        self.source(self.STEP + lint + "      - id: markdown-only\n        run: 'true'\n")
+        self.refused("with no step 'markdown-only' before it")
 
     def test_a_guarded_action_after_its_guard_is_carried(self):
         lint = "      - uses: DavidAnson/markdownlint-cli2-action@" + "3" * 40 + " # v24\n"
-        self.source(self.STEP + "      - id: inert\n        run: 'true'\n" + lint)
+        self.source(self.STEP + "      - id: markdown-only\n        run: 'true'\n" + lint)
         self.assertIn("markdownlint-cli2-action@", gen_gates.build())
 
     def test_an_actor_is_not_asked_about_its_actions(self):

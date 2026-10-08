@@ -138,10 +138,11 @@ jobs:
       # this workflow's token wrote it, whatever marker a stranger's comment holds.
       - name: A workflow edits only its own comments
         run: python3 scripts/test_own_comments.py
-      # Not a coverage suite: it runs hygiene's markdown guard out of the committed
-      # workflow over built trees, and checks that a tree handing markdownlint a
-      # module is refused before the linter starts on the runner `gates` shares.
-      - name: The markdown check runs no code from the tree it lints
+      # Not a coverage suite: it runs hygiene's markdown staging step out of the
+      # committed workflow over a repository holding every shape a configuration
+      # can be written in, and checks that the linter's workspace holds the
+      # tracked Markdown and the canonical configuration and nothing else.
+      - name: The markdown check reads no configuration from the tree it lints
         run: python3 scripts/test_markdown_runs_no_code.py
       # Not a coverage suite: it runs the fan-out's own step out of the committed
       # workflow against a stubbed `gh` and an intercepted `git push`, and checks

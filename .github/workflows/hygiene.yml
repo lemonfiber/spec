@@ -380,46 +380,83 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # markdownlint-cli2 reads a configuration from every directory it lints,
+      # in formats that import code, and resolves the modules a configuration
+      # names from the tree beside it. In `gates` that tree is a pull request's,
+      # on the runner every later verdict runs on. So the linter is never handed
+      # it: the pull request is checked out aside, and the linter's workspace
+      # holds the tracked Markdown files, read out of git, and the canonical
+      # configuration, and nothing else. No file of the pull request's is read
+      # as configuration, so there is no configuration of its to judge.
+      - name: Check out the calling repository, aside from what the linter reads
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # markdownlint-cli2 imports a configuration written as a module
-      # (`.markdownlint-cli2.cjs`, `.markdownlint.mjs` and the like) and every
-      # module a configuration names under `customRules`, `markdownItPlugins` or
-      # `outputFormatters`, from the tree it lints. In `gates` that tree is a pull
-      # request's, on the runner every later verdict runs on, so a tree holding
-      # any of them is refused here and the linter is never started on it.
-      - name: The tree hands markdownlint no code
-        id: inert
+          path: .pr
+
+      - name: Check out the canonical copy
+        if: github.repository != 'lemonfiber/spec'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: main
+          path: .spec-canonical
+
+      - name: The linter is handed the Markdown and the canonical configuration, and nothing else
+        id: markdown-only
+        env:
+          REPO: ${{ github.repository }}
         run: |
-          python3 - <<'PY'
-          import os, re, sys
-          MODULES = {".markdownlint-cli2.cjs", ".markdownlint-cli2.mjs", ".markdownlint.cjs", ".markdownlint.mjs"}
-          DATA = {".markdownlint-cli2.jsonc", ".markdownlint-cli2.yaml", ".markdownlint.jsonc",
-                  ".markdownlint.json", ".markdownlint.yaml", ".markdownlint.yml"}
-          LOADS = re.compile(r"customRules|markdownItPlugins|outputFormatters")
-          def escaped(text, *more):
-              # A workflow command's own escaping, so a file's name cannot write one.
-              for plain, coded in (("%", "%25"), ("\r", "%0D"), ("\n", "%0A"), *more):
-                  text = text.replace(plain, coded)
-              return text
-          found = []
-          for top, dirs, files in os.walk("."):
-              dirs[:] = [one for one in dirs if one != ".git"]
-              for name in dirs + files:
-                  path = os.path.join(top, name)[2:]
-                  if name in MODULES:
-                      found.append((path, "is a configuration markdownlint would import and run"))
-                  elif name in DATA and os.path.isfile(path):
-                      with open(path, encoding="utf-8", errors="replace") as read:
-                          if LOADS.search(read.read()):
-                              found.append((path, "names a module markdownlint would import and run"))
-          for path, said in found:
-              where = escaped(path, (":", "%3A"), (",", "%2C"))
-              print(f"::error file={where}::{escaped(path)} {said}. The shared markdown check runs no code from"
-                    " the tree it lints: write the configuration as JSONC or YAML, with the built-in rules.")
-          sys.exit(1 if found else 0)
+          set -euo pipefail
+          if [ "$REPO" = "lemonfiber/spec" ]; then
+            canonical=.pr
+          else
+            canonical=.spec-canonical
+          fi
+          stage="${RUNNER_TEMP}/markdown"
+          rm -rf "$stage"
+          mkdir -p "$stage"
+          cp "$canonical/shared/markdownlint.jsonc" "$stage/.markdownlint.jsonc"
+          STAGE="$stage" python3 - <<'PY'
+          import os, subprocess, sys
+          # Every tracked Markdown file, as git holds it: a regular file's blob,
+          # never a link, a submodule or whatever the working tree has at the path.
+          stage = os.environ["STAGE"]
+          listed = subprocess.run(["git", "-C", ".pr", "ls-files", "-z", "--stage", "--", "*.md"],
+                                  check=True, capture_output=True).stdout
+          wanted = []
+          for entry in filter(None, listed.split(b"\0")):
+              meta, path = entry.split(b"\t", 1)
+              mode, blob, _ = meta.split(b" ")
+              if mode not in (b"100644", b"100755"):
+                  continue
+              parts = path.split(b"/")
+              # A directory under a configuration's name would be read as one.
+              if any(part.lower().startswith(b".markdownlint") for part in parts[:-1]):
+                  where = os.fsdecode(path).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                  print(f"::error::{where} sits in a directory named as a markdownlint configuration, "
+                        "which the linter would read as one. Rename the directory.")
+                  sys.exit(1)
+              wanted.append((blob, path))
+          batch = subprocess.run(["git", "-C", ".pr", "cat-file", "--batch"], check=True, capture_output=True,
+                                 input=b"".join(blob + b"\n" for blob, _ in wanted)).stdout
+          at = 0
+          for blob, path in wanted:
+              header_end = batch.index(b"\n", at)
+              size = int(batch[at:header_end].split(b" ")[2])
+              body = batch[header_end + 1:header_end + 1 + size]
+              at = header_end + 1 + size + 1
+              target = os.path.join(stage, os.fsdecode(path))
+              os.makedirs(os.path.dirname(target), exist_ok=True)
+              with open(target, "wb") as out:
+                  out.write(body)
+          print(f"{len(wanted)} Markdown file(s) handed to the linter")
           PY
+          find "$GITHUB_WORKSPACE" -mindepth 1 -delete
+          cp -a "$stage/." "$GITHUB_WORKSPACE/"
+          rm -rf "$stage"
+
       - name: markdownlint
         uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0
         with:

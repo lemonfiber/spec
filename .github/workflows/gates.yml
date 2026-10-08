@@ -649,51 +649,85 @@ jobs:
       id: hygiene--markdown--fresh
       if: ${{ (steps.plan.outputs.hygiene == 'true') }}
       run: find "$GITHUB_WORKSPACE" -mindepth 1 -delete
-    - name: 'hygiene / markdown: actions/checkout'
+    - name: 'hygiene / markdown: Check out the calling repository, aside from what the linter reads'
       id: hygiene--markdown--0
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
+        path: .pr
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'hygiene / markdown: The tree hands markdownlint no code'
-      id: hygiene--markdown--inert
-      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--markdown--0.outcome != 'failure') }}
+    - name: 'hygiene / markdown: Check out the canonical copy'
+      id: hygiene--markdown--1
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--markdown--0.outcome != 'failure') && (github.repository != 'lemonfiber/spec') }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        repository: lemonfiber/spec
+        ref: main
+        path: .spec-canonical
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / markdown: The linter is handed the Markdown and the canonical configuration, and nothing else'
+      id: hygiene--markdown--markdown-only
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--markdown--0.outcome != 'failure') && (steps.hygiene--markdown--1.outcome != 'failure') }}
+      env:
+        REPO: ${{ github.repository }}
       run: |
-        python3 - <<'PY'
-        import os, re, sys
-        MODULES = {".markdownlint-cli2.cjs", ".markdownlint-cli2.mjs", ".markdownlint.cjs", ".markdownlint.mjs"}
-        DATA = {".markdownlint-cli2.jsonc", ".markdownlint-cli2.yaml", ".markdownlint.jsonc",
-                ".markdownlint.json", ".markdownlint.yaml", ".markdownlint.yml"}
-        LOADS = re.compile(r"customRules|markdownItPlugins|outputFormatters")
-        def escaped(text, *more):
-            # A workflow command's own escaping, so a file's name cannot write one.
-            for plain, coded in (("%", "%25"), ("\r", "%0D"), ("\n", "%0A"), *more):
-                text = text.replace(plain, coded)
-            return text
-        found = []
-        for top, dirs, files in os.walk("."):
-            dirs[:] = [one for one in dirs if one != ".git"]
-            for name in dirs + files:
-                path = os.path.join(top, name)[2:]
-                if name in MODULES:
-                    found.append((path, "is a configuration markdownlint would import and run"))
-                elif name in DATA and os.path.isfile(path):
-                    with open(path, encoding="utf-8", errors="replace") as read:
-                        if LOADS.search(read.read()):
-                            found.append((path, "names a module markdownlint would import and run"))
-        for path, said in found:
-            where = escaped(path, (":", "%3A"), (",", "%2C"))
-            print(f"::error file={where}::{escaped(path)} {said}. The shared markdown check runs no code from"
-                  " the tree it lints: write the configuration as JSONC or YAML, with the built-in rules.")
-        sys.exit(1 if found else 0)
+        set -euo pipefail
+        if [ "$REPO" = "lemonfiber/spec" ]; then
+          canonical=.pr
+        else
+          canonical=.spec-canonical
+        fi
+        stage="${RUNNER_TEMP}/markdown"
+        rm -rf "$stage"
+        mkdir -p "$stage"
+        cp "$canonical/shared/markdownlint.jsonc" "$stage/.markdownlint.jsonc"
+        STAGE="$stage" python3 - <<'PY'
+        import os, subprocess, sys
+        # Every tracked Markdown file, as git holds it: a regular file's blob,
+        # never a link, a submodule or whatever the working tree has at the path.
+        stage = os.environ["STAGE"]
+        listed = subprocess.run(["git", "-C", ".pr", "ls-files", "-z", "--stage", "--", "*.md"],
+                                check=True, capture_output=True).stdout
+        wanted = []
+        for entry in filter(None, listed.split(b"\0")):
+            meta, path = entry.split(b"\t", 1)
+            mode, blob, _ = meta.split(b" ")
+            if mode not in (b"100644", b"100755"):
+                continue
+            parts = path.split(b"/")
+            # A directory under a configuration's name would be read as one.
+            if any(part.lower().startswith(b".markdownlint") for part in parts[:-1]):
+                where = os.fsdecode(path).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                print(f"::error::{where} sits in a directory named as a markdownlint configuration, "
+                      "which the linter would read as one. Rename the directory.")
+                sys.exit(1)
+            wanted.append((blob, path))
+        batch = subprocess.run(["git", "-C", ".pr", "cat-file", "--batch"], check=True, capture_output=True,
+                               input=b"".join(blob + b"\n" for blob, _ in wanted)).stdout
+        at = 0
+        for blob, path in wanted:
+            header_end = batch.index(b"\n", at)
+            size = int(batch[at:header_end].split(b" ")[2])
+            body = batch[header_end + 1:header_end + 1 + size]
+            at = header_end + 1 + size + 1
+            target = os.path.join(stage, os.fsdecode(path))
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            with open(target, "wb") as out:
+                out.write(body)
+        print(f"{len(wanted)} Markdown file(s) handed to the linter")
         PY
+        find "$GITHUB_WORKSPACE" -mindepth 1 -delete
+        cp -a "$stage/." "$GITHUB_WORKSPACE/"
+        rm -rf "$stage"
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / markdown: markdownlint'
-      id: hygiene--markdown--2
-      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--markdown--0.outcome != 'failure') && (steps.hygiene--markdown--inert.outcome != 'failure') }}
+      id: hygiene--markdown--3
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--markdown--0.outcome != 'failure') && (steps.hygiene--markdown--1.outcome != 'failure') && (steps.hygiene--markdown--markdown-only.outcome != 'failure') }}
       uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0
       with:
         globs: '**/*.md'
@@ -798,8 +832,16 @@ jobs:
         GITLEAKS_VERSION: 8.30.1
         GH_TOKEN: ${{ github.token }}
         STALE_DAYS: '30'
+        TOOL: gitleaks
+        RELEASES: gitleaks/gitleaks
+        KNOB: GITLEAKS_VERSION
       run: |
         set -euo pipefail
+
+        # One watch, run after each scanner this workflow fetches by hand.
+        # TOOL names it, RELEASES is where it publishes, and KNOB names the
+        # variable above that holds the version it ran.
+        version="${!KNOB}"
 
         # `gh` prints its own error body on stdout, so a failed call arrives
         # here looking like an answer. Only a release tag with a date is
@@ -808,7 +850,7 @@ jobs:
         tag=""
         dated=""
         for attempt in 1 2 3; do
-          answer=$(gh api repos/gitleaks/gitleaks/releases/latest \
+          answer=$(gh api "repos/${RELEASES}/releases/latest" \
             --jq '"\(.tag_name) \(.published_at)"' 2>/dev/null || true)
           tag=$(echo "$answer" | cut -d" " -f1)
           dated=$(echo "$answer" | cut -d" " -f2)
@@ -823,21 +865,21 @@ jobs:
         done
 
         if [ -z "$tag" ]; then
-          echo "::error::Could not read the latest gitleaks release in three attempts, so this run does not know whether it scanned with a current scanner."
+          echo "::error::Could not read the latest ${TOOL} release in three attempts, so this run does not know whether it scanned with a current scanner."
           exit 1
         fi
 
-        if [ "$tag" = "v${GITLEAKS_VERSION}" ]; then
-          echo "gitleaks ${GITLEAKS_VERSION} is the current release."
+        if [ "$tag" = "v${version}" ]; then
+          echo "${TOOL} ${version} is the current release."
           exit 0
         fi
 
         age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
         if [ "$age" -gt "$STALE_DAYS" ]; then
-          echo "::error::This scanned with gitleaks ${GITLEAKS_VERSION}; ${tag} has been out ${age} days. Raise GITLEAKS_VERSION in lemonfiber/spec .github/workflows/security.yml — rules published since ${GITLEAKS_VERSION} are not being applied to any repository."
+          echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml — what ${TOOL} has learnt since ${version} is not being applied to any repository."
           exit 1
         fi
-        echo "::notice::gitleaks ${tag} is ${age} days old; this scanned with ${GITLEAKS_VERSION}. Raise GITLEAKS_VERSION in lemonfiber/spec .github/workflows/security.yml when convenient."
+        echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml when convenient."
       continue-on-error: true
       timeout-minutes: 10
     - name: 'security / osv-scanner: an empty workspace, as its own runner had'
@@ -850,20 +892,83 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
+      env:
+        OSV_VERSION: 2.6.0
+        OSV_IMAGE: ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a
       continue-on-error: true
       timeout-minutes: 10
     - name: 'security / osv-scanner: OSV-Scanner'
       id: security--osv-scanner--1
       if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--osv-scanner--0.outcome != 'failure') }}
-      uses: google/osv-scanner-action/osv-scanner-action@a345acffa64b0eaede81a3d9aae6141214d9c8fc # v2.6.0
-      with:
-        scan-args: |-
-          scan
-          source
-          --allow-no-lockfiles
-          --no-call-analysis=go
-          --recursive
-          ./
+      run: |
+        set -euo pipefail
+        docker run --rm \
+          --cap-drop ALL --security-opt no-new-privileges \
+          --volume "${GITHUB_WORKSPACE}:/src:ro" --workdir /src \
+          --entrypoint /root/osv-scanner \
+          "$OSV_IMAGE" \
+          scan source --allow-no-lockfiles --no-call-analysis=all --recursive ./
+      env:
+        OSV_VERSION: 2.6.0
+        OSV_IMAGE: ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'security / osv-scanner: The pinned OSV-Scanner is not far behind the latest release'
+      id: security--osv-scanner--2
+      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--osv-scanner--0.outcome != 'failure') && (steps.security--osv-scanner--1.outcome != 'failure') }}
+      env:
+        OSV_VERSION: 2.6.0
+        OSV_IMAGE: ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a
+        GH_TOKEN: ${{ github.token }}
+        STALE_DAYS: '30'
+        TOOL: OSV-Scanner
+        RELEASES: google/osv-scanner-action
+        KNOB: OSV_VERSION
+      run: |
+        set -euo pipefail
+
+        # One watch, run after each scanner this workflow fetches by hand.
+        # TOOL names it, RELEASES is where it publishes, and KNOB names the
+        # variable above that holds the version it ran.
+        version="${!KNOB}"
+
+        # `gh` prints its own error body on stdout, so a failed call arrives
+        # here looking like an answer. Only a release tag with a date is
+        # believed. Three attempts, because this reddens a security gate in
+        # every repository and one blocked API call is not staleness.
+        tag=""
+        dated=""
+        for attempt in 1 2 3; do
+          answer=$(gh api "repos/${RELEASES}/releases/latest" \
+            --jq '"\(.tag_name) \(.published_at)"' 2>/dev/null || true)
+          tag=$(echo "$answer" | cut -d" " -f1)
+          dated=$(echo "$answer" | cut -d" " -f2)
+          if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
+            [[ "$dated" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T ]]; then
+            break
+          fi
+          tag=""
+          if [ "$attempt" -lt 3 ]; then
+            sleep "$((attempt * 5))"
+          fi
+        done
+
+        if [ -z "$tag" ]; then
+          echo "::error::Could not read the latest ${TOOL} release in three attempts, so this run does not know whether it scanned with a current scanner."
+          exit 1
+        fi
+
+        if [ "$tag" = "v${version}" ]; then
+          echo "${TOOL} ${version} is the current release."
+          exit 0
+        fi
+
+        age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
+        if [ "$age" -gt "$STALE_DAYS" ]; then
+          echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml — what ${TOOL} has learnt since ${version} is not being applied to any repository."
+          exit 1
+        fi
+        echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml when convenient."
       continue-on-error: true
       timeout-minutes: 10
     - name: 'dco / dco: an empty workspace, as its own runner had'
@@ -1179,10 +1284,10 @@ jobs:
         VERDICTS: '{"spec-check--spec-check": "${{ !(steps.plan.outputs.spec-check == ''true'' || steps.plan.outputs.spec-check == ''false'') && ''unreported'' || !((steps.plan.outputs.spec-check == ''true'')) && ''skipped'' || (steps.spec-check--spec-check--0.outcome == ''failure'' || steps.spec-check--spec-check--1.outcome == ''failure'' || steps.spec-check--spec-check--2.outcome == ''failure'' || steps.spec-check--spec-check--3.outcome == ''failure'' || steps.spec-check--spec-check--4.outcome == ''failure'' || steps.spec-check--spec-check--7.outcome == ''failure'' || steps.spec-check--spec-check--8.outcome == ''failure'' || steps.spec-check--spec-check--9.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--actionlint": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--actionlint--0.outcome == ''failure'' || steps.hygiene--actionlint--1.outcome
           == ''failure'') && ''failure'' || ''success'' }}", "hygiene--pins": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--pins--0.outcome == ''failure'' || steps.hygiene--pins--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--typos": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--typos--0.outcome == ''failure'' || steps.hygiene--typos--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--links": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure'' || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome
           == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome == ''failure'' || steps.hygiene--shared-files--2.outcome == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene ==
-          ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--inert.outcome == ''failure'' || steps.hygiene--markdown--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome ==
-          ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco":
-          "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported''
-          || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
+          ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure'' || steps.hygiene--markdown--markdown-only.outcome == ''failure'' || steps.hygiene--markdown--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped''
+          || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure''
+          || steps.security--osv-scanner--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{
+          !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
       run: |
         set -euo pipefail
         python3 - <<'PY'
