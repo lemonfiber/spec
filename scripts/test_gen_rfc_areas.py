@@ -54,6 +54,13 @@ class Written(unittest.TestCase):
         self.assertTrue(after.startswith("name: RFC\nbody:\n"))
         self.assertTrue(after.endswith("  - type: input\n    id: proposal-title\n"))
 
+    def test_options_that_close_the_form(self):
+        form = FORM.split("    validations:")[0]
+        self.assertEqual(
+            gen.written(form, {"A": "Getting started"}),
+            form.split('        - "A — Old"')[0] + '        - "A — Getting started"\n',
+        )
+
     def test_writing_twice_changes_nothing(self):
         once = gen.written(FORM, catalogue.areas(PAGE))
         self.assertEqual(gen.written(once, catalogue.areas(PAGE)), once)
