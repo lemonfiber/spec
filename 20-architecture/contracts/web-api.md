@@ -254,6 +254,12 @@ that ends it and different for the next time the same thing goes wrong, so a cli
 what it opened without comparing sentences. A client connecting is not sent the alerts already
 said; the dashboard's own list is where those are (`ARCH-R162`).
 
+**What is playing rides the stream.** A `playing` event carries every session the media server
+is playing now, in the envelope `GET /api/playing` answers the same credential with, and it is
+sent again every 5 seconds, the pace a member's stream sends what they are playing at. A client
+that shows what is playing, a home automation's sensor among them, follows it from the stream
+it already holds rather than polling the read (`ARCH-R178`).
+
 **A line names the work that said it.** A `start`, `pull` or `step` event said by work an
 accepting reply named carries that name as `job`, at the top of the envelope beside `kind` and
 `data`, and an event no job said carries none — a run at a terminal, the server starting:
@@ -621,6 +627,12 @@ answer is about rather than the stack giving it. It is carried to every credenti
 the capabilities, a member's key included, because recognising a stack is not something a
 credential's scope can make anybody unentitled to (`ARCH-R163`).
 
+**It says whose credential asked.** The data carries `scope`: `operator`, `read`, `act` or
+`member`. A client that words itself for the household, or decides what to offer, reads the
+scope from it rather than inferring it from which reads came back permitted, because a read
+permitted to two scopes says nothing about which one is asking, and the set of reads a scope
+admits can grow (`ARCH-R179`).
+
 **It is read, not pushed, and it can change under a client.** Configuring storage turns
 `snapshots` from `unconfigured` to `available` without the session ending. So it is an
 ordinary read: it carries the age every other reading carries
@@ -920,6 +932,8 @@ generation has not been used.
 | **ARCH-R175** | The core MUST publish its code registry as `contract/codes.json`, each code with its family, name, severity, exit code, HTTP status, summary, meaning, remedy and the version it first appeared in (`since`), generated from the registry it raises from; `reference/error-codes.md` MUST be generated from that file, and CI MUST refuse either when it differs from what generates it. |
 | **ARCH-R176** | `release-contract` MUST attach `contract-diff.json` to each release, naming every kind, definition, read, action, refusal and event kind that release's contract artefact added, removed or changed against the previous release's. |
 | **ARCH-R177** | The core MUST generate `contract/web-api.openapi.json`, an OpenAPI document of the web API, from the contract artefact, and CI MUST refuse it when it differs from what the artefact generates. |
+| **ARCH-R178** | The event stream MUST carry, to the operator and to a `read` or `act` key, a `playing` event with every session the media server is playing now, in the envelope `GET /api/playing` answers that credential with, sent when a client connects and again every 5 seconds, the pace a member's stream sends what they are playing at. |
+| **ARCH-R179** | The capabilities answer MUST carry the scope of the credential that asked, one of `operator`, `read`, `act` or `member`, and a client MUST read the scope from it rather than infer it from which reads are permitted. |
 
 ## The artefact
 

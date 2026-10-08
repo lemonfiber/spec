@@ -73,6 +73,11 @@
 # asks for in the plugin reading, so the web console's install (F6) collects it before
 # the yes.
 #
+# `ARCH-R178` puts what is playing on the operator's stream, so the Home Assistant
+# integration (F12) follows it rather than polling, and `ARCH-R179` has the capabilities
+# answer say the credential's scope, which the MCP server's member wording (F13-R3) and
+# F12's entry handling read rather than infer.
+#
 # `A2-R17` makes setup's wire step normative: after the stack starts, setup wires it as
 # `seed` does and reports each connection before it finishes, so a fresh install is one
 # stack rather than containers that cannot find each other.
@@ -239,7 +244,7 @@
 # and a call carrying it refused where the stack moved since, as the plugin writes are;
 # a call carrying none acts as before. Home Assistant's controls rehearse and then act
 # (`F12-R8`), so what they carry out is what they were shown.
-# 349 goals, seeded from the roadmap milestone this version serves;
+# 351 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -411,6 +416,8 @@ goals   = [
     "ARCH-R176",
     "ARCH-R177",
     "F8-R19",
+    "ARCH-R178",
+    "ARCH-R179",
     "D3-R14",
     "ARCH-R2",
     "ARCH-R3",
