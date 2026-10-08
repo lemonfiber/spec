@@ -117,6 +117,7 @@ Decisions about a repository outside this organisation, such as
 | The core publishes the setup routes' bodies in the contract (option a): `wizard::Answer` and `recovery::Choice` derive their schema, and the six setup routes are described with them | [ARCH-R133](../20-architecture/contracts/web-api.md) |
 | What's new (`news`, `news-items`) stays with the companion, and the web console does not mark new items | [N27](../10-functional/features/n-companion/n27-what-the-phone-keeps.md) |
 | The documentation site cuts a release's frozen build on its own nightly run after the release's day ends; release-finalize sends it no dispatch, since on the release day there is nothing it may cut | [REPO-R88, REPO-R89](../30-repos/website-docs.md) |
+| The companion keeps what it implements only in its `status/<feature>.toml` tracker: its `.docs/requirements` pages are retired once the tracker holds every requirement they named, and the prose still worth keeping moves into the docblocks of the code that keeps each requirement | [OPS-R74](../70-operations/staging.md); this row |
 
 ## Requirements
 
