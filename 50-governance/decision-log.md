@@ -125,6 +125,7 @@ Decisions about a repository outside this organisation, such as
 | The documentation site's stack-manifest pages keep only what an operator does with a stack and link the field reference to the contract on the frontpage; once the core publishes `contract/stack-manifest.schema.json`, as it does the plugin manifest's, the site renders the field tables from it | [REPO-R82](../30-repos/website-docs.md), [ARCH-R172](../20-architecture/contracts/stack-manifest.md) |
 | The organisation requires a sign-off on every commit made through the web, so GitHub appends the merger's sign-off to a squash merge | This row, [GOV-R29](dco.md) |
 | A squash merge in every repository takes the pull request's title and body as the commit message, and a required `squash-message` check, shared like `dco`, holds the title to a conventional subject and the body to the `Spec:` line and each author's sign-off | [GOV-R5](canonical-spec.md), [GOV-R29](dco.md), [GOV-R62](cross-repo-ci.md) |
+| The frontpage shows all twenty-two services the stack runs, lemonfiber's own request gate and decline service among them, and its build fails where its list and the stack manifest's `include` differ | This row, [ARCH-R171](../20-architecture/contracts/stack-manifest.md) |
 
 ## Requirements
 

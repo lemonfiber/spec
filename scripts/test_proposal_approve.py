@@ -235,7 +235,7 @@ ADDED = [{"filename": "10-functional/proposals/scans.md", "status": "added"}]
 
 
 def environment(head_repo="lemonfiber/spec"):
-    return {"REPO": "lemonfiber/spec", "PR_NUMBER": "42", "PR_TITLE": "Proposal: scans",
+    return {"REPO": "lemonfiber/spec", "PR_NUMBER": "42",
             "PR_AUTHOR": "ana", "PR_AUTHOR_ID": "7", "HEAD_REPO": head_repo,
             "HEAD_REF": "proposal/scans", "HEAD_SHA": "h" * 40}
 
@@ -287,6 +287,7 @@ class Main(Tree):
         self.assertEqual(graphql["variables"]["input"]["fileChanges"]["deletions"], [])
         opened = next(request for path, request in api.calls if path == "repos/lemonfiber/spec/pulls")
         self.assertIn("@ana opened in #42", opened["body"])
+        self.assertEqual(opened["title"], "docs(proposals): approve #42 as Draft")
         self.assertIn(("repos/lemonfiber/spec/pulls/42", {"state": "closed"}), api.calls)
         self.assertIn("carried by https://github.com/lemonfiber/spec/pull/99", api.calls[-1][1]["body"])
 
