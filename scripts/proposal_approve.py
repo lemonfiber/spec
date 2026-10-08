@@ -27,7 +27,7 @@ names what the specification does not say and carries no statements, so it is
 answered with a comment rather than identifiers.
 
 Usage, from the root of a full-history checkout of spec's main, with REPO,
-PR_NUMBER, PR_TITLE, PR_AUTHOR, PR_AUTHOR_ID, HEAD_REPO, HEAD_REF and HEAD_SHA
+PR_NUMBER, PR_AUTHOR, PR_AUTHOR_ID, HEAD_REPO, HEAD_REF and HEAD_SHA
 set and `gh` authenticated as the release App:
   proposal_approve.py
 """
@@ -292,7 +292,9 @@ def land(env: Mapping[str, str], api: Api, root: pathlib.Path, made: Plan) -> st
     api([f"repos/{repo}/git/refs"], {"ref": f"refs/heads/{branch}", "sha": head})
     commit(env, api, branch, head, root, made)
     pull = api([f"repos/{repo}/pulls"], {
-        "title": f"docs(proposals): {env['PR_TITLE']}"[:120],
+        # The commit's subject on `main`, so it says what the commit does, as the
+        # approval's own commit does, rather than repeating the proposal's title.
+        "title": f"docs(proposals): approve #{number} as Draft",
         "head": branch,
         "base": "main",
         "body": (f"The proposal @{env['PR_AUTHOR']} opened in #{number}, approved: "
