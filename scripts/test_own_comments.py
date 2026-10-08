@@ -50,7 +50,12 @@ for word in "$@"; do
   previous="$word"
 done
 case "$*" in
-*"-X "* | *"--method "*) exit 0 ;;
+*"-X "* | *"--method "*)
+  # A write sent its body on stdin reads it all, as gh does: a writer to a
+  # pipe nobody reads is killed by SIGPIPE, which pipefail reports.
+  case "$*" in *"--input -"*) cat >/dev/null ;; esac
+  exit 0
+  ;;
 esac
 if [ -n "$listing" ] && [ -n "$filter" ]; then
   jq -r "$filter" "$COMMENTS"
