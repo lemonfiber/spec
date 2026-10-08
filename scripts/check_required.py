@@ -8,8 +8,14 @@ way, and the estate could not tell, because nothing anywhere compares what runs
 against what blocks.
 
 This does. For every repository in the organisation it reads the required
-contexts and the check names recent pull requests actually produced, and refuses
-a name that ran, does not block, and is not in the register beside this file.
+contexts and the check names its recently merged pull requests produced, and
+refuses a name that ran, does not block, and is not in the register beside this
+file.
+
+Merged, because a pull request runs the workflows on its own branch. A merged
+one's are the workflows `main` now runs. A pull request closed unmerged may have
+run an experiment that never landed, and its names would be refused for a check
+that runs nowhere.
 
 **It is the register, not this file, that carries the judgement.** Which jobs
 report rather than judge is a decision somebody made about a workflow, and it
@@ -44,9 +50,9 @@ import tomllib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REGISTER = ROOT / "70-operations" / "required-checks.toml"
 
-# How many recent pull requests each repository is asked about. Enough that a
-# path-filtered workflow which ran on one of them is seen, few enough that the
-# answer is about the repository as it is now.
+# How many recently merged pull requests each repository is asked about. Enough
+# that a path-filtered workflow which ran on one of them is seen, few enough that
+# the answer is about the repository as it is now.
 SAMPLED = 6
 
 
@@ -160,11 +166,11 @@ def required_in(owner: str, name: str) -> set[str]:
 
 
 def observed_in(owner: str, name: str, sampled: int = SAMPLED) -> set[str]:
-    """Every check name recent pull requests in a repository produced."""
+    """Every check name a repository's recently merged pull requests produced."""
     repo = named(owner, "organisation") + "/" + named(name, "repository")
     raw = _run(
         [
-            "gh", "pr", "list", "-R", repo, "--state", "all",
+            "gh", "pr", "list", "-R", repo, "--state", "merged",
             "--limit", str(int(sampled)), "--json", "statusCheckRollup",
         ]
     )
@@ -176,8 +182,8 @@ def observed_in(owner: str, name: str, sampled: int = SAMPLED) -> set[str]:
                 names.add(name)
     if not names:
         raise Unanswerable(
-            f"{repo} produced no check name on any of its last {sampled} pull "
-            "requests, so what runs there is unknown rather than covered"
+            f"{repo} produced no check name on any of its last {sampled} merged "
+            "pull requests, so what runs there is unknown rather than covered"
         )
     return names
 
