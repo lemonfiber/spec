@@ -121,6 +121,7 @@ Decisions about a repository outside this organisation, such as
 | The companion installs a plugin as drafted for N5, N20 and N25: it rehearses the install in full, approves each value that would leave the machine on its own and agrees to the install separately, and takes the source in one text field that explains the three shapes it may take | [N5](../10-functional/features/n-companion/n5-connecting-the-stack.md), [N20](../10-functional/features/n-companion/n20-what-a-plugin-may-send.md), [N25](../10-functional/features/n-companion/n25-a-plugin-after-it-lands.md) |
 | The companion takes no recipe inputs: a plugin whose recipe asks for one is rehearsed in full, and its install says the inputs are given at the web console or the terminal | [N17-R6](../10-functional/features/n-companion/n17-where-a-message-goes.md); this row |
 | The companion's plugin work lands in two pull requests: the list, installing, the rehearsal, agreeing and following first, then updating and removing | This row |
+| The documentation site's stack-manifest pages keep only what an operator does with a stack and link the field reference to the contract on the frontpage; once the core publishes `contract/stack-manifest.schema.json`, as it does the plugin manifest's, the site renders the field tables from it | [REPO-R82](../30-repos/website-docs.md); the schema is not yet a requirement |
 
 ## Requirements
 
