@@ -273,7 +273,8 @@ class PullsAndProposals(Board):
         prs = {"core": [{"number": 1, "url": "https://x/1", "body": ""}]}
         pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
         data, _ = self.snapshot("--prs", "prs.json")
-        self.assertEqual([r["open_pulls"] for r in data["repos"]], [0, 1, 0])
+        self.assertEqual([r["open_pulls"] for r in data["repos"]], [None, 1, None],
+                         "a repository whose pull requests were not read counts none")
         self.assertIsNone(data["pulls"][0]["author"])
 
     def write_prs(self, prs):
@@ -291,7 +292,12 @@ class PullsAndProposals(Board):
         self.assertEqual((core["open_pulls"], core["counted_pulls"], core["over_cap"]),
                          (board.CAP + 2, board.CAP + 1, True))
         spec = next(r for r in data["repos"] if r["name"] == "spec")
-        self.assertEqual((spec["counted_pulls"], spec["over_cap"]), (0, False))
+        self.assertEqual((spec["counted_pulls"], spec["over_cap"]), (None, None))
+        self.write_prs({"spec": [], "core": []})
+        data, _ = self.snapshot("--prs", "prs.json")
+        core = next(r for r in data["repos"] if r["name"] == "core")
+        self.assertEqual((core["open_pulls"], core["counted_pulls"], core["over_cap"]),
+                         (0, 0, False), "read and holding none")
 
     def test_a_repository_at_the_cap_is_not_over_it(self):
         self.write_prs({"core": [{"number": n, "url": f"https://x/{n}"}
