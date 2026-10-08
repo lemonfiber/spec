@@ -90,8 +90,20 @@ that revision and its date so a reader can tell how old the words are. A build f
 nothing, so it succeeds offline and renders the same site from the same commit a year
 later.
 
-The versions of the prose are built as a matrix from the first release, rather than
-retrofitted — switching versioning on later renames every published URL.
+Two pin sets stand behind the published site. `next` is the submodule pins, moved by
+pull request as above. The stable set, `pins/stable.toml`, is what the newest released
+version recorded: the core at its release tag, each embedded repository at the commit
+the version's manifest names under `pins`, and every other repository at its default
+branch's last commit on or before the version's `released_on`, which git answers for a
+release that recorded nothing about it. A reader following instructions for the release
+they installed gets the pages that release shipped with.
+
+Every minor from 0.16.0 on is kept. When a version is cut, the site is built at its
+stable pins under `/v<major>.<minor>/` and the build is frozen as a release asset of
+this repository; it is never rebuilt. A deploy builds two sites, the newest stable at
+`/` and `next` at `/next/`, and puts each frozen build at its path beside them. 0.16.0
+is the first kept because it is the first release with plugins, the first surface
+written against by authors outside the organisation.
 
 ## Maintenance
 
@@ -121,6 +133,9 @@ prose as well as authored prose — this is the only build that sees all of it a
 | **REPO-R81** | Every authored page MUST declare its topic, `use` or `build`; the navigation MUST be built per topic from that declaration, and a check MUST refuse a page with none or one under the other topic's tree. |
 | **REPO-R82** | An authored page MUST NOT restate a normative page another repository owns; that page MUST be mirrored instead. |
 | **REPO-R83** | The build MUST publish a provenance index mapping every route it renders to the repository, the path and the revision it was rendered from. |
+| **REPO-R88** | The stable documentation MUST be rendered from the revisions the newest released version recorded: the core at the tag it was released as, each embedded repository at the commit the version's manifest names under `pins`, and any other repository at its default branch's last commit on or before the version's `released_on`. A check MUST refuse a stable pin that is none of these. |
+| **REPO-R89** | Every minor version from 0.16.0 on MUST be published under `/v<major>.<minor>/` from a build frozen when the version was cut and kept as a release asset of this repository; the newest stable MUST be published at `/` and the submodule pins under `/next/`, and a deploy MUST build only those two. |
+| **REPO-R90** | Every page MUST carry a switcher naming every published version and linking to the same route in each version that serves it, and each version MUST be searched on its own. |
 
 ## Related
 
