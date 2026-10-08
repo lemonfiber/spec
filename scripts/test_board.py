@@ -155,8 +155,10 @@ class TheShape(Board):
         self.assertEqual(data["format"], board.FORMAT)
         self.assertEqual(list(data), ["format", "generated_at", "ref", "sources", "unread",
                                       "areas", "features", "requirements", "versions",
-                                      "trackers", "pulls", "contested", "repos", "releases",
-                                      "proposals"])
+                                      "trackers", "pulls", "claims", "contested", "repos",
+                                      "releases", "proposals"])
+        self.assertEqual(data["claims"], {"cap": board.CAP,
+                                          "stale_days": board.STALE_AFTER.days})
         self.assertEqual(data["unread"], [])
         self.assertEqual(set(data["sources"]), {"spec", "core", "app", "lemonfiber"})
 
