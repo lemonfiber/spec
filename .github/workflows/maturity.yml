@@ -1,0 +1,108 @@
+# The catalogue's maturity follows the trackers — OPS-R78.
+#
+# Each feature's `maturity:` is derived from every repository's tracker and every
+# version manifest, and a tracker changes in its own repository's pull requests.
+# So the catalogue is rewritten here, hourly and on demand, and the change arrives
+# as a pull request from the release App that merges itself once its checks pass,
+# the way a manifest transition does. Nothing is opened when nothing moved.
+#
+# It runs on a schedule and on dispatch only, never on an event a fork can raise,
+# and reads nothing a contributor writes except the trackers on default branches.
+# Every input has to load or the run stops: `fetch_trackers.sh` refuses a tracker
+# it could not read, a repository keeping none included, and `maturity.py` refuses
+# a derivation from fewer trackers than there are repositories, so a failed read
+# can never be written down as features less built than they are.
+name: maturity
+
+on:
+  schedule:
+    - cron: "53 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: maturity
+  cancel-in-progress: false
+
+jobs:
+  follow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Rewrite every maturity the trackers moved
+        id: rewrite
+        run: |
+          set -euo pipefail
+          bash scripts/fetch_trackers.sh checkouts/trackers > tracker-args.txt
+          mapfile -t args < tracker-args.txt
+          python3 scripts/maturity.py --spec . "${args[@]}" --write | tee moved.txt
+          python3 scripts/gen_board.py
+          python3 scripts/integrity.py --write
+          # The rewritten catalogue is held to the same check the integrity job
+          # runs, against the same inputs, before anything leaves this runner.
+          python3 scripts/maturity.py --spec . "${args[@]}" --check
+          git diff --name-only > changed.txt
+          if [ -s changed.txt ]; then echo "changed=true" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Mint the release App token, for this repository's contents and pull requests only
+        if: steps.rewrite.outputs.changed == 'true'
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: spec
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Open the pull request that carries it
+        if: steps.rewrite.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          BOT: ${{ steps.token.outputs.app-slug }}[bot]
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          branch="chore/maturity-follows-the-trackers"
+          # A branch an earlier run of this workflow left is deleted rather than
+          # written onto: it is behind main, and its pull request closes with it.
+          # A branch of that name somebody else pushed is not this workflow's, and
+          # the run stops rather than delete their work.
+          if gh api "repos/${OWNER}/spec/git/ref/heads/${branch}" --silent 2>/dev/null; then
+            others=$(gh api "repos/${OWNER}/spec/compare/main...${branch}" \
+              --jq "[.commits[] | select(.author.login != \"${BOT}\")] | length")
+            if [ "$others" != "0" ]; then
+              echo "::error::${branch} carries ${others} commit(s) the release App did not write; leaving it alone."
+              exit 1
+            fi
+            gh api --method DELETE "repos/${OWNER}/spec/git/refs/heads/${branch}"
+          fi
+          base=$(gh api "repos/${OWNER}/spec/git/ref/heads/main" --jq '.object.sha')
+          gh api --method POST "repos/${OWNER}/spec/git/refs" -f ref="refs/heads/${branch}" -f sha="$base" --silent
+          msg=$(printf 'chore(catalogue): maturity follows the trackers\n\n%s\n\nSpec: OPS-R78' "$(cat moved.txt)")
+          # Author and committer omitted: GitHub fills them from the App and marks
+          # each commit verified. One commit per file, collapsed by the squash.
+          while read -r path; do
+            blob=$(gh api "repos/${OWNER}/spec/contents/${path}?ref=${branch}" --jq '.sha')
+            gh api --method PUT "repos/${OWNER}/spec/contents/${path}" \
+              -f message="$msg" -f branch="$branch" -f sha="$blob" \
+              -f content="$(base64 < "$path" | tr -d '\n')" --silent
+          done < changed.txt
+          head=$(gh api "repos/${OWNER}/spec/git/ref/heads/${branch}" --jq '.object.sha')
+          body=$(printf 'The trackers moved these features. Written by the maturity workflow.\n\n%s\n\nSpec: OPS-R78' "$(sed 's/^/    /' moved.txt)")
+          url=$(gh pr create --repo "${OWNER}/spec" --base main --head "$branch" \
+            --title "chore(catalogue): maturity follows the trackers" --body "$body")
+          # The pull request this run just opened, by its address, merging only at
+          # the commit this run wrote: a push to the branch after this point is not
+          # merged by this arming.
+          gh pr merge "$url" --auto --squash --match-head-commit "$head"

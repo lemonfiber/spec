@@ -17,7 +17,10 @@ Every feature carries two answers that are easy to confuse and are kept apart.
 **`status`** is about the specification — `draft` until it is agreed, then
 `accepted`, and citable. **`maturity`** is about the implementation — `planned`,
 `building`, `built`, `shipped` (with the version that carried it), or
-`withdrawn`. A feature is routinely `accepted` and `planned` for a year;
+`withdrawn`. It is derived rather than written: `scripts/maturity.py` reads every
+repository's tracker and every version manifest, and the maturity workflow opens
+the pull request that rewrites it whenever the trackers move a feature
+([OPS-R78](../../70-operations/staging.md)). `withdrawn` alone is set by hand. A feature is routinely `accepted` and `planned` for a year;
 conflating the two would lose whichever question is asked less often.
 
 `built` and `shipped` are also worth keeping apart. A feature whose every

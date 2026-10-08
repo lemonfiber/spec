@@ -5,7 +5,7 @@ kind: feature
 area: L
 audience: operator
 status: accepted
-maturity: building
+maturity: planned
 priority: P1
 labels: [release, cli, verification]
 ---

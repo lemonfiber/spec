@@ -5,7 +5,8 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: building
+maturity: shipped
+shipped: 0.16.0
 priority: P1
 labels: [extensibility, ux, verification]
 requires: [F3, F6, E4]

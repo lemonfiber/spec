@@ -5,7 +5,7 @@ kind: feature
 area: D
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [network]
 requires: [B5]
 relates: [C2, C7, D5]

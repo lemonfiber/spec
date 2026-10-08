@@ -508,8 +508,11 @@ shipped. A rule nothing can satisfy is a rule nobody runs.
 `maturity` is the catalogue's own answer to *how far is this built*, kept apart
 from the `status` that describes the specification — a feature can be `Accepted`
 and unbuilt, and conflating the two loses whichever question is asked less often.
-Like the tracker tick in `OPS-R34`, it is an attestation written before the tag
-rather than derived from it, and it is read per requirement:
+It is derived from every repository's tracker and every version manifest rather
+than typed (`OPS-R78`): `planned` where no requirement is done, `building` where
+some are, `built` where all are, and `shipped` where all are and every one is
+locked by a released version. `withdrawn` is the one value a person sets. It is
+read per requirement:
 
 | `maturity` | What it answers for the requirements the version locks |
 |-----------|--------------------------------------------------------|
@@ -525,7 +528,10 @@ carrying it is staged.
 The two records are held against each other rather than trusted separately: a
 `planned` feature whose requirements the tracker ticks is refused here even
 though the goal gate would pass them, because a catalogue calling a feature
-untouched and a tracker calling its requirements done cannot both be right.
+untouched and a tracker calling its requirements done cannot both be right. The
+specification's integrity job refuses a catalogue that says anything other than
+what the trackers make it, naming each feature, and the maturity workflow opens
+the pull request that corrects it within the hour.
 
 ## Cross-repo orchestration
 
@@ -661,6 +667,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R74** | Every repository named in some version's `satisfied_in` MUST keep its implementation status in a `status.toml` at its root — or, where its rows would run past a thousand lines, in one `status/<feature>.toml` per feature holding only that feature's rows — one row per requirement, each naming the requirement, its state (`done`, `partial` or `open`), the evidence that holds it by path (the code and the test) and, optionally, the commit it landed in. A pull request that changes whether a requirement is met MUST change that row. The release gate and the no-stubs gate MUST read every searched repository's tracker, and a requirement is done where any of them records it done. |
 | **OPS-R75** | A repository's tracker MUST be refused where it keeps both a `status.toml` and a `status/` directory, where a file under `status/` holds another feature's row, or where a row names a requirement the specification does not define, names one it retired before any version locked it, names one twice, records one done with no evidence, names evidence that does not exist, or names a landed commit its repository's history does not hold. A tracker that cannot be read MUST stop the gate rather than be read as empty. |
 | **OPS-R76** | A report MUST say, for every goal of every version, released ones included, whether it is met, cited and recorded done nowhere, recorded done and cited nowhere, claimed by an open pull request, or open, read from the same sources and revisions as the release gate. It MUST be published where a person and a script can read it without a checkout, refreshed at least hourly, and the same report MUST be producible locally from checkouts at their default branch rather than their working trees. Its machine-readable form MUST name its format and the commit of every source it was read from, each generation MUST stay fetchable once published, and publishing it MUST NOT commit to the specification. A repository it cannot read MUST be named in it with the reason, and a goal searched there that the repositories it could read do not show met MUST be reported unknown, rather than the report stopping. |
+| **OPS-R78** | A feature's `maturity` MUST be derived from every repository's tracker and every version manifest — `planned` where no requirement it defines is done, `building` where some are, `built` where all are, and `shipped`, with `shipped:` naming the latest released version locking one, where all are done and every one is locked by a released version — retired requirements left out, and `withdrawn` alone set by hand. A check MUST refuse a catalogue that says otherwise, naming each feature, and an automated pull request MUST rewrite it whenever the trackers move one. |
 | **OPS-R57** | A manifest whose `status` is `released` MUST carry `released_on`, the UTC date its release was published, as `YYYY-MM-DD`. The transition to `released` MUST write it from the publication the transition responds to; it MUST NOT be entered by hand, and no earlier status may carry it. |
 | **OPS-R60** | A version MAY be published as a pre-release before it is releasable. A pre-release MUST NOT move the version's `status`, MUST NOT write `released_on` or `released_as`, and MUST NOT be recorded as the release; the manifest MUST go on answering where the version is. |
 | **OPS-R61** | A pre-release MUST be identifiable as one in its tag, in what the release it publishes says, and in the manifest record, and MUST NOT carry the version's own tag. Its tag MUST be that version with a pre-release identifier appended, so it orders below the version it precedes; the identifier MUST NOT be one `ARCH-R43` gives another meaning to. The distinction MUST NOT rest on the forge's own pre-release flag, which every version below `1.0.0` carries and which therefore separates nothing. |

@@ -147,6 +147,21 @@ board-snapshot root="..":
       --json checkouts/board.json --hash checkouts/board.sha256
     echo "board: checkouts/board.json"
 
+# Each feature's maturity, derived from every repository's tracker at its default
+# branch and every manifest (OPS-R78), written into the frontmatter, with the
+# board regenerated. The maturity workflow does the same hourly and opens the PR.
+maturity:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p checkouts && dir=$(mktemp -d ./checkouts/trackers.XXXXXX)
+    trap 'rm -rf "$dir"' EXIT
+    args=()
+    bash scripts/fetch_trackers.sh "$dir" > "$dir/args.txt"
+    while IFS= read -r a; do args+=("$a"); done < "$dir/args.txt"
+    python3 scripts/maturity.py --spec . "${args[@]}" --write
+    python3 scripts/gen_board.py
+    python3 scripts/integrity.py --write
+
 # Regenerate the feature board (index.json, each area's board.json, BOARD.md) from frontmatter + manifests.
 board:
     python3 scripts/gen_board.py

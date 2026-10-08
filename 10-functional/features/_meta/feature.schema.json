@@ -69,7 +69,7 @@
         "shipped",
         "withdrawn"
       ],
-      "description": "How far the implementation has got. Orthogonal to `status`, which describes the specification: a feature can be `accepted` and unbuilt, or `draft` and half-written in code. Merging the two answers loses whichever question is asked less often. `built` sits between `building` and `shipped`: every requirement is met and merged, and the version carrying it is staged rather than released — the state a finished feature waits in, which `building` used to have to cover as well."
+      "description": "How far the implementation has got, derived from every repository's tracker and every version manifest by scripts/maturity.py (OPS-R78); only `withdrawn` is set by hand. Orthogonal to `status`, which describes the specification: a feature can be `accepted` and unbuilt, or `draft` and half-written in code. Merging the two answers loses whichever question is asked less often. `built` sits between `building` and `shipped`: every requirement is met and merged, and the version carrying it is staged rather than released — the state a finished feature waits in, which `building` used to have to cover as well."
     },
     "shipped": {
       "type": "string",

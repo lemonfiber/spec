@@ -5,7 +5,8 @@ kind: feature
 area: G
 audience: both
 status: accepted
-maturity: building
+maturity: shipped
+shipped: 0.17.0
 labels: [cli, ux]
 relates: [C6, D4, D6, G6]
 ---
