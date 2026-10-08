@@ -158,6 +158,7 @@ Decisions about a repository outside this organisation, such as
 | DNS-01 ships with `rfc2136`, `cloudflare`, `route53`, `gcloud`, `azuredns`, `digitalocean`, `hetzner`, `desec`, `duckdns` and `exec`, each tested against a stand-in, every credential read from a file and never logged | [ARCH-R185 to ARCH-R198](../20-architecture/contracts/certificates.md) |
 | What a tool result carries from the stack goes back to the model as data, delimited from the server's own words | [F13-R14](../10-functional/features/f-extensibility/f13-mcp.md) |
 | The operator's event stream carries `playing`, every active session in the envelope `GET /api/playing` answers, sent again every 5 seconds as a member's stream is, so the Home Assistant integration follows what is playing from the stream rather than polling (user, 2026-10-09) | [ARCH-R178](../20-architecture/contracts/web-api.md) |
+| A private root excludes whole each kind of name it is given none of, every address where no address is given and every host name where no host name is, carries an extended key usage of TLS server alone, and names what it issues by a label that is none of the names | [ARCH-R192](../20-architecture/contracts/certificates.md) |
 
 ## Requirements
 
