@@ -31,8 +31,6 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import status_check  # noqa: E402
 
-LEGACY_HEADER = "| Deliverable | Spec | Status | Landing |\n|---|---|---|---|\n"
-
 
 def run_main(argv):
     """Call main() with argv patched; return (exit code, stdout)."""
@@ -243,47 +241,6 @@ class TheShapeIsRefusedBeforeItIsRead(Tree):
     def test_landed_that_is_not_a_commit(self):
         self.assertIn("hexadecimal",
                       self.refused(ROW + 'landed = "HEAD"\n'))
-
-
-class TheCatalogueAgreesWithEveryTracker(Tree):
-    def test_a_finished_feature_done_whole_across_two_trackers_passes(self):
-        self.feature("B1", "built", 2)
-        mine = self.tracker(ROW)
-        theirs = self.tracker(ROW.replace("B1-R1", "B1-R2"), "web/status.toml")
-        code, said = run_main(["catalogue", "--spec", "spec",
-                               "--tracker", f"repo={mine.parent}", "--tracker", f"web={theirs.parent}"])
-        self.assertEqual(code, 0, said)
-
-    def test_a_finished_feature_missing_a_requirement_is_named(self):
-        self.feature("B1", "built", 3)
-        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW).parent}"])
-        self.assertEqual(code, 1)
-        self.assertIn("B1-R2, B1-R3", said)
-        self.assertIn("OPS-R73", said)
-
-    def test_a_shipped_feature_is_held_to_the_same(self):
-        """D6's shape: shipped, and a requirement added after it shipped."""
-        self.feature("B1", "shipped", 2)
-        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW).parent}"])
-        self.assertEqual(code, 1)
-        self.assertIn("B1 is `shipped`", said)
-
-    def test_a_retired_number_is_not_asked_for(self):
-        self.feature("B1", "built", 2, retired=(2,))
-        code, said = run_main(["catalogue", "--spec", "spec", "--tracker", f"repo={self.tracker(ROW).parent}"])
-        self.assertEqual(code, 0, said)
-
-    def test_a_building_feature_is_not_asked(self):
-        code, _ = run_main(["catalogue", "--spec", "spec"])
-        self.assertEqual(code, 0)
-
-    def test_a_tracker_still_kept_as_markdown_is_read_beside_them(self):
-        self.feature("B1", "built", 2)
-        legacy = pathlib.Path("tracker.md")
-        legacy.write_text(LEGACY_HEADER + "| x | `B1-R2` | ✅ | y |\n", encoding="utf-8")
-        code, said = run_main(["catalogue", "--spec", "spec",
-                               "--tracker", f"repo={self.tracker(ROW).parent}", "--legacy", str(legacy)])
-        self.assertEqual(code, 0, said)
 
 
 class ARepositoryPastAThousandLinesSplitsByFeature(Tree):

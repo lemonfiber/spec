@@ -5,7 +5,8 @@ kind: feature
 area: E
 audience: operator
 status: accepted
-maturity: built
+maturity: shipped
+shipped: 0.17.0
 labels: [updates]
 relates: [A5, C9, E2, E3, E4]
 ---

@@ -5,7 +5,7 @@ kind: feature
 area: A
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [ux]
 relates: [A2, A5, C5, C9, E4]
 ---

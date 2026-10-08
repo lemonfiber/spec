@@ -5,7 +5,8 @@ kind: feature
 area: G
 audience: both
 status: accepted
-maturity: built
+maturity: shipped
+shipped: 0.17.0
 priority: P2
 labels: [household, ux, verification]
 relates: [G6, D6, I1]

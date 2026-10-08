@@ -57,7 +57,7 @@ kind: feature          # epic-level item
 area: B                # component
 audience: operator     # who it's for: operator | household | both
 status: accepted       # the specification: draft → accepted → superseded → withdrawn
-maturity: building     # the implementation: planned → building → shipped | withdrawn
+maturity: building     # the implementation, derived: planned → building → built → shipped | withdrawn
 priority: P1           # P0..P3
 labels: [tui, telemetry, resilience]
 requires: [B2, C2, G7] # what it cannot meet its acceptance criteria without
@@ -73,7 +73,9 @@ community is invited to weigh in on before they become binding.
 deliberately a separate field, because the two answers move independently: a
 feature can be agreed and unbuilt for a year, or prototyped while its
 specification is still Draft. A `shipped` one also carries `shipped: 0.13.0`, the
-version it went out in. Which milestone a feature belongs to is read from the
+version it went out in. Nobody types either: both are derived from every
+repository's tracker and every version manifest, and a workflow writes them
+(`OPS-R78`); only `withdrawn` is set by hand. Which milestone a feature belongs to is read from the
 version that ships it rather than written here, so the two cannot disagree.
 
 ## The other kinds of documents

@@ -6,7 +6,7 @@ area: B
 audience: operator
 status: accepted
 maturity: shipped
-shipped: 0.13.0
+shipped: 0.15.0
 labels: [cli, storage, household]
 requires: [C5, D7, G4]
 relates: [B2, B5, B8, G1]

@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 16 shipped, 8 built, 42 building, 44 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 27 shipped, 24 built, 36 building, 23 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -22,77 +22,98 @@ code, and the two move independently.
 | [A6](a-getting-started/a6-uninstall.md) | Clean uninstall | A | operator | accepted | `0.13.0` |
 | [B4](b-running/b4-logs.md) | Log viewing | B | operator | accepted | `0.8.0` |
 | [B5](b-running/b5-notifications.md) | Notifications & alerting | B | both | accepted | `0.5.0` |
-| [B10](b-running/b10-hosting.md) | Hosting long-running commands | B | operator | accepted | `0.13.0` |
+| [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
+| [B10](b-running/b10-hosting.md) | Hosting long-running commands | B | operator | accepted | `0.15.0` |
 | [C2](c-trust/c2-vpn-verification.md) | VPN verification | C | operator | accepted | `0.6.0` |
 | [C3](c-trust/c3-auto-remediation.md) | Auto-remediation | C | operator | accepted | `0.7.0` |
 | [C5](c-trust/c5-storage.md) | Storage & hardlink management | C | operator | accepted | `0.6.0` |
 | [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.6.0` |
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
+| [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.17.0` |
 | [D5](d-content/d5-disk-space.md) | Disk space management | D | operator | accepted | `0.12.0` |
 | [D8](d-content/d8-parental-controls.md) | Parental controls | D | both | accepted | `0.12.0` |
 | [D9](d-content/d9-pipeline-trace.md) | "Where is my show?" pipeline trace | D | both | accepted | `0.4.0` |
+| [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.17.0` |
+| [E2](e-maintenance/e2-self-update.md) | Self-update | E | operator | accepted | `0.14.0` |
+| [E4](e-maintenance/e4-rollback.md) | Rollback | E | operator | accepted | `0.14.0` |
+| [E5](e-maintenance/e5-changelog.md) | Changelog & release notes | E | operator | accepted | `0.14.0` |
+| [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
+| [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | accepted | `0.16.0` |
+| [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | F | operator | accepted | `0.17.0` |
 | [G1](g-ux/g1-interface-tiers.md) | Interface tiers | G | both | accepted | `0.9.0` |
+| [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.17.0` |
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | G | household | accepted | `0.11.0` |
+| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
 
 ## Built — every requirement met, waiting for its version to be released
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
+| [A4](a-getting-started/a4-reconfiguration.md) | Reconfiguration | A | operator | accepted | `0.13.0`, `0.18.0` |
+| [B1](b-running/b1-forms.md) | Forms & partial stacks | B | operator | accepted | `0.1.0`, `0.17.0`, `0.18.0`, `0.8.0` |
+| [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.17.0`, `0.18.0`, `0.9.0` |
 | [C10](c-trust/c10-integration-keys.md) | Integration keys | C | operator | accepted | `0.18.0` |
-| [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.14.0`, `0.17.0` |
-| [E2](e-maintenance/e2-self-update.md) | Self-update | E | operator | accepted | `0.14.0` |
+| [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.18.0`, `0.4.0` |
+| [D10](d-content/d10-bandwidth.md) | Bandwidth & scheduling | D | operator | accepted | `0.12.0`, `0.18.0` |
 | [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.14.0`, `0.18.0`, `0.3.0` |
-| [E4](e-maintenance/e4-rollback.md) | Rollback | E | operator | accepted | `0.14.0` |
-| [E5](e-maintenance/e5-changelog.md) | Changelog & release notes | E | operator | accepted | `0.14.0` |
-| [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
+| [F4](f-extensibility/f4-capabilities.md) | The capability vocabulary | F | operator | accepted | `0.16.0`, `0.18.0` |
+| [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | accepted | `0.17.0`, `0.18.0` |
+| [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | accepted | `0.16.0`, `0.18.0` |
+| [F10](f-extensibility/f10-authoring.md) | Writing a plugin | F | operator | accepted | `0.16.0`, `0.17.0`, `0.18.0` |
 | [L3](l-release/l3-nas-image.md) | The image for a NAS | L | operator | accepted | `0.18.0` |
+| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | — |
+| [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
+| [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | accepted | — |
+| [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | accepted | — |
+| [N12](n-companion/n12-making-room.md) | Running out of room | N | operator | accepted | — |
+| [N13](n-companion/n13-taking-away.md) | Taking something away | N | operator | accepted | — |
+| [N14](n-companion/n14-what-version.md) | What is running, and what is newer | N | operator | accepted | — |
+| [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | accepted | — |
+| [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | — |
+| [N22](n-companion/n22-asking-for-help.md) | Asking for help | N | operator | accepted | — |
+| [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
+| [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
 
 ## Building — work has started and is not finished
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [A2](a-getting-started/a2-setup-wizard.md) | Setup wizard | A | operator | accepted | `0.18.0`, `0.2.0` |
-| [A4](a-getting-started/a4-reconfiguration.md) | Reconfiguration | A | operator | accepted | `0.13.0`, `0.18.0` |
 | [A5](a-getting-started/a5-migration.md) | Migration from an existing stack | A | operator | accepted | `0.13.0`, `0.18.0` |
 | [A7](a-getting-started/a7-credential-management.md) | Credential management & rotation | A | operator | accepted | `0.13.0`, `0.18.0` |
-| [B1](b-running/b1-forms.md) | Forms & partial stacks | B | operator | accepted | `0.1.0`, `0.17.0`, `0.18.0`, `0.8.0` |
 | [B2](b-running/b2-lifecycle.md) | Lifecycle control | B | operator | accepted | `0.15.0`, `0.18.0`, `0.8.0` |
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
-| [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.18.0`, `0.2.0`, `0.8.0` |
 | [C4](c-trust/c4-support-bundle.md) | Support bundle | C | operator | accepted | `0.18.0`, `0.7.0` |
-| [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.17.0`, `0.18.0`, `0.9.0` |
 | [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.18.0`, `0.4.0`, `0.7.0` |
-| [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.12.0`, `0.17.0`, `0.4.0` |
 | [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.18.0`, `0.4.0` |
-| [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.18.0`, `0.4.0` |
 | [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0`, `0.19.0` |
 | [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0`, `0.19.0` |
 | [D7](d-content/d7-approval-quotas.md) | Request approval & quotas | D | both | accepted | `0.12.0`, `0.18.0` |
-| [D10](d-content/d10-bandwidth.md) | Bandwidth & scheduling | D | operator | accepted | `0.12.0`, `0.18.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
-| [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
-| [F4](f-extensibility/f4-capabilities.md) | The capability vocabulary | F | operator | accepted | `0.16.0`, `0.18.0` |
-| [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | accepted | `0.17.0`, `0.18.0` |
-| [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | accepted | `0.16.0`, `0.18.0` |
-| [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | accepted | `0.16.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
-| [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | F | operator | accepted | `0.16.0`, `0.17.0` |
-| [F10](f-extensibility/f10-authoring.md) | Writing a plugin | F | operator | accepted | `0.16.0`, `0.17.0`, `0.18.0` |
 | [F12](f-extensibility/f12-home-assistant.md) | Home Assistant | F | operator | accepted | `0.18.0` |
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.18.0`, `0.9.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.18.0`, `0.5.0` |
-| [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.10.0`, `0.11.0`, `0.17.0` |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.18.0`, `0.5.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0`, `0.18.0` |
 | [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0`, `0.19.0` |
-| [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
 | [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0`, `1.0.0` |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0` |
 | [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | `0.18.0` |
+| [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
+| [N9](n-companion/n9-who-gets-in.md) | Who gets in, and what the stack holds for them | N | operator | accepted | — |
+| [N10](n-companion/n10-nobody-watching.md) | What the stack does when nobody is watching | N | operator | accepted | — |
+| [N11](n-companion/n11-the-record.md) | What was done, and where it came from | N | operator | accepted | — |
+| [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |
+| [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
+| [N18](n-companion/n18-running-part-of-it.md) | Running part of it on purpose | N | operator | accepted | — |
+| [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
+| [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | — |
+| [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |
 
 ## Planned — specified, not yet built
 
@@ -117,31 +138,10 @@ code, and the two move independently.
 | [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.24.0` |
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.23.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.23.0` |
-| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | — |
-| [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
-| [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
-| [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | accepted | — |
-| [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | accepted | — |
-| [N9](n-companion/n9-who-gets-in.md) | Who gets in, and what the stack holds for them | N | operator | accepted | — |
-| [N10](n-companion/n10-nobody-watching.md) | What the stack does when nobody is watching | N | operator | accepted | — |
-| [N11](n-companion/n11-the-record.md) | What was done, and where it came from | N | operator | accepted | — |
-| [N12](n-companion/n12-making-room.md) | Running out of room | N | operator | accepted | — |
-| [N13](n-companion/n13-taking-away.md) | Taking something away | N | operator | accepted | — |
-| [N14](n-companion/n14-what-version.md) | What is running, and what is newer | N | operator | accepted | — |
-| [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | accepted | — |
-| [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |
-| [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
-| [N18](n-companion/n18-running-part-of-it.md) | Running part of it on purpose | N | operator | accepted | — |
-| [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
+| [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
 | [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | accepted | `0.18.0` |
-| [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | — |
-| [N22](n-companion/n22-asking-for-help.md) | Asking for help | N | operator | accepted | — |
-| [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
-| [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
 | [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0` |
 | [N26](n-companion/n26-what-the-glue-is-doing.md) | What the glue is doing | N | both | accepted | — |
-| [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | — |
-| [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |
 
 ## Withdrawn — no longer to be built
 

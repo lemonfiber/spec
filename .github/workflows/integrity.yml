@@ -62,31 +62,16 @@ jobs:
       # prose.
       - name: The bundled-service count matches the stack
         run: python3 scripts/check_services.py
-      # Every repository's tracker, read over the wire for the same reason: a
-      # feature this repository calls finished has to be done whole across them,
-      # and a change here that adds a requirement to one without reopening it is
-      # refused before it merges rather than in some repository's next pull
-      # request (OPS-R73, OPS-R74). A repository keeping no status.toml is read as
-      # recording nothing; a fetch that fails for any other reason stops the step.
-      - name: A finished feature is done whole across the trackers
+      # Every repository's tracker, read over the wire for the same reason, and
+      # the catalogue held to what they make each feature: planned, building,
+      # built or shipped (OPS-R73, OPS-R78). A tracker that moves a feature is
+      # answered by the maturity workflow's pull request within the hour.
+      - name: Every feature's maturity is what the trackers make it
         run: |
           set -euo pipefail
-          args=()
-          while read -r r; do
-            # The tracker alone, at the default branch: status.toml, or status/
-            # where a repository splits it by feature. A clone that fails stops
-            # the step rather than reading as a repository that built nothing.
-            git clone --quiet --depth 1 --filter=blob:none --sparse \
-              "https://github.com/lemonfiber/${r}.git" "checkouts/trackers/${r}"
-            git -C "checkouts/trackers/${r}" sparse-checkout set --no-cone /status.toml /status/
-            args+=(--tracker "${r}=checkouts/trackers/${r}")
-          done < <(python3 scripts/status_check.py repos --spec .)
-          curl -fsSL --proto '=https' --tlsv1.2 --retry 3 -o tracker.md \
-            https://raw.githubusercontent.com/lemonfiber/lemonfiber/main/IMPLEMENTATION-STATUS.md \
-            || rm -f tracker.md
-          legacy=()
-          if [ -f tracker.md ]; then legacy=(--legacy tracker.md); fi
-          python3 scripts/status_check.py catalogue --spec . "${args[@]}" "${legacy[@]}"
+          bash scripts/fetch_trackers.sh checkouts/trackers > tracker-args.txt
+          mapfile -t args < tracker-args.txt
+          python3 scripts/maturity.py --spec . "${args[@]}" --check
       # `gen_gates.py` reads the reusable workflows and writes `gates.yml`, which
       # takes a YAML reader; the version is the one the coverage job installs.
       - name: Install the YAML reader the gates generator uses

@@ -70,6 +70,7 @@ jobs:
           coverage run --append scripts/test_reopen_resolved.py
           coverage run --append scripts/test_rfc_convert.py
           coverage run --append scripts/test_proposal_approve.py
+          coverage run --append scripts/test_maturity.py
           coverage run --append scripts/test_spec_check.py
           coverage run --append scripts/test_integrity.py
           coverage run --append scripts/test_shared_files.py
