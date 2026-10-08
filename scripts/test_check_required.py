@@ -229,6 +229,15 @@ class TheSilences(unittest.TestCase):
             self.assertEqual(check_required._run(["gh", "api", "x"]), "x")
 
 
+class WhatIsSampled(unittest.TestCase):
+    def test_only_merged_pull_requests_are_asked_about(self):
+        rollup = '[{"statusCheckRollup":[{"name":"a"}]}]'
+        with mock.patch.object(check_required, "_run", return_value=rollup) as ran:
+            check_required.observed_in("lemonfiber", "homebrew-tap")
+        argv = ran.call_args.args[0]
+        self.assertEqual(argv[argv.index("--state") + 1], "merged")
+
+
 class TheCommandLine(unittest.TestCase):
     def test_a_clean_estate_passes(self):
         with mock.patch.object(check_required, "look", return_value=0):
