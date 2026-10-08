@@ -239,7 +239,7 @@
 # and a call carrying it refused where the stack moved since, as the plugin writes are;
 # a call carrying none acts as before. Home Assistant's controls rehearse and then act
 # (`F12-R8`), so what they carry out is what they were shown.
-# 332 goals, seeded from the roadmap milestone this version serves;
+# 349 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -251,6 +251,14 @@
 # a reset. Without it a lapsed invitation stays claimable at Jellyfin until a lemonfiber
 # process next reads the household. The decline service is its own repository (ADR-0033),
 # so this version cuts it, before the core.
+# `F13-R12` to `F13-R14` and `ARCH-R185` to `ARCH-R198` give the MCP server's HTTP mode its
+# certificate, and the assistant's reading of a tool result its boundary. An assistant whose
+# provider makes the connection accepts only a publicly trusted chain, and an operator who wants
+# nothing of a company outside the house still needs a way in, so the certificate comes one of
+# four ways: the operator's files, ACME from any authority, a root lemonfiber makes and
+# constrains to the server's names, or a certificate of its own pinned by fingerprint, which is
+# what it serves unless told otherwise. The certificates contract writes the settings, state and
+# renewal once, so the core's remote access offers the same four when it comes.
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
@@ -569,6 +577,23 @@ goals   = [
     "F13-R9",
     "F13-R10",
     "F13-R11",
+    "F13-R12",
+    "F13-R13",
+    "F13-R14",
+    "ARCH-R185",
+    "ARCH-R186",
+    "ARCH-R187",
+    "ARCH-R188",
+    "ARCH-R189",
+    "ARCH-R190",
+    "ARCH-R191",
+    "ARCH-R192",
+    "ARCH-R193",
+    "ARCH-R194",
+    "ARCH-R195",
+    "ARCH-R196",
+    "ARCH-R197",
+    "ARCH-R198",
     "D10-R15",
     "D10-R16",
     "ARCH-R156",
