@@ -232,6 +232,32 @@ class CheckImagePinsTests(TrainImages):
         self.assertEqual(code, 0)
         self.assertIn("decline is pinned at v0.2.0-pre.1", out)
 
+    def write_split(self, tag, include='"services/decline.toml"'):
+        pathlib.Path("stack.toml").write_text(f"schema_version = 1\ninclude = [{include}]\n", encoding="utf-8")
+        pathlib.Path("services").mkdir(exist_ok=True)
+        pathlib.Path("services/decline.toml").write_text(
+            '[[service]]\nid = "decline"\nimage = "ghcr.io/lemonfiber/decline"\n'
+            f'tag = "{tag}"\ndigest = "{self.DIGEST}"\n', encoding="utf-8")
+
+    def test_main_reads_each_service_file_the_root_includes(self):
+        self.write_split("v0.2.0")
+        code, out = self.check("v0.2.0")
+        self.assertEqual(code, 0, out)
+        self.assertIn("decline is pinned at v0.2.0", out)
+
+    def test_main_names_an_include_it_cannot_read(self):
+        self.write_split("v0.2.0", include='"services/decline.toml", "services/gone.toml", "../outside.toml"')
+        code, out = self.check("v0.2.0")
+        self.assertEqual(code, 1)
+        self.assertIn("the stack includes services/gone.toml, which is not a service file beside it", out)
+        self.assertIn("the stack includes ../outside.toml, which is not a service file beside it", out)
+
+    def test_main_refuses_a_stack_it_cannot_parse(self):
+        pathlib.Path("stack.toml").write_text("[[service\n", encoding="utf-8")
+        code, out = self.check("v0.2.0")
+        self.assertEqual(code, 1)
+        self.assertIn("the stack manifest cannot be read", out)
+
     def test_main_refuses_a_stack_still_on_the_pre_release(self):
         """The pre-release's digests are not the release's, so the core waits for the repin."""
         self.write_stack("v0.2.0-pre.1")

@@ -69,6 +69,14 @@ class ServiceCount(unittest.TestCase):
         self.assertEqual(code, 0, said)
         self.assertIn("twenty — 1 page(s) agree", said)
 
+    def test_a_root_is_counted_by_its_include_list_alone(self):
+        entries = ", ".join(f'"services/s{n}.toml"' for n in range(22))
+        self.stack.write_text(f"schema_version = 1\ninclude = [{entries}]\n", encoding="utf-8")
+        self.page("a.md", "The twenty-two bundled services it composes.\n")
+        code, said = self.gate()
+        self.assertEqual(code, 0, said)
+        self.assertIn("twenty-two — 1 page(s) agree", said)
+
     def test_prose_that_disagrees_is_named_with_both_numbers(self):
         self.page("a.md", "The nineteen bundled services it composes.\n")
         code, said = self.gate()
