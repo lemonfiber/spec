@@ -65,6 +65,14 @@
 # settled, read as facts on a read that offers no setup, and a walkthrough's steps each
 # naming the job they belong to.
 #
+# `ARCH-R173` to `ARCH-R177` publish the rest of what the contract knows beside the
+# artefact (D24, D25, D26): the event stream with its schemas and heartbeat, an example
+# of every kind, read and action from golden fixtures, the code registry as
+# `contract/codes.json` with the reference page generated from it, a diff against the
+# previous release, and an OpenAPI document. `F8-R19` lists each recipe input a plugin
+# asks for in the plugin reading, so the web console's install (F6) collects it before
+# the yes.
+#
 # `A2-R17` makes setup's wire step normative: after the stack starts, setup wires it as
 # `seed` does and reports each connection before it finishes, so a fresh install is one
 # stack rather than containers that cannot find each other.
@@ -231,7 +239,7 @@
 # and a call carrying it refused where the stack moved since, as the plugin writes are;
 # a call carrying none acts as before. Home Assistant's controls rehearse and then act
 # (`F12-R8`), so what they carry out is what they were shown.
-# 326 goals, seeded from the roadmap milestone this version serves;
+# 332 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -389,6 +397,12 @@ goals   = [
     "G8-R18",
     "A2-R16",
     "A2-R17",
+    "ARCH-R173",
+    "ARCH-R174",
+    "ARCH-R175",
+    "ARCH-R176",
+    "ARCH-R177",
+    "F8-R19",
     "D3-R14",
     "ARCH-R2",
     "ARCH-R3",

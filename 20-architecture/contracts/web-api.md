@@ -915,6 +915,11 @@ generation has not been used.
 | **ARCH-R168** | Attempts MUST be held in memory only and per caller, each for the minutes `LEMONFIBER_IDEMPOTENCY_MINUTES` names from its first send, `30` where it names none, and up to the count `LEMONFIBER_IDEMPOTENCY_KEYS` names, `256` where it names none, both read at each send; a caller's attempt past that count MUST let go of that caller's oldest answered attempt and of no other caller's, and an attempt still being carried out MUST NOT be let go, by age or for room. |
 | **ARCH-R169** | An `Idempotency-Key` MUST be one to 255 visible ASCII characters given once; an action request carrying anything else under that header MUST be refused with a problem code the artefact lists, at `400`, before anything runs. |
 | **ARCH-R170** | SDK generation MUST refuse a `$ref` in the contract artefact that it cannot resolve to a definition in the vendored copy, naming the reference and the file it appears in, and MUST write nothing when it refuses. |
+| **ARCH-R173** | The contract artefact MUST describe the event stream: every event kind `GET /api/events` emits, with the schema of its payload, and the heartbeat's interval, generated from the types the stream serialises. |
+| **ARCH-R174** | The contract artefact MUST carry one example of each kind, each read and each action, drawn from the core's golden test fixtures, and CI MUST refuse an example that does not validate against its schema. |
+| **ARCH-R175** | The core MUST publish its code registry as `contract/codes.json`, each code with its family, name, severity, exit code, HTTP status, summary, meaning, remedy and the version it first appeared in (`since`), generated from the registry it raises from; `reference/error-codes.md` MUST be generated from that file, and CI MUST refuse either when it differs from what generates it. |
+| **ARCH-R176** | `release-contract` MUST attach `contract-diff.json` to each release, naming every kind, definition, read, action, refusal and event kind that release's contract artefact added, removed or changed against the previous release's. |
+| **ARCH-R177** | The core MUST generate `contract/web-api.openapi.json`, an OpenAPI document of the web API, from the contract artefact, and CI MUST refuse it when it differs from what the artefact generates. |
 
 ## The artefact
 
