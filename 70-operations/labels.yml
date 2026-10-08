@@ -91,3 +91,6 @@
 - name: rfc:convert
   color: 1d76db
   description: A maintainer's word to turn this RFC issue into a proposal pull request
+- name: proposal:approved
+  color: 0e8a16
+  description: A maintainer's word to allocate this proposal's identifiers and move it in as Draft

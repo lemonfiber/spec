@@ -1,0 +1,84 @@
+# Approve a proposal pull request when a maintainer labels it
+# `proposal:approved` (GOV-R41, GOV-R42). scripts/proposal_approve.py allocates
+# the proposal's identifiers and moves its text into the specification as
+# Draft, committed as the release App: onto the pull request's branch where it
+# is in this repository, otherwise onto a pull request of its own crediting the
+# author.
+#
+# `pull_request_target`, so the run has the token it needs on a pull request
+# from a fork, and is therefore the base branch's workflow and scripts: the pull
+# request's tree is never checked out or run. Its proposal is read through the
+# API as data (GOV-R43).
+name: proposal-approve
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+# One approval at a time per pull request, and never cancelled: a second label
+# event waits and then finds the proposal already moved, rather than allocating
+# the same identifiers twice.
+concurrency:
+  group: proposal-approve-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  approve:
+    if: github.event.label.name == 'proposal:approved'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Verify the maintainer may write (GOV-R41)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.event.sender.login }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          perm=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
+          case "$perm" in
+            admin|maintain|write)
+              echo "${ACTOR} has ${perm} access" ;;
+            *)
+              echo "::error::${ACTOR} lacks write access (${perm}); nothing is approved"
+              exit 1 ;;
+          esac
+
+      # A commit the forge signs, a pull request whose checks run, and a comment
+      # on a pull request from a fork: each takes a token other than this run's.
+      - name: Mint the release App token
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+
+      # The base branch, whole: `next_id.py` reads every remote branch, so an
+      # identifier allocated on an open pull request is never handed out again.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Allocate the identifiers and move the proposal in as Draft
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_AUTHOR_ID: ${{ github.event.pull_request.user.id }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 scripts/proposal_approve.py
