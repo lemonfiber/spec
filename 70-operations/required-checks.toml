@@ -27,10 +27,6 @@ name = "refs / comment"
 why = "posts the spec references a pull request touches, as a comment"
 
 [[exempt]]
-name = "cap / comment"
-why = "tells a pull request its repository is past the cap of open pull requests; the cap is held softly and refuses nothing"
-
-[[exempt]]
 name = "awaiting / notify"
 why = "tells the maintainers a pull request is ready; the readiness is decided elsewhere"
 
@@ -41,10 +37,6 @@ why = "moves the awaiting-maintainer label, and judges nothing"
 [[exempt]]
 name = "gates / report"
 why = "labels, classifies and posts and removes the comments for the shared checks, and judges nothing; `gates / gates` is the verdict"
-
-[[exempt]]
-name = "goals / classify"
-why = "labels a pull request with the goals it cites"
 
 [[exempt]]
 name = "citation / explain"
