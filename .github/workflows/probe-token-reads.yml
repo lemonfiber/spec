@@ -1,0 +1,19 @@
+name: probe-token-reads
+on: pull_request
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          echo "runs same repo: $(gh api 'repos/lemonfiber/spec/actions/workflows/hygiene.yml/runs?per_page=1' --jq '.total_count' 2>&1)"
+          echo "runs all same repo: $(gh api 'repos/lemonfiber/spec/actions/runs?per_page=1' --jq '.total_count' 2>&1)"
+          echo "check suites same repo: $(gh api "repos/lemonfiber/spec/commits/${{ github.event.pull_request.head.sha }}/check-suites" --jq '.total_count' 2>&1)"
+          echo "check runs same repo: $(gh api "repos/lemonfiber/spec/commits/${{ github.event.pull_request.head.sha }}/check-runs" --jq '.total_count' 2>&1)"
+          echo "timeline: $(gh api "repos/lemonfiber/spec/issues/${PR}/timeline?per_page=5" --jq 'length' 2>&1)"
+          echo "events: $(gh api "repos/lemonfiber/spec/issues/${PR}/events?per_page=5" --jq 'length' 2>&1)"
