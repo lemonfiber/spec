@@ -214,7 +214,8 @@ class TheLoop(unittest.TestCase):
         self.git("config", "user.name", "T")
 
         self.first = self.commit("one", "dco.yml")
-        self.settled = self.commit("one", "hygiene.yml")
+        # The pin check's two limits, as the fan-out reads them from here.
+        self.settled = self.commit('STALE_DAYS: "30"\nSTALE_COMMITS: "75"\n', "hygiene.yml")
         self.head = self.commit("two", "dco.yml")
 
         # Cut where CI cuts it. The step resolves `TAG` to a revision and the
