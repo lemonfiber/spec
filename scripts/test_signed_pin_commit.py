@@ -115,6 +115,41 @@ class SignedPinCommit(unittest.TestCase):
     def calls(self) -> list[str]:
         return self.log.read_text(encoding="utf-8").splitlines()
 
+    def run_named(self, slug: str, branch: str, repo: str | None = None) -> tuple[int, str]:
+        err = io.StringIO()
+        settings = {"PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}", "GH_LOG": str(self.log),
+                    "GH_REQUEST": str(self.request), "GH_OID": OID}
+        with mock.patch.dict(os.environ, settings), redirect_stdout(io.StringIO()), redirect_stderr(err):
+            code = signed_pin_commit.main([
+                f"--repo={repo or self.repo}", f"--slug={slug}", f"--branch={branch}",
+                "--message", str(self.message),
+            ])
+        return code, err.getvalue()
+
+    def test_a_name_that_could_be_read_as_an_option_reaches_no_command(self):
+        for slug, branch in (
+            ("--paginate/alpha", "ci/x"), ("lemonfiber/alpha", "--force"), ("lemonfiber", "ci/x"),
+            ("lemonfiber/alpha/x", "ci/x"), ("lemonfiber/alpha", "ci/../main"), ("lemonfiber/alpha", "ci/a..b"), ("lemonfiber/alpha", "ci//x"),
+            ("lemonfiber/alpha", "-x"), ("lemonfiber/alpha", "ci/x\n"), ("lemon fiber/alpha", "ci/x"),
+        ):
+            with self.subTest(slug=slug, branch=branch):
+                code, err = self.run_named(slug, branch)
+                self.assertEqual(code, 1)
+                self.assertIn("refused:", err)
+        self.assertFalse(self.log.exists() and self.log.read_text(encoding="utf-8"), "no command ran")
+
+    def test_a_clone_that_is_not_there_reaches_no_command(self):
+        code, err = self.run_named("lemonfiber/alpha", "ci/x", repo=str(self.root / "--upload-pack=x"))
+        self.assertEqual(code, 1)
+        self.assertIn("is not a clone", err)
+
+    def test_git_runs_in_the_clone_and_is_never_handed_it(self):
+        with mock.patch.object(signed_pin_commit.subprocess, "run") as run:
+            run.return_value.stdout = "x"
+            signed_pin_commit.git(self.repo, "rev-parse", "HEAD")
+        self.assertEqual(run.call_args.args[0], ["git", "rev-parse", "HEAD"])
+        self.assertEqual(run.call_args.kwargs["cwd"], self.repo)
+
     def test_a_new_branch_is_made_at_the_commit_by_way_of_staging(self):
         code, out, _ = self.run_main()
 
