@@ -251,7 +251,7 @@
 # back, and the pictures a browser reads from the core. The companion's player (N3-R14 to N3-R16) is built on them. `lemonfiber-media-stack`
 # is cut because `D11-R2` puts the guard in front of the media server in every form that
 # serves it.
-# 389 goals, seeded from the roadmap milestone this version serves;
+# 391 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -278,7 +278,7 @@
 # guards and the parts that offered nothing get capabilities of their own, a substitution
 # replaces what it stands in for, and each capability is proved by a real substitute. Added
 # after staging by the maintainer's decision of 2026-10-09 (OPS-R31).
-# `ARCH-R199` to `ARCH-R212` are the contracts themselves: generated per capability, spoken
+# `ARCH-R199` to `ARCH-R214` are the contracts themselves: generated per capability, spoken
 # over keyed HTTP with every answer held to its schema, the media server's declared guard
 # and locations, and conformance judged from recordings and a live pass.
 version = "0.18.0"
@@ -678,6 +678,8 @@ goals   = [
     "ARCH-R210",
     "ARCH-R211",
     "ARCH-R212",
+    "ARCH-R213",
+    "ARCH-R214",
 ]
 
 # The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion
