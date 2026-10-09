@@ -164,6 +164,13 @@ form that might not end. It is leavable at every step, and leaving lands on the
 pairing screen rather than on nothing — the operator who already knows all of
 this should not be made to read it.
 
+**Two people arrive at the first screen.** Somebody who runs the server is
+there to pair it, and somebody who was invited is there to watch. The first
+screen asks which, in words that name no part of the system, and only the
+operator's door leads to the sequence above (`N1-R35`). The invited door is the
+household's own short way in (`N3-R26`), and an invitation opened before any
+house is on the phone goes straight to it.
+
 **It happens once and is not a setting.** The sequence is shown while the device
 holds no pairing, which is the same condition `N4-R22` reads for the lock, and
 it stops being shown the moment one is held. Neither an operator nor a screen
@@ -349,7 +356,7 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R32** | Anything the app retains between launches MUST carry the version of the shape it was written in. |
 | **N1-R33** | On reading retained state written in an older shape, the app MUST either migrate it or discard it, and MUST NOT interpret it as though it were current. |
 | **N1-R34** | Discarding retained state MUST NOT discard a pairing or its pinned fingerprint; where those cannot be carried forward, the app MUST say that re-pairing is required and why. |
-| **N1-R35** | On a launch with no stack configured, the app MUST say that setup happens at the machine (`N1-R4`) and offer pairing, and MUST NOT present an empty operator surface. |
+| **N1-R35** | On a launch with no stack configured, the app MUST first ask which of two people is holding it, somebody invited and somebody who runs a lemonfiber server, in words that name no part of the system; the second MUST be told that setup happens at the machine (`N1-R4`) and offered pairing, the first MUST be given the member's way in (`N3-R26`), and neither MUST be shown an empty operator surface. |
 | **N1-R36** | On a launch with a stack configured, the app MUST reach a usable frame without waiting for a reading to complete. |
 | **N1-R37** | A launch where the device has no network, where the stack cannot be reached, and where the app is locked MUST each be told apart, consistent with `N1-R10` and the lock `N4` defines. |
 | **N1-R38** | Returning to a previous screen MUST restore what the operator had done there, and MUST NOT re-read the stack solely to rebuild it. |
@@ -391,6 +398,7 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R74** | Wherever the stack displays pairing material, it MUST display the comparable form of the fingerprint that material carries (`N1-R73`), in its human-readable and its machine-readable output alike, so that typed entry has something to be compared against (`N1-R50`). |
 | **N1-R75** | The app MUST read a refusal whose code says the request carried nothing the stack admits as a session that has ended (`N1-R44`, `ARCH-R138`), and MUST NOT read a refusal with any other code as one. |
 | **N1-R76** | What the stack says beside pairing material MUST be in words every surface can show, and MUST NOT name a command of one surface; how the certificate is replaced (`C6-R19`) MUST be said by each surface in its own way. |
+| **N1-R77** | An answer the stack gave that this version of the app cannot read MUST be reported as neither a stack that did not answer nor a refused credential (`N1-R10`): the operator MUST be told the stack answered in a way this app cannot read, with updating the app or the stack as the remedy, and a member MUST be told the house cannot be reached right now. |
 
 ## Related
 

@@ -184,6 +184,7 @@ does not hold a second copy of them.
 | **N3-R23** | Home MUST lead with the member's own titles: what they were part-way through, what they asked for that has arrived, and what they asked for that is on its way. Everything else on Home comes after those. A shelf with nothing in it MUST NOT be drawn. |
 | **N3-R24** | Every title MUST carry its name as text. Where the core serves no artwork for a title, it MUST be drawn as a poster lettered with its name. |
 | **N3-R25** | A member MUST be able to choose, from Profile, the language they hear (the title's original, Dutch or English) and the subtitles they read (none, Dutch or English). The choice MUST be kept on the phone for that member on that house, MUST be handed to the player each time a title is opened, and MUST NOT be sent to the house. Where a title offers no sound in the chosen language it MUST play the stream's own default sound, and where it offers no subtitles in the chosen language it MUST play with none; it MUST NOT be refused or reported as a fault for either. |
+| **N3-R26** | Somebody invited MUST have a way in of their own: open the invitation, sign in, and land on Home, in at most three steps, each saying which it is, in words that name no part of the system. An invitation opened on a phone that holds no house MUST lead straight to it. |
 
 ## Related
 
