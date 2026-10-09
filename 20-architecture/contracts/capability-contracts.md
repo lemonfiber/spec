@@ -57,8 +57,10 @@ listens = 8080
 ```
 
 `speaks` names a capability and a major the core speaks. A service that speaks a
-contract fills that capability as far as the vocabulary's probes and the conformance
-suite allow. A service that speaks none is run and watched, and nothing asks it
+contract also `provides` that capability, so it can be chosen to fill it as any other
+service is, as far as the vocabulary's probes and the conformance suite allow. Whichever
+service settles as the filler, the core asks it over the contract it speaks and over
+nothing else. A service that speaks none is run and watched, and nothing asks it
 anything.
 
 ## Paths, keys and answers
@@ -186,6 +188,8 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R210** | No capability type MUST name a product, and a curator MUST be referred to by the media type it files. |
 | **ARCH-R211** | A contract's major MUST change only when an operation is removed or its meaning changes, and the core MUST speak every major its index lists. |
 | **ARCH-R212** | An adapter's `listens` port MUST be published on `127.0.0.1` alone with no host port named, and the core MUST read the host port the engine gave it from the engine and MUST NOT reach an adapter at any other address. |
+| **ARCH-R213** | A service that speaks a capability's contract MUST also provide that capability, and a manifest where one does not MUST be refused by name. |
+| **ARCH-R214** | Where the service filling a capability speaks that capability's contract, the core MUST ask it over the contract alone and MUST NOT reach it through an adapter of its own. |
 
 ## Related
 
