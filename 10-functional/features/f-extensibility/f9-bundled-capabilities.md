@@ -30,7 +30,7 @@ document. A vocabulary nothing speaks is not a vocabulary, and a capability noth
 implements is one nobody has tested — so it would be published, versioned, and wrong in
 ways no one would discover until a plugin author trusted it.
 
-This is where the twenty-two bundled services declare what they can do, pass the probes
+This is where the twenty-three bundled services declare what they can do, pass the probes
 that prove it, and the wiring that currently names them is changed to ask instead. It is
 the larger half of the work by a wide margin and the smaller half of the thinking, which
 is why it is separable: F4 is a model and a set of rules, and this is a stack's worth

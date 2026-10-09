@@ -41,7 +41,7 @@ capability is not a label: it carries a contract, and probes that demonstrate th
 holds. Claiming a capability you do not satisfy fails verification, which is what makes
 substitution safe to offer at all.
 
-**This feature is the model and its rules.** Having the twenty-two bundled services declare
+**This feature is the model and its rules.** Having the twenty-three bundled services declare
 their capabilities, pass the probes, and converting the stack's wiring to ask rather than
 to name, is [F9](f9-bundled-capabilities.md) — the larger half of the work and the smaller
 half of the thinking, which is why the two are separable.
