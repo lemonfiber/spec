@@ -3,6 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-10-09
 **Decided:** 2026-10-09, by the maintainer, Wessel Verheij:
+
 - a plugin supplies behaviour through an adapter container that speaks a published
   capability contract;
 - every bundled part becomes a first-party plugin, and the core keeps no code for any
@@ -16,6 +17,7 @@
 **Supersedes** [ADR-0024](0024-what-opens-and-what-never-does.md) where it holds the
 adapter set closed: behaviour no longer lives in lemonfiber's process at all.
 **Amends**:
+
 - [ADR-0021](0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md): one
   privileged shape, for one capability;
 - [ADR-0027](0027-a-member-plays-what-the-core-authorised.md): the guard asks what the

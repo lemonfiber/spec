@@ -267,7 +267,9 @@ jobs:
               --json databaseId,status \
               --jq '.[] | select(.status != "completed") | .databaseId' \
               | while read -r id; do
-                  [ -n "$id" ] && gh run cancel "$id" --repo "${OWNER}/$1" >/dev/null || true
+                  if [ -n "$id" ]; then
+                    gh run cancel "$id" --repo "${OWNER}/$1" >/dev/null || true
+                  fi
                 done
           }
 

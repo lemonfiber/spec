@@ -44,7 +44,7 @@ GUARDED = (".github/workflows/", ".github/actions/")
 SPEC, MAIN = "lemonfiber/spec", "main"
 
 #: A pin of one of spec's workflows, with the version a tag names beside it.
-PIN = re.compile(r"(?P<path>lemonfiber/spec/\S+?)@(?P<sha>[0-9a-f]{40})(?P<version>[ \t]*#[ \t]*v[0-9]+(?:\.[0-9]+)*)?")
+PIN = re.compile(r"(?P<path>lemonfiber/spec/\S+?)@(?P<sha>[0-9a-f]{40})(?P<version>[ \t]*#[ \t]*v\d+(?:\.\d+)*)?")
 
 #: One call to the forge's REST API through `gh`: the arguments, and the answer
 #: as JSON, or as text where `raw` is asked for.
@@ -139,26 +139,32 @@ def at_uses(where: tuple) -> bool:
         and where[4] == "uses")
 
 
-def differences(before: object, after: object, where: tuple = ()) -> tuple[list[tuple], list[tuple[str, str, str]]]:
+Differences = tuple[list[tuple], list[tuple[str, str, str]]]
+
+
+def children(before: object, after: object) -> list[tuple[object, object, object]] | None:
+    """The matching parts of two mappings or two lists, each as (key, before, after),
+    or None where the two are not containers of the same shape."""
+    if isinstance(before, dict) and isinstance(after, dict) and list(before) == list(after):
+        return [(key, before[key], after[key]) for key in before]
+    if isinstance(before, list) and isinstance(after, list) and len(before) == len(after):
+        return [(index, *pair) for index, pair in enumerate(zip(before, after, strict=True))]
+    return None
+
+
+def differences(before: object, after: object, where: tuple = ()) -> Differences:
     """Where two parsed workflows differ, other than a spec pin at a `uses`, and the pins that moved."""
-    if isinstance(before, dict) and isinstance(after, dict):
-        if list(before) != list(after):
-            return [where], []
-        found: tuple[list[tuple], list[tuple[str, str, str]]] = ([], [])
-        for key in before:
-            more = differences(before[key], after[key], (*where, key))
-            found[0].extend(more[0])
-            found[1].extend(more[1])
+    parts = children(before, after)
+    if parts is not None:
+        found: Differences = ([], [])
+        for key, old_part, new_part in parts:
+            elsewhere, moved = differences(old_part, new_part, (*where, key))
+            found[0].extend(elsewhere)
+            found[1].extend(moved)
         return found
-    if isinstance(before, list) and isinstance(after, list):
-        if len(before) != len(after):
-            return [where], []
-        found = ([], [])
-        for index, pair in enumerate(zip(before, after, strict=True)):
-            more = differences(*pair, (*where, index))
-            found[0].extend(more[0])
-            found[1].extend(more[1])
-        return found
+    if isinstance(before, dict | list):
+        # Two containers of another shape, which `children` would have paired.
+        return [where], []
     if type(before) is type(after) and before == after:
         return [], []
     old = USES.match(before) if isinstance(before, str) else None
