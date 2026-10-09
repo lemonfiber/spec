@@ -82,8 +82,12 @@ class Saying(unittest.TestCase):
         self.assertIn("and 15 more, not listed here", said)
 
 
-class AgainstARepository(unittest.TestCase):
-    """The half that needs a real checkout to answer."""
+class ASpecAndARepository:
+    """A spec checkout with history, and a repository pinning one of its workflows.
+
+    A fixture rather than a `TestCase`, so a second class can take it without
+    running the first one's tests again.
+    """
 
     def setUp(self):
         self.root = pathlib.Path(tempfile.mkdtemp())
@@ -130,6 +134,10 @@ class AgainstARepository(unittest.TestCase):
         finally:
             os.chdir(was)
         return code, said.getvalue()
+
+
+class AgainstARepository(ASpecAndARepository, unittest.TestCase):
+    """The half that needs a real checkout to answer."""
 
     def test_a_pin_at_head_is_clean(self):
         self.pin(self.second)
@@ -203,6 +211,66 @@ class AgainstARepository(unittest.TestCase):
         code, out = self.run_main()
         self.assertEqual(code, 0, out)
         self.assertIn("nothing to check", out)
+
+
+class WhatAPinHolds(ASpecAndARepository, unittest.TestCase):
+    """A pin holds its workflow, the workflows it calls, their scripts and what those import."""
+
+    def setUp(self):
+        super().setUp()
+        self.put(".github/workflows/dco.yml",
+                 "run: python3 .spec-tooling/scripts/dco_check.py\n"
+                 "uses: ./.github/workflows/notify.yml\n")
+        self.put(".github/workflows/notify.yml", 'run: python3 "$scripts/notify.py"\n')
+        self.put("scripts/dco_check.py", "import re\nfrom patterns import CITE\n")
+        self.put("scripts/patterns.py", "CITE = 1\n")
+        self.put("scripts/notify.py", "def main():\n    import os\n    import patterns\n")
+        self.put("scripts/elsewhere.py", "")
+        self.held = self.recorded("the scripts")
+        self.pin(self.held)
+
+    def recorded(self, said: str) -> str:
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", said)
+        return subprocess.run(["git", "-C", str(self.spec), "rev-parse", "HEAD"],
+                              capture_output=True, text=True, check=True).stdout.strip()
+
+    def put(self, path: str, text: str) -> None:
+        where = self.spec / path
+        where.parent.mkdir(parents=True, exist_ok=True)
+        where.write_text(text, encoding="utf-8")
+
+    def changed(self, path: str) -> tuple[int, str]:
+        self.put(path, (self.spec / path).read_text(encoding="utf-8") + "# moved\n")
+        self.recorded(f"move {path}")
+        sys.argv = ["workflow_pins.py", str(self.spec)]
+        return self.run_main()
+
+    def test_the_files_it_holds(self):
+        self.assertEqual(
+            sorted(workflow_pins.held_by(self.spec, self.held, "dco.yml")),
+            [".github/workflows/dco.yml", ".github/workflows/notify.yml",
+             "scripts/dco_check.py", "scripts/notify.py", "scripts/patterns.py"],
+        )
+
+    def test_a_workflow_taken_away_is_still_named(self):
+        self.assertEqual(workflow_pins.held_by(self.spec, self.held, "gone.yml"), [".github/workflows/gone.yml"])
+
+    def test_a_change_to_each_held_file_refuses(self):
+        for path in ("scripts/dco_check.py", "scripts/patterns.py", ".github/workflows/notify.yml",
+                     "scripts/notify.py"):
+            with self.subTest(path):
+                code, out = self.changed(path)
+                self.assertEqual(code, 1, out)
+                self.assertIn(f"move {path}", out)
+                self.assertIn("dco.yml, or a script it runs, has changed", out)
+
+    def test_a_change_to_a_script_it_does_not_run_leaves_the_pin_current(self):
+        code, out = self.changed("scripts/elsewhere.py")
+        self.assertEqual(code, 0, out)
+
+    def test_a_script_that_does_not_parse_is_held_without_its_imports(self):
+        self.assertEqual(workflow_pins.imported("def ("), set())
 
 
 if __name__ == "__main__":

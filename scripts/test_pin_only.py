@@ -692,16 +692,19 @@ class TheWorkflow(unittest.TestCase):
         self.assertEqual(self.workflow["jobs"]["pin-only"]["permissions"], held)
         self.assertEqual(list(self.workflow[True]), ["workflow_call"])
 
-    def test_nothing_of_the_pull_request_is_checked_out(self):
+    def test_only_spec_is_checked_out_at_the_commit_this_workflow_was_called_at(self):
+        # A caller pinned at a revision runs that revision's script, with the
+        # arguments that revision's step passes it.
         checkouts = [s for s in self.steps if str(s.get("uses", "")).startswith("actions/checkout@")]
         self.assertEqual(len(checkouts), 1)
         self.assertEqual(checkouts[0]["with"]["repository"], "lemonfiber/spec")
-        self.assertEqual(checkouts[0]["with"]["ref"], "main")
+        self.assertEqual(checkouts[0]["with"]["ref"], "${{ job.workflow_sha }}")
+        self.assertEqual(checkouts[0]["with"]["path"], ".spec-tooling")
         self.assertIs(checkouts[0]["with"]["persist-credentials"], False)
 
     def test_it_runs_spec_s_script_with_the_pull_request_through_env(self):
         last = self.steps[-1]
-        self.assertTrue(last["run"].startswith("python3 .spec-canonical/scripts/pin_only.py"))
+        self.assertTrue(last["run"].startswith("python3 .spec-tooling/scripts/pin_only.py"))
         self.assertNotIn("${{", last["run"])
         self.assertIn('--head "$HEAD_SHA"', last["run"])
         self.assertEqual(last["env"]["HEAD_SHA"], "${{ github.event.pull_request.head.sha }}")

@@ -1,0 +1,7 @@
+# `job.workflow_sha` is the commit of the workflow file that defines the running
+# job, documented in GitHub's contexts reference; actionlint 1.7.12 does not know
+# the property yet.
+paths:
+  .github/workflows/*.yml:
+    ignore:
+      - 'property "workflow_sha" is not defined in object type'

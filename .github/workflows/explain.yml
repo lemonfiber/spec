@@ -49,10 +49,20 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      # Another repository reads the script from spec's main, as pr-cap does.
-      # Here the workflow itself comes from the pull request, so the script is
-      # read from the same tree rather than from a main it may not yet be on.
-      - name: Check out the spec
+      # spec's scripts at the commit this workflow was called at, so a caller
+      # pinned at a revision runs that revision's scripts. What they read stays
+      # the canonical spec below.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+      # The spec the advice reads: spec's main for another repository. Here the
+      # workflow itself comes from the pull request, so it is read from the same
+      # tree rather than from a main it may not yet be on.
+      - name: Check out the canonical spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: lemonfiber/spec
@@ -99,7 +109,7 @@ jobs:
           set -euo pipefail
           git diff --name-only "${BASE}...${HEAD}" > paths.txt
           { printf '%s\n' "$PR_BODY"; git log --format=%B "${BASE}..${HEAD}"; } > text.txt
-          assist() { python3 .spec-canonical/scripts/assist.py "$@"; }
+          assist() { python3 .spec-tooling/scripts/assist.py "$@"; }
           # Each answer can run to several lines, so each is written between
           # delimiters no answer can contain.
           emit() {

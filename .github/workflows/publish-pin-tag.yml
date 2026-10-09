@@ -11,8 +11,10 @@
 # The series is `v1.0.N`, and the number is order and nothing else, because order
 # is all the updater compares. Two properties hold it up, and both are refused
 # rather than assumed: a number is cut for a commit to `main` that changes a
-# published workflow, and a number never points at a tree an earlier number
-# already contained.
+# published workflow or a script one runs, and a number never points at a tree
+# an earlier number already contained. A pin holds the workflow and the scripts
+# it checks out at the pinned commit, so a script changed is as much a reason to
+# bump as a step changed; the scripts' own tests are not run by any pin.
 #
 # A push is how the tag is normally cut and it is not the only way in. The run
 # for a given commit happens once; if it fails, that commit's number is gone and
@@ -27,6 +29,8 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/**"
+      - "scripts/**"
+      - "!scripts/test_*.py"
   workflow_dispatch:
     inputs:
       commit:
@@ -72,6 +76,7 @@ jobs:
           WANTED: ${{ inputs.commit }}
         run: |
           set -euo pipefail
+          PINNED=(.github/workflows/ scripts/ ':(exclude)scripts/test_*.py')
           git fetch --quiet --tags --force origin
           git fetch --quiet origin main
 
@@ -86,13 +91,13 @@ jobs:
             exit 1
           fi
 
-          # A number on a commit that changed no published workflow tells a
+          # A number on a commit that changed nothing a pin holds tells a
           # consumer there is something to take when there is not, which is the
           # same wasted bump a `# main` comment produces.
-          if [ -z "$(git diff-tree --no-commit-id --name-only -r "$commit" -- .github/workflows/)" ]; then
-            echo "::error::$commit changed no file under .github/workflows, so"\
-              "there is nothing for a consumer to bump to. Number the commit that"\
-              "changed the workflow."
+          if [ -z "$(git diff-tree --no-commit-id --name-only -r "$commit" -- "${PINNED[@]}")" ]; then
+            echo "::error::$commit changed no file under .github/workflows or"\
+              "scripts, so there is nothing for a consumer to bump to. Number the"\
+              "commit that changed the workflow or the script."
             exit 1
           fi
 
@@ -174,6 +179,7 @@ jobs:
         if: always() && steps.next.outcome == 'success'
         run: |
           set -euo pipefail
+          PINNED=(.github/workflows/ scripts/ ':(exclude)scripts/test_*.py')
           git fetch --quiet --tags --force origin
           git fetch --quiet origin main
 
@@ -189,17 +195,17 @@ jobs:
           fi
 
           at=$(git rev-parse --verify "v1.0.${highest}^{commit}")
-          waiting=$(git log --format='%h %s' "${at}..origin/main" -- .github/workflows/)
+          waiting=$(git log --format='%h %s' "${at}..origin/main" -- "${PINNED[@]}")
 
           if [ -n "$waiting" ]; then
-            echo "::error::a commit on main changed a published workflow and"\
+            echo "::error::a commit on main changed a published workflow or a script one runs and"\
               "carries no number, so consumers have nothing to bump to for it."\
               "Run this workflow by hand against that commit."
             printf '%s\n' "$waiting" | sed 's/^/    /'
             exit 1
           fi
 
-          echo "v1.0.${highest} is at or ahead of every commit that changed a published workflow"
+          echo "v1.0.${highest} is at or ahead of every commit that changed a published workflow or its scripts"
 
   # The other half of cutting a number. A tag exists so a pin has something to
   # be newer than; this opens the pull request that takes it, in every repository

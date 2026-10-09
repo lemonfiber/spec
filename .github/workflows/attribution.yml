@@ -23,19 +23,19 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      # The canonical copy, for the repos that call this. Not for the spec
-      # repo's own runs: this check cannot live on `main` until the pull request
-      # that adds it has merged, and a self-check reading `main` would in any
-      # case be reading the version before the change under review. Here the
-      # working copy *is* the canonical one, so it is the one that runs — the
-      # same reading `integrity.py` does of the tree in front of it.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # spec's scripts at the commit this workflow was called at, for the repos
+      # that call this, so a caller pinned at a revision runs that revision's
+      # script. Not for the spec repo's own runs: there the working copy is the
+      # change under review, so it is the one that runs — the same reading
+      # `integrity.py` does of the tree in front of it.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: github.repository != 'lemonfiber/spec'
         with:
           persist-credentials: false
           repository: lemonfiber/spec
-          ref: main
-          path: .spec-canonical
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
@@ -64,7 +64,7 @@ jobs:
           if [ "$GITHUB_REPOSITORY" = "lemonfiber/spec" ]; then
             scripts=scripts
           else
-            scripts=.spec-canonical/scripts
+            scripts=.spec-tooling/scripts
           fi
           if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
              && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then

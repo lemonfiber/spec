@@ -41,6 +41,18 @@ jobs:
         with:
           persist-credentials: false
 
+      # spec's scripts at the commit this workflow was called at, so a caller
+      # pinned at a revision runs that revision's scripts. What they read stays
+      # the canonical spec below.
+      - name: Check out spec's scripts at this workflow's commit
+        if: github.repository != 'lemonfiber/spec'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+
       - name: Check out the canonical copy, with the history the question needs
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -66,9 +78,10 @@ jobs:
       #
       # Two separate choices below, and they are separate on purpose. *What the
       # pins are compared against* is always the canonical checkout, which is
-      # `main`, for everybody. *Which copy of the reader runs* is the caller's
-      # own where the caller is the repository that defines it — the same split
-      # the shared-files job makes, for the same reason and one more.
+      # `main`, for everybody. *Which copy of the reader runs* is the one at the
+      # commit this workflow was called at, and the caller's own where the
+      # caller is the repository that defines it — the same split the
+      # shared-files job makes, for the same reason and one more.
       #
       # The reason: in the repository under review the definition under review is
       # the one that should run, or a change to the gate merges having been run
@@ -83,6 +96,6 @@ jobs:
           if [ "$REPO" = "lemonfiber/spec" ]; then
             reader=scripts/workflow_pins.py
           else
-            reader=.spec-canonical/scripts/workflow_pins.py
+            reader=.spec-tooling/scripts/workflow_pins.py
           fi
           python3 "$reader" .spec-canonical

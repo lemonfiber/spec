@@ -7,10 +7,11 @@ that decides *what is stale* is imported from the gate rather than written again
 here, so the fan-out cannot bump something the gate would not have named, and
 cannot leave behind something it would.
 
-**A pin whose own workflow moved, or one the pin check refuses.** The rule
-`workflow-pins` measures by is the first rule this rewrites by, for the reason
-given there: the workflow file is the whole of what a pin holds, so a pin a few
-tags back whose file has not changed runs the same steps as the newest one.
+**A pin whose own workflow or scripts moved, or one the pin check refuses.** The
+rule `workflow-pins` measures by is the first rule this rewrites by, for the
+reason given there: a pin holds its workflow and the scripts it runs, so a pin a
+few tags back none of whose files has changed runs the same steps and the same
+scripts as the newest one.
 `hygiene`'s pin check is the second: it refuses a pin more than `STALE_COMMITS`
 behind `main` or older than `STALE_DAYS`, whatever its file did, and a pin it
 refuses is one this brings forward. Its two limits are read from `hygiene.yml`,

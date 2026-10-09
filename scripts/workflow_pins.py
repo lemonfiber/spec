@@ -5,12 +5,12 @@ Every repository that runs one of this repository's reusable workflows pins it
 to an exact commit. Q-R68 has a check fail a pull request where such a pin is
 behind, naming the commits it has not taken.
 
-**What is pinned and what is not.** The workflow file is pinned; the scripts it
-runs are not. Every one of these workflows checks this repository out at `main`
-and runs the script from there, so a change to `spec_check.py` reaches every
-consumer on their next run. What a stale pin holds back is the *workflow* — the
-arguments it passes, the steps it adds — and so a pin is measured against the
-history of the one file it names. Measured against the default branch instead,
+**What a pin holds.** The workflow file, the workflows it calls from this
+repository, the scripts they run and the modules those import from beside them.
+Every one of these workflows checks this repository out at the commit it was
+called at and runs its scripts from there, so a change to `spec_check.py`
+reaches a consumer when its pin moves. A pin is measured against the history of
+those files and nothing else. Measured against the default branch instead,
 every pin in the organisation is behind for most of every day, and a check that
 is always red is a check that stops being required.
 
@@ -21,6 +21,7 @@ comparison possible, and the comment beside each pin is what carries it.
 """
 from __future__ import annotations
 
+import ast
 import pathlib
 import re
 import subprocess
@@ -32,6 +33,15 @@ import sys
 PIN = re.compile(
     r"uses:\s*lemonfiber/spec/\.github/workflows/(?P<workflow>[\w.-]+\.yml)@(?P<sha>[0-9a-f]{40})"
 )
+
+# A script a workflow runs out of this repository's checkout, however the path to
+# it starts: `.spec-tooling/scripts/x.py`, `"$scripts/x.py"`, or this repository's
+# own `scripts/x.py`.
+SCRIPT = re.compile(r"(?<![\w.-])scripts/(?P<name>[\w-]+\.py)\b")
+
+# Another of this repository's workflows that a workflow calls, which runs from
+# the same commit.
+CALLED = re.compile(r"uses:\s*\./\.github/workflows/(?P<name>[\w.-]+\.ya?ml)")
 
 # A commit, as a revision this hands to `git`: forty hex characters and the whole
 # of the string.
@@ -85,18 +95,61 @@ def _git(spec: pathlib.Path, *args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def imported(source: str) -> set[str]:
+    """The top-level module of every import in a script, wherever in it the import sits."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return set()
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names.update(alias.name.split(".")[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            names.add(node.module.split(".")[0])
+    return names
+
+
+def held_by(spec: pathlib.Path, head: str, workflow: str) -> list[str]:
+    """Every file a pin on `workflow` holds, as `head` has them.
+
+    The workflow, the workflows it calls from here, the scripts any of them
+    runs, and the modules beside those scripts that they import, followed to
+    the end. A workflow or script `head` does not hold is still named, so a
+    pin on one that was taken away is measured by the commit that took it; an
+    import `head` does not hold beside the script is somebody else's module.
+    """
+    held: list[str] = []
+    waiting = [(f".github/workflows/{workflow}", True)]
+    while waiting:
+        path, named = waiting.pop()
+        if path in held:
+            continue
+        shown = _git(spec, "show", f"{head}:{path}")
+        if shown.returncode != 0:
+            if named:
+                held.append(path)
+            continue
+        held.append(path)
+        if path.endswith(".py"):
+            waiting.extend((f"scripts/{name}.py", False) for name in imported(shown.stdout))
+        else:
+            waiting.extend((f"scripts/{m.group('name')}", True) for m in SCRIPT.finditer(shown.stdout))
+            waiting.extend((f".github/workflows/{m.group('name')}", True) for m in CALLED.finditer(shown.stdout))
+    return held
+
+
 def commits_between(
     spec: pathlib.Path, pin: str, head: str, workflow: str
 ) -> list[str] | None:
-    """The commits `head` has and `pin` does not that changed `workflow`.
+    """The commits `head` has and `pin` does not that changed what a pin on `workflow` holds.
 
-    Narrowed to the one file, because the one file is the whole of what a pin
-    holds. The scripts these workflows run are checked out at `main` on every
-    run and reach a consumer whatever its pin says; only the steps and the
-    arguments travel with the revision. A pin behind by commits that cannot
-    reach it is current, and a check that called it stale would be red on every
-    pull request in the organisation for most of every day — which is how a
-    check stops being required.
+    Narrowed to the files `held_by` names, because those are the whole of what
+    a pin holds: the workflow runs its scripts from the commit it was called
+    at, so a change to one reaches a consumer only when its pin moves. A pin
+    behind by commits that cannot reach it is current, and a check that called
+    it stale would be red on every pull request in the organisation for most
+    of every day — which is how a check stops being required.
 
     `None` where the question could not be asked — a shallow checkout, a pin that
     is not a commit in this repository at all, or a pair that are not revisions.
@@ -113,7 +166,7 @@ def commits_between(
         "--format=%h %s",
         f"{pin}..{head}",
         "--",
-        f".github/workflows/{workflow}",
+        *held_by(spec, head, workflow),
     )
 
     if asked.returncode != 0:
@@ -128,8 +181,8 @@ def refusal(workflow: str, where: list[str], missed: list[str]) -> str:
     more = len(missed) - len(named)
 
     behind = (
-        f"::error::{workflow} has changed {len(missed)} time(s) since the commit "
-        f"pinned in {', '.join(where)}."
+        f"::error::{workflow}, or a script it runs, has changed {len(missed)} time(s) "
+        f"since the commit pinned in {', '.join(where)}."
     )
 
     said = [behind, "  It has not taken:", *(f"    {line}" for line in named)]
@@ -190,13 +243,13 @@ def main() -> int:
         print("\n".join(stale))
         print(
             f"\nBump each pin named above to {head}, and set the trailing comment to "
-            "the tag that revision carries. The workflow file is the whole of what a "
-            "pin holds — the scripts it runs are checked out at `main` on every run — "
-            "so only a pin whose own workflow has moved is named here (Q-R68)."
+            "the tag that revision carries. A pin holds its workflow and the scripts it "
+            "runs, which are checked out at the pinned commit, so only a pin whose "
+            "workflow or scripts have moved is named here (Q-R68)."
         )
         return 1
 
-    print(f"every pin holds the newest revision of the workflow it names ({head[:8]})")
+    print(f"every pin holds the newest revision of the workflow it names and its scripts ({head[:8]})")
     return 0
 
 
