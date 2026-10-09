@@ -84,11 +84,13 @@ today, independent of the companion.
 ### The decision
 
 1. **A member grant, on the member's own account.** A member's paired client asks
-   the core for a grant to play. The client asks the media server for a device
-   code, and the core, as administrator, authorises that code for the member's user
-   id. The session the server issues belongs to the member, so every discovery
-   request made with it is answered under the member's policy. The member's
-   password is never involved and nobody learns it.
+   the core for a grant to play, naming the device it plays on by an id it keeps.
+   The core, as administrator, signs that device in by code for the member's user
+   id and answers the session's token to the client once, keeping no copy. The
+   client speaks to no media-server API of its own, so the app a member plays in
+   does not change with the server behind the door. The session belongs to the
+   member, so every discovery request made with it is answered under the member's
+   policy. The member's password is never involved and nobody learns it.
 2. **Expiry and revocation are the core's.** The media server's sessions do not
    lapse on a schedule, so the core ends the device's sessions when the grant lapses
    and when the member is removed from the household (`D6-R8`). An ended session is

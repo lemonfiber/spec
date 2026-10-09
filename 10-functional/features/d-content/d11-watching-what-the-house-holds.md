@@ -35,9 +35,11 @@ asked ([ADR-0027](../../../00-overview/decisions/0027-a-member-plays-what-the-co
 
 ### A grant on the member's own account
 
-A member's paired client asks the media server for a device code, and the core,
-as the media server's administrator, authorises that code for the member's own
-user. The session that comes back is the member's, so every question asked with
+A member's paired client asks the core for a grant for the device it plays on,
+named by an id the client keeps. The core, as the media server's administrator,
+signs that device in for the member's own user and answers the session's token
+to the client once; it keeps no copy, and the client speaks to no media-server API
+of its own. The session is the member's, so every question asked with
 it is answered under the member's age limit and library access
 ([D8](d8-parental-controls.md)). Nobody learns the member's password
 ([D6](d6-household-identity.md)). A grant lasts thirty days from the last time the
@@ -118,7 +120,7 @@ media server's answer on every device they play on.
 
 | ID | Requirement |
 |----|-------------|
-| **D11-R1** | A member's paired client MUST be able to obtain a grant to play on the member's own media-server account, authorised by the core without anybody learning the member's password, and the core MUST end it when it lapses and when the member is removed (`D6-R8`). |
+| **D11-R1** | A member's paired client MUST be able to obtain a grant to play on the member's own media-server account for a device it names, authorised by the core without anybody learning the member's password and answered to the client once with the session's token, which the core MUST NOT keep. The core MUST end it when it lapses and when the member is removed (`D6-R8`). |
 | **D11-R2** | Every byte the media server serves for an item, its images included, MUST pass a guard that asks the media server whether the presented session may see that item, and MUST be refused where it may not, where no session is presented, or where the answer does not come. The media server's own port MUST NOT be published to the household beside the guard. The guard MUST accept a session presented as `Authorization: Bearer <token>`, and MUST carry nothing written after the token over to the media server. |
 | **D11-R3** | The core MUST state, for each title it lists for a member, where its poster and backdrop are served at the guarded front door, built from the household address the stack publishes for the media server. It MUST state nothing where it does not know that address, and MUST NOT state the location of an image that is not an item's own. |
 | **D11-R4** | The core MUST answer a title's details (overview, runtime, genres, certificate, release date, and seasons and episodes) as the member's own session reads them, and MUST answer a title outside the member's limits as absent (`D8-R9`). |
