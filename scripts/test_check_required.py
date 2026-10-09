@@ -167,6 +167,20 @@ class TheSurvey(unittest.TestCase):
         self.assertEqual(code, 0, said)
 
 
+def merged(pulls: list[dict]):
+    """A forge whose merged pull requests are `pulls`: listed by number and
+    date, each one's checks answered when it is viewed."""
+    numbered = [{"number": at, **pull} for at, pull in enumerate(pulls, 1)]
+
+    def answer(argv: list[str]) -> str:
+        if argv[:3] == ["gh", "pr", "list"]:
+            return json.dumps([{"number": p["number"], "mergedAt": p.get("mergedAt")} for p in numbered])
+        number = int(argv[argv.index("view") + 1])
+        return json.dumps({"statusCheckRollup": numbered[number - 1].get("statusCheckRollup")})
+
+    return answer
+
+
 class TheSilences(unittest.TestCase):
     def test_an_organisation_with_no_repository_refuses(self):
         with mock.patch.object(check_required, "_run", return_value="\n"), \
@@ -223,8 +237,8 @@ class TheSilences(unittest.TestCase):
             self.assertEqual(check_required.repositories("lemonfiber"), ["a", "b"])
         with mock.patch.object(check_required, "_run", return_value='{"checks":[{"context":"a"}]}'):
             self.assertEqual(check_required.required_in("lemonfiber", "brand"), {"a"})
-        rollup = '[{"statusCheckRollup":[{"name":"a"},{"context":"b"},{}]}]'
-        with mock.patch.object(check_required, "_run", return_value=rollup):
+        rollup = merged([{"statusCheckRollup": [{"name": "a"}, {"context": "b"}, {}]}, {"statusCheckRollup": None}])
+        with mock.patch.object(check_required, "_run", side_effect=rollup):
             self.assertEqual(check_required.observed_in("lemonfiber", "brand"), {"a", "b"})
         with mock.patch.object(check_required.subprocess, "run",
                                return_value=mock.Mock(returncode=0, stdout="x")):
@@ -233,34 +247,41 @@ class TheSilences(unittest.TestCase):
 
 class WhatIsSampled(unittest.TestCase):
     def test_only_merged_pull_requests_are_asked_about(self):
-        rollup = '[{"statusCheckRollup":[{"name":"a"}]}]'
-        with mock.patch.object(check_required, "_run", return_value=rollup) as ran:
+        with mock.patch.object(check_required, "_run", side_effect=merged([{"statusCheckRollup": [{"name": "a"}]}])) as ran:
             check_required.observed_in("lemonfiber", "homebrew-tap")
-        argv = ran.call_args.args[0]
-        self.assertEqual(argv[argv.index("--state") + 1], "merged")
-
+        listing = ran.call_args_list[0].args[0]
+        self.assertEqual(listing[listing.index("--state") + 1], "merged")
+        self.assertEqual(listing[listing.index("--json") + 1], "number,mergedAt")
+        self.assertEqual(ran.call_args_list[1].args[0][:4], ["gh", "pr", "view", "1"])
 
     def test_only_pull_requests_merged_since_the_gates_landed_are_read(self):
-        rollup = json.dumps([
+        pulls = [
             {"mergedAt": "2026-10-09T10:00:00Z", "statusCheckRollup": [{"name": "gates / gates"}]},
             {"mergedAt": "2026-10-09T09:00:00Z", "statusCheckRollup": [{"name": "gates / report"}]},
             {"mergedAt": "2026-10-08T09:00:00Z", "statusCheckRollup": [{"name": "dco / dco"}]},
             {"mergedAt": None, "statusCheckRollup": [{"name": "odd"}]},
-        ])
-        with mock.patch.object(check_required, "_run", return_value=rollup):
+        ]
+        with mock.patch.object(check_required, "_run", side_effect=merged(pulls)):
             self.assertEqual(check_required.observed_in("lemonfiber", "brand", since="2026-10-09T09:00:00Z"),
                              {"gates / gates", "gates / report"})
+        with mock.patch.object(check_required, "_run", side_effect=merged(pulls)):
             self.assertEqual(check_required.observed_in("lemonfiber", "brand", sampled=1,
                                                         since="2026-10-08T00:00:00Z"), {"gates / gates"})
+        with mock.patch.object(check_required, "_run", side_effect=merged(pulls)):
             self.assertEqual(len(check_required.observed_in("lemonfiber", "brand")), 4)
-        oldest_first = json.dumps(list(reversed(json.loads(rollup))))
-        with mock.patch.object(check_required, "_run", return_value=oldest_first):
+        with mock.patch.object(check_required, "_run", side_effect=merged(list(reversed(pulls)))):
             self.assertEqual(check_required.observed_in("lemonfiber", "brand", sampled=1,
                                                         since="2026-10-08T00:00:00Z"), {"gates / gates"})
 
+    def test_only_the_sampled_pull_requests_checks_are_read(self):
+        pulls = [{"mergedAt": f"2026-10-09T0{at}:00:00Z", "statusCheckRollup": [{"name": "a"}]} for at in range(9)]
+        with mock.patch.object(check_required, "_run", side_effect=merged(pulls)) as ran:
+            check_required.observed_in("lemonfiber", "brand")
+        self.assertEqual(len(ran.call_args_list), 1 + check_required.SAMPLED)
+
     def test_none_merged_since_the_gates_landed_is_unanswered(self):
-        rollup = '[{"mergedAt": "2026-10-08T09:00:00Z", "statusCheckRollup": [{"name": "dco / dco"}]}]'
-        with mock.patch.object(check_required, "_run", return_value=rollup), \
+        pulls = [{"mergedAt": "2026-10-08T09:00:00Z", "statusCheckRollup": [{"name": "dco / dco"}]}]
+        with mock.patch.object(check_required, "_run", side_effect=merged(pulls)), \
              self.assertRaises(check_required.Unanswerable) as why:
             check_required.observed_in("lemonfiber", "brand", since="2026-10-09T00:00:00Z")
         self.assertIn("merged since 2026-10-09T00:00:00Z", str(why.exception))
