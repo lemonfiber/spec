@@ -411,6 +411,16 @@ rolling bump pull request per repository (**OPS-R85**), which `pin-only` lets
 through as a move along spec's `main` (**Q-R83**), and a second bot proposing the
 same move would be a second pull request to close.
 
+Any other change under `.github/workflows/` or `.github/actions/` fails
+`pin-only` until a maintainer approves it with the `workflows-approved` label,
+added after the pull request's last push and only once the user has said yes to
+that pull request (**Q-R83**). The label is the only way such a change merges:
+`enforce_admins` stays on and is never turned off to let one through. A push, a
+force push or the label's removal voids the approval, and `pin-only` fails
+again until the label is added again. The check reads when the label was added
+and which head each of its own runs saw from the forge's records, never from a
+commit's dates, which the pusher writes.
+
 `workflow-pins` and the bot answer different questions and neither replaces the
 other. The bot keeps a pin at the newest tag whether or not it matters; the check
 refuses only a pin whose own workflow has moved. A repository can sit a tag or
