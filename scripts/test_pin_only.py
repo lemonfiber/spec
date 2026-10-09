@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import contextlib
 import io
+import os
 import pathlib
 import subprocess
 import sys
 import unittest
 import urllib.parse
+from unittest import mock
 
 import yaml
 
@@ -158,10 +160,15 @@ def labeled(minute: int, name: str = pin_only.APPROVED, event: str = "labeled", 
     return {"event": event, "created_at": at(minute), "label": {"name": name}, "actor": {"login": by}}
 
 
-def run(forge, head: str = HEAD, workflow: str = CALLING) -> tuple[int, str]:
+def run(forge, head: str = HEAD, workflow: str | None = CALLING, runner: str | None = None) -> tuple[int, str]:
+    """The script's verdict and what it said, given `workflow` as `--workflow` and `runner` as the runner names it."""
+    given = ["--workflow", workflow] if workflow is not None else []
+    named = {pin_only.RUNNER_WORKFLOW_REF: runner} if runner is not None else {}
     out = io.StringIO()
-    with contextlib.redirect_stdout(out):
-        code = pin_only.main(["--repo", REPO, "--number", "7", "--head", head, "--workflow", workflow], api=forge)
+    with mock.patch.dict(os.environ, named), contextlib.redirect_stdout(out):
+        if runner is None:
+            os.environ.pop(pin_only.RUNNER_WORKFLOW_REF, None)
+        code = pin_only.main(["--repo", REPO, "--number", "7", "--head", head, *given], api=forge)
     return code, out.getvalue()
 
 
@@ -415,6 +422,34 @@ class Approved(unittest.TestCase):
                 code, said = run(self.changed(), workflow=workflow)
                 self.assertEqual(code, 2, said)
                 self.assertIn("is not a workflow of", said)
+
+    def approved(self) -> Forge:
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(8)]
+        forge.runs.append(ran(8))
+        return forge
+
+    def test_a_caller_that_does_not_name_itself_is_named_by_the_runner(self):
+        forge = self.approved()
+        code, said = run(forge, workflow=None, runner=CALLING)
+        self.assertEqual(code, 0, said)
+        self.assertTrue([a for a in forge.asked if "/actions/workflows/pin-only.yml/runs?" in a[0]])
+
+    def test_the_workflow_given_is_read_over_the_runner_s(self):
+        code, said = run(self.approved(), runner="other/repo/.github/workflows/pin-only.yml@refs/heads/main")
+        self.assertEqual(code, 0, said)
+        code, said = run(self.approved(), workflow="", runner=CALLING)
+        self.assertEqual(code, 2, said)
+        self.assertIn("is not a workflow of", said)
+
+    def test_a_caller_named_by_neither_is_refused(self):
+        for runner in (None, ""):
+            with self.subTest(runner=runner):
+                code, said = run(self.approved(), workflow=None, runner=runner)
+                self.assertEqual(code, 2, said)
+                self.assertIn(f"Neither --workflow nor {pin_only.RUNNER_WORKFLOW_REF} names the calling workflow",
+                              said)
 
 
 class Truncated(unittest.TestCase):
