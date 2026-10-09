@@ -285,7 +285,7 @@ directory, and nothing else. That bounds the *number* of mounts and their source
 is the part that matters. It was read as also fixing the target at `/config`, and that
 reading made a whole class of image uninstallable for no gain in safety.
 
-`/config` is a LinuxServer.io convention. Five of the twenty-two bundled services keep their
+`/config` is a LinuxServer.io convention. Five of the twenty-three bundled services keep their
 configuration somewhere else, and the stack's own `compose/` says so for each. A plugin
 whose image is one of those shapes was generated a container mounting a directory the
 application never reads — installing cleanly, answering its health probe, and losing
