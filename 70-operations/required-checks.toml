@@ -116,18 +116,11 @@ why = "per-profile legs of a run-time matrix; the aggregate `the stack starts` i
 name = "mutation"
 why = "the run-time mutation matrix reported bare when it has no shards to run; the aggregate `mutation testing` is required"
 
-# Checks that a pull request's paths decide whether to run. A required context
-# that never reports is read as a wait, so one that runs only on some paths
-# cannot be required: protection would hold every other pull request. Each
-# becomes a requirement once its workflow runs on every pull request and skips
-# its own work by scope and `if:`.
+# Jobs that run on a schedule or by hand, and report skipped on every pull
+# request. Required, one would pass every pull request without judging any.
 [[exempt]]
 name = "fuzz"
-why = "runs only on a pull request touching the fuzzed crates (`on.pull_request.paths`), so it cannot be required"
-
-[[exempt]]
-name = "smoke"
-why = "runs only on a pull request touching the fuzzed crates (`on.pull_request.paths`), so it cannot be required"
+why = "the long run, on the schedule and by hand only; on a pull request it reports skipped, and `smoke` is the pull request's fuzzing verdict"
 
 # The Dependabot app's own check run. It posts on some pull requests and not
 # others, and has been left queued without a conclusion, so as a requirement it
