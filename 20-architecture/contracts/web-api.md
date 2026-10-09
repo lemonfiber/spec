@@ -62,6 +62,7 @@ GET /api/credentials   GET /api/alerts
 GET /api/space         GET /api/bandwidth
 GET /api/hosting      GET /api/uninstall
 GET /api/migration    GET /api/held?…        GET /api/held/{id}?…
+GET /api/held/{id}/poster?…                   GET /api/held/{id}/backdrop?…
 GET /api/history
 GET /api/update?…
 GET /api/news
@@ -78,6 +79,13 @@ front door beside the fingerprint the door presents (D11). It is read as the mem
 it is, so a title outside their limits is answered as absent, the same answer a title the
 household does not hold gets. `/api/watching` is what a member was part-way through and how far,
 located the same way.
+
+`/api/held/{id}/poster` and `/api/held/{id}/backdrop` are the two reads that answer bytes rather
+than an envelope: the title's picture, read as the member and passed on as an `image/*` body of
+at most 2 MiB, marked `Cache-Control: private` (D11-R9). They exist for a browser, which can
+neither present a session to the guarded front door nor pin its certificate, so it fetches the
+picture here with its own token and draws it from memory. A title outside the member's limits,
+and a picture the media server does not hold, are answered as absent.
 
 `/api/clients` takes none either, and for a different reason: what to watch on is the same answer on every machine, because the client landscape belongs to the platforms rather than to a stack. It reads nothing and asks nothing of the engine, so it answers where nothing is set up yet — which is when somebody deciding what to tell the house is most likely to ask. Naming a device would let a surface show one row and call it the answer, and the row most worth reading is the one saying a device is poorly served and what to do instead.
 

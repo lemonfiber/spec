@@ -244,14 +244,14 @@
 # and a call carrying it refused where the stack moved since, as the plugin writes are;
 # a call carrying none acts as before. Home Assistant's controls rehearse and then act
 # (`F12-R8`), so what they carry out is what they were shown.
-# `D11-R1` to `D11-R8` are ADR-0027's member grant and guarded front door: the grant a
+# `D11-R1` to `D11-R9` are ADR-0027's member grant and guarded front door: the grant a
 # member's client plays on, the door that asks the media server about every byte, where
 # each title's artwork and stream are served with the fingerprint the door presents, a
-# title's details, what a member was part-way through, and the progress a player reports
-# back. The companion's player (N3-R14 to N3-R16) is built on them. `lemonfiber-media-stack`
+# title's details, what a member was part-way through, the progress a player reports
+# back, and the pictures a browser reads from the core. The companion's player (N3-R14 to N3-R16) is built on them. `lemonfiber-media-stack`
 # is cut because `D11-R2` puts the guard in front of the media server in every form that
 # serves it.
-# 387 goals, seeded from the roadmap milestone this version serves;
+# 388 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -298,6 +298,7 @@ goals   = [
     "D11-R6",
     "D11-R7",
     "D11-R8",
+    "D11-R9",
     "F8-R1",
     "F8-R2",
     "F8-R3",
