@@ -13,12 +13,17 @@ which a maintainer approves by choice: such a pull request passes once it
 carries the `workflows-approved` label, added after its last push.
 
 The approval is read from the forge's own records and never from a commit:
-the label is on the pull request now; the newest time it was added is later
-than every force push of its branch; and every run of this check, from the
-newest one at or before that time onward, was for the head being judged. A
-push, a force push or a removal of the label after it voids the approval, and
-this fails again until the label is added again. A commit's dates are the
-pusher's to write, so none is read.
+the label is on the pull request now; the last time it was added was by an
+account holding the admin or maintain role on the repository; and it is bound
+to the head being judged. A fast-forward push leaves no record of its time on a
+pull request, and a commit's dates are the pusher's to write, so the binding is
+read from this check's own runs instead, each of which the forge creates with
+the head it was started for: the newest run at or before the label was added
+names the head the branch had then, and that run and every one after it must
+name the head being judged. A force push after the label also voids it, and
+the head is read again once the approval is read. A push, a force push or a
+removal of the label voids the approval, and this fails again until a
+maintainer adds the label again.
 
 The change is read against the merge base, so a pull request is judged on what
 it changes and not on what `main` has changed since it branched, and it is read
@@ -60,6 +65,10 @@ PIN = re.compile(r"(?P<path>lemonfiber/spec/\S+?)@(?P<sha>[0-9a-f]{40})(?P<versi
 
 #: The label a maintainer adds, after the last push, to approve a change to the checks.
 APPROVED = "workflows-approved"
+
+#: The roles whose label approves: the label is the merge decision, so a role that may label and not
+#: administer the repository, triage or a bot's, does not approve.
+APPROVERS = ("admin", "maintain")
 
 #: The most pages of a list read before the list is called too long to judge.
 PAGES = 10
@@ -325,6 +334,11 @@ def listed(path: str, api: Api, key: str | None = None) -> list[dict]:
     raise Incomplete(f"{path} runs past {PAGES * PER_PAGE} items")
 
 
+def role(repo: str, login: str, api: Api) -> str:
+    answer = api([f"repos/{repo}/collaborators/{urllib.parse.quote(login, safe='')}/permission"], False)
+    return answer.get("role_name") or "none"
+
+
 def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str | None:
     """Why the pull request carries no approval for `head`, or None where it does.
 
@@ -336,10 +350,13 @@ def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str |
         return f"it carries no `{APPROVED}` label"
     number = pull["number"]
     events = listed(f"repos/{repo}/issues/{number}/timeline", api)
-    added = [e["created_at"] for e in events if e["event"] == "labeled" and e["label"]["name"] == APPROVED]
-    if not added:
+    moves = [e for e in events if e["event"] in ("labeled", "unlabeled") and e["label"]["name"] == APPROVED]
+    if not moves or moves[-1]["event"] != "labeled":
         return f"no event on it says when `{APPROVED}` was added"
-    at = max(added)
+    who = (moves[-1].get("actor") or {}).get("login")
+    if not who or role(repo, who, api) not in APPROVERS:
+        return f"`{APPROVED}` was added by {who or 'nobody the forge names'}, who does not maintain {repo}"
+    at = moves[-1]["created_at"]
     forced = sorted(e["created_at"] for e in events if e["event"] == "head_ref_force_pushed" and e["created_at"] >= at)
     if forced:
         return f"its branch was force-pushed at {forced[-1]}, after `{APPROVED}` was added at {at}"

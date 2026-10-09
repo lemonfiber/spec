@@ -68,6 +68,9 @@ class Forge:
         self.timeline: list[dict] = []
         self.runs: list[dict] = []
         self.branch = "feature/x"
+        # The role each account holds on the repository, as the permission API names it.
+        self.roles = {MAINTAINER: "admin", "triager": "triage", "writer": "write", "someone": "read",
+                      "dependabot[bot]": ""}
         self.blobs: dict[str, str] = {}
         self.asked: list[list[str]] = []
 
@@ -92,6 +95,11 @@ class Forge:
                     "base": {"sha": BASE}, "labels": [{"name": name} for name in self.labels]}
         if path.startswith(f"repos/{REPO}/issues/7/timeline?"):
             return paged(self.timeline, path)
+        member = f"repos/{REPO}/collaborators/"
+        if path.startswith(member) and path.endswith("/permission"):
+            login = urllib.parse.unquote(path.removeprefix(member).removesuffix("/permission"))
+            assert "/" not in path.removeprefix(member).removesuffix("/permission")
+            return {"permission": self.roles[login] or "none", "role_name": self.roles[login]}
         runs = f"repos/{REPO}/actions/workflows/pin-only.yml/runs?event=pull_request_target&branch="
         if path.startswith(runs):
             branch = path.removeprefix(runs).split("&", 1)[0]
@@ -142,8 +150,12 @@ def ran(minute: int, head: str = HEAD, source: str = FORK) -> dict:
     return {"created_at": at(minute), "head_sha": head, "head_repository": {"full_name": source}}
 
 
-def labeled(minute: int, name: str = pin_only.APPROVED, event: str = "labeled") -> dict:
-    return {"event": event, "created_at": at(minute), "label": {"name": name}}
+#: The account that holds the admin role on the repository.
+MAINTAINER = "lessevv"
+
+
+def labeled(minute: int, name: str = pin_only.APPROVED, event: str = "labeled", by: str = MAINTAINER) -> dict:
+    return {"event": event, "created_at": at(minute), "label": {"name": name}, "actor": {"login": by}}
 
 
 def run(forge, head: str = HEAD, workflow: str = CALLING) -> tuple[int, str]:
@@ -294,6 +306,35 @@ class Approved(unittest.TestCase):
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(3)]
         self.refused(forge, f"its head was {OLD[:8]} at {at(1)}", f"was added at {at(3)}")
+
+    def test_the_label_added_by_one_who_does_not_maintain_the_repository_fails(self):
+        for who in ("triager", "writer", "someone", "dependabot[bot]"):
+            with self.subTest(who):
+                forge = self.changed()
+                forge.labels = [pin_only.APPROVED]
+                forge.timeline = [labeled(8, by=who)]
+                self.refused(forge, f"`{pin_only.APPROVED}` was added by {who}, who does not maintain {REPO}")
+                self.assertFalse([a for a in forge.asked if "/runs" in a[0]])
+
+    def test_the_label_added_by_one_who_holds_maintain_passes(self):
+        forge = self.changed()
+        forge.roles["keeper"] = "maintain"
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(8, by="keeper")]
+        self.assertEqual(run(forge)[0], 0)
+
+    def test_the_label_added_again_by_one_who_does_not_maintain_the_repository_fails(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(7), labeled(8, event="unlabeled", by="triager"), labeled(9, by="triager")]
+        self.refused(forge, "was added by triager")
+
+    def test_the_label_added_by_an_account_the_forge_no_longer_names_fails(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [dict(labeled(8), actor=None)]
+        self.refused(forge, "was added by nobody the forge names")
+        self.assertFalse([a for a in forge.asked if "/permission" in a[0]])
 
     def test_the_label_removed_fails(self):
         forge = self.changed()
