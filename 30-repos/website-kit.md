@@ -38,7 +38,8 @@ website-kit/
 │             and provenance; the content loader; the guards on a site's own
 │             code and chrome; the outbound link check; the pin checks and the
 │             pull request that moves them; the brand check; the table
-│             regions, the page policy and the layout probe
+│             regions, the page policy, the host's headers and the layout
+│             probe
 ├── styles/   the look every site is drawn in: the Starlight theme on brand's
 │             tokens, and brand's faces with their licences
 ├── run/      the runners a site's scripts call, which hand those rules the
@@ -57,7 +58,7 @@ does (`Q-R56`).
 
 | ID | Requirement |
 |----|-------------|
-| **REPO-R84** | The machinery the project's sites share — the mirror loader and provenance, link rewriting, the guards on authored chrome, the outbound link check, the pin checks and the pin bump, the brand package check, the accessibility sweep and the layout probe, the theme on brand's tokens and brand's faces, the table regions and the Content-Security-Policy each page carries — MUST be written here once, and MUST NOT be copied into any site. |
+| **REPO-R84** | The machinery the project's sites share — the mirror loader and provenance, link rewriting, the guards on authored chrome, the outbound link check, the pin checks and the pin bump, the brand package check, the accessibility sweep and the layout probe, the theme on brand's tokens and brand's faces, the table regions, the Content-Security-Policy each page carries and the headers its host sends with every page — MUST be written here once, and MUST NOT be copied into any site. |
 | **REPO-R85** | A site MUST take this repository at an exact commit recorded in its `package.json`, and the automation that moves the site's submodule pins MUST move that commit too; nothing here is published to a package registry. The compiled code a site runs MUST be committed, and CI MUST refuse it where it differs from what the source builds. |
 | **REPO-R86** | This repository MUST hold no site's pages, route table or message catalogue; what a site renders and says stays in that site. |
 | **REPO-R87** | Every module under `src/` MUST be covered by tests at 100% of lines, branches, functions and statements; the runners under `run/`, which hand those modules the process, the console and the network, MUST be type-checked and linted. |

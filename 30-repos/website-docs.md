@@ -83,7 +83,10 @@ rather than a habit.
 
 ## How it stays fresh
 
-Deployed to GitHub Pages by CI, from a checkout that includes submodules. A pin moves
+Deployed by CI to Cloudflare, as an assets-only Worker that `wrangler.jsonc`
+declares and wrangler uploads, and to GitHub Pages while the domain still points
+there, from a checkout that includes submodules. The headers the host sends are
+in the `_headers` file the build carries. A pin moves
 by pull request in this repo, which is what makes the change reviewable and dated: the
 diff says which revision the site will start showing, and every rendered page carries
 that revision and its date so a reader can tell how old the words are. A build fetches
