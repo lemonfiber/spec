@@ -201,7 +201,8 @@ config_path = "/config"
 | `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). At most one service of a plugin may declare a given core name — see below. |
 | `config_path` | string | | Where inside the container the one configuration directory is mounted. Default `/config`. |
 | `api` | table | | The adapter lemonfiber reaches it through, in `stack.toml`'s shape. `kind` and `key_source` from the published set — see below. |
-| `listens` | integer | ✔ if `api` | The port it answers on inside the stack's network, where lemonfiber and the services that ask reach it. As `stack.toml`. |
+| `listens` | integer | ✔ if `api` or `speaks` | The port it answers on inside the stack's network, where lemonfiber and the services that ask reach it. As `stack.toml`. |
+| `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract names no `api`: it is asked one way. See [capability-contracts.md](capability-contracts.md). |
 
 ### The image is named by digest
 
