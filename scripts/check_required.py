@@ -192,19 +192,27 @@ def gates_landed(owner: str, name: str) -> str | None:
 
 def observed_in(owner: str, name: str, sampled: int = SAMPLED, since: str | None = None) -> set[str]:
     """Every check name a repository's recently merged pull requests produced,
-    counting only those merged at or after `since` where it is given."""
+    counting only those merged at or after `since` where it is given.
+
+    The pull requests are listed by number and date alone, and the checks are
+    read for the sampled few: asking for every listed one's checks at once is a
+    query the forge times out on.
+    """
     repo = named(owner, "organisation") + "/" + named(name, "repository")
     raw = _run(
         [
             "gh", "pr", "list", "-R", repo, "--state", "merged",
-            "--limit", str(LISTED), "--json", "mergedAt,statusCheckRollup",
+            "--limit", str(LISTED), "--json", "number,mergedAt",
         ]
     )
     pulls = [p for p in json.loads(raw) if since is None or (p.get("mergedAt") or "") >= since]
     pulls.sort(key=lambda p: p.get("mergedAt") or "", reverse=True)
     names: set[str] = set()
     for pull in pulls[: int(sampled)]:
-        for run in pull.get("statusCheckRollup") or []:
+        read = json.loads(
+            _run(["gh", "pr", "view", str(int(pull["number"])), "-R", repo, "--json", "statusCheckRollup"])
+        )
+        for run in read.get("statusCheckRollup") or []:
             name = run.get("name") or run.get("context")
             if name:
                 names.add(name)

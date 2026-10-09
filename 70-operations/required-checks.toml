@@ -58,6 +58,37 @@ why = "tells a first-time contributor where a mirrored page is edited, in a comm
 name = "status / explain"
 why = "shows the tracker state of the goals a pull request cites, in a comment"
 
+[[exempt]]
+name = "summary"
+why = "reads which goals a merged pull request moved, for the maintainer channel; it runs after the merge and judges nothing"
+
+[[exempt]]
+name = "told"
+why = "posts an outcome to Discord; the outcome is decided by the job it follows"
+
+[[exempt]]
+name = "telling"
+why = "posts a scheduled run's finding to Discord, and is skipped on a pull request"
+
+[[exempt]]
+name = "age"
+why = "reports on a schedule how far behind its upstream a pin is, and is skipped on a pull request"
+
+[[exempt]]
+name = "cancel"
+why = "cancels a pull request's runs on the heads a push replaced, and judges nothing"
+
+[[exempt]]
+name = "record the proven tree"
+why = "records that the gates passed on a tree so a later run can skip them; the gates are the verdict"
+
+# Scope jobs. Each reads which files a pull request changed and tells the jobs
+# after it whether to run. A failure is read as "run everything", so it cannot
+# let a change through that the jobs it scopes would refuse.
+[[exempt]]
+name = "what changed"
+why = "decides which jobs run, and a failure runs them all; the jobs it scopes are the verdict"
+
 # Complement legs. Each carries a condition that is false on a pull request
 # (`sonar-gate`'s is false on a merge group too) and is therefore always skipped
 # on one. Requiring one would deadlock the branch permanently: a skipped check
@@ -80,6 +111,30 @@ why = "per-module legs of a run-time matrix; the aggregate `mutation testing` is
 [[exempt]]
 prefix = "runs ("
 why = "per-profile legs of a run-time matrix; the aggregate `the stack starts` is required"
+
+[[exempt]]
+name = "mutation"
+why = "the run-time mutation matrix reported bare when it has no shards to run; the aggregate `mutation testing` is required"
+
+# Checks that a pull request's paths decide whether to run. A required context
+# that never reports is read as a wait, so one that runs only on some paths
+# cannot be required: protection would hold every other pull request. Each
+# becomes a requirement once its workflow runs on every pull request and skips
+# its own work by scope and `if:`.
+[[exempt]]
+name = "fuzz"
+why = "runs only on a pull request touching the fuzzed crates (`on.pull_request.paths`), so it cannot be required"
+
+[[exempt]]
+name = "smoke"
+why = "runs only on a pull request touching the fuzzed crates (`on.pull_request.paths`), so it cannot be required"
+
+# The Dependabot app's own check run. It posts on some pull requests and not
+# others, and has been left queued without a conclusion, so as a requirement it
+# would hold a branch on a check that may never report.
+[[exempt]]
+name = ".github/dependabot.yml"
+why = "the Dependabot app's own check run, which posts on some pull requests only and can stay queued, so it cannot be required"
 
 # Freshness of a vendored client. Each asks whether what a repository pins is
 # still the newest thing its upstream has, and reads the upstream's head rather
