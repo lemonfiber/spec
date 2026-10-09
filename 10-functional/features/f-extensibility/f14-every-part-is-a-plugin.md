@@ -108,7 +108,7 @@ exercised, and undone.
 | State | Meaning |
 |---|---|
 | `conforming` | The adapter answers every operation of the contracts it speaks as the suite requires |
-| `nonconforming` | An operation answered outside the contract; the plugin does not fill the capability |
+| `nonconforming` | An operation answered outside the contract; the plugin does not fill that capability until a live proof it passes clears the record |
 | `substituted` | The operator's chosen filler serves the capability; the part it replaced is stopped, its data kept |
 | `restored` | A substitution was undone; the part it replaced runs again with its data |
 
@@ -122,6 +122,7 @@ exercised, and undone.
 | The operator undoes a substitution after members used the substitute | The part that was replaced comes back with its data; what members did on the substitute stays on the substitute |
 | A plugin that is not the egress guard's filler asks for the privileged shape | Refused at validation, naming the field |
 | An adapter claims an upstream release it has no recordings for | Refused at install, naming the release |
+| A plugin recorded nonconforming is proved again and fails | The record stays, and the proof names each case that failed |
 
 ## Acceptance criteria
 
@@ -142,6 +143,8 @@ exercised, and undone.
 | **F14-R13** | An adapter MUST declare the upstream releases it supports, each proved by its own recordings, and the core MUST NOT compare versions. |
 | **F14-R14** | Every capability MUST be proved by a substitute other than its first-party filler, run end to end against its pinned upstream through install, its first-run flow, conformance, substitution, the features the capability serves, and undo. |
 | **F14-R15** | Every first-party adapter MUST be built on the adapter kit, from a repository of its own, into an image the release train publishes. |
+| **F14-R16** | An answer outside a contract MUST be recorded against the plugin with the capability, the operation, why and when, and a plugin recorded nonconforming for a capability MUST NOT fill it until it passes a live proof run after the record; updating it, installing it again and proving it again MUST each run that proof, and a passing proof MUST clear its records. |
+| **F14-R17** | The installed plugins as `lemonfiber plugin installed` and `GET /api/plugins` answer them MUST name, for each plugin, every capability it is recorded nonconforming for, with the operation, why and when, and nothing a member is shown MUST name it. |
 
 ## Related
 

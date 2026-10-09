@@ -482,7 +482,7 @@ sentence to show somebody.
 ```
 POST /api/actions/plugin-install    POST /api/actions/plugin-update
 POST /api/actions/plugin-remove     POST /api/actions/plugin-run
-POST /api/actions/wiring-fill
+POST /api/actions/plugin-prove      POST /api/actions/wiring-fill
 ```
 
 What is installed and what the stack wires to what are read as their commands answer
@@ -491,7 +491,7 @@ is refused with a code the artefact lists, and is never answered with an empty l
 empty list says nothing is installed, which is a different sentence from *this could not
 be read* (`ARCH-R145`).
 
-The five writes take what their commands take ([ADR-0031](../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)):
+The six writes take what their commands take ([ADR-0031](../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)):
 
 | Action | Arguments | Answers |
 |--------|-----------|---------|
@@ -499,11 +499,16 @@ The five writes take what their commands take ([ADR-0031](../../00-overview/deci
 | `plugin-update` | `plugin`, `source`, `inputs`, `dry_run`, `offer`, `approved` | a job, then `plugins` |
 | `plugin-remove` | `plugin`, `dry_run`, `offer` | a job, then `plugins` |
 | `plugin-run` | `plugin`, `recipe`, `inputs`, `dry_run`, `offer`, `approved` | a job, then `plugins` |
+| `plugin-prove` | `plugin`, `dry_run`, `offer` | a job, then `plugins` |
 | `wiring-fill` | `capability`, `service`, `reason`, `dry_run`, `offer` | `substitution` |
 
 **The yes is the offer.** Each rehearsal answers an offer built from what it read, and
 the write takes that offer, builds it again from what is there now, and refuses where the
-two differ, naming what moved. A bare `confirm` is no yes to any of the five (`ARCH-R146`).
+two differ, naming what moved. A bare `confirm` is no yes to any of the six (`ARCH-R146`).
+
+`plugin-prove` runs the plugin's live proof again, as `lemonfiber plugin prove` does: a
+pass clears every nonconforming record the plugin holds, and a failure keeps them and
+names each case that failed (`F14-R16`, `ARCH-R215`).
 
 **A source is any the command takes**: a catalogue name, a git repository or a path on
 the machine ([ADR-0036](../../00-overview/decisions/0036-a-plugin-may-come-from-any-source-the-command-takes.md)).
@@ -919,7 +924,7 @@ generation has not been used.
 | **ARCH-R141** | The event stream MUST carry a `news` event naming, for each kind `ARCH-R140` lists, the identifiers of its ten newest items, sent when a client connects and whenever any of them changes. |
 | **ARCH-R142** | Work refused because the consent it was given names an offer or a listing that has since moved MUST end with a problem code the artefact lists among its refusals, with the status that work is answered with when its name is redeemed, so that a client can re-offer rather than report a failure (`N2-R6`, `A5-R13`, `ARCH-R138`). |
 | **ARCH-R145** | The web API MUST answer `GET /api/plugins` and `GET /api/wiring` with the envelopes `lemonfiber plugin installed --json` and `lemonfiber wiring --json` answer, and a record or a wiring that cannot be read MUST be refused with a problem code the artefact lists, and MUST NOT be answered with an empty list. |
-| **ARCH-R146** | The actions `plugin-install`, `plugin-update`, `plugin-remove`, `plugin-run` and `wiring-fill` MUST take `dry_run` and `offer`, MUST refuse a bare `confirm` as consent, and MUST end with a listed problem code when the offer they were given has moved. |
+| **ARCH-R146** | The actions `plugin-install`, `plugin-update`, `plugin-remove`, `plugin-run`, `plugin-prove` and `wiring-fill` MUST take `dry_run` and `offer`, MUST refuse a bare `confirm` as consent, and MUST end with a listed problem code when the offer they were given has moved. |
 | **ARCH-R147** | A rehearsal whose recipe would carry a value to an external host, or carry a value by a pair releasing it, MUST list each pair as the value's name, its origin and the destination by name, never a resolved address, and a released pair with its release and the service it was read from; the write MUST take the approval of each such pair as an argument apart from `offer`, and MUST refuse where any is not approved. |
 | **ARCH-R148** | A rehearsal MUST list the steps its recipe would run, in order, and MUST name each adapter a step uses as lemonfiber's. |
 | **ARCH-R149** | A call refused because an external name resolved to a loopback, private or link-local address MUST end with a listed problem code apart from the one a failed network ends with. |
@@ -927,6 +932,7 @@ generation has not been used.
 | **ARCH-R151** | The event stream MUST carry a `plugins` event and a `wiring` event, each with its envelope, sent when a client connects and whenever the installed record or the wiring changes. |
 | **ARCH-R152** | A git source named to `plugin-install` or `plugin-update` MUST be fetched over https from a host none of whose addresses is one the plugin manifest contract classes as not out on the internet, every address checked when the fetch is made, the fetch connecting only to those and following no redirect, and a source refused so MUST end with a listed problem code. |
 | **ARCH-R153** | The web API MUST answer `GET /api/plugins/catalogue` with the plugins the verified catalogue index lists, as `lemonfiber plugin catalogue --json` answers, and MUST NOT list an entry the index's signature does not cover. |
+| **ARCH-R215** | The web API MUST answer `POST /api/actions/plugin-prove`, taking `plugin`, `dry_run` and `offer`, with a job and then the `plugins` envelope, running the live proof `lemonfiber plugin prove` runs, and a passing proof MUST clear the plugin's nonconforming records while a failing one MUST keep them and name each failed case. |
 | **ARCH-R156** | The web API MUST answer `GET /api/playing` with every session the media server is playing now, each naming the member watching and what they are watching, as `lemonfiber playing --json` answers. A member, and a key scoped to one, MUST be answered with their own sessions only, narrowed by the command that runs rather than filtered from every session. |
 | **ARCH-R157** | A member, and a key scoped to one, MUST be admitted to the event stream narrowed to them: it MUST carry their own household row, their held shelf and what they are playing, each as the read answering it answers that member, and MUST NOT carry anything gathered for the operator. |
 | **ARCH-R158** | A member's stream MUST emit the heartbeat, resume and mark values gathered before a gap as stale as the operator's does (`ARCH-R50`, `ARCH-R51`), and MUST end when the member is removed or their key is revoked. |
