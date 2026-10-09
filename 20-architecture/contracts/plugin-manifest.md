@@ -203,6 +203,7 @@ config_path = "/config"
 | `api` | table | | The adapter lemonfiber reaches it through, in `stack.toml`'s shape. `kind` and `key_source` from the published set — see below. |
 | `listens` | integer | ✔ if `api` or `speaks` | The port it answers on inside the stack's network, where lemonfiber and the services that ask reach it. As `stack.toml`. |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract names no `api`: it is asked one way. See [capability-contracts.md](capability-contracts.md). |
+| `fronts` | string | ✔ if `speaks` | The plugin's own service this adapter stands in front of: the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. |
 
 ### The image is named by digest
 
@@ -907,6 +908,7 @@ unreadable.
 | **ARCH-R144** | A service declaring `api`, bundled or a plugin's, MUST declare `listens`, the port it answers on inside the stack's network, and lemonfiber MUST reach it at that port rather than at its published port or at a port named in lemonfiber's source. |
 | **ARCH-R154** | A plugin's service MUST join a network of the stack's only where it is the settled filler of an ask that a stack service on that network fills, speaks the adapter that service speaks and, where that service files media, files one of its media; it MUST NOT join a network on which every other service reaches that stack service by name, and the networks MUST be read from the stack's own compose files and never from a plugin's document. |
 | **ARCH-R155** | Choosing which service fills an ask MUST rewrite, in the same journalled change as the setting, the Compose document of every installed plugin whose service's networks the choice changes. |
+| **ARCH-R216** | A service that speaks a contract MUST name in `fronts` one other service of the same plugin that speaks none, and a manifest where it names none, itself, a service the plugin does not declare or one that speaks a contract MUST be refused by name. |
 
 ## Related
 

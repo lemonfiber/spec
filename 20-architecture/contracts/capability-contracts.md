@@ -157,6 +157,15 @@ A plugin's repository holds a recording for every case in the capability's
 taken against the upstream at the digest the adapter declares, as a claim's recordings
 are ([ARCH-R120](plugin-manifest.md) onward).
 
+- **Where.** By convention, beside the manifest: `conformance/<capability>@<major>/<case>.json`,
+  one file per case. The manifest lists none of them; the cases come from the published
+  `conformance.json`, so a missing recording is named by its case.
+- **Against what.** The upstream is the service the adapter names in `fronts`. Every
+  recording names the digest the manifest pins for that service, and one naming another
+  is refused rather than judged.
+- **Judged as the core reads.** A recorded answer is held to its operation exactly as a
+  live one is: the same schema, status set and size bound.
+
 - `lemonfiber plugin conform` judges the recordings without running anything.
 - Install repeats a live pass of the cases marked `live` against the running adapter.
 
@@ -192,6 +201,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R212** | An adapter's `listens` port MUST be published on `127.0.0.1` alone with no host port named, and the core MUST read the host port the engine gave it from the engine and MUST NOT reach an adapter at any other address. |
 | **ARCH-R213** | A service that speaks a capability's contract MUST also provide that capability, and a manifest where one does not MUST be refused by name; that capability MUST be demonstrated by its contract and MUST NOT require a `[[claim]]`. |
 | **ARCH-R214** | Where the service filling a capability speaks that capability's contract, the core MUST ask it over the contract alone and MUST NOT reach it through an adapter of its own. |
+| **ARCH-R217** | A plugin's conformance recordings MUST sit at `conformance/<capability>@<major>/<case>.json` beside its manifest, one per case of each contract it speaks, each in the recording format of `ARCH-R120` and naming the digest the manifest pins for the service its adapter `fronts`, and `lemonfiber plugin conform` MUST judge each recorded answer as the core reads a live one and MUST name each case whose recording is absent, unreadable, of another request or of another digest. |
 
 ## Related
 
