@@ -61,23 +61,16 @@ GET /api/outbound      GET /api/stored       GET /api/clients
 GET /api/credentials   GET /api/alerts
 GET /api/space         GET /api/bandwidth
 GET /api/hosting      GET /api/uninstall
-GET /api/migration    GET /api/held?…        GET /api/held/{id}?…
+GET /api/migration    GET /api/held?…
 GET /api/history
 GET /api/update?…
 GET /api/news
 GET /api/plugins       GET /api/wiring
-GET /api/playing       GET /api/watching?…
+GET /api/playing
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
 gains a parameter; one that gains an endpoint gained a command first.
-
-`/api/held/{id}` is one title on a member's shelf, named in the path by the id the shelf lists
-it under: what it is, a series' seasons and episodes, and where each is served at the guarded
-front door beside the fingerprint the door presents (D11). It is read as the member whose shelf
-it is, so a title outside their limits is answered as absent, the same answer a title the
-household does not hold gets. `/api/watching` is what a member was part-way through and how far,
-located the same way.
 
 `/api/clients` takes none either, and for a different reason: what to watch on is the same answer on every machine, because the client landscape belongs to the platforms rather than to a stack. It reads nothing and asks nothing of the engine, so it answers where nothing is set up yet — which is when somebody deciding what to tell the house is most likely to ask. Naming a device would let a surface show one row and call it the answer, and the row most worth reading is the one saying a device is poorly served and what to do instead.
 
@@ -167,7 +160,7 @@ refused by name.
 ### What is playing
 
 ```
-GET /api/playing       GET /api/watching?…
+GET /api/playing
 ```
 
 The `playing` envelope `lemonfiber playing --json` prints: every session the media server is
