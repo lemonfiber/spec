@@ -103,6 +103,24 @@ contract and run end to end against its pinned upstream: installed, its first-ru
 run, held to the conformance suite, substituted, the features its capability serves
 exercised, and undone.
 
+### Credentials between plugins
+
+Wiring hands credentials from one part to another: a curator's key to the subtitle
+finder, the media server's to the request service. A credential lemonfiber holds
+reaches a plugin's service only where it is that plugin's own, or where the plugin is
+first-party and the credential is the stack's or another first-party plugin's.
+
+A plugin is first-party only where this build embeds it in its first-party set: its id
+and the digest of its manifest, as the signed default bundle names them at the release
+the build pins. Anything else is third-party however it was installed, a reviewed
+catalogue entry included. Until the bundle is embedded, the set is empty and nothing is
+first-party.
+
+A third-party substitute may be granted one named credential for a capability it fills.
+The grant is part of the install or update offer and needs the operator's approval; it
+is journalled, can be revoked, and is shown on the credentials surface. Without a grant,
+nothing crosses to it.
+
 ## States
 
 | State | Meaning |
@@ -145,6 +163,9 @@ exercised, and undone.
 | **F14-R15** | Every first-party adapter MUST be built on the adapter kit, from a repository of its own, into an image the release train publishes. |
 | **F14-R16** | An answer outside a contract MUST be recorded against the plugin with the capability, the operation, why and when, and a plugin recorded nonconforming for a capability MUST NOT fill it until it passes a live proof run after the record; updating it, installing it again and proving it again MUST each run that proof, and a passing proof MUST clear its records. |
 | **F14-R17** | The installed plugins as `lemonfiber plugin installed` and `GET /api/plugins` answer them MUST name, for each plugin, every capability it is recorded nonconforming for, with the operation, why and when, and nothing a member is shown MUST name it. |
+| **F14-R18** | A credential lemonfiber holds MUST reach a plugin's service only where it is that plugin's own, where the plugin is first-party and the credential is the stack's, or where both the plugin and the credential's owner are first-party. |
+| **F14-R19** | A plugin MUST be first-party only where the build embeds its id and the digest of its manifest in its first-party set, as the signed default bundle names them at the release the build pins; any other plugin MUST be third-party however it was installed. |
+| **F14-R20** | A third-party plugin MAY be granted one named credential for a capability it fills; the grant MUST be part of the install or update offer and approved by the operator, MUST be journalled and revocable, and MUST be shown on the credentials surface, and without a grant no credential MUST cross to it. |
 
 ## Related
 
