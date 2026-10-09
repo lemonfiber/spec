@@ -9,7 +9,16 @@ checks nothing out of it. It fails a pull request that changes anything under
 `.github/workflows/` or `.github/actions/`, unless the only change in each such
 file is a pin of a lemonfiber/spec workflow moving forward along spec's `main`,
 with the version written beside it. Anything else is a change to the checks,
-which a maintainer merges by choice.
+which a maintainer approves by choice: such a pull request passes once it
+carries the `workflows-approved` label, added after its last push.
+
+The approval is read from the forge's own records and never from a commit:
+the label is on the pull request now; the newest time it was added is later
+than every force push of its branch; and every run of this check, from the
+newest one at or before that time onward, was for the head being judged. A
+push, a force push or a removal of the label after it voids the approval, and
+this fails again until the label is added again. A commit's dates are the
+pusher's to write, so none is read.
 
 The change is read against the merge base, so a pull request is judged on what
 it changes and not on what `main` has changed since it branched, and it is read
@@ -20,10 +29,12 @@ the change under review, run by checks the base branch chose.
 
 Usage:
   pin_only.py --repo <owner/name> --number <pull request> --head <the event's head commit>
+              --workflow <the calling workflow's ref, as `github.workflow_ref` gives it>
 
-Exit 0 when the head changes no workflow, or moves only spec's pins forward;
-1 when it changes a workflow otherwise, or the pull request's head is no longer
-that commit; 2 when the forge could not be read or the head is not a commit.
+Exit 0 when the head changes no workflow, moves only spec's pins forward, or
+carries the approval; 1 when it changes a workflow otherwise, or the pull
+request's head is no longer that commit; 2 when the forge could not be read,
+the head is not a commit, or the calling workflow is not named.
 """
 
 from __future__ import annotations
@@ -33,6 +44,7 @@ import json
 import re
 import subprocess
 import sys
+import urllib.parse
 from collections.abc import Callable
 
 import yaml
@@ -45,6 +57,18 @@ SPEC, MAIN = "lemonfiber/spec", "main"
 
 #: A pin of one of spec's workflows, with the version a tag names beside it.
 PIN = re.compile(r"(?P<path>lemonfiber/spec/\S+?)@(?P<sha>[0-9a-f]{40})(?P<version>[ \t]*#[ \t]*v\d+(?:\.\d+)*)?")
+
+#: The label a maintainer adds, after the last push, to approve a change to the checks.
+APPROVED = "workflows-approved"
+
+#: The most pages of a list read before the list is called too long to judge.
+PAGES = 10
+
+#: Items in one page of a list.
+PER_PAGE = 100
+
+#: The calling workflow as `github.workflow_ref` names it: the repository, the file, the ref.
+WORKFLOW_REF = re.compile(r"\A(?P<repo>[\w.-]+/[\w.-]+)/\.github/workflows/(?P<file>[\w.-]+\.ya?ml)@\S+\Z")
 
 #: One call to the forge's REST API through `gh`: the arguments, and the answer
 #: as JSON, or as text where `raw` is asked for.
@@ -288,17 +312,73 @@ def problems(repo: str, number: int, head: str, api: Api) -> tuple[list[str], in
     return found, moved
 
 
+def listed(path: str, api: Api, key: str | None = None) -> list[dict]:
+    """Every item of a list the forge pages, refused where it runs past `PAGES` pages."""
+    joined = "&" if "?" in path else "?"
+    items: list[dict] = []
+    for page in range(1, PAGES + 1):
+        answer = api([f"{path}{joined}per_page={PER_PAGE}&page={page}"], False)
+        got = answer[key] if key else answer
+        items += got
+        if len(got) < PER_PAGE:
+            return items
+    raise Incomplete(f"{path} runs past {PAGES * PER_PAGE} items")
+
+
+def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str | None:
+    """Why the pull request carries no approval for `head`, or None where it does.
+
+    `workflow` is the calling workflow's file. Its runs for the pull request's
+    branch are the forge's record of each head the branch had: a push starts
+    one, and so does every other event this check is called for.
+    """
+    if APPROVED not in [label["name"] for label in pull["labels"]]:
+        return f"it carries no `{APPROVED}` label"
+    number = pull["number"]
+    events = listed(f"repos/{repo}/issues/{number}/timeline", api)
+    added = [e["created_at"] for e in events if e["event"] == "labeled" and e["label"]["name"] == APPROVED]
+    if not added:
+        return f"no event on it says when `{APPROVED}` was added"
+    at = max(added)
+    forced = sorted(e["created_at"] for e in events if e["event"] == "head_ref_force_pushed" and e["created_at"] >= at)
+    if forced:
+        return f"its branch was force-pushed at {forced[-1]}, after `{APPROVED}` was added at {at}"
+    source = pull["head"]["repo"]["full_name"]
+    branch = urllib.parse.quote(pull["head"]["ref"], safe="")
+    runs = [r for r in listed(f"repos/{repo}/actions/workflows/{workflow}/runs?event=pull_request_target"
+                              f"&branch={branch}", api, "workflow_runs")
+            if r["head_repository"]["full_name"] == source]
+    before = [r["created_at"] for r in runs if r["created_at"] <= at]
+    if not before:
+        return f"no run of this check shows what its head was when `{APPROVED}` was added at {at}"
+    since = sorted((r for r in runs if r["created_at"] >= max(before)), key=lambda r: r["created_at"])
+    pushed = [r for r in since if r["head_sha"] != head]
+    if pushed:
+        return (f"its head was {pushed[-1]['head_sha'][:8]} at {pushed[-1]['created_at']}, so {head[:8]} was "
+                f"pushed after `{APPROVED}` was added at {at}")
+    return None
+
+
 def main(argv: list[str] | None = None, api: Api = gh) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--repo", required=True)
     parser.add_argument("--number", required=True, type=int)
     parser.add_argument("--head", required=True, help="the head commit the event was for")
+    parser.add_argument("--workflow", required=True, help="the calling workflow, as `github.workflow_ref` names it")
     args = parser.parse_args(argv)
     if not re.fullmatch(r"[0-9a-f]{40}", args.head):
         print(f"::error::--head {args.head!r} is not a commit, so there is nothing to judge")
         return 2
+    calling = WORKFLOW_REF.fullmatch(args.workflow)
+    if not calling or calling["repo"] != args.repo:
+        print(f"::error::--workflow {args.workflow!r} is not a workflow of {args.repo}, so its runs cannot be read")
+        return 2
     try:
         found, moved = problems(args.repo, args.number, args.head, api)
+        unapproved = approval(args.repo, current(args.repo, args.number, args.head, api), args.head,
+                              calling["file"], api) if found else None
+        if found:
+            current(args.repo, args.number, args.head, api)
     except Moved as moved_on:
         print(f"::error::{moved_on}.")
         return 1
@@ -306,9 +386,15 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
         detail = getattr(broken, "stderr", "") or broken
         print(f"::error::The pull request could not be read, so nothing says its checks are its base's: {detail}")
         return 2
+    if found and unapproved is None:
+        for said in found:
+            print(f"::notice::{said}, and a maintainer approved it with `{APPROVED}` after its last push (Q-R83).")
+        return 0
     for said in found:
         print(f"::error::{said}. A change to what the checks run is merged by a maintainer, not by this check (Q-R83).")
     if found:
+        print(f"::error::A maintainer approves it by adding `{APPROVED}` after its last push, and that has not "
+              f"happened: {unapproved}.")
         return 1
     if moved:
         print(f"{moved} workflow file(s) change only spec's pins, each moving forward along {SPEC} {MAIN}.")

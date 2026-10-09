@@ -15,6 +15,7 @@ import pathlib
 import subprocess
 import sys
 import unittest
+import urllib.parse
 
 import yaml
 
@@ -62,6 +63,11 @@ class Forge:
         self.truncated: set[str] = set()
         # The head each read of the pull request answers with, in turn; the last repeats.
         self.heads = [HEAD]
+        # The labels the pull request carries, its timeline, and the runs of the calling workflow.
+        self.labels: list[str] = []
+        self.timeline: list[dict] = []
+        self.runs: list[dict] = []
+        self.branch = "feature/x"
         self.blobs: dict[str, str] = {}
         self.asked: list[list[str]] = []
 
@@ -82,7 +88,15 @@ class Forge:
         path = args[0]
         if path == f"repos/{REPO}/pulls/7":
             head = self.heads.pop(0) if len(self.heads) > 1 else self.heads[0]
-            return {"head": {"sha": head}, "base": {"sha": BASE}}
+            return {"number": 7, "head": {"sha": head, "ref": self.branch, "repo": {"full_name": FORK}},
+                    "base": {"sha": BASE}, "labels": [{"name": name} for name in self.labels]}
+        if path.startswith(f"repos/{REPO}/issues/7/timeline?"):
+            return paged(self.timeline, path)
+        runs = f"repos/{REPO}/actions/workflows/pin-only.yml/runs?event=pull_request_target&branch="
+        if path.startswith(runs):
+            branch = path.removeprefix(runs).split("&", 1)[0]
+            wanted = [r for r in self.runs if urllib.parse.quote(self.branch, safe="") == branch]
+            return {"workflow_runs": paged(sorted(wanted, key=lambda r: r["created_at"], reverse=True), path)}
         if path == f"repos/{REPO}/compare/{BASE}...{HEAD}":
             return {"merge_base_commit": {"sha": MERGE_BASE}}
         for at, commit in ((0, MERGE_BASE), (1, HEAD)):
@@ -104,10 +118,38 @@ class Forge:
         raise AssertionError(f"unexpected call {args}")
 
 
-def run(forge, head: str = HEAD) -> tuple[int, str]:
+def paged(items: list, path: str) -> list:
+    """One page of `items`, as `per_page` and `page` in the query ask for."""
+    query = urllib.parse.parse_qs(path.split("?", 1)[1])
+    size, page = int(query["per_page"][0]), int(query["page"][0])
+    return items[(page - 1) * size:page * size]
+
+
+#: Where the pull request's branch lives, and a repository holding a branch of the same name.
+FORK, ELSEWHERE = "someone/core", "another/core"
+
+#: The calling workflow, as `github.workflow_ref` names it.
+CALLING = f"{REPO}/.github/workflows/pin-only.yml@refs/heads/main"
+
+
+def at(minute: int) -> str:
+    """A moment the forge recorded, `minute` minutes into one hour."""
+    return f"2026-10-09T21:{minute:02d}:00Z"
+
+
+def ran(minute: int, head: str = HEAD, source: str = FORK) -> dict:
+    """One run of the calling workflow, as the forge lists it."""
+    return {"created_at": at(minute), "head_sha": head, "head_repository": {"full_name": source}}
+
+
+def labeled(minute: int, name: str = pin_only.APPROVED, event: str = "labeled") -> dict:
+    return {"event": event, "created_at": at(minute), "label": {"name": name}}
+
+
+def run(forge, head: str = HEAD, workflow: str = CALLING) -> tuple[int, str]:
     out = io.StringIO()
     with contextlib.redirect_stdout(out):
-        code = pin_only.main(["--repo", REPO, "--number", "7", "--head", head], api=forge)
+        code = pin_only.main(["--repo", REPO, "--number", "7", "--head", head, "--workflow", workflow], api=forge)
     return code, out.getvalue()
 
 
@@ -216,7 +258,122 @@ class Refuses(unittest.TestCase):
                        ".github/workflows/c.yml": ("x\n", "y\n")})
         code, said = run(forge)
         self.assertEqual(code, 1)
-        self.assertEqual(said.count("::error::"), 3, said)
+        self.assertEqual(said.count("merged by a maintainer, not by this check"), 3, said)
+
+
+class Approved(unittest.TestCase):
+    """A change to the checks passes with `workflows-approved` added after the last push, and only then."""
+
+    def changed(self) -> Forge:
+        forge = Forge({CI: (caller(), caller() + "  extra:\n    runs-on: x\n")})
+        forge.runs = [ran(1, head=OLD), ran(5)]
+        return forge
+
+    def refused(self, forge: Forge, *words: str) -> None:
+        code, said = run(forge)
+        self.assertEqual(code, 1, said)
+        self.assertIn(f"::error::{CI} changes more than spec's pins", said)
+        self.assertIn(f"A maintainer approves it by adding `{pin_only.APPROVED}` after its last push", said)
+        for word in words:
+            self.assertIn(word, said)
+
+    def test_no_label_fails(self):
+        self.refused(self.changed(), f"it carries no `{pin_only.APPROVED}` label")
+
+    def test_the_label_added_after_the_last_push_passes(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(2, "ci"), labeled(8)]
+        forge.runs.append(ran(8))
+        code, said = run(forge)
+        self.assertEqual(code, 0, said)
+        self.assertIn(f"::notice::{CI} changes more than spec's pins, and a maintainer approved it", said)
+
+    def test_a_push_after_the_label_fails(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(3)]
+        self.refused(forge, f"its head was {OLD[:8]} at {at(1)}", f"was added at {at(3)}")
+
+    def test_the_label_removed_fails(self):
+        forge = self.changed()
+        forge.timeline = [labeled(8), labeled(9, event="unlabeled")]
+        self.refused(forge, f"it carries no `{pin_only.APPROVED}` label")
+
+    def test_the_label_added_again_after_a_push_passes(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(3), labeled(4, event="unlabeled"), labeled(7)]
+        self.assertEqual(run(forge)[0], 0)
+
+    def test_a_force_push_after_the_label_fails(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(8), {"event": "head_ref_force_pushed", "created_at": at(9)}]
+        self.refused(forge, f"its branch was force-pushed at {at(9)}")
+
+    def test_a_label_no_event_records_fails(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(8, "ci")]
+        self.refused(forge, "no event on it says when")
+
+    def test_a_label_older_than_every_run_fails(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(0)]
+        self.refused(forge, "no run of this check shows what its head was")
+
+    def test_a_run_from_a_branch_of_the_same_name_elsewhere_is_not_this_pull_request_s(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(8)]
+        forge.runs.append(ran(9, head=OFF, source=ELSEWHERE))
+        self.assertEqual(run(forge)[0], 0)
+
+    def test_the_head_is_read_again_after_the_approval(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(8)]
+        forge.heads = [HEAD, HEAD, HEAD, OFF]
+        code, said = run(forge)
+        self.assertEqual(code, 1, said)
+        self.assertIn("the commit this run was started for", said)
+
+    def test_a_branch_name_is_one_query_value(self):
+        forge = self.changed()
+        forge.branch = "a&event=push#x"
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(8)]
+        self.assertEqual(run(forge)[0], 0)
+        self.assertTrue([a for a in forge.asked if "branch=a%26event%3Dpush%23x&" in a[0]])
+
+    def test_a_list_read_a_page_at_a_time(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(2, "ci")] * pin_only.PER_PAGE + [labeled(8)]
+        self.assertEqual(run(forge)[0], 0)
+
+    def test_a_list_past_every_page_is_too_long_to_judge(self):
+        forge = self.changed()
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(2, "ci")] * (pin_only.PER_PAGE * pin_only.PAGES)
+        code, said = run(forge)
+        self.assertEqual(code, 2, said)
+        self.assertIn(f"runs past {pin_only.PER_PAGE * pin_only.PAGES} items", said)
+
+    def test_no_change_to_the_checks_reads_no_approval(self):
+        forge = Forge({CI: (caller(), caller(gates=NEW))})
+        run(forge)
+        self.assertFalse([a for a in forge.asked if "/timeline" in a[0] or "/runs" in a[0]])
+
+    def test_a_calling_workflow_that_is_not_one_of_this_repository_s(self):
+        for workflow in ("", "pin-only.yml", "other/repo/.github/workflows/pin-only.yml@refs/heads/main",
+                         f"{REPO}/.github/workflows/../x.yml@main", f"{REPO}/.github/workflows/pin-only.yml"):
+            with self.subTest(workflow):
+                code, said = run(self.changed(), workflow=workflow)
+                self.assertEqual(code, 2, said)
+                self.assertIn("is not a workflow of", said)
 
 
 class Truncated(unittest.TestCase):
@@ -472,6 +629,8 @@ class TheWorkflow(unittest.TestCase):
         self.assertNotIn("${{", last["run"])
         self.assertIn('--head "$HEAD_SHA"', last["run"])
         self.assertEqual(last["env"]["HEAD_SHA"], "${{ github.event.pull_request.head.sha }}")
+        self.assertIn('--workflow "$CALLING"', last["run"])
+        self.assertEqual(last["env"]["CALLING"], "${{ github.workflow_ref }}")
 
     def test_the_caller_it_documents_runs_on_every_new_head_and_cancels_per_pull_request(self):
         # GitHub attaches a pull_request_target run's checks to the pull request's head
@@ -482,7 +641,8 @@ class TheWorkflow(unittest.TestCase):
                                if line.startswith("#   "))
         caller_text = documented[documented.index("on:"):documented.index("jobs:")]
         shown = yaml.safe_load(caller_text)
-        self.assertEqual(set(shown[True]["pull_request_target"]["types"]), {"opened", "synchronize", "reopened"})
+        self.assertEqual(set(shown[True]["pull_request_target"]["types"]),
+                         {"opened", "synchronize", "reopened", "labeled", "unlabeled"})
         import check_superseded_runs
         self.assertEqual(shown["concurrency"]["group"], check_superseded_runs.TARGET_GROUP)
         self.assertIs(shown["concurrency"]["cancel-in-progress"], True)
