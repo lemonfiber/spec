@@ -99,7 +99,7 @@ AWAITING_A_VERSION = {
     ),
     "N2": (
         "N2 requires N1, whose app side 1.0.0 completes, and C1, C3 and G7, locked by 0.8.0 at the latest, all released",
-        [f"N2-R{n}" for n in range(1, 27)],
+        [f"N2-R{n}" for n in range(1, 28)],
     ),
     # N3-R8 is withdrawn, and a withdrawn row is never a goal.
     "N3": (
