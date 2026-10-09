@@ -104,7 +104,7 @@ AWAITING_A_VERSION = {
     # N3-R8 is withdrawn, and a withdrawn row is never a goal.
     "N3": (
         "N3 requires N1, whose app side 1.0.0 completes, and D4 and D6, locked by 0.11.0, released",
-        [f"N3-R{n}" for n in range(1, 25) if n not in (8, 17, 18)],
+        [f"N3-R{n}" for n in range(1, 26) if n not in (8, 17, 18)],
     ),
     "N4": (
         "N4 requires N1, whose app side 1.0.0 completes, and G3, locked by 0.10.0 at the latest, released",
