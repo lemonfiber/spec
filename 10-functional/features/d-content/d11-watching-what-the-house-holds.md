@@ -5,7 +5,7 @@ kind: feature
 area: D
 audience: household
 status: accepted
-maturity: planned
+maturity: built
 priority: P2
 labels: [household, security, network]
 requires: [D6, D8, G5]
