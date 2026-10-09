@@ -109,7 +109,9 @@ media server's answer on every device they play on.
 | Situation | Behaviour |
 |-----------|-----------|
 | The household address is not known | No location is stated for any title, and each says why. Playback is declined on the surface. |
-| A title has no artwork | No artwork location is stated for it. The surface draws its name. |
+| A title has no artwork | No artwork location is stated for it, and the core answers its picture as absent. The surface draws its name. |
+| A browser shows a member's shelf | It reads each picture from the core with the member's own session, because it can neither present a session to the door nor pin the door's certificate. |
+| A picture is not an image, or is larger than 2 MiB | The core answers it as absent rather than passing it on. |
 | A member asks for an item outside their libraries by id | The door refuses it, because the media server says the session cannot see it. |
 | A request presents no session | The door refuses it. |
 | The media server does not answer the door's question | The door refuses the request rather than passing it through. |
@@ -128,6 +130,7 @@ media server's answer on every device they play on.
 | **D11-R6** | Each title a member may watch MUST carry the location that streams it at the guarded front door where the core knows the household address and the title streams, and MUST carry the reason in its place where it does not. |
 | **D11-R7** | The guarded front door MUST serve over TLS, and every location the core states at it (`D11-R3`, `D11-R6`) MUST be answered beside the fingerprint of the certificate the door presents, so that a client pins the door as it pins the stack (`N1-R22`). |
 | **D11-R8** | The core MUST accept, from a member's paired client, how far through a title the member is and whether they finished it, and MUST hand it to the media server as that member's own playback progress, keeping no copy of its own. |
+| **D11-R9** | The core MUST serve a title's poster and backdrop to the member whose shelf holds it, read from the media server as that member, at `GET /api/held/{id}/poster` and `GET /api/held/{id}/backdrop`. It MUST answer only an `image/*` body of at most 2 MiB, marked `Cache-Control: private`, MUST keep no copy, and MUST answer a title outside the member's limits, or a picture the media server does not hold, as absent. |
 
 ## Related
 
