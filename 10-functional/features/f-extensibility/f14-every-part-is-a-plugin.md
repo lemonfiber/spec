@@ -92,9 +92,11 @@ as part of the change.
 ### One privileged shape
 
 The egress guard needs to manage the network and open a tunnel, which no other plugin may
-do. A filler of the egress guard capability may take one shape the core writes, with
-network administration and the tunnel device and nothing else, once the operator has
-approved it at install.
+do. The upstream an egress guard adapter fronts may declare `shape = "egress-guard"`, and
+the core writes its entry as every plugin's entry with network administration and the
+tunnel device added and nothing else. The adapter stays unprivileged. The reading names
+each service taking the shape, and the operator approves each one apart from the offer,
+on every install and update that takes it.
 
 ### Each slot is proved by a substitute
 
@@ -138,7 +140,7 @@ nothing crosses to it.
 | The stream guard's question goes unanswered | The byte request is refused, as it is for the first-party guard |
 | A substitute's adapter speaks an older major of a contract the core no longer speaks | Refused at install, naming the contract and the majors the core speaks |
 | The operator undoes a substitution after members used the substitute | The part that was replaced comes back with its data; what members did on the substitute stays on the substitute |
-| A plugin that is not the egress guard's filler asks for the privileged shape | Refused at validation, naming the field |
+| A service that is not the upstream of an egress guard adapter declares the privileged shape | Refused at validation, naming `service <id>.shape` |
 | An adapter claims an upstream release it has no recordings for | Refused at install, naming the release |
 | A plugin recorded nonconforming is proved again and fails | The record stays, and the proof names each case that failed |
 
@@ -157,7 +159,7 @@ nothing crosses to it.
 | **F14-R9** | A plugin MAY ask for capabilities and MUST NOT link to a service by name. |
 | **F14-R10** | The stream guard's filler MUST enforce the guard the media server's filler declares, and every location the core gives a member MUST be built from templates the media server's filler declares. |
 | **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its data, undoing it MUST bring that part back with its data, and the rehearsal MUST say what does not carry over. |
-| **F14-R12** | A filler of `network.egress-guard` MAY take the one privileged shape the core writes, which MUST grant network administration and the tunnel device and nothing else, only after the operator approves it at install, and a manifest asking for it for any other capability MUST be refused by name. |
+| **F14-R12** | A plugin's service MAY declare `shape = "egress-guard"` only where it is the upstream an adapter of the same plugin fronts and that adapter speaks `network.egress-guard`, any other service declaring it MUST be refused at validation naming `service <id>.shape`, and lemonfiber MUST write that service's entry as every plugin's entry plus exactly the `NET_ADMIN` capability and the `/dev/net/tun` device, and MUST write neither for any other service. |
 | **F14-R13** | An adapter MUST declare the upstream releases it supports, each proved by its own recordings, and the core MUST NOT compare versions. |
 | **F14-R14** | Every capability MUST be proved by a substitute other than its first-party filler, run end to end against its pinned upstream through install, its first-run flow, conformance, substitution, the features the capability serves, and undo. |
 | **F14-R15** | Every first-party adapter MUST be built on the adapter kit, from a repository of its own, into an image the release train publishes. |
@@ -166,6 +168,7 @@ nothing crosses to it.
 | **F14-R18** | A credential lemonfiber holds MUST reach a plugin's service only where it is that plugin's own, where the plugin is first-party and the credential is the stack's, or where both the plugin and the credential's owner are first-party. |
 | **F14-R19** | A plugin MUST be first-party only where the build embeds its id and the digest of its manifest in its first-party set, as the signed default bundle names them at the release the build pins; any other plugin MUST be third-party however it was installed. |
 | **F14-R20** | A third-party plugin MAY be granted one named credential for a capability it fills; the grant MUST be part of the install or update offer and approved by the operator, MUST be journalled and revocable, and MUST be shown on the credentials surface, and without a grant no credential MUST cross to it. |
+| **F14-R21** | An install or update whose plugin takes the egress guard's shape MUST state in its reading each service taking it with the capability and the device it is given, MUST NOT act unless the operator approved that shape for that service apart from the offer, written `egress-guard@<service>`, and MUST refuse an approval naming a service that does not take it. |
 
 ## Related
 

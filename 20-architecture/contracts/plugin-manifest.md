@@ -204,6 +204,7 @@ config_path = "/config"
 | `listens` | integer | ✔ if `api` or `speaks` | The port it answers on inside the stack's network, where lemonfiber and the services that ask reach it. As `stack.toml`. |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract names no `api`: it is asked one way. See [capability-contracts.md](capability-contracts.md). |
 | `fronts` | string | ✔ if `speaks` | The plugin's own service this adapter stands in front of: the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. |
+| `shape` | string | | The one privileged shape lemonfiber writes for this service, from a closed set: `egress-guard`, which adds the `NET_ADMIN` capability and the `/dev/net/tun` device to the entry every plugin's service gets. Only the upstream an adapter of the same plugin fronts, where that adapter speaks `network.egress-guard`, may declare it, and the operator approves it apart from the offer (`F14-R12`, `F14-R21`). |
 
 ### The image is named by digest
 
@@ -336,7 +337,7 @@ ignored:
 
 | Field | Why a plugin may not declare it |
 |-------|--------------------------------|
-| `grants` | Kernel capabilities. The allow-list is one entry long and exists so the VPN tunnel can hold `NET_ADMIN`; extending it on the strength of an untrusted manifest is a deny-list wearing a hat. |
+| `grants` | Kernel capabilities, by name. A manifest never names a capability or a device: the egress guard's upstream declares [`shape`](#service--what-runs) instead, a shape lemonfiber writes, so nothing a plugin writes can widen what it is given. |
 | `depends_on` | The bundled stack contains exactly one cross-service dependency (`B1-R14`), and it is the one that keeps torrent traffic inside the tunnel. A plugin introducing an ordering edge between services it does not own is a source of failures nobody can attribute. |
 | `[[wiring]]` | The stack manifest's array of [links between its own services](stack-manifest.md#wiring--the-link-between-two-services-and-which-of-them-it-names) — `by`, `asks`, `filled_by`, `to`: who asks whom for what. **Not the [`[[wiring]]`](#wiring--how-the-stacks-own-services-reach-one-service) below**, which is spelled the same and says something else: `hostname`, `dashboard_group` and `service`, naming where lemonfiber puts *this* plugin's service on the proxy and the dashboard. One is a link between two services; the other is one service's own address. Since `ARCH-R127` made the plugin's a list too, the spelling no longer tells them apart and the file it is written in is what does. A plugin declares what it can do in `provides` and is asked for by whatever already asks; it does not get to say what reaches what. In particular it cannot introduce a **by-name** link, which is `F4-R12`'s third clause: a by-name wiring is the operator's exception to make and a plugin naming another service is reaching into wiring it does not own. |
 | `host_managed` | Native-mode lifecycle is the operating system's (`B2-R15`). A plugin cannot install a system service. |
@@ -875,7 +876,7 @@ unreadable.
 | **ARCH-R84** | A plugin's service MUST be declared in the stack manifest's service vocabulary restricted to the fields this contract permits, and a field outside that set MUST be refused by name rather than ignored. |
 | **ARCH-R85** | lemonfiber MUST generate the Compose entry for a plugin's service, and MUST NOT accept a Compose fragment, overlay, patch or merge key from a plugin. |
 | **ARCH-R86** | The generated entry MUST extend the same shared template the bundled services extend, and MUST carry no mount other than the single data mount and the service's own configuration directory. |
-| **ARCH-R87** | The manifest MUST have no field by which a plugin could express a kernel capability, a device, a network mode, a privileged container, a user override, or an entrypoint or command. |
+| **ARCH-R87** | The manifest MUST have no field by which a plugin could express a kernel capability, a device, a network mode, a privileged container, a user override, or an entrypoint or command, other than the one `shape` field of `F14-R12`, which names a shape lemonfiber writes and MUST NOT carry a capability or a device itself. |
 | **ARCH-R88** | The published address of a plugin's service MUST be assigned by lemonfiber from the declared binding tier, and a plugin MUST NOT be able to declare an address, an interface or a port mapping. |
 | **ARCH-R89** | A plugin MUST declare the capabilities it requires of lemonfiber by name, and the manifest MUST NOT carry a minimum lemonfiber version. |
 | **ARCH-R90** | An unmet requirement MUST be refused by naming the capability, and MUST NOT be refused by naming a version. |
