@@ -34,8 +34,8 @@
 # a member may do and may watch is read from the core, approval and allowance are
 # stated before a member asks, refusals read as refusals, and a member removed from
 # the household is signed out at the next refused call. The rest of G10 waits on the
-# core. `G10-R4`, `G10-R7` and `G10-R8` need playback, which 0.19.0 locks with the reads
-# that serve it (D11). `G10-R12` and `G10-R13` need the core to say which service
+# core. `G10-R4`, `G10-R7` and `G10-R8` need playback, which 0.19.0 locks once the web
+# builds on the reads this version serves (D11). `G10-R12` and `G10-R13` need the core to say which service
 # faces a member and whether it answers from where they are. The web surface is where
 # these are built, so `lemonfiber-web` is searched; it is not tagged.
 #
@@ -179,7 +179,7 @@
 # server over the same keys, its tools generated from the contract, its writes rehearsed
 # with the offer as the yes; `C10-R15` to `C10-R17` let a member mint their own key once the
 # operator allows it, and give every key a declared purpose. `integration-mcp` is searched,
-# not tagged. Its member tools grow with 0.19.0's reads (D11).
+# not tagged. Its member tools grow with this version's reads (D11).
 # `D10-R15` and `D10-R16` pause and resume every download client in one request, and keep a
 # pause until somebody resumes it; the pair is on the list of actions a key may call.
 # `F8-R14` and `F8-R15` say when a recipe runs: on install, during an install and an
@@ -244,7 +244,14 @@
 # and a call carrying it refused where the stack moved since, as the plugin writes are;
 # a call carrying none acts as before. Home Assistant's controls rehearse and then act
 # (`F12-R8`), so what they carry out is what they were shown.
-# 351 goals, seeded from the roadmap milestone this version serves;
+# `D11-R1` to `D11-R8` are ADR-0027's member grant and guarded front door: the grant a
+# member's client plays on, the door that asks the media server about every byte, where
+# each title's artwork and stream are served with the fingerprint the door presents, a
+# title's details, what a member was part-way through, and the progress a player reports
+# back. The companion's player (N3-R14 to N3-R16) is built on them. `lemonfiber-media-stack`
+# is cut because `D11-R2` puts the guard in front of the media server in every form that
+# serves it.
+# 359 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -269,10 +276,18 @@ milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
 
 status  = "planned"
-repos   = ["lemonfiber", "lemonfiber-decline"]
-satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
+repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack"]
+satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
 goals   = [
     "D6-R21",
+    "D11-R1",
+    "D11-R2",
+    "D11-R3",
+    "D11-R4",
+    "D11-R5",
+    "D11-R6",
+    "D11-R7",
+    "D11-R8",
     "F8-R1",
     "F8-R2",
     "F8-R3",

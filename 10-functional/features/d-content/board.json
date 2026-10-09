@@ -221,14 +221,14 @@
       "status": "accepted",
       "maturity": "planned",
       "shipped": null,
-      "milestones": ["M16"],
-      "milestone": "M16",
+      "milestones": ["M14"],
+      "milestone": "M14",
       "priority": "P2",
       "labels": ["household", "security", "network"],
       "requires": ["D6", "D8", "G5"],
       "relates": ["B1", "D4", "G10", "N3"],
       "versions": [
-        {"version": "0.19.0", "status": "planned"}
+        {"version": "0.18.0", "status": "planned"}
       ],
       "path": "d-content/d11-watching-what-the-house-holds.md"
     }
