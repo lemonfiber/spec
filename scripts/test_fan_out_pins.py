@@ -26,6 +26,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import unittest.mock
 
@@ -33,6 +34,15 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
 import fan_out_pins
 import workflow_pins
+
+#: The pin check's limits as `hygiene.yml` declares them, for the tests that do not measure them.
+LIMITS = fan_out_pins.Limits(commits=75, days=30)
+
+#: When the tests run, for the age the pin check counts in days.
+NOW = int(time.time())
+
+#: `hygiene.yml` as far as the fan-out reads it: the two limits its pin check keeps.
+DECLARED = '          STALE_DAYS: "30"\n          STALE_COMMITS: "75"\n'
 
 
 def a_pin(workflow: str, sha: str, comment: str | None = "# v1.0.1") -> str:
@@ -104,7 +114,7 @@ class ARepositoryAndASpec:
         # A commit touching a different workflow, so `dco.yml` and `hygiene.yml`
         # are at different distances from HEAD and the per-file rule has
         # something to distinguish.
-        self.second = self.commit("one", "hygiene.yml")
+        self.second = self.commit(DECLARED, "hygiene.yml")
         self.third = self.commit("two", "dco.yml")
 
         # The number the tests bump to, cut where the tests expect it to point.
@@ -152,7 +162,7 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
 
     def test_a_stale_pin_is_brought_forward(self):
         where = self.wrote("ci.yml", a_pin("dco.yml", self.first))
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
 
         self.assertIsNotNone(moved)
         self.assertEqual(len(moved[0]), 1)
@@ -162,7 +172,7 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
         # `hygiene.yml` last changed at `self.second` and nothing since has
         # touched it, so a pin there is current however many tags have been cut.
         where = self.wrote("ci.yml", a_pin("hygiene.yml", self.second))
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
 
         self.assertEqual(moved[0], [])
         self.assertIn(self.second, where.read_text(encoding="utf-8"))
@@ -171,7 +181,7 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
         first = self.wrote("ci.yml", a_pin("dco.yml", self.first))
         second = self.wrote("labels.yml", a_pin("dco.yml", self.first))
 
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
 
         self.assertEqual(len(moved[0]), 2)
         for where in (first, second):
@@ -181,7 +191,7 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
         self.wrote("ci.yml", a_pin("dco.yml", self.first))
         self.assertIsNone(
             fan_out_pins.bring_forward(
-                self.repo, self.root / "absent", "v1.0.9", self.third
+                self.repo, self.root / "absent", "v1.0.9", self.third, LIMITS, NOW
             )
         )
 
@@ -191,12 +201,12 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
         # nobody can tell from the outside which of the two it was.
         self.wrote("ci.yml", a_pin("dco.yml", "f" * 40))
         self.assertIsNone(
-            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
+            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
         )
 
     def test_a_repository_pinning_nothing_of_ours_is_answered_not_refused(self):
         self.wrote("ci.yml", "    uses: actions/checkout@" + "a" * 40 + " # v7\n")
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
         self.assertEqual(moved[0], [])
 
     def test_the_same_workflow_called_from_two_jobs_in_one_file_is_one_rewrite(self):
@@ -208,7 +218,7 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
             "ci.yml", a_pin("dco.yml", self.first) + a_pin("dco.yml", self.first)
         )
 
-        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
 
         self.assertIsNotNone(moved, "one file naming a pin twice is not unanswerable")
         self.assertEqual(len(moved[0]), 1)
@@ -229,8 +239,84 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
         self.addCleanup(setattr, fan_out_pins, "pins_under", was)
 
         self.assertIsNone(
-            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third)
+            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
         )
+
+
+class ThePinCheckLimits(ARepositoryAndASpec, unittest.TestCase):
+    """A pin the pin check refuses is brought forward, whatever its own file did."""
+
+    def test_a_pin_more_commits_behind_main_than_the_check_allows_is_brought_forward(self):
+        # `hygiene.yml` has not changed since `self.second`, and `main` is one
+        # commit past it: over a limit of none, inside a limit of one.
+        where = self.wrote("ci.yml", a_pin("hygiene.yml", self.second))
+        tight = fan_out_pins.Limits(commits=0, days=30)
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, tight, NOW)
+
+        self.assertEqual(len(moved[0]), 1)
+        self.assertIn(self.named(), where.read_text(encoding="utf-8"))
+
+    def test_a_pin_exactly_as_far_behind_as_the_check_allows_is_left(self):
+        where = self.wrote("ci.yml", a_pin("hygiene.yml", self.second))
+        edge = fan_out_pins.Limits(commits=1, days=30)
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, edge, NOW)
+
+        self.assertEqual(moved[0], [])
+        self.assertIn(self.second, where.read_text(encoding="utf-8"))
+
+    def test_a_pin_older_than_the_check_allows_is_brought_forward_and_one_a_day_younger_is_left(self):
+        where = self.wrote("ci.yml", a_pin("hygiene.yml", self.second))
+        dated = int(self.git_out("show", "-s", "--format=%ct", self.second))
+
+        kept = fan_out_pins.bring_forward(
+            self.repo, self.spec, "v1.0.9", self.third, LIMITS, dated + 31 * fan_out_pins.DAY - 1
+        )
+        self.assertEqual(kept[0], [])
+
+        moved = fan_out_pins.bring_forward(
+            self.repo, self.spec, "v1.0.9", self.third, LIMITS, dated + 31 * fan_out_pins.DAY
+        )
+        self.assertEqual(len(moved[0]), 1)
+        self.assertIn(self.named(), where.read_text(encoding="utf-8"))
+
+    def git_out(self, *args) -> str:
+        return subprocess.run(
+            ["git", "-C", str(self.spec), *args], capture_output=True, text=True, check=True
+        ).stdout.strip()
+
+
+class TheLimitsAreReadWhereTheCheckKeepsThem(unittest.TestCase):
+    """`hygiene.yml` declares the two limits once each, or the fan-out cannot ask."""
+
+    def setUp(self):
+        self.spec = pathlib.Path(tempfile.mkdtemp())
+        (self.spec / ".github" / "workflows").mkdir(parents=True)
+
+    def tearDown(self):
+        shutil.rmtree(self.spec, ignore_errors=True)
+
+    def declared(self, text: str) -> fan_out_pins.Limits | None:
+        (self.spec / fan_out_pins.HYGIENE).write_text(text, encoding="utf-8")
+        return fan_out_pins.limits_in(self.spec)
+
+    def test_both_limits_are_read(self):
+        self.assertEqual(self.declared(DECLARED), fan_out_pins.Limits(commits=75, days=30))
+
+    def test_a_limit_missing_or_declared_twice_is_could_not_ask(self):
+        self.assertIsNone(self.declared('          STALE_DAYS: "30"\n'))
+        self.assertIsNone(self.declared(DECLARED + '          STALE_DAYS: "31"\n'))
+
+    def test_no_hygiene_workflow_is_could_not_ask(self):
+        self.assertIsNone(fan_out_pins.limits_in(self.spec / "absent"))
+
+    def test_the_check_in_this_repository_declares_both(self):
+        self.assertEqual(
+            fan_out_pins.limits_in(pathlib.Path(__file__).resolve().parent.parent),
+            fan_out_pins.Limits(commits=75, days=30),
+        )
+
+    def test_a_pin_that_is_not_a_revision_here_cannot_be_measured(self):
+        self.assertIsNone(fan_out_pins.refused_by_age(self.spec, "f" * 40, LIMITS, NOW))
 
 
 class TheTwoHalvesAgree(unittest.TestCase):
@@ -256,7 +342,7 @@ class TheTwoHalvesAgree(unittest.TestCase):
             )
 
         self.first = self.commit("one", "dco.yml")
-        self.settled = self.commit("one", "hygiene.yml")
+        self.settled = self.commit(DECLARED, "hygiene.yml")
         self.latest = self.commit("two", "dco.yml")
 
         # The number these tests bump to. The fan-out reads the revision from
@@ -306,7 +392,7 @@ class TheTwoHalvesAgree(unittest.TestCase):
         sys.argv = ["workflow_pins.py", str(self.spec)]
         self.assertEqual(self.gate(), 1, "the gate should refuse a stale pin")
 
-        fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.latest)
+        fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.latest, LIMITS, NOW)
 
         self.assertEqual(self.gate(), 0, "the fan-out should have satisfied it")
 
@@ -377,7 +463,7 @@ class TheTwoHalvesAgree(unittest.TestCase):
             encoding="utf-8",
         )
 
-        fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.latest)
+        fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.latest, LIMITS, NOW)
 
         self.assertIn(self.settled, where.read_text(encoding="utf-8"))
 
@@ -564,7 +650,7 @@ class TheRevisionItWrites(ARepositoryAndASpec, unittest.TestCase):
         where = self.wrote("ci.yml", a_pin("dco.yml", self.first))
 
         moved = fan_out_pins.bring_forward(
-            self.repo, self.spec, "v1.0.9", self.named()
+            self.repo, self.spec, "v1.0.9", self.named(), LIMITS, NOW
         )
         said = where.read_text(encoding="utf-8")
 
@@ -615,6 +701,25 @@ class TheRevisionItWrites(ARepositoryAndASpec, unittest.TestCase):
 
         self.assertIn("could not read the pins", said.getvalue())
         self.assertIn("must not report a repository as current", said.getvalue())
+
+    def test_a_spec_whose_pin_check_declares_no_limits_is_reported_by_the_run(self):
+        where = self.wrote("ci.yml", a_pin("dco.yml", self.first))
+        (self.spec / fan_out_pins.HYGIENE).write_text("one", encoding="utf-8")
+
+        sys.argv = [
+            "fan_out_pins.py",
+            "--repo",
+            str(self.repo),
+            "--spec",
+            str(self.spec),
+            "--tag",
+            "v1.0.9",
+        ]
+        with contextlib.redirect_stdout(io.StringIO()) as said:
+            self.assertEqual(fan_out_pins.main(), 2)
+
+        self.assertIn("does not declare STALE_COMMITS and STALE_DAYS", said.getvalue())
+        self.assertIn(self.first, where.read_text(encoding="utf-8"))
 
     def test_an_unpublished_number_writes_nothing(self):
         # Refused *before* anything is rewritten, not after. A run that edited

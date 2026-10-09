@@ -234,13 +234,13 @@ jobs:
           printf '%s\n' \
             "${title}" \
             "" \
-            "A workflow this repository pins moved in the spec, so the pin behind" \
-            "it is a copy of something that has changed. \`workflow-pins\` names" \
-            "it on every pull request opened here until it is taken." \
+            "A workflow this repository pins moved in the spec, or a pin here is" \
+            "past what the pin check allows. \`workflow-pins\` or the pin check" \
+            "names it on every pull request opened here until it is taken." \
             "" \
-            "Only the pins whose own workflow moved are touched. A pin is measured" \
-            "against the one file it names, so a pin several numbers back whose" \
-            "file has not changed is current and is left alone." \
+            "A pin is touched where its own workflow moved, or where the pin check" \
+            "refuses it for being too far behind main or too old. A pin a few" \
+            "numbers back whose file has not changed, inside both limits, is left alone." \
             "" \
             "Spec: OPS-R48, OPS-R85" \
             "" \
@@ -248,11 +248,11 @@ jobs:
             >"${work}/message"
 
           printf '%s\n' \
-            "A workflow this repository pins moved in the spec at \`${TAG}\` (\`${COMMIT}\`)." \
+            "A workflow this repository pins moved in the spec at \`${TAG}\` (\`${COMMIT}\`), or a pin here is past what the pin check allows." \
             "" \
             "\`workflow-pins\` names it on every pull request opened here until it is taken, so this is opened for you rather than owed to you." \
             "" \
-            "**Only the pins whose own workflow moved are in the diff.** A pin is measured against the one file it names, so a pin several numbers back whose file has not changed is current and is left where it is." \
+            "**The pins in the diff are those whose own workflow moved, and those the pin check refuses** for being more commits behind \`main\` or more days old than \`hygiene.yml\` allows. A pin a few numbers back whose file has not changed, inside both limits, is left where it is." \
             "" \
             "**One pull request, rebuilt for each number.** The fan-out keeps this branch and this pull request, rebuilds the branch from \`main\` when the spec publishes another number, and retitles it, so the checks of the number it replaces are cancelled rather than left running beside it." \
             "" \
