@@ -40,8 +40,10 @@ as the media server's administrator, authorises that code for the member's own
 user. The session that comes back is the member's, so every question asked with
 it is answered under the member's age limit and library access
 ([D8](d8-parental-controls.md)). Nobody learns the member's password
-([D6](d6-household-identity.md)). The core ends the grant when it lapses and when
-the member is removed from the household.
+([D6](d6-household-identity.md)). A grant lasts thirty days from the last time the
+member's client spoke to the core, so a phone in use keeps playing and one left in a
+drawer stops. The core ends it when it lapses and at once when the member is removed
+from the household.
 
 ### The front door guards every byte
 
@@ -54,9 +56,10 @@ session presented may see that item. An item it may not see, a session that is
 absent, ended or wrong, and a question that is not answered are all refusals.
 The media server's own port is not published to the household beside it.
 
-The guard serves over TLS, and the core states the fingerprint of the
-certificate it presents beside every location it gives there. A client pins the
-door the way it pins the stack.
+The guard serves over TLS with a certificate the core makes for it, so no
+authority outside the house is asked for one, and the core states the fingerprint of
+that certificate beside every location it gives there. A client pins the door the way
+it pins the stack.
 
 ### Where each title's pictures and stream are
 
@@ -76,12 +79,19 @@ as the member's own session reads them, so a title outside their limits is
 answered as absent. What a member was part-way through, and how far, is answered
 the same way.
 
+### How far a member got
+
+A player tells the core how far through a title the member is, as it plays, when it
+is paused or moved, and when it stops. The core hands that to the media server as the
+member's own progress and keeps no copy, so what a member was part-way through is the
+media server's answer on every device they play on.
+
 ## States
 
 | State | Meaning |
 |-------|---------|
 | Granted | The member's client holds a session on the member's own account. |
-| Lapsed | The grant ran out; the session is refused at the server and at the door. |
+| Lapsed | Thirty days passed with no word from the member's client; the session is refused at the server and at the door. |
 | Revoked | The member was removed; every session their devices held is ended. |
 | Located | A title carries where its artwork and stream are served. |
 | Unlocated | The core does not know the household address, and the title says why. |
@@ -109,6 +119,7 @@ the same way.
 | **D11-R5** | The core MUST answer what a member was part-way through, with how far through each was, as the member's own session reads it. |
 | **D11-R6** | Each title a member may watch MUST carry the location that streams it at the guarded front door where the core knows the household address and the title streams, and MUST carry the reason in its place where it does not. |
 | **D11-R7** | The guarded front door MUST serve over TLS, and every location the core states at it (`D11-R3`, `D11-R6`) MUST be answered beside the fingerprint of the certificate the door presents, so that a client pins the door as it pins the stack (`N1-R22`). |
+| **D11-R8** | The core MUST accept, from a member's paired client, how far through a title the member is and whether they finished it, and MUST hand it to the media server as that member's own playback progress, keeping no copy of its own. |
 
 ## Related
 

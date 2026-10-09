@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/gen_board.py",
-  "counts": {"features": 111, "requirements": 1705, "areas": "A–N"},
+  "counts": {"features": 111, "requirements": 1706, "areas": "A–N"},
   "versions": [
     {"version": "0.1.0", "status": "released", "milestone": "M2", "goals": 9},
     {"version": "0.2.0", "status": "released", "milestone": "M3", "goals": 38},
@@ -19,8 +19,8 @@
     {"version": "0.15.0", "status": "released", "milestone": "M9", "goals": 71},
     {"version": "0.16.0", "status": "released", "milestone": "M14", "goals": 111},
     {"version": "0.17.0", "status": "released", "milestone": "M14", "goals": 76},
-    {"version": "0.18.0", "status": "planned", "milestone": "M14", "goals": 351},
-    {"version": "0.19.0", "status": "planned", "milestone": "M16", "goals": 14},
+    {"version": "0.18.0", "status": "planned", "milestone": "M14", "goals": 359},
+    {"version": "0.19.0", "status": "planned", "milestone": "M16", "goals": 7},
     {"version": "0.20.0", "status": "planned", "milestone": "M11", "goals": 60},
     {"version": "0.21.0", "status": "planned", "milestone": "M11", "goals": 59},
     {"version": "0.22.0", "status": "planned", "milestone": "M12", "goals": 29},

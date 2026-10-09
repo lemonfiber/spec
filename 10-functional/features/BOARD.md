@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**111 features** in areas A–N, **1705 requirements**.
+**111 features** in areas A–N, **1706 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -122,7 +122,7 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.23.0` |
-| [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.19.0` |
+| [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.18.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
 | [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.20.0` |

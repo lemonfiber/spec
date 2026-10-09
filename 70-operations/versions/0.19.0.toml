@@ -1,19 +1,14 @@
 # The household's library — what a member can find, ask for and play.
 #
-# ADR-0027's member grant and guarded front door, where each title's artwork and
-# stream are served, a title's details and what a member was part-way through (D11);
-# a member's own search and ask, answered under their limits (D4); and a member's
-# display name and the default member the operator previews (D6).
+# A member's own search and ask, answered under their limits (D4); and a member's
+# display name and the default member the operator previews (D6). The grant, the guarded
+# front door and the reads a member plays from are 0.18.0's (D11).
 #
-# `G10-R4`, `G10-R7` and `G10-R8` are the web's member view of the same reads: asking,
-# playing, and a player that holds no second copy of what a member may watch. They wait
-# on the reads this version serves, so they ship with them. The web surface is where
-# they are built, so `lemonfiber-web` is searched; it is not tagged.
+# `G10-R4`, `G10-R7` and `G10-R8` are the web's member view of those reads: asking,
+# playing, and a player that holds no second copy of what a member may watch. They are
+# the web surface's, so `lemonfiber-web` is searched; it is not tagged.
 #
-# `lemonfiber-media-stack` is cut because `D11-R2` puts the guard in front of the media
-# server in every form that serves it.
-#
-# 14 goals, seeded from the roadmap milestone this version serves;
+# 7 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -21,16 +16,9 @@ version = "0.19.0"
 milestone = "M16"   # The household's library
 delivers  = "The household's library: find, ask for and play, under the member's own limits"
 status  = "planned"
-repos   = ["lemonfiber", "lemonfiber-media-stack"]
-satisfied_in = ["lemonfiber", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php"]
+repos   = ["lemonfiber"]
+satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php"]
 goals   = [
-    "D11-R1",
-    "D11-R2",
-    "D11-R3",
-    "D11-R4",
-    "D11-R5",
-    "D11-R6",
-    "D11-R7",
     "D4-R15",
     "D4-R16",
     "D6-R19",
