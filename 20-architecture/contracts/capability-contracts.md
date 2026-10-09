@@ -65,7 +65,13 @@ anything.
 
 - **Paths.** Every operation is at
   `/lemonfiber/<capability>/v<major>/<operation>`, on the port the adapter `listens`
-  on, reached on the plugin's own network.
+  on.
+- **Where.** The core runs on the host, so it reaches an adapter on the host's loopback
+  interface. lemonfiber publishes the adapter's `listens` port on `127.0.0.1` alone and
+  names no host port, so the engine gives it a free one. The core asks the engine which
+  port that is before it asks the adapter anything, and reaches the adapter nowhere else.
+  Nothing off the machine can reach it, and the plugin's key guards it from everything
+  on the machine.
 - **Key.** Every request carries `Authorization: Bearer <key>`. The key is minted by the
   core for that plugin alone and written to the adapter's configuration directory as
   `lemonfiber.key` before it starts. An adapter refuses any request without it
@@ -179,6 +185,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R209** | Install MUST run the live conformance cases against the running adapter, and a failed case MUST keep the plugin from filling the capability and MUST be named. |
 | **ARCH-R210** | No capability type MUST name a product, and a curator MUST be referred to by the media type it files. |
 | **ARCH-R211** | A contract's major MUST change only when an operation is removed or its meaning changes, and the core MUST speak every major its index lists. |
+| **ARCH-R212** | An adapter's `listens` port MUST be published on `127.0.0.1` alone with no host port named, and the core MUST read the host port the engine gave it from the engine and MUST NOT reach an adapter at any other address. |
 
 ## Related
 
