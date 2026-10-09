@@ -34,7 +34,11 @@ the change under review, run by checks the base branch chose.
 
 Usage:
   pin_only.py --repo <owner/name> --number <pull request> --head <the event's head commit>
-              --workflow <the calling workflow's ref, as `github.workflow_ref` gives it>
+              [--workflow <the calling workflow's ref, as `github.workflow_ref` gives it>]
+
+`--workflow` defaults to `GITHUB_WORKFLOW_REF`, which Actions sets to the calling
+workflow in a reusable workflow's run, so a caller pinned at a workflow that does
+not pass it is still read.
 
 Exit 0 when the head changes no workflow, moves only spec's pins forward, or
 carries the approval; 1 when it changes a workflow otherwise, or the pull
@@ -46,6 +50,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -75,6 +80,9 @@ PAGES = 10
 
 #: Items in one page of a list.
 PER_PAGE = 100
+
+#: Where Actions names the calling workflow to a reusable workflow's steps.
+RUNNER_WORKFLOW_REF = "GITHUB_WORKFLOW_REF"
 
 #: The calling workflow as `github.workflow_ref` names it: the repository, the file, the ref.
 WORKFLOW_REF = re.compile(r"\A(?P<repo>[\w.-]+/[\w.-]+)/\.github/workflows/(?P<file>[\w.-]+\.ya?ml)@\S+\Z")
@@ -381,14 +389,20 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
     parser.add_argument("--repo", required=True)
     parser.add_argument("--number", required=True, type=int)
     parser.add_argument("--head", required=True, help="the head commit the event was for")
-    parser.add_argument("--workflow", required=True, help="the calling workflow, as `github.workflow_ref` names it")
+    parser.add_argument("--workflow", help=f"the calling workflow, as `github.workflow_ref` names it; "
+                                           f"{RUNNER_WORKFLOW_REF} when not given")
     args = parser.parse_args(argv)
     if not re.fullmatch(r"[0-9a-f]{40}", args.head):
         print(f"::error::--head {args.head!r} is not a commit, so there is nothing to judge")
         return 2
-    calling = WORKFLOW_REF.fullmatch(args.workflow)
+    workflow = args.workflow if args.workflow is not None else os.environ.get(RUNNER_WORKFLOW_REF) or None
+    if workflow is None:
+        print(f"::error::Neither --workflow nor {RUNNER_WORKFLOW_REF} names the calling workflow, "
+              f"so its runs cannot be read")
+        return 2
+    calling = WORKFLOW_REF.fullmatch(workflow)
     if not calling or calling["repo"] != args.repo:
-        print(f"::error::--workflow {args.workflow!r} is not a workflow of {args.repo}, so its runs cannot be read")
+        print(f"::error::The calling workflow {workflow!r} is not a workflow of {args.repo}, so its runs cannot be read")
         return 2
     try:
         found, moved = problems(args.repo, args.number, args.head, api)
