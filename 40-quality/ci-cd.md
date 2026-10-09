@@ -298,6 +298,7 @@ cost a runner to reach.
 runner, nine minutes at the 90th percentile, and a pull request ran 25 to 64
 jobs. The wait is the cost, so every shared check that runs in seconds is a
 step of one job, `gates`:
+
 - spec-check's reading;
 - the hygiene checks;
 - both security scans;
