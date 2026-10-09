@@ -80,9 +80,10 @@ def step_script() -> str:
 class Run(unittest.TestCase):
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
-        (self.tmp / "scripts").mkdir()
+        tooling = self.tmp / ".spec-tooling" / "scripts"
+        tooling.mkdir(parents=True)
         for name in ("pr_goals.py", "patterns.py"):
-            shutil.copy(HERE / name, self.tmp / "scripts" / name)
+            shutil.copy(HERE / name, tooling / name)
         (self.tmp / "70-operations" / "versions").mkdir(parents=True)
         self.bin = self.tmp / "bin"
         self.bin.mkdir()
@@ -128,7 +129,7 @@ class TheStepIsTheCommittedOne(Run):
         level down.
         """
         script = step_script()
-        self.assertIn("scripts/pr_goals.py", script)
+        self.assertIn("python3 .spec-tooling/scripts/pr_goals.py", script)
         self.assertIn("milestone", script)
 
 

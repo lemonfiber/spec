@@ -31,8 +31,10 @@
 # shares, and a push cancels the run for the head it replaced and nothing else.
 #
 # Nothing of the pull request's is checked out or run. The script is spec's,
-# from its `main`, and reads the pull request's files, labels, timeline and this
-# check's runs through the API as data. The token writes nothing, so a pull
+# from the commit this workflow was called at, so a caller pinned at a revision
+# runs that revision's script with the arguments that revision passes. It reads
+# the pull request's files, labels, timeline and this check's runs through the
+# API as data. The token writes nothing, so a pull
 # request from a fork is judged the same way as one from a branch.
 name: pin-only
 
@@ -63,13 +65,13 @@ jobs:
             exit 1
           fi
 
-      - name: Check out the canonical spec
+      - name: Check out spec's scripts at this workflow's commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           repository: lemonfiber/spec
-          ref: main
-          path: .spec-canonical
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -89,4 +91,4 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           # The calling workflow, whose runs record each head the branch had.
           CALLING: ${{ github.workflow_ref }}
-        run: python3 .spec-canonical/scripts/pin_only.py --repo "$REPO" --number "$PR" --head "$HEAD_SHA" --workflow "$CALLING"
+        run: python3 .spec-tooling/scripts/pin_only.py --repo "$REPO" --number "$PR" --head "$HEAD_SHA" --workflow "$CALLING"

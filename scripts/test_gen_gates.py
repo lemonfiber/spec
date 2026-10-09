@@ -183,14 +183,16 @@ class Generation(unittest.TestCase):
             uses = step.get("uses", "")
             self.assertTrue(uses == "" or uses.startswith("actions/"), uses)
 
-    def test_a_consumer_runs_only_the_canonical_scripts(self):
+    def test_a_consumer_runs_only_spec_s_scripts_at_this_workflow_s_commit(self):
+        # Every script a consumer runs is spec's, from the commit gates.yml was
+        # called at, and never one of the canonical spec's, which is read as data.
         # The one other reader a step may pick is spec's own, in a branch taken
         # where the repository is lemonfiber/spec, which the plan refuses before
         # any step runs. report's workspace holds spec at main and nothing else.
         spec_branch = re.compile(r'^if \[ "\$(REPO|GITHUB_REPOSITORY)" = "lemonfiber/spec" \]; then$')
         for job in generated()["jobs"].values():
             for step in job["steps"]:
-                canonical: set[str] = set()
+                readers: set[str] = set()
                 in_spec = False
                 for line in (raw.strip() for raw in step.get("run", "").splitlines()):
                     if spec_branch.match(line):
@@ -201,17 +203,29 @@ class Generation(unittest.TestCase):
                         continue
                     assigned = re.match(r"(\w+)=[\"']?([^\"'\s]*)", line)
                     if assigned and ("scripts" in assigned[2] or "canonical" in assigned[2]):
-                        self.assertTrue(assigned[2].startswith(".spec-canonical"), (step["id"], line))
-                        canonical.add(assigned[1])
+                        self.assertTrue(assigned[2].startswith((".spec-canonical", ".spec-tooling")),
+                                        (step["id"], line))
+                        if assigned[2].startswith(".spec-tooling"):
+                            readers.add(assigned[1])
                     ran = re.search(r"python3 [\"']?([^\"'\s]+)", line)
                     if not ran or ran[1] in ("-", "-c"):
                         continue
                     said = ran[1]
                     variable = re.match(r"\$\{?(\w+)", said)
                     if variable:
-                        self.assertIn(variable[1], canonical, (step["id"], line))
+                        self.assertIn(variable[1], readers, (step["id"], line))
                     else:
-                        self.assertTrue(said.startswith((".spec-canonical/", "scripts/")), (step["id"], line))
+                        self.assertTrue(said.startswith((".spec-tooling/", "scripts/")), (step["id"], line))
+
+    def test_spec_s_scripts_are_checked_out_at_the_commit_gates_was_called_at(self):
+        # So a caller pinned at a revision runs that revision's scripts, with the
+        # arguments that revision's steps pass them.
+        tooling = [step for job in generated()["jobs"].values() for step in job["steps"]
+                   if step.get("with", {}).get("path") == ".spec-tooling"]
+        self.assertTrue(tooling)
+        for step in tooling:
+            self.assertEqual(step["with"]["repository"], "lemonfiber/spec", step["id"])
+            self.assertEqual(step["with"]["ref"], "${{ job.workflow_sha }}", step["id"])
 
     def test_gates_runs_only_actions_that_read_the_tree_as_data(self):
         seen: list[str] = []
@@ -335,7 +349,7 @@ class Behaviour(unittest.TestCase):
         self.assertIn("labeler--label--0", there)
         self.assertIn("explain--citation--0", there)
         # Nothing to close where every citation resolved.
-        self.assertNotIn("spec-check--spec-check--6", there)
+        self.assertNotIn("spec-check--spec-check--7", there)
 
     def test_a_failing_step_fails_its_check_and_stops_its_later_steps_only(self):
         verdicts, here, _ = Runner(failing={"hygiene--links--0"}).run()
@@ -351,13 +365,13 @@ class Behaviour(unittest.TestCase):
 
     def test_a_step_its_reusable_lets_fail_stops_nothing(self):
         _, here, there = Runner(failing={"spec-check--spec-check--citation"}).run()
-        self.assertIn("spec-check--spec-check--7", here)
+        self.assertIn("spec-check--spec-check--8", here)
         # The citation's own refusal comes from the step after it, as before.
-        self.assertIn("spec-check--spec-check--6", there)
+        self.assertIn("spec-check--spec-check--7", there)
 
     def test_the_closing_step_waits_for_the_steps_before_it(self):
-        _, _, there = Runner(failing={"spec-check--spec-check--2", "spec-check--spec-check--citation"}).run()
-        self.assertNotIn("spec-check--spec-check--6", there)
+        _, _, there = Runner(failing={"spec-check--spec-check--3", "spec-check--spec-check--citation"}).run()
+        self.assertNotIn("spec-check--spec-check--7", there)
 
     def test_an_actor_failing_fails_no_verdict(self):
         verdicts, _, there = Runner(failing={"goals--classify--1"}).run()

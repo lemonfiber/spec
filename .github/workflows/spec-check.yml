@@ -45,6 +45,17 @@ jobs:
           # and makes `git log base..head` fail.
           fetch-depth: 0
 
+      # spec's scripts at the commit this workflow was called at, so a caller
+      # pinned at a revision runs that revision's scripts. What they read stays
+      # the canonical spec below.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+
       - name: Check out the canonical spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -164,7 +175,7 @@ jobs:
             optional+=(--citation-optional)
           fi
 
-          python3 .spec-canonical/scripts/spec_check.py \
+          python3 .spec-tooling/scripts/spec_check.py \
             --spec-dir .spec-canonical \
             --text-file .pr-text.txt \
             --diff-file .pr-diff.txt \
@@ -245,10 +256,10 @@ jobs:
       - name: The tracker claims only what the spec and the tree back
         run: |
           set -euo pipefail
-          python3 .spec-canonical/scripts/status_check.py check \
+          python3 .spec-tooling/scripts/status_check.py check \
             --spec .spec-canonical --repo-root .
           if [ -f IMPLEMENTATION-STATUS.md ]; then
-            python3 .spec-canonical/scripts/status_lint.py \
+            python3 .spec-tooling/scripts/status_lint.py \
               --status IMPLEMENTATION-STATUS.md \
               --spec .spec-canonical
           fi

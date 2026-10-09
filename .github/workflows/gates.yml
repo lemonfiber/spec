@@ -65,7 +65,7 @@ jobs:
       plan--cap: ${{ steps.plan.outputs.cap }}
       spec-check--spec-check--citation--outputs--reason: ${{ steps.spec-check--spec-check--citation.outputs.reason }}
       spec-check--spec-check--citation--outputs--status: ${{ steps.spec-check--spec-check--citation.outputs.status }}
-      spec-check--spec-check--reached-6: ${{ (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') }}
+      spec-check--spec-check--reached-7: ${{ (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--5.outcome != 'failure') }}
       squash-message--squash-message--out--needed: ${{ steps.squash-message--squash-message--check.outputs.needed }}
       squash-message--squash-message--out--said: ${{ steps.squash-message--squash-message--check.outputs.said }}
       explain--detect--out--citation: ${{ steps.explain--detect--d.outputs.citation }}
@@ -139,9 +139,20 @@ jobs:
         fetch-depth: 0
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'spec-check / spec-check: Check out the canonical spec'
+    - name: 'spec-check / spec-check: Check out spec''s scripts at this workflow''s commit'
       id: spec-check--spec-check--1
       if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        repository: lemonfiber/spec
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'spec-check / spec-check: Check out the canonical spec'
+      id: spec-check--spec-check--2
+      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
@@ -151,8 +162,8 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'spec-check / spec-check: Gather the text this event carries'
-      id: spec-check--spec-check--2
-      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') }}
+      id: spec-check--spec-check--3
+      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') }}
       env:
         EVENT: ${{ github.event_name }}
         PR_BODY: ${{ github.event.pull_request.body }}
@@ -181,8 +192,8 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'spec-check / spec-check: Gather what this change writes into a file'
-      id: spec-check--spec-check--3
-      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') }}
+      id: spec-check--spec-check--4
+      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') }}
       env:
         EVENT: ${{ github.event_name }}
         BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
@@ -202,8 +213,8 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'spec-check / spec-check: Set up Python'
-      id: spec-check--spec-check--4
-      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') }}
+      id: spec-check--spec-check--5
+      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') }}
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: '3.12'
@@ -211,7 +222,7 @@ jobs:
       timeout-minutes: 10
     - name: 'spec-check / spec-check: Verify citation'
       id: spec-check--spec-check--citation
-      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') }}
+      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--5.outcome != 'failure') }}
       env:
         EVENT: ${{ github.event_name }}
         PR_AUTHOR: ${{ github.event.pull_request.user.login }}
@@ -237,7 +248,7 @@ jobs:
           optional+=(--citation-optional)
         fi
 
-        python3 .spec-canonical/scripts/spec_check.py \
+        python3 .spec-tooling/scripts/spec_check.py \
           --spec-dir .spec-canonical \
           --text-file .pr-text.txt \
           --diff-file .pr-diff.txt \
@@ -254,8 +265,8 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'spec-check / spec-check: The citation decides whether this may merge'
-      id: spec-check--spec-check--7
-      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--citation.outputs.status != '0') }}
+      id: spec-check--spec-check--8
+      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--5.outcome != 'failure') && (steps.spec-check--spec-check--citation.outputs.status != '0') }}
       env:
         STATUS: ${{ steps.spec-check--spec-check--citation.outputs.status }}
         REASON: ${{ steps.spec-check--spec-check--citation.outputs.reason }}
@@ -269,8 +280,8 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'spec-check / spec-check: What a merge group was, and was not, asked'
-      id: spec-check--spec-check--8
-      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--7.outcome != 'failure') && (github.event_name == 'merge_group') }}
+      id: spec-check--spec-check--9
+      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--5.outcome != 'failure') && (steps.spec-check--spec-check--8.outcome != 'failure') && (github.event_name == 'merge_group') }}
       run: |
         set -euo pipefail
         said="This ran on a merge group, which carries no pull request: no body to read a citation from and no author to cite on behalf of. So GOV-R2 — that a citation is present — was not re-asked here. It was asked of every pull request in this batch before the queue accepted it, and a merge group does not rewrite a commit message. What did run is GOV-R3: every identifier the batch's commits cite was resolved against spec@main as it stands now, which is the one answer that can have changed while a pull request waited in the queue."
@@ -279,14 +290,14 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'spec-check / spec-check: The tracker claims only what the spec and the tree back'
-      id: spec-check--spec-check--9
-      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--7.outcome != 'failure') && (steps.spec-check--spec-check--8.outcome != 'failure') }}
+      id: spec-check--spec-check--10
+      if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--5.outcome != 'failure') && (steps.spec-check--spec-check--8.outcome != 'failure') && (steps.spec-check--spec-check--9.outcome != 'failure') }}
       run: |
         set -euo pipefail
-        python3 .spec-canonical/scripts/status_check.py check \
+        python3 .spec-tooling/scripts/status_check.py check \
           --spec .spec-canonical --repo-root .
         if [ -f IMPLEMENTATION-STATUS.md ]; then
-          python3 .spec-canonical/scripts/status_lint.py \
+          python3 .spec-tooling/scripts/status_lint.py \
             --status IMPLEMENTATION-STATUS.md \
             --spec .spec-canonical
         fi
@@ -551,9 +562,20 @@ jobs:
         persist-credentials: false
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'hygiene / shared-files: Check out the canonical copies'
+    - name: 'hygiene / shared-files: Check out spec''s scripts at this workflow''s commit'
       id: hygiene--shared-files--1
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--shared-files--0.outcome != 'failure') && (github.repository != 'lemonfiber/spec') }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        repository: lemonfiber/spec
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / shared-files: Check out the canonical copies'
+      id: hygiene--shared-files--2
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--shared-files--0.outcome != 'failure') && (steps.hygiene--shared-files--1.outcome != 'failure') && (github.repository != 'lemonfiber/spec') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
@@ -563,41 +585,43 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / shared-files: actions/setup-python'
-      id: hygiene--shared-files--2
-      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--shared-files--0.outcome != 'failure') && (steps.hygiene--shared-files--1.outcome != 'failure') }}
+      id: hygiene--shared-files--3
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--shared-files--0.outcome != 'failure') && (steps.hygiene--shared-files--1.outcome != 'failure') && (steps.hygiene--shared-files--2.outcome != 'failure') }}
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: '3.12'
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / shared-files: Every shared file matches its one home'
-      id: hygiene--shared-files--3
-      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--shared-files--0.outcome != 'failure') && (steps.hygiene--shared-files--1.outcome != 'failure') && (steps.hygiene--shared-files--2.outcome != 'failure') }}
-      env:
-        REPO: ${{ github.repository }}
-      run: |
-        if [ "$REPO" = "lemonfiber/spec" ]; then
-          canonical="."
-        else
-          canonical=".spec-canonical"
-        fi
-        python3 "$canonical/scripts/check_shared_files.py" \
-          --canonical "$canonical" \
-          --repo "$REPO"
-      continue-on-error: true
-      timeout-minutes: 10
-    - name: 'hygiene / shared-files: AGENTS.md points first at the board and the shared rules'
       id: hygiene--shared-files--4
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--shared-files--0.outcome != 'failure') && (steps.hygiene--shared-files--1.outcome != 'failure') && (steps.hygiene--shared-files--2.outcome != 'failure') && (steps.hygiene--shared-files--3.outcome != 'failure') }}
       env:
         REPO: ${{ github.repository }}
       run: |
         if [ "$REPO" = "lemonfiber/spec" ]; then
+          scripts="scripts"
           canonical="."
         else
+          scripts=".spec-tooling/scripts"
           canonical=".spec-canonical"
         fi
-        python3 "$canonical/scripts/check_agents.py" --root .
+        python3 "$scripts/check_shared_files.py" \
+          --canonical "$canonical" \
+          --repo "$REPO"
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / shared-files: AGENTS.md points first at the board and the shared rules'
+      id: hygiene--shared-files--5
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--shared-files--0.outcome != 'failure') && (steps.hygiene--shared-files--1.outcome != 'failure') && (steps.hygiene--shared-files--2.outcome != 'failure') && (steps.hygiene--shared-files--3.outcome != 'failure') && (steps.hygiene--shared-files--4.outcome != 'failure') }}
+      env:
+        REPO: ${{ github.repository }}
+      run: |
+        if [ "$REPO" = "lemonfiber/spec" ]; then
+          scripts="scripts"
+        else
+          scripts=".spec-tooling/scripts"
+        fi
+        python3 "$scripts/check_agents.py" --root .
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / lines: an empty workspace, as its own runner had'
@@ -612,15 +636,15 @@ jobs:
         persist-credentials: false
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'hygiene / lines: Check out the canonical copy'
+    - name: 'hygiene / lines: Check out spec''s scripts at this workflow''s commit'
       id: hygiene--lines--1
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--lines--0.outcome != 'failure') && (github.repository != 'lemonfiber/spec') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
         repository: lemonfiber/spec
-        ref: main
-        path: .spec-canonical
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / lines: actions/setup-python'
@@ -640,7 +664,7 @@ jobs:
         if [ "$REPO" = "lemonfiber/spec" ]; then
           reader=scripts/check_line_cap.py
         else
-          reader=.spec-canonical/scripts/check_line_cap.py
+          reader=.spec-tooling/scripts/check_line_cap.py
         fi
         python3 "$reader" --root .
       continue-on-error: true
@@ -745,9 +769,20 @@ jobs:
         persist-credentials: false
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'workflow-pins / workflow-pins: Check out the canonical copy, with the history the question needs'
+    - name: 'workflow-pins / workflow-pins: Check out spec''s scripts at this workflow''s commit'
       id: workflow-pins--workflow-pins--1
-      if: ${{ ((steps.plan.outputs.workflow-pins == 'true')) && (steps.workflow-pins--workflow-pins--0.outcome != 'failure') }}
+      if: ${{ ((steps.plan.outputs.workflow-pins == 'true')) && (steps.workflow-pins--workflow-pins--0.outcome != 'failure') && (github.repository != 'lemonfiber/spec') }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        repository: lemonfiber/spec
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'workflow-pins / workflow-pins: Check out the canonical copy, with the history the question needs'
+      id: workflow-pins--workflow-pins--2
+      if: ${{ ((steps.plan.outputs.workflow-pins == 'true')) && (steps.workflow-pins--workflow-pins--0.outcome != 'failure') && (steps.workflow-pins--workflow-pins--1.outcome != 'failure') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
@@ -758,23 +793,23 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'workflow-pins / workflow-pins: actions/setup-python'
-      id: workflow-pins--workflow-pins--2
-      if: ${{ ((steps.plan.outputs.workflow-pins == 'true')) && (steps.workflow-pins--workflow-pins--0.outcome != 'failure') && (steps.workflow-pins--workflow-pins--1.outcome != 'failure') }}
+      id: workflow-pins--workflow-pins--3
+      if: ${{ ((steps.plan.outputs.workflow-pins == 'true')) && (steps.workflow-pins--workflow-pins--0.outcome != 'failure') && (steps.workflow-pins--workflow-pins--1.outcome != 'failure') && (steps.workflow-pins--workflow-pins--2.outcome != 'failure') }}
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: '3.12'
       continue-on-error: true
       timeout-minutes: 10
     - name: 'workflow-pins / workflow-pins: How far behind each pin is, and what it has not taken'
-      id: workflow-pins--workflow-pins--3
-      if: ${{ ((steps.plan.outputs.workflow-pins == 'true')) && (steps.workflow-pins--workflow-pins--0.outcome != 'failure') && (steps.workflow-pins--workflow-pins--1.outcome != 'failure') && (steps.workflow-pins--workflow-pins--2.outcome != 'failure') }}
+      id: workflow-pins--workflow-pins--4
+      if: ${{ ((steps.plan.outputs.workflow-pins == 'true')) && (steps.workflow-pins--workflow-pins--0.outcome != 'failure') && (steps.workflow-pins--workflow-pins--1.outcome != 'failure') && (steps.workflow-pins--workflow-pins--2.outcome != 'failure') && (steps.workflow-pins--workflow-pins--3.outcome != 'failure') }}
       env:
         REPO: ${{ github.repository }}
       run: |
         if [ "$REPO" = "lemonfiber/spec" ]; then
           reader=scripts/workflow_pins.py
         else
-          reader=.spec-canonical/scripts/workflow_pins.py
+          reader=.spec-tooling/scripts/workflow_pins.py
         fi
         python3 "$reader" .spec-canonical
       continue-on-error: true
@@ -984,15 +1019,15 @@ jobs:
         fetch-depth: 0
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'dco / dco: actions/checkout'
+    - name: 'dco / dco: Check out spec''s scripts at this workflow''s commit'
       id: dco--dco--1
       if: ${{ ((steps.plan.outputs.dco == 'true')) && (steps.dco--dco--0.outcome != 'failure') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
         repository: lemonfiber/spec
-        ref: main
-        path: .spec-canonical
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
       continue-on-error: true
       timeout-minutes: 10
     - name: 'dco / dco: actions/setup-python'
@@ -1013,7 +1048,7 @@ jobs:
       run: |
         if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
            && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
-          python3 .spec-canonical/scripts/dco_check.py "$BASE_SHA" "$HEAD_SHA"
+          python3 .spec-tooling/scripts/dco_check.py "$BASE_SHA" "$HEAD_SHA"
         elif [ "$EVENT" = "merge_group" ]; then
           echo "::error::A merge group arrived without a base..head range (base '${BASE_SHA}', head '${HEAD_SHA}'), so the batch was not read. Refusing rather than passing over nothing."
           exit 1
@@ -1035,15 +1070,15 @@ jobs:
         fetch-depth: 0
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'attribution / attribution: actions/checkout'
+    - name: 'attribution / attribution: Check out spec''s scripts at this workflow''s commit'
       id: attribution--attribution--1
       if: ${{ ((steps.plan.outputs.attribution == 'true')) && (steps.attribution--attribution--0.outcome != 'failure') && (github.repository != 'lemonfiber/spec') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
         repository: lemonfiber/spec
-        ref: main
-        path: .spec-canonical
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
       continue-on-error: true
       timeout-minutes: 10
     - name: 'attribution / attribution: actions/setup-python'
@@ -1066,7 +1101,7 @@ jobs:
         if [ "$GITHUB_REPOSITORY" = "lemonfiber/spec" ]; then
           scripts=scripts
         else
-          scripts=.spec-canonical/scripts
+          scripts=.spec-tooling/scripts
         fi
         if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
            && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
@@ -1093,15 +1128,15 @@ jobs:
         fetch-depth: 0
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'commitlint / commitlint: actions/checkout'
+    - name: 'commitlint / commitlint: Check out spec''s scripts at this workflow''s commit'
       id: commitlint--commitlint--1
       if: ${{ ((steps.plan.outputs.commitlint == 'true')) && (steps.commitlint--commitlint--0.outcome != 'failure') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
         repository: lemonfiber/spec
-        ref: main
-        path: .spec-canonical
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
       continue-on-error: true
       timeout-minutes: 10
     - name: 'commitlint / commitlint: actions/setup-python'
@@ -1122,7 +1157,7 @@ jobs:
       run: |
         if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
            && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
-          python3 .spec-canonical/scripts/commit_lint.py "$BASE_SHA" "$HEAD_SHA"
+          python3 .spec-tooling/scripts/commit_lint.py "$BASE_SHA" "$HEAD_SHA"
         elif [ "$EVENT" = "merge_group" ]; then
           echo "::error::A merge group arrived without a base..head range (base '${BASE_SHA}', head '${HEAD_SHA}'), so the batch was not read. Refusing rather than passing over nothing."
           exit 1
@@ -1135,9 +1170,20 @@ jobs:
       id: squash-message--squash-message--fresh
       if: ${{ (steps.plan.outputs.squash-message == 'true') }}
       run: find "$GITHUB_WORKSPACE" -mindepth 1 -delete
-    - name: 'squash-message / squash-message: actions/checkout'
+    - name: 'squash-message / squash-message: Check out spec''s scripts at this workflow''s commit'
       id: squash-message--squash-message--0
       if: ${{ ((steps.plan.outputs.squash-message == 'true')) }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        repository: lemonfiber/spec
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'squash-message / squash-message: Check out the canonical spec'
+      id: squash-message--squash-message--1
+      if: ${{ ((steps.plan.outputs.squash-message == 'true')) && (steps.squash-message--squash-message--0.outcome != 'failure') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
@@ -1147,16 +1193,16 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'squash-message / squash-message: actions/setup-python'
-      id: squash-message--squash-message--1
-      if: ${{ ((steps.plan.outputs.squash-message == 'true')) && (steps.squash-message--squash-message--0.outcome != 'failure') }}
+      id: squash-message--squash-message--2
+      if: ${{ ((steps.plan.outputs.squash-message == 'true')) && (steps.squash-message--squash-message--0.outcome != 'failure') && (steps.squash-message--squash-message--1.outcome != 'failure') }}
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: '3.12'
       continue-on-error: true
       timeout-minutes: 10
     - name: 'squash-message / squash-message: Read the pull request'
-      id: squash-message--squash-message--2
-      if: ${{ ((steps.plan.outputs.squash-message == 'true')) && (steps.squash-message--squash-message--0.outcome != 'failure') && (steps.squash-message--squash-message--1.outcome != 'failure') }}
+      id: squash-message--squash-message--3
+      if: ${{ ((steps.plan.outputs.squash-message == 'true')) && (steps.squash-message--squash-message--0.outcome != 'failure') && (steps.squash-message--squash-message--1.outcome != 'failure') && (steps.squash-message--squash-message--2.outcome != 'failure') }}
       env:
         GH_TOKEN: ${{ github.token }}
         PR: ${{ github.event.pull_request.number }}
@@ -1171,10 +1217,10 @@ jobs:
       timeout-minutes: 10
     - name: 'squash-message / squash-message: Check the squash message'
       id: squash-message--squash-message--check
-      if: ${{ ((steps.plan.outputs.squash-message == 'true')) && (steps.squash-message--squash-message--0.outcome != 'failure') && (steps.squash-message--squash-message--1.outcome != 'failure') && (steps.squash-message--squash-message--2.outcome != 'failure') }}
+      if: ${{ ((steps.plan.outputs.squash-message == 'true')) && (steps.squash-message--squash-message--0.outcome != 'failure') && (steps.squash-message--squash-message--1.outcome != 'failure') && (steps.squash-message--squash-message--2.outcome != 'failure') && (steps.squash-message--squash-message--3.outcome != 'failure') }}
       run: |
         set -uo pipefail
-        python3 .spec-canonical/scripts/squash_message.py \
+        python3 .spec-tooling/scripts/squash_message.py \
           --spec-dir .spec-canonical --pull pull.json --commits commits.jsonl > said.md
         code=$?
         cat said.md
@@ -1202,9 +1248,20 @@ jobs:
         persist-credentials: false
       continue-on-error: true
       timeout-minutes: 20
-    - name: 'explain / detect: Check out the spec'
+    - name: 'explain / detect: Check out spec''s scripts at this workflow''s commit'
       id: explain--detect--1
       if: ${{ ((steps.plan.outputs.explain == 'true')) && (steps.explain--detect--0.outcome != 'failure') }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        repository: lemonfiber/spec
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
+      continue-on-error: true
+      timeout-minutes: 20
+    - name: 'explain / detect: Check out the canonical spec'
+      id: explain--detect--2
+      if: ${{ ((steps.plan.outputs.explain == 'true')) && (steps.explain--detect--0.outcome != 'failure') && (steps.explain--detect--1.outcome != 'failure') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: lemonfiber/spec
@@ -1213,9 +1270,9 @@ jobs:
         persist-credentials: false
       continue-on-error: true
       timeout-minutes: 20
-    - name: 'explain / detect: step 3'
+    - name: 'explain / detect: step 4'
       id: explain--detect--d
-      if: ${{ ((steps.plan.outputs.explain == 'true')) && (steps.explain--detect--0.outcome != 'failure') && (steps.explain--detect--1.outcome != 'failure') }}
+      if: ${{ ((steps.plan.outputs.explain == 'true')) && (steps.explain--detect--0.outcome != 'failure') && (steps.explain--detect--1.outcome != 'failure') && (steps.explain--detect--2.outcome != 'failure') }}
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
         BASE: ${{ github.event.pull_request.base.sha }}
@@ -1247,7 +1304,7 @@ jobs:
       timeout-minutes: 20
     - name: 'explain / detect: The advice assist.py gives'
       id: explain--detect--a
-      if: ${{ ((steps.plan.outputs.explain == 'true')) && (steps.explain--detect--0.outcome != 'failure') && (steps.explain--detect--1.outcome != 'failure') && (steps.explain--detect--d.outcome != 'failure') }}
+      if: ${{ ((steps.plan.outputs.explain == 'true')) && (steps.explain--detect--0.outcome != 'failure') && (steps.explain--detect--1.outcome != 'failure') && (steps.explain--detect--2.outcome != 'failure') && (steps.explain--detect--d.outcome != 'failure') }}
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
         BASE: ${{ github.event.pull_request.base.sha }}
@@ -1258,7 +1315,7 @@ jobs:
         set -euo pipefail
         git diff --name-only "${BASE}...${HEAD}" > paths.txt
         { printf '%s\n' "$PR_BODY"; git log --format=%B "${BASE}..${HEAD}"; } > text.txt
-        assist() { python3 .spec-canonical/scripts/assist.py "$@"; }
+        assist() { python3 .spec-tooling/scripts/assist.py "$@"; }
         # Each answer can run to several lines, so each is written between
         # delimiters no answer can contain.
         emit() {
@@ -1281,13 +1338,14 @@ jobs:
     - name: Every check held
       if: ${{ !cancelled() }}
       env:
-        VERDICTS: '{"spec-check--spec-check": "${{ !(steps.plan.outputs.spec-check == ''true'' || steps.plan.outputs.spec-check == ''false'') && ''unreported'' || !((steps.plan.outputs.spec-check == ''true'')) && ''skipped'' || (steps.spec-check--spec-check--0.outcome == ''failure'' || steps.spec-check--spec-check--1.outcome == ''failure'' || steps.spec-check--spec-check--2.outcome == ''failure'' || steps.spec-check--spec-check--3.outcome == ''failure'' || steps.spec-check--spec-check--4.outcome == ''failure'' || steps.spec-check--spec-check--7.outcome == ''failure'' || steps.spec-check--spec-check--8.outcome == ''failure'' || steps.spec-check--spec-check--9.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--actionlint": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--actionlint--0.outcome == ''failure'' || steps.hygiene--actionlint--1.outcome
-          == ''failure'') && ''failure'' || ''success'' }}", "hygiene--pins": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--pins--0.outcome == ''failure'' || steps.hygiene--pins--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--typos": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--typos--0.outcome == ''failure'' || steps.hygiene--typos--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--links": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure'' || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome
-          == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome == ''failure'' || steps.hygiene--shared-files--2.outcome == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene ==
-          ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure'' || steps.hygiene--markdown--markdown-only.outcome == ''failure'' || steps.hygiene--markdown--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped''
-          || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure''
-          || steps.security--osv-scanner--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{
-          !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
+        VERDICTS: '{"spec-check--spec-check": "${{ !(steps.plan.outputs.spec-check == ''true'' || steps.plan.outputs.spec-check == ''false'') && ''unreported'' || !((steps.plan.outputs.spec-check == ''true'')) && ''skipped'' || (steps.spec-check--spec-check--0.outcome == ''failure'' || steps.spec-check--spec-check--1.outcome == ''failure'' || steps.spec-check--spec-check--2.outcome == ''failure'' || steps.spec-check--spec-check--3.outcome == ''failure'' || steps.spec-check--spec-check--4.outcome == ''failure'' || steps.spec-check--spec-check--5.outcome == ''failure'' || steps.spec-check--spec-check--8.outcome == ''failure'' || steps.spec-check--spec-check--9.outcome == ''failure'' || steps.spec-check--spec-check--10.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--actionlint": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--actionlint--0.outcome
+          == ''failure'' || steps.hygiene--actionlint--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--pins": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--pins--0.outcome == ''failure'' || steps.hygiene--pins--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--typos": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--typos--0.outcome == ''failure'' || steps.hygiene--typos--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--links": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure''
+          || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome == ''failure'' || steps.hygiene--shared-files--2.outcome == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'' || steps.hygiene--shared-files--5.outcome == ''failure'')
+          && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure'' || steps.hygiene--markdown--markdown-only.outcome == ''failure'' || steps.hygiene--markdown--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true''
+          || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'' || steps.workflow-pins--workflow-pins--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security ==
+          ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'' || steps.security--osv-scanner--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome
+          == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure''
+          || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--3.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
       run: |
         set -euo pipefail
         python3 - <<'PY'
@@ -1315,8 +1373,8 @@ jobs:
       issues: write
     steps:
     - name: 'spec-check / spec-check: Close the pull request, naming what it cited'
-      id: spec-check--spec-check--6
-      if: ${{ ((needs.gates.outputs.plan--spec-check == 'true')) && (needs.gates.outputs.spec-check--spec-check--reached-6 == 'true') && (needs.gates.outputs.spec-check--spec-check--citation--outputs--status == '1' && github.event_name == 'pull_request') }}
+      id: spec-check--spec-check--7
+      if: ${{ ((needs.gates.outputs.plan--spec-check == 'true')) && (needs.gates.outputs.spec-check--spec-check--reached-7 == 'true') && (needs.gates.outputs.spec-check--spec-check--citation--outputs--status == '1' && github.event_name == 'pull_request') }}
       env:
         GH_TOKEN: ${{ github.token }}
         NUMBER: ${{ github.event.pull_request.number }}
@@ -1355,7 +1413,7 @@ jobs:
       id: goals--classify--fresh
       if: ${{ (needs.gates.outputs.plan--goals == 'true') && (github.event.pull_request.head.repo.full_name == github.repository) }}
       run: find "$GITHUB_WORKSPACE" -mindepth 1 -delete
-    - name: 'goals / classify: Check out the spec'
+    - name: 'goals / classify: Check out the canonical spec'
       id: goals--classify--0
       if: ${{ ((needs.gates.outputs.plan--goals == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -1365,9 +1423,20 @@ jobs:
         ref: main
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'goals / classify: Gather the PR text'
+    - name: 'goals / classify: Check out spec''s scripts at this workflow''s commit'
       id: goals--classify--1
       if: ${{ ((needs.gates.outputs.plan--goals == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) && (steps.goals--classify--0.outcome != 'failure') }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        repository: lemonfiber/spec
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'goals / classify: Gather the PR text'
+      id: goals--classify--2
+      if: ${{ ((needs.gates.outputs.plan--goals == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) && (steps.goals--classify--0.outcome != 'failure') && (steps.goals--classify--1.outcome != 'failure') }}
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
         GH_TOKEN: ${{ github.token }}
@@ -1382,8 +1451,8 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'goals / classify: Classify and act'
-      id: goals--classify--2
-      if: ${{ ((needs.gates.outputs.plan--goals == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) && (steps.goals--classify--0.outcome != 'failure') && (steps.goals--classify--1.outcome != 'failure') }}
+      id: goals--classify--3
+      if: ${{ ((needs.gates.outputs.plan--goals == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) && (steps.goals--classify--0.outcome != 'failure') && (steps.goals--classify--1.outcome != 'failure') && (steps.goals--classify--2.outcome != 'failure') }}
       env:
         GH_TOKEN: ${{ github.token }}
         REPO: ${{ github.repository }}
@@ -1391,7 +1460,7 @@ jobs:
         SELF: github-actions[bot]
       run: |
         set -euo pipefail
-        python3 scripts/pr_goals.py --pr-text pr.txt > result.json
+        python3 .spec-tooling/scripts/pr_goals.py --pr-text pr.txt > result.json
         cat result.json
         python3 - <<'PY'
         import json, os, subprocess
@@ -1477,9 +1546,20 @@ jobs:
       id: refs--comment--fresh
       if: ${{ (needs.gates.outputs.plan--refs == 'true') && (github.event.pull_request.head.repo.full_name == github.repository) }}
       run: find "$GITHUB_WORKSPACE" -mindepth 1 -delete
-    - name: 'refs / comment: Check out the spec'
+    - name: 'refs / comment: Check out spec''s scripts at this workflow''s commit'
       id: refs--comment--0
       if: ${{ ((needs.gates.outputs.plan--refs == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) }}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        repository: lemonfiber/spec
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'refs / comment: Check out the canonical spec'
+      id: refs--comment--1
+      if: ${{ ((needs.gates.outputs.plan--refs == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) && (steps.refs--comment--0.outcome != 'failure') }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: lemonfiber/spec
@@ -1489,8 +1569,8 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'refs / comment: Build the comment'
-      id: refs--comment--1
-      if: ${{ ((needs.gates.outputs.plan--refs == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) && (steps.refs--comment--0.outcome != 'failure') }}
+      id: refs--comment--2
+      if: ${{ ((needs.gates.outputs.plan--refs == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) && (steps.refs--comment--0.outcome != 'failure') && (steps.refs--comment--1.outcome != 'failure') }}
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
@@ -1502,14 +1582,14 @@ jobs:
           gh pr view "$PR" --repo "$GH_REPO" --json commits \
             --jq '.commits[] | .messageHeadline, .messageBody'
         } > .pr-text.txt
-        python3 .spec-canonical/scripts/spec_refs.py \
+        python3 .spec-tooling/scripts/spec_refs.py \
           --spec-dir .spec-canonical --text-file .pr-text.txt \
           --spec-url https://github.com/lemonfiber/spec/blob/main > comment.md
       continue-on-error: true
       timeout-minutes: 10
     - name: 'refs / comment: Upsert the sticky comment'
-      id: refs--comment--2
-      if: ${{ ((needs.gates.outputs.plan--refs == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) && (steps.refs--comment--0.outcome != 'failure') && (steps.refs--comment--1.outcome != 'failure') }}
+      id: refs--comment--3
+      if: ${{ ((needs.gates.outputs.plan--refs == 'true') && (github.event.pull_request.head.repo.full_name == github.repository)) && (steps.refs--comment--0.outcome != 'failure') && (steps.refs--comment--1.outcome != 'failure') && (steps.refs--comment--2.outcome != 'failure') }}
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
@@ -1532,14 +1612,14 @@ jobs:
       id: cap--comment--fresh
       if: ${{ (needs.gates.outputs.plan--cap == 'true') && (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot') }}
       run: find "$GITHUB_WORKSPACE" -mindepth 1 -delete
-    - name: 'cap / comment: Check out the spec'
+    - name: 'cap / comment: Check out spec''s scripts at this workflow''s commit'
       id: cap--comment--0
       if: ${{ ((needs.gates.outputs.plan--cap == 'true') && (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot')) }}
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: lemonfiber/spec
-        ref: ${{ github.repository == 'lemonfiber/spec' && github.sha || 'main' }}
-        path: .spec-canonical
+        ref: ${{ job.workflow_sha }}
+        path: .spec-tooling
         persist-credentials: false
       continue-on-error: true
       timeout-minutes: 5
@@ -1554,7 +1634,7 @@ jobs:
         set -euo pipefail
         gh api "repos/$GH_REPO/pulls?state=open&per_page=100" --paginate --slurp \
           | jq 'add // []' > pulls.json
-        python3 .spec-canonical/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
+        python3 .spec-tooling/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
       continue-on-error: true
       timeout-minutes: 5
     - name: 'cap / comment: Upsert or remove the sticky comment'

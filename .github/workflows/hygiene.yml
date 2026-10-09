@@ -299,8 +299,21 @@ jobs:
         with:
           persist-credentials: false
 
-      # Read from `main`, like spec-check and commitlint: a repo is checked
-      # against the canonical copies as they stand, not as its pin remembers them.
+      # spec's scripts at the commit this workflow was called at, so a caller
+      # pinned at a revision runs that revision's scripts. What they read stays
+      # the canonical spec below.
+      - name: Check out spec's scripts at this workflow's commit
+        if: github.repository != 'lemonfiber/spec'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+
+      # The copies are read from `main`, like spec-check's identifiers: a repo is
+      # checked against the canonical copies as they stand, not as its pin
+      # remembers them.
       - name: Check out the canonical copies
         if: github.repository != 'lemonfiber/spec'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -319,11 +332,13 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           if [ "$REPO" = "lemonfiber/spec" ]; then
+            scripts="scripts"
             canonical="."
           else
+            scripts=".spec-tooling/scripts"
             canonical=".spec-canonical"
           fi
-          python3 "$canonical/scripts/check_shared_files.py" \
+          python3 "$scripts/check_shared_files.py" \
             --canonical "$canonical" \
             --repo "$REPO"
 
@@ -336,15 +351,16 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           if [ "$REPO" = "lemonfiber/spec" ]; then
-            canonical="."
+            scripts="scripts"
           else
-            canonical=".spec-canonical"
+            scripts=".spec-tooling/scripts"
           fi
-          python3 "$canonical/scripts/check_agents.py" --root .
+          python3 "$scripts/check_agents.py" --root .
 
   # No tracked file over 1,000 lines, generated output included; lockfiles, images
-  # and fonts are not counted. The cap and that list are in the script, read from
-  # `main` like the shared files above, so every repository is held to one rule.
+  # and fonts are not counted. The cap and that list are in the script, read at
+  # the commit this workflow was called at, so a rule reaches a repository with
+  # its pin, the way the AGENTS.md step above does.
   lines:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -353,14 +369,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check out the canonical copy
+      - name: Check out spec's scripts at this workflow's commit
         if: github.repository != 'lemonfiber/spec'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           repository: lemonfiber/spec
-          ref: main
-          path: .spec-canonical
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -373,7 +389,7 @@ jobs:
           if [ "$REPO" = "lemonfiber/spec" ]; then
             reader=scripts/check_line_cap.py
           else
-            reader=.spec-canonical/scripts/check_line_cap.py
+            reader=.spec-tooling/scripts/check_line_cap.py
           fi
           python3 "$reader" --root .
 

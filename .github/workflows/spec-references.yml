@@ -25,7 +25,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check out the spec
+      # spec's scripts at the commit this workflow was called at, so a caller
+      # pinned at a revision runs that revision's scripts. What they read stays
+      # the canonical spec below.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+
+      - name: Check out the canonical spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: lemonfiber/spec
@@ -45,7 +56,7 @@ jobs:
             gh pr view "$PR" --repo "$GH_REPO" --json commits \
               --jq '.commits[] | .messageHeadline, .messageBody'
           } > .pr-text.txt
-          python3 .spec-canonical/scripts/spec_refs.py \
+          python3 .spec-tooling/scripts/spec_refs.py \
             --spec-dir .spec-canonical --text-file .pr-text.txt \
             --spec-url https://github.com/lemonfiber/spec/blob/main > comment.md
 

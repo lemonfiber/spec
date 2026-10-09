@@ -40,10 +40,21 @@ jobs:
       needed: ${{ steps.check.outputs.needed }}
       said: ${{ steps.check.outputs.said }}
     steps:
-      # Another repository reads the rules and identifiers from spec's main.
-      # Here a pull request may define the identifier its body cites, so both
-      # are read from the pull request's own tree, as `integrity.py` reads it.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The rules are the script's, from the commit this workflow was called
+      # at, so a caller pinned at a revision runs that revision's script. The
+      # identifiers are spec's main, where a requirement exists once it merges.
+      # Here a pull request may define the identifier its body cites, so the
+      # identifiers are read from the pull request's own tree, as
+      # `integrity.py` reads it.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+      - name: Check out the canonical spec
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           repository: lemonfiber/spec
@@ -71,7 +82,7 @@ jobs:
         id: check
         run: |
           set -uo pipefail
-          python3 .spec-canonical/scripts/squash_message.py \
+          python3 .spec-tooling/scripts/squash_message.py \
             --spec-dir .spec-canonical --pull pull.json --commits commits.jsonl > said.md
           code=$?
           cat said.md

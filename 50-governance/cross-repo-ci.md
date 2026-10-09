@@ -352,12 +352,14 @@ repository's own `.github/workflows/`, and fails the pull request naming the
 commits that pin has not taken (**Q-R68**, **Q-R70**). A pin on somebody else's
 action is not its business; that one has versions, and the dependency bot does it.
 
-**A pin is measured against the one file it names**, not against this
-repository's `main`. Measured against the branch, every pin in the organisation
-is behind from the first unrelated commit after each merge, which is to say for
-most of every day — and a check that is red on every pull request is a check that
-stops being required. Narrowed to the workflow's own history it is red only when
-something that can reach the caller has moved.
+**A pin is measured against the files it holds**, not against this
+repository's `main`: the workflow it names, the workflows that one calls from
+here, the scripts they run, and the modules beside those scripts that they
+import. Measured against the branch, every pin in the organisation is behind from
+the first unrelated commit after each merge, which is to say for most of every
+day — and a check that is red on every pull request is a check that stops being
+required. Narrowed to those files' history it is red only when something that
+can reach the caller has moved.
 
 One asymmetry is worth knowing before reading one of its logs. *Which copy of the
 reader runs* is the caller's own where the caller is this repository — the same
@@ -376,18 +378,26 @@ revision, and this one does not depend on itself.
 
 ### What a stale pin actually holds back
 
-Narrower than it reads, and sharper for it. **The workflow file is pinned; the
-scripts it runs are not.** Every one of these workflows checks this repository out
-at `ref: main` and runs `spec_check.py`, `dco_check.py`, `check_shared_files.py`
-from there — so a fix to what a gate *decides* reaches every consumer on their
-next run, whatever their pin says. What a stale pin holds is the workflow: its
-steps, the arguments they pass, the events it declares itself to run on.
+**The workflow and the scripts it runs are pinned together.** Every one of these
+workflows checks this repository's scripts out at `job.workflow_sha`, the commit
+the caller pinned, and runs `spec_check.py`, `dco_check.py`,
+`check_shared_files.py` from there. So a pin names everything that runs on the
+caller's runner with the caller's token, and a workflow always runs the scripts
+written for the arguments it passes: a script that changes what it is called
+with cannot break a caller still on the workflow that calls it the old way.
 
-That is the half that changes rarely, which is exactly the half nobody watches,
-and it is the half where a gate is switched off rather than made wrong. A step
-added here does not run there. A workflow taught to run on `merge_group` does not
-run on one there. Nothing goes red to say so, because from inside the consuming
-repository the job is present, green, and doing less than its name.
+What the scripts *read* is not pinned. The identifiers a citation must resolve
+to, the canonical copies of shared files, the staged versions and `main`'s own
+history are checked out at `main` beside the scripts, because each is a fact
+about the specification as it stands: an identifier exists from the moment it
+merges, and a pin that remembered an older list would refuse a citation that is
+right.
+
+A fix to what a gate decides therefore reaches a consumer when its pin moves,
+and the pin moves through the release train's bump pull request, which
+`workflow-pins` asks for the moment a script the workflow runs has changed. A
+step added here does not run there until then either, and neither half goes
+stale in silence.
 
 ### How a pin gets bumped
 
@@ -397,7 +407,8 @@ newer than, so a pin whose trailing comment names no version gives the updater
 nothing to propose — and a bot that is configured and quiet is indistinguishable
 from one that is configured and satisfied.
 
-So every commit to `main` that changes a published workflow is tagged `v1.0.N`.
+So every commit to `main` that changes a published workflow, or a script one
+runs, is tagged `v1.0.N`.
 The series carries no meaning beyond order, which is all the comparison needs.
 Each pin names its tag in the comment beside it:
 
@@ -425,7 +436,7 @@ pusher writes.
 
 `workflow-pins` and the bot answer different questions and neither replaces the
 other. The bot keeps a pin at the newest tag whether or not it matters; the check
-refuses only a pin whose own workflow has moved. A repository can sit a tag or
+refuses only a pin whose workflow or scripts have moved. A repository can sit a tag or
 two behind and be entirely current.
 
 ### Could not ask is not clean

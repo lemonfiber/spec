@@ -33,12 +33,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check out the spec
+      # The staged versions are read from spec's main, where a version is staged
+      # once it merges.
+      - name: Check out the canonical spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           repository: lemonfiber/spec
           ref: main
+      # spec's scripts at the commit this workflow was called at, so a caller
+      # pinned at a revision runs that revision's scripts. What they read stays
+      # the canonical spec above.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
       - name: Gather the PR text
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
@@ -61,7 +73,7 @@ jobs:
           SELF: github-actions[bot]
         run: |
           set -euo pipefail
-          python3 scripts/pr_goals.py --pr-text pr.txt > result.json
+          python3 .spec-tooling/scripts/pr_goals.py --pr-text pr.txt > result.json
           cat result.json
           python3 - <<'PY'
           import json, os, subprocess

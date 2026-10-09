@@ -32,15 +32,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # Another repository reads the script from spec's main, as spec-references
-      # does. Here the workflow itself comes from the pull request, so the script
-      # is read from the same tree rather than from a main it may not yet be on.
-      - name: Check out the spec
+      # The script from the commit this workflow was called at: a caller pinned
+      # at a revision runs that revision's script, and spec's own pull request,
+      # whose workflow is its own, runs the script from the same tree.
+      - name: Check out spec's scripts at this workflow's commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: lemonfiber/spec
-          ref: ${{ github.repository == 'lemonfiber/spec' && github.sha || 'main' }}
-          path: .spec-canonical
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
           persist-credentials: false
 
       - name: Write the comment, or nothing
@@ -52,7 +52,7 @@ jobs:
           set -euo pipefail
           gh api "repos/$GH_REPO/pulls?state=open&per_page=100" --paginate --slurp \
             | jq 'add // []' > pulls.json
-          python3 .spec-canonical/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
+          python3 .spec-tooling/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
 
       - name: Upsert or remove the sticky comment
         env:

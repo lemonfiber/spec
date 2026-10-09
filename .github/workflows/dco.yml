@@ -19,12 +19,15 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # spec's scripts at the commit this workflow was called at, so a caller
+      # pinned at a revision runs that revision's script.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           repository: lemonfiber/spec
-          ref: main
-          path: .spec-canonical
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
@@ -48,7 +51,7 @@ jobs:
         run: |
           if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
              && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
-            python3 .spec-canonical/scripts/dco_check.py "$BASE_SHA" "$HEAD_SHA"
+            python3 .spec-tooling/scripts/dco_check.py "$BASE_SHA" "$HEAD_SHA"
           elif [ "$EVENT" = "merge_group" ]; then
             echo "::error::A merge group arrived without a base..head range (base '${BASE_SHA}', head '${HEAD_SHA}'), so the batch was not read. Refusing rather than passing over nothing."
             exit 1
