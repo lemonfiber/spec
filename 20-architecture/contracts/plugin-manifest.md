@@ -277,7 +277,10 @@ The vocabulary is published as
 the binary, so an author asking what they may claim asks the tool rather than a
 document. A core name here with no [`[[claim]]`](#claim--the-probes-a-core-name-is-demonstrated-by)
 block binding its probes is refused: `F4`'s whole posture is that *a claim is
-demonstrated, not asserted*, and a name in a list asserts.
+demonstrated, not asserted*, and a name in a list asserts. A capability the same service
+[`speaks`](capability-contracts.md#speaking-a-contract) is demonstrated by its contract
+instead: the live pass at install and its recordings are the evidence, and it carries no
+`[[claim]]`.
 
 ### One service answers for a core capability, and a plugin's own may be shared
 
