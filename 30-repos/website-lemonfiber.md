@@ -80,7 +80,10 @@ website-lemonfiber.app/
 
 ## How it stays fresh
 
-Deployed to GitHub Pages by CI. The deploy workflow rebuilds when the
+Deployed by CI to Cloudflare, as an assets-only Worker that `wrangler.jsonc`
+declares and wrangler uploads, and to GitHub Pages while the domain still points
+there; the headers the host sends are in the `_headers` file the build carries.
+The deploy workflow rebuilds when the
 specification's report publishes a snapshot whose content changed, which it
 announces with a `repository_dispatch` (`rebuild-site`), and on a schedule as the
 backstop. Every view states when the snapshot was generated, so a reader can see

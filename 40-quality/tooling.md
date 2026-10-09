@@ -219,8 +219,8 @@ and npm prints none.
 docs site. It is `website-docs.lemonfiber.app`, and it renders this specification
 alongside each repo's own documentation rather than restating either
 ([ADR-0015](../00-overview/decisions/0015-docs-site-renders-what-it-does-not-own.md)).
-Starlight (Astro, OSS) builds it to a static site on GitHub Pages — free for public
-repos — with Pagefind search that runs in the browser and no third-party origin.
+Starlight (Astro, OSS) builds it to a static site served from a Cloudflare Worker's
+static assets, with Pagefind search that runs in the browser and no third-party origin.
 `lychee` and `starlight-links-validator` check every link, authored and mirrored, so
 the published site never ships a broken one.
 
