@@ -108,6 +108,14 @@ part of asking, approving or allowance. A client the household already uses stay
 a first-class way to watch ([G6](../g-ux/g6-client-apps.md)); this is a second
 way, not a replacement for one.
 
+**What a member hears and reads is theirs to choose.** From Profile a member
+picks the language they want to hear (the title's original, Dutch or English)
+and the subtitles they want (none, Dutch or English). The phone keeps the choice
+for that member on that house and hands it to the player each time a title
+opens. The house is not told: it is a setting of the phone in their hand, not of
+the household. A title with no track in the chosen language plays as it comes,
+and is never refused for it.
+
 ### What a member is never shown
 
 No lifecycle controls, no logs, no credentials, no other member's requests, no
@@ -173,6 +181,7 @@ does not hold a second copy of them.
 | **N3-R22** | A title's page MUST carry one primary action whose label follows the title's state as the core answers it: *Play* where it is here and playable from where the phone is; *Play*, not usable, with the reason beside it, where it is here and cannot be played from where the phone is (`N3-R15`); *Ask* where it may be asked for; and otherwise the state itself (waiting for approval, on its way, out on a date, or not available), shown as the action and not usable. The action MUST NOT be hidden in any state. |
 | **N3-R23** | Home MUST lead with the member's own titles: what they were part-way through, what they asked for that has arrived, and what they asked for that is on its way. Everything else on Home comes after those. A shelf with nothing in it MUST NOT be drawn. |
 | **N3-R24** | Every title MUST carry its name as text. Where the core serves no artwork for a title, it MUST be drawn as a poster lettered with its name. |
+| **N3-R25** | A member MUST be able to choose, from Profile, the language they hear (the title's original, Dutch or English) and the subtitles they read (none, Dutch or English). The choice MUST be kept on the phone for that member on that house, MUST be handed to the player each time a title is opened, and MUST NOT be sent to the house. Where a title offers no track in the chosen language it MUST play with the stream's own default, and MUST NOT be refused or reported as a fault for it. |
 
 ## Related
 
