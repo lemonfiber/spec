@@ -3,6 +3,8 @@
 **Status:** Proposed
 **Date:** 2026-09-12
 
+**Superseded in part** by [ADR-0041](0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md): the adapter set this held closed is gone, because no service's behaviour lives in lemonfiber's process any more. What it says about data that opens stands.
+
 ## Context
 
 Almost every guarantee this product makes is enforced by an enumeration that is

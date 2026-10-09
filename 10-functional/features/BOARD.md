@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**111 features** in areas A–N, **1706 requirements**.
+**112 features** in areas A–N, **1721 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 27 shipped, 27 built, 35 building, 21 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 27 shipped, 27 built, 35 building, 22 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -125,6 +125,7 @@ code, and the two move independently.
 | [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.18.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
 | [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0` |
+| [F14](f-extensibility/f14-every-part-is-a-plugin.md) | Every part is a plugin | F | operator | accepted | `0.18.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.20.0` |
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.20.0` |
 | [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `0.20.0` |
