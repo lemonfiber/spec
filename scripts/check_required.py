@@ -12,6 +12,10 @@ contexts and the check names its recently merged pull requests produced, and
 refuses a name that ran, does not block, and is not in the register beside this
 file.
 
+In a repository that calls the shared gates, only the pull requests merged
+since its `gates.yml` landed are read: one merged before ran the separate
+callers that file replaced.
+
 Merged, because a pull request runs the workflows on its own branch. A merged
 one's are the workflows `main` now runs. A pull request closed unmerged may have
 run an experiment that never landed, and its names would be refused for a check
@@ -54,6 +58,14 @@ REGISTER = ROOT / "70-operations" / "required-checks.toml"
 # that a path-filtered workflow which ran on one of them is seen, few enough that
 # the answer is about the repository as it is now.
 SAMPLED = 6
+
+# How many merged pull requests are listed to find SAMPLED among those merged
+# since the repository took the shared gates.
+LISTED = 50
+
+# The caller of the shared checks. A pull request merged before it landed ran
+# the separate callers it replaced, whose names no protection requires any more.
+GATES = ".github/workflows/gates.yml"
 
 
 class Unanswerable(Exception):
@@ -165,25 +177,42 @@ def required_in(owner: str, name: str) -> set[str]:
     return {c["context"] for c in json.loads(raw).get("checks", [])}
 
 
-def observed_in(owner: str, name: str, sampled: int = SAMPLED) -> set[str]:
-    """Every check name a repository's recently merged pull requests produced."""
+def gates_landed(owner: str, name: str) -> str | None:
+    """When the repository's `main` first held the shared gates' caller, or None."""
+    repo = named(owner, "organisation") + "/" + named(name, "repository")
+    raw = _run(
+        [
+            "gh", "api", "--paginate", f"repos/{repo}/commits?path={GATES}&sha=main&per_page=100",
+            "--jq", ".[].commit.committer.date",
+        ]
+    )
+    dates = sorted(line.strip() for line in raw.splitlines() if line.strip())
+    return dates[0] if dates else None
+
+
+def observed_in(owner: str, name: str, sampled: int = SAMPLED, since: str | None = None) -> set[str]:
+    """Every check name a repository's recently merged pull requests produced,
+    counting only those merged at or after `since` where it is given."""
     repo = named(owner, "organisation") + "/" + named(name, "repository")
     raw = _run(
         [
             "gh", "pr", "list", "-R", repo, "--state", "merged",
-            "--limit", str(int(sampled)), "--json", "statusCheckRollup",
+            "--limit", str(LISTED), "--json", "mergedAt,statusCheckRollup",
         ]
     )
+    pulls = [p for p in json.loads(raw) if since is None or (p.get("mergedAt") or "") >= since]
+    pulls.sort(key=lambda p: p.get("mergedAt") or "", reverse=True)
     names: set[str] = set()
-    for pull in json.loads(raw):
+    for pull in pulls[: int(sampled)]:
         for run in pull.get("statusCheckRollup") or []:
             name = run.get("name") or run.get("context")
             if name:
                 names.add(name)
     if not names:
+        after = f" merged since {since}" if since else ""
         raise Unanswerable(
             f"{repo} produced no check name on any of its last {sampled} merged "
-            "pull requests, so what runs there is unknown rather than covered"
+            f"pull requests{after}, so what runs there is unknown rather than covered"
         )
     return names
 
@@ -239,7 +268,7 @@ def unrequired_in(
     """
     required = required_in(owner, name)
     found = []
-    for check in sorted(observed_in(owner, name)):
+    for check in sorted(observed_in(owner, name, since=gates_landed(owner, name))):
         if check in required:
             continue
         entry = exempt(check, names, prefixes)

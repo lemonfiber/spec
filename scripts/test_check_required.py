@@ -17,6 +17,7 @@ Run:  python3 scripts/test_check_required.py
 from __future__ import annotations
 
 import io
+import json
 import pathlib
 import sys
 import tempfile
@@ -126,7 +127,8 @@ class TheSurvey(unittest.TestCase):
         with mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)), \
              mock.patch.object(check_required, "repositories", return_value=list(required)), \
              mock.patch.object(check_required, "required_in", side_effect=lambda o, n: required[n]), \
-             mock.patch.object(check_required, "observed_in", side_effect=lambda o, n: observed[n]):
+             mock.patch.object(check_required, "gates_landed", return_value=None), \
+             mock.patch.object(check_required, "observed_in", side_effect=lambda o, n, since: observed[n]):
             code = check_required.look("lemonfiber", only, out)
         return code, out.getvalue()
 
@@ -236,6 +238,51 @@ class WhatIsSampled(unittest.TestCase):
             check_required.observed_in("lemonfiber", "homebrew-tap")
         argv = ran.call_args.args[0]
         self.assertEqual(argv[argv.index("--state") + 1], "merged")
+
+
+    def test_only_pull_requests_merged_since_the_gates_landed_are_read(self):
+        rollup = json.dumps([
+            {"mergedAt": "2026-10-09T10:00:00Z", "statusCheckRollup": [{"name": "gates / gates"}]},
+            {"mergedAt": "2026-10-09T09:00:00Z", "statusCheckRollup": [{"name": "gates / report"}]},
+            {"mergedAt": "2026-10-08T09:00:00Z", "statusCheckRollup": [{"name": "dco / dco"}]},
+            {"mergedAt": None, "statusCheckRollup": [{"name": "odd"}]},
+        ])
+        with mock.patch.object(check_required, "_run", return_value=rollup):
+            self.assertEqual(check_required.observed_in("lemonfiber", "brand", since="2026-10-09T09:00:00Z"),
+                             {"gates / gates", "gates / report"})
+            self.assertEqual(check_required.observed_in("lemonfiber", "brand", sampled=1,
+                                                        since="2026-10-08T00:00:00Z"), {"gates / gates"})
+            self.assertEqual(len(check_required.observed_in("lemonfiber", "brand")), 4)
+        oldest_first = json.dumps(list(reversed(json.loads(rollup))))
+        with mock.patch.object(check_required, "_run", return_value=oldest_first):
+            self.assertEqual(check_required.observed_in("lemonfiber", "brand", sampled=1,
+                                                        since="2026-10-08T00:00:00Z"), {"gates / gates"})
+
+    def test_none_merged_since_the_gates_landed_is_unanswered(self):
+        rollup = '[{"mergedAt": "2026-10-08T09:00:00Z", "statusCheckRollup": [{"name": "dco / dco"}]}]'
+        with mock.patch.object(check_required, "_run", return_value=rollup), \
+             self.assertRaises(check_required.Unanswerable) as why:
+            check_required.observed_in("lemonfiber", "brand", since="2026-10-09T00:00:00Z")
+        self.assertIn("merged since 2026-10-09T00:00:00Z", str(why.exception))
+
+    def test_the_gates_landed_when_main_first_held_its_caller(self):
+        with mock.patch.object(check_required, "_run",
+                               return_value="2026-10-09T12:00:00Z\n2026-10-09T08:00:00Z\n") as ran:
+            self.assertEqual(check_required.gates_landed("lemonfiber", "brand"), "2026-10-09T08:00:00Z")
+        self.assertIn("path=.github/workflows/gates.yml&sha=main", " ".join(ran.call_args.args[0]))
+        with mock.patch.object(check_required, "_run", return_value="\n"):
+            self.assertIsNone(check_required.gates_landed("lemonfiber", "plugin-plex"))
+
+    def test_the_survey_asks_since_the_gates_landed(self):
+        seen = {}
+        with mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)), \
+             mock.patch.object(check_required, "repositories", return_value=["brand"]), \
+             mock.patch.object(check_required, "required_in", return_value={"gates / gates"}), \
+             mock.patch.object(check_required, "gates_landed", return_value="2026-10-09T08:00:00Z"), \
+             mock.patch.object(check_required, "observed_in",
+                               side_effect=lambda o, n, since: seen.setdefault(n, since) and {"gates / gates"}):
+            check_required.look("lemonfiber", None, io.StringIO())
+        self.assertEqual(seen, {"brand": "2026-10-09T08:00:00Z"})
 
 
 class TheCommandLine(unittest.TestCase):
