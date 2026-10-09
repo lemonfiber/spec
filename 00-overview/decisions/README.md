@@ -59,6 +59,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0038](0038-lemonfiber-ships-as-an-image-that-holds-the-hosts-docker.md) | lemonfiber ships as an image that holds the host's Docker | Accepted |
 | [0039](0039-each-repository-records-what-it-built.md) | Each repository records what it built, one row per requirement | Accepted |
 | [0040](0040-three-sites-each-with-one-reader.md) | Three sites, each for one reader, and the specification on the frontpage | Accepted |
+| [0041](0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md) | Every part is a plugin, and the core speaks contracts | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

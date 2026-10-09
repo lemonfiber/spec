@@ -266,6 +266,26 @@
         {"version": "0.18.0", "status": "planned"}
       ],
       "path": "f-extensibility/f13-mcp.md"
+    },
+    {
+      "id": "F14",
+      "title": "Every part is a plugin",
+      "area": "F",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M14"],
+      "milestone": "M14",
+      "priority": "P1",
+      "labels": ["extensibility", "wiring", "verification", "security"],
+      "requires": ["F3", "F4", "F8", "F9"],
+      "relates": ["F2", "F5", "F6", "F7", "D11", "D6", "B1", "G5"],
+      "versions": [
+        {"version": "0.18.0", "status": "planned"}
+      ],
+      "path": "f-extensibility/f14-every-part-is-a-plugin.md"
     }
   ]
 }
