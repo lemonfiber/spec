@@ -56,6 +56,12 @@ session presented may see that item. An item it may not see, a session that is
 absent, ended or wrong, and a question that is not answered are all refusals.
 The media server's own port is not published to the household beside it.
 
+A client presents its session as `Authorization: Bearer <token>`, in no media
+server's own form, so the app a member plays in does not change with the server
+behind the door. The guard puts a token of exactly the shape the media server
+issues into the server's own form before it asks, and carries nothing else written
+after `Bearer` over, so a client cannot add to what the media server is told.
+
 The guard serves over TLS with a certificate the core makes for it, so no
 authority outside the house is asked for one, and the core states the fingerprint of
 that certificate beside every location it gives there. A client pins the door the way
@@ -113,7 +119,7 @@ media server's answer on every device they play on.
 | ID | Requirement |
 |----|-------------|
 | **D11-R1** | A member's paired client MUST be able to obtain a grant to play on the member's own media-server account, authorised by the core without anybody learning the member's password, and the core MUST end it when it lapses and when the member is removed (`D6-R8`). |
-| **D11-R2** | Every byte the media server serves for an item, its images included, MUST pass a guard that asks the media server whether the presented session may see that item, and MUST be refused where it may not, where no session is presented, or where the answer does not come. The media server's own port MUST NOT be published to the household beside the guard. |
+| **D11-R2** | Every byte the media server serves for an item, its images included, MUST pass a guard that asks the media server whether the presented session may see that item, and MUST be refused where it may not, where no session is presented, or where the answer does not come. The media server's own port MUST NOT be published to the household beside the guard. The guard MUST accept a session presented as `Authorization: Bearer <token>`, and MUST carry nothing written after the token over to the media server. |
 | **D11-R3** | The core MUST state, for each title it lists for a member, where its poster and backdrop are served at the guarded front door, built from the household address the stack publishes for the media server. It MUST state nothing where it does not know that address, and MUST NOT state the location of an image that is not an item's own. |
 | **D11-R4** | The core MUST answer a title's details (overview, runtime, genres, certificate, release date, and seasons and episodes) as the member's own session reads them, and MUST answer a title outside the member's limits as absent (`D8-R9`). |
 | **D11-R5** | The core MUST answer what a member was part-way through, with how far through each was, as the member's own session reads it. |
