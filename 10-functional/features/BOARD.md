@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 27 shipped, 27 built, 35 building, 22 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 27 shipped, 29 built, 35 building, 20 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -60,6 +60,8 @@ code, and the two move independently.
 | [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | accepted | `0.16.0`, `0.18.0` |
 | [F10](f-extensibility/f10-authoring.md) | Writing a plugin | F | operator | accepted | `0.16.0`, `0.17.0`, `0.18.0` |
+| [F12](f-extensibility/f12-home-assistant.md) | Home Assistant | F | operator | accepted | `0.18.0` |
+| [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0` |
 | [L3](l-release/l3-nas-image.md) | The image for a NAS | L | operator | accepted | `0.18.0` |
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | — |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
@@ -94,10 +96,10 @@ code, and the two move independently.
 | [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0`, `0.19.0` |
 | [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0`, `0.19.0` |
 | [D7](d-content/d7-approval-quotas.md) | Request approval & quotas | D | both | accepted | `0.12.0`, `0.18.0` |
+| [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.18.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
-| [F12](f-extensibility/f12-home-assistant.md) | Home Assistant | F | operator | accepted | `0.18.0` |
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.18.0`, `0.9.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.18.0`, `0.5.0` |
@@ -122,9 +124,7 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.23.0` |
-| [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.18.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
-| [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0` |
 | [F14](f-extensibility/f14-every-part-is-a-plugin.md) | Every part is a plugin | F | operator | accepted | `0.18.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.20.0` |
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.20.0` |
