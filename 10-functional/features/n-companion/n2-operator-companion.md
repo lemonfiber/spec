@@ -117,6 +117,14 @@ available is the stack's answer per service, and an app that flattened them into
 neither, nothing is offered — an undo that is not there is worse than none,
 because it is what somebody agreed to the update on the strength of.
 
+**What was read is what is agreed to.** Applying an update, and restarting
+what the operator asked about, carry back the offer the stack answered with
+when the operator read what each would do ([web API](../../../20-architecture/contracts/web-api.md)).
+Between reading and agreeing a release can arrive or a service can change, and
+an agreement that named nothing would be spent on whatever stands by then. The
+stack refuses an offer that has moved, and the app reads it again and offers
+what it says now, as it does for a repair.
+
 Afterwards, each service says how it ended, and *not fetched*, *not started* and
 *not reached* are three different evenings too: one is a network, one is the
 service, one is the machine. A single *failed* would send an operator looking in
@@ -215,6 +223,7 @@ and a note beside it says a preview cannot ask.
 | **N2-R24** | The app MUST offer fetching a form's images ahead of starting it, and before the fetch runs MUST say that it may take long and may use a lot of the line, without putting a duration or a size of its own on either (`B2-R12`, `B2-R16`, `N2-R8`). What the fetch came to MUST be shown from the stack's answer. |
 | **N2-R25** | The operator MUST be able to open the member's application as a member with the household's default access and allowance would see it, drawn in the member theme from what the core answers for such a member (`D6-R20`). It MUST be marked as a preview on every screen, and MUST NOT show a named member's requests, allowance or watch history. |
 | **N2-R26** | The member's application opened as a preview (`N2-R25`) MUST NOT send any request, allowance spend or other change to the stack. A control that would do so on a member's own session MUST be drawn and MUST NOT be usable, with a note saying a preview cannot do it. |
+| **N2-R27** | A confirmed update and a confirmed restart MUST carry back the offer the stack answered with when the operator was shown what each would do (`ARCH-R164`). Where the stack refuses the agreement because that offer has moved, the app MUST NOT report it as a failure, MUST read again what the action would do, and MUST offer that for a fresh agreement, as for a repair (`N2-R6`, `ARCH-R142`). |
 
 ## Notes
 
