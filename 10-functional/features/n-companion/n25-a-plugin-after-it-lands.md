@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: planned
+maturity: built
 priority: P3
 labels: [mobile, extensibility, ux]
 requires: [N1, N5, F5, F6]
