@@ -14,7 +14,8 @@ tags back whose file has not changed runs the same steps as the newest one.
 `hygiene`'s pin check is the second: it refuses a pin more than `STALE_COMMITS`
 behind `main` or older than `STALE_DAYS`, whatever its file did, and a pin it
 refuses is one this brings forward. Its two limits are read from `hygiene.yml`,
-where the check keeps them, so the two cannot drift apart.
+where the check keeps them, so the two cannot drift apart: the copy in the
+checkout this script sits in, never one a path on the command line leads to.
 
 **The comment carries the tag, and that is not decoration.** Dependabot's
 `github-actions` updater compares versions; a pin whose trailing comment names no
@@ -86,6 +87,9 @@ REACHABLE = "named"
 #: The workflow whose pin check refuses a pin by distance or by age, and keeps
 #: its two limits in its environment.
 HYGIENE = pathlib.Path(".github/workflows/hygiene.yml")
+
+#: The spec checkout this script sits in, whose `hygiene.yml` declares the limits.
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 #: One of those limits as the check declares it: `STALE_COMMITS: "75"`.
 LIMIT = re.compile(r'^[ \t]*(STALE_COMMITS|STALE_DAYS):[ \t]*"(\d+)"[ \t]*$', re.MULTILINE)
@@ -252,7 +256,7 @@ def commit_named_by(spec: pathlib.Path, tag: str) -> str | None:
 
 
 def limits_in(spec: pathlib.Path) -> Limits | None:
-    """The pin check's two limits, as `hygiene.yml` in this checkout declares them.
+    """The pin check's two limits, as `hygiene.yml` in the checkout at `spec` declares them.
 
     `None` where either is missing or declared twice: a fan-out that guessed a
     limit would bump by a rule the check does not hold.
@@ -405,11 +409,11 @@ def main() -> int:
         )
         return 2
 
-    limits = limits_in(spec)
+    limits = limits_in(ROOT)
 
     if limits is None:
         print(
-            f"::error::{HYGIENE} in {spec} does not declare STALE_COMMITS and STALE_DAYS "
+            f"::error::{HYGIENE} in {ROOT} does not declare STALE_COMMITS and STALE_DAYS "
             "once each. The pin check refuses a pin by those two limits, so a fan-out "
             "that cannot read them cannot bring forward what the check would refuse."
         )

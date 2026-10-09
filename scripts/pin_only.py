@@ -384,6 +384,40 @@ def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str |
     return None
 
 
+def calling_file(repo: str, given: str | None) -> str | None:
+    """The calling workflow's file, from `--workflow` or else the runner; None, said, where neither names one of `repo`'s."""
+    workflow = given if given is not None else os.environ.get(RUNNER_WORKFLOW_REF) or None
+    if workflow is None:
+        print(f"::error::Neither --workflow nor {RUNNER_WORKFLOW_REF} names the calling workflow, "
+              f"so its runs cannot be read")
+        return None
+    calling = WORKFLOW_REF.fullmatch(workflow)
+    if not calling or calling["repo"] != repo:
+        print(f"::error::The calling workflow {workflow!r} is not a workflow of {repo}, so its runs cannot be read")
+        return None
+    return calling["file"]
+
+
+def said(found: list[str], moved: int, unapproved: str | None) -> int:
+    """The verdict on what the pull request changes, printed, and its exit code."""
+    if found and unapproved is None:
+        for change in found:
+            print(f"::notice::{change}, and a maintainer approved it with `{APPROVED}` after its last push (Q-R83).")
+        return 0
+    if found:
+        for change in found:
+            print(f"::error::{change}. A change to what the checks run is merged by a maintainer, "
+                  f"not by this check (Q-R83).")
+        print(f"::error::A maintainer approves it by adding `{APPROVED}` after its last push, and that has not "
+              f"happened: {unapproved}.")
+        return 1
+    if moved:
+        print(f"{moved} workflow file(s) change only spec's pins, each moving forward along {SPEC} {MAIN}.")
+    else:
+        print("No workflow or action changes.")
+    return 0
+
+
 def main(argv: list[str] | None = None, api: Api = gh) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--repo", required=True)
@@ -395,19 +429,13 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
     if not re.fullmatch(r"[0-9a-f]{40}", args.head):
         print(f"::error::--head {args.head!r} is not a commit, so there is nothing to judge")
         return 2
-    workflow = args.workflow if args.workflow is not None else os.environ.get(RUNNER_WORKFLOW_REF) or None
+    workflow = calling_file(args.repo, args.workflow)
     if workflow is None:
-        print(f"::error::Neither --workflow nor {RUNNER_WORKFLOW_REF} names the calling workflow, "
-              f"so its runs cannot be read")
-        return 2
-    calling = WORKFLOW_REF.fullmatch(workflow)
-    if not calling or calling["repo"] != args.repo:
-        print(f"::error::The calling workflow {workflow!r} is not a workflow of {args.repo}, so its runs cannot be read")
         return 2
     try:
         found, moved = problems(args.repo, args.number, args.head, api)
         unapproved = approval(args.repo, current(args.repo, args.number, args.head, api), args.head,
-                              calling["file"], api) if found else None
+                              workflow, api) if found else None
         if found:
             current(args.repo, args.number, args.head, api)
     except Moved as moved_on:
@@ -417,21 +445,7 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
         detail = getattr(broken, "stderr", "") or broken
         print(f"::error::The pull request could not be read, so nothing says its checks are its base's: {detail}")
         return 2
-    if found and unapproved is None:
-        for said in found:
-            print(f"::notice::{said}, and a maintainer approved it with `{APPROVED}` after its last push (Q-R83).")
-        return 0
-    for said in found:
-        print(f"::error::{said}. A change to what the checks run is merged by a maintainer, not by this check (Q-R83).")
-    if found:
-        print(f"::error::A maintainer approves it by adding `{APPROVED}` after its last push, and that has not "
-              f"happened: {unapproved}.")
-        return 1
-    if moved:
-        print(f"{moved} workflow file(s) change only spec's pins, each moving forward along {SPEC} {MAIN}.")
-    else:
-        print("No workflow or action changes.")
-    return 0
+    return said(found, moved, unapproved)
 
 
 if __name__ == "__main__":
