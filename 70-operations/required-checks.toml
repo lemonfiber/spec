@@ -47,6 +47,10 @@ name = "explain / explain"
 why = "explains a squash-message refusal in a comment, in spec's own runs; the refusal is squash-message's"
 
 [[exempt]]
+name = "explain"
+why = "the same explainer reported skipped under its caller's job name, where squash-message needed nothing explained"
+
+[[exempt]]
 name = "dco / explain"
 why = "explains a sign-off refusal in a comment; the refusal is dco's"
 

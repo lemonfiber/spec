@@ -60,7 +60,8 @@ REGISTER = ROOT / "70-operations" / "required-checks.toml"
 SAMPLED = 6
 
 # How many merged pull requests are listed to find SAMPLED among those merged
-# since the repository took the shared gates.
+# since the repository took the shared gates, and how many are read before an
+# exemption is said to match nothing.
 LISTED = 50
 
 # The caller of the shared checks. A pull request merged before it landed ran
@@ -225,15 +226,32 @@ def observed_in(owner: str, name: str, sampled: int = SAMPLED, since: str | None
     return names
 
 
+def covers(entry: dict, check: str) -> bool:
+    """Whether one register entry names `check`, by its whole name or a prefix."""
+    return entry.get("name") == check or ("prefix" in entry and check.startswith(entry["prefix"]))
+
+
 def exempt(name: str, names: list[dict], prefixes: list[dict]) -> dict | None:
     """The register entry covering `name`, or None."""
-    for entry in names:
-        if entry["name"] == name:
-            return entry
-    for entry in prefixes:
-        if name.startswith(entry["prefix"]):
-            return entry
-    return None
+    return next((entry for entry in (*names, *prefixes) if covers(entry, name)), None)
+
+
+def unmatched(owner: str, repos: list[str], entries: list[dict]) -> list[dict]:
+    """The entries covering no check on any of the last LISTED merged pull requests anywhere.
+
+    Asked only of what the sampled survey matched nothing to. A check that posts
+    on some pull requests only, the Dependabot app's or one that runs when a
+    branch is pushed again, can be missing from the few the survey reads and be
+    running all along, so an exemption is called empty only once the whole
+    listed window has been read for it.
+    """
+    left = list(entries)
+    for name in repos:
+        if not left:
+            break
+        seen = observed_in(owner, name, sampled=LISTED, since=gates_landed(owner, name))
+        left = [entry for entry in left if not any(covers(entry, check) for check in seen)]
+    return left
 
 
 def refusal(repo: str, unrequired: list[str]) -> str:
@@ -304,15 +322,12 @@ def look(owner: str, only: str | None, out) -> int:
             print(file=out)
             refused += 1
 
-    unused = [
-        entry.get("name") or entry.get("prefix")
-        for entry in (*names, *prefixes)
-        if id(entry) not in matched
-    ]
+    unused = [] if only else [entry for entry in (*names, *prefixes) if id(entry) not in matched]
+    unused = unmatched(owner, repos, unused) if unused else []
     if unused:
         print(
             "these exemptions matched no check in any repository: "
-            + ", ".join(sorted(unused))
+            + ", ".join(sorted(entry.get("name") or entry.get("prefix") for entry in unused))
             + f".\n  An exemption is a claim that a check exists and reports "
             "rather than judges. One that matches nothing holds a door open that "
             f"is no longer there — take it out of "

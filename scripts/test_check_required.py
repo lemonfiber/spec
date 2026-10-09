@@ -122,13 +122,21 @@ class TheRefusal(unittest.TestCase):
 
 
 class TheSurvey(unittest.TestCase):
-    def survey(self, required, observed, only=None):
+    def survey(self, required, observed, only=None, widened=None):
+        """The verdict, where each repository's sampled pull requests produced `observed`,
+        and the whole listed window produced `widened` (the same, where not given)."""
+        self.asked = []
+
+        def seen(owner, name, since, sampled=check_required.SAMPLED):
+            self.asked.append((name, sampled))
+            return (widened or observed)[name] if sampled == check_required.LISTED else observed[name]
+
         out = io.StringIO()
         with mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)), \
              mock.patch.object(check_required, "repositories", return_value=list(required)), \
              mock.patch.object(check_required, "required_in", side_effect=lambda o, n: required[n]), \
              mock.patch.object(check_required, "gates_landed", return_value=None), \
-             mock.patch.object(check_required, "observed_in", side_effect=lambda o, n, since: observed[n]):
+             mock.patch.object(check_required, "observed_in", side_effect=seen):
             code = check_required.look("lemonfiber", only, out)
         return code, out.getvalue()
 
@@ -157,6 +165,32 @@ class TheSurvey(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("matched no check", said)
         self.assertIn("mutation (", said)
+
+    def test_an_exemption_seen_only_past_the_sample_is_not_refused(self):
+        code, said = self.survey(
+            {"brand": {"hygiene / typos"}, "spec": {"hygiene / typos"}},
+            {"brand": {"hygiene / typos", "labeler / label"}, "spec": {"hygiene / typos"}},
+            widened={"brand": {"hygiene / typos"}, "spec": {"mutation (a)"}},
+        )
+        self.assertEqual(code, 0, said)
+        self.assertIn(("spec", check_required.LISTED), self.asked)
+
+    def test_the_window_is_read_only_until_every_exemption_has_matched(self):
+        self.survey(
+            {"brand": {"a"}, "spec": {"a"}},
+            {"brand": {"a", "labeler / label"}, "spec": {"a"}},
+            widened={"brand": {"mutation (a)"}, "spec": {"a"}},
+        )
+        self.assertEqual([n for n, sampled in self.asked if sampled == check_required.LISTED], ["brand"])
+
+    def test_a_survey_matching_every_exemption_reads_no_further(self):
+        self.survey({"brand": {"a"}}, {"brand": {"a", "labeler / label", "mutation (a)"}})
+        self.assertNotIn(("brand", check_required.LISTED), self.asked)
+
+    def test_one_repository_asked_alone_is_not_held_to_every_exemption(self):
+        code, said = self.survey({"brand": {"a"}}, {"brand": {"a"}}, only="lemonfiber/brand")
+        self.assertEqual(code, 0, said)
+        self.assertEqual(self.asked, [("brand", check_required.SAMPLED)])
 
     def test_one_repository_can_be_asked_about_on_its_own(self):
         code, said = self.survey(
@@ -301,7 +335,7 @@ class WhatIsSampled(unittest.TestCase):
              mock.patch.object(check_required, "required_in", return_value={"gates / gates"}), \
              mock.patch.object(check_required, "gates_landed", return_value="2026-10-09T08:00:00Z"), \
              mock.patch.object(check_required, "observed_in",
-                               side_effect=lambda o, n, since: seen.setdefault(n, since) and {"gates / gates"}):
+                               side_effect=lambda o, n, since, sampled=None: seen.setdefault(n, since) and {"gates / gates"}):
             check_required.look("lemonfiber", None, io.StringIO())
         self.assertEqual(seen, {"brand": "2026-10-09T08:00:00Z"})
 
