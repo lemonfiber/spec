@@ -28,11 +28,18 @@ import argparse
 import base64
 import json
 import pathlib
+import re
 import subprocess
 import sys
 
 #: What a staging branch is called beside the branch it stages for.
 STAGING = "-staging"
+
+#: The shapes a repository's name and a branch's take. Each is held before it
+#: reaches a command, so neither can be read there as an option or a path out
+#: of the API's repository and branch namespaces.
+SLUG = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._][A-Za-z0-9._-]*\Z")
+BRANCH = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9._-]*(/[A-Za-z0-9][A-Za-z0-9._-]*)*\Z")
 
 MUTATION = (
     "mutation($input: CreateCommitOnBranchInput!) "
@@ -47,8 +54,10 @@ def gh(*args: str, stdin: str | None = None) -> subprocess.CompletedProcess:
 
 
 def git(repo: pathlib.Path, *args: str) -> str:
+    """One git command run in the clone. The clone is the working directory,
+    never an argument, so nothing the caller named is read as an option."""
     return subprocess.run(
-        ["git", "-C", str(repo), *args], capture_output=True, text=True, check=True
+        ["git", *args], cwd=repo, capture_output=True, text=True, check=True
     ).stdout
 
 
@@ -128,6 +137,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--branch", required=True)
     parser.add_argument("--message", required=True, type=pathlib.Path)
     args = parser.parse_args(argv)
+    if not SLUG.match(args.slug) or not BRANCH.match(args.branch) or ".." in args.branch:
+        print(f"refused: {args.slug!r} is not a repository or {args.branch!r} is not a branch",
+              file=sys.stderr)
+        return 1
+    if not args.repo.is_dir():
+        print(f"refused: {args.repo} is not a clone", file=sys.stderr)
+        return 1
 
     oid, refusal = commit(
         args.repo, args.slug, args.branch, args.message.read_text(encoding="utf-8")
