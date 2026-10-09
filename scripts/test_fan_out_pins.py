@@ -715,11 +715,32 @@ class TheRevisionItWrites(ARepositoryAndASpec, unittest.TestCase):
             "--tag",
             "v1.0.9",
         ]
-        with contextlib.redirect_stdout(io.StringIO()) as said:
+        with unittest.mock.patch.object(fan_out_pins, "ROOT", self.spec), \
+                contextlib.redirect_stdout(io.StringIO()) as said:
             self.assertEqual(fan_out_pins.main(), 2)
 
         self.assertIn("does not declare STALE_COMMITS and STALE_DAYS", said.getvalue())
         self.assertIn(self.first, where.read_text(encoding="utf-8"))
+
+    def test_the_limits_are_this_checkout_s_wherever_the_spec_path_leads(self):
+        where = self.wrote("ci.yml", a_pin("dco.yml", self.first))
+        (self.spec / fan_out_pins.HYGIENE).write_text("one", encoding="utf-8")
+        self.assertFalse(self.spec.resolve().is_relative_to(fan_out_pins.ROOT))
+
+        sys.argv = [
+            "fan_out_pins.py",
+            "--repo",
+            str(self.repo),
+            "--spec",
+            str(self.spec),
+            "--tag",
+            "v1.0.9",
+        ]
+        with contextlib.redirect_stdout(io.StringIO()) as said:
+            self.assertEqual(fan_out_pins.main(), 0)
+
+        self.assertNotIn("does not declare", said.getvalue())
+        self.assertIn(self.third, where.read_text(encoding="utf-8"))
 
     def test_an_unpublished_number_writes_nothing(self):
         # Refused *before* anything is rewritten, not after. A run that edited
