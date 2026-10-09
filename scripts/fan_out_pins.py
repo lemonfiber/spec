@@ -7,11 +7,14 @@ that decides *what is stale* is imported from the gate rather than written again
 here, so the fan-out cannot bump something the gate would not have named, and
 cannot leave behind something it would.
 
-**Only a pin whose own workflow moved.** The rule the gate measures by is the
-rule this rewrites by, for the reason given there: the workflow file is the whole
-of what a pin holds, so a repository sitting five tags back with none of its
-named files changed is current, and rewriting its pins would be churn that moves
-what they point at without moving what they run.
+**A pin whose own workflow moved, or one the pin check refuses.** The rule
+`workflow-pins` measures by is the first rule this rewrites by, for the reason
+given there: the workflow file is the whole of what a pin holds, so a pin a few
+tags back whose file has not changed runs the same steps as the newest one.
+`hygiene`'s pin check is the second: it refuses a pin more than `STALE_COMMITS`
+behind `main` or older than `STALE_DAYS`, whatever its file did, and a pin it
+refuses is one this brings forward. Its two limits are read from `hygiene.yml`,
+where the check keeps them, so the two cannot drift apart.
 
 **The comment carries the tag, and that is not decoration.** Dependabot's
 `github-actions` updater compares versions; a pin whose trailing comment names no
@@ -46,10 +49,12 @@ would teach its caller to ignore the code that means something went wrong.
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import os
 import pathlib
 import re
 import sys
+import time
 import tomllib
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
@@ -77,6 +82,28 @@ ITSELF = "spec"
 #: mints the write token, and `test_fan_out_workflow.py` holds the two to one
 #: spelling.
 REACHABLE = "named"
+
+#: The workflow whose pin check refuses a pin by distance or by age, and keeps
+#: its two limits in its environment.
+HYGIENE = pathlib.Path(".github/workflows/hygiene.yml")
+
+#: One of those limits as the check declares it: `STALE_COMMITS: "75"`.
+LIMIT = re.compile(r'^[ \t]*(STALE_COMMITS|STALE_DAYS):[ \t]*"(\d+)"[ \t]*$', re.MULTILINE)
+
+#: What the pin check measures distance from.
+MAIN = "main"
+
+#: Seconds in the days the pin check counts age in.
+DAY = 86400
+
+
+@dataclasses.dataclass(frozen=True)
+class Limits:
+    """How far behind `main`, in commits and in days, a pin may be before the pin check refuses it."""
+
+    commits: int
+    days: int
+
 
 #: Ends the multi-line `REACHABLE` output. A repository name is letters, digits,
 #: `.`, `-` and `_`, and never holds a space, so no line of the list can be this.
@@ -224,8 +251,50 @@ def commit_named_by(spec: pathlib.Path, tag: str) -> str | None:
     return asked.stdout.strip() if asked.returncode == 0 else None
 
 
+def limits_in(spec: pathlib.Path) -> Limits | None:
+    """The pin check's two limits, as `hygiene.yml` in this checkout declares them.
+
+    `None` where either is missing or declared twice: a fan-out that guessed a
+    limit would bump by a rule the check does not hold.
+    """
+    try:
+        declared = LIMIT.findall((spec / HYGIENE).read_text(encoding="utf-8"))
+    except OSError:
+        return None
+
+    found = dict(declared)
+
+    if len(declared) != 2 or set(found) != {"STALE_COMMITS", "STALE_DAYS"}:
+        return None
+
+    return Limits(commits=int(found["STALE_COMMITS"]), days=int(found["STALE_DAYS"]))
+
+
+def refused_by_age(spec: pathlib.Path, pin: str, limits: Limits, now: int) -> bool | None:
+    """Whether the pin check refuses `pin`: more commits behind `main`, or more days old, than it allows.
+
+    Measured as the check measures it: the commits `main` has and the pin does
+    not, and whole days since the pin's commit. `None` where either could not be
+    read.
+    """
+    behind = _git(spec, "rev-list", "--count", f"{pin}..{MAIN}")
+    dated = _git(spec, "show", "-s", "--format=%ct", pin)
+
+    if behind.returncode != 0 or dated.returncode != 0:
+        return None
+
+    days = (now - int(dated.stdout.strip())) // DAY
+
+    return int(behind.stdout.strip()) > limits.commits or days > limits.days
+
+
 def bring_forward(
-    repo: pathlib.Path, spec: pathlib.Path, tag: str, named: str
+    repo: pathlib.Path,
+    spec: pathlib.Path,
+    tag: str,
+    named: str,
+    limits: Limits,
+    now: int,
 ) -> tuple[list[str], str] | None:
     """Rewrite every stale pin in `repo`, returning what moved and to where.
 
@@ -240,11 +309,12 @@ def bring_forward(
 
     for (workflow, sha), where in sorted(pins_under(repo).items()):
         missed = commits_between(spec, sha, named, workflow)
+        overdue = refused_by_age(spec, sha, limits, now)
 
-        if missed is None:
+        if missed is None or overdue is None:
             return None
 
-        if not missed:
+        if not (missed or overdue):
             continue
 
         # Unique, and that is not tidiness. The reader lists a file once per
@@ -335,7 +405,17 @@ def main() -> int:
         )
         return 2
 
-    brought = bring_forward(repo, spec, args.tag, named)
+    limits = limits_in(spec)
+
+    if limits is None:
+        print(
+            f"::error::{HYGIENE} in {spec} does not declare STALE_COMMITS and STALE_DAYS "
+            "once each. The pin check refuses a pin by those two limits, so a fan-out "
+            "that cannot read them cannot bring forward what the check would refuse."
+        )
+        return 2
+
+    brought = bring_forward(repo, spec, args.tag, named, limits, int(time.time()))
 
     if brought is None:
         print(

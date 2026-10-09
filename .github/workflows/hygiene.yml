@@ -58,7 +58,8 @@ jobs:
   # was 94. The line goes between the state the fleet was deliberately left in and
   # the state that hid a job that could not run — about a fortnight of this
   # repository's history at its measured pace, which is the interval the fan-out
-  # runs at (OPS-R48).
+  # runs at (OPS-R48). `fan_out_pins.py` reads both limits from here, so the
+  # release train brings forward every pin this refuses.
   pins:
     runs-on: ubuntu-latest
     timeout-minutes: 10
