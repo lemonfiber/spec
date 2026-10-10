@@ -381,13 +381,15 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": ["M14"],
+      "milestone": "M14",
       "priority": "P2",
       "labels": ["mobile", "household", "ux"],
       "requires": ["N1", "D6"],
       "relates": ["N3", "N9", "N13", "N4"],
-      "versions": [],
+      "versions": [
+        {"version": "0.18.0", "status": "planned"}
+      ],
       "path": "n-companion/n21-asking-somebody-in.md"
     },
     {

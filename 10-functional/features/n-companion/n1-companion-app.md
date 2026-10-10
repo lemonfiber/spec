@@ -399,6 +399,7 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R75** | The app MUST read a refusal whose code says the request carried nothing the stack admits as a session that has ended (`N1-R44`, `ARCH-R138`), and MUST NOT read a refusal with any other code as one. |
 | **N1-R76** | What the stack says beside pairing material MUST be in words every surface can show, and MUST NOT name a command of one surface; how the certificate is replaced (`C6-R19`) MUST be said by each surface in its own way. |
 | **N1-R77** | An answer the stack gave that this version of the app cannot read MUST be reported as neither a stack that did not answer nor a refused credential (`N1-R10`): the operator MUST be told the stack answered in a way this app cannot read, with updating the app or the stack as the remedy, and a member MUST be told the house cannot be reached right now. |
+| **N1-R78** | A join link (`D6-R22`) MUST NOT be treated as pairing material: it MUST NOT admit an operator session or replace a pin, and the only credential it can lead to is the one member account it names. |
 
 ## Related
 

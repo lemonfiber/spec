@@ -140,7 +140,7 @@ second quietly becomes the first.
 | **G5-R11** | A change of host address MUST be detected and reflected. |
 | **G5-R12** | The front door MUST be configurable, with consequences stated. |
 | **G5-R13** | "Service unreachable" MUST be distinguished from "network unreachable". |
-| **G5-R14** | Invitations MUST contain the household front door address and the address that declines the invitation ([`D6-R15`](../d-content/d6-household-identity.md)), and nothing else. |
+| **G5-R14** | Invitations MUST contain the household front door address, the address that declines the invitation ([`D6-R15`](../d-content/d6-household-identity.md)) and, where the core mints one, the join link the companion opens ([`D6-R22`](../d-content/d6-household-identity.md)), and nothing else. |
 
 ## Related
 

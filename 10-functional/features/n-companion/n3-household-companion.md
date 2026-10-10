@@ -152,6 +152,8 @@ does not hold a second copy of them.
 | A member is also the operator | One sign-in, both applications. They are not asked to choose a mode. |
 | A title is already held | Said so before they ask for it again. |
 | A member is removed from the household while signed in | The next call is refused by the core, and the app returns to signed-out rather than continuing to render what it had. |
+| A join link names a house the phone holds under another certificate | Refused, saying the invitation does not match the house on this phone. An invitation is not pairing, and a link anybody can forward never replaces what the phone pinned. |
+| The house a join link names presents a different certificate | Refused, saying the invitation could not reach the house it names and to ask whoever sent it for a new one. Re-pairing is not offered to a member. |
 | Parental limits hide a title | It is not shown. The app does not display a title it then refuses to request. |
 | The media server cannot be reached while away from home | Play is shown and not usable, saying that watching works at home. Nothing buffers and nothing is queued. |
 
@@ -185,6 +187,10 @@ does not hold a second copy of them.
 | **N3-R24** | Every title MUST carry its name as text. Where the core serves no artwork for a title, it MUST be drawn as a poster lettered with its name. |
 | **N3-R25** | A member MUST be able to choose, from Profile, the language they hear (the title's original, Dutch or English) and the subtitles they read (none, Dutch or English). The choice MUST be kept on the phone for that member on that house, MUST be handed to the player each time a title is opened, and MUST NOT be sent to the house. Where a title offers no sound in the chosen language it MUST play the stream's own default sound, and where it offers no subtitles in the chosen language it MUST play with none; it MUST NOT be refused or reported as a fault for either. |
 | **N3-R26** | Somebody invited MUST have a way in of their own: open the invitation, sign in, and land on Home, in at most three steps, each saying which it is, in words that name no part of the system. An invitation opened on a phone that holds no house MUST lead straight to it. |
+| **N3-R27** | The app MUST open `lemonfiber://join` links (`D6-R22`), from the platform and from its own scanner, and MUST refuse one with a parameter missing, a parameter it does not know, or an `expires` in the past, saying in household words that the invitation cannot be used and to ask whoever sent it for a new one. |
+| **N3-R28** | Opening a join link on a phone that holds no house MUST add the house from it, pinned to its fingerprint (`N1-R19`), MUST ask the person to choose a password for its `name` where it carries `claim`, or to sign in where it does not, MUST claim or sign in through the core, and MUST land on Home, in at most three steps (`N3-R26`). On a phone that holds the link's `stack` under the same fingerprint, it MUST go straight to choosing a password, or to signing in where the claim is spent or absent. |
+| **N3-R29** | A join link whose `stack` the phone holds under a different fingerprint MUST be refused and MUST NOT replace the pin: an invitation is not pairing (`N1-R63`), and a link a stranger can forward MUST NOT re-pin a house. The refusal MUST say, in household words, that the invitation does not match the house on this phone. |
+| **N3-R30** | A connection opened from a join link whose certificate does not match the link's fingerprint MUST be refused, as `N1-R20` refuses one; the member MUST be told that the invitation could not reach the house it names and to ask whoever sent it for a new one, and MUST NOT be offered re-pairing. |
 
 ## Related
 

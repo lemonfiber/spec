@@ -11,13 +11,14 @@
       "status": "accepted",
       "maturity": "shipped",
       "shipped": "0.9.0",
-      "milestones": ["M7"],
+      "milestones": ["M7", "M14"],
       "milestone": "M7",
       "priority": null,
       "labels": ["cli", "tui", "web", "ux"],
       "requires": [],
       "relates": ["B6", "C6", "G3", "G4"],
       "versions": [
+        {"version": "0.18.0", "status": "planned"},
         {"version": "0.9.0", "status": "released"}
       ],
       "path": "g-ux/g1-interface-tiers.md"

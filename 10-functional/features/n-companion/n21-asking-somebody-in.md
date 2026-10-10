@@ -52,9 +52,11 @@ operator hands it over through the device's own sharing, to whomever they choose
 The stack also gives every invitation the address that turns it down (`D6-R15`,
 `G5-R14`). The text handed over carries it after the invitation's own address, as
 the stack gave it, so a person who does not want the account can refuse it without
-asking the operator. The code stays the invitation's own address: a code is
-scanned to open one address, and the one a person scans is the one to sign in with
-(`N21-R11`).
+asking the operator. Where the stack mints a join link (`D6-R22`), the text carries it
+too, so somebody with the app is taken straight into it. Each address is offered as a
+code of its own, labelled with what it opens, and the first code is the join link where
+there is one, otherwise the invitation's own address (`N21-R11`). Where the stack says
+why there is no join link, that sentence travels with the invitation (`N21-R12`).
 
 An address that is a number can stop working when a router hands the number to
 something else, and the stack says so with the invitation. That caution goes
@@ -148,7 +150,8 @@ As everywhere (`N6-R1`). Here it decides whether somebody has an account.
 | **N21-R8** | A refusal about a person MUST be shown with the stack's reason and the name that was asked for, and MUST NOT be rendered as an error to retry. |
 | **N21-R9** | A rehearsed invitation MUST be labelled as a rehearsal (`N6-R1`), and MUST NOT be presented as an account that exists. |
 | **N21-R10** | Invitations the stack withdrew on the way past MUST be shown with the answer they arrived on, and MUST NOT be dropped. |
-| **N21-R11** | Where the stack gives an invitation the address that turns it down, the text handed over MUST carry that address as the stack gave it, after the invitation's own address, and the code another device can scan MUST remain the invitation's own address (`G5-R14`). |
+| **N21-R11** | The text handed over MUST carry, after the invitation's own address, the join link (`D6-R22`) and the address that turns the invitation down, each as the stack gave it, where the stack gives them (`G5-R14`). Each MUST also be offered as a code another device can scan, labelled with what it opens, and the first code shown MUST be the join link where there is one, otherwise the invitation's own address. |
+| **N21-R12** | Where the stack says why an invitation carries no join link (`D6-R24`), the app MUST show that sentence with the invitation, and MUST NOT present the invitation as failed. |
 
 ## Notes
 
@@ -168,7 +171,8 @@ material, and `reissue` takes a name.
 | `N21-R8` | The refusal, as `error` | — |
 | `N21-R9` | `rehearsed` | — |
 | `N21-R10` | `withdrawn`: offers nobody took up, removed. `suspended`: accounts somebody had been in, reset and not claimed again in time, switched off and kept. On a rehearsal, each names what would be | — |
-| `N21-R11` | `decline`, the address that turns the invitation down | — |
+| `N21-R11` | `join`, the link the companion opens; `decline`, the address that turns the invitation down | — |
+| `N21-R12` | `unjoinable`, why there is no join link | — |
 
 **`D6-R13` is not a row here.** An offer nobody claimed is withdrawn, and
 withdrawal removes the account, so there is no member left to re-issue to without

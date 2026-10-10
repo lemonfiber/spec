@@ -336,6 +336,23 @@ header** to read and a client has one thing to hold rather than two.
 | The password was wrong, or none is configured | `401` |
 | Too many wrong answers lately | `429`, saying how long is left |
 
+**An invitation is claimed at the same door.** The body
+`{ "name": …, "password": …, "claim": … }` is a claim
+([D6-R25](../../10-functional/features/d-content/d6-household-identity.md)): `claim` is the
+token the invitation's join link carries, and `password` is the one the person chose, which
+the core sets on their own account at the media server before it opens their session. The
+reply is the same `admission` envelope. A claim is counted against the same attempts as a
+sign-in. An invitation that is not open, whether its token is unknown, spent, lapsed or
+declined, is refused `401` under one code, so a guess learns nothing about which; a password
+shorter than the minimum is refused under a code of its own naming it. The token travels in
+the body, never in a URL the core receives (`ARCH-R219`).
+
+The `invitation` envelope carries `join`, the link the companion opens, and where it carries
+none for a reason other than a rehearsal, `unjoinable`, saying why in words every surface can
+show (`ARCH-R218`). No envelope carries a drawn code: a surface draws a QR code from the
+address or link it was given, exactly as given (`ARCH-R220`,
+[G1-R15](../../10-functional/features/g-ux/g1-interface-tiers.md)).
+
 `401` is the door's alone. A wrong password is answered where it was offered, so a client
 reading `401` knows that the password it just sent is the thing to change. Every other
 refusal, including a session this run no longer admits, answers `403`, and what tells a
@@ -955,6 +972,9 @@ generation has not been used.
 | **ARCH-R177** | The core MUST generate `contract/web-api.openapi.json`, an OpenAPI document of the web API, from the contract artefact, and CI MUST refuse it when it differs from what the artefact generates. |
 | **ARCH-R178** | The event stream MUST carry, to the operator and to a `read` or `act` key, a `playing` event with every session the media server is playing now, in the envelope `GET /api/playing` answers that credential with, sent when a client connects and again every 5 seconds, the pace a member's stream sends what they are playing at. |
 | **ARCH-R179** | The capabilities answer MUST carry the scope of the credential that asked, one of `operator`, `read`, `act` or `member`, and a client MUST read the scope from it rather than infer it from which reads are permitted. |
+| **ARCH-R218** | The `invitation` envelope MUST carry `join`, the join link, where `D6-R22` gives one, and `unjoinable`, the sentence `D6-R24` requires, where it gives none and the invitation is not a rehearsal. |
+| **ARCH-R219** | `POST /api/session` MUST accept `claim` beside a member's `name` and `password` (`D6-R25`). It MUST refuse a claim on an invitation that is not open with `401` under one code, whether the token is unknown, spent, lapsed or declined; MUST refuse a password shorter than the minimum under a code of its own naming the minimum (`D6-R26`); MUST count a claim against the attempts a sign-in is counted against; and MUST remain the one route that answers without a token. |
+| **ARCH-R220** | An envelope MUST NOT carry a drawn QR code. A surface MUST draw each code from the address, link or text the envelope carries, exactly as given (`G1-R15`). |
 
 ## The artefact
 

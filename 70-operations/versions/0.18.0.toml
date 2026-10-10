@@ -251,7 +251,7 @@
 # back, and the pictures a browser reads from the core. The companion's player (N3-R14 to N3-R16) is built on them. `lemonfiber-media-stack`
 # is cut because `D11-R2` puts the guard in front of the media server in every form that
 # serves it.
-# 406 goals, seeded from the roadmap milestone this version serves;
+# 421 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -281,6 +281,12 @@
 # `ARCH-R199` to `ARCH-R214` are the contracts themselves: generated per capability, spoken
 # over keyed HTTP with every answer held to its schema, the media server's declared guard
 # and locations, and conformance judged from recordings and a live pass.
+# `D6-R22` to `D6-R26`, `N3-R27` to `N3-R30`, `N1-R78`, `N21-R12`, `G1-R15` and
+# `ARCH-R218` to `ARCH-R220` give the household member a way in from the companion
+# (`N3-R26`): every invitation carries a `lemonfiber://join` link with what the app needs to
+# reach the house and know it, and a claim token that sets the first password through the
+# core. `G1-R15` offers every address, link and key a surface shows as a QR code beside its
+# text. Added after staging by the maintainer's decision of 2026-10-10 (OPS-R31).
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
@@ -290,6 +296,18 @@ repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack"]
 satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
 goals   = [
     "D6-R21",
+    "D6-R22",
+    "D6-R23",
+    "D6-R24",
+    "D6-R25",
+    "D6-R26",
+    "N21-R12",
+    "N3-R27",
+    "N3-R28",
+    "N3-R29",
+    "N3-R30",
+    "N1-R78",
+    "G1-R15",
     "D11-R1",
     "D11-R2",
     "D11-R3",
@@ -695,6 +713,9 @@ goals   = [
     "ARCH-R215",
     "ARCH-R216",
     "ARCH-R217",
+    "ARCH-R218",
+    "ARCH-R219",
+    "ARCH-R220",
 ]
 
 # The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion

@@ -211,6 +211,7 @@ exactly the users this exists for.
 | **G1-R12** | Concurrent surfaces MUST reflect the same state, and lifecycle operations MUST be serialised across them. |
 | **G1-R13** | Non-interactive invocation lacking required input MUST fail naming the required flags. |
 | **G1-R14** | Setup MUST be completable from all three surfaces that run on the host machine. It is not required of the companion surface, for the reason recorded above and in [N1-R4](../n-companion/n1-companion-app.md). |
+| **G1-R15** | Every surface that shows pairing material, an invitation's sign-in address, join link or decline address, the front door address, a device hand-off's address or one of its clients' codes, or a minted key's secret MUST offer each as a QR code beside its text, drawn on that surface from the text exactly as the stack gave it. |
 
 ## Related
 
