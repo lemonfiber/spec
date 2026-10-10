@@ -40,6 +40,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from types import MappingProxyType
 
 import train_step
 import yaml
@@ -57,6 +58,7 @@ LANES = {
 STEP = "Which step of the train this run is (ADR-0033 §4)"
 PINS = "The embedded stack pins each image at this tag"
 BUNDLE = "The embedded bundle pins each first-party plugin at this tag"
+VERDICT = "The gate's verdict, recorded rather than enforced"
 TAG_LOOP = "Tag the target repos"
 DECLARED = "The repos declare"
 RECORDS = ("Record it on the manifest (OPS-R65)", "Wait for the record to land on main (OPS-R62, OPS-R65)")
@@ -72,6 +74,10 @@ REBUILT = "Open the record on a branch rebuilt from main"
 SHA = "b" * 40
 
 DIGEST = "sha256:" + "a" * 64
+
+#: What lets the core's checkout take a submodule from a local remote, and the owner it is asked for.
+ALLOWED = MappingProxyType({"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow",
+                            "GIT_CONFIG_VALUE_0": "always", "OWNER": "o"})
 
 #: Stands in for `docker buildx imagetools inspect <ref> --format ...`.
 DOCKER = f"""#!/bin/sh
@@ -145,13 +151,19 @@ class TheWiring(unittest.TestCase):
         for workflow in LANES:
             with self.subTest(workflow):
                 self.assertIn(STREAMS_ONLY, step(workflow, PINS)["if"])
-                self.assertIn(STREAMS_ONLY, step(workflow, BUNDLE)["if"])
+        self.assertIn(STREAMS_ONLY, step("execute-version.yml", BUNDLE)["if"])
 
-    def test_the_bundle_is_checked_before_anything_is_tagged(self):
-        for workflow in LANES:
-            with self.subTest(workflow):
-                self.assertLess(position(workflow, STEP), position(workflow, BUNDLE))
-                self.assertLess(position(workflow, BUNDLE), position(workflow, TAG_LOOP))
+    def test_a_release_refuses_on_the_bundle_before_anything_is_tagged(self):
+        self.assertLess(position("execute-version.yml", STEP), position("execute-version.yml", BUNDLE))
+        self.assertLess(position("execute-version.yml", BUNDLE), position("execute-version.yml", TAG_LOOP))
+
+    def test_a_pre_release_records_the_bundle_in_its_verdict_and_never_refuses_on_it(self):
+        """A pre-release is what the plugins are built against, so it cannot wait for their pins."""
+        self.assertFalse([one for one in steps("prerelease-version.yml")
+                          if str(one.get("name", "")).startswith(BUNDLE)])
+        self.assertIn("check_bundle_pins.py", step("prerelease-version.yml", VERDICT)["run"])
+        self.assertLess(position("prerelease-version.yml", STEP), position("prerelease-version.yml", VERDICT))
+        self.assertLess(position("prerelease-version.yml", VERDICT), position("prerelease-version.yml", TAG_LOOP))
 
     def test_what_is_tagged_and_what_declares_are_the_lists_the_step_wrote(self):
         """`repos.txt` is everything the version cuts, which neither step tags."""
@@ -309,35 +321,62 @@ class TheSteps(unittest.TestCase):
         self.git("-C", "checkouts/lemonfiber", "submodule", "deinit", "-q", "--all")
 
     def test_the_bundle_check_passes_a_version_cutting_no_plugin(self):
-        for workflow in LANES:
-            with self.subTest(workflow):
-                self.fresh()
-                done = self.run_step(workflow, BUNDLE, OWNER="o")
-                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-                self.assertIn("cuts no first-party plugin", done.stdout)
+        self.fresh()
+        done = self.run_step("execute-version.yml", BUNDLE, OWNER="o")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("cuts no first-party plugin", done.stdout)
 
     def test_the_bundle_check_reads_the_catalogue_the_core_embeds(self):
-        allowed = {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow",
-                   "GIT_CONFIG_VALUE_0": "always", "OWNER": "o"}
-        for workflow, (_, tag) in LANES.items():
-            with self.subTest(workflow):
-                self.fresh()
-                self.catalogue(tag.removeprefix("v"))
-                done = self.run_step(workflow, BUNDLE, **allowed)
-                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-                self.assertIn(f"jellyfin is pinned at {tag.removeprefix('v')}", done.stdout)
+        self.fresh()
+        self.catalogue("0.2.0")
+        done = self.run_step("execute-version.yml", BUNDLE, **ALLOWED)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("jellyfin is pinned at 0.2.0", done.stdout)
 
-    def test_the_bundle_check_refuses_a_bundle_pinning_another_release(self):
+    def test_a_release_refuses_a_bundle_pinning_another_release(self):
         """The defect it exists for: a core tagged over a bundle pinning another release."""
-        allowed = {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow",
-                   "GIT_CONFIG_VALUE_0": "always", "OWNER": "o"}
-        for workflow in LANES:
-            with self.subTest(workflow):
-                self.fresh()
-                self.catalogue("0.1.0")
-                done = self.run_step(workflow, BUNDLE, **allowed)
-                self.assertEqual(done.returncode, 1)
-                self.assertIn("pinned at release '0.1.0'", done.stdout)
+        self.fresh()
+        self.catalogue("0.1.0")
+        done = self.run_step("execute-version.yml", BUNDLE, **ALLOWED)
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("pinned at release '0.1.0'", done.stdout)
+
+    def stub_gate(self):
+        """The workspace's scripts with `gate.py` answering one goal met, so the verdict
+        step's own shell is what is under test."""
+        (self.root / "scripts").unlink()
+        (self.root / "scripts").mkdir()
+        for script in HERE.glob("*.py"):
+            (self.root / "scripts" / script.name).symlink_to(script)
+        (self.root / "scripts/gate.py").unlink()
+        (self.root / "scripts/gate.py").write_text(
+            "import json\nprint(json.dumps({'goals': [{'id': 'B1-R4', 'cited': True, 'done': True}]}))\n",
+            encoding="utf-8")
+        (self.root / "searched.txt").write_text("lemonfiber\n", encoding="utf-8")
+
+    def verdict(self, release: str, phase: str) -> tuple[subprocess.CompletedProcess, str]:
+        self.fresh()
+        self.catalogue(release)
+        self.stub_gate()
+        done = self.run_step("prerelease-version.yml", VERDICT, STEP=phase, **ALLOWED)
+        return done, self.read("output")
+
+    def test_a_pre_release_over_an_unpinned_bundle_records_it_unmet_and_goes_on(self):
+        done, output = self.verdict("0.1.0", train_step.STREAMS)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("unmet=OPS-R86\n", output)
+        self.assertIn("Bundle unpinned", done.stdout)
+
+    def test_a_pre_release_over_a_pinned_bundle_records_nothing_unmet(self):
+        done, output = self.verdict("0.2.0-pre.1", train_step.STREAMS)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("unmet=\n", output)
+
+    def test_the_first_step_of_a_pre_release_does_not_read_the_bundle(self):
+        """The plugins are not tagged yet, so the core embeds no bundle pinning them."""
+        done, output = self.verdict("0.1.0", train_step.IMAGES)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("unmet=\n", output)
 
     def stub_gh(self):
         (self.bin / "gh").write_text(GH, encoding="utf-8")

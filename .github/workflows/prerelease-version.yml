@@ -6,9 +6,10 @@
 # version whose last goal closes on somebody's own hardware can still be
 # installed by the person who has that hardware.
 #
-# It relaxes the goal gate and nothing else. Compatibility, blockers, the
-# declared version and the plugin gate are checked exactly as they are before a
-# release tag. The manifest's `status` does not move — a pre-release is not a
+# It relaxes the goal gate and the bundle pin, and nothing else: a bundle not yet
+# pinning each first-party plugin at the tag is recorded as `OPS-R86` unmet
+# (OPS-R86). Compatibility, blockers, the declared version and the plugin gate are
+# checked exactly as they are before a release tag. The manifest's `status` does not move — a pre-release is not a
 # lifecycle transition — and what is written is one `[[prerelease]]` record
 # holding the tag, the day, the unmet goals and the pins.
 #
@@ -20,9 +21,10 @@
 # own images, or a first-party plugin's repository, is cut in the same two runs as
 # the release (ADR-0033 §4, OPS-R86). The first tags those repositories at the
 # pre-release tag and stops. Once the stack pins the image each service tag
-# published and the catalogue's bundle pins each plugin, and the core's submodules
-# embed both, the second run checks those pins, records the pre-release and tags
-# everything else.
+# published, and the core's submodule embeds that stack, the second run checks
+# those pins, records the pre-release and tags everything else. A bundle not yet
+# pinning each plugin at the tag does not stop it: it is recorded among the unmet
+# goals, as `OPS-R86`.
 # `train_step.py` reads which run this is from the repositories themselves.
 #
 # Maintainer-only; dry_run defaults on.
@@ -196,10 +198,18 @@ jobs:
       # The one check that does not refuse. Its answer is what the pre-release
       # exists to carry, so it is captured rather than acted on — and captured
       # as JSON, because the record keeps the goals by name (OPS-R62, OPS-R65).
+      #
+      # The bundle pin is part of that answer. A release refuses a core whose
+      # embedded bundle does not pin each plugin at its tag; a pre-release is cut
+      # so the plugins can be built against it, so in the run that tags the core it
+      # records `OPS-R86` among the unmet goals instead (OPS-R86).
       - name: The gate's verdict, recorded rather than enforced (OPS-R62)
         id: verdict
         env:
           VERSION: ${{ inputs.version }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          STEP: ${{ steps.step.outputs.step }}
+          OWNER: ${{ github.repository_owner }}
         run: |
           set -uo pipefail
           args=()
@@ -222,10 +232,19 @@ jobs:
             echo "::error::the gate could not answer for ${VERSION}; a pre-release without a verdict is refused"
             exit 1
           fi
+          export BUNDLE=""
+          if [ "$STEP" = "streams" ]; then
+            python3 scripts/check_bundle_pins.py --version "$VERSION" --tag "$TAG" \
+              --core checkouts/lemonfiber --owner "$OWNER" || BUNDLE="OPS-R86"
+          fi
           python3 - <<'PY'
           import json, os
           verdict = json.load(open("verdict.json", encoding="utf-8"))
           unmet = [goal["id"] for goal in verdict["goals"] if not (goal["cited"] and goal["done"])]
+          if os.environ["BUNDLE"] and os.environ["BUNDLE"] not in unmet:
+              unmet.append(os.environ["BUNDLE"])
+              print("::warning title=Bundle unpinned::the embedded bundle does not pin each plugin at "
+                    f"{os.environ['TAG']}, recorded as {os.environ['BUNDLE']} unmet")
           met = len(verdict["goals"]) - len(unmet)
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
               out.write(f"unmet={' '.join(unmet)}\n")
@@ -294,16 +313,6 @@ jobs:
         run: |
           python3 scripts/check_image_pins.py --version "$VERSION" --tag "$TAG" \
             --stack checkouts/lemonfiber/assets/media-stack/stack.toml
-
-      - name: The embedded bundle pins each first-party plugin at this tag (OPS-R86)
-        if: ${{ steps.step.outputs.step == 'streams' }}
-        env:
-          VERSION: ${{ inputs.version }}
-          TAG: ${{ steps.tag.outputs.tag }}
-          OWNER: ${{ github.repository_owner }}
-        run: |
-          python3 scripts/check_bundle_pins.py --version "$VERSION" --tag "$TAG" \
-            --core checkouts/lemonfiber --owner "$OWNER"
 
       # What the artefacts will actually embed, so the record answers "which build
       # of the stack went out with it" from the file alone (OPS-R65).
@@ -493,7 +502,7 @@ jobs:
         env:
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          echo "::notice title=Images and plugins tagged::$(paste -sd, tagging.txt) carry ${TAG}. Once lemonfiber-media-stack pins the image each service tag published, lemonfiber-plugins' bundle pins each plugin at ${TAG#v}, and the core's submodules take both, run prerelease-version again with the same identifier: it checks those pins, records the pre-release and tags every other stream."
+          echo "::notice title=Images and plugins tagged::$(paste -sd, tagging.txt) carry ${TAG}. Once lemonfiber-media-stack pins the image each service tag published and the core's submodule takes that stack, run prerelease-version again with the same identifier: it checks those pins, records the pre-release and tags every other stream. A bundle not yet pinning each plugin at ${TAG#v} is recorded as OPS-R86 unmet."
 
       - name: Tagged — review and publish to finish
         if: ${{ !inputs.dry_run && steps.step.outputs.step == 'streams' }}

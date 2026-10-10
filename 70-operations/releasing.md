@@ -175,7 +175,7 @@ Both are documented as manual steps ([Q-R60](../40-quality/tooling.md)), like `S
 | **OPS-R6** | Secrets required for releasing MUST be documented as one-time manual setup. |
 | **OPS-R20** | Every release MUST publish SLSA build provenance (an attestation) and an SBOM alongside the checksummed artifacts. |
 | **OPS-R59** | The plugin catalogue MUST release on its own clock and MUST NOT be a stream the version train cuts; no version manifest may name it, and a contribution to it MUST NOT move a version number in this organisation. The bundle's pins are moved by the train under `OPS-R86`, and that move is not a catalogue release. |
-| **OPS-R86** | The train MUST tag each first-party plugin's repository at the core's version before it tags the core. Once the plugin's manifest names what that tag published, the train MUST move the plugin's pin and copy in the catalogue's bundle with one rolling pull request. The core's tag MUST embed the bundle at a catalogue commit whose bundle pins every first-party plugin at that version. |
+| **OPS-R86** | The train MUST tag each first-party plugin's repository at the core's version before it tags the core. Once the plugin's manifest names what that tag published, the train MUST move the plugin's pin and copy in the catalogue's bundle with one rolling pull request. The core's release tag MUST embed the bundle at a catalogue commit whose bundle pins every first-party plugin at that version. A pre-release MUST record a bundle that does not pin every first-party plugin at its tag among its unmet goals, and MUST NOT refuse on it. |
 
 A plugin is still **gated** by the train even though it is not cut by it: every
 run that would tag proves each registered plugin riding the version with the
