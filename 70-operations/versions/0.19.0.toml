@@ -8,7 +8,7 @@
 # playing, and a player that holds no second copy of what a member may watch. They are
 # the web surface's, so `lemonfiber-web` is searched; it is not tagged.
 #
-# 7 goals, seeded from the roadmap milestone this version serves;
+# 12 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -21,6 +21,11 @@ satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php"]
 goals   = [
     "D4-R15",
     "D4-R16",
+    "D4-R17",
+    "D4-R18",
+    "D4-R19",
+    "D4-R20",
+    "D11-R10",
     "D6-R19",
     "D6-R20",
     "G10-R4",

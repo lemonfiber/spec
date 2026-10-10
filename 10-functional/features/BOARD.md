@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**112 features** in areas A–N, **1752 requirements**.
+**112 features** in areas A–N, **1757 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -94,7 +94,7 @@ code, and the two move independently.
 | [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0`, `0.19.0` |
 | [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0`, `0.19.0` |
 | [D7](d-content/d7-approval-quotas.md) | Request approval & quotas | D | both | accepted | `0.12.0`, `0.18.0` |
-| [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.18.0` |
+| [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.18.0`, `0.19.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
