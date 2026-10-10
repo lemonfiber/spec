@@ -18,13 +18,14 @@
 # flag rather than relying on being unconfigured (OPS-R63).
 #
 # A pre-release of a version that cuts a repository building one of the stack's
-# own images, or a first-party plugin's repository, is cut in the same two runs as
-# the release (ADR-0033 §4, OPS-R86). The first tags those repositories at the
-# pre-release tag and stops. Once the stack pins the image each service tag
-# published, and the core's submodule embeds that stack, the second run checks
-# those pins, records the pre-release and tags everything else. A bundle not yet
-# pinning each plugin at the tag does not stop it: it is recorded among the unmet
-# goals, as `OPS-R86`.
+# own images is cut in the same two runs as the release (ADR-0033 §4). The first
+# tags those repositories at the pre-release tag and stops. Once the stack pins
+# the image each tag published, and the core's submodule embeds that stack, the
+# second run checks those pins, records the pre-release and tags everything else.
+# A first-party plugin's repository is tagged in neither run: the plugin is built
+# against the core's pre-release and tagged at the version by the release. So a
+# bundle not pinning each plugin at the tag does not stop a pre-release; it is
+# recorded among the unmet goals, as `OPS-R86`.
 # `train_step.py` reads which run this is from the repositories themselves.
 #
 # Maintainer-only; dry_run defaults on.
@@ -497,12 +498,12 @@ jobs:
             echo "tagged ${r} @ ${sha:0:8} as ${TAG}"
           done < tagging.txt
 
-      - name: Images and plugins tagged — run again once the core embeds them
+      - name: Images tagged — run again once the core embeds them
         if: ${{ !inputs.dry_run && steps.step.outputs.step == 'images' }}
         env:
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          echo "::notice title=Images and plugins tagged::$(paste -sd, tagging.txt) carry ${TAG}. Once lemonfiber-media-stack pins the image each service tag published and the core's submodule takes that stack, run prerelease-version again with the same identifier: it checks those pins, records the pre-release and tags every other stream. A bundle not yet pinning each plugin at ${TAG#v} is recorded as OPS-R86 unmet."
+          echo "::notice title=Images tagged::$(paste -sd, tagging.txt) carry ${TAG}. Once lemonfiber-media-stack pins the image each tag published and the core's submodule takes that stack, run prerelease-version again with the same identifier: it checks those pins, records the pre-release and tags every other stream."
 
       - name: Tagged — review and publish to finish
         if: ${{ !inputs.dry_run && steps.step.outputs.step == 'streams' }}

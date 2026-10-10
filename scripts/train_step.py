@@ -15,6 +15,11 @@ The lane does not take the step as an input. It reads it from the repositories:
 So a first step that stopped part-way is finished by running it again, and a
 second step can never be reached while an image is untagged.
 
+A pre-release tags no first-party plugin's repository. The plugin is built and
+proved against the core's pre-release, then tagged at the version itself by the
+release's first step, and its crate declares that version rather than the
+pre-release's.
+
 Two lists are written. `tagging.txt` is what the run tags. `declaring.txt` is
 what has to declare the version before it does: in the first step that is every
 stream still to be tagged, the other streams included, because an image tag
@@ -41,6 +46,7 @@ import tomllib
 
 import manifest_repos
 from check_image_pins import cut_by_train
+from patterns import PRERELEASE_SEPARATOR
 
 CHECKOUTS = pathlib.Path("checkouts")
 TAGGING = pathlib.Path("tagging.txt")
@@ -102,8 +108,12 @@ def main() -> int:
     missing = manifest_repos.unlisted_plugins(data, registry)
     if missing:
         sys.exit(f"::error::{path.name} {manifest_repos.unlisted(missing)}")
-    step, tagging, declaring = settle(manifest_repos.first(data, registry),
-                                      manifest_repos.others(data, registry), a.tag)
+    early, others = manifest_repos.first(data, registry), manifest_repos.others(data, registry)
+    if PRERELEASE_SEPARATOR in a.tag:
+        held_back = {repo for repo, _ in manifest_repos.plugins(data, registry)}
+        early = [repo for repo in early if repo not in held_back]
+        others = [repo for repo in others if repo not in held_back]
+    step, tagging, declaring = settle(early, others, a.tag)
 
     TAGGING.write_text("".join(f"{repo}\n" for repo in tagging), encoding="utf-8")
     DECLARING.write_text("".join(f"{repo}\n" for repo in declaring), encoding="utf-8")

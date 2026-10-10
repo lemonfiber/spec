@@ -291,10 +291,11 @@ Cross-stream compatibility is checked exactly as `OPS-R35` requires before a tag
 release blockers stop it exactly as they stop an execute; what a plugin must
 satisfy to ride the train it satisfies here too. The one thing it does
 differently is the one thing it exists for. The bundle pin follows from it: a
-first-party plugin is built and proved against the core's pre-release before the
-bundle can pin it, so a pre-release whose embedded bundle does not yet pin each
-plugin at its tag records `OPS-R86` among its unmet goals rather than refusing
-(`OPS-R86`).
+first-party plugin is built and proved against the core's pre-release, then tagged
+at the version itself by the release's first step, pinned in the bundle and
+embedded before the core's release tag. So a pre-release tags no first-party
+plugin's repository, and one whose embedded bundle does not pin each plugin at its
+tag records `OPS-R86` among its unmet goals rather than refusing (`OPS-R86`).
 
 ### It is never mistaken for the release
 

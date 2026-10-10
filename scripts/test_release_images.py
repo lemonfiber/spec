@@ -540,6 +540,16 @@ class TrainStepTests(TrainImages):
         self.assertEqual((code, output, tagging), (0, "step=images\n", "plugin-jellyfin\n"))
         self.assertEqual(declaring, "plugin-jellyfin\nlf\n")
 
+    def test_a_pre_release_holds_every_plugin_back(self):
+        pathlib.Path("30-repos/repos.toml").write_text(
+            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n', encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin"]\n', encoding="utf-8")
+        self.stream("plugin-jellyfin")
+        self.stream("lf")
+        code, _, output, tagging, declaring = self.step(tag="v0.2.0-pre.1")
+        self.assertEqual((code, output, tagging, declaring), (0, "step=streams\n", "lf\n", "lf\n"))
+
     def test_a_version_cutting_the_core_without_its_plugin_settles_no_step(self):
         pathlib.Path("30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
