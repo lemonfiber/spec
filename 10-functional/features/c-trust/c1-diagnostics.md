@@ -90,7 +90,7 @@ part of a default run, and state what they will disturb and for how long.
 | **Network** | Port availability, port conflicts, service reachability, LAN binding matches policy |
 | **VPN** | Tunnel up, egress match, forwarded port assigned, port matches client, killswitch *(disruptive)* |
 | **Credentials** | Each credential still valid, freshness |
-| **Services** | Health, crash loops, version skew, inter-service wiring intact |
+| **Services** | Health, crash loops, version skew, inter-service wiring intact, a series the media server holds episodes for and answers no seasons for |
 | **Providers** | Quota remaining, subscription validity, indexer responsiveness |
 | **Queue** | Stuck items, repeated import failures, orphaned downloads |
 | **Config** | Drift from lemonfiber-managed state, file permissions, manifest validity |
@@ -124,6 +124,16 @@ It is what lets a surface say a problem is newer than the last one somebody saw
 ([N27](../n-companion/n27-what-the-phone-keeps.md)): a problem has no number and no order of
 its own, and a time it began is the one order the stack can vouch for.
 
+### A series the media server cannot open
+
+A media server can hold a series' episodes and still answer that the series has no
+seasons. A member then sees the title and nothing to play under it, and every service
+stays green. The doctor asks whatever fills `media.serve` how many seasons and episodes
+each series holds, over that capability's contract and no other way. Each series that
+holds episodes and has no seasons is a warning of its own, named by its title, and its
+remedy is to refresh that series ([C3](c3-auto-remediation.md)). The check reads only.
+It is an operator's finding, and nothing a member is shown names it.
+
 ## States
 
 Per check: `pass`, `warn`, `fail`, `unverified`, `skipped` (not applicable).
@@ -149,6 +159,9 @@ failure), `unknown` (checks could not run).
 | A plugin's declared proof fails | Report it as that plugin's proof failing, naming the plugin. It is a finding about the plugin, not about the stack the plugin was added to. |
 | A plugin's proof is slow or never returns | The same bounded timeout every check has, and the same `unverified` on expiry. A contributed check does not get to decide how long diagnostics take. |
 | A plugin's proof throws rather than answers | A check error attributed to the plugin (`C1-R8`'s rule, with a name on it). An operator reading it should not be left wondering whether their stack is broken. |
+| Nothing fills `media.serve` | The series check reports `skipped` with the reason. |
+| The media server cannot be asked | The series check reports `unverified`. It is not a pass. |
+| A series holds no episodes and no seasons | Not a finding. An empty series is not a broken one. |
 
 ## Acceptance criteria
 
@@ -171,6 +184,7 @@ failure), `unknown` (checks could not run).
 | **C1-R15** | A proof an installed plugin declares MUST run as a check like any other — under a bounded timeout, reporting the same verdicts — MUST be attributed to the plugin, and an error inside it MUST be reported as that plugin's check error rather than as a finding about the stack. |
 | **C1-R16** | A finding about a service MUST carry, beside the service's identifier, the name the stack gives that service in front of an operator, and the title lemonfiber writes for a finding MUST name a service by that name, never by its identifier. |
 | **C1-R17** | A check reported wrong MUST carry its onset, the time the stack first saw it wrong since it last saw it right; the onset MUST survive a restart of lemonfiber and MUST be the same on every surface that reports the check, and a check that comes right and goes wrong again MUST carry the later time. |
+| **C1-R18** | The doctor MUST ask the filler of `media.serve`, over that capability's contract alone, how many seasons and episodes each series holds, and MUST report each series holding episodes and no seasons as a warning of its own that names the series; where nothing fills `media.serve` it MUST report `skipped`, where the filler cannot be asked it MUST report `unverified`, and nothing a member is shown MUST name the finding. |
 
 ## Related
 

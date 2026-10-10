@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: planned
+maturity: building
 priority: P1
 labels: [extensibility, wiring, verification, security]
 requires: [F3, F4, F8, F9]
@@ -72,6 +72,15 @@ the request gate join the vocabulary. Every capability is asked by something in 
 bundle, so every part has a slot a substitute can fill. A plugin may ask for capabilities
 too, which lets a substitute stand in for a part that itself asks. No plugin links to
 another by name.
+
+A plugin's service asks in the manifest's `[[ask]]`, naming a core capability and, where it
+wants every service that fills it rather than one, `each`. Nothing in an ask can name the
+service that answers it. A plugin's ask is settled as the stack's own asks of that capability
+are: against everything installed that claims it, by the operator's choice, and otherwise by the
+stack's own choice. A credential reaches the asker only through the gate in
+[Credentials between plugins](#credentials-between-plugins). The wiring lists a plugin's asks
+after the stack's, each naming the plugin. An install or update states what each of its asks
+would reach before it acts.
 
 ### The guard follows the media server
 
@@ -143,6 +152,11 @@ nothing crosses to it.
 | A service that is not the upstream of an egress guard adapter declares the privileged shape | Refused at validation, naming `service <id>.shape` |
 | An adapter claims an upstream release it has no recordings for | Refused at install, naming the release |
 | A plugin recorded nonconforming is proved again and fails | The record stays, and the proof names each case that failed |
+| A plugin's ask names a namespaced capability, its own or another plugin's | Refused at validation naming `ask <service>.capability`: a namespaced capability carries the id of the plugin it belongs to, so asking for one names a plugin |
+| A plugin's ask names a service the plugin does not declare | Refused at validation naming the service and the services declared |
+| A plugin asks for a capability nothing installed claims | Listed as unfilled, naming the plugin's service as what asked (F4-R9) |
+| A plugin asks for one filler of a capability several claim and the operator chose none | Settled by the stack's own choice for that capability, as the stack's ask is; contested only where the stack has none (F4-R8) |
+| A plugin's service asks for a capability it provides | Refused at validation naming the service and the capability: nothing asks itself |
 
 ## Acceptance criteria
 
@@ -169,6 +183,10 @@ nothing crosses to it.
 | **F14-R19** | A plugin MUST be first-party only where the build embeds its id and the digest of its manifest in its first-party set, as the signed default bundle names them at the release the build pins; any other plugin MUST be third-party however it was installed. |
 | **F14-R20** | A third-party plugin MAY be granted one named credential for a capability it fills; the grant MUST be part of the install or update offer and approved by the operator, MUST be journalled and revocable, and MUST be shown on the credentials surface, and without a grant no credential MUST cross to it. |
 | **F14-R21** | An install or update whose plugin takes the egress guard's shape MUST state in its reading each service taking it with the capability and the device it is given, MUST NOT act unless the operator approved that shape for that service apart from the offer, written `egress-guard@<service>`, and MUST refuse an approval naming a service that does not take it. |
+| **F14-R22** | A plugin's service MAY ask for a core capability in the manifest's `[[ask]]`, naming the capability and optionally `each`; the manifest MUST have no field by which an ask names the service that fills it, and an ask naming a capability outside the published core vocabulary, a namespaced one included, naming a service the plugin does not declare, or naming a capability its own service provides MUST be refused at validation, naming the ask and what it named. |
+| **F14-R23** | A plugin's ask MUST be settled as the stack's own asks of that capability are: against every installed claimant, by the operator's choice where one is recorded, otherwise by the stack's own choice for that capability, and otherwise contested or unfilled; every connection made for it MUST hand a credential only where F14-R18 or F14-R20 lets it cross, and its asker MUST join no network beyond the default. |
+| **F14-R24** | The wiring, as `lemonfiber wiring` and `GET /api/wiring` answer it, MUST carry every installed plugin's asks after the stack's, each with the origin of the service that asks, and a plugin's asks MUST be counted wherever the stack's are: in what nothing fills, in what a substitution changes, and in what an install would leave contested. |
+| **F14-R25** | An install or update reading MUST state every ask the plugin's services would make, each with what it would reach and how that would be settled; its offer MUST be named over those asks as a part of its own, and an answer to a reading whose asks have since moved MUST be refused naming that part. |
 
 ## Related
 

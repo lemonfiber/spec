@@ -52,15 +52,16 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.7.0",
-      "milestones": ["M5"],
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M5", "M14"],
       "milestone": "M5",
       "priority": null,
       "labels": ["verification"],
       "requires": ["C4", "G4"],
       "relates": ["C1", "C9"],
       "versions": [
+        {"version": "0.18.0", "status": "planned"},
         {"version": "0.7.0", "status": "released"}
       ],
       "path": "c-trust/c3-auto-remediation.md"
