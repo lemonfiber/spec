@@ -108,6 +108,34 @@ is. The core reports an invitation taken back either way as `expired`, and never
 an account that went missing
 ([ADR-0029](../../../00-overview/decisions/0029-a-household-service-declines-an-invitation-with-one-key.md) §2a).
 
+**An invitation also opens the app.** Beside the address somebody signs in at, the
+core mints a join link: the companion's own address for this invitation, in the app's
+own scheme, `lemonfiber://join`. It carries what the app needs to reach the house and
+know it — the address pairing material names, the fingerprint of the certificate that
+address presents, and the stack's identifier — with the name the person signs in as,
+when the link stops being good, and a claim token. A phone that opens it adds the
+house, asks the person to choose a password, and lands them on Home
+([N3](../n-companion/n3-household-companion.md), `N3-R26`).
+
+The claim token is the invitation in the app's hands. It lets the person set their
+first password through the core, once, within the invitation's window, acting as their
+own account at the media server and never as the administrator. The core keeps it only
+as a hash on the offer, as it keeps the decline token, so a copy of the record claims
+nothing, and every new offer or reissue mints a new one. Somebody already in the house
+is given a link with no claim token: it adds the house to their phone, and they sign in
+with the password they have.
+
+The link is the app's own scheme rather than a web address on the house, because a
+house on the home network has no public name and no publicly trusted certificate, and a
+phone opens a web address in an app only for names fixed when the app was built and
+checked over the internet. A scheme opens on any network, with nothing reached first.
+On a phone without the app it opens nothing, which is why the invitation still carries
+the address somebody signs in at in a browser.
+
+Where the web surface has not been served encrypted on the network, the core has no
+address a phone could pin, so the invitation is made all the same, without a join link,
+and says why. It never composes an address to fill the gap.
+
 The operator never chooses or transmits someone else's password.
 
 The QR code matters more than it looks: the recipient is usually holding the
@@ -215,6 +243,11 @@ Per household member:
 | Operator invites someone while the stack is stopped | Requires Jellyfin running; say so rather than failing obscurely. |
 | Two people share a device | Supported — Jellyfin handles multiple profiles on one client. |
 | Invitee on a device that can't scan QR | The URL is always shown alongside. |
+| Join link forwarded to, or intercepted by, somebody else | Whoever opens it first and can reach the house may claim that one account within its window, as with the sign-in address. It carries no credential to any other account, nothing of the operator, and nothing usable off the household network. The operator sees the account claimed in the household; declining or removing it is the remedy. |
+| Join link opened after the account was claimed | The claim is refused as no longer open. The app still adds the house until the link lapses, and the person signs in with their password. |
+| Join link opened after it lapsed | The app refuses it before reaching the house, and the core refuses a claim on a lapsed offer whatever the link says: the core's record decides, not the link. |
+| Join link text replaced on the way | A channel that can rewrite the invitation can point somebody at another house to set a password there. That is the trust the sign-in address already rests on; it is stated, not mitigated. |
+| Web surface not served encrypted on the network | The invitation is made without a join link and says why, in words every surface can show. |
 | Household member should also be an operator | Out of scope. lemonfiber has a single operator; a second person needs host access. |
 
 ## Acceptance criteria
@@ -242,6 +275,11 @@ Per household member:
 | **D6-R19** | The core MUST answer a member's session with the member's display name as the media server holds it. |
 | **D6-R20** | The core MUST answer the operator's session with what a member invited with the household's default access and allowance would be told and could watch, and MUST NOT read or name any member's requests, allowance or watch history to answer it. |
 | **D6-R21** | When an invitation's window closes, the stack MUST take it back without a lemonfiber process running: an account nobody was ever seen in MUST be removed, and one somebody has been in MUST be switched off and kept. An account MUST be removed only where reads made just before the removal show that the core's invitation table names it under the same issue time, that it is not an administrator, that it has no password, and that nobody has ever signed in to it or used it; on any other answer, or none, it MUST be switched off or left as it is. A declined invitation MUST NOT be taken back. The core MUST report an invitation taken back this way as `expired`, and MUST NOT report a removed one as an account that went missing. |
+| **D6-R22** | Every invitation that is not a rehearsal MUST carry a join link where the web surface has last been served encrypted on the network and its certificate and address can be read. The link MUST be `lemonfiber://join?` followed by these parameters, percent-encoded and no others: `address`, `fingerprint`, `stack`, `expires` and `name`, and `claim` exactly where the standing is `made`, `waiting` or `reset`. `address`, `fingerprint` and `stack` MUST be what pairing material carries at that moment (`N1-R18`, `N1-R48`, `N1-R62`), and the core MUST NOT build the address itself; `expires` MUST be the moment the offer lapses, in seconds since the Unix epoch, or for `joined` the invitation's hours from now; `name` MUST be the account's name as the media server holds it; `claim` MUST be a token of at least 128 random bits minted for this offer. |
+| **D6-R23** | The core MUST keep a claim token only as a hash on the offer it was minted for. Offering the same person again, or reissuing, MUST mint a new token, and an older token MUST stop claiming anything. |
+| **D6-R24** | Where no join link can be made (`D6-R22`), the invitation MUST still be made, MUST carry no join link, and MUST say why in words every surface can show, naming no command (`N1-R76`). A rehearsal MUST carry no join link and no such sentence, because it mints no token. |
+| **D6-R25** | A claim MUST be refused unless the token's hash is on the offer standing for that account, the offer has not lapsed and has not been declined, and the account is unclaimed, not switched off and not an administrator. A claim that succeeds MUST set the password the person chose on their own account at the media server, acting as that account and never as the administrator; MUST spend the token; and MUST open a member session. The operator MUST NOT be able to read or set the chosen password (`D6-R2`). |
+| **D6-R26** | A chosen password shorter than the minimum the core enforces for its own credential MUST be refused, naming that minimum, briefly and without lecturing. |
 
 ## Related
 

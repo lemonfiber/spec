@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**112 features** in areas A–N, **1738 requirements**.
+**112 features** in areas A–N, **1750 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -72,7 +72,7 @@ code, and the two move independently.
 | [N14](n-companion/n14-what-version.md) | What is running, and what is newer | N | operator | accepted | — |
 | [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | accepted | — |
 | [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | accepted | `0.18.0` |
-| [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | — |
+| [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | `0.18.0` |
 | [N22](n-companion/n22-asking-for-help.md) | Asking for help | N | operator | accepted | — |
 | [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
 | [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
