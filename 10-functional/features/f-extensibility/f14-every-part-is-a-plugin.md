@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: planned
+maturity: building
 priority: P1
 labels: [extensibility, wiring, verification, security]
 requires: [F3, F4, F8, F9]
