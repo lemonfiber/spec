@@ -163,6 +163,12 @@ Decisions about a repository outside this organisation, such as
 | The three sites are hosted on Cloudflare (user, 2026-10-09): each is an assets-only Worker that its deploy workflow uploads with wrangler, using the organisation's `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and the job reports and stops while either is unset; the headers the host sends are in the `_headers` file each build carries, written by `website-kit`, never in a zone rule; the domains move to the Workers once each answers at its workers.dev address | This row, [REPO-R84](../30-repos/website-kit.md) |
 | A private root excludes whole each kind of name it is given none of, every address where no address is given and every host name where no host name is, carries an extended key usage of TLS server alone, and names what it issues by a label that is none of the names | [ARCH-R192](../20-architecture/contracts/certificates.md) |
 
+## 2026-10-11
+
+| Decision | Where it lives |
+|---|---|
+| A bump finds and edits its rolling pull request in one shared place in this repository, which every bump moves to in one coordinated pass: it lists open pull requests by owner and branch, accepts only one whose head is the repository itself and which the release app opened, refuses unless its head is the commit the bump just made, and only then edits or opens it and arms auto-merge where asked; anything else fails and edits nothing | [OPS-R87](../70-operations/staging.md) |
+
 ## Requirements
 
 | ID | Requirement |

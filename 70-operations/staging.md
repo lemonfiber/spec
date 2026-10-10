@@ -561,6 +561,7 @@ implementing them are built per repo.
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
 | **Bump ordering** | An automated bump does not merge itself while a repository downstream of it is running a required check the merge would discard |
 | **One bump per repository** | An automated bump keeps one pull request per repository on one branch, rebuilt from `main` for each new version and retitled to it, rather than opening another beside it |
+| **The bump's own pull request** | A bump edits or arms only the pull request the release app opened from the repository's own branch, at the commit it just made, through the one shared workflow |
 | **Issue lifecycle** | Releasing closes any drift issue the watchdog raised for that version |
 | **Release from the trunk** | A version is tagged on `main`; a hotfix to a shipped version branches from its tag and merges back |
 | **Discord cadence** | Staging and progress milestones (25/50/75/100%) post to `#maintainers`; execute posts to `#releases` |
@@ -612,6 +613,35 @@ cancelled by the workflows' own concurrency group, which cancels a superseded
 run on the same branch. The pin fan-out keeps `ci/take-the-shared-workflows`;
 the client and contract bumps already keep a branch each.
 
+### The bump's own pull request, and nobody else's
+
+Each run finds the pull request on its branch again, to retitle it and arm it to
+merge. `gh pr list --head <branch>` matches the branch name alone, so it also
+lists a fork's pull request whose branch is named the same, and a bump that
+edits that pull request and arms auto-merge on it lands a fork's code once its
+checks pass. Eleven bumps across the organisation looked their pull request up
+that way.
+
+So a bump touches a pull request only where all three hold (`OPS-R87`):
+
+| Held | Why |
+|------|-----|
+| Its head is the repository's own branch, listed by `head=<owner>:<branch>` | A fork's branch of the same name is somebody else's |
+| The release app opened it | A pull request a person opened on the branch is theirs to merge |
+| Its head, and the branch's, is the commit the run has just made | Auto-merge is armed at that commit and no other, so a commit pushed in between is never what merges |
+
+Anything else edits nothing and fails the run, naming what it found. A run that
+was not asked to arm the pull request switches off an earlier run's arming,
+because a pull request left armed merges whatever commit is pushed to it next.
+
+This is done in one place. [`rolling_pull_request.py`](../scripts/rolling_pull_request.py)
+holds the rules, and every repository's bump calls it through the reusable
+[`rolling-pull-request.yml`](../.github/workflows/rolling-pull-request.yml),
+pinned like the other shared workflows, in a job after the one that makes the
+commit. The pin fan-out runs the same script from this repository. A bump that
+looks for its pull request in a way of its own is a second set of rules, and
+eleven of them are how the lookup above came to be copied.
+
 ### When a goal cannot be cited
 
 A merged commit cannot gain a `Spec:` trailer. So a change that closed several
@@ -657,6 +687,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R47** | A `lemonfiber-media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep. |
 | **OPS-R85** | An automated bump MUST keep at most one open pull request per repository, on one branch it rebuilds from the default branch for each new version and whose pull request it retitles to that version; it MUST NOT open a pull request for a version beside one still open for an earlier version, and a pull request it opened for an earlier version on another branch MUST be closed, pointing at the one that replaces it. |
+| **OPS-R87** | An automated bump MUST edit, retitle or arm to merge only a pull request whose head is its own repository's branch, listed by that repository's owner and branch together, which the release app opened, and whose head is the commit the bump has just put on that branch, with the branch itself at that commit; it MUST arm auto-merge at that commit only, and MUST switch off auto-merge on a pull request it was not asked to arm. Anything else MUST fail the run without editing the pull request, naming what was found. Every bump MUST do this through `scripts/rolling_pull_request.py`, which a repository other than this one runs through the shared `rolling-pull-request` workflow. |
 | **OPS-R71** | An automated dependency bump MUST NOT merge itself while a repository that depends on it has an open automated bump whose required checks are still running and which that merge would discard; the deferral MUST be stated on the pull request, naming what it waits on. |
 | **OPS-R49** | A version MUST be released from `main`: the tag names a commit on the trunk, and no long-lived release branch is cut. A hotfix to an already-released version MUST branch from that version's tag and MUST be merged back to `main`. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |

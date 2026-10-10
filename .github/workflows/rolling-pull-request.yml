@@ -1,0 +1,134 @@
+# Reusable: open a bump's one rolling pull request, or edit the open one, only
+# where it is the bump's own — OPS-R85, OPS-R87.
+#
+# Every bump that keeps a branch of its own ends the same way: find the pull
+# request on that branch, retitle it, and arm it to merge. Found with
+# `gh pr list --head <branch>`, it is not necessarily the bump's: that also lists
+# a fork's pull request whose branch has the same name, and a bump that edits it
+# and arms it to merge lands a fork's code once its checks pass. This is the one
+# place it is done, and `scripts/rolling_pull_request.py` is how: a pull
+# request is the bump's only where its head is this repository's own branch, the
+# release app opened it, and its head is the commit the caller has just put
+# there. Anything else edits nothing and fails the run.
+#
+# The caller makes the commit, signed, in a job of its own, and calls this in the
+# next one with that commit:
+#
+#   pull-request:
+#     needs: bump
+#     if: needs.bump.outputs.head != ''
+#     uses: lemonfiber/spec/.github/workflows/rolling-pull-request.yml@<sha> # v1.0.N
+#     with:
+#       branch: chore/the-bump
+#       head: ${{ needs.bump.outputs.head }}
+#       title: ${{ needs.bump.outputs.title }}
+#       body: ${{ needs.bump.outputs.body }}
+#       auto-merge: true
+#     secrets:
+#       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
+#
+# The pull request is always in the calling repository, and the token is minted
+# for that repository alone.
+name: rolling-pull-request
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: The bump's own branch in the calling repository.
+        type: string
+        required: true
+      head:
+        description: The commit the caller has just put on that branch.
+        type: string
+        required: true
+      title:
+        description: The pull request's title, which its squash commit takes.
+        type: string
+        required: true
+      body:
+        description: The pull request's body, which its squash commit takes.
+        type: string
+        required: true
+      auto-merge:
+        description: >-
+          Arm the pull request to merge itself, squashing, at `head` once its
+          required checks pass. False switches off an earlier run's arming.
+        type: boolean
+        default: false
+      labels:
+        description: Labels a pull request this opens is given, comma-separated.
+        type: string
+        default: ""
+    outputs:
+      number:
+        description: The pull request's number.
+        value: ${{ jobs.open.outputs.number }}
+    # The one secret this reads, declared by name; `secrets: inherit` would hand
+    # a job needing one secret every secret the caller can see.
+    secrets:
+      RELEASE_APP_KEY:
+        description: The release app's private key, which mints the token the pull request is written with.
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  open:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      number: ${{ steps.open.outputs.number }}
+    steps:
+      - name: Which repository the token is for
+        id: here
+        run: echo "name=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+
+      # The app's token, not this workflow's: a pull request `GITHUB_TOKEN` opens
+      # starts no workflows, so its required checks would never report. The app
+      # it was minted for is also who the bump's pull request must have been
+      # opened by, so its slug is the author asked for below.
+      - name: Mint the release app's token for this repository
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ steps.here.outputs.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      # The script from the commit this workflow was called at, so a caller
+      # pinned at a revision runs that revision's script.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          persist-credentials: false
+
+      # Every input reaches the shell through the environment and the script as
+      # an argument of its own, so nothing a caller passes is read as shell.
+      - name: Open the pull request, or edit the bump's own
+        id: open
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          REPO: ${{ github.repository }}
+          AUTHOR: ${{ steps.token.outputs.app-slug }}[bot]
+          BRANCH: ${{ inputs.branch }}
+          HEAD_SHA: ${{ inputs.head }}
+          TITLE: ${{ inputs.title }}
+          BODY: ${{ inputs.body }}
+          LABELS: ${{ inputs.labels }}
+          AUTO_MERGE: ${{ inputs.auto-merge }}
+        run: |
+          set -euo pipefail
+          args=(--repo "$REPO" --branch "$BRANCH" --head "$HEAD_SHA" --author "$AUTHOR"
+                "--title=$TITLE" "--labels=$LABELS")
+          if [ "$AUTO_MERGE" = "true" ]; then args+=(--auto-merge); fi
+          number="$(printf '%s\n' "$BODY" | python3 .spec-tooling/scripts/rolling_pull_request.py "${args[@]}")"
+          echo "number=${number}" >> "$GITHUB_OUTPUT"
+          echo "Pull request #${number} is the bump's, at \`${HEAD_SHA}\`." >> "$GITHUB_STEP_SUMMARY"

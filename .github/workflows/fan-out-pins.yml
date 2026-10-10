@@ -220,6 +220,9 @@ jobs:
           COMMIT: ${{ steps.at.outputs.commit }}
           NAMED: ${{ steps.who.outputs.named }}
           SPEC: ${{ github.workspace }}
+          # The app the token is minted for, which is who the bump's own pull
+          # requests were opened by.
+          APP: ${{ steps.token.outputs.app-slug }}
         run: |
           set -uo pipefail
           branch="ci/take-the-shared-workflows"
@@ -301,7 +304,7 @@ jobs:
             if ! gh pr list --repo "${OWNER}/${repo}" --state open --limit 200 \
                  --json number,headRefName,isCrossRepository,author \
                  --jq '.[] | select(.isCrossRepository | not)
-                       | select(.author.login == "app/lemonfiber-release-train")
+                       | select(.author.login == "app/" + env.APP)
                        | "\(.number) \(.headRefName)"' \
                  >"${work}/${repo}.open"; then
               echo "::warning::${repo}'s open pull requests could not be listed"
@@ -327,28 +330,26 @@ jobs:
               # staging branch, so the pull request on it is never left holding
               # no commits. What refused is kept: a protected branch, a missing
               # permission and a network fault all read alike without it.
-              if ! python3 "${SPEC}/scripts/signed_pin_commit.py" \
+              if ! built=$(python3 "${SPEC}/scripts/signed_pin_commit.py" \
                    --repo "$at" --slug "${OWNER}/${repo}" --branch "$branch" \
-                   --message "${work}/message" >/dev/null 2>"${work}/refusal"; then
+                   --message "${work}/message" 2>"${work}/refusal"); then
                 echo "::warning::${repo} would not take the bump: $(tr '\n' ' ' <"${work}/refusal")"
                 refused="${refused} ${repo}"
                 echo "::endgroup::"; continue
               fi
 
-              if [ -n "$rolling" ]; then
-                if gh pr edit "$rolling" --repo "${OWNER}/${repo}" \
-                     --title "$title" --body-file "${work}/body" >/dev/null; then
-                  moved="${moved} ${repo}"
-                else
-                  echo "::warning::${repo}#${rolling} would not take the new title"
-                  refused="${refused} ${repo}"
-                fi
-              elif rolling=$(gh pr create --repo "${OWNER}/${repo}" --head "$branch" \
-                     --title "$title" --body-file "${work}/body"); then
-                rolling=${rolling##*/}
-                opened="${opened} ${repo}"
+              # The pull request is found and touched the way every bump's is
+              # (OPS-R87): retitled only where it is the app's own, from this
+              # repository's branch, at the commit just made; opened where none
+              # is open; anything else edits nothing and is refused.
+              if number=$(python3 "${SPEC}/scripts/rolling_pull_request.py" \
+                   --repo "${OWNER}/${repo}" --branch "$branch" --head "$built" \
+                   --author "${APP}[bot]" "--title=${title}" \
+                   <"${work}/body" 2>"${work}/said"); then
+                if [ -n "$rolling" ]; then moved="${moved} ${repo}"; else opened="${opened} ${repo}"; fi
+                rolling=$number
               else
-                echo "::warning::${repo} would not take the pull request"
+                echo "::warning::${repo} would not take the pull request: $(tr '\n' ' ' <"${work}/said")"
                 refused="${refused} ${repo}"
               fi
             fi

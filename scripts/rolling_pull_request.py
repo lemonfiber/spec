@@ -1,0 +1,226 @@
+#!/usr/bin/env python3
+"""Open a bump's rolling pull request, or edit it, only where it is the bump's own — OPS-R87.
+
+An automated bump keeps one branch and one pull request on it (OPS-R85), and
+each run finds that pull request again to retitle it and arm it to merge. Found
+by branch name alone, it is not the bump's: `gh pr list --head <branch>` also
+lists a fork's pull request whose branch has the same name, and a bump that
+then edits it and arms auto-merge merges the fork's code once its checks pass.
+
+So the pull request is found by the repository and the branch together, and
+only one that is the bump's own is touched:
+
+- open pull requests are listed by `head=<owner>:<branch>`, and one whose head
+  is not this repository's own branch is not the bump's;
+- the bump's must have been opened by the account the bump writes as, which is
+  the app whose token runs this, and one opened by anybody else is refused;
+- its head must be the commit the bump has just put on the branch, and so must
+  the branch itself, so a commit somebody else pushed there is never what is
+  armed to merge.
+
+Where none is open, one is opened from the branch, and checked the same way
+once it exists. Auto-merge is armed at the given commit only, squashing, or
+switched off where the caller did not ask for it: a pull request armed by an
+earlier run would otherwise merge a later commit nobody asked to merge.
+Anything else edits nothing and fails, naming what it found.
+
+Usage:
+  rolling_pull_request.py --repo <owner/name> --branch <branch> --head <commit>
+                          --author <login> --title=<title>
+                          [--labels=<label>,<label>] [--auto-merge] < body.md
+
+`--author` is the login the bump's pull request was opened by, `<app>[bot]` for
+an app. The body is read from standard input, so no file needs to be named and
+none can be read but the one the caller hands over. The pull request's number is
+printed on standard output; everything else is said on standard error.
+
+Exit 0 having opened or edited the pull request, and armed or disarmed it; 1
+where what is open on the branch is not the bump's own, or a head is not the
+commit given, and nothing was edited; 2 where the arguments are malformed or the
+forge could not be read or written.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+import urllib.parse
+from collections.abc import Callable
+
+#: The branch every rolling pull request merges into.
+BASE = "main"
+
+#: How the pull request is merged once armed, as the GraphQL enum names it.
+MERGE_METHOD = "SQUASH"
+
+#: The most open pull requests one `head` filter is asked for. One repository's
+#: branch has at most one open pull request per base, so a page is plenty.
+PER_PAGE = 100
+
+#: The shapes a repository's name, a branch's and a commit's take. Each is held
+#: before it reaches a URL, so none can be read there as a path out of the API's
+#: repository and branch namespaces.
+SLUG = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._][A-Za-z0-9._-]*\Z")
+BRANCH = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9._-]*(/[A-Za-z0-9][A-Za-z0-9._-]*)*\Z")
+COMMIT = re.compile(r"\A[0-9a-f]{40}\Z")
+
+ARM = (
+    "mutation($id: ID!, $method: PullRequestMergeMethod!, $head: GitObjectID!) "
+    "{ enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: $method, "
+    "expectedHeadOid: $head}) { clientMutationId } }"
+)
+DISARM = (
+    "mutation($id: ID!) "
+    "{ disablePullRequestAutoMerge(input: {pullRequestId: $id}) { clientMutationId } }"
+)
+
+#: One call to the forge through `gh api`: the method, the path and the JSON
+#: payload, if any, answered as JSON.
+Api = Callable[[str, str, dict | None], object]
+
+
+class Refused(Exception):
+    """What is on the branch is not the bump's own; nothing was edited."""
+
+
+def gh(method: str, path: str, payload: dict | None = None) -> object:
+    """One call through `gh api`, the payload as JSON on its standard input."""
+    args = ["gh", "api", "--method", method, path]
+    if payload is not None:
+        args += ["--input", "-"]
+    done = subprocess.run(args, input=json.dumps(payload) if payload is not None else None,
+                          capture_output=True, text=True, check=True)
+    return json.loads(done.stdout) if done.stdout.strip() else {}
+
+
+def quoted(branch: str) -> str:
+    """A branch as it sits in a URL: its slashes kept, everything else escaped."""
+    return urllib.parse.quote(branch, safe="/")
+
+
+def graphql(api: Api, query: str, variables: dict) -> None:
+    """One mutation, refused where the forge answered it with errors."""
+    answer = api("POST", "graphql", {"query": query, "variables": variables})
+    errors = answer.get("errors") if isinstance(answer, dict) else None
+    if errors:
+        raise subprocess.CalledProcessError(1, "gh api graphql", stderr=json.dumps(errors))
+
+
+def wrong_with(pull: dict, author: str, head: str) -> str | None:
+    """Why a pull request is not the bump's own at the given commit, or None."""
+    number = pull["number"]
+    login = (pull.get("user") or {}).get("login")
+    if login != author:
+        return f"#{number} was opened by {login or 'nobody known'}, not {author}, so it is not the bump's"
+    if pull["base"]["ref"] != BASE:
+        return f"#{number} merges into {pull['base']['ref']}, not {BASE}"
+    if pull["head"]["sha"] != head:
+        return f"#{number} is at {pull['head']['sha']}, not {head}, the commit this run put on the branch"
+    return None
+
+
+def own(pulls: list[dict], repo: str, branch: str) -> list[dict]:
+    """The open pull requests whose head is this repository's own branch."""
+    found = []
+    for pull in pulls:
+        at = (pull["head"].get("repo") or {}).get("full_name")
+        if at == repo and pull["head"]["ref"] == branch:
+            found.append(pull)
+        else:
+            print(f"#{pull['number']} is from {at or 'a deleted repository'}:{pull['head']['ref']}, "
+                  f"not {repo}:{branch}; it is not the bump's and is left alone", file=sys.stderr)
+    return found
+
+
+def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str,
+           labels: list[str], auto_merge: bool, api: Api) -> int:
+    """Open or edit the bump's pull request, arm or disarm it, and return its number."""
+    at = api("GET", f"repos/{repo}/git/ref/heads/{quoted(branch)}", None)["object"]["sha"]
+    if at != head:
+        raise Refused(f"{branch} is at {at}, not {head}, the commit this run put on it; nothing was edited")
+
+    owner = repo.split("/")[0]
+    query = urllib.parse.urlencode({"head": f"{owner}:{branch}", "state": "open", "per_page": PER_PAGE})
+    found = own(api("GET", f"repos/{repo}/pulls?{query}", None), repo, branch)
+    if len(found) > 1:
+        raise Refused(f"{len(found)} pull requests are open on {branch}: "
+                      f"{', '.join('#' + str(p['number']) for p in found)}; nothing was edited")
+
+    if found:
+        pull = found[0]
+        wrong = wrong_with(pull, author, head)
+        if wrong:
+            raise Refused(f"{wrong}; nothing was edited")
+        api("PATCH", f"repos/{repo}/pulls/{pull['number']}", {"title": title, "body": body})
+        print(f"::notice::#{pull['number']} retitled and its body replaced, at {head}", file=sys.stderr)
+    else:
+        pull = api("POST", f"repos/{repo}/pulls", {"title": title, "head": branch, "base": BASE, "body": body})
+        wrong = wrong_with(pull, author, head)
+        if wrong:
+            raise Refused(f"the pull request just opened is not as asked: {wrong}; it is neither labelled nor armed")
+        if labels:
+            api("POST", f"repos/{repo}/issues/{pull['number']}/labels", {"labels": labels})
+        print(f"::notice::opened #{pull['number']} from {branch}, at {head}", file=sys.stderr)
+
+    if auto_merge:
+        graphql(api, ARM, {"id": pull["node_id"], "method": MERGE_METHOD, "head": head})
+        print(f"::notice::#{pull['number']} merges itself at {head} once its required checks pass",
+              file=sys.stderr)
+    elif pull.get("auto_merge"):
+        graphql(api, DISARM, {"id": pull["node_id"]})
+        print(f"::notice::#{pull['number']} no longer merges itself: this run did not ask for it",
+              file=sys.stderr)
+    return pull["number"]
+
+
+def malformed(args: argparse.Namespace) -> str | None:
+    """What is wrong with the arguments, or None."""
+    if not SLUG.match(args.repo):
+        return f"--repo {args.repo!r} is not owner/name"
+    if not BRANCH.match(args.branch) or args.branch == BASE:
+        return f"--branch {args.branch!r} is not a bump's branch"
+    if not COMMIT.match(args.head):
+        return f"--head {args.head!r} is not a commit"
+    if not args.author.strip():
+        return "--author is empty, so nobody's pull request could be the bump's"
+    if not args.title.strip():
+        return "--title is empty"
+    return None
+
+
+def main(argv: list[str] | None = None, api: Api = gh) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--repo", required=True)
+    parser.add_argument("--branch", required=True)
+    parser.add_argument("--head", required=True, help="the commit the bump has just put on the branch")
+    parser.add_argument("--author", required=True, help="the login the bump's pull request is opened by")
+    parser.add_argument("--title", required=True)
+    parser.add_argument("--labels", default="", help="comma-separated, given to a pull request this opens")
+    parser.add_argument("--auto-merge", action="store_true", help="arm it to merge itself at --head")
+    args = parser.parse_args(argv)
+
+    wrong = malformed(args)
+    if wrong:
+        print(f"::error::{wrong}", file=sys.stderr)
+        return 2
+    try:
+        body = sys.stdin.read()
+        number = rolled(args.repo, args.branch, args.head, args.author, args.title, body,
+                        [label.strip() for label in args.labels.split(",") if label.strip()], args.auto_merge, api)
+    except Refused as refused:
+        print(f"::error::{refused}.", file=sys.stderr)
+        return 1
+    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError, KeyError, TypeError) as broken:
+        detail = getattr(broken, "stderr", "") or broken
+        print(f"::error::The forge could not be read or written, so the pull request was left as it was: {detail}",
+              file=sys.stderr)
+        return 2
+    print(number)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

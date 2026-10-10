@@ -97,6 +97,7 @@ jobs:
           coverage run --append scripts/test_fan_out_pins.py
           coverage run --append scripts/test_signed_pin_commit.py
           coverage run --append scripts/test_pin_only.py
+          coverage run --append scripts/test_rolling_pull_request.py
           coverage run --append scripts/test_local_command.py
           coverage run --append scripts/test_nothing_passes_over_nothing.py
           coverage run --append scripts/test_generated.py
