@@ -5,7 +5,7 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [verification]
 requires: [C4, G4]
 relates: [C1, C9]

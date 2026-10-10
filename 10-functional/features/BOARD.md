@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 26 shipped, 29 built, 37 building, 19 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 29 built, 38 building, 19 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -39,7 +39,6 @@ code, and the two move independently.
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | accepted | `0.16.0` |
 | [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | F | operator | accepted | `0.17.0` |
-| [G1](g-ux/g1-interface-tiers.md) | Interface tiers | G | both | accepted | `0.9.0` |
 | [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.17.0` |
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | G | household | accepted | `0.11.0` |
 | [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
@@ -50,6 +49,7 @@ code, and the two move independently.
 |----|---------|------|----------|--------|----------|
 | [A4](a-getting-started/a4-reconfiguration.md) | Reconfiguration | A | operator | accepted | `0.13.0`, `0.18.0` |
 | [B1](b-running/b1-forms.md) | Forms & partial stacks | B | operator | accepted | `0.1.0`, `0.17.0`, `0.18.0`, `0.8.0` |
+| [C3](c-trust/c3-auto-remediation.md) | Auto-remediation | C | operator | accepted | `0.18.0`, `0.7.0` |
 | [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.17.0`, `0.18.0`, `0.9.0` |
 | [C10](c-trust/c10-integration-keys.md) | Integration keys | C | operator | accepted | `0.18.0` |
 | [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.18.0`, `0.4.0` |
@@ -72,7 +72,6 @@ code, and the two move independently.
 | [N14](n-companion/n14-what-version.md) | What is running, and what is newer | N | operator | accepted | — |
 | [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | accepted | — |
 | [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | accepted | `0.18.0` |
-| [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | `0.18.0` |
 | [N22](n-companion/n22-asking-for-help.md) | Asking for help | N | operator | accepted | — |
 | [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
 | [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
@@ -89,7 +88,6 @@ code, and the two move independently.
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.18.0`, `0.2.0`, `0.8.0` |
-| [C3](c-trust/c3-auto-remediation.md) | Auto-remediation | C | operator | accepted | `0.18.0`, `0.7.0` |
 | [C4](c-trust/c4-support-bundle.md) | Support bundle | C | operator | accepted | `0.18.0`, `0.7.0` |
 | [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.18.0`, `0.4.0`, `0.7.0` |
 | [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.18.0`, `0.4.0` |
@@ -101,6 +99,7 @@ code, and the two move independently.
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F14](f-extensibility/f14-every-part-is-a-plugin.md) | Every part is a plugin | F | operator | accepted | `0.18.0` |
+| [G1](g-ux/g1-interface-tiers.md) | Interface tiers | G | both | accepted | `0.18.0`, `0.9.0` |
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.18.0`, `0.9.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.18.0`, `0.5.0` |
@@ -117,6 +116,7 @@ code, and the two move independently.
 | [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
 | [N18](n-companion/n18-running-part-of-it.md) | Running part of it on purpose | N | operator | accepted | — |
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
+| [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | `0.18.0` |
 | [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | — |
 | [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |
 
