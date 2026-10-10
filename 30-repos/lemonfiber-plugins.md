@@ -37,6 +37,9 @@ human spends any attention.
 lemonfiber-plugins/
 ├── plugins/
 │   └── <id>.toml            where it is, and the revision that was read
+├── bundle/
+│   ├── bundle.toml          the default bundle: each first-party plugin, pinned
+│   └── plugins/<id>.toml    a copy of each pinned manifest, checked against its origin
 ├── registry/                the checks CI runs over an entry
 ├── targets.toml             the lemonfiber version the checks are held to
 ├── justfile
@@ -120,6 +123,34 @@ the `CATALOGUE_SIGNING_KEY` secret, and publishes both on the tag, and it fails 
 than publish an index it could not sign
 ([ADR-0034](../00-overview/decisions/0034-a-catalogue-release-is-signed-with-a-key-the-binary-carries.md)).
 
+## The bundle
+
+The default bundle is the set of first-party plugins every stack is built from
+([ADR-0042](../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md)).
+It lives here, in `bundle/`, and the core embeds it by pinning this repository as a
+submodule.
+
+`bundle/bundle.toml` names each first-party plugin with five things (`REPO-R91`):
+- its origin;
+- the release it was tagged at;
+- the revision of its repository whose manifest names that release's image;
+- the digest of the manifest at that revision;
+- the capabilities it fills by default.
+
+It pins a revision rather than the tag because a manifest names its image by digest,
+and that digest reaches the plugin's `main` through the pin pull request its release
+opens after the tag.
+
+Beside it, `bundle/plugins/<id>.toml` is the manifest at that revision, copied byte
+for byte. This is the one place the catalogue holds a copy (`REPO-R60`). The binary
+compiles the bundle in and installs a stack offline, so it needs the manifests
+themselves and not their addresses. CI holds each copy to its origin (`REPO-R92`):
+a copy that differs from the manifest at the pinned revision is refused, so the copy
+and the origin are one answer.
+
+The pins move with the release train (`OPS-R86`), not with a contribution. The
+catalogue's own releases and its register keep their own clock (`OPS-R59`).
+
 ## What it never becomes
 
 **Not a runtime dependency.** An installed plugin keeps working with this repository
@@ -141,10 +172,12 @@ project has said it does not build.
 | **REPO-R57** | A catalogue release MUST be signed, and what the signature covers MUST be exactly what was reviewed. |
 | **REPO-R58** | The catalogue MUST NOT publish anything an installed plugin resolves at run time. |
 | **REPO-R59** | The catalogue MUST hold no service, no database and no state beyond the repository itself. |
-| **REPO-R60** | The catalogue MUST register each plugin as an origin and the revision of it that was reviewed, MUST hold no copy of a registered plugin's manifest or recordings, and MUST contain nothing that cannot be reviewed as a readable diff. |
+| **REPO-R60** | The catalogue MUST register each plugin as an origin and the revision of it that was reviewed, MUST hold no copy of a registered plugin's manifest or recordings other than the bundle's copies (`REPO-R91`), and MUST contain nothing that cannot be reviewed as a readable diff. |
 | **REPO-R61** | Its CI MUST fetch each registered revision and, from the data in that revision alone, validate the manifest against the published schema, run every declared proof against the plugin's recorded fixtures, and check its declared reach statically; a registration failing any of these MUST be refused before human review. |
 | **REPO-R62** | The catalogue MUST NOT execute anything from a registered repository, and MUST read that repository as data only. |
 | **REPO-R63** | Every catalogue release's index MUST carry a serial higher than every earlier release's, inside what the signature covers. |
+| **REPO-R91** | The default bundle MUST be `bundle/bundle.toml`, naming for each first-party plugin its origin, the release it was tagged at, the revision of its repository whose manifest names that release's image, the digest of the manifest at that revision, and the capabilities it fills by default; and the catalogue MUST hold that manifest, copied byte for byte, at `bundle/plugins/<id>.toml`. |
+| **REPO-R92** | The catalogue's CI MUST refuse a bundle in which a copy differs from the manifest fetched from its origin at the pinned revision, a pinned digest is not its copy's, a copy's adapter service is not tagged at the pinned release, or a pinned plugin fails a check `REPO-R61` holds a registration to. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber-plugins`.
 
