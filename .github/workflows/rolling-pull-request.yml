@@ -58,6 +58,13 @@ on:
           pull request already carries as it is.
         type: boolean
         default: false
+      disarm:
+        description: >-
+          Switch off auto-merge the pull request already carries, for a change
+          that wants reading: the app's own pushes leave an armed pull request
+          armed. False leaves auto-merge as it is. Not with `auto-merge`.
+        type: boolean
+        default: false
       labels:
         description: Labels a pull request this opens is given, comma-separated.
         type: string
@@ -126,11 +133,13 @@ jobs:
           BODY: ${{ inputs.body }}
           LABELS: ${{ inputs.labels }}
           AUTO_MERGE: ${{ inputs.auto-merge }}
+          DISARM: ${{ inputs.disarm }}
         run: |
           set -euo pipefail
           args=(--repo "$REPO" --branch "$BRANCH" --head "$HEAD_SHA" --author "$AUTHOR"
                 "--title=$TITLE" "--labels=$LABELS")
           if [ "$AUTO_MERGE" = "true" ]; then args+=(--auto-merge); fi
+          if [ "$DISARM" = "true" ]; then args+=(--disarm); fi
           number="$(printf '%s\n' "$BODY" | python3 .spec-tooling/scripts/rolling_pull_request.py "${args[@]}")"
           echo "number=${number}" >> "$GITHUB_OUTPUT"
           echo "Pull request #${number} is the bump's, at \`${HEAD_SHA}\`." >> "$GITHUB_STEP_SUMMARY"

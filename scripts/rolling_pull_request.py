@@ -23,21 +23,26 @@ only one that is the bump's own is touched:
 
 Where none is open, one is opened from the branch, and checked the same way
 once it exists. Auto-merge is armed at the given commit only, squashing, and
-only where the caller asks for it; where it does not, whatever arming the pull
-request already carries is left as it is, a maintainer's included.
+only where the caller asks for it, pinned to that commit so a push landing
+after these checks is never what merges. `--disarm` switches off arming the
+pull request already carries, for a run whose change wants reading: an armed
+pull request stays armed across the app's own pushes, so without it a change
+nobody has read would merge. Asking for neither leaves auto-merge as it is, a
+maintainer's arming included.
 Anything else edits nothing and fails, naming what it found.
 
 Usage:
   rolling_pull_request.py --repo <owner/name> --branch <branch> --head <commit>
                           --author <login> --title=<title>
-                          [--labels=<label>,<label>] [--auto-merge] < body.md
+                          [--labels=<label>,<label>] [--auto-merge | --disarm] < body.md
 
 `--author` is the login the bump's pull request was opened by, `<app>[bot]` for
 an app. The body is read from standard input, so no file needs to be named and
 none can be read but the one the caller hands over. The pull request's number is
 printed on standard output; everything else is said on standard error.
 
-Exit 0 having opened or edited the pull request, and armed it where asked; 1
+Exit 0 having opened or edited the pull request, and armed or disarmed it where
+asked; 1
 where what is open on the branch is not the bump's own, or a head is not the
 commit given, and nothing was edited; 2 where the arguments are malformed or the
 forge could not be read or written.
@@ -74,6 +79,11 @@ ARM = (
     "mutation($id: ID!, $method: PullRequestMergeMethod!, $head: GitObjectID!) "
     "{ enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: $method, "
     "expectedHeadOid: $head}) { clientMutationId } }"
+)
+
+DISARM = (
+    "mutation($id: ID!) "
+    "{ disablePullRequestAutoMerge(input: {pullRequestId: $id}) { clientMutationId } }"
 )
 
 #: One call to the forge through `gh api`: the method, the path and the JSON
@@ -138,8 +148,8 @@ def own(pulls: list[dict], repo: str, branch: str) -> list[dict]:
 
 
 def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str,
-           labels: list[str], auto_merge: bool, api: Api) -> int:
-    """Open or edit the bump's pull request, arm it where asked, and return its number."""
+           labels: list[str], auto_merge: bool, api: Api, disarm: bool = False) -> int:
+    """Open or edit the bump's pull request, arm or disarm it where asked, and return its number."""
     at = api("GET", f"repos/{repo}/git/ref/heads/{quoted(branch)}", None)["object"]["sha"]
     if at != head:
         raise Refused(f"{branch} is at {at}, not {head}, the commit this run put on it; nothing was edited")
@@ -176,6 +186,10 @@ def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str
         graphql(api, ARM, {"id": pull["node_id"], "method": MERGE_METHOD, "head": head})
         print(f"::notice::#{pull['number']} merges itself at {head} once its required checks pass",
               file=sys.stderr)
+    elif disarm and pull.get("auto_merge"):
+        graphql(api, DISARM, {"id": pull["node_id"]})
+        print(f"::notice::#{pull['number']} no longer merges itself: its change wants reading",
+              file=sys.stderr)
     return pull["number"]
 
 
@@ -191,6 +205,8 @@ def malformed(args: argparse.Namespace) -> str | None:
         return "--author is empty, so nobody's pull request could be the bump's"
     if not args.title.strip():
         return "--title is empty"
+    if args.auto_merge and args.disarm:
+        return "--auto-merge and --disarm ask for opposite things"
     return None
 
 
@@ -203,6 +219,7 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
     parser.add_argument("--title", required=True)
     parser.add_argument("--labels", default="", help="comma-separated, given to a pull request this opens")
     parser.add_argument("--auto-merge", action="store_true", help="arm it to merge itself at --head")
+    parser.add_argument("--disarm", action="store_true", help="switch off the arming it already carries")
     args = parser.parse_args(argv)
 
     wrong = malformed(args)
@@ -212,7 +229,8 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
     try:
         body = sys.stdin.read()
         number = rolled(args.repo, args.branch, args.head, args.author, args.title, body,
-                        [label.strip() for label in args.labels.split(",") if label.strip()], args.auto_merge, api)
+                        [label.strip() for label in args.labels.split(",") if label.strip()], args.auto_merge, api,
+                        disarm=args.disarm)
     except Refused as refused:
         print(f"::error::{refused}.", file=sys.stderr)
         return 1

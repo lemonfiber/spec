@@ -285,6 +285,27 @@ class TheBumpsOwn(unittest.TestCase):
         self.assertEqual(forge.mutations(), [])
         self.assertEqual([m for m, _, _ in forge.writes()], ["PATCH"])
 
+    def test_disarm_switches_off_the_arming_an_armed_pull_request_carries(self):
+        forge = Forge([pull(armed={"merge_method": "squash"})])
+        code, _, err = run(forge, "--disarm")
+        self.assertEqual(code, 0)
+        (disarmed,) = forge.mutations()
+        self.assertIn("disablePullRequestAutoMerge", disarmed["query"])
+        self.assertEqual(disarmed["variables"], {"id": "PR_7"})
+        self.assertIn("no longer merges itself", err)
+
+    def test_disarm_on_a_pull_request_nothing_armed_calls_nothing(self):
+        forge = Forge([pull()])
+        code, _, _ = run(forge, "--disarm")
+        self.assertEqual(code, 0)
+        self.assertEqual(forge.mutations(), [])
+
+    def test_disarm_is_refused_on_somebody_elses_pull_request(self):
+        forge = Forge([pull(login="somebody", armed={"merge_method": "squash"})])
+        code, _, _ = run(forge, "--disarm")
+        self.assertEqual(code, 1)
+        self.assertEqual(forge.writes(), [])
+
     def test_nothing_armed_and_nothing_asked_calls_nothing(self):
         forge = Forge([pull()])
         run(forge)
@@ -363,6 +384,16 @@ class MalformedArguments(unittest.TestCase):
         self.assertIn("--author is empty", self.refused(**{"--author": " "}))
         self.assertIn("--title is empty", self.refused(**{"--title": ""}))
 
+    def test_arming_and_disarming_at_once_is_refused(self):
+        forge = Forge()
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code = rolling.main(["--repo", REPO, "--branch", BRANCH, "--head", HEAD, "--author", BOT,
+                                 "--title=t", "--auto-merge", "--disarm"], api=forge)
+        self.assertEqual(code, 2)
+        self.assertEqual(forge.asked, [])
+        self.assertIn("opposite things", err.getvalue())
+
 
 GH_STUB = """#!/bin/sh
 set -eu
@@ -431,14 +462,15 @@ class WithAStubbedGh(unittest.TestCase):
         output, summary = self.scratch / "output", self.scratch / "summary"
         env = {**self.env, "GITHUB_OUTPUT": str(output), "GITHUB_STEP_SUMMARY": str(summary),
                "GH_TOKEN": "x", "REPO": REPO, "AUTHOR": BOT, "BRANCH": BRANCH, "HEAD_SHA": HEAD,
-               "TITLE": "chore: t", "BODY": "the body", "LABELS": "", "AUTO_MERGE": "false", **inputs}
+               "TITLE": "chore: t", "BODY": "the body", "LABELS": "", "AUTO_MERGE": "false",
+               "DISARM": "false", **inputs}
         done = subprocess.run(["bash", "-c", self.step()["run"]], cwd=work, env=env,
                               capture_output=True, text=True, check=False)
         written = output.read_text(encoding="utf-8") if output.exists() else ""
         return done, written, work
 
     def test_the_step_opens_labels_and_arms_and_says_the_number(self):
-        done, written, _ = self.run_step(LABELS="dependencies,ci", AUTO_MERGE="true")
+        done, written, _ = self.run_step(LABELS="dependencies,ci", AUTO_MERGE="true", DISARM="false")
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertEqual(written, "number=9\n")
         log = self.log.read_text(encoding="utf-8")
@@ -456,6 +488,19 @@ class WithAStubbedGh(unittest.TestCase):
         log = self.log.read_text(encoding="utf-8")
         self.assertNotIn("PATCH", log)
         self.assertNotIn("graphql", log)
+
+    def test_the_step_disarms_an_armed_pull_request_when_asked(self):
+        self.env["GH_PULLS"] = json.dumps([pull(armed={"merge_method": "squash"})])
+        done, written, _ = self.run_step(DISARM="true")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(written, "number=7\n")
+        self.assertIn("disablePullRequestAutoMerge", self.log.read_text(encoding="utf-8"))
+
+    def test_the_step_leaves_an_armed_pull_request_armed_by_default(self):
+        self.env["GH_PULLS"] = json.dumps([pull(armed={"merge_method": "squash"})])
+        done, _, _ = self.run_step()
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertNotIn("graphql", self.log.read_text(encoding="utf-8"))
 
     def test_what_a_caller_passes_is_never_read_as_shell(self):
         title = 'chore: $(touch pwned) `touch pwned` "; touch pwned; "'

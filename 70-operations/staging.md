@@ -631,9 +631,13 @@ So a bump touches a pull request only where all of these hold (`OPS-R87`):
 | It is open, unmerged, and the release app's bot opened it | A pull request a person opened on the branch is theirs to merge, and a closed one is never edited |
 | Its head is the commit the run has just made | Auto-merge is armed at that commit and no other, so a commit pushed in between is never what merges |
 
-Anything else edits nothing and fails the run, naming what it found. A run that
-was not asked to arm the pull request arms nothing and leaves auto-merge as it
-finds it: whether a maintainer's arming still holds is theirs to decide.
+Anything else edits nothing and fails the run, naming what it found. Arming is
+pinned to the commit just checked, so a push landing between the check and the
+merge cannot ride in. A run asked to disarm switches off arming the pull request
+already carries, which is how a regeneration that did not come out clean is kept
+from merging unread: an armed pull request stays armed across the app's own
+pushes. A run asked for neither leaves auto-merge as it finds it, a maintainer's
+arming included.
 
 This is done in one place. [`rolling_pull_request.py`](../scripts/rolling_pull_request.py)
 holds the rules, and every repository's bump calls it through the reusable
@@ -688,7 +692,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R47** | A `lemonfiber-media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep. |
 | **OPS-R85** | An automated bump MUST keep at most one open pull request per repository, on one branch it rebuilds from the default branch for each new version and whose pull request it retitles to that version; it MUST NOT open a pull request for a version beside one still open for an earlier version, and a pull request it opened for an earlier version on another branch MUST be closed, pointing at the one that replaces it. |
-| **OPS-R87** | An automated bump MUST edit, retitle or arm to merge only an open, unmerged pull request whose head is its own repository's branch, listed by that repository's owner and branch together, which the release app's bot opened, and whose head is the commit the bump has just put on that branch, with the branch itself at that commit and that commit authored as the release app and verified; it MUST open a pull request only from a branch whose tip is such a commit; it MUST arm auto-merge at that commit only, and only where asked, and MUST leave a pull request's auto-merge as it is where it was not asked to arm it. Anything else MUST fail the run without editing the pull request, naming what was found. Every bump MUST do this through `scripts/rolling_pull_request.py`, which a repository other than this one runs through the shared `rolling-pull-request` workflow. |
+| **OPS-R87** | An automated bump MUST edit, retitle or arm to merge only an open, unmerged pull request whose head is its own repository's branch, listed by that repository's owner and branch together, which the release app's bot opened, and whose head is the commit the bump has just put on that branch, with the branch itself at that commit and that commit authored as the release app and verified; it MUST open a pull request only from a branch whose tip is such a commit; it MUST arm auto-merge only where asked and pinned to that commit, MUST switch off auto-merge the pull request carries where asked to disarm it, and MUST leave a pull request's auto-merge as it is where asked for neither; a bump whose change did not come out clean MUST ask to disarm. Anything else MUST fail the run without editing the pull request, naming what was found. Every bump MUST do this through `scripts/rolling_pull_request.py`, which a repository other than this one runs through the shared `rolling-pull-request` workflow. |
 | **OPS-R71** | An automated dependency bump MUST NOT merge itself while a repository that depends on it has an open automated bump whose required checks are still running and which that merge would discard; the deferral MUST be stated on the pull request, naming what it waits on. |
 | **OPS-R49** | A version MUST be released from `main`: the tag names a commit on the trunk, and no long-lived release branch is cut. A hotfix to an already-released version MUST branch from that version's tag and MUST be merged back to `main`. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |
