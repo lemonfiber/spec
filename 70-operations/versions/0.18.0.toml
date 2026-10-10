@@ -251,7 +251,7 @@
 # back, and the pictures a browser reads from the core. The companion's player (N3-R14 to N3-R16) is built on them. `lemonfiber-media-stack`
 # is cut because `D11-R2` puts the guard in front of the media server in every form that
 # serves it.
-# 424 goals, seeded from the roadmap milestone this version serves;
+# 426 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -696,6 +696,8 @@ goals   = [
     "F14-R24",
     "F14-R25",
     "F14-R26",
+    "F14-R27",
+    "F14-R28",
     "ARCH-R199",
     "ARCH-R200",
     "ARCH-R201",
