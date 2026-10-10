@@ -8,7 +8,7 @@
 ## Context
 
 Two things admit a request to the web API
-([the contract](../../20-architecture/contracts/web-api.md#getting-in)). One is the
+([the contract](../../20-architecture/contracts/web-api-getting-in.md#getting-in)). One is the
 per-run token printed on the terminal that started the process. The other is a session
 bought with the operator's password, which expires on an absolute clock and ends with the
 process. Both suit a person in front of a screen. Neither suits a program that runs for
@@ -68,7 +68,7 @@ trusts, and a key is the credential most likely to be held somewhere the operato
 ## Consequences
 
 - C10 gains its requirements, and the web API contract gains keys under
-  [Getting in](../../20-architecture/contracts/web-api.md#getting-in) and the published
+  [Getting in](../../20-architecture/contracts/web-api-getting-in.md#getting-in) and the published
   list of key-callable actions.
 - Failed key presentations count against the same surface-wide limit as wrong passwords.
   Guessing a key is the same attack as guessing the password, so it meets the same wall.
