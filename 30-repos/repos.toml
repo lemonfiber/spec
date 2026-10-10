@@ -9,7 +9,8 @@
 # twelfth repository and notice.
 #
 # `[[ungoverned]]`, at the foot, is the rest of the organisation — in it, and
-# outside the map. Nothing renders it; `shared/adoption.toml` is held to it.
+# outside the map. Nothing renders it; `shared/adoption.toml` is held to it, and
+# the pin fan-out bumps its pins as it does the map's.
 #
 # order : the order the README lists them in. Not alphabetical — it runs from
 #         the specification outward through the surfaces to the things that
@@ -340,7 +341,7 @@ dotted = true
 # has to hold a row for it — and a register reading the map above as the org
 # refused three repositories as unknown while offering no row they could be
 # given. One file, two questions: `gen_repos.py` reads `[[repo]]` and renders the
-# map, `check_shared_files.py` reads both and gets the org.
+# map; `check_shared_files.py` and the pin fan-out read both and get the org.
 #
 # A repository here carries no `spec`, `node`, `label` or `order`: it is in no
 # diagram and no table, and a field nothing renders is a field that goes stale.
