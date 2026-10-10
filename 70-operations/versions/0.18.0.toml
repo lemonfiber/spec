@@ -251,7 +251,7 @@
 # back, and the pictures a browser reads from the core. The companion's player (N3-R14 to N3-R16) is built on them. `lemonfiber-media-stack`
 # is cut because `D11-R2` puts the guard in front of the media server in every form that
 # serves it.
-# 426 goals, seeded from the roadmap milestone this version serves;
+# 429 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -293,7 +293,7 @@ delivers  = "Plugins — the calls that configure what one installed, and what t
 
 status  = "planned"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack"]
-satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
+satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
 goals   = [
     "D6-R21",
     "D6-R22",
@@ -698,6 +698,9 @@ goals   = [
     "F14-R26",
     "F14-R27",
     "F14-R28",
+    "REPO-R91",
+    "REPO-R92",
+    "OPS-R86",
     "ARCH-R199",
     "ARCH-R200",
     "ARCH-R201",
