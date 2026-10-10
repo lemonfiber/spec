@@ -155,6 +155,10 @@ Per request:
 | **D4-R14** | Repeated fulfilment failure MUST stop retrying silently and MUST notify both requester and operator. |
 | **D4-R15** | A member's search, and every list of titles offered to a member to ask for, MUST be answered by the core under that member's limits, and MUST NOT offer a title the member may not watch or ask for (`D8-R8`, `D8-R9`). Each title MUST say whether it is here, already asked for, or may be asked for (`D4-R5`, `D4-R10`). |
 | **D4-R16** | A member MUST be able to ask for a title through lemonfiber's web API on their own session. The core MUST check the member's allowance and limits before the request reaches the request service, and MUST answer with what became of it in the household's words (`G4-R16`). |
+| **D4-R17** | A member's search MUST be answered one page at a time, in an order that holds from one page to the next, each page carrying where the next begins until there is none, so a client loads the next as the member reaches it; no title MUST appear on two pages of one search. |
+| **D4-R18** | Which kinds of title a member's search covers MUST be the kinds the stack can deliver now (`D4-R4`), decided by the core and said in its answer; the member MUST NOT be offered a kind to choose. |
+| **D4-R19** | A title a member's search finds with no certification MUST have its certification looked up by the core before it is offered, and where none is found it MUST be treated as unrated under that member's unrated policy (`D8-R5`), never as allowed. |
+| **D4-R20** | A member's ask MUST be an action of the web API, rehearsed before it is sent so the member is told what it would leave of their allowance and whether it waits for approval, and sent with an `Idempotency-Key` so a retry after no answer asks once (`ARCH-R165`); `request.intake` MUST carry the search and the ask as operations of its own. |
 
 ## Related
 

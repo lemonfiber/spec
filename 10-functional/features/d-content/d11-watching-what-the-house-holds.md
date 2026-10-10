@@ -131,6 +131,7 @@ media server's answer on every device they play on.
 | **D11-R7** | The guarded front door MUST serve over TLS, and every location the core states at it (`D11-R3`, `D11-R6`) MUST be answered beside the fingerprint of the certificate the door presents, so that a client pins the door as it pins the stack (`N1-R22`). |
 | **D11-R8** | The core MUST accept, from a member's paired client, how far through a title the member is and whether they finished it, and MUST hand it to the media server as that member's own playback progress, keeping no copy of its own. |
 | **D11-R9** | The core MUST serve a title's poster and backdrop to the member whose shelf holds it, read from the media server as that member, at `GET /api/held/{id}/poster` and `GET /api/held/{id}/backdrop`. It MUST answer only an `image/*` body of at most 2 MiB, marked `Cache-Control: private`, MUST keep no copy, and MUST answer a title outside the member's limits, or a picture the media server does not hold, as absent. |
+| **D11-R10** | The core MUST serve the poster of a title a member's search offered and the house does not hold, to that member alone, fetched by the core from the location the request service gave for that title and nowhere else, `image/*` only, at most 2 MiB, with `Cache-Control: private`; it MUST refuse a location that is not HTTPS or that resolves to a loopback, private or link-local address, and the member's client MUST NOT be sent to the catalogue's host. |
 
 ## Related
 
