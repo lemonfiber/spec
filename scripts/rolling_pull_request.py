@@ -19,9 +19,9 @@ only one that is the bump's own is touched:
   armed to merge.
 
 Where none is open, one is opened from the branch, and checked the same way
-once it exists. Auto-merge is armed at the given commit only, squashing, or
-switched off where the caller did not ask for it: a pull request armed by an
-earlier run would otherwise merge a later commit nobody asked to merge.
+once it exists. Auto-merge is armed at the given commit only, squashing, and
+only where the caller asks for it; where it does not, whatever arming the pull
+request already carries is left as it is, a maintainer's included.
 Anything else edits nothing and fails, naming what it found.
 
 Usage:
@@ -34,7 +34,7 @@ an app. The body is read from standard input, so no file needs to be named and
 none can be read but the one the caller hands over. The pull request's number is
 printed on standard output; everything else is said on standard error.
 
-Exit 0 having opened or edited the pull request, and armed or disarmed it; 1
+Exit 0 having opened or edited the pull request, and armed it where asked; 1
 where what is open on the branch is not the bump's own, or a head is not the
 commit given, and nothing was edited; 2 where the arguments are malformed or the
 forge could not be read or written.
@@ -71,10 +71,6 @@ ARM = (
     "mutation($id: ID!, $method: PullRequestMergeMethod!, $head: GitObjectID!) "
     "{ enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: $method, "
     "expectedHeadOid: $head}) { clientMutationId } }"
-)
-DISARM = (
-    "mutation($id: ID!) "
-    "{ disablePullRequestAutoMerge(input: {pullRequestId: $id}) { clientMutationId } }"
 )
 
 #: One call to the forge through `gh api`: the method, the path and the JSON
@@ -137,7 +133,7 @@ def own(pulls: list[dict], repo: str, branch: str) -> list[dict]:
 
 def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str,
            labels: list[str], auto_merge: bool, api: Api) -> int:
-    """Open or edit the bump's pull request, arm or disarm it, and return its number."""
+    """Open or edit the bump's pull request, arm it where asked, and return its number."""
     at = api("GET", f"repos/{repo}/git/ref/heads/{quoted(branch)}", None)["object"]["sha"]
     if at != head:
         raise Refused(f"{branch} is at {at}, not {head}, the commit this run put on it; nothing was edited")
@@ -168,10 +164,6 @@ def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str
     if auto_merge:
         graphql(api, ARM, {"id": pull["node_id"], "method": MERGE_METHOD, "head": head})
         print(f"::notice::#{pull['number']} merges itself at {head} once its required checks pass",
-              file=sys.stderr)
-    elif pull.get("auto_merge"):
-        graphql(api, DISARM, {"id": pull["node_id"]})
-        print(f"::notice::#{pull['number']} no longer merges itself: this run did not ask for it",
               file=sys.stderr)
     return pull["number"]
 

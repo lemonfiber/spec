@@ -220,14 +220,14 @@ class TheBumpsOwn(unittest.TestCase):
         run(forge)
         self.assertFalse([p for _, p, _ in forge.asked if p.endswith("/labels")])
 
-    def test_an_earlier_runs_arming_is_switched_off_when_not_asked_for(self):
+    def test_a_run_not_asked_to_arm_leaves_an_armed_pull_request_armed(self):
+        # A maintainer's arming is theirs: not asking to arm is not asking to
+        # disarm, so nothing touches auto-merge at all.
         forge = Forge([pull(armed={"merge_method": "squash"})])
-        code, _, err = run(forge)
+        code, _, _ = run(forge)
         self.assertEqual(code, 0)
-        (disarmed,) = forge.mutations()
-        self.assertIn("disablePullRequestAutoMerge", disarmed["query"])
-        self.assertEqual(disarmed["variables"], {"id": "PR_7"})
-        self.assertIn("no longer merges itself", err)
+        self.assertEqual(forge.mutations(), [])
+        self.assertEqual([m for m, _, _ in forge.writes()], ["PATCH"])
 
     def test_nothing_armed_and_nothing_asked_calls_nothing(self):
         forge = Forge([pull()])

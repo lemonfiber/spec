@@ -53,7 +53,8 @@ on:
       auto-merge:
         description: >-
           Arm the pull request to merge itself, squashing, at `head` once its
-          required checks pass. False switches off an earlier run's arming.
+          required checks pass. False arms nothing and leaves any arming the
+          pull request already carries as it is.
         type: boolean
         default: false
       labels:
