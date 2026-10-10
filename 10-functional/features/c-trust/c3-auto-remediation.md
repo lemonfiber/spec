@@ -49,7 +49,7 @@ Three categories, and the distinction must be visible:
 
 | Category | Example | Behaviour |
 |----------|---------|-----------|
-| **Automatically fixable** | Port drift, missing root folder, broken inter-service wiring, over-permissive file mode | Offer to fix |
+| **Automatically fixable** | Port drift, missing root folder, broken inter-service wiring, over-permissive file mode, a series the media server holds with no seasons | Offer to fix |
 | **Guided** | Data root can't hardlink; Docker Desktop not set to open at login | Explain the options; the operator acts |
 | **External** | Provider subscription lapsed; WireGuard key generated without port forwarding | Only the operator can act, elsewhere |
 
@@ -119,6 +119,7 @@ Per finding:
 | Stack not running | Apply configuration fixes; defer runtime fixes and say so. |
 | Fix depends on another fix | Order them and state the dependency. |
 | The same fix fails repeatedly | Stop offering it after repeated failures and escalate to a support bundle. |
+| The media server refreshes in the background | The repair waits for the series to answer its seasons, up to a stated limit, before the check runs again. Past the limit, whatever the check then finds is the outcome. |
 
 ## Acceptance criteria
 
@@ -139,6 +140,7 @@ Per finding:
 | **C3-R13** | A fix that fails partway MUST report the resulting state precisely. |
 | **C3-R14** | A repeatedly failing fix MUST stop being offered and MUST escalate to a support bundle. |
 | **C3-R15** | An operator MUST be able to retract the most recent remediation, reversing that remediation alone and leaving other recorded changes untouched. |
+| **C3-R16** | A series reported under C1-R18 MUST be offered a repair that asks the filler of `media.serve`, through its contract's refresh operation, to refresh that series and nothing else. The repair MUST be confirmed like any other and MUST be offered as one that cannot be reversed. A rehearsal MUST state it and MUST NOT ask for the refresh. Before the check runs again, the repair MUST wait for the series to answer seasons, for no longer than a stated bound. |
 
 ## Related
 
