@@ -80,6 +80,13 @@ anything.
   core for that plugin alone and written to the adapter's configuration directory as
   `lemonfiber.key` before it starts. An adapter refuses any request without it
   (`401`).
+- **Who it runs as.** lemonfiber writes every service that speaks a contract to run as
+  the operator's uid and gid, and writes `lemonfiber.key` readable by that uid alone, so
+  an adapter reads its key and nothing else on the machine can (`F14-R27`).
+- **The upstream's credential.** Where the upstream needs a credential lemonfiber keeps,
+  lemonfiber writes it beside the key as `upstream.json`, a JSON object of named strings,
+  each time it creates, rotates or moves that credential. The adapter reads it on each
+  use and never writes it (`F14-R28`).
 - **Answers.** A success answers `200` with the operation's JSON body, or `204` where
   it has none. A refusal answers a problem document
   (`application/problem+json`) whose `type` is one of the contract's declared
