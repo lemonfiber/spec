@@ -3,6 +3,8 @@
 **Status:** Accepted
 **Date:** 2026-07-24
 
+**Superseded in part** by [ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md): `lemonfiber-media-stack` retires, and the bundle lives in `lemonfiber-plugins`.
+
 ## Context
 
 The project produces four artifacts: a specification, a Rust binary, a set of

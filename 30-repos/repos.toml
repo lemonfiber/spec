@@ -361,3 +361,7 @@ note = "A plugin, and the catalogue is where a plugin is found"
 [[ungoverned]]
 name = "plugin-plex"
 note = "A plugin, and the catalogue is where a plugin is found"
+
+[[ungoverned]]
+name = "plugin-jellyfin"
+note = "A first-party plugin: the bundle's media server, and the catalogue is where a plugin is found"

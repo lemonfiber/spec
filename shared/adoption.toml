@@ -162,3 +162,9 @@ hooks = ["commit-msg", "pre-push"]
 name = "plugin-plex"
 gates = []
 hooks = ["commit-msg", "pre-push"]
+
+
+[[repo]]
+name = "plugin-jellyfin"
+gates = []
+hooks = []

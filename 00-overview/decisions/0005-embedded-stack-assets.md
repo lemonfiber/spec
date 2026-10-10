@@ -3,6 +3,8 @@
 **Status:** Accepted
 **Date:** 2026-07-24
 
+**Amended** by [ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md): what is embedded is the bundle and the manifests it pins.
+
 ## Context
 
 Given [ADR-0004](0004-four-repo-split.md), lemonfiber and lemonfiber-media-stack
