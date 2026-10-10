@@ -205,6 +205,7 @@ config_path = "/config"
 | `listens` | integer | ✔ if `api` or `speaks` | The port it answers on inside the stack's network, where lemonfiber and the services that ask reach it. As `stack.toml`. |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract names no `api`: it is asked one way. See [capability-contracts.md](capability-contracts.md). |
 | `fronts` | string | ✔ if `speaks` | The plugin's own service this adapter stands in front of: the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. |
+| `native` | string | | The API this service answers the stack's other services in, by the name those services know it by (`jellyfin`, `plex`, `emby`). Declared on the upstream an adapter `fronts`, where other services reach that upstream directly rather than through the adapter: a request service is set up against a media server in the media server's native API (`F14-R26`, `ARCH-R221`). |
 | `shape` | string | | The one privileged shape lemonfiber writes for this service, from a closed set: `egress-guard`, which adds the `NET_ADMIN` capability and the `/dev/net/tun` device to the entry every plugin's service gets. Only the upstream an adapter of the same plugin fronts, where that adapter speaks `network.egress-guard`, may declare it, and the operator approves it apart from the offer (`F14-R12`, `F14-R21`). |
 
 ### The image is named by digest
@@ -934,6 +935,7 @@ unreadable.
 | **ARCH-R154** | A plugin's service MUST join a network of the stack's only where it is the settled filler of an ask that a stack service on that network fills, speaks the adapter that service speaks and, where that service files media, files one of its media; it MUST NOT join a network on which every other service reaches that stack service by name, and the networks MUST be read from the stack's own compose files and never from a plugin's document. |
 | **ARCH-R155** | Choosing which service fills an ask MUST rewrite, in the same journalled change as the setting, the Compose document of every installed plugin whose service's networks the choice changes. |
 | **ARCH-R216** | A service that speaks a contract MUST name in `fronts` one other service of the same plugin that speaks none, and a manifest where it names none, itself, a service the plugin does not declare or one that speaks a contract MUST be refused by name. |
+| **ARCH-R221** | `native` MUST be one lowercase word and MUST be declared only on a service another service of the same plugin `fronts`, and a manifest declaring it anywhere else MUST be refused, naming the service. |
 
 ## Related
 
