@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Coverage tests for what a version cuts: the repositories it tags and searches,
-the images it builds and the pins it records — manifest_repos, check_image_pins,
-train_step and submodule_pins.
+the images and plugins it publishes and the pins it records — manifest_repos,
+check_image_pins, check_bundle_pins, train_step and submodule_pins.
 
 They share the workspace and the in-process runner of `test_release_train.py`,
 and live apart from it so that suite stays within the size cap.
@@ -15,9 +15,11 @@ import subprocess
 import sys
 import tomllib
 import unittest
+from types import MappingProxyType
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import check_bundle_pins  # noqa: E402
 import check_image_pins  # noqa: E402
 import manifest_repos  # noqa: E402
 import submodule_pins  # noqa: E402
@@ -124,6 +126,202 @@ class ImageReposTests(Workspace):
         built = manifest_repos.image_repos(registry)
         self.assertEqual(built, {"lemonfiber-decline": "decline",
                                  "lemonfiber-request-gate": "request-gate"})
+
+
+class PluginReposTests(Workspace):
+    """Which first-party plugins a version tags before the core — OPS-R86."""
+
+    def setUp(self):
+        super().setUp()
+        self.registry = {"repo": [{"name": "lemonfiber"}, {"name": "lemonfiber-decline", "service": "decline"},
+                                  {"name": "plugin-jellyfin", "plugin": "jellyfin"}]}
+
+    def test_a_repository_the_registry_gives_a_plugin_is_tagged_first(self):
+        data = {"repos": ["lemonfiber", "plugin-jellyfin", "lemonfiber-decline"]}
+        self.assertEqual(manifest_repos.plugins(data, self.registry), [("plugin-jellyfin", "jellyfin")])
+        self.assertEqual(manifest_repos.first(data, self.registry), ["lemonfiber-decline", "plugin-jellyfin"])
+        self.assertEqual(manifest_repos.others(data, self.registry), ["lemonfiber"])
+
+    def test_each_way_a_plugin_entry_can_be_wrong_is_refused(self):
+        for entry, said in (({"name": "jellyfin", "plugin": "jellyfin"}, "so it is named plugin-jellyfin"),
+                            ({"name": "plugin-Jelly", "plugin": "Jelly"}, "is not a plugin id"),
+                            ({"name": "plugin--x", "plugin": "-x"}, "is not a plugin id"),
+                            ({"name": "plugin-x", "plugin": "x", "service": "x"}, "carries both")):
+            with self.subTest(entry), self.assertRaises(SystemExit) as caught:
+                manifest_repos.plugin_repos({"repo": [entry]})
+            self.assertIn(said, str(caught.exception))
+
+    def test_a_version_cutting_the_core_without_a_plugin_is_refused(self):
+        self.assertEqual(manifest_repos.unlisted_plugins({"status": "planned", "repos": ["lemonfiber"]},
+                                                         self.registry), ["plugin-jellyfin"])
+
+    def test_a_version_not_cutting_the_core_or_already_released_is_not(self):
+        for data in ({"status": "planned", "repos": ["lemonfiber-decline"]},
+                     {"status": "released", "repos": ["lemonfiber"]},
+                     {"status": "yanked", "repos": ["lemonfiber"]},
+                     {"status": "staged", "repos": ["lemonfiber", "plugin-jellyfin"]}):
+            with self.subTest(data):
+                self.assertEqual(manifest_repos.unlisted_plugins(data, self.registry), [])
+
+    def write(self, repos):
+        pathlib.Path("30-repos").mkdir(exist_ok=True)
+        pathlib.Path("30-repos/repos.toml").write_text(
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
+            f'version = "0.2.0"\nstatus = "planned"\nrepos = {repos}\n', encoding="utf-8")
+
+    def test_main_prints_the_plugins_a_version_cuts(self):
+        self.write('["lemonfiber", "plugin-jellyfin"]')
+        code, out = run_main(manifest_repos, ["--version", "0.2.0", "--for", "plugins"])
+        self.assertEqual((code, out), (0, "plugin-jellyfin\tjellyfin\n"))
+        self.assertEqual(run_main(manifest_repos, ["--version", "0.2.0", "--for", "others"]), (0, "lemonfiber\n"))
+
+    def test_main_refuses_a_version_cutting_the_core_without_a_plugin(self):
+        self.write('["lemonfiber"]')
+        for asked in ("images", "plugins", "others"):
+            with self.subTest(asked):
+                self.assertEqual(run_main(manifest_repos, ["--version", "0.2.0", "--for", asked])[0], 1)
+
+    def test_the_registry_this_repository_holds_names_its_plugins(self):
+        registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
+        self.assertEqual(manifest_repos.plugin_repos(registry), {"plugin-jellyfin": "jellyfin"})
+
+    def test_every_manifest_not_yet_released_cuts_each_plugin_with_the_core(self):
+        registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
+        for path in sorted((HERE.parent / "70-operations/versions").glob("[0-9]*.toml")):
+            with self.subTest(path.name):
+                data = tomllib.loads(path.read_text(encoding="utf-8"))
+                self.assertEqual(manifest_repos.unlisted_plugins(data, registry), [])
+
+
+class CheckBundlePinsTests(Workspace):
+    """The embedded bundle pins each tagged plugin at the tag's release — OPS-R86."""
+
+    ORIGIN = "https://github.com/lemonfiber/plugin-jellyfin"
+    PIN = MappingProxyType({"id": "jellyfin", "origin": ORIGIN, "release": "0.2.0"})
+
+    def setUp(self):
+        super().setUp()
+        pathlib.Path("30-repos").mkdir()
+        pathlib.Path("30-repos/repos.toml").write_text(
+            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin"]\n', encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.3.0.toml").write_text(
+            'version = "0.3.0"\nrepos = ["lf"]\n', encoding="utf-8")
+        self.saved_env = dict(os.environ)
+        os.environ.update({"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow",
+                           "GIT_CONFIG_VALUE_0": "always"})
+
+    def tearDown(self):
+        os.environ.clear()
+        os.environ.update(self.saved_env)
+        super().tearDown()
+
+    def git(self, *args, at="."):
+        subprocess.run(["git", "-C", at, "-c", "commit.gpgsign=false", "-c", "user.email=t@t",
+                        "-c", "user.name=t", *args], check=True, capture_output=True)
+
+    def core(self, release="0.2.0", origin=ORIGIN, bundle=True):
+        """A catalogue remote holding a bundle, a core remote embedding it, and the core's clone."""
+        catalogue = pathlib.Path(self.tmp, "remotes/lemonfiber-plugins")
+        self.git("init", "-q", "-b", "main", str(catalogue))
+        if bundle:
+            (catalogue / "bundle").mkdir()
+            (catalogue / "bundle/bundle.toml").write_text(
+                f'schema = 1\n\n[[plugin]]\nid = "jellyfin"\norigin = "{origin}"\nrelease = "{release}"\n',
+                encoding="utf-8")
+        self.git("add", "-A", at=str(catalogue))
+        self.git("commit", "-q", "--allow-empty", "-m", "bundle", at=str(catalogue))
+        self.repo("remotes/lf")
+        self.git("submodule", "add", "-q", str(catalogue), "assets/plugins", at="remotes/lf")
+        self.git("commit", "-q", "-m", "embed", at="remotes/lf")
+        self.git("clone", "-q", "remotes/lf", "checkouts/lf")
+
+    def check(self, tag="v0.2.0", version="0.2.0", core="checkouts/lf"):
+        return run_main(check_bundle_pins, ["--version", version, "--tag", tag, "--core", core,
+                                            "--owner", "lemonfiber"])
+
+    def test_a_bundle_pinning_the_release_from_the_tagged_repository_passes(self):
+        bundle = {"plugin": [dict(self.PIN)]}
+        self.assertEqual(check_bundle_pins.problems(bundle, "0.2.0", "lemonfiber",
+                                                    [("plugin-jellyfin", "jellyfin")]), [])
+        dotted = {"plugin": [{**self.PIN, "origin": self.PIN["origin"] + ".git"}]}
+        self.assertEqual(check_bundle_pins.problems(dotted, "0.2.0", "lemonfiber",
+                                                    [("plugin-jellyfin", "jellyfin")]), [])
+
+    def test_each_way_a_pin_can_be_wrong_is_named(self):
+        wanted = [("plugin-jellyfin", "jellyfin")]
+        said = check_bundle_pins.problems(
+            {"plugin": [{**self.PIN, "origin": "https://github.com/else/plugin-jellyfin", "release": "0.1.0"}]},
+            "0.2.0", "lemonfiber", wanted)
+        self.assertEqual(len(said), 2)
+        self.assertIn("which the train tagged", said[0])
+        self.assertIn("not '0.2.0'", said[1])
+        self.assertIn("0 times", check_bundle_pins.problems({"plugin": ["x"]}, "0.2.0", "lemonfiber", wanted)[0])
+        self.assertIn("2 times", check_bundle_pins.problems({"plugin": [dict(self.PIN), dict(self.PIN)]}, "0.2.0",
+                                                            "lemonfiber", wanted)[0])
+
+    def test_main_passes_a_core_embedding_a_bundle_at_the_tag(self):
+        self.core()
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertIn("jellyfin is pinned at 0.2.0.", out)
+
+    def test_main_reads_a_pre_release_as_its_own_release(self):
+        self.core(release="0.2.0-pre.1")
+        self.assertEqual(self.check(tag="v0.2.0-pre.1")[0], 0)
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("does not pin what v0.2.0 published", out)
+
+    def test_main_refuses_a_bundle_pinned_from_another_repository(self):
+        self.core(origin="https://github.com/else/plugin-jellyfin")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("which the train tagged", out)
+
+    def test_main_passes_a_version_that_cuts_no_plugin(self):
+        self.assertEqual(self.check(tag="v0.3.0", version="0.3.0"),
+                         (0, "0.3.0 cuts no first-party plugin the bundle has to pin.\n"))
+
+    def test_main_refuses_a_core_that_does_not_embed_the_catalogue(self):
+        self.repo("checkouts/lf")
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("embeds no submodule", out)
+        pathlib.Path("checkouts/lf/.gitmodules").write_text(
+            '[submodule "assets/web"]\n\tpath = assets/web\n\turl = https://github.com/lemonfiber/lemonfiber-web\n',
+            encoding="utf-8")
+        self.assertIn("lemonfiber-plugins 0 times", self.check()[1])
+
+    def test_main_refuses_a_submodule_outside_the_core_or_not_checked_out(self):
+        self.repo("checkouts/lf")
+        for where, said in (("../elsewhere", "does not sit inside it"), (".", "does not sit inside it"),
+                            ("assets/plugins", "could not be checked out")):
+            with self.subTest(where):
+                pathlib.Path("checkouts/lf/.gitmodules").write_text(
+                    f'[submodule "p"]\n\tpath = {where}\n\turl = https://x/lemonfiber-plugins\n',
+                    encoding="utf-8")
+                self.assertIn(said, self.check()[1])
+
+    def test_main_refuses_a_catalogue_without_a_readable_bundle(self):
+        self.core(bundle=False)
+        self.assertIn("holds no bundle/bundle.toml", self.check()[1])
+        pathlib.Path("checkouts/lf/assets/plugins/bundle").mkdir()
+        pathlib.Path("checkouts/lf/assets/plugins/bundle/bundle.toml").write_text("[[plugin\n", encoding="utf-8")
+        self.assertIn("cannot be read", self.check()[1])
+
+    def test_main_refuses_what_it_cannot_ask(self):
+        self.assertIn("is not a tag the train cuts", self.check(tag="v0.2.0 x")[1])
+        self.assertEqual(self.check(tag="v0.9.0", version="0.9.0")[0], 1, "no manifest")
+        self.assertIn("path escapes the working directory", self.check(core="/etc")[1])
+        code, said = run_main(check_bundle_pins, ["--version", "0.2.0", "--tag", "v0.2.0", "--core", "c",
+                                                  "--owner", "a b"])
+        self.assertEqual(code, 1)
+        self.assertIn("is not an organisation", said)
 
 
 class TrainImages(Workspace):
@@ -328,6 +526,39 @@ class TrainStepTests(TrainImages):
         self.stream("lf")
         self.assertEqual(self.step()[2], "step=images\n")
         self.assertEqual(self.step(tag="v0.2.0-pre.1")[2], "step=streams\n")
+
+    def test_a_plugin_is_tagged_in_the_first_step_beside_the_images(self):
+        pathlib.Path("30-repos/repos.toml").write_text(
+            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n\n'
+            '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n', encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lemonfiber-decline", "lf", "plugin-jellyfin"]\n', encoding="utf-8")
+        self.stream("lemonfiber-decline", tagged=("v0.2.0",))
+        self.stream("plugin-jellyfin")
+        self.stream("lf")
+        code, _, output, tagging, declaring = self.step()
+        self.assertEqual((code, output, tagging), (0, "step=images\n", "plugin-jellyfin\n"))
+        self.assertEqual(declaring, "plugin-jellyfin\nlf\n")
+
+    def test_a_pre_release_holds_every_plugin_back(self):
+        pathlib.Path("30-repos/repos.toml").write_text(
+            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n', encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin"]\n', encoding="utf-8")
+        self.stream("plugin-jellyfin")
+        self.stream("lf")
+        code, _, output, tagging, declaring = self.step(tag="v0.2.0-pre.1")
+        self.assertEqual((code, output, tagging, declaring), (0, "step=streams\n", "lf\n", "lf\n"))
+
+    def test_a_version_cutting_the_core_without_its_plugin_settles_no_step(self):
+        pathlib.Path("30-repos/repos.toml").write_text(
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lemonfiber"]\n', encoding="utf-8")
+        code, said = run_main(train_step, ["--version", "0.2.0", "--tag", "v0.2.0"])
+        self.assertEqual(code, 1)
+        self.assertIn("cuts lemonfiber and not plugin-jellyfin", said)
 
     def test_a_version_cutting_no_image_is_one_step(self):
         self.stream("lf")

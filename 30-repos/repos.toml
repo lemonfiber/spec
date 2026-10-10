@@ -23,6 +23,10 @@
 #         `lemonfiber-<service>` (ADR-0033 §1). The train tags a repository
 #         carrying it before the core, and the core once the embedded stack pins
 #         what that tag published (ADR-0033 §4). Absent everywhere else.
+# plugin: the first-party plugin the repository publishes, which makes it
+#         `plugin-<id>`. Every version that cuts the core cuts it, the train tags
+#         it before the core, and the core once the bundle it embeds pins that
+#         tag's release (OPS-R86). Absent everywhere else.
 
 [[repo]]
 name = "spec"
@@ -142,6 +146,16 @@ label = "lemonfiber-plugins<br/>the reviewed catalogue"
 spec = ["lemonfiber-plugins.md"]
 lang = "TOML"
 note = "Reviewed and signed, and never a runtime dependency"
+
+[[repo]]
+name = "plugin-jellyfin"
+node = "jellyfin"
+group = "impl"
+label = "plugin-jellyfin<br/>the bundle's media server"
+spec = []
+lang = "Rust"
+note = "A first-party plugin: an adapter image in front of Jellyfin, pinned in the bundle"
+plugin = "jellyfin"
 
 [[repo]]
 name = "homebrew-tap"
@@ -273,6 +287,11 @@ to = "lemonfiber"
 label = "fetched on request, never embedded"
 
 [[edge]]
+from = "lemonfiber-plugins"
+to = "plugin-jellyfin"
+label = "bundle pins a revision"
+
+[[edge]]
 from = "lemonfiber"
 to = "homebrew-tap"
 label = "release CI generates"
@@ -334,7 +353,9 @@ dotted = true
 # The table, the diagram and the sentence counting them are the repositories
 # this specification governs, which README.md says plainly is not the same set
 # as the organisation. A plugin repository is the org's and not the map's: where
-# a plugin comes from is the reviewed catalogue's to answer (`F5-R1`).
+# a plugin comes from is the reviewed catalogue's to answer (`F5-R1`). A
+# first-party plugin is the exception, in the map above, because the release
+# train cuts it (`OPS-R86`).
 #
 # They are named here anyway, because something else needs the other set. Every
 # repository below calls the shared reusable workflows, so `shared/adoption.toml`
@@ -361,7 +382,3 @@ note = "A plugin, and the catalogue is where a plugin is found"
 [[ungoverned]]
 name = "plugin-plex"
 note = "A plugin, and the catalogue is where a plugin is found"
-
-[[ungoverned]]
-name = "plugin-jellyfin"
-note = "A first-party plugin: the bundle's media server, and the catalogue is where a plugin is found"

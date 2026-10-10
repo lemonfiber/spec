@@ -2,11 +2,11 @@
 """The train's two steps and its plugin gate, shown in the workflows that run them —
 ADR-0033 §4, OPS-R68, Q-R66.
 
-`train_step.py` and `check_image_pins.py` are measured in `test_release_images.py`.
-What decides whether a core is tagged over a stack pinning another tag's image is
-how `execute-version` and `prerelease-version` wire them: which step a run is on,
-that the pin check runs before the core is tagged and refuses a stack that does
-not pin the tag, and that the tag loop, the declared-version check and the
+`train_step.py`, `check_image_pins.py` and `check_bundle_pins.py` are measured in
+`test_release_images.py`. What decides whether a core is tagged over a stack pinning
+another tag's image, or a bundle pinning another release of a plugin, is how
+`execute-version` and `prerelease-version` wire them: which step a run is on, that
+both pin checks run before the core is tagged and refuse what does not pin the tag, and that the tag loop, the declared-version check and the
 pre-release record read the lists the step settled.
 
 A run stopped part-way is finished by running it again. The tag loop passes over a
@@ -40,6 +40,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from types import MappingProxyType
 
 import train_step
 import yaml
@@ -56,12 +57,18 @@ LANES = {
 
 STEP = "Which step of the train this run is (ADR-0033 §4)"
 PINS = "The embedded stack pins each image at this tag"
+BUNDLE = "The embedded bundle pins each first-party plugin at this tag"
+VERDICT = "The gate's verdict, recorded rather than enforced"
 TAG_LOOP = "Tag the target repos"
 DECLARED = "The repos declare"
 RECORDS = ("Record it on the manifest (OPS-R65)", "Wait for the record to land on main (OPS-R62, OPS-R65)")
 STREAMS_ONLY = f"steps.step.outputs.step == '{train_step.STREAMS}'"
 IMAGES_ONLY = f"steps.step.outputs.step == '{train_step.IMAGES}'"
-NOTICES = ("Images tagged", "Tagged")
+#: Each lane's notice for the first step, then for the second.
+NOTICES = {
+    "execute-version.yml": ("Images and plugins tagged", "Tagged"),
+    "prerelease-version.yml": ("Images tagged", "Tagged"),
+}
 CLONE = "Read the manifest and clone its repos"
 HOLD = "Hold the core at the commit its plugins were proved with"
 PLUGINS = "plugins"
@@ -71,6 +78,10 @@ REBUILT = "Open the record on a branch rebuilt from main"
 SHA = "b" * 40
 
 DIGEST = "sha256:" + "a" * 64
+
+#: What lets the core's checkout take a submodule from a local remote, and the owner it is asked for.
+ALLOWED = MappingProxyType({"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow",
+                            "GIT_CONFIG_VALUE_0": "always", "OWNER": "o"})
 
 #: Stands in for `docker buildx imagetools inspect <ref> --format ...`.
 DOCKER = f"""#!/bin/sh
@@ -144,6 +155,19 @@ class TheWiring(unittest.TestCase):
         for workflow in LANES:
             with self.subTest(workflow):
                 self.assertIn(STREAMS_ONLY, step(workflow, PINS)["if"])
+        self.assertIn(STREAMS_ONLY, step("execute-version.yml", BUNDLE)["if"])
+
+    def test_a_release_refuses_on_the_bundle_before_anything_is_tagged(self):
+        self.assertLess(position("execute-version.yml", STEP), position("execute-version.yml", BUNDLE))
+        self.assertLess(position("execute-version.yml", BUNDLE), position("execute-version.yml", TAG_LOOP))
+
+    def test_a_pre_release_records_the_bundle_in_its_verdict_and_never_refuses_on_it(self):
+        """A pre-release is what the plugins are built against, so it cannot wait for their pins."""
+        self.assertFalse([one for one in steps("prerelease-version.yml")
+                          if str(one.get("name", "")).startswith(BUNDLE)])
+        self.assertIn("check_bundle_pins.py", step("prerelease-version.yml", VERDICT)["run"])
+        self.assertLess(position("prerelease-version.yml", STEP), position("prerelease-version.yml", VERDICT))
+        self.assertLess(position("prerelease-version.yml", VERDICT), position("prerelease-version.yml", TAG_LOOP))
 
     def test_what_is_tagged_and_what_declares_are_the_lists_the_step_wrote(self):
         """`repos.txt` is everything the version cuts, which neither step tags."""
@@ -156,7 +180,7 @@ class TheWiring(unittest.TestCase):
         """The first step says to run again; only the second says to publish."""
         for workflow in LANES:
             with self.subTest(workflow):
-                first, second = (step(workflow, name)["if"] for name in NOTICES)
+                first, second = (step(workflow, name)["if"] for name in NOTICES[workflow])
                 self.assertIn(IMAGES_ONLY, first)
                 self.assertIn(STREAMS_ONLY, second)
 
@@ -277,6 +301,118 @@ class TheSteps(unittest.TestCase):
                 done = self.run_step(workflow, PINS, DOCKER_MISSING=f"ghcr.io/lemonfiber/decline:{tag}")
                 self.assertEqual(done.returncode, 1)
                 self.assertIn("is not published", done.stdout)
+
+    def test_a_pre_release_tags_no_plugin_repository(self):
+        """The plugin is built against the core's pre-release and tagged at the version by the release."""
+        for held in ("", "v0.2.0-pre.1"):
+            with self.subTest(images_tagged=bool(held)):
+                self.fresh()
+                (self.root / "30-repos/repos.toml").write_text(
+                    '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n\n'
+                    '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n', encoding="utf-8")
+                (self.root / "70-operations/versions/0.2.0.toml").write_text(
+                    'version = "0.2.0"\nrepos = ["lemonfiber", "lemonfiber-decline", "plugin-jellyfin"]\n',
+                    encoding="utf-8")
+                for name in ("lemonfiber", "plugin-jellyfin"):
+                    self.stream(name)
+                self.stream("lemonfiber-decline", tagged=held)
+                done = self.run_step("prerelease-version.yml", STEP)
+                self.assertEqual(done.returncode, 0, done.stderr)
+                self.assertNotIn("plugin-jellyfin", self.read("tagging.txt") + self.read("declaring.txt"))
+                self.assertEqual(self.read("tagging.txt"), "lemonfiber\n" if held else "lemonfiber-decline\n")
+
+    def test_a_release_tags_each_plugin_repository_in_its_first_step(self):
+        self.fresh()
+        (self.root / "30-repos/repos.toml").write_text(
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            encoding="utf-8")
+        (self.root / "70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n', encoding="utf-8")
+        for name in ("lemonfiber", "plugin-jellyfin"):
+            self.stream(name)
+        done = self.run_step("execute-version.yml", STEP)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual((self.read("output"), self.read("tagging.txt")), ("step=images\n", "plugin-jellyfin\n"))
+
+    def catalogue(self, release: str):
+        """The core's checkout embedding a catalogue whose bundle pins jellyfin at `release`."""
+        (self.root / "30-repos/repos.toml").write_text(
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            encoding="utf-8")
+        (self.root / "70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n', encoding="utf-8")
+        catalogue = "remotes/lemonfiber-plugins"
+        self.git("init", "-q", "-b", "main", catalogue)
+        (self.root / catalogue / "bundle").mkdir()
+        (self.root / catalogue / "bundle/bundle.toml").write_text(
+            'schema = 1\n\n[[plugin]]\nid = "jellyfin"\n'
+            f'origin = "https://github.com/o/plugin-jellyfin"\nrelease = "{release}"\n', encoding="utf-8")
+        self.git("-C", catalogue, "add", "-A")
+        self.git("-C", catalogue, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "bundle")
+        self.stream("lemonfiber")
+        self.git("-C", "checkouts/lemonfiber", "-c", "protocol.file.allow=always", "submodule", "add", "-q",
+                 str(self.root / catalogue), "assets/plugins")
+        self.git("-C", "checkouts/lemonfiber", "-c", "user.email=t@t", "-c", "user.name=t",
+                 "commit", "-q", "-m", "embed")
+        self.git("-C", "checkouts/lemonfiber", "submodule", "deinit", "-q", "--all")
+
+    def test_the_bundle_check_passes_a_version_cutting_no_plugin(self):
+        self.fresh()
+        done = self.run_step("execute-version.yml", BUNDLE, OWNER="o")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("cuts no first-party plugin", done.stdout)
+
+    def test_the_bundle_check_reads_the_catalogue_the_core_embeds(self):
+        self.fresh()
+        self.catalogue("0.2.0")
+        done = self.run_step("execute-version.yml", BUNDLE, **ALLOWED)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("jellyfin is pinned at 0.2.0", done.stdout)
+
+    def test_a_release_refuses_a_bundle_pinning_another_release(self):
+        """The defect it exists for: a core tagged over a bundle pinning another release."""
+        self.fresh()
+        self.catalogue("0.1.0")
+        done = self.run_step("execute-version.yml", BUNDLE, **ALLOWED)
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("pinned at release '0.1.0'", done.stdout)
+
+    def stub_gate(self):
+        """The workspace's scripts with `gate.py` answering one goal met, so the verdict
+        step's own shell is what is under test."""
+        (self.root / "scripts").unlink()
+        (self.root / "scripts").mkdir()
+        for script in HERE.glob("*.py"):
+            (self.root / "scripts" / script.name).symlink_to(script)
+        (self.root / "scripts/gate.py").unlink()
+        (self.root / "scripts/gate.py").write_text(
+            "import json\nprint(json.dumps({'goals': [{'id': 'B1-R4', 'cited': True, 'done': True}]}))\n",
+            encoding="utf-8")
+        (self.root / "searched.txt").write_text("lemonfiber\n", encoding="utf-8")
+
+    def verdict(self, release: str, phase: str) -> tuple[subprocess.CompletedProcess, str]:
+        self.fresh()
+        self.catalogue(release)
+        self.stub_gate()
+        done = self.run_step("prerelease-version.yml", VERDICT, STEP=phase, **ALLOWED)
+        return done, self.read("output")
+
+    def test_a_pre_release_over_an_unpinned_bundle_records_it_unmet_and_goes_on(self):
+        done, output = self.verdict("0.1.0", train_step.STREAMS)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("unmet=OPS-R86\n", output)
+        self.assertIn("Bundle unpinned", done.stdout)
+
+    def test_a_pre_release_over_a_pinned_bundle_records_nothing_unmet(self):
+        done, output = self.verdict("0.2.0-pre.1", train_step.STREAMS)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("unmet=\n", output)
+
+    def test_the_first_step_of_a_pre_release_does_not_read_the_bundle(self):
+        """The plugins are not tagged yet, so the core embeds no bundle pinning them."""
+        done, output = self.verdict("0.1.0", train_step.IMAGES)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("unmet=\n", output)
 
     def stub_gh(self):
         (self.bin / "gh").write_text(GH, encoding="utf-8")

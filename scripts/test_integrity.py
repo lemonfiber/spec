@@ -680,6 +680,24 @@ class ManifestRepositories(Spec):
         self.manifest("0.1.0", 'repos = ["lemonfiber"]\n')
         self.assertIn("no repository was read", integrity.check_manifest_repos()[0])
 
+    def plugin_registry(self):
+        self.doc("30-repos/repos.toml",
+                 '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n')
+
+    def test_a_planned_version_cutting_the_core_without_a_plugin_is_refused(self):
+        """OPS-R86: every version that cuts the core cuts each first-party plugin."""
+        self.plugin_registry()
+        self.manifest("0.2.0", 'status = "planned"\nrepos = ["lemonfiber"]\n')
+        said = integrity.check_manifest_repos()
+        self.assertEqual(len(said), 1)
+        self.assertIn("cuts lemonfiber and not plugin-jellyfin", said[0])
+
+    def test_a_released_version_or_one_carrying_the_plugin_passes(self):
+        self.plugin_registry()
+        self.manifest("0.1.0", 'status = "released"\nrepos = ["lemonfiber"]\n')
+        self.manifest("0.2.0", 'status = "planned"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n')
+        self.assertEqual(integrity.check_manifest_repos(), [])
+
 
 class Proposals(Spec):
     """Draft proposals under 10-functional/proposals/, held to the RFC process's

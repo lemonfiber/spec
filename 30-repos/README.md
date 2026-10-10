@@ -34,6 +34,7 @@ flowchart TD
         decline["lemonfiber-decline<br/>the decline service"]
         gate["lemonfiber-request-gate<br/>the request gate"]
         plugins["lemonfiber-plugins<br/>the reviewed catalogue"]
+        jellyfin["plugin-jellyfin<br/>the bundle's media server"]
         tap["homebrew-tap<br/>generated formula"]
         site["website-lemonfiber.app<br/>the public frontpage"]
         docs["website-docs.lemonfiber.app<br/>the documentation site"]
@@ -53,6 +54,7 @@ flowchart TD
     homeassistant -->|vendored at a pinned commit| sdkpy
     mcp -->|vendored at a pinned commit| sdkpy
     plugins -->|fetched on request, never embedded| lemonfiber
+    plugins -->|bundle pins a revision| jellyfin
     lemonfiber -->|release CI generates| tap
     brand -->|values mirrored| site
     lemonfiber -->|docs submodule, pinned| docs
@@ -81,6 +83,7 @@ flowchart TD
 | `lemonfiber-decline` | [lemonfiber-decline.md](lemonfiber-decline.md) | Rust | An image the stack runs; holds one Jellyfin key and answers the household |
 | `lemonfiber-request-gate` | [lemonfiber-request-gate.md](lemonfiber-request-gate.md) | Rust | An image the stack runs; holds the \*arr keys and publishes no port |
 | `lemonfiber-plugins` | [lemonfiber-plugins.md](lemonfiber-plugins.md) | TOML | Reviewed and signed, and never a runtime dependency |
+| `plugin-jellyfin` | this page | Rust | A first-party plugin: an adapter image in front of Jellyfin, pinned in the bundle |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website-lemonfiber.app` | [website-lemonfiber.md](website-lemonfiber.md) | Astro | The org is the motor; roadmap read, not written |
 | `website-docs.lemonfiber.app` | [website-docs.md](website-docs.md) | Astro | It renders; it does not own — every page pinned to the repo that wrote it |
@@ -90,12 +93,14 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those twenty-one are the repositories this specification governs, which is not the
+Those twenty-two are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))
 rather than this register's — so the org has repositories this file does not list,
-on purpose, and the sentence says so rather than making a claim nothing checks.
+on purpose, and the sentence says so rather than making a claim nothing checks. A
+first-party plugin is listed, because the release train cuts it with the core
+([OPS-R86](../70-operations/releasing.md)).
 
 `.github` carries the community health files GitHub serves for a repo that does
 not define its own — the code of conduct, the security policy, the issue templates

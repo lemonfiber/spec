@@ -50,6 +50,7 @@ from catalogue import areas as area_names
 from catalogue import features as load_features
 from claims import CAP, STALE_AFTER, is_bot
 from integrity import elsewhere
+from manifest_repos import CORE
 from paths import within_cwd
 from patterns import CITE, REQ_DEF_ROW, SPEC_TRAILER, ordered
 
@@ -58,8 +59,6 @@ from patterns import CITE, REQ_DEF_ROW, SPEC_TRAILER, ordered
 FORMAT = 1
 #: Where the core keeps one JSON file per release.
 CHANGELOG = "reference/changelog"
-#: The repository whose changelog the releases are read from.
-CORE = "lemonfiber"
 #: The developer command line, and the file at its root listing every command.
 TOOL = "tool-lfdev"
 COMMANDS = "commands.json"

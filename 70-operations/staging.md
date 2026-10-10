@@ -286,11 +286,16 @@ pipeline, from the same commit on the trunk, carrying the same provenance — an
 carrying, on the artefact itself, the gate's verdict including every goal that
 is not met.
 
-**A pre-release relaxes the goal gate and nothing else.** Cross-stream
-compatibility is checked exactly as `OPS-R35` requires before a tag; release
-blockers stop it exactly as they stop an execute; what a plugin must satisfy to
-ride the train it satisfies here too. The one thing it does differently is the
-one thing it exists for.
+**A pre-release relaxes the goal gate and the bundle pin, and nothing else.**
+Cross-stream compatibility is checked exactly as `OPS-R35` requires before a tag;
+release blockers stop it exactly as they stop an execute; what a plugin must
+satisfy to ride the train it satisfies here too. The one thing it does
+differently is the one thing it exists for. The bundle pin follows from it: a
+first-party plugin is built and proved against the core's pre-release, then tagged
+at the version itself by the release's first step, pinned in the bundle and
+embedded before the core's release tag. So a pre-release tags no first-party
+plugin's repository, and one whose embedded bundle does not pin each plugin at its
+tag records `OPS-R86` among its unmet goals rather than refusing (`OPS-R86`).
 
 ### It is never mistaken for the release
 
@@ -675,7 +680,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R63** | A pre-release MUST NOT be announced outside the organisation — `OPS-R23`'s subject is a published release and a pre-release is not one — and the announcing path MUST refuse on the pre-release itself rather than depend on being unconfigured. It MUST announce to the maintainer channel instead. |
 | **OPS-R64** | A pre-release MUST NOT be offered as an available update, and a reader that cannot order a tag MUST pass over it rather than rank it. |
 | **OPS-R65** | Every pre-release MUST be recorded in its version's manifest with its tag, the date it was cut, the goals unmet when it was cut, and the submodule pins it embedded, so the manifest answers what went out before the release without reading the forge. |
-| **OPS-R66** | A pre-release MUST pass every check `execute-version` runs before tagging apart from the goal gate — cross-stream compatibility, release blockers, the declared version, and the plugin gate — and MUST record its pins the way `OPS-R35` requires of a release. A pre-release relaxes the goal gate and nothing else. |
+| **OPS-R66** | A pre-release MUST pass every check `execute-version` runs before tagging apart from the goal gate and the bundle pin — cross-stream compatibility, release blockers, the declared version, and the plugin gate — and MUST record its pins the way `OPS-R35` requires of a release. A pre-release relaxes the goal gate and the bundle pin (`OPS-R86`), and nothing else. |
 | **OPS-R67** | Every plugin the release train gates on MUST be registered under `70-operations/` with the repository holding it and the paths of the files the gate reads. The manifest generation a plugin is written in and the release it is validated against MUST be declared by the plugin itself and MUST NOT be restated in the registry. A registered plugin MUST NOT be a stream the train cuts and MUST NOT be named by any version manifest; it is an input to the gate and MUST NOT be tagged by it. |
 | **OPS-R68** | Every run that would cut a tag MUST build the candidate binary from the core commit it cuts and MUST prove every registered plugin riding that version itself, running that plugin's own proofs with the candidate in the gate's own checkout of the plugin through the reader the registry pins to a commit of the plugin template, and MUST validate each against the manifest generation the release carries. It MUST refuse the run where one no longer validates, naming the plugin and what failed, and MUST tag the core at the commit the candidate was built from. The report a plugin commits is its record against the release it targets and MUST NOT be required to name the version being cut. The run MUST NOT execute code from a registered plugin's repository. |
 | **OPS-R69** | *Superseded by [OPS-R72](staging.md): a proof failing as declared is named and does not fail the run. The number is not reused.* |

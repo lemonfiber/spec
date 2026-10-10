@@ -16,7 +16,7 @@ version = "0.19.0"
 milestone = "M16"   # The household's library
 delivers  = "The household's library: find, ask for and play, under the member's own limits"
 status  = "planned"
-repos   = ["lemonfiber"]
+repos   = ["lemonfiber", "plugin-jellyfin"]
 satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php"]
 goals   = [
     "D4-R15",

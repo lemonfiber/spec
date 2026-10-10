@@ -34,7 +34,7 @@ import tomllib
 import manifest_repos
 import stack_manifest
 from manifest_repos import IMAGE_HOME
-from patterns import PRERELEASE_ID, VERSION
+from patterns import PRERELEASE_ID, PRERELEASE_SEPARATOR, VERSION
 
 #: The digest of a multi-architecture index, as a stack pin writes it (ADR-0023).
 DIGEST = re.compile(r"\Asha256:[0-9a-f]{64}\Z")
@@ -49,7 +49,7 @@ def cut_by_train(tag: str, version: str) -> bool:
     """Whether a tag is one the train cuts for `version`: `v<version>`, or that with a
     pre-release identifier (OPS-R61). It becomes part of a reference handed to
     docker, so it is held to this before anything else reads it."""
-    named, dash, identifier = tag.removeprefix("v").partition("-")
+    named, dash, identifier = tag.removeprefix("v").partition(PRERELEASE_SEPARATOR)
     return (tag.startswith("v") and named == version and bool(VERSION.match(version))
             and (not dash or bool(PRERELEASE_ID.match(identifier))))
 
