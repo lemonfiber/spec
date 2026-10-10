@@ -190,6 +190,7 @@ nothing crosses to it.
 | **F14-R26** | Where the media server is a plugin's service that speaks `identity.source`, its first-run setup MUST go over that contract with an administrator's password lemonfiber mints and keeps under that server's own setting, and the request service's identity setup MUST be given that password with the stack-network address and the `native` API of the service the adapter `fronts`; where that service declares no `native` API, the setup MUST NOT be attempted and the run MUST say so, naming the plugin. |
 | **F14-R27** | lemonfiber MUST write the entry of every plugin service that speaks a contract to run as the operator's uid and gid, as the stack's own images run, and MUST write the key it asks that service with readable by that uid alone; a service that speaks none MUST be written without a user. |
 | **F14-R28** | Where an adapter's upstream needs a credential lemonfiber keeps, lemonfiber MUST be the only writer of it: it MUST write it into the adapter's configuration directory as `upstream.json`, a JSON object of named strings readable by the operator's uid alone, whenever it creates, rotates or moves that credential, and the adapter MUST read it there and MUST NOT write it. |
+| **F14-R29** | An install or update MUST honour a service's `replaces` only where the plugin is first-party, moving the bundled service it names in place under the same container name, configuration directory and data; a third-party plugin declaring `replaces` MUST be refused at install and update, naming the service. |
 
 ## Related
 
