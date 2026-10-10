@@ -3,6 +3,8 @@
 **Status:** Accepted
 **Date:** 2026-07-24
 
+**Superseded in part** by [ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md): the stack is no longer a Compose file usable without lemonfiber. Compose as the engine stands.
+
 ## Context
 
 lemonfiber needs to start, stop, and inspect ~19 containers with varying subsets
