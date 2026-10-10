@@ -74,6 +74,7 @@ schema_version = 1
 [plugin]          # identity and provenance
 [[service]]       # what runs — one or more
 [[claim]]         # a core capability, and the probes that demonstrate it
+[[ask]]           # a core capability one of its services asks for
 [[wiring]]        # how the stack's own proxy and dashboard reach one service
 [[proof]]         # what must hold before it is installed
 [[contribution]]  # a row at a published extension point
@@ -339,7 +340,7 @@ ignored:
 |-------|--------------------------------|
 | `grants` | Kernel capabilities, by name. A manifest never names a capability or a device: the egress guard's upstream declares [`shape`](#service--what-runs) instead, a shape lemonfiber writes, so nothing a plugin writes can widen what it is given. |
 | `depends_on` | The bundled stack contains exactly one cross-service dependency (`B1-R14`), and it is the one that keeps torrent traffic inside the tunnel. A plugin introducing an ordering edge between services it does not own is a source of failures nobody can attribute. |
-| `[[wiring]]` | The stack manifest's array of [links between its own services](stack-manifest.md#wiring--the-link-between-two-services-and-which-of-them-it-names) — `by`, `asks`, `filled_by`, `to`: who asks whom for what. **Not the [`[[wiring]]`](#wiring--how-the-stacks-own-services-reach-one-service) below**, which is spelled the same and says something else: `hostname`, `dashboard_group` and `service`, naming where lemonfiber puts *this* plugin's service on the proxy and the dashboard. One is a link between two services; the other is one service's own address. Since `ARCH-R127` made the plugin's a list too, the spelling no longer tells them apart and the file it is written in is what does. A plugin declares what it can do in `provides` and is asked for by whatever already asks; it does not get to say what reaches what. In particular it cannot introduce a **by-name** link, which is `F4-R12`'s third clause: a by-name wiring is the operator's exception to make and a plugin naming another service is reaching into wiring it does not own. |
+| `[[wiring]]` | The stack manifest's array of [links between its own services](stack-manifest.md#wiring--the-link-between-two-services-and-which-of-them-it-names) — `by`, `asks`, `filled_by`, `to`: who asks whom for what. **Not the [`[[wiring]]`](#wiring--how-the-stacks-own-services-reach-one-service) below**, which is spelled the same and says something else: `hostname`, `dashboard_group` and `service`, naming where lemonfiber puts *this* plugin's service on the proxy and the dashboard. One is a link between two services; the other is one service's own address. Since `ARCH-R127` made the plugin's a list too, the spelling no longer tells them apart and the file it is written in is what does. A plugin declares what it can do in `provides`, is asked for by whatever already asks, and asks in [`[[ask]]`](#ask--what-a-plugins-service-asks-for), by capability only. In particular it cannot introduce a **by-name** link, which is `F4-R12`'s third clause: a by-name wiring is the operator's exception to make and a plugin naming another service is reaching into wiring it does not own. |
 | `host_managed` | Native-mode lifecycle is the operating system's (`B2-R15`). A plugin cannot install a system service. |
 | `profile` | Assigned, not declared — see below. |
 | `environment` | Arbitrary variables into a container lemonfiber generates. The two things an image is usually told this way are where its data lives and where its library is, and both are declarations here — `config_path` and `media_types` — checked and bounded. A free-form pair is neither, and is how a plugin would configure its way past what the format says it does. |
@@ -492,6 +493,25 @@ A namespaced capability gets no claim block and cannot have one. There is no
 published contract for it to satisfy — that is what *inert* means — and the
 plugin's own `[[proof]]` entries are where it says what it can nevertheless
 demonstrate.
+
+## `[[ask]]` — what a plugin's service asks for
+
+```toml
+[[ask]]
+service    = "subfinder"        # optional where the plugin declares one service
+capability = "library.curate"
+each       = true               # every service that fills it, not one
+```
+
+| Field | Type | Req | Meaning |
+|---|---|---|---|
+| `service` | string | | The plugin's own service that asks. Required where the plugin declares more than one service |
+| `capability` | string | ✔ | A core name the published vocabulary carries |
+| `each` | bool | | `true` to reach every service that fills it. Default `false`: one filler, settled by the operator's choice or the stack's own (`F14-R23`) |
+
+The stack's `[[wiring]]` has `filled_by`, `to` and `why`; an ask has none of them. A link by
+name is the operator's exception (`F4-R12`), and a manifest has nowhere to write one
+(`F14-R22`).
 
 ## `[[wiring]]` — how the stack's own services reach one service
 
@@ -814,6 +834,10 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | A `loopback` service declares no `wiring.hostname` | Service named, and the tier that governs |
 | Every `[[wiring]]`, `[[proof]]` and contributed check names a declared service, and names one where the plugin declares more than one | Name given, with the services declared |
 | No service is wired twice | Service named |
+| Every `[[ask]]` names a declared service, and names one where the plugin declares more than one | Name given, with the services declared |
+| Every `ask.capability` is a core name the published vocabulary carries | Capability named: a namespaced one as naming a plugin, a removed one with its generation, an unknown one with the names carried |
+| No service asks for the same capability twice | Service and capability named |
+| No service asks for a capability it provides | Service and capability named; nothing asks itself |
 | `request.accept` is one media type, not a list and not a wildcard | Value named, with what is permitted |
 | Every expectation key names a place an answer could hold | Key named, with what is wrong with it |
 | Every secret captured is one `[[secret]]` declared (`F3-R17`) | Value and its origin named |
