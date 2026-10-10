@@ -51,10 +51,6 @@ name = "explain"
 why = "the same explainer reported skipped under its caller's job name, where squash-message needed nothing explained"
 
 [[exempt]]
-prefix = "explain / "
-why = "the explainers called from a repository's own `explain` job rather than through `gates`: each posts a comment beside a check, and the refusal is that check's"
-
-[[exempt]]
 name = "dco / explain"
 why = "explains a sign-off refusal in a comment; the refusal is dco's"
 
