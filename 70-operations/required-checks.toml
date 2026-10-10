@@ -19,14 +19,6 @@
 # a notification; requiring one would block a merge on whether somebody was
 # told, and none of them has a verdict to give.
 [[exempt]]
-name = "labeler / label"
-why = "applies labels from a path map; it decides nothing about the change"
-
-[[exempt]]
-name = "refs / comment"
-why = "posts the spec references a pull request touches, as a comment"
-
-[[exempt]]
 name = "awaiting / notify"
 why = "tells the maintainers a pull request is ready; the readiness is decided elsewhere"
 
