@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 27 shipped, 29 built, 35 building, 20 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 26 shipped, 29 built, 37 building, 19 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -25,7 +25,6 @@ code, and the two move independently.
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
 | [B10](b-running/b10-hosting.md) | Hosting long-running commands | B | operator | accepted | `0.15.0` |
 | [C2](c-trust/c2-vpn-verification.md) | VPN verification | C | operator | accepted | `0.6.0` |
-| [C3](c-trust/c3-auto-remediation.md) | Auto-remediation | C | operator | accepted | `0.7.0` |
 | [C5](c-trust/c5-storage.md) | Storage & hardlink management | C | operator | accepted | `0.6.0` |
 | [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.6.0` |
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
@@ -90,6 +89,7 @@ code, and the two move independently.
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.18.0`, `0.2.0`, `0.8.0` |
+| [C3](c-trust/c3-auto-remediation.md) | Auto-remediation | C | operator | accepted | `0.18.0`, `0.7.0` |
 | [C4](c-trust/c4-support-bundle.md) | Support bundle | C | operator | accepted | `0.18.0`, `0.7.0` |
 | [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.18.0`, `0.4.0`, `0.7.0` |
 | [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.18.0`, `0.4.0` |
@@ -100,6 +100,7 @@ code, and the two move independently.
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
+| [F14](f-extensibility/f14-every-part-is-a-plugin.md) | Every part is a plugin | F | operator | accepted | `0.18.0` |
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.18.0`, `0.9.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.18.0`, `0.5.0` |
@@ -125,7 +126,6 @@ code, and the two move independently.
 |----|---------|------|----------|--------|----------|
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.23.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
-| [F14](f-extensibility/f14-every-part-is-a-plugin.md) | Every part is a plugin | F | operator | accepted | `0.18.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.20.0` |
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.20.0` |
 | [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `0.20.0` |
