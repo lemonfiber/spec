@@ -6,7 +6,7 @@ version = "0.23.0"
 milestone = "M13"   # See everything
 delivers  = "See everything — metrics, dashboards, uptime"
 status  = "planned"
-repos   = ["lemonfiber"]
+repos   = ["lemonfiber", "plugin-jellyfin"]
 goals   = [
     "B9-R1",
     "B9-R2",

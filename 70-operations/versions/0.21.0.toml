@@ -6,7 +6,7 @@ version = "0.21.0"
 milestone = "M11"   # Ecosystem glue
 delivers  = "Ecosystem glue: self-healing, cleanup, transcoding, statistics"
 status  = "planned"
-repos   = ["lemonfiber"]
+repos   = ["lemonfiber", "plugin-jellyfin"]
 goals   = [
     "H5-R1",
     "H5-R2",

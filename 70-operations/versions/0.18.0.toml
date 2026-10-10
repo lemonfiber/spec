@@ -292,7 +292,7 @@ milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
 
 status  = "planned"
-repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack"]
+repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "plugin-jellyfin"]
 satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
 goals   = [
     "D6-R21",

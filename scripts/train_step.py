@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Which of the train's two steps a run is on, and what it tags — ADR-0033 §4.
 
-A version that cuts a repository building one of the stack's own images is cut in
-two runs of the same lane. The first tags those repositories and stops; the
-second, once the embedded stack pins what they published, tags everything else.
+A version that cuts a repository building one of the stack's own images, or a
+first-party plugin's repository (OPS-R86), is cut in two runs of the same lane.
+The first tags those repositories and stops; the second, once the core embeds a
+stack and a bundle pinning what they published, tags everything else.
 The lane does not take the step as an input. It reads it from the repositories:
 
-- a listed image repository that does not carry the tag makes this the first
+- a listed image or plugin repository that does not carry the tag makes this the first
   step, and the run tags each one that lacks it;
 - when every one carries it, or the version cuts none, this is the second step,
   and the run tags the other streams.
@@ -45,9 +46,9 @@ CHECKOUTS = pathlib.Path("checkouts")
 TAGGING = pathlib.Path("tagging.txt")
 DECLARING = pathlib.Path("declaring.txt")
 
-#: The first step: the image repositories are tagged, and nothing else.
+#: The first step: the image and plugin repositories are tagged, and nothing else.
 IMAGES = "images"
-#: The second step, and the only one for a version that cuts no image.
+#: The second step, and the only one for a version that cuts no image and no plugin.
 STREAMS = "streams"
 
 #: What `git ls-remote --exit-code` answers when the remote holds no such ref.
@@ -76,9 +77,9 @@ def carries(repo: str, tag: str) -> bool:
     sys.exit(f"::error::could not ask {repo} whether it carries {tag}: {result.stderr.strip()}")
 
 
-def settle(images: list[str], others: list[str], tag: str) -> tuple[str, list[str], list[str]]:
+def settle(early: list[str], others: list[str], tag: str) -> tuple[str, list[str], list[str]]:
     """The step, what it tags, and what has to declare the version first."""
-    untagged = [repo for repo in images if not carries(repo, tag)]
+    untagged = [repo for repo in early if not carries(repo, tag)]
     if untagged:
         return IMAGES, untagged, untagged + others
     return STREAMS, others, others
@@ -98,8 +99,11 @@ def main() -> int:
         return 1
     data = tomllib.loads(path.read_text(encoding="utf-8"))
     registry = tomllib.loads(manifest_repos.REGISTRY.read_text(encoding="utf-8"))
-    images = [repo for repo, _, _ in manifest_repos.images(data, registry)]
-    step, tagging, declaring = settle(images, manifest_repos.others(data, registry), a.tag)
+    missing = manifest_repos.unlisted_plugins(data, registry)
+    if missing:
+        sys.exit(f"::error::{path.name} {manifest_repos.unlisted(missing)}")
+    step, tagging, declaring = settle(manifest_repos.first(data, registry),
+                                      manifest_repos.others(data, registry), a.tag)
 
     TAGGING.write_text("".join(f"{repo}\n" for repo in tagging), encoding="utf-8")
     DECLARING.write_text("".join(f"{repo}\n" for repo in declaring), encoding="utf-8")

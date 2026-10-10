@@ -8,10 +8,11 @@
 # release-announce, both on the `release: published` event. Nothing is claimed
 # released before it is. Maintainer-only; dry_run defaults on.
 #
-# A version that cuts a repository building one of the stack's own images is
-# executed twice (ADR-0033 §4). The first run tags those repositories and stops.
-# Once the stack pins the image each tag published, and the core's submodule
-# embeds that stack, the second run checks those pins and tags everything else.
+# A version that cuts a repository building one of the stack's own images, or a
+# first-party plugin's repository, is executed twice (ADR-0033 §4, OPS-R86). The
+# first run tags those repositories and stops. Once the stack pins the image each
+# tag published and the catalogue's bundle pins each plugin, and the core's
+# submodules embed both, the second run checks those pins and tags everything else.
 # `train_step.py` reads which run this is from the repositories themselves.
 name: execute-version
 on:
@@ -216,6 +217,14 @@ jobs:
         run: |
           python3 scripts/check_image_pins.py --version "$VERSION" --tag "v${VERSION}" \
             --stack checkouts/lemonfiber/assets/media-stack/stack.toml
+      - name: The embedded bundle pins each first-party plugin at this tag (OPS-R86)
+        if: ${{ steps.step.outputs.step == 'streams' }}
+        env:
+          VERSION: ${{ inputs.version }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          python3 scripts/check_bundle_pins.py --version "$VERSION" --tag "v${VERSION}" \
+            --core checkouts/lemonfiber --owner "$OWNER"
       - name: Check for release blockers (OPS-R44)
         env:
           VERSION: ${{ inputs.version }}
@@ -293,12 +302,12 @@ jobs:
               -f ref="refs/tags/${TAG}" -f sha="${sha}"
             echo "tagged ${r} @ ${sha:0:8} as ${TAG}"
           done < tagging.txt
-      - name: Images tagged — run again once the core embeds them
+      - name: Images and plugins tagged — run again once the core embeds them
         if: ${{ !inputs.dry_run && steps.step.outputs.step == 'images' }}
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          echo "::notice title=Images tagged::$(paste -sd, tagging.txt) carry v${VERSION}. Once lemonfiber-media-stack pins the image each tag published and the core's submodule takes that stack, run execute-version again: it checks those pins and tags every other stream."
+          echo "::notice title=Images and plugins tagged::$(paste -sd, tagging.txt) carry v${VERSION}. Once lemonfiber-media-stack pins the image each service tag published, lemonfiber-plugins' bundle pins each plugin at v${VERSION}, and the core's submodules take both, run execute-version again: it checks those pins and tags every other stream."
       - name: Tagged — publish to finish
         if: ${{ !inputs.dry_run && steps.step.outputs.step == 'streams' }}
         env:

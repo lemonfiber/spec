@@ -9,7 +9,7 @@ version = "1.0.0"
 milestone = "M6"   # Live TUI
 delivers  = "The dashboard — a bare `lemonfiber` opens it. Everything specced is built, and the interfaces stop moving."
 status  = "planned"
-repos   = ["lemonfiber"]
+repos   = ["lemonfiber", "plugin-jellyfin"]
 satisfied_in = ["lemonfiber", "lemonfiber-companion"]
 goals   = [
     "B3-R1",
