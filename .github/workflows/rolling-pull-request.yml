@@ -7,9 +7,10 @@
 # a fork's pull request whose branch has the same name, and a bump that edits it
 # and arms it to merge lands a fork's code once its checks pass. This is the one
 # place it is done, and `scripts/rolling_pull_request.py` is how: a pull
-# request is the bump's only where its head is this repository's own branch, the
-# release app opened it, and its head is the commit the caller has just put
-# there. Anything else edits nothing and fails the run.
+# request is the bump's only where it is open, its head is this repository's own
+# branch, the release app opened it, and its head is the commit the caller has
+# just put there, which must be the branch's tip and made and signed as the
+# app. Anything else edits nothing and fails the run.
 #
 # The caller makes the commit, signed, in a job of its own, and calls this in the
 # next one with that commit:

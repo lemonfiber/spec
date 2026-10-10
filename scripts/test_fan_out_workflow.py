@@ -82,7 +82,7 @@ printf '%s\\n' "$*" >> "${GH_LOG}"
 OID=0123456789abcdef0123456789abcdef01234567
 BOT=lemonfiber-release-train[bot]
 case "$*" in
-"api --method GET "*/git/ref/heads/*|"api --method GET "*/pulls\\?*|"api --method PATCH "*/pulls/*|"api --method POST "*/pulls" --input -")
+"api --method GET "*/git/ref/heads/*|"api --method GET "*/commits/*|"api --method GET "*/pulls\\?*|"api --method PATCH "*/pulls/*|"api --method POST "*/pulls" --input -")
   method=$3; path=$4
   full=$(printf '%s' "$path" | cut -d/ -f2-3)
   short=${full#*/}
@@ -92,11 +92,12 @@ case "$*" in
   GET)
     case "$path" in
     */git/ref/heads/*) printf '{"object":{"sha":"%s"}}\\n' "${GH_AT:-$OID}" ;;
+    */commits/*) printf '{"author":{"login":"%s"},"commit":{"verification":{"verified":true}}}\\n' "$BOT" ;;
     *)
       printf '%b' "${GH_OPEN:-}" | awk -v repo="$full" -v sha="$OID" -v by="${GH_AUTHOR:-$BOT}" '
         BEGIN { printf "[" }
         $2 == "ci/take-the-shared-workflows" {
-          printf "%s{\\"number\\":%s,\\"node_id\\":\\"PR_%s\\",\\"user\\":{\\"login\\":\\"%s\\"},", (n++ ? "," : ""), $1, $1, by
+          printf "%s{\\"number\\":%s,\\"node_id\\":\\"PR_%s\\",\\"state\\":\\"open\\",\\"user\\":{\\"login\\":\\"%s\\",\\"type\\":\\"Bot\\"},", (n++ ? "," : ""), $1, $1, by
           printf "\\"base\\":{\\"ref\\":\\"main\\"},\\"auto_merge\\":null,"
           printf "\\"head\\":{\\"ref\\":\\"%s\\",\\"sha\\":\\"%s\\",\\"repo\\":{\\"full_name\\":\\"%s\\"}}}", $2, sha, repo
         }
@@ -113,7 +114,7 @@ case "$*" in
     case " ${GH_CREATE_FAILS:-} " in *" ${short} "*) exit 1 ;; esac
     printf 'created %s\\n' "${short}" >> "${GH_CREATED}"
     printf '%s' "$payload" | python3 -c 'import json, sys; print(json.load(sys.stdin)["body"])' >> "${GH_BODIES}"
-    printf '{"number":7,"node_id":"PR_7","user":{"login":"%s"},"base":{"ref":"main"},"auto_merge":null,' "$BOT"
+    printf '{"number":7,"node_id":"PR_7","state":"open","user":{"login":"%s","type":"Bot"},"base":{"ref":"main"},"auto_merge":null,' "$BOT"
     printf '"head":{"ref":"ci/take-the-shared-workflows","sha":"%s","repo":{"full_name":"%s"}}}\\n' "$OID" "$full"
     ;;
   esac

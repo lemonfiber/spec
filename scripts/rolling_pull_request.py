@@ -10,13 +10,16 @@ then edits it and arms auto-merge merges the fork's code once its checks pass.
 So the pull request is found by the repository and the branch together, and
 only one that is the bump's own is touched:
 
+- the commit given must be the branch's tip, authored by the account the bump
+  writes as and verified, so a caller cannot point this at a branch or a
+  commit somebody else made;
 - open pull requests are listed by `head=<owner>:<branch>`, and one whose head
   is not this repository's own branch is not the bump's;
-- the bump's must have been opened by the account the bump writes as, which is
-  the app whose token runs this, and one opened by anybody else is refused;
-- its head must be the commit the bump has just put on the branch, and so must
-  the branch itself, so a commit somebody else pushed there is never what is
-  armed to merge.
+- the bump's must be open and unmerged and have been opened by the account the
+  bump writes as, the bot of the app whose token runs this, and one opened by
+  anybody else is refused;
+- its head must be the commit given, so a commit somebody else pushed there is
+  never what is armed to merge.
 
 Where none is open, one is opened from the branch, and checked the same way
 once it exists. Auto-merge is armed at the given commit only, squashing, and
@@ -108,9 +111,12 @@ def graphql(api: Api, query: str, variables: dict) -> None:
 def wrong_with(pull: dict, author: str, head: str) -> str | None:
     """Why a pull request is not the bump's own at the given commit, or None."""
     number = pull["number"]
-    login = (pull.get("user") or {}).get("login")
-    if login != author:
+    user = pull.get("user") or {}
+    login = user.get("login")
+    if login != author or user.get("type") != "Bot":
         return f"#{number} was opened by {login or 'nobody known'}, not {author}, so it is not the bump's"
+    if pull.get("state") != "open" or pull.get("merged_at") or pull.get("merged"):
+        return f"#{number} is not open, and a closed or merged pull request is never edited"
     if pull["base"]["ref"] != BASE:
         return f"#{number} merges into {pull['base']['ref']}, not {BASE}"
     if pull["head"]["sha"] != head:
@@ -137,6 +143,11 @@ def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str
     at = api("GET", f"repos/{repo}/git/ref/heads/{quoted(branch)}", None)["object"]["sha"]
     if at != head:
         raise Refused(f"{branch} is at {at}, not {head}, the commit this run put on it; nothing was edited")
+    made = api("GET", f"repos/{repo}/commits/{head}", None)
+    by = (made.get("author") or {}).get("login")
+    if by != author or made["commit"]["verification"]["verified"] is not True:
+        raise Refused(f"{head} was not made and signed as {author} (its author is {by or 'nobody known'}), "
+                      "so it is not the bump's commit; nothing was edited")
 
     owner = repo.split("/")[0]
     query = urllib.parse.urlencode({"head": f"{owner}:{branch}", "state": "open", "per_page": PER_PAGE})

@@ -43,11 +43,14 @@ OTHER = "b" * 40
 BOT = "lemonfiber-release-train[bot]"
 
 
-def pull(number=7, repo=REPO, ref=BRANCH, sha=HEAD, login=BOT, base="main", armed=None):
+def pull(number=7, repo=REPO, ref=BRANCH, sha=HEAD, login=BOT, base="main", armed=None,
+         kind="Bot", state="open", merged_at=None):
     return {
         "number": number,
         "node_id": f"PR_{number}",
-        "user": {"login": login} if login else None,
+        "state": state,
+        "merged_at": merged_at,
+        "user": {"login": login, "type": kind} if login else None,
         "base": {"ref": base},
         "head": {"ref": ref, "sha": sha, "repo": {"full_name": repo} if repo else None},
         "auto_merge": armed,
@@ -57,9 +60,12 @@ def pull(number=7, repo=REPO, ref=BRANCH, sha=HEAD, login=BOT, base="main", arme
 class Forge:
     """Answers each call from what the case set up, and records every one."""
 
-    def __init__(self, open_pulls=(), at=HEAD, created=None, graphql=None, fails=None):
+    def __init__(self, open_pulls=(), at=HEAD, created=None, graphql=None, fails=None,
+                 made_by=BOT, verified=True):
         self.open_pulls = list(open_pulls)
         self.at = at
+        self.made = {"author": {"login": made_by} if made_by else None,
+                     "commit": {"verification": {"verified": verified}}}
         self.created = created if created is not None else pull(number=9)
         self.graphql_answer = graphql if graphql is not None else {"data": {}}
         self.fails = fails
@@ -71,6 +77,8 @@ class Forge:
             raise subprocess.CalledProcessError(1, "gh", stderr="HTTP 502")
         if method == "GET" and "/git/ref/heads/" in path:
             return {"object": {"sha": self.at}}
+        if method == "GET" and "/commits/" in path:
+            return self.made
         if method == "GET" and "/pulls?" in path:
             return self.open_pulls
         if method == "POST" and path.endswith("/pulls"):
@@ -162,6 +170,54 @@ class TheWrongAuthor(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual([m for m, _, _ in forge.writes()], ["POST"])
         self.assertIn("neither labelled nor armed", err)
+
+
+class NotTheBumpsCommitOrPullRequest(unittest.TestCase):
+    """A caller cannot aim this at a commit, branch or pull request it does not own."""
+
+    def test_a_branch_tip_somebody_else_made_is_refused_before_anything_is_opened(self):
+        forge = Forge(made_by="somebody")
+        code, _, err = run(forge, "--auto-merge")
+        self.assertEqual(code, 1)
+        self.assertEqual(forge.writes(), [])
+        self.assertIn("its author is somebody", err)
+
+    def test_a_commit_nobody_is_linked_to_is_refused(self):
+        forge = Forge(made_by=None)
+        code, _, err = run(forge)
+        self.assertEqual(code, 1)
+        self.assertIn("nobody known", err)
+
+    def test_an_unsigned_commit_in_the_apps_name_is_refused(self):
+        forge = Forge(verified=False)
+        code, _, _ = run(forge, "--auto-merge")
+        self.assertEqual(code, 1)
+        self.assertEqual(forge.writes(), [])
+
+    def test_the_commit_is_asked_about_by_the_given_head(self):
+        forge = Forge([pull()])
+        run(forge)
+        self.assertIn(("GET", f"repos/{REPO}/commits/{HEAD}", None), forge.asked)
+
+    def test_a_closed_pull_request_listed_anyway_is_never_edited(self):
+        forge = Forge([pull(state="closed")])
+        code, _, err = run(forge, "--auto-merge")
+        self.assertEqual(code, 1)
+        self.assertEqual(forge.writes(), [])
+        self.assertIn("is not open", err)
+
+    def test_a_merged_pull_request_listed_anyway_is_never_edited(self):
+        forge = Forge([pull(state="closed", merged_at="2026-10-11T00:00:00Z")])
+        code, _, _ = run(forge)
+        self.assertEqual(code, 1)
+        self.assertEqual(forge.writes(), [])
+
+    def test_a_person_whose_login_reads_like_the_bot_is_not_the_bot(self):
+        forge = Forge([pull(kind="User")])
+        code, _, err = run(forge, "--auto-merge")
+        self.assertEqual(code, 1)
+        self.assertEqual(forge.writes(), [])
+        self.assertIn("not the bump's", err)
 
 
 class TheShaMismatch(unittest.TestCase):
@@ -314,6 +370,7 @@ printf '%s %s\\n' "$3" "$4" >> "${GH_LOG}"
 if [ "${5:-}" = "--input" ]; then cat >> "${GH_LOG}"; printf '\\n' >> "${GH_LOG}"; fi
 case "$3 $4" in
 "GET "*/git/ref/heads/*) printf '%s' "${GH_REF}" ;;
+"GET "*/commits/*) printf '%s' "${GH_COMMIT}" ;;
 "GET "*/pulls\\?*) printf '%s' "${GH_PULLS}" ;;
 "POST "*/pulls) printf '%s' "${GH_CREATED}" ;;
 "POST graphql") printf '{"data":{}}' ;;
@@ -337,6 +394,7 @@ class WithAStubbedGh(unittest.TestCase):
             "PATH": f"{stub.parent}{os.pathsep}{os.environ['PATH']}",
             "GH_LOG": str(self.log),
             "GH_REF": json.dumps({"object": {"sha": HEAD}}),
+            "GH_COMMIT": json.dumps({"author": {"login": BOT}, "commit": {"verification": {"verified": True}}}),
             "GH_PULLS": json.dumps([]),
             "GH_CREATED": json.dumps(pull(number=9)),
         }
