@@ -131,6 +131,7 @@ It lives here, in `bundle/`, and the core embeds it by pinning this repository a
 submodule.
 
 `bundle/bundle.toml` names each first-party plugin with five things (`REPO-R91`):
+
 - its origin;
 - the release it was tagged at;
 - the revision of its repository whose manifest names that release's image;
