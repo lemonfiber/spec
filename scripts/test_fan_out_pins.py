@@ -486,11 +486,13 @@ class WhoItVisits(unittest.TestCase):
         )
         self.assertEqual(fan_out_pins.consumers(where), ["lemonfiber"])
 
-    def test_the_ungoverned_table_is_not_visited(self):
+    def test_the_ungoverned_table_is_visited_after_the_map(self):
+        # A plugin repository is outside the map and still pins the shared
+        # workflows, so its pins go stale the same way.
         where = self.wrote(
-            '[[repo]]\nname = "lemonfiber"\n\n[[ungoverned]]\nname = "something-else"\n'
+            '[[ungoverned]]\nname = "plugin-plex"\n\n[[repo]]\nname = "lemonfiber"\n'
         )
-        self.assertEqual(fan_out_pins.consumers(where), ["lemonfiber"])
+        self.assertEqual(fan_out_pins.consumers(where), ["lemonfiber", "plugin-plex"])
 
     def test_the_map_order_is_kept(self):
         # The README's order runs from the specification outward. A fan-out that

@@ -478,8 +478,10 @@ beside a pin carries the tag and the tag is what Dependabot compares: a fan-out
 firing on the merge would have no number to write. It rewrites through
 `workflow_pins.py`'s own reader, so it cannot bump a pin the gate would not have
 named nor leave one it would. And it visits the repositories `30-repos/repos.toml`
-lists rather than a second copy of that list, so the day somebody adds a
-fourteenth repository is not the day the fan-out quietly stops covering the org.
+lists rather than a second copy of that list, the map's and the ungoverned ones
+alike, since a plugin repository outside the map pins the shared workflows as
+much as one inside it. So the day somebody adds a fourteenth repository is not
+the day the fan-out quietly stops covering the org.
 
 The map can name a repository before it exists, and the app's token is refused
 whole if one repository it is minted for is outside the app's installation. So

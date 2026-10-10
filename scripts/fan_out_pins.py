@@ -71,8 +71,9 @@ from workflow_pins import _git, commits_between, pins_under
 #: rather than trusted to the caller that assembled it.
 TAG = re.compile(r"\Av\d+\.\d+\.\d+\Z")
 
-#: The org's own map. `[[repo]]` is what this specification governs; the
-#: `[[ungoverned]]` table at its foot is deliberately not read here.
+#: The org's own map. `[[repo]]` is what this specification governs, and the
+#: `[[ungoverned]]` table at its foot is the rest of the organisation; every
+#: repository in either calls the shared workflows, so the fan-out visits both.
 REGISTRY = pathlib.Path("30-repos/repos.toml")
 
 #: This repository calls its own reusable workflows with `./`, so it holds no pin
@@ -116,7 +117,7 @@ DELIMITER = "END OF REACHABLE"
 
 
 def consumers(registry: pathlib.Path = REGISTRY) -> list[str]:
-    """Every governed repository but this one, in the order the map lists them.
+    """Every repository in the organisation but this one, the map's in its order, then the rest.
 
     Read from the map rather than kept as a second list beside it. A fan-out with
     its own copy of the org visits fourteen repositories on the day somebody
@@ -127,7 +128,7 @@ def consumers(registry: pathlib.Path = REGISTRY) -> list[str]:
 
     return [
         str(one["name"])
-        for one in named.get("repo", [])
+        for one in (*named.get("repo", []), *named.get("ungoverned", []))
         if str(one.get("name", "")) != ITSELF
     ]
 
