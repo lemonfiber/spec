@@ -177,6 +177,11 @@
 # holds it. `plugin-jellyfin`, which this version cuts and bundles, needs what only
 # `main` has, and no release or pre-release is cut to give a plugin something to build
 # against. Added after staging by the maintainer's decision of 2026-10-11 (OPS-R31).
+# `OPS-R90` and `OPS-R91` publish a first-party plugin's adapter image from every commit
+# on its `main`, tagged by the commit, and move the manifest's pin to it through one
+# rolling pull request, so `plugin-jellyfin` pins a real build of its adapter before any
+# release carries it. A commit image is not a release and never moves the bundle.
+# Added after staging by the maintainer's decision of 2026-10-11 (OPS-R31).
 # `C10-R1` to `C10-R14` give a program that runs beside the stack its own credential: a
 # named key with one scope, minted at the command line or over the web API with the
 # password given again, shown once beside the stack's address and pin, and revoked by name
@@ -274,7 +279,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 470 goals, seeded from the roadmap milestone this version serves;
+# 472 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -726,6 +731,8 @@ goals   = [
     "OPS-R86",
     "OPS-R88",
     "OPS-R89",
+    "OPS-R90",
+    "OPS-R91",
     "ARCH-R199",
     "ARCH-R222",
     "ARCH-R200",

@@ -140,7 +140,8 @@ submodule.
 
 It pins a revision rather than the tag because a manifest names its image by digest,
 and that digest reaches the plugin's `main` through the pin pull request its release
-opens after the tag.
+opens after the tag. A plugin's `main` also pins images built from its own commits
+(`OPS-R91`); the bundle pins only a revision whose adapter is tagged at the release.
 
 Beside it, `bundle/plugins/<id>.toml` is the manifest at that revision, copied byte
 for byte. This is the one place the catalogue holds a copy (`REPO-R60`). The binary
