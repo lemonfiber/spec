@@ -5,7 +5,7 @@ kind: feature
 area: D
 audience: household
 status: accepted
-maturity: built
+maturity: building
 labels: [household]
 relates: [D1, D6, D7, D8, D11, G6]
 ---
@@ -159,6 +159,7 @@ Per request:
 | **D4-R18** | Which kinds of title a member's search covers MUST be the kinds the stack can deliver now (`D4-R4`), decided by the core and said in its answer; the member MUST NOT be offered a kind to choose. |
 | **D4-R19** | A title a member's search finds with no certification MUST have its certification looked up by the core before it is offered, and where none is found it MUST be treated as unrated under that member's unrated policy (`D8-R5`), never as allowed. |
 | **D4-R20** | A member's ask MUST be an action of the web API, rehearsed before it is sent so the member is told what it would leave of their allowance and whether it waits for approval, and sent with an `Idempotency-Key` so a retry after no answer asks once (`ARCH-R165`); `request.intake` MUST carry the search and the ask as operations of its own. |
+| **D4-R21** | Every request a member or the operator reads MUST name the title it asks for, a request still awaiting approval included: where no library holds the title yet, the core MUST name it from the request service's own record of that title. A request neither can name MUST still be shown and decidable, and MUST NOT make the rest of the reading unreadable. |
 
 ## Related
 
