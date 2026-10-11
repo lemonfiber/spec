@@ -7,7 +7,7 @@
 # release target: the core's `Cargo.toml` names the four it builds. This version is
 # where Windows becomes one, and the three ship with it.
 #
-# 60 goals, seeded from the roadmap milestone this version serves;
+# 87 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R153` is browsing the catalogue over the web API, answered from the verified
 # index, so the companion lists what can be installed rather than taking a typed name.
@@ -17,6 +17,7 @@ milestone = "M11"   # Ecosystem glue
 delivers  = "Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles"
 status  = "planned"
 repos   = ["lemonfiber", "plugin-jellyfin"]
+satisfied_in = ["lemonfiber", "plugin-jellyfin", "lemonfiber-companion"]
 goals   = [
     "H1-R1",
     "H1-R2",
@@ -78,6 +79,38 @@ goals   = [
     "ARCH-R30",
     "ARCH-R34",
     "ARCH-R153",
+    "N2-R1",
+    "N2-R2",
+    "N2-R3",
+    "N2-R4",
+    "N2-R5",
+    "N2-R6",
+    "N2-R7",
+    "N2-R8",
+    "N2-R9",
+    "N2-R10",
+    "N2-R11",
+    "N2-R12",
+    "N2-R13",
+    "N2-R14",
+    "N2-R15",
+    "N2-R16",
+    "N2-R17",
+    "N2-R18",
+    "N2-R19",
+    "N2-R20",
+    "N2-R21",
+    "N2-R22",
+    "N2-R23",
+    "N2-R24",
+    "N2-R25",
+    "N2-R26",
+    "N2-R27",
 ]
+
+# `N2-R1` to `N2-R27` are the rest of N2, which 0.19.0 touches and no version locked.
+# A version touching a feature with a requirement no version locks is refused
+# (OPS-R54), so they are locked here, the version after, by the maintainer's decision
+# of 2026-10-11. They are the companion's, so `lemonfiber-companion` is searched.
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

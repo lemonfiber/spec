@@ -170,6 +170,7 @@ class TheNarrowing(Catalogue):
         self.feature("B3", "building", requirements=15)
         self.tracker("B3-R2", "B3-R3")
         self.manifest("0.5.0", ["B3-R2", "B3-R3"])
+        self.manifest("0.6.0", [f"B3-R{n}" for n in (1, *range(4, 16))])
         code, said = self.act("0.5.0")
         self.assertEqual(code, 0)
         self.assertIn("no-stubs: every requirement this version locks is built", said)
@@ -178,6 +179,7 @@ class TheNarrowing(Catalogue):
         self.feature("E1", "built", area="e-maintenance")
         self.tracker("E1-R1", "E1-R2")
         self.manifest("0.14.0", ["E1-R1", "E1-R2"])
+        self.manifest("0.15.0", ["E1-R3"])
         code, said = self.act("0.14.0")
         self.assertEqual(code, 0)
         self.assertIn("2 of them built", said)
@@ -218,15 +220,17 @@ class TheNarrowing(Catalogue):
 
 
 class WhatNoVersionLocks(Catalogue):
-    def test_a_requirement_the_train_never_locks_is_named(self):
+    def test_a_requirement_the_train_never_locks_refuses_by_name(self):
         """A live requirement no manifest carries. Nothing would ever ask about
         it, and the only run in a position to notice is one already looking at
-        the feature that holds it."""
+        the feature that holds it, so it refuses rather than warns (OPS-R70)."""
         self.feature("F3", "shipped", requirements=5, area="f-extensibility")
         self.tracker("F3-R1", "F3-R2")
         self.manifest("0.16.0", ["F3-R1", "F3-R2"])
         code, said = self.act("0.16.0")
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
+        self.assertIn("::error::", said)
+        self.assertNotIn("::warning::", said)
         self.assertIn("locked by no manifest in the train", said)
         self.assertIn("F3-R3, F3-R4, F3-R5", said)
 
@@ -234,13 +238,13 @@ class WhatNoVersionLocks(Catalogue):
         """F3-R15, R16, R19 and R20 are the real shape of this. Each is a row
         kept so the number is never reused, and OPS-R30 forbids one being a goal
         — so naming them here asks every manifest for the one thing none of them
-        may give, and trains a reader to read past the warning."""
+        may give, and refuses every version for ever."""
         self.feature("F3", "shipped", requirements=5, area="f-extensibility",
                      retired=(3, 4))
         self.tracker("F3-R1", "F3-R2")
         self.manifest("0.16.0", ["F3-R1", "F3-R2"])
         code, said = self.act("0.16.0")
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
         self.assertNotIn("F3-R3", said)
         self.assertNotIn("F3-R4", said)
         self.assertIn("F3-R5", said)
@@ -274,6 +278,7 @@ class WhatIsNotAFeature(Catalogue):
         self.feature("C6", "shipped", area="c-trust")
         self.tracker("C6-R1")
         self.manifest("0.10.0", ["ARCH-R55", "ARCH-R58", "C6-R1"])
+        self.manifest("0.11.0", ["C6-R2", "C6-R3"])
         code, said = self.act("0.10.0")
         self.assertEqual(code, 0)
         self.assertIn("outside the feature catalogue", said)
