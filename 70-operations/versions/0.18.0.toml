@@ -735,3 +735,9 @@ goals   = [
 # every setting another surface offers, which is claimed when the interfaces stop moving:
 # 1.0.0.
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
+
+[[prerelease]]
+tag = "v0.18.0-pre.1"
+cut_on = "2026-10-11"
+unmet = ["G1-R15", "D11-R9", "F8-R6", "F8-R7", "F8-R10", "F8-R15", "A5-R14", "ARCH-R132", "G2-R16", "G4-R16", "D7-R15", "B2-R17", "B2-R18", "C9-R16", "D2-R13", "D2-R14", "D2-R15", "D6-R17", "D6-R18", "A7-R15", "C1-R15", "C4-R15", "C6-R18", "G7-R14", "G8-R15", "G8-R16", "G8-R17", "G8-R18", "A2-R16", "ARCH-R173", "ARCH-R174", "ARCH-R176", "ARCH-R177", "F8-R19", "ARCH-R2", "ARCH-R9", "ARCH-R10", "ARCH-R15", "ARCH-R18", "ARCH-R19", "ARCH-R25", "ARCH-R35", "ARCH-R38", "ARCH-R42", "ARCH-R45", "ARCH-R96", "ARCH-R97", "ARCH-R103", "ARCH-R104", "ARCH-R105", "ARCH-R129", "N20-R4", "N20-R5", "N20-R6", "N20-R7", "N20-R8", "N20-R9", "N20-R10", "N25-R1", "N25-R2", "N25-R4", "N25-R8", "N25-R9", "N25-R10", "N25-R11", "ARCH-R186", "ARCH-R187", "ARCH-R192", "ARCH-R193", "ARCH-R194", "ARCH-R196", "F14-R1", "F14-R2", "F14-R3", "F14-R4", "F14-R5", "F14-R6", "F14-R7", "F14-R8", "F14-R9", "F14-R10", "F14-R11", "F14-R13", "F14-R14", "F14-R15", "F14-R16", "F14-R17", "F14-R18", "F14-R19", "F14-R20", "F14-R22", "F14-R23", "F14-R24", "F14-R25", "F14-R26", "F14-R27", "F14-R28", "F14-R29", "F14-R30", "OPS-R86", "ARCH-R199", "ARCH-R222", "ARCH-R200", "ARCH-R201", "ARCH-R202", "ARCH-R203", "ARCH-R204", "ARCH-R205", "ARCH-R206", "ARCH-R207", "ARCH-R208", "ARCH-R209", "ARCH-R210", "ARCH-R211", "ARCH-R212", "ARCH-R213", "ARCH-R214", "ARCH-R215", "ARCH-R216", "ARCH-R221", "ARCH-R217"]
+pins = { lemonfiber-media-stack = "d808a85673e096cee16223e06d86dfe35968f0e9", lemonfiber-web = "830de5553a52ceea51dd8d76168aa11cef7373c3", lemonfiber-plugins = "f4019fb7a0f7d0629c535ed6cb7b04774f094438" }
