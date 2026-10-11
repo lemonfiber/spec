@@ -302,6 +302,13 @@ Each of these has its own remedy, and a client that read them from the status al
 offer one remedy for all four. So a client decides what a refusal means from its code. It
 never decides from the sentence, which is written for a person and may be reworded.
 
+That sentence is plain text, and so is every other sentence the core sends a client: a
+refusal's summary and remedy, a reason, a report, and the meaning and remedy each code
+carries in the registry. None carries markup. A name is written as the name, with no
+backticks or emphasis around it, so a client shows the sentence exactly as it arrives and
+no client has to render a markup language to be read correctly. A capability contract's
+refusals and reasons are held to the same rule, because the core passes them on.
+
 A code is one of the core's problem codes. It is stable, never recycled, and listed with
 every other code the core raises. The artefact lists every code a refusal may carry, with
 the status each is answered with ([the refusals it lists](web-api-artefact.md#the-refusals-it-lists)), so an SDK generates the
@@ -915,6 +922,7 @@ generation has not been used.
 | **ARCH-R218** | The `invitation` envelope MUST carry `join`, the join link, where `D6-R22` gives one, and `unjoinable`, the sentence `D6-R24` requires, where it gives none and the invitation is not a rehearsal. |
 | **ARCH-R219** | `POST /api/session` MUST accept `claim` beside a member's `name` and `password` (`D6-R25`). It MUST refuse a claim on an invitation that is not open with `401` under one code, whether the token is unknown, spent, lapsed or declined; MUST refuse a password shorter than the minimum under a code of its own naming the minimum (`D6-R26`); MUST count a claim against the attempts a sign-in is counted against; and MUST remain the one route that answers without a token. |
 | **ARCH-R220** | An envelope MUST NOT carry a drawn QR code. A surface MUST draw each code from the address, link or text the envelope carries, exactly as given (`G1-R15`). |
+| **ARCH-R223** | Every sentence the core sends a client over the web API or a capability contract (a refusal's summary and remedy, a reason, a report, and each code's meaning and remedy in the registry) MUST be plain text carrying no markup, and CI MUST refuse a core sentence written with a code span or emphasis. |
 
 ## The artefact
 
