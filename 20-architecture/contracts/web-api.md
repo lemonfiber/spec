@@ -68,7 +68,7 @@ GET /api/update?…
 GET /api/news
 GET /api/plugins       GET /api/wiring
 GET /api/playing       GET /api/watching?…
-GET /api/askable?…
+GET /api/askable?…      GET /api/askable/{id}/poster?…
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -192,7 +192,7 @@ no path on which another member's session is read and then left out.
 ### What a member may ask for
 
 ```
-GET /api/askable?…       POST /api/actions/ask
+GET /api/askable?…       GET /api/askable/{id}/poster?…       POST /api/actions/ask
 ```
 
 `/api/askable` is a member's search for titles the house does not hold yet, answered by the
@@ -224,6 +224,18 @@ every search is a live question to the request service and to the catalogue behi
   left of each kind and when it next frees up, as the household read says it, and `approval`, a
   household sentence saying whether what they ask for waits for whoever runs the house.
 
+`/api/askable/{id}/poster` is the poster of a title a page offered, named by its id in the path
+and its `kind` as a parameter, with `member` as the search takes it and answered to the same
+callers. It answers bytes rather than an envelope, as the held shelf's pictures do: an `image/*`
+body of at most 2 MiB marked `Cache-Control: private` (`D11-R10`). The core fetches it from the
+location the request service gave for that title, and only where that location lies beneath the
+one catalogue address the account of what leaves this machine names, over HTTPS, with no
+credentials, its host resolved and refused where it stands for a loopback, private or link-local
+address, and no redirect followed; the member's client is never sent to the catalogue. A title
+outside the member's limits is refused as `WISH-3`, as an ask is; one with no poster, a poster
+that is not a raster image or is larger, and an operator who switched posters off
+(`LEMONFIBER_REACH_POSTERS`, `G8-R5`) are answered as `WISH-13`.
+
 `ask` takes `id` and `kind`, as a page of `/api/askable` named the title, `seasons` for a series
 (none names every season not already here or on its way, `D4-R11`), `name`, which the operator
 names and a member's own request has replaced with themselves, and `dry_run`. It answers now,
@@ -245,7 +257,7 @@ never with a job, in the `asked` envelope `lemonfiber household ask --json` writ
 - **Sent once.** A client sends every ask with an `Idempotency-Key`, so an ask retried after no
   answer is carried out once (`ARCH-R165`).
 
-Every refusal of either carries a household sentence and a remedy beside its code, and names no
+Every refusal of any of the three carries a household sentence and a remedy beside its code, and names no
 service, size, address or state of the stack (`G4-R16`):
 
 | Code | Status | Refused because |
@@ -262,6 +274,7 @@ service, size, address or state of the stack (`G4-R16`):
 | `WISH-10` | `400` | a season named is not one the title has, or seasons were named for a film |
 | `WISH-11` | `400` | the operator named nobody |
 | `WISH-12` | `404` | nobody in the household goes by the member named |
+| `WISH-13` | `404` | the title has no picture to show |
 
 ### When a request is refused
 

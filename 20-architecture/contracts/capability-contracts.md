@@ -119,7 +119,7 @@ asks for them. Their shapes are the generated documents' alone.
 | `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; seeding and letting a completed download go (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add) |
 | `indexer.proxy` | Solve a challenge; whether it answers |
-| `request.intake` | Initialised; configure identity; answers; search a page of titles a member may ask for; what one title is and its certification in a country; ask on a member's behalf; requests; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices |
+| `request.intake` | Initialised; configure identity; answers; search a page of titles a member may ask for; what one title is, its certification in a country and where its poster is published; ask on a member's behalf; requests; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices |
 | `subtitles.fetch` | Watching; watch |
 | `network.egress-guard` | Whether the tunnel is up; the forwarded port |
 | `proxy.front` | Apply a routing table (household names, upstreams, TLS mode and certificate files); the table it serves; reload |
