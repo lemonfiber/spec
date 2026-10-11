@@ -236,14 +236,15 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": ["M14"],
+      "milestones": ["M14", "M16"],
       "milestone": "M14",
       "priority": null,
       "labels": ["extensibility", "observability", "household", "web"],
       "requires": [],
       "relates": ["C10", "C6", "B5", "G2", "K1"],
       "versions": [
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"}
       ],
       "path": "f-extensibility/f12-home-assistant.md"
     },
@@ -256,14 +257,15 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": ["M14"],
+      "milestones": ["M14", "M16"],
       "milestone": "M14",
       "priority": null,
       "labels": ["extensibility", "household", "web"],
       "requires": [],
       "relates": ["C10", "F12", "G2", "D11"],
       "versions": [
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"}
       ],
       "path": "f-extensibility/f13-mcp.md"
     },

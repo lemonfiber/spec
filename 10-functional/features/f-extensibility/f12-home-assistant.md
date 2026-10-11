@@ -91,6 +91,7 @@ a new one. The address and pin can be changed without removing the integration.
 | **F12-R11** | Every string the integration shows MUST be translated, in English and Dutch at least. |
 | **F12-R12** | The integration MUST meet every rule of Home Assistant's integration quality scale up to and including Platinum. |
 | **F12-R13** | The integration MUST be installable as a HACS custom repository from this organisation, and MUST NOT require any change to Home Assistant itself. |
+| **F12-R14** | Setup MUST accept a key link (`C10-R18`) in place of the address, key and pin: it MUST collect the key once over the TLS the link's fingerprint verifies (`C10-R20`), keep only what the reply carries, and name the reason when the claim is refused. |
 
 ## Related
 
