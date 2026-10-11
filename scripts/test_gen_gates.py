@@ -247,10 +247,10 @@ class Generation(unittest.TestCase):
         self.assertLessEqual({".gitleaks.toml", ".gitleaksignore"}, read["security--gitleaks"])
         self.assertLessEqual({"osv-scanner.toml", ".gitignore"}, read["security--osv-scanner"])
         scanners = {
-            "hygiene--actionlint": "raven-actions/actionlint@",
+            "hygiene--actionlint": '"${RUNNER_TEMP}/actionlint"',
             "hygiene--typos": "crate-ci/typos@",
             "hygiene--links": "lycheeverse/lychee-action@",
-            "security--gitleaks": "./gitleaks git",
+            "security--gitleaks": '"${RUNNER_TEMP}/gitleaks" git',
             "security--osv-scanner": "docker run",
         }
         ids = [s.get("id") for s in steps]
@@ -300,10 +300,22 @@ class Generation(unittest.TestCase):
         self.assertRegex(image, r"^ghcr\.io/google/osv-scanner-action:v[0-9.]+@sha256:[0-9a-f]{64}$")
         self.assertIn(f":v{osv['env']['OSV_VERSION']}@", image)
 
+    def test_each_downloaded_scanner_runs_only_once_its_checksum_holds(self):
+        steps = generated()["jobs"]["gates"]["steps"]
+        for tool, knob in (("actionlint", "ACTIONLINT"), ("gitleaks", "GITLEAKS")):
+            fetch = next(s for s in steps if f'"${{RUNNER_TEMP}}/{tool}"' in s.get("run", ""))
+            self.assertRegex(fetch["env"][f"{knob}_SHA256"], r"^[0-9a-f]{64}$")
+            script = fetch["run"]
+            checked = script.index("sha256sum --check --strict")
+            self.assertLess(checked, script.index("tar xzf"), tool)
+            self.assertIn('-o "$archive"', script)
+            self.assertIn(f'archive="${{RUNNER_TEMP}}/{tool}.tar.gz"', script)
+        self.assertNotIn("raven-actions/actionlint", gen_gates.build())
+
     def test_each_hand_fetched_scanner_is_watched_by_one_script(self):
         steps = generated()["jobs"]["gates"]["steps"]
         watches = [s for s in steps if s["name"].endswith("is not far behind the latest release")]
-        self.assertEqual({s["env"]["KNOB"] for s in watches}, {"GITLEAKS_VERSION", "OSV_VERSION"})
+        self.assertEqual({s["env"]["KNOB"] for s in watches}, {"ACTIONLINT_VERSION", "GITLEAKS_VERSION", "OSV_VERSION"})
         self.assertEqual(len({s["run"] for s in watches}), 1)
         for watch in watches:
             self.assertIn(watch["env"]["KNOB"], watch["env"])

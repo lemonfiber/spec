@@ -313,12 +313,17 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
+      env:
+        ACTIONLINT_VERSION: 1.7.12
+        ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / actionlint: The files that say what to pass over are the base branch''s'
       id: hygiene--actionlint--1
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--actionlint--0.outcome != 'failure') }}
       env:
+        ACTIONLINT_VERSION: 1.7.12
+        ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
         GH_TOKEN: ${{ github.token }}
         REPO: ${{ github.repository }}
         BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
@@ -363,7 +368,80 @@ jobs:
     - name: 'hygiene / actionlint: actionlint'
       id: hygiene--actionlint--2
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--actionlint--0.outcome != 'failure') && (steps.hygiene--actionlint--1.outcome != 'failure') }}
-      uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+      env:
+        ACTIONLINT_VERSION: 1.7.12
+        ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        FINDING: '{{range $err := .}}::error file={{$err.Filepath}},line={{$err.Line}},col={{$err.Column}}::{{$err.Message}}\n{{end}}'
+      run: |
+        set -euo pipefail
+        url="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+        archive="${RUNNER_TEMP}/actionlint.tar.gz"
+        curl -sSfL --proto '=https' --tlsv1.2 \
+          --retry 3 --retry-delay 2 --retry-all-errors \
+          -o "$archive" "$url"
+        sha256sum --check --strict <<<"${ACTIONLINT_SHA256}  ${archive}"
+        tar xzf "$archive" -C "$RUNNER_TEMP" actionlint
+        rm -f "$archive"
+        "${RUNNER_TEMP}/actionlint" -format "$FINDING"
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / actionlint: The pinned actionlint is not far behind the latest release'
+      id: hygiene--actionlint--3
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--actionlint--0.outcome != 'failure') && (steps.hygiene--actionlint--1.outcome != 'failure') && (steps.hygiene--actionlint--2.outcome != 'failure') }}
+      env:
+        ACTIONLINT_VERSION: 1.7.12
+        ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        GH_TOKEN: ${{ github.token }}
+        BEHIND_DAYS: '30'
+        TOOL: actionlint
+        RELEASES: rhysd/actionlint
+        KNOB: ACTIONLINT_VERSION
+        HOME_FILE: .github/workflows/hygiene.yml
+      run: |
+        set -euo pipefail
+
+        # One watch, run after each scanner this workflow fetches by hand.
+        # TOOL names it, RELEASES is where it publishes, and KNOB names the
+        # variable above that holds the version it ran.
+        version="${!KNOB}"
+
+        # `gh` prints its own error body on stdout, so a failed call arrives
+        # here looking like an answer. Only a release tag with a date is
+        # believed. Three attempts, because this reddens a security gate in
+        # every repository and one blocked API call is not staleness.
+        tag=""
+        dated=""
+        for attempt in 1 2 3; do
+          answer=$(gh api "repos/${RELEASES}/releases/latest" \
+            --jq '"\(.tag_name) \(.published_at)"' 2>/dev/null || true)
+          tag=$(echo "$answer" | cut -d" " -f1)
+          dated=$(echo "$answer" | cut -d" " -f2)
+          if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
+            [[ "$dated" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T ]]; then
+            break
+          fi
+          tag=""
+          if [ "$attempt" -lt 3 ]; then
+            sleep "$((attempt * 5))"
+          fi
+        done
+
+        if [ -z "$tag" ]; then
+          echo "::error::Could not read the latest ${TOOL} release in three attempts, so this run does not know whether it scanned with a current scanner."
+          exit 1
+        fi
+
+        if [ "$tag" = "v${version}" ]; then
+          echo "${TOOL} ${version} is the current release."
+          exit 0
+        fi
+
+        age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
+        if [ "$age" -gt "$BEHIND_DAYS" ]; then
+          echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec ${HOME_FILE} — what ${TOOL} has learnt since ${version} is not being applied to any repository."
+          exit 1
+        fi
+        echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec ${HOME_FILE} when convenient."
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / pins: an empty workspace, as its own runner had'
@@ -974,6 +1052,7 @@ jobs:
         fetch-depth: 0
       env:
         GITLEAKS_VERSION: 8.30.1
+        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
       continue-on-error: true
       timeout-minutes: 10
     - name: 'security / gitleaks: The files that say what to pass over are the base branch''s'
@@ -981,6 +1060,7 @@ jobs:
       if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') }}
       env:
         GITLEAKS_VERSION: 8.30.1
+        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
         GH_TOKEN: ${{ github.token }}
         REPO: ${{ github.repository }}
         BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
@@ -1041,16 +1121,22 @@ jobs:
         # `--retry-all-errors` is needed alongside `--retry`: without it curl
         # retries only what it considers transient, and a connection reset
         # mid-body is not on that list.
+        #
+        # Kept outside the tree it scans, and run only once its bytes are the
+        # ones the release published: a binary fetched by version alone is
+        # whatever the download served that day.
+        archive="${RUNNER_TEMP}/gitleaks.tar.gz"
         curl -sSfL --proto '=https' --tlsv1.2 \
           --retry 3 --retry-delay 2 --retry-all-errors \
-          -o gitleaks.tar.gz "$url"
+          -o "$archive" "$url"
+        sha256sum --check --strict <<<"${GITLEAKS_SHA256}  ${archive}"
+        tar xzf "$archive" -C "$RUNNER_TEMP" gitleaks
+        rm -f "$archive"
 
-        tar xzf gitleaks.tar.gz gitleaks
-        rm -f gitleaks.tar.gz
-
-        ./gitleaks git --no-banner --redact --exit-code 1 .
+        "${RUNNER_TEMP}/gitleaks" git --no-banner --redact --exit-code 1 .
       env:
         GITLEAKS_VERSION: 8.30.1
+        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
       continue-on-error: true
       timeout-minutes: 10
     - name: 'security / gitleaks: The pinned gitleaks is not far behind the latest release'
@@ -1058,11 +1144,13 @@ jobs:
       if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') && (steps.security--gitleaks--1.outcome != 'failure') && (steps.security--gitleaks--2.outcome != 'failure') }}
       env:
         GITLEAKS_VERSION: 8.30.1
+        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
         GH_TOKEN: ${{ github.token }}
-        STALE_DAYS: '30'
+        BEHIND_DAYS: '30'
         TOOL: gitleaks
         RELEASES: gitleaks/gitleaks
         KNOB: GITLEAKS_VERSION
+        HOME_FILE: .github/workflows/security.yml
       run: |
         set -euo pipefail
 
@@ -1103,11 +1191,11 @@ jobs:
         fi
 
         age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
-        if [ "$age" -gt "$STALE_DAYS" ]; then
-          echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml — what ${TOOL} has learnt since ${version} is not being applied to any repository."
+        if [ "$age" -gt "$BEHIND_DAYS" ]; then
+          echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec ${HOME_FILE} — what ${TOOL} has learnt since ${version} is not being applied to any repository."
           exit 1
         fi
-        echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml when convenient."
+        echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec ${HOME_FILE} when convenient."
       continue-on-error: true
       timeout-minutes: 10
     - name: 'security / osv-scanner: an empty workspace, as its own runner had'
@@ -1195,10 +1283,11 @@ jobs:
         OSV_VERSION: 2.6.0
         OSV_IMAGE: ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a
         GH_TOKEN: ${{ github.token }}
-        STALE_DAYS: '30'
+        BEHIND_DAYS: '30'
         TOOL: OSV-Scanner
         RELEASES: google/osv-scanner-action
         KNOB: OSV_VERSION
+        HOME_FILE: .github/workflows/security.yml
       run: |
         set -euo pipefail
 
@@ -1239,11 +1328,11 @@ jobs:
         fi
 
         age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
-        if [ "$age" -gt "$STALE_DAYS" ]; then
-          echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml — what ${TOOL} has learnt since ${version} is not being applied to any repository."
+        if [ "$age" -gt "$BEHIND_DAYS" ]; then
+          echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec ${HOME_FILE} — what ${TOOL} has learnt since ${version} is not being applied to any repository."
           exit 1
         fi
-        echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec .github/workflows/security.yml when convenient."
+        echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec ${HOME_FILE} when convenient."
       continue-on-error: true
       timeout-minutes: 10
     - name: 'dco / dco: an empty workspace, as its own runner had'
@@ -1582,13 +1671,13 @@ jobs:
       if: ${{ !cancelled() }}
       env:
         VERDICTS: '{"spec-check--spec-check": "${{ !(steps.plan.outputs.spec-check == ''true'' || steps.plan.outputs.spec-check == ''false'') && ''unreported'' || !((steps.plan.outputs.spec-check == ''true'')) && ''skipped'' || (steps.spec-check--spec-check--0.outcome == ''failure'' || steps.spec-check--spec-check--1.outcome == ''failure'' || steps.spec-check--spec-check--2.outcome == ''failure'' || steps.spec-check--spec-check--3.outcome == ''failure'' || steps.spec-check--spec-check--4.outcome == ''failure'' || steps.spec-check--spec-check--5.outcome == ''failure'' || steps.spec-check--spec-check--8.outcome == ''failure'' || steps.spec-check--spec-check--9.outcome == ''failure'' || steps.spec-check--spec-check--10.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--actionlint": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--actionlint--0.outcome
-          == ''failure'' || steps.hygiene--actionlint--1.outcome == ''failure'' || steps.hygiene--actionlint--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--pins": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--pins--0.outcome == ''failure'' || steps.hygiene--pins--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--typos": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--typos--0.outcome == ''failure'' || steps.hygiene--typos--1.outcome == ''failure'' || steps.hygiene--typos--2.outcome == ''failure'' || steps.hygiene--typos--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--links": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene
-          == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure'' || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome == ''failure'' || steps.hygiene--links--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome == ''failure'' || steps.hygiene--shared-files--2.outcome
-          == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'' || steps.hygiene--shared-files--5.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure'' || steps.hygiene--markdown--markdown-only.outcome
-          == ''failure'' || steps.hygiene--markdown--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'' || steps.workflow-pins--workflow-pins--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome
-          == ''failure'' || steps.security--gitleaks--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'' || steps.security--osv-scanner--2.outcome == ''failure'' || steps.security--osv-scanner--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution
-          == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message
-          == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--3.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
+          == ''failure'' || steps.hygiene--actionlint--1.outcome == ''failure'' || steps.hygiene--actionlint--2.outcome == ''failure'' || steps.hygiene--actionlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--pins": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--pins--0.outcome == ''failure'' || steps.hygiene--pins--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--typos": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--typos--0.outcome == ''failure'' || steps.hygiene--typos--1.outcome == ''failure'' || steps.hygiene--typos--2.outcome == ''failure'' || steps.hygiene--typos--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--links": "${{ !(steps.plan.outputs.hygiene
+          == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure'' || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome == ''failure'' || steps.hygiene--links--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome
+          == ''failure'' || steps.hygiene--shared-files--2.outcome == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'' || steps.hygiene--shared-files--5.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure''
+          || steps.hygiene--markdown--markdown-only.outcome == ''failure'' || steps.hygiene--markdown--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'' || steps.workflow-pins--workflow-pins--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome
+          == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'' || steps.security--gitleaks--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'' || steps.security--osv-scanner--2.outcome == ''failure'' || steps.security--osv-scanner--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success''
+          }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message":
+          "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--3.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
       run: |
         set -euo pipefail
         cd "$RUNNER_TEMP"
