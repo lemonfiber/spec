@@ -122,7 +122,7 @@ class TheRefusal(unittest.TestCase):
 
 
 class TheSurvey(unittest.TestCase):
-    def survey(self, required, observed, only=None, widened=None):
+    def survey(self, required, observed, only=None, widened=None, targeted=None):
         """The verdict, where each repository's sampled pull requests produced `observed`,
         and the whole listed window produced `widened` (the same, where not given)."""
         self.asked = []
@@ -136,7 +136,9 @@ class TheSurvey(unittest.TestCase):
              mock.patch.object(check_required, "repositories", return_value=list(required)), \
              mock.patch.object(check_required, "required_in", side_effect=lambda o, n: required[n]), \
              mock.patch.object(check_required, "gates_landed", return_value=None), \
-             mock.patch.object(check_required, "observed_in", side_effect=seen):
+             mock.patch.object(check_required, "observed_in", side_effect=seen), \
+             mock.patch.object(check_required, "targeted_in",
+                               side_effect=lambda o, n: (targeted or {}).get(n, set())):
             code = check_required.look("lemonfiber", only, out)
         return code, out.getvalue()
 
@@ -148,6 +150,26 @@ class TheSurvey(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("check", said)
         self.assertNotIn("hygiene / typos", said)
+
+    def test_a_check_only_a_pull_request_target_run_produced_is_refused(self):
+        # pin-only ran on every open pull request and on no merged one.
+        code, out = self.survey(
+            required={"plugin-komga": {"gates / gates"}},
+            observed={"plugin-komga": {"gates / gates"}},
+            targeted={"plugin-komga": {"pin-only / pin-only"}},
+            only="lemonfiber/plugin-komga",
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("pin-only / pin-only", out)
+
+    def test_a_required_pull_request_target_check_is_not_refused(self):
+        code, _ = self.survey(
+            required={"plugin-komga": {"gates / gates", "pin-only / pin-only"}},
+            observed={"plugin-komga": {"gates / gates"}},
+            targeted={"plugin-komga": {"pin-only / pin-only"}},
+            only="lemonfiber/plugin-komga",
+        )
+        self.assertEqual(code, 0)
 
     def test_an_exempt_check_is_not_refused(self):
         code, said = self.survey(
@@ -277,6 +299,19 @@ class TheSilences(unittest.TestCase):
         with mock.patch.object(check_required.subprocess, "run",
                                return_value=mock.Mock(returncode=0, stdout="x")):
             self.assertEqual(check_required._run(["gh", "api", "x"]), "x")
+        asked = []
+
+        def answer(argv):
+            asked.append(argv[2])
+            return "11\n12\n" if "event=pull_request_target" in argv[2] else "pin-only / pin-only\n\n"
+
+        with mock.patch.object(check_required, "_run", side_effect=answer):
+            self.assertEqual(check_required.targeted_in("lemonfiber", "brand"), {"pin-only / pin-only"})
+        self.assertEqual(asked, [
+            f"repos/lemonfiber/brand/actions/runs?event=pull_request_target&per_page={check_required.TARGET_RUNS}",
+            "repos/lemonfiber/brand/actions/runs/11/jobs",
+            "repos/lemonfiber/brand/actions/runs/12/jobs",
+        ])
 
 
 class WhatIsSampled(unittest.TestCase):
