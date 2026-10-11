@@ -119,8 +119,16 @@ runs:
         # be open when that run stopped waiting for it, so creating either again
         # would refuse and a re-run could never get past this step. Deleting the
         # branch closes that pull request; resetting it to main's head instead
-        # would leave GitHub calling the pull request merged.
+        # would leave GitHub calling the pull request merged. A branch of that
+        # name carrying a commit the release App did not write is somebody's
+        # work, and the run stops rather than delete it.
         if gh api "repos/${OWNER}/spec/git/ref/heads/${branch}" --silent 2>/dev/null; then
+          others=$(gh api "repos/${OWNER}/spec/compare/main...${branch}" \
+            --jq '[.commits[] | select(.author.login != "lemonfiber-release-train[bot]")] | length')
+          if [ "$others" != "0" ]; then
+            echo "::error::${branch} carries ${others} commit(s) the release App did not write; leaving it alone."
+            exit 1
+          fi
           gh api --method DELETE "repos/${OWNER}/spec/git/refs/heads/${branch}"
           echo "deleted the ${branch} an earlier run left."
         fi

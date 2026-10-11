@@ -265,11 +265,12 @@ jobs:
             "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
             >"${work}/body"
 
-          # The runs of a branch being closed that have not finished, cancelled.
+          # The runs of a branch being closed that have not finished, cancelled:
+          # the repository's own branch only, never a fork's of the same name.
           cancel_runs() {
-            gh run list --repo "${OWNER}/$1" --branch "$2" --limit 50 \
-              --json databaseId,status \
-              --jq '.[] | select(.status != "completed") | .databaseId' \
+            HOME_REPO="${OWNER}/$1" gh api "repos/${OWNER}/$1/actions/runs?branch=$2&per_page=50" \
+              --jq '.workflow_runs[] | select(.status != "completed")
+                    | select(.head_repository.full_name == env.HOME_REPO) | .id' \
               | while read -r id; do
                   if [ -n "$id" ]; then
                     gh run cancel "$id" --repo "${OWNER}/$1" >/dev/null || true

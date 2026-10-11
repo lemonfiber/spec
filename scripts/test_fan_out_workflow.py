@@ -29,6 +29,7 @@ Run:  python3 scripts/test_fan_out_workflow.py
 
 from __future__ import annotations
 
+import json
 import os
 import pathlib
 import shutil
@@ -63,7 +64,8 @@ WRITER = "token"
 #:                 and answers #7, unless the repository is named in
 #:                 GH_CREATE_FAILS.
 #: `pr close`    — records the call.
-#: `run list`    — prints GH_RUNS, the unfinished runs' ids.
+#: `api …/actions/runs?branch=…` — GH_RUNS, a JSON page of runs, through the
+#:                 caller's own `--jq`, as gh applies it.
 #: `run cancel`  — records the call.
 #: `api graphql` — the commit: records the request on GH_COMMITS and prints a
 #:                 new commit, unless GH_COMMIT_FAILS is set.
@@ -122,6 +124,13 @@ case "$*" in
   ;;
 esac
 
+case "${2:-}" in
+*/actions/runs\\?branch=*)
+  printf '%s' "${GH_RUNS:-}" | jq -r "$4"
+  exit 0
+  ;;
+esac
+
 case "$1 $2" in
 "repo clone")
   named=$3
@@ -140,10 +149,6 @@ case "$1 $2" in
 "pr list")
   [ -z "${GH_LIST_FAILS:-}" ] || exit 1
   printf '%b' "${GH_OPEN:-}"
-  exit 0
-  ;;
-"run list")
-  printf '%b' "${GH_RUNS:-}"
   exit 0
   ;;
 "api graphql")
@@ -460,16 +465,24 @@ class TheLoop(unittest.TestCase):
 
         ran = self.run_step(
             GH_OPEN="3 ci/take-the-shared-workflows-at-v1.0.8\\n4 feature/x\\n",
-            GH_RUNS="111\\n112\\n",
+            GH_RUNS=json.dumps({"workflow_runs": [
+                {"id": 111, "status": "in_progress", "head_repository": {"full_name": "lemonfiber/alpha"}},
+                {"id": 112, "status": "queued", "head_repository": {"full_name": "lemonfiber/alpha"}},
+                {"id": 113, "status": "completed", "head_repository": {"full_name": "lemonfiber/alpha"}},
+                {"id": 114, "status": "in_progress", "head_repository": {"full_name": "outsider/alpha"}},
+            ]}),
         )
 
         self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
         log = self.log.read_text(encoding="utf-8")
         self.assertIn("pr close 3 --repo lemonfiber/alpha --delete-branch --comment Replaced by #7", log)
         self.assertNotIn("pr close 4", log)
-        self.assertIn("run list --repo lemonfiber/alpha --branch ci/take-the-shared-workflows-at-v1.0.8", log)
+        self.assertIn("api repos/lemonfiber/alpha/actions/runs?branch=ci/take-the-shared-workflows-at-v1.0.8", log)
         self.assertIn("run cancel 111 --repo lemonfiber/alpha", log)
         self.assertIn("run cancel 112 --repo lemonfiber/alpha", log)
+        self.assertNotIn("run cancel 113", log)
+        # A fork's pull request from a branch of the same name keeps its runs.
+        self.assertNotIn("run cancel 114", log)
         self.assertIn("closed alpha#3", ran.stdout)
 
     def test_a_current_repository_closes_the_bump_it_no_longer_needs(self):

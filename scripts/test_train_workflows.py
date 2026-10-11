@@ -106,6 +106,7 @@ case "$*" in
     exit 0 ;;
   "api repos/"*"/git/ref/heads/main "*) echo "{SHA}" ;;
   "api repos/"*"/git/ref/heads/"*) [ -n "${{GH_BRANCH_LEFT:-}}" ] || exit 1 ;;
+  "api repos/"*"/compare/main..."*) echo "${{GH_OTHERS:-0}}" ;;
   "pr create "*) echo "https://github.com/o/spec/pull/1" ;;
 esac
 """
@@ -551,6 +552,15 @@ class TheRecordBranch(unittest.TestCase):
                            f"-f ref=refs/heads/release/0.2.0-prerelease-0.2.0-pre.1 -f sha={SHA} --silent")
         self.assertLess(deleted, made)
         self.assertTrue(calls[-1].startswith("pr merge https://github.com/o/spec/pull/1"))
+
+    def test_a_branch_carrying_someone_else_s_commit_is_left_alone(self):
+        done, calls = self.run_action(GH_BRANCH_LEFT="1", GH_OTHERS="2")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("carries 2 commit(s) the release App did not write", done.stdout)
+        self.assertFalse([call for call in calls if "DELETE" in call or call.startswith("api --method POST")])
+        asked = [call for call in calls if "/compare/main...release/0.2.0-prerelease-0.2.0-pre.1" in call]
+        self.assertEqual(len(asked), 1)
+        self.assertIn('select(.author.login != "lemonfiber-release-train[bot]")', asked[0])
 
     def test_a_first_run_makes_the_branch_without_deleting_anything(self):
         done, calls = self.run_action()

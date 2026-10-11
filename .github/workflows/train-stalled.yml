@@ -35,8 +35,12 @@ jobs:
           GRACE_HOURS: "36"
         run: |
           set -euo pipefail
+          # The release App's own records, from this repository's own branches:
+          # a fork's pull request named like one is not a record.
           prs=$(gh pr list --repo "$REPO" --state open --limit 50 \
-            --json number,title,headRefName,createdAt,url)
+            --json number,title,headRefName,createdAt,url,isCrossRepository,author \
+            --jq '[.[] | select(.isCrossRepository | not)
+                   | select(.author.login == "app/lemonfiber-release-train")]')
           summary=$(GRACE_HOURS="$GRACE_HOURS" python3 - "$prs" <<'PY'
           import datetime, json, os, sys
 
