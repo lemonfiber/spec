@@ -89,7 +89,7 @@ jobs:
   prerelease:
     needs: plugins
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: Check out the spec
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -455,7 +455,7 @@ jobs:
           # exits at the match, `gh` dies of SIGPIPE writing what follows it,
           # and under `pipefail` a record that holds the tag reads as one that
           # does not.
-          for _ in $(seq 1 60); do
+          for _ in $(seq 1 150); do
             recorded="$(gh api -H "Accept: application/vnd.github.raw" \
               "repos/${OWNER}/spec/contents/70-operations/versions/${VERSION}.toml?ref=main" \
               2>/dev/null | grep -F "tag = \"${TAG}\"" || true)"
@@ -465,7 +465,7 @@ jobs:
             fi
             sleep 10
           done
-          echo "::error::${TAG}'s record has not reached main after ten minutes; nothing was tagged."
+          echo "::error::${TAG}'s record has not reached main after twenty-five minutes; nothing was tagged."
           exit 1
 
       - name: Tag the target repos
