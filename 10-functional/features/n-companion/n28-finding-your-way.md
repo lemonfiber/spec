@@ -9,7 +9,7 @@ maturity: building
 priority: P2
 labels: [mobile, ux]
 requires: [N1, N2, N27]
-relates: [N3, N4, N25, G2, G3]
+relates: [N3, N4, N25, N29, G2, G3]
 ---
 
 # N28 — Finding your way
@@ -60,7 +60,7 @@ about the stack, in five groups:
 | Group | Items |
 |-------|-------|
 | **Household** | Requests · Allowance · Stuck downloads · Follow a download · View as member |
-| **Access** | Invite someone · Front door · Watch apps · Passwords · Pair a phone |
+| **Access** | Invite someone · Front door · Watch apps · Passwords · App keys · Pair a phone |
 | **Machine** | Storage · Backups · After a restart · Already installed · Other programs · About · Uninstall |
 | **Settings** | General · Quality · Connections · Plugins · Bandwidth · Outgoing traffic · Alerts · History · Sources |
 | **Help** | Get help · Glossary · Services explained |

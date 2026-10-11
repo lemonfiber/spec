@@ -108,6 +108,44 @@ nobody collects is revoked when its claim lapses. A surface draws the link as a 
 (`ARCH-R220`) and shows it only until its screen is left, so a photograph of it is worth one
 collection inside ten minutes, which the operator is told about.
 
+**A phone may prove the operator with a device key instead of the password**
+([ADR-0044](../../00-overview/decisions/0044-a-phone-proves-the-operator-with-a-device-key.md),
+`ARCH-R258` to `ARCH-R261`). An operator session registers the public half of a P-256 key
+pair the phone holds in its hardware, and lists and revokes the ones registered:
+
+```
+GET    /api/device-keys
+POST   /api/device-keys
+DELETE /api/device-keys/{name}
+POST   /api/device-keys/{name}/challenge
+```
+
+`POST /api/device-keys` takes `{ "name": …, "public_key": …, "attestation": …, "password": … }`:
+the public half as its SubjectPublicKeyInfo in base64url, and the platform's attestation of
+where the key lives: an Android key attestation chain, or an iOS App Attest attestation
+whose client data is the SHA-256 of the public half. The core verifies the attestation
+against the platform roots in its build, sending nothing out to do it, and only for an app
+it trusts: the official NightWorksIO companion, or a build named in the setting
+`LEMONFIBER_DEVICE_KEY_APPS` (`ARCH-R262`). It answers the `device-key` envelope:
+the name, the fingerprint of the public half, its `backing`, `strongbox`, `enclave` or
+`tee`, and when it was registered. On iOS `enclave` means the genuine app placed the key in
+the Secure Enclave: App Attest vouches for the app, not for the key. A missing attestation,
+one that does not verify, one placing the key in software and one from an app the core does
+not trust are each refused under a code of their own. `GET /api/device-keys`
+answers `device-keys`, each with its backing and last use, and `DELETE /api/device-keys/{name}` revokes
+one. `POST /api/device-keys/{name}/challenge` answers `device-challenge`: a fresh `challenge`
+and when it `expires`, one minute on, good for one mint from that session with that device
+key.
+
+A mint then carries `{ "device": …, "challenge": …, "signature": … }` in place of
+`password`. The signature is ECDSA over SHA-256 of the UTF-8 lines
+`lemonfiber-mint/1`, the challenge, the name, the scope, the purpose and `claim` or `key`,
+each ended by a line feed, in base64url, so a challenge signed for one mint proves no other.
+A device key not registered, a challenge that does not stand and a signature that does not
+verify are each refused under a code of their own; the last counts against
+[the limit wrong passwords meet](#wrong-answers-are-counted). None of these routes is open to
+a member session or a key, and a signature admits nothing but the mint it was made for.
+
 A household member reaches the same three routes for keys of their own. Their mint names
 `member:` and themselves as the scope and gives their own password, which the media server
 checks as it checks their sign-in, counted against the same limits; it is refused with a

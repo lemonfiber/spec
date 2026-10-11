@@ -200,17 +200,16 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "built",
+      "maturity": "building",
       "shipped": null,
-      "milestones": ["M14", "M16"],
+      "milestones": ["M14"],
       "milestone": "M14",
       "priority": null,
       "labels": ["security", "web"],
       "requires": [],
-      "relates": ["C6", "D10", "F12", "F13", "G1", "B5"],
+      "relates": ["C6", "D10", "F12", "F13", "G1", "B5", "N29"],
       "versions": [
-        {"version": "0.18.0", "status": "staged"},
-        {"version": "0.19.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "c-trust/c10-integration-keys.md"
     }

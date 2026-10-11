@@ -518,9 +518,29 @@
       "priority": "P2",
       "labels": ["mobile", "ux"],
       "requires": ["N1", "N2", "N27"],
-      "relates": ["N3", "N4", "N25", "G2", "G3"],
+      "relates": ["N3", "N4", "N25", "N29", "G2", "G3"],
       "versions": [],
       "path": "n-companion/n28-finding-your-way.md"
+    },
+    {
+      "id": "N29",
+      "title": "A key for an app",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": ["M14"],
+      "milestone": "M14",
+      "priority": "P2",
+      "labels": ["mobile", "security"],
+      "requires": ["N1", "C10"],
+      "relates": ["N2", "N4", "N28", "F12", "F13", "C6"],
+      "versions": [
+        {"version": "0.18.0", "status": "staged"}
+      ],
+      "path": "n-companion/n29-a-key-for-an-app.md"
     }
   ]
 }
