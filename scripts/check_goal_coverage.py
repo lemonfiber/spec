@@ -70,20 +70,11 @@ AWAITING_A_VERSION = {
     # decision, and not on anything a runner can reach.
     "F1": ("the other thirteen F1 goals are locked by 0.15.0, released", ["F1-R1"]),
     # The companion keeps these two and takes no release of its own.
-    # Its tests/Arch/TheNamesThisProductGivesTest.php holds G2-R14 and
-    # tests/Templates/EveryTargetIsBigEnoughToHitTest.php holds G3-R16, and
+    # Its tests/Templates/EveryTargetIsBigEnoughToHitTest.php holds G3-R16, and
     # app-modules/operator/tests/View/Components/ScreenClosesTest.php holds G3-R17.
-    "G2": (
-        "the companion keeps G2-R14 and takes no release; G2-R15 binds every surface and no version schedules it yet; the other thirteen G2 goals are locked by 0.9.0, released",
-        ["G2-R14", "G2-R15"],
-    ),
     "G3": (
         "the companion keeps G3-R16 and G3-R17 and takes no release; the rest of G3 is split across 0.9.0 and 0.10.0, both released",
         ["G3-R16", "G3-R17"],
-    ),
-    "G10": (
-        "0.18.0 locks the G10 goals the core answers for, and 0.19.0 those that play; the door a member faces waits on the core",
-        ["G10-R12", "G10-R13"],
     ),
     "N11": (
         "N11 requires N1, whose app side 1.0.0 completes, and E4, locked by 0.14.0, released",
@@ -96,19 +87,6 @@ AWAITING_A_VERSION = {
     "N18": (
         "N18 requires N1, whose app side 1.0.0 completes, and B1, whose last goal 0.18.0 locks",
         [f"N18-R{n}" for n in range(1, 11)],
-    ),
-    "N2": (
-        "N2 requires N1, whose app side 1.0.0 completes, and C1, C3 and G7, locked by 0.8.0 at the latest, all released",
-        [f"N2-R{n}" for n in range(1, 28)],
-    ),
-    "N1": (
-        "N1-R77 joins N1, whose other goals 0.17.0 and 0.18.0 lock; which version carries it is the train's to decide",
-        ["N1-R77"],
-    ),
-    # N3-R8 is withdrawn, and a withdrawn row is never a goal.
-    "N3": (
-        "N3 requires N1, whose app side 1.0.0 completes, and D4 and D6, locked by 0.11.0, released",
-        [f"N3-R{n}" for n in range(1, 27) if n not in (8, 17, 18)],
     ),
     "N4": (
         "N4 requires N1, whose app side 1.0.0 completes, and G3, locked by 0.10.0 at the latest, released",
@@ -154,10 +132,6 @@ AWAITING_A_VERSION = {
     "N19": (
         "N19 requires N1, whose app side 1.0.0 completes, and F1, locked by 0.15.0, released",
         [f"N19-R{n}" for n in range(1, 11)],
-    ),
-    "N21": (
-        "N21 requires N1, whose app side 1.0.0 completes, and D6, whose last goals 0.17.0 locks",
-        [f"N21-R{n}" for n in range(1, 12)],
     ),
     "N22": (
         "N22 requires N1, whose app side 1.0.0 completes, and C4, locked by 0.7.0, released",

@@ -32,7 +32,7 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": ["M7", "M14"],
+      "milestones": ["M7", "M14", "M16"],
       "milestone": "M7",
       "priority": null,
       "labels": ["ux"],
@@ -40,6 +40,7 @@
       "relates": ["A1", "D2", "F2", "G4"],
       "versions": [
         {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"},
         {"version": "0.9.0", "status": "released"}
       ],
       "path": "g-ux/g2-plain-language.md"

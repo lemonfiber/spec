@@ -11,7 +11,7 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": ["M14", "M6"],
+      "milestones": ["M14", "M16", "M6"],
       "milestone": "M14",
       "priority": "P1",
       "labels": ["mobile", "security", "ux"],
@@ -20,6 +20,7 @@
       "versions": [
         {"version": "0.17.0", "status": "released"},
         {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"},
         {"version": "1.0.0", "status": "planned"}
       ],
       "path": "n-companion/n1-companion-app.md"
@@ -33,14 +34,15 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": ["M16"],
+      "milestones": ["M16", "M11"],
       "milestone": "M16",
       "priority": "P1",
       "labels": ["mobile", "ux", "verification"],
       "requires": ["N1", "C1", "C3", "G7"],
       "relates": ["B2", "B4", "B5", "C2", "C7", "C8", "D5", "E1", "E4"],
       "versions": [
-        {"version": "0.19.0", "status": "planned"}
+        {"version": "0.19.0", "status": "planned"},
+        {"version": "0.20.0", "status": "planned"}
       ],
       "path": "n-companion/n2-operator-companion.md"
     },
@@ -53,14 +55,15 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": ["M14"],
+      "milestones": ["M14", "M16"],
       "milestone": "M14",
       "priority": "P2",
       "labels": ["mobile", "household", "ux"],
       "requires": ["N1", "D4", "D6"],
       "relates": ["D7", "D8", "D11", "G5", "G6", "G9"],
       "versions": [
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"}
       ],
       "path": "n-companion/n3-household-companion.md"
     },
@@ -383,14 +386,15 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": ["M14"],
+      "milestones": ["M14", "M16"],
       "milestone": "M14",
       "priority": "P2",
       "labels": ["mobile", "household", "ux"],
       "requires": ["N1", "D6"],
       "relates": ["N3", "N9", "N13", "N4"],
       "versions": [
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"}
       ],
       "path": "n-companion/n21-asking-somebody-in.md"
     },

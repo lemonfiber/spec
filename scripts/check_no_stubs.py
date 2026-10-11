@@ -42,12 +42,19 @@ The tracker is every searched repository's `status.toml`, read from the
 checkouts `--repo` names exactly as `gate.py` reads them, and `--status` adds a
 tracker still kept as Markdown tables.
 
+It also refuses a version touching a feature with a requirement no manifest in the
+train locks. Nothing would ever ask about that requirement, and the only run in a
+position to notice is one already looking at the feature. A tag is cut only where
+the gate prints no error and no warning (OPS-R70), so this is a refusal naming each
+requirement, not a warning beside a pass.
+
 Usage:
   check_no_stubs.py --version X.Y.Z --repo <name>=<path> [...]
                     [--status <IMPLEMENTATION-STATUS.md>]
 
-Exit 0 = every requirement the version locks is built; 1 = named ones are not;
-2 = the question could not be answered.
+Exit 0 = every requirement the version locks is built, and every requirement of the
+features it touches is locked by some version; 1 = named ones are not; 2 = the
+question could not be answered.
 """
 from __future__ import annotations
 
@@ -88,7 +95,7 @@ def requirements_of(path: str) -> set[str]:
     """Every requirement a feature doc defines, headstones left out.
 
     A row kept only to retire a number is not a requirement, and OPS-R30 forbids
-    one being a goal — so the orphan warning below, which names requirements no
+    one being a goal — so the orphan refusal below, which names requirements no
     manifest locks, would name every withdrawn number for ever and ask for the one
     thing no manifest is allowed to give. `check_goal_coverage` and
     `check_stageable` each made this mistake and each was fixed; this was the third
@@ -176,15 +183,17 @@ def verdict(goals: list[str], features: dict[str, dict], done: set[str],
                      + ", ".join(elsewhere))
     if orphans:
         lines.append("")
-        lines.append(f"::warning::{len(orphans)} requirement(s) of the features this "
-                     "version touches are locked by no manifest in the train, so no "
-                     f"release gate will ever ask about them: {', '.join(orphans)}")
-    if not stubs:
-        lines.append("\nno-stubs: every requirement this version locks is built.")
-        return 0, lines
-    lines.append(f"\n::error::not releasable — {len(stubs)} requirement(s) this "
-                 f"version locks are not built: {', '.join(stubs)}")
-    return 1, lines
+        lines.append(f"::error::not releasable — {len(orphans)} requirement(s) of the "
+                     "features this version touches are locked by no manifest in the "
+                     "train, so no release gate would ever ask about them; lock each in "
+                     f"a version: {', '.join(orphans)}")
+    if stubs:
+        lines.append(f"\n::error::not releasable — {len(stubs)} requirement(s) this "
+                     f"version locks are not built: {', '.join(stubs)}")
+    if stubs or orphans:
+        return 1, lines
+    lines.append("\nno-stubs: every requirement this version locks is built.")
+    return 0, lines
 
 
 def main() -> int:

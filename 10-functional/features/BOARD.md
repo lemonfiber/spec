@@ -62,7 +62,7 @@ code, and the two move independently.
 | [F12](f-extensibility/f12-home-assistant.md) | Home Assistant | F | operator | accepted | `0.18.0`, `0.19.0` |
 | [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0`, `0.19.0` |
 | [L3](l-release/l3-nas-image.md) | The image for a NAS | L | operator | accepted | `0.18.0` |
-| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | `0.19.0` |
+| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | `0.19.0`, `0.20.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
 | [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | `0.18.0` |
 | [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | accepted | — |
@@ -72,7 +72,7 @@ code, and the two move independently.
 | [N14](n-companion/n14-what-version.md) | What is running, and what is newer | N | operator | accepted | — |
 | [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | accepted | — |
 | [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | accepted | `0.18.0` |
-| [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | `0.18.0` |
+| [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | `0.18.0`, `0.19.0` |
 | [N22](n-companion/n22-asking-for-help.md) | Asking for help | N | operator | accepted | — |
 | [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
 | [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
@@ -100,14 +100,14 @@ code, and the two move independently.
 | [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F14](f-extensibility/f14-every-part-is-a-plugin.md) | Every part is a plugin | F | operator | accepted | `0.18.0` |
 | [G1](g-ux/g1-interface-tiers.md) | Interface tiers | G | both | accepted | `0.18.0`, `0.9.0` |
-| [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.18.0`, `0.9.0` |
+| [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.18.0`, `0.19.0`, `0.9.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.18.0`, `0.5.0` |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.18.0`, `0.5.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0`, `0.18.0` |
 | [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0`, `0.19.0` |
-| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0`, `1.0.0` |
-| [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0` |
+| [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0`, `0.19.0`, `1.0.0` |
+| [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0`, `0.19.0` |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
 | [N9](n-companion/n9-who-gets-in.md) | Who gets in, and what the stack holds for them | N | operator | accepted | — |
 | [N10](n-companion/n10-nobody-watching.md) | What the stack does when nobody is watching | N | operator | accepted | — |
