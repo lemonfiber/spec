@@ -107,7 +107,7 @@ tunnel device added and nothing else. The adapter stays unprivileged. The readin
 each service taking the shape, and the operator approves each one apart from the offer,
 on every install and update that takes it. It is one of a closed set of named shapes,
 beside the media server's `render` for hardware transcoding
-([plugin-manifest](../../../20-architecture/contracts/plugin-manifest.md#shapes--the-only-route-to-a-device-or-a-privilege)).
+([plugin-manifest](../../../20-architecture/contracts/plugin-manifest-service.md#shapes--the-only-route-to-a-device-or-a-privilege)).
 
 ### Each slot is proved by a substitute
 

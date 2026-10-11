@@ -242,9 +242,9 @@ media_types = ["tv"]
 | `publish`, `takes_data`, `config_path`, `config_ro`, `mount`, `tmpfs`, `env`, `user_mode`, `posture`, `mem_limit_mib`, `network`, `shape` | | | The rest of its container, each as the [plugin manifest](plugin-manifest.md#service--what-runs) declares it (`ARCH-R225`). |
 
 `grants` and `depends_on` are not fields. A service needing a kernel capability or a
-device takes a [shape](plugin-manifest.md#shapes--the-only-route-to-a-device-or-a-privilege),
+device takes a [shape](plugin-manifest-service.md#shapes--the-only-route-to-a-device-or-a-privilege),
 and the one start-order edge the format writes is
-[`network.via`](plugin-manifest.md#inside-another-services-network--networkvia)'s.
+[`network.via`](plugin-manifest-service.md#inside-another-services-network--networkvia)'s.
 
 Both spellings of the old field, `grants` and the `capabilities` it was called until
 `0.16.0`, are still read, and then refused, naming for each grant the shape that replaces
@@ -581,7 +581,7 @@ which is generation rather than wiring, and a plugin's service is wired on the
 same terms ([`ARCH-R103`](plugin-manifest.md)). A plugin has no field by which it
 could add a `[[wiring]]` of its own, and in particular none by which it could add
 a by-name one — that is `F4-R12`'s third clause, and the plugin manifest's
-[absent fields](plugin-manifest.md#the-fields-that-are-absent-and-why) are where
+[absent fields](plugin-manifest-service.md#the-fields-that-are-absent-and-why) are where
 it is held.
 
 ## Validation
