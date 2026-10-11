@@ -407,9 +407,10 @@ class TheSteps(unittest.TestCase):
         self.assertEqual(done.returncode, 1)
         self.assertIn("pinned at release '0.1.0'", done.stdout)
 
-    def stub_gate(self, answer: int):
+    def stub_gate(self, answer: int, says: str = ""):
         """The workspace's scripts with `gate.py` answering `answer`, 0 for every goal met and
-        1 for one unmet, so the gate step's own shell is what is under test."""
+        1 for one unmet, after printing `says`, so the gate step's own shell is what is under
+        test."""
         self.fresh()
         (self.root / "scripts").unlink()
         (self.root / "scripts").mkdir()
@@ -417,7 +418,8 @@ class TheSteps(unittest.TestCase):
             (self.root / "scripts" / script.name).symlink_to(script)
         (self.root / "scripts/gate.py").unlink()
         (self.root / "scripts/gate.py").write_text(
-            f"import sys\nprint('B1-R4 unmet' if {answer} else 'releasable')\nsys.exit({answer})\n",
+            f"import sys\nprint({says!r})\nprint('B1-R4 unmet' if {answer} else 'releasable')\n"
+            f"sys.exit({answer})\n",
             encoding="utf-8")
         (self.root / "searched.txt").write_text("lemonfiber\n", encoding="utf-8")
 
@@ -431,6 +433,15 @@ class TheSteps(unittest.TestCase):
         self.stub_gate(0)
         done = self.run_step("prerelease-version.yml", GATES[0])
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
+    def test_a_gate_that_warns_refuses_the_tag_in_either_lane(self):
+        """A tag is cut only where the gate prints no error and no warning (OPS-R70)."""
+        for workflow in LANES:
+            with self.subTest(workflow):
+                self.stub_gate(0, says="::warning::something the gate could not vouch for")
+                done = self.run_step(workflow, GATES[0])
+                self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+                self.assertIn("prints none (OPS-R70)", done.stdout)
 
     def stub_gh(self):
         (self.bin / "gh").write_text(GH, encoding="utf-8")

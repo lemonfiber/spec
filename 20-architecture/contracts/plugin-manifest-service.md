@@ -110,7 +110,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). At most one service of a plugin may declare a given core name — see below. |
 | `config_path` | string | | Where inside the container its configuration directory is mounted. Default `/config`. |
 | `config_ro` | bool | | `true` to mount the configuration directory read-only. Default `false`. |
-| `mount` | array of tables | | Each further path mounted from inside its own configuration directory: `from` (✔), `to` (✔) and `ro` (default `false`) — see [mounts](#mounts--from-its-own-tree-and-nowhere-else). |
+| `mount` | array of tables | | Each further path mounted from its own mount tree, `./mounts/<id>`, which lies apart from its configuration directory: `from` (✔), `to` (✔) and `ro` (default `false`) — see [mounts](#mounts--from-its-own-tree-and-nowhere-else). |
 | `tmpfs` | array | | Absolute paths given scratch space in memory, empty whenever the container starts. |
 | `env` | table | | Its environment: a variable's name to one of four typed kinds of value — see [environment](#environment--four-kinds-of-value). |
 | `user_mode` | enum | | `image` \| `puid-env` \| `uid`. Who the container runs as. Default `image`, and `uid` where the service speaks a contract or is `confined` — see [who it runs as](#who-it-runs-as-and-how-tightly-it-is-held). |
@@ -173,8 +173,8 @@ reaches it.
 
 ### `config_path` — where its own directory lands
 
-What a service reaches of the host is fixed: the single data mount, and the service's
-own configuration directory with what lies inside it (`ARCH-R227`). That is what makes
+What a service reaches of the host is fixed: the single data mount, the service's own
+configuration directory, and its own mount tree (`ARCH-R227`). That is what makes
 "what can this plugin reach" answerable from the format. It does not follow that the
 configuration directory must land at `/config`, and assuming it did made a whole class
 of image uninstallable.

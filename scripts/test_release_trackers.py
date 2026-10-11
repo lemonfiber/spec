@@ -55,11 +55,11 @@ class PerRepositoryTrackers(Workspace):
         self.tracker("checkouts/lf", '[[requirement]]\nid = "C1-R4"\nstate = "done"\n'
                      f'evidence = ["f"]\nlanded = "{sha}"\n[[requirement]]\nid = "C1-R5"\n'
                      'state = "partial"\nlanded = "{sha}"\n'.replace("{sha}", sha))
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            landed = gate.tracked_landed(gate.trackers(repos), repos)
+        with contextlib.redirect_stdout(io.StringIO()):
+            landed, faults = gate.tracked_landed(gate.trackers(repos), repos)
         self.assertEqual(landed, {"C1-R3"})
-        self.assertIn("lf records C1-R4 as landed", out.getvalue())
+        self.assertEqual(len(faults), 1)
+        self.assertIn("lf records C1-R4 as landed", faults[0])
 
     def test_the_old_milestone_shape_is_left_to_the_markdown_reading(self):
         self.repo("checkouts/lf")
