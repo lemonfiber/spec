@@ -19,7 +19,7 @@
       "relates": ["A4", "B2", "C1", "G3", "I1"],
       "versions": [
         {"version": "0.17.0", "status": "released"},
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "1.0.0", "status": "planned"}
       ],
       "path": "n-companion/n1-companion-app.md"
@@ -58,7 +58,7 @@
       "requires": ["N1", "D4", "D6"],
       "relates": ["D7", "D8", "D11", "G5", "G6", "G9"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "n-companion/n3-household-companion.md"
     },
@@ -96,7 +96,7 @@
       "requires": ["N1", "F4", "F5"],
       "relates": ["F2", "F6", "F7", "F9", "N2"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "n-companion/n5-connecting-the-stack.md"
     },
@@ -368,7 +368,7 @@
       "requires": ["N1", "F8"],
       "relates": ["F3", "F11", "N5", "N10", "N2"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "n-companion/n20-what-a-plugin-may-send.md"
     },
@@ -388,7 +388,7 @@
       "requires": ["N1", "D6"],
       "relates": ["N3", "N9", "N13", "N4"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "n-companion/n21-asking-somebody-in.md"
     },
@@ -462,7 +462,7 @@
       "requires": ["N1", "N5", "F5", "F6"],
       "relates": ["N6", "N11", "N20", "F14"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "n-companion/n25-a-plugin-after-it-lands.md"
     },
