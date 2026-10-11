@@ -882,6 +882,18 @@ an untyped value. Generated types make this ordinary rather than laborious: the 
 is the discriminator, and an untyped payload on the public surface means the
 generation has not been used.
 
+### An instant
+
+Every instant the web API carries is an integer: whole seconds since the Unix epoch,
+`1970-01-01T00:00:00Z`, as a JSON number in a request, a response or an event, and as
+its decimal digits in a link the core builds, such as the join link's `expires`
+(`D6-R22`) and the key link's (`C10-R18`). There is no string form, no fraction and no
+zone to read, so two clients compare two instants as numbers and agree. A command's
+`--json` writes instants alike, since the web API answers with the command's own
+envelope (`ARCH-R46`). A stamp a service wrote and lemonfiber passes on verbatim, such
+as the one a container put on a log line, is that service's text rather than an instant
+of lemonfiber's, and is labelled as such (`ARCH-R274`).
+
 ## Requirements
 
 | ID | Requirement |
@@ -978,6 +990,7 @@ generation has not been used.
 | **ARCH-R260** | `POST /api/device-keys/{name}/challenge` MUST answer `device-challenge` with a fresh `challenge` and when it `expires`, from an operator session for a registered device key (`C10-R24`). |
 | **ARCH-R261** | `POST /api/keys` MUST accept `device`, `challenge` and `signature` in place of `password`, the signature being ECDSA P-256 over SHA-256 of the line-feed-ended UTF-8 lines `lemonfiber-mint/1`, the challenge, the name, the scope, the purpose and `claim` or `key`, in base64url; the artefact MUST publish that form, and the refusals of `C10-R25` MUST each carry a code of its own listed among the artefact's refusals. |
 | **ARCH-R262** | The identities of the operator's own builds MUST be the core setting `LEMONFIBER_DEVICE_KEY_APPS`, read by `GET /api/settings` and written by `settings-set` and `settings-clear` as every setting is: a comma-separated list of `android:<package>@<SHA-256 of the signing certificate, in hex>` and `ios:<Team ID>.<bundle ID>`. A value naming an identity in neither form MUST be refused, naming it; the official identities the build ships MUST be read alongside and MUST NOT be part of the value (`C10-R30`). |
+| **ARCH-R274** | Every instant the web API reads or writes, in a request, a response, an event or a link the core builds, MUST be a whole number of seconds since the Unix epoch: a JSON integer in a body, and its decimal digits in a link's query. It MUST NOT be written as a string, with a fraction, or with a zone or an offset; a command's `--json` output MUST write instants alike; and a stamp lemonfiber passes on verbatim from a service's own output MUST NOT be presented as one of its instants. |
 
 ## The artefact
 
