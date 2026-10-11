@@ -56,7 +56,7 @@
       "requires": [],
       "relates": ["L1", "C6", "E2"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "l-release/l3-nas-image.md"
     }
