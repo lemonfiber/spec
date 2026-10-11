@@ -58,7 +58,8 @@ LANES = {
 STEP = "Which step of the train this run is (ADR-0033 §4)"
 PINS = "The embedded stack pins each image at this tag"
 BUNDLE = "The embedded bundle pins each first-party plugin at this tag"
-VERDICT = "The gate's verdict, recorded rather than enforced"
+#: The two gates a release and a pre-release both pass before anything is tagged.
+GATES = ("Gate — every goal satisfied", "Gate — no requirement it locks is unbuilt")
 TAG_LOOP = "Tag the target repos"
 DECLARED = "The repos declare"
 RECORDS = ("Record it on the manifest (OPS-R65)", "Wait for the record to land on main (OPS-R62, OPS-R65)")
@@ -162,13 +163,25 @@ class TheWiring(unittest.TestCase):
         self.assertLess(position("execute-version.yml", STEP), position("execute-version.yml", BUNDLE))
         self.assertLess(position("execute-version.yml", BUNDLE), position("execute-version.yml", TAG_LOOP))
 
-    def test_a_pre_release_records_the_bundle_in_its_verdict_and_never_refuses_on_it(self):
-        """A pre-release is what the plugins are built against, so it cannot wait for their pins."""
+    def test_a_pre_release_reads_no_bundle_pin(self):
+        """A pre-release is what the plugins are built against, so its bundle may pin them by
+        revision alone (OPS-R86), and nothing here asks otherwise."""
         self.assertFalse([one for one in steps("prerelease-version.yml")
-                          if str(one.get("name", "")).startswith(BUNDLE)])
-        self.assertIn("check_bundle_pins.py", step("prerelease-version.yml", VERDICT)["run"])
-        self.assertLess(position("prerelease-version.yml", STEP), position("prerelease-version.yml", VERDICT))
-        self.assertLess(position("prerelease-version.yml", VERDICT), position("prerelease-version.yml", TAG_LOOP))
+                          if str(one.get("name", "")).startswith(BUNDLE)
+                          or "check_bundle_pins.py" in str(one.get("run", ""))])
+
+    def test_a_pre_release_passes_the_gates_a_release_passes(self):
+        """The same goal gate and no-stub gate, refusing alike, before anything is recorded or
+        tagged (OPS-R66, OPS-R70)."""
+        for name in GATES:
+            with self.subTest(name):
+                ours, theirs = step("prerelease-version.yml", name), step("execute-version.yml", name)
+                self.assertEqual(ours["run"], theirs["run"])
+                self.assertNotIn("continue-on-error", ours)
+                self.assertNotIn("if", ours)
+                self.assertLess(position("prerelease-version.yml", STEP), position("prerelease-version.yml", name))
+                for after in (RECORDS[0], TAG_LOOP):
+                    self.assertLess(position("prerelease-version.yml", name), position("prerelease-version.yml", after))
 
     def test_what_is_tagged_and_what_declares_are_the_lists_the_step_wrote(self):
         """`repos.txt` is everything the version cuts, which neither step tags."""
@@ -394,42 +407,30 @@ class TheSteps(unittest.TestCase):
         self.assertEqual(done.returncode, 1)
         self.assertIn("pinned at release '0.1.0'", done.stdout)
 
-    def stub_gate(self):
-        """The workspace's scripts with `gate.py` answering one goal met, so the verdict
-        step's own shell is what is under test."""
+    def stub_gate(self, answer: int):
+        """The workspace's scripts with `gate.py` answering `answer`, 0 for every goal met and
+        1 for one unmet, so the gate step's own shell is what is under test."""
+        self.fresh()
         (self.root / "scripts").unlink()
         (self.root / "scripts").mkdir()
         for script in HERE.glob("*.py"):
             (self.root / "scripts" / script.name).symlink_to(script)
         (self.root / "scripts/gate.py").unlink()
         (self.root / "scripts/gate.py").write_text(
-            "import json\nprint(json.dumps({'goals': [{'id': 'B1-R4', 'cited': True, 'done': True}]}))\n",
+            f"import sys\nprint('B1-R4 unmet' if {answer} else 'releasable')\nsys.exit({answer})\n",
             encoding="utf-8")
         (self.root / "searched.txt").write_text("lemonfiber\n", encoding="utf-8")
 
-    def verdict(self, release: str, phase: str) -> tuple[subprocess.CompletedProcess, str]:
-        self.fresh()
-        self.catalogue(release)
-        self.stub_gate()
-        done = self.run_step("prerelease-version.yml", VERDICT, STEP=phase, **self.forge)
-        return done, self.read("output")
+    def test_a_pre_release_with_a_goal_unmet_is_refused(self):
+        self.stub_gate(1)
+        done = self.run_step("prerelease-version.yml", GATES[0])
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("B1-R4 unmet", done.stdout)
 
-    def test_a_pre_release_over_an_unpinned_bundle_records_it_unmet_and_goes_on(self):
-        done, output = self.verdict("0.1.0", train_step.STREAMS)
+    def test_a_pre_release_with_every_goal_met_goes_on(self):
+        self.stub_gate(0)
+        done = self.run_step("prerelease-version.yml", GATES[0])
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("unmet=OPS-R86\n", output)
-        self.assertIn("Bundle unpinned", done.stdout)
-
-    def test_a_pre_release_over_a_pinned_bundle_records_nothing_unmet(self):
-        done, output = self.verdict("0.2.0-pre.1", train_step.STREAMS)
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("unmet=\n", output)
-
-    def test_the_first_step_of_a_pre_release_does_not_read_the_bundle(self):
-        """The plugins are not tagged yet, so the core embeds no bundle pinning them."""
-        done, output = self.verdict("0.1.0", train_step.IMAGES)
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("unmet=\n", output)
 
     def stub_gh(self):
         (self.bin / "gh").write_text(GH, encoding="utf-8")

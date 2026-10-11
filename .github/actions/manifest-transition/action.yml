@@ -35,10 +35,6 @@ inputs:
     description: UTC date the pre-release was tagged, YYYY-MM-DD. Required with `prerelease`.
     required: false
     default: ""
-  unmet:
-    description: Space-separated goal IDs the gate called unmet when the pre-release was cut.
-    required: false
-    default: ""
   token:
     description: The release App installation token.
     required: true
@@ -57,7 +53,6 @@ runs:
         RELEASED_AS: ${{ inputs.released_as }}
         PRERELEASE: ${{ inputs.prerelease }}
         PRERELEASE_ON: ${{ inputs.prerelease_on }}
-        UNMET: ${{ inputs.unmet }}
       run: |
         set -euo pipefail
         man="70-operations/versions/${VERSION}.toml"
@@ -79,8 +74,6 @@ runs:
         prearg=()
         if [ -n "$PRERELEASE" ]; then
           prearg+=(--prerelease "$PRERELEASE" --prerelease-on "$PRERELEASE_ON")
-          read -ra goals <<< "$UNMET"
-          for g in "${goals[@]}"; do [ -n "$g" ] && prearg+=(--unmet "$g"); done
         fi
         python3 scripts/set_status.py --version "$VERSION" --status "$STATUS" \
           "${dateargs[@]}" "${prearg[@]}" "${pinargs[@]}" > "${man}.new"

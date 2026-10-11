@@ -24,15 +24,15 @@ the record; only marked.
 A pre-release is the one thing recorded here that is not a transition. `OPS-R60`
 says a pre-release does not move the version's status, so `--prerelease` writes a
 `[[prerelease]]` table and leaves everything else where it was — including the
-status, which is passed as whatever the manifest already holds. What the record
-keeps is what nothing can answer afterwards: the goals the gate called unmet at
-that moment. The verdict moves as work lands, and which goals a particular
-artefact went out without is a fact about that artefact rather than about now.
+status, which is passed as whatever the manifest already holds. The record holds
+the tag, the day and the pins, and an empty `unmet`: a pre-release is refused while
+a goal is unmet (OPS-R66), and what reads the record reads that key as the goals
+it went out without.
 
 Usage:
   set_status.py --version X.Y.Z --status <state> [--released-on YYYY-MM-DD]
                 [--released-as X.Y.Z] [--withdrawn-because WHY]
-                [--prerelease TAG --prerelease-on YYYY-MM-DD [--unmet ID ...]]
+                [--prerelease TAG --prerelease-on YYYY-MM-DD]
                 [--pin name=sha ...] > <manifest>
 Exit 0 = emitted, 1 = the manifest is missing or misshapen, 2 = usage.
 """
@@ -149,7 +149,7 @@ def prerelease_tag(tag: str, version: str) -> str:
     return tag
 
 
-def with_prerelease(text: str, tag: str, when: str, unmet: list[str], pairs: list[str]) -> str:
+def with_prerelease(text: str, tag: str, when: str, pairs: list[str]) -> str:
     """Append one `[[prerelease]]` table to the end of the manifest.
 
     Appended rather than placed, and it stays above `[pins]` without being put
@@ -162,13 +162,12 @@ def with_prerelease(text: str, tag: str, when: str, unmet: list[str], pairs: lis
     """
     if not DATE_RE.match(when):
         sys.exit(f"::error::--prerelease-on wants YYYY-MM-DD, got {when!r}")
-    goals = ", ".join(f'"{goal}"' for goal in unmet)
     inline = ", ".join(pairs)
     block = [
         "[[prerelease]]",
         f'tag = "{tag}"',
         f'cut_on = "{when}"',
-        f"unmet = [{goals}]",
+        "unmet = []",
         f"pins = {{ {inline} }}" if inline else "pins = {}",
     ]
     return text.rstrip() + "\n\n" + "\n".join(block) + "\n"
@@ -232,8 +231,6 @@ def refuse_half_a_prerelease(a: argparse.Namespace) -> None:
         sys.exit("::error::--prerelease-on is required to record a pre-release")
     if a.prerelease_on and not a.prerelease:
         sys.exit("::error::--prerelease-on belongs to a pre-release record")
-    if a.unmet and not a.prerelease:
-        sys.exit("::error::--unmet belongs to a pre-release record")
 
 
 def stamps(text: str, a: argparse.Namespace) -> str:
@@ -251,7 +248,6 @@ def stamps(text: str, a: argparse.Namespace) -> str:
             text,
             prerelease_tag(a.prerelease, a.version),
             a.prerelease_on,
-            a.unmet,
             parse_pins(a.pin),
         )
     elif a.pin:
@@ -268,7 +264,6 @@ def main() -> int:
     ap.add_argument("--withdrawn-because", metavar="WHY")
     ap.add_argument("--prerelease", metavar="vX.Y.Z-ID")
     ap.add_argument("--prerelease-on", metavar="YYYY-MM-DD")
-    ap.add_argument("--unmet", action="append", default=[], metavar="ID")
     ap.add_argument("--pin", action="append", default=[], metavar="name=sha")
     a = ap.parse_args()
 
@@ -290,7 +285,7 @@ def main() -> int:
           + (f", released_on={a.released_on}" if a.released_on else "")
           + (f", released_as={a.released_as}" if a.released_as else "")
           + (", withdrawn" if a.withdrawn_because else "")
-          + (f", prerelease={a.prerelease} unmet={len(a.unmet)}" if a.prerelease else "")
+          + (f", prerelease={a.prerelease}" if a.prerelease else "")
           + (f", pins={len(a.pin)}" if a.pin else ""),
           file=sys.stderr)
     return 0

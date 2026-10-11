@@ -1,17 +1,18 @@
-# Publish an in-flight version as a pre-release — OPS-R60..R66.
+# Publish a version's artefacts as a pre-release before its release — OPS-R60..R66.
 #
-# `execute-version` refuses while a goal is unmet, and that is right: a release
-# claims its goals shipped. A pre-release claims nothing of the kind. It carries
-# the gate's verdict — every unmet goal, by name — on the artefact itself, so a
-# version whose last goal closes on somebody's own hardware can still be
-# installed by the person who has that hardware.
+# A pre-release is held to the goal gate a release is held to. Every goal the
+# version locks is satisfied and nothing it locks is unbuilt, at the commit being
+# tagged, or nothing is tagged (OPS-R66, OPS-R70): a version with a goal open does
+# not go out, as a pre-release or otherwise.
 #
-# It relaxes the goal gate and the bundle pin, and nothing else: a bundle not yet
-# pinning each first-party plugin at the tag is recorded as `OPS-R86` unmet
-# (OPS-R86). Compatibility, blockers, the declared version and the plugin gate are
-# checked exactly as they are before a release tag. The manifest's `status` does not move — a pre-release is not a
-# lifecycle transition — and what is written is one `[[prerelease]]` record
-# holding the tag, the day, the unmet goals and the pins.
+# It differs from a release in the bundle pin alone. A first-party plugin is built
+# and proved against the core's pre-release and tagged at the version by the
+# release, so a pre-release's embedded bundle may pin a plugin that builds an image
+# by revision alone, and no bundle check runs here (OPS-R86). Compatibility,
+# blockers, the declared version and the plugin gate are checked exactly as they
+# are before a release tag. The manifest's `status` does not move — a pre-release
+# is not a lifecycle transition — and what is written is one `[[prerelease]]`
+# record holding the tag, the day and the pins.
 #
 # Nothing outside the organisation hears about it: this posts to no public
 # channel, and the binary repository's announce path refuses on the pre-release
@@ -22,10 +23,7 @@
 # tags those repositories at the pre-release tag and stops. Once the stack pins
 # the image each tag published, and the core's submodule embeds that stack, the
 # second run checks those pins, records the pre-release and tags everything else.
-# A first-party plugin's repository is tagged in neither run: the plugin is built
-# against the core's pre-release and tagged at the version by the release. So a
-# bundle not pinning each plugin at the tag does not stop a pre-release; it is
-# recorded among the unmet goals, as `OPS-R86`.
+# A first-party plugin's repository is tagged in neither run.
 # `train_step.py` reads which run this is from the repositories themselves.
 #
 # Maintainer-only; dry_run defaults on.
@@ -198,67 +196,19 @@ jobs:
           TAG: ${{ steps.tag.outputs.tag }}
         run: python3 scripts/train_step.py --version "$VERSION" --tag "$TAG"
 
-      # The one check that does not refuse. Its answer is what the pre-release
-      # exists to carry, so it is captured rather than acted on — and captured
-      # as JSON, because the record keeps the goals by name (OPS-R62, OPS-R65).
-      #
-      # The bundle pin is part of that answer. A release refuses a core whose
-      # embedded bundle does not pin each plugin at its tag; a pre-release is cut
-      # so the plugins can be built against it, so in the run that tags the core it
-      # records `OPS-R86` among the unmet goals instead (OPS-R86).
-      - name: The gate's verdict, recorded rather than enforced (OPS-R62)
-        id: verdict
+      - name: Gate — every goal satisfied (OPS-R34, OPS-R66)
         env:
           VERSION: ${{ inputs.version }}
-          TAG: ${{ steps.tag.outputs.tag }}
-          STEP: ${{ steps.step.outputs.step }}
-          OWNER: ${{ github.repository_owner }}
         run: |
-          set -uo pipefail
+          set -euo pipefail
           args=()
           while read -r r; do [ -n "$r" ] && args+=(--repo "${r}=checkouts/${r}"); done < searched.txt
-          # A `run:` block is `bash -e`, and `set -uo pipefail` does not take that
-          # off. The gate answering "goals unmet" is exit 1 — the verdict a
-          # pre-release exists to carry — so its status is read through `||`,
-          # where errexit does not reach, rather than from `$?` on the next line.
-          answered=0
           # The binary's Markdown tracker, only while it still keeps one.
           legacy=checkouts/lemonfiber/IMPLEMENTATION-STATUS.md
           if [ -f "$legacy" ]; then args+=(--status "$legacy"); fi
-          python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" "${args[@]}" \
-            --format json > verdict.json || answered=$?
-          # 0 is releasable and 1 is goals unmet; both are verdicts. 2 is the gate
-          # failing to answer at all — an unreadable tracker, a shallow clone, a
-          # manifest locking nothing. A pre-release may go out with goals unmet; it
-          # may not go out with no verdict, because the verdict is what it publishes.
-          if [ "$answered" -ge 2 ]; then
-            echo "::error::the gate could not answer for ${VERSION}; a pre-release without a verdict is refused"
-            exit 1
-          fi
-          export BUNDLE=""
-          if [ "$STEP" = "streams" ]; then
-            python3 scripts/check_bundle_pins.py --version "$VERSION" --tag "$TAG" \
-              --core checkouts/lemonfiber --owner "$OWNER" || BUNDLE="OPS-R86"
-          fi
-          python3 - <<'PY'
-          import json, os
-          verdict = json.load(open("verdict.json", encoding="utf-8"))
-          unmet = [goal["id"] for goal in verdict["goals"] if not (goal["cited"] and goal["done"])]
-          if os.environ["BUNDLE"] and os.environ["BUNDLE"] not in unmet:
-              unmet.append(os.environ["BUNDLE"])
-              print("::warning title=Bundle unpinned::the embedded bundle does not pin each plugin at "
-                    f"{os.environ['TAG']}, recorded as {os.environ['BUNDLE']} unmet")
-          met = len(verdict["goals"]) - len(unmet)
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write(f"unmet={' '.join(unmet)}\n")
-              out.write(f"summary={met} of {len(verdict['goals'])} goals satisfied\n")
-          print(f"{met} of {len(verdict['goals'])} goals satisfied")
-          if unmet:
-              print(f"::warning title=Goals unmet::{len(unmet)} unmet and going out anyway: {', '.join(unmet)}")
-          PY
+          python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" "${args[@]}"
 
-      - name: What it locks that is not built, reported not enforced (OPS-R54)
-        continue-on-error: true
+      - name: Gate — no requirement it locks is unbuilt (OPS-R54, OPS-R66)
         env:
           VERSION: ${{ inputs.version }}
         run: |
@@ -413,10 +363,8 @@ jobs:
         env:
           TAG: ${{ steps.tag.outputs.tag }}
           STEP: ${{ steps.step.outputs.step }}
-          SUMMARY: ${{ steps.verdict.outputs.summary }}
-          UNMET: ${{ steps.verdict.outputs.unmet }}
         run: |
-          echo "::notice title=Dry run::${TAG} would go out with ${SUMMARY}. Unmet: ${UNMET:-none}. This is the ${STEP} step; it would tag $(paste -sd, tagging.txt). Re-run with dry_run=false to record and tag."
+          echo "::notice title=Dry run::${TAG} would go out with every goal satisfied. This is the ${STEP} step; it would tag $(paste -sd, tagging.txt). Re-run with dry_run=false to record and tag."
 
       # Recorded before the tag, not after. The binary repository's changelog job
       # reads this record to write the verdict onto the release body, and a tag
@@ -430,7 +378,6 @@ jobs:
           status: ${{ steps.read.outputs.status }}
           prerelease: ${{ steps.tag.outputs.tag }}
           prerelease_on: ${{ steps.read.outputs.today }}
-          unmet: ${{ steps.verdict.outputs.unmet }}
           pins: ${{ steps.pins.outputs.pins }}
           token: ${{ steps.token.outputs.token }}
 
@@ -511,7 +458,5 @@ jobs:
         if: ${{ !inputs.dry_run && steps.step.outputs.step == 'streams' }}
         env:
           TAG: ${{ steps.tag.outputs.tag }}
-          SUMMARY: ${{ steps.verdict.outputs.summary }}
-          UNMET: ${{ steps.verdict.outputs.unmet }}
         run: |
-          echo "::notice title=Pre-released::${TAG} is tagged. The build leaves a draft marked pre-release, carrying ${SUMMARY} and naming what is unmet (${UNMET:-none}). Publishing it announces to the maintainer channel and to nothing public (OPS-R63), and moves no manifest status (OPS-R60)."
+          echo "::notice title=Pre-released::${TAG} is tagged. The build leaves a draft marked pre-release, saying it is not the release and that every goal was satisfied when it was cut. Publishing it announces to the maintainer channel and to nothing public (OPS-R63), and moves no manifest status (OPS-R60)."
