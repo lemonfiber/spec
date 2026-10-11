@@ -24,9 +24,14 @@
 #         carrying it before the core, and the core once the embedded stack pins
 #         what that tag published (ADR-0033 §4). Absent everywhere else.
 # plugin: the first-party plugin the repository publishes, which makes it
-#         `plugin-<id>`. Every version that cuts the core cuts it, the train tags
-#         it before the core, and the core once the bundle it embeds pins that
-#         tag's release (OPS-R86). Absent everywhere else.
+#         `plugin-<id>`, its id the id of the stack service it takes the place of
+#         (ADR-0045). Every bundled part has one. Drawn as one node between them in
+#         the diagram. Absent everywhere else.
+# image : on a repository carrying `plugin`, and required there: whether it builds
+#         an image. One that does is a stream the train cuts: every version that
+#         cuts the core cuts it, tags it before the core, and tags the core once the
+#         bundle it embeds pins that tag's release (OPS-R86). One that does not is
+#         never tagged; the bundle pins it by revision and tree digest.
 
 [[repo]]
 name = "spec"
@@ -113,10 +118,10 @@ note = "Every tool generated from the contract, so an assistant can do nothing t
 name = "lemonfiber-media-stack"
 node = "stack"
 group = "impl"
-label = "lemonfiber-media-stack<br/>Compose + manifest"
+label = "lemonfiber-media-stack<br/>retiring"
 spec = ["lemonfiber-media-stack.md"]
 lang = "YAML/TOML"
-note = "Runs standalone; the compose rules CI enforces"
+note = "Retiring (ADR-0045): each part is a plugin's repository, and this is archived once the compose cutover reads none of it"
 
 [[repo]]
 name = "lemonfiber-decline"
@@ -125,7 +130,7 @@ group = "impl"
 label = "lemonfiber-decline<br/>the decline service"
 spec = ["lemonfiber-decline.md"]
 lang = "Rust"
-note = "An image the stack runs; holds one Jellyfin key and answers the household"
+note = "An image the stack runs, declared in a plugin.toml of its own; holds one Jellyfin key and answers the household"
 service = "decline"
 
 [[repo]]
@@ -135,7 +140,7 @@ group = "impl"
 label = "lemonfiber-request-gate<br/>the request gate"
 spec = ["lemonfiber-request-gate.md"]
 lang = "Rust"
-note = "An image the stack runs; holds the \\*arr keys and publishes no port"
+note = "An image the stack runs, declared in a plugin.toml of its own; holds the \\*arr keys and publishes no port"
 service = "request-gate"
 
 [[repo]]
@@ -149,13 +154,192 @@ note = "Reviewed and signed, and never a runtime dependency"
 
 [[repo]]
 name = "plugin-jellyfin"
-node = "jellyfin"
 group = "impl"
-label = "plugin-jellyfin<br/>the bundle's media server"
-spec = []
+spec = ["first-party-plugins.md"]
 lang = "Rust"
-note = "A first-party plugin: an adapter image in front of Jellyfin, pinned in the bundle"
+note = "The bundle's media server: an adapter image in front of Jellyfin, so the train tags it"
 plugin = "jellyfin"
+image = true
+
+[[repo]]
+name = "plugin-prowlarr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the indexer manager, Prowlarr; its image is the upstream's, pinned by revision"
+plugin = "prowlarr"
+image = false
+
+[[repo]]
+name = "plugin-flaresolverr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the solver that gets past an indexer's bot protection, FlareSolverr; its image is the upstream's, pinned by revision"
+plugin = "flaresolverr"
+image = false
+
+[[repo]]
+name = "plugin-nzbhydra2"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the Usenet indexer search, NZBHydra2; its image is the upstream's, pinned by revision"
+plugin = "nzbhydra2"
+image = false
+
+[[repo]]
+name = "plugin-sabnzbd"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the Usenet download client, SABnzbd; its image is the upstream's, pinned by revision"
+plugin = "sabnzbd"
+image = false
+
+[[repo]]
+name = "plugin-gluetun"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the egress guard, Gluetun, and the one part taking the egress-guard shape; its image is the upstream's, pinned by revision"
+plugin = "gluetun"
+image = false
+
+[[repo]]
+name = "plugin-qbittorrent"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the torrent client, qBittorrent, run inside the egress guard's network; its image is the upstream's, pinned by revision"
+plugin = "qbittorrent"
+image = false
+
+[[repo]]
+name = "plugin-sonarr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the television curator, Sonarr; its image is the upstream's, pinned by revision"
+plugin = "sonarr"
+image = false
+
+[[repo]]
+name = "plugin-radarr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the film curator, Radarr; its image is the upstream's, pinned by revision"
+plugin = "radarr"
+image = false
+
+[[repo]]
+name = "plugin-lidarr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the music curator, Lidarr; its image is the upstream's, pinned by revision"
+plugin = "lidarr"
+image = false
+
+[[repo]]
+name = "plugin-bindery"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the book curator, Bindery; its image is the upstream's, pinned by revision"
+plugin = "bindery"
+image = false
+
+[[repo]]
+name = "plugin-bazarr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the subtitle fetcher, Bazarr; its image is the upstream's, pinned by revision"
+plugin = "bazarr"
+image = false
+
+[[repo]]
+name = "plugin-recyclarr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for quality sync, Recyclarr; its image is the upstream's, pinned by revision"
+plugin = "recyclarr"
+image = false
+
+[[repo]]
+name = "plugin-unpackerr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for archive extraction, Unpackerr; its image is the upstream's, pinned by revision"
+plugin = "unpackerr"
+image = false
+
+[[repo]]
+name = "plugin-seerr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the request service, Seerr; its image is the upstream's, pinned by revision"
+plugin = "seerr"
+image = false
+
+[[repo]]
+name = "plugin-calibre-web-automated"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the book library, Calibre-Web Automated; its image is the upstream's, pinned by revision"
+plugin = "calibre-web-automated"
+image = false
+
+[[repo]]
+name = "plugin-audiobookshelf"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the audiobook server, Audiobookshelf; its image is the upstream's, pinned by revision"
+plugin = "audiobookshelf"
+image = false
+
+[[repo]]
+name = "plugin-navidrome"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the music server, Navidrome; its image is the upstream's, pinned by revision"
+plugin = "navidrome"
+image = false
+
+[[repo]]
+name = "plugin-homepage"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The bundle's part for the dashboard, Homepage; its image is the upstream's, pinned by revision"
+plugin = "homepage"
+image = false
+
+[[repo]]
+name = "plugin-door"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Dockerfile"
+note = "The bundle's part for the guarded door, Caddy rebuilt without its file capability; builds its image, so the train tags it"
+plugin = "door"
+image = true
+
+[[repo]]
+name = "plugin-caddy"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Dockerfile"
+note = "The bundle's part for the proxy, Caddy rebuilt without its file capability, listening on 8080 and 8443; builds its image, so the train tags it"
+plugin = "caddy"
+image = true
 
 [[repo]]
 name = "homebrew-tap"
@@ -237,11 +421,6 @@ note = "Org-wide community health files; no spec of its own"
 # the graph drawn as solid.
 
 [[edge]]
-from = "lemonfiber-media-stack"
-to = "lemonfiber"
-label = "submodule, pinned"
-
-[[edge]]
 from = "lemonfiber-web"
 to = "lemonfiber"
 label = "submodule, pinned"
@@ -284,12 +463,12 @@ label = "vendored at a pinned commit"
 [[edge]]
 from = "lemonfiber-plugins"
 to = "lemonfiber"
-label = "fetched on request, never embedded"
+label = "submodule, pinned; the bundle embedded"
 
 [[edge]]
 from = "lemonfiber-plugins"
-to = "plugin-jellyfin"
-label = "bundle pins a revision"
+to = "parts"
+label = "bundle pins a revision and its tree"
 
 [[edge]]
 from = "lemonfiber"
@@ -354,8 +533,8 @@ dotted = true
 # this specification governs, which README.md says plainly is not the same set
 # as the organisation. A plugin repository is the org's and not the map's: where
 # a plugin comes from is the reviewed catalogue's to answer (`F5-R1`). A
-# first-party plugin is the exception, in the map above, because the release
-# train cuts it (`OPS-R86`).
+# first-party plugin is the exception, in the map above, because the bundle the
+# core embeds pins it (ADR-0045).
 #
 # They are named here anyway, because something else needs the other set. Every
 # repository below calls the shared reusable workflows, so `shared/adoption.toml`

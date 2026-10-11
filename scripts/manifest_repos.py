@@ -27,11 +27,13 @@ manifest, says which repositories those are: a `[[repo]]` entry in
 Whether a repository builds an image is a fact about the repository, and every
 version that cuts it reads the same answer.
 
-A first-party plugin's repository is tagged in that first step too (OPS-R86): a
-`[[repo]]` entry carrying `plugin` is `plugin-<id>`, and its tag publishes the
-adapter image the bundle pins. Every version that cuts the core cuts each of
-them, so a manifest not yet released that names the core and leaves one out is
-refused.
+A first-party plugin's repository is tagged in that first step too, where it
+builds an image (OPS-R86): a `[[repo]]` entry carrying `plugin` is `plugin-<id>`,
+and says with `image` whether it builds one. A tag on one that does publishes the
+images the bundle pins, and every version that cuts the core cuts each of those,
+so a manifest not yet released that names the core and leaves one out is refused.
+One that builds none is never tagged: the bundle pins it by revision and tree
+digest (ADR-0045).
 
 Usage:
   manifest_repos.py --version X.Y.Z --for cut|searched|images|plugins|others
@@ -76,6 +78,9 @@ PLUGIN = "plugin"
 PLUGIN_PREFIX = "plugin-"
 #: A plugin id, as a plugin's manifest and the catalogue write it.
 PLUGIN_ID = re.compile(r"\A[a-z][a-z0-9]*(?:-[a-z0-9]+)*\Z")
+#: The registry field saying whether a first-party plugin's repository builds an image,
+#: which is what makes it a stream the train tags (OPS-R86).
+BUILDS = "image"
 
 #: The core's repository: the one whose releases carry the changelog, and whose
 #: every version cuts each first-party plugin.
@@ -129,7 +134,8 @@ def plugin_repos(registry: dict) -> dict[str, str]:
     """Every governed repository that publishes a first-party plugin, mapped to its id.
 
     Refused rather than skipped where the name is not `plugin-<id>`, the id is not a
-    plugin id, or the entry also builds a stack service: skipped, it would be cut
+    plugin id, the entry also builds a stack service, or it does not say with
+    `image = true` or `false` whether it builds an image: skipped, it would be cut
     with the core in one step, and the bundle would pin a release not yet tagged.
     """
     found = {}
@@ -144,8 +150,18 @@ def plugin_repos(registry: dict) -> dict[str, str]:
                      f"{PLUGIN_PREFIX}{plugin}")
         if SERVICE in entry:
             sys.exit(f"::error::{REGISTRY}: {name} carries both {SERVICE} and {PLUGIN}")
+        if not isinstance(entry.get(BUILDS), bool):
+            sys.exit(f"::error::{REGISTRY}: {name} carries {PLUGIN} and does not say "
+                     f"`{BUILDS} = true` or `{BUILDS} = false`")
         found[name] = plugin
     return found
+
+
+def train_plugins(registry: dict) -> dict[str, str]:
+    """The first-party plugins whose repository builds an image, which the train tags."""
+    building = {str(entry.get("name", "")) for entry in registry.get("repo", [])
+                if entry.get(BUILDS) is True}
+    return {name: plugin for name, plugin in plugin_repos(registry).items() if name in building}
 
 
 def images(data: dict, registry: dict) -> list[tuple[str, str, str]]:
@@ -156,7 +172,7 @@ def images(data: dict, registry: dict) -> list[tuple[str, str, str]]:
 
 def plugins(data: dict, registry: dict) -> list[tuple[str, str]]:
     """The first-party plugins this version tags first, as (repo, id)."""
-    published = plugin_repos(registry)
+    published = train_plugins(registry)
     return [(name, published[name]) for name in cut(data) if name in published]
 
 
@@ -172,17 +188,18 @@ def others(data: dict, registry: dict) -> list[str]:
 
 
 def unlisted_plugins(data: dict, registry: dict) -> list[str]:
-    """The first-party plugins a manifest not yet released cuts the core without (OPS-R86)."""
+    """The first-party plugins building an image that a manifest not yet released cuts
+    the core without (OPS-R86)."""
     named = cut(data)
     if data.get("status") in SETTLED or CORE not in named:
         return []
-    return [name for name in plugin_repos(registry) if name not in named]
+    return [name for name in train_plugins(registry) if name not in named]
 
 
 def unlisted(missing: list[str]) -> str:
     """What is wrong with a manifest that cuts the core without `missing`."""
     return (f"cuts {CORE} and not {', '.join(missing)}; every version that cuts the core "
-            "cuts each first-party plugin (OPS-R86)")
+            "cuts each first-party plugin that builds an image (OPS-R86)")
 
 
 def manifest_for(version: str) -> pathlib.Path:

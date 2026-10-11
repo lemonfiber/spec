@@ -6,7 +6,8 @@ version = "0.24.0"
 milestone = "M15"   # Runs anywhere
 delivers  = "Runs without Docker — engine abstraction, Podman, native"
 status  = "planned"
-repos   = ["lemonfiber", "plugin-jellyfin"]
+repos   = ["lemonfiber", "plugin-jellyfin", "plugin-door", "plugin-caddy"]
+satisfied_in = ["lemonfiber", "plugin-jellyfin"]
 goals   = [
     "J1-R1",
     "J1-R2",

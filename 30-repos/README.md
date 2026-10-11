@@ -30,11 +30,10 @@ flowchart TD
         sdkpy["sdk-python<br/>the Python client"]
         homeassistant["integration-home-assistant<br/>lemonfiber in Home Assistant"]
         mcp["integration-mcp<br/>lemonfiber for AI assistants"]
-        stack["lemonfiber-media-stack<br/>Compose + manifest"]
+        stack["lemonfiber-media-stack<br/>retiring"]
         decline["lemonfiber-decline<br/>the decline service"]
         gate["lemonfiber-request-gate<br/>the request gate"]
         plugins["lemonfiber-plugins<br/>the reviewed catalogue"]
-        jellyfin["plugin-jellyfin<br/>the bundle's media server"]
         tap["homebrew-tap<br/>generated formula"]
         site["website-lemonfiber.app<br/>the public frontpage"]
         docs["website-docs.lemonfiber.app<br/>the documentation site"]
@@ -42,9 +41,9 @@ flowchart TD
         kit["website-kit<br/>what both sites run"]
         lfdev["tool-lfdev<br/>the developer command line"]
         brand["brand<br/>design tokens"]
+        parts["plugin-*<br/>twenty-one first-party plugins"]
     end
 
-    stack -->|submodule, pinned| lemonfiber
     web -->|submodule, pinned| lemonfiber
     sdk -->|pinned| web
     lemonfiber -->|contract artefact| sdk
@@ -53,8 +52,8 @@ flowchart TD
     lemonfiber -->|contract artefact| sdkpy
     homeassistant -->|vendored at a pinned commit| sdkpy
     mcp -->|vendored at a pinned commit| sdkpy
-    plugins -->|fetched on request, never embedded| lemonfiber
-    plugins -->|bundle pins a revision| jellyfin
+    plugins -->|submodule, pinned; the bundle embedded| lemonfiber
+    plugins -->|bundle pins a revision and its tree| parts
     lemonfiber -->|release CI generates| tap
     brand -->|values mirrored| site
     lemonfiber -->|docs submodule, pinned| docs
@@ -79,11 +78,31 @@ flowchart TD
 | `sdk-python` | [sdk-python.md](sdk-python.md) | Python | An asynchronous and a synchronous client over one generated contract |
 | `integration-home-assistant` | [integration-home-assistant.md](integration-home-assistant.md) | Python | The first program to hold an integration key rather than a person's credential |
 | `integration-mcp` | [integration-mcp.md](integration-mcp.md) | Python | Every tool generated from the contract, so an assistant can do nothing the web API does not offer |
-| `lemonfiber-media-stack` | [lemonfiber-media-stack.md](lemonfiber-media-stack.md) | YAML/TOML | Runs standalone; the compose rules CI enforces |
-| `lemonfiber-decline` | [lemonfiber-decline.md](lemonfiber-decline.md) | Rust | An image the stack runs; holds one Jellyfin key and answers the household |
-| `lemonfiber-request-gate` | [lemonfiber-request-gate.md](lemonfiber-request-gate.md) | Rust | An image the stack runs; holds the \*arr keys and publishes no port |
+| `lemonfiber-media-stack` | [lemonfiber-media-stack.md](lemonfiber-media-stack.md) | YAML/TOML | Retiring (ADR-0045): each part is a plugin's repository, and this is archived once the compose cutover reads none of it |
+| `lemonfiber-decline` | [lemonfiber-decline.md](lemonfiber-decline.md) | Rust | An image the stack runs, declared in a plugin.toml of its own; holds one Jellyfin key and answers the household |
+| `lemonfiber-request-gate` | [lemonfiber-request-gate.md](lemonfiber-request-gate.md) | Rust | An image the stack runs, declared in a plugin.toml of its own; holds the \*arr keys and publishes no port |
 | `lemonfiber-plugins` | [lemonfiber-plugins.md](lemonfiber-plugins.md) | TOML | Reviewed and signed, and never a runtime dependency |
-| `plugin-jellyfin` | this page | Rust | A first-party plugin: an adapter image in front of Jellyfin, pinned in the bundle |
+| `plugin-jellyfin` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's media server: an adapter image in front of Jellyfin, so the train tags it |
+| `plugin-prowlarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the indexer manager, Prowlarr; its image is the upstream's, pinned by revision |
+| `plugin-flaresolverr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the solver that gets past an indexer's bot protection, FlareSolverr; its image is the upstream's, pinned by revision |
+| `plugin-nzbhydra2` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the Usenet indexer search, NZBHydra2; its image is the upstream's, pinned by revision |
+| `plugin-sabnzbd` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the Usenet download client, SABnzbd; its image is the upstream's, pinned by revision |
+| `plugin-gluetun` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the egress guard, Gluetun, and the one part taking the egress-guard shape; its image is the upstream's, pinned by revision |
+| `plugin-qbittorrent` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the torrent client, qBittorrent, run inside the egress guard's network; its image is the upstream's, pinned by revision |
+| `plugin-sonarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the television curator, Sonarr; its image is the upstream's, pinned by revision |
+| `plugin-radarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the film curator, Radarr; its image is the upstream's, pinned by revision |
+| `plugin-lidarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the music curator, Lidarr; its image is the upstream's, pinned by revision |
+| `plugin-bindery` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the book curator, Bindery; its image is the upstream's, pinned by revision |
+| `plugin-bazarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the subtitle fetcher, Bazarr; its image is the upstream's, pinned by revision |
+| `plugin-recyclarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for quality sync, Recyclarr; its image is the upstream's, pinned by revision |
+| `plugin-unpackerr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for archive extraction, Unpackerr; its image is the upstream's, pinned by revision |
+| `plugin-seerr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the request service, Seerr; its image is the upstream's, pinned by revision |
+| `plugin-calibre-web-automated` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the book library, Calibre-Web Automated; its image is the upstream's, pinned by revision |
+| `plugin-audiobookshelf` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the audiobook server, Audiobookshelf; its image is the upstream's, pinned by revision |
+| `plugin-navidrome` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the music server, Navidrome; its image is the upstream's, pinned by revision |
+| `plugin-homepage` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the dashboard, Homepage; its image is the upstream's, pinned by revision |
+| `plugin-door` | [first-party-plugins.md](first-party-plugins.md) | Dockerfile | The bundle's part for the guarded door, Caddy rebuilt without its file capability; builds its image, so the train tags it |
+| `plugin-caddy` | [first-party-plugins.md](first-party-plugins.md) | Dockerfile | The bundle's part for the proxy, Caddy rebuilt without its file capability, listening on 8080 and 8443; builds its image, so the train tags it |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website-lemonfiber.app` | [website-lemonfiber.md](website-lemonfiber.md) | Astro | The org is the motor; roadmap read, not written |
 | `website-docs.lemonfiber.app` | [website-docs.md](website-docs.md) | Astro | It renders; it does not own — every page pinned to the repo that wrote it |
@@ -93,14 +112,15 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those twenty-two are the repositories this specification governs, which is not the
+Those forty-two are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))
 rather than this register's — so the org has repositories this file does not list,
 on purpose, and the sentence says so rather than making a claim nothing checks. A
-first-party plugin is listed, because the release train cuts it with the core
-([OPS-R86](../70-operations/releasing.md)).
+first-party plugin is listed, because the bundle the core embeds pins it
+([first-party plugins](first-party-plugins.md)), and the release train cuts it with
+the core where it builds an image ([OPS-R86](../70-operations/releasing.md)).
 
 `.github` carries the community health files GitHub serves for a repo that does
 not define its own — the code of conduct, the security policy, the issue templates
