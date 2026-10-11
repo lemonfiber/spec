@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import os
 import pathlib
 import re
@@ -125,33 +126,58 @@ class LandedTests(Workspace):
         self.repo("checkouts/lf", trailer="Spec: B1-R4")
         sha = self.head_of("checkouts/lf")
         rows = self.rows(f"| x | **Z9-R9** | ✅ | landed in `{sha}` |\n")
-        landed = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
+        landed, faults = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
         self.assertIn("Z9-R9", landed)
+        self.assertEqual(faults, [])
 
-    def test_a_row_naming_a_commit_nobody_has_carries_nothing(self):
+    def test_a_row_naming_a_commit_nobody_has_carries_nothing_and_is_a_fault(self):
         """What stops this being a way to tick anything by writing eight characters."""
         self.repo("checkouts/lf")
         rows = self.rows("| x | **Z9-R9** | ✅ | landed in `deadbeefdeadbeef` |\n")
-        landed = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
+        landed, faults = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
         self.assertEqual(landed, set())
+        self.assertEqual(len(faults), 1)
+        self.assertIn("deadbeefdeadbeef", faults[0])
+
+    def test_the_gate_refuses_a_row_naming_a_commit_nobody_has(self):
+        """A record nobody can check refuses the verdict, even where the goal is met
+        another way: the gate warns of nothing (OPS-R34, OPS-R70)."""
+        self.repo("checkouts/lf", trailer="Spec: Z9-R9")
+        rows = self.rows("| x | **Z9-R9** | ✅ | landed in `deadbeefdeadbeef` |\n")
+        self.manifest("0.1.0", goals=("Z9-R9",))
+        args = ["--manifest", "70-operations/versions/0.1.0.toml",
+                "--repo", "lf=checkouts/lf", "--status", str(rows)]
+        code, out = run_main(gate, args)
+        self.assertEqual(code, 1)
+        self.assertIn("::error::", out)
+        self.assertNotIn("::warning::", out)
+        self.assertIn("name the merged commit", out)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code, out = run_main(gate, [*args, "--format", "json"])
+        self.assertEqual(code, 1)
+        verdict = json.loads(out)
+        self.assertFalse(verdict["releasable"])
+        self.assertEqual(len(verdict["faults"]), 1)
+        self.assertIn("::error::", err.getvalue())
 
     def test_a_row_that_is_not_done_carries_nothing_however_it_is_written(self):
         self.repo("checkouts/lf")
         sha = self.head_of("checkouts/lf")
         rows = self.rows(f"| x | **Z9-R9** | ☐ | landed in `{sha}` |\n")
-        self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), set())
+        self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), (set(), []))
 
     def test_a_done_row_with_no_commit_named_carries_nothing_here(self):
         """The ordinary row. This arm only ever adds; it never stands in for the tick."""
         self.repo("checkouts/lf")
         rows = self.rows("| x | **Z9-R9** | ✅ | nothing named |\n")
-        self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), set())
+        self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), (set(), []))
 
     def test_a_range_on_a_named_row_is_spanned_like_any_other(self):
         self.repo("checkouts/lf")
         sha = self.head_of("checkouts/lf")
         rows = self.rows(f"| x | **C1-R1..R3** | ✅ | landed in `{sha}` |\n")
-        landed = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
+        landed, _ = gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")})
         self.assertEqual(landed, {"C1-R1", "C1-R2", "C1-R3"})
 
     def test_the_verdict_says_which_arm_satisfied_each_goal(self):
@@ -252,7 +278,7 @@ class ByColumnNotByLine(Workspace):
                              capture_output=True, text=True).stdout.strip()
         rows = self.tracker(
             HEADER + f"| Stack runs | `F1-R1` | ◐ | ✅ once done; landed in `{sha}` |\n")
-        self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), set())
+        self.assertEqual(gate.landed_ids(rows, {"lf": pathlib.Path("checkouts/lf")}), (set(), []))
 
 
 class GateTests(Workspace):

@@ -724,7 +724,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | Every `forms` entry names a declared form | Both named |
 | Every entry in `requires.capabilities` is offered | Capability named, never a version |
 | `config_path` is one absolute path, not `/`, and outside the data root | Path named, with what is permitted |
-| Every `mount.from` is a relative path inside the service's own configuration directory, with no `..` and no interpolation | Mount named, with what is permitted |
+| Every `mount.from` is a relative path inside the service's own mount tree, `./mounts/<id>`, with no `..`, no interpolation and none inside another of its sources | Mount named, with what is permitted |
 | Every `mount.to` and `tmpfs` entry is an absolute path, not `/`, outside `/data` where the service takes data, and no other mount's target | Mount named, with what is permitted |
 | Every `env` name is a variable's name and none of `TZ`, `PUID` and `PGID` | Variable named |
 | Every `env` value is a constant, `{ setting, default }`, `{ url_of }` (with `files` and `native` only) or `{ secret }`, and nothing else | Variable named, with the four kinds |
@@ -812,7 +812,7 @@ unreadable.
 | **ARCH-R83** | A plugin MUST be described by a single `plugin.toml` at the root of its source, and lemonfiber MUST act on nothing about a plugin that is not declared there. |
 | **ARCH-R84** | A plugin's service MUST be declared in the stack manifest's service vocabulary restricted to the fields this contract permits, and a field outside that set MUST be refused by name rather than ignored. |
 | **ARCH-R85** | lemonfiber MUST generate the Compose entry for a plugin's service, and MUST NOT accept a Compose fragment, overlay, patch or merge key from a plugin. |
-| **ARCH-R86** | *Superseded by [ARCH-R224](plugin-manifest.md) and [ARCH-R227](plugin-manifest.md): every entry is written from the one model and extends no template, and a service mounts its own directory and what lies inside it besides the data mount. The number is not reused.* |
+| **ARCH-R86** | *Superseded by [ARCH-R224](plugin-manifest.md) and [ARCH-R227](plugin-manifest.md): every entry is written from the one model and extends no template, and a service mounts its own configuration directory and paths from its own mount tree besides the data mount. The number is not reused.* |
 | **ARCH-R87** | *Superseded by [ARCH-R239](plugin-manifest.md): no field reaches the engine's socket, a privileged container, a host namespace, an entrypoint or a command, and a capability, a device or a group comes only from a shape, while `user_mode` and `network.via` are typed fields of the model. The number is not reused.* |
 | **ARCH-R88** | *Superseded by [ARCH-R226](plugin-manifest.md): the interface is lemonfiber's from the tier, and the host and container ports are the manifest's. The number is not reused.* |
 | **ARCH-R89** | A plugin MUST declare the capabilities it requires of lemonfiber by name, and the manifest MUST NOT carry a minimum lemonfiber version. |

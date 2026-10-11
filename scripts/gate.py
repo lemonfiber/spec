@@ -24,12 +24,19 @@ Usage:
           --repo <name>=<path> [--repo <name>=<path> ...] \\
           [--status <path to IMPLEMENTATION-STATUS.md>]
 
-Exit 0 = every goal satisfied (releasable); 1 = goals unmet (named); 2 = usage,
-or a tracker that cannot be read.
+Exit 0 = every goal satisfied (releasable); 1 = goals unmet, or a tracker row
+naming a commit no searched history holds (each named); 2 = usage, or a tracker
+that cannot be read.
+
+**It warns of nothing.** A tag is cut only where the gate prints no error and no
+warning (OPS-R70), so whatever it finds wrong is an error that refuses the
+verdict: a row naming a commit nobody has is a record nobody can check, whether or
+not the goal it names is met another way.
 """
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import pathlib
 import subprocess
@@ -137,26 +144,33 @@ def tracked_done(rows: list[status_check.Row]) -> set[str]:
     return {row.id for row in rows if row.done}
 
 
-def tracked_landed(rows: list[status_check.Row], repo_paths: dict[str, pathlib.Path]) -> set[str]:
-    """Done requirements whose row names a commit in its own repository's history.
+def tracked_landed(
+    rows: list[status_check.Row], repo_paths: dict[str, pathlib.Path]
+) -> tuple[set[str], list[str]]:
+    """Done requirements whose row names a commit in its own repository's history,
+    and a fault for each done row naming one that history does not hold.
 
     Checked against the repository the row sits in, which is the only one a
     commit it names can be in: the same rule `landed_ids` applies to a Markdown
     row, scoped to where the row was written.
     """
     landed: set[str] = set()
+    faults: list[str] = []
     for row in rows:
         if not (row.done and row.landed):
             continue
         if reachable(repo_paths[row.repo], row.landed):
             landed.add(row.id)
         else:
-            print(f"::warning::{row.repo} records {row.id} as landed in {row.landed} "
-                  "and its history has no such commit, so it counts for nothing")
-    return landed
+            faults.append(f"{row.repo} records {row.id} as landed in {row.landed}, and "
+                          "its history has no such commit: name the commit it merged as "
+                          "on that repository's main, or drop `landed` from the row")
+    return landed, faults
 
 
-def landed_ids(status: pathlib.Path, repo_paths: dict[str, pathlib.Path]) -> set[str]:
+def landed_ids(
+    status: pathlib.Path, repo_paths: dict[str, pathlib.Path]
+) -> tuple[set[str], list[str]]:
     """IDs on a done row that names the merged commit which finished them.
 
     The narrow way out of a real dead end. A merged commit cannot gain a `Spec:`
@@ -166,24 +180,27 @@ def landed_ids(status: pathlib.Path, repo_paths: dict[str, pathlib.Path]) -> set
 
     So a row may name the commit instead, and the naming is **checked**: the sha has
     to resolve to a commit that is an ancestor of a searched repository's head. A row
-    naming something that is not in the history counts for nothing, which is what
-    keeps this from becoming a way to tick anything by writing eight characters.
+    naming something that is not in the history carries nothing and is a fault, which
+    is what keeps this from becoming a way to tick anything by writing eight
+    characters.
 
     `git show <sha>` is the audit. That is the whole of why it is a commit rather
     than a pull request number: one can be checked here, offline, against the
     artefact itself; the other is a question for the forge.
     """
     landed: set[str] = set()
+    faults: list[str] = []
     for row in done_rows(status):
         shas = LANDED.findall(row.line)
         if not shas:
             continue
         if not any(reachable(path, sha) for sha in shas for path in repo_paths.values()):
-            print(f"::warning::a row names {shas} as where its goals landed and no "
-                  "searched repository has that commit, so it counts for nothing")
+            faults.append(f"{status} names {', '.join(shas)} as where a done row's goals "
+                          "landed, and no searched repository has that commit: name the "
+                          "merged commit, or drop it from the row")
             continue
         landed.update(claimed(row))
-    return landed
+    return landed, faults
 
 
 def reachable(path: pathlib.Path, sha: str) -> bool:
@@ -255,6 +272,24 @@ def render_human(name: str, repos: list[str], results: list[dict]) -> None:
         print(f"  {'✓' if ok else '✗'} {r['id']:12}  cited={how} tracked-done={'yes' if r['done'] else 'NO '}")
 
 
+def judge(a: argparse.Namespace) -> tuple[pathlib.Path, list[str], list[dict], list[str]]:
+    """The manifest, the repositories searched, each goal's two arms, and every
+    tracker row naming a commit no searched history holds."""
+    manifest = within_cwd(a.manifest)
+    repos = parse_repos(a.repo)
+    rows = trackers(repos)
+    done = tracked_done(rows)
+    landed, faults = tracked_landed(rows, repos)
+    if a.status:
+        status = within_cwd(a.status)
+        done |= done_ids(status)
+        more, wrong = landed_ids(status, repos)
+        landed |= more
+        faults += wrong
+    results = evaluate(load_goals(manifest), cited_ids(repos), done, landed)
+    return manifest, list(repos), results, faults
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", required=True)
@@ -263,24 +298,30 @@ def main() -> int:
     ap.add_argument("--format", choices=("human", "json"), default="human")
     a = ap.parse_args()
 
-    manifest = within_cwd(a.manifest)
-    repos = parse_repos(a.repo)
-    rows = trackers(repos)
-    done, landed = tracked_done(rows), tracked_landed(rows, repos)
-    if a.status:
-        status = within_cwd(a.status)
-        done |= done_ids(status)
-        landed |= landed_ids(status, repos)
-    results = evaluate(load_goals(manifest), cited_ids(repos), done, landed)
+    # In JSON, standard output is the verdict a reader parses and nothing else, so
+    # what the reading says on the way goes to standard error.
+    said = sys.stderr if a.format == "json" else sys.stdout
+    with contextlib.redirect_stdout(said):
+        manifest, searched, results, faults = judge(a)
     unmet = [r["id"] for r in results if not (r["cited"] and r["done"])]
+    releasable = not (unmet or faults)
 
     if a.format == "json":
-        print(json.dumps({"version": manifest.stem, "releasable": not unmet, "goals": results}))
-        return 1 if unmet else 0
+        for fault in faults:
+            print(f"::error::{fault}", file=sys.stderr)
+        print(json.dumps({"version": manifest.stem, "releasable": releasable,
+                          "goals": results, "faults": faults}))
+        return 0 if releasable else 1
 
-    render_human(manifest.name, list(repos), results)
+    render_human(manifest.name, searched, results)
+    for fault in faults:
+        print(f"::error::{fault}")
     if unmet:
         print(f"\n::error::not releasable — {len(unmet)} goal(s) unmet: {', '.join(unmet)}")
+    if faults:
+        print(f"\n::error::not releasable — {len(faults)} tracker row(s) name a commit "
+              "no searched history holds")
+    if not releasable:
         return 1
     print("\ngate: releasable — every goal satisfied.")
     return 0

@@ -155,7 +155,16 @@ jobs:
           # The binary's Markdown tracker, only while it still keeps one.
           legacy=checkouts/lemonfiber/IMPLEMENTATION-STATUS.md
           if [ -f "$legacy" ]; then args+=(--status "$legacy"); fi
-          python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" "${args[@]}"
+          python3 scripts/gate.py --manifest "70-operations/versions/${VERSION}.toml" "${args[@]}" \
+            | tee gate.log
+          # A tag is cut only where the gate prints no error and no warning (OPS-R70).
+          # The whole log is read from the file, not from a pipe, so nothing upstream
+          # is cut short by an early match.
+          warned="$(grep -E '^::warning' gate.log || true)"
+          if [ -n "$warned" ]; then
+            echo "::error::the gate printed a warning, and a tag is cut only where it prints none (OPS-R70)"
+            exit 1
+          fi
       - name: Gate — no requirement it locks is unbuilt (OPS-R54)
         env:
           VERSION: ${{ inputs.version }}
