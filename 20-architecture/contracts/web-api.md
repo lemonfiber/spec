@@ -364,6 +364,30 @@ that ends it and different for the next time the same thing goes wrong, so a cli
 what it opened without comparing sentences. A client connecting is not sent the alerts already
 said; the dashboard's own list is where those are (`ARCH-R162`).
 
+**An alert names its notification kind, from a closed list.** Beside its event kind, which is
+open and grows with every check, an alert carries `notification`: one of `problem`,
+`completion`, `update` or `backup`, the list the artefact publishes as a closed union. A new
+kind is a contract change. `GET /api/alerts` carries `kinds`, the ones this stack raises, so a
+client offers a switch for each of those and for nothing else (`ARCH-R279`, `ARCH-R280`,
+[ADR-0047](../../00-overview/decisions/0047-a-phone-hears-its-stacks-without-a-vendors-push-service.md)).
+
+**A resumed stream replays the alerts it missed.** A stream opened with `Last-Event-ID` is sent
+every `alert` event raised after that id, oldest first, from the last 24 hours and at most the
+last 200, before anything else, so a phone the platform woke an hour later hears what was said
+while it slept. An id older than that is answered from the oldest kept, and the replay says
+`partial` so the client knows it missed some (`ARCH-R281`).
+
+**A phone can ask to be woken.** A phone that cannot hold the stream while it is closed
+registers a UnifiedPush endpoint, and the core sends it a WebPush message, encrypted to the
+phone, on every alert's onset and resolution, carrying nothing but that the stack has something
+to say. The phone then reads the stream over its own connection, so the distributor learns when
+a stack spoke and never what it said. The endpoints are the operator's to see and remove, at the
+command line as here (`ARCH-R282`):
+
+```
+POST /api/push-endpoints        GET /api/push-endpoints        DELETE /api/push-endpoints/{name}
+```
+
 **What is playing rides the stream.** A `playing` event carries every session the media server
 is playing now, in the envelope `GET /api/playing` answers the same credential with, and it is
 sent again every 5 seconds, the pace a member's stream sends what they are playing at. A client
@@ -825,6 +849,10 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R262** | The identities of the operator's own builds MUST be the core setting `LEMONFIBER_DEVICE_KEY_APPS`, read by `GET /api/settings` and written by `settings-set` and `settings-clear` as every setting is: a comma-separated list of `android:<package>@<SHA-256 of the signing certificate, in hex>` and `ios:<Team ID>.<bundle ID>`. A value naming an identity in neither form MUST be refused, naming it; the official identities the build ships MUST be read alongside and MUST NOT be part of the value (`C10-R30`). |
 | **ARCH-R274** | Every instant the web API reads or writes, in a request, a response, an event or a link the core builds, MUST be a whole number of seconds since the Unix epoch: a JSON integer in a body, and its decimal digits in a link's query. It MUST NOT be written as a string, with a fraction, or with a zone or an offset; a command's `--json` output MUST write instants alike; and a stamp lemonfiber passes on verbatim from a service's own output MUST NOT be presented as one of its instants. |
 | **ARCH-R278** | A core setting MUST be one the list under [Settings](#settings) names; `lemonfiber settings` and the settings writes MUST take a core setting and no other `LEMONFIBER_*` key, and `lemonfiber config` MUST take every other `LEMONFIBER_*` key and no core setting; a name either command takes, given to the other, MUST be refused naming the command and the name that take it. |
+| **ARCH-R279** | The artefact MUST publish the notification kinds as a closed union, `problem`, `completion`, `update` and `backup`, and every `alert` event MUST carry exactly one as `notification` beside its event kind: `problem` for every condition at warning or worse, at onset and resolution; `completion` for work the operator asked for finishing; `update` for an update to the stack or lemonfiber being available; and `backup` for a backup that succeeded. The core MUST NOT raise an alert in a request's or a household member's domain under any kind (`B5-R1`). |
+| **ARCH-R280** | `GET /api/alerts` MUST carry `kinds`, the notification kinds this stack raises as it is configured, each from the union `ARCH-R279` publishes. |
+| **ARCH-R281** | A stream opened with `Last-Event-ID` MUST be sent, before any other event, every `alert` event raised after that id, oldest first, from the last 24 hours and at most the last 200; where the id is older than the oldest kept or unknown, it MUST send those kept and mark the replay `partial`. A stream opened without one MUST be sent no past alert (`ARCH-R162`). |
+| **ARCH-R282** | An operator session MUST be able to register a UnifiedPush endpoint for one device with `POST /api/push-endpoints`, taking `name`, an `https` `endpoint`, and the WebPush `p256dh` key and `auth` secret, and to list them with `GET /api/push-endpoints` and remove one with `DELETE /api/push-endpoints/{name}`; the command line MUST list and remove them too. On every alert's onset and resolution the core MUST send each registered endpoint a WebPush message encrypted under RFC 8291 whose content says only that the stack has something to say, MUST forget an endpoint its distributor answers `404` or `410`, and MUST refuse an endpoint that is not `https` or whose name another holds, naming it. A member session and a key MUST NOT register, list or remove endpoints. Every registration and removal MUST be journaled. |
 
 ## The artefact
 

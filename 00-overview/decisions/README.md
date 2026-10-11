@@ -65,6 +65,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0044](0044-a-phone-proves-the-operator-with-a-device-key.md) | A phone proves the operator with a device key, so it never holds the password | Accepted |
 | [0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md) | Every bundled part has its repository now, and its adapter later | Accepted |
 | [0046](0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) | The stores are filled once, at the cutover, and a secret never enters the journal | Accepted |
+| [0047](0047-a-phone-hears-its-stacks-without-a-vendors-push-service.md) | A phone hears its stacks without a vendor's push service, in the kinds the core declares | Accepted |
 | [0048](0048-a-part-without-a-port-is-proved-by-running-its-own-program.md) | A part without a port is proved by running its own program | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an

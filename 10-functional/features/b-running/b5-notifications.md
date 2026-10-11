@@ -83,6 +83,7 @@ the starting point; it is not a ceiling.
 | **In-app** | Dashboard and health summary. Always on, no configuration, no dependency. The irreducible baseline. |
 | **Desktop** | Native OS notification when lemonfiber runs on the operator's own machine. Useless headless. |
 | **ntfy** | Push to phone. Apache-2.0 and self-hostable, so it fits the open-source commitment. A single HTTP request. |
+| **Companion** | The phone app, raising each alert locally from its own connection, filtered by the kinds the operator chose for that stack; woken through UnifiedPush on Android where a distributor is installed, and best-effort while closed otherwise ([ADR-0047](../../../00-overview/decisions/0047-a-phone-hears-its-stacks-without-a-vendors-push-service.md)). |
 | **Apprise** | Bridge to 100+ services (Discord, Telegram, email, Gotify, Pushover). One integration covers everything else. |
 
 In-app is unconditional — an alert must never exist *only* on a channel that
