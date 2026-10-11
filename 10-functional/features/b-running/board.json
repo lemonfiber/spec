@@ -20,7 +20,7 @@
       "versions": [
         {"version": "0.1.0", "status": "released"},
         {"version": "0.17.0", "status": "released"},
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "0.8.0", "status": "released"}
       ],
       "path": "b-running/b1-forms.md"
@@ -42,7 +42,7 @@
       "relates": ["B1", "B3", "B8"],
       "versions": [
         {"version": "0.15.0", "status": "released"},
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "0.8.0", "status": "released"}
       ],
       "path": "b-running/b2-lifecycle.md"
@@ -63,7 +63,7 @@
       "requires": ["G7"],
       "relates": ["B2", "B4", "C2", "G1"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "0.5.0", "status": "released"},
         {"version": "1.0.0", "status": "planned"}
       ],

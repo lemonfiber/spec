@@ -19,7 +19,7 @@
       "relates": ["C2", "C3", "C5", "C7", "C8", "C9", "G4", "G7"],
       "versions": [
         {"version": "0.1.0", "status": "released"},
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "0.2.0", "status": "released"},
         {"version": "0.8.0", "status": "released"}
       ],
@@ -61,7 +61,7 @@
       "requires": ["C4", "G4"],
       "relates": ["C1", "C9"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "0.7.0", "status": "released"}
       ],
       "path": "c-trust/c3-auto-remediation.md"
@@ -82,7 +82,7 @@
       "requires": [],
       "relates": ["A7", "B4", "C1", "G8"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "0.7.0", "status": "released"}
       ],
       "path": "c-trust/c4-support-bundle.md"
@@ -126,7 +126,7 @@
       "versions": [
         {"version": "0.10.0", "status": "released"},
         {"version": "0.17.0", "status": "released"},
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "0.9.0", "status": "released"}
       ],
       "path": "c-trust/c6-web-security.md"
@@ -187,7 +187,7 @@
       "requires": [],
       "relates": ["A5", "C3", "D1", "E3", "F1"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "0.4.0", "status": "released"},
         {"version": "0.7.0", "status": "released"}
       ],
@@ -209,7 +209,7 @@
       "requires": [],
       "relates": ["C6", "D10", "F12", "F13", "G1", "B5"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "c-trust/c10-integration-keys.md"
     }
