@@ -816,5 +816,29 @@ class ThePluginGateSteps(unittest.TestCase):
         self.assertIn("::error::could not read the core's head commit: ''", done.stdout)
 
 
+class EveryMintNamesWhatItUses(unittest.TestCase):
+    """The release App can write every repository's contents, workflows and actions,
+    so each token minted from it asks for the permissions its steps use and no
+    others; a mint naming none would carry all of them."""
+
+    def mints(self):
+        files = sorted(WORKFLOWS.glob("*.yml")) + sorted((HERE.parent / ".github" / "actions").glob("*/action.yml"))
+        for path in files:
+            read = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+            jobs = read.get("jobs") or {"action": (read.get("runs") or {})}
+            for name, job in jobs.items():
+                for step in job.get("steps") or []:
+                    if "create-github-app-token@" in str(step.get("uses", "")):
+                        yield f"{path.name} {name}", step.get("with") or {}
+
+    def test_every_mint_names_its_permissions(self):
+        found = list(self.mints())
+        self.assertGreater(len(found), 10)
+        for where, given in found:
+            asked = {key: value for key, value in given.items() if key.startswith("permission-")}
+            self.assertTrue(asked, where)
+            self.assertLessEqual(set(asked.values()), {"read", "write"}, where)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

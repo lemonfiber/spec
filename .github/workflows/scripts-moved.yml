@@ -39,6 +39,7 @@ jobs:
           client-id: ${{ vars.RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_KEY }}
           owner: ${{ github.repository_owner }}
+          permission-actions: write
           repositories: tool-lfdev
 
       - name: Ask tool-lfdev to take the scripts

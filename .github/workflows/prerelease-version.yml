@@ -131,6 +131,8 @@ jobs:
           client-id: ${{ vars.RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_KEY }}
           owner: ${{ github.repository_owner }}
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Read the manifest and clone its repos
         id: read
