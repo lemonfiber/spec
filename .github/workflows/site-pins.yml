@@ -1,0 +1,455 @@
+# A site renders its sibling repositories from pinned revisions (ADR-0015): a
+# reader gets a page that agrees with itself, and a revision moves by pull
+# request, where the guards hold every page to it before it merges. A pin
+# behind is therefore normal for as long as that takes, and a fault after it.
+# The two jobs here ask the two halves of that.
+#
+# `sources` is the gate (Q-R68, Q-R70). It runs the site's `scripts/pins.ts`,
+# which names every commit a pin has not taken that touched a file a page
+# renders or a guard reads, and refuses once one of them has waited longer than
+# the kit's window. `age` reports how long each pin has been behind at all, in
+# days, on the schedule only, and gates nothing. A scheduled finding goes to the
+# maintainers' Discord, and `telling` refuses a red run it has nowhere to send.
+#
+#   on:
+#     pull_request:
+#     workflow_dispatch:
+#     schedule:
+#       - cron: "<m> 7 * * *"
+#   permissions:
+#     contents: read
+#   jobs:
+#     pins:
+#       uses: lemonfiber/spec/.github/workflows/site-pins.yml@<sha> # vX.Y.Z
+#       with:
+#         requirement: REPO-R69
+#       secrets:
+#         DISCORD_MAINTAINERS_WEBHOOK: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}
+#
+# The checks it reports are `pins / age` and `pins / pins-sources`.
+name: site-pins
+
+on:
+  workflow_call:
+    inputs:
+      requirement:
+        description: "The site's requirement that its pages render pinned revisions, cited in what the check says."
+        type: string
+        required: true
+      allowed-days:
+        description: "Days a pin may lag before `age` reports it as staleness rather than a decision."
+        type: string
+        default: "21"
+    secrets:
+      DISCORD_MAINTAINERS_WEBHOOK:
+        description: "The maintainers' channel, where a scheduled finding is sent."
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  age:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      red: ${{ steps.report.outputs.red }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+          # Whole histories. The default is a shallow fetch, and a shallow
+          # submodule can only see one commit — so counting what a pin has not
+          # taken gives 1 whatever the truth is, and the age of the oldest
+          # unpinned commit becomes the age of the newest. The measure would
+          # read `0d` on a pin a year behind.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: How long each pin has been behind
+        id: report
+        env:
+          # Days a pin may lag before it is staleness rather than a decision.
+          ALLOWED_DAYS: ${{ inputs.allowed-days }}
+          REQUIREMENT: ${{ inputs.requirement }}
+        run: |
+          # `||` rather than a bare call: the step's shell is `bash -e`, so a
+          # refusal would end the step before the finding could be carried out
+          # of it, and the job that sends it on would have nothing to read.
+          verdict=0
+          python3 -I - <<'PY' || verdict=$?
+          import os
+          import pathlib
+          import re
+          import subprocess
+          import sys
+          import time
+
+          window = os.environ["ALLOWED_DAYS"]
+          allowed = int(window) * 86400
+          now = time.time()
+
+          # What the run page shows above the log. The verdict is written there
+          # as well as printed, so what this check found and what it is for are
+          # read together — the reader who has to be told it reports rather than
+          # gates is the one who did not go looking for the workflow file.
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          said = []
+
+
+          def say(line=""):
+              print(line)
+              said.append(line)
+
+
+          def leave(code):
+              if summary is not None:
+                  pathlib.Path(summary).write_text("\n".join(said) + "\n")
+              sys.exit(code)
+
+
+          def fenced(lines):
+              say("```")
+              for one in lines:
+                  say(one)
+              say("```")
+
+
+          def git(path, *args):
+              done = subprocess.run(
+                  ["git", "-C", path, *args], capture_output=True, text=True
+              )
+              return done.stdout.strip() if done.returncode == 0 else None
+
+
+          listing = subprocess.run(
+              ["git", "submodule", "status"], capture_output=True, text=True
+          ).stdout
+
+          rows = [f"{'repository':<26} {'pinned':<9} {'behind':>6}  stale for"]
+          stale = []
+          unread = []
+          for line in listing.splitlines():
+              found = re.match(r"[-+ ]?([0-9a-f]{40})\s+(\S+)", line)
+              if not found:
+                  continue
+              sha, path = found.groups()
+              name = path.split("/")[-1]
+
+              git(path, "fetch", "--quiet", "origin")
+              behind = git(path, "rev-list", "--count", f"{sha}..origin/main")
+              if behind is None:
+                  # Not a pin that is behind: a comparison that did not happen.
+                  # Passing this over would let the one repository nothing could
+                  # be learned about read exactly like the ones that are current.
+                  rows.append(f"{name:<26} {sha[:7]:<9} {'?':>6}  could not be read")
+                  unread.append(f"{name}, pinned at {sha[:7]}")
+                  continue
+
+              # The oldest commit this pin has not taken. How long the site has
+              # been rendering without it is what makes a pin stale, not how many
+              # arrived since.
+              oldest = git(path, "log", "--format=%ct", "--reverse", f"{sha}..origin/main")
+              waited = now - int(oldest.splitlines()[0]) if oldest else 0
+              days = int(waited // 86400)
+
+              says = "current" if behind == "0" else f"{days}d"
+              rows.append(f"{name:<26} {sha[:7]:<9} {behind:>6}  {says}")
+              if waited > allowed:
+                  # Named, not counted: what a bump would take is the decision,
+                  # and a number does not put it in front of anyone (Q-R68).
+                  taken = git(path, "log", "--format=%h %cs %s", f"{sha}..origin/main") or ""
+                  listed = [f"  {one}" for one in taken.splitlines()]
+                  stale.append(
+                      [f"{name}: {behind} commits not taken, oldest {days} days old", *listed]
+                  )
+
+          if len(rows) == 1:
+              # Nothing was compared. "Every pin is within the window" is true of
+              # no pins and reads exactly like it is true of every one, and the reader
+              # of a green tick cannot tell those apart. The submodules did not
+              # check out, or none is configured any more.
+              say("## No pinned repository was found to compare")
+              say()
+              say("**This check reports; it gates nothing.** It is not saying a pin")
+              say("is current: `git submodule status` named none, so nothing was")
+              say("compared and this run knows nothing about any revision this site")
+              say("renders from.")
+              print(
+                  "::error::no submodule was found, so no pin was compared — this "
+                  "check reports it and gates nothing"
+              )
+              leave(1)
+
+          if stale:
+              say("## A pin has been behind for longer than the window")
+              say()
+              say("**This check reports; it gates nothing.** Being behind is the design:")
+              say("this site renders each repository from a revision bumped deliberately")
+              say(f"(ADR-0015, {os.environ['REQUIREMENT']}), so a pin that lags is a decision somebody made.")
+              say(f"What is reported here is how long: past the {window}-day window a")
+              say("lag reads as abandonment rather than a decision. It does not mean")
+              say("this check is broken, and it is not failing any pull request.")
+          elif unread:
+              say("## A pin could not be compared with its repository")
+              say()
+              say("**This check reports; it gates nothing.** This is not a pin that is")
+              say("behind, and it is not news about the repository it names: the")
+              say("comparison did not happen, so how long that pin has lagged is unknown")
+              say("rather than inside the window.")
+          else:
+              say("## Every pin is within the window")
+              say()
+              say("A pin behind is the design — each repository is rendered from a")
+              say(f"revision bumped deliberately (ADR-0015, {os.environ['REQUIREMENT']}). What is asked here")
+              say(f"is only how long, and no pin has waited out the {window}-day window")
+              say("on a commit it has not taken.")
+
+          say()
+          fenced(rows)
+
+          if stale:
+              say()
+              say(f"Behind for longer than the {window}-day window:")
+              say()
+              fenced([one for block in stale for one in block])
+              say()
+              say("To catch up: `git submodule update --remote <path>`, then check the")
+              say("pages it renders.")
+
+          if unread:
+              say()
+              say("Could not be compared with `origin/main`:")
+              say()
+              fenced(unread)
+              say()
+              say("The submodule's remote did not answer, or it no longer holds the")
+              say("revision pinned here. Either way this run says nothing about it.")
+
+          if stale:
+              print(
+                  "::error::a pinned revision has been behind for longer than the window "
+                  "— this check reports it and gates nothing"
+              )
+          if unread:
+              print(
+                  "::error::a pinned repository could not be compared with its default "
+                  "branch — this check reports it and gates nothing"
+              )
+
+          leave(1 if stale or unread else 0)
+          PY
+          # The verdict and the summary leave this step as files, not as job
+          # outputs: a job that fails hands its outputs to nobody, and this job
+          # is meant to fail exactly when it has something to say. The artifact
+          # survives what the outputs would not.
+          mkdir -p "$RUNNER_TEMP/finding"
+          printf '%s\n' "$([ "$verdict" -eq 0 ] && echo false || echo true)" \
+            > "$RUNNER_TEMP/finding/verdict"
+          cp -- "$GITHUB_STEP_SUMMARY" "$RUNNER_TEMP/finding/report.md"
+          echo "red=$(cat "$RUNNER_TEMP/finding/verdict")" >> "$GITHUB_OUTPUT"
+
+      - name: Keep the finding where a failed job cannot lose it
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: pins-age
+          path: ${{ runner.temp }}/finding
+          retention-days: 1
+
+      # Red where it has always been red. The finding is news about a repository
+      # this site renders, so the job that found it is the job that carries it.
+      - name: A pin has been behind for longer than the window
+        if: steps.report.outputs.red == 'true'
+        run: exit 1
+
+  sources:
+    # The name the default branch requires it by.
+    name: pins-sources
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      red: ${{ steps.report.outputs.red }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+          # Whole histories, for the reason `age` needs them: a shallow
+          # submodule cannot be asked what it has not taken.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # The check is the kit's, taken by commit, so it is installed exactly
+      # as the lockfile says. Nothing here holds a secret for an install to
+      # reach.
+      - name: Install exactly what the lockfile says
+        run: npm ci --ignore-scripts
+
+      - name: Which pins have gone behind on a source this site renders
+        id: report
+        env:
+          # The commit a pull request targets, so one that moves a pin is
+          # judged on the modules it moves. Empty off a pull request, where
+          # every module is judged.
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # `||` rather than a bare call, for the reason `age` needs it: the
+          # step's shell is `bash -e` and a refusal would end the step before
+          # the finding left it.
+          verdict=0
+          node scripts/pins.ts || verdict=$?
+          # Files rather than job outputs, for the reason `age` needs them: a job
+          # that fails hands its outputs to nobody, and this job fails precisely
+          # when it has a finding to hand on.
+          mkdir -p "$RUNNER_TEMP/finding"
+          printf '%s\n' "$([ "$verdict" -eq 0 ] && echo false || echo true)" \
+            > "$RUNNER_TEMP/finding/verdict"
+          cp -- "$GITHUB_STEP_SUMMARY" "$RUNNER_TEMP/finding/report.md"
+          echo "red=$(cat "$RUNNER_TEMP/finding/verdict")" >> "$GITHUB_OUTPUT"
+
+      - name: Keep the finding where a failed job cannot lose it
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: pins-sources
+          path: ${{ runner.temp }}/finding
+          retention-days: 1
+
+      - name: A pin has gone behind on a source this site renders
+        if: steps.report.outputs.red == 'true'
+        run: exit 1
+
+  # Where a scheduled finding goes. A pull request shows its own red where its
+  # author is looking; a scheduled run has no such reader, so it is sent.
+  telling:
+    needs: [age, sources]
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      red: ${{ steps.compose.outputs.red }}
+      body: ${{ steps.compose.outputs.body }}
+    steps:
+      # Each finding arrives as the artifact its job left behind rather than as
+      # a job output, because a job that fails hands its outputs to nobody and
+      # both of these fail exactly when they have something to say. An artifact
+      # that is absent is therefore a job that never reached a verdict, which is
+      # a finding of its own and is reported as one.
+      - name: What `age` found, if it got that far
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: pins-age
+          path: findings/age
+
+      - name: What `sources` found, if it got that far
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: pins-sources
+          path: findings/sources
+
+      - name: What this run has to say
+        id: compose
+        env:
+          # Every value arrives through the environment or off disk. The reports
+          # carry commit subjects from other repositories, which is text
+          # somebody else wrote, and none of it is interpolated into a command
+          # (OPS-R28).
+          AGE_RESULT: ${{ needs.age.result }}
+          SOURCES_RESULT: ${{ needs.sources.result }}
+        run: |
+          set -euo pipefail
+          python3 -I - <<'PY'
+          import os
+          import pathlib
+          import secrets
+
+          # Discord takes 4096 characters in an embed description and the
+          # notifier splits a longer body across a thread. A pin behind on
+          # thirty commits would arrive as a wall, so the message carries the
+          # verdict and the head of each report, and the run page carries the
+          # rest. What is cut is said, rather than trailing off.
+          ROOM = 1600
+
+          parts = []
+          red = False
+
+          for name in ("age", "sources"):
+              result = os.environ[f"{name.upper()}_RESULT"]
+              found = pathlib.Path("findings") / name
+              verdict = found / "verdict"
+              report = found / "report.md"
+
+              # No verdict at all. Reporting nothing because there was nothing to
+              # report and reporting nothing because the check never got that far
+              # are the same silence from outside, and the second is the case this
+              # whole workflow exists to make legible.
+              if not verdict.is_file():
+                  red = True
+                  parts.append(
+                      f"**{name}** ended `{result}` without reaching a verdict, so "
+                      "this run says nothing about the pins it reads."
+                  )
+                  continue
+
+              says = verdict.read_text(encoding="utf-8").strip()
+              if says != "true":
+                  if result == "success":
+                      continue
+                  red = True
+                  parts.append(
+                      f"**{name}** found nothing behind and then ended `{result}`, "
+                      "which is not a verdict about any pin either."
+                  )
+                  continue
+
+              red = True
+              head = report.read_text(encoding="utf-8").strip() if report.is_file() else ""
+              if head == "":
+                  head = f"**{name}** found something and wrote no summary of it."
+              elif len(head) > ROOM:
+                  head = head[:ROOM].rstrip() + "\n\n… cut here; the run page has the rest."
+              parts.append(head)
+
+          body = "\n\n---\n\n".join(parts)
+
+          out = pathlib.Path(os.environ["GITHUB_OUTPUT"])
+          edge = f"PINS_BODY_{secrets.token_hex(8)}"
+          with out.open("a", encoding="utf-8") as handle:
+              handle.write(f"red={'true' if red else 'false'}\n")
+              handle.write(f"body<<{edge}\n{body}\n{edge}\n")
+          PY
+
+      # The floor. A finding with nowhere to go is the state this step exists to
+      # end, and a run that reaches it having quietly sent nothing would be that
+      # state wearing a green tick.
+      - name: A finding with nowhere to send it
+        if: steps.compose.outputs.red == 'true'
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}
+        run: |
+          if [ -n "$WEBHOOK" ]; then
+            echo "the maintainers' webhook is configured; the finding goes out"
+            exit 0
+          fi
+          echo "::error::this run found something and has nowhere to send it, so nobody is being told — configure DISCORD_MAINTAINERS_WEBHOOK, or take the notification out rather than leaving a reporter whose destination is absent"
+          exit 1
+
+  notify:
+    needs: telling
+    if: always() && needs.telling.outputs.red == 'true'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      title: "📌 pins · ${{ github.event.repository.name }}"
+      body: ${{ needs.telling.outputs.body }}
+      url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      # Red, because it is something being blocked rather than an announcement —
+      # the same colour train-stalled uses for the same reason.
+      color: "15158332"
+    secrets:
+      webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}

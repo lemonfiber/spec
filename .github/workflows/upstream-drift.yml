@@ -1,0 +1,92 @@
+# Hold what a repository takes from another lemonfiber repository against what
+# that one's main ships, and fail a pull request until it is taken (Q-R68,
+# Q-R70). One comparison for the organisation, with a reader per lock shape:
+# `composer` reads composer.lock, `npm` reads package.json and its lockfile, and
+# `vendored` reads a committed copy and the file recording its commit. What the
+# check found, and the command that takes the default branch, are written to
+# the run's summary as well as the log.
+#
+#   on:
+#     pull_request:
+#     workflow_dispatch:
+#     schedule:
+#       - cron: "<m> 7 * * 1"
+#   permissions:
+#     contents: read
+#   jobs:
+#     sdk-drift:
+#       uses: lemonfiber/spec/.github/workflows/upstream-drift.yml@<sha> # vX.Y.Z
+#       with:
+#         lock: vendored
+#         upstream: sdk-python
+#         revision: custom_components/lemonfiber/_vendor/lemonfiber/REVISION
+#         copies: src/lemonfiber:custom_components/lemonfiber/_vendor/lemonfiber
+#         remedy: run `python3 scripts/vendor_sdk.py take {head}` and commit the copy
+#
+# The check it reports is `<calling job> / drift`.
+name: upstream-drift
+
+on:
+  workflow_call:
+    inputs:
+      lock:
+        description: "Where the commit taken is written: composer, npm or vendored."
+        type: string
+        required: true
+      remedy:
+        description: "The command that takes the default branch, with {head} for its revision, {name} for the package and {repo} for its repository. Composer and npm have one by default; a vendored copy names its own."
+        type: string
+        default: ""
+      upstream:
+        description: "vendored: the repository of this organisation the copy is taken from."
+        type: string
+        default: ""
+      revision:
+        description: "vendored: the file recording the commit the copy was taken at."
+        type: string
+        default: ""
+      copies:
+        description: "vendored: one FROM:TO per line, an upstream path and where it is copied here."
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The comparison is spec's, at the revision the caller pins.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.repository != 'lemonfiber/spec'
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+
+      - name: What this takes, against what its repository's main ships
+        env:
+          LOCK: ${{ inputs.lock }}
+          REMEDY: ${{ inputs.remedy }}
+          UPSTREAM: ${{ inputs.upstream }}
+          REVISION: ${{ inputs.revision }}
+          COPIES: ${{ inputs.copies }}
+          TOOLING: ${{ github.repository == 'lemonfiber/spec' && '.' || '.spec-tooling' }}
+        run: |
+          set -euo pipefail
+          asked=("$LOCK" --remedy "$REMEDY")
+          if [ -n "$UPSTREAM" ]; then asked+=(--upstream "$UPSTREAM"); fi
+          if [ -n "$REVISION" ]; then asked+=(--revision "$REVISION"); fi
+          while IFS= read -r copy; do
+            copy="${copy#"${copy%%[![:space:]]*}"}"
+            copy="${copy%"${copy##*[![:space:]]}"}"
+            if [ -n "$copy" ]; then asked+=(--copy "$copy"); fi
+          done <<< "$COPIES"
+          python3 -E -s "${TOOLING}/scripts/upstream_drift.py" "${asked[@]}"

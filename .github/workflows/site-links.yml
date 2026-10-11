@@ -1,0 +1,170 @@
+# The addresses a site sends a reader to, fetched over the site as built.
+#
+# A site's `npm run links` runs on every pull request and proves the addresses
+# its build generates name bytes the checkout holds. It never opens a socket, so
+# it cannot see a repository that was made private, a page that was retired, or
+# a host that stopped answering. This does, on a schedule rather than per pull
+# request: a red run here is about the world, not about a commit, and it says
+# which of those it is. It reports, and gates nothing.
+#
+#   on:
+#     workflow_dispatch:
+#     schedule:
+#       - cron: "<m> 5 * * *"
+#   permissions:
+#     contents: read
+#   jobs:
+#     links:
+#       uses: lemonfiber/spec/.github/workflows/site-links.yml@<sha> # vX.Y.Z
+#       with:
+#         requirement: REPO-R71
+#
+# The site builds with `npm run messages` and `npm run build`, and lychee reads
+# its exclusions from `lychee-site.toml`.
+name: site-links
+
+on:
+  workflow_call:
+    inputs:
+      requirement:
+        description: "The site's requirement that every address is fetched over the built site, cited in what the check says."
+        type: string
+        required: true
+      timeout-minutes:
+        description: "How long the build and the fetch may take together."
+        type: number
+        default: 30
+
+permissions:
+  contents: read
+
+jobs:
+  outward:
+    name: outward
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The repositories under `vendor/`, and not the submodules they
+          # carry themselves, exactly as the gate takes them.
+          submodules: true
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install exactly what the lockfile says
+        run: npm ci --ignore-scripts
+
+      - name: Build the site a reader gets
+        run: |
+          npm run messages
+          npm run build
+
+      - name: Every address that leaves the site
+        id: fetch
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          # The quotes are load-bearing. The action evaluates this line in
+          # bash, which expands a glob before lychee is reached, and `**` in
+          # bash without `globstar` is `*` — so this read `dist/*/*.html`, the
+          # section index pages and nothing else. Every page one directory
+          # deeper, and `dist/index.html` above them, went unfetched. Quoted,
+          # the pattern arrives at lychee, whose `**` is every depth.
+          args: >-
+            --no-progress
+            --config lychee-site.toml
+            --root-dir ${{ github.workspace }}/dist
+            'dist/**/*.html'
+          output: lychee/out.md
+          # The verdict is composed by the step below instead, so that what this
+          # check found and what it is for are read together. `fail` would end
+          # the job before that step runs, and `jobSummary` writes the run page
+          # rather than adding to it, so anything put there first is lost.
+          fail: false
+          jobSummary: false
+
+      - name: What the addresses said
+        # The step above can be skipped or fail outright, and a run that ends
+        # with nothing on its page is the case this is here to prevent.
+        if: always()
+        env:
+          # Lychee's own exit code, recorded before that step decided its
+          # outcome, so it is readable whichever way that went.
+          CODE: ${{ steps.fetch.outputs.exit_code }}
+          REACHED: ${{ steps.fetch.outcome }}
+          REQUIREMENT: ${{ inputs.requirement }}
+        run: |
+          set -euo pipefail
+
+          # What the run page shows above the log. The verdict is written there
+          # as well as printed, so what this check found and what it is for are
+          # read together — the reader who has to be told it reports rather than
+          # gates is the one who did not go looking for the workflow file.
+          page="${GITHUB_STEP_SUMMARY:-/dev/null}"
+
+          say() {
+            printf '%s\n' "$1"
+            printf '%s\n' "$1" >>"$page"
+          }
+
+          fetched() {
+            cat lychee/out.md
+            cat lychee/out.md >>"$page"
+          }
+
+          if [ ! -f lychee/out.md ]; then
+            say '## The addresses were not reached'
+            say ''
+            say '**This check reports; it gates nothing.** It never got as far as a'
+            say 'verdict, so this is not news about any address: the site was not built,'
+            say 'or the fetch produced no report at all. Nothing here is known to be'
+            say 'broken and nothing is known to answer.'
+            say ''
+            say "The fetch ended as \`${REACHED}\`."
+            echo '::error::the link check produced no report — this check reports it and gates nothing'
+            exit 1
+          fi
+
+          if [ "$REACHED" != "success" ]; then
+            say '## No addresses were found to check'
+            say ''
+            say '**This check reports; it gates nothing.** This is not a verdict about'
+            say 'the site either: the scan matched no links at all, which is a fault in'
+            say 'where this check is pointed rather than a clean run. Nothing was'
+            say 'fetched, so nothing was cleared.'
+            say ''
+            fetched
+            echo '::error::the link check found no addresses to fetch — this check reports it and gates nothing'
+            exit 1
+          fi
+
+          if [ "${CODE:-1}" = "0" ]; then
+            say '## Every address the site sends a reader to answered'
+            say ''
+            say 'Fetched over the built site, where every mirrored page is rendered and'
+            say 'every link in it rewritten — the only place all of them exist at once'
+            say "(${REQUIREMENT})."
+            say ''
+            fetched
+            exit 0
+          fi
+
+          say '## Addresses the site carries that no longer answer'
+          say ''
+          say '**This check reports; it gates nothing.** A red run here is about the'
+          say 'world rather than about a commit: a repository was made private, a page'
+          say 'was retired, a host stopped answering. Nothing in this repository need'
+          say 'have changed for it to go red, it does not mean this check is broken,'
+          say 'and it is not failing any pull request.'
+          say ''
+          fetched
+          say ''
+          say 'Each address is fixed in the page that carries it — for a mirrored page,'
+          say 'in the repository it is mirrored from. Where the host is answering but'
+          say "refusing a fetch, it is excluded in \`lychee-site.toml\` with the reason."
+          echo '::error::an address this site sends a reader to no longer answers — this check reports it and gates nothing'
+          exit 1

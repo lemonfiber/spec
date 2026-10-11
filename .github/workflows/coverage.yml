@@ -107,6 +107,7 @@ jobs:
           coverage run --append scripts/test_job_conditions.py
           coverage run --append scripts/test_gen_gates.py
           coverage run --append scripts/test_line_cap.py
+          coverage run --append scripts/test_upstream_drift.py
           coverage report --fail-under=100
       # Not a coverage suite: it reads `.coveragerc` against the directories it
       # names and fails on a file omitted from measurement without a reason beside
@@ -213,3 +214,15 @@ jobs:
       # names are spelled twice and nothing else compares them (GOV-R46, Q-R57).
       - name: The hook refuses what CI refuses, and no more (Q-R57, Q-R66)
         run: python3 scripts/test_commit_msg_hook.py
+      # Not a coverage suite: it runs the notifier's own steps out of the
+      # committed workflow against a stubbed `gh`, and checks that every
+      # repository named is told, that what cannot be sent is refused by name,
+      # and that one repository not told fails the run (Q-R66).
+      - name: The notifier is shown telling everyone, and failing over a silence
+        run: python3 scripts/test_tell.py
+      # Not a coverage suite: it runs the site deploy's own steps out of the
+      # committed workflow, and checks that only the default branch publishes and
+      # that wrangler is handed a configuration written from closed inputs, with
+      # nothing in it wrangler would run (Q-R66).
+      - name: A site is shown publishing only from its default branch
+        run: python3 scripts/test_site_deploy.py

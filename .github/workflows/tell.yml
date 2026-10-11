@@ -1,0 +1,214 @@
+# Tell other repositories something moved here: dispatch one workflow in each,
+# or send each one repository event. One definition of the mint, the narrowing
+# and the failure, for every notifier in the organisation.
+#
+# Only a run of the caller's default branch, or of a tag on a commit that branch
+# holds, for a push, a dispatch, a schedule or a release, gets as far as the
+# mint. That is checked before anything else and does not depend on the caller:
+# a pull request's branch never tells anyone. An `environment` is a further gate
+# on top of it, never instead of it. A workflow is dispatched on each target's
+# own default branch, which the caller cannot name.
+#
+# The token is minted for exactly the repositories named, in this organisation,
+# with exactly the one permission the dispatch needs: `actions: write` to start
+# a workflow, or `contents: write` to send a repository event. A target that
+# cannot be told is named, and the job fails once every target was tried, because a notifier that
+# reports success over a silence leaves the weekly floor as the only thing
+# looking.
+#
+#   jobs:
+#     tell:
+#       uses: lemonfiber/spec/.github/workflows/tell.yml@<sha> # vX.Y.Z
+#       with:
+#         repos: sdk-ts sdk-php sdk-python
+#         workflow: contract-bump.yml
+#       secrets:
+#         RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
+name: tell
+
+on:
+  workflow_call:
+    inputs:
+      repos:
+        description: "The repositories to tell, in this organisation, separated by spaces or new lines."
+        type: string
+        required: true
+      workflow:
+        description: "The workflow file to dispatch in each, such as `sdk-bump.yml`. Exactly one of `workflow` and `event` is given."
+        type: string
+        default: ""
+      event:
+        description: "The repository event type to send each, such as `tracker-moved`. Exactly one of `workflow` and `event` is given."
+        type: string
+        default: ""
+      inputs:
+        description: "The dispatched workflow's inputs, as a JSON object of strings."
+        type: string
+        default: "{}"
+      payload:
+        description: "The repository event's client payload, as a JSON object."
+        type: string
+        default: "{}"
+      environment:
+        description: "A deployment environment the job runs in, whose protection is a further gate on top of the default-branch check. Empty for none."
+        type: string
+        default: ""
+    secrets:
+      RELEASE_APP_KEY:
+        description: "Private key of the release App, which is what may reach the other repositories."
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  tell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Only the default branch, or a tag it holds, tells anyone
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          case "$EVENT" in
+            push | workflow_dispatch | schedule | release) ;;
+            *)
+              echo "::error::tell runs for a push, a dispatch, a schedule or a release, never for ${EVENT}: what it mints reaches other repositories."
+              exit 1
+              ;;
+          esac
+          default=$(gh api "repos/${REPO}" --jq .default_branch)
+          if [ -z "$default" ]; then
+            echo "::error::${REPO}'s default branch could not be read, so whether ${REF} may tell anyone is unknown."
+            exit 1
+          fi
+          if [ "$REF" = "refs/heads/${default}" ]; then
+            exit 0
+          fi
+          if [[ "$REF" == refs/tags/* ]]; then
+            status=$(gh api "repos/${REPO}/compare/${default}...${SHA}" --jq .status || true)
+            if [ "$status" = identical ] || [ "$status" = behind ]; then
+              exit 0
+            fi
+          fi
+          echo "::error::${REF} is not ${default}, nor a tag on a commit ${default} holds, so nothing is told from it."
+          exit 1
+
+      - name: What is told, and to whom
+        id: what
+        env:
+          REPOS: ${{ inputs.repos }}
+          WORKFLOW: ${{ inputs.workflow }}
+          EVENT: ${{ inputs.event }}
+          INPUTS: ${{ inputs.inputs }}
+          PAYLOAD: ${{ inputs.payload }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          python3 -I - <<'PY'
+          import json, os, re, sys
+
+          def refuse(said):
+              print(f"::error::{said}")
+              sys.exit(1)
+
+          def read(name):
+              try:
+                  return json.loads(os.environ[name])
+              except ValueError:
+                  refuse(f"{name.lower()} is not JSON.")
+
+          repos = os.environ["REPOS"].split()
+          workflow, event = os.environ["WORKFLOW"], os.environ["EVENT"]
+          if not repos:
+              refuse("repos names no repository, so there is nobody to tell.")
+          for repo in repos:
+              if not re.fullmatch(r"[A-Za-z0-9._-]+", repo) or repo in (".", ".."):
+                  refuse(f"{repo!r} is not a repository name in this organisation.")
+          if bool(workflow) == bool(event):
+              refuse("Give exactly one of workflow and event: a workflow to dispatch, or a repository event to send.")
+          if workflow:
+              if not re.fullmatch(r"[A-Za-z0-9._-]+\.ya?ml", workflow):
+                  refuse(f"{workflow!r} is not a workflow file name.")
+              inputs = read("INPUTS")
+              if not isinstance(inputs, dict) or not all(isinstance(v, str) for v in inputs.values()):
+                  refuse("inputs is not a JSON object of strings, which is all a workflow dispatch carries.")
+              body, path = {"inputs": inputs}, f"actions/workflows/{workflow}/dispatches"
+          else:
+              if not re.fullmatch(r"[A-Za-z0-9._-]+", event):
+                  refuse(f"{event!r} is not a repository event type.")
+              payload = read("PAYLOAD")
+              if not isinstance(payload, dict):
+                  refuse("payload is not a JSON object.")
+              body, path = {"event_type": event, "client_payload": payload}, "dispatches"
+          with open("body.json", "w", encoding="utf-8") as out:
+              json.dump(body, out)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"repos={' '.join(repos)}\n")
+              out.write(f"listed={','.join(repos)}\n")
+              out.write(f"path={path}\n")
+              out.write(f"dispatch={'true' if workflow else 'false'}\n")
+          PY
+
+      - name: Mint a token that can start a workflow there
+        id: actions
+        if: inputs.workflow != ''
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ steps.what.outputs.listed }}
+          permission-actions: write
+
+      - name: Mint a token that can send a repository event there
+        id: contents
+        if: inputs.event != ''
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ steps.what.outputs.listed }}
+          permission-contents: write
+
+      - name: Tell each one
+        env:
+          GH_TOKEN: ${{ steps.actions.outputs.token || steps.contents.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          REPOS: ${{ steps.what.outputs.repos }}
+          ENDPOINT: ${{ steps.what.outputs.path }}
+          DISPATCH: ${{ steps.what.outputs.dispatch }}
+        run: |
+          set -euo pipefail
+          unreachable=""
+          for repo in $REPOS; do
+            body="${RUNNER_TEMP}/body.json"
+            if [ "$DISPATCH" = true ]; then
+              default=$(gh api "repos/${OWNER}/${repo}" --jq .default_branch || true)
+              if [ -z "$default" ]; then
+                echo "::error::could not read ${repo}'s default branch"
+                unreachable="${unreachable} ${repo}"
+                continue
+              fi
+              body="${RUNNER_TEMP}/body-${repo}.json"
+              python3 -I -c 'import json, sys; b = json.load(open(sys.argv[1])); b["ref"] = sys.argv[2]; json.dump(b, open(sys.argv[3], "w"))' \
+                "${RUNNER_TEMP}/body.json" "$default" "$body"
+            fi
+            if gh api --method POST "repos/${OWNER}/${repo}/${ENDPOINT}" --input "$body" >/dev/null; then
+              echo "told ${repo}."
+            else
+              echo "::error::could not tell ${repo}"
+              unreachable="${unreachable} ${repo}"
+            fi
+          done
+          if [ -n "$unreachable" ]; then
+            echo "::error::these were not told:${unreachable}"
+            exit 1
+          fi

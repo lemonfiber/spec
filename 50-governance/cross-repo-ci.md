@@ -345,6 +345,21 @@ called from each repo's `ci.yml` (**Q-R56**), and each call names an exact commi
 rather than a branch — `@main` is an instruction to run whatever was pushed here
 a minute ago, on a runner holding that repository's token.
 
+What every repository of one kind does is defined here the same way, so a fix
+lands once rather than in each copy. `tell` dispatches a workflow, or sends a
+repository event, to the repositories a change concerns, with a token minted for
+those repositories and the one permission the dispatch needs, and fails naming
+any it could not reach. `triage` labels and assigns a new issue and tells the
+maintainers. `upstream-drift` holds what a repository takes from another one —
+through `composer.lock`, through `package.json`, or as a committed copy — against
+what that one's `main` ships (**Q-R68**, **Q-R70**). `rust-service-release`
+publishes a service image from a train tag and tells the stack to pin it, and
+`rust-coverage` holds a crate to 100% line coverage and gates it on zero
+SonarCloud issues. The sites have theirs: `site-pins` holds the revisions a site
+renders to the sources its pages read, `site-links` fetches every address a
+built site sends a reader to, and `site-deploy` publishes the one build to
+GitHub Pages and Cloudflare.
+
 An exact commit is a copy, and a copy goes stale in silence. `workflow-pins` is
 what makes it say so. It reads every
 `uses: lemonfiber/spec/.github/workflows/<name>.yml@<sha>` out of the calling
