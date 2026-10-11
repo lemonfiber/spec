@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-10-11
-**Decided:** 2026-10-11, by the maintainer, Wessel Verheij: the companion mints integration keys only as claims, proved by a signature from a key pair held in the phone's secure hardware and usable only after face or fingerprint, registered once with the operator password; the link is handed over as a QR code, as copyable text and through the system share sheet.
+**Decided:** 2026-10-11, by the maintainer, Wessel Verheij: the companion mints integration keys only as claims, proved by a signature from a key pair held in the phone's hardware and usable only after face or fingerprint, registered once with the operator password and the platform's attestation; StrongBox and the Secure Enclave are preferred, a key in the trusted environment alone is accepted and shown as such, and a key in software is refused; a password change revokes every device key; the link is handed over as a QR code, as copyable text and through the system share sheet.
 **Amends:** [ADR-0037](0037-an-integration-key-is-minted-where-the-operator-proves-themself.md), whose rule that a web mint asks for the password again gains a second proof.
 
 ## Context
@@ -19,10 +19,15 @@ the secure hardware and is used only after the owner's face or fingerprint.
 
 ## Decision
 
-**A device key proves the operator for one mint.** The phone makes a P-256 key pair in the
-Secure Enclave or in StrongBox, usable only after face or fingerprint. The operator
-registers its public half with the core once, from an operator session, giving the password
-in that one request ([C10-R23](../../10-functional/features/c-trust/c10-integration-keys.md)).
+**A device key proves the operator for one mint.** The phone makes a P-256 key pair in its
+hardware, usable only after face or fingerprint: StrongBox or the Secure Enclave where it
+has one, its trusted environment otherwise. The operator registers its public half with the
+core once, from an operator session, giving the password in that one request with the
+platform's attestation of where the key lives
+([C10-R23](../../10-functional/features/c-trust/c10-integration-keys.md)). The core verifies
+the attestation, records the backing, `strongbox`, `enclave` or `tee`, and shows it in the
+listing; a key the attestation places in software, or one with no attestation that
+verifies, is refused.
 From then on:
 
 1. The phone asks the core for a challenge, a fresh value good for one request and one
@@ -69,6 +74,11 @@ it is the friction that pushes an app toward keeping the password.
 
 **Face or fingerprint checked by the app alone.** Rejected: the core would be trusting the
 app's word, which a forged request could give.
+
+**StrongBox or the Secure Enclave only.** Rejected: many Android phones in use hold keys in
+the trusted environment and have no StrongBox, and they would be left with the password.
+A key there is still outside the operating system's reach, and the listing says where each
+key lives so the operator can judge it.
 
 ## Revisit when
 

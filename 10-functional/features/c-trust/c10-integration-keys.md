@@ -59,12 +59,19 @@ same request: the password, or a signature from a device key the operator regist
 
 ### A phone proves the operator with a key it cannot give away
 
-A phone can hold a key pair whose private half lives in its secure hardware, the Secure
-Enclave or StrongBox, and can be used only after the operator's face or fingerprint
+A phone can hold a key pair whose private half lives in its hardware, the Secure Enclave,
+StrongBox or the processor's trusted environment, and can be used only after the
+operator's face or fingerprint
 ([ADR-0044](../../../00-overview/decisions/0044-a-phone-proves-the-operator-with-a-device-key.md)).
 The operator registers its public half with the core once, from an operator session, giving
-the password in that one request. The core keeps the public half under a name, journals the
-registration and alerts the operator, as it does for a key.
+the password in that one request, with the platform's attestation of where the key lives:
+on Android the key's attestation chain, on iOS an App Attest attestation over the public
+half. The core verifies the attestation and records the key's backing, `strongbox`,
+`enclave` or `tee`. StrongBox and the Secure Enclave are preferred, and a key in the
+trusted environment alone is accepted and shown as such; a key held in software, or one
+whose attestation is missing or does not verify, is refused. The core keeps the public half
+and its backing under a name, journals the registration and alerts the operator, as it does
+for a key.
 
 To mint, the phone asks the core for a challenge: a fresh value, good for one request, for
 one minute, from that session and for that device key alone. The phone signs the challenge
@@ -74,8 +81,8 @@ it holds and accepts it as the operator's proof for that mint and nothing else. 
 password is never kept on the phone, and a device key admits nothing on its own: it proves
 the operator to a session that is already theirs.
 
-The operator lists device keys by name, when each was registered and last used, and revokes
-one by name. Changing the operator password revokes every device key, so a phone that is
+The operator lists device keys by name, backing, when each was registered and last used,
+and revokes one by name. Changing the operator password revokes every device key, so a phone that is
 lost is cut off by the same act that ends its sessions.
 
 ### A member may mint their own, once the operator allows it
@@ -142,6 +149,10 @@ and offer the real call after.
 | A signature does not verify | Refused with a code of its own, and counted against the same surface-wide limit as wrong passwords. |
 | A device key is registered under a name another holds, or with a public half another holds | Refused, naming the existing device key. |
 | A public half that is not a P-256 key | Refused with a code of its own, naming the curve the core accepts. |
+| A device key registered with no attestation | Refused with a code of its own: a key nothing vouches for is treated as one held in software. |
+| An attestation that does not verify, or does not cover the public half given | Refused with a code of its own. |
+| An attestation that places the key in software | Refused with a code of its own, saying a device key has to live in the phone's hardware. |
+| A key in the trusted environment alone | Registered, with its backing recorded as `tee` and shown in the listing. |
 | A device key is presented as a credential | It is none: a request carrying only a device key's signature, with no operator session, is refused as a request with no credential is. |
 | A member tries to mint a key while the setting is off | Refused with a code of its own, saying the operator has not allowed members to mint keys, before their password is checked. |
 | A member tries to mint a key for another account | Refused. A member mints only `member:` keys for themselves. |
@@ -176,10 +187,10 @@ and offer the real call after.
 | **C10-R20** | A key MUST be collected by a request carrying its claim alone, in the body, over the TLS the link's fingerprint verifies (`C10-R11`). The reply MUST carry the key's secret, name, scope and the stack's pin, sent with `Cache-Control: no-store`. An unknown, spent or lapsed claim MUST be refused with one status, sentence and code, and MUST count against the same surface-wide limit as wrong passwords (`C10-R13`). |
 | **C10-R21** | Collecting a key MUST be journaled and MUST raise an operator alert naming the key, its purpose and the address it was collected from. A key whose claim lapses uncollected MUST be revoked, journaled as not reversible, and alerted. |
 | **C10-R22** | Every surface that shows a key link MUST also draw it as a QR code from the link, and MUST NOT show the link or the code again once that screen is left. |
-| **C10-R23** | An operator session MUST be able to register a device key over the web API: a name and the public half of a P-256 key pair, with the operator password in the same request. The core MUST keep only the public half under that name, MUST refuse a name or a public half another device key holds, naming it, and MUST refuse a public half that is not a P-256 key with a code of its own. A member session and a key MUST NOT be able to register, list or revoke device keys. Every registration MUST be journaled and MUST raise an operator alert naming the device key. |
+| **C10-R23** | An operator session MUST be able to register a device key over the web API: a name, the public half of a P-256 key pair and the platform's attestation of where the key lives (an Android key attestation chain, or an iOS App Attest attestation over the public half), with the operator password in the same request. The core MUST verify the attestation and record the key's backing as `strongbox`, `enclave` or `tee`, and MUST refuse, each with a code of its own, a registration with no attestation, an attestation that does not verify or does not cover the public half, and an attestation placing the key in software. The core MUST keep only the public half and its backing under that name, MUST refuse a name or a public half another device key holds, naming it, and MUST refuse a public half that is not a P-256 key with a code of its own. A member session and a key MUST NOT be able to register, list or revoke device keys. Every registration MUST be journaled and MUST raise an operator alert naming the device key. |
 | **C10-R24** | An operator session MUST be able to ask for a challenge for a registered device key. The core MUST issue a fresh random value of at least 32 bytes, keep it only in memory, bound to that session and that device key, and accept it for one request within one minute; using it, its lapsing, the session ending and the device key's revocation MUST end it. |
 | **C10-R25** | A mint carrying a device key's name, a challenge and a signature in place of the password MUST be admitted only where the device key is registered, the challenge stands for that session and that device key, and the signature verifies against the device key's public half over the challenge and the mint's name, scope, purpose and whether it is a claim, in the form the contract publishes. An unregistered or revoked device key MUST be refused with a code of its own; a challenge that does not stand, for any reason, with one code; and a signature that does not verify with a code of its own, counted against the same surface-wide limit as wrong passwords (`C10-R13`). |
-| **C10-R26** | Device keys MUST be listed by name, the fingerprint of their public half, registration time and last use, and MUST be revocable by name, over the web API, with effect at the next challenge. Every revoke MUST be journaled as not reversible and MUST raise an operator alert naming the device key. |
+| **C10-R26** | Device keys MUST be listed by name, the fingerprint of their public half, their backing, registration time and last use, and MUST be revocable by name, over the web API, with effect at the next challenge. Every revoke MUST be journaled as not reversible and MUST raise an operator alert naming the device key. |
 | **C10-R27** | Changing the operator password MUST revoke every device key, journaled and alerted as `C10-R26` says. |
 | **C10-R28** | A device key's signature MUST prove the operator for the one mint it was made for and nothing else: it MUST NOT admit a request, stand in for a session or the password anywhere else, or be accepted without an operator session. |
 

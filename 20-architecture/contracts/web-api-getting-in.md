@@ -111,7 +111,7 @@ collection inside ten minutes, which the operator is told about.
 **A phone may prove the operator with a device key instead of the password**
 ([ADR-0044](../../00-overview/decisions/0044-a-phone-proves-the-operator-with-a-device-key.md),
 `ARCH-R258` to `ARCH-R261`). An operator session registers the public half of a P-256 key
-pair the phone holds in its secure hardware, and lists and revokes the ones registered:
+pair the phone holds in its hardware, and lists and revokes the ones registered:
 
 ```
 GET    /api/device-keys
@@ -120,10 +120,14 @@ DELETE /api/device-keys/{name}
 POST   /api/device-keys/{name}/challenge
 ```
 
-`POST /api/device-keys` takes `{ "name": …, "public_key": …, "password": … }`, the public
-half as its SubjectPublicKeyInfo in base64url, and answers the `device-key` envelope: the
-name, the fingerprint of the public half and when it was registered. `GET /api/device-keys`
-answers `device-keys`, each with its last use, and `DELETE /api/device-keys/{name}` revokes
+`POST /api/device-keys` takes `{ "name": …, "public_key": …, "attestation": …, "password": … }`:
+the public half as its SubjectPublicKeyInfo in base64url, and the platform's attestation of
+where the key lives, an Android key attestation chain or an iOS App Attest attestation over
+the public half. The core verifies the attestation and answers the `device-key` envelope:
+the name, the fingerprint of the public half, its `backing`, `strongbox`, `enclave` or
+`tee`, and when it was registered. A missing attestation, one that does not verify and one
+placing the key in software are each refused under a code of their own. `GET /api/device-keys`
+answers `device-keys`, each with its backing and last use, and `DELETE /api/device-keys/{name}` revokes
 one. `POST /api/device-keys/{name}/challenge` answers `device-challenge`: a fresh `challenge`
 and when it `expires`, one minute on, good for one mint from that session with that device
 key.
