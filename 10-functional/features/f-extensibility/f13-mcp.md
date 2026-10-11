@@ -114,6 +114,7 @@ reach a provider of their choosing.
 | **F13-R12** | In HTTP mode it MUST come by its certificate as [the certificates contract](../../../20-architecture/contracts/certificates.md) sets out, offering its four modes and serving `pinned` where none is chosen. |
 | **F13-R13** | Its start-up log and its documentation MUST say, for the mode it serves, who can check its certificate, and MUST say that an assistant whose provider makes the connection can reach it only with a publicly trusted certificate. |
 | **F13-R14** | Every tool result MUST carry what the stack answered as data, delimited from the server's own words, and MUST NOT place text the stack answered with outside that delimitation. |
+| **F13-R15** | Setup MUST accept a key link (`C10-R18`) in place of the address, key and pin: it MUST collect the key once over the TLS the link's fingerprint verifies (`C10-R20`), keep only what the reply carries, and name the reason when the claim is refused. |
 
 ## Related
 

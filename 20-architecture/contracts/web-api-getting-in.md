@@ -87,6 +87,27 @@ stack has been served encrypted on the network. It is sent with `Cache-Control: 
 as every reply here is. `GET /api/keys` lists the keys without their secrets, and
 `DELETE /api/keys/{name}` revokes one. A key is refused at all three, whatever its scope.
 
+**A key may be minted as a claim instead**, for a program on a device with a camera.
+`POST /api/keys` with `"claim": true` mints the key without handing over its secret: the
+reply carries `link`, a key link with the stack's `address`, its certificate `fingerprint`,
+the `stack`, when the claim `expires` and the `claim` itself, and the listing shows the key
+as waiting to be collected ([C10-R18](../../10-functional/features/c-trust/c10-integration-keys.md)).
+The program collects it once, within ten minutes, at
+
+```
+POST /api/keys/claim
+```
+
+with `{ "claim": … }`, over the TLS the fingerprint verifies. The reply is the key envelope
+carrying the secret, its name, its scope and the pin, sent with `Cache-Control: no-store`.
+The claim travels in the body, never in a URL the core receives. A claim that is unknown,
+spent or lapsed is refused `401` under one code, so a guess learns nothing about which, and
+it counts against [the limit wrong passwords meet](#wrong-answers-are-counted). Collecting a
+key alerts the operator with the key, its purpose and where it was collected from; a key
+nobody collects is revoked when its claim lapses. A surface draws the link as a QR code
+(`ARCH-R220`) and shows it only until its screen is left, so a photograph of it is worth one
+collection inside ten minutes, which the operator is told about.
+
 A household member reaches the same three routes for keys of their own. Their mint names
 `member:` and themselves as the scope and gives their own password, which the media server
 checks as it checks their sign-in, counted against the same limits; it is refused with a
