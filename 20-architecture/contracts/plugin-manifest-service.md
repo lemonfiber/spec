@@ -108,7 +108,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). At most one service of a plugin may declare a given core name — see below. |
 | `config_path` | string | | Where inside the container its configuration directory is mounted. Default `/config`. |
 | `config_ro` | bool | | `true` to mount the configuration directory read-only. Default `false`. |
-| `mount` | array of tables | | Each further path mounted from inside its own configuration directory: `from` (✔), `to` (✔) and `ro` (default `false`) — see [mounts](#mounts--inside-its-own-directory-and-nowhere-else). |
+| `mount` | array of tables | | Each further path mounted from inside its own configuration directory: `from` (✔), `to` (✔) and `ro` (default `false`) — see [mounts](#mounts--from-its-own-tree-and-nowhere-else). |
 | `tmpfs` | array | | Absolute paths given scratch space in memory, empty whenever the container starts. |
 | `env` | table | | Its environment: a variable's name to one of four typed kinds of value — see [environment](#environment--four-kinds-of-value). |
 | `user_mode` | enum | | `image` \| `puid-env` \| `uid`. Who the container runs as. Default `image`, and `uid` where the service speaks a contract or is `confined` — see [who it runs as](#who-it-runs-as-and-how-tightly-it-is-held). |

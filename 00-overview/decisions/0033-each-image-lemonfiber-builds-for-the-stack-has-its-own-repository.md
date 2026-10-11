@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-09-29
-**Decided:** 2026-09-29, by the maintainer, Wessel Verheij: accepted as proposed, with the names `lemonfiber-decline` and `lemonfiber-request-gate`. Revised 2026-10-03, by the maintainer: each repository depends on the core's crates at a pinned core commit, and is released on the train, tagged before the core. Revised again 2026-10-03, by the maintainer: a pre-release tags each repository at the pre-release tag in the same two steps, so an image reaches the stack before its version releases.
+**Decided:** 2026-09-29, by the maintainer, Wessel Verheij: accepted as proposed, with the names `lemonfiber-decline` and `lemonfiber-request-gate`. Revised 2026-10-03, by the maintainer: each repository depends on the core's crates at a pinned core commit, and is released on the train, tagged before the core. Revised again 2026-10-03, by the maintainer: a pre-release tags each repository at the pre-release tag in the same two steps, so an image reaches the stack before its version releases. Revised 2026-10-11, by the maintainer: a first-party plugin's adapter image is also built and published from every commit on its `main`, tagged by the commit, so its manifest pins a real build before any release carries it.
 
 ## Context
 
@@ -119,9 +119,24 @@ in `repos`.
 3. The index is signed with the organisation's artefact-signing mechanism once it
    exists (ADR-0023 §6). Until then the image is published unsigned, and everything
    that reads it reports the signature as unproven, never as verified (ADR-0023 §4).
-4. Nothing is published from a branch, and a tag is never moved.
+4. Nothing is published from a branch but a first-party plugin's `main`, as below,
+   and no tag is ever moved.
 5. The repository declares the version it is tagged at, pre-release identifier
    included, as every stream the train tags does (`OPS-R35`, `OPS-R66`).
+
+**A first-party plugin's adapter image is also published from every commit on its
+`main`** ([ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md)).
+It is built exactly as a tag builds it — each platform on a runner of its own
+architecture, one multi-architecture index carrying BuildKit's SBOM and provenance,
+and a build-provenance attestation and an SBOM attestation per platform — and is
+tagged `main-` followed by the first twelve characters of the commit. The publish
+updates one rolling pull request on the plugin's repository that sets the adapter
+service's `digest` to what it published and its `tag` to that commit tag, so the
+manifest pins a real build of `main` before any release carries it. A commit image
+is not a release: it is a pinned build of `main`, nothing announces it, and its pin
+never moves the bundle. A train tag still publishes the image under the version's
+tag, and its pin moves the manifest and, once merged, the bundle (`OPS-R86`,
+`OPS-R90`, `OPS-R91`).
 
 ### 4. Reaching the stack
 
