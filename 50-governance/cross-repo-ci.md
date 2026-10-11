@@ -358,7 +358,10 @@ publishes a service image from a train tag and tells the stack to pin it, and
 SonarCloud issues. The sites have theirs: `site-pins` holds the revisions a site
 renders to the sources its pages read, `site-links` fetches every address a
 built site sends a reader to, and `site-deploy` publishes the one build to
-GitHub Pages and Cloudflare.
+GitHub Pages and Cloudflare. A first-party plugin that carries no code of its own
+calls `first-party-plugin`, which runs plugin-template's reader at a pinned commit
+over the plugin as one job, skipped where nothing it reads changed (**Q-R76**), so
+the plugin's repository holds no Python.
 
 An exact commit is a copy, and a copy goes stale in silence. `workflow-pins` is
 what makes it say so. It reads every

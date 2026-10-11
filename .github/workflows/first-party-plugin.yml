@@ -1,0 +1,123 @@
+# The verdict on a first-party plugin that carries no code of its own, as one job
+# (F3-R9, F5-R13, F10-R3): its manifest as the lemonfiber its `targets.toml` names
+# reads it, every claim, proof and contributed check against its recordings with the
+# committed `proofs.json` the one that run writes, and every pinned digest.
+#
+# The reader is plugin-template's `.github/reader/`, at the commit named below, so a
+# repository calling this holds no Python of its own and refuses to carry one.
+#
+# `plugin` is skipped by a job-level condition where `what changed` found only paths
+# no part of the verdict reads (Q-R76), and runs wherever that could not be decided.
+name: first-party-plugin
+on:
+  workflow_call:
+    inputs:
+      directory:
+        description: "The plugin's root in the calling repository, from its root."
+        type: string
+        required: false
+        default: "."
+
+permissions:
+  contents: read
+
+env:
+  READER_REPOSITORY: lemonfiber/plugin-template
+  READER_REVISION: 0e37c21fe52af41c950fc29ff42f1934a90ed377
+  READER: .github/reader
+
+jobs:
+  scope:
+    name: what changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          filter: blob:none
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE}" ] || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "No commit to compare against, so the plugin is judged."
+            exit 0
+          fi
+          changed="$(git diff --no-renames --name-only "${BASE}" HEAD)"
+          code=false
+          while IFS= read -r path; do
+            case "${path}" in
+            '' | *.md | docs/* | LICENSE | status.toml | .github/ISSUE_TEMPLATE/*) continue ;;
+            .github/*) code=true ;;
+            esac
+            if [ "${DIRECTORY}" = "." ] || [[ "${path}" == "${DIRECTORY%/}/"* ]]; then
+              code=true
+            fi
+          done <<< "${changed}"
+          echo "code=${code}" >> "$GITHUB_OUTPUT"
+          if [ "${code}" = false ]; then
+            echo "Nothing the verdict reads changed, so the plugin is not judged again."
+          fi
+
+  plugin:
+    needs: scope
+    if: ${{ !cancelled() && (needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: The reader, from plugin-template
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: ${{ env.READER_REPOSITORY }}
+          ref: ${{ env.READER_REVISION }}
+          path: .first-party-reader
+          sparse-checkout: ${{ env.READER }}
+          sparse-checkout-cone-mode: false
+      - name: The reader is this workflow's, and the plugin carries none
+        env:
+          TAKEN: ${{ github.workspace }}/.first-party-reader
+        run: |
+          set -euo pipefail
+          if [ -e "${READER}" ]; then
+            echo "::error::${READER} is in the plugin. A first-party plugin carries no Python of its own; the reader is this workflow's."
+            exit 1
+          fi
+          mkdir -p "$(dirname "${READER}")"
+          cp -R "${TAKEN}/${READER}" "${READER}"
+          rm -rf "${TAKEN}"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: The lemonfiber targets.toml names, and what it says of this plugin
+        run: python3 .github/reader/reader.py reader
+      - name: plugin.toml, as that lemonfiber reads it
+        if: ${{ success() || failure() }}
+        run: python3 .github/reader/reader.py manifest
+      - name: Every claim, proof and contributed check, against its recording
+        if: ${{ success() || failure() }}
+        run: |
+          python3 .github/reader/reader.py proofs
+          if ! git ls-files --error-unmatch proofs.json >/dev/null 2>&1; then
+            echo "::error::proofs.json is not committed. It is the record the release train reads: commit what the reader writes (F3-R5)."
+            exit 1
+          fi
+          if git diff --exit-code -- proofs.json; then exit 0; fi
+          echo "::error::proofs.json is not what this run writes. It is the record the release train reads, so it is generated and committed with the manifest it is about: commit what the reader writes (F3-R5)."
+          exit 1
+      - name: Every pinned digest, and what vouches for it
+        if: ${{ success() || failure() }}
+        run: python3 .github/reader/reader.py image
