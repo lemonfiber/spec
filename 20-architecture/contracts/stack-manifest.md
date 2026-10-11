@@ -30,9 +30,25 @@ The alternative — a `match` over service names in Rust — means every stack c
 is a release, third-party stacks are impossible, and the "it's just Compose"
 guarantee quietly stops being true.
 
+## Its place beside the bundle
+
+This manifest describes the services the bundle has not yet moved into first-party
+plugins ([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md)
+§5), and it retires with the media stack once nothing reads it (§6). Until then its
+services are declared in the plugin manifest's service model
+([ADR-0043](../../00-overview/decisions/0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md)):
+every field that describes a container is the plugin manifest's, with the same types and
+the same validation, and lemonfiber generates each service's Compose entry from it, as it
+does a plugin's. The stack carries no Compose file lemonfiber reads (`ARCH-R246`), so a
+part moving into its plugin moves from one declaration in the model to another.
+
+What only a stack carries stays here: the profiles and forms, each service's `profile`,
+its catalogue prose (`describes`, `reaches`, `asks_for`, `last_release`),
+`host_managed`, and the `[[wiring]]` between its own services.
+
 ## File location
 
-`stack.toml`, at the root of a stack directory, beside `compose.yml`. Each service
+`stack.toml`, at the root of a stack directory. Each service
 is declared in a file of its own, `services/<id>.toml`, and `stack.toml` names
 every one of those files in its `include` list.
 
@@ -121,7 +137,7 @@ protocol    = "torrent"
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `id` | string | ✔ | Unique. Must match a Compose profile name exactly. |
+| `id` | string | ✔ | Unique. The Compose profile lemonfiber writes its services into. |
 | `name` | string | ✔ | Human-facing |
 | `description` | string | ✔ | Shown in form previews |
 | `protocol` | enum | | `usenet` \| `torrent`. Present only on a profile that cannot run without a configured provider. |
@@ -199,17 +215,17 @@ media_types = ["tv"]
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `id` | string | ✔ | Unique. MUST match the Compose service name. |
+| `id` | string | ✔ | Unique. The name lemonfiber gives its Compose service. |
 | `name` | string | ✔ | Human-facing |
 | `profile` | string | ✔ | **Exactly one** (`B1-R1`). MUST reference a declared profile. |
 | `image` | string | ✔ | Without tag or digest |
 | `digest` | string | ✔ | `sha256:…` of the multi-architecture index. What actually runs (`E1-R1`). |
 | `tag` | string | ✔ | The human-readable version the digest corresponds to. Recorded and shown; never resolved at run time. |
-| `port` | integer | | Primary UI/API port. Omitted for a service with no listener, and for one whose only listener is reached across internal networks and published nowhere, as the request gate's is ([ADR-0032](../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
+| `port` | integer | | The port it is published at on the host: its primary UI/API port. Omitted for a service with no listener, and for one whose only listener is reached across internal networks and published nowhere, as the request gate's is ([ADR-0032](../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
 | `bind` | enum | ✔ if `port` | `loopback` \| `lan`. Enforces [C6](../../10-functional/features/c-trust/c6-web-security.md)'s two-tier policy. |
 | `health` | table | | See below. Absent means lifecycle waits on container state only. |
 | `api` | table | | How lemonfiber talks to it for [seeding](../../10-functional/features/d-content/d1-seed.md). Absent means no API integration. |
-| `listens` | integer | ✔ if `api` | The port it answers on inside the stack's network. See [`api`](#api). |
+| `listens` | integer | ✔ if `api`, or where it answers on a port other than `port` | The port it answers on inside the container, where `port` is published to. Default `port`. See [`api`](#api). |
 | `criticality` | enum | ✔ | `critical` \| `core` \| `important` \| `enhancing` \| `optional` (`F2-R3`) |
 | `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`), except on a service whose image lemonfiber builds from its own code, which carries `Hippocratic-3.0` and nothing else. Such a service is told by its `image`: it is under `ghcr.io/lemonfiber/`, where lemonfiber publishes the images it builds and nothing else ([ADR-0033](../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)). |
 | `upstream` | string | ✔ | Project URL, for maintenance review (`F2-R14`) |
@@ -221,10 +237,24 @@ media_types = ["tv"]
 | `media_types` | array | | Which media types it handles; drives root-folder seeding. One or more of `tv`, `movies`, `music`, `books`, `comics`. |
 | `provides` | array | | The capabilities this service provides, in the published [capability vocabulary](capability-vocabulary.md). A name the vocabulary does not carry fails validation, named (`ARCH-R110`). |
 | `claim` | array of tables | ✔ if `provides` | One per capability in `provides`: the probes that demonstrate it, each bound to a request on this service and a recorded response. See [`[[service.claim]]`](#serviceclaim--the-evidence-for-what-it-provides) (`ARCH-R136`). |
-| `depends_on` | array | | **Same profile only.** Cross-profile entries fail validation (`B1-R14`). |
-| `grants` | array | | Extra kernel capabilities granted to the container, e.g. `["NET_ADMIN"]`. Any entry beyond an allow-list fails validation. Spelled `capabilities` until `0.16.0`; that spelling is still accepted and always will be, because a rename is not a reason to refuse to read somebody's own stack description. |
-| `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`) |
+| `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`), and lemonfiber writes it no Compose entry |
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate the stack declares, summed into a form's footprint and never shown as a measurement (`B1-R18`). |
+| `publish`, `takes_data`, `config_path`, `config_ro`, `mount`, `tmpfs`, `env`, `user_mode`, `posture`, `mem_limit_mib`, `network`, `shape` | | | The rest of its container, each as the [plugin manifest](plugin-manifest.md#service--what-runs) declares it (`ARCH-R225`). |
+
+`grants` and `depends_on` are not fields. A service needing a kernel capability or a
+device takes a [shape](plugin-manifest.md#shapes--the-only-route-to-a-device-or-a-privilege),
+and the one start-order edge the format writes is
+[`network.via`](plugin-manifest.md#inside-another-services-network--networkvia)'s.
+
+Both spellings of the old field, `grants` and the `capabilities` it was called until
+`0.16.0`, are still read, and then refused, naming for each grant the shape that replaces
+it (`NET_ADMIN` is `egress-guard`'s). This contract once said the `capabilities` spelling
+was accepted and always would be, because a rename was no reason to refuse somebody's
+own stack description. [ADR-0043](../../00-overview/decisions/0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md)
+supersedes that sentence: a kernel capability named in a manifest is now reach the model
+refuses, not a spelling, and reading the field is what lets the refusal say what to write
+instead. `depends_on` is read and refused the same way, naming `network.via`
+(`ARCH-R246`).
 
 ### The media types, and why the set is written down here
 
@@ -445,15 +475,27 @@ asks = "library.curate"
 each = true
 
 [[wiring]]
+by   = "prowlarr"
+asks = "indexer.proxy"
+
+[[wiring]]
+by   = "bindery"
+asks = "download.usenet"
+
+[[wiring]]
+by   = "bindery"
+asks = "download.torrent"
+
+[[wiring]]
 by        = "bindery"
 asks      = "indexer.search"
 filled_by = "prowlarr"
 why       = "Two services here answer as an indexer and one of them has to be the one this asks."
 
 [[wiring]]
-by  = "qbittorrent"
-to  = "gluetun"
-why = "It has no network namespace of its own."
+by  = "decline"
+to  = "jellyfin"
+why = "It makes three of Jellyfin's own calls, with a key lemonfiber minted for it alone."
 ```
 
 `provides` says what a service can do.
@@ -516,28 +558,20 @@ is. `to` is that spelling: it names a service, it carries the reason, and
 anything that lists the stack's wiring shows it as by-name rather than as an ask
 that happened to resolve to one candidate.
 
-**qBittorrent's is the one most worth spelling out.** qBittorrent is inside
-Gluetun's network namespace, and it is worth writing down why that is genuinely
-about one service rather than an ask for `network.egress-guard` resolved late:
+**qBittorrent's link to the tunnel is not here, and it is not by name.** qBittorrent
+runs inside the egress guard's network namespace, so it has no network of its own and
+loses connectivity when the tunnel drops rather than falling back to the home address
+(`C2-R12`). Four things have to agree for that: the shared namespace, the health-gated
+start order, the profile the two share (`B1-R14`), and the port the guard publishes on
+qBittorrent's behalf. All four are written by lemonfiber from one field on
+qBittorrent's own service, `network = { via = "network.egress-guard" }`, which asks for
+whatever fills that capability. The property is about the namespace, not about which
+container holds it, so a substitute egress guard takes qBittorrent inside its own and
+the killswitch holds.
 
-- What is shared is a **container's namespace**, not an errand. `network_mode:
-  service:gluetun` makes two containers one network entity. There is no
-  indirection for the sharing to pass through, and nothing to substitute *at*.
-- The property this buys is that qBittorrent has **no network of its own**, so
-  when the tunnel drops it loses connectivity rather than falling back to the
-  home IP (`C2-R12`). That is a statement about those two containers, and an ask
-  that resolved to a name at render time would state it no better while hiding
-  the one relationship in this stack a reader most needs spelled out.
-- It is not one link but four that have to agree: the shared namespace, the
-  health-gated start order, the profile they share (`B1-R14`), and the port
-  Gluetun publishes *on qBittorrent's behalf*. A capability is something one
-  service asks another for while both are running; this is two containers being
-  co-scheduled as one.
-
-So it stays by name, it says why, and the exception is legible. The stack's
-other by-name links say why the same way: each is a service configured in
-another's own terms, or making another's own calls, so it is about that service.
-Everything else in the stack asks.
+The stack's by-name links say why: each is a service configured in another's own terms,
+or making another's own calls, so it is about that service. Everything else in the
+stack asks.
 
 ### What this does not cover
 
@@ -566,7 +600,8 @@ Validation reports **every** violation in one pass, each naming its location
 | Every `service.profile` references a declared profile | Both named |
 | Every `form.profiles` entry references a declared profile | Both named |
 | Exactly one profile per service | Service named |
-| No `depends_on` crossing a profile boundary | Service and target named (`B1-R14`) |
+| No `grants`, `capabilities` or `depends_on` | Service and field named, with the shape or field that replaces it (`ARCH-R246`) |
+| Every container field is held to the plugin manifest's [validation](plugin-manifest.md#validation) | As that table names (`ARCH-R225`) |
 | `digest` present and well-formed | Service named (`E1-R1`) |
 | `tag` is not `latest` or otherwise floating | Service named (`E1-R1`) |
 | `bind` present when `port` is | Service named |
@@ -576,7 +611,6 @@ Validation reports **every** violation in one pass, each naming its location
 | `asks_for` is not blank where it is declared | Service named (`F2-R10`) |
 | No service is silent about its errand in a manifest where another declares one | Every silent service named (`F2-R10`) |
 | `memory_mib` above zero where it is declared | Service named (`B1-R18`) |
-| `grants` within the allow-list | Service and kernel capability named |
 | `protocol` is a permitted value | Profile and value named |
 | At most one profile per `protocol` | Both profiles named |
 | Every `wiring.by`, `wiring.to` and `wiring.filled_by` references a declared service | Wiring and the unknown id named (`F4-R1`) |
@@ -587,7 +621,6 @@ Validation reports **every** violation in one pass, each naming its location
 | `wiring.asks` is a core capability name in shape | Wiring and the name named |
 | No wiring names its own `by` as `to` or `filled_by` | Wiring named |
 | No two wirings carry the same `by` and `asks`, or the same `by` and `to` | Both wirings named |
-| Every `depends_on` edge is also declared as a by-name `[[wiring]]` | Service and target named (`F4-R12`, `F9-R4`) |
 | Every service with an `api` declares `listens` | Service named (`ARCH-R144`) |
 | Every capability in `provides` has exactly one `[[service.claim]]` | Service and capability named (`ARCH-R136`) |
 | Every `[[service.claim]]` names a capability in the service's `provides` | Service and capability named (`ARCH-R136`) |
@@ -595,11 +628,6 @@ Validation reports **every** violation in one pass, each naming its location
 | A binding's expectation is one the probe permits | Service, probe and constraint named (`ARCH-R109`) |
 | Every `fixture` is under `recordings/<service id>/` and names a recording that exists | Service and path named (`ARCH-R136`) |
 | Every recording's `recorded_from` is the service's own `image@digest` | Service, recording and both images named (`ARCH-R136`) |
-| Manifest services match `compose.yml` services exactly | Divergence listed both ways |
-
-That last rule matters more than it looks: a manifest describing a service that
-isn't in the compose file — or vice versa — is the most likely error when adding
-one, and it fails in confusing ways at runtime.
 
 ## Published schemas
 
@@ -704,9 +732,9 @@ by   = "seerr"
 asks = "identity.source"
 
 [[wiring]]
-by  = "qbittorrent"
-to  = "gluetun"
-why = "It has no network namespace of its own — it is inside this one container's."
+by  = "decline"
+to  = "jellyfin"
+why = "It makes three of Jellyfin's own calls, with a key lemonfiber minted for it alone."
 ```
 
 ```toml
@@ -742,7 +770,8 @@ license = "MIT"
 upstream = "https://github.com/qdm12/gluetun"
 describes = "Routes torrent traffic through your VPN and blocks it if the VPN drops"
 without_it = "Your home IP is visible to every peer"
-grants = ["NET_ADMIN"]
+provides = ["network.egress-guard"]
+shape = "egress-guard"
 ```
 
 ```toml
@@ -762,7 +791,9 @@ license = "GPL-2.0-only"
 upstream = "https://github.com/qbittorrent/qBittorrent"
 describes = "Downloads torrents"
 without_it = "No torrent downloads"
-depends_on = ["gluetun"]
+takes_data = true
+user_mode = "puid-env"
+network = { via = "network.egress-guard" }
 ```
 
 ```toml
@@ -804,10 +835,11 @@ describes = "Where the household asks for things"
 without_it = "Requests come to you in person"
 ```
 
-Note `qbittorrent.depends_on = ["gluetun"]` — legal because both are in
-`torrent`, and the single permitted cross-service dependency in the stack
-(`B1-R14`). It is also a by-name wiring, and the `[[wiring]]` entry in the root is
-where it says so.
+Note `qbittorrent.network`: it asks for whatever fills `network.egress-guard` and
+runs inside it, and lemonfiber writes that as the shared namespace, the start that
+waits for the guard to be healthy, and the guard publishing 8081 on qBittorrent's
+behalf. Both are in `torrent`, so the start-order edge stays inside one profile
+(`B1-R14`).
 
 Note `seerr.bind = "lan"` against everything else's `loopback` — the two-tier
 policy expressed as data rather than as a rule someone has to remember.
@@ -822,6 +854,7 @@ See [versioning](versioning.md).
 |----|-------------|
 | **ARCH-R171** | A stack manifest MUST declare each service in a file of its own, `services/<id>.toml`, named by the root manifest's `include` list, which alone decides membership. lemonfiber MUST refuse, naming it, an entry that is not of that form, names no file, or appears twice; a file in `services/` no entry names; a service file holding anything but one `[[service]]` whose `id` matches its name; and a `[[service]]` in the root manifest. |
 | **ARCH-R172** | lemonfiber MUST publish, with each release, JSON schemas of the root manifest (`contract/stack-manifest.schema.json`) and of a service's file (`contract/stack-service.schema.json`), generated from the types it reads them into; the service schema's definition of a claim MUST be the plugin manifest's own. |
+| **ARCH-R246** | A stack service MUST be declared in the plugin manifest's service model, with the fields only a stack carries beside it, and a stack MUST carry no Compose file lemonfiber reads; lemonfiber MUST still read `grants`, `capabilities` and `depends_on` and MUST refuse each, naming for every grant the shape that replaces it and for `depends_on` `network.via`. |
 
 ## Related
 

@@ -5,6 +5,8 @@
 
 **Amended** by [ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md): what is embedded is the bundle and the manifests it pins.
 
+**Amended** by [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md): what is materialised is the manifests, and the Compose project is generated from them.
+
 ## Context
 
 Given [ADR-0004](0004-four-repo-split.md), lemonfiber and lemonfiber-media-stack

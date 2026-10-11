@@ -53,6 +53,12 @@ breaks them for anything on the Windows side.
 Mode is **derived from evidence**, not chosen from a menu. The operator picks a
 location; lemonfiber determines what that location can do.
 
+The location is one setting: a path on this machine, or an NFS export named by its
+server and export. Every service that takes data is mounted from it alike, by the
+generator rather than by an overlay
+([plugin-manifest](../../../20-architecture/contracts/plugin-manifest.md#the-data-root--one-setting-every-data-mount),
+`ARCH-R240`).
+
 ### Degradation is stated in consequences, not properties
 
 "Hardlinks unsupported" means nothing to most operators. What it means is:

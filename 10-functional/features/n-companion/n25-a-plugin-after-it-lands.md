@@ -49,12 +49,40 @@ The app never shows the first as the second.
 
 A plugin that fronts an egress guard takes a privileged shape: a service of it is
 granted network administration and given the tunnel device, which no other
-plugin's service may have (`F14-R12`). Where an install or update would do that,
-the rehearsal names each service that takes the shape, with the capabilities it
-is granted and the devices it is given. The operator approves each one apart from
-the offer, and agreeing to the offer approves none of them (`F14-R21`). A service
+plugin's service may have (`F14-R12`). A media server takes another, the host's
+render device for hardware transcoding (`ARCH-R237`). Where an install or update
+would give a service either, the rehearsal names each service that takes a shape,
+with the capabilities it is granted and the devices it is given. The operator
+approves each one apart from the offer, and agreeing to the offer approves none of
+them (`F14-R21`). A service
 left unapproved leaves the install refused, and the app says which service it
 was and why it needs the shape.
+
+### A plugin's settings are the operator's to change
+
+A plugin's services can read values the operator sets: the countries an egress
+guard may exit from, the domain the proxy answers on. The app lists them on the
+plugin, each with the services that read it, its default, and the operator's
+value where there is one, read from the stack's settings (`ARCH-R254`). Changing
+one is rehearsed first and says which services restart for it; agreeing sends the
+offer that rehearsal answered (`ARCH-R255`). Putting a setting back to its
+default is the same act.
+
+Secrets are listed beside the settings and never shown: each says whether a value
+is held and where it came from, and nothing more. The app offers no way to change
+one, and says that a secret is changed at the stack's terminal (`ARCH-R256`).
+These screens are the operator's alone; a member never sees them.
+
+| Where | English | Dutch |
+|-------|---------|-------|
+| The section on a plugin | Settings | Instellingen |
+| A setting left as it came | Default | Standaard |
+| A setting the operator changed | Set by you | Door jou ingesteld |
+| Putting it back | Back to default | Terug naar standaard |
+| Before a change is agreed | Changing this restarts {services}. | Dit wijzigen herstart {services}. |
+| A secret that is held | Saved, never shown | Opgeslagen, nooit getoond |
+| A secret with no value | Not set yet | Nog niet ingesteld |
+| Why a secret cannot be changed here | Secrets are changed at the stack's terminal. | Geheimen wijzig je in de terminal van de stack. |
 
 ### Installed means proven and verified, and a failure says what went back
 
@@ -104,8 +132,11 @@ every appearance.
   (`F5-R11`), and is shown with the source it was installed from.
 - **An install that would contest a capability the bundled stack fills.** The
   contest is shown in the rehearsal, and answering it is `N5`'s.
-- **An egress guard plugin whose shape the operator does not approve.** The
-  install is refused, not run without the shape, and the service is named.
+- **A plugin whose shape the operator does not approve.** The install is refused,
+  not run without the shape, and the service is named.
+- **A setting changed on another surface while the app shows it.** The `settings`
+  event brings the new value, and a change agreed to against the old one is
+  refused as an offer that moved.
 - **A reversal that could not finish.** What is still standing is named with its
   reason; the install is not shown as undone.
 - **A plugin whose configuration directory still holds what its service wrote
@@ -125,7 +156,10 @@ every appearance.
 | **N25-R8** | Every installed plugin MUST be shown with the source it was installed from, its version and whether it was reviewed, and an unreviewed plugin MUST be shown as unreviewed wherever it appears (`F5-R5`, `F5-R7`). |
 | **N25-R9** | A rehearsed install, update or removal MUST be labelled as a rehearsal (`N6-R1`). |
 | **N25-R10** | A plugin record that could not be read MUST be told apart from there being no plugins installed. |
-| **N25-R11** | Where an install or update states `taking[]`, the rehearsal MUST show each service that takes the egress guard's privileged shape, with the capabilities it is granted and the devices it is given; the operator MUST approve each one apart from the offer, agreeing to the offer MUST approve none of them, and the agreement MUST send `egress-guard@<service>` in `approved` for exactly the services approved. A service not approved MUST leave the install refused, and the app MUST say which service was not approved and why it needs the shape (`F14-R12`, `F14-R21`). |
+| **N25-R11** | Where an install or update states `taking[]`, the rehearsal MUST show each service that takes a privileged shape, the egress guard's or `render`, with the capabilities it is granted and the devices it is given; the operator MUST approve each one apart from the offer, agreeing to the offer MUST approve none of them, and the agreement MUST send `<shape>@<service>` in `approved` for exactly the services approved. A service not approved MUST leave the install refused, and the app MUST say which service was not approved and why it needs the shape (`F14-R12`, `F14-R21`, `ARCH-R238`). |
+| **N25-R12** | The app MUST list, on each installed plugin, every setting its services read, with the services that read it, its default and the operator's value where one is recorded, and MUST offer changing it and putting it back to its default, each rehearsed with the services it restarts and agreed to by the offer that rehearsal answered (`ARCH-R254`, `ARCH-R255`). |
+| **N25-R13** | The app MUST list each secret a plugin's services read with whether a value is held and where it came from, MUST NOT show or offer to change a secret's value, and MUST say a secret is changed at the stack's terminal (`ARCH-R256`). |
+| **N25-R14** | A plugin's settings and secrets MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown. |
 
 ## Notes
 

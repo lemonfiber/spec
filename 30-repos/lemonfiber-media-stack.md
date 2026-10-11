@@ -11,6 +11,14 @@ the [manifest contract](../20-architecture/contracts/stack-manifest.md), and
 
 ---
 
+lemonfiber writes the stack's Compose project from `stack.toml` and the service files it
+includes
+([ADR-0043](../00-overview/decisions/0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md)),
+and reads no Compose file from this repository. The repository retires once nothing
+reads it
+([ADR-0042](../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md)
+§6), and what follows describes the repository as it stands.
+
 ## What this repo is
 
 A **standalone, runnable Compose project**. Cloned and run with plain
@@ -252,19 +260,20 @@ CI then holds it to every rule above. This is the whole of
 
 | ID | Requirement |
 |----|-------------|
-| **REPO-R16** | The stack MUST run under plain `docker compose` with no lemonfiber binary. |
-| **REPO-R17** | CI MUST validate every form with `docker compose config`. |
-| **REPO-R18** | CI MUST verify manifest ↔ compose parity. |
-| **REPO-R19** | CI MUST reject cross-profile `depends_on`, multi-mount services, and floating tags. |
+| **REPO-R16** | *Superseded by [ARCH-R224](../20-architecture/contracts/plugin-manifest.md): lemonfiber generates the stack's Compose project from its manifest, and the stack carries no Compose file of its own. The number is not reused.* |
+| **REPO-R17** | *Superseded by [ARCH-R246](../20-architecture/contracts/stack-manifest.md): there is no Compose file in the stack for CI to resolve; each service is held to the manifest's validation. The number is not reused.* |
+| **REPO-R18** | *Superseded by [ARCH-R246](../20-architecture/contracts/stack-manifest.md): the manifest is the only description of a service, so there is no second one to hold it to. The number is not reused.* |
+| **REPO-R19** | *Superseded by [ARCH-R246](../20-architecture/contracts/stack-manifest.md) and [ARCH-R227](../20-architecture/contracts/plugin-manifest.md): there is no `depends_on` and no second data mount to declare, and a floating tag is refused by the manifest's own validation (`E1-R1`). The number is not reused.* |
 | **REPO-R20** | CI MUST verify every service declares an OSI licence, or `Hippocratic-3.0` where lemonfiber builds its image from its own code (`F2-R5`), and publishes arm64 + amd64 images. |
-| **REPO-R21** | The VPN port-forwarding up/down command pair MUST push and release the client's listen port. |
+| **REPO-R21** | *Superseded by [ARCH-R251](../20-architecture/contracts/capability-contracts.md): the egress guard's filler reports the forwarded port and the core sets it on the torrent client, so no up/down command pair or script is mounted into the guard. The number is not reused.* |
 | **REPO-R22** | Port forwarding MUST default off and activate only for capable providers. |
 | **REPO-R23** | Adding a service MUST require only data edits — compose, manifest, forms — and no code change. |
-| **REPO-R34** | `compose.yml` MUST define no services of its own, and MUST assemble the stack from one fragment per profile under `compose/`, each `include:` entry declaring `project_directory: .`. |
-| **REPO-R35** | Every service MUST be reachable through the main Compose project, so that every form starts under bare `docker compose` with no additional `-f` argument. |
-| **REPO-R36** | Manifest ↔ compose checks MUST be performed against the resolved Compose model, never against the source YAML. |
+| **REPO-R34** | *Superseded by [ARCH-R224](../20-architecture/contracts/plugin-manifest.md): there is no `compose.yml` and no fragment to assemble. The number is not reused.* |
+| **REPO-R35** | *Superseded by [ARCH-R224](../20-architecture/contracts/plugin-manifest.md): every service is in the one project lemonfiber generates. The number is not reused.* |
+| **REPO-R36** | *Superseded by [ARCH-R246](../20-architecture/contracts/stack-manifest.md): the manifest is checked as it is read, and there is no Compose model beside it. The number is not reused.* |
 | **REPO-R37** | Every stack rule enforced in CI MUST have a negative test that breaks the rule and asserts the violation is reported. |
-| **REPO-R38** | The forwarded-port push MUST authenticate against the download client's API, and where no credentials are configured it MUST say the port was not pushed rather than fail silently. |
+| **REPO-R38** | *Superseded by [ARCH-R251](../20-architecture/contracts/capability-contracts.md): the port crosses through the core over two contracts, the guard holds none of the client's credentials, and a port that could not be set is said to be unpassed. The number is not reused.* |
+| **REPO-R93** | The stack's CI MUST run each service's pinned image under the posture its manifest declares, `standard` unless it declares `confined` ([ARCH-R234](../20-architecture/contracts/plugin-manifest.md)), and MUST refuse a change under which one fails to start or to pass its health check; the version that first writes the stack's services from the model MUST NOT ship before every image has passed. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber-media-stack`.
 

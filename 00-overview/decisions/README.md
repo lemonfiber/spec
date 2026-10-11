@@ -61,6 +61,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0040](0040-three-sites-each-with-one-reader.md) | Three sites, each for one reader, and the specification on the frontpage | Accepted |
 | [0041](0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md) | Every part is a plugin, and the core speaks contracts | Accepted |
 | [0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) | The bundle is first-party plugins, pinned and embedded | Accepted |
+| [0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md) | The core writes every Compose entry from one typed service model | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

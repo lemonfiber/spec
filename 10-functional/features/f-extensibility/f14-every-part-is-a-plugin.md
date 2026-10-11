@@ -98,14 +98,16 @@ does not carry over: accounts the old media server held are not accounts on the 
 and progress stays where it was recorded. Asking the household's members back is offered
 as part of the change.
 
-### One privileged shape
+### The egress guard's shape
 
 The egress guard needs to manage the network and open a tunnel, which no other plugin may
 do. The upstream an egress guard adapter fronts may declare `shape = "egress-guard"`, and
 the core writes its entry as every plugin's entry with network administration and the
 tunnel device added and nothing else. The adapter stays unprivileged. The reading names
 each service taking the shape, and the operator approves each one apart from the offer,
-on every install and update that takes it.
+on every install and update that takes it. It is one of a closed set of named shapes,
+beside the media server's `render` for hardware transcoding
+([plugin-manifest](../../../20-architecture/contracts/plugin-manifest.md#shapes--the-only-route-to-a-device-or-a-privilege)).
 
 ### Each slot is proved by a substitute
 
@@ -184,11 +186,11 @@ nothing crosses to it.
 | **F14-R20** | A third-party plugin MAY be granted one named credential for a capability it fills; the grant MUST be part of the install or update offer and approved by the operator, MUST be journalled and revocable, and MUST be shown on the credentials surface, and without a grant no credential MUST cross to it. |
 | **F14-R21** | An install or update whose plugin takes the egress guard's shape MUST state in its reading each service taking it with the capability and the device it is given, MUST NOT act unless the operator approved that shape for that service apart from the offer, written `egress-guard@<service>`, and MUST refuse an approval naming a service that does not take it. |
 | **F14-R22** | A plugin's service MAY ask for a core capability in the manifest's `[[ask]]`, naming the capability and optionally `each`; the manifest MUST have no field by which an ask names the service that fills it, and an ask naming a capability outside the published core vocabulary, a namespaced one included, naming a service the plugin does not declare, or naming a capability its own service provides MUST be refused at validation, naming the ask and what it named. |
-| **F14-R23** | A plugin's ask MUST be settled as the stack's own asks of that capability are: against every installed claimant, by the operator's choice where one is recorded, otherwise by the stack's own choice for that capability, and otherwise contested or unfilled; every connection made for it MUST hand a credential only where F14-R18 or F14-R20 lets it cross, and its asker MUST join no network beyond the default. |
+| **F14-R23** | A plugin's ask MUST be settled as the stack's own asks of that capability are: against every installed claimant, by the operator's choice where one is recorded, otherwise by the stack's own choice for that capability, and otherwise contested or unfilled; every connection made for it MUST hand a credential only where F14-R18 or F14-R20 lets it cross, and its asker MUST join exactly the network that ask derives ([ARCH-R242](../../../20-architecture/contracts/plugin-manifest.md)) and no other on its account. |
 | **F14-R24** | The wiring, as `lemonfiber wiring` and `GET /api/wiring` answer it, MUST carry every installed plugin's asks after the stack's, each with the origin of the service that asks, and a plugin's asks MUST be counted wherever the stack's are: in what nothing fills, in what a substitution changes, and in what an install would leave contested. |
 | **F14-R25** | An install or update reading MUST state every ask the plugin's services would make, each with what it would reach and how that would be settled; its offer MUST be named over those asks as a part of its own, and an answer to a reading whose asks have since moved MUST be refused naming that part. |
 | **F14-R26** | Where the media server is a plugin's service that speaks `identity.source`, its first-run setup MUST go over that contract with an administrator's password lemonfiber mints and keeps under that server's own setting, and the request service's identity setup MUST be given that password with the stack-network address and the `native` API of the service the adapter `fronts`; where that service declares no `native` API, the setup MUST NOT be attempted and the run MUST say so, naming the plugin. |
-| **F14-R27** | lemonfiber MUST write the entry of every plugin service that speaks a contract to run as the operator's uid and gid, as the stack's own images run, and MUST write the key it asks that service with readable by that uid alone; a service that speaks none MUST be written without a user. |
+| **F14-R27** | lemonfiber MUST write the entry of every plugin service that speaks a contract to run as the operator's uid and gid, as the stack's own images run, and MUST write the key it asks that service with readable by that uid alone; a service that speaks none MUST be written with the user its `user_mode` names ([ARCH-R233](../../../20-architecture/contracts/plugin-manifest.md)). |
 | **F14-R28** | Where an adapter's upstream needs a credential lemonfiber keeps, lemonfiber MUST be the only writer of it: it MUST write it into the adapter's configuration directory as `upstream.json`, a JSON object of named strings readable by the operator's uid alone, whenever it creates, rotates or moves that credential, and the adapter MUST read it there and MUST NOT write it. |
 | **F14-R29** | An install or update MUST honour a service's `replaces` only where the plugin is first-party, moving the bundled service it names in place under the same container name, configuration directory and data; a third-party plugin declaring `replaces` MUST be refused at install and update, naming the service. |
 | **F14-R30** | Where the media server is a plugin's service that speaks `identity.source`, rotating its administrator's password MUST go over that contract: lemonfiber MUST record the replacement under the server's pending setting before asking, MUST hand the adapter the replacement alone, MUST promote it and rewrite the adapter's upstream credential only once the adapter answers that the server took it, and MUST leave the password in force unchanged wherever the adapter refuses. |

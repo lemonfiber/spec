@@ -34,6 +34,9 @@ is not declared here.
 [ADR-0021](../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md)
 decided that a plugin is declarative data and that lemonfiber writes its Compose
 entry rather than accepting one. This says what that data is.
+[ADR-0043](../../00-overview/decisions/0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md)
+made that data the one model every Compose entry is written from, the stack's own
+services included.
 
 It is a second manifest rather than a use of the first because the two describe
 different things. [`stack.toml`](stack-manifest.md) describes **a whole stack** —
@@ -138,9 +141,14 @@ refused by naming the capability rather than a version. See
 
 ## `[[service]]` — what runs
 
-Declared in [`stack.toml`](stack-manifest.md#service)'s vocabulary, restricted to
-the fields below. The restriction is the substance of ADR-0021: the set of
-fields *is* the set of things a plugin may ask for.
+Declared in the one service model every Compose entry is written from
+([ADR-0043](../../00-overview/decisions/0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md)).
+A first-party plugin, a third-party plugin and [`stack.toml`](stack-manifest.md#service)
+declare a service in the same fields, with the same types and the same validation, and
+whether a plugin is first-party decides whether it may be installed and which
+credentials reach it, never what it may say (`ARCH-R225`). The set of fields *is* the
+set of things a service may ask for of the machine, which is the substance of ADR-0021:
+it is wider than one shape, and still closed and typed.
 
 **One or more, and the reason for more is not generality.** A plugin is one
 thing an operator installs and one thing they remove, and that thing is often
@@ -184,6 +192,36 @@ media_types = ["movies", "tv"]
 takes_data  = true
 provides    = ["media.serve", "plex:direct-play"]
 config_path = "/config"
+shape       = "render"
+memory_mib  = 600
+
+[[service.mount]]
+from = "transcode"
+to   = "/transcode"
+
+[service.env]
+PLEX_CLAIM = { setting = "plex:claim-token", default = "" }
+```
+
+A service that has no network of its own, with a memory ceiling:
+
+```toml
+[[service]]
+id            = "transmission"
+name          = "Transmission"
+image         = "lscr.io/linuxserver/transmission"
+digest        = "sha256:0d2a7c9be1a3f4e6c8b5d7f9e1a3c5b7d9f1e3a5c7b9d1f3e5a7c9b1d3f5e7a9"
+tag           = "4.0.6"
+port          = 9091
+bind          = "loopback"
+criticality   = "core"
+takes_data    = true
+user_mode     = "puid-env"
+mem_limit_mib = 512
+network       = { via = "network.egress-guard" }
+
+[service.env]
+TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 ```
 
 | Field | Type | Required | Notes |
@@ -193,21 +231,31 @@ config_path = "/config"
 | `image` | string | ✔ | Registry path, without tag or digest |
 | `digest` | string | ✔ | `sha256:…`. What actually runs. |
 | `tag` | string | ✔ | The human-readable version the digest corresponds to. Recorded and shown; never resolved. |
-| `port` | integer | | Primary UI/API port. Omitted for a service with no listener. |
-| `bind` | enum | ✔ if `port` | `loopback` \| `lan`. A **tier**, not an address — see below. |
+| `port` | integer | | The port it is published at on the host: its primary UI/API port. Omitted for a service that publishes nothing. |
+| `bind` | enum | ✔ if `port` | `loopback` \| `lan`. A **tier**, not an address, and every port the service publishes is published on it — see [ports](#ports--the-tier-is-lemonfibers-the-numbers-are-the-manifests). |
+| `publish` | array of tables | | Each further port it publishes on its tier: `port`, on the host (✔), and `listens`, inside the container (default `port`). Only where `port` is declared. |
 | `health` | table | | As `stack.toml`. Absent means lifecycle waits on container state only. |
 | `criticality` | enum | ✔ | As `stack.toml`. A plugin MUST NOT declare `critical` — see below. |
 | `media_types` | array | | Which media types it handles, in `stack.toml`'s vocabulary. Drives root-folder seeding, which is how a plugin's service is pointed at the library the stack already fills. |
-| `takes_data` | bool | | `true` if it needs the data root mounted. Default `false`. |
+| `takes_data` | bool | | `true` if it needs the data root mounted at `/data`, from the operator's [storage setting](#the-data-root--one-setting-every-data-mount). Default `false`. |
 | `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). At most one service of a plugin may declare a given core name — see below. |
-| `config_path` | string | | Where inside the container the one configuration directory is mounted. Default `/config`. |
+| `config_path` | string | | Where inside the container its configuration directory is mounted. Default `/config`. |
+| `config_ro` | bool | | `true` to mount the configuration directory read-only. Default `false`. |
+| `mount` | array of tables | | Each further path mounted from inside its own configuration directory: `from` (✔), `to` (✔) and `ro` (default `false`) — see [mounts](#mounts--inside-its-own-directory-and-nowhere-else). |
+| `tmpfs` | array | | Absolute paths given scratch space in memory, empty whenever the container starts. |
+| `env` | table | | Its environment: a variable's name to one of four typed kinds of value — see [environment](#environment--four-kinds-of-value). |
+| `user_mode` | enum | | `image` \| `puid-env` \| `uid`. Who the container runs as. Default `image`, and `uid` where the service speaks a contract or is `confined` — see [who it runs as](#who-it-runs-as-and-how-tightly-it-is-held). |
+| `posture` | enum | | `standard` \| `confined`. How tightly the container is held, as declared. Default `standard`. `confined` only where the plugin's own CI runs the image under it. |
+| `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate, summed into a form's footprint (`B1-R18`) and never written as a limit. |
+| `mem_limit_mib` | integer | | The most memory the container may hold, in MiB, written as its limit. |
+| `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). |
 | `api` | table | | The adapter lemonfiber reaches it through, in `stack.toml`'s shape. `kind` and `key_source` from the published set — see below. |
-| `listens` | integer | ✔ if `api` or `speaks` | The port it answers on inside the stack's network, where lemonfiber and the services that ask reach it. As `stack.toml`. |
+| `listens` | integer | ✔ if `api` or `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where lemonfiber, the services that ask and the proxy reach it. Default `port`. |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract names no `api`: it is asked one way. See [capability-contracts.md](capability-contracts.md). |
 | `fronts` | string | ✔ if `speaks` | The plugin's own service this adapter stands in front of: the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. |
 | `native` | string | | The API this service answers the stack's other services in, by the name those services know it by (`jellyfin`, `plex`, `emby`). Declared on the upstream an adapter `fronts`, where other services reach that upstream directly rather than through the adapter: a request service is set up against a media server in the media server's native API (`F14-R26`, `ARCH-R221`). |
 | `replaces` | string | | The id of the stack's own service this service moves in place of: the same container name, configuration directory and data, so an install moves the bundled service rather than running beside it ([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) §4). It names the service's own id, and only that service may take the stack service's id, port and hostname (`ARCH-R222`). Only a first-party plugin's install honours it (`F14-R29`). |
-| `shape` | string | | The one privileged shape lemonfiber writes for this service, from a closed set: `egress-guard`, which adds the `NET_ADMIN` capability and the `/dev/net/tun` device to the entry every plugin's service gets. Only the upstream an adapter of the same plugin fronts, where that adapter speaks `network.egress-guard`, may declare it, and the operator approves it apart from the offer (`F14-R12`, `F14-R21`). |
+| `shape` | enum | | `egress-guard` \| `render`. The one privileged shape lemonfiber writes for this service, from a closed set; each names who may declare it, and the operator approves it apart from the offer — see [shapes](#shapes--the-only-route-to-a-device-or-a-privilege) (`F14-R12`, `F14-R21`, `ARCH-R237`, `ARCH-R238`). |
 
 ### The image is named by digest
 
@@ -225,45 +273,266 @@ refused. Declaring a digest that does not correspond to the tag is not
 detectable without reaching the registry and is not treated as though it were:
 the digest is what runs, and the tag is a label on it.
 
-### `bind` is a tier, and lemonfiber assigns the address
+### Ports — the tier is lemonfiber's, the numbers are the manifest's
 
-A plugin declares `loopback` or `lan`. It cannot declare an address, a
-host-facing interface, or a published port mapping, because a plugin that could
-write its own address could place an admin surface on the LAN without touching
-anything [C6](../../10-functional/features/c-trust/c6-web-security.md) inspects.
-lemonfiber renders the tier to an address exactly as it does for a bundled
-service, and the two-tier policy stays a property of the system rather than a
-request the plugin makes.
+A service declares `loopback` or `lan`. It cannot declare an address or a
+host-facing interface, because a service that could write its own address could
+place an admin surface on the LAN without touching anything
+[C6](../../10-functional/features/c-trust/c6-web-security.md) inspects. lemonfiber
+renders the tier to an interface for every service alike, and the two-tier policy
+stays a property of the system rather than a request a manifest makes.
 
-### `config_path` — where its own directory lands, not how many there are
+The numbers are the manifest's. `port` is where the service is published on the host
+and `listens` where it answers inside its container, so an image answering on 8080 is
+published at 8085 by declaring both, and one answering where it is published declares
+`port` alone. A service publishing more than one port declares each further one in
+`[[service.publish]]`, on the same tier: a door serving plain HTTP and TLS, a proxy
+answering on 80 and 443.
 
-`ARCH-R86` fixes the **mount set**: the single data mount, and the service's own
-configuration directory. That is what makes "what can this plugin reach"
-answerable from the format. It does not follow that the configuration directory
-must land at `/config`, and assuming it did made a whole class of image
-uninstallable.
+```toml
+port    = 8096
+bind    = "lan"
+
+[[service.publish]]
+port = 8920
+```
+
+A port another service already publishes is refused, naming the port and both services
+(`ARCH-R226`). A service that speaks a contract is also published at its `listens` port
+on the loopback interface, at a port the engine chooses, which is where lemonfiber
+reaches it.
+
+### `config_path` — where its own directory lands
+
+What a service reaches of the host is fixed: the single data mount, and the service's
+own configuration directory with what lies inside it (`ARCH-R227`). That is what makes
+"what can this plugin reach" answerable from the format. It does not follow that the
+configuration directory must land at `/config`, and assuming it did made a whole class
+of image uninstallable.
 
 `/config` is a LinuxServer.io convention, not a standard. Of the twenty bundled
-services, five keep their configuration somewhere else, and `compose/` says so
-for each: Homepage and Seerr at `/app/config`, Caddy at a file under
-`/etc/caddy`, Jellyfin and Audiobookshelf needing a second path beside the first.
-A plugin whose image is any of those shapes would previously be generated a
-container mounting a directory the application never reads — installing
-successfully, passing its health probe, and losing everything it had written the
-moment the container was replaced.
+services, five keep their configuration somewhere else: Homepage and Seerr at
+`/app/config`, Caddy at a file under `/etc/caddy`, Jellyfin and Audiobookshelf
+needing a second path beside the first.
+A plugin whose image is any of those shapes would be generated a container mounting
+a directory the application never reads — installing successfully, passing its health
+probe, and losing everything it had written the moment the container was replaced.
 
-So the target is data. The source is still lemonfiber's, there is still exactly
-one of it, and the number of mounts is unchanged. What is permitted is narrow:
+So the target is data. The source is still lemonfiber's, and there is still exactly
+one of it. What is permitted is narrow:
 
 - a single absolute path, and not `/`;
 - not `/data` and nothing beneath it, which would be a second mount over the
   library wearing a different name;
 - no `..`, and no interpolation.
 
-A second path beside the first — Jellyfin's `/cache`, Audiobookshelf's
-`/metadata` — is deliberately **not** offered. One directory is what `ARCH-R86`
-permits, and a plugin needing two is one the format should refuse rather than
-quietly satisfy.
+`config_ro = true` mounts it read-only, for an image that reads its configuration and
+has no business changing it: the guarded door reads its routes there and writes
+nothing.
+
+### Mounts — inside its own directory, and nowhere else
+
+A second path beside the first — Jellyfin's `/cache`, Audiobookshelf's `/metadata` —
+is a mount whose source lies inside the service's own configuration directory:
+
+```toml
+[[service.mount]]
+from = "cache"
+to   = "/cache"
+
+[[service.mount]]
+from = "Caddyfile"
+to   = "/etc/caddy/Caddyfile"
+ro   = true
+```
+
+`from` is a relative path inside the service's own configuration directory, a file or
+a directory, and lemonfiber writes it as `./config/<id>/<from>`. An absolute path, a
+`..` or an interpolation is refused, naming the mount. `to` is an absolute path and not
+`/`; on a service that takes data it lies outside `/data`; and no two of the service's
+mounts share a target. So a further mount widens nothing a reader has to judge: it is
+the directory lemonfiber already gave the service, landing in a second place.
+
+`tmpfs` reaches nothing of the host at all, and its targets are held to the same rules.
+It is scratch space in memory, empty whenever the container starts and writable by
+whoever the container runs as. The door keeps its working files there, so nothing it
+writes outlives it.
+
+**A service's state lives under its own directory and nowhere else** (`ARCH-R228`).
+There is no volume the engine keeps on a service's behalf: state somewhere the operator
+cannot see is state a backup, a move and the question "what can this reach" all miss.
+The proxy keeps its certificates and its own state in two such volumes today
+(`caddy_data`, `caddy_config`), so the in-place move copies each into the proxy's
+directory once, mounts them from there, and leaves the volumes as they were, so that
+undoing the move finds them.
+
+There is no field by which a mount reaches any other path on the host. In particular
+there is none for the engine's socket, which is root on the host, for a first-party
+service as for anybody else's (`ARCH-R239`).
+
+### Environment — four kinds of value
+
+```toml
+[service.env]
+VPN_TYPE              = "wireguard"
+SERVER_COUNTRIES      = { setting = "gluetun:countries", default = "Netherlands" }
+DOMAIN                = { setting = "domain", default = "home.local" }
+INDEXER_URL           = { url_of = "indexer.search" }
+UN_SONARR_0_URL       = { url_of = "library.curate", files = "tv", native = "servarr" }
+WIREGUARD_PRIVATE_KEY = { secret = "wireguard-key" }
+```
+
+| Value | Written as |
+|-------|------------|
+| A string, an integer or a boolean | A constant: the value exactly as declared |
+| `{ setting = "<name>", default = <constant> }` | The operator's value for that setting, or the default where none is recorded |
+| `{ url_of = "<capability>" }`, with `files` and `native` where needed | `http://<service>:<port>`: the service the ask reaches, at the port it `listens` on |
+| `{ secret = "<name>" }` | The value of the `[[secret]]` the manifest declares by that name, in a file of the service's own and never in the project |
+
+A variable's name is upper-case letters, digits and `_`, and does not start with a
+digit. `TZ`, `PUID` and `PGID` are lemonfiber's: it writes the operator's time zone into
+every entry and the pair where `user_mode` asks for it, and a manifest naming one is
+refused (`ARCH-R229`).
+
+**Nothing a manifest writes is interpolated.** Compose substitutes `${…}` from the
+stack's environment file in any value, quoted or not. Every constant, every setting's
+value and every secret is written with `$` doubled, so it reaches the container as exactly
+itself, and no
+value a manifest declares is written as a reference to that file (`ARCH-R230`). A value
+that could name a variable there would be a field for reading whatever the file holds.
+
+**A setting is the plugin's own, or one the core publishes.** A plugin's own is
+namespaced with its id, as its own capabilities are (`gluetun:countries`), and a stack
+service's with the service's id. The core publishes two, the same for every service:
+`domain`, the operator's domain, and `lan-host`, the address the household reaches the
+machine at. A setting in any other namespace is refused, naming it (`ARCH-R231`).
+
+Settings live in the core's settings store, and the operator reads and changes them from
+the command line, the web surface and the companion's operator screens alike, through
+`lemonfiber settings` and [`GET /api/settings`](web-api.md#settings). Each change
+is journalled and regenerates the entries that read it. A secret lives in the secret
+store, never in the settings store (`ARCH-R248`). Neither is the stack's environment
+file: the in-place move that brings a part's first-party plugin reads that file once,
+files each value the part read from it under the plugin's own setting or secret,
+journals each, and lemonfiber does not read the file for it again (`ARCH-R249`).
+
+**A URL is an ask.** `url_of` names a core capability, as an `[[ask]]` does, and is
+settled, shown and counted as one (`F14-R22` to `F14-R25`): the reading says what it
+would reach, and a substitution rewrites it. It asks for one filler and never for
+`each`, because a variable holds one address, so a variable naming a capability its
+service asks `each` of is refused. `files` narrows the ask to the filler that files that
+medium, which is how a service told about each curator in its own variable names each
+one: one `url_of` for each, by the medium it files, never by its id. Two variables naming
+one capability and medium, or a variable and an `[[ask]]` naming them, are one ask. While
+nothing fills it, the variable is left out and the ask is reported unfilled (`F4-R9`). It
+never names a service: that would be a link by name, which a plugin may not introduce
+(`F4-R12`, `ARCH-R232`).
+
+**An ask reaches the adapter, unless it says otherwise.** The core speaks contracts, so
+what fills a capability is, by default, the service that speaks its contract. A service
+that talks to the upstream in the upstream's own API says so with `native`, naming the API
+the upstream declares (`native = "servarr"`), and its ask then reaches the service the
+adapter `fronts`; a filler whose upstream declares no such API leaves the ask unfilled,
+naming the API. Where the filler speaks no contract, as the stack's own services do, the
+ask reaches the filler itself (`ARCH-R253`).
+
+**A secret is declared, held, and written apart.** `{ secret = "<name>" }` names a
+[`[[secret]]`](#secret-and-override--declared-before-they-are-held) the manifest
+declares: a value the operator enters, one its recipe captures, or a credential
+`F14-R18` or `F14-R20` lets cross to it. lemonfiber writes it to an environment file of
+the service's own, readable by the owner alone (`0600`), names that file in the entry,
+and never writes the value into the project. Every rehearsal, reading and diagnostic
+shows the variable and the secret's name, never its value (`ARCH-R247`).
+
+### Who it runs as, and how tightly it is held
+
+| `user_mode` | Written as |
+|-------------|------------|
+| `image` | No user: the image decides |
+| `puid-env` | `PUID` and `PGID` set to the operator's uid and gid, for an image that drops to them itself |
+| `uid` | The operator's uid and gid as the container's user |
+
+The `PUID`/`PGID` pair is a LinuxServer.io convention, and setting it on an image that
+ignores it is a silent no-op that reads like a security control. So the manifest says
+which kind of image it is, rather than lemonfiber asserting something about an image
+nobody checked. A service that speaks a contract is built for lemonfiber's, reads a key
+written readable by the operator's uid alone, and is `uid` (`F14-R27`, `ARCH-R233`).
+
+| `posture` | Written as |
+|-----------|------------|
+| `standard` | No privilege gained after start; every kernel capability dropped but `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETGID`, `SETUID` and `KILL`, the six an image needs to start as root, give its files to the operator and drop to them, and what its shape adds; at most 1024 processes |
+| `confined` | All of `standard`, with a read-only root, no kernel capability at all, `user_mode = "uid"` and no shape. Its own network translates no address off the host (`ARCH-R243`). |
+
+`standard` is every service's, the stack's own and every plugin's, first-party and
+third-party alike, and it is what lemonfiber already writes for a plugin's service
+(`ARCH-R234`). `confined` is for an image that holds a credential administering another
+service, as lemonfiber's own do.
+
+**Posture is declared, and proved where the plugin is built.** A plugin's CI runs each
+of its images under the posture its manifest declares, `standard` included, and a
+manifest declares `confined` only where that run passes under it. So whether an image
+survives six capabilities, or a read-only root and none, is answered where the image is
+made. The stack's own images are run under `standard` by the media stack's CI, the CI
+that already runs them to record their claims, before the version that writes them
+ships (`REPO-R93`). lemonfiber writes the posture declared and refuses nothing at run
+time on account of it (`ARCH-R250`).
+
+`mem_limit_mib` is a ceiling and `memory_mib` an estimate, and they are two fields
+because they answer two questions (`ARCH-R235`). The estimate is summed into what a form
+would need and is never enforced: a figure that fits a media server idling would kill
+it transcoding. The ceiling is written as the container's limit, for a service whose
+upper bound is part of what makes it safe, such as one that answers a household page
+and must not be able to exhaust the machine.
+
+### Inside another service's network — `network.via`
+
+```toml
+network = { via = "network.egress-guard" }
+```
+
+Some services must have no network of their own. A torrent client inside the egress
+guard's network namespace loses connectivity when the tunnel drops, rather than falling
+back to the home address (`C2-R12`). `network.via` asks for that, by capability
+(`ARCH-R236`):
+
+- the service is written into the network namespace of the service that holds the
+  tunnel: the filler, or where an adapter fills the capability, the upstream that adapter
+  fronts, which takes the `egress-guard` shape. It has no network of its own;
+- it starts only once that service reports healthy, which is the one start-order edge
+  the format writes;
+- the ports it declares are published on that service's entry, on its own tier, since a
+  container with no network of its own publishes nothing;
+- it is an ask of the capability, settled, shown and counted as every ask is, so choosing
+  another egress guard moves the service inside the one chosen.
+
+The capabilities a service may take `via` are a closed set, and it holds
+`network.egress-guard` alone. A service may not take `via` a capability it provides.
+Starting the service starts the capability's filler first and waits until it is healthy,
+whatever profile the filler sits in. That is the one start-order edge allowed to cross a
+profile (`B1-R14`), because the client and the guard are two plugins and so two profiles.
+
+The client never learns the forwarded port from the guard itself: the guard's filler
+reports it over `network.egress-guard`, and the core sets it on the client over
+`download.torrent` ([capability-contracts](capability-contracts.md#the-forwarded-port),
+`ARCH-R251`). No script is mounted into the guard.
+
+### Shapes — the only route to a device or a privilege
+
+| Shape | Written as | Who may declare it |
+|-------|------------|--------------------|
+| `egress-guard` | `NET_ADMIN` added, and the `/dev/net/tun` device | The upstream an adapter of the same plugin fronts, where that adapter speaks `network.egress-guard` (`F14-R12`); in the stack, the service that provides `network.egress-guard` |
+| `render` | The host's `/dev/dri` device, and the group that owns it on the host added to the container's groups | A service that provides `media.serve`, or the upstream an adapter of the same plugin fronts, where that adapter speaks it |
+
+A shape is a name, never a list: no manifest names a kernel capability, a device or a
+group (`ARCH-R237`). The render group is read from the host's device rather than
+declared, because its id differs from machine to machine and a manifest naming one
+would be naming a number it cannot know. Where the host has no `/dev/dri`, as under
+Docker Desktop or on a machine without a GPU, `render` is written as nothing and the
+reading says the service runs without hardware transcoding.
+
+The reading names every service taking a shape and what the shape gives it, and the
+operator approves each apart from the offer, written `<shape>@<service>` (`F14-R21`,
+`ARCH-R238`).
 
 ### `provides` — what it can do, in the vocabulary
 
@@ -334,18 +603,19 @@ declaring it is refused, naming the value and the four that are available.
 
 ### The fields that are absent, and why
 
-These exist in `stack.toml` and are **not** part of a plugin's vocabulary. A
-manifest carrying one is refused by name (`ARCH-R84`), rather than having it
-ignored:
+Some of these are fields `stack.toml` carries for the stack alone, and the rest are what
+a Compose entry could say and the model does not. A manifest carrying one is refused by
+name (`ARCH-R84`), rather than having it ignored:
 
 | Field | Why a plugin may not declare it |
 |-------|--------------------------------|
-| `grants` | Kernel capabilities, by name. A manifest never names a capability or a device: the egress guard's upstream declares [`shape`](#service--what-runs) instead, a shape lemonfiber writes, so nothing a plugin writes can widen what it is given. |
-| `depends_on` | The bundled stack contains exactly one cross-service dependency (`B1-R14`), and it is the one that keeps torrent traffic inside the tunnel. A plugin introducing an ordering edge between services it does not own is a source of failures nobody can attribute. |
+| `grants` | Kernel capabilities, by name. No manifest, the stack's included, names a capability, a device or a group: a service that needs one declares a [shape](#shapes--the-only-route-to-a-device-or-a-privilege), which lemonfiber writes, so nothing a manifest writes can widen what it is given. |
+| `depends_on` | An ordering edge, by name. The one edge the format writes is [`network.via`](#inside-another-services-network--networkvia)'s, to whatever fills the capability it names, because a container inside another's network cannot start before that network exists; it is the edge that keeps torrent traffic inside the tunnel (`B1-R14`). Any other edge between services is a source of failures nobody can attribute, and one naming a service is a link by name. |
 | `[[wiring]]` | The stack manifest's array of [links between its own services](stack-manifest.md#wiring--the-link-between-two-services-and-which-of-them-it-names) — `by`, `asks`, `filled_by`, `to`: who asks whom for what. **Not the [`[[wiring]]`](#wiring--how-the-stacks-own-services-reach-one-service) below**, which is spelled the same and says something else: `hostname`, `dashboard_group` and `service`, naming where lemonfiber puts *this* plugin's service on the proxy and the dashboard. One is a link between two services; the other is one service's own address. Since `ARCH-R127` made the plugin's a list too, the spelling no longer tells them apart and the file it is written in is what does. A plugin declares what it can do in `provides`, is asked for by whatever already asks, and asks in [`[[ask]]`](#ask--what-a-plugins-service-asks-for), by capability only. In particular it cannot introduce a **by-name** link, which is `F4-R12`'s third clause: a by-name wiring is the operator's exception to make and a plugin naming another service is reaching into wiring it does not own. |
 | `host_managed` | Native-mode lifecycle is the operating system's (`B2-R15`). A plugin cannot install a system service. |
 | `profile` | Assigned, not declared — see below. |
-| `environment` | Arbitrary variables into a container lemonfiber generates. The two things an image is usually told this way are where its data lives and where its library is, and both are declarations here — `config_path` and `media_types` — checked and bounded. A free-form pair is neither, and is how a plugin would configure its way past what the format says it does. |
+| `environment` | Free-form variables. A free-form pair is how a manifest would configure its way past what the format says it does, and a value carrying `${…}` would read the stack's environment file, credentials included. A service's environment is [`env`](#environment--four-kinds-of-value) instead, where every value is one of four typed kinds and nothing is interpolated. |
+| `ports`, `volumes`, `networks`, `network_mode`, `devices`, `cap_add`, `user`, `privileged`, `entrypoint`, `command` | Compose's own keys. Each is what lemonfiber writes from the typed fields above or never writes at all, and a manifest naming one is naming the output rather than declaring the service. |
 | `last_release` | An abandonment signal maintained by the people reviewing the bundled pins (`F2-R14`). Self-reported by a plugin it would signal nothing. |
 
 ## What lemonfiber writes
@@ -360,36 +630,86 @@ The core writes that profile as `plugin-<id>` and adds it to no form's closure: 
 install starts it alone, a removal takes it down alone, and `lemonfiber up <form>`
 names only the profiles the stack's own forms declare. `0.18.0` locks `ARCH-R96`.
 
-From the declaration above, lemonfiber generates:
+From the declarations of every service, the stack's and every plugin's, lemonfiber
+generates one Compose project (`ARCH-R224`). Nothing in it is read from a file somebody
+wrote: there is no fragment, no shared template and no overlay. For the Plex
+declaration above, the entry is:
 
 ```yaml
 plex:
-  extends:
-    file: compose/_common.yml
-    service: defaults
   image: docker.io/plexinc/pms-docker@sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
   profiles: [plugin-plex]
+  restart: unless-stopped
+  environment:
+    TZ: ${TZ}
+    PLEX_CLAIM: ""
   ports: ["${LAN_BIND}:32400:32400"]
   volumes:
-    - ${DATA_ROOT:-./data}:/data
+    - ${DATA_ROOT}:/data
     - ./config/plex:/config
+    - ./config/plex/transcode:/transcode
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID, KILL]
+  devices: ["/dev/dri:/dev/dri"]
+  group_add: ["${RENDER_GID}"]
+  pids_limit: 1024
 ```
 
-`./config/plex:/config` is the default target. A manifest declaring
-`config_path = "/app/data"` gets `./config/plex:/app/data` — the same one
-directory, the same source lemonfiber chose, mounted where the image actually
-reads it.
+Every line comes from one place:
 
-That is the whole of it, and the whole of what it can ever be, apart from the
-stack's own networks a stand-in joins, which [follow from the stack](#the-networks-it-joins)
-rather than from anything the plugin says. There is no field in `plugin.toml` that
-adds a line to this, which is what makes "what can this plugin reach" answerable from
-the format rather than from the instance.
+| Line | From |
+|------|------|
+| `image` | `image` joined to `digest`; the tag is never written |
+| `profiles` | `plugin-<id>`, or a stack service's own `profile` |
+| `restart`, `TZ` | Every entry alike |
+| `PUID`, `PGID`, `user` | [`user_mode`](#who-it-runs-as-and-how-tightly-it-is-held) |
+| The rest of `environment` | [`env`](#environment--four-kinds-of-value), every value literal |
+| `env_file` | The service's own secrets file, where `env` names a `secret` |
+| `ports` | `port`, `listens` and `publish`, on the interface the tier renders; for a service taking `via`, on its filler's entry |
+| `volumes` | The data mount where `takes_data`, from the [storage setting](#the-data-root--one-setting-every-data-mount); the configuration directory at `config_path`; each `mount` |
+| `tmpfs` | `tmpfs` |
+| `security_opt`, `cap_drop`, `cap_add`, `pids_limit`, `read_only` | `posture`, with what the shape adds |
+| `mem_limit` | `mem_limit_mib` |
+| `devices`, `group_add` | `shape` |
+| `network_mode`, `depends_on` | [`network.via`](#inside-another-services-network--networkvia) |
+| `networks` | [Derived](#the-networks), never declared |
 
-lemonfiber also writes the stack's own wiring for it, from the same declaration
-and by the same argument — a plugin that supplies no Compose entry supplies no
-proxy stanza and no dashboard entry either, and gets both written for it. For a
-`lan` service:
+The only substitutions an entry carries are the variables lemonfiber writes itself: the
+interface a tier renders, the data root, the operator's uid and gid, the time zone and
+the render group. Everything a manifest supplied is written as a literal.
+
+That is the whole of it. There is no field in `plugin.toml` that adds a line outside
+that table, which is what makes "what can this service reach" answerable from the
+format rather than from the instance; only the operator's own overlay changes it, and
+it is shown as unvetted wherever it does. A service that is native-mode on the host
+(`host_managed`) gets no entry.
+
+The project is lemonfiber's output, not a file to edit: a service changes by changing
+its manifest. An edit made to the generated project is a locally modified materialised
+file, detected by content and never overwritten without a diff and confirmation
+(`F1-R4`).
+
+### The operator's overlay
+
+An operator whose service needs something the model cannot say writes it in an overlay
+of their own: one Compose file on their own machine, in lemonfiber's configuration
+directory, which lemonfiber merges last, over the project it generated (`ARCH-R252`).
+This is the escape hatch ADR-0021 §6 described, kept on the same terms: it is the
+operator taking responsibility for their own machine with their eyes open, and never a
+route a manifest can take on anybody's behalf.
+
+- **It is never a plugin's.** No manifest, catalogue entry or bundle supplies one, and
+  nothing lemonfiber installs writes to it (`ARCH-R85`).
+- **It is unvetted, and said so.** The doctor and every rehearsal name the overlay and
+  each service it changes as unvetted, because nothing in it was held to the model.
+- **It is journalled.** A change to it is recorded by content when lemonfiber next writes
+  or starts the project, so what the machine ran is answerable afterwards.
+
+lemonfiber also writes the stack's own wiring for a plugin's service, from the same
+declaration and by the same argument — a plugin that supplies no Compose entry supplies
+no proxy stanza and no dashboard entry either, and gets both written for it. The proxy
+reaches a service at its `listens` port. For a `lan` service:
 
 ```caddyfile
 comics.{$DOMAIN} {
@@ -416,41 +736,74 @@ loopback service would refuse something lemonfiber accepts, which is why
 that does exist is narrower than this paragraph once said: a `loopback` service
 given a `wiring.hostname` is refused, naming the service and the tier.
 
-`defaults` rather than `rootless`: the `PUID`/`PGID` pair is a LinuxServer.io
-convention, and setting it on an image that ignores it is a silent no-op that
-reads like a security control. Which template a plugin's service extends follows
-from whether it declares it honours the pair, the same question the bundled
-stack answers per service.
+### The data root — one setting, every data mount
 
-The `${DATA_ROOT}:/data` mount appears only where `takes_data` is `true`, and
-when it appears it is the **single** data mount — [ADR-0006](../../00-overview/decisions/0006-single-data-mount.md)'s
-rule holds for a plugin by construction rather than by review, because there is
-no second mount to declare.
+The data mount is written from one operator setting, the same for every service that
+takes data (`ARCH-R240`):
 
-### The networks it joins
+| Setting | The data mount |
+|---------|----------------|
+| `bind`, with a host path | That path, bound at `/data` |
+| `nfs`, with `server` and `export` | One NFS volume the project shares, mounted at `/data`, with mount options lemonfiber fixes |
 
-A plugin's service that stands in for nothing is on the stack's default network, as
-every service that names none is. A plugin's service that is the settled filler of one
-of the stack's asks — the service the operator chose for an ask one service answers, or
-a claimant of an ask every claimant answers — joins exactly the networks of the stack
-service it stands in for: the one that speaks the adapter it names, provides the
-capability asked for, and, where that service files media, files a medium it files too.
-Those are the networks whatever asked reaches the stack's own over, and the stand-in is
-reached over the same ones (`F9-R6`). It joins the default network only where that
-stack service is on it, so a stand-in for a service the stack keeps off the default
-network is kept off it too.
+[ADR-0006](../../00-overview/decisions/0006-single-data-mount.md)'s rule holds by
+construction: each service has one data mount and no second to declare, and the
+setting decides where it comes from, never how many there are. The setting is a
+location, not a storage mode: what that location can do is still found by making a
+hardlink there (`C5-R2`).
 
-A network on which every other service reaches the stack service by name is not
-joined: such a link is about that one service, never about whatever stands in for it,
-so a stand-in would never be reached over it and would only gain a route to what is
-there. The networks are read from the stack's own compose files, never from a plugin's
-document, and a plugin has no field in which to name one.
+The server is a host name or an address and the export an absolute path. Either is
+refused, naming it, where it holds a comma, whitespace or anything else that would
+change the mount options written. There is no overlay: a service added later takes the
+same mount, which a hand-kept list of the services that take data did not guarantee.
 
-Choosing which service fills an ask changes what the affected plugins' services join,
-so the choice rewrites those plugins' Compose documents in the same journalled change
-as the setting, and a choice and the reach it grants move together. A plugin that
-claims what the stack's own service still answers joins nothing beyond the default
-network.
+### The networks
+
+Every network in the project, and every service's place on it, is derived by
+lemonfiber from the settled asks between capabilities and the stack's links by name
+(`ARCH-R241`). There is no shared default network: two services share a network only
+where one of the rules below joins them, so every link is one the wiring states. No
+manifest, first-party or third-party, names a network, a subnet or an address, and none
+has a field in which to.
+
+- **An ask is a network.** Each settled ask is a network of its own, joining the asking
+  service and the service the ask reaches — the adapter, or the upstream where the ask is
+  `native` — with no route off the host. A link by name joins the service it names, and
+  never a service standing in for it (`ARCH-R242`).
+- **A hostname and a panel are asks.** A service the proxy routes a hostname to asks
+  `proxy.front`, and one whose dashboard panel reads it asks `dashboard.show`, so the
+  proxy and the dashboard reach exactly the services they front or show.
+- **An adapter and its upstream are a private network.** Every adapter and the service
+  it `fronts` share a network nothing else joins, with no route off the host. The core
+  reaches the adapter at its contract port, published on the loopback interface, which
+  is the third member `F14-R5` names (`ARCH-R243`).
+- **A service's own network.** A service that publishes a port, or that is not confined,
+  is on one network of its own carrying its ports and its route off the host. Where it is
+  confined, that network translates no address off the host, so its port answers and it
+  cannot reach out, and a confined service publishing nothing has none.
+- **A service taking `via`** has no network: it is inside its filler's, and an ask it
+  fills joins the service it is inside.
+
+So a link the stack relies on is one its wiring states. Two the shipped stack made over
+its shared network and never wrote down are asks: Prowlarr asks `indexer.proxy` of the
+service that gets past an indexer's bot protection, and Bindery asks `download.usenet`
+and `download.torrent` of the download clients, as the other curators do.
+
+**Two addresses are fixed, because two trust decisions rest on them.** The media server
+believes which client a request came from only where the guarded door says so, and the
+door believes it only where the proxy says so. So lemonfiber fixes the address of the
+`stream.guard` filler on the network of its ask of `media.serve`, and the addresses of it
+and of the `proxy.front` filler on the network of its ask of `proxy.front`, each from a
+subnet lemonfiber holds in which the engine assigns no other address. It tells the media
+server the guard's address as the one proxy it trusts, and the guard the proxy's
+(`ARCH-R244`).
+
+A plugin's service is placed by the same rules: a filler of an ask is on the network
+that ask derives, whatever installed it, so a stand-in is reached over exactly the
+networks the part it replaced was reached over and gains a route to nothing else
+(`F9-R6`). Choosing which service fills an ask moves what that ask's network joins, so
+the choice regenerates the project in the same journalled change as the setting, and a
+choice and the reach it grants move together (`ARCH-R245`).
 
 ## `[[claim]]` — the probes a core name is demonstrated by
 
@@ -510,6 +863,7 @@ each       = true               # every service that fills it, not one
 | `service` | string | | The plugin's own service that asks. Required where the plugin declares more than one service |
 | `capability` | string | ✔ | A core name the published vocabulary carries |
 | `each` | bool | | `true` to reach every service that fills it. Default `false`: one filler, settled by the operator's choice or the stack's own (`F14-R23`) |
+| `native` | string | | The upstream's own API the service talks in, as the upstream declares it in its `native`. The ask then reaches the upstream the filler's adapter `fronts` rather than the adapter (`ARCH-R253`) |
 
 The stack's `[[wiring]]` has `filled_by`, `to` and `why`; an ask has none of them. A link by
 name is the operator's exception (`F4-R12`), and a manifest has nowhere to write one
@@ -699,6 +1053,12 @@ why  = "Add its own entry to the bundled dashboard"
 `F3-R17` fails validation on a secret captured but not declared, and `F3-R18` on
 a bundled thing changed but not declared. Both need somewhere to declare one.
 
+A secret a service's [`env`](#environment--four-kinds-of-value) names is declared here
+too. Its value is one a recipe captures, a credential `F14-R18` or `F14-R20` lets cross
+to the plugin, or, where neither supplies it, one the operator enters at install without
+it being shown. It is held in the secret store and reaches the container only through the
+service's own secrets file (`ARCH-R247`).
+
 **What counts as capturing, and what counts as changing.** A recipe is
 declarable before it is runnable and its block is where both verbs are written,
 so both rules are decided by reading the manifest rather than by watching one
@@ -816,7 +1176,8 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | No unrecognised enum value | Value named, with the values available |
 | `plugin.id` not already installed | Both origins named (`F5-R12`) |
 | `service.id` collides with no other service in this manifest, the stack, or an installed plugin | Both named |
-| `service.port` is not a port the stack already publishes | Port and both services named |
+| No port the service publishes (`port`, each `publish.port`, and a `via` service's on its filler) is one another service publishes | Port and both services named |
+| `publish` only where `port` is | Service named |
 | `wiring.hostname` is not a name the stack's own proxy is written to answer on | Name given |
 | At most one service declares a given core capability | Capability and both services named |
 | `digest` present and well-formed | Service named |
@@ -826,6 +1187,19 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | Every `forms` entry names a declared form | Both named |
 | Every entry in `requires.capabilities` is offered | Capability named, never a version |
 | `config_path` is one absolute path, not `/`, and outside the data root | Path named, with what is permitted |
+| Every `mount.from` is a relative path inside the service's own configuration directory, with no `..` and no interpolation | Mount named, with what is permitted |
+| Every `mount.to` and `tmpfs` entry is an absolute path, not `/`, outside `/data` where the service takes data, and no other mount's target | Mount named, with what is permitted |
+| Every `env` name is a variable's name and none of `TZ`, `PUID` and `PGID` | Variable named |
+| Every `env` value is a constant, `{ setting, default }`, `{ url_of }` (with `files` and `native` only) or `{ secret }`, and nothing else | Variable named, with the four kinds |
+| Every `{ secret }` names a `[[secret]]` the manifest declares | Variable and secret named |
+| Every `files` names a medium in `stack.toml`'s vocabulary, and only on `url_of` | Variable named, with the media |
+| Every `setting` is one the core publishes or in the plugin's own namespace | Setting named, with the namespace required |
+| Every `url_of` names a core capability its service does not ask `each` of, and is held to every rule an `[[ask]]` is | Variable and capability named |
+| `user_mode` is `uid` where the service speaks a contract or is `confined` | Service named |
+| A `confined` service declares no `shape` | Service named |
+| `memory_mib` and `mem_limit_mib` above zero where declared | Service named |
+| `network.via` names a capability in its closed set, one the service does not provide | Service and capability named, with the set |
+| `shape` is declared only where that shape permits | `service <id>.shape` named |
 | Every `provides` entry is a published core name or namespaced with the plugin's id | Capability named, with the namespace required |
 | Every `[[proof]]` carries `id`, `title`, `request`, `expect` and `why` | Proof and field named |
 | At least one `[[proof]]` constrains the body rather than only the status | Every status-only proof named |
@@ -901,9 +1275,9 @@ unreadable.
 | **ARCH-R83** | A plugin MUST be described by a single `plugin.toml` at the root of its source, and lemonfiber MUST act on nothing about a plugin that is not declared there. |
 | **ARCH-R84** | A plugin's service MUST be declared in the stack manifest's service vocabulary restricted to the fields this contract permits, and a field outside that set MUST be refused by name rather than ignored. |
 | **ARCH-R85** | lemonfiber MUST generate the Compose entry for a plugin's service, and MUST NOT accept a Compose fragment, overlay, patch or merge key from a plugin. |
-| **ARCH-R86** | The generated entry MUST extend the same shared template the bundled services extend, and MUST carry no mount other than the single data mount and the service's own configuration directory. |
-| **ARCH-R87** | The manifest MUST have no field by which a plugin could express a kernel capability, a device, a network mode, a privileged container, a user override, or an entrypoint or command, other than the one `shape` field of `F14-R12`, which names a shape lemonfiber writes and MUST NOT carry a capability or a device itself. |
-| **ARCH-R88** | The published address of a plugin's service MUST be assigned by lemonfiber from the declared binding tier, and a plugin MUST NOT be able to declare an address, an interface or a port mapping. |
+| **ARCH-R86** | *Superseded by [ARCH-R224](plugin-manifest.md) and [ARCH-R227](plugin-manifest.md): every entry is written from the one model and extends no template, and a service mounts its own directory and what lies inside it besides the data mount. The number is not reused.* |
+| **ARCH-R87** | *Superseded by [ARCH-R239](plugin-manifest.md): no field reaches the engine's socket, a privileged container, a host namespace, an entrypoint or a command, and a capability, a device or a group comes only from a shape, while `user_mode` and `network.via` are typed fields of the model. The number is not reused.* |
+| **ARCH-R88** | *Superseded by [ARCH-R226](plugin-manifest.md): the interface is lemonfiber's from the tier, and the host and container ports are the manifest's. The number is not reused.* |
 | **ARCH-R89** | A plugin MUST declare the capabilities it requires of lemonfiber by name, and the manifest MUST NOT carry a minimum lemonfiber version. |
 | **ARCH-R90** | An unmet requirement MUST be refused by naming the capability, and MUST NOT be refused by naming a version. |
 | **ARCH-R91** | A declaration naming something this lemonfiber does not recognise MUST be refused, naming what was not recognised and what is available, and MUST NOT be ignored, skipped or tolerated. |
@@ -914,7 +1288,7 @@ unreadable.
 | **ARCH-R96** | A plugin's service MUST be placed in a profile of its own, added to the closure of each form the manifest declares, and naming a form the stack does not declare MUST be refused by name. |
 | **ARCH-R97** | A plugin MUST NOT declare a criticality of `critical`, and one that does MUST be refused naming the value and those available. |
 | **ARCH-R100** | A plugin's service MUST be able to name the path inside its container at which its one configuration directory is mounted; that path MUST be validated as a single absolute path that is neither the root nor within the data root, and naming it MUST NOT change the number of mounts the generated entry carries. |
-| **ARCH-R101** | The manifest MUST have no field by which a plugin could set an environment variable on the container lemonfiber generates for it. |
+| **ARCH-R101** | *Superseded by [ARCH-R229](plugin-manifest.md): a service's environment is typed, four kinds of value and nothing else. The number is not reused.* |
 | **ARCH-R102** | A plugin's service MUST declare the capabilities it claims in the manifest, a claim outside the published core vocabulary MUST be namespaced with the plugin's id, and a claim naming neither MUST be refused by name. |
 | **ARCH-R103** | lemonfiber MUST generate the stack's own proxy and dashboard wiring for a plugin's service from what the manifest declares, on the same terms as a bundled service in the same binding tier, and MUST NOT accept a proxy stanza, dashboard entry or any other wiring fragment from a plugin. |
 | **ARCH-R104** | A plugin MUST NOT be able to obtain a proxy hostname for a service bound to loopback, and the binding tier alone MUST decide whether a service is reachable by name. |
@@ -933,11 +1307,39 @@ unreadable.
 | **ARCH-R130** | A `[[proof]]` and a `doctor.check` row MUST be able to carry `expected`, a list of entries each naming a recording, the verdict `fails`, the constraint of its `expect` that fails there (with its place where the constraint is key-wise), and a reason. An entry missing any of them, naming a verdict other than `fails` or a recording that does not exist, naming a constraint or place its assertion's `expect` does not make, or naming a recording another entry of the same assertion names MUST be refused by name, and a `[[claim.probe]]` MUST have no such field. |
 | **ARCH-R143** | The set of adapters a plugin's service may name MUST be published as `contract/adapters.json`, generated from the adapter kinds and key sources lemonfiber implements, and regenerating it MUST produce no diff. |
 | **ARCH-R144** | A service declaring `api`, bundled or a plugin's, MUST declare `listens`, the port it answers on inside the stack's network, and lemonfiber MUST reach it at that port rather than at its published port or at a port named in lemonfiber's source. |
-| **ARCH-R154** | A plugin's service MUST join a network of the stack's only where it is the settled filler of an ask that a stack service on that network fills, speaks the adapter that service speaks and, where that service files media, files one of its media; it MUST NOT join a network on which every other service reaches that stack service by name, and the networks MUST be read from the stack's own compose files and never from a plugin's document. |
-| **ARCH-R155** | Choosing which service fills an ask MUST rewrite, in the same journalled change as the setting, the Compose document of every installed plugin whose service's networks the choice changes. |
+| **ARCH-R154** | *Superseded by [ARCH-R241](plugin-manifest.md)–[ARCH-R243](plugin-manifest.md): the networks are derived from the settled asks, and no compose file is read for them. The number is not reused.* |
+| **ARCH-R155** | *Superseded by [ARCH-R245](plugin-manifest.md): a choice of filler regenerates the one project rather than each plugin's document. The number is not reused.* |
 | **ARCH-R216** | A service that speaks a contract MUST name in `fronts` one other service of the same plugin that speaks none, and a manifest where it names none, itself, a service the plugin does not declare or one that speaks a contract MUST be refused by name. |
 | **ARCH-R221** | `native` MUST be one lowercase word and MUST be declared only on a service another service of the same plugin `fronts`, and a manifest declaring it anywhere else MUST be refused, naming the service. |
 | **ARCH-R222** | `replaces` MUST name a service the shipped stack declares and MUST equal the id of the service declaring it; that service MAY take the named service's id, port and hostname, every other service MUST still be refused any of the three, and a manifest declaring `replaces` anywhere else MUST be refused, naming `service <id>.replaces`. |
+| **ARCH-R224** | lemonfiber MUST write the Compose entry of every service it runs, the stack's own and every plugin's, from the one typed service model, as one generated project, and MUST NOT read a Compose file, fragment, template or overlay from the stack or from a plugin. |
+| **ARCH-R225** | A first-party plugin's service, a third-party plugin's service and a stack service MUST be declared in the same closed set of container fields, with the same types and the same validation, and whether a plugin is first-party MUST NOT change which of those fields it may declare or how its entry is written. |
+| **ARCH-R226** | A service MUST be published at `port` to its `listens` port, or to `port` itself where it declares none, and at each `[[service.publish]]` entry alike, every one on the interface its `bind` tier renders; a port another service publishes MUST be refused, naming the port and both services; and the manifest MUST have no field naming an address or an interface. |
+| **ARCH-R227** | A service MAY mount its configuration directory read-only, MAY declare further mounts whose source is a relative path inside that directory, read-only where it says so, and MAY declare `tmpfs` paths; a source that is absolute, holds `..` or interpolates, and a target that is not absolute, is `/`, lies within `/data` on a service that takes data or is another of its mounts' targets, MUST be refused naming the mount, and the manifest MUST have no field by which a mount reaches any other path on the host. |
+| **ARCH-R228** | A service's state MUST live under its own configuration directory, and lemonfiber MUST NOT write a volume the engine keeps for a service; the in-place move of a part whose entry kept state in such a volume MUST copy it into the service's directory once, mount it from there, and leave the volume as it was. |
+| **ARCH-R229** | A service's environment MUST be declared in `[service.env]`, every value a constant, an operator setting with a default, the URL of a capability's filler, or a declared secret, and nothing else; a value of any other kind, and a manifest naming `TZ`, `PUID` or `PGID` there, MUST be refused naming the variable. |
+| **ARCH-R230** | lemonfiber MUST write every constant, every setting's value and every secret so that Compose substitutes nothing in it, and MUST NOT write any value a manifest declares as a reference to the stack's environment file. |
+| **ARCH-R231** | A setting MUST be one the core publishes or one in the declaring plugin's own namespace, a stack service's own id for a stack service, and any other MUST be refused naming it; lemonfiber MUST write the operator's value where one is recorded and the declared default otherwise. |
+| **ARCH-R232** | `{ url_of = "<capability>" }` MUST name a core capability and MUST be an ask of one filler, narrowed by `files` to the filler that files that medium where it is given, one ask with every other variable or `[[ask]]` of the same service naming that capability and medium, held to every rule an `[[ask]]` is held to and settled, shown and counted as one, and a variable naming a capability its service asks `each` of MUST be refused; lemonfiber MUST write it as the URL of the service the ask reaches at the port that service listens on, and MUST leave the variable out, reporting the ask unfilled, while nothing fills it. |
+| **ARCH-R233** | `user_mode` MUST be `image`, `puid-env` or `uid`, written respectively as no user, as `PUID` and `PGID` set to the operator's uid and gid, and as the operator's uid and gid for the container's user; a service that speaks a contract or whose posture is `confined` MUST be `uid`, and one that is not MUST be refused naming the service. |
+| **ARCH-R234** | Every service's entry, the stack's own and every plugin's, MUST be written with `posture = "standard"` unless it declares `confined`: gaining no privilege after it starts, holding no kernel capability but `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `SETGID`, `SETUID`, `KILL` and those its shape adds, and holding at most 1024 processes; a service whose `posture` is `confined` MUST in addition be written with a read-only root, no kernel capability at all and the `uid` user, and a confined service declaring a shape MUST be refused naming the service. |
+| **ARCH-R235** | `mem_limit_mib` MUST be written as the container's memory limit, and `memory_mib` MUST be an estimate that is never written as a limit. |
+| **ARCH-R236** | `network = { via = "<capability>" }` MUST name a capability from a closed set holding `network.egress-guard` alone and not one the service provides; lemonfiber MUST write the service into the network namespace of the service that fills it, or of the upstream that filler's adapter fronts where an adapter fills it, MUST start that filler first and start the service only once the filler reports healthy, whatever profile the filler sits in, MUST publish the service's ports on the filler's entry on the service's own tier, MUST give the service no network of its own, and MUST settle, show and count it as an ask of that capability. |
+| **ARCH-R237** | A device, a group or an added kernel capability MUST come only from a named shape in a closed set holding `egress-guard` and `render`; `render` MUST be declared only by a service that provides `media.serve` or by the upstream an adapter of the same plugin fronts where that adapter speaks it, refused naming `service <id>.shape` elsewhere, and MUST be written as the host's `/dev/dri` device with the group that owns it on the host added, or as nothing where the host has no `/dev/dri`, which the reading MUST say. |
+| **ARCH-R238** | An install or update whose plugin takes any shape MUST state in its reading each service taking it with what the shape gives, and MUST NOT act unless the operator approved that shape for that service apart from the offer, written `<shape>@<service>`, as `F14-R21` holds for the egress guard's. |
+| **ARCH-R239** | The manifest MUST have no field by which a service could mount the engine's socket, run privileged, join the host's network, PID or IPC namespace, name an entrypoint or a command, or obtain a kernel capability, a device or a group other than through a shape. |
+| **ARCH-R240** | The data root MUST be one operator setting, `bind` with a host path or `nfs` with a server and an export, and lemonfiber MUST write the single data mount of every service that takes data from it and from nothing else; a server that is not a host name or an address, and an export that is not an absolute path or holds a character that would change the mount options written, MUST be refused naming it. |
+| **ARCH-R241** | lemonfiber MUST derive every network of the project and every service's place on it from the settled asks between capabilities and the stack's links by name, MUST write no network shared by services that no rule of the derivation joins, and the manifest MUST have no field naming a network, a subnet or an address. |
+| **ARCH-R242** | Each settled ask MUST be a network of its own joining the asking service and the service the ask reaches, with no route off the host; a service given a proxy hostname MUST ask `proxy.front` and one whose dashboard panel reads it `dashboard.show`; an ask filled by a service taking `via` MUST join the service it is inside; and a link by name MUST join the service it names and never a service standing in for it. |
+| **ARCH-R243** | Every adapter and the service it fronts MUST share a network no other service joins, with no route off the host, and the core MUST reach the adapter at its contract port published on the loopback interface; a service that publishes a port or is not confined MUST be on a network of its own carrying its ports and its route off the host, translating no address off the host where it is confined. |
+| **ARCH-R244** | lemonfiber MUST fix the address of the `stream.guard` filler on the network of its ask of `media.serve`, and the addresses of it and of the `proxy.front` filler on the network of its ask of `proxy.front`, each from a subnet lemonfiber holds in which the engine assigns no other address, and MUST tell the media server's filler the guard's address as the one proxy it trusts and the guard the proxy's. |
+| **ARCH-R245** | Choosing which service fills an ask MUST regenerate the project in the same journalled change as the setting. |
+| **ARCH-R247** | `{ secret = "<name>" }` MUST name a `[[secret]]` the manifest declares, refused naming the variable otherwise; lemonfiber MUST write its value only to an environment file of the service's own readable by its owner alone (`0600`), named by the entry, MUST NOT write it into the project, and MUST show the variable and the secret's name, never its value, in every rehearsal, reading and diagnostic. |
+| **ARCH-R248** | A setting MUST live in the core's settings store and a secret in the secret store; the operator MUST be able to read and change a setting from the command line, the web API and the companion's operator screens alike, and each change MUST be journalled and MUST regenerate every entry that reads it. |
+| **ARCH-R249** | The in-place move that brings a part's first-party plugin MUST read the stack's environment file once, file each value the part read from it under the plugin's own setting or secret, journal each, and lemonfiber MUST NOT read the environment file for that part again. |
+| **ARCH-R250** | A plugin's CI MUST run each of its images under the posture its manifest declares, `standard` included, and a manifest MAY declare `posture = "confined"` only where that run passes under it; lemonfiber MUST write the posture a manifest declares and MUST NOT refuse to install, update or start a service on account of its posture. |
+| **ARCH-R252** | lemonfiber MUST merge one operator-written overlay from its own configuration directory last, over the project it generates; MUST NOT accept or write an overlay from a plugin, a catalogue or the bundle; MUST name the overlay and every service it changes as unvetted in the doctor and in every rehearsal; and MUST journal each change to it, by content, when it next writes or starts the project. |
+| **ARCH-R253** | An ask and a `url_of` MUST reach the service that speaks the capability's contract, the filler itself where the filler speaks none, and the upstream that filler's adapter fronts only where the asker names that upstream's declared API in `native`; an ask naming an API the filler's upstream does not declare MUST be reported unfilled, naming the API. |
 
 ## Related
 
