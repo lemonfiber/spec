@@ -379,7 +379,7 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "building",
+      "maturity": "built",
       "shipped": null,
       "milestones": ["M14"],
       "milestone": "M14",

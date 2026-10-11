@@ -113,13 +113,13 @@ asks for them. Their shapes are the generated documents' alone.
 
 | Capability | Operations |
 |---|---|
-| `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; allow; claimable; suspend; sessions for an account; whether devices sign in by code |
+| `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; the country its ratings are named for; allow; claimable; suspend; sessions for an account; whether devices sign in by code |
 | `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app |
 | `library.curate` | Identity; download clients (register, update, set a field, test, list); root folders (register, list); quality profiles; run a command; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck) |
 | `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; seeding and letting a completed download go (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add) |
 | `indexer.proxy` | Solve a challenge; whether it answers |
-| `request.intake` | Initialised; configure identity; answers; search a page of titles a member may ask for; ask on a member's behalf; requests; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices |
+| `request.intake` | Initialised; configure identity; answers; search a page of titles a member may ask for; what one title is and its certification in a country; ask on a member's behalf; requests; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices |
 | `subtitles.fetch` | Watching; watch |
 | `network.egress-guard` | Whether the tunnel is up; the forwarded port |
 | `proxy.front` | Apply a routing table (household names, upstreams, TLS mode and certificate files); the table it serves; reload |
