@@ -837,7 +837,7 @@ class EveryMintNamesWhatItUses(unittest.TestCase):
         for where, given in found:
             asked = {key: value for key, value in given.items() if key.startswith("permission-")}
             self.assertTrue(asked, where)
-            self.assertTrue(set(asked.values()) <= {"read", "write"}, where)
+            self.assertLessEqual(set(asked.values()), {"read", "write"}, where)
 
 
 if __name__ == "__main__":
