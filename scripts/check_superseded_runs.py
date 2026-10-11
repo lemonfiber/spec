@@ -46,15 +46,6 @@ HOME = "shared/concurrency.yml"
 #: The workflow that cancels a reusable workflow's superseded runs by the API.
 CANCELLER = "cancel-superseded.yml"
 
-#: Repositories whose findings are reported as warnings rather than refused.
-#: Each carries workflows without the group, and comes off this set once they
-#: carry it; the run says so when that is true.
-REPORTED = frozenset({
-    "homebrew-tap",
-    "website-docs.lemonfiber.app",
-    "website-lemonfiber.app",
-})
-
 #: The events a workflow can be started by that are neither a push nor a tag nor
 #: a pull request. A group of its own that cancels cannot reach a protected
 #: branch's run or a release's from a workflow started only by these.
@@ -293,24 +284,9 @@ def shared_names(read: dict, group: str) -> list[str]:
     ]
 
 
-def superseded(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str]:
-    """This repository's workflows against Q-R75, as problems for the shared-files run.
-
-    A repository in `REPORTED` has its findings printed as warnings and returns
-    none, so its checks stay as green as they were while what it carries is named
-    on every run.
-    """
+def superseded(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
+    """This repository's workflows against Q-R75, as problems for the shared-files run."""
     group, refusal = home(canonical)
     if refusal:
         return refusal
-    said = findings(repo, group)
-    if name not in REPORTED:
-        return said
-    for one in said:
-        print(f"::warning::{name} is reported here rather than refused: {one}")
-    if not said:
-        print(
-            f"::notice::{name} carries the group everywhere Q-R75 asks for it. Take "
-            f"it out of REPORTED in scripts/check_superseded_runs.py"
-        )
-    return []
+    return findings(repo, group)

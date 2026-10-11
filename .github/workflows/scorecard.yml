@@ -44,7 +44,7 @@ on:
   # policies that a commit rarely moves, and a run on every merge holds a runner
   # to publish the same number again (Q-R76).
   schedule:
-    - cron: "0 6 * * 1"
+    - cron: "14 6 * * 1"
 
 permissions:
   contents: read

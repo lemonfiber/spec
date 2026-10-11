@@ -10,28 +10,18 @@
 #
 # The pull request's code is never run. The checkout is read as data — the
 # changed paths, the tracker and `mirrors.json` — and the rules are spec's own
-# script, checked out from spec's main beside it.
+# script, checked out at the commit this workflow was called at.
 #
-# Both checks run in every repository in the org, so the explanation is called
-# from every repository too:
-#
-#     explain:
-#       permissions:
-#         contents: read
-#         pull-requests: write
-#       uses: lemonfiber/spec/.github/workflows/explain.yml@<sha> # main
-#
-# `pull-requests: write` is what lets it post and delete the comment. A caller
-# granting less than a reusable workflow asks for fails the whole run before any
-# job starts, so the block is not optional.
-#
-# The two jobs below reach `explain-check.yml` by relative path, which resolves
-# against this repository at the revision the caller pinned — not against the
-# calling repository, which has no copy of it and needs none.
+# Every other repository runs it as the `explain` group of `gates.yml`, which
+# scripts/gen_gates.py writes from this file; spec runs it as its own workflow.
+# The jobs below reach `explain-check.yml` by relative path, which resolves
+# against this repository at the revision the caller pinned.
 name: explain
 on:
   pull_request:
   workflow_call:
+permissions:
+  contents: read
 jobs:
   detect:
     runs-on: ubuntu-latest
