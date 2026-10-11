@@ -51,6 +51,10 @@ listed:
 | Update check | Determine if a newer lemonfiber exists | Yes — disableable |
 | IP echo service | Verify VPN egress ([C2](../c-trust/c2-vpn-verification.md)) | Yes — disables leak detection |
 | TRaSH guide source | Sync quality profiles | Yes — disables preset sync |
+| An indexer the operator names | Prove the indexer key with one search, at setup | Yes — the key is recorded unverified |
+| A Usenet provider the operator names | Prove the Usenet login over TLS, at setup | Yes — the login is recorded unverified |
+| Pushover or Pushbullet | Carry the reason a request was declined to the member who asked, where they told the request service to reach them ([D4](../d-content/d4-request-flow.md)) | Yes — passing the reason on is the operator's to do by hand |
+| The catalogue's poster address | Fetch the poster of a title a member's search found, from beneath the one address this build names, so the member's own device never reaches the catalogue ([D11](../d-content/d11-watching-what-the-house-holds.md)) | Yes — a search shows titles without pictures |
 | Plugin catalogue release | Resolve a plugin installed by name, through an index whose signature is checked ([F5](../f-extensibility/f5-plugin-catalogue.md)) | Yes — install from a named source instead |
 | A plugin's named git source | Fetch the revision being installed or updated, and ask whether it can still be reached when the operator lists plugins or runs the doctor | Yes — install from a local path instead |
 
