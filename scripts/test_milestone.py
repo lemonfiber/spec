@@ -129,7 +129,7 @@ class TheStepIsTheCommittedOne(Run):
         level down.
         """
         script = step_script()
-        self.assertIn("python3 .spec-tooling/scripts/pr_goals.py", script)
+        self.assertIn("python3 -E -s .spec-tooling/scripts/pr_goals.py", script)
         self.assertIn("milestone", script)
 
 

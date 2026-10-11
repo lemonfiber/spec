@@ -109,7 +109,7 @@ jobs:
           set -euo pipefail
           git diff --name-only "${BASE}...${HEAD}" > paths.txt
           { printf '%s\n' "$PR_BODY"; git log --format=%B "${BASE}..${HEAD}"; } > text.txt
-          assist() { python3 .spec-tooling/scripts/assist.py "$@"; }
+          assist() { python3 -E -s .spec-tooling/scripts/assist.py "$@"; }
           # Each answer can run to several lines, so each is written between
           # delimiters no answer can contain.
           emit() {

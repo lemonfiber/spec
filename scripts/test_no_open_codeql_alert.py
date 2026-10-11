@@ -426,5 +426,39 @@ class Invoked(unittest.TestCase):
         self.assertIn("rust/path-injection", said)
 
 
+class TheWorkflowRunsSpecsCopy(unittest.TestCase):
+    """`codeql-alerts.yml` decides with spec's gate, never with the copy a pull request carries."""
+
+    def setUp(self):
+        import yaml
+
+        path = HERE.parent / ".github" / "workflows" / "codeql-alerts.yml"
+        self.workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
+        self.job = self.workflow["jobs"]["alerts"]
+
+    def test_no_caller_names_the_script_that_runs(self):
+        self.assertNotIn("gate", self.workflow[True]["workflow_call"]["inputs"])
+
+    def test_a_consumer_runs_spec_s_gate_at_this_workflow_s_commit(self):
+        self.assertEqual(
+            self.job["env"]["GATE"],
+            "${{ github.repository == 'lemonfiber/spec' && 'shared/gates/no_open_codeql_alert.py'"
+            " || '.spec-tooling/shared/gates/no_open_codeql_alert.py' }}",
+        )
+        tooling = [s for s in self.job["steps"] if s.get("with", {}).get("path") == ".spec-tooling"]
+        self.assertEqual(len(tooling), 1)
+        self.assertEqual(tooling[0]["with"]["repository"], "lemonfiber/spec")
+        self.assertEqual(tooling[0]["with"]["ref"], "${{ job.workflow_sha }}")
+        self.assertEqual(tooling[0]["if"], "github.repository != 'lemonfiber/spec'")
+
+    def test_every_step_runs_the_gate_isolated_and_through_the_job_s_path(self):
+        ran = [s["run"] for s in self.job["steps"] if "python3" in s.get("run", "")]
+        self.assertEqual(len(ran), 2)
+        for script in ran:
+            self.assertIn('python3 -E -s "${GATE}"', script)
+        for step in self.job["steps"]:
+            self.assertNotIn("GATE", step.get("env", {}))
+
+
 if __name__ == "__main__":
     unittest.main()

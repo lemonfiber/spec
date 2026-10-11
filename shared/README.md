@@ -45,10 +45,12 @@ brand's own.
 
 `gates/` is for scripts that decide whether a branch merges, and they are held to
 the strictest of the rules above: byte-identical, and compared as bytes so a copy
-rewritten with CRLF endings cannot read as the same file. A drifted gate is worse
-than a missing one, because it is trusted — `no_open_codeql_alert.py` spent its
-whole life reading an empty alert list as an analysed and clean one, and a
-repository still carrying that version would report a pass it had not earned.
+rewritten with CRLF endings cannot read as the same file. The copy that decides
+in CI is spec's own, checked out at the revision the caller pins, so a pull
+request that edits a repository's copy is not judged by its edit. A drifted copy
+still misleads whoever reads or runs it locally, which is why it is refused —
+`no_open_codeql_alert.py` spent its whole life reading an empty alert list as an
+analysed and clean one.
 
 Each asset row is read from both ends. In a repository carrying a copy, the copy
 is checked against the digest. In the repository that *is* the home, the original

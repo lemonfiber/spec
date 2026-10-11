@@ -73,9 +73,9 @@ jobs:
           SELF: github-actions[bot]
         run: |
           set -euo pipefail
-          python3 .spec-tooling/scripts/pr_goals.py --pr-text pr.txt > result.json
+          python3 -E -s .spec-tooling/scripts/pr_goals.py --pr-text pr.txt > result.json
           cat result.json
-          python3 - <<'PY'
+          python3 -I - <<'PY'
           import json, os, subprocess
 
           r = json.load(open("result.json"))

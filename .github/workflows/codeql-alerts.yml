@@ -23,19 +23,13 @@
 #   merge ref is rebuilt on every push, so it keeps answering about commits
 #   already replaced. The gate is handed a commit sha and asks about that.
 #
-# The judgement itself stays a file — `shared/gates/no_open_codeql_alert.py` —
-# that each adopting repository carries at `scripts/`, and `check_shared_files.py`
-# refuses a copy that differs from the canonical one by a single byte. What this
-# workflow removes is the sixty lines of shell around it, which is the part that
-# had no guard at all.
-#
-# Not fetched from `spec` at run time, which was tried first and is worse two
-# ways. At `main` it would put a script change into six repositories the moment
-# it merged, with no pull request in any of them — the action-at-a-distance
-# ADR-0009 pins against. At the revision this workflow came from it would need
-# `github.job_workflow_sha`, which is an OIDC claim rather than a property of the
-# `github` context: `github.workflow_ref` and `workflow_sha` name the *caller's*
-# entry workflow here, not this file.
+# The judgement itself is a file, `shared/gates/no_open_codeql_alert.py`, and
+# the copy that runs is spec's, checked out at the commit this workflow was
+# called at, so a caller pinned at a revision runs that revision's gate. Each
+# adopting repository still carries a copy at `scripts/`, which
+# `check_shared_files.py` refuses where it differs from the canonical one by a
+# single byte, but that copy is never what decides: a pull request that edited it
+# would otherwise be judged by its own edit.
 #
 # Callers whose `alerts` context is already required on `main` should not move
 # to this workflow without moving the branch protection in the same breath: the
@@ -56,11 +50,6 @@ on:
         type: string
         required: false
         default: .github/workflows/codeql.yml
-      gate:
-        description: "The caller's copy of `shared/gates/no_open_codeql_alert.py`. An input rather than a constant only because a repository may keep its scripts somewhere else; `check_shared_files.py` compares whatever sits at `scripts/<name>` against the canonical copy."
-        type: string
-        required: false
-        default: scripts/no_open_codeql_alert.py
       code:
         description: "Whether the change reaches any code, as the caller's `what changed` job decided it. False where every changed path is one no code-judging job reads, so the caller ran no analysis; the gate then has no analysis of this commit to ask about, says so, and passes, since a change that touches no code cannot bring an alert. Anything the caller could not decide passes true."
         type: boolean
@@ -81,20 +70,31 @@ jobs:
     permissions:
       contents: read
       security-events: read
+    env:
+      # spec runs the gate it is changing, as each of its own checks runs its
+      # scripts; every other repository runs spec's, never its own copy.
+      GATE: ${{ github.repository == 'lemonfiber/spec' && 'shared/gates/no_open_codeql_alert.py' || '.spec-tooling/shared/gates/no_open_codeql_alert.py' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
+      - name: Check out spec's gate at this workflow's commit
+        if: github.repository != 'lemonfiber/spec'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+
       # A gate nobody has watched fail is a gate nobody knows works, so it is put
       # in front of an alert before it is trusted about their absence. It also
-      # says, in one step and in seconds, that the caller's copy is there and
-      # runs at all — a missing script would otherwise be discovered as a failure
-      # of the alert check, which reads like a finding.
+      # says, in one step and in seconds, that the gate is there and runs at all
+      # — a missing script would otherwise be discovered as a failure of the
+      # alert check, which reads like a finding.
       - name: The gate refuses a branch an alert stands against
-        env:
-          GATE: ${{ inputs.gate }}
-        run: python3 "${GATE}" --self-test
+        run: python3 -E -s "${GATE}" --self-test
 
       # In place of the alert query, which refuses a commit carrying no
       # analysis. The caller analysed nothing because nothing an analysis reads
@@ -119,7 +119,6 @@ jobs:
           # resting on being careful. The gate refuses a path that leaves the
           # working directory as well, so both ends hold it.
           WORKFLOW: ${{ inputs.workflow }}
-          GATE: ${{ inputs.gate }}
         run: |
           set -euo pipefail
 
@@ -152,7 +151,7 @@ jobs:
           # the same function that decides the wait decides the gate, so there is
           # no second opinion to drift.
           gate() {
-            python3 "${GATE}" \
+            python3 -E -s "${GATE}" \
               --analyses analyses.json \
               --sha "${sha}" \
               --workflow "${WORKFLOW}" "$@"

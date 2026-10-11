@@ -52,7 +52,7 @@ jobs:
           set -euo pipefail
           gh api "repos/$GH_REPO/pulls?state=open&per_page=100" --paginate --slurp \
             | jq 'add // []' > pulls.json
-          python3 .spec-tooling/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
+          python3 -E -s .spec-tooling/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
 
       - name: Upsert or remove the sticky comment
         env:

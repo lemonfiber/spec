@@ -80,6 +80,10 @@ So the question is asked directly, by a reusable
 each repository's own `codeql.yml` calls: *of the alerts the API holds against
 this branch, is any of them open.* An alert dismissed with a reason is not open,
 which leaves the judgement about what is worth acting on where it was recorded.
+The script that answers is spec's, checked out at the revision the caller pins.
+The copy each repository carries is held byte-identical by the shared-files
+check and never decides, so a pull request that edits it is not judged by its
+edit.
 
 Two things that gate must not do, both of which an earlier copy of it did:
 
@@ -323,6 +327,20 @@ run for minutes rather than seconds, and some need a runner to themselves.
 `gates.yml` is generated from the reusable workflows that define each check, by
 `scripts/gen_gates.py`, and a gate refuses a generated file that has drifted
 from them. Those reusables stay the definition.
+
+Every check in `gates` shares one runner, so nothing the pull request's tree
+holds is run or imported there. Python starts isolated: code it reads runs with
+`-I`, and a script of spec's with `-E -s`, which keeps the script's own
+directory first on the path and the working directory off it. The generator
+refuses a step that starts Python any other way. The verdict runs last, from an
+empty workspace, outside it.
+
+What a scanner reads as the list of what to pass over is the base branch's copy,
+never the pull request's. That covers `.gitleaks.toml` and `.gitleaksignore`,
+`osv-scanner.toml`, `lychee.toml` and `.lycheeignore`, the root `typos.toml`
+(typos reads no other), actionlint's and shellcheck's configuration, and the
+`.gitignore` files that decide which files a scanner reads. A change to one of
+them judges the pull requests after it merges, never the one that carries it.
 
 **A bump that changes nothing is not pushed.** A bot that regenerates a
 repository against an upstream compares what it would commit with what its

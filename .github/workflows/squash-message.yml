@@ -82,7 +82,7 @@ jobs:
         id: check
         run: |
           set -uo pipefail
-          python3 .spec-tooling/scripts/squash_message.py \
+          python3 -E -s .spec-tooling/scripts/squash_message.py \
             --spec-dir .spec-canonical --pull pull.json --commits commits.jsonl > said.md
           code=$?
           cat said.md

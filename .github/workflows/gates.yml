@@ -248,7 +248,7 @@ jobs:
           optional+=(--citation-optional)
         fi
 
-        python3 .spec-tooling/scripts/spec_check.py \
+        python3 -E -s .spec-tooling/scripts/spec_check.py \
           --spec-dir .spec-canonical \
           --text-file .pr-text.txt \
           --diff-file .pr-diff.txt \
@@ -294,10 +294,10 @@ jobs:
       if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--5.outcome != 'failure') && (steps.spec-check--spec-check--8.outcome != 'failure') && (steps.spec-check--spec-check--9.outcome != 'failure') }}
       run: |
         set -euo pipefail
-        python3 .spec-tooling/scripts/status_check.py check \
+        python3 -E -s .spec-tooling/scripts/status_check.py check \
           --spec .spec-canonical --repo-root .
         if [ -f IMPLEMENTATION-STATUS.md ]; then
-          python3 .spec-tooling/scripts/status_lint.py \
+          python3 -E -s .spec-tooling/scripts/status_lint.py \
             --status IMPLEMENTATION-STATUS.md \
             --spec .spec-canonical
         fi
@@ -315,9 +315,54 @@ jobs:
         persist-credentials: false
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'hygiene / actionlint: actionlint'
+    - name: 'hygiene / actionlint: The files that say what to pass over are the base branch''s'
       id: hygiene--actionlint--1
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--actionlint--0.outcome != 'failure') }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        CONFIGS: .github/actionlint.yaml .github/actionlint.yml .shellcheckrc
+      run: |
+        set -euo pipefail
+        if [ -z "$BASE_SHA" ]; then
+          echo "A push is judged by the files it carries, which are its branch's own."
+          exit 0
+        fi
+        listed="${RUNNER_TEMP}/configurations"
+        said="${RUNNER_TEMP}/configuration-error"
+        for name in $CONFIGS; do
+          { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+          while IFS= read -r -d '' path; do
+            parent=$(dirname -- "$path")
+            if [ -L "$parent" ]; then
+              echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+              exit 1
+            fi
+            if [ ! -d "$parent" ]; then
+              echo "${path}: no directory here holds it, so none is read"
+              continue
+            fi
+            encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+            rm -rf -- "$path"
+            if gh api -H "Accept: application/vnd.github.raw+json" \
+              "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+              echo "${path}: the base branch's copy"
+            elif grep -qF "(HTTP 404)" "$said"; then
+              rm -f -- "$path"
+              echo "${path}: the base branch has none, so none is read"
+            else
+              cat "$said" >&2
+              echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+              exit 1
+            fi
+          done < "$listed"
+        done
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / actionlint: actionlint'
+      id: hygiene--actionlint--2
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--actionlint--0.outcome != 'failure') && (steps.hygiene--actionlint--1.outcome != 'failure') }}
       uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
       continue-on-error: true
       timeout-minutes: 10
@@ -466,10 +511,67 @@ jobs:
         persist-credentials: false
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'hygiene / typos: typos'
+    - name: 'hygiene / typos: The files that say what to pass over are the base branch''s'
       id: hygiene--typos--1
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--typos--0.outcome != 'failure') }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        CONFIGS: typos.toml .gitignore .ignore
+      run: |
+        set -euo pipefail
+        if [ -z "$BASE_SHA" ]; then
+          echo "A push is judged by the files it carries, which are its branch's own."
+          exit 0
+        fi
+        listed="${RUNNER_TEMP}/configurations"
+        said="${RUNNER_TEMP}/configuration-error"
+        for name in $CONFIGS; do
+          { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+          while IFS= read -r -d '' path; do
+            parent=$(dirname -- "$path")
+            if [ -L "$parent" ]; then
+              echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+              exit 1
+            fi
+            if [ ! -d "$parent" ]; then
+              echo "${path}: no directory here holds it, so none is read"
+              continue
+            fi
+            encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+            rm -rf -- "$path"
+            if gh api -H "Accept: application/vnd.github.raw+json" \
+              "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+              echo "${path}: the base branch's copy"
+            elif grep -qF "(HTTP 404)" "$said"; then
+              rm -f -- "$path"
+              echo "${path}: the base branch has none, so none is read"
+            else
+              cat "$said" >&2
+              echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+              exit 1
+            fi
+          done < "$listed"
+        done
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / typos: typos reads an empty configuration where the base branch has none'
+      id: hygiene--typos--2
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--typos--0.outcome != 'failure') && (steps.hygiene--typos--1.outcome != 'failure') }}
+      run: |
+        if [ ! -e typos.toml ]; then
+          : > typos.toml
+        fi
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / typos: typos'
+      id: hygiene--typos--3
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--typos--0.outcome != 'failure') && (steps.hygiene--typos--1.outcome != 'failure') && (steps.hygiene--typos--2.outcome != 'failure') }}
       uses: crate-ci/typos@7f9d0819ca1c008ade73f4b41fa9d258d48f605b # v1.51.1
+      with:
+        config: typos.toml
+        isolated: true
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / links: an empty workspace, as its own runner had'
@@ -506,9 +608,54 @@ jobs:
         exit 1
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'hygiene / links: lychee link check'
+    - name: 'hygiene / links: The files that say what to pass over are the base branch''s'
       id: hygiene--links--2
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--links--0.outcome != 'failure') && (steps.hygiene--links--1.outcome != 'failure') }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        CONFIGS: lychee.toml .lycheeignore .gitignore .ignore
+      run: |
+        set -euo pipefail
+        if [ -z "$BASE_SHA" ]; then
+          echo "A push is judged by the files it carries, which are its branch's own."
+          exit 0
+        fi
+        listed="${RUNNER_TEMP}/configurations"
+        said="${RUNNER_TEMP}/configuration-error"
+        for name in $CONFIGS; do
+          { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+          while IFS= read -r -d '' path; do
+            parent=$(dirname -- "$path")
+            if [ -L "$parent" ]; then
+              echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+              exit 1
+            fi
+            if [ ! -d "$parent" ]; then
+              echo "${path}: no directory here holds it, so none is read"
+              continue
+            fi
+            encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+            rm -rf -- "$path"
+            if gh api -H "Accept: application/vnd.github.raw+json" \
+              "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+              echo "${path}: the base branch's copy"
+            elif grep -qF "(HTTP 404)" "$said"; then
+              rm -f -- "$path"
+              echo "${path}: the base branch has none, so none is read"
+            else
+              cat "$said" >&2
+              echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+              exit 1
+            fi
+          done < "$listed"
+        done
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'hygiene / links: lychee link check'
+      id: hygiene--links--3
+      if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--links--0.outcome != 'failure') && (steps.hygiene--links--1.outcome != 'failure') && (steps.hygiene--links--2.outcome != 'failure') }}
       uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
       with:
         args: --no-progress --max-retries 3 --retry-wait-time 3 --accept 200,206,429,500..=599 .
@@ -605,7 +752,7 @@ jobs:
           scripts=".spec-tooling/scripts"
           canonical=".spec-canonical"
         fi
-        python3 "$scripts/check_shared_files.py" \
+        python3 -E -s "$scripts/check_shared_files.py" \
           --canonical "$canonical" \
           --repo "$REPO"
       continue-on-error: true
@@ -621,7 +768,7 @@ jobs:
         else
           scripts=".spec-tooling/scripts"
         fi
-        python3 "$scripts/check_agents.py" --root .
+        python3 -E -s "$scripts/check_agents.py" --root .
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / lines: an empty workspace, as its own runner had'
@@ -666,7 +813,7 @@ jobs:
         else
           reader=.spec-tooling/scripts/check_line_cap.py
         fi
-        python3 "$reader" --root .
+        python3 -E -s "$reader" --root .
       continue-on-error: true
       timeout-minutes: 10
     - name: 'hygiene / markdown: an empty workspace, as its own runner had'
@@ -709,7 +856,7 @@ jobs:
         rm -rf "$stage"
         mkdir -p "$stage"
         cp "$canonical/shared/markdownlint.jsonc" "$stage/.markdownlint.jsonc"
-        STAGE="$stage" python3 - <<'PY'
+        STAGE="$stage" python3 -I - <<'PY'
         import os, subprocess, sys
         # Every tracked Markdown file, as git holds it: a regular file's blob,
         # never a link, a submodule or whatever the working tree has at the path.
@@ -811,7 +958,7 @@ jobs:
         else
           reader=.spec-tooling/scripts/workflow_pins.py
         fi
-        python3 "$reader" .spec-canonical
+        python3 -E -s "$reader" .spec-canonical
       continue-on-error: true
       timeout-minutes: 10
     - name: 'security / gitleaks: an empty workspace, as its own runner had'
@@ -829,9 +976,55 @@ jobs:
         GITLEAKS_VERSION: 8.30.1
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'security / gitleaks: gitleaks (CLI)'
+    - name: 'security / gitleaks: The files that say what to pass over are the base branch''s'
       id: security--gitleaks--1
       if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') }}
+      env:
+        GITLEAKS_VERSION: 8.30.1
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        CONFIGS: .gitleaks.toml .gitleaksignore
+      run: |
+        set -euo pipefail
+        if [ -z "$BASE_SHA" ]; then
+          echo "A push is judged by the files it carries, which are its branch's own."
+          exit 0
+        fi
+        listed="${RUNNER_TEMP}/configurations"
+        said="${RUNNER_TEMP}/configuration-error"
+        for name in $CONFIGS; do
+          { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+          while IFS= read -r -d '' path; do
+            parent=$(dirname -- "$path")
+            if [ -L "$parent" ]; then
+              echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+              exit 1
+            fi
+            if [ ! -d "$parent" ]; then
+              echo "${path}: no directory here holds it, so none is read"
+              continue
+            fi
+            encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+            rm -rf -- "$path"
+            if gh api -H "Accept: application/vnd.github.raw+json" \
+              "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+              echo "${path}: the base branch's copy"
+            elif grep -qF "(HTTP 404)" "$said"; then
+              rm -f -- "$path"
+              echo "${path}: the base branch has none, so none is read"
+            else
+              cat "$said" >&2
+              echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+              exit 1
+            fi
+          done < "$listed"
+        done
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'security / gitleaks: gitleaks (CLI)'
+      id: security--gitleaks--2
+      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') && (steps.security--gitleaks--1.outcome != 'failure') }}
       run: |
         set -euo pipefail
         url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
@@ -861,8 +1054,8 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'security / gitleaks: The pinned gitleaks is not far behind the latest release'
-      id: security--gitleaks--2
-      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') && (steps.security--gitleaks--1.outcome != 'failure') }}
+      id: security--gitleaks--3
+      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') && (steps.security--gitleaks--1.outcome != 'failure') && (steps.security--gitleaks--2.outcome != 'failure') }}
       env:
         GITLEAKS_VERSION: 8.30.1
         GH_TOKEN: ${{ github.token }}
@@ -932,9 +1125,56 @@ jobs:
         OSV_IMAGE: ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'security / osv-scanner: OSV-Scanner'
+    - name: 'security / osv-scanner: The files that say what to pass over are the base branch''s'
       id: security--osv-scanner--1
       if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--osv-scanner--0.outcome != 'failure') }}
+      env:
+        OSV_VERSION: 2.6.0
+        OSV_IMAGE: ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        CONFIGS: osv-scanner.toml .gitignore
+      run: |
+        set -euo pipefail
+        if [ -z "$BASE_SHA" ]; then
+          echo "A push is judged by the files it carries, which are its branch's own."
+          exit 0
+        fi
+        listed="${RUNNER_TEMP}/configurations"
+        said="${RUNNER_TEMP}/configuration-error"
+        for name in $CONFIGS; do
+          { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+          while IFS= read -r -d '' path; do
+            parent=$(dirname -- "$path")
+            if [ -L "$parent" ]; then
+              echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+              exit 1
+            fi
+            if [ ! -d "$parent" ]; then
+              echo "${path}: no directory here holds it, so none is read"
+              continue
+            fi
+            encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+            rm -rf -- "$path"
+            if gh api -H "Accept: application/vnd.github.raw+json" \
+              "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+              echo "${path}: the base branch's copy"
+            elif grep -qF "(HTTP 404)" "$said"; then
+              rm -f -- "$path"
+              echo "${path}: the base branch has none, so none is read"
+            else
+              cat "$said" >&2
+              echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+              exit 1
+            fi
+          done < "$listed"
+        done
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'security / osv-scanner: OSV-Scanner'
+      id: security--osv-scanner--2
+      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--osv-scanner--0.outcome != 'failure') && (steps.security--osv-scanner--1.outcome != 'failure') }}
       run: |
         set -euo pipefail
         docker run --rm \
@@ -949,8 +1189,8 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
     - name: 'security / osv-scanner: The pinned OSV-Scanner is not far behind the latest release'
-      id: security--osv-scanner--2
-      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--osv-scanner--0.outcome != 'failure') && (steps.security--osv-scanner--1.outcome != 'failure') }}
+      id: security--osv-scanner--3
+      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--osv-scanner--0.outcome != 'failure') && (steps.security--osv-scanner--1.outcome != 'failure') && (steps.security--osv-scanner--2.outcome != 'failure') }}
       env:
         OSV_VERSION: 2.6.0
         OSV_IMAGE: ghcr.io/google/osv-scanner-action:v2.6.0@sha256:71ad04ab2f8798be47870f9b18817ad317c2f8f2f97aa6726ba10d5578bc174a
@@ -1048,7 +1288,7 @@ jobs:
       run: |
         if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
            && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
-          python3 .spec-tooling/scripts/dco_check.py "$BASE_SHA" "$HEAD_SHA"
+          python3 -E -s .spec-tooling/scripts/dco_check.py "$BASE_SHA" "$HEAD_SHA"
         elif [ "$EVENT" = "merge_group" ]; then
           echo "::error::A merge group arrived without a base..head range (base '${BASE_SHA}', head '${HEAD_SHA}'), so the batch was not read. Refusing rather than passing over nothing."
           exit 1
@@ -1106,7 +1346,7 @@ jobs:
         if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
            && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
           printf '%s' "$PR_BODY" \
-            | python3 "$scripts/attribution_check.py" "$BASE_SHA" "$HEAD_SHA" --body-on-stdin
+            | python3 -E -s "$scripts/attribution_check.py" "$BASE_SHA" "$HEAD_SHA" --body-on-stdin
         elif [ "$EVENT" = "merge_group" ]; then
           echo "::error::A merge group arrived without a base..head range (base '${BASE_SHA}', head '${HEAD_SHA}'), so the batch was not read. Refusing rather than passing over nothing."
           exit 1
@@ -1157,7 +1397,7 @@ jobs:
       run: |
         if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
            && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
-          python3 .spec-tooling/scripts/commit_lint.py "$BASE_SHA" "$HEAD_SHA"
+          python3 -E -s .spec-tooling/scripts/commit_lint.py "$BASE_SHA" "$HEAD_SHA"
         elif [ "$EVENT" = "merge_group" ]; then
           echo "::error::A merge group arrived without a base..head range (base '${BASE_SHA}', head '${HEAD_SHA}'), so the batch was not read. Refusing rather than passing over nothing."
           exit 1
@@ -1220,7 +1460,7 @@ jobs:
       if: ${{ ((steps.plan.outputs.squash-message == 'true')) && (steps.squash-message--squash-message--0.outcome != 'failure') && (steps.squash-message--squash-message--1.outcome != 'failure') && (steps.squash-message--squash-message--2.outcome != 'failure') && (steps.squash-message--squash-message--3.outcome != 'failure') }}
       run: |
         set -uo pipefail
-        python3 .spec-tooling/scripts/squash_message.py \
+        python3 -E -s .spec-tooling/scripts/squash_message.py \
           --spec-dir .spec-canonical --pull pull.json --commits commits.jsonl > said.md
         code=$?
         cat said.md
@@ -1315,7 +1555,7 @@ jobs:
         set -euo pipefail
         git diff --name-only "${BASE}...${HEAD}" > paths.txt
         { printf '%s\n' "$PR_BODY"; git log --format=%B "${BASE}..${HEAD}"; } > text.txt
-        assist() { python3 .spec-tooling/scripts/assist.py "$@"; }
+        assist() { python3 -E -s .spec-tooling/scripts/assist.py "$@"; }
         # Each answer can run to several lines, so each is written between
         # delimiters no answer can contain.
         emit() {
@@ -1335,20 +1575,24 @@ jobs:
         emit status "$status"
       continue-on-error: true
       timeout-minutes: 20
+    - name: An empty workspace, before the verdict
+      if: ${{ !cancelled() }}
+      run: find "$GITHUB_WORKSPACE" -mindepth 1 -delete
     - name: Every check held
       if: ${{ !cancelled() }}
       env:
         VERDICTS: '{"spec-check--spec-check": "${{ !(steps.plan.outputs.spec-check == ''true'' || steps.plan.outputs.spec-check == ''false'') && ''unreported'' || !((steps.plan.outputs.spec-check == ''true'')) && ''skipped'' || (steps.spec-check--spec-check--0.outcome == ''failure'' || steps.spec-check--spec-check--1.outcome == ''failure'' || steps.spec-check--spec-check--2.outcome == ''failure'' || steps.spec-check--spec-check--3.outcome == ''failure'' || steps.spec-check--spec-check--4.outcome == ''failure'' || steps.spec-check--spec-check--5.outcome == ''failure'' || steps.spec-check--spec-check--8.outcome == ''failure'' || steps.spec-check--spec-check--9.outcome == ''failure'' || steps.spec-check--spec-check--10.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--actionlint": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--actionlint--0.outcome
-          == ''failure'' || steps.hygiene--actionlint--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--pins": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--pins--0.outcome == ''failure'' || steps.hygiene--pins--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--typos": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--typos--0.outcome == ''failure'' || steps.hygiene--typos--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--links": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure''
-          || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome == ''failure'' || steps.hygiene--shared-files--2.outcome == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'' || steps.hygiene--shared-files--5.outcome == ''failure'')
-          && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure'' || steps.hygiene--markdown--markdown-only.outcome == ''failure'' || steps.hygiene--markdown--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true''
-          || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'' || steps.workflow-pins--workflow-pins--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security ==
-          ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'' || steps.security--osv-scanner--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome
-          == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure''
-          || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--3.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
+          == ''failure'' || steps.hygiene--actionlint--1.outcome == ''failure'' || steps.hygiene--actionlint--2.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--pins": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--pins--0.outcome == ''failure'' || steps.hygiene--pins--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--typos": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--typos--0.outcome == ''failure'' || steps.hygiene--typos--1.outcome == ''failure'' || steps.hygiene--typos--2.outcome == ''failure'' || steps.hygiene--typos--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--links": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene
+          == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure'' || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome == ''failure'' || steps.hygiene--links--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome == ''failure'' || steps.hygiene--shared-files--2.outcome
+          == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'' || steps.hygiene--shared-files--5.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure'' || steps.hygiene--markdown--markdown-only.outcome
+          == ''failure'' || steps.hygiene--markdown--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'' || steps.workflow-pins--workflow-pins--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome == ''failure'' || steps.security--gitleaks--2.outcome
+          == ''failure'' || steps.security--gitleaks--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'' || steps.security--osv-scanner--2.outcome == ''failure'' || steps.security--osv-scanner--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution
+          == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message
+          == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--3.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
       run: |
         set -euo pipefail
-        python3 - <<'PY'
+        cd "$RUNNER_TEMP"
+        python3 -I - <<'PY'
         import json, os
         said = json.loads(os.environ["VERDICTS"])
         lines = ["| Check | Result |", "|---|---|"]
@@ -1460,9 +1704,9 @@ jobs:
         SELF: github-actions[bot]
       run: |
         set -euo pipefail
-        python3 .spec-tooling/scripts/pr_goals.py --pr-text pr.txt > result.json
+        python3 -E -s .spec-tooling/scripts/pr_goals.py --pr-text pr.txt > result.json
         cat result.json
-        python3 - <<'PY'
+        python3 -I - <<'PY'
         import json, os, subprocess
 
         r = json.load(open("result.json"))
@@ -1582,7 +1826,7 @@ jobs:
           gh pr view "$PR" --repo "$GH_REPO" --json commits \
             --jq '.commits[] | .messageHeadline, .messageBody'
         } > .pr-text.txt
-        python3 .spec-tooling/scripts/spec_refs.py \
+        python3 -E -s .spec-tooling/scripts/spec_refs.py \
           --spec-dir .spec-canonical --text-file .pr-text.txt \
           --spec-url https://github.com/lemonfiber/spec/blob/main > comment.md
       continue-on-error: true
@@ -1634,7 +1878,7 @@ jobs:
         set -euo pipefail
         gh api "repos/$GH_REPO/pulls?state=open&per_page=100" --paginate --slurp \
           | jq 'add // []' > pulls.json
-        python3 .spec-tooling/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
+        python3 -E -s .spec-tooling/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
       continue-on-error: true
       timeout-minutes: 5
     - name: 'cap / comment: Upsert or remove the sticky comment'
