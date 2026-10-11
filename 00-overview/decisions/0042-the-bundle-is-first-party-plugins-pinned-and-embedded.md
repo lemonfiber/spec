@@ -12,6 +12,8 @@ keeps that stack usable without lemonfiber.
 
 **Amended** by [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md): the stack's own services and the bundle's plugins are written by one generator, and the media stack's Compose files retire before the repository does.
 
+**Superseded in part** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): §1 and §2, the bundle also carries the profiles, forms, removed services, choices of filler and links by name, and pins each plugin's tree by digest; §5, a part enters the bundle before its adapter, assembled into the stack, and its in-process adapter goes with the release whose bundle installs its plugin; §6, the media stack is archived once the compose cutover has removed the last reader of its Compose files; §7, only a plugin that builds an image rides the train, and one that builds none is pinned by revision and tree digest. §3 and §4 stand.
+
 ## Context
 
 [ADR-0041](0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md) makes every

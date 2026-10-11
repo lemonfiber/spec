@@ -65,6 +65,13 @@ are installed, updated, removed and validated the way any other plugin is. The b
 says which first-party plugin fills each capability until the operator chooses otherwise,
 and it travels inside the binary, so a first install needs no network.
 
+A part has its repository before it has its adapter. A part without one is assembled by
+the bundle into the stack lemonfiber ships, as a stack service reached through its
+in-process adapter and filling its capabilities through its claims; the release whose
+bundle installs it moves it in place and deletes that adapter
+([ADR-0045](../../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md),
+[bundle](../../../20-architecture/contracts/bundle.md)).
+
 ### Every part has a capability, and something asks for it
 
 The proxy, the dashboard, quality sync, archive extraction, the stream guard, decline and
@@ -103,7 +110,9 @@ as part of the change.
 The egress guard needs to manage the network and open a tunnel, which no other plugin may
 do. The upstream an egress guard adapter fronts may declare `shape = "egress-guard"`, and
 the core writes its entry as every plugin's entry with network administration and the
-tunnel device added and nothing else. The adapter stays unprivileged. The reading names
+tunnel device added and nothing else. A first-party egress guard the bundle assembles
+is one service that provides the capability itself and takes the shape, and only the
+assembly honours that form. The adapter stays unprivileged. The reading names
 each service taking the shape, and the operator approves each one apart from the offer,
 on every install and update that takes it. It is one of a closed set of named shapes,
 beside the media server's `render` for hardware transcoding
@@ -123,11 +132,11 @@ finder, the media server's to the request service. A credential lemonfiber holds
 reaches a plugin's service only where it is that plugin's own, or where the plugin is
 first-party and the credential is the stack's or another first-party plugin's.
 
-A plugin is first-party only where this build embeds it in its first-party set: its id
-and the digest of its manifest, as the signed default bundle names them at the release
-the build pins. Anything else is third-party however it was installed, a reviewed
-catalogue entry included. Until the bundle is embedded, the set is empty and nothing is
-first-party.
+A plugin is first-party only where this build embeds it in its first-party set: its id,
+the digest of its manifest and the digest of its tree, as the signed default bundle names
+them at the release the build pins. Anything else is third-party however it was
+installed, a reviewed catalogue entry included. Until the bundle is embedded, the set is
+empty and nothing is first-party.
 
 A third-party substitute may be granted one named credential for a capability it fills.
 The grant is part of the install or update offer and needs the operator's approval; it
@@ -151,7 +160,8 @@ nothing crosses to it.
 | The stream guard's question goes unanswered | The byte request is refused, as it is for the first-party guard |
 | A substitute's adapter speaks an older major of a contract the core no longer speaks | Refused at install, naming the contract and the majors the core speaks |
 | The operator undoes a substitution after members used the substitute | The part that was replaced comes back with its data; what members did on the substitute stays on the substitute |
-| A service that is not the upstream of an egress guard adapter declares the privileged shape | Refused at validation, naming `service <id>.shape` |
+| A service that is neither the upstream of an egress guard adapter nor a plugin's one service providing `network.egress-guard` declares the privileged shape | Refused at validation, naming `service <id>.shape` |
+| A plugin whose one service provides `network.egress-guard` and takes the shape is installed | Refused at install, naming `service <id>.shape`: only the bundle's assembly honours that form |
 | An adapter claims an upstream release it has no recordings for | Refused at install, naming the release |
 | A plugin recorded nonconforming is proved again and fails | The record stays, and the proof names each case that failed |
 | A plugin's ask names a namespaced capability, its own or another plugin's | Refused at validation naming `ask <service>.capability`: a namespaced capability carries the id of the plugin it belongs to, so asking for one names a plugin |
@@ -169,20 +179,20 @@ nothing crosses to it.
 | **F14-R3** | A service MUST declare the contracts it speaks, and a manifest MUST NOT name an in-process adapter. |
 | **F14-R4** | Every answer from an adapter MUST be held to its contract's schema and bounded in size and time, and an answer outside them MUST be refused and MUST NOT be read. |
 | **F14-R5** | The core MUST reach an adapter only with a key minted for that plugin alone, on a network shared only by the core, the adapter and its upstream, and an adapter MUST NOT be given a credential lemonfiber holds for anything else. |
-| **F14-R6** | A plugin MUST NOT fill a capability unless its adapter conforms to that capability's contract, proved by recordings against its pinned upstream and by a live conformance pass at install, and first-party adapters MUST be held to the same suite. |
+| **F14-R6** | A plugin MUST NOT fill a capability unless its adapter conforms to that capability's contract, proved by recordings against its pinned upstream and by a live conformance pass at install, and first-party adapters MUST be held to the same suite; a first-party plugin the bundle assembles, which has no adapter, MUST fill a capability only through its claims, each proved against its recordings as `F9-R2` holds a bundled service's. |
 | **F14-R7** | Every part of the bundle MUST be a first-party plugin, installed, updated, removed and validated by the path any plugin takes, and the bundle and its first-party manifests MUST be embedded in the binary. |
 | **F14-R8** | The vocabulary MUST name `proxy.front`, `dashboard.show`, `quality.sync`, `archive.extract`, `stream.guard`, `invite.decline` and `request.gate`, each with a contract, and every capability in the vocabulary MUST be asked by something in the bundle. |
 | **F14-R9** | A plugin MAY ask for capabilities and MUST NOT link to a service by name. |
 | **F14-R10** | The stream guard's filler MUST enforce the guard the media server's filler declares, and every location the core gives a member MUST be built from templates the media server's filler declares. |
 | **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its data, undoing it MUST bring that part back with its data, and the rehearsal MUST say what does not carry over. |
-| **F14-R12** | A plugin's service MAY declare `shape = "egress-guard"` only where it is the upstream an adapter of the same plugin fronts and that adapter speaks `network.egress-guard`, any other service declaring it MUST be refused at validation naming `service <id>.shape`, and lemonfiber MUST write that service's entry as every plugin's entry plus exactly the `NET_ADMIN` capability and the `/dev/net/tun` device, and MUST write neither for any other service. |
+| **F14-R12** | A plugin's service MAY declare `shape = "egress-guard"` only where it is the upstream an adapter of the same plugin fronts and that adapter speaks `network.egress-guard`, or where it is the plugin's one service and provides `network.egress-guard` itself, which lemonfiber MUST honour only where the bundle assembles the plugin and MUST refuse at install and update naming `service <id>.shape`; any other service declaring it MUST be refused at validation naming `service <id>.shape`; and lemonfiber MUST write that service's entry as every plugin's entry plus exactly the `NET_ADMIN` capability and the `/dev/net/tun` device, and MUST write neither for any other service. |
 | **F14-R13** | An adapter MUST declare the upstream releases it supports, each proved by its own recordings, and the core MUST NOT compare versions. |
 | **F14-R14** | Every capability MUST be proved by a substitute other than its first-party filler, run end to end against its pinned upstream through install, its first-run flow, conformance, substitution, the features the capability serves, and undo. |
-| **F14-R15** | Every first-party adapter MUST be built on the adapter kit, from a repository of its own, into an image published from every commit on that repository's `main` and by the release train (`OPS-R90`). |
+| **F14-R15** | Every first-party plugin MUST live in a repository of its own, every first-party adapter MUST be built on the adapter kit, and every image a first-party plugin builds MUST be published from every commit on its repository's `main` and by the release train (`OPS-R90`). |
 | **F14-R16** | An answer outside a contract MUST be recorded against the plugin with the capability, the operation, why and when, and a plugin recorded nonconforming for a capability MUST NOT fill it until it passes a live proof run after the record; updating it, installing it again and proving it again MUST each run that proof, and a passing proof MUST clear its records. |
 | **F14-R17** | The installed plugins as `lemonfiber plugin installed` and `GET /api/plugins` answer them MUST name, for each plugin, every capability it is recorded nonconforming for, with the operation, why and when, and nothing a member is shown MUST name it. |
 | **F14-R18** | A credential lemonfiber holds MUST reach a plugin's service only where it is that plugin's own, where the plugin is first-party and the credential is the stack's, or where both the plugin and the credential's owner are first-party. |
-| **F14-R19** | A plugin MUST be first-party only where the build embeds its id and the digest of its manifest in its first-party set, as the signed default bundle names them at the release the build pins; any other plugin MUST be third-party however it was installed. |
+| **F14-R19** | A plugin MUST be first-party only where the build embeds its id, the digest of its manifest and the digest of its tree in its first-party set, as the signed default bundle names them at the release the build pins; any other plugin MUST be third-party however it was installed. |
 | **F14-R20** | A third-party plugin MAY be granted one named credential for a capability it fills; the grant MUST be part of the install or update offer and approved by the operator, MUST be journalled and revocable, and MUST be shown on the credentials surface, and without a grant no credential MUST cross to it. |
 | **F14-R21** | An install or update whose plugin takes the egress guard's shape MUST state in its reading each service taking it with the capability and the device it is given, MUST NOT act unless the operator approved that shape for that service apart from the offer, written `egress-guard@<service>`, and MUST refuse an approval naming a service that does not take it. |
 | **F14-R22** | A plugin's service MAY ask for a core capability in the manifest's `[[ask]]`, naming the capability and optionally `each`; the manifest MUST have no field by which an ask names the service that fills it, and an ask naming a capability outside the published core vocabulary, a namespaced one included, naming a service the plugin does not declare, or naming a capability its own service provides MUST be refused at validation, naming the ask and what it named. |
@@ -192,7 +202,7 @@ nothing crosses to it.
 | **F14-R26** | Where the media server is a plugin's service that speaks `identity.source`, its first-run setup MUST go over that contract with an administrator's password lemonfiber mints and keeps under that server's own setting, and the request service's identity setup MUST be given that password with the stack-network address and the `native` API of the service the adapter `fronts`; where that service declares no `native` API, the setup MUST NOT be attempted and the run MUST say so, naming the plugin. |
 | **F14-R27** | lemonfiber MUST write the entry of every plugin service that speaks a contract to run as the operator's uid and gid, as the stack's own images run, and MUST write the key it asks that service with readable by that uid alone; a service that speaks none MUST be written with the user its `user_mode` names ([ARCH-R233](../../../20-architecture/contracts/plugin-manifest.md)). |
 | **F14-R28** | Where an adapter's upstream needs a credential lemonfiber keeps, lemonfiber MUST be the only writer of it: it MUST write it into the adapter's configuration directory as `upstream.json`, a JSON object of named strings readable by the operator's uid alone, whenever it creates, rotates or moves that credential, and the adapter MUST read it there and MUST NOT write it. |
-| **F14-R29** | An install or update MUST honour a service's `replaces` only where the plugin is first-party, moving the bundled service it names in place under the same container name, configuration directory and data; a third-party plugin declaring `replaces` MUST be refused at install and update, naming the service. |
+| **F14-R29** | An install or update MUST honour a service's `replaces` only where the plugin is first-party, moving the service the bundle reserves under that id in place under the same container name, configuration directory and data; a third-party plugin declaring `replaces` MUST be refused at install and update, naming the service. |
 | **F14-R30** | Where the media server is a plugin's service that speaks `identity.source`, rotating its administrator's password MUST go over that contract: lemonfiber MUST record the replacement under the server's pending setting before asking, MUST hand the adapter the replacement alone, MUST promote it and rewrite the adapter's upstream credential only once the adapter answers that the server took it, and MUST leave the password in force unchanged wherever the adapter refuses. |
 
 ## Related

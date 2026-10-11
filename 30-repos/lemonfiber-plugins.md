@@ -38,8 +38,8 @@ lemonfiber-plugins/
 ├── plugins/
 │   └── <id>.toml            where it is, and the revision that was read
 ├── bundle/
-│   ├── bundle.toml          the default bundle: each first-party plugin, pinned
-│   └── plugins/<id>.toml    a copy of each pinned manifest, checked against its origin
+│   ├── bundle.toml          the default bundle: the stack's tables and each first-party plugin, pinned
+│   └── plugins/<id>/        a copy of each pinned plugin's tree, checked against its origin
 ├── registry/                the checks CI runs over an entry
 ├── targets.toml             the lemonfiber version the checks are held to
 ├── justfile
@@ -130,30 +130,35 @@ The default bundle is the set of first-party plugins every stack is built from
 It lives here, in `bundle/`, and the core embeds it by pinning this repository as a
 submodule.
 
-`bundle/bundle.toml` names each first-party plugin with five things (`REPO-R91`):
+`bundle/bundle.toml` is the [bundle contract](../20-architecture/contracts/bundle.md)
+at `schema = 2` (`REPO-R91`): the stack's profiles, forms, removed services, choices of
+filler and links by name, and each first-party plugin with its origin, the revision
+pinned, the digests of its manifest and its tree there, the capabilities it fills by
+default, whether lemonfiber assembles or installs it, the profile it sits in and the
+upstream's last release. Where the plugin builds an image, the pin also names the
+release that tagged it.
 
-- its origin;
-- the release it was tagged at;
-- the revision of its repository whose manifest names that release's image;
-- the digest of the manifest at that revision;
-- the capabilities it fills by default.
-
-It pins a revision rather than the tag because a manifest names its image by digest,
+It pins a revision rather than a tag because a manifest names its image by digest,
 and that digest reaches the plugin's `main` through the pin pull request its release
 opens after the tag. A plugin's `main` also pins images built from its own commits
-(`OPS-R91`); the bundle pins only a revision whose adapter is tagged at the release.
+(`OPS-R91`); where the bundle names a release, the revision's built images are tagged
+at it. A plugin that builds no image is never tagged, and its revision and tree are the
+whole pin (`OPS-R86`).
 
-Beside it, `bundle/plugins/<id>.toml` is the manifest at that revision, copied byte
-for byte. This is the one place the catalogue holds a copy (`REPO-R60`). The binary
-compiles the bundle in and installs a stack offline, so it needs the manifests
-themselves and not their addresses. CI holds each copy to its origin (`REPO-R92`):
-a copy that differs from the manifest at the pinned revision is refused, so the copy
-and the origin are one answer.
+Beside it, `bundle/plugins/<id>/` is the plugin's tree at that revision, copied byte
+for byte at the paths the plugin's repository holds them: its manifest, its starting
+files, its recordings and its conformance. This is the one place the catalogue holds a
+copy (`REPO-R60`). The binary compiles the bundle in and builds a stack offline, so it
+needs the trees themselves and not their addresses. CI holds each copy to its origin
+(`REPO-R92`): a copy that differs from the tree at the pinned revision is refused, so
+the copy and the origin are one answer.
 
-The pins move with the release train (`OPS-R86`), not with a contribution. The
-catalogue's own releases and its register keep their own clock (`OPS-R59`). A pinned
-revision may target a commit of the core's `main` rather than a release, and the train
-refuses to tag the core unless the core commit it tags holds that commit (`OPS-R89`).
+The pin of a plugin that builds an image moves with the release train (`OPS-R86`), not
+with a contribution; the pin of one that builds none moves by a reviewed pull request
+here. The catalogue's own releases and its register keep their own clock (`OPS-R59`). A
+pinned revision may target a commit of the core's `main` rather than a release, and the
+train refuses to tag the core unless the core commit it tags holds that commit
+(`OPS-R89`).
 
 ## What it never becomes
 
@@ -180,8 +185,8 @@ project has said it does not build.
 | **REPO-R61** | Its CI MUST fetch each registered revision and, from the data in that revision alone, validate the manifest against the published schema, run every declared proof against the plugin's recorded fixtures, and check its declared reach statically; a registration failing any of these MUST be refused before human review. |
 | **REPO-R62** | The catalogue MUST NOT execute anything from a registered repository, and MUST read that repository as data only. |
 | **REPO-R63** | Every catalogue release's index MUST carry a serial higher than every earlier release's, inside what the signature covers. |
-| **REPO-R91** | The default bundle MUST be `bundle/bundle.toml`, naming for each first-party plugin its origin, the release it was tagged at, the revision of its repository whose manifest names that release's image, the digest of the manifest at that revision, and the capabilities it fills by default; and the catalogue MUST hold that manifest, copied byte for byte, at `bundle/plugins/<id>.toml`. |
-| **REPO-R92** | The catalogue's CI MUST refuse a bundle in which a copy differs from the manifest fetched from its origin at the pinned revision, a pinned digest is not its copy's, a copy's adapter service is not tagged at the pinned release, or a pinned plugin fails a check `REPO-R61` holds a registration to. |
+| **REPO-R91** | The default bundle MUST be `bundle/bundle.toml` at `schema = 2`, as the bundle contract states it ([ARCH-R265](../20-architecture/contracts/bundle.md), [ARCH-R266](../20-architecture/contracts/bundle.md)); and the catalogue MUST hold each pinned plugin's tree, copied byte for byte from the pinned revision, at `bundle/plugins/<id>/` ([ARCH-R267](../20-architecture/contracts/bundle.md)). |
+| **REPO-R92** | The catalogue's CI MUST refuse a bundle in which a copy differs from the tree fetched from its origin at the pinned revision, a pinned manifest or tree digest is not its copy's, a pin naming a release has a built image not tagged at it, the bundle fails the bundle contract's validation, or a pinned plugin fails a check `REPO-R61` holds a registration to. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber-plugins`.
 

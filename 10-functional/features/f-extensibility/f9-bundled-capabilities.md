@@ -49,9 +49,10 @@ bookkeeping. The bundled stack becomes the **reference implementation** of every
 capability, so a plugin author has something concrete to satisfy rather than a paragraph
 to interpret.
 
-The declarations live in the stack manifest, not in lemonfiber's source. A fork that adds
-a service declares its capabilities the same way, and adding one still requires no code
-change ([F1-R5](f1-customisation.md)).
+The declarations live in each part's first-party plugin manifest, which the
+[bundle](../../../20-architecture/contracts/bundle.md) pins, not in lemonfiber's source. A
+fork that adds a service declares its capabilities the same way, and adding one still
+requires no code change ([F1-R5](f1-customisation.md)).
 
 ### No capability is published that nothing demonstrates
 
@@ -64,12 +65,14 @@ A capability earns its place by something needing it, not by seeming likely to b
 
 ### The wiring asks, rather than naming
 
-Where the stack currently names a service, it asks for a capability. The request service
-asks for an identity source; the media-filing services ask for a download client.
+The stack asks for a capability rather than naming a service. The request service asks
+for an identity source; the media-filing services ask for a download client. Each ask is
+the asking part's own, in its plugin manifest's `[[ask]]`, and where two parts claim what
+is asked, the stack's choice between them is the bundle's, with its reason.
 
-Wiring by name stays possible where it is genuinely about one service — but it becomes
-the exception, and it is shown as one, so the reason it is by name is visible to whoever
-reads it next.
+Wiring by name stays possible where it is genuinely about one service — but it is the
+exception, declared in the bundle and shown as one, so the reason it is by name is
+visible to whoever reads it next.
 
 ### A capability lost at a pin bump is a failure, not a surprise
 
@@ -79,9 +82,9 @@ the source of truth for both, and there is no separate, gentler treatment for th
 services this project happens to ship. A version does not go out with a bundled claim
 its own probes refuse.
 
-The evidence is the plugin's, in the stack manifest: each capability a service
+The evidence is the plugin's, in the part's plugin manifest: each capability a service
 provides carries a claim binding every probe to a request and a response recorded
-from the pinned image, under `recordings/<service>/` in the stack repository
+from the pinned image, under `recordings/<service>/` in the part's repository
 ([stack-manifest](../../../20-architecture/contracts/stack-manifest.md#serviceclaim--the-evidence-for-what-it-provides),
 `ARCH-R136`). A pin bump that moves a digest re-records in the same change. Every
 claim is judged against its recordings on every change to the stack and again
@@ -131,10 +134,10 @@ broken would be wrong about the product.
 
 | ID | Requirement |
 |----|-------------|
-| **F9-R1** | Every bundled service MUST declare the capabilities it provides, and the declaration MUST live in the stack manifest rather than in lemonfiber's source. |
+| **F9-R1** | Every bundled service MUST declare the capabilities it provides, and the declaration MUST live in the first-party plugin manifest the bundle pins rather than in lemonfiber's source. |
 | **F9-R2** | Every capability a bundled service declares MUST pass that capability's probes, and a version MUST NOT ship while a bundled claim's probes refuse it. |
 | **F9-R3** | Every capability in the core vocabulary MUST be declared by at least one bundled service, and a capability nothing implements MUST NOT be published. |
-| **F9-R4** | The bundled stack's wiring MUST be converted to ask for capabilities rather than to name services, except where a wiring is genuinely about one service, which MUST be shown as a by-name wiring. |
+| **F9-R4** | The bundled stack's wiring MUST ask for capabilities rather than name services, each ask declared in the asking part's plugin manifest, and the stack's choice of filler for a contested ask MUST be declared in the bundle; a wiring genuinely about one service MUST be a by-name wiring in the bundle and MUST be shown as one. |
 | **F9-R5** | A bundled service that stops satisfying a declared capability MUST fail in the same way a plugin failing a claim does, with no gentler treatment for being bundled. |
 | **F9-R6** | Replacing a bundled service with a plugin that claims the same capability MUST require no change to anything that consumes that capability. |
 
@@ -144,4 +147,5 @@ broken would be wrong about the product.
 - [F2 Service catalogue](f2-service-catalogue.md) — the services these describe in machine terms
 - [F5 The plugin catalogue](f5-plugin-catalogue.md) — where a plugin claiming one of these comes from
 - [D1 Service auto-wiring](../d-content/d1-seed.md) — the wiring this converts
-- [stack-manifest contract](../../../20-architecture/contracts/stack-manifest.md) — where a bundled service's capabilities are declared
+- [bundle contract](../../../20-architecture/contracts/bundle.md) — the first-party plugins whose manifests declare a bundled service's capabilities, and the stack's choices and links by name
+- [stack-manifest contract](../../../20-architecture/contracts/stack-manifest.md) — the form the bundle is assembled into

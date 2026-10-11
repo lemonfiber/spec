@@ -104,11 +104,11 @@ additions a judgement against a standard rather than a matter of taste.
 
 ### Maintenance signals are tracked, not discovered late
 
-Each service records the date of its last upstream release in the manifest's
-`last_release` field, reviewed whenever a pin is bumped. A service going quiet is
-not itself a problem — a mature application may simply not need frequent releases
-— but it is a signal worth holding, because the alternative is discovering an
-abandoned dependency only when it breaks.
+Each bundled service has the date of its last upstream release recorded in the bundle's
+`last_release`, beside its pin, by the reviewers who move the pin, and refreshed whenever
+they move it. A service going quiet is not itself a problem — a mature application may
+simply not need frequent releases — but it is a signal worth holding, because the
+alternative is discovering an abandoned dependency only when it breaks.
 
 The recorded date is the latest release **upstream** has published, not the date
 the pinned version shipped. Those diverge precisely when the signal matters: a
@@ -118,7 +118,7 @@ actual latest release is not a stale record but a wrong one, and fails
 validation.
 
 The table below carries only services whose signal needs a judgement recorded
-against it; the dates themselves are manifest data, so they version with the
+against it; the dates themselves are bundle data, so they version with the
 stack rather than with this document.
 
 | Service | Signal |
@@ -143,7 +143,7 @@ stack rather than with this document.
 | Situation | Behaviour |
 |-----------|-----------|
 | Operator asks what a failing service does | Description available inline at the point of failure, not only in documentation. |
-| Service description drifts from reality | The catalogue lives with the stack manifest so they version together. |
+| Service description drifts from reality | The catalogue lives in the manifests that declare the services, so they version together. |
 | Operator adds an unknown service | Show it with an unknown description rather than hiding it. |
 | Upstream project is abandoned | Record it; treat replacement as a spec change with an ADR. |
 | Licence changes upstream | Detect at pin-bump time; a non-OSI licence disqualifies the service. |
@@ -157,16 +157,16 @@ stack rather than with this document.
 | **F2-R2** | Every service MUST state the consequence of its absence. |
 | **F2-R3** | Every service MUST carry a criticality level. |
 | **F2-R4** | Every service MUST record its licence, upstream project, and pinned version. |
-| **F2-R5** | Every bundled service MUST be under an OSI-approved licence, except a service whose image lemonfiber builds from its own code, which MUST carry lemonfiber's own licence (Hippocratic-3.0). |
+| **F2-R5** | Every bundled service MUST be under an OSI-approved licence, except a service whose image lemonfiber builds from its own code, which MUST carry lemonfiber's own licence (Hippocratic-3.0); an upstream's image lemonfiber rebuilds MUST keep its upstream's licence. |
 | **F2-R6** | Every bundled service MUST publish native `linux/arm64` and `linux/amd64` images. |
 | **F2-R7** | Inclusion criteria MUST be stated explicitly. |
 | **F2-R8** | Notable exclusions MUST be recorded with reasons. |
 | **F2-R9** | Service descriptions MUST be available inline where a service is referenced, not only in documentation. |
-| **F2-R10** | The catalogue MUST be versioned with the stack manifest. |
+| **F2-R10** | The catalogue MUST be versioned with the manifests that declare its services: a bundled service's first-party plugin manifest, pinned by the bundle, or a stack manifest. |
 | **F2-R11** | An unknown service MUST be displayed with an unknown description rather than hidden. |
 | **F2-R12** | An upstream licence change away from OSI approval MUST disqualify the service at pin-bump time. |
 | **F2-R13** | Removal of a service MUST record the reason and any replacement. |
-| **F2-R14** | Each service MUST record its last upstream release date, reviewed whenever its pin is bumped. |
+| **F2-R14** | Each bundled service MUST have its last upstream release date recorded in the bundle beside its pin, kept by the reviewers who move the pin and refreshed whenever they move it; a stack manifest's service MUST record its own. |
 | **F2-R15** | A candidate service's maintenance status MUST be established from its commit and release history, never from its own self-description. |
 
 ## Related

@@ -16,6 +16,8 @@
 
 **Amended** by [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md): the egress guard's shape is one of a closed set of named shapes.
 
+**Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): a part's repository and manifest exist before its adapter does, and the bundle assembles a part without one into the stack lemonfiber ships (§4); decline and the request gate declare themselves in `lemonfiber-decline` and `lemonfiber-request-gate`.
+
 **Supersedes** [ADR-0024](0024-what-opens-and-what-never-does.md) where it holds the
 adapter set closed: behaviour no longer lives in lemonfiber's process at all.
 **Amends**:

@@ -7,6 +7,8 @@
 
 **Amended** by [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md): what is materialised is the manifests, and the Compose project is generated from them.
 
+**Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): what is embedded is the bundle and each pinned plugin's tree, and the build validates the bundle rather than `stack.toml`.
+
 ## Context
 
 Given [ADR-0004](0004-four-repo-split.md), lemonfiber and lemonfiber-media-stack

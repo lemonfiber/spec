@@ -2,10 +2,10 @@
 
 **Status:** Accepted
 
-The interface between `lemonfiber` and `lemonfiber-media-stack`. Everything
-lemonfiber knows about
-the stack comes from this file; it knows nothing about Sonarr that isn't declared
-here.
+The format of a whole stack: the form lemonfiber assembles the
+[bundle](bundle.md) into, and the format of a stack directory an operator names with
+`--stack-dir` in its place (`F1-R3`). lemonfiber knows nothing about Sonarr that isn't
+declared in it.
 
 **Satisfies:** [B1-R2](../../10-functional/features/b-running/b1-forms.md),
 [B1-R3](../../10-functional/features/b-running/b1-forms.md),
@@ -32,25 +32,32 @@ guarantee quietly stops being true.
 
 ## Its place beside the bundle
 
-This manifest describes the services the bundle has not yet moved into first-party
-plugins ([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md)
-§5), and it retires with the media stack once nothing reads it (§6). Until then its
-services are declared in the plugin manifest's service model
+The stack lemonfiber ships is assembled from the bundle
+([ADR-0045](../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)):
+the profiles, forms, wiring and removed services are the bundle's, and each service is
+the one service of a first-party plugin the bundle pins as `assembled`, declared in that
+plugin's own manifest. lemonfiber assembles them into this format and materialises none
+of it (`ARCH-R263`). A `--stack-dir` stack is written in this format by hand.
+
+Either way a service is declared in the plugin manifest's service model
 ([ADR-0043](../../00-overview/decisions/0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md)):
 every field that describes a container is the plugin manifest's, with the same types and
 the same validation, and lemonfiber generates each service's Compose entry from it, as it
 does a plugin's. The stack carries no Compose file lemonfiber reads (`ARCH-R246`), so a
-part moving into its plugin moves from one declaration in the model to another.
+part moving from `assembled` to `installed` moves from one declaration in the model to
+another.
 
-What only a stack carries stays here: the profiles and forms, each service's `profile`,
-its catalogue prose (`describes`, `reaches`, `asks_for`, `last_release`),
-`host_managed`, and the `[[wiring]]` between its own services.
+Assembled, a service takes its `profile` and `last_release` from its `[[plugin]]` in the
+bundle; `describes`, `without_it`, `license` and `upstream` from its plugin's
+`description`, `without_it`, `license` and `upstream`; and every other field from its
+plugin's one service. `host_managed` is this format's alone.
 
 ## File location
 
-`stack.toml`, at the root of a stack directory. Each service
-is declared in a file of its own, `services/<id>.toml`, and `stack.toml` names
-every one of those files in its `include` list.
+`stack.toml`, at the root of a stack directory an operator names with `--stack-dir`.
+Each service is declared in a file of its own, `services/<id>.toml`, and `stack.toml`
+names every one of those files in its `include` list (`ARCH-R264`). The stack lemonfiber
+ships has no such directory: it is assembled from the bundle (`ARCH-R263`).
 
 ## Top-level structure
 
@@ -89,7 +96,7 @@ Membership is the list, never the directory. A file is part of the stack because
 than read: a directory listing that decided membership would make a stray or a
 half-deleted file a service.
 
-The rules, each refused by name, every violation in one pass (`F1-R9`, `ARCH-R171`):
+The rules, each refused by name, every violation in one pass (`F1-R9`, `ARCH-R264`):
 
 - An entry is a path relative to the stack root, of the form `services/<id>.toml`.
   Anything else — another directory, another extension, a `..` — names the entry.
@@ -120,74 +127,13 @@ usually caught at **compile time** rather than reaching a user at all.
 `stack_version` is the *content* version and is semver; it moves when services or
 forms change. `min_cli_version` lets a stack refuse an older binary.
 
-## `[[profile]]`
+## `[[profile]]`, `[[form]]` and `[[removed]]`
 
-```toml
-[[profile]]
-id          = "tv"
-name        = "Television"
-description = "Automated television acquisition"
-
-[[profile]]
-id          = "torrent"
-name        = "Torrents"
-description = "Torrent downloading, VPN-isolated"
-protocol    = "torrent"
-```
-
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `id` | string | ✔ | Unique. The Compose profile lemonfiber writes its services into. |
-| `name` | string | ✔ | Human-facing |
-| `description` | string | ✔ | Shown in form previews |
-| `protocol` | enum | | `usenet` \| `torrent`. Present only on a profile that cannot run without a configured provider. |
-
-### `protocol` — what makes the intersection possible
-
-[B1-R4](../../10-functional/features/b-running/b1-forms.md) requires a closure to
-be intersected with the operator's configured protocols before anything starts.
-Nothing in this contract said *which* profiles that applies to, so the only way
-to satisfy it was for lemonfiber to know the strings `usenet` and `torrent` —
-per-service knowledge in code, which is the one thing this file exists to
-prevent.
-
-`protocol` supplies it as data. A profile that declares one cannot run unless the
-operator has configured that provider; a profile that declares none is never
-narrowed away.
-
-The consequence of getting this wrong is not cosmetic. A torrent profile started
-without a configured VPN brings up the tunnel container with no credentials, and
-the failure mode of a VPN that is not actually protecting anything is the one
-failure in this product with consequences outside the machine.
-
-A fork that renames its profiles keeps working, which was the point.
-
-## `[[form]]`
-
-```toml
-[[form]]
-id          = "tv"
-name        = "TV"
-description = "Search, download and automate television"
-profiles    = ["search", "usenet", "torrent", "tv", "subs"]
-composable  = true
-```
-
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `id` | string | ✔ | Unique |
-| `name` | string | ✔ | Human-facing |
-| `description` | string | ✔ | One line, plain language |
-| `profiles` | array | ✔ | The closure. Every entry MUST reference a declared profile. |
-| `composable` | bool | | Default `true`. May be combined with other forms (`B1-R5`). |
-
-A form's `profiles` list is the **complete** closure, written out. Dependencies
-are not inferred — `tv` names `search` explicitly rather than lemonfiber deducing
-that Sonarr needs indexers.
-
-That verbosity is deliberate: inference would require lemonfiber to understand
-each service's semantics, which is exactly the coupling this contract exists to
-avoid.
+A stack declares its profiles, its forms and the services its catalogue no longer
+carries in the tables the [bundle](bundle.md) declares them in, with the same fields and
+the same rules: [`[[profile]]`](bundle.md#profile), with `protocol` on a profile that
+cannot run without a configured provider; [`[[form]]`](bundle.md#form), whose
+`profiles` is the complete closure; and [`[[removed]]`](bundle.md#removed).
 
 ## `[[service]]`
 
@@ -217,7 +163,7 @@ media_types = ["tv"]
 |-------|------|----------|-------|
 | `id` | string | ✔ | Unique. The name lemonfiber gives its Compose service. |
 | `name` | string | ✔ | Human-facing |
-| `profile` | string | ✔ | **Exactly one** (`B1-R1`). MUST reference a declared profile. |
+| `profile` | string | ✔ | **Exactly one** (`B1-R1`). MUST reference a declared profile. Assembled, the one its `[[plugin]]` names. |
 | `image` | string | ✔ | Without tag or digest |
 | `digest` | string | ✔ | `sha256:…` of the multi-architecture index. What actually runs (`E1-R1`). |
 | `tag` | string | ✔ | The human-readable version the digest corresponds to. Recorded and shown; never resolved at run time. |
@@ -227,9 +173,9 @@ media_types = ["tv"]
 | `api` | table | | How lemonfiber talks to it for [seeding](../../10-functional/features/d-content/d1-seed.md). Absent means no API integration. |
 | `listens` | integer | ✔ if `api`, or where it answers on a port other than `port` | The port it answers on inside the container, where `port` is published to. Default `port`. See [`api`](#api). |
 | `criticality` | enum | ✔ | `critical` \| `core` \| `important` \| `enhancing` \| `optional` (`F2-R3`) |
-| `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`), except on a service whose image lemonfiber builds from its own code, which carries `Hippocratic-3.0` and nothing else. Such a service is told by its `image`: it is under `ghcr.io/lemonfiber/`, where lemonfiber publishes the images it builds and nothing else ([ADR-0033](../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)). |
+| `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`), except on a service whose image lemonfiber builds from its own code, which carries `Hippocratic-3.0` and nothing else. Such a service is told by its `image`, under `ghcr.io/lemonfiber/`, where lemonfiber publishes the images it builds and nothing else ([ADR-0033](../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)), together with its `upstream`, under `https://github.com/lemonfiber/`. An upstream's image lemonfiber rebuilds is under `ghcr.io/lemonfiber/` too, and keeps its upstream's licence. |
 | `upstream` | string | ✔ | Project URL, for maintenance review (`F2-R14`) |
-| `last_release` | string | ✔ | `YYYY-MM-DD`. The **latest upstream release**, not the pinned one — an abandonment signal, refreshed when the pin is reviewed (`F2-R14`) |
+| `last_release` | string | ✔ | `YYYY-MM-DD`. The **latest upstream release**, not the pinned one — an abandonment signal, refreshed when the pin is reviewed (`F2-R14`). Assembled, the one its `[[plugin]]` names. |
 | `describes` | string | ✔ | What it does *for the operator* (`F2-R1`) |
 | `without_it` | string | ✔ | Consequence of its absence (`F2-R2`) |
 | `reaches` | string | | Where this service's own requests go, in terms an operator would recognise. `""` means it reaches nothing — an answer, not an omission. Both this and `asks_for` or neither (`F2-R10`). |
@@ -383,11 +329,11 @@ Three consequences worth stating, because each is a case somebody will meet:
   library to a metadata provider" are the same destination and different decisions.
 
 The pair is optional in the *format*, so an operator's own stack directory
-(`F1-R3`) stays readable without it. It is not optional of a bundled service: the
-stack this project ships declares it for every service, its own validation refuses
-one that does not, and the lemonfiber build refuses a stack that leaves any service
-silent. An inventory of what leaves a machine is only honest if a service cannot
-arrive in it unlisted.
+(`F1-R3`) stays readable without it. It is not optional of a bundled service: every
+first-party plugin declares it on every service (`ARCH-R270`), the bundle's validation
+refuses a pinned plugin that does not, and the lemonfiber build refuses a stack that
+leaves any service silent. An inventory of what leaves a machine is only honest if a
+service cannot arrive in it unlisted.
 
 ### `health`
 
@@ -464,6 +410,13 @@ authenticating, and `path` does not apply.
 
 ## `[[wiring]]` — the link between two services, and which of them it names
 
+A stack's `[[wiring]]` takes the two shapes the bundle's
+[`[[wiring]]`](bundle.md#wiring--a-choice-of-filler-or-a-link-by-name) takes, a choice
+of filler and a link by name, and in this format a third: the ask, `by` and `asks`
+with `each` where it reaches every filler, which in the bundle is the asking plugin's
+own [`[[ask]]`](plugin-manifest.md#ask--what-a-plugins-service-asks-for). Assembled, every
+`[[ask]]` of an `assembled` part is a wiring of that shape here.
+
 ```toml
 [[wiring]]
 by   = "seerr"
@@ -533,45 +486,14 @@ Without it the difference would be invisible until it bit: four services declare
 and refused (`F4-R8`), and an ask that meant "all of them" would be reported the
 same way — one of those two is a wiring that works.
 
-### `filled_by` — a choice, recorded, rather than a rule
+### `filled_by` and `to`
 
-Where two of the stack's own services claim one capability and a wiring asks for
-one of them, somebody has to choose. `F4-R8` says who: not install order, not
-precedence, not recency — an operator, and their choice is recorded.
-
-`filled_by` is the stack making that choice for the stack it ships, in the file
-the operator can read and with the reason beside it. It is a default, not a
-rule: the operator substitutes by choosing another claimant, that change is
-journalled like any other
-([`F4-R10`](../../10-functional/features/f-extensibility/f4-capabilities.md)),
-and it can be put back. A fork shipping different services makes its own choice
-the same way.
-
-It is `why`-bearing for the same reason `to` is. A choice with no reason beside
-it is indistinguishable from a rule somebody encoded, which is the thing `F4-R8`
-refuses.
-
-### `to` — by name, and shown as by name
-
-`F4-R12` keeps by-name wiring available and makes it visible as the exception it
-is. `to` is that spelling: it names a service, it carries the reason, and
-anything that lists the stack's wiring shows it as by-name rather than as an ask
-that happened to resolve to one candidate.
-
-**qBittorrent's link to the tunnel is not here, and it is not by name.** qBittorrent
-runs inside the egress guard's network namespace, so it has no network of its own and
-loses connectivity when the tunnel drops rather than falling back to the home address
-(`C2-R12`). Four things have to agree for that: the shared namespace, the health-gated
-start order, the profile the two share (`B1-R14`), and the port the guard publishes on
-qBittorrent's behalf. All four are written by lemonfiber from one field on
-qBittorrent's own service, `network = { via = "network.egress-guard" }`, which asks for
-whatever fills that capability. The property is about the namespace, not about which
-container holds it, so a substitute egress guard takes qBittorrent inside its own and
-the killswitch holds.
-
-The stack's by-name links say why: each is a service configured in another's own terms,
-or making another's own calls, so it is about that service. Everything else in the
-stack asks.
+A choice of filler and a link by name mean here what they mean in the bundle:
+[`filled_by`](bundle.md#filled_by--a-choice-recorded-rather-than-a-rule) is the stack's
+default for a contested ask, which the operator's choice overrides and which carries
+its reason, and [`to`](bundle.md#to--by-name-and-shown-as-by-name) is the by-name
+exception, shown as one. A fork shipping different services makes its own choices the
+same way.
 
 ### What this does not cover
 
@@ -592,10 +514,10 @@ Validation reports **every** violation in one pass, each naming its location
 | Rule | Failure |
 |------|---------|
 | `schema_version` supported | Both versions named |
-| Every `include` entry is `services/<id>.toml`, names a file that exists, and appears once | Entry named (`ARCH-R171`) |
-| Every `.toml` file in `services/` is named by `include` | File named (`ARCH-R171`) |
-| A service file holds one `[[service]]` whose `id` matches its file name, and nothing else | File and what it holds named (`ARCH-R171`) |
-| `stack.toml` holds no `[[service]]` | Each one named (`ARCH-R171`) |
+| Every `include` entry is `services/<id>.toml`, names a file that exists, and appears once | Entry named (`ARCH-R264`) |
+| Every `.toml` file in `services/` is named by `include` | File named (`ARCH-R264`) |
+| A service file holds one `[[service]]` whose `id` matches its file name, and nothing else | File and what it holds named (`ARCH-R264`) |
+| `stack.toml` holds no `[[service]]` | Each one named (`ARCH-R264`) |
 | Every `id` unique within its kind | Duplicate named |
 | Every `service.profile` references a declared profile | Both named |
 | Every `form.profiles` entry references a declared profile | Both named |
@@ -605,7 +527,7 @@ Validation reports **every** violation in one pass, each naming its location
 | `digest` present and well-formed | Service named (`E1-R1`) |
 | `tag` is not `latest` or otherwise floating | Service named (`E1-R1`) |
 | `bind` present when `port` is | Service named |
-| `license` is a recognised OSI identifier, or `Hippocratic-3.0` where `image` is under `ghcr.io/lemonfiber/` — and only `Hippocratic-3.0` there | Service and licence named (`F2-R5`) |
+| `license` is a recognised OSI identifier, or `Hippocratic-3.0` where `image` is under `ghcr.io/lemonfiber/` and `upstream` under `https://github.com/lemonfiber/` — and only `Hippocratic-3.0` there | Service and licence named (`F2-R5`) |
 | `last_release` is `YYYY-MM-DD` and not in the future | Service and value named (`F2-R14`) |
 | `reaches` and `asks_for` declared together or not at all | Service and the declared half named (`F2-R10`) |
 | `asks_for` is not blank where it is declared | Service named (`F2-R10`) |
@@ -631,13 +553,13 @@ Validation reports **every** violation in one pass, each naming its location
 
 ## Published schemas
 
-Each release of lemonfiber carries a JSON schema of the root manifest,
-`contract/stack-manifest.schema.json`, and one of a service's file,
-`contract/stack-service.schema.json`, generated from the types lemonfiber reads
-them into, so an editor or a fork's CI can check a manifest without the binary. A
-`[[service.claim]]` is the plugin manifest's `[[claim]]`, so the service schema
-takes its definition from the plugin manifest's rather than restating it
-(`ARCH-R172`).
+Each release of lemonfiber carries a JSON schema of the bundle,
+`contract/bundle.schema.json`, and, for as long as it reads a `--stack-dir` stack, one
+of the root manifest, `contract/stack-manifest.schema.json`, and one of a service's
+file, `contract/stack-service.schema.json`, each generated from the types lemonfiber
+reads them into, so an editor or a fork's CI can check a manifest without the binary.
+A `[[service.claim]]` is the plugin manifest's `[[claim]]`, so the service schema takes
+its definition from the plugin manifest's rather than restating it (`ARCH-R172`).
 
 ## Worked example
 
@@ -852,12 +774,14 @@ See [versioning](versioning.md).
 
 | ID | Requirement |
 |----|-------------|
-| **ARCH-R171** | A stack manifest MUST declare each service in a file of its own, `services/<id>.toml`, named by the root manifest's `include` list, which alone decides membership. lemonfiber MUST refuse, naming it, an entry that is not of that form, names no file, or appears twice; a file in `services/` no entry names; a service file holding anything but one `[[service]]` whose `id` matches its name; and a `[[service]]` in the root manifest. |
-| **ARCH-R172** | lemonfiber MUST publish, with each release, JSON schemas of the root manifest (`contract/stack-manifest.schema.json`) and of a service's file (`contract/stack-service.schema.json`), generated from the types it reads them into; the service schema's definition of a claim MUST be the plugin manifest's own. |
-| **ARCH-R246** | A stack service MUST be declared in the plugin manifest's service model, with the fields only a stack carries beside it, and a stack MUST carry no Compose file lemonfiber reads; lemonfiber MUST still read `grants`, `capabilities` and `depends_on` and MUST refuse each, naming for every grant the shape that replaces it and for `depends_on` `network.via`. |
+| **ARCH-R171** | *Superseded by [ARCH-R263](bundle.md) and [ARCH-R264](stack-manifest.md): the stack lemonfiber ships is assembled from the bundle and carries no `include` list or service file, and the `include` layout is a `--stack-dir` stack's. The number is not reused.* |
+| **ARCH-R172** | lemonfiber MUST publish, with each release, a JSON schema of the bundle (`contract/bundle.schema.json`) and, for as long as it reads a `--stack-dir` stack, JSON schemas of the root manifest (`contract/stack-manifest.schema.json`) and of a service's file (`contract/stack-service.schema.json`), each generated from the types it reads them into; the service schema's definition of a claim MUST be the plugin manifest's own. |
+| **ARCH-R246** | A stack service MUST be declared in the plugin manifest's service model, a bundled part's in the manifest of the first-party plugin the bundle pins and a `--stack-dir` stack's in its service file, with the fields only a stack carries beside it, and a stack MUST carry no Compose file lemonfiber reads; lemonfiber MUST still read `grants`, `capabilities` and `depends_on` and MUST refuse each, naming for every grant the shape that replaces it and for `depends_on` `network.via`. |
+| **ARCH-R264** | A stack manifest read from a directory named with `--stack-dir` MUST declare each service in a file of its own, `services/<id>.toml`, named by the root manifest's `include` list, which alone decides membership. lemonfiber MUST refuse, naming it, an entry that is not of that form, names no file, or appears twice; a file in `services/` no entry names; a service file holding anything but one `[[service]]` whose `id` matches its name; and a `[[service]]` in the root manifest. |
 
 ## Related
 
+- [bundle](bundle.md) — what the stack lemonfiber ships is assembled from: the profiles, forms, wiring and each part, pinned
 - [ADR-0002 Profiles and forms](../../00-overview/decisions/0002-profiles-and-forms.md)
 - [ADR-0005 Embedded stack assets](../../00-overview/decisions/0005-embedded-stack-assets.md)
 - [B1 Forms](../../10-functional/features/b-running/b1-forms.md) · [F2 Service catalogue](../../10-functional/features/f-extensibility/f2-service-catalogue.md)

@@ -158,6 +158,12 @@ The core writes that profile as `plugin-<id>` and adds it to no form's closure: 
 install starts it alone, a removal takes it down alone, and `lemonfiber up <form>`
 names only the profiles the stack's own forms declare. `0.18.0` locks `ARCH-R96`.
 
+A first-party plugin's services sit in the profile the [bundle](bundle.md) assigns it
+instead, assembled or installed, so a part keeps the profile it has as a stack service
+and `lemonfiber up tv` starts the parts it always started (`ARCH-R96`). The manifest
+names no profile either way: a substitute and the part it stands in for are declared in
+the same vocabulary, and only the bundle places a part.
+
 From the declarations of every service, the stack's and every plugin's, lemonfiber
 generates one Compose project (`ARCH-R224`). Nothing in it is read from a file somebody
 wrote: there is no fragment, no shared template and no overlay. For the Plex
@@ -189,7 +195,7 @@ Every line comes from one place:
 | Line | From |
 |------|------|
 | `image` | `image` joined to `digest`; the tag is never written |
-| `profiles` | `plugin-<id>`, or a stack service's own `profile` |
+| `profiles` | The profile the bundle assigns a first-party plugin, `plugin-<id>` for any other, or a stack service's own `profile` |
 | `restart`, `TZ` | Every entry alike |
 | `PUID`, `PGID`, `user` | [`user_mode`](plugin-manifest-service.md#who-it-runs-as-and-how-tightly-it-is-held) |
 | The rest of `environment` | [`env`](plugin-manifest-service.md#environment--four-kinds-of-value), every value literal |
@@ -393,8 +399,9 @@ each       = true               # every service that fills it, not one
 | `each` | bool | | `true` to reach every service that fills it. Default `false`: one filler, settled by the operator's choice or the stack's own (`F14-R23`) |
 | `native` | string | | The upstream's own API the service talks in, as the upstream declares it in its `native`. The ask then reaches the upstream the filler's adapter `fronts` rather than the adapter (`ARCH-R253`) |
 
-The stack's `[[wiring]]` has `filled_by`, `to` and `why`; an ask has none of them. A link by
-name is the operator's exception (`F4-R12`), and a manifest has nowhere to write one
+The bundle's [`[[wiring]]`](bundle.md#wiring--a-choice-of-filler-or-a-link-by-name) has
+`filled_by`, `to` and `why`; an ask has none of them. A link by name is the exception the
+bundle or the operator makes (`F4-R12`), and a manifest has nowhere to write one
 (`F14-R22`).
 
 ## `[[wiring]]` — how the stack's own services reach one service
@@ -405,10 +412,9 @@ hostname = "comics"
 dashboard_group = "Library"
 ```
 
-Three fields, and none of them names a service outside this plugin. The stack
-manifest's
-[`[[wiring]]`](stack-manifest.md#wiring--the-link-between-two-services-and-which-of-them-it-names)
-is the other kind and is an array of links between the stack's own services;
+Three fields, and none of them names a service outside this plugin. The bundle's
+[`[[wiring]]`](bundle.md#wiring--a-choice-of-filler-or-a-link-by-name)
+is the other kind: the stack's choices of filler and its links by name between parts;
 this one is a plugin saying where its *own* entry goes, and lemonfiber writes
 both the route and the panel from it.
 
@@ -710,7 +716,10 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | At most one service declares a given core capability | Capability and both services named |
 | `digest` present and well-formed | Service named |
 | `bind` present when `port` is | Service named |
-| `criticality` is not `critical` | Value named, with the four available |
+| `criticality` is `critical` only where `shape` is `egress-guard` | Value named, with the shape it needs and the four available without it (`ARCH-R97`) |
+| `reaches` and `asks_for` declared together or not at all, `asks_for` not blank where declared | Service and the declared half named (`F2-R10`, `ARCH-R270`) |
+| Every starting file lies under `config/<id>/` of a declared service, no path in the tree is a symbolic link, and no service's files number more than 64 or weigh more than 1 MiB in all | Path or service named, with the bound (`ARCH-R271`) |
+| `replaces` names an id the bundle reserves, and the declaring service's own | `service <id>.replaces` named (`ARCH-R222`) |
 | `license` present | Plugin named |
 | Every `forms` entry names a declared form | Both named |
 | Every entry in `requires.capabilities` is offered | Capability named, never a version |
@@ -813,8 +822,8 @@ unreadable.
 | **ARCH-R93** | Regenerating the published schema MUST produce no diff, and CI MUST fail if it does. |
 | **ARCH-R94** | Manifest validation MUST report every violation in one pass, including unrecognised fields, unrecognised values and type faults, each named with its location. |
 | **ARCH-R95** | A plugin's image MUST be named by digest, and a manifest naming an image by tag alone MUST be refused. |
-| **ARCH-R96** | A plugin's service MUST be placed in a profile of its own, added to the closure of each form the manifest declares, and naming a form the stack does not declare MUST be refused by name. |
-| **ARCH-R97** | A plugin MUST NOT declare a criticality of `critical`, and one that does MUST be refused naming the value and those available. |
+| **ARCH-R96** | A first-party plugin's services MUST be placed in the profile the bundle assigns it, whatever its stage; any other plugin's service MUST be placed in a profile of its own, added to the closure of each form the manifest declares; and naming a form the stack does not declare MUST be refused by name. |
+| **ARCH-R97** | A service MUST NOT declare a criticality of `critical` unless it declares `shape = "egress-guard"`, whoever wrote the plugin, and one that does MUST be refused naming the value, the shape it needs and the values available without it. |
 | **ARCH-R100** | A plugin's service MUST be able to name the path inside its container at which its one configuration directory is mounted; that path MUST be validated as a single absolute path that is neither the root nor within the data root, and naming it MUST NOT change the number of mounts the generated entry carries. |
 | **ARCH-R101** | *Superseded by [ARCH-R229](plugin-manifest.md): a service's environment is typed, four kinds of value and nothing else. The number is not reused.* |
 | **ARCH-R102** | A plugin's service MUST declare the capabilities it claims in the manifest, a claim outside the published core vocabulary MUST be namespaced with the plugin's id, and a claim naming neither MUST be refused by name. |
@@ -839,7 +848,7 @@ unreadable.
 | **ARCH-R155** | *Superseded by [ARCH-R245](plugin-manifest.md): a choice of filler regenerates the one project rather than each plugin's document. The number is not reused.* |
 | **ARCH-R216** | A service that speaks a contract MUST name in `fronts` one other service of the same plugin that speaks none, and a manifest where it names none, itself, a service the plugin does not declare or one that speaks a contract MUST be refused by name. |
 | **ARCH-R221** | `native` MUST be one lowercase word and MUST be declared only on a service another service of the same plugin `fronts`, and a manifest declaring it anywhere else MUST be refused, naming the service. |
-| **ARCH-R222** | `replaces` MUST name a service the shipped stack declares and MUST equal the id of the service declaring it; that service MAY take the named service's id, port and hostname, every other service MUST still be refused any of the three, and a manifest declaring `replaces` anywhere else MUST be refused, naming `service <id>.replaces`. |
+| **ARCH-R222** | `replaces` MUST name an id the bundle reserves ([ARCH-R269](bundle.md)) and MUST equal the id of the service declaring it; that service MAY take the reserved service's id, port and hostname, every other service MUST still be refused any of the three, and a manifest declaring `replaces` anywhere else MUST be refused, naming `service <id>.replaces`. |
 | **ARCH-R224** | lemonfiber MUST write the Compose entry of every service it runs, the stack's own and every plugin's, from the one typed service model, as one generated project, and MUST NOT read a Compose file, fragment, template or overlay from the stack or from a plugin. |
 | **ARCH-R225** | A first-party plugin's service, a third-party plugin's service and a stack service MUST be declared in the same closed set of container fields, with the same types and the same validation, and whether a plugin is first-party MUST NOT change which of those fields it may declare or how its entry is written. |
 | **ARCH-R226** | A service MUST be published at `port` to its `listens` port, or to `port` itself where it declares none, and at each `[[service.publish]]` entry alike, every one on the interface its `bind` tier renders; a port another service publishes MUST be refused, naming the port and both services; and the manifest MUST have no field naming an address or an interface. |
@@ -868,12 +877,17 @@ unreadable.
 | **ARCH-R250** | A plugin's CI MUST run each of its images under the posture its manifest declares, `standard` included, and a manifest MAY declare `posture = "confined"` only where that run passes under it; lemonfiber MUST write the posture a manifest declares and MUST NOT refuse to install, update or start a service on account of its posture. |
 | **ARCH-R252** | lemonfiber MUST merge one operator-written overlay from its own configuration directory last, over the project it generates; MUST NOT accept or write an overlay from a plugin, a catalogue or the bundle; MUST name the overlay and every service it changes as unvetted in the doctor and in every rehearsal; and MUST journal each change to it, by content, when it next writes or starts the project. |
 | **ARCH-R253** | An ask and a `url_of` MUST reach the service that speaks the capability's contract, the filler itself where the filler speaks none, and the upstream that filler's adapter fronts only where the asker names that upstream's declared API in `native`; an ask naming an API the filler's upstream does not declare MUST be reported unfilled, naming the API. |
+| **ARCH-R270** | A plugin's service MAY declare `reaches` and `asks_for`, both or neither, with `asks_for` never blank, as a stack service declares them (`F2-R10`), and lemonfiber MUST list them in the inventory of what leaves the machine as it lists a stack service's; every service of a first-party plugin MUST declare both; and a service declaring half the pair or a blank `asks_for` MUST be refused naming the service. |
+| **ARCH-R271** | A plugin MAY ship starting files for a service it declares under `config/<service id>/` in its source, and lemonfiber MUST write each into that service's configuration directory at the same relative path as a materialised file held to `F1-R4`; a file outside `config/<id>/` of a declared service, a symbolic link anywhere in the tree, and a service whose files number more than 64 or weigh more than 1 MiB in all MUST be refused, naming the path or the service. |
+| **ARCH-R272** | lemonfiber MUST honour a service's `api` only in a first-party plugin the bundle pins as `assembled`, reaching it through that in-process adapter as it reaches a stack service, and an install or update of a plugin any of whose services declares `api` MUST be refused, naming `service <id>.api`. |
+| **ARCH-R273** | A first-party plugin's service whose `replaces` names a reserved id MUST be given the setting, secret and credential names the stack gives the service of that id, and moving a part in place MUST NOT rename or migrate any of them. |
 
 ## Related
 
 - [ADR-0021](../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) — the decision this contract implements
 - [plugin-manifest-service](plugin-manifest-service.md) — what a plugin runs, field by field
 - [stack-manifest](stack-manifest.md) — the vocabulary a plugin's service is declared in, and the whole-stack manifest this is not
+- [bundle](bundle.md) — the profile a first-party plugin's services sit in, the ids it reserves, and the stack's choices and links by name
 - [capability-vocabulary](capability-vocabulary.md) — the names `provides` may carry and the probes a `[[claim]]` binds
 - [extension-points](extension-points.md) — the points a `[[contribution]]` is made at and the row each one takes
 - [versioning](versioning.md) — the three version identifiers, and the window this one does not share

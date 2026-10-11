@@ -102,7 +102,9 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `bind` | enum | ✔ if `port` | `loopback` \| `lan`. A **tier**, not an address, and every port the service publishes is published on it — see [ports](#ports--the-tier-is-lemonfibers-the-numbers-are-the-manifests). |
 | `publish` | array of tables | | Each further port it publishes on its tier: `port`, on the host (✔), and `listens`, inside the container (default `port`). Only where `port` is declared. |
 | `health` | table | | As `stack.toml`. Absent means lifecycle waits on container state only. |
-| `criticality` | enum | ✔ | As `stack.toml`. A plugin MUST NOT declare `critical` — see below. |
+| `criticality` | enum | ✔ | As `stack.toml`. `critical` only with `shape = "egress-guard"` — see below. |
+| `reaches` | string | | Where this service's own requests go, as `stack.toml` declares it. Both this and `asks_for` or neither; a first-party plugin's service declares both (`F2-R10`, `ARCH-R270`). |
+| `asks_for` | string | | What it asks for there, as `stack.toml` declares it. Never blank (`ARCH-R270`). |
 | `media_types` | array | | Which media types it handles, in `stack.toml`'s vocabulary. Drives root-folder seeding, which is how a plugin's service is pointed at the library the stack already fills. |
 | `takes_data` | bool | | `true` if it needs the data root mounted at `/data`, from the operator's [storage setting](plugin-manifest.md#the-data-root--one-setting-every-data-mount). Default `false`. |
 | `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). At most one service of a plugin may declare a given core name — see below. |
@@ -116,12 +118,12 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate, summed into a form's footprint (`B1-R18`) and never written as a limit. |
 | `mem_limit_mib` | integer | | The most memory the container may hold, in MiB, written as its limit. |
 | `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). |
-| `api` | table | | The adapter lemonfiber reaches it through, in `stack.toml`'s shape. `kind` and `key_source` from the published set — see below. |
+| `api` | table | | The in-process adapter lemonfiber reaches it through, in `stack.toml`'s shape. `kind` and `key_source` from the published set. Honoured only in a first-party plugin the bundle assembles — see below. |
 | `listens` | integer | ✔ if `api` or `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where lemonfiber, the services that ask and the proxy reach it. Default `port`. |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract names no `api`: it is asked one way. See [capability-contracts.md](capability-contracts.md). |
 | `fronts` | string | ✔ if `speaks` | The plugin's own service this adapter stands in front of: the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. |
 | `native` | string | | The API this service answers the stack's other services in, by the name those services know it by (`jellyfin`, `plex`, `emby`). Declared on the upstream an adapter `fronts`, where other services reach that upstream directly rather than through the adapter: a request service is set up against a media server in the media server's native API (`F14-R26`, `ARCH-R221`). |
-| `replaces` | string | | The id of the stack's own service this service moves in place of: the same container name, configuration directory and data, so an install moves the bundled service rather than running beside it ([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) §4). It names the service's own id, and only that service may take the stack service's id, port and hostname (`ARCH-R222`). Only a first-party plugin's install honours it (`F14-R29`). |
+| `replaces` | string | | An id the [bundle reserves](bundle.md#the-reserved-register), of the service this service moves in place of: the same container name, configuration directory and data, so an install moves the bundled service rather than running beside it ([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) §4). It names the service's own id, and only that service may take the reserved id, port and hostname (`ARCH-R222`). Only a first-party plugin's install honours it (`F14-R29`), and the service keeps the stack's setting, secret and credential names for that id, so the move migrates none (`ARCH-R273`). |
 | `shape` | enum | | `egress-guard` \| `render`. The one privileged shape lemonfiber writes for this service, from a closed set; each names who may declare it, and the operator approves it apart from the offer — see [shapes](#shapes--the-only-route-to-a-device-or-a-privilege) (`F14-R12`, `F14-R21`, `ARCH-R237`, `ARCH-R238`). |
 
 ### The image is named by digest
@@ -247,6 +249,34 @@ There is no field by which a mount reaches any other path on the host. In partic
 there is none for the engine's socket, which is root on the host, for a first-party
 service as for anybody else's (`ARCH-R239`).
 
+### Starting files — what it starts with
+
+An image often needs a file before its first start that it would not write for itself: a
+download client's settings with its folders already set, a quality sync's guides, a
+dashboard's layout, the proxy's routes. A plugin ships such files in its own source,
+under `config/<service id>/`, and lemonfiber writes each into that service's
+configuration directory at the same relative path (`ARCH-R271`):
+
+```
+plugin-sabnzbd/
+├── plugin.toml
+└── config/
+    └── sabnzbd/
+        └── sabnzbd.ini      written to ./config/sabnzbd/sabnzbd.ini
+```
+
+- **Materialised, as every file lemonfiber writes for a stack is.** Each is recorded by
+  content, and one the operator has changed is never overwritten without a diff and
+  confirmation (`F1-R4`).
+- **Bounded.** At most 64 files and 1 MiB in all per service. A starting file is
+  configuration a reviewer reads, not a payload.
+- **No symbolic link,** anywhere in the tree, and no path outside `config/<id>/` of a
+  service the plugin declares. A link would be a write to wherever it points, decided by
+  the plugin and followed on the operator's machine.
+
+Any plugin may ship them, first-party or not: a substitute that needs a starting file
+stands in for a part that has one on the same terms.
+
 ### Environment — four kinds of value
 
 ```toml
@@ -354,6 +384,15 @@ that already runs them to record their claims, before the version that writes th
 ships (`REPO-R93`). lemonfiber writes the posture declared and refuses nothing at run
 time on account of it (`ARCH-R250`).
 
+**`standard` binds no port below 1024.** None of its six capabilities is
+`NET_BIND_SERVICE`, so a service that answers on a low port listens above 1024 and
+publishes the low port to it. The proxy listens on 8080 and 8443 and publishes 80 and
+443 to them, and its Caddyfile names both (`http_port`, `https_port`). An image whose
+binary carries a file capability `standard` does not hold cannot start under it at any
+port, and Caddy's image carries `NET_BIND_SERVICE` on its binary, so the guarded door
+and the proxy run an image their own repositories rebuild from Caddy's with that
+capability removed ([ADR-0045](../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)).
+
 `mem_limit_mib` is a ceiling and `memory_mib` an estimate, and they are two fields
 because they answer two questions (`ARCH-R235`). The estimate is summed into what a form
 would need and is never enforced: a figure that fits a media server idling would kill
@@ -397,7 +436,7 @@ reports it over `network.egress-guard`, and the core sets it on the client over
 
 | Shape | Written as | Who may declare it |
 |-------|------------|--------------------|
-| `egress-guard` | `NET_ADMIN` added, and the `/dev/net/tun` device | The upstream an adapter of the same plugin fronts, where that adapter speaks `network.egress-guard` (`F14-R12`); in the stack, the service that provides `network.egress-guard` |
+| `egress-guard` | `NET_ADMIN` added, and the `/dev/net/tun` device | The upstream an adapter of the same plugin fronts, where that adapter speaks `network.egress-guard`; a plugin's one service where it provides `network.egress-guard` itself, honoured only where the bundle assembles the plugin (`F14-R12`); in the stack, the service that provides `network.egress-guard` |
 | `render` | The host's `/dev/dri` device, and the group that owns it on the host added to the container's groups | A service that provides `media.serve`, or the upstream an adapter of the same plugin fronts, where that adapter speaks it |
 
 A shape is a name, never a list: no manifest names a kernel capability, a device or a
@@ -452,11 +491,13 @@ gate is warned against in the other direction.
 
 A plugin's service may declare `api` in the stack manifest's own shape
 ([`api`](stack-manifest.md#api)): `kind` names one of the adapters lemonfiber
-implements and `key_source` where the service's credential is read. Naming one is
-how a plugin's service is reached by whatever asks for a capability it claims:
-lemonfiber registers it with the services that ask, through that adapter, as it
-registers a bundled service declaring the same, and nothing that asks changes
-(`F9-R6`).
+implements and `key_source` where the service's credential is read. It is honoured in
+one place: a first-party plugin the bundle pins as `assembled`, whose one service is a
+stack service and is reached through that in-process adapter as the stack's own are; the
+release whose bundle installs the part deletes that adapter. An install or update of a
+plugin naming `api` is refused, naming `service <id>.api` (`ARCH-R272`), as a
+third-party `replaces` is (`F14-R29`); every other plugin speaks a contract instead
+(`F14-R3`).
 
 The set is fixed and published as `contract/adapters.json`, generated from the
 kinds and key sources lemonfiber implements (`F8-R13`, `ARCH-R143`). A plugin
@@ -470,13 +511,16 @@ promise for a service lemonfiber does not know: whatever asks for a capability i
 fills is told that nothing here can register it there, rather than being left
 unwired without a word.
 
-### A plugin may not declare itself `critical`
+### `critical` comes with the egress guard's shape
 
 `critical` means *its failure has consequences outside the machine*, and in the
-bundled stack exactly one service holds it. It is not a severity a contributor
-assigns to their own work: the classification drives how failures are reported
-and how hard lemonfiber tries to stop the operator proceeding. A plugin
-declaring it is refused, naming the value and the four that are available.
+bundled stack exactly one service holds it: the egress guard, whose failure exposes
+the home address. It is not a severity a contributor assigns to their own work: the
+classification drives how failures are reported and how hard lemonfiber tries to stop
+the operator proceeding. So it is allowed with `shape = "egress-guard"` and nowhere
+else, whoever wrote the plugin, and a substitute egress guard is as critical as the
+guard it replaces. A service declaring it without that shape is refused, naming the
+value, the shape it needs and the four available without it (`ARCH-R97`).
 
 ### The fields that are absent, and why
 
@@ -488,15 +532,16 @@ name (`ARCH-R84`), rather than having it ignored:
 |-------|--------------------------------|
 | `grants` | Kernel capabilities, by name. No manifest, the stack's included, names a capability, a device or a group: a service that needs one declares a [shape](#shapes--the-only-route-to-a-device-or-a-privilege), which lemonfiber writes, so nothing a manifest writes can widen what it is given. |
 | `depends_on` | An ordering edge, by name. The one edge the format writes is [`network.via`](#inside-another-services-network--networkvia)'s, to whatever fills the capability it names, because a container inside another's network cannot start before that network exists; it is the edge that keeps torrent traffic inside the tunnel (`B1-R14`). Any other edge between services is a source of failures nobody can attribute, and one naming a service is a link by name. |
-| `[[wiring]]` | The stack manifest's array of [links between its own services](stack-manifest.md#wiring--the-link-between-two-services-and-which-of-them-it-names) — `by`, `asks`, `filled_by`, `to`: who asks whom for what. **Not the [`[[wiring]]`](plugin-manifest.md#wiring--how-the-stacks-own-services-reach-one-service) below**, which is spelled the same and says something else: `hostname`, `dashboard_group` and `service`, naming where lemonfiber puts *this* plugin's service on the proxy and the dashboard. One is a link between two services; the other is one service's own address. Since `ARCH-R127` made the plugin's a list too, the spelling no longer tells them apart and the file it is written in is what does. A plugin declares what it can do in `provides`, is asked for by whatever already asks, and asks in [`[[ask]]`](plugin-manifest.md#ask--what-a-plugins-service-asks-for), by capability only. In particular it cannot introduce a **by-name** link, which is `F4-R12`'s third clause: a by-name wiring is the operator's exception to make and a plugin naming another service is reaching into wiring it does not own. |
+| `[[wiring]]` | The bundle's [choices of filler and links by name](bundle.md#wiring--a-choice-of-filler-or-a-link-by-name) — `by`, `asks`, `filled_by`, `to`: who is chosen for whom, and who names whom. **Not the [`[[wiring]]`](plugin-manifest.md#wiring--how-the-stacks-own-services-reach-one-service) below**, which is spelled the same and says something else: `hostname`, `dashboard_group` and `service`, naming where lemonfiber puts *this* plugin's service on the proxy and the dashboard. One is a link between two services; the other is one service's own address. Since `ARCH-R127` made the plugin's a list too, the spelling no longer tells them apart and the file it is written in is what does. A plugin declares what it can do in `provides`, is asked for by whatever already asks, and asks in [`[[ask]]`](plugin-manifest.md#ask--what-a-plugins-service-asks-for), by capability only. In particular it cannot introduce a **by-name** link, which is `F4-R12`'s third clause: a by-name wiring is the operator's exception to make and a plugin naming another service is reaching into wiring it does not own. |
 | `host_managed` | Native-mode lifecycle is the operating system's (`B2-R15`). A plugin cannot install a system service. |
-| `profile` | Assigned, not declared — see below. |
+| `profile` | Assigned, not declared: by the [bundle](bundle.md#profiles-and-forms-for-a-part) for a first-party plugin, and `plugin-<id>` for any other ([what lemonfiber writes](plugin-manifest.md#what-lemonfiber-writes)). |
 | `environment` | Free-form variables. A free-form pair is how a manifest would configure its way past what the format says it does, and a value carrying `${…}` would read the stack's environment file, credentials included. A service's environment is [`env`](#environment--four-kinds-of-value) instead, where every value is one of four typed kinds and nothing is interpolated. |
 | `ports`, `volumes`, `networks`, `network_mode`, `devices`, `cap_add`, `user`, `privileged`, `entrypoint`, `command` | Compose's own keys. Each is what lemonfiber writes from the typed fields above or never writes at all, and a manifest naming one is naming the output rather than declaring the service. |
-| `last_release` | An abandonment signal maintained by the people reviewing the bundled pins (`F2-R14`). Self-reported by a plugin it would signal nothing. |
+| `last_release` | An abandonment signal maintained by the people reviewing the bundled pins, in the bundle beside each pin (`F2-R14`). Self-reported by a plugin it would signal nothing. |
 
 ## Related
 
 - [plugin-manifest](plugin-manifest.md) — the rest of the contract, what lemonfiber writes from it, its validation and its requirements
 - [stack-manifest](stack-manifest.md) — the vocabulary a plugin's service is declared in
+- [bundle](bundle.md) — the ids a first-party `replaces` may name, and the profile its services sit in
 - [ADR-0043](../../00-overview/decisions/0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md) — the one service model every Compose entry is written from
