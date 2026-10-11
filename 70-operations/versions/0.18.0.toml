@@ -165,10 +165,18 @@
 # places where the household asks, and the refusals `G10` and `N3-R17` render are all
 # core text, so they ship with the household's web surface.
 # `F10-R17` has the template plugin's manifest name, as a `#:schema` line, the manifest
-# schema published with the release its `targets.toml` names, and its CI refuse the two
-# disagreeing, so an author's editor checks the manifest against what that release
+# schema of the lemonfiber its `targets.toml` names, and its CI refuse the two
+# disagreeing, so an author's editor checks the manifest against what that build
 # reads. The work is in `plugin-template`, which no version searches, so its row is in
 # the binary's tracker beside `F10-R7`'s.
+# `F10-R18`, `F10-R19` and `OPS-R88` let a plugin's `targets.toml` name a commit of the
+# core's `main` before a release carries what the plugin needs: its reader builds that
+# commit the way the train's gate builds its candidate and proves against it, and the
+# gate proves a plugin naming one with the candidate like any other. `OPS-R89` lets the
+# bundle pin a revision naming a commit only where the core commit the release tags
+# holds it. `plugin-jellyfin`, which this version cuts and bundles, needs what only
+# `main` has, and no release or pre-release is cut to give a plugin something to build
+# against. Added after staging by the maintainer's decision of 2026-10-11 (OPS-R31).
 # `C10-R1` to `C10-R14` give a program that runs beside the stack its own credential: a
 # named key with one scope, minted at the command line or over the web API with the
 # password given again, shown once beside the stack's address and pin, and revoked by name
@@ -266,7 +274,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 466 goals, seeded from the roadmap milestone this version serves;
+# 470 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -593,6 +601,8 @@ goals   = [
     "N25-R10",
     "N25-R11",
     "F10-R17",
+    "F10-R18",
+    "F10-R19",
     "C10-R1",
     "C10-R2",
     "C10-R3",
@@ -714,6 +724,8 @@ goals   = [
     "REPO-R91",
     "REPO-R92",
     "OPS-R86",
+    "OPS-R88",
+    "OPS-R89",
     "ARCH-R199",
     "ARCH-R222",
     "ARCH-R200",

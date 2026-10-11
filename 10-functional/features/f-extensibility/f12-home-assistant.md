@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [extensibility, observability, household, web]
 relates: [C10, C6, B5, G2, K1]
 ---

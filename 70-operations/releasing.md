@@ -176,6 +176,7 @@ Both are documented as manual steps ([Q-R60](../40-quality/tooling.md)), like `S
 | **OPS-R20** | Every release MUST publish SLSA build provenance (an attestation) and an SBOM alongside the checksummed artifacts. |
 | **OPS-R59** | The plugin catalogue MUST release on its own clock and MUST NOT be a stream the version train cuts; no version manifest may name it, and a contribution to it MUST NOT move a version number in this organisation. The bundle's pins are moved by the train under `OPS-R86`, and that move is not a catalogue release. |
 | **OPS-R86** | The train MUST tag each first-party plugin's repository at the core's version before it tags the core's release, and MUST NOT tag it at a pre-release's tag. Once the plugin's manifest names what that tag published, the train MUST move the plugin's pin and copy in the catalogue's bundle with one rolling pull request. The core's release tag MUST embed the bundle at a catalogue commit whose bundle pins every first-party plugin at that version. A pre-release MUST record a bundle that does not pin every first-party plugin at its tag among its unmet goals, and MUST NOT refuse on it. |
+| **OPS-R89** | The bundle MAY pin a first-party plugin at a revision whose `targets.toml` names a commit of the core's `main` only where the core commit the release tags holds that commit. Before tagging the core's release, the train MUST read `targets.toml` at each pinned revision and MUST refuse, naming the plugin, the revision and the commit, a pin targeting a commit the core commit being tagged does not hold, and one whose revision cannot say what it targets. Once that release is published, the plugin MUST move its `targets.toml` to it. |
 
 A plugin is still **gated** by the train even though it is not cut by it: every
 run that would tag proves each registered plugin riding the version with the
@@ -183,6 +184,15 @@ candidate build of the core commit it tags, through the reader the registry pins
 and refuses on one that no longer validates ([staging.md](staging.md#plugins-ride-the-train-pinned-and-block-it-when-they-stop-validating)).
 Being an input to the gate and being a stream the gate tags are different things,
 and `OPS-R59` is about the second.
+
+A first-party plugin written against what the core had on `main` before any release
+carried it names that commit in its `targets.toml` rather than a release
+([F10](../10-functional/features/f-extensibility/f10-authoring.md)). The bundle may
+pin it there, because the release that embeds the bundle is cut from the same `main`:
+before the core is tagged, the train reads `targets.toml` at each pinned revision and
+refuses a pin whose commit the core commit being tagged does not hold, so everything
+the plugin was proved against is inside that release (`OPS-R89`). Once the release is
+published, the plugin names it instead of the commit.
 
 ## Related
 

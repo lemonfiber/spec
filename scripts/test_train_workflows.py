@@ -335,22 +335,38 @@ class TheSteps(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertEqual((self.read("output"), self.read("tagging.txt")), ("step=images\n", "plugin-jellyfin\n"))
 
+    def head(self, at: str) -> str:
+        return subprocess.run(["git", "-C", str(self.root / at), "rev-parse", "HEAD"], check=True,
+                              capture_output=True, text=True).stdout.strip()
+
     def catalogue(self, release: str):
-        """The core's checkout embedding a catalogue whose bundle pins jellyfin at `release`."""
+        """The core's checkout embedding a catalogue whose bundle pins jellyfin at `release`,
+        at a revision whose `targets.toml` names the core commit before the embedding."""
         (self.root / "30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
             encoding="utf-8")
         (self.root / "70-operations/versions/0.2.0.toml").write_text(
             'version = "0.2.0"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n', encoding="utf-8")
+        self.stream("lemonfiber")
+        plugin = "remotes/plugin-jellyfin"
+        self.git("init", "-q", "-b", "main", plugin)
+        (self.root / plugin / "targets.toml").write_text(f'commit = "{self.head("checkouts/lemonfiber")}"\n',
+                                                          encoding="utf-8")
+        self.git("-C", plugin, "add", "-A")
+        self.git("-C", plugin, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "targets")
         catalogue = "remotes/lemonfiber-plugins"
         self.git("init", "-q", "-b", "main", catalogue)
         (self.root / catalogue / "bundle").mkdir()
         (self.root / catalogue / "bundle/bundle.toml").write_text(
             'schema = 1\n\n[[plugin]]\nid = "jellyfin"\n'
-            f'origin = "https://github.com/o/plugin-jellyfin"\nrelease = "{release}"\n', encoding="utf-8")
+            f'origin = "https://github.com/o/plugin-jellyfin"\nrelease = "{release}"\n'
+            f'revision = "{self.head(plugin)}"\n', encoding="utf-8")
         self.git("-C", catalogue, "add", "-A")
         self.git("-C", catalogue, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "bundle")
-        self.stream("lemonfiber")
+        # The pinned origin is on the forge; here it is a repository beside the core.
+        self.forge = {**ALLOWED, "GIT_CONFIG_COUNT": "2",
+                      "GIT_CONFIG_KEY_1": f"url.{self.root}/remotes/.insteadOf",
+                      "GIT_CONFIG_VALUE_1": "https://github.com/o/"}
         self.git("-C", "checkouts/lemonfiber", "-c", "protocol.file.allow=always", "submodule", "add", "-q",
                  str(self.root / catalogue), "assets/plugins")
         self.git("-C", "checkouts/lemonfiber", "-c", "user.email=t@t", "-c", "user.name=t",
@@ -366,7 +382,7 @@ class TheSteps(unittest.TestCase):
     def test_the_bundle_check_reads_the_catalogue_the_core_embeds(self):
         self.fresh()
         self.catalogue("0.2.0")
-        done = self.run_step("execute-version.yml", BUNDLE, **ALLOWED)
+        done = self.run_step("execute-version.yml", BUNDLE, **self.forge)
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertIn("jellyfin is pinned at 0.2.0", done.stdout)
 
@@ -374,7 +390,7 @@ class TheSteps(unittest.TestCase):
         """The defect it exists for: a core tagged over a bundle pinning another release."""
         self.fresh()
         self.catalogue("0.1.0")
-        done = self.run_step("execute-version.yml", BUNDLE, **ALLOWED)
+        done = self.run_step("execute-version.yml", BUNDLE, **self.forge)
         self.assertEqual(done.returncode, 1)
         self.assertIn("pinned at release '0.1.0'", done.stdout)
 
@@ -395,7 +411,7 @@ class TheSteps(unittest.TestCase):
         self.fresh()
         self.catalogue(release)
         self.stub_gate()
-        done = self.run_step("prerelease-version.yml", VERDICT, STEP=phase, **ALLOWED)
+        done = self.run_step("prerelease-version.yml", VERDICT, STEP=phase, **self.forge)
         return done, self.read("output")
 
     def test_a_pre_release_over_an_unpinned_bundle_records_it_unmet_and_goes_on(self):

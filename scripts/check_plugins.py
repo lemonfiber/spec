@@ -39,13 +39,16 @@ proof in the report (`F10-R14`), and fails the run as any other failed proof doe
 
 Every number compared here is the plugin's own. `plugin.toml` says which manifest
 generation it is written in; `targets.toml`, as committed, says which release it is
-validated and proved against. The registry says only where to look, because a pin
-held in two places is two statements of one fact and they disagree the day one is
-edited.
+validated and proved against, or which commit of the core's `main` before a release
+carries what it needs. The registry says only where to look, because a pin held in
+two places is two statements of one fact and they disagree the day one is edited.
 
 What a plugin targets is also what keeps this from being retroactive: a release
 below it is not that plugin's business and the plugin is not proved. At or above
-it, nothing about it may be missing.
+it, nothing about it may be missing. A plugin naming a commit rides every version,
+because the train cuts from the `main` that holds it; the gate overwrites the
+commit with the version being cut as it overwrites a release, so what is proved is
+the candidate either way.
 
 Usage:
   check_plugins.py --version X.Y.Z --schema N \\
@@ -99,6 +102,12 @@ READER_FIELDS = ("repo", "commit", "path")
 #: A commit as git names one in full. A branch or a short hash names whatever the
 #: repository holds on the day, which is not a pin.
 COMMIT_RE = re.compile(r"\A[0-9a-f]{40}\Z")
+
+#: What `targets.toml` names a release under, as `X.Y.Z`.
+RELEASE_KEY = "lemonfiber"
+
+#: What `targets.toml` names a commit of the core's `main` under, in full.
+COMMIT_KEY = "commit"
 
 #: Where a plugin's reader keeps the release it fetched, beside the manifest, as
 #: `<version>/<build>/lemonfiber`. A release already there is the one it asks.
@@ -202,25 +211,38 @@ def malformed(entry: dict, index: int) -> list[str]:
 
 
 def targeted(root: pathlib.Path, entry: dict) -> tuple[str | None, str | None]:
-    """Which release this plugin says it is validated against, or why that is unreadable."""
+    """The release or the commit this plugin says it is validated against, or why
+    that is unreadable."""
     path = root / entry["targets"]
     plugin = entry["id"]
     if not path.is_file():
         return None, f"{plugin} has no {entry['targets']} at {path}"
     try:
-        declared = tomllib.loads(path.read_text(encoding="utf-8")).get("lemonfiber")
+        read = tomllib.loads(path.read_text(encoding="utf-8"))
     except tomllib.TOMLDecodeError as broken:
         return None, f"{plugin}'s {entry['targets']} cannot be read: {broken}"
-    if declared is None:
-        return None, f"{plugin}'s {entry['targets']} names no lemonfiber release"
-    if not VERSION_RE.match(str(declared)):
-        return None, f"{plugin} targets {declared!r}, which is not X.Y.Z"
-    return str(declared), None
+    release, commit = read.get(RELEASE_KEY), read.get(COMMIT_KEY)
+    if release is not None and commit is not None:
+        both = (
+            f"{plugin}'s {entry['targets']} names the release {release!r} and the "
+            f"commit {commit!r}; a plugin targets one"
+        )
+        return None, both
+    if commit is not None:
+        if not COMMIT_RE.match(str(commit)):
+            return None, f"{plugin} targets the commit {commit!r}, which is not a full commit"
+        return str(commit), None
+    if release is None:
+        return None, f"{plugin}'s {entry['targets']} names neither a lemonfiber release nor a commit"
+    if not VERSION_RE.match(str(release)):
+        return None, f"{plugin} targets {release!r}, which is not X.Y.Z"
+    return str(release), None
 
 
 def rides(targets: str, version: str) -> bool:
-    """Whether this plugin is gated on the version being cut."""
-    return ordered(version) >= ordered(targets)
+    """Whether this plugin is gated on the version being cut. One naming a commit
+    rides every version, since every version is cut from the `main` that holds it."""
+    return bool(COMMIT_RE.match(targets)) or ordered(version) >= ordered(targets)
 
 
 def read_json(path: pathlib.Path, what: str, plugin: str) -> tuple[dict | None, str | None]:
@@ -309,10 +331,11 @@ def stage(root: pathlib.Path, entry: dict, version: str, candidate: pathlib.Path
     """The checkout made to prove against the candidate, and where the candidate now is.
 
     The candidate goes where the reader keeps a release it fetched, `targets.toml`
-    names the version being cut, and the committed report is removed, so a reader
-    that writes nothing leaves nothing behind that could be read in its place. Each
-    path written is cleared first, so a link the plugin committed there is replaced
-    rather than written through.
+    names the version being cut in place of whatever release or commit it named,
+    and the committed report is removed, so a reader that writes nothing leaves
+    nothing behind that could be read in its place. Each path written is cleared
+    first, so a link the plugin committed there is replaced rather than written
+    through.
     """
     remove(root / CACHE)
     held = root / CACHE / version / build / BINARY
@@ -320,7 +343,7 @@ def stage(root: pathlib.Path, entry: dict, version: str, candidate: pathlib.Path
     shutil.copy2(candidate, held)
     targets = root / entry["targets"]
     remove(targets)
-    targets.write_text(f'lemonfiber = "{version}"\n', encoding="utf-8")
+    targets.write_text(f'{RELEASE_KEY} = "{version}"\n', encoding="utf-8")
     remove(root / entry["report"])
     return held
 

@@ -196,7 +196,8 @@ class PluginReposTests(Workspace):
 
 
 class CheckBundlePinsTests(Workspace):
-    """The embedded bundle pins each tagged plugin at the tag's release — OPS-R86."""
+    """The embedded bundle pins each tagged plugin at the tag's release, and a pinned
+    revision targeting a core commit only where the core being tagged holds it — OPS-R86, OPS-R89."""
 
     ORIGIN = "https://github.com/lemonfiber/plugin-jellyfin"
     PIN = MappingProxyType({"id": "jellyfin", "origin": ORIGIN, "release": "0.2.0"})
@@ -212,8 +213,11 @@ class CheckBundlePinsTests(Workspace):
         pathlib.Path("70-operations/versions/0.3.0.toml").write_text(
             'version = "0.3.0"\nrepos = ["lf"]\n', encoding="utf-8")
         self.saved_env = dict(os.environ)
-        os.environ.update({"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow",
-                           "GIT_CONFIG_VALUE_0": "always"})
+        # The pinned origin is on the forge; here it is a repository beside the core.
+        os.environ.update({"GIT_CONFIG_COUNT": "2", "GIT_CONFIG_KEY_0": "protocol.file.allow",
+                           "GIT_CONFIG_VALUE_0": "always",
+                           "GIT_CONFIG_KEY_1": f"url.{pathlib.Path(self.tmp, 'remotes').resolve()}/.insteadOf",
+                           "GIT_CONFIG_VALUE_1": "https://github.com/lemonfiber/"})
 
     def tearDown(self):
         os.environ.clear()
@@ -224,18 +228,36 @@ class CheckBundlePinsTests(Workspace):
         subprocess.run(["git", "-C", at, "-c", "commit.gpgsign=false", "-c", "user.email=t@t",
                         "-c", "user.name=t", *args], check=True, capture_output=True)
 
-    def core(self, release="0.2.0", origin=ORIGIN, bundle=True):
-        """A catalogue remote holding a bundle, a core remote embedding it, and the core's clone."""
+    def head(self, at):
+        return subprocess.run(["git", "-C", at, "rev-parse", "HEAD"], check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    def plugin(self, targets: str | None = 'lemonfiber = "0.1.0"\n') -> str:
+        """The plugin's origin at the revision the bundle pins, and that revision."""
+        self.repo("remotes/plugin-jellyfin")
+        if targets is not None:
+            pathlib.Path("remotes/plugin-jellyfin/targets.toml").write_text(targets, encoding="utf-8")
+            self.git("add", "-A", at="remotes/plugin-jellyfin")
+            self.git("commit", "-q", "-m", "targets", at="remotes/plugin-jellyfin")
+        return self.head("remotes/plugin-jellyfin")
+
+    def core(self, release="0.2.0", origin=ORIGIN, bundle=True, targets: str | None = 'lemonfiber = "0.1.0"\n',
+             revision: str | None = None):
+        """A plugin's origin, a catalogue remote holding a bundle pinning it, a core remote
+        embedding that, and the core's clone. `targets` may name `{core}`, the core's first commit."""
+        self.repo("remotes/lf")
+        first = self.head("remotes/lf")
+        pinned = revision or self.plugin(None if targets is None else targets.format(core=first))
         catalogue = pathlib.Path(self.tmp, "remotes/lemonfiber-plugins")
         self.git("init", "-q", "-b", "main", str(catalogue))
         if bundle:
             (catalogue / "bundle").mkdir()
             (catalogue / "bundle/bundle.toml").write_text(
-                f'schema = 1\n\n[[plugin]]\nid = "jellyfin"\norigin = "{origin}"\nrelease = "{release}"\n',
+                f'schema = 1\n\n[[plugin]]\nid = "jellyfin"\norigin = "{origin}"\nrelease = "{release}"\n'
+                f'revision = "{pinned}"\n',
                 encoding="utf-8")
         self.git("add", "-A", at=str(catalogue))
         self.git("commit", "-q", "--allow-empty", "-m", "bundle", at=str(catalogue))
-        self.repo("remotes/lf")
         self.git("submodule", "add", "-q", str(catalogue), "assets/plugins", at="remotes/lf")
         self.git("commit", "-q", "-m", "embed", at="remotes/lf")
         self.git("clone", "-q", "remotes/lf", "checkouts/lf")
@@ -282,6 +304,41 @@ class CheckBundlePinsTests(Workspace):
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn("which the train tagged", out)
+
+    def test_main_passes_a_pin_targeting_a_core_commit_the_tagged_core_holds(self):
+        self.core(targets='commit = "{core}"\n')
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertIn("jellyfin is pinned at 0.2.0.", out)
+
+    def test_main_refuses_a_pin_targeting_a_core_commit_the_tagged_core_does_not_hold(self):
+        elsewhere = "d" * 40
+        self.core(targets=f'commit = "{elsewhere}"\n')
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn(f"targets lemonfiber at {elsewhere}, which the core commit being tagged does not hold", out)
+        self.assertIn("does not pin what v0.2.0 published", out)
+
+    def test_main_refuses_a_pinned_revision_that_cannot_say_what_it_targets(self):
+        self.core(targets=None)
+        self.assertIn("jellyfin has no targets.toml at", self.check()[1])
+
+    def test_main_refuses_a_pin_whose_revision_is_not_a_commit_or_not_there(self):
+        self.core(revision="main")
+        self.assertIn("pins it at 'main', which is not a full commit", self.check()[1])
+
+    def test_main_refuses_a_pinned_revision_its_origin_does_not_have(self):
+        self.repo("remotes/plugin-jellyfin")
+        self.core(revision="e" * 40)
+        self.assertIn(f"{'e' * 12} could not be fetched from {self.ORIGIN}", self.check()[1])
+
+    def test_where_a_registered_plugin_keeps_its_target_is_read_from_the_registry(self):
+        pathlib.Path("70-operations/plugins.toml").write_text(
+            '[[plugin]]\nid = "jellyfin"\nrepo = "plugin-jellyfin"\ntargets = "ci/targets.toml"\n'
+            '[[plugin]]\nid = "half"\n', encoding="utf-8")
+        self.assertEqual(check_bundle_pins.targets_places(pathlib.Path("70-operations/plugins.toml")),
+                         {"plugin-jellyfin": "ci/targets.toml"})
+        self.assertEqual(check_bundle_pins.targets_places(pathlib.Path("nowhere.toml")), {})
 
     def test_main_passes_a_version_that_cuts_no_plugin(self):
         self.assertEqual(self.check(tag="v0.3.0", version="0.3.0"),

@@ -10,7 +10,10 @@
 # of the plugin's own files:
 #
 #   plugin.toml   `schema_version` — the manifest generation it is written in
-#   targets.toml  `lemonfiber`     — the release it is validated and proved against
+#   targets.toml  `lemonfiber`     — the release it is validated and proved against,
+#                 or `commit`      — the commit of the core's `main` it is proved
+#                                    against before a release carries what it
+#                                    needs
 #
 # and the gate runs the plugin's proofs itself, with the candidate build of the
 # core commit the run is about to tag, through the reader pinned below:
@@ -27,11 +30,13 @@
 # person maintains. The plugin says what it targets; this says where to read it.
 #
 # `targets.lemonfiber` is also what decides when a plugin starts being gated. A
-# release below it is not this plugin's business and the plugin is not proved; at
-# or above it, nothing about the plugin may be missing — a repository that cannot
-# be reached, a manifest that is absent, a schema that has moved, proofs that do
-# not run, or a proof that does not pass, each fails the run by name. A gate
-# that skips what it cannot find reports success about the part it read.
+# release below it is not this plugin's business and the plugin is not proved. A
+# plugin naming a commit rides every version, because the train cuts from the
+# `main` that holds it. Nothing about a plugin that rides may be missing — a
+# repository that cannot be reached, a manifest that is absent, a schema that has
+# moved, proofs that do not run, or a proof that does not pass, each fails the
+# run by name. A gate that skips what it cannot find reports success about the
+# part it read.
 #
 # Why `lemonfiber` is pinned in the plugin rather than in `plugin.toml`: ARCH-R89
 # forbids a manifest carrying a minimum lemonfiber version, because F3-R21
@@ -86,6 +91,17 @@ ref = "main"
 [[plugin]]
 id = "uptime-kuma"
 repo = "plugin-uptime-kuma"
+manifest = "plugin.toml"
+targets = "targets.toml"
+report = "proofs.json"
+ref = "main"
+
+[[plugin]]
+# Jellyfin and its adapter, a first-party plugin the default bundle pins
+# (ADR-0042). A release that no longer validates it is refused, as for every
+# plugin here, before it can embed it.
+id = "jellyfin"
+repo = "plugin-jellyfin"
 manifest = "plugin.toml"
 targets = "targets.toml"
 report = "proofs.json"

@@ -368,9 +368,11 @@ past, and never tagged.
 
 **Every number the gate compares is the plugin's own.** Its `plugin.toml` says
 which manifest generation it is written in; its `targets.toml` says which release
-it is validated and proved against. [`plugins.toml`](plugins.toml) holds where to
-look and nothing else — a version pinned there as well would be a second statement
-of one fact, and the two disagree the day one of them is edited.
+it is validated and proved against, or, before a release carries what it needs,
+which commit of the core's `main` ([F10](../10-functional/features/f-extensibility/f10-authoring.md)).
+[`plugins.toml`](plugins.toml) holds where to look and nothing else — a version
+pinned there as well would be a second statement of one fact, and the two disagree
+the day one of them is edited.
 
 The lemonfiber version lives in `targets.toml` rather than in the manifest because
 `ARCH-R89` forbids a manifest carrying a minimum lemonfiber version: `F3-R21`
@@ -386,9 +388,9 @@ validates blocks the run**.
 ### The gate proves each plugin with the build it is about to tag
 
 A plugin's own proofs run through its reader, which fetches the release
-`targets.toml` names and asks it about the plugin. The report that leaves,
-`proofs.json`, is the plugin's record against that release — and that release is
-published. The version being cut is not: its binary is published by the tag this
+`targets.toml` names, or builds the commit it names, and asks it about the plugin.
+The report that leaves, `proofs.json`, is the plugin's record against that release
+or commit. The version being cut is neither: its binary is published by the tag this
 run is deciding whether to cut. No plugin can hold a report against it, so the gate
 does not ask for one.
 
@@ -413,6 +415,24 @@ does not belong beside a token that can tag every repository. The build is most 
 the run's time — minutes, against seconds for the proofs, which answer from
 recordings.
 
+### A plugin naming a commit is proved the same way
+
+Before a release carries what a plugin needs, the plugin names a commit of the core's
+`main` in place of a release, and its own CI builds that commit the way the gate builds
+its candidate (`F10-R19`). Nothing here changes for it. The gate overwrites the
+checkout's `targets.toml` with the version being cut, so the pinned reader finds the
+candidate and proves with it as it does for a plugin naming a release, and the report
+it reads names that version. What the commit is does not enter the proof: the candidate
+is what is being cut, and it holds the commit.
+
+What the gate reads of the commit is its form. A `targets.toml` naming a commit not in
+full, or naming a release and a commit at once, cannot say what the plugin targets, and
+fails the run by name.
+
+Where the plugin is first-party, the bundle the release embeds pins a revision of it,
+and that revision may still name the commit. The train tags the core only where the
+core commit it tags holds that commit (`OPS-R89`, in [releasing.md](releasing.md)).
+
 ### A plugin the gate cannot find is not a plugin that passed
 
 This is the half that is easy to get wrong, and the shape this codebase keeps
@@ -424,7 +444,7 @@ and silence reads as a pass. So each of these fails the run **by name**:
 | The registry cannot be read, or declares nothing | The run cannot be answered at all |
 | A registered repository does not exist, or cannot be cloned | Named as unreachable |
 | Its manifest is absent, unreadable, or declares no `schema_version` | Named |
-| It cannot say which release it targets — no `targets.toml`, unreadable, or naming none | Named |
+| It cannot say what it targets — no `targets.toml`, unreadable, naming neither a release nor a commit, naming both, or a commit not in full | Named |
 | Its manifest pins a generation this release does not carry | Named, with both numbers |
 | Its proofs do not run or do not finish with the candidate | Named, with what the reader said |
 | Its reader fetched a release of its own rather than using the candidate | Named — it proved something other than what is being cut |
@@ -439,7 +459,9 @@ failed proof in the report (`F10-R14`), and fails the run as one.
 
 What a plugin targets is what keeps this from being retroactive. A release below
 it is not that plugin's business and the plugin is passed over; at or above it,
-nothing about the plugin may be missing. Every registered plugin is still
+nothing about the plugin may be missing. A plugin naming a commit rides every
+version: the train cuts from the core's `main`, whose head holds every commit `main`
+has held, so there is no version it predates. Every registered plugin is still
 *fetched*, because the declaration deciding whether it rides is inside it — a
 registry that could answer that question itself would be holding the second copy
 this design exists to avoid.
@@ -722,6 +744,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R69** | *Superseded by [OPS-R72](staging.md): a proof failing as declared is named and does not fail the run. The number is not reused.* |
 | **OPS-R70** | Every lane that cuts a release tag MUST run the goal gate against the commit being tagged and MUST refuse unless every goal that version locks is satisfied, naming the unmet ones. A verdict taken at any other commit MUST NOT stand in for it, and a lane that cannot run the gate MUST refuse rather than tag — a gate that does not run MUST NOT read as one that passed. `execute-version` is one such lane and MUST NOT be the only one gated. A hotfix to an already-released version is exempt, because it delivers no goals of its own (`OPS-R37`). |
 | **OPS-R72** | A registered plugin the gate cannot reach, that cannot say which release it targets, whose manifest is absent or unreadable, whose proofs do not run with the candidate or write no readable report naming the version being cut, or whose report names no proof or names one that is neither passed nor failing as declared ([`F10-R13`](../10-functional/features/f-extensibility/f10-authoring.md)), MUST fail the run by name. A proof failing as declared MUST be named in what the gate reports and MUST NOT be counted as passed. The gate MUST NOT pass over what it could not read, and MUST NOT report success about the part it could. |
+| **OPS-R88** | A registered plugin's `targets.toml` MAY name a commit of the core's `main`, in full, in place of a release. The gate MUST hold a plugin naming a commit to ride every version it cuts and MUST prove it with the candidate as it proves every other, and MUST fail by name a `targets.toml` naming both a release and a commit, or a commit not in full. |
 | **OPS-R58** | A manifest MUST say where the work satisfying its goals landed, and the goal gate MUST search exactly those repositories. Where a manifest does not say, the streams it cuts are what is searched. A repository named there MUST NOT be tagged for being named: what a version *cuts* and where its goals were *satisfied* are separate lists, and a goal satisfied in a repository the gate does not search MUST be reported unmet rather than passed over. |
 
 ## Related

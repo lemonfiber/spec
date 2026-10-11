@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P2
 labels: [extensibility, cli, verification]
 requires: [F3]
@@ -149,11 +149,31 @@ that runs the same commands the catalogue's CI runs. Beginning from something th
 validates and proves is the difference between an afternoon and a weekend, and it means
 the first thing an author sees is the bar they will be held to.
 
-Its manifest opens with a `#:schema` line naming the manifest schema published with the
-release its `targets.toml` names, so an editor that reads TOML schemas checks the file
-as it is typed, against what that release reads rather than against `main`. CI refuses
-the line and `targets.toml` naming different releases, so the version train moving the
-one moves the other.
+Its manifest opens with a `#:schema` line naming the manifest schema of the lemonfiber
+its `targets.toml` names — the one published with that release, or the one committed at
+that commit — so an editor that reads TOML schemas checks the file as it is typed,
+against what that build reads rather than against whatever `main` holds on the day. CI
+refuses the line and `targets.toml` naming different ones, so moving the one moves the
+other.
+
+### Before a release exists, a plugin targets a commit
+
+A plugin is proved against the lemonfiber its `targets.toml` names. Usually that is a
+release, `lemonfiber = "X.Y.Z"`, and the reader fetches its binary. A plugin written
+against what the core has on `main` and no release carries yet names a commit instead,
+in full: `commit = "<40 hex>"`. No release or pre-release is cut to give a plugin
+something to build against; a release goes out when its goals are met and for no other
+reason.
+
+With a commit, the reader builds lemonfiber at that commit the way the release train's
+gate builds its candidate: the `dist` profile, the toolchain the commit pins, its
+committed lockfile and every submodule it embeds. It keeps the build under the commit,
+so it is built once, and asks it every question it would ask a release. The report it
+writes names the commit where it would name a release.
+
+A commit `main` does not hold is refused by name before anything is built. A branch
+of somebody's fork, or a commit since rewritten away, is not something any release will
+carry, and a plugin proved against it has proved nothing a release can keep.
 
 ### Shipping one needs nothing but a git repository
 
@@ -190,6 +210,8 @@ Per plugin, while it is being written:
 | The recording a declaration names is absent, unreadable, or of another request | Unproven, naming the recording. The declaration does not turn it into failing as declared (`F10-R16`). |
 | Fixtures drift from what the service now does | The proof passes against the recording and fails against the service. Both results are reported as what they are; a fixture is evidence about a moment. |
 | An author wants a helper library in their own language | Nothing stops them writing one. What is not published is an official second description of the format. |
+| A plugin needs what the core has on `main` and no release carries | `targets.toml` names that commit of `main`, in full, and the reader builds and asks it (`F10-R18`, `F10-R19`). No release is cut for it. |
+| `targets.toml` names a commit `main` does not hold, a commit not in full, both a release and a commit, or neither | Refused by name, and nothing is built or asked (`F10-R18`). |
 | A plugin is written against a newer lemonfiber than the operator has | Refused by naming the capability the manifest asked for, never by naming a version (`F3-R21`). |
 | An author asks what adapters or capabilities they may name | Answerable non-interactively from the binary; the sets are published rather than discovered (`F4-R18`, `F4-R20`, `F8-R13`). |
 | A validation failure is unclear | It names the location in the manifest and what was expected, and reports every violation in one pass (`F3-R22`). Authoring is where `G4`'s error model earns its keep. |
@@ -214,7 +236,9 @@ Per plugin, while it is being written:
 | **F10-R14** | An assertion whose failure on a declared recording is not the one declared MUST be reported as failed and MUST fail the proving run: where the declared constraint holds, naming the declaration as stale; where a constraint the declaration does not name is judged false, naming the declared constraint and every constraint that failed. |
 | **F10-R15** | A declaration MUST apply only to the recording it names. Against any other recording and against the live service, the assertion MUST be held to its own expectation, and the declaration MUST NOT change its verdict. |
 | **F10-R16** | An assertion MUST be reported as failing as declared only where it was run against the named recording and its expectation was judged false there. One that could not be run there MUST be reported unproven, and a declaration MUST NOT stand in for a run. |
-| **F10-R17** | The template plugin's manifest MUST name, in the form an editor reads, the manifest schema published with the lemonfiber release its `targets.toml` names, and its CI MUST refuse the two naming different releases. |
+| **F10-R17** | The template plugin's manifest MUST name, in the form an editor reads, the manifest schema of the lemonfiber its `targets.toml` names — the schema published with that release, or the schema committed at that commit — and its CI MUST refuse the two naming different ones. |
+| **F10-R18** | A plugin's `targets.toml` MUST name exactly one lemonfiber to be proved against: a release, as `lemonfiber = "X.Y.Z"`, or a commit of lemonfiber's `main`, in full, as `commit`. The reader MUST refuse by name a file naming neither or both, a commit not in full, and a commit `main` does not hold, and MUST build and ask nothing when it refuses. |
+| **F10-R19** | Where `targets.toml` names a commit, the reader MUST build lemonfiber at that commit the way the release train's gate builds its candidate — the `dist` profile, the toolchain the commit pins, its committed lockfile and every submodule it embeds — MUST keep that build under the commit and ask the kept build thereafter, and MUST ask it every question it asks a release. The report it writes MUST name the commit where it would name a release. |
 
 ## Related
 
@@ -224,3 +248,4 @@ Per plugin, while it is being written:
 - [plugin-manifest contract](../../../20-architecture/contracts/plugin-manifest.md) — `ARCH-R92`, the generated schema this is built on
 - [ADR-0013](../../../00-overview/decisions/0013-an-sdk-owns-the-api-client.md) · [ADR-0014](../../../00-overview/decisions/0014-one-generated-contract-for-every-sdk.md) — why the API gets an SDK and a plugin does not
 - [G4 Error & remedy model](../g-ux/g4-error-model.md) — the standard a validation message is held to
+- [Plugins ride the train pinned](../../../70-operations/staging.md#plugins-ride-the-train-pinned-and-block-it-when-they-stop-validating) — the gate whose candidate a commit is built like, and what the train does with a plugin naming one
