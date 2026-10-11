@@ -566,6 +566,7 @@ implementing them are built per repo.
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
 | **Bump ordering** | An automated bump does not merge itself while a repository downstream of it is running a required check the merge would discard |
 | **One bump per repository** | An automated bump keeps one pull request per repository on one branch, rebuilt from `main` for each new version and retitled to it, rather than opening another beside it |
+| **The bump's own pull request** | A bump edits or arms only the pull request the release app opened from the repository's own branch, at the commit it just made, through the one shared workflow |
 | **Issue lifecycle** | Releasing closes any drift issue the watchdog raised for that version |
 | **Release from the trunk** | A version is tagged on `main`; a hotfix to a shipped version branches from its tag and merges back |
 | **Discord cadence** | Staging and progress milestones (25/50/75/100%) post to `#maintainers`; execute posts to `#releases` |
@@ -617,6 +618,40 @@ cancelled by the workflows' own concurrency group, which cancels a superseded
 run on the same branch. The pin fan-out keeps `ci/take-the-shared-workflows`;
 the client and contract bumps already keep a branch each.
 
+### The bump's own pull request, and nobody else's
+
+Each run finds the pull request on its branch again, to retitle it and arm it to
+merge. `gh pr list --head <branch>` matches the branch name alone, so it also
+lists a fork's pull request whose branch is named the same, and a bump that
+edits that pull request and arms auto-merge on it lands a fork's code once its
+checks pass. Eleven bumps across the organisation looked their pull request up
+that way.
+
+So a bump touches a pull request only where all of these hold (`OPS-R87`):
+
+| Held | Why |
+|------|-----|
+| The commit given is the branch's tip, authored as the release app and verified | A caller cannot aim the bump at a branch or a commit somebody else made |
+| Its head is the repository's own branch, listed by `head=<owner>:<branch>` | A fork's branch of the same name is somebody else's |
+| It is open, unmerged, and the release app's bot opened it | A pull request a person opened on the branch is theirs to merge, and a closed one is never edited |
+| Its head is the commit the run has just made | Auto-merge is armed at that commit and no other, so a commit pushed in between is never what merges |
+
+Anything else edits nothing and fails the run, naming what it found. Arming is
+pinned to the commit just checked, so a push landing between the check and the
+merge cannot ride in. A run asked to disarm switches off arming the pull request
+already carries, which is how a regeneration that did not come out clean is kept
+from merging unread: an armed pull request stays armed across the app's own
+pushes. A run asked for neither leaves auto-merge as it finds it, a maintainer's
+arming included.
+
+This is done in one place. [`rolling_pull_request.py`](../scripts/rolling_pull_request.py)
+holds the rules, and every repository's bump calls it through the reusable
+[`rolling-pull-request.yml`](../.github/workflows/rolling-pull-request.yml),
+pinned like the other shared workflows, in a job after the one that makes the
+commit. The pin fan-out runs the same script from this repository. A bump that
+looks for its pull request in a way of its own is a second set of rules, and
+eleven of them are how the lookup above came to be copied.
+
 ### When a goal cannot be cited
 
 A merged commit cannot gain a `Spec:` trailer. So a change that closed several
@@ -662,6 +697,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R47** | A `lemonfiber-media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep. |
 | **OPS-R85** | An automated bump MUST keep at most one open pull request per repository, on one branch it rebuilds from the default branch for each new version and whose pull request it retitles to that version; it MUST NOT open a pull request for a version beside one still open for an earlier version, and a pull request it opened for an earlier version on another branch MUST be closed, pointing at the one that replaces it. |
+| **OPS-R87** | An automated bump MUST edit, retitle or arm to merge only an open, unmerged pull request whose head is its own repository's branch, listed by that repository's owner and branch together, which the release app's bot opened, and whose head is the commit the bump has just put on that branch, with the branch itself at that commit and that commit authored as the release app and verified; it MUST open a pull request only from a branch whose tip is such a commit; it MUST arm auto-merge only where asked and pinned to that commit, MUST switch off auto-merge the pull request carries where asked to disarm it, and MUST leave a pull request's auto-merge as it is where asked for neither; a bump whose change did not come out clean MUST ask to disarm. Anything else MUST fail the run without editing the pull request, naming what was found. Every bump MUST do this through `scripts/rolling_pull_request.py`, which a repository other than this one runs through the shared `rolling-pull-request` workflow. |
 | **OPS-R71** | An automated dependency bump MUST NOT merge itself while a repository that depends on it has an open automated bump whose required checks are still running and which that merge would discard; the deferral MUST be stated on the pull request, naming what it waits on. |
 | **OPS-R49** | A version MUST be released from `main`: the tag names a commit on the trunk, and no long-lived release branch is cut. A hotfix to an already-released version MUST branch from that version's tag and MUST be merged back to `main`. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |

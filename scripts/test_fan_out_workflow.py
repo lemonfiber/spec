@@ -53,9 +53,15 @@ WRITER = "token"
 #:                 repository is named in GH_CLONE_FAILS.
 #: `pr list`     — prints GH_OPEN, the open pull requests as `number branch`
 #:                 lines, unless GH_LIST_FAILS is set.
-#: `pr create`   — records the call and prints the new pull request's address,
-#:                 unless the repository is named in GH_CREATE_FAILS.
-#: `pr edit`     — records the call, unless GH_EDIT_FAILS is set.
+#: `api --method` — the calls `rolling_pull_request.py` makes, the payload on
+#:                 standard input logged after the call:
+#:                 GET of the branch answers it at GH_AT, or the commit the
+#:                 stubbed graphql makes; GET of the open pull requests answers
+#:                 the GH_OPEN lines on the bump's branch, opened by GH_AUTHOR
+#:                 at that same commit; PATCH of a pull request records the body,
+#:                 unless GH_EDIT_FAILS is set; POST of a pull request records it
+#:                 and answers #7, unless the repository is named in
+#:                 GH_CREATE_FAILS.
 #: `pr close`    — records the call.
 #: `run list`    — prints GH_RUNS, the unfinished runs' ids.
 #: `run cancel`  — records the call.
@@ -68,20 +74,53 @@ WRITER = "token"
 #: `api`         — otherwise prints GH_INSTALLED as the installation's
 #:                 repositories, one per line, unless GH_API_FAILS is set.
 #:
-#: A `--body-file` given to `pr create` or `pr edit` is appended to GH_BODIES.
+#: The body of a pull request opened or edited is appended to GH_BODIES.
 GH_STUB = """#!/bin/sh
 set -eu
 printf '%s\\n' "$*" >> "${GH_LOG}"
 
-short=""; body=""; prev=""
-for word in "$@"; do
-  case "$prev" in
-  --repo) short=${word#*/} ;;
-  --body-file) body=$word ;;
+OID=0123456789abcdef0123456789abcdef01234567
+BOT=lemonfiber-release-train[bot]
+case "$*" in
+"api --method GET "*/git/ref/heads/*|"api --method GET "*/commits/*|"api --method GET "*/pulls\\?*|"api --method PATCH "*/pulls/*|"api --method POST "*/pulls" --input -")
+  method=$3; path=$4
+  full=$(printf '%s' "$path" | cut -d/ -f2-3)
+  short=${full#*/}
+  payload=""
+  if [ "${5:-}" = "--input" ]; then payload=$(cat); printf '%s\\n' "$payload" >> "${GH_LOG}"; fi
+  case "$method" in
+  GET)
+    case "$path" in
+    */git/ref/heads/*) printf '{"object":{"sha":"%s"}}\\n' "${GH_AT:-$OID}" ;;
+    */commits/*) printf '{"author":{"login":"%s"},"commit":{"verification":{"verified":true}}}\\n' "$BOT" ;;
+    *)
+      printf '%b' "${GH_OPEN:-}" | awk -v repo="$full" -v sha="$OID" -v by="${GH_AUTHOR:-$BOT}" '
+        BEGIN { printf "[" }
+        $2 == "ci/take-the-shared-workflows" {
+          printf "%s{\\"number\\":%s,\\"node_id\\":\\"PR_%s\\",\\"state\\":\\"open\\",\\"user\\":{\\"login\\":\\"%s\\",\\"type\\":\\"Bot\\"},", (n++ ? "," : ""), $1, $1, by
+          printf "\\"base\\":{\\"ref\\":\\"main\\"},\\"auto_merge\\":null,"
+          printf "\\"head\\":{\\"ref\\":\\"%s\\",\\"sha\\":\\"%s\\",\\"repo\\":{\\"full_name\\":\\"%s\\"}}}", $2, sha, repo
+        }
+        END { print "]" }'
+      ;;
+    esac
+    ;;
+  PATCH)
+    [ -z "${GH_EDIT_FAILS:-}" ] || exit 1
+    printf '%s' "$payload" | python3 -c 'import json, sys; print(json.load(sys.stdin)["body"])' >> "${GH_BODIES}"
+    printf '{}\\n'
+    ;;
+  POST)
+    case " ${GH_CREATE_FAILS:-} " in *" ${short} "*) exit 1 ;; esac
+    printf 'created %s\\n' "${short}" >> "${GH_CREATED}"
+    printf '%s' "$payload" | python3 -c 'import json, sys; print(json.load(sys.stdin)["body"])' >> "${GH_BODIES}"
+    printf '{"number":7,"node_id":"PR_7","state":"open","user":{"login":"%s","type":"Bot"},"base":{"ref":"main"},"auto_merge":null,' "$BOT"
+    printf '"head":{"ref":"ci/take-the-shared-workflows","sha":"%s","repo":{"full_name":"%s"}}}\\n' "$OID" "$full"
+    ;;
   esac
-  prev=$word
-done
-if [ -n "$body" ] && [ -n "${GH_BODIES:-}" ]; then cat "$body" >> "${GH_BODIES}"; fi
+  exit 0
+  ;;
+esac
 
 case "$1 $2" in
 "repo clone")
@@ -101,16 +140,6 @@ case "$1 $2" in
 "pr list")
   [ -z "${GH_LIST_FAILS:-}" ] || exit 1
   printf '%b' "${GH_OPEN:-}"
-  exit 0
-  ;;
-"pr create")
-  case " ${GH_CREATE_FAILS:-} " in *" ${short} "*) exit 1 ;; esac
-  printf 'created %s\\n' "${short:-?}" >> "${GH_CREATED}"
-  printf 'https://github.com/lemonfiber/%s/pull/7\\n' "${short}"
-  exit 0
-  ;;
-"pr edit")
-  [ -z "${GH_EDIT_FAILS:-}" ] || exit 1
   exit 0
   ;;
 "run list")
@@ -206,7 +235,8 @@ class TheLoop(unittest.TestCase):
 
         self.spec = self.root / "spec"
         (self.spec / "scripts").mkdir(parents=True)
-        for name in ("fan_out_pins.py", "workflow_pins.py", "signed_pin_commit.py"):
+        for name in ("fan_out_pins.py", "workflow_pins.py", "signed_pin_commit.py",
+                     "rolling_pull_request.py"):
             shutil.copy(HERE / name, self.spec / "scripts" / name)
 
         self.git("init", "-q", "-b", "main")
@@ -277,6 +307,7 @@ class TheLoop(unittest.TestCase):
             "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
             "REAL_GIT": where,
             "GH_TOKEN": "t",
+            "APP": "lemonfiber-release-train",
             "OWNER": "lemonfiber",
             "TAG": "v1.0.9",
             "COMMIT": self.head,
@@ -367,10 +398,8 @@ class TheLoop(unittest.TestCase):
         self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
         self.assertEqual(self.created.read_text(encoding="utf-8"), "")
         log = self.log.read_text(encoding="utf-8")
-        self.assertIn(
-            "pr edit 5 --repo lemonfiber/alpha --title ci(workflows): take the shared workflows at v1.0.9",
-            log,
-        )
+        self.assertIn("api --method PATCH repos/lemonfiber/alpha/pulls/5 --input -", log)
+        self.assertIn('"title": "ci(workflows): take the shared workflows at v1.0.9"', log)
         self.assertNotIn("pr close", log)
         self.assertIn("moved:   alpha", self.summary.read_text(encoding="utf-8"))
 
@@ -382,7 +411,7 @@ class TheLoop(unittest.TestCase):
         self.run_step()
 
         self.assertIn(
-            "--title ci(workflows): take the shared workflows at v1.0.9",
+            '"title": "ci(workflows): take the shared workflows at v1.0.9"',
             self.log.read_text(encoding="utf-8"),
         )
         body = self.bodies.read_text(encoding="utf-8").rstrip()
@@ -403,7 +432,28 @@ class TheLoop(unittest.TestCase):
         listed = log[log.index("pr list"):]
         self.assertIn("isCrossRepository", listed)
         self.assertIn("select(.isCrossRepository | not)", listed)
-        self.assertIn('select(.author.login == "app/lemonfiber-release-train")', listed)
+        self.assertIn('select(.author.login == "app/" + env.APP)', listed)
+
+    def test_the_bumps_branch_holding_somebody_elses_pull_request_is_refused(self):
+        # What is open on the branch was not opened by the app, so it is edited
+        # nowhere and the repository is refused (OPS-R87).
+        self.pinning(a_pin("dco.yml", self.first))
+
+        ran = self.run_step(GH_OPEN="5 ci/take-the-shared-workflows\\n", GH_AUTHOR="mallory")
+
+        self.assertEqual(ran.returncode, 1)
+        self.assertNotIn("--method PATCH", self.log.read_text(encoding="utf-8"))
+        self.assertIn("opened by mallory", ran.stdout)
+        self.assertIn("refused: alpha", self.summary.read_text(encoding="utf-8"))
+
+    def test_a_branch_not_at_the_commit_just_made_is_refused(self):
+        self.pinning(a_pin("dco.yml", self.first))
+
+        ran = self.run_step(GH_OPEN="5 ci/take-the-shared-workflows\\n", GH_AT="f" * 40)
+
+        self.assertEqual(ran.returncode, 1)
+        self.assertNotIn("--method PATCH", self.log.read_text(encoding="utf-8"))
+        self.assertIn("refused: alpha", self.summary.read_text(encoding="utf-8"))
 
     def test_a_bump_opened_per_number_is_closed_pointing_at_the_one_kept(self):
         self.pinning(a_pin("dco.yml", self.first))
@@ -477,7 +527,7 @@ class TheLoop(unittest.TestCase):
         ran = self.run_step(GH_OPEN="5 ci/take-the-shared-workflows\\n", GH_EDIT_FAILS="1")
 
         self.assertEqual(ran.returncode, 1)
-        self.assertIn("would not take the new title", ran.stdout)
+        self.assertIn("would not take the pull request", ran.stdout)
         self.assertIn("refused: alpha", self.summary.read_text(encoding="utf-8"))
 
     def test_a_pull_request_that_would_not_open_fails_the_run(self):
@@ -599,7 +649,7 @@ class TheStepIsTheOneThatRuns(unittest.TestCase):
     """Read from the committed YAML, so this cannot drift from CI."""
 
     def test_the_step_is_found_by_name_in_the_workflow(self):
-        self.assertIn("gh pr create", the_step())
+        self.assertIn("scripts/rolling_pull_request.py", the_step())
 
     def test_the_workflow_declares_the_environment_the_step_reads(self):
         # A variable the step reads and the workflow does not pass is an empty
@@ -612,7 +662,7 @@ class TheStepIsTheOneThatRuns(unittest.TestCase):
             if one.get("name") == STEP
         )
 
-        for named in ("GH_TOKEN", "OWNER", "TAG", "COMMIT", "NAMED", "SPEC"):
+        for named in ("GH_TOKEN", "APP", "OWNER", "TAG", "COMMIT", "NAMED", "SPEC"):
             self.assertIn(named, step["env"])
 
     def test_the_token_asks_for_permission_to_write_a_workflow_file(self):
