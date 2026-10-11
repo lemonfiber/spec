@@ -4,6 +4,10 @@
 **Date:** 2026-09-29
 **Decided:** 2026-09-29, by the maintainer, Wessel Verheij: accepted as proposed, with the names `lemonfiber-decline` and `lemonfiber-request-gate`. Revised 2026-10-03, by the maintainer: each repository depends on the core's crates at a pinned core commit, and is released on the train, tagged before the core. Revised again 2026-10-03, by the maintainer: a pre-release tags each repository at the pre-release tag in the same two steps, so an image reaches the stack before its version releases. Revised 2026-10-11, by the maintainer: a first-party plugin's adapter image is also built and published from every commit on its `main`, tagged by the commit, so its manifest pins a real build before any release carries it.
 
+**Amended** by [ADR-0041](0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md): first-party plugin images ride the release train.
+
+**Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): a built image's Compose entry is the service its repository declares in a `plugin.toml` of its own, `lemonfiber-decline` and `lemonfiber-request-gate` included, and its publish pins it there and then in the bundle, not in `lemonfiber-media-stack` (§2, §4); and an image lemonfiber builds may be an upstream's rebuilt, as the guarded door's and the proxy's are from Caddy's with the file capability removed, under the upstream's licence.
+
 ## Context
 
 [ADR-0029](0029-a-household-service-declines-an-invitation-with-one-key.md) and

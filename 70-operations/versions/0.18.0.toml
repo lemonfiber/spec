@@ -236,12 +236,10 @@
 # are reached by a path to their own file, and a reference a generator cannot resolve is
 # refused rather than described as a field that accepts anything.
 #
-# `ARCH-R171` puts each service of the stack manifest in a file of its own, named by the
-# root's `include` list, so the manifest stays readable as the stack grows. It binds the
-# parser in the core, where a missing, repeated or unlisted file is refused by name.
-# `ARCH-R172` has each release carry JSON schemas of the root manifest and of a service's
-# file, generated from the types the core reads them into, so a fork's CI can check one
-# without the binary; a claim's definition is the plugin manifest's own.
+# `ARCH-R172` has each release carry JSON schemas of the bundle and, while a `--stack-dir`
+# stack is read, of the root manifest and of a service's file, generated from the types
+# the core reads them into, so a fork's CI can check one without the binary; a claim's
+# definition is the plugin manifest's own.
 # `B3-R16` puts the free space of both volumes a stack fills on the dashboard, the data
 # volume and the services' own, so `F12-R5` can provide disk free per mount from the
 # stream rather than from a read it would poll.
@@ -279,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 501 goals, seeded from the roadmap milestone this version serves;
+# 511 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -691,7 +689,6 @@ goals   = [
     "ARCH-R167",
     "ARCH-R168",
     "ARCH-R169",
-    "ARCH-R171",
     "ARCH-R172",
     "B3-R16",
     "ARCH-R163",
@@ -824,7 +821,29 @@ goals   = [
     "N29-R8",
     "N29-R9",
     "N29-R10",
+    "ARCH-R263",
+    "ARCH-R264",
+    "ARCH-R265",
+    "ARCH-R266",
+    "ARCH-R267",
+    "ARCH-R268",
+    "ARCH-R269",
+    "ARCH-R270",
+    "ARCH-R271",
+    "ARCH-R272",
+    "ARCH-R273",
 ]
+
+# `ARCH-R263` to `ARCH-R273` give every bundled part its repository before its adapter
+# (ADR-0045): the stack the core ships is assembled from the bundle at `schema = 2`, which
+# declares the profiles, forms, removed services, choices of filler and links by name and
+# pins each first-party plugin by revision and tree digest, assembled or installed, with
+# the profile it sits in; the register of reserved ids reads the whole bundle; and the
+# plugin manifest gains the errand, starting files, an assembled part's `api` and a moved
+# part's credential names. `ARCH-R171` is superseded by `ARCH-R263` and `ARCH-R264` and
+# is not a goal. `F14-R2`, `F14-R3` and `F14-R7` stay goals through the pre-releases, which
+# `OPS-R86` lets a pre-release record unmet. Added after staging by the maintainer's
+# decision of 2026-10-11 (OPS-R31).
 
 # `C10-R18` to `C10-R22` mint a key as a claim, a link collected once within ten minutes
 # and drawn as a code, which the core serves; `C10-R23` to `C10-R31` and `ARCH-R258` to

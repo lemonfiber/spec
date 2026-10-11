@@ -33,6 +33,8 @@
 - the model ships in 0.18.0;
 - an operator's own overlay, merged last and shown as unvetted, is the escape hatch.
 
+**Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): the stack's own services are the parts the bundle assembles from their first-party plugins, and each part's image is run under its posture by its own repository's CI rather than the media stack's.
+
 **Amends**:
 
 - [ADR-0005](0005-embedded-stack-assets.md): what is materialised is the manifests, and the

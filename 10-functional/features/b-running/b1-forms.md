@@ -35,7 +35,9 @@ is deliberately invisible to them.
 ### Two layers: profiles are facts, forms are intent
 
 Each service carries **exactly one** profile — a factual statement of what it is.
-Forms are named combinations, declared as data in the stack manifest.
+Forms are named combinations, declared as data in the
+[bundle](../../../20-architecture/contracts/bundle.md), which also assigns each part its
+profile.
 
 | Profile | Services | Count |
 |---------|----------|-------|
@@ -136,8 +138,8 @@ is listed with what was filtered and not among the services, unless it is there.
 
 ### Forms are data, not code
 
-Adding or changing a form is a manifest edit in `lemonfiber-media-stack`. It
-requires no change to `lemonfiber` and no release — see
+Adding or changing a form is an edit to the bundle in `lemonfiber-plugins`, or to the
+stack manifest of a stack directory. It requires no change to `lemonfiber`'s source — see
 [ADR-0002](../../../00-overview/decisions/0002-profiles-and-forms.md).
 
 ### On the companion
@@ -199,8 +201,8 @@ operator would notice is a form of their own the app does not believe exists.
 
 | ID | Requirement |
 |----|-------------|
-| **B1-R1** | Each service in the manifest MUST declare exactly one profile. |
-| **B1-R2** | Forms MUST be declared as manifest data; adding or altering one MUST NOT require a lemonfiber release. |
+| **B1-R1** | Each service MUST sit in exactly one profile: for a first-party plugin's services, the one the bundle assigns that plugin; for any other plugin's, its own; and for a stack manifest's service, the one it declares. |
+| **B1-R2** | Forms MUST be declared as data, in the bundle or in the stack manifest of a stack directory; adding or altering one MUST NOT require a change to lemonfiber's source. |
 | **B1-R3** | A form's closure MUST be computed from the manifest, never hardcoded. |
 | **B1-R4** | Closures MUST be intersected with the operator's configured protocols before starting anything. |
 | **B1-R5** | Multiple forms MUST be startable together, resolving to the union of their closures. |
@@ -210,10 +212,10 @@ operator would notice is a form of their own the app does not believe exists.
 | **B1-R9** | An unknown form name MUST produce a list of valid forms and a nearest-match suggestion. |
 | **B1-R10** | Narrowing the active form MUST stop only services outside the new closure, leaving shared services running. |
 | **B1-R11** | A single service failing to start MUST NOT stop or roll back the rest of the form. |
-| **B1-R12** | A form referencing an undeclared profile MUST fail manifest validation at load time. |
+| **B1-R12** | A form referencing an undeclared profile MUST fail validation of the bundle or the stack manifest declaring it, at load time. |
 | **B1-R13** | `library` MUST be startable with no third-party accounts configured. |
 | **B1-R14** | No service MAY declare a `depends_on` crossing a profile boundary, except within a profile whose services are always co-activated; the one exception is `network.via` ([ARCH-R236](../../../20-architecture/contracts/plugin-manifest.md)), which starts the filler of the capability it names first, whatever its profile, and starts the service only once that filler is healthy. |
-| **B1-R15** | Which profiles require a configured provider MUST be declared by the manifest; lemonfiber MUST NOT identify them by name. |
+| **B1-R15** | Which profiles require a configured provider MUST be declared by the bundle or the stack manifest declaring the profile; lemonfiber MUST NOT identify them by name. |
 | **B1-R16** | Status MUST name, for each service, every active form whose closure holds it, and MUST NOT name a superseded form. |
 | **B1-R17** | Status MUST report each service an active form's closure filtered out, with the provider it needs and the forms that asked for it. |
 | **B1-R18** | A service MAY declare the memory it expects to need; a form's introspection MUST report the sum over the services it would start as the stack's estimate, MUST name the services that declare none, and MUST NOT present it as a measurement. |

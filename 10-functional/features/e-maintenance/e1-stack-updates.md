@@ -80,7 +80,9 @@ than offering an action that cannot work.
 
 ### The stack definition updates too
 
-New lemonfiber versions carry a new pinned stack ([ADR-0005](../../../00-overview/decisions/0005-embedded-stack-assets.md)).
+New lemonfiber versions carry a new pinned bundle, each part's image pinned in its own
+plugin manifest ([ADR-0005](../../../00-overview/decisions/0005-embedded-stack-assets.md),
+[ADR-0045](../../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)).
 Locally modified stack files are never silently overwritten — the operator is
 shown a diff ([C9](../c-trust/c9-drift.md)).
 
@@ -137,7 +139,7 @@ the app offers neither, and never presents one as the other
 
 | ID | Requirement |
 |----|-------------|
-| **E1-R1** | All service images MUST be pinned to an immutable digest, of the multi-architecture index rather than of one platform's image, with the version tag recorded alongside it and shown wherever a version is shown. No service MAY resolve an image by tag when it runs. |
+| **E1-R1** | All service images MUST be pinned to an immutable digest, of the multi-architecture index rather than of one platform's image, in the manifest that declares the service, a bundled part's in its own plugin manifest, with the version tag recorded alongside it and shown wherever a version is shown. No service MAY resolve an image by tag when it runs. |
 | **E1-R2** | Available updates MUST be shown with current version, target version, and the significance of the jump before anything is applied. |
 | **E1-R3** | An update that will migrate service state MUST state that the change is irreversible before proceeding. |
 | **E1-R4** | A backup MUST be taken automatically before any update touching service state. |
