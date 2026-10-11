@@ -429,6 +429,10 @@ What the gate reads of the commit is its form. A `targets.toml` naming a commit 
 full, or naming a release and a commit at once, cannot say what the plugin targets, and
 fails the run by name.
 
+Where the plugin is first-party, the bundle the release embeds pins a revision of it,
+and that revision may still name the commit. The train tags the core only where the
+core commit it tags holds that commit (`OPS-R89`, in [releasing.md](releasing.md)).
+
 ### A plugin the gate cannot find is not a plugin that passed
 
 This is the half that is easy to get wrong, and the shape this codebase keeps

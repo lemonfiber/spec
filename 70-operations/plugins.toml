@@ -95,3 +95,14 @@ manifest = "plugin.toml"
 targets = "targets.toml"
 report = "proofs.json"
 ref = "main"
+
+[[plugin]]
+# Jellyfin and its adapter, a first-party plugin the default bundle pins
+# (ADR-0042). A release that no longer validates it is refused, as for every
+# plugin here, before it can embed it.
+id = "jellyfin"
+repo = "plugin-jellyfin"
+manifest = "plugin.toml"
+targets = "targets.toml"
+report = "proofs.json"
+ref = "main"

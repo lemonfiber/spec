@@ -150,7 +150,9 @@ a copy that differs from the manifest at the pinned revision is refused, so the 
 and the origin are one answer.
 
 The pins move with the release train (`OPS-R86`), not with a contribution. The
-catalogue's own releases and its register keep their own clock (`OPS-R59`).
+catalogue's own releases and its register keep their own clock (`OPS-R59`). A pinned
+revision may target a commit of the core's `main` rather than a release, and the train
+refuses to tag the core unless the core commit it tags holds that commit (`OPS-R89`).
 
 ## What it never becomes
 
