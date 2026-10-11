@@ -46,6 +46,7 @@ jobs:
           client-id: ${{ vars.RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_KEY }}
           owner: ${{ github.repository_owner }}
+          permission-contents: write
           repositories: ${{ inputs.site }}
 
       - name: Ask for a rebuild

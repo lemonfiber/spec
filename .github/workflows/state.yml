@@ -189,6 +189,9 @@ jobs:
           client-id: ${{ vars.RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_KEY }}
           owner: ${{ github.repository_owner }}
+          repositories: spec
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Move it to releasable
         if: steps.judge.outputs.became_releasable == 'true'

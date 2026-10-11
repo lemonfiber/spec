@@ -52,6 +52,9 @@ jobs:
           client-id: ${{ vars.RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_KEY }}
           owner: ${{ github.repository_owner }}
+          permission-administration: read
+          permission-contents: read
+          permission-pull-requests: read
 
       - name: What runs, and what can refuse
         id: look
