@@ -34,8 +34,10 @@ fingerprint rather than by a password the phone would have to keep
 
 *App keys*, in the menu's **Access** group ([N28](n28-finding-your-way.md)), lists the
 stack's keys as the core answers them: each by name, what it admits, what it is for, how it
-stands, when it was made and last used, and whether a member made it. A key waiting to be
-collected says so. Each key can be revoked, with the core's own sentence for what that does.
+stands, when it was made and last used, and whether a member made it, under the stack's own
+sentence on what a purpose is worth. A key waiting to be collected says so. Each key can be
+revoked: the operator confirms first, told that the key stops working at once and that a
+revoke cannot be undone.
 
 ### Making a key
 
@@ -103,12 +105,12 @@ the phone keeps no copy, and a second look means making another key.
 
 | ID | Requirement |
 |----|-------------|
-| **N29-R1** | The operator MUST be able to list a stack's integration keys by name, scope, purpose, state, minting time and last use, as the core answers them, with a key waiting to be collected and a member-minted key each marked (`C10-R6`, `C10-R16`, `C10-R18`). |
+| **N29-R1** | The operator MUST be able to list a stack's integration keys by name, scope, purpose, state, minting time and last use, as the core answers them, with a key waiting to be collected and a member-minted key each marked, and with the listing's own sentence on what a purpose is worth (`C10-R6`, `C10-R16`, `C10-R17`, `C10-R18`). |
 | **N29-R2** | The operator MUST be able to mint a key only as a claim (`C10-R18`), naming it and choosing its scope, `read`, `act` or `member:<account>` from the household's members, and its purpose (`C10-R17`). The app MUST NOT mint a key whose secret it would receive, and MUST NOT call the door that collects a key (`C10-R20`). |
 | **N29-R3** | Minting MUST be proved by a signature from a key pair the app makes in the phone's hardware, usable only after face or fingerprint, over a challenge the core issued for that mint (`C10-R24`, `C10-R25`). The first mint from a phone for a stack MUST register the key pair's public half (`C10-R23`), asking for the operator password for that one request; the app MUST send the password once and MUST NOT keep, log or prefill it. |
 | **N29-R4** | The key link MUST be shown as the core gave it, as a QR code drawn from it, as text the operator can copy and through the platform's share sheet, with when the claim lapses. The app MUST NOT construct, alter or keep the link, and MUST NOT show it again once the screen is left or the app locks (`C10-R22`, `N4-R24`). |
 | **N29-R5** | The screen showing a key link MUST be concealed from screenshots, screen recording and the app switcher. |
-| **N29-R6** | The operator MUST be able to revoke a key by name, shown with the core's sentence for what revoking does, after which the listing MUST show it as the core answers it (`C10-R6`). |
+| **N29-R6** | The operator MUST be able to revoke a key by name once they confirm it, the confirmation saying in the app's words that the key stops working at once and that a revoke cannot be undone (`C10-R12`), after which the listing MUST show it as the core answers it (`C10-R6`). |
 | **N29-R7** | The operator MUST be able to list the stack's device keys, each with its backing as the core answers it, this phone's marked, and revoke any of them (`C10-R26`). Removing a stack from the phone MUST delete the phone's key pair for it, and a key pair the stack refuses as unregistered MUST be deleted and registered again at the next mint. |
 | **N29-R8** | The app MUST make the key pair in StrongBox or the Secure Enclave where the phone has one, and in its trusted environment otherwise, and MUST register it with the platform's attestation of where it lives (`C10-R23`). Where the phone can hold the key pair only in software or has no face or fingerprint enrolled, minting MUST NOT be offered, and the screen MUST say why and that a key can be minted at the stack's terminal. |
 | **N29-R9** | A refused mint, registration or revoke MUST be shown in the core's words; where the stack is not served so another machine can reach it, the screen MUST say how to serve it, as the core says (`C10-R18`). |
