@@ -75,7 +75,9 @@ jobs:
           body = "\n".join(f"- {f}" for f in findings)
           title = f"⚠️ Release {version['version']} drift"
           found = gh("issue", "list", "--repo", f"{OWNER}/spec", "--state", "open",
-                     "--search", f"{title} in:title", "--json", "number", "--jq", ".[0].number // empty")
+                     "--search", f"{title} in:title", "--json", "number,title,author", "--jq",
+                     f'[.[] | select(.author.login == "app/lemonfiber-release-train" and .title == "{title}")]'
+                     ' | .[0].number // empty')
           num = found.stdout.strip()
           if num:
               gh("issue", "edit", num, "--repo", f"{OWNER}/spec", "--body", body)

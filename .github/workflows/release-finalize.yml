@@ -215,8 +215,10 @@ jobs:
           # tokenises, and the drift issue's title leads with an emoji — a poor
           # search term, and the one whose absence would silently match nothing.
           words="Release ${VERSION} drift"
+          # Only the watchdog's own: anyone can open an issue with these words.
           gh issue list --repo "${OWNER}/spec" --state open \
-            --search "${words} in:title" --json number --jq '.[].number' \
+            --search "${words} in:title" --json number,author \
+            --jq '.[] | select(.author.login == "app/lemonfiber-release-train") | .number' \
           | while read -r number; do
               echo "closing #${number} — ${words}"
               gh issue close "${number}" --repo "${OWNER}/spec" \
