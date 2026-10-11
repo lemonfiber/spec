@@ -269,7 +269,7 @@ renames none of them.
 
 | Stage | What lemonfiber does with it |
 |-------|-------------------------------|
-| `assembled` | Writes its one service into the stack it ships, as a stack service: the stack's origin, its setting and credential names, its claims judged as a bundled service's (`F9-R2`), and its `api` honoured (`ARCH-R272`). The plugin declares exactly one service, which speaks no contract, and every fixture its claims name lies under `recordings/<id>/`. |
+| `assembled` | Writes its one service into the stack it ships, as a stack service: the stack's origin, its setting and credential names, every `[[secret]]` its plugin declares, held in the service id's namespace (`ARCH-R275`), its claims judged as a bundled service's (`F9-R2`), and its `api` honoured (`ARCH-R272`). The plugin declares exactly one service, which speaks no contract, and every fixture its claims name lies under `recordings/<id>/`. |
 | `installed` | Installs it through the plugin path offline from the embedded tree and settles it as its capabilities' default filler (ADR-0042 §3); an existing install moves to it in place (§4). The service whose id is the plugin's declares `replaces` naming it, and keeps the stack's setting, secret and credential names for it (`ARCH-R273`). |
 
 The release whose bundle moves a part from `assembled` to `installed` is the release that
@@ -367,10 +367,12 @@ Each release of lemonfiber carries a JSON schema of `bundle.toml`,
 | **ARCH-R267** | `tree` MUST be the SHA-256 of a listing, sorted by path bytewise, of one line per file of the plugin's tree (`plugin.toml`, `config/<service id>/` for every service, every recording the manifest names, and `conformance/`), each line the file's SHA-256 in lowercase hex, two spaces, its path relative to the repository root and a line feed; and the catalogue's copy at `bundle/plugins/<id>/` MUST be that tree, each file at its path in the plugin's repository. |
 | **ARCH-R268** | A bundle `[[wiring]]` MUST be either a choice of filler, naming `by`, `asks`, `filled_by` and `why`, where `by`'s plugin asks that capability in its `[[ask]]` and not `each` and `filled_by` provides or speaks it, or a link by name, naming `by`, `to` and `why`; every service it names MUST be a pinned plugin's; and a wiring of any other shape, an ask without `filled_by` among them, MUST be refused naming the wiring. |
 | **ARCH-R269** | The ids, published ports and proxy hostnames of every service a pinned plugin declares, `assembled` and `installed` alike, and every hostname the proxy's configuration in its copy answers on, MUST be reserved; a service of any other plugin taking one MUST be refused naming it and the plugin holding it, except a first-party service whose `replaces` names that id. |
+| **ARCH-R275** | An `assembled` plugin's service MUST keep every `[[secret]]` its plugin declares, each held in the secret store in the service id's namespace as `<service id>:<secret id>` and written to that service's own secrets file as a plugin's is (`ARCH-R247`). |
 
 ## Related
 
 - [ADR-0045](../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md) — the decision this contract implements
+- [ADR-0046](../../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) — an assembled part's secrets, and when the environment file is filed
 - [ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) — the bundle, pinned and embedded
 - [ADR-0002 Profiles and forms](../../00-overview/decisions/0002-profiles-and-forms.md)
 - [plugin-manifest](plugin-manifest.md) — what each pinned plugin declares

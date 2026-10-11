@@ -24,6 +24,8 @@
   service that replaces a reserved id keeps the stack's credential names, taken as
   recommended.
 
+**Amended** by [ADR-0046](0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md): §2. An assembled part also keeps its plugin's `[[secret]]`, each held in the service id's namespace.
+
 **Supersedes in part** [ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md):
 §1 and §2 (what the bundle carries), §5 (when an in-process adapter goes), §6 (when the
 media stack is archived) and §7 (which plugins ride the train).

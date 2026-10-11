@@ -544,6 +544,18 @@ could go in, as the credentials read has none (`ARCH-R256`).
 Only the operator is answered. A member, a key scoped to one, and a `read` or an `act` key are
 refused, because a setting is how the machine is run and the household never sees it.
 
+**The core's own settings are a closed list, and this is it.** Beside the settings a
+service's environment reads, the settings store holds the ones the core itself reads,
+each read back as the core's:
+
+| Core setting | What it holds |
+|--------------|---------------|
+| `LEMONFIBER_DEVICE_KEY_APPS` | The identities of the operator's own builds a device key may come from (`ARCH-R262`) |
+
+Every other `LEMONFIBER_*` key is `lemonfiber config`'s, read by `GET /api/config`. Each
+command refuses the other's names, naming the command that takes the name, so one name
+has one writer (`ARCH-R278`).
+
 The two writes take what `lemonfiber settings set` and `lemonfiber settings clear` take:
 
 | Action | Arguments | Answers |
@@ -564,7 +576,9 @@ terminal, as every credential is
 Naming a secret to either write is refused, naming it (`ARCH-R256`).
 
 The settings ride the operator's event stream as their envelope, a `settings` event, sent when
-a client connects and whenever one changes, and never on a member's stream (`ARCH-R257`).
+a client connects and whenever one changes, and only to the operator, by the per-run token or
+an operator session: never on a member's stream and never to a key of any scope, so the stream
+tells nobody what the read refuses them (`ARCH-R257`).
 
 ### Setting up
 
@@ -803,13 +817,14 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R254** | The web API MUST answer `GET /api/settings` as `lemonfiber settings --json` answers, with every setting in the core's settings store: its name, whose it is, each service that reads it and the variable it is read into, the declared default, and the operator's value where one is recorded; only the operator MUST be answered, and a member, a key scoped to one, and a `read` or an `act` key MUST be refused. |
 | **ARCH-R255** | `POST /api/actions/settings-set` and `settings-clear` MUST take what `lemonfiber settings set` and `lemonfiber settings clear` take; each rehearsal MUST name every entry the change regenerates and every service it restarts and answer an offer, the write MUST refuse where what it would change moved since, naming what moved, and each write MUST be journalled. |
 | **ARCH-R256** | The settings read MUST list each secret a service's environment names, with whose it is, the services that read it, where its value came from and whether one is held, and MUST NOT carry a secret's value; neither settings write MUST take a secret, and naming one MUST be refused, naming it. |
-| **ARCH-R257** | The settings MUST ride the operator's event stream as a `settings` event, sent when a client connects and whenever one changes, and MUST NOT ride a member's stream. |
+| **ARCH-R257** | The settings MUST ride the operator's event stream as a `settings` event, sent when a client connects and whenever one changes, only to the per-run token and an operator session, and MUST NOT be sent on a member's stream or to a key of any scope. |
 | **ARCH-R258** | `POST /api/device-keys` MUST take `name`, `public_key` (a P-256 SubjectPublicKeyInfo in base64url), `attestation` (an Android key attestation chain, or an iOS App Attest attestation whose client data is the SHA-256 of the public half) and `password` from an operator session, and MUST answer the `device-key` envelope with the name, the public half's fingerprint, its `backing` (`strongbox`, `enclave` or `tee`) and the registration time; a missing attestation, one that does not verify, one placing the key in software and one naming an app the core does not trust MUST each be refused with a code of its own listed among the artefact's refusals (`C10-R23`). |
 | **ARCH-R259** | `GET /api/device-keys` MUST answer `device-keys`, listing each device key by name, fingerprint, backing, registration time and last use, and `DELETE /api/device-keys/{name}` MUST revoke one; both MUST be refused to a member session and to a key (`C10-R26`). |
 | **ARCH-R260** | `POST /api/device-keys/{name}/challenge` MUST answer `device-challenge` with a fresh `challenge` and when it `expires`, from an operator session for a registered device key (`C10-R24`). |
 | **ARCH-R261** | `POST /api/keys` MUST accept `device`, `challenge` and `signature` in place of `password`, the signature being ECDSA P-256 over SHA-256 of the line-feed-ended UTF-8 lines `lemonfiber-mint/1`, the challenge, the name, the scope, the purpose and `claim` or `key`, in base64url; the artefact MUST publish that form, and the refusals of `C10-R25` MUST each carry a code of its own listed among the artefact's refusals. |
 | **ARCH-R262** | The identities of the operator's own builds MUST be the core setting `LEMONFIBER_DEVICE_KEY_APPS`, read by `GET /api/settings` and written by `settings-set` and `settings-clear` as every setting is: a comma-separated list of `android:<package>@<SHA-256 of the signing certificate, in hex>` and `ios:<Team ID>.<bundle ID>`. A value naming an identity in neither form MUST be refused, naming it; the official identities the build ships MUST be read alongside and MUST NOT be part of the value (`C10-R30`). |
 | **ARCH-R274** | Every instant the web API reads or writes, in a request, a response, an event or a link the core builds, MUST be a whole number of seconds since the Unix epoch: a JSON integer in a body, and its decimal digits in a link's query. It MUST NOT be written as a string, with a fraction, or with a zone or an offset; a command's `--json` output MUST write instants alike; and a stamp lemonfiber passes on verbatim from a service's own output MUST NOT be presented as one of its instants. |
+| **ARCH-R278** | A core setting MUST be one the list under [Settings](#settings) names; `lemonfiber settings` and the settings writes MUST take a core setting and no other `LEMONFIBER_*` key, and `lemonfiber config` MUST take every other `LEMONFIBER_*` key and no core setting; a name either command takes, given to the other, MUST be refused naming the command and the name that take it. |
 
 ## The artefact
 

@@ -64,6 +64,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md) | The core writes every Compose entry from one typed service model | Accepted |
 | [0044](0044-a-phone-proves-the-operator-with-a-device-key.md) | A phone proves the operator with a device key, so it never holds the password | Accepted |
 | [0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md) | Every bundled part has its repository now, and its adapter later | Accepted |
+| [0046](0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) | The stores are filled once, at the cutover, and a secret never enters the journal | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

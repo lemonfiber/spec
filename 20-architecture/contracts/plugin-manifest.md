@@ -590,8 +590,24 @@ a bundled thing changed but not declared. Both need somewhere to declare one.
 A secret a service's [`env`](plugin-manifest-service.md#environment--four-kinds-of-value) names is declared here
 too. Its value is one a recipe captures, a credential `F14-R18` or `F14-R20` lets cross
 to the plugin, or, where neither supplies it, one the operator enters at install without
-it being shown. It is held in the secret store and reaches the container only through the
-service's own secrets file (`ARCH-R247`).
+it being shown. Whatever its source, it reaches the container only through the service's
+own secrets file (`ARCH-R247`). A value captured or entered is held in the secret store in
+the plugin's namespace, as `<plugin id>:<secret id>`. An assembled part's plugin id is its
+service's, so the egress guard's key is `gluetun:wireguard-key` whether the bundle
+assembles the part or installs it (`ARCH-R275`).
+
+**A credential that crosses is read where it is held.** One `F14-R18` or `F14-R20` lets
+cross is not copied into the secret store. lemonfiber reads it from the store that holds
+it each time it writes an entry naming it, so replacing it regenerates every entry that
+reads it, and no stale copy is left behind (`ARCH-R277`).
+
+**The journal holds a secret's fingerprint, never its value.** A secret's change is
+journalled with the stable fingerprint of the value before and after it, as
+[A7](../../10-functional/features/a-getting-started/a7-credential-management.md)
+references a credential, and never with the value, sealed or otherwise. The secret store
+keeps each secret's one previous value. Undoing the change restores it only while the
+values held still match the fingerprints the entry recorded; otherwise the undo says the
+secret must be replaced at the terminal, naming it (`ARCH-R276`).
 
 **What counts as capturing, and what counts as changing.** A recipe is
 declarable before it is runnable and its block is where both verbs are written,
@@ -873,7 +889,7 @@ unreadable.
 | **ARCH-R245** | Choosing which service fills an ask MUST regenerate the project in the same journalled change as the setting. |
 | **ARCH-R247** | `{ secret = "<name>" }` MUST name a `[[secret]]` the manifest declares, refused naming the variable otherwise; lemonfiber MUST write its value only to an environment file of the service's own readable by its owner alone (`0600`), named by the entry, MUST NOT write it into the project, and MUST show the variable and the secret's name, never its value, in every rehearsal, reading and diagnostic. |
 | **ARCH-R248** | A setting MUST live in the core's settings store and a secret in the secret store; the operator MUST be able to read and change a setting from the command line, the web API and the companion's operator screens alike, and each change MUST be journalled and MUST regenerate every entry that reads it. |
-| **ARCH-R249** | The in-place move that brings a part's first-party plugin MUST read the stack's environment file once, file each value the part read from it under the plugin's own setting or secret, journal each, and lemonfiber MUST NOT read the environment file for that part again. |
+| **ARCH-R249** | The first run of the release that stops reading the stack's static Compose files MUST read the stack's environment file once and file every value the assembled parts and the settings the core publishes read from it under their setting or secret, journalling each, and lemonfiber MUST NOT read the environment file for those values again; a part's later in-place move MUST NOT migrate any of them (`ARCH-R273`). |
 | **ARCH-R250** | A plugin's CI MUST run each of its images under the posture its manifest declares, `standard` included, and a manifest MAY declare `posture = "confined"` only where that run passes under it; lemonfiber MUST write the posture a manifest declares and MUST NOT refuse to install, update or start a service on account of its posture. |
 | **ARCH-R252** | lemonfiber MUST merge one operator-written overlay from its own configuration directory last, over the project it generates; MUST NOT accept or write an overlay from a plugin, a catalogue or the bundle; MUST name the overlay and every service it changes as unvetted in the doctor and in every rehearsal; and MUST journal each change to it, by content, when it next writes or starts the project. |
 | **ARCH-R253** | An ask and a `url_of` MUST reach the service that speaks the capability's contract, the filler itself where the filler speaks none, and the upstream that filler's adapter fronts only where the asker names that upstream's declared API in `native`; an ask naming an API the filler's upstream does not declare MUST be reported unfilled, naming the API. |
@@ -881,10 +897,13 @@ unreadable.
 | **ARCH-R271** | A plugin MAY ship starting files for a service it declares under `config/<service id>/` in its source, and lemonfiber MUST write each into that service's configuration directory at the same relative path as a materialised file held to `F1-R4`; a file outside `config/<id>/` of a declared service, a symbolic link anywhere in the tree, and a service whose files number more than 64 or weigh more than 1 MiB in all MUST be refused, naming the path or the service. |
 | **ARCH-R272** | lemonfiber MUST honour a service's `api` only in a first-party plugin the bundle pins as `assembled`, reaching it through that in-process adapter as it reaches a stack service, and an install or update of a plugin any of whose services declares `api` MUST be refused, naming `service <id>.api`. |
 | **ARCH-R273** | A first-party plugin's service whose `replaces` names a reserved id MUST be given the setting, secret and credential names the stack gives the service of that id, and moving a part in place MUST NOT rename or migrate any of them. |
+| **ARCH-R276** | The journal MUST record a change to a secret by the fingerprint of its value before and after the change, and MUST NOT hold a secret's value, sealed or otherwise; the secret store MUST keep each secret's one previous value, and undoing the change MUST restore it only while the values the store holds match the fingerprints the entry recorded, and otherwise MUST say the secret must be replaced at the terminal, naming it. |
+| **ARCH-R277** | A credential that crosses to a plugin's service (`F14-R18`, `F14-R20`) MUST be read from the store that holds it each time an entry naming it is written, and MUST NOT be copied into the secret store; replacing it MUST regenerate every entry that reads it. |
 
 ## Related
 
 - [ADR-0021](../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) — the decision this contract implements
+- [ADR-0046](../../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) — when the environment file is filed, and what the journal keeps of a secret
 - [plugin-manifest-service](plugin-manifest-service.md) — what a plugin runs, field by field
 - [stack-manifest](stack-manifest.md) — the vocabulary a plugin's service is declared in, and the whole-stack manifest this is not
 - [bundle](bundle.md) — the profile a first-party plugin's services sit in, the ids it reserves, and the stack's choices and links by name

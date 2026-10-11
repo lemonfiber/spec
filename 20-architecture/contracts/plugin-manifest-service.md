@@ -319,9 +319,11 @@ the command line, the web surface and the companion's operator screens alike, th
 `lemonfiber settings` and [`GET /api/settings`](web-api.md#settings). Each change
 is journalled and regenerates the entries that read it. A secret lives in the secret
 store, never in the settings store (`ARCH-R248`). Neither is the stack's environment
-file: the in-place move that brings a part's first-party plugin reads that file once,
-files each value the part read from it under the plugin's own setting or secret,
-journals each, and lemonfiber does not read the file for it again (`ARCH-R249`).
+file: the first run of the release that stops reading the stack's static Compose files
+reads that file once, files every value the assembled parts and the published settings
+read from it under their setting or secret, journals each, and lemonfiber does not read
+the file for them again. A part's later move in place keeps those names (`ARCH-R273`),
+so it migrates nothing (`ARCH-R249`).
 
 **A URL is an ask.** `url_of` names a core capability, as an `[[ask]]` does, and is
 settled, shown and counted as one (`F14-R22` to `F14-R25`): the reading says what it
@@ -349,7 +351,10 @@ declares: a value the operator enters, one its recipe captures, or a credential
 `F14-R18` or `F14-R20` lets cross to it. lemonfiber writes it to an environment file of
 the service's own, readable by the owner alone (`0600`), names that file in the entry,
 and never writes the value into the project. Every rehearsal, reading and diagnostic
-shows the variable and the secret's name, never its value (`ARCH-R247`).
+shows the variable and the secret's name, never its value (`ARCH-R247`). A crossing
+credential is read from where it is held whenever the entry is written, never copied
+(`ARCH-R277`), and the journal keeps a secret's fingerprint, never its value
+(`ARCH-R276`).
 
 ### Who it runs as, and how tightly it is held
 

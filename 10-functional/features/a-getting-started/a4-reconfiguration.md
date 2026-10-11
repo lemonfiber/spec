@@ -129,7 +129,7 @@ no other way to find out which amount they agreed to.
 | **A4-R10** | Reducing capability while work is in flight MUST report what is active and offer to wait. |
 | **A4-R11** | A change that cannot be applied safely MUST leave configuration unmodified and MUST state why. |
 | **A4-R12** | Quality preset changes MUST state that they affect future acquisitions only. |
-| **A4-R13** | `LEMONFIBER_IDEMPOTENCY_MINUTES` and `LEMONFIBER_IDEMPOTENCY_KEYS` MUST be changeable and shown, with where each came from, as every setting is; a value for the first that is not a whole number from 1 to 1440, or for the second one from 1 to 4096, MUST be refused naming the setting and its range and MUST leave configuration unmodified, and a value outside its range that reached the file another way MUST be read as the setting's default ([web API](../../../20-architecture/contracts/web-api-wire.md#an-action-sent-again)). |
+| **A4-R13** | `LEMONFIBER_IDEMPOTENCY_MINUTES` and `LEMONFIBER_IDEMPOTENCY_KEYS` MUST be changeable and shown, with where each came from, by `lemonfiber config`, as every `LEMONFIBER_*` key outside the core settings is (`ARCH-R278`); a value for the first that is not a whole number from 1 to 1440, or for the second one from 1 to 4096, MUST be refused naming the setting and its range and MUST leave configuration unmodified, and a value outside its range that reached the file another way MUST be read as the setting's default ([web API](../../../20-architecture/contracts/web-api-wire.md#an-action-sent-again)). |
 
 ## Related
 

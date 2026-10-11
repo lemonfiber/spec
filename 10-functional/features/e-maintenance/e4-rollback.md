@@ -55,6 +55,7 @@ made afterwards.
 | Applied remediation | Yes, where it recorded prior state |
 | Data root move | Partially — path re-pointed; moved data is not moved back automatically |
 | Seed operations | Yes — prior values restored |
+| A secret | Only while the secret store's one previous value still matches the fingerprints journalled; otherwise replaced at the terminal ([ARCH-R276](../../../20-architecture/contracts/plugin-manifest.md#requirements)) |
 | Uninstall | No |
 
 The migration row is the important one. Offering an action that cannot succeed is
@@ -144,7 +145,7 @@ Per journaled change:
 
 | ID | Requirement |
 |----|-------------|
-| **E4-R1** | Every change lemonfiber makes MUST be journaled with prior value, new value, timestamp and originating operation. |
+| **E4-R1** | Every change lemonfiber makes MUST be journaled with prior value, new value, timestamp and originating operation, a secret's values by their fingerprints (`ARCH-R276`). |
 | **E4-R2** | Rollback MUST operate on individual changes, not only on points in time. |
 | **E4-R3** | Each journaled change MUST be classified as reversible, irreversible, or partially reversible. |
 | **E4-R4** | Rollback MUST NOT be offered where it cannot succeed. |
