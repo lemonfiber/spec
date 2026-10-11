@@ -5,7 +5,7 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 labels: [security, web]
 relates: [C6, D10, F12, F13, G1, B5, N29]
 ---
@@ -65,9 +65,23 @@ operator's face or fingerprint
 ([ADR-0044](../../../00-overview/decisions/0044-a-phone-proves-the-operator-with-a-device-key.md)).
 The operator registers its public half with the core once, from an operator session, giving
 the password in that one request, with the platform's attestation of where the key lives:
-on Android the key's attestation chain, on iOS an App Attest attestation over the public
-half. The core verifies the attestation and records the key's backing, `strongbox`,
-`enclave` or `tee`. StrongBox and the Secure Enclave are preferred, and a key in the
+on Android the key's attestation chain, on iOS an App Attest attestation whose client data
+is the SHA-256 of the public half. The core verifies the attestation and records the key's
+backing, `strongbox`, `enclave` or `tee`. Android's attestation vouches for the key's
+hardware. App Attest vouches for the app instance and the client data it signed, not for the
+key: on iOS, `enclave` means the genuine app placed the key in the Secure Enclave, not that
+the hardware proved it.
+
+**Only an app the core trusts may register one.** The attestation names the app that made
+the key, by its package and the digest of its signing certificate on Android, and by its
+Team ID and bundle ID on iOS. The build ships the official NightWorksIO companion's
+identities; an operator running a build of their own adds its identity as a setting, at the
+command line or over the web API. An attestation from any other app is refused.
+
+**Verifying needs nothing from outside.** The core checks an attestation against the
+platform roots shipped in the build, and sends no request to do it. It does not fetch
+Google's revocation list for attestation keys, so a phone whose attestation key Google has
+since revoked is not caught by that list ([ADR-0044](../../../00-overview/decisions/0044-a-phone-proves-the-operator-with-a-device-key.md)). StrongBox and the Secure Enclave are preferred, and a key in the
 trusted environment alone is accepted and shown as such; a key held in software, or one
 whose attestation is missing or does not verify, is refused. The core keeps the public half
 and its backing under a name, journals the registration and alerts the operator, as it does
@@ -153,6 +167,8 @@ and offer the real call after.
 | An attestation that does not verify, or does not cover the public half given | Refused with a code of its own. |
 | An attestation that places the key in software | Refused with a code of its own, saying a device key has to live in the phone's hardware. |
 | A key in the trusted environment alone | Registered, with its backing recorded as `tee` and shown in the listing. |
+| An attestation names an app the core does not trust | Refused with a code of its own, naming the app's identity and that the operator can add it as a setting. |
+| The operator removes an app identity they added | Every device key registered from that app is revoked, journaled and alerted. |
 | A device key is presented as a credential | It is none: a request carrying only a device key's signature, with no operator session, is refused as a request with no credential is. |
 | A member tries to mint a key while the setting is off | Refused with a code of its own, saying the operator has not allowed members to mint keys, before their password is checked. |
 | A member tries to mint a key for another account | Refused. A member mints only `member:` keys for themselves. |
@@ -187,12 +203,15 @@ and offer the real call after.
 | **C10-R20** | A key MUST be collected by a request carrying its claim alone, in the body, over the TLS the link's fingerprint verifies (`C10-R11`). The reply MUST carry the key's secret, name, scope and the stack's pin, sent with `Cache-Control: no-store`. An unknown, spent or lapsed claim MUST be refused with one status, sentence and code, and MUST count against the same surface-wide limit as wrong passwords (`C10-R13`). |
 | **C10-R21** | Collecting a key MUST be journaled and MUST raise an operator alert naming the key, its purpose and the address it was collected from. A key whose claim lapses uncollected MUST be revoked, journaled as not reversible, and alerted. |
 | **C10-R22** | Every surface that shows a key link MUST also draw it as a QR code from the link, and MUST NOT show the link or the code again once that screen is left. |
-| **C10-R23** | An operator session MUST be able to register a device key over the web API: a name, the public half of a P-256 key pair and the platform's attestation of where the key lives (an Android key attestation chain, or an iOS App Attest attestation over the public half), with the operator password in the same request. The core MUST verify the attestation and record the key's backing as `strongbox`, `enclave` or `tee`, and MUST refuse, each with a code of its own, a registration with no attestation, an attestation that does not verify or does not cover the public half, and an attestation placing the key in software. The core MUST keep only the public half and its backing under that name, MUST refuse a name or a public half another device key holds, naming it, and MUST refuse a public half that is not a P-256 key with a code of its own. A member session and a key MUST NOT be able to register, list or revoke device keys. Every registration MUST be journaled and MUST raise an operator alert naming the device key. |
+| **C10-R23** | An operator session MUST be able to register a device key over the web API: a name, the public half of a P-256 key pair and the platform's attestation of where the key lives (an Android key attestation chain, or an iOS App Attest attestation whose client data is the SHA-256 of the public half), with the operator password in the same request. The core MUST verify the attestation and record the key's backing as `strongbox`, `enclave` or `tee`, `enclave` meaning on iOS that App Attest vouched for the genuine app that placed the key there, not that the hardware proved it, and MUST refuse, each with a code of its own, a registration with no attestation, an attestation that does not verify or does not cover the public half, and an attestation placing the key in software. The core MUST keep only the public half and its backing under that name, MUST refuse a name or a public half another device key holds, naming it, and MUST refuse a public half that is not a P-256 key with a code of its own. A member session and a key MUST NOT be able to register, list or revoke device keys. Every registration MUST be journaled and MUST raise an operator alert naming the device key. |
 | **C10-R24** | An operator session MUST be able to ask for a challenge for a registered device key. The core MUST issue a fresh random value of at least 32 bytes, keep it only in memory, bound to that session and that device key, and accept it for one request within one minute; using it, its lapsing, the session ending and the device key's revocation MUST end it. |
 | **C10-R25** | A mint carrying a device key's name, a challenge and a signature in place of the password MUST be admitted only where the device key is registered, the challenge stands for that session and that device key, and the signature verifies against the device key's public half over the challenge and the mint's name, scope, purpose and whether it is a claim, in the form the contract publishes. An unregistered or revoked device key MUST be refused with a code of its own; a challenge that does not stand, for any reason, with one code; and a signature that does not verify with a code of its own, counted against the same surface-wide limit as wrong passwords (`C10-R13`). |
 | **C10-R26** | Device keys MUST be listed by name, the fingerprint of their public half, their backing, registration time and last use, and MUST be revocable by name, over the web API, with effect at the next challenge. Every revoke MUST be journaled as not reversible and MUST raise an operator alert naming the device key. |
 | **C10-R27** | Changing the operator password MUST revoke every device key, journaled and alerted as `C10-R26` says. |
 | **C10-R28** | A device key's signature MUST prove the operator for the one mint it was made for and nothing else: it MUST NOT admit a request, stand in for a session or the password anywhere else, or be accepted without an operator session. |
+| **C10-R29** | The core MUST register a device key only where its attestation names an app identity the core trusts: the package and the SHA-256 digest of its signing certificate on Android, the Team ID and bundle ID on iOS. The build MUST ship the official NightWorksIO companion's identities, and an attestation naming any other app MUST be refused with a code of its own, naming the identity. |
+| **C10-R30** | The operator MUST be able to add and remove the identities of their own builds as a setting, at the command line and over the web API (`ARCH-R262`); each change MUST be journaled and MUST raise an operator alert naming the identity, the official identities MUST NOT be removable, and removing an identity MUST revoke every device key registered from it. |
+| **C10-R31** | The core MUST verify an attestation against the platform roots shipped in its build and MUST NOT send any request to verify one, a revocation list included. |
 
 ## Related
 

@@ -122,11 +122,16 @@ POST   /api/device-keys/{name}/challenge
 
 `POST /api/device-keys` takes `{ "name": …, "public_key": …, "attestation": …, "password": … }`:
 the public half as its SubjectPublicKeyInfo in base64url, and the platform's attestation of
-where the key lives, an Android key attestation chain or an iOS App Attest attestation over
-the public half. The core verifies the attestation and answers the `device-key` envelope:
+where the key lives: an Android key attestation chain, or an iOS App Attest attestation
+whose client data is the SHA-256 of the public half. The core verifies the attestation
+against the platform roots in its build, sending nothing out to do it, and only for an app
+it trusts: the official NightWorksIO companion, or a build named in the setting
+`LEMONFIBER_DEVICE_KEY_APPS` (`ARCH-R262`). It answers the `device-key` envelope:
 the name, the fingerprint of the public half, its `backing`, `strongbox`, `enclave` or
-`tee`, and when it was registered. A missing attestation, one that does not verify and one
-placing the key in software are each refused under a code of their own. `GET /api/device-keys`
+`tee`, and when it was registered. On iOS `enclave` means the genuine app placed the key in
+the Secure Enclave: App Attest vouches for the app, not for the key. A missing attestation,
+one that does not verify, one placing the key in software and one from an app the core does
+not trust are each refused under a code of their own. `GET /api/device-keys`
 answers `device-keys`, each with its backing and last use, and `DELETE /api/device-keys/{name}` revokes
 one. `POST /api/device-keys/{name}/challenge` answers `device-challenge`: a fresh `challenge`
 and when it `expires`, one minute on, good for one mint from that session with that device
