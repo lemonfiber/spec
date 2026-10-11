@@ -226,3 +226,9 @@ jobs:
       # nothing in it wrangler would run (Q-R66).
       - name: A site is shown publishing only from its default branch
         run: python3 scripts/test_site_deploy.py
+      # Not a coverage suite: it runs the first-party plugin workflow's own steps
+      # out of the committed workflow, and checks that only a change the verdict
+      # reads is judged again and that a plugin carrying its own reader is refused
+      # (Q-R66, Q-R76).
+      - name: A first-party plugin is shown judged where what it reads changed
+        run: python3 scripts/test_first_party_plugin.py
