@@ -238,13 +238,13 @@ jobs:
             "${title}" \
             "" \
             "A workflow this repository pins, or a script it runs, moved in the spec, or a" \
-            "pin here is past what the pin check allows. \`workflow-pins\` or the pin check" \
-            "names it on every pull request opened here until it is taken." \
+            "pin here is past half of what the pin check allows. It is taken here before" \
+            "\`workflow-pins\` or the pin check fails a pull request on it." \
             "" \
-            "A pin is touched where its workflow or a script it runs moved, or where" \
-            "the pin check refuses it for being too far behind main or too old. A pin" \
-            "a few numbers back none of whose files has changed, inside both limits," \
-            "is left alone." \
+            "A repository is bumped once one of its pins is due: its workflow or a" \
+            "script it runs moved, or it is past half of either limit the pin check" \
+            "holds it to. Every spec pin here then moves to the tag, so none is left" \
+            "to age into the check's refusal on its own." \
             "" \
             "Spec: OPS-R48, OPS-R85" \
             "" \
@@ -252,11 +252,11 @@ jobs:
             >"${work}/message"
 
           printf '%s\n' \
-            "A workflow this repository pins, or a script it runs, moved in the spec at \`${TAG}\` (\`${COMMIT}\`), or a pin here is past what the pin check allows." \
+            "A workflow this repository pins, or a script it runs, moved in the spec at \`${TAG}\` (\`${COMMIT}\`), or a pin here is past half of what the pin check allows." \
             "" \
-            "\`workflow-pins\` names it on every pull request opened here until it is taken, so this is opened for you rather than owed to you." \
+            "Taken here, it never reaches \`workflow-pins\` or the pin check on a pull request, so this is opened for you rather than owed to you." \
             "" \
-            "**The pins in the diff are those whose workflow or scripts moved, and those the pin check refuses** for being more commits behind \`main\` or more days old than \`hygiene.yml\` allows. A pin a few numbers back none of whose files has changed, inside both limits, is left where it is." \
+            "**Every spec pin here moves once one of them is due.** A pin is due when its workflow or scripts moved, or when it is past half of the commits behind \`main\` or half of the days \`hygiene.yml\` allows, which leaves the bump room to merge before the pin check refuses anything." \
             "" \
             "**One pull request, rebuilt for each number.** The fan-out keeps this branch and this pull request, rebuilds the branch from \`main\` when the spec publishes another number, and retitles it, so the checks of the number it replaces are cancelled rather than left running beside it." \
             "" \

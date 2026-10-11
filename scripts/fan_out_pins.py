@@ -4,19 +4,28 @@
 `workflow_pins.py` says a pin is behind. This writes the bump it asks for. They
 are two halves of one answer and they read it with one reader: every function
 that decides *what is stale* is imported from the gate rather than written again
-here, so the fan-out cannot bump something the gate would not have named, and
-cannot leave behind something it would.
+here, so the fan-out cannot leave behind something the gate would name. It
+moves more than the gate names, and earlier, for the reason below.
 
-**A pin whose own workflow or scripts moved, or one the pin check refuses.** The
-rule `workflow-pins` measures by is the first rule this rewrites by, for the
-reason given there: a pin holds its workflow and the scripts it runs, so a pin a
-few tags back none of whose files has changed runs the same steps and the same
-scripts as the newest one.
-`hygiene`'s pin check is the second: it refuses a pin more than `STALE_COMMITS`
-behind `main` or older than `STALE_DAYS`, whatever its file did, and a pin it
-refuses is one this brings forward. Its two limits are read from `hygiene.yml`,
-where the check keeps them, so the two cannot drift apart: the copy in the
-checkout this script sits in, never one a path on the command line leads to.
+**A repository is bumped when one of its pins is due, and then every pin moves.**
+A pin is due when its own workflow or a script it runs moved — the rule
+`workflow-pins` measures by, for the reason given there — or when it has gone
+past half of either limit `hygiene`'s pin check holds it to: more than half of
+`STALE_COMMITS` behind `main`, or older than half of `STALE_DAYS`. The check
+refuses a pin past the whole of either limit whatever its file did, and the
+next spec merge is what takes it there, so a pin moved only once it is refused
+is moved after every pull request in its repository has already failed on it.
+Half is the room the bump has to merge in. Both limits are read from
+`hygiene.yml`, where the check keeps them, so the two cannot drift apart: the
+copy in the checkout this script sits in, never one a path on the command line
+leads to.
+
+Once a repository has a pin due, every pin it holds on the spec moves to the
+tag, in the one pull request opened anyway. A pin left behind because nothing of
+its own moved ages towards the same limit beside the ones that did, and reaches
+it on a day no tag happened to name its file. A pin already at the tag, or at a
+revision the tag does not reach, is left where it is: a bump never moves a pin
+backwards.
 
 **The comment carries the tag, and that is not decoration.** Dependabot's
 `github-actions` updater compares versions; a pin whose trailing comment names no
@@ -109,6 +118,10 @@ class Limits:
 
     commits: int
     days: int
+
+    def halved(self) -> Limits:
+        """Half of each limit, past which a pin is brought forward before the check refuses it."""
+        return Limits(commits=self.commits // 2, days=self.days // 2)
 
 
 #: Ends the multi-line `REACHABLE` output. A repository name is letters, digits,
@@ -276,10 +289,10 @@ def limits_in(spec: pathlib.Path) -> Limits | None:
     return Limits(commits=int(found["STALE_COMMITS"]), days=int(found["STALE_DAYS"]))
 
 
-def refused_by_age(spec: pathlib.Path, pin: str, limits: Limits, now: int) -> bool | None:
-    """Whether the pin check refuses `pin`: more commits behind `main`, or more days old, than it allows.
+def past(spec: pathlib.Path, pin: str, limits: Limits, now: int) -> bool | None:
+    """Whether `pin` is more commits behind `main`, or more days old, than `limits` allow.
 
-    Measured as the check measures it: the commits `main` has and the pin does
+    Measured as the pin check measures it: the commits `main` has and the pin does
     not, and whole days since the pin's commit. `None` where either could not be
     read.
     """
@@ -294,6 +307,20 @@ def refused_by_age(spec: pathlib.Path, pin: str, limits: Limits, now: int) -> bo
     return int(behind.stdout.strip()) > limits.commits or days > limits.days
 
 
+def due(spec: pathlib.Path, workflow: str, pin: str, named: str, limits: Limits, now: int) -> bool | None:
+    """Whether one pin asks for a bump: its own files moved, or it is past half of either limit.
+
+    `None` where either could not be read.
+    """
+    missed = commits_between(spec, pin, named, workflow)
+    nearing = past(spec, pin, limits.halved(), now)
+
+    if missed is None or nearing is None:
+        return None
+
+    return bool(missed) or nearing
+
+
 def bring_forward(
     repo: pathlib.Path,
     spec: pathlib.Path,
@@ -302,7 +329,7 @@ def bring_forward(
     limits: Limits,
     now: int,
 ) -> tuple[list[str], str] | None:
-    """Rewrite every stale pin in `repo`, returning what moved and to where.
+    """Move every pin in `repo` to `named` once any one of them is due, returning what moved and to where.
 
     `named` is the revision `tag` names, resolved by the caller so that the
     number and the revision written beside it cannot come from two places.
@@ -311,17 +338,28 @@ def bring_forward(
     than treating as a repository with nothing to do. The two are indistinguishable
     from the outside and only one of them is good news.
     """
+    pins = sorted(pins_under(repo).items())
+    asked = [due(spec, workflow, sha, named, limits, now) for (workflow, sha), _ in pins]
+
+    if None in asked:
+        return None
+
     moved: list[str] = []
 
-    for (workflow, sha), where in sorted(pins_under(repo).items()):
-        missed = commits_between(spec, sha, named, workflow)
-        overdue = refused_by_age(spec, sha, limits, now)
+    if not any(asked):
+        return moved, named
 
-        if missed is None or overdue is None:
-            return None
-
-        if not (missed or overdue):
+    for (workflow, sha), where in pins:
+        if sha == named:
             continue
+
+        reached = _git(spec, "merge-base", "--is-ancestor", sha, named)
+
+        if reached.returncode == 1:
+            continue
+
+        if reached.returncode != 0:
+            return None
 
         # Unique, and that is not tidiness. The reader lists a file once per
         # occurrence, so a file calling the same workflow from two jobs is named
