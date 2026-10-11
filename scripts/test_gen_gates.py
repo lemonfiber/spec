@@ -207,7 +207,7 @@ class Generation(unittest.TestCase):
                                         (step["id"], line))
                         if assigned[2].startswith(".spec-tooling"):
                             readers.add(assigned[1])
-                    ran = re.search(r"python3 [\"']?([^\"'\s]+)", line)
+                    ran = re.search(r"python3 (?:-I |-E -s )?[\"']?([^\"'\s]+)", line)
                     if not ran or ran[1] in ("-", "-c"):
                         continue
                     said = ran[1]
@@ -216,6 +216,50 @@ class Generation(unittest.TestCase):
                         self.assertIn(variable[1], readers, (step["id"], line))
                     else:
                         self.assertTrue(said.startswith((".spec-tooling/", "scripts/")), (step["id"], line))
+
+    def test_every_python_a_step_starts_is_isolated_from_the_workspace(self):
+        started = 0
+        for job in generated()["jobs"].values():
+            for step in job["steps"]:
+                script = step.get("run", "")
+                self.assertIsNone(gen_gates.UNISOLATED.search(script), step.get("id", step["name"]))
+                started += len(re.findall(r"\bpython3\b", script))
+        self.assertGreater(started, 10)
+
+    def test_the_verdict_runs_last_from_an_empty_workspace_outside_it(self):
+        steps = generated()["jobs"]["gates"]["steps"]
+        self.assertEqual(steps[-2]["run"], gen_gates.EMPTIED)
+        self.assertEqual(steps[-2]["if"], gen_gates.UNLESS_CANCELLED)
+        self.assertEqual(steps[-1]["run"], gen_gates.HELD)
+        self.assertIn('cd "$RUNNER_TEMP"\npython3 -I -', gen_gates.HELD)
+
+    def test_each_scanner_reads_what_to_pass_over_from_the_base_branch(self):
+        steps = generated()["jobs"]["gates"]["steps"]
+        restores = {s["id"].rsplit("--", 1)[0]: s for s in steps
+                    if s["name"].endswith("The files that say what to pass over are the base branch's")}
+        self.assertEqual(set(restores), {"hygiene--actionlint", "hygiene--typos", "hygiene--links",
+                                         "security--gitleaks", "security--osv-scanner"})
+        self.assertEqual(len({s["run"] for s in restores.values()}), 1)
+        read = {check: set(s["env"]["CONFIGS"].split()) for check, s in restores.items()}
+        self.assertLessEqual({".github/actionlint.yaml", ".shellcheckrc"}, read["hygiene--actionlint"])
+        self.assertLessEqual({"typos.toml", ".gitignore"}, read["hygiene--typos"])
+        self.assertLessEqual({"lychee.toml", ".lycheeignore", ".gitignore"}, read["hygiene--links"])
+        self.assertLessEqual({".gitleaks.toml", ".gitleaksignore"}, read["security--gitleaks"])
+        self.assertLessEqual({"osv-scanner.toml", ".gitignore"}, read["security--osv-scanner"])
+        scanners = {
+            "hygiene--actionlint": "raven-actions/actionlint@",
+            "hygiene--typos": "crate-ci/typos@",
+            "hygiene--links": "lycheeverse/lychee-action@",
+            "security--gitleaks": "./gitleaks git",
+            "security--osv-scanner": "docker run",
+        }
+        ids = [s.get("id") for s in steps]
+        for check, said in scanners.items():
+            scan = next(s for s in steps if s.get("id", "").startswith(check + "--")
+                        and (s.get("uses", "").startswith(said) or said in s.get("run", "")))
+            self.assertLess(ids.index(restores[check]["id"]), ids.index(scan["id"]), check)
+        typos = next(s for s in steps if s.get("uses", "").startswith("crate-ci/typos@"))
+        self.assertEqual(typos["with"], {"config": "typos.toml", "isolated": True})
 
     def test_spec_s_scripts_are_checked_out_at_the_commit_gates_was_called_at(self):
         # So a caller pinned at a revision runs that revision's scripts, with the
@@ -244,7 +288,8 @@ class Generation(unittest.TestCase):
                 self.assertNotIn("${{", step.get("run", ""), step.get("id"))
 
     def test_the_scanner_runs_shut_in_and_builds_nothing(self):
-        osv = next(s for s in generated()["jobs"]["gates"]["steps"] if s["id"] == "security--osv-scanner--1")
+        osv = next(s for s in generated()["jobs"]["gates"]["steps"]
+                   if s.get("id", "").startswith("security--osv-scanner--") and "docker run" in s.get("run", ""))
         words = osv["run"].split("docker run", 1)[1].split()
         self.assertNotIn("uses", osv)
         for word in ("--no-call-analysis=all", "--cap-drop", "no-new-privileges", '"${GITHUB_WORKSPACE}:/src:ro"'):
@@ -410,8 +455,8 @@ class Behaviour(unittest.TestCase):
         self.assertFalse(decides(said, context(), status="cancelled"))
 
 
-def bash(script: str, env: dict) -> subprocess.CompletedProcess:
-    return subprocess.run(["bash", "-c", script], env={**os.environ, **env},
+def bash(script: str, env: dict, cwd: pathlib.Path | None = None) -> subprocess.CompletedProcess:
+    return subprocess.run(["bash", "-c", script], env={**os.environ, **env}, cwd=cwd,
                           capture_output=True, text=True, check=False)
 
 
@@ -455,9 +500,131 @@ class Scripts(unittest.TestCase):
             self.assertEqual(said.returncode, 1, event)
             self.assertIn(f"not {event}", said.stdout)
 
-    def held(self, verdicts: dict) -> subprocess.CompletedProcess:
-        return bash(gen_gates.HELD, {"VERDICTS": json.dumps(verdicts),
-                                     "GITHUB_STEP_SUMMARY": str(self.summary)})
+    def held(self, verdicts: dict, script: str = gen_gates.HELD) -> subprocess.CompletedProcess:
+        workspace = self.tmp / "workspace"
+        temp = self.tmp / "temp"
+        workspace.mkdir(exist_ok=True)
+        temp.mkdir(exist_ok=True)
+        return bash(script, {"VERDICTS": json.dumps(verdicts), "GITHUB_STEP_SUMMARY": str(self.summary),
+                             "GITHUB_WORKSPACE": str(workspace), "RUNNER_TEMP": str(temp)},
+                    cwd=workspace)
+
+    def plant(self) -> None:
+        # What a pull request's tree can hold at the workspace root: a module
+        # named for one the verdict imports, and one Python's site imports
+        # unasked. Either one, imported, passes whatever failed.
+        workspace = self.tmp / "workspace"
+        workspace.mkdir(exist_ok=True)
+        for name in ("json.py", "sitecustomize.py", "usercustomize.py"):
+            (workspace / name).write_text("import os\nos._exit(0)\n")
+
+    def test_a_module_the_tree_plants_passes_a_verdict_run_beside_it(self):
+        # The hijack, reproduced: the verdict as it was written, Python reading
+        # stdin in the workspace, passes a failed check.
+        self.plant()
+        exposed = gen_gates.HELD.replace('cd "$RUNNER_TEMP"\n', "").replace("python3 -I -", "python3 -")
+        self.assertNotEqual(exposed, gen_gates.HELD)
+        said = self.held({"x--y": "failure"}, exposed)
+        self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
+        self.assertNotIn("x / y failed", said.stdout)
+
+    def test_a_module_the_tree_plants_is_not_imported_by_the_verdict(self):
+        self.plant()
+        said = self.held({"x--y": "failure", "z--w": "success"})
+        self.assertEqual(said.returncode, 1, said.stdout + said.stderr)
+        self.assertIn("x / y failed", said.stdout)
+        self.assertIn("| x / y | failure |", self.summary.read_text())
+        self.assertEqual(self.held({"z--w": "success"}).returncode, 0)
+
+    def restore(self, base: dict, tracked: dict, configs: str, base_sha: str = HEAD, linked: dict | None = None):
+        # A repository holding the pull request's files, and a `gh` that answers
+        # for the base branch's: each path it holds, a 404 for the rest.
+        tree = self.tmp / "tree"
+        tree.mkdir()
+        for path, text in tracked.items():
+            (tree / path).parent.mkdir(parents=True, exist_ok=True)
+            (tree / path).write_text(text)
+        for path, target in (linked or {}).items():
+            (tree / path).symlink_to(target)
+        subprocess.run(["git", "init", "-q", str(tree)], check=True)
+        subprocess.run(["git", "-C", str(tree), "add", "-A"], check=True)
+        served = self.tmp / "base"
+        for path, text in base.items():
+            (served / path).parent.mkdir(parents=True, exist_ok=True)
+            (served / path).write_text(text)
+        fake = self.tmp / "bin"
+        fake.mkdir()
+        (fake / "gh").write_text(
+            "#!/usr/bin/env bash\n"
+            'url="${@: -1}"; path="${url#repos/lemonfiber/core/contents/}"; path="${path%%\\?ref=*}"\n'
+            f'[ "${{url##*ref=}}" = "{HEAD}" ] || {{ echo "gh: wrong ref" >&2; exit 1; }}\n'
+            'path=$(printf "%b" "${path//%/\\\\x}")\n'
+            f'if [ -f "{served}/$path" ]; then cat "{served}/$path"; '
+            'elif [ "$path" = "fails" ]; then echo "gh: Server Error (HTTP 502)" >&2; exit 1; '
+            'else echo "gh: Not Found (HTTP 404)" >&2; exit 1; fi\n')
+        (fake / "gh").chmod(0o755)
+        step = next(s for s in generated()["jobs"]["gates"]["steps"]
+                    if s["name"].endswith("The files that say what to pass over are the base branch's"))
+        said = bash(step["run"], {"PATH": f"{fake}:{os.environ['PATH']}", "REPO": REPO, "BASE_SHA": base_sha,
+                                  "CONFIGS": configs, "RUNNER_TEMP": str(self.tmp)}, cwd=tree)
+        return said, tree
+
+    def test_the_base_branch_s_copy_replaces_the_pull_request_s(self):
+        said, tree = self.restore(
+            base={"lychee.toml": "exclude = []\n", "docs/.gitignore": "build/\n", "a b/.gitignore": "out/\n"},
+            tracked={"lychee.toml": "exclude = ['.*']\n", "docs/.gitignore": "*.md\n", "a b/.gitignore": "*.md\n",
+                     "deep/.gitignore": "*.md\n", ".lycheeignore": ".*\n", "README.md": "x\n"},
+            configs="lychee.toml .lycheeignore .gitignore")
+        self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
+        self.assertEqual((tree / "lychee.toml").read_text(), "exclude = []\n")
+        self.assertEqual((tree / "docs/.gitignore").read_text(), "build/\n")
+        self.assertEqual((tree / "a b/.gitignore").read_text(), "out/\n")
+        self.assertFalse((tree / "deep/.gitignore").exists())
+        self.assertFalse((tree / ".lycheeignore").exists())
+        self.assertFalse((tree / ".gitignore").exists())
+        self.assertEqual((tree / "README.md").read_text(), "x\n")
+        self.assertIn(".lycheeignore: the base branch has none, so none is read", said.stdout)
+
+    def test_a_copy_the_pull_request_deleted_comes_back(self):
+        said, tree = self.restore(base={".gitleaks.toml": "[extend]\nuseDefault = true\n"},
+                                  tracked={"README.md": "x\n"}, configs=".gitleaks.toml")
+        self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
+        self.assertEqual((tree / ".gitleaks.toml").read_text(), "[extend]\nuseDefault = true\n")
+
+    def test_a_link_in_place_of_a_copy_is_removed_and_its_target_untouched(self):
+        target = self.tmp / "outside"
+        target.write_text("kept\n")
+        said, tree = self.restore(base={}, tracked={"README.md": "x\n"}, configs="typos.toml",
+                                  linked={"typos.toml": target})
+        self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
+        self.assertFalse((tree / "typos.toml").is_symlink())
+        self.assertEqual(target.read_text(), "kept\n")
+
+    def test_a_copy_reached_through_a_linked_directory_fails_the_check(self):
+        elsewhere = self.tmp / "elsewhere"
+        elsewhere.mkdir()
+        (elsewhere / "actionlint.yaml").write_text("ignore: ['.*']\n")
+        said, _ = self.restore(base={".github/actionlint.yaml": "{}\n"}, tracked={"README.md": "x\n"},
+                               configs=".github/actionlint.yaml", linked={".github": elsewhere})
+        self.assertEqual(said.returncode, 1)
+        self.assertIn(".github is a link", said.stdout)
+        self.assertEqual((elsewhere / "actionlint.yaml").read_text(), "ignore: ['.*']\n")
+
+    def test_a_copy_with_no_directory_to_hold_it_is_not_read(self):
+        said, tree = self.restore(base={".github/actionlint.yaml": "{}\n"}, tracked={"README.md": "x\n"},
+                                  configs=".github/actionlint.yaml")
+        self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
+        self.assertFalse((tree / ".github").exists())
+
+    def test_a_base_copy_that_cannot_be_read_fails_the_check(self):
+        said, _ = self.restore(base={}, tracked={"README.md": "x\n"}, configs="fails")
+        self.assertEqual(said.returncode, 1)
+        self.assertIn("fails could not be read at the base branch", said.stdout)
+
+    def test_a_push_keeps_its_own_copies(self):
+        said, tree = self.restore(base={}, tracked={"lychee.toml": "own\n"}, configs="lychee.toml", base_sha="")
+        self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
+        self.assertEqual((tree / "lychee.toml").read_text(), "own\n")
 
     def test_a_failure_fails_the_job_and_every_result_is_in_the_summary(self):
         said = self.held({"x--y": "failure", "z--w": "success", "a--b": "skipped"})
@@ -553,6 +720,26 @@ class Refusals(unittest.TestCase):
         with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.ACT),)):
             self.assertIn("someone/tool@", gen_gates.build())
 
+    def test_python_started_beside_the_tree(self):
+        for script in ("python3 - <<'PY'", "python3 -c 'import json'", "python3 scripts/x.py",
+                       "python3 -E -s -m x", "python3 -E -s - <<'PY'", "python -c x", "x | python3 -E y.py"):
+            self.source(self.STEP + f"      - run: {json.dumps(script)}\n")
+            self.refused("starts Python without isolating it", "python3 -I", "python3 -E -s <path>")
+
+    def test_python_started_isolated_is_carried(self):
+        for script in ("python3 -I - <<'PY'", "python3 -E -s .spec-tooling/scripts/x.py",
+                       'python3 -E -s "$reader" --root .'):
+            self.source(self.STEP + f"      - run: {json.dumps(script)}\n")
+            self.assertIn(script, gen_gates.build())
+
+    def test_an_explainer_starting_python_beside_the_tree(self):
+        (self.tmp / "explain-check.yml").write_text(
+            "on:\n  workflow_call:\njobs:\n  explain:\n    runs-on: ubuntu-latest\n"
+            "    steps:\n      - run: python3 - <<'PY'\n", encoding="utf-8")
+        self.source("    uses: ./.github/workflows/explain-check.yml\n")
+        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)):
+            self.refused("explain-check.yml job 'explain' starts Python without isolating it")
+
     def test_a_script_carrying_an_expression(self):
         self.source(self.STEP + "      - run: echo ${{ github.event.pull_request.title }}\n")
         self.refused("has an expression in its script", "Pass it through env")
@@ -629,7 +816,7 @@ class Refusals(unittest.TestCase):
         self.source(self.STEP + "      - run: echo\n        if: ${{ github.event_name == 'push' }}\n"
                     "        with:\n          many: [a, b]\n")
         workflow = yaml.safe_load(gen_gates.build())
-        step = workflow["jobs"]["gates"]["steps"][-2]
+        step = workflow["jobs"]["gates"]["steps"][-3]
         self.assertTrue(step["if"].endswith("&& (github.event_name == 'push') }}"), step["if"])
         self.assertEqual(step["with"]["many"], ["a", "b"])
 

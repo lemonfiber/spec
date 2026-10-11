@@ -1,12 +1,13 @@
 # Reusable hygiene checks: workflow lint, spelling, links, invite codes, markdown,
 # the length of every tracked file, and the shared files those tools read.
-# Called by each repo:  uses: lemonfiber/spec/.github/workflows/hygiene.yml@main
+# Every other repository runs these as the `hygiene` group of `gates.yml`, which
+# scripts/gen_gates.py writes from this file; spec runs it as its own workflow.
 # One definition, no drift (Q-R56).
 #
-# This workflow checks out the calling repository and lints that tree, so the
-# lint configs that govern a run are the calling repo's own copies. The
-# shared-files job is what keeps those copies equal to the canonical ones in
-# lemonfiber/spec/shared.
+# This workflow checks out the calling repository and lints that tree. The lint
+# configurations that govern a run are the calling repository's own copies as
+# its base branch holds them, never a pull request's, and the shared-files job
+# keeps those copies equal to the canonical ones in lemonfiber/spec/shared.
 name: hygiene
 
 on:
@@ -30,6 +31,54 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # A tool that reads what to pass over from the tree it checks would take
+      # that list from the pull request it is judging, and one line there
+      # silences it for the change that line came with. So each file that tells
+      # it what to skip is the base branch's: a copy of the pull request's own at
+      # the same path is replaced by the base's, or removed where the base has
+      # none, and a change to one of them judges the pull requests after it
+      # merges. On a push the branch's own copy already is the base's.
+      - name: The files that say what to pass over are the base branch's
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          CONFIGS: .github/actionlint.yaml .github/actionlint.yml .shellcheckrc
+        run: |
+          set -euo pipefail
+          if [ -z "$BASE_SHA" ]; then
+            echo "A push is judged by the files it carries, which are its branch's own."
+            exit 0
+          fi
+          listed="${RUNNER_TEMP}/configurations"
+          said="${RUNNER_TEMP}/configuration-error"
+          for name in $CONFIGS; do
+            { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+            while IFS= read -r -d '' path; do
+              parent=$(dirname -- "$path")
+              if [ -L "$parent" ]; then
+                echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+                exit 1
+              fi
+              if [ ! -d "$parent" ]; then
+                echo "${path}: no directory here holds it, so none is read"
+                continue
+              fi
+              encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+              rm -rf -- "$path"
+              if gh api -H "Accept: application/vnd.github.raw+json" \
+                "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+                echo "${path}: the base branch's copy"
+              elif grep -qF "(HTTP 404)" "$said"; then
+                rm -f -- "$path"
+                echo "${path}: the base branch has none, so none is read"
+              else
+                cat "$said" >&2
+                echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+                exit 1
+              fi
+            done < "$listed"
+          done
       - name: actionlint
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
 
@@ -192,8 +241,68 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # A tool that reads what to pass over from the tree it checks would take
+      # that list from the pull request it is judging, and one line there
+      # silences it for the change that line came with. So each file that tells
+      # it what to skip is the base branch's: a copy of the pull request's own at
+      # the same path is replaced by the base's, or removed where the base has
+      # none, and a change to one of them judges the pull requests after it
+      # merges. On a push the branch's own copy already is the base's.
+      - name: The files that say what to pass over are the base branch's
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          CONFIGS: typos.toml .gitignore .ignore
+        run: |
+          set -euo pipefail
+          if [ -z "$BASE_SHA" ]; then
+            echo "A push is judged by the files it carries, which are its branch's own."
+            exit 0
+          fi
+          listed="${RUNNER_TEMP}/configurations"
+          said="${RUNNER_TEMP}/configuration-error"
+          for name in $CONFIGS; do
+            { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+            while IFS= read -r -d '' path; do
+              parent=$(dirname -- "$path")
+              if [ -L "$parent" ]; then
+                echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+                exit 1
+              fi
+              if [ ! -d "$parent" ]; then
+                echo "${path}: no directory here holds it, so none is read"
+                continue
+              fi
+              encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+              rm -rf -- "$path"
+              if gh api -H "Accept: application/vnd.github.raw+json" \
+                "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+                echo "${path}: the base branch's copy"
+              elif grep -qF "(HTTP 404)" "$said"; then
+                rm -f -- "$path"
+                echo "${path}: the base branch has none, so none is read"
+              else
+                cat "$said" >&2
+                echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+                exit 1
+              fi
+            done < "$listed"
+          done
+      # typos reads a configuration from every directory it checks, and from
+      # `pyproject.toml` and `Cargo.toml` too, none of which the step above can
+      # hand back. So it is told to read the root's `typos.toml` and no other,
+      # and an empty one where the base branch has none.
+      - name: typos reads an empty configuration where the base branch has none
+        run: |
+          if [ ! -e typos.toml ]; then
+            : > typos.toml
+          fi
       - name: typos
         uses: crate-ci/typos@7f9d0819ca1c008ade73f4b41fa9d258d48f605b # v1.51.1
+        with:
+          config: typos.toml
+          isolated: true
 
   links:
     runs-on: ubuntu-latest
@@ -257,6 +366,54 @@ jobs:
           printf '### An accept list that does not run\n\n%s\n' "$said" >> "$GITHUB_STEP_SUMMARY"
           exit 1
 
+      # A tool that reads what to pass over from the tree it checks would take
+      # that list from the pull request it is judging, and one line there
+      # silences it for the change that line came with. So each file that tells
+      # it what to skip is the base branch's: a copy of the pull request's own at
+      # the same path is replaced by the base's, or removed where the base has
+      # none, and a change to one of them judges the pull requests after it
+      # merges. On a push the branch's own copy already is the base's.
+      - name: The files that say what to pass over are the base branch's
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          CONFIGS: lychee.toml .lycheeignore .gitignore .ignore
+        run: |
+          set -euo pipefail
+          if [ -z "$BASE_SHA" ]; then
+            echo "A push is judged by the files it carries, which are its branch's own."
+            exit 0
+          fi
+          listed="${RUNNER_TEMP}/configurations"
+          said="${RUNNER_TEMP}/configuration-error"
+          for name in $CONFIGS; do
+            { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+            while IFS= read -r -d '' path; do
+              parent=$(dirname -- "$path")
+              if [ -L "$parent" ]; then
+                echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+                exit 1
+              fi
+              if [ ! -d "$parent" ]; then
+                echo "${path}: no directory here holds it, so none is read"
+                continue
+              fi
+              encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+              rm -rf -- "$path"
+              if gh api -H "Accept: application/vnd.github.raw+json" \
+                "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+                echo "${path}: the base branch's copy"
+              elif grep -qF "(HTTP 404)" "$said"; then
+                rm -f -- "$path"
+                echo "${path}: the base branch has none, so none is read"
+              else
+                cat "$said" >&2
+                echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+                exit 1
+              fi
+            done < "$listed"
+          done
       - name: lychee link check
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
@@ -338,7 +495,7 @@ jobs:
             scripts=".spec-tooling/scripts"
             canonical=".spec-canonical"
           fi
-          python3 "$scripts/check_shared_files.py" \
+          python3 -E -s "$scripts/check_shared_files.py" \
             --canonical "$canonical" \
             --repo "$REPO"
 
@@ -355,7 +512,7 @@ jobs:
           else
             scripts=".spec-tooling/scripts"
           fi
-          python3 "$scripts/check_agents.py" --root .
+          python3 -E -s "$scripts/check_agents.py" --root .
 
   # No tracked file over 1,000 lines, generated output included; lockfiles, images
   # and fonts are not counted. The cap and that list are in the script, read at
@@ -391,7 +548,7 @@ jobs:
           else
             reader=.spec-tooling/scripts/check_line_cap.py
           fi
-          python3 "$reader" --root .
+          python3 -E -s "$reader" --root .
 
   markdown:
     runs-on: ubuntu-latest
@@ -435,7 +592,7 @@ jobs:
           rm -rf "$stage"
           mkdir -p "$stage"
           cp "$canonical/shared/markdownlint.jsonc" "$stage/.markdownlint.jsonc"
-          STAGE="$stage" python3 - <<'PY'
+          STAGE="$stage" python3 -I - <<'PY'
           import os, subprocess, sys
           # Every tracked Markdown file, as git holds it: a regular file's blob,
           # never a link, a submodule or whatever the working tree has at the path.

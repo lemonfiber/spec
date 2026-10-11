@@ -40,8 +40,10 @@ request's tree could change what each later step runs, the step that fails
 `gates` included. So no step there does: every action a check bound for `gates`
 uses is one named in `INERT`, which reads the tree as data, or one named in
 `GUARDED` that comes after the step giving it a tree with nothing to import;
-scripts are spec's own; and no script carries an expression, so what a pull
-request wrote reaches a shell only through `env`.
+scripts are spec's own; Python starts isolated, so a module the tree holds is
+never imported in place of one Python ships; and no script carries an
+expression, so what a pull request wrote reaches a shell only through `env`.
+The verdict itself runs last, from an empty workspace, outside it.
 
 Run:  python3 scripts/gen_gates.py           # write .github/workflows/gates.yml
       python3 scripts/gen_gates.py --check   # refuse a gates.yml that has drifted
@@ -157,12 +159,25 @@ WRITE = {"contents": "read", "pull-requests": "write", "issues": "write"}
 #: The condition every step and job that must run after a failure carries.
 UNLESS_CANCELLED = "${{ !cancelled() }}"
 
+#: The workspace emptied: before each check, as its own runner had it, and
+#: before the verdict, so it runs beside no file a pull request wrote.
+EMPTIED = 'find "$GITHUB_WORKSPACE" -mindepth 1 -delete'
+
 #: `report`'s own condition. A fork's pull request is handed a token that cannot
 #: write, so `report` does not start for one; `gates` judges it all the same.
 ACT_RUNS = (
     "${{ !cancelled() && !(github.event_name == 'pull_request'"
     " && github.event.pull_request.head.repo.full_name != github.repository) }}"
 )
+
+#: Python started any way but isolated. Code read from stdin or `-c` runs with
+#: `-I`, so neither the working directory, which holds a pull request's tree,
+#: nor the environment nor the user's site is on its path: a `json.py` or a
+#: `sitecustomize.py` there would otherwise be imported first. A script of spec's
+#: own runs with `-E -s`, which is `-I` short of `-P`: its own directory, under
+#: `.spec-tooling`, stays first on the path, where its sibling modules are, and
+#: the working directory is never on it.
+UNISOLATED = re.compile(r"\bpython3?\b(?! -I )(?! -E -s [^\s-])")
 
 #: A step's reference to an earlier step's result.
 STEP_REF = re.compile(r"\bsteps\.([A-Za-z0-9_-]+)\.(outputs|outcome|conclusion)\b(?:\.([A-Za-z0-9_-]+))?")
@@ -269,6 +284,16 @@ def unexpanded(where: str, step: dict) -> None:
         raise Refused(
             f"{where} has an expression in its script, which pastes what it reads into the "
             f"shell. Pass it through env"
+        )
+
+
+def isolated(where: str, step: dict) -> None:
+    """Refuse a script that starts Python where the tree it reads could hand it a module."""
+    if UNISOLATED.search(str(step.get("run", ""))):
+        raise Refused(
+            f"{where} starts Python without isolating it from the working directory, which "
+            f"holds a pull request's tree. Run code with `python3 -I`, and a script of "
+            f"spec's with `python3 -E -s <path>`"
         )
 
 
@@ -381,7 +406,7 @@ class Carrier:
             "name": f"{check.group} / {check.job}: an empty workspace, as its own runner had",
             "id": f"{self.base}--fresh",
             "if": f"${{{{ {self.gate_here if read_only else self.gate_there} }}}}",
-            "run": 'find "$GITHUB_WORKSPACE" -mindepth 1 -delete',
+            "run": EMPTIED,
         })
         for index, original in enumerate(job.get("steps") or []):
             self.carry(index, dict(original))
@@ -394,6 +419,7 @@ class Carrier:
                 f"{self.check.source} job {self.check.job!r} has a step deciding by a status function: {own}"
             )
         unexpanded(f".github/workflows/{self.check.source} job {self.check.job!r}", step)
+        isolated(f".github/workflows/{self.check.source} job {self.check.job!r}", step)
         tolerated = bool(step.pop("continue-on-error", False))
         old_id = step.pop("id", None)
         new_id = f"{self.base}--{old_id or index}"
@@ -504,6 +530,7 @@ def explainer(check: Check, job: dict) -> list:
     steps = []
     for index, original in enumerate(called.get("steps") or []):
         unexpanded(".github/workflows/explain-check.yml job 'explain'", original)
+        isolated(".github/workflows/explain-check.yml job 'explain'", original)
         step = walk(dict(original), lambda text: needed(inputs_of(text, given), check.source))
         name = step.pop("name", None) or f"step {index + 1}"
         steps.append({
@@ -584,7 +611,8 @@ done
 """
 
 HELD = r"""set -euo pipefail
-python3 - <<'PY'
+cd "$RUNNER_TEMP"
+python3 -I - <<'PY'
 import json, os
 said = json.loads(os.environ["VERDICTS"])
 lines = ["| Check | Result |", "|---|---|"]
@@ -701,6 +729,11 @@ def build() -> str:
                 "run": PLAN,
             },
             *here_steps,
+            {
+                "name": "An empty workspace, before the verdict",
+                "if": UNLESS_CANCELLED,
+                "run": EMPTIED,
+            },
             {
                 "name": "Every check held",
                 "if": UNLESS_CANCELLED,

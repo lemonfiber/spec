@@ -69,7 +69,7 @@ jobs:
           if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
              && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
             printf '%s' "$PR_BODY" \
-              | python3 "$scripts/attribution_check.py" "$BASE_SHA" "$HEAD_SHA" --body-on-stdin
+              | python3 -E -s "$scripts/attribution_check.py" "$BASE_SHA" "$HEAD_SHA" --body-on-stdin
           elif [ "$EVENT" = "merge_group" ]; then
             echo "::error::A merge group arrived without a base..head range (base '${BASE_SHA}', head '${HEAD_SHA}'), so the batch was not read. Refusing rather than passing over nothing."
             exit 1

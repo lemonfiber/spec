@@ -133,7 +133,3 @@ jobs:
       # did not, and the gate says so rather than refusing a commit with no
       # analysis; a skipped call would report as `alerts`, not `alerts / alerts`.
       code: ${{ needs.scope.result != 'success' || needs.scope.outputs.code == 'true' }}
-      # The original rather than a copy: this repository is where the gate is
-      # maintained, and a repository that carried a second copy of its own file
-      # would be the first place the two could disagree.
-      gate: shared/gates/no_open_codeql_alert.py

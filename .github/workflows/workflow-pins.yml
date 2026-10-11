@@ -98,4 +98,4 @@ jobs:
           else
             reader=.spec-tooling/scripts/workflow_pins.py
           fi
-          python3 "$reader" .spec-canonical
+          python3 -E -s "$reader" .spec-canonical

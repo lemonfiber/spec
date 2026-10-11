@@ -46,6 +46,54 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      # A tool that reads what to pass over from the tree it checks would take
+      # that list from the pull request it is judging, and one line there
+      # silences it for the change that line came with. So each file that tells
+      # it what to skip is the base branch's: a copy of the pull request's own at
+      # the same path is replaced by the base's, or removed where the base has
+      # none, and a change to one of them judges the pull requests after it
+      # merges. On a push the branch's own copy already is the base's.
+      - name: The files that say what to pass over are the base branch's
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          CONFIGS: .gitleaks.toml .gitleaksignore
+        run: |
+          set -euo pipefail
+          if [ -z "$BASE_SHA" ]; then
+            echo "A push is judged by the files it carries, which are its branch's own."
+            exit 0
+          fi
+          listed="${RUNNER_TEMP}/configurations"
+          said="${RUNNER_TEMP}/configuration-error"
+          for name in $CONFIGS; do
+            { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+            while IFS= read -r -d '' path; do
+              parent=$(dirname -- "$path")
+              if [ -L "$parent" ]; then
+                echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+                exit 1
+              fi
+              if [ ! -d "$parent" ]; then
+                echo "${path}: no directory here holds it, so none is read"
+                continue
+              fi
+              encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+              rm -rf -- "$path"
+              if gh api -H "Accept: application/vnd.github.raw+json" \
+                "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+                echo "${path}: the base branch's copy"
+              elif grep -qF "(HTTP 404)" "$said"; then
+                rm -f -- "$path"
+                echo "${path}: the base branch has none, so none is read"
+              else
+                cat "$said" >&2
+                echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+                exit 1
+              fi
+            done < "$listed"
+          done
       - name: gitleaks (CLI)
         run: |
           set -euo pipefail
@@ -165,6 +213,54 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # A tool that reads what to pass over from the tree it checks would take
+      # that list from the pull request it is judging, and one line there
+      # silences it for the change that line came with. So each file that tells
+      # it what to skip is the base branch's: a copy of the pull request's own at
+      # the same path is replaced by the base's, or removed where the base has
+      # none, and a change to one of them judges the pull requests after it
+      # merges. On a push the branch's own copy already is the base's.
+      - name: The files that say what to pass over are the base branch's
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          CONFIGS: osv-scanner.toml .gitignore
+        run: |
+          set -euo pipefail
+          if [ -z "$BASE_SHA" ]; then
+            echo "A push is judged by the files it carries, which are its branch's own."
+            exit 0
+          fi
+          listed="${RUNNER_TEMP}/configurations"
+          said="${RUNNER_TEMP}/configuration-error"
+          for name in $CONFIGS; do
+            { printf '%s\0' "$name"; git ls-files -z -- ":(glob)**/${name}"; } | sort -zu > "$listed"
+            while IFS= read -r -d '' path; do
+              parent=$(dirname -- "$path")
+              if [ -L "$parent" ]; then
+                echo "::error::${parent} is a link, so ${path} would be read from wherever it points rather than from this tree."
+                exit 1
+              fi
+              if [ ! -d "$parent" ]; then
+                echo "${path}: no directory here holds it, so none is read"
+                continue
+              fi
+              encoded=$(jq -rn --arg path "$path" '$path | split("/") | map(@uri) | join("/")')
+              rm -rf -- "$path"
+              if gh api -H "Accept: application/vnd.github.raw+json" \
+                "repos/${REPO}/contents/${encoded}?ref=${BASE_SHA}" > "$path" 2> "$said"; then
+                echo "${path}: the base branch's copy"
+              elif grep -qF "(HTTP 404)" "$said"; then
+                rm -f -- "$path"
+                echo "${path}: the base branch has none, so none is read"
+              else
+                cat "$said" >&2
+                echo "::error::${path} could not be read at the base branch, so this check cannot say which list of what to pass over judges the change."
+                exit 1
+              fi
+            done < "$listed"
+          done
       - name: OSV-Scanner
         run: |
           set -euo pipefail

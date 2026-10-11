@@ -175,7 +175,7 @@ jobs:
             optional+=(--citation-optional)
           fi
 
-          python3 .spec-tooling/scripts/spec_check.py \
+          python3 -E -s .spec-tooling/scripts/spec_check.py \
             --spec-dir .spec-canonical \
             --text-file .pr-text.txt \
             --diff-file .pr-diff.txt \
@@ -256,10 +256,10 @@ jobs:
       - name: The tracker claims only what the spec and the tree back
         run: |
           set -euo pipefail
-          python3 .spec-tooling/scripts/status_check.py check \
+          python3 -E -s .spec-tooling/scripts/status_check.py check \
             --spec .spec-canonical --repo-root .
           if [ -f IMPLEMENTATION-STATUS.md ]; then
-            python3 .spec-tooling/scripts/status_lint.py \
+            python3 -E -s .spec-tooling/scripts/status_lint.py \
               --status IMPLEMENTATION-STATUS.md \
               --spec .spec-canonical
           fi
