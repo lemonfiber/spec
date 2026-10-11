@@ -452,8 +452,10 @@ Three notifiers carry it between the repos that pin each other. `lemonfiber` tel
 each SDK when the contract artefact it vendors has moved, and fails when an SDK
 could not be told (`contract-moved.yml`). `sdk-ts` tells `lemonfiber-web` on every
 push to its own main (`sdk-moved.yml`). Each consuming repo compares what it holds
-against what the repository it pins serves, and names what it has not taken —
-`contract-drift.yml` in both SDKs, `sdk-drift.yml` in the console.
+against what the repository it pins serves, and names what it has not taken,
+through the one comparison spec's `upstream-drift.yml` defines, with a reader for
+each way a commit is taken: `composer.lock`, `package.json`, or a committed copy
+and the file recording its commit.
 
 The two that dispatch fail rather than report success when they cannot reach the
 repository they are telling. A notifier that cannot notify, quietly, leaves the

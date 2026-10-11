@@ -1,10 +1,30 @@
 # New issues: label needs-triage, assign the covering maintainer from the
 # generated CODEOWNERS, and post to the private maintainer channel.
 # OPS-R25, OPS-R27.
+#
+# Spec runs it on its own issues, and every other repository calls it from a
+# workflow that declares the trigger, which a reusable cannot declare for it:
+#
+#   on:
+#     issues:
+#       types: [opened, reopened]
+#   jobs:
+#     triage:
+#       permissions:
+#         contents: read
+#         issues: write
+#       uses: lemonfiber/spec/.github/workflows/triage.yml@<sha> # vX.Y.Z
+#       secrets:
+#         DISCORD_MAINTAINERS_WEBHOOK: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}
 name: triage
 on:
   issues:
     types: [opened, reopened]
+  workflow_call:
+    secrets:
+      DISCORD_MAINTAINERS_WEBHOOK:
+        description: "The private maintainer channel's webhook. Without it the post is skipped."
+        required: false
 permissions:
   contents: read
 jobs:
