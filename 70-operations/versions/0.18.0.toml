@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 511 goals, seeded from the roadmap milestone this version serves;
+# 512 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -837,7 +837,14 @@ goals   = [
     "ARCH-R271",
     "ARCH-R272",
     "ARCH-R273",
+    "ARCH-R274",
 ]
+
+# `ARCH-R274` writes every instant the web API carries as one integer, whole seconds since
+# the Unix epoch, in bodies, events and the links the core builds, so the companion and
+# every SDK read one form. It ships with this version because keys, claims, sessions and
+# the record are on the wire here. Added after staging by the maintainer's decision of
+# 2026-10-11 (OPS-R31).
 
 # `ARCH-R263` to `ARCH-R273` give every bundled part its repository before its adapter
 # (ADR-0045): the stack the core ships is assembled from the bundle at `schema = 2`, which

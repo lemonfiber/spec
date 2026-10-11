@@ -41,6 +41,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [contracts/web-api.md](contracts/web-api.md) | What the web surface may ask for, how live state arrives, what guards it |
 | [contracts/web-api-artefact.md](contracts/web-api-artefact.md) | **The web API artefact** — the generated contract, the refusals it lists, and how it reaches an SDK |
 | [contracts/web-api-getting-in.md](contracts/web-api-getting-in.md) | **Getting in to the web API** — the per-run token, sessions, integration keys and the limit wrong answers meet |
+| [contracts/web-api-wire.md](contracts/web-api-wire.md) | **The web API on the wire** — the token's header, the address, the heartbeat, resumption, a job's outcome, an action sent again, the payload's type and how an instant is written |
 | [contracts/design-tokens.md](contracts/design-tokens.md) | The `brand` → `lemonfiber-web` interface — the visual language as data the app consumes |
 
 ## The `ARCH-R` namespace
