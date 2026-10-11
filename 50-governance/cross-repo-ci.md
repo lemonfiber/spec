@@ -475,9 +475,14 @@ for each number rather than opened beside the last (**OPS-R85**).
 
 It hangs off `publish-pin-tag` rather than off the merge, because the comment
 beside a pin carries the tag and the tag is what Dependabot compares: a fan-out
-firing on the merge would have no number to write. It rewrites through
-`workflow_pins.py`'s own reader, so it cannot bump a pin the gate would not have
-named nor leave one it would. And it visits the repositories `30-repos/repos.toml`
+firing on the merge would have no number to write. It reads pins through
+`workflow_pins.py`'s own reader, so it cannot leave behind a pin the gate would
+name. A repository is bumped once any of its pins is due — its workflow or
+scripts moved, or it is past half of either limit the pin check holds it to — and
+then every spec pin in it moves to the tag. A pin moved only once the check
+refuses it is moved after every pull request in its repository has failed on it,
+and a pin left behind because none of its own files changed ages into that
+refusal on a day no tag names its file. And it visits the repositories `30-repos/repos.toml`
 lists rather than a second copy of that list, the map's and the ungoverned ones
 alike, since a plugin repository outside the map pins the shared workflows as
 much as one inside it. So the day somebody adds a fourteenth repository is not
