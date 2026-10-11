@@ -521,6 +521,24 @@ class Gate(unittest.TestCase):
         self.assertNotAnnounced(code, out)
         self.assertIn("already approved", out)
 
+    def test_an_approval_a_fork_s_review_could_not_clear_is_cleared_here(self):
+        code, out = self.run_step(approved="1", labels=[LABEL, "size/s"])
+        self.assertNotAnnounced(code, out)
+        self.assertIn(f"pr edit 41 --remove-label {LABEL}", self.asked())
+        self.assertIn(f"took {LABEL} down", out)
+
+    def test_an_approved_pull_request_without_the_label_is_left_alone(self):
+        code, out = self.run_step(approved="1", labels=["size/s"])
+        self.assertNotAnnounced(code, out)
+        self.assertNotIn("--remove-label", self.asked())
+
+    def test_a_review_whose_token_cannot_write_says_so(self):
+        code, out = self.run_step(event="pull_request_review", review_state="approved",
+                                  pr_number="41", edit_rc=1)
+        self.assertEqual(code, 0, out)
+        self.assertIn(f"pr edit 41 --remove-label {LABEL}", self.asked())
+        self.assertIn(f"{LABEL} stays until a run that can", out)
+
     def test_a_commit_on_no_pull_request_is_never_flagged(self):
         code, out = self.run_step(pr="")
         self.assertNotAnnounced(code, out)

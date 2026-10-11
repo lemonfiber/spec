@@ -1,5 +1,7 @@
 # A PR that passes every required check with no review, from a non-maintainer, is
 # flagged for a maintainer; the flag clears when a review lands or the PR closes.
+# A fork's pull request hands the review event a token that cannot write, so
+# there an approval clears it on the next finished workflow instead.
 # Repos call it; the spec repo self-triggers. OPS-R26, OPS-R27.
 #
 # What this used to ask was whether one workflow called `ci` had concluded
@@ -130,7 +132,11 @@ jobs:
           if [ "$EVENT" = "pull_request_review" ]; then
             case "$REVIEW_STATE" in
             approved | changes_requested)
-              gh pr edit "$PR_NUMBER" --remove-label "$LABEL" 2>/dev/null || true
+              # A fork's pull request hands this event a token that cannot
+              # write. An approval is taken down by the next workflow_run, and
+              # changes asked for leave the label until the next push.
+              gh pr edit "$PR_NUMBER" --remove-label "$LABEL" 2>/dev/null \
+                || echo "::notice::This token cannot edit #${PR_NUMBER}'s labels, as on a fork's pull request; ${LABEL} stays until a run that can."
               ;;
             esac
             exit 0
@@ -161,6 +167,16 @@ jobs:
           approved=$(gh api "repos/${GH_REPO}/pulls/${pr}/reviews" \
             --jq '[.[] | select(.state=="APPROVED")] | length' 2>/dev/null || echo 0)
           if [ "${approved:-0}" -gt 0 ]; then
+            # The review event of a fork's pull request holds a token that
+            # cannot write, so an approval there leaves the label up; this run
+            # holds one that can, and takes it down.
+            still_flagged="$(gh api "repos/${GH_REPO}/pulls/${pr}" --jq '.labels[].name' 2>/dev/null \
+              | grep -Fx "$LABEL" || true)"
+            if [ -n "$still_flagged" ]; then
+              gh pr edit "$pr" --remove-label "$LABEL"
+              echo "#${pr} is approved; took ${LABEL} down."
+              exit 0
+            fi
             echo "#${pr} is already approved."
             exit 0
           fi
