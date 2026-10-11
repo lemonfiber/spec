@@ -100,9 +100,11 @@ hand, and that list already misses one.
      written so that Compose substitutes nothing in it. A secret is written to a file of
      the service's own, readable by its owner alone, never into the project, and every
      rehearsal and diagnostic shows its name and never its value.
-   - A mount's source is inside the service's own directory, or is the single data
-     mount, and a service's state lives under that directory. There are no volumes the
-     engine keeps for a service; the move copies the proxy's two into its directory once.
+   - A mount's source is inside the service's own mount tree, a directory apart from its
+     configuration directory that no container sees except through its own mounts, and
+     no source lies inside another; or it is the single data mount. A service's state
+     lives under its configuration directory and its mount tree. There are no volumes the
+     engine keeps for a service; the move copies the proxy's two into its mount tree once.
      Scratch space in memory reaches nothing of the host.
    - A device, a group or an added kernel capability comes only from a named shape:
      `egress-guard`, and `render` for hardware transcoding, which only a service serving
@@ -162,6 +164,7 @@ hand, and that list already misses one.
 | **Networks declared by the bundle or by a manifest** | A named network is reach a reviewer judges manifest by manifest. A substitute would have to name the networks of the part it replaces, which is naming that part. Derived from asks, reach follows from what the wiring already says. |
 | **A shared default network, with some services held off it** | Two links the stack relies on, the indexer manager to the bot-protection solver and the book curator to the download clients, worked over it and were never written down. A default network is reach nobody asked for, and the rule for who is held off it had to be invented case by case. |
 | **An ask reaches the upstream by default** | The core speaks contracts, and an upstream reached directly is a product's own API on the wiring. Opting in with `native` keeps that visible where it happens. |
+| **Mount sources inside the configuration directory** | The container writes that directory, so it could replace a source with a link, and the engine follows the link whenever it mounts, including when it restarts the container after a boot with nothing of lemonfiber's running first. A check before each start cannot cover that. |
 | **Volumes the engine keeps for a service** | State outside the service's directory is missed by a backup, by a move and by the question of what a service reaches. The proxy's two are copied once. |
 | **A script mounted into the egress guard to push the port** | A host file inside the one container whose failure exposes the home address, holding the client's credentials. Through the core, guard and client stay substitutable. |
 | **Credentials as constants or settings in the project** | The project is read, diffed and shown in rehearsals. A secret in a file of its own, readable by its owner alone, is in none of them. |
