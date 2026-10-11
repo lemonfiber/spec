@@ -501,11 +501,9 @@ class PrereleaseRecordTests(Workspace):
     """A pre-release is recorded without moving anything — OPS-R60, OPS-R61, OPS-R65."""
 
     def record(self, version="0.1.0", tag="v0.1.0-pre.1", when="2026-09-15",
-               status="staged", unmet=("B1-R4",), pins=()):
+               status="staged", pins=()):
         argv = ["--version", version, "--status", status,
                 "--prerelease", tag, "--prerelease-on", when]
-        for goal in unmet:
-            argv += ["--unmet", goal]
         for pin in pins:
             argv += ["--pin", pin]
         return run_main(set_status, argv)
@@ -518,14 +516,14 @@ class PrereleaseRecordTests(Workspace):
         self.assertEqual(read["status"], "staged")
         self.assertNotIn("released_on", read)
         self.assertEqual(read["prerelease"][0]["tag"], "v0.1.0-pre.1")
-        self.assertEqual(read["prerelease"][0]["unmet"], ["B1-R4"])
+        self.assertEqual(read["prerelease"][0]["unmet"], [])
         self.assertEqual(read["prerelease"][0]["pins"]["lemonfiber-media-stack"], "abc")
 
     def test_a_second_record_joins_the_first_rather_than_replacing_it(self):
         self.manifest("0.1.0")
         _, first = self.record()
         pathlib.Path("70-operations/versions/0.1.0.toml").write_text(first, encoding="utf-8")
-        code, out = self.record(tag="v0.1.0-pre.2", unmet=())
+        code, out = self.record(tag="v0.1.0-pre.2")
         self.assertEqual(code, 0, out)
         self.assertEqual([r["tag"] for r in tomllib.loads(out)["prerelease"]],
                          ["v0.1.0-pre.1", "v0.1.0-pre.2"])
@@ -572,14 +570,20 @@ class PrereleaseRecordTests(Workspace):
         self.manifest("0.1.0", status="planned")
         self.assertEqual(self.record(status="planned")[0], 1)
 
-    def test_the_three_halves_of_the_record_are_required_together(self):
+    def test_the_two_halves_of_the_record_are_required_together(self):
         self.manifest("0.1.0")
         self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "staged",
                                                "--prerelease", "v0.1.0-pre.1"])[0], 1)
         self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "staged",
                                                "--prerelease-on", "2026-09-15"])[0], 1)
-        self.assertEqual(run_main(set_status, ["--version", "0.1.0", "--status", "staged",
-                                               "--unmet", "B1-R4"])[0], 1)
+
+    def test_a_goal_cannot_be_recorded_unmet(self):
+        """A pre-release with an unmet goal is refused (OPS-R66), so there is nothing to record."""
+        self.manifest("0.1.0")
+        code, _ = run_main(set_status, ["--version", "0.1.0", "--status", "staged",
+                                        "--prerelease", "v0.1.0-pre.1", "--prerelease-on", "2026-09-15",
+                                        "--unmet", "B1-R4"])
+        self.assertEqual(code, 2)
 
     def test_a_date_that_cannot_mean_anything_is_refused(self):
         self.manifest("0.1.0")
@@ -587,7 +591,7 @@ class PrereleaseRecordTests(Workspace):
 
     def test_a_record_with_no_pins_says_so_rather_than_being_malformed(self):
         self.manifest("0.1.0")
-        code, out = self.record(unmet=())
+        code, out = self.record()
         self.assertEqual(code, 0, out)
         read = tomllib.loads(out)
         self.assertEqual(read["prerelease"][0]["pins"], {})

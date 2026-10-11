@@ -95,8 +95,8 @@ The fast lane still runs the gate: even a one-shot release *proves* its claimed
 goals shipped. Only the staging period is skipped.
 
 A **pre-release** is none of these. It is not a way of reaching the release tag;
-it is a way of shipping artefacts from a version that has not reached it — see
-[going out before it is releasable](#going-out-before-it-is-releasable).
+it is a way of shipping a version's artefacts before that tag, held to the same
+gate — see [going out before it is released](#going-out-before-it-is-released).
 
 ## Locking goals
 
@@ -271,26 +271,23 @@ The hotfix lane is still exempt, and for the reason it always was: a patch to an
 already-released version delivers no goals of its own, so there is no goal set to
 prove. `OPS-R37`'s cited fix and maintainer authorisation stand in its place.
 
-## Going out before it is releasable
+## Going out before it is released
 
-A version can be finished everywhere except in one place nobody on a runner can
-reach. `0.15.0` is there: every stack service but two is started and made to
-answer on every change, and the two that are not need a real VPN provider and
-key, so `F1-R1` closes on one hand-run on the owner's own hardware and on
-nothing a workflow can arrange. Waiting is not free — the binary that
-would do the hand-run is the binary nobody can install, because installing it is
-what the release produces.
+A **pre-release** is a version's artefacts, built by the same pipeline from the same
+commit on the trunk and carrying the same provenance, cut before the version's own
+tag. It is how an image lemonfiber builds reaches the stack before its version
+releases ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)
+§4), and how the maintainers install the exact build the release is cut from.
 
-So a version may go out as a **pre-release**: the artefacts, built by the same
-pipeline, from the same commit on the trunk, carrying the same provenance — and
-carrying, on the artefact itself, the gate's verdict including every goal that
-is not met.
+**It is cut only when every goal is met.** The goal gate and the no-stub gate run at
+the commit being tagged and refuse it exactly as they refuse an execute (`OPS-R66`,
+`OPS-R70`). A version with a goal open does not go out, as a pre-release or
+otherwise.
 
-**A pre-release relaxes the goal gate and the bundle pin, and nothing else.**
-Cross-stream compatibility is checked exactly as `OPS-R35` requires before a tag;
-release blockers stop it exactly as they stop an execute; what a plugin must
-satisfy to ride the train it satisfies here too. The one thing it does
-differently is the one thing it exists for. The bundle pin follows from it: a
+**A pre-release passes every check a release passes, and differs only in the bundle
+pin.** Cross-stream compatibility is checked exactly as `OPS-R35` requires before a
+tag; release blockers stop it exactly as they stop an execute; what a plugin must
+satisfy to ride the train it satisfies here too. The bundle pin differs because a
 first-party plugin is built and proved against the core's pre-release, then tagged
 at the version itself by the release's first step, pinned in the bundle and
 embedded before the core's release tag. So a pre-release tags no first-party
@@ -304,7 +301,7 @@ Three places say so, and none of them relies on a reader noticing a convention.
 | Where | What says it |
 |-------|--------------|
 | The tag | `v0.15.0-pre.1`, not `v0.15.0`. A semver pre-release identifier orders *below* the version, so nothing that compares tags can rank it above the release it precedes — and the release's own tag is still free to be cut later. |
-| The published release | Its title is the tag, and its body **opens with the verdict**: which goals are unmet, by name. |
+| The published release | Its title is the tag, and its body **opens by saying it is not the release**, with the gate's verdict that every goal was met when it was cut. |
 | The manifest | A `[[prerelease]]` record, beside a `status` that has not moved. The version is still `staged`, because it is. |
 
 **The forge's own pre-release flag is not the signal, and cannot be.** `cargo-dist`
@@ -338,9 +335,9 @@ not one.
 
 The version's own `status` does not move: a pre-release is not a lifecycle
 transition, and `OPS-R32`'s chain is untouched. What is added is a record per
-pre-release — the tag, the day it was cut, the goals unmet at that moment, and
-the submodule pins it embedded — so the file answers *what went out before the
-release* the same way it already answers what the release shipped.
+pre-release — the tag, the day it was cut and the submodule pins it embedded — so
+the file answers *what went out before the release* the same way it already answers
+what the release shipped.
 
 The pins are enumerated from the tag's own `.gitmodules`, not named in the lane.
 That is the expensive lesson `release-finalize` already learned: it spelled out
@@ -353,11 +350,6 @@ published artefact reads it from here, so a tag cut while the record is still in
 review would produce a build that cannot carry its verdict and fails for a reason
 that has nothing to do with the build. The wait is bounded and its expiry is a
 refusal rather than a shrug: nothing has been tagged, so nothing has to be undone.
-
-The unmet goals are recorded rather than derived later, and that is the point of
-recording them. The gate's verdict changes as work lands; what a particular
-artefact went out knowing is a fact about that artefact, and a reader asking why
-a pre-release exists is asking exactly that.
 
 ## Plugins ride the train pinned, and block it when they stop validating
 
@@ -732,17 +724,17 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R76** | A report MUST say, for every goal of every version, released ones included, whether it is met, cited and recorded done nowhere, recorded done and cited nowhere, claimed by an open pull request, or open, read from the same sources and revisions as the release gate. It MUST be published where a person and a script can read it without a checkout, refreshed at least hourly, and the same report MUST be producible locally from checkouts at their default branch rather than their working trees. Its machine-readable form MUST name its format and the commit of every source it was read from, each generation MUST stay fetchable once published, and publishing it MUST NOT commit to the specification. A repository it cannot read MUST be named in it with the reason, and a goal searched there that the repositories it could read do not show met MUST be reported unknown, rather than the report stopping. |
 | **OPS-R78** | A feature's `maturity` MUST be derived from every repository's tracker and every version manifest — `planned` where no requirement it defines is done, `building` where some are, `built` where all are, and `shipped`, with `shipped:` naming the latest released version locking one, where all are done and every one is locked by a released version — retired requirements left out, and `withdrawn` alone set by hand. A check MUST refuse a catalogue that says otherwise, naming each feature, and an automated pull request MUST rewrite it whenever the trackers move one. |
 | **OPS-R57** | A manifest whose `status` is `released` MUST carry `released_on`, the UTC date its release was published, as `YYYY-MM-DD`. The transition to `released` MUST write it from the publication the transition responds to; it MUST NOT be entered by hand, and no earlier status may carry it. |
-| **OPS-R60** | A version MAY be published as a pre-release before it is releasable. A pre-release MUST NOT move the version's `status`, MUST NOT write `released_on` or `released_as`, and MUST NOT be recorded as the release; the manifest MUST go on answering where the version is. |
+| **OPS-R60** | A version MAY be published as a pre-release before it is released, once every goal it locks is met (`OPS-R66`). A pre-release MUST NOT move the version's `status`, MUST NOT write `released_on` or `released_as`, and MUST NOT be recorded as the release; the manifest MUST go on answering where the version is. |
 | **OPS-R61** | A pre-release MUST be identifiable as one in its tag, in what the release it publishes says, and in the manifest record, and MUST NOT carry the version's own tag. Its tag MUST be that version with a pre-release identifier appended, so it orders below the version it precedes; the identifier MUST NOT be one `ARCH-R43` gives another meaning to. The distinction MUST NOT rest on the forge's own pre-release flag, which every version below `1.0.0` carries and which therefore separates nothing. |
-| **OPS-R62** | A pre-release MUST carry the goal gate's verdict for its version on the artefact it publishes, naming every unmet goal. One whose artefact does not carry the verdict MUST NOT be published, and one that reports itself releasable while a goal is unmet MUST be refused. |
+| **OPS-R62** | A pre-release MUST carry the goal gate's verdict for its version on the artefact it publishes. One whose artefact does not carry the verdict MUST NOT be published, and one whose verdict names an unmet goal MUST be refused before anything is recorded or tagged. |
 | **OPS-R63** | A pre-release MUST NOT be announced outside the organisation — `OPS-R23`'s subject is a published release and a pre-release is not one — and the announcing path MUST refuse on the pre-release itself rather than depend on being unconfigured. It MUST announce to the maintainer channel instead. |
 | **OPS-R64** | A pre-release MUST NOT be offered as an available update, and a reader that cannot order a tag MUST pass over it rather than rank it. |
-| **OPS-R65** | Every pre-release MUST be recorded in its version's manifest with its tag, the date it was cut, the goals unmet when it was cut, and the submodule pins it embedded, so the manifest answers what went out before the release without reading the forge. |
-| **OPS-R66** | A pre-release MUST pass every check `execute-version` runs before tagging apart from the goal gate and the bundle pin — cross-stream compatibility, release blockers, the declared version, and the plugin gate — and MUST record its pins the way `OPS-R35` requires of a release. A pre-release relaxes the goal gate and the bundle pin (`OPS-R86`), and nothing else. |
+| **OPS-R65** | Every pre-release MUST be recorded in its version's manifest with its tag, the date it was cut and the submodule pins it embedded, so the manifest answers what went out before the release without reading the forge. |
+| **OPS-R66** | A pre-release MUST pass every check `execute-version` runs before tagging — the goal gate and the no-stub gate at the commit being tagged, cross-stream compatibility, release blockers, the declared version and the plugin gate — and MUST be refused, with nothing recorded or tagged, where any of them fails; it MUST record its pins the way `OPS-R35` requires of a release. Only the bundle pin differs (`OPS-R86`). |
 | **OPS-R67** | Every plugin the release train gates on MUST be registered under `70-operations/` with the repository holding it and the paths of the files the gate reads. The manifest generation a plugin is written in and the release it is validated against MUST be declared by the plugin itself and MUST NOT be restated in the registry. A registered plugin MUST NOT be a stream the train cuts and MUST NOT be named by any version manifest; it is an input to the gate and MUST NOT be tagged by it. |
 | **OPS-R68** | Every run that would cut a tag MUST build the candidate binary from the core commit it cuts and MUST prove every registered plugin riding that version itself, running that plugin's own proofs with the candidate in the gate's own checkout of the plugin through the reader the registry pins to a commit of the plugin template, and MUST validate each against the manifest generation the release carries. It MUST refuse the run where one no longer validates, naming the plugin and what failed, and MUST tag the core at the commit the candidate was built from. The report a plugin commits is its record against the release it targets and MUST NOT be required to name the version being cut. The run MUST NOT execute code from a registered plugin's repository. |
 | **OPS-R69** | *Superseded by [OPS-R72](staging.md): a proof failing as declared is named and does not fail the run. The number is not reused.* |
-| **OPS-R70** | Every lane that cuts a release tag MUST run the goal gate against the commit being tagged and MUST refuse unless every goal that version locks is satisfied, naming the unmet ones. A verdict taken at any other commit MUST NOT stand in for it, and a lane that cannot run the gate MUST refuse rather than tag — a gate that does not run MUST NOT read as one that passed. `execute-version` is one such lane and MUST NOT be the only one gated. A hotfix to an already-released version is exempt, because it delivers no goals of its own (`OPS-R37`). |
+| **OPS-R70** | Every lane that cuts a release tag or a pre-release tag MUST run the goal gate against the commit being tagged and MUST refuse unless every goal that version locks is satisfied, naming the unmet ones. A verdict taken at any other commit MUST NOT stand in for it, and a lane that cannot run the gate MUST refuse rather than tag — a gate that does not run MUST NOT read as one that passed. `execute-version` is one such lane and MUST NOT be the only one gated. A hotfix to an already-released version is exempt, because it delivers no goals of its own (`OPS-R37`). |
 | **OPS-R72** | A registered plugin the gate cannot reach, that cannot say which release it targets, whose manifest is absent or unreadable, whose proofs do not run with the candidate or write no readable report naming the version being cut, or whose report names no proof or names one that is neither passed nor failing as declared ([`F10-R13`](../10-functional/features/f-extensibility/f10-authoring.md)), MUST fail the run by name. A proof failing as declared MUST be named in what the gate reports and MUST NOT be counted as passed. The gate MUST NOT pass over what it could not read, and MUST NOT report success about the part it could. |
 | **OPS-R88** | A registered plugin's `targets.toml` MAY name a commit of the core's `main`, in full, in place of a release. The gate MUST hold a plugin naming a commit to ride every version it cuts and MUST prove it with the candidate as it proves every other, and MUST fail by name a `targets.toml` naming both a release and a commit, or a commit not in full. |
 | **OPS-R58** | A manifest MUST say where the work satisfying its goals landed, and the goal gate MUST search exactly those repositories. Where a manifest does not say, the streams it cuts are what is searched. A repository named there MUST NOT be tagged for being named: what a version *cuts* and where its goals were *satisfied* are separate lists, and a goal satisfied in a repository the gate does not search MUST be reported unmet rather than passed over. |
