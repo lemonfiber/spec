@@ -13,7 +13,7 @@
 #   targets.toml  `lemonfiber`     — the release it is validated and proved against,
 #                 or `commit`      — the commit of the core's `main` it is proved
 #                                    against before a release carries what it
-#                                    needs (OPS-R88)
+#                                    needs
 #
 # and the gate runs the plugin's proofs itself, with the candidate build of the
 # core commit the run is about to tag, through the reader pinned below:

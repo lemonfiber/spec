@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Every registered plugin still validates against the version going out — OPS-R68, OPS-R72, OPS-R88.
+"""Every registered plugin still validates against the version going out — OPS-R68, OPS-R72.
 
 A plugin rides the train version-pinned. It declares the manifest generation it is
 written in, the registry declares where to look, and every run that would cut a tag

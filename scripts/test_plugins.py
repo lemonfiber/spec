@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Coverage tests for the plugin gate — OPS-R67, OPS-R68, OPS-R72, OPS-R88, Q-R66.
+"""Coverage tests for the plugin gate — OPS-R67, OPS-R68, OPS-R72, Q-R66.
 
 A gate is worth what it refuses, so most of what follows is a refusal: a registry
 that is missing, unreadable or declares nothing; an entry missing a field; a
