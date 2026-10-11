@@ -38,7 +38,7 @@
       "requires": [],
       "relates": ["A1", "A3", "A4", "G1", "G4"],
       "versions": [
-        {"version": "0.18.0", "status": "planned"},
+        {"version": "0.18.0", "status": "staged"},
         {"version": "0.2.0", "status": "released"}
       ],
       "path": "a-getting-started/a2-setup-wizard.md"
@@ -81,7 +81,7 @@
       "relates": ["A2", "A5", "C5", "C9", "E4"],
       "versions": [
         {"version": "0.13.0", "status": "released"},
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "a-getting-started/a4-reconfiguration.md"
     },
@@ -102,7 +102,7 @@
       "relates": ["A2", "A4", "C5", "E3", "F1"],
       "versions": [
         {"version": "0.13.0", "status": "released"},
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "a-getting-started/a5-migration.md"
     },
@@ -143,7 +143,7 @@
       "relates": ["A3", "A6", "C4", "D1", "G8"],
       "versions": [
         {"version": "0.13.0", "status": "released"},
-        {"version": "0.18.0", "status": "planned"}
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "a-getting-started/a7-credential-management.md"
     }
