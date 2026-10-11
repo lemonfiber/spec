@@ -1,5 +1,5 @@
-"""`first-party-plugin.yml`'s own steps: what counts as a change the verdict reads, and
-the reader taken into a plugin that carries none."""
+"""`first-party-plugin.yml`'s own steps: what counts as a change the verdict reads, the
+reader taken into a plugin that carries none, and the record the run writes."""
 
 from __future__ import annotations
 
@@ -108,6 +108,45 @@ class TheReader(unittest.TestCase):
         done = self.take()
         self.assertEqual(done.returncode, 1)
         self.assertIn("carries no Python of its own", done.stdout)
+
+
+class TheRecord(unittest.TestCase):
+    """The committed `proofs.json` is the one the run writes, and an uncommitted one is refused."""
+
+    def setUp(self):
+        self.root = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, True)
+        subprocess.run(["git", "init", "--quiet", "--initial-branch=main"], cwd=self.root, check=True)
+        reader = self.root / ".github" / "reader"
+        reader.mkdir(parents=True)
+        (reader / "reader.py").write_text(
+            "import pathlib\npathlib.Path('proofs.json').write_text('{\"proofs\": []}\\n')\n", encoding="utf-8"
+        )
+
+    def proved(self) -> subprocess.CompletedProcess:
+        script = step("plugin", "Every claim, proof and contributed check, against its recording")
+        env = {"PATH": os.environ["PATH"]}
+        return subprocess.run(["bash", "-e", "-c", script], cwd=self.root, env=env, capture_output=True, text=True)
+
+    def committed(self, content: str) -> None:
+        (self.root / "proofs.json").write_text(content, encoding="utf-8")
+        subprocess.run(["git", "add", "proofs.json"], cwd=self.root, check=True)
+        subprocess.run([*GIT, "commit", "--quiet", "-m", "p"], cwd=self.root, check=True)
+
+    def test_an_uncommitted_record_is_refused(self):
+        done = self.proved()
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("proofs.json is not committed", done.stdout)
+
+    def test_the_record_the_run_writes_passes(self):
+        self.committed('{"proofs": []}\n')
+        self.assertEqual(self.proved().returncode, 0)
+
+    def test_a_record_the_run_does_not_write_is_refused(self):
+        self.committed('{"proofs": ["stale"]}\n')
+        done = self.proved()
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("is not what this run writes", done.stdout)
 
 
 if __name__ == "__main__":

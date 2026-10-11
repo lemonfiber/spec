@@ -111,6 +111,10 @@ jobs:
         if: ${{ success() || failure() }}
         run: |
           python3 .github/reader/reader.py proofs
+          if ! git ls-files --error-unmatch proofs.json >/dev/null 2>&1; then
+            echo "::error::proofs.json is not committed. It is the record the release train reads: commit what the reader writes (F3-R5)."
+            exit 1
+          fi
           if git diff --exit-code -- proofs.json; then exit 0; fi
           echo "::error::proofs.json is not what this run writes. It is the record the release train reads, so it is generated and committed with the manifest it is about: commit what the reader writes (F3-R5)."
           exit 1
