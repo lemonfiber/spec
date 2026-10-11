@@ -546,7 +546,7 @@ refused, because a setting is how the machine is run and the household never see
 
 **The core's own settings are a closed list, and this is it.** Beside the settings a
 service's environment reads, the settings store holds the ones the core itself reads,
-whose it is being the core's:
+each read back as the core's:
 
 | Core setting | What it holds |
 |--------------|---------------|
@@ -824,7 +824,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R261** | `POST /api/keys` MUST accept `device`, `challenge` and `signature` in place of `password`, the signature being ECDSA P-256 over SHA-256 of the line-feed-ended UTF-8 lines `lemonfiber-mint/1`, the challenge, the name, the scope, the purpose and `claim` or `key`, in base64url; the artefact MUST publish that form, and the refusals of `C10-R25` MUST each carry a code of its own listed among the artefact's refusals. |
 | **ARCH-R262** | The identities of the operator's own builds MUST be the core setting `LEMONFIBER_DEVICE_KEY_APPS`, read by `GET /api/settings` and written by `settings-set` and `settings-clear` as every setting is: a comma-separated list of `android:<package>@<SHA-256 of the signing certificate, in hex>` and `ios:<Team ID>.<bundle ID>`. A value naming an identity in neither form MUST be refused, naming it; the official identities the build ships MUST be read alongside and MUST NOT be part of the value (`C10-R30`). |
 | **ARCH-R274** | Every instant the web API reads or writes, in a request, a response, an event or a link the core builds, MUST be a whole number of seconds since the Unix epoch: a JSON integer in a body, and its decimal digits in a link's query. It MUST NOT be written as a string, with a fraction, or with a zone or an offset; a command's `--json` output MUST write instants alike; and a stamp lemonfiber passes on verbatim from a service's own output MUST NOT be presented as one of its instants. |
-| **ARCH-R278** | A core setting MUST be one the list under [Settings](#settings) names, `LEMONFIBER_DEVICE_KEY_APPS` alone; `lemonfiber settings` and the settings writes MUST take a core setting and no other `LEMONFIBER_*` key, and `lemonfiber config` MUST take every other `LEMONFIBER_*` key and no core setting; a name either command takes, given to the other, MUST be refused naming the command and the name that take it. |
+| **ARCH-R278** | A core setting MUST be one the list under [Settings](#settings) names; `lemonfiber settings` and the settings writes MUST take a core setting and no other `LEMONFIBER_*` key, and `lemonfiber config` MUST take every other `LEMONFIBER_*` key and no core setting; a name either command takes, given to the other, MUST be refused naming the command and the name that take it. |
 
 ## The artefact
 
