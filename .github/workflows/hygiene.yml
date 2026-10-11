@@ -24,9 +24,18 @@ permissions:
   contents: read
 
 jobs:
+  # The CLI rather than an action that fetches `latest`: pinned by version and
+  # run only once its bytes are the ones the release published, so a new
+  # actionlint reaches every repository when the version below moves, not the
+  # day it is cut. The watch after it says when that version falls behind.
   actionlint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      ACTIONLINT_VERSION: "1.7.12"
+      # The SHA-256 of that release's linux_amd64 tarball, from its
+      # actionlint_<version>_checksums.txt. Raise it with the version.
+      ACTIONLINT_SHA256: "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -80,7 +89,73 @@ jobs:
             done < "$listed"
           done
       - name: actionlint
-        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+        env:
+          # Each finding as an annotation on the line it is about.
+          FINDING: '{{range $err := .}}::error file={{$err.Filepath}},line={{$err.Line}},col={{$err.Column}}::{{$err.Message}}\n{{end}}'
+        run: |
+          set -euo pipefail
+          url="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          archive="${RUNNER_TEMP}/actionlint.tar.gz"
+          curl -sSfL --proto '=https' --tlsv1.2 \
+            --retry 3 --retry-delay 2 --retry-all-errors \
+            -o "$archive" "$url"
+          sha256sum --check --strict <<<"${ACTIONLINT_SHA256}  ${archive}"
+          tar xzf "$archive" -C "$RUNNER_TEMP" actionlint
+          rm -f "$archive"
+          "${RUNNER_TEMP}/actionlint" -format "$FINDING"
+      - name: The pinned actionlint is not far behind the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEHIND_DAYS: "30"
+          TOOL: actionlint
+          RELEASES: rhysd/actionlint
+          KNOB: ACTIONLINT_VERSION
+          HOME_FILE: .github/workflows/hygiene.yml
+        run: |
+          set -euo pipefail
+
+          # One watch, run after each scanner this workflow fetches by hand.
+          # TOOL names it, RELEASES is where it publishes, and KNOB names the
+          # variable above that holds the version it ran.
+          version="${!KNOB}"
+
+          # `gh` prints its own error body on stdout, so a failed call arrives
+          # here looking like an answer. Only a release tag with a date is
+          # believed. Three attempts, because this reddens a security gate in
+          # every repository and one blocked API call is not staleness.
+          tag=""
+          dated=""
+          for attempt in 1 2 3; do
+            answer=$(gh api "repos/${RELEASES}/releases/latest" \
+              --jq '"\(.tag_name) \(.published_at)"' 2>/dev/null || true)
+            tag=$(echo "$answer" | cut -d" " -f1)
+            dated=$(echo "$answer" | cut -d" " -f2)
+            if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
+              [[ "$dated" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T ]]; then
+              break
+            fi
+            tag=""
+            if [ "$attempt" -lt 3 ]; then
+              sleep "$((attempt * 5))"
+            fi
+          done
+
+          if [ -z "$tag" ]; then
+            echo "::error::Could not read the latest ${TOOL} release in three attempts, so this run does not know whether it scanned with a current scanner."
+            exit 1
+          fi
+
+          if [ "$tag" = "v${version}" ]; then
+            echo "${TOOL} ${version} is the current release."
+            exit 0
+          fi
+
+          age=$(( ( $(date -u +%s) - $(date -u -d "$dated" +%s) ) / 86400 ))
+          if [ "$age" -gt "$BEHIND_DAYS" ]; then
+            echo "::error::This scanned with ${TOOL} ${version}; ${tag} has been out ${age} days. Raise ${KNOB} in lemonfiber/spec ${HOME_FILE} — what ${TOOL} has learnt since ${version} is not being applied to any repository."
+            exit 1
+          fi
+          echo "::notice::${TOOL} ${tag} is ${age} days old; this scanned with ${version}. Raise ${KNOB} in lemonfiber/spec ${HOME_FILE} when convenient."
 
   # Say what shared revision this repository is actually running. Every caller
   # pins by SHA, which is right, and it means a fix landing here reaches nobody

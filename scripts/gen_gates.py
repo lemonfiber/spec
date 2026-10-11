@@ -137,7 +137,6 @@ MOVED = {
 INERT = {
     "actions/checkout": "writes the tree and runs nothing in it: no hooks, no submodules",
     "actions/setup-python": "installs the Python version the step names",
-    "raven-actions/actionlint": "parses the workflow files; shellcheck reads their scripts as text",
     "crate-ci/typos": "reads text, and its TOML configuration",
     "lycheeverse/lychee-action": "reads links, and its TOML configuration",
 }
