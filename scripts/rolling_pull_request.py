@@ -147,9 +147,8 @@ def own(pulls: list[dict], repo: str, branch: str) -> list[dict]:
     return found
 
 
-def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str,
-           labels: list[str], auto_merge: bool, api: Api, disarm: bool = False) -> int:
-    """Open or edit the bump's pull request, arm or disarm it where asked, and return its number."""
+def the_bumps_commit(repo: str, branch: str, head: str, author: str, api: Api) -> None:
+    """Refuse a head that is not the branch's tip, made and signed as the bump."""
     at = api("GET", f"repos/{repo}/git/ref/heads/{quoted(branch)}", None)["object"]["sha"]
     if at != head:
         raise Refused(f"{branch} is at {at}, not {head}, the commit this run put on it; nothing was edited")
@@ -159,13 +158,16 @@ def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str
         raise Refused(f"{head} was not made and signed as {author} (its author is {by or 'nobody known'}), "
                       "so it is not the bump's commit; nothing was edited")
 
+
+def edited_or_opened(repo: str, branch: str, head: str, author: str, title: str, body: str,
+                     labels: list[str], api: Api) -> dict:
+    """The bump's own open pull request, edited, or one opened where none is; anything else refused."""
     owner = repo.split("/")[0]
     query = urllib.parse.urlencode({"head": f"{owner}:{branch}", "state": "open", "per_page": PER_PAGE})
     found = own(api("GET", f"repos/{repo}/pulls?{query}", None), repo, branch)
     if len(found) > 1:
         raise Refused(f"{len(found)} pull requests are open on {branch}: "
                       f"{', '.join('#' + str(p['number']) for p in found)}; nothing was edited")
-
     if found:
         pull = found[0]
         wrong = wrong_with(pull, author, head)
@@ -173,15 +175,19 @@ def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str
             raise Refused(f"{wrong}; nothing was edited")
         api("PATCH", f"repos/{repo}/pulls/{pull['number']}", {"title": title, "body": body})
         print(f"::notice::#{pull['number']} retitled and its body replaced, at {head}", file=sys.stderr)
-    else:
-        pull = api("POST", f"repos/{repo}/pulls", {"title": title, "head": branch, "base": BASE, "body": body})
-        wrong = wrong_with(pull, author, head)
-        if wrong:
-            raise Refused(f"the pull request just opened is not as asked: {wrong}; it is neither labelled nor armed")
-        if labels:
-            api("POST", f"repos/{repo}/issues/{pull['number']}/labels", {"labels": labels})
-        print(f"::notice::opened #{pull['number']} from {branch}, at {head}", file=sys.stderr)
+        return pull
+    pull = api("POST", f"repos/{repo}/pulls", {"title": title, "head": branch, "base": BASE, "body": body})
+    wrong = wrong_with(pull, author, head)
+    if wrong:
+        raise Refused(f"the pull request just opened is not as asked: {wrong}; it is neither labelled nor armed")
+    if labels:
+        api("POST", f"repos/{repo}/issues/{pull['number']}/labels", {"labels": labels})
+    print(f"::notice::opened #{pull['number']} from {branch}, at {head}", file=sys.stderr)
+    return pull
 
+
+def armed(pull: dict, head: str, auto_merge: bool, disarm: bool, api: Api) -> None:
+    """Arm the pull request at `head`, or switch its arming off, where asked; else leave it."""
     if auto_merge:
         graphql(api, ARM, {"id": pull["node_id"], "method": MERGE_METHOD, "head": head})
         print(f"::notice::#{pull['number']} merges itself at {head} once its required checks pass",
@@ -190,6 +196,14 @@ def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str
         graphql(api, DISARM, {"id": pull["node_id"]})
         print(f"::notice::#{pull['number']} no longer merges itself: its change wants reading",
               file=sys.stderr)
+
+
+def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str,
+           labels: list[str], auto_merge: bool, api: Api, disarm: bool = False) -> int:
+    """Open or edit the bump's pull request, arm or disarm it where asked, and return its number."""
+    the_bumps_commit(repo, branch, head, author, api)
+    pull = edited_or_opened(repo, branch, head, author, title, body, labels, api)
+    armed(pull, head, auto_merge, disarm, api)
     return pull["number"]
 
 
