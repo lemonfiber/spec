@@ -7,7 +7,7 @@ audience: operator
 status: accepted
 maturity: built
 labels: [security, web]
-relates: [C6, D10, F12, F13, G1, B5]
+relates: [C6, D10, F12, F13, G1, B5, N29]
 ---
 
 # C10 — Integration keys
@@ -50,11 +50,33 @@ Where the stack has never been served encrypted on the network, there is no addr
 a client elsewhere to reach. The key is minted all the same: the reply carries the pin, no
 address, and a caution saying how to serve the stack so another machine can connect.
 
-### Minting over the web asks for the password again
+### Minting over the web asks for the password again, or a device's signature
 
 From the web console or the companion, only an operator session may mint or revoke, except
-as a member may for themselves (below), and minting asks for the password in the same
-request. A key never mints, lists or revokes keys.
+as a member may for themselves (below), and minting asks for the operator's proof in the
+same request: the password, or a signature from a device key the operator registered
+(below). A key never mints, lists or revokes keys.
+
+### A phone proves the operator with a key it cannot give away
+
+A phone can hold a key pair whose private half lives in its secure hardware, the Secure
+Enclave or StrongBox, and can be used only after the operator's face or fingerprint
+([ADR-0044](../../../00-overview/decisions/0044-a-phone-proves-the-operator-with-a-device-key.md)).
+The operator registers its public half with the core once, from an operator session, giving
+the password in that one request. The core keeps the public half under a name, journals the
+registration and alerts the operator, as it does for a key.
+
+To mint, the phone asks the core for a challenge: a fresh value, good for one request, for
+one minute, from that session and for that device key alone. The phone signs the challenge
+with the mint it asks for, after the operator's face or fingerprint, and sends the
+signature in place of the password. The core checks the signature against the public half
+it holds and accepts it as the operator's proof for that mint and nothing else. The
+password is never kept on the phone, and a device key admits nothing on its own: it proves
+the operator to a session that is already theirs.
+
+The operator lists device keys by name, when each was registered and last used, and revokes
+one by name. Changing the operator password revokes every device key, so a phone that is
+lost is cut off by the same act that ends its sessions.
 
 ### A member may mint their own, once the operator allows it
 
@@ -114,7 +136,13 @@ and offer the real call after.
 | A revoked or orphaned key keeps being presented | Refused as a wrong token is, and not counted: it is a key the stack knows, not a guess, and counting it would let a forgotten integration lock the operator out. |
 | A key is presented while the limit holds | Refused with the wait before the key is checked, a right key included. A right key does not reset the count. |
 | A key is minted before the stack has been served encrypted on the network | Minted. The reply carries the pin and no address, and says how to serve the stack so another machine can connect. |
-| The password changes | Sessions end (C6). Keys stay, since they were minted deliberately and are revoked deliberately. |
+| The password changes | Sessions end (C6). Keys stay, since they were minted deliberately and are revoked deliberately. Every device key is revoked, journaled and alerted. |
+| A mint carries a signature from a device key that is not registered, or revoked | Refused with a code of its own, before the challenge is looked at. |
+| A mint carries a challenge that was never issued, was spent, lapsed, or was issued to another session or device key | Refused with one code for all of these, so a guess learns nothing about which. |
+| A signature does not verify | Refused with a code of its own, and counted against the same surface-wide limit as wrong passwords. |
+| A device key is registered under a name another holds, or with a public half another holds | Refused, naming the existing device key. |
+| A public half that is not a P-256 key | Refused with a code of its own, naming the curve the core accepts. |
+| A device key is presented as a credential | It is none: a request carrying only a device key's signature, with no operator session, is refused as a request with no credential is. |
 | A member tries to mint a key while the setting is off | Refused with a code of its own, saying the operator has not allowed members to mint keys, before their password is checked. |
 | A member tries to mint a key for another account | Refused. A member mints only `member:` keys for themselves. |
 | A member gives a wrong password when minting | Refused as a wrong password is, and counted against the same limits as a sign-in. |
@@ -127,7 +155,7 @@ and offer the real call after.
 | ID | Requirement |
 |----|-------------|
 | **C10-R1** | An operator MUST be able to mint a named key with exactly one scope, `read`, `act` or `member:<account>`, at the command line and over the web API. |
-| **C10-R2** | Over the web API, only an operator session MUST be able to mint or revoke a key, except as `C10-R15` allows a member, and minting MUST require the operator password in the same request. A key MUST NOT be able to mint, list or revoke keys, whatever its scope. |
+| **C10-R2** | Over the web API, only an operator session MUST be able to mint or revoke a key, except as `C10-R15` allows a member, and minting MUST require the operator's proof in the same request: the operator password, or a signature from a registered device key over a challenge the core issued for that request (`C10-R24`, `C10-R25`). A key MUST NOT be able to mint, list or revoke keys, whatever its scope. |
 | **C10-R3** | A key's secret MUST appear only in the reply that minted it or, for a key minted as a claim, only in the reply that collected it (`C10-R20`), sent with `Cache-Control: no-store`, and MUST be stored only as a digest. No read, listing, log, support bundle, alert or journal entry MUST carry it. |
 | **C10-R4** | The mint reply MUST carry the stack's certificate pin beside the secret, and the stack's address where it has been served encrypted on the network. Where it has not, the reply MUST carry no address and MUST say how to serve the stack so another machine can connect. |
 | **C10-R5** | A key MUST survive a restart and MUST travel in `X-Lemonfiber-Token`. A revoked, orphaned or unknown key MUST be refused exactly as a wrong token is, with the same status, sentence and code, from its next request. |
@@ -148,9 +176,16 @@ and offer the real call after.
 | **C10-R20** | A key MUST be collected by a request carrying its claim alone, in the body, over the TLS the link's fingerprint verifies (`C10-R11`). The reply MUST carry the key's secret, name, scope and the stack's pin, sent with `Cache-Control: no-store`. An unknown, spent or lapsed claim MUST be refused with one status, sentence and code, and MUST count against the same surface-wide limit as wrong passwords (`C10-R13`). |
 | **C10-R21** | Collecting a key MUST be journaled and MUST raise an operator alert naming the key, its purpose and the address it was collected from. A key whose claim lapses uncollected MUST be revoked, journaled as not reversible, and alerted. |
 | **C10-R22** | Every surface that shows a key link MUST also draw it as a QR code from the link, and MUST NOT show the link or the code again once that screen is left. |
+| **C10-R23** | An operator session MUST be able to register a device key over the web API: a name and the public half of a P-256 key pair, with the operator password in the same request. The core MUST keep only the public half under that name, MUST refuse a name or a public half another device key holds, naming it, and MUST refuse a public half that is not a P-256 key with a code of its own. A member session and a key MUST NOT be able to register, list or revoke device keys. Every registration MUST be journaled and MUST raise an operator alert naming the device key. |
+| **C10-R24** | An operator session MUST be able to ask for a challenge for a registered device key. The core MUST issue a fresh random value of at least 32 bytes, keep it only in memory, bound to that session and that device key, and accept it for one request within one minute; using it, its lapsing, the session ending and the device key's revocation MUST end it. |
+| **C10-R25** | A mint carrying a device key's name, a challenge and a signature in place of the password MUST be admitted only where the device key is registered, the challenge stands for that session and that device key, and the signature verifies against the device key's public half over the challenge and the mint's name, scope, purpose and whether it is a claim, in the form the contract publishes. An unregistered or revoked device key MUST be refused with a code of its own; a challenge that does not stand, for any reason, with one code; and a signature that does not verify with a code of its own, counted against the same surface-wide limit as wrong passwords (`C10-R13`). |
+| **C10-R26** | Device keys MUST be listed by name, the fingerprint of their public half, registration time and last use, and MUST be revocable by name, over the web API, with effect at the next challenge. Every revoke MUST be journaled as not reversible and MUST raise an operator alert naming the device key. |
+| **C10-R27** | Changing the operator password MUST revoke every device key, journaled and alerted as `C10-R26` says. |
+| **C10-R28** | A device key's signature MUST prove the operator for the one mint it was made for and nothing else: it MUST NOT admit a request, stand in for a session or the password anywhere else, or be accepted without an operator session. |
 
 ## Related
 
 - [C6 Web UI security & binding policy](c6-web-security.md) — who can reach the surface at all
 - [F12 Home Assistant](../f-extensibility/f12-home-assistant.md) — the first program that holds a key
-- [ADR-0037](../../../00-overview/decisions/0037-an-integration-key-is-minted-where-the-operator-proves-themself.md) · [ADR-0031](../../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md) · [ADR-0025](../../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)
+- [N29 A key for an app](../n-companion/n29-a-key-for-an-app.md) — minting a claim from the phone, proved by a device key
+- [ADR-0037](../../../00-overview/decisions/0037-an-integration-key-is-minted-where-the-operator-proves-themself.md) · [ADR-0044](../../../00-overview/decisions/0044-a-phone-proves-the-operator-with-a-device-key.md) · [ADR-0031](../../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md) · [ADR-0025](../../../00-overview/decisions/0025-nothing-leaves-this-machine-unpinned.md)

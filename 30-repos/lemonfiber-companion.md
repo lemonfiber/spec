@@ -69,6 +69,7 @@ SDK, already generated from the `contract/web-api/` directory
 | Device permissions, secure storage, app lock, notifications | [N4](../10-functional/features/n-companion/n4-native-integration.md) |
 | What the phone keeps between launches | [N27](../10-functional/features/n-companion/n27-what-the-phone-keeps.md) |
 | The top bar, the tabs, the menu and the words on them | [N28](../10-functional/features/n-companion/n28-finding-your-way.md) |
+| Keys for apps, minted as claims and proved by a device key | [N29](../10-functional/features/n-companion/n29-a-key-for-an-app.md) |
 
 ## Standards
 

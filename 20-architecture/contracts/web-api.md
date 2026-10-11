@@ -973,6 +973,10 @@ generation has not been used.
 | **ARCH-R255** | `POST /api/actions/settings-set` and `settings-clear` MUST take what `lemonfiber settings set` and `lemonfiber settings clear` take; each rehearsal MUST name every entry the change regenerates and every service it restarts and answer an offer, the write MUST refuse where what it would change moved since, naming what moved, and each write MUST be journalled. |
 | **ARCH-R256** | The settings read MUST list each secret a service's environment names, with whose it is, the services that read it, where its value came from and whether one is held, and MUST NOT carry a secret's value; neither settings write MUST take a secret, and naming one MUST be refused, naming it. |
 | **ARCH-R257** | The settings MUST ride the operator's event stream as a `settings` event, sent when a client connects and whenever one changes, and MUST NOT ride a member's stream. |
+| **ARCH-R258** | `POST /api/device-keys` MUST take `name`, `public_key` (a P-256 SubjectPublicKeyInfo in base64url) and `password` from an operator session, and MUST answer the `device-key` envelope with the name, the public half's fingerprint and the registration time (`C10-R23`). |
+| **ARCH-R259** | `GET /api/device-keys` MUST answer `device-keys`, listing each device key by name, fingerprint, registration time and last use, and `DELETE /api/device-keys/{name}` MUST revoke one; both MUST be refused to a member session and to a key (`C10-R26`). |
+| **ARCH-R260** | `POST /api/device-keys/{name}/challenge` MUST answer `device-challenge` with a fresh `challenge` and when it `expires`, from an operator session for a registered device key (`C10-R24`). |
+| **ARCH-R261** | `POST /api/keys` MUST accept `device`, `challenge` and `signature` in place of `password`, the signature being ECDSA P-256 over SHA-256 of the line-feed-ended UTF-8 lines `lemonfiber-mint/1`, the challenge, the name, the scope, the purpose and `claim` or `key`, in base64url; the artefact MUST publish that form, and the refusals of `C10-R25` MUST each carry a code of its own listed among the artefact's refusals. |
 
 ## The artefact
 

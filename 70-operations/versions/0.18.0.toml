@@ -279,7 +279,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 472 goals, seeded from the roadmap milestone this version serves;
+# 497 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -795,8 +795,40 @@ goals   = [
     "N25-R13",
     "N25-R14",
     "REPO-R93",
+    "C10-R18",
+    "C10-R19",
+    "C10-R20",
+    "C10-R21",
+    "C10-R22",
+    "C10-R23",
+    "C10-R24",
+    "C10-R25",
+    "C10-R26",
+    "C10-R27",
+    "C10-R28",
+    "ARCH-R258",
+    "ARCH-R259",
+    "ARCH-R260",
+    "ARCH-R261",
+    "N29-R1",
+    "N29-R2",
+    "N29-R3",
+    "N29-R4",
+    "N29-R5",
+    "N29-R6",
+    "N29-R7",
+    "N29-R8",
+    "N29-R9",
+    "N29-R10",
 ]
 
+# `C10-R18` to `C10-R22` mint a key as a claim, a link collected once within ten minutes
+# and drawn as a code, which the core serves; `C10-R23` to `C10-R28` and `ARCH-R258` to
+# `ARCH-R261` let a phone prove the operator with a device key in its secure hardware, over
+# a challenge the core issues, in place of the password (ADR-0044); `N29-R1` to `N29-R10`
+# are the companion's keys screen built on both. Added after staging by the maintainer's
+# decision of 2026-10-11 (OPS-R31); `C10-R18` to `C10-R22` move here from 0.19.0, where the
+# programs that collect a claim (`F12-R14`, `F13-R15`) stay.
 # The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion
 # is searched, `N1-R29` to `N1-R31` among them because the capability set they read is
 # `ARCH-R78`'s, served in this version. `N1-R2` and `N1-R5` are parity, every action and
