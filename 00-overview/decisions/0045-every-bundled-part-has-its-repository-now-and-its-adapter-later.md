@@ -22,8 +22,7 @@
   with no symbolic link;
 - a plugin's id is the id of the service that takes the part's place, and a first-party
   service that replaces a reserved id keeps the stack's credential names, taken as
-  recommended;
-- `F14-R2`, `F14-R3` and `F14-R7` stay open goals of 0.18.0 through its pre-releases.
+  recommended.
 
 **Supersedes in part** [ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md):
 §1 and §2 (what the bundle carries), §5 (when an in-process adapter goes), §6 (when the
@@ -131,9 +130,9 @@ adapters.
 12. **The media stack is archived after the compose cutover.** Its Compose files are
     read until the cutover deletes every static reader, and cannot live in a plugin. Once
     nothing reads it, the maintainer archives it.
-13. **0.18.0 keeps its scope.** `F14-R2`, `F14-R3` and `F14-R7` are open goals through
-    its pre-releases, which `OPS-R86` lets a pre-release record, and the bundle's and the
-    manifest's new requirements join its goals under `goals-change` review.
+13. **0.18.0 keeps its scope.** The bundle's and the manifest's new requirements join its
+    goals under `goals-change` review, and 0.18.0, or any pre-release of it, is cut only
+    when every goal is met.
 
 ## Alternatives considered
 

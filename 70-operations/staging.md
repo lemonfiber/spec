@@ -294,8 +294,8 @@ differently is the one thing it exists for. The bundle pin follows from it: a
 first-party plugin is built and proved against the core's pre-release, then tagged
 at the version itself by the release's first step, pinned in the bundle and
 embedded before the core's release tag. So a pre-release tags no first-party
-plugin's repository, and one whose embedded bundle does not pin each plugin at its
-tag records `OPS-R86` among its unmet goals rather than refusing (`OPS-R86`).
+plugin's repository, and its embedded bundle may pin a plugin that builds an image by
+revision alone (`OPS-R86`).
 
 ### It is never mistaken for the release
 

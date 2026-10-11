@@ -841,9 +841,8 @@ goals   = [
 # the profile it sits in; the register of reserved ids reads the whole bundle; and the
 # plugin manifest gains the errand, starting files, an assembled part's `api` and a moved
 # part's credential names. `ARCH-R171` is superseded by `ARCH-R263` and `ARCH-R264` and
-# is not a goal. `F14-R2`, `F14-R3` and `F14-R7` stay goals through the pre-releases, which
-# `OPS-R86` lets a pre-release record unmet. Added after staging by the maintainer's
-# decision of 2026-10-11 (OPS-R31).
+# is not a goal. Added after staging by the maintainer's decision of 2026-10-11
+# (OPS-R31).
 
 # `C10-R18` to `C10-R22` mint a key as a claim, a link collected once within ten minutes
 # and drawn as a code, which the core serves; `C10-R23` to `C10-R31` and `ARCH-R258` to
