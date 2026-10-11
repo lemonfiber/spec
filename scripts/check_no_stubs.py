@@ -137,6 +137,51 @@ def grouped(goals: list[str]) -> dict[str, list[str]]:
     return found
 
 
+def by_number(requirements: set[str]) -> list[str]:
+    """Requirements in the order their numbers run, not the order their text sorts."""
+    return sorted(requirements, key=lambda one: int(one.partition("-R")[2]))
+
+
+def feature_lines(feature: str, locked: list[str], front: dict, defines: set[str],
+                  short: list[str]) -> list[str]:
+    """What one feature's locked goals come to: how many are built, and which are not."""
+    scope = f"{len(locked)} of its {len(defines)}"
+    built = len(locked) - len(short)
+    summary = (f"  {'✗' if short else '✓'} {feature:4} "
+               f"{front.get('maturity')!s:9} locks {scope:9} requirements, "
+               f"{built} of them built   {front.get('title', '')}")
+    lines = [summary]
+    if short:
+        lines.append(f"      not built: {', '.join(short)}")
+        if front.get("maturity") in FINISHED:
+            lines.append(f"      the catalogue calls {feature} "
+                         f"`{front.get('maturity')}` and the tracker does not "
+                         "tick these, so it is `building` again (OPS-R73)")
+    return lines
+
+
+def closing(elsewhere: list[str], orphans: list[str],
+            stubs: list[str]) -> tuple[int, list[str]]:
+    """The exit code, and the lines that end the report and say why."""
+    lines: list[str] = []
+    if elsewhere:
+        lines.append("  · outside the feature catalogue, not OPS-R54's subject: "
+                     + ", ".join(elsewhere))
+    if orphans:
+        lines.append("")
+        lines.append(f"::error::not releasable — {len(orphans)} requirement(s) of the "
+                     "features this version touches are locked by no manifest in the "
+                     "train, so no release gate would ever ask about them; lock each in "
+                     f"a version: {', '.join(orphans)}")
+    if stubs:
+        lines.append(f"\n::error::not releasable — {len(stubs)} requirement(s) this "
+                     f"version locks are not built: {', '.join(stubs)}")
+    if stubs or orphans:
+        return 1, lines
+    lines.append("\nno-stubs: every requirement this version locks is built.")
+    return 0, lines
+
+
 def verdict(goals: list[str], features: dict[str, dict], done: set[str],
             elsewhere_locked: set[str]) -> tuple[int, list[str]]:
     """The gate's exit code and the lines explaining it.
@@ -164,36 +209,11 @@ def verdict(goals: list[str], features: dict[str, dict], done: set[str],
         defines = requirements_of(front["path"])
         short = unfinished(locked, front, done)
         stubs.extend(short)
-        orphans.extend(sorted(defines - elsewhere_locked,
-                              key=lambda one: int(one.partition("-R")[2])))
-        scope = f"{len(locked)} of its {len(defines)}"
-        built = len(locked) - len(short)
-        lines.append(f"  {'✗' if short else '✓'} {feature:4} "
-                     f"{front.get('maturity')!s:9} locks {scope:9} requirements, "
-                     f"{built} of them built   {front.get('title', '')}")
-        if short:
-            lines.append(f"      not built: {', '.join(short)}")
-            if front.get("maturity") in FINISHED:
-                lines.append(f"      the catalogue calls {feature} "
-                             f"`{front.get('maturity')}` and the tracker does not "
-                             "tick these, so it is `building` again (OPS-R73)")
+        orphans.extend(by_number(defines - elsewhere_locked))
+        lines.extend(feature_lines(feature, locked, front, defines, short))
 
-    if elsewhere:
-        lines.append("  · outside the feature catalogue, not OPS-R54's subject: "
-                     + ", ".join(elsewhere))
-    if orphans:
-        lines.append("")
-        lines.append(f"::error::not releasable — {len(orphans)} requirement(s) of the "
-                     "features this version touches are locked by no manifest in the "
-                     "train, so no release gate would ever ask about them; lock each in "
-                     f"a version: {', '.join(orphans)}")
-    if stubs:
-        lines.append(f"\n::error::not releasable — {len(stubs)} requirement(s) this "
-                     f"version locks are not built: {', '.join(stubs)}")
-    if stubs or orphans:
-        return 1, lines
-    lines.append("\nno-stubs: every requirement this version locks is built.")
-    return 0, lines
+    code, ending = closing(elsewhere, orphans, stubs)
+    return code, lines + ending
 
 
 def main() -> int:
