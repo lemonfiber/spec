@@ -529,7 +529,7 @@ POST /api/actions/settings-set      POST /api/actions/settings-clear
 A setting is a value a service's environment reads from the operator rather than from its
 manifest: one the core publishes for every service, such as the operator's domain, or one
 in a plugin's own namespace, such as the countries an egress guard may exit from
-([plugin-manifest](plugin-manifest.md#environment--four-kinds-of-value)). The settings live in
+([plugin-manifest](plugin-manifest-service.md#environment--four-kinds-of-value)). The settings live in
 the core's settings store, and `GET /api/settings` reads them as `lemonfiber settings --json`
 does. Each setting carries its name; whose it is, the core's or a plugin's; each service that
 reads it and the variable it is read into; the default its manifest declares; and the
