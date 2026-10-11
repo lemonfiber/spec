@@ -12,7 +12,7 @@
 # server is playing, as the `playing` read and event carry it. It is the companion's, so
 # `lemonfiber-companion` is searched; it is not tagged.
 #
-# 21 goals, seeded from the roadmap milestone this version serves;
+# 22 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -23,6 +23,7 @@ status  = "planned"
 repos   = ["lemonfiber", "plugin-jellyfin"]
 satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion"]
 goals   = [
+    "D4-R21",
     "C10-R18",
     "C10-R19",
     "C10-R20",
