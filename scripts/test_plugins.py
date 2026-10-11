@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Coverage tests for the plugin gate — OPS-R67, OPS-R68, OPS-R72, Q-R66.
+"""Coverage tests for the plugin gate — OPS-R67, OPS-R68, OPS-R72, OPS-R88, Q-R66.
 
 A gate is worth what it refuses, so most of what follows is a refusal: a registry
 that is missing, unreadable or declares nothing; an entry missing a field; a
-repository nobody created; a manifest that is absent, unreadable, silent about its
+repository nobody created; a `targets.toml` naming neither a release nor a commit,
+both, or a commit not in full; a manifest that is absent, unreadable, silent about its
 schema, or pinned to a generation that has moved; a reader pin that is absent,
 incomplete or not a full commit; a reader that was not fetched, writes nothing,
 does not finish, or fetches a release of its own rather than proving the
@@ -74,6 +75,9 @@ root = pathlib.Path(__file__).resolve().parents[2]
 #: The build the candidate is, as the gate is told it.
 BUILD = "x86_64-unknown-linux-gnu"
 
+#: A commit of the core's `main`, as a plugin names one before a release carries it.
+CORE = "c" * 40
+
 #: What the real reader does once the release is in its cache, and no more: the
 #: report names the version `targets.toml` does, holds what `answer.json` says,
 #: and the exit is 1 where a proof is neither passed nor failing as declared.
@@ -140,8 +144,9 @@ class PluginGate(unittest.TestCase):
         body = "" if schema is None else f"schema_version = {schema}\n"
         (self.plugin / "plugin.toml").write_text(body + '[plugin]\nid = "komga"\n', encoding="utf-8")
 
-    def targets(self, release: str | None = "0.16.0") -> None:
+    def targets(self, release: str | None = "0.16.0", commit: str | None = None) -> None:
         body = "" if release is None else f'lemonfiber = "{release}"\n'
+        body += "" if commit is None else f'commit = "{commit}"\n'
         (self.plugin / "targets.toml").write_text(body, encoding="utf-8")
 
     def report(self, **over) -> None:
@@ -187,6 +192,19 @@ class PluginGate(unittest.TestCase):
         code, said = self.gate(version="0.15.0")
         self.assertEqual(code, 0, said)
         self.assertIn("1 of 1 ride 0.15.0", said)
+
+    def test_a_plugin_naming_a_commit_rides_every_version_and_is_proved_with_the_candidate(self):
+        # The train cuts from the `main` that holds the commit, so no version
+        # predates it, and what is proved is the candidate rather than the commit.
+        self.manifest()
+        self.targets(None, commit=CORE)
+        self.report()
+        code, said = self.gate(version="0.1.0")
+        self.assertEqual(code, 0, said)
+        self.assertIn("1 of 1 ride 0.1.0, all proved with the candidate", said)
+        self.assertEqual(self.written()["lemonfiber"], "0.1.0")
+        self.assertEqual((self.plugin / "targets.toml").read_text(encoding="utf-8"),
+                         'lemonfiber = "0.1.0"\n')
 
     # Proved with the candidate, not read from what the plugin committed.
 
@@ -438,12 +456,26 @@ class PluginGate(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("cannot be read", said)
 
-    def test_a_targets_file_naming_no_release_fails(self):
+    def test_a_targets_file_naming_neither_a_release_nor_a_commit_fails(self):
         self.manifest()
         self.targets(None)
         code, said = self.gate()
         self.assertEqual(code, 1)
-        self.assertIn("names no lemonfiber release", said)
+        self.assertIn("names neither a lemonfiber release nor a commit", said)
+
+    def test_a_targets_file_naming_a_release_and_a_commit_fails(self):
+        self.manifest()
+        self.targets("0.16.0", commit=CORE)
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn(f"names the release '0.16.0' and the commit '{CORE}'; a plugin targets one", said)
+
+    def test_a_commit_not_in_full_fails(self):
+        self.manifest()
+        self.targets(None, commit=CORE[:12])
+        code, said = self.gate()
+        self.assertEqual(code, 1)
+        self.assertIn(f"targets the commit '{CORE[:12]}', which is not a full commit", said)
 
     def test_a_target_that_is_not_a_version_fails(self):
         self.manifest()
