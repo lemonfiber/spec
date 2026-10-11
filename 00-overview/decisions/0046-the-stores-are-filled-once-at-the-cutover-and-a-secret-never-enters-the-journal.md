@@ -101,8 +101,6 @@ gaps stood between the decision and the stores:
   pre-release included, is published before every goal is met.
 - The undo of a secret's change works while nothing has replaced the secret since. After
   a second change, undoing the first says the secret must be replaced at the terminal.
-- Only an operator who saw the secret's value can put it back after the store has moved
-  on. A secret a recipe captured is captured again by running the recipe.
 - `LEMONFIBER_DEVICE_KEY_APPS` is written by `lemonfiber settings` and refused by
   `lemonfiber config`, naming `lemonfiber settings`.
 
@@ -124,9 +122,9 @@ removed from the machine without rewriting the journal.
 **No undo for a secret.** The simplest rule, and a mistyped replacement could not be put
 back a minute later.
 
-**Every `LEMONFIBER_*` key under `lemonfiber settings`.** One command for everything, and
-the operator's screens would show the core's tuning beside what a service reads. A short
-list the operator's screens show, and the rest kept where they are, was preferred.
+**Every `LEMONFIBER_*` key under `lemonfiber settings`.** One command for every name, and
+the operator's screens would carry all of the core's tuning beside what a service reads,
+where the companion needs one of them.
 
 **The `settings` event to every stream that is not a member's.** A key refused the read
 would be told every setting on the stream.
