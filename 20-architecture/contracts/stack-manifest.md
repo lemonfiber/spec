@@ -52,6 +52,13 @@ bundle; `describes`, `without_it`, `license` and `upstream` from its plugin's
 `description`, `without_it`, `license` and `upstream`; and every other field from its
 plugin's one service. `host_managed` is this format's alone.
 
+Assembled, a service also keeps every
+[`[[secret]]`](plugin-manifest.md#secret-and-override--declared-before-they-are-held) its
+plugin declares, held in the secret store under its own id (`gluetun:wireguard-key`), so
+its `env` names its secrets as a plugin's does (`ARCH-R275`). A `--stack-dir` service
+declares none: its file holds one `[[service]]` and nothing else (`ARCH-R264`), so an
+`env` value there naming a secret is refused, naming the variable (`ARCH-R247`).
+
 ## File location
 
 `stack.toml`, at the root of a stack directory an operator names with `--stack-dir`.

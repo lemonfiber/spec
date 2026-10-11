@@ -200,6 +200,19 @@ Decisions about a repository outside this organisation, such as
 | A password change revokes every device key | [C10-R27](../10-functional/features/c-trust/c10-integration-keys.md), [ADR-0044](../00-overview/decisions/0044-a-phone-proves-the-operator-with-a-device-key.md) |
 | The device key's rows, the claim's rows and N29 ship in 0.18.0, joining its goals under `goals-change` review, and `C10-R2` is amended in place to accept a device key's signature in place of the password | [0.18.0](../70-operations/versions/0.18.0.toml), [C10](../10-functional/features/c-trust/c10-integration-keys.md) |
 
+## 2026-10-12
+
+| Decision | Where it lives |
+|---|---|
+| The stack's settings stay in its environment file, behind one closed table naming each by its setting, until the release that stops reading the stack's static Compose files; a plugin's settings and secrets go to the settings and secret stores at once | [ADR-0046](../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) |
+| `ARCH-R249` is amended in place: the first run of the release that stops reading the static Compose files reads the environment file once and files every value the assembled parts and the published settings read from it, journalling each, and the file is never read for them again; a part's later move in place migrates nothing | [ADR-0046](../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md), [ARCH-R249](../20-architecture/contracts/plugin-manifest.md) |
+| An assembled part keeps its plugin manifest's `[[secret]]`, each held in the service id's namespace | [ADR-0046](../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md), [ARCH-R275](../20-architecture/contracts/bundle.md), [stack-manifest](../20-architecture/contracts/stack-manifest.md) |
+| The journal records a secret's fingerprint and never its value, not even sealed; the secret store keeps one previous value, which undo restores only while the fingerprints match, and otherwise undo says the secret must be replaced at the terminal; `E4-R1` is amended in place to match | [ADR-0046](../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md), [ARCH-R276](../20-architecture/contracts/plugin-manifest.md), [E4](../10-functional/features/e-maintenance/e4-rollback.md) |
+| A core setting is one of a closed list lemonfiber publishes, beginning with `LEMONFIBER_DEVICE_KEY_APPS`; `lemonfiber config` keeps every other `LEMONFIBER_*` key, and each command refuses the other's names, naming the right one; `A4-R13` is amended in place to match | [ADR-0046](../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md), [ARCH-R278](../20-architecture/contracts/web-api.md), [A4](../10-functional/features/a-getting-started/a4-reconfiguration.md) |
+| `ARCH-R257` is amended in place: the `settings` event goes to the operator alone, never to a member's stream or a key's | [ADR-0046](../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md), [ARCH-R257](../20-architecture/contracts/web-api.md) |
+| A credential that crosses to a plugin is read from its holder whenever an entry is written and never copied into the secret store, so replacing it regenerates what reads it | [ADR-0046](../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md), [ARCH-R277](../20-architecture/contracts/plugin-manifest.md) |
+| `ARCH-R275` to `ARCH-R278` ship in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
+
 ## Requirements
 
 | ID | Requirement |

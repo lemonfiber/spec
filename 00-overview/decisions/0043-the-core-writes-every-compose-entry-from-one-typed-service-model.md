@@ -35,6 +35,8 @@
 
 **Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): the stack's own services are the parts the bundle assembles from their first-party plugins, and each part's image is run under its posture by its own repository's CI rather than the media stack's.
 
+**Superseded in part** by [ADR-0046](0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md): the last sentence of §7. The stack's environment file is read once, at the first run of the release that stops reading the static Compose files, rather than at each part's move in place.
+
 **Amends**:
 
 - [ADR-0005](0005-embedded-stack-assets.md): what is materialised is the manifests, and the
