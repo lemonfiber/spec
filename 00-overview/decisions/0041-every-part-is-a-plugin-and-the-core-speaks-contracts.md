@@ -14,6 +14,8 @@
 - each capability is proved by a real substitute;
 - first-party adapters are written in Rust, one repository per part.
 
+**Amended** by [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md): the egress guard's shape is one of a closed set of named shapes.
+
 **Supersedes** [ADR-0024](0024-what-opens-and-what-never-does.md) where it holds the
 adapter set closed: behaviour no longer lives in lemonfiber's process at all.
 **Amends**:

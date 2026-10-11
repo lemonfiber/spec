@@ -116,7 +116,7 @@ asks for them. Their shapes are the generated documents' alone.
 | `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; the country its ratings are named for; replace the administrator's password; allow; claimable; suspend; sessions for an account; whether devices sign in by code |
 | `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app |
 | `library.curate` | Identity; download clients (register, update, set a field, test, list); root folders (register, list); quality profiles; run a command; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck) |
-| `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; seeding and letting a completed download go (`download.torrent`); usenet accounts (`download.usenet`) |
+| `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add) |
 | `indexer.proxy` | Solve a challenge; whether it answers |
 | `request.intake` | Initialised; configure identity; answers; search a page of titles a member may ask for; what one title is, its certification in a country and where its poster is published; ask on a member's behalf; requests, each with the id its title is found by; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices |
@@ -156,6 +156,21 @@ The core hands the declaration to the filler of `stream.guard` (`apply a guard`)
 enforces exactly it. The core builds every location a member is given from the
 templates (`F14-R10`). A declaration that admits a byte path without a question, or a
 template whose host is not `{base}`, is refused at install.
+
+## The forwarded port
+
+Where the egress guard's provider forwards a port, a torrent client inside the guard has
+to take peers on it, and the port changes whenever the tunnel reconnects. The guard's
+filler reports it as an operation of `network.egress-guard`: the port forwarded now, or
+none. The core reads it whenever the guard's filler reports a change and sets it, over
+`download.torrent`, on every filler of that capability running inside the guard
+(`network.via`), and sets it back to none when forwarding ends, so a client re-acquires a
+port correctly after a reconnect. Where it could not set the port, it says the port was
+not passed rather than failing silently (`ARCH-R251`).
+
+Nothing is mounted into the guard for this, and the guard holds no credential of the
+client's: the port crosses through the core, contract to contract, so a substitute guard
+or a substitute client takes part on the same terms.
 
 ## Conformance
 
@@ -209,6 +224,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R213** | A service that speaks a capability's contract MUST also provide that capability, and a manifest where one does not MUST be refused by name; that capability MUST be demonstrated by its contract and MUST NOT require a `[[claim]]`. |
 | **ARCH-R214** | Where the service filling a capability speaks that capability's contract, the core MUST ask it over the contract alone and MUST NOT reach it through an adapter of its own. |
 | **ARCH-R217** | A plugin's conformance recordings MUST sit at `conformance/<capability>@<major>/<case>.json` beside its manifest, one per case of each contract it speaks, each in the recording format of `ARCH-R120` and naming the digest the manifest pins for the service its adapter `fronts`, and `lemonfiber plugin conform` MUST judge each recorded answer as the core reads a live one and MUST name each case whose recording is absent, unreadable, of another request or of another digest. |
+| **ARCH-R251** | The core MUST read the forwarded port from the filler of `network.egress-guard` whenever that filler reports a change, MUST set it over `download.torrent` on every filler of that capability that takes `network.via` that guard, and MUST set it back to none when forwarding ends; where it could not set it, it MUST say the port was not passed rather than fail silently, and nothing MUST be mounted into the guard for it. |
 
 ## Related
 

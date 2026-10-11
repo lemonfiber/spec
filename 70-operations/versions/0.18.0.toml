@@ -251,7 +251,22 @@
 # back, and the pictures a browser reads from the core. The companion's player (N3-R14 to N3-R16) is built on them. `lemonfiber-media-stack`
 # is cut because `D11-R2` puts the guard in front of the media server in every form that
 # serves it.
-# 432 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R224` to `ARCH-R253` are the one service model every Compose entry is written
+# from (ADR-0043): the stack's own services and every plugin's, generated as one project,
+# with typed ports, mounts, environment and secrets, settings in the core's store, user
+# mode, posture, shapes, storage, networks derived from asks with no shared default, the
+# forwarded port passed contract to contract, and the operator's own overlay. A part moves
+# into its first-party plugin (F14, ADR-0042) only where the plugin's entry says what the
+# part's says, so the model ships with the plugins rather than after them. It takes the
+# place of the single shape: `ARCH-R86`, `ARCH-R87`, `ARCH-R88` and `ARCH-R101` are
+# superseded and are not goals, a change to a staged version's goals made under
+# `goals-change` review (OPS-R31), and `F14-R23`, `F14-R27` and `B1-R14` say what the
+# model writes. `ARCH-R254` to `ARCH-R257` put the settings the model reads on the web
+# API, operator-only and never reading a secret back, and `N25-R12` to `N25-R14` are the
+# companion's screens for them, because a setting the model writes has to be changeable
+# from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
+# stack's images under `standard`, which this version is the first to write them with.
+# 466 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -502,9 +517,6 @@ goals   = [
     "ARCH-R83",
     "ARCH-R84",
     "ARCH-R85",
-    "ARCH-R86",
-    "ARCH-R87",
-    "ARCH-R88",
     "ARCH-R89",
     "ARCH-R90",
     "ARCH-R91",
@@ -515,7 +527,6 @@ goals   = [
     "ARCH-R98",
     "ARCH-R99",
     "ARCH-R100",
-    "ARCH-R101",
     "ARCH-R103",
     "ARCH-R104",
     "ARCH-R105",
@@ -727,6 +738,44 @@ goals   = [
     "ARCH-R218",
     "ARCH-R219",
     "ARCH-R220",
+    "ARCH-R224",
+    "ARCH-R225",
+    "ARCH-R226",
+    "ARCH-R227",
+    "ARCH-R228",
+    "ARCH-R229",
+    "ARCH-R230",
+    "ARCH-R231",
+    "ARCH-R232",
+    "ARCH-R233",
+    "ARCH-R234",
+    "ARCH-R235",
+    "ARCH-R236",
+    "ARCH-R237",
+    "ARCH-R238",
+    "ARCH-R239",
+    "ARCH-R240",
+    "ARCH-R241",
+    "ARCH-R242",
+    "ARCH-R243",
+    "ARCH-R244",
+    "ARCH-R245",
+    "ARCH-R246",
+    "ARCH-R247",
+    "ARCH-R248",
+    "ARCH-R249",
+    "ARCH-R250",
+    "ARCH-R251",
+    "ARCH-R252",
+    "ARCH-R253",
+    "ARCH-R254",
+    "ARCH-R255",
+    "ARCH-R256",
+    "ARCH-R257",
+    "N25-R12",
+    "N25-R13",
+    "N25-R14",
+    "REPO-R93",
 ]
 
 # The companion's N1 rows that 0.17.0 does not carry are locked here, where the companion

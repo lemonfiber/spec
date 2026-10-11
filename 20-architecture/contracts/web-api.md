@@ -520,6 +520,52 @@ Browsing what the catalogue offers is `GET /api/plugins/catalogue`, answered fro
 verified index as `lemonfiber plugin catalogue --json` answers it, and listing nothing
 the index's signature does not cover (`ARCH-R153`).
 
+### Settings
+
+```
+POST /api/actions/settings-set      POST /api/actions/settings-clear
+```
+
+A setting is a value a service's environment reads from the operator rather than from its
+manifest: one the core publishes for every service, such as the operator's domain, or one
+in a plugin's own namespace, such as the countries an egress guard may exit from
+([plugin-manifest](plugin-manifest.md#environment--four-kinds-of-value)). The settings live in
+the core's settings store, and `GET /api/settings` reads them as `lemonfiber settings --json`
+does. Each setting carries its name; whose it is, the core's or a plugin's; each service that
+reads it and the variable it is read into; the default its manifest declares; and the
+operator's value where one is recorded, so a value still at its default is told apart from one
+somebody set to the same text (`ARCH-R254`).
+
+The same read lists each secret a service's environment names, with whose it is, the services
+that read it, where its value came from (the operator, a recipe or a granted credential) and
+whether one is held. It never carries the value: the shape it is built from has no field one
+could go in, as the credentials read has none (`ARCH-R256`).
+
+Only the operator is answered. A member, a key scoped to one, and a `read` or an `act` key are
+refused, because a setting is how the machine is run and the household never sees it.
+
+The two writes take what `lemonfiber settings set` and `lemonfiber settings clear` take:
+
+| Action | Arguments | Answers |
+|--------|-----------|---------|
+| `settings-set` | `setting`, `value`, `dry_run`, `offer` | `settings` |
+| `settings-clear` | `setting`, `dry_run`, `offer` | `settings` |
+
+`settings-clear` takes the operator's value away, so the declared default is written again.
+Each rehearsal names every entry the change regenerates and every service it restarts, and
+answers an offer; the write takes that offer and refuses where what it would change moved since,
+naming what moved, as the plugin writes do (`ARCH-R146`). Each write is journalled (`ARCH-R255`).
+A value is written as exactly itself: nothing in it is substituted (`ARCH-R230`).
+
+**A secret is not written here.** A secret a manifest names is entered as an input of the
+install or update that first needs it, never repeated back, and is replaced afterwards at the
+terminal, as every credential is
+([ADR-0031](../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)).
+Naming a secret to either write is refused, naming it (`ARCH-R256`).
+
+The settings ride the operator's event stream as their envelope, a `settings` event, sent when
+a client connects and whenever one changes, and never on a member's stream (`ARCH-R257`).
+
 ### Setting up
 
 ```
@@ -923,6 +969,10 @@ generation has not been used.
 | **ARCH-R219** | `POST /api/session` MUST accept `claim` beside a member's `name` and `password` (`D6-R25`). It MUST refuse a claim on an invitation that is not open with `401` under one code, whether the token is unknown, spent, lapsed or declined; MUST refuse a password shorter than the minimum under a code of its own naming the minimum (`D6-R26`); MUST count a claim against the attempts a sign-in is counted against; and MUST remain the one route that answers without a token. |
 | **ARCH-R220** | An envelope MUST NOT carry a drawn QR code. A surface MUST draw each code from the address, link or text the envelope carries, exactly as given (`G1-R15`). |
 | **ARCH-R223** | Every sentence the core sends a client over the web API or a capability contract (a refusal's summary and remedy, a reason, a report, and each code's meaning and remedy in the registry) MUST be plain text carrying no markup, and CI MUST refuse a core sentence written with a code span or emphasis. |
+| **ARCH-R254** | The web API MUST answer `GET /api/settings` as `lemonfiber settings --json` answers, with every setting in the core's settings store: its name, whose it is, each service that reads it and the variable it is read into, the declared default, and the operator's value where one is recorded; only the operator MUST be answered, and a member, a key scoped to one, and a `read` or an `act` key MUST be refused. |
+| **ARCH-R255** | `POST /api/actions/settings-set` and `settings-clear` MUST take what `lemonfiber settings set` and `lemonfiber settings clear` take; each rehearsal MUST name every entry the change regenerates and every service it restarts and answer an offer, the write MUST refuse where what it would change moved since, naming what moved, and each write MUST be journalled. |
+| **ARCH-R256** | The settings read MUST list each secret a service's environment names, with whose it is, the services that read it, where its value came from and whether one is held, and MUST NOT carry a secret's value; neither settings write MUST take a secret, and naming one MUST be refused, naming it. |
+| **ARCH-R257** | The settings MUST ride the operator's event stream as a `settings` event, sent when a client connects and whenever one changes, and MUST NOT ride a member's stream. |
 
 ## The artefact
 

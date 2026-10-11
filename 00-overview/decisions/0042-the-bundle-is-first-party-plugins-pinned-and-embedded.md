@@ -10,6 +10,8 @@ to each first-party plugin in place, on update.
 keeps that stack usable without lemonfiber.
 **Amends** [ADR-0005](0005-embedded-stack-assets.md): what is embedded is the bundle.
 
+**Amended** by [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md): the stack's own services and the bundle's plugins are written by one generator, and the media stack's Compose files retire before the repository does.
+
 ## Context
 
 [ADR-0041](0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md) makes every

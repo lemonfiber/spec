@@ -3,6 +3,8 @@
 **Status:** Proposed
 **Date:** 2026-09-11
 
+**Amended** by [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md): the vocabulary is one typed model, wider than this entry's shape and still closed; the entry extends no template; and the escape hatch of §6 is an operator's own overlay, merged last and shown as unvetted, while a fork is held to the model.
+
 ## Context
 
 [F3](../../10-functional/features/f-extensibility/f3-stack-manifests.md) says a

@@ -212,7 +212,7 @@ operator would notice is a form of their own the app does not believe exists.
 | **B1-R11** | A single service failing to start MUST NOT stop or roll back the rest of the form. |
 | **B1-R12** | A form referencing an undeclared profile MUST fail manifest validation at load time. |
 | **B1-R13** | `library` MUST be startable with no third-party accounts configured. |
-| **B1-R14** | No service MAY declare a `depends_on` crossing a profile boundary, except within a profile whose services are always co-activated. |
+| **B1-R14** | No service MAY declare a `depends_on` crossing a profile boundary, except within a profile whose services are always co-activated; the one exception is `network.via` ([ARCH-R236](../../../20-architecture/contracts/plugin-manifest.md)), which starts the filler of the capability it names first, whatever its profile, and starts the service only once that filler is healthy. |
 | **B1-R15** | Which profiles require a configured provider MUST be declared by the manifest; lemonfiber MUST NOT identify them by name. |
 | **B1-R16** | Status MUST name, for each service, every active form whose closure holds it, and MUST NOT name a superseded form. |
 | **B1-R17** | Status MUST report each service an active form's closure filtered out, with the provider it needs and the forms that asked for it. |
