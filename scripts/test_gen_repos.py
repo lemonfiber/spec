@@ -175,10 +175,54 @@ class Diagramming(Tree, unittest.TestCase):
         self.assertIn("-.->|governs all|", out)
 
 
+class Parts(Tree, unittest.TestCase):
+    """Every first-party plugin's repository is a row, and one node between them."""
+
+    def setUp(self):
+        super().setUp()
+        self.registry.write_text(REGISTRY + """
+[[repo]]
+name = "plugin-sonarr"
+spec = []
+lang = "TOML"
+note = "The bundle's television curator"
+group = "impl"
+plugin = "sonarr"
+image = false
+
+[[repo]]
+name = "plugin-door"
+spec = []
+lang = "Dockerfile"
+note = "The bundle's guarded door"
+group = "impl"
+plugin = "door"
+image = true
+
+[[edge]]
+from = "sdk-php"
+to = "parts"
+label = "pins"
+""", encoding="utf-8")
+
+    def test_each_plugin_is_a_row_and_all_of_them_one_node(self):
+        out = self.run_gen()
+        self.assertIn("| `plugin-sonarr` |", out)
+        self.assertIn("| `plugin-door` |", out)
+        self.assertIn('parts["plugin-*<br/>two first-party plugins"]', out)
+        self.assertIn("sdkphp -->|pins| parts", out)
+        self.assertIn("Those five are the repositories", out)
+
+    def test_counts_past_twenty_are_spelled(self):
+        self.assertEqual(self.gen.word(42), "forty-two")
+        self.assertEqual(self.gen.word(40), "forty")
+        self.assertEqual(self.gen.word(13), "thirteen")
+
+
 class Refusing(Tree, unittest.TestCase):
     def test_a_count_past_the_words_refuses_rather_than_writing_a_digit(self):
         with self.assertRaises(SystemExit) as raised:
-            self.gen.word(26)
+            self.gen.word(100)
         self.assertIn("counting words", str(raised.exception))
 
     def test_a_readme_with_no_table_refuses(self):

@@ -168,3 +168,103 @@ hooks = ["commit-msg", "pre-push"]
 name = "plugin-jellyfin"
 gates = []
 hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-prowlarr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-flaresolverr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-nzbhydra2"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-sabnzbd"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-gluetun"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-qbittorrent"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-sonarr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-radarr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-lidarr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-bindery"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-bazarr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-recyclarr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-unpackerr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-seerr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-calibre-web-automated"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-audiobookshelf"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-navidrome"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-homepage"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-door"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-caddy"
+gates = []
+hooks = ["commit-msg", "pre-push"]

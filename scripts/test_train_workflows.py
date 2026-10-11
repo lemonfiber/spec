@@ -323,7 +323,7 @@ class TheSteps(unittest.TestCase):
                 self.fresh()
                 (self.root / "30-repos/repos.toml").write_text(
                     '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n\n'
-                    '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n', encoding="utf-8")
+                    '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n', encoding="utf-8")
                 (self.root / "70-operations/versions/0.2.0.toml").write_text(
                     'version = "0.2.0"\nrepos = ["lemonfiber", "lemonfiber-decline", "plugin-jellyfin"]\n',
                     encoding="utf-8")
@@ -338,7 +338,7 @@ class TheSteps(unittest.TestCase):
     def test_a_release_tags_each_plugin_repository_in_its_first_step(self):
         self.fresh()
         (self.root / "30-repos/repos.toml").write_text(
-            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
             encoding="utf-8")
         (self.root / "70-operations/versions/0.2.0.toml").write_text(
             'version = "0.2.0"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n', encoding="utf-8")
@@ -356,7 +356,7 @@ class TheSteps(unittest.TestCase):
         """The core's checkout embedding a catalogue whose bundle pins jellyfin at `release`,
         at a revision whose `targets.toml` names the core commit before the embedding."""
         (self.root / "30-repos/repos.toml").write_text(
-            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
             encoding="utf-8")
         (self.root / "70-operations/versions/0.2.0.toml").write_text(
             'version = "0.2.0"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n', encoding="utf-8")

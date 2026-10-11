@@ -134,7 +134,7 @@ class PluginReposTests(Workspace):
     def setUp(self):
         super().setUp()
         self.registry = {"repo": [{"name": "lemonfiber"}, {"name": "lemonfiber-decline", "service": "decline"},
-                                  {"name": "plugin-jellyfin", "plugin": "jellyfin"}]}
+                                  {"name": "plugin-jellyfin", "plugin": "jellyfin", "image": True}]}
 
     def test_a_repository_the_registry_gives_a_plugin_is_tagged_first(self):
         data = {"repos": ["lemonfiber", "plugin-jellyfin", "lemonfiber-decline"]}
@@ -146,10 +146,21 @@ class PluginReposTests(Workspace):
         for entry, said in (({"name": "jellyfin", "plugin": "jellyfin"}, "so it is named plugin-jellyfin"),
                             ({"name": "plugin-Jelly", "plugin": "Jelly"}, "is not a plugin id"),
                             ({"name": "plugin--x", "plugin": "-x"}, "is not a plugin id"),
-                            ({"name": "plugin-x", "plugin": "x", "service": "x"}, "carries both")):
+                            ({"name": "plugin-x", "plugin": "x", "service": "x"}, "carries both"),
+                            ({"name": "plugin-x", "plugin": "x"}, "does not say `image = true`"),
+                            ({"name": "plugin-x", "plugin": "x", "image": "yes"}, "does not say")):
             with self.subTest(entry), self.assertRaises(SystemExit) as caught:
                 manifest_repos.plugin_repos({"repo": [entry]})
             self.assertIn(said, str(caught.exception))
+
+    def test_a_plugin_that_builds_no_image_is_never_tagged_nor_owed(self):
+        """Pinned by revision and tree digest, it is no stream the train cuts (ADR-0045)."""
+        registry = {"repo": [*self.registry["repo"],
+                             {"name": "plugin-sonarr", "plugin": "sonarr", "image": False}]}
+        data = {"status": "planned", "repos": ["lemonfiber", "plugin-jellyfin"]}
+        self.assertEqual(manifest_repos.unlisted_plugins(data, registry), [])
+        self.assertEqual(manifest_repos.plugins({"repos": ["plugin-sonarr", "lemonfiber"]}, registry), [])
+        self.assertIn("plugin-sonarr", manifest_repos.plugin_repos(registry))
 
     def test_a_version_cutting_the_core_without_a_plugin_is_refused(self):
         self.assertEqual(manifest_repos.unlisted_plugins({"status": "planned", "repos": ["lemonfiber"]},
@@ -166,7 +177,7 @@ class PluginReposTests(Workspace):
     def write(self, repos):
         pathlib.Path("30-repos").mkdir(exist_ok=True)
         pathlib.Path("30-repos/repos.toml").write_text(
-            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
             encoding="utf-8")
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
             f'version = "0.2.0"\nstatus = "planned"\nrepos = {repos}\n', encoding="utf-8")
@@ -185,7 +196,11 @@ class PluginReposTests(Workspace):
 
     def test_the_registry_this_repository_holds_names_its_plugins(self):
         registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
-        self.assertEqual(manifest_repos.plugin_repos(registry), {"plugin-jellyfin": "jellyfin"})
+        published = manifest_repos.plugin_repos(registry)
+        self.assertEqual(len(published), 21)
+        self.assertTrue(all(name == f"plugin-{plugin}" for name, plugin in published.items()))
+        self.assertEqual(manifest_repos.train_plugins(registry),
+                         {"plugin-jellyfin": "jellyfin", "plugin-door": "door", "plugin-caddy": "caddy"})
 
     def test_every_manifest_not_yet_released_cuts_each_plugin_with_the_core(self):
         registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
@@ -206,7 +221,7 @@ class CheckBundlePinsTests(Workspace):
         super().setUp()
         pathlib.Path("30-repos").mkdir()
         pathlib.Path("30-repos/repos.toml").write_text(
-            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
             encoding="utf-8")
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
             'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin"]\n', encoding="utf-8")
@@ -587,7 +602,7 @@ class TrainStepTests(TrainImages):
     def test_a_plugin_is_tagged_in_the_first_step_beside_the_images(self):
         pathlib.Path("30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n\n'
-            '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n', encoding="utf-8")
+            '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n', encoding="utf-8")
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
             'version = "0.2.0"\nrepos = ["lemonfiber-decline", "lf", "plugin-jellyfin"]\n', encoding="utf-8")
         self.stream("lemonfiber-decline", tagged=("v0.2.0",))
@@ -599,7 +614,7 @@ class TrainStepTests(TrainImages):
 
     def test_a_pre_release_holds_every_plugin_back(self):
         pathlib.Path("30-repos/repos.toml").write_text(
-            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n', encoding="utf-8")
+            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n', encoding="utf-8")
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
             'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin"]\n', encoding="utf-8")
         self.stream("plugin-jellyfin")
@@ -609,7 +624,7 @@ class TrainStepTests(TrainImages):
 
     def test_a_version_cutting_the_core_without_its_plugin_settles_no_step(self):
         pathlib.Path("30-repos/repos.toml").write_text(
-            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n',
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
             encoding="utf-8")
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
             'version = "0.2.0"\nrepos = ["lemonfiber"]\n', encoding="utf-8")

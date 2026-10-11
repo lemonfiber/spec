@@ -21,17 +21,15 @@ REGISTRY = pathlib.Path("30-repos/repos.toml")
 README = pathlib.Path("30-repos/README.md")
 
 #: Counting words, for a sentence that says "Those twelve" rather than "Those 12".
-#: Stops at twenty because an org past twenty repositories has a different
-#: problem, and a wrong word is better than a silently unwritten one — `count`
-#: raises rather than falling back to a digit nobody reviewed.
-WORDS = {
-    1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven",
-    8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "twelve",
-    13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen",
-    17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty",
-    21: "twenty-one", 22: "twenty-two", 23: "twenty-three", 24: "twenty-four",
-    25: "twenty-five",
-}
+#: Every bundled part is a repository of its own (ADR-0045), so the count runs past
+#: forty. It stops at ninety-nine: a wrong word is better than a silently unwritten
+#: one, and `word` raises rather than falling back to a digit nobody reviewed.
+ONES = ("", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+        "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
+        "seventeen", "eighteen", "nineteen")
+TENS = ("", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
+#: The largest count `word` spells.
+MOST = 99
 
 #: The diagram, found by its fence. `flowchart TD` is in the opening line so a
 #: second mermaid block elsewhere in the file is not mistaken for this one.
@@ -42,6 +40,12 @@ DIAGRAM = re.compile(r"^```mermaid\nflowchart TD\n.*?^```", re.MULTILINE | re.DO
 #: all of them at once, and an arrow per repository would say the same thing
 #: twelve times and obscure the nine that carry information.
 IMPL = "impl"
+
+#: The one node every first-party plugin's repository is drawn as, inside the
+#: subgraph. A repository carrying `plugin` gets a row in the table like any other,
+#: and a box of its own in the diagram would be twenty boxes saying one thing.
+#: Edges may name it as they name the subgraph.
+PARTS = "parts"
 
 #: The table, found by its header the way the roadmap's is: the header row and
 #: every consecutive line under it that starts with a pipe.
@@ -62,12 +66,15 @@ def repos() -> list[dict]:
 
 
 def word(n: int) -> str:
-    if n not in WORDS:
+    if not 1 <= n <= MOST:
         raise SystemExit(
             f"::error::{n} repositories, which is past the counting words this "
-            f"generator knows. Add it to WORDS in {__file__}."
+            f"generator knows. Extend `word` in {__file__}."
         )
-    return WORDS[n]
+    if n < len(ONES):
+        return ONES[n]
+    tens, ones = divmod(n, 10)
+    return TENS[tens] + (f"-{ONES[ones]}" if ones else "")
 
 
 def cell(entry: dict) -> str:
@@ -105,8 +112,11 @@ def diagram() -> str:
     out.append("")
     out.append(f"    subgraph {IMPL}[Implementation]")
     for entry in entries:
-        if entry["group"] == IMPL:
+        if entry["group"] == IMPL and "plugin" not in entry:
             out.append(f'        {entry["node"]}["{entry["label"]}"]')
+    parts = sum(1 for entry in entries if "plugin" in entry)
+    if parts:
+        out.append(f'        {PARTS}["plugin-*<br/>{word(parts)} first-party plugins"]')
     out.append("    end")
     out.append("")
 
@@ -115,7 +125,7 @@ def diagram() -> str:
         # An edge may name the subgraph rather than a repository; that is the
         # one target with no registry entry, and it is deliberate.
         ends = [
-            end if end == IMPL else by_name[end]["node"]
+            end if end in (IMPL, PARTS) else by_name[end]["node"]
             for end in (edge["from"], edge["to"])
         ]
         out.append(f"    {ends[0]} {arrow}|{edge['label']}| {ends[1]}")

@@ -16,7 +16,7 @@ version = "0.20.0"
 milestone = "M11"   # Ecosystem glue
 delivers  = "Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles"
 status  = "planned"
-repos   = ["lemonfiber", "plugin-jellyfin"]
+repos   = ["lemonfiber", "plugin-jellyfin", "plugin-door", "plugin-caddy"]
 satisfied_in = ["lemonfiber", "plugin-jellyfin", "lemonfiber-companion"]
 goals   = [
     "H1-R1",

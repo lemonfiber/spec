@@ -682,7 +682,7 @@ class ManifestRepositories(Spec):
 
     def plugin_registry(self):
         self.doc("30-repos/repos.toml",
-                 '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\n')
+                 '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n')
 
     def test_a_planned_version_cutting_the_core_without_a_plugin_is_refused(self):
         """OPS-R86: every version that cuts the core cuts each first-party plugin."""

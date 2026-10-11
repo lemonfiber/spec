@@ -6,7 +6,8 @@ version = "0.22.0"
 milestone = "M12"   # Safely reachable
 delivers  = "Safely reachable — remote access and one account"
 status  = "planned"
-repos   = ["lemonfiber", "plugin-jellyfin"]
+repos   = ["lemonfiber", "plugin-jellyfin", "plugin-door", "plugin-caddy"]
+satisfied_in = ["lemonfiber", "plugin-jellyfin"]
 goals   = [
     "I1-R1",
     "I1-R2",
