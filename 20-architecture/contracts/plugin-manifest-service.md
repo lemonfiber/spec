@@ -197,10 +197,11 @@ one of it. What is permitted is narrow:
 has no business changing it: the guarded door reads its routes there and writes
 nothing.
 
-### Mounts — inside its own directory, and nowhere else
+### Mounts — from its own tree, and nowhere else
 
 A second path beside the first — Jellyfin's `/cache`, Audiobookshelf's `/metadata` —
-is a mount whose source lies inside the service's own configuration directory:
+is a mount whose source lies in the service's own mount tree, a directory lemonfiber
+keeps beside its configuration directory rather than inside it:
 
 ```toml
 [[service.mount]]
@@ -213,24 +214,33 @@ to   = "/etc/caddy/Caddyfile"
 ro   = true
 ```
 
-`from` is a relative path inside the service's own configuration directory, a file or
-a directory, and lemonfiber writes it as `./config/<id>/<from>`. An absolute path, a
-`..` or an interpolation is refused, naming the mount. `to` is an absolute path and not
-`/`; on a service that takes data it lies outside `/data`; and no two of the service's
-mounts share a target. So a further mount widens nothing a reader has to judge: it is
-the directory lemonfiber already gave the service, landing in a second place.
+`from` is a relative path inside the service's own mount tree, a file or a directory,
+and lemonfiber writes it as `./mounts/<id>/<from>`. An absolute path, a `..` or an
+interpolation is refused, naming the mount, and so is a source lying inside another of
+the service's sources. `to` is an absolute path and not `/`; on a service that takes data
+it lies outside `/data`; and no two of the service's mounts share a target. So a further
+mount widens nothing a reader has to judge: it is a place lemonfiber gave the service,
+landing where the image reads it.
+
+The tree is apart from the configuration directory because a container writes its
+configuration directory. A source inside it would be a path the container could replace
+with a link, and the engine follows a link whenever it mounts, including when it
+restarts the container itself after the machine boots, when nothing of lemonfiber's runs
+first. A source in a tree no container sees, except through that one mount, is a path no
+container can change; and because no source lies inside another, what a container
+writes through one mount never reaches the path of the next.
 
 `tmpfs` reaches nothing of the host at all, and its targets are held to the same rules.
 It is scratch space in memory, empty whenever the container starts and writable by
 whoever the container runs as. The door keeps its working files there, so nothing it
 writes outlives it.
 
-**A service's state lives under its own directory and nowhere else** (`ARCH-R228`).
+**A service's state lives under its own two directories and nowhere else** (`ARCH-R228`).
 There is no volume the engine keeps on a service's behalf: state somewhere the operator
 cannot see is state a backup, a move and the question "what can this reach" all miss.
 The proxy keeps its certificates and its own state in two such volumes today
 (`caddy_data`, `caddy_config`), so the in-place move copies each into the proxy's
-directory once, mounts them from there, and leaves the volumes as they were, so that
+mount tree once, mounts them from there, and leaves the volumes as they were, so that
 undoing the move finds them.
 
 There is no field by which a mount reaches any other path on the host. In particular
