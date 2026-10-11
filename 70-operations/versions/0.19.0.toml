@@ -8,7 +8,11 @@
 # playing, and a player that holds no second copy of what a member may watch. They are
 # the web surface's, so `lemonfiber-web` is searched; it is not tagged.
 #
-# 20 goals, seeded from the roadmap milestone this version serves;
+# `N2-R28` is the operator's side of what the household plays: every session the media
+# server is playing, as the `playing` read and event carry it. It is the companion's, so
+# `lemonfiber-companion` is searched; it is not tagged.
+#
+# 21 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -17,7 +21,7 @@ milestone = "M16"   # The household's library
 delivers  = "The household's library: find, ask for and play, under the member's own limits"
 status  = "planned"
 repos   = ["lemonfiber", "plugin-jellyfin"]
-satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php"]
+satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion"]
 goals   = [
     "C10-R18",
     "C10-R19",
@@ -39,4 +43,5 @@ goals   = [
     "G10-R4",
     "G10-R7",
     "G10-R8",
+    "N2-R28",
 ]

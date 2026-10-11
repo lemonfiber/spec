@@ -151,6 +151,15 @@ A household member's request that needs a decision is surfaced here, with enough
 to decide on ([D7](../d-content/d7-approval-quotas.md)). Approving from a phone
 is the case this whole surface justifies itself with.
 
+### What the household is playing now
+
+The operator can see every session the media server is playing: who is watching,
+the title or the series, season and episode, on which device, and whether it is
+paused. The list follows the stack's `playing` event, so it stays current without
+the operator asking, says so plainly when nothing is playing, and says when it
+last heard where the stream has stopped. It is the operator's: a member is never
+shown it, nor anybody else's session.
+
 ### What it does not do
 
 Nothing here edits a credential's value. The app can report that a credential is
@@ -224,6 +233,7 @@ and a note beside it says a preview cannot ask.
 | **N2-R25** | The operator MUST be able to open the member's application as a member with the household's default access and allowance would see it, drawn in the member theme from what the core answers for such a member (`D6-R20`). It MUST be marked as a preview on every screen, and MUST NOT show a named member's requests, allowance or watch history. |
 | **N2-R26** | The member's application opened as a preview (`N2-R25`) MUST NOT send any request, allowance spend or other change to the stack. A control that would do so on a member's own session MUST be drawn and MUST NOT be usable, with a note saying a preview cannot do it. |
 | **N2-R27** | A confirmed update and a confirmed restart MUST carry back the offer the stack answered with when the operator was shown what each would do (`ARCH-R164`). Where the stack refuses the agreement because that offer has moved, the app MUST NOT report it as a failure, MUST read again what the action would do, and MUST offer that for a fresh agreement, as for a repair (`N2-R6`, `ARCH-R142`). |
+| **N2-R28** | The operator MUST be able to see what the household is playing now. It MUST list every session the media server reports. Each session MUST name the member, the title or the series, season and episode, the device, and whether it is paused. The list MUST be kept current from the stack's `playing` event without the operator asking again. It MUST say plainly when nothing is playing, and MUST say when it last heard where the stream has stopped. A member MUST NOT be shown this list or any other member's session. |
 
 ## Notes
 
