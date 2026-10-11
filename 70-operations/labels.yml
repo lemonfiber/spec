@@ -94,3 +94,6 @@
 - name: proposal:approved
   color: 0e8a16
   description: A maintainer's word to allocate this proposal's identifiers and move it in as Draft
+- name: workflows-approved
+  color: b60205
+  description: A maintainer's approval, after the last push and the user's yes, for a change to what this repository's checks run (Q-R83)
