@@ -1,8 +1,5 @@
-# Reusable governance gate. Every implementation repo calls this:
-#
-#   jobs:
-#     spec-check:
-#       uses: lemonfiber/spec/.github/workflows/spec-check.yml@main
+# Reusable governance gate. Every other repository runs it as the `spec-check`
+# group of `gates.yml`, which scripts/gen_gates.py writes from this file.
 #
 # Defined once here so the rule has exactly one implementation and cannot drift
 # between repos. See spec 50-governance/cross-repo-ci.md.

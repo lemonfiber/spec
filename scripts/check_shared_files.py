@@ -691,7 +691,7 @@ def main() -> int:
         + adoption(repo, canonical, name)
         + manager(repo)
         + codeowners(repo, canonical, name)
-        + check_superseded_runs.superseded(repo, canonical, name)
+        + check_superseded_runs.superseded(repo, canonical)
     )
     if problems:
         for problem in problems:

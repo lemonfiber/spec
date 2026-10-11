@@ -65,10 +65,10 @@ class Repository(unittest.TestCase):
     def write(self, name: str, text: str) -> None:
         (self.repo / ".github" / "workflows" / name).write_text(text, encoding="utf-8")
 
-    def check(self, name: str = "cli") -> tuple[list[str], str]:
+    def check(self) -> tuple[list[str], str]:
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            said = superseded.superseded(self.repo, self.canonical, name)
+            said = superseded.superseded(self.repo, self.canonical)
         return said, out.getvalue()
 
     def refused(self, *words: str) -> list[str]:
@@ -310,25 +310,6 @@ class TheHome(Repository):
         (self.canonical / superseded.HOME).write_text("# nothing\n", encoding="utf-8")
         said, _ = self.check()
         self.assertIn("holds no group that cancels", said[0])
-
-
-class Reported(Repository):
-    """A repository still being brought into line is told, and not failed."""
-
-    NAME = min(superseded.REPORTED)
-
-    def test_its_findings_are_warnings(self):
-        self.write("ci.yml", workflow("on: [pull_request]", ""))
-        said, out = self.check(self.NAME)
-        self.assertEqual(said, [])
-        self.assertIn(f"::warning::{self.NAME} is reported here rather than refused", out)
-        self.assertIn("ci.yml runs on a pull request", out)
-
-    def test_one_carrying_the_group_everywhere_is_told_to_leave_the_list(self):
-        self.write("ci.yml", workflow("on: [pull_request]"))
-        said, out = self.check(self.NAME)
-        self.assertEqual(said, [])
-        self.assertIn("Take it out of REPORTED", out)
 
 
 if __name__ == "__main__":

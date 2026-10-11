@@ -20,8 +20,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          # The registry as it stood at the commit this workflow was called at,
+          # so a label reaches a repository when its pin moves, as every other
+          # shared change does, and not the moment it merges.
+          REGISTRY: https://raw.githubusercontent.com/lemonfiber/spec/${{ job.workflow_sha }}/70-operations/labels.yml
         run: |
-          curl -sfL --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/lemonfiber/spec/main/70-operations/labels.yml -o labels.yml
+          set -euo pipefail
+          curl -sfL --proto '=https' --tlsv1.2 "$REGISTRY" -o labels.yml
           # `--only-binary :all:` refuses a source distribution, which is what
           # keeps this from running a package's own `setup.py` on a runner
           # holding `GH_TOKEN`. The sibling step in `coverage.yml` has said so
@@ -31,11 +36,17 @@ jobs:
           python3 -m pip install --quiet --only-binary :all: "pyyaml==6.0.2"
           python3 - <<'PY'
           import subprocess, yaml
+          failed = []
           for l in yaml.safe_load(open("labels.yml")):
-              subprocess.run(
+              written = subprocess.run(
                   ["gh", "label", "create", l["name"],
                    "--color", str(l["color"]),
                    "--description", l.get("description", ""),
                    "--force"],
                   check=False)
+              if written.returncode != 0:
+                  failed.append(l["name"])
+          if failed:
+              print(f"::error::could not write {len(failed)} label(s): {', '.join(failed)}")
+              raise SystemExit(1)
           PY
