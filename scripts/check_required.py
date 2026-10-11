@@ -8,9 +8,9 @@ way, and the estate could not tell, because nothing anywhere compares what runs
 against what blocks.
 
 This does. For every repository in the organisation it reads the required
-contexts and the check names its recently merged pull requests produced, and
-refuses a name that ran, does not block, and is not in the register beside this
-file.
+contexts, the check names its recently merged pull requests produced and those
+its recent `pull_request_target` runs produced, and refuses a name that ran, does
+not block, and is not in the register beside this file.
 
 In a repository that calls the shared gates, only the pull requests merged
 since its `gates.yml` landed are read: one merged before ran the separate
@@ -63,6 +63,12 @@ SAMPLED = 6
 # since the repository took the shared gates, and how many are read before an
 # exemption is said to match nothing.
 LISTED = 50
+
+# How many recent `pull_request_target` runs each repository is asked about.
+# Those run the workflow as the default branch holds it, whatever the pull
+# request carries, so a check added there reports on open pull requests from the
+# day it lands, before any pull request merges with it.
+TARGET_RUNS = 10
 
 # The caller of the shared checks. A pull request merged before it landed ran
 # the separate callers it replaced, whose names no protection requires any more.
@@ -226,6 +232,28 @@ def observed_in(owner: str, name: str, sampled: int = SAMPLED, since: str | None
     return names
 
 
+def targeted_in(owner: str, name: str, runs: int = TARGET_RUNS) -> set[str]:
+    """Every check name the repository's recent `pull_request_target` runs produced.
+
+    A merged pull request never ran a check its own change added under
+    `pull_request_target`, which runs the default branch's copy: `pin-only`
+    reported on every open pull request in five repositories for a day, and
+    required in none, while the merged ones this reads said nothing of it.
+    """
+    repo = named(owner, "organisation") + "/" + named(name, "repository")
+    raw = _run(
+        [
+            "gh", "api", f"repos/{repo}/actions/runs?event=pull_request_target&per_page={int(runs)}",
+            "--jq", ".workflow_runs[].id",
+        ]
+    )
+    names: set[str] = set()
+    for run in (line.strip() for line in raw.splitlines() if line.strip()):
+        jobs = _run(["gh", "api", f"repos/{repo}/actions/runs/{int(run)}/jobs", "--jq", ".jobs[].name"])
+        names.update(line.strip() for line in jobs.splitlines() if line.strip())
+    return names
+
+
 def covers(entry: dict, check: str) -> bool:
     """Whether one register entry names `check`, by its whole name or a prefix."""
     return entry.get("name") == check or ("prefix" in entry and check.startswith(entry["prefix"]))
@@ -294,7 +322,8 @@ def unrequired_in(
     """
     required = required_in(owner, name)
     found = []
-    for check in sorted(observed_in(owner, name, since=gates_landed(owner, name))):
+    seen = observed_in(owner, name, since=gates_landed(owner, name)) | targeted_in(owner, name)
+    for check in sorted(seen):
         if check in required:
             continue
         entry = exempt(check, names, prefixes)

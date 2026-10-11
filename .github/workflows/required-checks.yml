@@ -55,6 +55,7 @@ jobs:
           permission-administration: read
           permission-contents: read
           permission-pull-requests: read
+          permission-actions: read
 
       - name: What runs, and what can refuse
         id: look
