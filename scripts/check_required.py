@@ -27,7 +27,12 @@ belongs where a maintainer can read the reason. What belongs here is the
 arithmetic, and the refusal when a register entry stops being true: an exemption
 matching nothing is a mute wearing a register's clothes.
 
-Four ways to answer about nothing, all refused:
+A repository must also allow auto-merge. The release train arms each bump it
+opens to merge itself once its required checks pass (OPS-R48), and in a
+repository that does not allow it the bump is opened and then waits for a person,
+with every pull request there red on the pin until somebody notices.
+
+Five ways to answer about nothing, all refused:
 
 - no repository was listed, so no protection was read;
 - a repository's protection could not be read, which is not a repository with
@@ -35,7 +40,9 @@ Four ways to answer about nothing, all refused:
 - a repository produced no check names at all, so what runs there is unknown
   rather than covered;
 - an exemption matched no check anywhere, so it is holding open a door that is
-  no longer there.
+  no longer there;
+- a repository whose auto-merge setting the token cannot see, which is not a
+  repository that allows it.
 
 Run:  python3 scripts/check_required.py
       python3 scripts/check_required.py --repo lemonfiber/spec
@@ -182,6 +189,19 @@ def required_in(owner: str, name: str) -> set[str]:
             ) from why
         raise
     return {c["context"] for c in json.loads(raw).get("checks", [])}
+
+
+def merges_itself(owner: str, name: str) -> bool:
+    """Whether the repository lets a pull request be armed to merge once its checks pass."""
+    repo = named(owner, "organisation") + "/" + named(name, "repository")
+    said = _run(["gh", "api", f"repos/{repo}", "--jq", ".allow_auto_merge"]).strip()
+    if said not in ("true", "false"):
+        raise Unanswerable(
+            f"{repo}'s auto-merge setting could not be read (it answered {said or 'nothing'!r}): "
+            "the token this runs with sees it only with the repository permission "
+            "Administration: read, and an unread setting is not one that allows it"
+        )
+    return said == "true"
 
 
 def gates_landed(owner: str, name: str) -> str | None:
@@ -350,6 +370,15 @@ def look(owner: str, only: str | None, out) -> int:
             print(refusal(repo, unrequired), file=out)
             print(file=out)
             refused += 1
+        if not merges_itself(owner, name):
+            print(
+                f"{repo} does not allow auto-merge, so the release train's bump there is "
+                "opened and never merges itself (OPS-R48). Turn on Settings → General → "
+                "Allow auto-merge.",
+                file=out,
+            )
+            print(file=out)
+            refused += 1
 
     unused = [] if only else [entry for entry in (*names, *prefixes) if id(entry) not in matched]
     unused = unmatched(owner, repos, unused) if unused else []
@@ -370,7 +399,8 @@ def look(owner: str, only: str | None, out) -> int:
         return 1
 
     print(
-        f"every check running in {looked} repositories is required or registered",
+        f"every check running in {looked} repositories is required or registered, "
+        "and every one of them allows auto-merge",
         file=out,
     )
     return 0

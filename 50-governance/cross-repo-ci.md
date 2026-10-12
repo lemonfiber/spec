@@ -520,7 +520,9 @@ for each number rather than opened beside the last (**OPS-R85**), and arms that
 pull request to merge itself at the commit it made once its required checks pass
 (**OPS-R48**, **OPS-R87**). Nobody presses the button: `pin-only` has already
 held the change to spec's pins moving forward along `main`, which is everything
-a person merging it would have checked.
+a person merging it would have checked. A repository that does not allow
+auto-merge refuses the arming, and the bump there waits for a person, so the
+daily required-checks audit refuses every repository that does not allow it.
 
 A fan-out that ran for every number would rebuild every repository's bump once per
 tag, and five tags in an evening are five rounds of every repository's checks.
