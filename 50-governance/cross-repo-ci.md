@@ -361,7 +361,11 @@ built site sends a reader to, and `site-deploy` publishes the one build to
 GitHub Pages and Cloudflare. A first-party plugin that carries no code of its own
 calls `first-party-plugin`, which runs plugin-template's reader at a pinned commit
 over the plugin as one job, skipped where nothing it reads changed (**Q-R76**), so
-the plugin's repository holds no Python.
+the plugin's repository holds no Python. A first-party plugin that builds an image
+calls `first-party-image`, which proves the image under the posture its manifest
+declares on a pull request (**ARCH-R250**), and from main and a train tag
+publishes it, runs what it published under that posture, and moves the
+manifest's pin on one rolling pull request (**OPS-R90**, **OPS-R91**).
 
 An exact commit is a copy, and a copy goes stale in silence. `workflow-pins` is
 what makes it say so. It reads every

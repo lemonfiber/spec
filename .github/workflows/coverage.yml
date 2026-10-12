@@ -232,3 +232,10 @@ jobs:
       # (Q-R66, Q-R76).
       - name: A first-party plugin is shown judged where what it reads changed
         run: python3 scripts/test_first_party_plugin.py
+      # Not a coverage suite: it runs the first-party image workflow's own steps
+      # out of the committed workflow, and checks which event proves and which
+      # publishes, that the service is run under the posture its manifest
+      # declares, and that the pin moves only the services running the image
+      # (OPS-R90, OPS-R91, ARCH-R250).
+      - name: A first-party image is shown run under its posture and pinned where it runs
+        run: python3 scripts/test_first_party_image.py
