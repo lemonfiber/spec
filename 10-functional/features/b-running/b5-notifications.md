@@ -39,6 +39,13 @@ available; the \*arrs have their own connection systems.
 |-------|--------|
 | **lemonfiber** | Problems, and cross-service conditions no single service can see |
 | **Seerr** (configured by lemonfiber) | Household request approved, denied, now available |
+| **lemonfiber**, to the operator's phone only | A new request waiting on the operator, and an invitation answered |
+
+The two in the last row are the operator's own business rather than the requester's: somebody
+in the house asked for something the operator decides on, or answered the operator's
+invitation. They go to the operator's phone and to nobody else; the requester and the invitee
+are still told by the service that owns their side
+([ADR-0047](../../../00-overview/decisions/0047-a-phone-hears-its-stacks-without-a-vendors-push-service.md)).
 
 lemonfiber's unique contribution is the conditions **nothing else observes**: a
 VPN leak, hardlink degradation, an item downloaded but never imported, a disk
@@ -83,6 +90,7 @@ the starting point; it is not a ceiling.
 | **In-app** | Dashboard and health summary. Always on, no configuration, no dependency. The irreducible baseline. |
 | **Desktop** | Native OS notification when lemonfiber runs on the operator's own machine. Useless headless. |
 | **ntfy** | Push to phone. Apache-2.0 and self-hostable, so it fits the open-source commitment. A single HTTP request. |
+| **Companion** | The phone app, raising each alert locally from its own connection, filtered by the kinds the operator chose for that stack; woken through UnifiedPush on Android where a distributor is installed, and best-effort while closed otherwise ([ADR-0047](../../../00-overview/decisions/0047-a-phone-hears-its-stacks-without-a-vendors-push-service.md)). |
 | **Apprise** | Bridge to 100+ services (Discord, Telegram, email, Gotify, Pushover). One integration covers everything else. |
 
 In-app is unconditional — an alert must never exist *only* on a channel that
@@ -155,7 +163,7 @@ Per alert condition:
 
 | ID | Requirement |
 |----|-------------|
-| **B5-R1** | lemonfiber MUST NOT duplicate notifications that Seerr or the \*arrs already send to their own users. |
+| **B5-R1** | lemonfiber MUST NOT duplicate notifications that Seerr or the \*arrs already send to their own users; a new request and an answered invitation MUST reach the operator alone, as the `request` and `member` notification kinds (`ARCH-R279`), and MUST NOT be sent to a household member. |
 | **B5-R2** | Setup MUST ask notification appetite once, offering presets rather than an event checklist. |
 | **B5-R3** | Every individual event MUST remain configurable after setup. |
 | **B5-R4** | In-app delivery MUST be unconditional and MUST NOT require configuration. |

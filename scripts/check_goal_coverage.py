@@ -90,7 +90,7 @@ AWAITING_A_VERSION = {
     ),
     "N4": (
         "N4 requires N1, whose app side 1.0.0 completes, and G3, locked by 0.10.0 at the latest, released",
-        [f"N4-R{n}" for n in range(1, 25)],
+        [f"N4-R{n}" for n in range(1, 28)],
     ),
     "N6": (
         "N6 requires N1, whose app side 1.0.0 completes, and E3, locked by 0.14.0 at the latest, released",

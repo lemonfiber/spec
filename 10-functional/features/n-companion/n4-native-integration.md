@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: both
 status: accepted
-maturity: built
+maturity: building
 priority: P1
 labels: [mobile, security, ux]
 requires: [N1, G3]
@@ -102,6 +102,20 @@ credential, a household member's name, or a title somebody requested.
 
 The app does not invent alerts of its own.
 
+### Notifications reach the phone without a vendor's push service
+
+No notification passes through Apple's or Google's push service, or through anything
+that could read it ([ADR-0047](../../../00-overview/decisions/0047-a-phone-hears-its-stacks-without-a-vendors-push-service.md)).
+The app raises each one itself, from its own pinned connection to the stack: while it
+runs, and when the platform wakes it for background refresh, when it reads what the
+stack raised while it slept. On Android, where a UnifiedPush distributor such as ntfy is
+installed, the stack can wake the app through it; the push says only that the stack has
+something to say, and what is notified is read over the app's own connection.
+
+A closed app on iOS hears its stacks when the system lets it, which may be rarely. The
+app says so where notifications are turned on, rather than promising what it cannot do,
+and says the same of Android without a distributor.
+
 ### Nothing is sent anywhere else
 
 No analytics, no crash reporting to a third party, no telemetry. A diagnostic the
@@ -172,6 +186,9 @@ nothing that would override the reader's own type size or choice of light or dar
 | **N4-R22** | Authentication on a cold start (`N4-R19`) MUST NOT be required where the device holds no pairing and no session, and the app MUST reach its first-run surface without a prompt. |
 | **N4-R23** | Whether the device holds a pairing MUST be read from the store itself rather than from a flag the app maintains, and the unlocked first run MUST NOT be reachable once a pairing has been held. |
 | **N4-R24** | While the app is locked, no application content MUST be drawn behind the lock, including a first-run surface, an empty state and any previously rendered frame. |
+| **N4-R25** | The app MUST NOT use Apple's or Google's push service, or any service able to read a notification; it MUST raise each notification locally, from its own pinned connection to the stack, while it runs and when the platform wakes it for background refresh, and on waking MUST notify what the stack raised since it last listened (`ARCH-R281`). |
+| **N4-R26** | On Android, where a UnifiedPush distributor is installed, the app MUST offer waking through it, MUST register the endpoint the distributor gives with each stack the operator turns it on for and remove it when turned off or the stack is removed (`ARCH-R282`), and MUST treat a push as a wake only, reading what to notify over its own connection. |
+| **N4-R27** | Where the operator turns notifications on, the app MUST say that while it is closed it hears a stack only when the platform wakes it, and so may notify late or not at all, on iOS and on Android without a UnifiedPush distributor. |
 
 ## Related
 

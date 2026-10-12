@@ -12,7 +12,19 @@
 # server is playing, as the `playing` read and event carry it. It is the companion's, so
 # `lemonfiber-companion` is searched; it is not tagged.
 #
-# 56 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R279` to `ARCH-R282` are what the companion's notifications are built on
+# (ADR-0047): the closed list of notification kinds every alert names, the kinds a stack
+# raises on the alerts read, the alerts a resumed stream replays, and the UnifiedPush
+# endpoints a phone registers to be woken. They are the core's; the companion's side, `N4-R25`
+# to `N4-R27` and `N27-R17`, waits with the rest of N4 and N27.
+#
+# `B5-R1`, released in 0.5.0, is amended in place: a new request and an answered invitation
+# reach the operator's phone as the `request` and `member` kinds, never a household member,
+# and the core's refusal of every request and household event narrows to refusing one
+# addressed to a member. It ships with `ARCH-R279`. Amended by the maintainer's decision of
+# 2026-10-12 (OPS-R31).
+#
+# 60 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -79,6 +91,10 @@ goals   = [
     "G2-R15",
     "G10-R12",
     "G10-R13",
+    "ARCH-R279",
+    "ARCH-R280",
+    "ARCH-R281",
+    "ARCH-R282",
 ]
 
 # `N21-R1` to `N21-R11`, `N3-R1` to `N3-R26` but for the three earlier versions lock,

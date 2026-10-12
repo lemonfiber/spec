@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/gen_board.py",
-  "counts": {"features": 113, "requirements": 1794, "areas": "A–N"},
+  "counts": {"features": 113, "requirements": 1797, "areas": "A–N"},
   "versions": [
     {"version": "0.1.0", "status": "released", "milestone": "M2", "goals": 9},
     {"version": "0.2.0", "status": "released", "milestone": "M3", "goals": 38},
@@ -20,7 +20,7 @@
     {"version": "0.16.0", "status": "released", "milestone": "M14", "goals": 111},
     {"version": "0.17.0", "status": "released", "milestone": "M14", "goals": 76},
     {"version": "0.18.0", "status": "staged", "milestone": "M14", "goals": 521},
-    {"version": "0.19.0", "status": "planned", "milestone": "M16", "goals": 56},
+    {"version": "0.19.0", "status": "planned", "milestone": "M16", "goals": 60},
     {"version": "0.20.0", "status": "planned", "milestone": "M11", "goals": 87},
     {"version": "0.21.0", "status": "planned", "milestone": "M11", "goals": 59},
     {"version": "0.22.0", "status": "planned", "milestone": "M12", "goals": 29},

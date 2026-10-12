@@ -85,8 +85,9 @@ also where a phone with no secure storage says that it keeps nothing.
 
 **A stack's settings**, one per stack: which of the kinds of notification that stack
 raises may reach the phone, within the phone's own notification settings, and which
-kinds are marked as new. The kinds of notification are the core's (`N4-R11`): a kind
-the stack adds appears here without a change to the app.
+kinds are marked as new. The kinds of notification are the core's (`N4-R11`): a closed
+list the contract publishes, of which each stack says the ones it raises (`ARCH-R279`,
+`ARCH-R280`), so the app offers a stack's kinds and no others.
 
 The app also remembers where the operator was — which stack and which tab — and opens
 there, after the lock.
