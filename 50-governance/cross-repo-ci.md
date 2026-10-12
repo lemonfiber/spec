@@ -450,19 +450,23 @@ Any other change under `.github/workflows/` or `.github/actions/` fails
 `pin-only` until a maintainer approves it with the `workflows-approved` label,
 added only once the user has said yes to that pull request (**Q-R83**). The
 label is the only way such a change merges: `enforce_admins` stays on and is
-never turned off to let one through. What the label approves is the change to those two directories, not the commit it was
-added on. A push or a force push that changes what the pull request changes
-there voids the approval, and so does the label's removal; `pin-only` then fails
-again until the label is added again. A push that leaves that change as it was,
-such as Dependabot rebasing its branch onto a newer `main`, keeps the approval,
-because what merges is still exactly what the maintainer approved. The change is
-read as each file's lines removed and added against the merge base, with the
-three lines around each so that the same lines moved elsewhere are not the same
-change, at the head the label was added on and at the head being judged; where
-the first cannot be read, nothing is approved. A label added by an account without the `admin` or
-`maintain` role on the repository, a bot's included, approves nothing. The check
-reads who added the label and when, and which head each of its own runs saw,
-from the forge's records, never from a commit's dates, which the pusher writes.
+never turned off to let one through. What the label approves is the change the
+pull request makes, not the commit it was added on, and the whole change: a
+workflow it changes may run a script anywhere in the tree, so a script swapped
+after the approval is as much a new change as a workflow edited. A push or a
+force push that changes what the pull request changes voids the approval, and so
+do a change of its base and the label's removal; `pin-only` then fails again
+until the label is added again. A push that leaves the change as it was, such as
+Dependabot rebasing its branch onto a newer `main`, keeps the approval, because
+what merges is still exactly what the maintainer approved. Nothing records the
+approved change: it is read from the forge each time, as each file's diff byte
+for byte with the three lines around every change, its modes, and the object a
+link or a submodule names, at the head the label was added on and at the head
+being judged. Where the first cannot be read, nothing is approved. A label added
+by an account without the `admin` or `maintain` role on the repository, a bot's
+included, approves nothing. The check reads who added the label and when, and
+which head each of its own runs saw, from the forge's records, never from a
+commit's dates, which the pusher writes.
 
 A label event runs `pin-only` only when the label is `workflows-approved`. Every
 other label, the ones the gates' labeler and Dependabot add included, skips the
