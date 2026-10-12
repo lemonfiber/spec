@@ -72,7 +72,9 @@ part deletes that adapter (`ARCH-R266`).
 - **Its claims and proofs**, against its recordings, and every image digest resolved on
   both platforms.
 - **Each image under its posture**, the image started under what its manifest declares,
-  healthy and answering its probes ([ARCH-R250](../20-architecture/contracts/plugin-manifest.md)).
+  healthy and answering its probes ([ARCH-R250](../20-architecture/contracts/plugin-manifest.md)),
+  and each run proof run live: recorded again with `lemonfiber plugin record` and held
+  to the recording committed beside the manifest ([ARCH-R285](../20-architecture/contracts/plugin-manifest.md)).
 - **The organisation's shared gates and hooks**, as `shared/adoption.toml` states them.
 
 A repository that builds an image also builds and publishes it from every commit on its
@@ -94,7 +96,7 @@ and the pin moves by a reviewed pull request on the catalogue
 |----|-------------|
 | **REPO-R94** | Every bundled part MUST have a repository of its own named `plugin-<id>`, `<id>` being both its plugin id and the id of the stack service it takes the place of, listed in `30-repos/repos.toml` with `plugin = "<id>"` and `image` saying whether it builds an image; decline and the request gate MUST instead declare their service in a `plugin.toml` in `lemonfiber-decline` and `lemonfiber-request-gate`. |
 | **REPO-R95** | A first-party plugin's repository MUST hold `plugin.toml` at its root, its starting files under `config/<id>/`, the recordings its claims and proofs name under `recordings/<id>/`, `conformance/` where it speaks a contract, and `targets.toml`. |
-| **REPO-R96** | A first-party plugin's CI MUST validate its manifest against the schema the core it targets publishes, judge its claims and proofs against its recordings, resolve every image digest on both platforms, and run each image under the posture its manifest declares. |
+| **REPO-R96** | A first-party plugin's CI MUST validate its manifest against the schema the core it targets publishes, judge its claims and proofs against its recordings, resolve every image digest on both platforms, and run each image under the posture its manifest declares, recording each run proof again and refusing a recording the run does not reproduce. |
 | **REPO-R97** | A first-party plugin's repository that builds an image MUST be a stream the train tags; one that builds none MUST NOT be tagged, and the bundle MUST pin it by revision and tree digest alone. |
 
 **Affected repos** (`GOV-R7`): every `plugin-<id>` repository listed above, `lemonfiber-decline` and `lemonfiber-request-gate`.

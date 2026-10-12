@@ -23,7 +23,8 @@ why     = "The path the health probe asks for is one this image serves."
 |-------|------|----------|-------|
 | `id` | string | ✔ | Unique within the plugin. What a verdict is reported against. |
 | `title` | string | ✔ | What it establishes, in one line |
-| `request` | table | ✔ | `method` and `path`. The same shape a `health` probe takes. |
+| `request` | table | ✔ unless `run` | `method` and `path`. The same shape a `health` probe takes. |
+| `run` | table | ✔ unless `request` | Arguments to the service's own image, run with no network — see [A proof that runs the image's own program](#a-proof-that-runs-the-images-own-program). Exactly one of `request` and `run`. |
 | `expect` | table | ✔ | What the answer must be. A status alone is not sufficient — see below. |
 | `fixture` | string | | A recorded response to run against where no instance exists (`F10-R4`) |
 | `service` | string | ✔ where the plugin declares more than one service | Which of this plugin's services is asked. Default: the only one. |
@@ -40,7 +41,8 @@ path, not about the service: Docker publishes a port by putting a proxy in front
 of it, and that proxy accepts a connection before knowing whether anything
 inside is listening. A manifest whose every proof asserts only a status MUST be
 refused, naming the proofs, because it has declared nothing a replaced container
-would fail (`ARCH-R105`). The core holds a `[[claim.probe]]` to its probe's body
+would fail (`ARCH-R105`). An exit status alone is a status: a run proof whose
+`expect` checks only `exit` counts as one that asserts only a status. The core holds a `[[claim.probe]]` to its probe's body
 constraints and holds a `[[proof]]` to nothing of the kind: a proof whose `expect`
 is a status alone is installed and run as written. `0.18.0` locks `ARCH-R105`.
 
@@ -135,6 +137,77 @@ Three verdicts, never two (`F3-R5`, `F4-R7`): passed, failed, and could not be
 run. The third is reported as unproven and is never counted as the first.
 Against a recording a proof or a check declares it fails on, a fourth is
 reported in place of the second: failing as declared.
+
+### A proof that runs the image's own program
+
+A part with no network surface has no answer to ask for. Quality sync is a program its
+image runs on a schedule: it publishes no port, listens on nothing and declares no
+health probe beyond the container running. Its proof runs the image's own program once,
+in a container of its own, and judges what it exits with and what it writes first:
+
+```toml
+[[proof]]
+id      = "recyclarr.runs"
+title   = "The pinned quality sync starts as the service runs it"
+run     = { args = ["--version"], timeout_s = 30 }
+expect  = { exit = 0, stdout_starts_with = "v8.7.3 (" }
+fixture = "recordings/recyclarr/runs-version.json"
+why     = "It has no port: the live question is whether the pinned program starts under its posture and its user."
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `run.args` | array of strings | ✔ | Passed to the image's own entrypoint as its arguments, one string each. One to 64 of them, each at most 4096 bytes and none holding a NUL. |
+| `run.timeout_s` | integer | | How long the run may take, from 1 to 120 seconds. Default 30. |
+
+| Key | Type | What it asserts |
+|-----|------|-----------------|
+| `exit` | integer | The exit status. Not sufficient alone, as a response status is not. |
+| `stdout_starts_with` | string | What the standard output must begin with |
+
+`run` is a `[[proof]]`'s alone. A capability's probes are requests the vocabulary
+declares, and a contributed check is a question asked of a running service, so a
+`[[claim.probe]]` and a check take `request` and nothing else. A run's `expect` takes
+these two keys and no other, and a request's takes none of them; each is refused by
+name where the other's is written (`ARCH-R283`).
+
+**The manifest names no program.** `args` go to the entrypoint the image declares,
+the program the service itself runs, so the proof asks the pinned program a question
+rather than starting something of the manifest's choosing. lemonfiber starts no shell
+and passes each string as one argument, so nothing in `args` is read as a command, a
+variable or a pattern.
+
+**It runs apart from the service, and with less.** lemonfiber starts a new container
+from the image at the digest the manifest pins, never a command inside the running
+service, and removes it when the run ends (`ARCH-R284`):
+
+| What the run has | What it is |
+|------------------|------------|
+| Its network | None. The container has no interface but loopback. |
+| Its user | The one the service's `user_mode` writes |
+| Its posture and memory | The service's own: its posture's hardening and its `mem_limit_mib` |
+| Its configuration directory | Where the service declares a `config_path`, a throwaway copy of the plugin's starting files for it (`config/<id>/`) there, or an empty directory where it ships none. Never the service's own directory. |
+| Its environment | The entry's constants, and `TZ`, `PUID` and `PGID` as lemonfiber writes them. No setting, no secret and no URL. |
+| Any other mount, device or shape | None |
+| Its time | `timeout_s`. A run still going then is stopped and fails, naming the limit. |
+| What is read of it | The first 64 KiB of standard output. Standard error is never judged. |
+
+What the run writes is the program's, not lemonfiber's, so every report shows it with
+its control characters removed, and none of it reaches a terminal as anything but text.
+An engine lemonfiber cannot reach, and an image it does not hold at the pinned digest,
+leave the proof unproven, naming which (`F3-R5`).
+
+**Where it runs.** Wherever a proof does: against its recording in the plugin's CI and
+in the release gate, live in the plugin's CI with the image under its posture, at
+install and at update, and in `lemonfiber plugin prove` (`ARCH-R286`). The doctor runs it
+too, on its own cadence rather than the dashboard's: only when the doctor is run, never
+on the gather that feeds the dashboard or the event stream, and only where something it
+depends on has changed since the verdict it keeps. That verdict is kept across restarts
+against the image's digest, the proof's arguments, the posture and user it ran under,
+the digest of the starting files and the lemonfiber release that ran it, and reported
+with when it was reached. The doctor pulls no image for it. A run is the one check that
+may hold a doctor run past `C1-R12`'s thirty seconds, once, after its pin moves
+(`ARCH-R287`).
 
 ### What an assertion is declared to fail on
 
@@ -231,8 +304,35 @@ pointed at it. A recording taken plainly is not evidence for a request that
 names an `accept`, and one that named an `accept` is not evidence for a request
 that does not.
 
-**A recording that is absent, unreadable, or records a request the assertion
-does not ask is unproven** — never a pass and never a failure. Nothing about the
+**A run is recorded by running it.** `lemonfiber plugin record <path>` performs each
+run proof's run, bounded exactly as a proof's is, and writes its recording: the image it
+ran, the arguments, the exit status and the first 1 KiB of standard output, keeping the
+`note` an author wrote.
+
+```json
+{
+  "recorded_from": "ghcr.io/recyclarr/recyclarr@sha256:9c6c74d52cfc6f740a5a3624aa83867e171bb70b90453ddb7a4048b8c80445f9",
+  "note": "The pinned program, started as the operator's user with no network, says which release it is.",
+  "run":    { "args": ["--version"] },
+  "result": { "exit": 0, "stdout_starts_with": "v8.7.3 (Branch.master.Sha.237d4ddea46b12c6d1aca45936ddc410c3a13bd8)" }
+}
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `recorded_from` | string | ✔ | The image it ran, as `image@sha256:…`: the manifest's pin |
+| `note` | string | ✔ | Why this is the run worth recording |
+| `run.args` | array of strings | ✔ | The arguments it ran with |
+| `result.exit` | integer | ✔ | The exit status |
+| `result.stdout_starts_with` | string | ✔ | The first 1 KiB of standard output, cut at a character boundary; empty where it wrote none |
+
+A recording holds `request` and `response`, or `run` and `result`, never both. Running
+it again writes the same `result`, which is how the plugin's CI proves it live: a run
+whose output differs from one run to the next is not evidence of anything, and a
+recording whose `result` a fresh run does not reproduce is refused (`ARCH-R285`).
+
+**A recording that is absent, unreadable, or records a request or a run the
+assertion does not ask is unproven** — never a pass and never a failure. Nothing about the
 service has been established either way, and reporting it as a failure would say
 the service is broken when the recording is. It is the third verdict's plainest
 case, and the one an author meets most often.
