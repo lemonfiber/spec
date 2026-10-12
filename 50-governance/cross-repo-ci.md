@@ -456,9 +456,10 @@ there voids the approval, and so does the label's removal; `pin-only` then fails
 again until the label is added again. A push that leaves that change as it was,
 such as Dependabot rebasing its branch onto a newer `main`, keeps the approval,
 because what merges is still exactly what the maintainer approved. The change is
-read as each file's lines removed and added against the merge base, at the head
-the label was added on and at the head being judged; where the first cannot be
-read, nothing is approved. A label added by an account without the `admin` or
+read as each file's lines removed and added against the merge base, with the
+three lines around each so that the same lines moved elsewhere are not the same
+change, at the head the label was added on and at the head being judged; where
+the first cannot be read, nothing is approved. A label added by an account without the `admin` or
 `maintain` role on the repository, a bot's included, approves nothing. The check
 reads who added the label and when, and which head each of its own runs saw,
 from the forge's records, never from a commit's dates, which the pusher writes.
