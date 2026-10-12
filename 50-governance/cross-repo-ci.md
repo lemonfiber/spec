@@ -416,10 +416,12 @@ merges, and a pin that remembered an older list would refuse a citation that is
 right.
 
 A fix to what a gate decides therefore reaches a consumer when its pin moves,
-and the pin moves through the release train's bump pull request, which
-`workflow-pins` asks for the moment a script the workflow runs has changed. A
-step added here does not run there until then either, and neither half goes
-stale in silence.
+and the pin moves through the release train's bump pull request, which the
+fan-out opens from the tag and arms to merge itself (**OPS-R48**).
+`workflow-pins` warns from the moment a script the workflow runs has changed and
+refuses once that change has been on `main` for a day (**Q-R68**). A step added
+here does not run there until then either, and neither half goes stale in
+silence.
 
 ### How a pin gets bumped
 
@@ -446,15 +448,27 @@ same move would be a second pull request to close.
 
 Any other change under `.github/workflows/` or `.github/actions/` fails
 `pin-only` until a maintainer approves it with the `workflows-approved` label,
-added after the pull request's last push and only once the user has said yes to
-that pull request (**Q-R83**). The label is the only way such a change merges:
-`enforce_admins` stays on and is never turned off to let one through. A push, a
-force push or the label's removal voids the approval, and `pin-only` fails
-again until the label is added again. A label added by an account without the
-`admin` or `maintain` role on the repository, a bot's included, approves nothing.
-The check reads who added the label and when, and which head each of its own
-runs saw, from the forge's records, never from a commit's dates, which the
-pusher writes.
+added only once the user has said yes to that pull request (**Q-R83**). The
+label is the only way such a change merges: `enforce_admins` stays on and is
+never turned off to let one through. What the label approves is the change to those two directories, not the commit it was
+added on. A push or a force push that changes what the pull request changes
+there voids the approval, and so does the label's removal; `pin-only` then fails
+again until the label is added again. A push that leaves that change as it was,
+such as Dependabot rebasing its branch onto a newer `main`, keeps the approval,
+because what merges is still exactly what the maintainer approved. The change is
+read as each file's lines removed and added against the merge base, at the head
+the label was added on and at the head being judged; where the first cannot be
+read, nothing is approved. A label added by an account without the `admin` or
+`maintain` role on the repository, a bot's included, approves nothing. The check
+reads who added the label and when, and which head each of its own runs saw,
+from the forge's records, never from a commit's dates, which the pusher writes.
+
+A label event runs `pin-only` only when the label is `workflows-approved`. Every
+other label, the ones the gates' labeler and Dependabot add included, skips the
+job in a group of its own run, so it neither runs nor cancels anything. And only
+a push cancels a run in progress: a label event, a reopening and a re-run wait
+behind the run in progress rather than cancelling it, so adding the approval to a
+pull request whose check is running leaves that check to finish.
 
 `workflow-pins` and the bot answer different questions and neither replaces the
 other. The bot keeps a pin at the newest tag whether or not it matters; the check
@@ -493,7 +507,21 @@ anyone touching it, and an author who changed none of it pays the bump. What
 makes that bearable is **OPS-R48** — `fan-out-pins.yml`, which opens the bump in
 every consumer rather than leaving it owed by all of them. It keeps one pull
 request per repository, on `ci/take-the-shared-workflows`, rebuilt and retitled
-for each number rather than opened beside the last (**OPS-R85**).
+for each number rather than opened beside the last (**OPS-R85**), and arms that
+pull request to merge itself at the commit it made once its required checks pass
+(**OPS-R48**, **OPS-R87**). Nobody presses the button: `pin-only` has already
+held the change to spec's pins moving forward along `main`, which is everything
+a person merging it would have checked.
+
+A fan-out that ran for every number would rebuild every repository's bump once per
+tag, and five tags in an evening are five rounds of every repository's checks.
+So the fan-out a tag starts first waits twenty minutes in the `fan-out`
+environment, which holds no runner, and then goes on only where its number is
+still the newest `v1.0.*`. A burst of merges is fanned out once, at its last
+number. The window `workflow-pins` allows is what makes the wait free: nothing
+is refused while it runs. A fan-out started by hand with a number skips the wait
+and the newest-number test, which is how an earlier number is brought in on
+purpose.
 
 It hangs off `publish-pin-tag` rather than off the merge, because the comment
 beside a pin carries the tag and the tag is what Dependabot compares: a fan-out
