@@ -13,9 +13,10 @@
 #
 # The service whose `image` is `ghcr.io/lemonfiber/<image>` says how it is run: its
 # posture, its user, its configuration directory holding the plugin's starting files
-# under `config/<service id>/`, its scratch space, its constant environment, its
-# memory limit and its health check. Until the manifest names the image, it is run
-# under `standard` with `config/<image>/` and waited on as its own health check says.
+# under `config/<service id>/` and each further mount from among them, its scratch
+# space, its constant environment, its memory limit and its health check. Until the
+# manifest names the image, the service whose id is the plugin's says it, and where
+# there is none it is run under `standard` and waited on as its own health check says.
 # `prepare`, where named, is a script of the plugin's run with that configuration
 # directory's copy before the container starts, for what lemonfiber writes there at
 # install, such as a certificate.
@@ -351,8 +352,11 @@ jobs:
           running = [one for one in manifest.get("service", []) if one.get("image") == image]
           if len(running) > 1:
               sys.exit(f"::error::{len(running)} services run {image}; one is proved here")
-          service = running[0] if running else {}
-          if not running:
+          own = [one for one in manifest.get("service", []) if one.get("id") == manifest.get("plugin", {}).get("id")]
+          service = running[0] if running else (own[0] if own else {})
+          if not running and own:
+              print(f"::notice::no service of plugin.toml runs {image} yet, so it is run as service {own[0]['id']} is")
+          elif not running:
               print(f"::notice::no service of plugin.toml runs {image} yet, so it is run under standard")
           if service.get("shape"):
               sys.exit(f"::error::service {service['id']} takes the shape {service['shape']}, whose kernel capabilities lemonfiber writes and this does not")
@@ -387,6 +391,11 @@ jobs:
                       target.write_bytes(path.read_bytes())
           mounted = f"{copy}:{service.get('config_path') or '/config'}"
           args += ["--volume", mounted + (":ro" if service.get("config_ro") else "")]
+          for mount in service.get("mount", []):
+              source = copy / str(mount["from"])
+              if not source.resolve().is_relative_to(copy.resolve()) or not source.exists():
+                  sys.exit(f"::error::service {ident} mounts {mount['from']}, which its starting files under config/{ident}/ do not hold")
+              args += ["--volume", f"{source}:{mount['to']}" + (":ro" if mount.get("ro") else "")]
           for scratch in service.get("tmpfs", []):
               args += ["--tmpfs", str(scratch)]
           if service.get("mem_limit_mib"):

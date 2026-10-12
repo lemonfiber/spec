@@ -154,6 +154,28 @@ C = { url_of = "media.serve" }
         self.assertFalse(any(one.startswith("C=") for one in plan["args"]))
         self.assertIn("C names another service", said)
 
+    def test_the_service_of_the_plugin_id_says_how_until_one_runs_the_image(self):
+        manifest = 'schema_version = 1\n[plugin]\nid = "door"\n' + self.SERVICE.split("\n", 1)[1].replace(IMAGE, "caddy")
+        code, plan, said = self.planned(manifest)
+        self.assertEqual(code, 0)
+        self.assertIn(f"{self.root / 'copy'}:/etc/caddy:ro", plan["args"])
+        self.assertEqual((plan["health"], plan["port"]), ("tcp", 8096))
+        self.assertIn("so it is run as service door is", said)
+
+    MOUNTED = '\n[[service.mount]]\nfrom = "Caddyfile"\nto = "/etc/caddy/Caddyfile"\nro = true\n'
+
+    def test_a_further_mount_comes_from_the_starting_files(self):
+        manifest = self.SERVICE + self.MOUNTED
+        code, plan, _ = self.planned(manifest, {"config/door/Caddyfile": ":8080\n"})
+        self.assertEqual(code, 0)
+        self.assertIn(f"{self.root / 'copy' / 'Caddyfile'}:/etc/caddy/Caddyfile:ro", plan["args"])
+
+    def test_a_mount_the_starting_files_do_not_hold_is_refused(self):
+        for source in ("../../etc", "absent"):
+            with self.subTest(source=source):
+                manifest = self.SERVICE + self.MOUNTED.replace('"Caddyfile"', f'"{source}"')
+                self.assertNotEqual(self.planned(manifest, {"config/door/Caddyfile": "x"})[0], 0)
+
     def test_no_service_yet_is_run_under_standard(self):
         code, plan, said = self.planned('schema_version = 1\n[plugin]\nid = "door"\n')
         self.assertEqual(code, 0)
