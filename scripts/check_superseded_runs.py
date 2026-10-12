@@ -18,7 +18,10 @@ What it refuses, file by file under ``.github/workflows/``:
   schedule starts is let through: no push and no tag reaches it, and a bump bot
   is asked to cancel its stale run there (Q-R78). So is one that only
   ``pull_request_target`` starts, grouped by its pull request's number
-  (``TARGET_GROUP``), since under that event the ref is the base branch;
+  (``TARGET_GROUP``), since under that event the ref is the base branch; or
+  grouped the way ``pin-only`` is (``LABELLED_GROUP``, Q-R83), where a label
+  event for any label but the approval is a group of its own run and only a
+  push's first attempt cancels (``PUSH_CANCELS``);
 - a job's own group that cancels, and any job's own group in a workflow a pull
   request runs. A job waiting in a group is replaced by the next to arrive
   whatever ``cancel-in-progress`` says, so a push's job can be cancelled by one;
@@ -57,6 +60,24 @@ DISPATCHED = frozenset({"workflow_dispatch", "repository_dispatch", "schedule"})
 #: number, a push cancels the run for the head it replaced and nothing else, and
 #: no push to a branch or a tag starts such a workflow at all.
 TARGET_GROUP = "${{ github.workflow }}-${{ github.event.pull_request.number }}"
+
+#: A label event for any label but `pin-only`'s approval, which `pin-only` neither runs
+#: for nor lets cancel anything (Q-R83). The label is `pin_only.APPROVED`, written out
+#: because the hygiene gate runs this where `pin_only.py`'s YAML reader is not installed.
+OTHER_LABEL = (
+    "(github.event.action == 'labeled' || github.event.action == 'unlabeled') "
+    "&& github.event.label.name != 'workflows-approved'"
+)
+
+#: `pin-only`'s group: `TARGET_GROUP`, and a run of its own for a label event `OTHER_LABEL` names.
+LABELLED_GROUP = TARGET_GROUP + "${{ " + OTHER_LABEL + " && format('-{0}', github.run_id) || '' }}"
+
+#: `pin-only`'s cancel-in-progress: only a push, on its first attempt, cancels the run in
+#: progress; a label event, a reopening and a re-run wait behind it (Q-R83).
+PUSH_CANCELS = "${{ github.event.action == 'synchronize' && github.run_attempt == 1 }}"
+
+#: The two blocks a workflow only `pull_request_target` starts may carry, as (group, cancel-in-progress).
+TARGET_BLOCKS = ((TARGET_GROUP, "true"), (LABELLED_GROUP, PUSH_CANCELS))
 
 # `key: value`, `key:`, and a quoted key, which is how `"on":` is written by
 # anyone whose YAML reads a bare `on` as `true`.
@@ -172,8 +193,8 @@ def dispatched_only(named: list[str]) -> bool:
 
 
 def target_only(one: dict) -> bool:
-    """Whether a workflow only `pull_request_target` starts, grouped by `TARGET_GROUP`."""
-    return set(one["events"]) == {"pull_request_target"} and (one["group"] or ("", None))[0] == TARGET_GROUP
+    """Whether a workflow only `pull_request_target` starts, carrying one of `TARGET_BLOCKS`."""
+    return set(one["events"]) == {"pull_request_target"} and (one["group"] or ("", None)) in TARGET_BLOCKS
 
 
 def home(canonical: pathlib.Path) -> tuple[str, list[str]]:
@@ -273,7 +294,7 @@ def shared_names(read: dict, group: str) -> list[str]:
     named: dict[tuple[str, str], list[str]] = {}
     for where, one in read.items():
         own = (one["group"] or ("", None))[0]
-        if own in (group, TARGET_GROUP):
+        if own in (group, TARGET_GROUP, LABELLED_GROUP):
             named.setdefault((own, one["name"] or where), []).append(where)
     return [
         f"{' and '.join(files)} are both named {name!r}, and the group is keyed on "

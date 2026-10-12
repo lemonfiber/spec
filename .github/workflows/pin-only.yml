@@ -1,26 +1,28 @@
 # Reusable check that a pull request leaves its checks as its base runs them,
 # moving spec's pins forward and nothing else, unless a maintainer approved the
-# change with the `workflows-approved` label after its last push (Q-R83). A
-# repository calls it from `pull_request_target`, so the caller that runs is the
-# base branch's and the pull request cannot rewrite it:
+# change it makes with the `workflows-approved` label (Q-R83). A repository
+# calls it from `pull_request_target`, so the caller that runs is the base
+# branch's and the pull request cannot rewrite it:
 #
 #   on:
 #     pull_request_target:
 #       types: [opened, synchronize, reopened, labeled, unlabeled]
 #   concurrency:
-#     group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-#     cancel-in-progress: true
+#     group: ${{ github.workflow }}-${{ github.event.pull_request.number }}${{ (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.label.name != 'workflows-approved' && format('-{0}', github.run_id) || '' }}
+#     cancel-in-progress: ${{ github.event.action == 'synchronize' && github.run_attempt == 1 }}
 #   jobs:
 #     pin-only:
+#       if: ${{ !((github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.label.name != 'workflows-approved') }}
 #       permissions:
 #         contents: read
 #         pull-requests: read
 #       uses: lemonfiber/spec/.github/workflows/pin-only.yml@<sha> # v1.0.0
 #
 # `labeled` and `unlabeled` run it again when the approval is given or taken
-# away. Any other label runs it too, and it answers the same: the approval is
-# read from the forge's records, not from the event that started the run. A
-# caller that does not list them yet takes the approval on a re-run.
+# away. A label event for any other label skips the job, in a group of its own
+# run, so the labels the gates and Dependabot add neither run it nor cancel the
+# run in progress. The approval is read from the forge's records, not from the
+# event that started the run.
 #
 # `synchronize` and `reopened` matter as much as `opened`. The verdict is a check
 # on the head commit the event names, and branch protection asks for the check on
@@ -28,14 +30,11 @@
 # a push starts a run for the new head, and the old pass is on a commit that is
 # no longer the head. The group is keyed on the pull request's number, because
 # under `pull_request_target` `github.ref` is the base branch every pull request
-# shares, and a push cancels the run for the head it replaced and nothing else.
+# shares. Only a push, on its first attempt, cancels the run in progress: it is
+# for a head the push replaced. The approval being added, a reopening and a
+# re-run wait behind it instead, so none of them leaves a cancelled check on the
+# head being judged.
 #
-# Nothing of the pull request's is checked out or run. The script is spec's,
-# from the commit this workflow was called at, so a caller pinned at a revision
-# runs that revision's script with the arguments that revision passes. It reads
-# the pull request's files, labels, timeline and this check's runs through the
-# API as data. The token writes nothing, so a pull
-# request from a fork is judged the same way as one from a branch.
 name: pin-only
 
 on:

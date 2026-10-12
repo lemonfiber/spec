@@ -33,6 +33,7 @@ import unittest.mock
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
 import fan_out_pins
+import pin_window
 import workflow_pins
 
 #: The pin check's limits as `hygiene.yml` declares them, for the tests that do not measure them.
@@ -437,7 +438,9 @@ class TheTwoHalvesAgree(unittest.TestCase):
         was = pathlib.Path.cwd()
         try:
             os.chdir(self.repo)
-            with contextlib.redirect_stdout(io.StringIO()):
+            past_the_window = int(time.time()) + 2 * pin_window.SECONDS
+            with contextlib.redirect_stdout(io.StringIO()), \
+                    unittest.mock.patch.object(workflow_pins, "clock", return_value=past_the_window):
                 return workflow_pins.main()
         finally:
             os.chdir(was)

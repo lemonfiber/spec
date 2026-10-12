@@ -10,20 +10,22 @@ checks nothing out of it. It fails a pull request that changes anything under
 file is a pin of a lemonfiber/spec workflow moving forward along spec's `main`,
 with the version written beside it. Anything else is a change to the checks,
 which a maintainer approves by choice: such a pull request passes once it
-carries the `workflows-approved` label, added after its last push.
+carries the `workflows-approved` label for the change its head makes.
 
 The approval is read from the forge's own records and never from a commit:
 the label is on the pull request now; the last time it was added was by an
 account holding the admin or maintain role on the repository; and it is bound
-to the head being judged. A fast-forward push leaves no record of its time on a
-pull request, and a commit's dates are the pusher's to write, so the binding is
-read from this check's own runs instead, each of which the forge creates with
-the head it was started for: the newest run at or before the label was added
-names the head the branch had then, and that run and every one after it must
-name the head being judged. A force push after the label also voids it, and
-the head is read again once the approval is read. A push, a force push or a
-removal of the label voids the approval, and this fails again until a
-maintainer adds the label again.
+to the change the branch made when it was added. A fast-forward push leaves no
+record of its time on a pull request, and a commit's dates are the pusher's to
+write, so the head the branch had then is read from this check's own runs, each
+of which the forge creates with the head it was started for: the newest run at
+or before the label was added names it. What that head changed under the two
+directories against its merge base, each file's diff with the lines around
+every change, must be what the head being judged changes. A push that leaves the
+change as it was, a rebase onto a newer `main` say, keeps the approval; a push
+that changes it, a head the forge can no longer return, or the label's removal
+voids it, and this fails again until a maintainer adds the label again. The head
+is read again once the approval is read.
 
 The change is read against the merge base, so a pull request is judged on what
 it changes and not on what `main` has changed since it branched, and it is read
@@ -49,6 +51,7 @@ the head is not a commit, or the calling workflow is not named.
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import os
 import re
@@ -68,7 +71,7 @@ SPEC, MAIN = "lemonfiber/spec", "main"
 #: A pin of one of spec's workflows, with the version a tag names beside it.
 PIN = re.compile(r"(?P<path>lemonfiber/spec/\S+?)@(?P<sha>[0-9a-f]{40})(?P<version>[ \t]*#[ \t]*v\d+(?:\.\d+)*)?")
 
-#: The label a maintainer adds, after the last push, to approve a change to the checks.
+#: The label a maintainer adds to approve the change a pull request makes to the checks.
 APPROVED = "workflows-approved"
 
 #: The roles whose label approves: the label is the merge decision, so a role that may label and not
@@ -281,6 +284,39 @@ def guarded_tree(repo: str, commit: str, api: Api) -> dict[str, tuple[str, str]]
 #: The modes of a file git checks out as a file, rather than a link or a submodule.
 FILE_MODES = ("100644", "100755")
 
+#: Lines kept around each changed line when two changes are compared, so an approved
+#: line is approved where it sits and not wherever the same text is moved to.
+AROUND = 3
+
+
+def lines_of(repo: str, entry: tuple[str, str] | None, api: Api) -> list[str]:
+    """A file's lines, as git's tree holds it; a link or a submodule as the object it names."""
+    if entry is None:
+        return []
+    if entry[0] not in FILE_MODES:
+        return [entry[1]]
+    return str(api([f"repos/{repo}/git/blobs/{entry[1]}"], True)).splitlines()
+
+
+def made(repo: str, base: str, commit: str, api: Api) -> tuple:
+    """What `commit` changes under the guarded directories against its merge base with `base`.
+
+    Each changed path with its two modes and its diff, the lines around every
+    change kept and the line numbers left out, so the same change on a newer base
+    reads the same and the same lines anywhere else do not.
+    """
+    root = api([f"repos/{repo}/compare/{base}...{commit}"], False)["merge_base_commit"]["sha"]
+    before, after = guarded_tree(repo, root, api), guarded_tree(repo, commit, api)
+    change = []
+    for path in sorted(set(before) | set(after)):
+        was, now = before.get(path), after.get(path)
+        if was == now:
+            continue
+        diff = difflib.unified_diff(lines_of(repo, was, api), lines_of(repo, now, api), n=AROUND, lineterm="")
+        hunks = tuple("@@" if line.startswith("@@") else line for line in list(diff)[2:])
+        change.append((path, was and was[0], now and now[0], hunks))
+    return tuple(change)
+
 
 class Moved(ValueError):
     """The pull request's head is no longer the commit this run was started for."""
@@ -348,7 +384,7 @@ def role(repo: str, login: str, api: Api) -> str:
 
 
 def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str | None:
-    """Why the pull request carries no approval for `head`, or None where it does.
+    """Why the pull request carries no approval for what `head` changes, or None where it does.
 
     `workflow` is the calling workflow's file. Its runs for the pull request's
     branch are the forge's record of each head the branch had: a push starts
@@ -365,22 +401,29 @@ def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str |
     if not who or role(repo, who, api) not in APPROVERS:
         return f"`{APPROVED}` was added by {who or 'nobody the forge names'}, who does not maintain {repo}"
     at = moves[-1]["created_at"]
-    forced = sorted(e["created_at"] for e in events if e["event"] == "head_ref_force_pushed" and e["created_at"] >= at)
-    if forced:
-        return f"its branch was force-pushed at {forced[-1]}, after `{APPROVED}` was added at {at}"
     source = pull["head"]["repo"]["full_name"]
     branch = urllib.parse.quote(pull["head"]["ref"], safe="")
     runs = [r for r in listed(f"repos/{repo}/actions/workflows/{workflow}/runs?event=pull_request_target"
                               f"&branch={branch}", api, "workflow_runs")
             if r["head_repository"]["full_name"] == source]
-    before = [r["created_at"] for r in runs if r["created_at"] <= at]
+    before = [r for r in runs if r["created_at"] <= at]
     if not before:
         return f"no run of this check shows what its head was when `{APPROVED}` was added at {at}"
-    since = sorted((r for r in runs if r["created_at"] >= max(before)), key=lambda r: r["created_at"])
-    pushed = [r for r in since if r["head_sha"] != head]
-    if pushed:
-        return (f"its head was {pushed[-1]['head_sha'][:8]} at {pushed[-1]['created_at']}, so {head[:8]} was "
-                f"pushed after `{APPROVED}` was added at {at}")
+    newest = max(r["created_at"] for r in before)
+    heads = sorted({r["head_sha"] for r in before if r["created_at"] == newest})
+    if len(heads) > 1:
+        return f"the runs at {newest} name {' and '.join(h[:8] for h in heads)}, so which head `{APPROVED}` was added on is unknown"
+    approved = heads[0]
+    if approved == head:
+        return None
+    base = pull["base"]["sha"]
+    try:
+        then = made(repo, base, approved, api)
+    except subprocess.CalledProcessError:
+        return f"{approved[:8]}, its head when `{APPROVED}` was added at {at}, cannot be read, so what was approved is unknown"
+    if then != made(repo, base, head, api):
+        return (f"what {head[:8]} changes under {' and '.join(GUARDED)} is not what {approved[:8]} changed when "
+                f"`{APPROVED}` was added at {at}")
     return None
 
 
@@ -402,14 +445,14 @@ def said(found: list[str], moved: int, unapproved: str | None) -> int:
     """The verdict on what the pull request changes, printed, and its exit code."""
     if found and unapproved is None:
         for change in found:
-            print(f"::notice::{change}, and a maintainer approved it with `{APPROVED}` after its last push (Q-R83).")
+            print(f"::notice::{change}, and a maintainer approved it with `{APPROVED}` (Q-R83).")
         return 0
     if found:
         for change in found:
             print(f"::error::{change}. A change to what the checks run is merged by a maintainer, "
                   f"not by this check (Q-R83).")
-        print(f"::error::A maintainer approves it by adding `{APPROVED}` after its last push, and that has not "
-              f"happened: {unapproved}.")
+        print(f"::error::A maintainer approves it by adding `{APPROVED}` for the change it makes, and that has "
+              f"not happened: {unapproved}.")
         return 1
     if moved:
         print(f"{moved} workflow file(s) change only spec's pins, each moving forward along {SPEC} {MAIN}.")

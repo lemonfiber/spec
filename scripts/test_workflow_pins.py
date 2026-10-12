@@ -21,11 +21,17 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
+import pin_window
 import workflow_pins
+
+#: A run a day and more after every commit a fixture makes, so each is past the window.
+LATER = int(time.time()) + 2 * pin_window.SECONDS
 
 
 def a_pin(workflow: str, sha: str) -> str:
@@ -124,16 +130,27 @@ class ASpecAndARepository:
             a_pin("dco.yml", sha), encoding="utf-8"
         )
 
-    def run_main(self) -> tuple[int, str]:
+    def run_main(self, now: int = LATER) -> tuple[int, str]:
         was = pathlib.Path.cwd()
         os.chdir(self.repo)
         said = io.StringIO()
         try:
-            with contextlib.redirect_stdout(said):
+            with contextlib.redirect_stdout(said), mock.patch.object(workflow_pins, "clock", return_value=now):
                 code = workflow_pins.main()
         finally:
             os.chdir(was)
         return code, said.getvalue()
+
+    def dated(self, said: str, when: int, workflow: str = "dco.yml") -> str:
+        """A commit to one workflow whose committer time is `when`."""
+        where = self.spec / ".github" / "workflows" / workflow
+        where.write_text(said, encoding="utf-8")
+        stamp = {"GIT_COMMITTER_DATE": f"@{when} +0000", "GIT_AUTHOR_DATE": f"@{when} +0000"}
+        for args in (["add", "-A"], ["commit", "-q", "-m", said]):
+            subprocess.run(["git", "-C", str(self.spec), *args], check=True, capture_output=True,
+                           env={**os.environ, **stamp})
+        return subprocess.run(["git", "-C", str(self.spec), "rev-parse", "HEAD"],
+                              capture_output=True, text=True, check=True).stdout.strip()
 
 
 class AgainstARepository(ASpecAndARepository, unittest.TestCase):
@@ -211,6 +228,74 @@ class AgainstARepository(ASpecAndARepository, unittest.TestCase):
         code, out = self.run_main()
         self.assertEqual(code, 0, out)
         self.assertIn("nothing to check", out)
+
+
+class TheWindow(ASpecAndARepository, unittest.TestCase):
+    """A commit not taken is a warning for a day, and a refusal after it (Q-R68)."""
+
+    NOW = 1_800_000_000
+
+    def setUp(self):
+        super().setUp()
+        self.pin(self.second)
+        sys.argv = ["workflow_pins.py", str(self.spec)]
+
+    def test_a_commit_inside_the_window_warns_and_passes(self):
+        self.dated("fresh", self.NOW - 3600)
+        code, out = self.run_main(self.NOW)
+        self.assertEqual(code, 0, out)
+        self.assertIn("::warning::dco.yml, or a script it runs, has changed 1 time(s)", out)
+        self.assertIn("fresh", out)
+        self.assertIn(f"refused from {pin_window.refused_at(self.NOW - 3600)}", out)
+        self.assertNotIn("::error::", out)
+
+    def test_a_commit_past_the_window_refuses(self):
+        self.dated("stale", self.NOW - pin_window.SECONDS)
+        code, out = self.run_main(self.NOW)
+        self.assertEqual(code, 1, out)
+        self.assertIn("::error::dco.yml, or a script it runs, has changed 1 time(s)", out)
+
+    def test_one_commit_past_the_window_refuses_the_pin_and_names_every_commit(self):
+        self.dated("stale", self.NOW - pin_window.SECONDS - 1)
+        self.dated("fresh", self.NOW - 60)
+        code, out = self.run_main(self.NOW)
+        self.assertEqual(code, 1, out)
+        self.assertIn("has changed 2 time(s)", out)
+        self.assertIn("stale", out)
+        self.assertIn("fresh", out)
+
+    def test_a_commit_dated_after_the_run_counts_as_past_the_window(self):
+        self.dated("from the future", self.NOW + 3600)
+        code, out = self.run_main(self.NOW)
+        self.assertEqual(code, 1, out)
+
+    def test_a_pin_waiting_beside_a_refused_one_is_named_as_waiting(self):
+        old = self.dated("sonar's first", self.NOW - 3 * pin_window.SECONDS, "sonar.yml")
+        self.dated("sonar moved", self.NOW - 2 * pin_window.SECONDS, "sonar.yml")
+        self.dated("fresh", self.NOW - 60)
+        (self.repo / ".github" / "workflows" / "ci.yml").write_text(
+            a_pin("dco.yml", self.second) + a_pin("sonar.yml", old), encoding="utf-8")
+        code, out = self.run_main(self.NOW)
+        self.assertEqual(code, 1, out)
+        self.assertIn("::warning::dco.yml", out)
+        self.assertIn("::error::sonar.yml", out)
+        self.assertNotIn("::error::dco.yml", out)
+
+
+class Window(unittest.TestCase):
+    """The window itself, at its edges."""
+
+    def test_its_edges(self):
+        self.assertTrue(pin_window.waits(100, 100))
+        self.assertTrue(pin_window.waits(100, 100 + pin_window.SECONDS - 1))
+        self.assertFalse(pin_window.waits(100, 100 + pin_window.SECONDS))
+        self.assertFalse(pin_window.waits(101, 100))
+
+    def test_when_a_commit_leaves_it(self):
+        self.assertEqual(pin_window.refused_at(0), "1970-01-02 00:00 UTC")
+
+    def test_it_is_measured_from_now(self):
+        self.assertAlmostEqual(workflow_pins.clock(), int(time.time()), delta=5)
 
 
 class WhatAPinHolds(ASpecAndARepository, unittest.TestCase):

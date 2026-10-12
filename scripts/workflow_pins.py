@@ -3,7 +3,11 @@
 
 Every repository that runs one of this repository's reusable workflows pins it
 to an exact commit. Q-R68 has a check fail a pull request where such a pin is
-behind, naming the commits it has not taken.
+behind, naming the commits it has not taken, once a commit it has not taken has
+been on `main` for longer than the window `pin_window.py` holds. Until then the
+commit is a warning naming it and the hour it becomes a refusal: the release
+train's bump takes it in that time, and a repository taking two pins at once is
+not left with two bumps each red on the pin only the other moves.
 
 **What a pin holds.** The workflow file, the workflows it calls from this
 repository, the scripts they run and the modules those import from beside them.
@@ -26,6 +30,12 @@ import pathlib
 import re
 import subprocess
 import sys
+import time
+from typing import NamedTuple
+
+sys.path.insert(0, str(pathlib.Path(__file__).parent))
+
+import pin_window
 
 # `uses: lemonfiber/spec/.github/workflows/<name>.yml@<sha>`, with whatever
 # comment follows. Only this repository's workflows: a pin on somebody else's
@@ -56,6 +66,18 @@ REVISION = re.compile(r"\A[0-9a-f]{40}\Z")
 # behind would otherwise bury its own message, and the point of naming them is
 # that somebody reads them.
 NAMED = 10
+
+
+class Missed(NamedTuple):
+    """One commit a pin has not taken: when it reached `main`, and how it is named."""
+
+    committed: int
+    line: str
+
+
+def clock() -> int:
+    """The time a run measures the window against, in seconds since the epoch."""
+    return int(time.time())
 
 
 def pins_in(text: str) -> list[tuple[str, str]]:
@@ -141,7 +163,7 @@ def held_by(spec: pathlib.Path, head: str, workflow: str) -> list[str]:
 
 def commits_between(
     spec: pathlib.Path, pin: str, head: str, workflow: str
-) -> list[str] | None:
+) -> list[Missed] | None:
     """The commits `head` has and `pin` does not that changed what a pin on `workflow` holds.
 
     Narrowed to the files `held_by` names, because those are the whole of what
@@ -163,7 +185,7 @@ def commits_between(
         spec,
         "log",
         "--no-color",
-        "--format=%h %s",
+        "--format=%ct %h %s",
         f"{pin}..{head}",
         "--",
         *held_by(spec, head, workflow),
@@ -172,7 +194,10 @@ def commits_between(
     if asked.returncode != 0:
         return None
 
-    return [line for line in asked.stdout.splitlines() if line.strip()]
+    return [
+        Missed(int(committed), line)
+        for committed, _, line in (said.partition(" ") for said in asked.stdout.splitlines() if said.strip())
+    ]
 
 
 def refusal(workflow: str, where: list[str], missed: list[str]) -> str:
@@ -191,6 +216,16 @@ def refusal(workflow: str, where: list[str], missed: list[str]) -> str:
         said.append(f"    … and {more} more, not listed here.")
 
     return "\n".join(said)
+
+
+def waiting(workflow: str, where: list[str], missed: list[Missed]) -> str:
+    """What one pin behind by commits still inside the window says, and when it becomes a refusal."""
+    first = min(one.committed for one in missed)
+    said = refusal(workflow, where, [one.line for one in missed]).replace("::error::", "::warning::", 1)
+    return (
+        f"{said}\n  Each has been on main for less than {pin_window.HOURS} hours; this pin is "
+        f"refused from {pin_window.refused_at(first)} (Q-R68)."
+    )
 
 
 def head_of(spec: pathlib.Path) -> str | None:
@@ -221,7 +256,9 @@ def main() -> int:
         print("no reusable workflow of this repository is pinned here; nothing to check")
         return 0
 
-    stale = []
+    now = clock()
+    stale: list[str] = []
+    warned: list[str] = []
     for (workflow, sha), where in sorted(pinned.items()):
         missed = commits_between(spec, sha, head, workflow)
 
@@ -236,8 +273,13 @@ def main() -> int:
             )
             return 2
 
-        if missed:
-            stale.append(refusal(workflow, where, missed))
+        if any(not pin_window.waits(one.committed, now) for one in missed):
+            stale.append(refusal(workflow, where, [one.line for one in missed]))
+        elif missed:
+            warned.append(waiting(workflow, where, missed))
+
+    if warned:
+        print("\n".join(warned))
 
     if stale:
         print("\n".join(stale))
@@ -245,9 +287,17 @@ def main() -> int:
             f"\nBump each pin named above to {head}, and set the trailing comment to "
             "the tag that revision carries. A pin holds its workflow and the scripts it "
             "runs, which are checked out at the pinned commit, so only a pin whose "
-            "workflow or scripts have moved is named here (Q-R68)."
+            "workflow or scripts have moved is named here, once one of those commits "
+            f"has been on main for {pin_window.HOURS} hours (Q-R68)."
         )
         return 1
+
+    if warned:
+        print(
+            f"\nEvery pin named above is behind only by commits on main for less than "
+            f"{pin_window.HOURS} hours, which the release train's bump takes before then (Q-R68)."
+        )
+        return 0
 
     print(f"every pin holds the newest revision of the workflow it names and its scripts ({head[:8]})")
     return 0
