@@ -563,6 +563,24 @@
       "relates": ["N10", "N12", "N6", "C2", "B2"],
       "versions": [],
       "path": "n-companion/n30-testing-making-room-and-sharing-the-line.md"
+    },
+    {
+      "id": "N31",
+      "title": "Asking the indexers",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": ["mobile", "queue", "verification"],
+      "requires": ["N1", "N2", "N8", "D9"],
+      "relates": ["D2", "D3", "N23", "N24"],
+      "versions": [],
+      "path": "n-companion/n31-asking-the-indexers.md"
     }
   ]
 }

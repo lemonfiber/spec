@@ -28,7 +28,10 @@
 # says what it disturbs, its bound and how to run it, and a `space` agreement narrowed to the
 # categories of the offer. They are the core's; N30 itself is the companion's.
 #
-# 62 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R290` is what the companion's N31 reads: a trace that says a search would settle it
+# and what the search spends. It is the core's; N31 itself is the companion's.
+#
+# 63 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -101,6 +104,7 @@ goals   = [
     "ARCH-R282",
     "ARCH-R288",
     "ARCH-R289",
+    "ARCH-R290",
 ]
 
 # `N21-R1` to `N21-R11`, `N3-R1` to `N3-R26` but for the three earlier versions lock,
