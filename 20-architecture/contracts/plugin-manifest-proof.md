@@ -324,7 +324,7 @@ ran, the arguments, the exit status and the first 1 KiB of standard output, keep
 | `note` | string | ✔ | Why this is the run worth recording |
 | `run.args` | array of strings | ✔ | The arguments it ran with |
 | `result.exit` | integer | ✔ | The exit status |
-| `result.stdout_starts_with` | string | ✔ | The first 1 KiB of standard output, as written; empty where it wrote none |
+| `result.stdout_starts_with` | string | ✔ | The first 1 KiB of standard output, cut at a character boundary; empty where it wrote none |
 
 A recording holds `request` and `response`, or `run` and `result`, never both. Running
 it again writes the same `result`, which is how the plugin's CI proves it live: a run
