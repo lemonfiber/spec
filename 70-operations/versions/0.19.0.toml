@@ -18,6 +18,12 @@
 # endpoints a phone registers to be woken. They are the core's; the companion's side, `N4-R25`
 # to `N4-R27` and `N27-R17`, waits with the rest of N4 and N27.
 #
+# `B5-R1`, released in 0.5.0, is amended in place: a new request and an answered invitation
+# reach the operator's phone as the `request` and `member` kinds, never a household member,
+# and the core's refusal of every request and household event narrows to refusing one
+# addressed to a member. It ships with `ARCH-R279`. Amended by the maintainer's decision of
+# 2026-10-12 (OPS-R31).
+#
 # 60 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

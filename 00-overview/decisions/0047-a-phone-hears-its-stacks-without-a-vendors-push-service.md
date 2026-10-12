@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-10-12
-**Decided:** 2026-10-12, by the maintainer, Wessel Verheij: the companion uses no Apple or Google push service; it raises local notifications from its own pinned connection while it runs or when the platform's background refresh wakes it, and on Android it is also woken through UnifiedPush where a distributor is installed; delivery while closed is best-effort on iOS and is said to be; the core publishes a closed list of the notification kinds it raises, every alert names one, and the app offers exactly those.
+**Decided:** 2026-10-12, by the maintainer, Wessel Verheij: the companion uses no Apple or Google push service; it raises local notifications from its own pinned connection while it runs or when the platform's background refresh wakes it, and on Android it is also woken through UnifiedPush where a distributor is installed; delivery while closed is best-effort on iOS and is said to be; the core publishes a closed list of the notification kinds it raises, `problem`, `completion`, `update`, `backup`, `request` and `member`, every alert names one, and the app offers exactly those; a new request and an answered invitation reach the operator's phone and never a household member, amending `B5-R1`.
 
 ## Context
 
@@ -58,14 +58,20 @@ raise, and a stack says which of them it raises. The list follows what the core 
 | `completion` | Work the operator asked for finishing: a download completed, an import succeeded |
 | `update` | An update to the stack or to lemonfiber available |
 | `backup` | A backup that succeeded; one that failed is a `problem` |
+| `request` | A request from somebody in the house, waiting on the operator |
+| `member` | An invitation answered: accepted, declined, or lapsed |
 
-Requests and members are not kinds. The request service tells the people concerned about
-requests, and lemonfiber does not duplicate it (`B5-R1`); the core refuses to raise an event in
-a request's or a household member's domain at all.
+**Requests and members reach the operator, never a member.** The request service tells a
+requester about their own request, and the invitee knows what they answered, so lemonfiber
+still sends neither of them anything (`B5-R1`). What it adds is the operator's side: somebody is
+waiting on a decision, or answered the invitation the operator sent. `B5-R1` is amended to say
+so, and the core's rule that refused every event in a request's or a household member's domain
+narrows to refusing one addressed to a member.
 
 ## Consequences
 
-- The core gains the kind list, a `kinds` field on the alerts read, replay of `alert` events
+- The core gains the kind list, its refusal of request and household events narrowed to the
+  ones addressed to a member, a `kinds` field on the alerts read, replay of `alert` events
   on a resumed stream, and registered push endpoints with the WebPush wake
   ([web API](../../20-architecture/contracts/web-api.md)).
 - The app gains local notifications, background refresh on both platforms and a UnifiedPush
