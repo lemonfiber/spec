@@ -86,8 +86,13 @@ class Settle(Scratch):
         self.assertNotEqual(self.settled("push", "tag", "refs/tags/v0.19.0", "v0.19.0")[0], 0)
         self.assertNotEqual(self.settled("push", "tag", "refs/tags/v0.18.0-rc1", "v0.18.0-rc1")[0], 0)
 
+    def test_the_image_is_the_plugins_id_where_none_is_named(self):
+        (self.root / "plugin.toml").write_text('schema_version = 1\n[plugin]\nid = "door"\nversion = "0.18.0"\n')
+        code, said = self.settled("push", "branch", "refs/heads/main", "main", "")
+        self.assertEqual((code, said["image"], said["name"]), (0, IMAGE, "door"))
+
     def test_an_image_name_that_is_not_one_is_refused(self):
-        for image in ("Door", "door/../x", "-door", ""):
+        for image in ("Door", "door/../x", "-door"):
             with self.subTest(image=image):
                 self.assertNotEqual(self.settled("pull_request", "branch", "r", "n", image)[0], 0)
 
@@ -175,6 +180,12 @@ C = { url_of = "media.serve" }
             with self.subTest(source=source):
                 manifest = self.SERVICE + self.MOUNTED.replace('"Caddyfile"', f'"{source}"')
                 self.assertNotEqual(self.planned(manifest, {"config/door/Caddyfile": "x"})[0], 0)
+
+    def test_posture_prepare_is_run_where_the_plugin_holds_one_and_none_is_named(self):
+        self.assertEqual(self.planned(self.SERVICE, {"posture/prepare": "#!/bin/sh\n"})[1]["prepare"], "posture/prepare")
+        self.assertEqual(self.planned(self.SERVICE, prepare="other/prepare")[1]["prepare"], "other/prepare")
+        (self.root / "posture/prepare").unlink()
+        self.assertEqual(self.planned(self.SERVICE)[1]["prepare"], "")
 
     def test_no_service_yet_is_run_under_standard(self):
         code, plan, said = self.planned('schema_version = 1\n[plugin]\nid = "door"\n')

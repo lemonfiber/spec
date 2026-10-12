@@ -17,9 +17,10 @@
 # space, its constant environment, its memory limit and its health check. Until the
 # manifest names the image, the service whose id is the plugin's says it, and where
 # there is none it is run under `standard` and waited on as its own health check says.
-# `prepare`, where named, is a script of the plugin's run with that configuration
-# directory's copy before the container starts, for what lemonfiber writes there at
-# install, such as a certificate.
+# The image is `ghcr.io/lemonfiber/<plugin id>` unless `image` names another.
+# `prepare`, `posture/prepare` where the plugin holds one, is a script of the plugin's
+# run with that configuration directory's copy before the container starts, for what
+# lemonfiber writes there at install, such as a certificate.
 #
 #   jobs:
 #     image:
@@ -29,8 +30,6 @@
 #         id-token: write
 #         attestations: write
 #       uses: lemonfiber/spec/.github/workflows/first-party-image.yml@<sha> # vX.Y.Z
-#       with:
-#         image: door
 #       secrets:
 #         RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
 name: first-party-image
@@ -38,16 +37,17 @@ on:
   workflow_call:
     inputs:
       image:
-        description: "The image's name under ghcr.io/lemonfiber/."
+        description: "The image's name under ghcr.io/lemonfiber/. The plugin's id where absent."
         type: string
-        required: true
+        required: false
+        default: ""
       directory:
         description: "The plugin's root in the calling repository, holding plugin.toml and the Dockerfile."
         type: string
         required: false
         default: "."
       prepare:
-        description: "A script under the plugin's root run with the configuration directory's copy before the container starts."
+        description: "A script under the plugin's root run with the configuration directory's copy before the container starts. posture/prepare where absent and the plugin holds one."
         type: string
         required: false
         default: ""
@@ -74,6 +74,7 @@ jobs:
     outputs:
       mode: ${{ steps.what.outputs.mode }}
       image: ${{ steps.what.outputs.image }}
+      name: ${{ steps.what.outputs.name }}
       tag: ${{ steps.what.outputs.tag }}
       pin: ${{ steps.what.outputs.pin }}
       code: ${{ steps.diff.outputs.code }}
@@ -119,6 +120,9 @@ jobs:
           NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          if [ -z "$IMAGE_NAME" ]; then
+            IMAGE_NAME="$(python3 -I -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb")).get("plugin", {}).get("id", ""))' "${DIRECTORY%/}/plugin.toml")"
+          fi
           if [[ ! "$IMAGE_NAME" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
             echo "::error::'${IMAGE_NAME}' is not an image name: lowercase words joined by '-'"
             exit 1
@@ -159,6 +163,7 @@ jobs:
           {
             echo "mode=${mode}"
             echo "image=${image}"
+            echo "name=${IMAGE_NAME}"
             echo "tag=${tag}"
             echo "pin=${pin}"
           } >> "$GITHUB_OUTPUT"
@@ -335,7 +340,7 @@ jobs:
       - name: How the manifest says it runs
         env:
           IMAGE: ${{ needs.settle.outputs.image }}
-          IMAGE_NAME: ${{ inputs.image }}
+          IMAGE_NAME: ${{ needs.settle.outputs.name }}
           DIRECTORY: ${{ inputs.directory }}
           PREPARE: ${{ inputs.prepare }}
           RUN_PLAN: ${{ runner.temp }}/run.json
@@ -416,7 +421,7 @@ jobs:
               "path": health.get("path") or "/",
               "port": port,
               "timeout": int(health.get("timeout_s") or 60),
-              "prepare": os.environ["PREPARE"],
+              "prepare": os.environ["PREPARE"] or ("posture/prepare" if (root / "posture/prepare").is_file() else ""),
               "config": str(copy),
           }
           if plan["health"] in ("tcp", "http") and not port:
