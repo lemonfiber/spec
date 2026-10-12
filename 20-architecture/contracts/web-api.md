@@ -108,6 +108,10 @@ with what removing it costs and left with the operator, and something the operat
 asked to be left alone is not on offer at any level of fullness — so a narrowing parameter would
 be a way to ask for exactly the two things nothing here will take.
 
+The `space` action that answers the offer can be narrowed, and only within it: `only` names
+categories of what the offer says costs nothing, so an operator agrees to each one apart and
+never to a set chosen for them; anything the offer did not name is refused (`ARCH-R289`).
+
 `/api/bandwidth` takes none, and the absence draws the same line the disk's does. What it
 answers with is the account of the line: what it was measured to carry, what the stack is being
 held to, which side of the household's day each download client says it is on, and whether each
@@ -853,6 +857,8 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R280** | `GET /api/alerts` MUST carry `kinds`, the notification kinds this stack raises as it is configured, each from the union `ARCH-R279` publishes. |
 | **ARCH-R281** | A stream opened with `Last-Event-ID` MUST be sent, before any other event, every `alert` event raised after that id, oldest first, from the last 24 hours and at most the last 200; where the id is older than the oldest kept or unknown, it MUST send those kept and mark the replay `partial`. A stream opened without one MUST be sent no past alert (`ARCH-R162`). |
 | **ARCH-R282** | An operator session MUST be able to register a UnifiedPush endpoint for one device with `POST /api/push-endpoints`, taking `name`, an `https` `endpoint`, and the WebPush `p256dh` key and `auth` secret, and to list them with `GET /api/push-endpoints` and remove one with `DELETE /api/push-endpoints/{name}`; the command line MUST list and remove them too. On every alert's onset and resolution the core MUST send each registered endpoint a WebPush message encrypted under RFC 8291 whose content says only that the stack has something to say, MUST forget an endpoint its distributor answers `404` or `410`, and MUST refuse an endpoint that is not `https` or whose name another holds, naming it. A member session and a key MUST NOT register, list or remove endpoints. Every registration and removal MUST be journaled. |
+| **ARCH-R288** | A finding a read leaves `unverified` because checking it disturbs something MUST carry `disruptive`: what checking it disturbs, in the stack's words; `bounded` (whole seconds the disturbance is bounded to, or absent where the stack bounds none); and `only` (the check or group a `diagnose` action takes to run it); and the `diagnose` action MUST accept that `only` as given. |
+| **ARCH-R289** | The `space` action MUST accept `only`, a list of categories the offer it answers names as costing nothing, and with the offer's name MUST reclaim those categories alone; a category the offer does not name MUST be refused, naming it, with nothing removed. |
 
 ## The artefact
 
