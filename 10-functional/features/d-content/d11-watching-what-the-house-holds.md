@@ -94,6 +94,25 @@ is paused or moved, and when it stops. The core hands that to the media server a
 member's own progress and keeps no copy, so what a member was part-way through is the
 media server's answer on every device they play on.
 
+### Live TV, on a pass the core issues
+
+A live stream is not an item the guard can ask about. The media server serves the
+bytes of whichever live stream a request names, under any item, and answers its item
+question for a channel even to a member it does not let watch live TV. So the guard
+refuses every live stream's bytes on an item's route, and a member watches a channel
+only through the core.
+
+The member's client asks the core to play a channel. The core asks the media server,
+with the member's own session, whether the member may watch that channel, and reads
+the programme on it now against the member's limits ([D8](d8-parental-controls.md)).
+Where both allow it, the core opens the live stream as the member and answers the
+client where its bytes are at the guarded front door, with a pass naming that live
+stream and that member, which lapses after a short time. The guard asks the core, on
+every request for a live stream's bytes, its playlists and segments included, whether
+the pass it carries is good for exactly that live stream, and serves nothing the core
+does not confirm. The core keeps the key the pass is made with to itself, and closes
+the live stream when its pass lapses or the member is removed.
+
 ## States
 
 | State | Meaning |
@@ -116,6 +135,10 @@ media server's answer on every device they play on.
 | A request presents no session | The door refuses it. |
 | The media server does not answer the door's question | The door refuses the request rather than passing it through. |
 | A member is removed mid-film | Their sessions are ended, and the next byte the door is asked for is refused. |
+| A member without live TV asks to play a channel | The core refuses it and opens nothing. |
+| A request names a live stream on an item's route | The door refuses it, whatever item is in the path. |
+| A live stream's bytes are asked for with a lapsed pass, a pass for another live stream, or none | The door refuses them. |
+| The core does not answer the door's question about a pass | The door refuses the request rather than passing it through. |
 | The door presents a certificate other than the one the core stated | A client refuses it. |
 
 ## Acceptance criteria
@@ -132,6 +155,9 @@ media server's answer on every device they play on.
 | **D11-R8** | The core MUST accept, from a member's paired client, how far through a title the member is and whether they finished it, and MUST hand it to the media server as that member's own playback progress, keeping no copy of its own. |
 | **D11-R9** | The core MUST serve a title's poster and backdrop to the member whose shelf holds it, read from the media server as that member, at `GET /api/held/{id}/poster` and `GET /api/held/{id}/backdrop`. It MUST answer only an `image/*` body of at most 2 MiB, marked `Cache-Control: private`, MUST keep no copy, and MUST answer a title outside the member's limits, or a picture the media server does not hold, as absent. |
 | **D11-R10** | The core MUST serve the poster of a title a member's search offered and the house does not hold, to that member alone, fetched by the core from the location the request service gave for that title and nowhere else, `image/*` only, at most 2 MiB, with `Cache-Control: private`; it MUST refuse a location that is not HTTPS or that resolves to a loopback, private or link-local address, and the member's client MUST NOT be sent to the catalogue's host. |
+| **D11-R11** | A member's paired client MUST be able to watch a live TV channel only through the core, which MUST open the channel's live stream on the member's behalf only where the media server answers the channel's live TV read with the member's own session and the programme on it is within the member's limits (`D8-R9`). The guard's item question MUST NOT stand in for either answer. |
+| **D11-R12** | The core MUST answer the client the location of the live stream's bytes at the guarded front door with a pass the core issued for that live stream and that member alone, which lapses within a bounded time, and MUST close the live stream when its pass lapses or the member is removed (`D6-R8`). |
+| **D11-R13** | The guard MUST serve a live stream's bytes, its playlists and segments included, only to a request whose pass the core confirms, asked of the core on every such request, for exactly the live stream the request names, and MUST refuse one whose pass is absent, lapsed or not confirmed, or where the core does not answer. A live stream's bytes MUST NOT be served on an item's byte route (`D11-R2`). |
 
 ## Related
 
