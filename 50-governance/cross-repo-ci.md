@@ -457,16 +457,20 @@ after the approval is as much a new change as a workflow edited. A push or a
 force push that changes what the pull request changes voids the approval, and so
 do a change of its base and the label's removal; `pin-only` then fails again
 until the label is added again. A push that leaves the change as it was, such as
-Dependabot rebasing its branch onto a newer `main`, keeps the approval, because
-what merges is still exactly what the maintainer approved. Nothing records the
-approved change: it is read from the forge each time, as each file's diff byte
-for byte with the three lines around every change, its modes, and the object a
-link or a submodule names, at the head the label was added on and at the head
-being judged. Where the first cannot be read, nothing is approved. A label added
-by an account without the `admin` or `maintain` role on the repository, a bot's
-included, approves nothing. The check reads who added the label and when, and
-which head each of its own runs saw, from the forge's records, never from a
-commit's dates, which the pusher writes.
+Dependabot rebasing its branch onto a newer `main` that did not touch the files
+it changes, keeps the approval, because what merges is still exactly what the
+maintainer approved. Nothing records the approved change: it is read from the
+forge each time, as the object and mode every changed path names at the merge
+base and at the head, read from git's trees rather than from any rendering of
+the change, at the head the label was added on and at the head being judged. The
+head the label was added on must have held the branch for a minute, and the run
+the label started must be for it, so a push racing the label is never what was
+approved; the check names that head in a notice, for the maintainer to confirm
+it is the one they read. Where the first cannot be read, nothing is approved. A
+label added by an account without the `admin` or `maintain` role on the
+repository, a bot's included, approves nothing. The check reads who added the
+label and when, and which head each of its own runs saw, from the forge's
+records, never from a commit's dates, which the pusher writes.
 
 A label event runs `pin-only` only when the label is `workflows-approved`. Every
 other label, the ones the gates' labeler and Dependabot add included, skips the
