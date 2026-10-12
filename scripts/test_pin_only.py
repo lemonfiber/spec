@@ -323,6 +323,7 @@ class Approved(unittest.TestCase):
 
     def test_a_push_after_the_label_to_a_head_the_forge_cannot_return_fails(self):
         forge = self.changed()
+        forge.runs.append(ran(3, head=OLD))
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(3)]
         self.refused(forge, f"{OLD[:8]}, its head when `{pin_only.APPROVED}` was added at {at(3)}, cannot be read")
@@ -332,7 +333,7 @@ class Approved(unittest.TestCase):
         forge = Forge({CI: (caller(), caller() + "  extra:\n    runs-on: x\n", base, then)})
         forge.states.update({EARLIER_BASE: 2, EARLIER: 3})
         forge.bases[EARLIER] = EARLIER_BASE
-        forge.runs = [ran(1, head=EARLIER), ran(5)]
+        forge.runs = [ran(1, head=EARLIER), ran(3, head=EARLIER), ran(5)]
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(3)]
         return forge
@@ -343,13 +344,19 @@ class Approved(unittest.TestCase):
                             f"`{pin_only.APPROVED}` was added at {at(3)}")
 
     def test_a_rebase_that_keeps_the_change_keeps_the_approval(self):
-        # The same lines removed and added, with the same lines around them, on a
-        # merge base whose own lines elsewhere in the file are older.
-        older = caller().replace("name: ci", "name: ci\nrun-name: older")
-        forge = self.earlier(older, older + "  extra:\n    runs-on: x\n")
+        # The same objects changed, on a merge base whose other files are newer.
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.files[".github/workflows/other.yml"] = ("newer", "newer", "older", "older")
         code, said = run(forge)
         self.assertEqual(code, 0, said)
         self.assertIn(f"::notice::{CI} changes more than spec's pins, and a maintainer approved it", said)
+
+    def test_a_rebase_onto_a_main_that_changed_the_same_file_needs_the_label_again(self):
+        # Compared by objects, never by a diff of text: the file the pull request
+        # changes moved on `main`, so the change is read afresh by a maintainer.
+        older = caller().replace("name: ci", "name: ci\nrun-name: older")
+        forge = self.earlier(older, older + "  extra:\n    runs-on: x\n")
+        self.refused(forge, "is not what")
 
     def test_the_same_lines_somewhere_else_are_not_the_change_approved(self):
         moved = caller().replace("jobs:\n", "jobs:\n  extra:\n    runs-on: x\n")
@@ -419,18 +426,52 @@ class Approved(unittest.TestCase):
             forge.modes[("vendor/lib", state)] = "160000"
         self.refused(forge, "is not what")
 
-    def test_a_file_that_is_not_text_is_another_change(self):
-        forge = self.with_file("scripts/x.bin", "a", "b", "c")
-        real = forge.__call__
+    def test_a_binary_file_changed_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/x.bin", "\x00a", "\x00b", "\x00c"), "is not what")
 
-        def binary(args, raw):
-            if raw and args[0].endswith(f"/git/blobs/{blob('c')}"):
-                raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
-            return real(args, raw)
+    def test_the_same_edit_to_a_repeated_block_elsewhere_is_another_change(self):
+        # A rendering of the change with the line numbers left out reads the same
+        # for both; the objects do not.
+        block = "  step:\n    run: a\n    with: b\n    env: c\n"
+        base = "jobs:\n" + block + "  gap: 1\n" + block
+        first = base.replace("run: a", "run: z", 1)
+        second = "jobs:\n" + block + "  gap: 1\n" + block.replace("run: a", "run: z")
+        self.refused(self.with_file(".github/workflows/r.yml", base, first, second), "is not what")
 
-        code, said = run(binary)
-        self.assertEqual(code, 1, said)
-        self.assertIn("is not what", said)
+    def at_second(self, forge: Forge, *runs: tuple[str, str]) -> Forge:
+        forge.runs = [{"created_at": stamp, "head_sha": head, "head_repository": {"full_name": FORK}}
+                      for stamp, head in runs]
+        return forge
+
+    def test_a_head_pushed_moments_before_the_label_is_not_approved(self):
+        forge = self.at_second(self.earlier(caller(), self.EXTRA),
+                               (at(1), OLD), ("2026-10-09T21:02:30Z", EARLIER), (at(3), EARLIER), (at(5), HEAD))
+        self.refused(forge, f"its head became {EARLIER[:8]} at 2026-10-09T21:02:30Z, less than "
+                            f"{pin_only.QUIET} seconds before")
+
+    def test_a_head_held_a_minute_before_the_label_is_approved(self):
+        forge = self.at_second(self.earlier(caller(), self.EXTRA),
+                               (at(1), OLD), (at(2), EARLIER), (at(3), EARLIER), (at(5), HEAD))
+        code, said = run(forge)
+        self.assertEqual(code, 0, said)
+        self.assertIn(f"`{pin_only.APPROVED}` was added at {at(3)} on {EARLIER}, which held the branch from {at(2)}",
+                      said)
+
+    def test_the_run_the_label_started_for_another_head_is_a_race(self):
+        forge = self.at_second(self.earlier(caller(), self.EXTRA), (at(1), EARLIER), (at(3), HEAD), (at(5), HEAD))
+        forge.timeline = [{"event": "labeled", "created_at": "2026-10-09T21:02:59Z",
+                           "label": {"name": pin_only.APPROVED}, "actor": {"login": MAINTAINER}}]
+        self.refused(forge, f"is for {HEAD[:8]}, not {EARLIER[:8]}, so a push landed as it was added")
+
+    def test_no_run_started_by_the_label_is_unconfirmed(self):
+        forge = self.at_second(self.earlier(caller(), self.EXTRA), (at(1), EARLIER))
+        self.refused(forge, "no run of this check started when")
+
+    def test_runs_of_the_base_repository_on_a_branch_of_the_same_name_are_not_the_fork_s(self):
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.runs += [{"created_at": at(2), "head_sha": OFF, "head_repository": {"full_name": REPO}},
+                       {"created_at": at(3), "head_sha": OFF, "head_repository": {"full_name": REPO}}]
+        self.assertEqual(run(forge)[0], 0)
 
     def test_a_base_changed_after_the_label_fails(self):
         forge = self.earlier(caller(), self.EXTRA)
@@ -438,8 +479,7 @@ class Approved(unittest.TestCase):
         self.refused(forge, f"its base was changed at {at(4)}, after `{pin_only.APPROVED}` was added at {at(3)}")
 
     def test_a_base_changed_before_the_label_is_the_base_approved(self):
-        forge = self.earlier(caller().replace("name: ci", "name: ci\nrun-name: older"),
-                             caller().replace("name: ci", "name: ci\nrun-name: older") + "  extra:\n    runs-on: x\n")
+        forge = self.earlier(caller(), self.EXTRA)
         forge.timeline.insert(0, {"event": "base_ref_changed", "created_at": at(2)})
         self.assertEqual(run(forge)[0], 0)
 
@@ -485,6 +525,7 @@ class Approved(unittest.TestCase):
 
     def test_the_label_added_by_one_who_holds_maintain_passes(self):
         forge = self.changed()
+        forge.runs.append(ran(8))
         forge.roles["keeper"] = "maintain"
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(8, by="keeper")]
@@ -510,6 +551,7 @@ class Approved(unittest.TestCase):
 
     def test_the_label_added_again_after_a_push_passes(self):
         forge = self.changed()
+        forge.runs.append(ran(7))
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(3), labeled(4, event="unlabeled"), labeled(7)]
         self.assertEqual(run(forge)[0], 0)
@@ -535,6 +577,7 @@ class Approved(unittest.TestCase):
 
     def test_a_run_from_a_branch_of_the_same_name_elsewhere_is_not_this_pull_request_s(self):
         forge = self.changed()
+        forge.runs.append(ran(8))
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(8)]
         forge.runs.append(ran(9, head=OFF, source=ELSEWHERE))
@@ -551,6 +594,7 @@ class Approved(unittest.TestCase):
 
     def test_a_branch_name_is_one_query_value(self):
         forge = self.changed()
+        forge.runs.append(ran(8))
         forge.branch = "a&event=push#x"
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(8)]
@@ -559,6 +603,7 @@ class Approved(unittest.TestCase):
 
     def test_a_list_read_a_page_at_a_time(self):
         forge = self.changed()
+        forge.runs.append(ran(8))
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(2, "ci")] * pin_only.PER_PAGE + [labeled(8)]
         self.assertEqual(run(forge)[0], 0)
