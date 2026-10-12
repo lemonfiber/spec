@@ -122,8 +122,15 @@ POST   /api/device-keys/{name}/challenge
 
 `POST /api/device-keys` takes `{ "name": …, "public_key": …, "attestation": …, "password": … }`:
 the public half as its SubjectPublicKeyInfo in base64url, and the platform's attestation of
-where the key lives: an Android key attestation chain, or an iOS App Attest attestation
-whose client data is the SHA-256 of the public half. The core verifies the attestation
+where the key lives, an object tagged by `platform`:
+
+| `platform` | Beside it | What it carries |
+|---|---|---|
+| `android` | `chain` | The key attestation chain, each certificate's DER in base64url, the key's own certificate first |
+| `ios` | `object` | The App Attest attestation object's CBOR in base64url |
+
+On iOS the phone attests with the SHA-256 of exactly the bytes `public_key` decodes to as
+the client data hash, hashed once, so the attestation covers that public half and no other. The core verifies the attestation
 against the platform roots in its build, sending nothing out to do it, and only for an app
 it trusts: the official NightWorksIO companion, or a build named in the setting
 `LEMONFIBER_DEVICE_KEY_APPS` (`ARCH-R262`). It answers the `device-key` envelope:
