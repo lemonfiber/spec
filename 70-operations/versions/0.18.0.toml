@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 516 goals, seeded from the roadmap milestone this version serves;
+# 521 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -842,8 +842,20 @@ goals   = [
     "ARCH-R276",
     "ARCH-R277",
     "ARCH-R278",
+    "ARCH-R283",
+    "ARCH-R284",
+    "ARCH-R285",
+    "ARCH-R286",
+    "ARCH-R287",
 ]
 
+# `ARCH-R283` to `ARCH-R287` prove a part with no network surface live (ADR-0048): a
+# `[[proof]]` may run its image's own program in a container of its own, with no network,
+# bounded and recorded by the same run, judged wherever a proof is and by the doctor on
+# its own cadence. Quality sync is such a part, and the media stack's move to its plugins
+# needs every part proved. Added after staging by the maintainer's decision of 2026-10-12
+# (OPS-R31).
+#
 # `ARCH-R275` to `ARCH-R278` settle what the settings and secret stores hold (ADR-0046): an
 # assembled part keeps its plugin's `[[secret]]`; the journal keeps a secret's fingerprint,
 # never its value, and undo restores the store's one previous value only while the

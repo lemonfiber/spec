@@ -3,6 +3,8 @@
 **Status:** Accepted
 **Date:** 2026-07-24
 
+**Amended** by [ADR-0048](0048-a-part-without-a-port-is-proved-by-running-its-own-program.md): a proof's container, which no Compose project holds, is created, started and removed through the engine API.
+
 ## Context
 
 [ADR-0001](0001-docker-compose-as-engine.md) settled that Compose is the

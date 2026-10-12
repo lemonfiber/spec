@@ -504,8 +504,9 @@ read as what arrives.
 
 ## `[[proof]]` — what must hold before it is installed
 
-A plugin declares the checks that must hold before it is installed: each a request, what
-the answer is expected to be, and the recording it is proved against. The whole of
+A plugin declares the checks that must hold before it is installed: each a request, or a
+run of the image's own program where the service answers none, what the answer is
+expected to be, and the recording it is proved against. The whole of
 `[[proof]]` is on [its own page](plugin-manifest-proof.md).
 
 ## `[[contribution]]` — a row in a register lemonfiber already runs
@@ -754,8 +755,10 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | `network.via` names a capability in its closed set, one the service does not provide | Service and capability named, with the set |
 | `shape` is declared only where that shape permits | `service <id>.shape` named |
 | Every `provides` entry is a published core name or namespaced with the plugin's id | Capability named, with the namespace required |
-| Every `[[proof]]` carries `id`, `title`, `request`, `expect` and `why` | Proof and field named |
-| At least one `[[proof]]` constrains the body rather than only the status | Every status-only proof named |
+| Every `[[proof]]` carries `id`, `title`, `expect`, `why` and exactly one of `request` and `run` | Proof and field named |
+| At least one `[[proof]]` constrains the body or the output rather than only the status or the exit | Every status-only proof named |
+| A `run` carries one to 64 `args`, each at most 4096 bytes with no NUL, and a `timeout_s`, where given, from 1 to 120; only a `[[proof]]` carries one | Proof and field named |
+| A run's `expect` uses only `exit` and `stdout_starts_with`, and a request's uses neither | Assertion and key named |
 | Every `expected` entry carries `fixture`, `verdict`, `constraint` and `reason`, its `verdict` is `fails`, and its `fixture` names a recording that exists | Assertion, entry and field named |
 | Every `expected` entry names a constraint its assertion's `expect` makes, with a `place` exactly where that constraint is key-wise | Assertion, entry and constraint named, with the constraints the assertion makes |
 | No two `expected` entries of one assertion name the same recording | Assertion and recording named |
@@ -845,12 +848,12 @@ unreadable.
 | **ARCH-R102** | A plugin's service MUST declare the capabilities it claims in the manifest, a claim outside the published core vocabulary MUST be namespaced with the plugin's id, and a claim naming neither MUST be refused by name. |
 | **ARCH-R103** | lemonfiber MUST generate the stack's own proxy and dashboard wiring for a plugin's service from what the manifest declares, on the same terms as a bundled service in the same binding tier, and MUST NOT accept a proxy stanza, dashboard entry or any other wiring fragment from a plugin. |
 | **ARCH-R104** | A plugin MUST NOT be able to obtain a proxy hostname for a service bound to loopback, and the binding tier alone MUST decide whether a service is reachable by name. |
-| **ARCH-R105** | A plugin's proofs MUST be declarable in the manifest, each naming what it asks and what the answer must be, and a manifest whose every proof constrains only a response status MUST be refused naming those proofs. |
+| **ARCH-R105** | A plugin's proofs MUST be declarable in the manifest, each naming what it asks and what the answer must be, and a manifest whose every proof constrains only a response status or only an exit status MUST be refused naming those proofs. |
 | **ARCH-R116** | A core capability MUST be claimed by a `[[claim]]` block binding every probe the published vocabulary declares for it, the claimed name MUST also appear in the service's `provides`, and either half without the other MUST be refused naming both. |
 | **ARCH-R117** | A recipe MUST be declarable in the manifest, and a manifest declaring one MUST name the capability that runs it in `[requires]`; a build not offering that capability MUST refuse the manifest by naming it rather than by parsing the block and skipping it. |
-| **ARCH-R120** | A recorded response MUST be one file of readable data carrying the request it recorded and the answer to it, and a field outside the published set MUST be refused by name rather than ignored. |
+| **ARCH-R120** | A recorded response MUST be one file of readable data carrying the request it recorded and the answer to it, or the run it recorded and its result, and a field outside the published set MUST be refused by name rather than ignored. |
 | **ARCH-R121** | A recording MUST name the image it was taken from by digest, that digest MUST be the one the manifest pins for the service being asked, and a recording naming another image MUST be refused rather than run against. |
-| **ARCH-R122** | An assertion whose recording is absent, unreadable, or records a request the assertion does not ask MUST be reported unproven, naming the recording, and MUST NOT be reported as passed or as failed. |
+| **ARCH-R122** | An assertion whose recording is absent, unreadable, or records a request or a run the assertion does not ask MUST be reported unproven, naming the recording, and MUST NOT be reported as passed or as failed. |
 | **ARCH-R123** | A request in a manifest MUST be able to name the one representation it asks for, that field MUST hold a single media type and MUST be refused by name where it holds a list, a wildcard or anything else, and the manifest MUST have no field by which a request outside a recipe could carry a credential or any other header. |
 | **ARCH-R124** | A recording MUST record the representation its request asked for, and the representation asked for MUST be part of whether a recording is of the request an assertion asks. |
 | **ARCH-R125** | An expectation's key-wise constraint MUST take a place in the answer rather than a top-level name, written as a JSON Pointer (RFC 6901) extended with a single-entry list selector this contract defines, a key that does not begin with `/` MUST keep meaning the top-level member of that name, and a key naming no place MUST be refused by name rather than evaluated as a member that is absent. |
@@ -899,10 +902,16 @@ unreadable.
 | **ARCH-R273** | A first-party plugin's service whose `replaces` names a reserved id MUST be given the setting, secret and credential names the stack gives the service of that id, and moving a part in place MUST NOT rename or migrate any of them. |
 | **ARCH-R276** | The journal MUST record a change to a secret by the fingerprint of its value before and after the change, and MUST NOT hold a secret's value, sealed or otherwise; the secret store MUST keep each secret's one previous value, and undoing the change MUST restore it only while the values the store holds match the fingerprints the entry recorded, and otherwise MUST say the secret must be replaced at the terminal, naming it. |
 | **ARCH-R277** | A credential that crosses to a plugin's service (`F14-R18`, `F14-R20`) MUST be read from the store that holds it each time an entry naming it is written, and MUST NOT be copied into the secret store; replacing it MUST regenerate every entry that reads it. |
+| **ARCH-R283** | A `[[proof]]` MAY declare `run` in place of `request`, exactly one of the two: one to 64 arguments for the image's own entrypoint, each at most 4096 bytes with no NUL, and a `timeout_s` from 1 to 120, 30 where absent; its `expect` MUST use only `exit` and `stdout_starts_with`, a request's MUST use neither, and a `[[claim.probe]]` or a contributed check declaring `run` MUST be refused naming it. |
+| **ARCH-R284** | lemonfiber MUST perform a run in a new container from the image at the digest the manifest pins, never inside the running service, passing each argument as one argument to the image's entrypoint and starting no shell, with no network, as the user the service's `user_mode` writes, under the service's posture and memory limit, with a throwaway copy of the plugin's starting files for the service at its `config_path` where it declares one and no other mount, device or shape, and with the entry's constants, `TZ`, `PUID` and `PGID` as its only environment; it MUST stop the run at `timeout_s` and report it failed naming the limit, MUST read at most 64 KiB of standard output and judge no standard error, MUST remove the container when the run ends, MUST show what the run wrote with its control characters removed, and MUST report the proof unproven where the engine or the pinned image is not available. |
+| **ARCH-R285** | `lemonfiber plugin record <path>` MUST perform each run proof's run, bounded as `ARCH-R284` bounds it, and write its recording: `recorded_from` as the manifest's pin, `run.args`, `result.exit` and the first 1 KiB of standard output as `result.stdout_starts_with`, keeping the `note` an author wrote; a recording MUST carry `request` and `response` or `run` and `result` and never both, and a recording whose `result` a fresh run does not reproduce byte for byte MUST be refused naming it. |
+| **ARCH-R286** | A run proof MUST be judged wherever a request proof is: against its recording in the plugin's CI and in the release gate, live in the plugin's CI with the image under its posture, at install and at update, and by `lemonfiber plugin prove` and `plugin-prove`. |
+| **ARCH-R287** | The doctor MUST perform a run proof only when the doctor is run, never on the gather that feeds the dashboard or the event stream, and only where no verdict is kept for the image's digest, the proof's arguments, the posture and user it ran under, the digest of the service's starting files and the running lemonfiber release; it MUST keep that verdict across restarts and report it with when it was reached, and MUST NOT pull an image for it. |
 
 ## Related
 
 - [ADR-0021](../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) — the decision this contract implements
+- [ADR-0048](../../00-overview/decisions/0048-a-part-without-a-port-is-proved-by-running-its-own-program.md) — a proof that runs the image's own program
 - [ADR-0046](../../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) — when the environment file is filed, and what the journal keeps of a secret
 - [plugin-manifest-service](plugin-manifest-service.md) — what a plugin runs, field by field
 - [stack-manifest](stack-manifest.md) — the vocabulary a plugin's service is declared in, and the whole-stack manifest this is not
