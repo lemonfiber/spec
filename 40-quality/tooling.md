@@ -492,9 +492,20 @@ merge and the automated pull request that takes it, which is a gate nobody can
 get past rather than one that puts anything in front of anybody. So `Q-R68`
 allows a commit 24 hours on the dependency's default branch before its absence
 is a fault: long enough for an automated bump to open, pass and merge, short
-enough that a stalled one is red the next day. A check may be stricter, as
-`workflow-pins` is; one that uses the window reads it from one named constant,
-so the number the gate applies and the number a reader is told cannot differ.
+enough that a stalled one is red the next day. `workflow-pins` and
+`upstream-drift` both use it, and both read it from one named constant in spec's
+scripts, so the number the gates apply and the number a reader is told cannot
+differ. Inside the window a commit not taken is a warning naming it and the hour
+it becomes a refusal. The window counts from the commit's time on the default
+branch, which a squash merge sets to the moment it merged; a commit dated later
+than the run counts as past the window, so a date written by hand can only make
+the gate stricter.
+
+Without the window, two pins moving at once would deadlock. A repository taking
+both the shared workflows and a client would hold two automated pull requests,
+each red on the pin only the other one moves, and neither could merge first.
+Inside the window both are green, and each merges on its own.
+
 What counts is a commit that changed something the repository reads — the
 workflow file a pin names, the files a site renders — not every commit on the
 branch.
@@ -513,6 +524,7 @@ These can't be scaffolded and must be set by hand after creation:
 | Action | Where |
 |--------|-------|
 | Add `SONAR_TOKEN` secret | Each repo running Sonar → Settings → Secrets |
+| Create the `fan-out` environment with a 20-minute wait timer, deployments from `main` only | `spec` → Settings → Environments |
 | Enable Dependabot **security updates** | Each repo → Settings → Advanced Security. Version updates need no toggle — `.github/dependabot.yml` is enough |
 | Uninstall the Renovate GitHub App | Org → Settings → GitHub Apps. It is still installed and no longer read |
 
