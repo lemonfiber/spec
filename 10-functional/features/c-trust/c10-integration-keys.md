@@ -99,7 +99,13 @@ the operator to a session that is already theirs.
 
 The operator lists device keys by name, backing, when each was registered and last used,
 and revokes one by name. Changing the operator password revokes every device key, so a phone that is
-lost is cut off by the same act that ends its sessions.
+lost is cut off by the same act that ends its sessions, and so does restoring a backup, which
+puts back a password and device keys from before whatever was revoked since.
+
+A key minted with a device key's signature records which device key proved it, and the
+listing shows it. Revoking the device key leaves those keys standing, since each was minted
+deliberately, as a password-proved key outlives a password change; the revoke's alert names
+them, so the operator can revoke them too.
 
 ### A member may mint their own, once the operator allows it
 
@@ -171,6 +177,8 @@ and offer the real call after.
 | A key in the trusted environment alone | Registered, with its backing recorded as `tee` and shown in the listing. |
 | An attestation names an app the core does not trust | Refused with a code of its own, naming the app's identity and that the operator can add it as a setting. |
 | The operator removes an app identity they added | Every device key registered from that app is revoked, journaled and alerted. |
+| A backup is restored | Every device key is revoked once the restore lands, journaled and alerted; each phone registers again, asking for the password once. |
+| A device key that proved mints is revoked | The keys it proved stay, each listed with the device key that proved it; the revoke's alert names every active one. |
 | A device key is presented as a credential | It is none: a request carrying only a device key's signature, with no operator session, is refused as a request with no credential is. |
 | A member tries to mint a key while the setting is off | Refused with a code of its own, saying the operator has not allowed members to mint keys, before their password is checked. |
 | A member tries to mint a key for another account | Refused. A member mints only `member:` keys for themselves. |
@@ -214,6 +222,8 @@ and offer the real call after.
 | **C10-R29** | The core MUST register a device key only where its attestation names an app identity the core trusts: the package and the SHA-256 digest of its signing certificate on Android, the Team ID and bundle ID on iOS. The build MUST ship the official NightWorksIO companion's identities, and an attestation naming any other app MUST be refused with a code of its own, naming the identity. Until the companion's first store release the official list MUST be empty, so only the identities the operator adds are trusted, and the core release that follows the companion's first store release MUST ship its identities ([releasing](../../../70-operations/releasing.md#the-companions-identities)). |
 | **C10-R30** | The operator MUST be able to add and remove the identities of their own builds as a setting, at the command line and over the web API (`ARCH-R262`); each change MUST be journaled and MUST raise an operator alert naming the identity, the official identities MUST NOT be removable, and removing an identity MUST revoke every device key registered from it. |
 | **C10-R31** | The core MUST verify an attestation against the platform roots shipped in its build and MUST NOT send any request to verify one, a revocation list included. |
+| **C10-R32** | Restoring a configuration backup MUST revoke every device key once the restore lands, each journaled as not reversible and alerted as `C10-R26` says. |
+| **C10-R33** | A key minted with a device key's signature MUST record that device key, and the listing MUST show it beside the key (`ARCH-R293`). Revoking a device key MUST NOT revoke the keys it proved, and its alert MUST name each active key it proved. |
 
 ## Related
 

@@ -229,6 +229,14 @@ Decisions about a repository outside this organisation, such as
 | `Q-R83` is amended in place: a label event runs `pin-only` only for `workflows-approved`, every other label skipping the job in a group of its own run, and only a push cancels a `pin-only` run in progress | [Q-R83](../40-quality/ci-cd.md) |
 | The release workflow's actions are pinned at the commit and version the other workflows in the core's tree use, refused where they disagree, rather than from a table in a script | This row |
 
+## 2026-10-13
+
+| Decision | Where it lives |
+|---|---|
+| Restoring a configuration backup revokes every device key once it lands, journaled and alerted; each phone registers again with the password once | [C10-R32](../10-functional/features/c-trust/c10-integration-keys.md) |
+| A key minted with a device key's signature records that device key as `proved_by`, shown in the keys listing; revoking the device key leaves those keys standing and its alert names them | [C10-R33](../10-functional/features/c-trust/c10-integration-keys.md), [ARCH-R293](../20-architecture/contracts/web-api.md) |
+| `C10-R32`, `C10-R33` and `ARCH-R293` ship in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
+
 ## Requirements
 
 | ID | Requirement |
