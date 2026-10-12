@@ -1,0 +1,630 @@
+# The image a first-party plugin builds: built, proved under the posture its manifest
+# declares, and published from every commit on main and every tag the train cuts
+# (OPS-R90, OPS-R91, ARCH-R250).
+#
+# On a pull request the image is built for linux/amd64 and run under its posture,
+# skipped by a job-level condition where `what changed` found only paths nothing here
+# reads (Q-R76). On a push to main it is published as `main-<12 hex>`, and on a train
+# tag as that tag: each platform on a runner of its own architecture, joined under
+# one index carrying BuildKit's SBOM and provenance, with a build-provenance
+# attestation and an SBOM attestation per platform. The published index is then run
+# under its posture, and one rolling pull request sets the `digest` and `tag` of each
+# service of the manifest that runs it.
+#
+# The service whose `image` is `ghcr.io/lemonfiber/<image>` says how it is run: its
+# posture, its user, its configuration directory holding the plugin's starting files
+# under `config/<service id>/` and each further mount from among them, its scratch
+# space, its constant environment, its memory limit and its health check. Until the
+# manifest names the image, the service whose id is the plugin's says it, and where
+# there is none it is run under `standard` and waited on as its own health check says.
+# The image is `ghcr.io/lemonfiber/<plugin id>` unless `image` names another.
+# `prepare`, `posture/prepare` where the plugin holds one, is a script of the plugin's
+# run with that configuration directory's copy before the container starts, for what
+# lemonfiber writes there at install, such as a certificate.
+#
+#   jobs:
+#     image:
+#       permissions:
+#         contents: read
+#         packages: write
+#         id-token: write
+#         attestations: write
+#       uses: lemonfiber/spec/.github/workflows/first-party-image.yml@<sha> # vX.Y.Z
+#       secrets:
+#         RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
+name: first-party-image
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: "The image's name under ghcr.io/lemonfiber/. The plugin's id where absent."
+        type: string
+        required: false
+        default: ""
+      directory:
+        description: "The plugin's root in the calling repository, holding plugin.toml and the Dockerfile."
+        type: string
+        required: false
+        default: "."
+      prepare:
+        description: "A script under the plugin's root run with the configuration directory's copy before the container starts. posture/prepare where absent and the plugin holds one."
+        type: string
+        required: false
+        default: ""
+    secrets:
+      RELEASE_APP_KEY:
+        description: "The release App's private key, which writes the rolling pin pull request."
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io/lemonfiber
+  BUILDKIT: moby/buildkit:v0.33.1@sha256:cec9f139f45e93c5c69c60f8b07cfad9f43f4ef6b6a6cd917527fea5ff2e3dea
+  SBOM_SCANNER: docker/buildkit-syft-scanner:1.12.0@sha256:ae4f3b554449e7e25548e7d8ccc029d17357348e30c6e3df01b92bc93654d6a9
+  TAG_PIN_BRANCH: release/image-pin
+  COMMIT_PIN_BRANCH: release/image-commit-pin
+
+jobs:
+  settle:
+    name: what changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      mode: ${{ steps.what.outputs.mode }}
+      image: ${{ steps.what.outputs.image }}
+      name: ${{ steps.what.outputs.name }}
+      tag: ${{ steps.what.outputs.tag }}
+      pin: ${{ steps.what.outputs.pin }}
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          filter: blob:none
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE}" ] || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "No commit to compare against, so the image is built."
+            exit 0
+          fi
+          changed="$(git diff --no-renames --name-only "${BASE}" HEAD)"
+          code=false
+          while IFS= read -r path; do
+            case "${path}" in
+            '' | *.md | docs/* | LICENSE | status.toml | .github/ISSUE_TEMPLATE/*) continue ;;
+            .github/*) code=true ;;
+            esac
+            if [ "${DIRECTORY}" = "." ] || [[ "${path}" == "${DIRECTORY%/}/"* ]]; then
+              code=true
+            fi
+          done <<< "${changed}"
+          echo "code=${code}" >> "$GITHUB_OUTPUT"
+          if [ "${code}" = false ]; then
+            echo "Nothing the image is built from changed, so it is not built again."
+          fi
+      - name: A pull request proves; main and a train tag publish
+        id: what
+        env:
+          IMAGE_NAME: ${{ inputs.image }}
+          DIRECTORY: ${{ inputs.directory }}
+          KIND: ${{ github.ref_type }}
+          REF: ${{ github.ref }}
+          NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ -z "$IMAGE_NAME" ]; then
+            IMAGE_NAME="$(python3 -I -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb")).get("plugin", {}).get("id", ""))' "${DIRECTORY%/}/plugin.toml")"
+          fi
+          if [[ ! "$IMAGE_NAME" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::'${IMAGE_NAME}' is not an image name: lowercase words joined by '-'"
+            exit 1
+          fi
+          image="${REGISTRY}/${IMAGE_NAME}"
+          if [ "$GITHUB_EVENT_NAME" = pull_request ] || [ "$GITHUB_EVENT_NAME" = merge_group ]; then
+            mode=prove
+            tag=""
+            pin=""
+          elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = branch ]; then
+            [ "$REF" = refs/heads/main ] || { echo "::error::${REF} is not main, and no other branch publishes"; exit 1; }
+            mode=publish
+            tag="main-${GITHUB_SHA:0:12}"
+            pin="$COMMIT_PIN_BRANCH"
+          elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = tag ]; then
+            if [[ ! "$NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$ ]] \
+              || [[ "$NAME" =~ ^v[0-9.]+-rc[0-9]*(\.|$) ]]; then
+              echo "::error::'${NAME}' is not a tag the train cuts: vX.Y.Z, or vX.Y.Z-<identifier> other than rc"
+              exit 1
+            fi
+            git fetch --quiet origin main
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+              echo "::error::${NAME} points at ${GITHUB_SHA}, which main does not hold"
+              exit 1
+            fi
+            declared="$(python3 -I -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb"))["plugin"]["version"])' "${DIRECTORY%/}/plugin.toml")"
+            if [ "v${declared}" != "$NAME" ]; then
+              echo "::error::the manifest declares ${declared}, so it is not tagged ${NAME}"
+              exit 1
+            fi
+            mode=publish
+            tag="$NAME"
+            pin="$TAG_PIN_BRANCH"
+          else
+            echo "::error::an image is built for a pull request, a merge group, main or a train tag, not for ${GITHUB_EVENT_NAME} on ${REF}"
+            exit 1
+          fi
+          {
+            echo "mode=${mode}"
+            echo "image=${image}"
+            echo "name=${IMAGE_NAME}"
+            echo "tag=${tag}"
+            echo "pin=${pin}"
+          } >> "$GITHUB_OUTPUT"
+          echo "${mode}: ${image}${tag:+:${tag}}"
+
+  build:
+    needs: settle
+    if: needs.settle.outputs.mode == 'publish'
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build on this platform and push by digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+          IMAGE: ${{ needs.settle.outputs.image }}
+          TAG: ${{ needs.settle.outputs.tag }}
+          PLATFORM: ${{ matrix.platform }}
+          SOURCE: ${{ github.server_url }}/${{ github.repository }}
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$ACTOR" --password-stdin
+          docker buildx create --use --driver docker-container --driver-opt "image=${BUILDKIT}" >/dev/null
+          docker buildx build "$DIRECTORY" \
+            --platform "$PLATFORM" \
+            --label "org.opencontainers.image.source=${SOURCE}" \
+            --label "org.opencontainers.image.version=${TAG#v}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --provenance mode=max \
+            --attest "type=sbom,generator=${SBOM_SCANNER}" \
+            --output "type=image,name=${IMAGE},push-by-digest=true,name-canonical=true,push=true" \
+            --metadata-file metadata.json
+          digest="$(python3 -I -c 'import json; print(json.load(open("metadata.json"))["containerimage.digest"])')"
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] \
+            || { echo "::error::the build reported no digest: '${digest}'"; exit 1; }
+          mkdir -p digests
+          touch "digests/${digest#sha256:}"
+          echo "${PLATFORM} pushed as ${digest}"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: digest-${{ matrix.runner }}
+          path: digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: [settle, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    outputs:
+      digest: ${{ steps.index.outputs.digest }}
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: digest-*
+          path: digests
+          merge-multiple: true
+      - name: Join the platforms under one index, tagged
+        id: index
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+          IMAGE: ${{ needs.settle.outputs.image }}
+          TAG: ${{ needs.settle.outputs.tag }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$ACTOR" --password-stdin
+          sources=()
+          for file in digests/*; do
+            sources+=("${IMAGE}@sha256:$(basename "$file")")
+          done
+          [ "${#sources[@]}" -eq 2 ] || { echo "::error::expected two platform digests, got ${#sources[@]}"; exit 1; }
+          docker buildx imagetools create --tag "${IMAGE}:${TAG}" "${sources[@]}"
+          docker buildx imagetools inspect "${IMAGE}:${TAG}" --format '{{json .Manifest}}' > descriptor.json
+          digest="$(python3 -I -c 'import json; print(json.load(open("descriptor.json"))["digest"])')"
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] \
+            || { echo "::error::the registry named no index digest: '${digest}'"; exit 1; }
+          docker buildx imagetools inspect --raw "${IMAGE}@${digest}" > index.json
+          python3 -I - "$digest" <<'PY'
+          import json, os, sys
+          index = json.load(open("index.json"))
+          found = {
+              f"{m['platform']['os']}/{m['platform']['architecture']}": m["digest"]
+              for m in index.get("manifests", [])
+              if m.get("platform", {}).get("os") not in (None, "unknown")
+          }
+          missing = {"linux/amd64", "linux/arm64"} - set(found)
+          if missing:
+              sys.exit(f"::error::the index does not publish {', '.join(sorted(missing))}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"digest={sys.argv[1]}\n")
+              out.write(f"amd64={found['linux/amd64']}\n")
+              out.write(f"arm64={found['linux/arm64']}\n")
+          PY
+          for arch in amd64 arm64; do
+            docker buildx imagetools inspect "${IMAGE}:${TAG}" \
+              --format "{{ json (index .SBOM \"linux/${arch}\").SPDX }}" > "sbom-${arch}.spdx.json"
+          done
+          {
+            echo "## ${IMAGE}:${TAG}"
+            echo
+            echo "Index digest: \`${digest}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "published ${IMAGE}:${TAG} as ${digest}"
+      - name: Attest the index's build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ needs.settle.outputs.image }}
+          subject-digest: ${{ steps.index.outputs.digest }}
+          push-to-registry: true
+          create-storage-record: false
+      - name: Attest the linux/amd64 image's SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ needs.settle.outputs.image }}
+          subject-digest: ${{ steps.index.outputs.amd64 }}
+          sbom-path: sbom-amd64.spdx.json
+          push-to-registry: true
+          create-storage-record: false
+      - name: Attest the linux/arm64 image's SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ needs.settle.outputs.image }}
+          subject-digest: ${{ steps.index.outputs.arm64 }}
+          sbom-path: sbom-arm64.spdx.json
+          push-to-registry: true
+          create-storage-record: false
+
+  posture:
+    needs: [settle, publish]
+    if: >-
+      !cancelled() && needs.settle.result == 'success'
+      && ((needs.settle.outputs.mode == 'prove' && needs.settle.outputs.code != 'false')
+        || (needs.settle.outputs.mode == 'publish' && needs.publish.result == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: The image to run, built here or as published
+        env:
+          MODE: ${{ needs.settle.outputs.mode }}
+          IMAGE: ${{ needs.settle.outputs.image }}
+          DIGEST: ${{ needs.publish.outputs.digest }}
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          if [ "$MODE" = prove ]; then
+            docker build --quiet --tag first-party-image:candidate "$DIRECTORY"
+          else
+            docker pull --quiet "${IMAGE}@${DIGEST}"
+            docker tag "${IMAGE}@${DIGEST}" first-party-image:candidate
+          fi
+      - name: How the manifest says it runs
+        env:
+          IMAGE: ${{ needs.settle.outputs.image }}
+          IMAGE_NAME: ${{ needs.settle.outputs.name }}
+          DIRECTORY: ${{ inputs.directory }}
+          PREPARE: ${{ inputs.prepare }}
+          RUN_PLAN: ${{ runner.temp }}/run.json
+          CONFIG_COPY: ${{ runner.temp }}/config
+        run: |
+          set -euo pipefail
+          python3 -I - <<'PY'
+          import json, os, pathlib, sys, tomllib
+
+          STANDARD = ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID", "KILL"]
+          root = pathlib.Path(os.environ["DIRECTORY"])
+          image, name = os.environ["IMAGE"], os.environ["IMAGE_NAME"]
+          manifest = tomllib.loads((root / "plugin.toml").read_text(encoding="utf-8"))
+          running = [one for one in manifest.get("service", []) if one.get("image") == image]
+          if len(running) > 1:
+              sys.exit(f"::error::{len(running)} services run {image}; one is proved here")
+          own = [one for one in manifest.get("service", []) if one.get("id") == manifest.get("plugin", {}).get("id")]
+          service = running[0] if running else (own[0] if own else {})
+          if not running and own:
+              print(f"::notice::no service of plugin.toml runs {image} yet, so it is run as service {own[0]['id']} is")
+          elif not running:
+              print(f"::notice::no service of plugin.toml runs {image} yet, so it is run under standard")
+          if service.get("shape"):
+              sys.exit(f"::error::service {service['id']} takes the shape {service['shape']}, whose kernel capabilities lemonfiber writes and this does not")
+          ident = str(service.get("id", name))
+          posture = service.get("posture", "standard")
+          if posture not in ("standard", "confined"):
+              sys.exit(f"::error::service {ident} declares the posture {posture!r}")
+          args = ["--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", "--pids-limit", "1024"]
+          if posture == "standard":
+              for capability in STANDARD:
+                  args += ["--cap-add", capability]
+          else:
+              args += ["--read-only"]
+          user = service.get("user_mode", "image")
+          uid, gid = os.getuid(), os.getgid()
+          if user == "uid" or posture == "confined":
+              args += ["--user", f"{uid}:{gid}"]
+          elif user == "puid-env":
+              args += ["--env", f"PUID={uid}", "--env", f"PGID={gid}"]
+          starting = root / "config" / ident
+          copy = pathlib.Path(os.environ["CONFIG_COPY"])
+          copy.mkdir(parents=True, exist_ok=True)
+          if starting.is_dir():
+              for path in sorted(starting.rglob("*")):
+                  if path.is_symlink():
+                      sys.exit(f"::error::{path} is a symbolic link")
+                  target = copy / path.relative_to(starting)
+                  if path.is_dir():
+                      target.mkdir(parents=True, exist_ok=True)
+                  else:
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      target.write_bytes(path.read_bytes())
+          mounted = f"{copy}:{service.get('config_path') or '/config'}"
+          args += ["--volume", mounted + (":ro" if service.get("config_ro") else "")]
+          for mount in service.get("mount", []):
+              source = copy / str(mount["from"])
+              if not source.resolve().is_relative_to(copy.resolve()) or not source.exists():
+                  sys.exit(f"::error::service {ident} mounts {mount['from']}, which its starting files under config/{ident}/ do not hold")
+              args += ["--volume", f"{source}:{mount['to']}" + (":ro" if mount.get("ro") else "")]
+          for scratch in service.get("tmpfs", []):
+              args += ["--tmpfs", str(scratch)]
+          if service.get("mem_limit_mib"):
+              args += ["--memory", f"{int(service['mem_limit_mib'])}m"]
+          for key, value in sorted(service.get("env", {}).items()):
+              if isinstance(value, (str, int, bool)) and not isinstance(value, dict):
+                  args += ["--env", f"{key}={str(value).lower() if isinstance(value, bool) else value}"]
+              elif isinstance(value, dict) and "setting" in value:
+                  default = value.get("default", "")
+                  args += ["--env", f"{key}={str(default).lower() if isinstance(default, bool) else default}"]
+              else:
+                  print(f"::notice::{key} names another service or a secret, which nothing here holds, so it is not set")
+          health = service.get("health", {"kind": "container"})
+          port = service.get("listens") or service.get("port")
+          plan = {
+              "args": args,
+              "health": health.get("kind", "container"),
+              "path": health.get("path") or "/",
+              "port": port,
+              "timeout": int(health.get("timeout_s") or 60),
+              "prepare": os.environ["PREPARE"] or ("posture/prepare" if (root / "posture/prepare").is_file() else ""),
+              "config": str(copy),
+          }
+          if plan["health"] in ("tcp", "http") and not port:
+              sys.exit(f"::error::service {ident} is checked over {plan['health']} and names no port")
+          pathlib.Path(os.environ["RUN_PLAN"]).write_text(json.dumps(plan), encoding="utf-8")
+          print(json.dumps(plan, indent=2))
+          PY
+      - name: It starts under its posture and passes its health check
+        env:
+          RUN_PLAN: ${{ runner.temp }}/run.json
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          python3 -I - <<'PY'
+          import json, os, pathlib, socket, subprocess, sys, time, urllib.error, urllib.request
+
+          NAME = "first-party-image-proof"
+          plan = json.loads(pathlib.Path(os.environ["RUN_PLAN"]).read_text(encoding="utf-8"))
+
+
+          def docker(*asked, check=True):
+              return subprocess.run(["docker", *asked], capture_output=True, text=True, check=check)
+
+
+          def inspected():
+              return json.loads(docker("inspect", NAME).stdout)[0]
+
+
+          def answers(address):
+              """Whether the health check the manifest declares passes now; None where there is none."""
+              kind = plan["health"]
+              try:
+                  if kind == "tcp":
+                      with socket.create_connection((address, plan["port"]), timeout=3):
+                          return True
+                  if kind == "http":
+                      try:
+                          answer = urllib.request.urlopen(f"http://{address}:{plan['port']}{plan['path']}", timeout=5)
+                      except urllib.error.HTTPError as refused:
+                          answer = refused
+                      return 200 <= answer.status < 400
+              except OSError:
+                  return False
+              health = inspected()["State"].get("Health")
+              return None if health is None else health.get("Status") == "healthy"
+
+
+          def verdict():
+              """Why it did not start and pass, or nothing where it did."""
+              deadline = time.monotonic() + plan["timeout"]
+              while time.monotonic() < deadline:
+                  now = inspected()
+                  if not now["State"].get("Running"):
+                      return f"it stopped, exit {now['State'].get('ExitCode')}"
+                  passed = answers(now["NetworkSettings"]["IPAddress"])
+                  if passed is None:
+                      time.sleep(10)
+                      if not inspected()["State"].get("Running"):
+                          return "it stopped"
+                      print("::notice::the image declares no health check and the manifest none other, so running is the check")
+                      return ""
+                  if passed:
+                      return ""
+                  time.sleep(2)
+              return f"its {plan['health']} health check did not pass within {plan['timeout']}s"
+
+
+          if plan["prepare"]:
+              root = pathlib.Path(os.environ["DIRECTORY"]).resolve()
+              script = (root / plan["prepare"]).resolve()
+              if not script.is_file() or root not in script.parents:
+                  sys.exit(f"::error::{plan['prepare']} is not a script under the plugin's root")
+              subprocess.run([str(script), plan["config"]], check=True)
+          docker("rm", "-fv", NAME, check=False)
+          docker("run", "--detach", "--name", NAME, *plan["args"], "first-party-image:candidate")
+          try:
+              failed = verdict()
+              if failed:
+                  logs = docker("logs", NAME, check=False)
+                  print(logs.stdout + logs.stderr)
+                  sys.exit(f"::error::under its posture {failed} (ARCH-R250)")
+              print("it started under its posture and passed its health check")
+          finally:
+              docker("rm", "-fv", NAME, check=False)
+          PY
+
+  pin:
+    needs: [settle, publish, posture]
+    if: needs.settle.outputs.mode == 'publish' && needs.posture.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    outputs:
+      branch: ${{ steps.pinned.outputs.branch }}
+      head: ${{ steps.pinned.outputs.head }}
+      title: ${{ steps.pinned.outputs.title }}
+      body: ${{ steps.pinned.outputs.body }}
+    steps:
+      - name: Mint a token that can write the manifest
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-contents: write
+          permission-pull-requests: write
+          repositories: ${{ github.event.repository.name }}
+      - name: Put what this tag or commit published on its rolling branch
+        id: pinned
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          REPOSITORY: ${{ github.repository }}
+          IMAGE: ${{ needs.settle.outputs.image }}
+          TAG: ${{ needs.settle.outputs.tag }}
+          DIGEST: ${{ needs.publish.outputs.digest }}
+          PIN_BRANCH: ${{ needs.settle.outputs.pin }}
+          DIRECTORY: ${{ inputs.directory }}
+          BOT: ${{ steps.token.outputs.app-slug }}[bot]
+        run: |
+          set -euo pipefail
+          pins="$(gh api "repos/${REPOSITORY}/commits/${GITHUB_SHA}/pulls" --jq "map(select(
+            .merged_at != null and .merge_commit_sha == \"${GITHUB_SHA}\"
+            and (.head.ref == \"${TAG_PIN_BRANCH}\" or .head.ref == \"${COMMIT_PIN_BRANCH}\")
+            and .head.repo.full_name == \"${REPOSITORY}\" and .user.login == \"${BOT}\")) | length")"
+          if [ "$pins" != "0" ]; then
+            echo "::notice::${GITHUB_SHA} merges a pin, so ${TAG} is published and not pinned."
+            exit 0
+          fi
+          manifest="plugin.toml"
+          [ "$DIRECTORY" = "." ] || manifest="${DIRECTORY%/}/plugin.toml"
+          main="$(gh api "repos/${REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          if gh api "repos/${REPOSITORY}/git/ref/heads/${PIN_BRANCH}" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/${REPOSITORY}/git/refs/heads/${PIN_BRANCH}" \
+              -f "sha=${main}" -F force=true >/dev/null
+          else
+            gh api --method POST "repos/${REPOSITORY}/git/refs" \
+              -f "ref=refs/heads/${PIN_BRANCH}" -f "sha=${main}" >/dev/null
+          fi
+          gh api "repos/${REPOSITORY}/contents/${manifest}?ref=${PIN_BRANCH}" > held.json
+          python3 -I - "$IMAGE" "$DIGEST" "$TAG" <<'PY'
+          import base64, json, os, re, sys, tomllib
+          image, digest, tag = sys.argv[1], sys.argv[2], sys.argv[3].removeprefix("v")
+          text = base64.b64decode(json.load(open("held.json"))["content"]).decode("utf-8")
+          declared = [one.get("id") for one in tomllib.loads(text).get("service", []) if one.get("image") == image]
+          blocks = re.split(r"(?m)^(?=\[\[?)", text)
+          running = [i for i, block in enumerate(blocks)
+                     if block.startswith("[[service]]") and re.search(rf'(?m)^image\s*=\s*"{re.escape(image)}"\s*$', block)]
+          if len(running) != len(declared):
+              sys.exit(f"::error::{len(declared)} services run {image} and {len(running)} are written so this can move them")
+          if not running:
+              print(f"::notice::no service of the manifest runs {image}, so there is nothing to pin")
+              open("pinned", "w").write("")
+              sys.exit(0)
+          for at in running:
+              block = blocks[at]
+              for field, value in (("digest", digest), ("tag", tag)):
+                  block, changed = re.subn(rf'(?m)^{field}(\s*)=\s*"[^"]*"', rf'{field}\g<1>= "{value}"', block)
+                  if changed != 1:
+                      sys.exit(f"::error::a service running {image} does not declare `{field}` once")
+              blocks[at] = block
+          written = "".join(blocks)
+          moved = [(one.get("digest"), one.get("tag")) for one in tomllib.loads(written).get("service", [])
+                   if one.get("image") == image]
+          if len(moved) != len(declared) or any(pair != (digest, tag) for pair in moved):
+              sys.exit(f"::error::the manifest as written does not run {image} at {digest} and {tag} everywhere it ran it")
+          open("plugin.toml", "w", encoding="utf-8").write(written)
+          open("pinned", "w").write("yes")
+          PY
+          if [ ! -s pinned ]; then exit 0; fi
+          message="$(printf '%s\n\n%s\n%s\n' \
+            "chore(manifest): the image at ${TAG}" \
+            "Spec: OPS-R90, OPS-R91" \
+            "Signed-off-by: lemonfiber release <info@nightworks.io>")"
+          head="$(gh api --method PUT "repos/${REPOSITORY}/contents/${manifest}" \
+            -f "message=${message}" \
+            -f "content=$(base64 -w0 plugin.toml)" \
+            -f "sha=$(python3 -I -c 'import json; print(json.load(open("held.json"))["sha"])')" \
+            -f "branch=${PIN_BRANCH}" --jq .commit.sha)"
+          delimiter="body_$(openssl rand -hex 16)"
+          {
+            echo "branch=${PIN_BRANCH}"
+            echo "head=${head}"
+            echo "title=chore(manifest): the image at ${TAG}"
+            echo "body<<${delimiter}"
+            printf '%s\n\n%s\n%s\n' \
+              "Every service of plugin.toml running ${IMAGE} runs the image ${TAG} published, at ${DIGEST}." \
+              "Spec: OPS-R90, OPS-R91" \
+              "Signed-off-by: lemonfiber release <info@nightworks.io>"
+            echo "${delimiter}"
+          } >> "$GITHUB_OUTPUT"
+          echo "the manifest's image is proposed at ${TAG}, ${DIGEST}."
+
+  pull-request:
+    needs: pin
+    if: needs.pin.outputs.head != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/rolling-pull-request.yml
+    with:
+      branch: ${{ needs.pin.outputs.branch }}
+      head: ${{ needs.pin.outputs.head }}
+      title: ${{ needs.pin.outputs.title }}
+      body: ${{ needs.pin.outputs.body }}
+    secrets:
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
