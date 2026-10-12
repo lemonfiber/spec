@@ -15,17 +15,21 @@ carries the `workflows-approved` label for the change its head makes.
 The approval is read from the forge's own records and never from a commit:
 the label is on the pull request now; the last time it was added was by an
 account holding the admin or maintain role on the repository; and it is bound
-to the change the branch made when it was added. A fast-forward push leaves no
+to the change the branch made when it was added. Nothing records that change:
+it is read again, from the forge, every time. A fast-forward push leaves no
 record of its time on a pull request, and a commit's dates are the pusher's to
 write, so the head the branch had then is read from this check's own runs, each
 of which the forge creates with the head it was started for: the newest run at
-or before the label was added names it. What that head changed under the two
-directories against its merge base, each file's diff with the lines around
-every change, must be what the head being judged changes. A push that leaves the
-change as it was, a rebase onto a newer `main` say, keeps the approval; a push
-that changes it, a head the forge can no longer return, or the label's removal
-voids it, and this fails again until a maintainer adds the label again. The head
-is read again once the approval is read.
+or before the label was added names it. What that head changed against its
+merge base, every file of the tree and not only the two directories, since an
+approved workflow may run a script anywhere in it, must be what the head being
+judged changes: each file's diff byte for byte with the lines around every
+change, its modes, and the object a link or a submodule names. A push that
+leaves the change as it was, a rebase onto a newer `main` say, keeps the
+approval; a push that changes it, a head the forge can no longer return, a
+change of the pull request's base after the label, or the label's removal voids
+it, and this fails again until a maintainer adds the label again. The head is
+read again once the approval is read.
 
 The change is read against the merge base, so a pull request is judged on what
 it changes and not on what `main` has changed since it branched, and it is read
@@ -288,34 +292,67 @@ FILE_MODES = ("100644", "100755")
 #: line is approved where it sits and not wherever the same text is moved to.
 AROUND = 3
 
-
-def lines_of(repo: str, entry: tuple[str, str] | None, api: Api) -> list[str]:
-    """A file's lines, as git's tree holds it; a link or a submodule as the object it names."""
-    if entry is None:
-        return []
-    if entry[0] not in FILE_MODES:
-        return [entry[1]]
-    return str(api([f"repos/{repo}/git/blobs/{entry[1]}"], True)).splitlines()
+#: An entry of git's tree: its mode and the object it names; None where the path is absent.
+Entry = tuple[str, str] | None
 
 
-def made(repo: str, base: str, commit: str, api: Api) -> tuple:
-    """What `commit` changes under the guarded directories against its merge base with `base`.
+def whole_tree(repo: str, commit: str, api: Api) -> dict[str, tuple[str, str]]:
+    """Every file, link and submodule at a commit: path to (mode, object), refused where truncated."""
+    answer = api([f"repos/{repo}/git/trees/{commit}?recursive=1"], False)
+    if answer.get("truncated"):
+        raise Incomplete(f"the tree at {commit[:8]} came back truncated")
+    return {one["path"]: (one["mode"], one["sha"]) for one in answer["tree"] if one["type"] != "tree"}
 
-    Each changed path with its two modes and its diff, the lines around every
-    change kept and the line numbers left out, so the same change on a newer base
-    reads the same and the same lines anywhere else do not.
-    """
+
+def made(repo: str, base: str, commit: str, api: Api) -> dict[str, tuple[Entry, Entry]]:
+    """Every path `commit` changes against its merge base with `base`, as (entry there, entry here)."""
     root = api([f"repos/{repo}/compare/{base}...{commit}"], False)["merge_base_commit"]["sha"]
-    before, after = guarded_tree(repo, root, api), guarded_tree(repo, commit, api)
-    change = []
-    for path in sorted(set(before) | set(after)):
-        was, now = before.get(path), after.get(path)
-        if was == now:
+    before, after = whole_tree(repo, root, api), whole_tree(repo, commit, api)
+    return {path: (before.get(path), after.get(path)) for path in sorted(set(before) | set(after))
+            if before.get(path) != after.get(path)}
+
+
+def text_of(repo: str, entry: Entry, api: Api) -> str:
+    """A file's bytes as text, line endings kept; empty where the path is absent."""
+    return "" if entry is None else str(api([f"repos/{repo}/git/blobs/{entry[1]}"], True))
+
+
+def patch(repo: str, was: Entry, now: Entry, api: Api) -> tuple[str, ...]:
+    """One file's change as a unified diff with `AROUND` lines around each change, line
+    numbers left out and every line's ending kept, so a change that differs only in its
+    line endings or its last newline is another change."""
+    old = text_of(repo, was, api).splitlines(keepends=True)
+    new = text_of(repo, now, api).splitlines(keepends=True)
+    return tuple("@@" if line.startswith("@@") else line
+                 for line in list(difflib.unified_diff(old, new, n=AROUND))[2:])
+
+
+def same_change(repo: str, then: dict[str, tuple[Entry, Entry]], now: dict[str, tuple[Entry, Entry]],
+                api: Api) -> bool:
+    """Whether two heads change the same paths in the same way against their merge bases.
+
+    A path changed identically, the same objects on both sides, is the same change
+    without reading it. A path whose objects differ, as after a rebase onto a `main`
+    that changed the same file, is the same change only where both are files of the
+    same modes and their diffs are equal byte for byte. A link or a submodule is the
+    same change only where it names the same objects, and a file that cannot be read
+    as text is another change.
+    """
+    if then.keys() != now.keys():
+        return False
+    for path, pair in then.items():
+        other = now[path]
+        if pair == other:
             continue
-        diff = difflib.unified_diff(lines_of(repo, was, api), lines_of(repo, now, api), n=AROUND, lineterm="")
-        hunks = tuple("@@" if line.startswith("@@") else line for line in list(diff)[2:])
-        change.append((path, was and was[0], now and now[0], hunks))
-    return tuple(change)
+        modes = [entry and entry[0] for entry in (*pair, *other)]
+        if modes[:2] != modes[2:] or any(mode not in (None, *FILE_MODES) for mode in modes):
+            return False
+        try:
+            if patch(repo, *pair, api) != patch(repo, *other, api):
+                return False
+        except UnicodeDecodeError:
+            return False
+    return True
 
 
 class Moved(ValueError):
@@ -409,6 +446,9 @@ def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str |
     before = [r for r in runs if r["created_at"] <= at]
     if not before:
         return f"no run of this check shows what its head was when `{APPROVED}` was added at {at}"
+    retargeted = sorted(e["created_at"] for e in events if e["event"] == "base_ref_changed" and e["created_at"] >= at)
+    if retargeted:
+        return f"its base was changed at {retargeted[-1]}, after `{APPROVED}` was added at {at}"
     newest = max(r["created_at"] for r in before)
     heads = sorted({r["head_sha"] for r in before if r["created_at"] == newest})
     if len(heads) > 1:
@@ -421,9 +461,8 @@ def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str |
         then = made(repo, base, approved, api)
     except subprocess.CalledProcessError:
         return f"{approved[:8]}, its head when `{APPROVED}` was added at {at}, cannot be read, so what was approved is unknown"
-    if then != made(repo, base, head, api):
-        return (f"what {head[:8]} changes under {' and '.join(GUARDED)} is not what {approved[:8]} changed when "
-                f"`{APPROVED}` was added at {at}")
+    if not same_change(repo, then, made(repo, base, head, api), api):
+        return f"what {head[:8]} changes is not what {approved[:8]} changed when `{APPROVED}` was added at {at}"
     return None
 
 
@@ -484,7 +523,8 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
     except Moved as moved_on:
         print(f"::error::{moved_on}.")
         return 1
-    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, TypeError, Incomplete) as broken:
+    except (subprocess.CalledProcessError, json.JSONDecodeError, UnicodeDecodeError, KeyError, TypeError,
+            Incomplete) as broken:
         detail = getattr(broken, "stderr", "") or broken
         print(f"::error::The pull request could not be read, so nothing says its checks are its base's: {detail}")
         return 2

