@@ -150,7 +150,9 @@ A mint then carries `{ "device": …, "challenge": …, "signature": … }` in p
 each ended by a line feed, in base64url, so a challenge signed for one mint proves no other.
 A device key not registered, a challenge that does not stand and a signature that does not
 verify are each refused under a code of their own; the last counts against
-[the limit wrong passwords meet](#wrong-answers-are-counted). None of these routes is open to
+[the limit wrong passwords meet](#wrong-answers-are-counted). A key minted this way is listed
+with `proved_by`, the device key that proved it (`ARCH-R293`), and revoking that device key
+leaves the key standing. None of these routes is open to
 a member session or a key, and a signature admits nothing but the mint it was made for.
 
 A household member reaches the same three routes for keys of their own. Their mint names
