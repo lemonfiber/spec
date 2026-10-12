@@ -392,6 +392,39 @@ def role(repo: str, login: str, api: Api) -> str:
     return answer.get("role_name") or "none"
 
 
+def labelled_head(runs: list[dict], events: list[dict], at: str) -> tuple[str, str] | str:
+    """The head `workflows-approved` was added on at `at` and the time the branch took it, or why it is unknown.
+
+    The head of the newest run at or before the label; held for `QUIET` seconds
+    before it; and the head of the first run at or after it, the run the label
+    started, so a push racing the label is never what is approved. A base changed
+    after the label leaves nothing approved.
+    """
+    before = [r for r in runs if r["created_at"] <= at]
+    if not before:
+        return f"no run of this check shows what its head was when `{APPROVED}` was added at {at}"
+    retargeted = sorted(e["created_at"] for e in events if e["event"] == "base_ref_changed" and e["created_at"] >= at)
+    if retargeted:
+        return f"its base was changed at {retargeted[-1]}, after `{APPROVED}` was added at {at}"
+    newest = max(r["created_at"] for r in before)
+    heads = sorted({r["head_sha"] for r in before if r["created_at"] == newest})
+    if len(heads) > 1:
+        return f"the runs at {newest} name {' and '.join(h[:8] for h in heads)}, so which head `{APPROVED}` was added on is unknown"
+    approved = heads[0]
+    held = [r["created_at"] for r in before if r["head_sha"] != approved]
+    since = min(r["created_at"] for r in before if r["head_sha"] == approved and (not held or r["created_at"] > max(held)))
+    if (moment(at) - moment(since)).total_seconds() < QUIET:
+        return (f"its head became {approved[:8]} at {since}, less than {QUIET} seconds before `{APPROVED}` was "
+                f"added at {at}, so the head the maintainer read is unknown")
+    started = sorted((r for r in runs if r["created_at"] >= at), key=lambda r: r["created_at"])
+    if not started:
+        return f"no run of this check started when `{APPROVED}` was added at {at}, so what it was added on is unconfirmed"
+    if started[0]["head_sha"] != approved:
+        return (f"the run `{APPROVED}` started at {at} is for {started[0]['head_sha'][:8]}, not {approved[:8]}, "
+                f"so a push landed as it was added")
+    return approved, since
+
+
 def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str | None:
     """Why the pull request carries no approval for what `head` changes, or None where it does.
 
@@ -415,28 +448,10 @@ def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str |
     runs = [r for r in listed(f"repos/{repo}/actions/workflows/{workflow}/runs?event=pull_request_target"
                               f"&branch={branch}", api, "workflow_runs")
             if r["head_repository"]["full_name"] == source]
-    before = [r for r in runs if r["created_at"] <= at]
-    if not before:
-        return f"no run of this check shows what its head was when `{APPROVED}` was added at {at}"
-    retargeted = sorted(e["created_at"] for e in events if e["event"] == "base_ref_changed" and e["created_at"] >= at)
-    if retargeted:
-        return f"its base was changed at {retargeted[-1]}, after `{APPROVED}` was added at {at}"
-    newest = max(r["created_at"] for r in before)
-    heads = sorted({r["head_sha"] for r in before if r["created_at"] == newest})
-    if len(heads) > 1:
-        return f"the runs at {newest} name {' and '.join(h[:8] for h in heads)}, so which head `{APPROVED}` was added on is unknown"
-    approved = heads[0]
-    held = [r["created_at"] for r in before if r["head_sha"] != approved]
-    since = min(r["created_at"] for r in before if r["head_sha"] == approved and (not held or r["created_at"] > max(held)))
-    if (moment(at) - moment(since)).total_seconds() < QUIET:
-        return (f"its head became {approved[:8]} at {since}, less than {QUIET} seconds before `{APPROVED}` was "
-                f"added at {at}, so the head the maintainer read is unknown")
-    started = sorted((r for r in runs if r["created_at"] >= at), key=lambda r: r["created_at"])
-    if not started:
-        return f"no run of this check started when `{APPROVED}` was added at {at}, so what it was added on is unconfirmed"
-    if started[0]["head_sha"] != approved:
-        return (f"the run `{APPROVED}` started at {at} is for {started[0]['head_sha'][:8]}, not {approved[:8]}, "
-                f"so a push landed as it was added")
+    labelled = labelled_head(runs, events, at)
+    if isinstance(labelled, str):
+        return labelled
+    approved, since = labelled
     print(f"::notice::`{APPROVED}` was added at {at} on {approved}, which held the branch from {since}; "
           f"the approval is for the change that commit makes (Q-R83).")
     if approved == head:
