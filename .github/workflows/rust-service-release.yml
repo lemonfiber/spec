@@ -7,7 +7,10 @@
 # BuildKit's SBOM and provenance, and gets a build-provenance attestation and an
 # SBOM attestation per platform from GitHub. The index digest is recorded in the
 # run summary and handed to `lemonfiber-media-stack`'s `image-bump`, which opens
-# the pull request pinning it.
+# the pull request pinning it. Where the repository declares itself in a
+# `plugin.toml` (ADR-0045 §1), the manifest declares the tag's version too, and
+# `manifest-pin` proposes the image as the one its services run, which is the
+# revision the bundle pins.
 #
 # The service id is the calling repository's name without `lemonfiber-`
 # (ADR-0033 §1), so every image repository calls this with nothing to say:
@@ -38,7 +41,7 @@ on:
   workflow_call:
     secrets:
       RELEASE_APP_KEY:
-        description: "Private key of the release App, which is what may reach the stack."
+        description: "Private key of the release App, which is what may reach the stack and write the manifest's pin."
         required: true
 permissions:
   contents: read
@@ -58,12 +61,13 @@ jobs:
       service: ${{ steps.what.outputs.service }}
       image: ${{ steps.what.outputs.image }}
       tag: ${{ steps.what.outputs.tag }}
+      manifest: ${{ steps.what.outputs.manifest }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: The tag is one the train cuts, on main, at the version the crate declares
+      - name: The tag is one the train cuts, on main, at the version the crate and its manifest declare
         id: what
         env:
           TAG: ${{ github.ref_name }}
@@ -105,10 +109,21 @@ jobs:
             exit 1
           fi
 
+          manifest=false
+          if [ -e plugin.toml ]; then
+            declared="$(python3 -I -c 'import tomllib; print(tomllib.load(open("plugin.toml", "rb"))["plugin"]["version"])')"
+            if [ "v${declared}" != "$TAG" ]; then
+              echo "::error::plugin.toml declares ${declared}, so it is not tagged ${TAG}"
+              exit 1
+            fi
+            manifest=true
+          fi
+
           {
             echo "service=${service}"
             echo "image=${REGISTRY}/${service}"
             echo "tag=${TAG}"
+            echo "manifest=${manifest}"
           } >> "$GITHUB_OUTPUT"
           echo "publishing ${REGISTRY}/${service}:${TAG}"
 
@@ -273,5 +288,20 @@ jobs:
       # quote.
       inputs: ${{ format('{{"service":"{0}","tag":"{1}","digest":"{2}"}}', needs.settle.outputs.service, needs.settle.outputs.tag, needs.publish.outputs.digest) }}
       environment: release
+    secrets:
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
+
+  # The manifest is the bundle's source for this image once the bundle pins this
+  # repository (ADR-0045 §1, §5).
+  manifest:
+    needs: [settle, publish]
+    if: needs.settle.outputs.manifest == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/manifest-pin.yml
+    with:
+      image: ${{ needs.settle.outputs.image }}
+      tag: ${{ needs.settle.outputs.tag }}
+      digest: ${{ needs.publish.outputs.digest }}
     secrets:
       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
