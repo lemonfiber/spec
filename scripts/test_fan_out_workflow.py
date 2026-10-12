@@ -69,6 +69,8 @@ WRITER = "token"
 #: `run cancel`  — records the call.
 #: `api graphql` — the commit: records the request on GH_COMMITS and prints a
 #:                 new commit, unless GH_COMMIT_FAILS is set.
+#: `api --method POST graphql` — a mutation `rolling_pull_request.py` makes,
+#:                 arming or disarming: the payload recorded on GH_ARMED.
 #: `api …/git/ref/heads/…` — whether a branch exists: yes only for the branches
 #:                 named in GH_REFS_EXIST.
 #: `api …/git/refs…` — a branch made, moved or removed: recorded on GH_REFS,
@@ -80,6 +82,13 @@ WRITER = "token"
 GH_STUB = """#!/bin/sh
 set -eu
 printf '%s\\n' "$*" >> "${GH_LOG}"
+
+if [ "$*" = "api --method POST graphql --input -" ]; then
+  cat >> "${GH_ARMED}"
+  printf '\\n' >> "${GH_ARMED}"
+  printf '{}\\n'
+  exit 0
+fi
 
 OID=0123456789abcdef0123456789abcdef01234567
 BOT=lemonfiber-release-train[bot]
@@ -240,7 +249,7 @@ class TheLoop(unittest.TestCase):
 
         self.spec = self.root / "spec"
         (self.spec / "scripts").mkdir(parents=True)
-        for name in ("fan_out_pins.py", "workflow_pins.py", "signed_pin_commit.py",
+        for name in ("fan_out_pins.py", "workflow_pins.py", "pin_window.py", "signed_pin_commit.py",
                      "rolling_pull_request.py"):
             shutil.copy(HERE / name, self.spec / "scripts" / name)
 
@@ -277,8 +286,9 @@ class TheLoop(unittest.TestCase):
         self.bodies = self.root / "bodies.md"
         self.commits = self.root / "commits.log"
         self.refs = self.root / "refs.log"
+        self.armed = self.root / "armed.log"
         for where in (self.log, self.created, self.pushes, self.summary, self.bodies,
-                      self.commits, self.refs):
+                      self.commits, self.refs, self.armed):
             where.touch()
 
     def git(self, *args):
@@ -325,6 +335,7 @@ class TheLoop(unittest.TestCase):
             "GH_BODIES": str(self.bodies),
             "GH_COMMITS": str(self.commits),
             "GH_REFS": str(self.refs),
+            "GH_ARMED": str(self.armed),
             "GITHUB_STEP_SUMMARY": str(self.summary),
             **extra,
         }
@@ -343,6 +354,27 @@ class TheLoop(unittest.TestCase):
         self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
         self.assertIn("created alpha", self.created.read_text(encoding="utf-8"))
         self.assertIn("opened:  alpha", self.summary.read_text(encoding="utf-8"))
+
+    def test_the_bump_is_armed_to_merge_itself_at_the_commit_it_made(self):
+        # OPS-R48: nobody presses the button on a bump `pin-only` has already
+        # held to spec's pins moving forward.
+        self.pinning(a_pin("dco.yml", self.first))
+
+        ran = self.run_step()
+
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        armed = self.armed.read_text(encoding="utf-8")
+        self.assertIn("enablePullRequestAutoMerge", armed)
+        self.assertIn('"head": "0123456789abcdef0123456789abcdef01234567"', armed)
+        self.assertIn("merges itself", self.bodies.read_text(encoding="utf-8"))
+
+    def test_a_repository_with_nothing_stale_arms_nothing(self):
+        self.pinning(a_pin("dco.yml", self.head))
+
+        ran = self.run_step()
+
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        self.assertEqual(self.armed.read_text(encoding="utf-8"), "")
 
     def test_the_bump_is_committed_through_the_api_and_never_pushed(self):
         # Every consumer's `main` takes signed commits only, and GitHub signs a
@@ -585,7 +617,7 @@ class WhoItCanReach(unittest.TestCase):
 
         self.spec = self.root / "spec"
         (self.spec / "scripts").mkdir(parents=True)
-        for name in ("fan_out_pins.py", "workflow_pins.py", "signed_pin_commit.py"):
+        for name in ("fan_out_pins.py", "workflow_pins.py", "pin_window.py", "signed_pin_commit.py"):
             shutil.copy(HERE / name, self.spec / "scripts" / name)
         (self.spec / "30-repos").mkdir()
         (self.spec / "30-repos" / "repos.toml").write_text(self.MAP, encoding="utf-8")
@@ -717,6 +749,80 @@ class TheStepIsTheOneThatRuns(unittest.TestCase):
     def test_the_job_mints_two_tokens_and_no_third(self):
         # A third would be a token this file's two tests above say nothing about.
         self.assertEqual(len(the_mints()), 2)
+
+
+#: Stands in for `gh` in the settle step: prints GH_TAGS, the refs the tag listing
+#: answers, one per line, unless GH_TAGS_FAIL is set.
+TAGS_STUB = """#!/bin/sh
+set -eu
+[ -z "${GH_TAGS_FAIL:-}" ] || exit 1
+printf '%b' "${GH_TAGS:-}"
+"""
+
+
+class TheWait(unittest.TestCase):
+    """A tag cut while another waits takes the bump from it (OPS-R48)."""
+
+    def setUp(self):
+        self.root = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, True)
+        self.bin = self.root / "bin"
+        self.bin.mkdir()
+        gh = self.bin / "gh"
+        gh.write_text(TAGS_STUB, encoding="utf-8")
+        gh.chmod(0o755)
+        self.output = self.root / "output"
+        self.output.touch()
+        self.described = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+
+    def settle(self, tag: str, **extra) -> subprocess.CompletedProcess:
+        step = self.described["jobs"]["settle"]["steps"][0]
+        env = {
+            **os.environ,
+            "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
+            "GITHUB_OUTPUT": str(self.output),
+            "REPO": "lemonfiber/spec",
+            "TAG": tag,
+            **extra,
+        }
+        return subprocess.run(["bash", "-c", step["run"]], capture_output=True, text=True, env=env)
+
+    def test_the_newest_number_goes_on(self):
+        ran = self.settle("v1.0.10", GH_TAGS="refs/tags/v1.0.9\nrefs/tags/v1.0.10\nrefs/tags/v1.0.1\n")
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        self.assertEqual(self.output.read_text(encoding="utf-8"), "newest=true\n")
+
+    def test_a_number_cut_during_the_wait_takes_the_bump(self):
+        ran = self.settle("v1.0.9", GH_TAGS="refs/tags/v1.0.9\nrefs/tags/v1.0.10\n")
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        self.assertEqual(self.output.read_text(encoding="utf-8"), "newest=false\n")
+        self.assertIn("v1.0.10 was cut while v1.0.9 waited", ran.stdout)
+
+    def test_tags_that_cannot_be_listed_fail_the_wait(self):
+        ran = self.settle("v1.0.9", GH_TAGS_FAIL="1")
+        self.assertNotEqual(ran.returncode, 0)
+        self.assertIn("could not be listed", ran.stdout)
+        self.assertEqual(self.output.read_text(encoding="utf-8"), "")
+
+    def test_the_wait_is_in_the_environment_and_only_where_asked(self):
+        settle = self.described["jobs"]["settle"]
+        self.assertEqual(settle["environment"], "fan-out")
+        self.assertEqual(settle["if"], "inputs.settle")
+
+    def test_the_fan_out_goes_on_unasked_or_for_the_newest_and_one_at_a_time(self):
+        job = self.described["jobs"][JOB]
+        self.assertEqual(job["needs"], "settle")
+        self.assertIn("needs.settle.result == 'skipped'", job["if"])
+        self.assertIn("needs.settle.outputs.newest == 'true'", job["if"])
+        self.assertEqual(job["concurrency"], {"group": "fan-out-pins", "cancel-in-progress": False})
+        self.assertNotIn("concurrency", self.described)
+
+    def test_a_tag_the_train_cuts_settles_and_only_its_numbering_queues(self):
+        published = yaml.safe_load((WORKFLOW.parent / "publish-pin-tag.yml").read_text(encoding="utf-8"))
+        self.assertIs(published["jobs"]["fan-out"]["with"]["settle"], True)
+        self.assertNotIn("concurrency", published)
+        self.assertEqual(published["jobs"]["publish-pin-tag"]["concurrency"],
+                         {"group": "publish-pin-tag", "cancel-in-progress": False})
 
 
 if __name__ == "__main__":

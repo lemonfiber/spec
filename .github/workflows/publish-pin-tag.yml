@@ -43,16 +43,17 @@ on:
 permissions:
   contents: read
 
-# One tag at a time. Two merges landing together would otherwise compute the
-# same next number and the second would fail on a ref that already exists.
-concurrency:
-  group: publish-pin-tag
-  cancel-in-progress: false
-
 jobs:
   publish-pin-tag:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # One tag at a time. Two merges landing together would otherwise compute the
+    # same next number and the second would fail on a ref that already exists.
+    # The group is this job's and not the run's, so the next merge is numbered
+    # while this one's fan-out waits, and the fan-out can see that number.
+    concurrency:
+      group: publish-pin-tag
+      cancel-in-progress: false
     # Carried out of the job so the fan-out below can be asked for exactly the
     # number this run cut. Empty where the commit already carried one, which is
     # the re-run case and the one where there is nothing new to fan out.
@@ -213,7 +214,8 @@ jobs:
   # a gate goes red on work that has nothing to do with it (OPS-R48).
   #
   # Skipped where no number was cut — a re-run over a commit that already carries
-  # one has nothing for anybody to take.
+  # one has nothing for anybody to take. It settles first, so a burst of merges
+  # is fanned out once, at its newest number (OPS-R48).
   fan-out:
     needs: publish-pin-tag
     if: needs.publish-pin-tag.outputs.tag != ''
@@ -221,6 +223,7 @@ jobs:
     with:
       tag: ${{ needs.publish-pin-tag.outputs.tag }}
       commit: ${{ needs.publish-pin-tag.outputs.commit }}
+      settle: true
     secrets: inherit
 
   # Loud, because the cost of this failing is invisible from every repository it

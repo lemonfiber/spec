@@ -20,7 +20,10 @@ reader per lock shape and one comparison behind them:
   what counts is what the copies hold.
 
 A pin is current when it is the default branch's head, or when no file that
-counts changed since it. Anything else fails, naming the files and the commits
+counts changed since it. A pin behind only by commits that have been on the
+default branch for less than the window `pin_window.py` holds is a warning,
+naming the hour it becomes a refusal, so the automated bump that takes them has
+that long to merge (Q-R68). Anything else fails, naming the files and the commits
 not taken and the command that takes them (Q-R70).
 
     upstream_drift.py composer [--remedy TEXT]
@@ -45,7 +48,12 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from collections.abc import Callable, Iterable
+
+sys.path.insert(0, str(pathlib.Path(__file__).parent))
+
+import pin_window
 
 ORG = "lemonfiber"
 
@@ -101,6 +109,11 @@ def say(*lines: str) -> None:
 
 def annotate(message: str) -> None:
     print(f"::error::{message}")
+
+
+def clock() -> int:
+    """The time a run measures the window against, in seconds since the epoch."""
+    return int(time.time())
 
 
 class Clone:
@@ -370,9 +383,7 @@ def compare(
         )
         return True
 
-    say(
-        f"## `{pin.name}` is behind {pin.repo} {branch}",
-        "",
+    report = [
         *facts,
         "",
         "Not taken:",
@@ -386,8 +397,22 @@ def compare(
         *(f"- `{path}`" for path in changed[:LISTED]),
         *([f"- and {len(changed) - LISTED} more"] if len(changed) > LISTED else []),
         "",
-        f"To catch up: {fix}.",
-    )
+    ]
+    touched = [int(when) for when in git("log", "--format=%ct", f"{pin.revision}..{head}", "--", *changed).stdout.split()]
+    now = clock()
+    if touched and all(pin_window.waits(when, now) for when in touched):
+        refused = pin_window.refused_at(min(touched))
+        say(
+            f"## `{pin.name}` is behind {pin.repo} {branch}, for less than {pin_window.HOURS} hours",
+            "",
+            *report,
+            f"Each of these changes has been on {branch} for less than {pin_window.HOURS} hours, so this "
+            f"is a warning until {refused}, when it becomes a refusal (Q-R68). To catch up: {fix}.",
+        )
+        print(f"::warning::{pin.name} is behind {ORG}/{pin.repo} {branch}, refused from {refused} — {fix}")
+        return True
+
+    say(f"## `{pin.name}` is behind {pin.repo} {branch}", "", *report, f"To catch up: {fix}.")
     annotate(f"{pin.name} is behind {ORG}/{pin.repo} {branch} — {fix}")
     return False
 

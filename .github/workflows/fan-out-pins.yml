@@ -17,6 +17,14 @@
 # labelled with the one it had. `publish-pin-tag` cuts the number and calls this
 # with it.
 #
+# **A burst of tags is fanned out once (OPS-R48).** Called with `settle`, the run
+# first waits in the `fan-out` environment, whose wait timer holds no runner, and
+# goes on only where its tag is still the newest `v1.0.*`; a tag cut during the
+# wait leaves the bump to its own run. Every bump it opens or moves is armed to
+# merge itself at the commit it made, once its required checks pass. A dispatch
+# names its tag and does neither wait nor compare, which is how an earlier number
+# is brought in on purpose.
+#
 # **It is not a race with Dependabot; it is the half Dependabot cannot do.** The
 # bot proposes whatever tag existed when it ran, which is how four repositories
 # took `v1.0.8` on an afternoon when `v1.0.9` was already published. This fires
@@ -36,6 +44,12 @@ on:
         description: The revision that tag names.
         type: string
         required: true
+      settle:
+        description: >-
+          Wait in the `fan-out` environment first, and go on only where the tag
+          is still the newest `v1.0.*` once the wait is over.
+        type: boolean
+        default: false
     # No `secrets:` block, and that is deliberate rather than an omission.
     # Declaring one narrows what this workflow can see to exactly what the
     # caller passes — which would make the same file work when called and fail
@@ -55,17 +69,54 @@ on:
 permissions:
   contents: read
 
-# One at a time. Two tags cut close together would otherwise open two pull
-# requests per repository, each bumping past the other, and the second would be
-# merged on top of a branch that had already moved.
-concurrency:
-  group: fan-out-pins
-  cancel-in-progress: false
-
 jobs:
+  # The wait, in an environment whose timer holds no runner, and then the one
+  # question it exists to ask: is a newer number out? Each tag waits in a run of
+  # its own, so the waits run side by side rather than one behind another.
+  settle:
+    if: inputs.settle
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: fan-out
+    permissions:
+      contents: read
+    outputs:
+      newest: ${{ steps.newest.outputs.newest }}
+    steps:
+      - name: Whether this tag is still the newest number
+        id: newest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if ! listed=$(gh api --paginate "repos/${REPO}/git/matching-refs/tags/v1.0." --jq '.[].ref'); then
+            echo "::error::the tags could not be listed, so whether ${TAG} is still the newest is unknown."
+            exit 1
+          fi
+          newest=$(printf '%s\n' "$listed" | sed -n 's|^refs/tags/v1\.0\.\([0-9][0-9]*\)$|\1|p' | sort -n | tail -1)
+          if [ "v1.0.${newest}" = "$TAG" ]; then
+            echo "newest=true" >>"$GITHUB_OUTPUT"
+            echo "${TAG} is still the newest number; it is fanned out."
+          else
+            echo "newest=false" >>"$GITHUB_OUTPUT"
+            echo "::notice::v1.0.${newest} was cut while ${TAG} waited, so the bump is left to its run."
+          fi
+
   fan-out-pins:
+    needs: settle
+    # Straight on where nothing was asked to wait, and after the wait only for
+    # the newest number.
+    if: ${{ !cancelled() && (needs.settle.result == 'skipped' || needs.settle.outputs.newest == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # One at a time. Two tags fanned out together would otherwise open two pull
+    # requests per repository, each bumping past the other, and the second would
+    # be merged on top of a branch that had already moved.
+    concurrency:
+      group: fan-out-pins
+      cancel-in-progress: false
     steps:
       - name: Check out the history the measurement reads
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -260,6 +311,8 @@ jobs:
             "" \
             "**One pull request, rebuilt for each number.** The fan-out keeps this branch and this pull request, rebuilds the branch from \`main\` when the spec publishes another number, and retitles it, so the checks of the number it replaces are cancelled rather than left running beside it." \
             "" \
+            "**It merges itself.** The fan-out arms it to merge at the commit it made once its required checks pass; \`pin-only\` has already held the change to spec's pins moving forward along \`main\`." \
+            "" \
             "Spec: OPS-R48, OPS-R85" \
             "" \
             "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
@@ -342,10 +395,11 @@ jobs:
               # The pull request is found and touched the way every bump's is
               # (OPS-R87): retitled only where it is the app's own, from this
               # repository's branch, at the commit just made; opened where none
-              # is open; anything else edits nothing and is refused.
+              # is open; anything else edits nothing and is refused. It is armed
+              # to merge itself at that commit (OPS-R48).
               if number=$(python3 "${SPEC}/scripts/rolling_pull_request.py" \
                    --repo "${OWNER}/${repo}" --branch "$branch" --head "$built" \
-                   --author "${APP}[bot]" "--title=${title}" \
+                   --author "${APP}[bot]" "--title=${title}" --auto-merge \
                    <"${work}/body" 2>"${work}/said"); then
                 if [ -n "$rolling" ]; then moved="${moved} ${repo}"; else opened="${opened} ${repo}"; fi
                 rolling=$number

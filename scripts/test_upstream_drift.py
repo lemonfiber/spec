@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import unittest.mock
 
@@ -27,7 +28,11 @@ import yaml
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
+import pin_window
 import upstream_drift
+
+#: A run a day and more after every commit a fixture makes, so each is past the window.
+LATER = int(time.time()) + 2 * pin_window.SECONDS
 
 
 def git(where: pathlib.Path, *args: str) -> str:
@@ -49,6 +54,10 @@ class Upstreams:
         patcher = unittest.mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(self.summary)})
         patcher.start()
         self.addCleanup(patcher.stop)
+        self.now = LATER
+        clock = unittest.mock.patch.object(upstream_drift, "clock", side_effect=lambda: self.now)
+        clock.start()
+        self.addCleanup(clock.stop)
 
     def upstream(self, name: str) -> pathlib.Path:
         work = self.root / "work" / name
@@ -58,7 +67,11 @@ class Upstreams:
         git(work, "config", "user.name", "T")
         return work
 
-    def commit(self, work: pathlib.Path, files: dict[str, str | None]) -> str:
+    def commit(self, work: pathlib.Path, files: dict[str, str | None], when: int | None = None) -> str:
+        if when is not None:
+            stamp = unittest.mock.patch.dict(os.environ, {"GIT_COMMITTER_DATE": f"@{when} +0000"})
+            stamp.start()
+            self.addCleanup(stamp.stop)
         for path, text in files.items():
             where = work / path
             if text is None:
@@ -142,6 +155,44 @@ class Composer(Upstreams, unittest.TestCase):
             said,
         )
         self.assertIn(head[:7], said)
+
+    def test_a_change_inside_the_window_warns_and_passes(self):
+        self.now = 1_800_000_000
+        self.lock(self.first)
+        self.commit(self.sdk, {"src/Client.php": "two"}, when=self.now - 3600)
+        self.publish(self.sdk)
+        code, said = self.ran("composer")
+        self.assertEqual(code, 0, said)
+        refused = pin_window.refused_at(self.now - 3600)
+        self.assertIn(f"::warning::lemonfiber/sdk-php is behind lemonfiber/sdk-php main, refused from {refused}", said)
+        self.assertIn("for less than 24 hours", said)
+        self.assertIn("`src/Client.php`", said)
+        self.assertNotIn("::error::", said)
+
+    def test_one_change_past_the_window_refuses(self):
+        self.now = 1_800_000_000
+        self.lock(self.first)
+        self.commit(self.sdk, {"src/Client.php": "two"}, when=self.now - pin_window.SECONDS)
+        self.commit(self.sdk, {"src/Other.php": "two"}, when=self.now - 60)
+        self.publish(self.sdk)
+        code, said = self.ran("composer")
+        self.assertEqual(code, 1, said)
+        self.assertIn("::error::lemonfiber/sdk-php is behind", said)
+
+    def test_a_change_dated_after_the_run_counts_as_past_the_window(self):
+        self.now = 1_800_000_000
+        self.lock(self.first)
+        self.commit(self.sdk, {"src/Client.php": "two"}, when=self.now + 3600)
+        self.publish(self.sdk)
+        self.assertEqual(self.ran("composer")[0], 1)
+
+    def test_a_change_outside_what_ships_does_not_hold_the_window_open(self):
+        self.now = 1_800_000_000
+        self.lock(self.first)
+        self.commit(self.sdk, {"src/Client.php": "two"}, when=self.now - 2 * pin_window.SECONDS)
+        self.commit(self.sdk, {"tests/A.php": "b"}, when=self.now - 60)
+        self.publish(self.sdk)
+        self.assertEqual(self.ran("composer")[0], 1)
 
     def test_a_change_only_to_what_the_archive_leaves_out_is_current(self):
         self.lock(self.first)
@@ -529,6 +580,11 @@ class TheWorkflowStep(unittest.TestCase):
         env.update(LOCK="npm", REMEDY="", UPSTREAM="", REVISION="", COPIES="")
         done = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True, check=True)
         self.assertEqual(json.loads(done.stdout), ["npm", "--remedy", ""])
+
+
+class Clock(unittest.TestCase):
+    def test_the_window_is_measured_from_now(self):
+        self.assertAlmostEqual(upstream_drift.clock(), int(time.time()), delta=5)
 
 
 class Summary(unittest.TestCase):

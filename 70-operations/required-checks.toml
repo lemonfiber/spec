@@ -43,6 +43,10 @@ name = "explain"
 why = "the same explainer reported skipped under its caller's job name, where squash-message needed nothing explained"
 
 [[exempt]]
+name = "pin-only"
+why = "pin-only reported skipped under its caller's job name, for a label event that is not the approval; `pin-only / pin-only` is the verdict (Q-R83)"
+
+[[exempt]]
 name = "dco / explain"
 why = "explains a sign-off refusal in a comment; the refusal is dco's"
 

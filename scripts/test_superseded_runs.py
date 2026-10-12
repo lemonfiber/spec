@@ -112,6 +112,31 @@ class Passing(Repository):
         self.write("ci.yml", workflow("on: [pull_request]", name="ci"))
         self.assertEqual(self.check(), ([], ""))
 
+    def test_a_pull_request_target_workflow_grouped_the_way_pin_only_is(self):
+        labelled = (f"concurrency:\n  group: {superseded.LABELLED_GROUP}\n"
+                    f"  cancel-in-progress: {superseded.PUSH_CANCELS}\n")
+        self.write("pin-only.yml", workflow("on:\n  pull_request_target:\n    types: [opened, labeled]", labelled))
+        self.write("ci.yml", workflow("on: [pull_request]", name="ci"))
+        self.assertEqual(self.check(), ([], ""))
+
+    def test_a_target_group_with_the_other_s_cancel_is_refused(self):
+        for group, cancel in ((superseded.LABELLED_GROUP, "true"), (superseded.TARGET_GROUP, superseded.PUSH_CANCELS)):
+            with self.subTest(group=group):
+                self.write("pin-only.yml", workflow(
+                    "on: [pull_request_target]", f"concurrency:\n  group: {group}\n  cancel-in-progress: {cancel}\n"))
+                self.refused("pin-only.yml cancels by the group")
+
+    def test_two_workflows_grouped_the_way_pin_only_is_sharing_a_name(self):
+        labelled = (f"concurrency:\n  group: {superseded.LABELLED_GROUP}\n"
+                    f"  cancel-in-progress: {superseded.PUSH_CANCELS}\n")
+        self.write("a.yml", workflow("on: [pull_request_target]", labelled, name="pin-only"))
+        self.write("b.yml", workflow("on: [pull_request_target]", labelled, name="pin-only"))
+        self.refused("are both named 'pin-only'")
+
+    def test_the_label_left_alone_is_pin_only_s_approval(self):
+        import pin_only
+        self.assertIn(f"github.event.label.name != '{pin_only.APPROVED}'", superseded.OTHER_LABEL)
+
     def test_a_workflow_no_pull_request_runs_needs_no_group(self):
         self.write("stale.yml", workflow("on:\n  schedule:\n    - cron: '0 0 * * *'", ""))
         self.assertEqual(self.check()[0], [])
