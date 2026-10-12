@@ -31,7 +31,12 @@
 # `ARCH-R290` is what the companion's N31 reads: a trace that says a search would settle it
 # and what the search spends. It is the core's; N31 itself is the companion's.
 #
-# 63 goals, seeded from the roadmap milestone this version serves;
+# `D11-R11` to `D11-R13`, with `ARCH-R291` and `ARCH-R292`, are live TV at the guarded
+# front door: the core opens a channel's live stream on the member's behalf and answers a
+# pass, and the door asks the core about that pass on every request for its bytes. They
+# are the core's and the door's, by the maintainer's decision of 2026-10-12.
+#
+# 68 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -105,6 +110,11 @@ goals   = [
     "ARCH-R288",
     "ARCH-R289",
     "ARCH-R290",
+    "D11-R11",
+    "D11-R12",
+    "D11-R13",
+    "ARCH-R291",
+    "ARCH-R292",
 ]
 
 # `N21-R1` to `N21-R11`, `N3-R1` to `N3-R26` but for the three earlier versions lock,

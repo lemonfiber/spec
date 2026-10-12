@@ -157,6 +157,25 @@ enforces exactly it. The core builds every location a member is given from the
 templates (`F14-R10`). A declaration that admits a byte path without a question, or a
 template whose host is not `{base}`, is refused at install.
 
+## The live-stream pass
+
+A live stream is not an item: the media server serves the bytes of whichever live stream
+a request names, so the guard cannot ask the media server about one (`D11-R13`). Its
+bytes are served on a pass the core issues instead.
+
+- **The key.** The core generates the key it makes passes with and keeps it to itself.
+  The guard never holds it, so the guard stays the stock filler of `stream.guard`.
+- **The question.** For every request for a live stream's bytes, its playlists and
+  segments included, the guard asks the core whether the pass the request carries is
+  good for exactly the live stream the request names, at an endpoint the core answers on
+  the guard's network alone. Anything but a yes, and no answer, is a refusal.
+- **The one place.** A pass travels in one fixed place, in one spelling, held to an exact
+  shape. A request carrying it anywhere else, under another spelling or in another shape,
+  is refused, so the guard and the core never read two different passes from one request.
+- **The normal form.** Before it asks, the guard holds the request to the normal form it
+  holds an item's byte route to: one canonical path, no byte the forward would re-escape,
+  and one spelling of each parameter it reads. It asks about exactly the bytes it forwards.
+
 ## The forwarded port
 
 Where the egress guard's provider forwards a port, a torrent client inside the guard has
@@ -225,6 +244,8 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R214** | Where the service filling a capability speaks that capability's contract, the core MUST ask it over the contract alone and MUST NOT reach it through an adapter of its own. |
 | **ARCH-R217** | A plugin's conformance recordings MUST sit at `conformance/<capability>@<major>/<case>.json` beside its manifest, one per case of each contract it speaks, each in the recording format of `ARCH-R120` and naming the digest the manifest pins for the service its adapter `fronts`, and `lemonfiber plugin conform` MUST judge each recorded answer as the core reads a live one and MUST name each case whose recording is absent, unreadable, of another request or of another digest. |
 | **ARCH-R251** | The core MUST read the forwarded port from the filler of `network.egress-guard` whenever that filler reports a change, MUST set it over `download.torrent` on every filler of that capability that takes `network.via` that guard, and MUST set it back to none when forwarding ends; where it could not set it, it MUST say the port was not passed rather than fail silently, and nothing MUST be mounted into the guard for it. |
+| **ARCH-R291** | The core MUST generate the key it issues live-stream passes with and keep it to itself, and MUST confirm a pass only at an endpoint it answers on the guard's network alone; the guard MUST NOT hold the key, and MUST ask the core about a pass on every request for a live stream's bytes (`D11-R13`). |
+| **ARCH-R292** | A live-stream pass MUST travel in one fixed place in one spelling, held to an exact shape, and the guard MUST refuse a request carrying it anywhere else, under another spelling or in another shape. Before it asks the core, the guard MUST hold the request to the normal form it holds an item's byte route to (one canonical path, no byte the forward would re-escape, one spelling of each parameter it reads), and MUST ask about exactly the bytes it forwards. |
 
 ## Related
 
