@@ -545,6 +545,24 @@
         {"version": "0.18.0", "status": "staged"}
       ],
       "path": "n-companion/n29-a-key-for-an-app.md"
+    },
+    {
+      "id": "N30",
+      "title": "Testing, making room and sharing the line",
+      "area": "N",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "planned",
+      "shipped": null,
+      "milestones": [],
+      "milestone": null,
+      "priority": "P2",
+      "labels": ["mobile", "verification", "storage", "network"],
+      "requires": ["N1", "N2", "C1", "D5", "D10"],
+      "relates": ["N10", "N12", "N6", "C2", "B2"],
+      "versions": [],
+      "path": "n-companion/n30-testing-making-room-and-sharing-the-line.md"
     }
   ]
 }

@@ -157,6 +157,10 @@ AWAITING_A_VERSION = {
         "N28 requires N1, whose app side 1.0.0 completes, N2, whose app side no version schedules, and N27; what N1 and N2 require is locked by 0.11.0 at the latest, released",
         [f"N28-R{n}" for n in range(1, 15)],
     ),
+    "N30": (
+        "N30 requires N1, whose app side 1.0.0 completes, N2, whose app side no version schedules, C1, locked by 0.8.0, and D5 and D10, locked by 0.12.0, released; what it sends, ARCH-R288 and ARCH-R289, is locked by 0.19.0",
+        [f"N30-R{n}" for n in range(1, 10)],
+    ),
     "N7": (
         "N7 requires N1, whose app side 1.0.0 completes, and A5, locked by 0.13.0, released",
         [f"N7-R{n}" for n in range(1, 19)],
