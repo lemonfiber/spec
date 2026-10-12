@@ -143,6 +143,26 @@ breaking changes are allowed within `0.x` as the roadmap milestones land. `1.0.0
 is cut when the M10 exit criteria are met — a non-contributor can install and run
 on all three platforms from the README alone.
 
+## The companion's identities
+
+The core trusts a device key only from an app it names
+([C10-R29](../10-functional/features/c-trust/c10-integration-keys.md)). Its list of the
+official companion's identities is empty until the companion's first store release, so
+until then a stack trusts only the builds its operator adds to `LEMONFIBER_DEVICE_KEY_APPS`.
+The first store release adds a step to the core release that follows it:
+
+1. **Read the identities the stores sign the companion under.** On Android the package
+   and the SHA-256 of the app signing certificate Google Play signs with, not the upload
+   key's; on iOS the Team ID and the bundle ID.
+2. **Write them into the core's official list** in a pull request of their own, before
+   the release is tagged.
+3. **Register a device key from the store build** against a stack running that release,
+   once on each platform, before the release is published.
+
+A store build the shipped list does not name cannot register a device key on any stack
+that has not added it by hand, so this step is part of the release rather than a later
+fix.
+
 ## What a release must not do
 
 | Never | Because |
@@ -152,6 +172,7 @@ on all three platforms from the README alone.
 | Release a binary that fails its own smoke test | "Builds" ≠ "runs" ([Q-R36](../40-quality/ci-cd.md)) |
 | Bump `schema_version` without the binary supporting it | `build.rs` blocks it, but don't force it |
 | Overwrite the homebrew formula by hand | It's generated (`REPO-R24`) |
+| Release the core after the companion's first store release without the companion's identities in its official list | A store build would register no device key (`C10-R29`) |
 
 ## The one-time setup
 
