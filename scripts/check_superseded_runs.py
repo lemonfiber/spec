@@ -22,6 +22,9 @@ What it refuses, file by file under ``.github/workflows/``:
   grouped the way ``pin-only`` is (``LABELLED_GROUP``, Q-R83), where a label
   event for any label but the approval is a group of its own run and only a
   push's first attempt cancels (``PUSH_CANCELS``);
+- a workflow that calls ``pin-only.yml`` without that block, and without the
+  job condition (``SKIP_OTHER_LABELS``) that skips a label event for any label
+  but the approval (Q-R83);
 - a job's own group that cancels, and any job's own group in a workflow a pull
   request runs. A job waiting in a group is replaced by the next to arrive
   whatever ``cancel-in-progress`` says, so a push's job can be cancelled by one;
@@ -78,6 +81,12 @@ PUSH_CANCELS = "${{ github.event.action == 'synchronize' && github.run_attempt =
 
 #: The two blocks a workflow only `pull_request_target` starts may carry, as (group, cancel-in-progress).
 TARGET_BLOCKS = ((TARGET_GROUP, "true"), (LABELLED_GROUP, PUSH_CANCELS))
+
+#: The condition on the job that calls `pin-only.yml`: a label event `OTHER_LABEL` names runs nothing.
+SKIP_OTHER_LABELS = "${{ !(" + OTHER_LABEL + ") }}"
+
+#: A job's `uses` naming `pin-only.yml`, spec's own copy or one pinned from spec.
+PIN_ONLY_CALL = re.compile(r"\A(?:lemonfiber/spec|\.)/\.github/workflows/pin-only\.yml(?:@\S+)?\Z")
 
 # `key: value`, `key:`, and a quoted key, which is how `"on":` is written by
 # anyone whose YAML reads a bare `on` as `true`.
@@ -168,7 +177,7 @@ def workflow(text: str) -> dict:
     if any(key is None for key, _, _ in listed):
         raise Unread("a list item at the top level, where only keys belong")
     top = {key: (value, children) for key, value, children in listed}
-    read: dict = {"events": [], "group": None, "jobs": {}, "name": None}
+    read: dict = {"events": [], "group": None, "jobs": {}, "calls": {}, "name": None}
     if "on" in top:
         read["events"] = events(*top["on"])
     if "name" in top:
@@ -176,9 +185,11 @@ def workflow(text: str) -> dict:
     if "concurrency" in top:
         read["group"] = group_of(*top["concurrency"])
     for job, _, body in entries(top.get("jobs", ("", []))[1]):
-        for key, value, children in entries(body):
-            if key == "concurrency":
-                read["jobs"][job] = group_of(value, children)
+        said = {key: (value, children) for key, value, children in entries(body)}
+        if "concurrency" in said:
+            read["jobs"][job] = group_of(*said["concurrency"])
+        if "uses" in said:
+            read["calls"][job] = (unquote(said["uses"][0]), unquote(said["if"][0]) if "if" in said else None)
     return read
 
 
@@ -278,6 +289,16 @@ def refused(where: str, one: dict, group: str, wanted: str) -> list[str]:
             f"to a protected branch or a tag. Use the block in lemonfiber/spec "
             f"{HOME}, which cancels only a pull request's run:\n{wanted}"
         )
+    said += [
+        f"{where} job {job!r} calls pin-only, and pin-only is called with a label event for any "
+        f"label but `workflows-approved` skipped in a group of its own run, and cancelled only by "
+        f"a push (Q-R83). Give it the block and the condition spec's pin-only.yml documents:\n"
+        f"concurrency:\n  group: {LABELLED_GROUP}\n  cancel-in-progress: {PUSH_CANCELS}\n"
+        f"jobs:\n  {job}:\n    if: {SKIP_OTHER_LABELS}"
+        for job, (uses, condition) in one["calls"].items()
+        if PIN_ONLY_CALL.match(uses) and ((own, cancel) != (LABELLED_GROUP, PUSH_CANCELS)
+                                          or condition != SKIP_OTHER_LABELS)
+    ]
     said += [
         f"{where} job {job!r} has a group of its own. A job waiting in a group is "
         f"replaced by the next one to arrive whatever cancel-in-progress says, so "
