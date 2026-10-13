@@ -61,8 +61,10 @@ class Forge:
     """Answers each call from what the case set up, and records every one."""
 
     def __init__(self, open_pulls=(), at=HEAD, created=None, graphql=None, fails=None,
-                 made_by=BOT, verified=True):
+                 made_by=BOT, verified=True, rereads=()):
         self.open_pulls = list(open_pulls)
+        # What each read of one pull request answers, in turn; the listed one once these run out.
+        self.rereads = list(rereads)
         self.at = at
         self.made = {"author": {"login": made_by} if made_by else None,
                      "commit": {"verification": {"verified": verified}}}
@@ -81,6 +83,8 @@ class Forge:
             return self.made
         if method == "GET" and "/pulls?" in path:
             return self.open_pulls
+        if method == "GET" and "/pulls/" in path:
+            return self.rereads.pop(0) if self.rereads else self.open_pulls[0]
         if method == "POST" and path.endswith("/pulls"):
             return self.created
         if method == "POST" and path == "graphql":
@@ -97,9 +101,10 @@ class Forge:
 def run(forge, *extra, body="the body\n", title="chore(contract): take lemonfiber abcdef12"):
     argv = ["--repo", REPO, "--branch", BRANCH, "--head", HEAD, "--author", BOT, f"--title={title}", *extra]
     out, err = io.StringIO(), io.StringIO()
-    with mock.patch("sys.stdin", io.StringIO(body)), \
+    with mock.patch("sys.stdin", io.StringIO(body)), mock.patch.object(rolling, "pause") as paused, \
             contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
         code = rolling.main(argv, api=forge)
+    forge.paused = paused.call_count
     return code, out.getvalue(), err.getvalue()
 
 
@@ -229,6 +234,30 @@ class TheShaMismatch(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(forge.writes(), [])
         self.assertIn(f"#7 is at {OTHER}, not {HEAD}", err)
+
+    def test_a_pull_request_the_forge_has_not_yet_moved_to_the_commit_is_read_again(self):
+        # The forge moves a pull request's head seconds after its branch: plugin-caddy#5
+        # was read at its old head while its branch already held the bump's commit.
+        forge = Forge([pull(sha=OTHER)], rereads=[pull(sha=OTHER), pull()])
+        code, _, err = run(forge, "--auto-merge")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(forge.paused, 2)
+        self.assertEqual(forge.mutations()[0]["variables"]["head"], HEAD)
+
+    def test_a_pull_request_that_never_reaches_the_commit_is_refused_after_the_last_read(self):
+        forge = Forge([pull(sha=OTHER)])
+        code, _, err = run(forge, "--auto-merge")
+        self.assertEqual(code, 1)
+        self.assertEqual(forge.paused, rolling.CATCH_UP_READS)
+        self.assertEqual(forge.writes(), [])
+        self.assertIn(f"#7 is at {OTHER}, not {HEAD}", err)
+
+    def test_a_pull_request_read_again_is_judged_as_it_is_then(self):
+        forge = Forge([pull(sha=OTHER)], rereads=[pull(login="mallory", kind="User")])
+        code, _, err = run(forge, "--auto-merge")
+        self.assertEqual(code, 1)
+        self.assertEqual(forge.writes(), [])
+        self.assertIn("was opened by mallory", err)
 
     def test_a_branch_somebody_moved_is_refused_before_anything_is_listed(self):
         forge = Forge([pull()], at=OTHER)
@@ -432,6 +461,11 @@ class WithAStubbedGh(unittest.TestCase):
 
     def tearDown(self):
         subprocess.run(["rm", "-rf", str(self.scratch)], check=True)
+
+    def test_the_pause_between_reads_waits(self):
+        with mock.patch.object(rolling.time, "sleep") as slept:
+            rolling.pause(3)
+        slept.assert_called_once_with(3)
 
     def test_gh_sends_the_payload_on_its_input_and_reads_the_answer(self):
         saved = dict(os.environ)
