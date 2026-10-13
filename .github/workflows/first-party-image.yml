@@ -248,7 +248,13 @@ jobs:
             sources+=("${IMAGE}@sha256:$(basename "$file")")
           done
           [ "${#sources[@]}" -eq 2 ] || { echo "::error::expected two platform digests, got ${#sources[@]}"; exit 1; }
-          docker buildx imagetools create --tag "${IMAGE}:${TAG}" "${sources[@]}"
+          # A published tag never moves (OPS-R90): a run again for the same commit or
+          # tag keeps the index already there, and attests that one.
+          if docker buildx imagetools inspect "${IMAGE}:${TAG}" >/dev/null 2>&1; then
+            echo "::notice::${IMAGE}:${TAG} is already published, and a published tag does not move"
+          else
+            docker buildx imagetools create --tag "${IMAGE}:${TAG}" "${sources[@]}"
+          fi
           docker buildx imagetools inspect "${IMAGE}:${TAG}" --format '{{json .Manifest}}' > descriptor.json
           digest="$(python3 -I -c 'import json; print(json.load(open("descriptor.json"))["digest"])')"
           [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] \

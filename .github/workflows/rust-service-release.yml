@@ -1,22 +1,32 @@
-# Publish a Rust service's image from a tag the release train cut (ADR-0033 §3, §4).
+# Publish a Rust service's image from every commit on main and from each tag the
+# release train cuts (ADR-0033 §3, §4; OPS-R90, OPS-R91).
 #
-# A tag `vX.Y.Z`, or `vX.Y.Z-<identifier>` for a pre-release, on a commit `main`
-# holds is the only thing that publishes. Each platform is built on a runner of
-# its own architecture and pushed by digest; the two are joined under one
-# multi-architecture index at `ghcr.io/lemonfiber/<service>:<tag>`, which carries
-# BuildKit's SBOM and provenance, and gets a build-provenance attestation and an
-# SBOM attestation per platform from GitHub. The index digest is recorded in the
-# run summary and handed to `lemonfiber-media-stack`'s `image-bump`, which opens
-# the pull request pinning it. Where the repository declares itself in a
-# `plugin.toml` (ADR-0045 §1), the manifest declares the tag's version too, and
-# `manifest-pin` proposes the image as the one its services run, which is the
-# revision the bundle pins.
+# A push to `main` publishes the commit as `main-<12 hex>`, and a tag `vX.Y.Z`, or
+# `vX.Y.Z-<identifier>` for a pre-release, on a commit `main` holds publishes that
+# tag. Each platform is built on a runner of its own architecture and pushed by
+# digest; the two are joined under one multi-architecture index at
+# `ghcr.io/lemonfiber/<service>:<tag>`, which carries BuildKit's SBOM and
+# provenance, and gets a build-provenance attestation and an SBOM attestation per
+# platform from GitHub. The index digest is recorded in the run summary.
+#
+# A train tag's digest is handed to `lemonfiber-media-stack`'s `image-bump`, which
+# opens the pull request pinning it; a commit image is never handed on and never
+# announced. Where the repository declares itself in a `plugin.toml` (ADR-0045 §1),
+# `manifest-pin` proposes the image as the one its services run: a commit image on
+# the rolling `release/image-commit-pin` branch, and a train tag, at the version the
+# manifest declares, on `release/image-pin`. So a service's own run proofs can be
+# taken from the image `main` builds before any release is cut.
+#
+# Building, publishing and attesting hold the run's own token and nothing of the
+# caller's secrets; the release App's key reaches only `tell` and `manifest-pin`,
+# which check out and run nothing of the repository's.
 #
 # The service id is the calling repository's name without `lemonfiber-`
 # (ADR-0033 §1), so every image repository calls this with nothing to say:
 #
 #   on:
 #     push:
+#       branches: [main]
 #       tags: ["v*"]
 #   permissions:
 #     contents: read
@@ -34,8 +44,8 @@
 #       secrets:
 #         RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
 #
-# The concurrency stays with the caller: one publish per tag, never cancelled,
-# and a reusable that declared the same group would wait on its own caller.
+# The concurrency stays with the caller: one publish per ref, never cancelled, and a
+# reusable that declared the same group would wait on its own caller.
 name: rust-service-release
 on:
   workflow_call:
@@ -61,71 +71,79 @@ jobs:
       service: ${{ steps.what.outputs.service }}
       image: ${{ steps.what.outputs.image }}
       tag: ${{ steps.what.outputs.tag }}
+      kind: ${{ steps.what.outputs.kind }}
       manifest: ${{ steps.what.outputs.manifest }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: The tag is one the train cuts, on main, at the version the crate and its manifest declare
+      - name: A commit on main, or a tag the train cuts on main at the version the crate and its manifest declare
         id: what
         env:
-          TAG: ${{ github.ref_name }}
+          NAME: ${{ github.ref_name }}
+          KIND: ${{ github.ref_type }}
           REPO: ${{ github.event.repository.name }}
         run: |
           set -euo pipefail
-          # A tag pushed, and nothing else: a branch or a dispatch could carry
-          # the same name without being what the train cut.
-          if [ "$GITHUB_EVENT_NAME" != push ] || [[ "$GITHUB_REF" != refs/tags/* ]]; then
-            echo "::error::a service image is published for a pushed tag, not for ${GITHUB_EVENT_NAME} on ${GITHUB_REF}"
-            exit 1
-          fi
-          # `rc` is refused as the train refuses it: ARCH-R43 gives a release
-          # candidate a meaning no tag cut here may claim by accident.
-          # Matched in the shell rather than piped to `grep -q`, which can exit
-          # before its producer finishes and read a match as none under pipefail.
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$ ]] \
-            || [[ "$TAG" =~ ^v[0-9.]+-rc[0-9]*(\.|$) ]]; then
-            echo "::error::'${TAG}' is not a tag the train cuts: vX.Y.Z, or vX.Y.Z-<identifier> other than rc"
-            exit 1
-          fi
-
           service="${REPO#lemonfiber-}"
           if [ "$service" = "$REPO" ] || [[ ! "$service" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
             echo "::error::'${REPO}' is not named lemonfiber-<service> (ADR-0033 §1)"
             exit 1
           fi
-
-          # Nothing is published from a branch: the tagged commit is one main holds.
-          git fetch --quiet origin main
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo "::error::${TAG} points at ${GITHUB_SHA}, which main does not hold"
-            exit 1
-          fi
-
-          declared="$(python3 -I -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')"
-          if [ "v${declared}" != "$TAG" ]; then
-            echo "::error::the crate declares ${declared}, so it is not tagged ${TAG}"
-            exit 1
-          fi
-
           manifest=false
-          if [ -e plugin.toml ]; then
-            declared="$(python3 -I -c 'import tomllib; print(tomllib.load(open("plugin.toml", "rb"))["plugin"]["version"])')"
-            if [ "v${declared}" != "$TAG" ]; then
-              echo "::error::plugin.toml declares ${declared}, so it is not tagged ${TAG}"
+          [ -e plugin.toml ] && manifest=true
+
+          # A push, and nothing else: a dispatch could carry the same ref without
+          # being what main or the train holds.
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = branch ] && [ "$GITHUB_REF" = refs/heads/main ]; then
+            kind=commit
+            tag="main-${GITHUB_SHA:0:12}"
+          elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = tag ] && [[ "$GITHUB_REF" = refs/tags/* ]]; then
+            kind=tag
+            tag="$NAME"
+            # `rc` is refused as the train refuses it: ARCH-R43 gives a release
+            # candidate a meaning no tag cut here may claim by accident.
+            # Matched in the shell rather than piped to `grep -q`, which can exit
+            # before its producer finishes and read a match as none under pipefail.
+            if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$ ]] \
+              || [[ "$tag" =~ ^v[0-9.]+-rc[0-9]*(\.|$) ]]; then
+              echo "::error::'${tag}' is not a tag the train cuts: vX.Y.Z, or vX.Y.Z-<identifier> other than rc"
               exit 1
             fi
-            manifest=true
+
+            # Nothing is published from a branch but main: the tagged commit is one main holds.
+            git fetch --quiet origin main
+            if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+              echo "::error::${tag} points at ${GITHUB_SHA}, which main does not hold"
+              exit 1
+            fi
+
+            declared="$(python3 -I -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')"
+            if [ "v${declared}" != "$tag" ]; then
+              echo "::error::the crate declares ${declared}, so it is not tagged ${tag}"
+              exit 1
+            fi
+            if [ "$manifest" = true ]; then
+              declared="$(python3 -I -c 'import tomllib; print(tomllib.load(open("plugin.toml", "rb"))["plugin"]["version"])')"
+              if [ "v${declared}" != "$tag" ]; then
+                echo "::error::plugin.toml declares ${declared}, so it is not tagged ${tag}"
+                exit 1
+              fi
+            fi
+          else
+            echo "::error::a service image is published for a push to main or a pushed tag, not for ${GITHUB_EVENT_NAME} on ${GITHUB_REF}"
+            exit 1
           fi
 
           {
             echo "service=${service}"
             echo "image=${REGISTRY}/${service}"
-            echo "tag=${TAG}"
+            echo "tag=${tag}"
+            echo "kind=${kind}"
             echo "manifest=${manifest}"
           } >> "$GITHUB_OUTPUT"
-          echo "publishing ${REGISTRY}/${service}:${TAG}"
+          echo "publishing ${REGISTRY}/${service}:${tag}"
 
   build:
     needs: settle
@@ -214,7 +232,13 @@ jobs:
             sources+=("${IMAGE}@sha256:$(basename "$file")")
           done
           [ "${#sources[@]}" -eq 2 ] || { echo "::error::expected two platform digests, got ${#sources[@]}"; exit 1; }
-          docker buildx imagetools create --tag "${IMAGE}:${TAG}" "${sources[@]}"
+          # A published tag never moves (OPS-R90): a run again for the same commit or
+          # tag keeps the index already there, and attests that one.
+          if docker buildx imagetools inspect "${IMAGE}:${TAG}" >/dev/null 2>&1; then
+            echo "::notice::${IMAGE}:${TAG} is already published, and a published tag does not move"
+          else
+            docker buildx imagetools create --tag "${IMAGE}:${TAG}" "${sources[@]}"
+          fi
 
           docker buildx imagetools inspect "${IMAGE}:${TAG}" --format '{{json .Manifest}}' > descriptor.json
           digest="$(python3 -I -c 'import json; print(json.load(open("descriptor.json"))["digest"])')"
@@ -274,9 +298,11 @@ jobs:
           create-storage-record: false
 
   # The stack is told through the `release` environment, whose branch policy
-  # admits main and `v*` tags only, as in the core.
+  # admits main and `v*` tags only, as in the core. Only a train tag is told: a
+  # commit image is not a release (OPS-R90).
   pin:
     needs: [settle, publish]
+    if: needs.settle.outputs.kind == 'tag'
     permissions:
       contents: read
     uses: ./.github/workflows/tell.yml
@@ -292,7 +318,9 @@ jobs:
       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
 
   # The manifest is the bundle's source for this image once the bundle pins this
-  # repository (ADR-0045 §1, §5).
+  # repository (ADR-0045 §1, §5). `manifest-pin` puts a commit image on the commit
+  # branch and a train tag on the tag branch, and pins nothing from a commit that
+  # merges a pin.
   manifest:
     needs: [settle, publish]
     if: needs.settle.outputs.manifest == 'true'

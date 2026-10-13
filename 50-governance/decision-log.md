@@ -245,6 +245,7 @@ Decisions about a repository outside this organisation, such as
 | The data root is the one `lemonfiber config` key `DATA_ROOT`, holding an absolute host path or `nfs://<server>/<export>`; the NAS overlay's server and export are folded into it once; an NFS data root is reported as `nas` mode with the host-path checks said not run. `ARCH-R240` is amended in place | [ARCH-R240](../20-architecture/contracts/plugin-manifest.md#the-data-root--one-setting-every-data-mount), [C5](../10-functional/features/c-trust/c5-storage.md) |
 | The operator's overlay is one fixed file, `overlay.yml` in lemonfiber's configuration directory; `LEMONFIBER_OVERLAY` is retired and a path recorded under it is named by the doctor with where to move it. `ARCH-R252` is amended in place | [ARCH-R252](../20-architecture/contracts/plugin-manifest.md#the-operators-overlay) |
 | Standing beside an existing setup records its alternative ports as a setting the generator writes the published ports from, journalled and reversible, and writes no overlay; this is part of the `ARCH-R252` amendment | [ARCH-R252](../20-architecture/contracts/plugin-manifest.md#the-operators-overlay), [A5](../10-functional/features/a-getting-started/a5-migration.md) |
+| `lemonfiber-decline` and `lemonfiber-request-gate` publish an image from every commit on `main` as `main-<commit>` and move their `plugin.toml` pin to it as a first-party plugin does, while train tags publish and tell the stack as before; `OPS-R90` is amended in place | [OPS-R90](../70-operations/releasing.md) |
 
 ## Requirements
 
