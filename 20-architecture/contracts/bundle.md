@@ -277,6 +277,13 @@ deletes its in-process adapter from the core. A stack whose operator has not tak
 move keeps running the part's own service, assembled from the pin's copy, and what the
 deleted adapter filled stands unfilled until the move is taken.
 
+The media server is pinned `installed` before its move can be made: the move takes the
+stack's own service out of the Compose project, which only the generated project can,
+and the stack runs from the generated project only from the compose cutover. Until the
+release that moves it, the stack keeps the media server's service, claims and
+recordings as the media stack held them at the source switch, the one part not read
+from the bundle (`ARCH-R263`), with its in-process adapter.
+
 ### Profiles and forms for a part
 
 Every service of a pinned plugin sits in the profile its `[[plugin]]` names, whatever
@@ -363,7 +370,7 @@ Each release of lemonfiber carries a JSON schema of `bundle.toml`,
 
 | ID | Requirement |
 |----|-------------|
-| **ARCH-R263** | lemonfiber MUST assemble the stack it ships from the bundle it embeds and the plugin trees it pins, and from nothing else, and MUST NOT carry or materialise a `stack.toml`, an `include` list or a `services/` file for it. |
+| **ARCH-R263** | lemonfiber MUST assemble the stack it ships from the bundle it embeds and the plugin trees it pins, and from nothing else, but the media server's service, its claims and their recordings, which it MUST read from the media stack as frozen at the source switch until the release that moves the media server in place (`ARCH-R299`); and it MUST NOT carry or materialise a `stack.toml`, an `include` list or a `services/` file for it. |
 | **ARCH-R265** | The default bundle MUST declare, in `bundle/bundle.toml` at `schema = 2`, every profile, form and removed service of the stack it ships, as `[[profile]]`, `[[form]]` and `[[removed]]` with the fields this contract states, and one `[[plugin]]` per first-party plugin; no plugin manifest MAY declare a profile, a form or a removed service; and lemonfiber MUST read `schema` 1 and 2 and MUST refuse any other, naming both. |
 | **ARCH-R266** | Each `[[plugin]]` MUST name `id`, `origin`, `revision`, `manifest`, `tree`, `fills`, `stage`, `profile` and `last_release`, and MAY name `release`; `id` MUST be the plugin's own and the id of the service that takes the part's place; an `assembled` plugin MUST declare exactly one service, speaking no contract, whose claims' fixtures lie under `recordings/<id>/`; an `installed` plugin's service of that id MUST declare `replaces` naming it; every service of the plugin MUST sit in the declared profile `profile` names, and `[plugin].forms` MUST name exactly the forms whose closure holds it; and each violation MUST be refused naming the plugin and the field. |
 | **ARCH-R267** | `tree` MUST be the SHA-256 of a listing, sorted by path bytewise, of one line per file of the plugin's tree (`plugin.toml`, `config/<service id>/` for every service, every recording the manifest names, and `conformance/`), each line the file's SHA-256 in lowercase hex, two spaces, its path relative to the repository root and a line feed; and the catalogue's copy at `bundle/plugins/<id>/` MUST be that tree, each file at its path in the plugin's repository. |
