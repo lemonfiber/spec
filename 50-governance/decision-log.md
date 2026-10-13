@@ -249,6 +249,7 @@ Decisions about a repository outside this organisation, such as
 | A part the bundle pins `installed` is offered by the `up` of a form holding its profile, installed from the embedded tree through the plugin path, and nothing of the form is written or started without the yes | [bundle](../20-architecture/contracts/bundle.md) |
 | A stack running a part as its own service is offered the move in place by `lemonfiber update`, rehearsed and undone as one unit; declined, the stack's service keeps running from the pin's copy and what its deleted in-process adapter filled is reported unfilled | [bundle](../20-architecture/contracts/bundle.md) |
 | `ARCH-R298` to `ARCH-R301` ship in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
+| Until the release that moves the media server in place, the source switch keeps its service, claims and recordings from the media stack as frozen at the switch, with its in-process adapter: its plugin's copy holds what fills its capabilities in the adapter service, and the move needs the generated project the compose cutover brings | [bundle](../20-architecture/contracts/bundle.md) |
 
 ## Requirements
 
