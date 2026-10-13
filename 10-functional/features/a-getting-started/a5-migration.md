@@ -67,6 +67,12 @@ replacement is offered but never preselected.
 Side-by-side deserves emphasis: it lets a cautious operator evaluate with zero
 risk, which is exactly what this audience wants.
 
+The alternative ports are recorded as one of lemonfiber's own settings and read by the
+generator, which writes each service's published port from them. Standing beside
+writes no Compose overlay: the only overlay is the operator's own
+([ARCH-R252](../../../20-architecture/contracts/plugin-manifest.md#the-operators-overlay)).
+Recording them is journalled, and undoing it puts the ports the bundle declares back.
+
 Replacement is the mode that stops somebody's running services, so its yes is the
 offer its reading answered rather than a bare confirmation. The reading names what
 it would stop; between reading it and agreeing, a container can be started or a
