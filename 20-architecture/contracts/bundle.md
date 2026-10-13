@@ -270,10 +270,12 @@ renames none of them.
 | Stage | What lemonfiber does with it |
 |-------|-------------------------------|
 | `assembled` | Writes its one service into the stack it ships, as a stack service: the stack's origin, its setting and credential names, every `[[secret]]` its plugin declares, held in the service id's namespace (`ARCH-R275`), its claims judged as a bundled service's (`F9-R2`), and its `api` honoured (`ARCH-R272`). The plugin declares exactly one service, which speaks no contract, and every fixture its claims name lies under `recordings/<id>/`. |
-| `installed` | Installs it through the plugin path offline from the embedded tree and settles it as its capabilities' default filler (ADR-0042 §3); an existing install moves to it in place (§4). The service whose id is the plugin's declares `replaces` naming it, and keeps the stack's setting, secret and credential names for it (`ARCH-R273`). |
+| `installed` | Installs it through the plugin path offline from the embedded tree and settles it as its capabilities' default filler (ADR-0042 §3), offered by the `up` of a form that holds its profile (`ARCH-R298`); a stack running the part as its own service is offered the move in place by `lemonfiber update` (§4, `ARCH-R299`). The service whose id is the plugin's declares `replaces` naming it, and keeps the stack's setting, secret and credential names for it (`ARCH-R273`), and every link by name and choice of filler naming that id reaches it (`ARCH-R301`). |
 
 The release whose bundle moves a part from `assembled` to `installed` is the release that
-deletes its in-process adapter from the core.
+deletes its in-process adapter from the core. A stack whose operator has not taken the
+move keeps running the part's own service, assembled from the pin's copy, and what the
+deleted adapter filled stands unfilled until the move is taken.
 
 ### Profiles and forms for a part
 
@@ -368,6 +370,10 @@ Each release of lemonfiber carries a JSON schema of `bundle.toml`,
 | **ARCH-R268** | A bundle `[[wiring]]` MUST be either a choice of filler, naming `by`, `asks`, `filled_by` and `why`, where `by`'s plugin asks that capability in its `[[ask]]` and not `each` and `filled_by` provides or speaks it, or a link by name, naming `by`, `to` and `why`; every service it names MUST be a pinned plugin's; and a wiring of any other shape, an ask without `filled_by` among them, MUST be refused naming the wiring. |
 | **ARCH-R269** | The ids, published ports and proxy hostnames of every service a pinned plugin declares, `assembled` and `installed` alike, and every hostname the proxy's configuration in its copy answers on, MUST be reserved; a service of any other plugin taking one MUST be refused naming it and the plugin holding it, except a first-party service whose `replaces` names that id. |
 | **ARCH-R275** | An `assembled` plugin's service MUST keep every `[[secret]]` its plugin declares, each held in the secret store in the service id's namespace as `<service id>:<secret id>` and written to that service's own secrets file as a plugin's is (`ARCH-R247`). |
+| **ARCH-R298** | The `up` of a form whose closure holds the profile of an `installed` pin, where neither that plugin nor a stack service of its id is present, MUST offer installing the plugin from its embedded tree, offline, through the plugin path as any install is (`F6-R1`); the offer MUST be rehearsable, and without the operator's yes nothing of the form MUST be written or started. |
+| **ARCH-R299** | Where the stack runs a part as its own service and the bundle pins that part `installed`, `lemonfiber update` MUST offer moving it in place: the plugin's service takes the same container name, configuration directory, data and setting, secret and credential names (`ARCH-R273`), and the stack's own service is stopped and left out of the stack; the move MUST be rehearsed and shown before anything changes, journalled as one operation and undone as one unit (`F6-R9`); without the yes the stack's own service MUST keep running, assembled from the pin's copy, what its deleted in-process adapter filled MUST be reported unfilled, and `up` and the doctor MUST name the move as offered. |
+| **ARCH-R300** | lemonfiber MUST trust a plugin as first-party only at the id, the manifest digest and the tree digest its pin names. |
+| **ARCH-R301** | A link by name or a choice of filler naming a reserved id MUST reach the first-party service whose `replaces` names it, and the checks that refuse a plugin service an id, port or hostname the running stack holds MUST pass over that service. |
 
 ## Related
 

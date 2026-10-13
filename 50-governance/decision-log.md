@@ -246,6 +246,9 @@ Decisions about a repository outside this organisation, such as
 | The operator's overlay is one fixed file, `overlay.yml` in lemonfiber's configuration directory; `LEMONFIBER_OVERLAY` is retired and a path recorded under it is named by the doctor with where to move it. `ARCH-R252` is amended in place | [ARCH-R252](../20-architecture/contracts/plugin-manifest.md#the-operators-overlay) |
 | Standing beside an existing setup records its alternative ports as a setting the generator writes the published ports from, journalled and reversible, and writes no overlay; this is part of the `ARCH-R252` amendment | [ARCH-R252](../20-architecture/contracts/plugin-manifest.md#the-operators-overlay), [A5](../10-functional/features/a-getting-started/a5-migration.md) |
 | `lemonfiber-decline` and `lemonfiber-request-gate` publish an image from every commit on `main` as `main-<commit>` and move their `plugin.toml` pin to it as a first-party plugin does, while train tags publish and tell the stack as before; `OPS-R90` is amended in place | [OPS-R90](../70-operations/releasing.md) |
+| A part the bundle pins `installed` is offered by the `up` of a form holding its profile, installed from the embedded tree through the plugin path, and nothing of the form is written or started without the yes | [bundle](../20-architecture/contracts/bundle.md) |
+| A stack running a part as its own service is offered the move in place by `lemonfiber update`, rehearsed and undone as one unit; declined, the stack's service keeps running from the pin's copy and what its deleted in-process adapter filled is reported unfilled | [bundle](../20-architecture/contracts/bundle.md) |
+| `ARCH-R298` to `ARCH-R301` ship in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
 ## Requirements
 
