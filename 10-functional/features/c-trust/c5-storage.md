@@ -53,8 +53,8 @@ breaks them for anything on the Windows side.
 Mode is **derived from evidence**, not chosen from a menu. The operator picks a
 location; lemonfiber determines what that location can do.
 
-The location is one setting: a path on this machine, or an NFS export named by its
-server and export. Every service that takes data is mounted from it alike, by the
+The location is one setting, `DATA_ROOT`: a path on this machine, or an NFS export
+written `nfs://<server>/<export>`. Every service that takes data is mounted from it alike, by the
 generator rather than by an overlay
 ([plugin-manifest](../../../20-architecture/contracts/plugin-manifest.md#the-data-root--one-setting-every-data-mount),
 `ARCH-R240`).
@@ -131,6 +131,7 @@ another room, and the phone is not.
 |-----------|-----------|
 | exFAT volume chosen | Detect; explain hardlinks are impossible on exFAT and that this cannot be worked around. |
 | SMB mount on macOS | Detect; explain the degradation and recommend NFS where available. |
+| Data root is an NFS export | Report `nas` mode from the setting itself; say that the checks reading a host path (hardlinks, space, presence) are not run on this machine rather than report them as passed (`ARCH-R240`). |
 | Windows path outside WSL2 | Detect the boundary crossing; explain that the data root should live inside the WSL2 filesystem. |
 | Hardlinks worked, now don't | `degraded` and alert. Usually a remount with different options. |
 | Data root disappears while running | Stop services rather than let them write into an empty mount point. |
