@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: planned
+maturity: building
 priority: P2
 labels: [mobile, verification, storage, network]
 requires: [N1, N2, C1, D5, D10]
