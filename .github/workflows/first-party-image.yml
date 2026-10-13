@@ -63,8 +63,6 @@ env:
   REGISTRY: ghcr.io/lemonfiber
   BUILDKIT: moby/buildkit:v0.33.1@sha256:cec9f139f45e93c5c69c60f8b07cfad9f43f4ef6b6a6cd917527fea5ff2e3dea
   SBOM_SCANNER: docker/buildkit-syft-scanner:1.12.0@sha256:ae4f3b554449e7e25548e7d8ccc029d17357348e30c6e3df01b92bc93654d6a9
-  TAG_PIN_BRANCH: release/image-pin
-  COMMIT_PIN_BRANCH: release/image-commit-pin
 
 jobs:
   settle:
@@ -76,7 +74,6 @@ jobs:
       image: ${{ steps.what.outputs.image }}
       name: ${{ steps.what.outputs.name }}
       tag: ${{ steps.what.outputs.tag }}
-      pin: ${{ steps.what.outputs.pin }}
       code: ${{ steps.diff.outputs.code }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -131,12 +128,10 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = pull_request ] || [ "$GITHUB_EVENT_NAME" = merge_group ]; then
             mode=prove
             tag=""
-            pin=""
           elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = branch ]; then
             [ "$REF" = refs/heads/main ] || { echo "::error::${REF} is not main, and no other branch publishes"; exit 1; }
             mode=publish
             tag="main-${GITHUB_SHA:0:12}"
-            pin="$COMMIT_PIN_BRANCH"
           elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = tag ]; then
             if [[ ! "$NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$ ]] \
               || [[ "$NAME" =~ ^v[0-9.]+-rc[0-9]*(\.|$) ]]; then
@@ -155,7 +150,6 @@ jobs:
             fi
             mode=publish
             tag="$NAME"
-            pin="$TAG_PIN_BRANCH"
           else
             echo "::error::an image is built for a pull request, a merge group, main or a train tag, not for ${GITHUB_EVENT_NAME} on ${REF}"
             exit 1
@@ -165,7 +159,6 @@ jobs:
             echo "image=${image}"
             echo "name=${IMAGE_NAME}"
             echo "tag=${tag}"
-            echo "pin=${pin}"
           } >> "$GITHUB_OUTPUT"
           echo "${mode}: ${image}${tag:+:${tag}}"
 
@@ -511,120 +504,13 @@ jobs:
   pin:
     needs: [settle, publish, posture]
     if: needs.settle.outputs.mode == 'publish' && needs.posture.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: release
-    outputs:
-      branch: ${{ steps.pinned.outputs.branch }}
-      head: ${{ steps.pinned.outputs.head }}
-      title: ${{ steps.pinned.outputs.title }}
-      body: ${{ steps.pinned.outputs.body }}
-    steps:
-      - name: Mint a token that can write the manifest
-        id: token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        with:
-          client-id: ${{ vars.RELEASE_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_APP_KEY }}
-          owner: ${{ github.repository_owner }}
-          permission-contents: write
-          permission-pull-requests: write
-          repositories: ${{ github.event.repository.name }}
-      - name: Put what this tag or commit published on its rolling branch
-        id: pinned
-        env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          REPOSITORY: ${{ github.repository }}
-          IMAGE: ${{ needs.settle.outputs.image }}
-          TAG: ${{ needs.settle.outputs.tag }}
-          DIGEST: ${{ needs.publish.outputs.digest }}
-          PIN_BRANCH: ${{ needs.settle.outputs.pin }}
-          DIRECTORY: ${{ inputs.directory }}
-          BOT: ${{ steps.token.outputs.app-slug }}[bot]
-        run: |
-          set -euo pipefail
-          pins="$(gh api "repos/${REPOSITORY}/commits/${GITHUB_SHA}/pulls" --jq "map(select(
-            .merged_at != null and .merge_commit_sha == \"${GITHUB_SHA}\"
-            and (.head.ref == \"${TAG_PIN_BRANCH}\" or .head.ref == \"${COMMIT_PIN_BRANCH}\")
-            and .head.repo.full_name == \"${REPOSITORY}\" and .user.login == \"${BOT}\")) | length")"
-          if [ "$pins" != "0" ]; then
-            echo "::notice::${GITHUB_SHA} merges a pin, so ${TAG} is published and not pinned."
-            exit 0
-          fi
-          manifest="plugin.toml"
-          [ "$DIRECTORY" = "." ] || manifest="${DIRECTORY%/}/plugin.toml"
-          main="$(gh api "repos/${REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
-          if gh api "repos/${REPOSITORY}/git/ref/heads/${PIN_BRANCH}" >/dev/null 2>&1; then
-            gh api --method PATCH "repos/${REPOSITORY}/git/refs/heads/${PIN_BRANCH}" \
-              -f "sha=${main}" -F force=true >/dev/null
-          else
-            gh api --method POST "repos/${REPOSITORY}/git/refs" \
-              -f "ref=refs/heads/${PIN_BRANCH}" -f "sha=${main}" >/dev/null
-          fi
-          gh api "repos/${REPOSITORY}/contents/${manifest}?ref=${PIN_BRANCH}" > held.json
-          python3 -I - "$IMAGE" "$DIGEST" "$TAG" <<'PY'
-          import base64, json, os, re, sys, tomllib
-          image, digest, tag = sys.argv[1], sys.argv[2], sys.argv[3].removeprefix("v")
-          text = base64.b64decode(json.load(open("held.json"))["content"]).decode("utf-8")
-          declared = [one.get("id") for one in tomllib.loads(text).get("service", []) if one.get("image") == image]
-          blocks = re.split(r"(?m)^(?=\[\[?)", text)
-          running = [i for i, block in enumerate(blocks)
-                     if block.startswith("[[service]]") and re.search(rf'(?m)^image\s*=\s*"{re.escape(image)}"\s*$', block)]
-          if len(running) != len(declared):
-              sys.exit(f"::error::{len(declared)} services run {image} and {len(running)} are written so this can move them")
-          if not running:
-              print(f"::notice::no service of the manifest runs {image}, so there is nothing to pin")
-              open("pinned", "w").write("")
-              sys.exit(0)
-          for at in running:
-              block = blocks[at]
-              for field, value in (("digest", digest), ("tag", tag)):
-                  block, changed = re.subn(rf'(?m)^{field}(\s*)=\s*"[^"]*"', rf'{field}\g<1>= "{value}"', block)
-                  if changed != 1:
-                      sys.exit(f"::error::a service running {image} does not declare `{field}` once")
-              blocks[at] = block
-          written = "".join(blocks)
-          moved = [(one.get("digest"), one.get("tag")) for one in tomllib.loads(written).get("service", [])
-                   if one.get("image") == image]
-          if len(moved) != len(declared) or any(pair != (digest, tag) for pair in moved):
-              sys.exit(f"::error::the manifest as written does not run {image} at {digest} and {tag} everywhere it ran it")
-          open("plugin.toml", "w", encoding="utf-8").write(written)
-          open("pinned", "w").write("yes")
-          PY
-          if [ ! -s pinned ]; then exit 0; fi
-          message="$(printf '%s\n\n%s\n%s\n' \
-            "chore(manifest): the image at ${TAG}" \
-            "Spec: OPS-R90, OPS-R91" \
-            "Signed-off-by: lemonfiber release <info@nightworks.io>")"
-          head="$(gh api --method PUT "repos/${REPOSITORY}/contents/${manifest}" \
-            -f "message=${message}" \
-            -f "content=$(base64 -w0 plugin.toml)" \
-            -f "sha=$(python3 -I -c 'import json; print(json.load(open("held.json"))["sha"])')" \
-            -f "branch=${PIN_BRANCH}" --jq .commit.sha)"
-          delimiter="body_$(openssl rand -hex 16)"
-          {
-            echo "branch=${PIN_BRANCH}"
-            echo "head=${head}"
-            echo "title=chore(manifest): the image at ${TAG}"
-            echo "body<<${delimiter}"
-            printf '%s\n\n%s\n%s\n' \
-              "Every service of plugin.toml running ${IMAGE} runs the image ${TAG} published, at ${DIGEST}." \
-              "Spec: OPS-R90, OPS-R91" \
-              "Signed-off-by: lemonfiber release <info@nightworks.io>"
-            echo "${delimiter}"
-          } >> "$GITHUB_OUTPUT"
-          echo "the manifest's image is proposed at ${TAG}, ${DIGEST}."
-
-  pull-request:
-    needs: pin
-    if: needs.pin.outputs.head != ''
     permissions:
       contents: read
-    uses: ./.github/workflows/rolling-pull-request.yml
+    uses: ./.github/workflows/manifest-pin.yml
     with:
-      branch: ${{ needs.pin.outputs.branch }}
-      head: ${{ needs.pin.outputs.head }}
-      title: ${{ needs.pin.outputs.title }}
-      body: ${{ needs.pin.outputs.body }}
+      image: ${{ needs.settle.outputs.image }}
+      tag: ${{ needs.settle.outputs.tag }}
+      digest: ${{ needs.publish.outputs.digest }}
+      directory: ${{ inputs.directory }}
     secrets:
       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}

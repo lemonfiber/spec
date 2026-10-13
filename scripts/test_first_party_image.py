@@ -1,20 +1,15 @@
-"""`first-party-image.yml`'s own steps: which event proves and which publishes, how the
-manifest's service is run under its posture, and what the pin writes."""
+"""`first-party-image.yml`'s own steps: which event proves and which publishes, and how the
+manifest's service is run under its posture."""
 
 from __future__ import annotations
 
-import base64
 import json
 import os
 import pathlib
-import shutil
 import subprocess
-import tempfile
-import textwrap
-import tomllib
 import unittest
 
-import yaml
+import workflow_steps
 
 WORKFLOW = pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/first-party-image.yml"
 IMAGE = "ghcr.io/lemonfiber/door"
@@ -23,27 +18,16 @@ GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "co
        "-c", "core.hooksPath=/dev/null")
 
 
+
 def step(job: str, named: str) -> str:
-    """The `run` of one named step of the workflow."""
-    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"][job]["steps"]
-    return next(one for one in steps if one.get("name") == named)["run"]
+    return workflow_steps.step(WORKFLOW, job, named)
 
 
 def embedded(job: str, named: str) -> str:
-    """The Python a step runs from its heredoc."""
-    run = step(job, named)
-    return textwrap.dedent(run.split("<<'PY'\n", 1)[1].split("\nPY", 1)[0])
+    return workflow_steps.embedded(WORKFLOW, job, named)
 
 
-class Scratch(unittest.TestCase):
-    """A directory of its own for each test."""
-
-    def setUp(self):
-        self.root = pathlib.Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, self.root, True)
-
-
-class Settle(Scratch):
+class Settle(workflow_steps.Scratch):
     """A pull request proves; main publishes `main-<12 hex>`; a train tag publishes itself."""
 
     def setUp(self):
@@ -60,8 +44,7 @@ class Settle(Scratch):
         output = self.root / ".output"
         env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(output), "GITHUB_EVENT_NAME": event,
                "GITHUB_SHA": self.sha, "REGISTRY": "ghcr.io/lemonfiber", "IMAGE_NAME": image,
-               "DIRECTORY": ".", "KIND": kind, "REF": ref, "NAME": name,
-               "TAG_PIN_BRANCH": "release/image-pin", "COMMIT_PIN_BRANCH": "release/image-commit-pin"}
+               "DIRECTORY": ".", "KIND": kind, "REF": ref, "NAME": name}
         done = subprocess.run(["bash", "-c", step("settle", "A pull request proves; main and a train tag publish")],
                               cwd=self.root, env=env, capture_output=True, text=True)
         said = dict(line.split("=", 1) for line in output.read_text().splitlines()) if output.exists() else {}
@@ -69,20 +52,19 @@ class Settle(Scratch):
 
     def test_a_pull_request_proves_and_publishes_nothing(self):
         code, said = self.settled("pull_request", "branch", "refs/pull/1/merge", "1/merge")
-        self.assertEqual((code, said["mode"], said["tag"], said["pin"]), (0, "prove", "", ""))
+        self.assertEqual((code, said["mode"], said["tag"]), (0, "prove", ""))
 
     def test_main_publishes_its_commit(self):
         code, said = self.settled("push", "branch", "refs/heads/main", "main")
         self.assertEqual((code, said["mode"], said["tag"], said["image"]),
                          (0, "publish", f"main-{self.sha[:12]}", IMAGE))
-        self.assertEqual(said["pin"], "release/image-commit-pin")
 
     def test_no_other_branch_publishes(self):
         self.assertNotEqual(self.settled("push", "branch", "refs/heads/feature", "feature")[0], 0)
 
     def test_a_train_tag_publishes_at_the_version_the_manifest_declares(self):
         code, said = self.settled("push", "tag", "refs/tags/v0.18.0", "v0.18.0")
-        self.assertEqual((code, said["tag"], said["pin"]), (0, "v0.18.0", "release/image-pin"))
+        self.assertEqual((code, said["tag"]), (0, "v0.18.0"))
         self.assertNotEqual(self.settled("push", "tag", "refs/tags/v0.19.0", "v0.19.0")[0], 0)
         self.assertNotEqual(self.settled("push", "tag", "refs/tags/v0.18.0-rc1", "v0.18.0-rc1")[0], 0)
 
@@ -97,7 +79,7 @@ class Settle(Scratch):
                 self.assertNotEqual(self.settled("pull_request", "branch", "r", "n", image)[0], 0)
 
 
-class Plan(Scratch):
+class Plan(workflow_steps.Scratch):
     """The service running the image is run as the manifest says."""
 
     def planned(self, manifest: str, files: dict[str, str] | None = None, prepare: str = "") -> tuple[int, dict, str]:
@@ -205,74 +187,6 @@ C = { url_of = "media.serve" }
         (self.root / "config/door").mkdir(parents=True)
         os.symlink("/etc/passwd", self.root / "config/door/Caddyfile")
         self.assertNotEqual(self.planned(self.SERVICE)[0], 0)
-
-
-class Pin(Scratch):
-    """The pin sets the digest and tag of every service running the image, and nothing else."""
-
-    MANIFEST = f'''schema_version = 1
-
-[[service]]
-id     = "door"
-image  = "{IMAGE}"
-digest = "sha256:{"0" * 64}"
-tag    = "main-000000000000"
-
-[[service]]
-id     = "other"
-image  = "caddy"
-digest = "sha256:{"1" * 64}"
-tag    = "2.11.6"
-'''
-
-    def pinned(self, manifest: str) -> tuple[int, str, str]:
-        held = {"content": base64.b64encode(manifest.encode()).decode(), "sha": "x"}
-        (self.root / "held.json").write_text(json.dumps(held))
-        done = subprocess.run(["python3", "-I", "-c", embedded("pin", "Put what this tag or commit published on its rolling branch"),
-                               IMAGE, DIGEST, "v0.18.0"], cwd=self.root, capture_output=True, text=True)
-        written = (self.root / "plugin.toml").read_text() if (self.root / "plugin.toml").exists() else ""
-        pinned = (self.root / "pinned").read_text() if (self.root / "pinned").exists() else None
-        return done.returncode, pinned, written
-
-    def test_the_running_service_moves_and_the_other_does_not(self):
-        code, pinned, written = self.pinned(self.MANIFEST)
-        self.assertEqual((code, pinned), (0, "yes"))
-        services = {one["id"]: one for one in tomllib.loads(written)["service"]}
-        self.assertEqual((services["door"]["digest"], services["door"]["tag"]), (DIGEST, "0.18.0"))
-        self.assertEqual(services["other"]["tag"], "2.11.6")
-        self.assertIn('digest = "' + DIGEST, written)
-
-    def said(self, manifest: str) -> tuple[int, str]:
-        held = {"content": base64.b64encode(manifest.encode()).decode(), "sha": "x"}
-        (self.root / "held.json").write_text(json.dumps(held))
-        done = subprocess.run(["python3", "-I", "-c", embedded("pin", "Put what this tag or commit published on its rolling branch"),
-                               IMAGE, DIGEST, "v0.18.0"], cwd=self.root, capture_output=True, text=True)
-        return done.returncode, done.stdout + done.stderr
-
-    def test_a_running_service_without_a_tag_to_move_is_refused(self):
-        code, said = self.said(self.MANIFEST.replace('tag    = "main-000000000000"\n', ""))
-        self.assertNotEqual(code, 0)
-        self.assertIn("does not declare `tag` once", said)
-        self.assertFalse((self.root / "plugin.toml").exists())
-
-    def test_a_pin_the_manifest_does_not_read_back_is_refused(self):
-        hidden = self.MANIFEST.replace(
-            'digest = "sha256:' + "0" * 64 + '"',
-            'why = """\ndigest = "not a field"\n"""\n"digest" = "sha256:' + "0" * 64 + '"', 1)
-        code, said = self.said(hidden)
-        self.assertNotEqual(code, 0)
-        self.assertIn("does not run ghcr.io/lemonfiber/door at", said)
-        self.assertFalse((self.root / "plugin.toml").exists())
-
-    def test_a_running_service_written_so_the_pin_cannot_move_it_is_refused(self):
-        quoted = self.MANIFEST.replace(f'image  = "{IMAGE}"', f"image  = '{IMAGE}'")
-        code, _, written = self.pinned(quoted)
-        self.assertNotEqual(code, 0)
-        self.assertEqual(written, "")
-
-    def test_a_manifest_naming_no_service_of_the_image_pins_nothing(self):
-        code, pinned, written = self.pinned(self.MANIFEST.replace(IMAGE, "elsewhere"))
-        self.assertEqual((code, pinned, written), (0, "", ""))
 
 
 if __name__ == "__main__":
