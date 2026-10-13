@@ -6,13 +6,11 @@ import base64
 import json
 import os
 import pathlib
-import shutil
 import subprocess
-import tempfile
-import textwrap
 import tomllib
 import unittest
 
+import workflow_steps
 import yaml
 
 WORKFLOW = pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/manifest-pin.yml"
@@ -20,27 +18,16 @@ IMAGE = "ghcr.io/lemonfiber/door"
 DIGEST = "sha256:" + "a" * 64
 
 
+
 def step(job: str, named: str) -> str:
-    """The `run` of one named step of the workflow."""
-    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"][job]["steps"]
-    return next(one for one in steps if one.get("name") == named)["run"]
+    return workflow_steps.step(WORKFLOW, job, named)
 
 
 def embedded(job: str, named: str) -> str:
-    """The Python a step runs from its heredoc."""
-    run = step(job, named)
-    return textwrap.dedent(run.split("<<'PY'\n", 1)[1].split("\nPY", 1)[0])
+    return workflow_steps.embedded(WORKFLOW, job, named)
 
 
-class Scratch(unittest.TestCase):
-    """A directory of its own for each test."""
-
-    def setUp(self):
-        self.root = pathlib.Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, self.root, True)
-
-
-class Branch(Scratch):
+class Branch(workflow_steps.Scratch):
     """A train tag's image goes on one rolling branch, and main's on the other."""
 
     def branch(self, kind: str) -> str:
@@ -58,7 +45,7 @@ class Branch(Scratch):
         self.assertEqual(self.branch("branch"), "branch=release/image-commit-pin")
 
 
-class Pin(Scratch):
+class Pin(workflow_steps.Scratch):
     """The pin sets the digest and tag of every service running the image, and nothing else."""
 
     MANIFEST = f'''schema_version = 1

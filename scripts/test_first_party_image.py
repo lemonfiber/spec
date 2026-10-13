@@ -6,13 +6,10 @@ from __future__ import annotations
 import json
 import os
 import pathlib
-import shutil
 import subprocess
-import tempfile
-import textwrap
 import unittest
 
-import yaml
+import workflow_steps
 
 WORKFLOW = pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/first-party-image.yml"
 IMAGE = "ghcr.io/lemonfiber/door"
@@ -21,27 +18,16 @@ GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "co
        "-c", "core.hooksPath=/dev/null")
 
 
+
 def step(job: str, named: str) -> str:
-    """The `run` of one named step of the workflow."""
-    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"][job]["steps"]
-    return next(one for one in steps if one.get("name") == named)["run"]
+    return workflow_steps.step(WORKFLOW, job, named)
 
 
 def embedded(job: str, named: str) -> str:
-    """The Python a step runs from its heredoc."""
-    run = step(job, named)
-    return textwrap.dedent(run.split("<<'PY'\n", 1)[1].split("\nPY", 1)[0])
+    return workflow_steps.embedded(WORKFLOW, job, named)
 
 
-class Scratch(unittest.TestCase):
-    """A directory of its own for each test."""
-
-    def setUp(self):
-        self.root = pathlib.Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, self.root, True)
-
-
-class Settle(Scratch):
+class Settle(workflow_steps.Scratch):
     """A pull request proves; main publishes `main-<12 hex>`; a train tag publishes itself."""
 
     def setUp(self):
@@ -93,7 +79,7 @@ class Settle(Scratch):
                 self.assertNotEqual(self.settled("pull_request", "branch", "r", "n", image)[0], 0)
 
 
-class Plan(Scratch):
+class Plan(workflow_steps.Scratch):
     """The service running the image is run as the manifest says."""
 
     def planned(self, manifest: str, files: dict[str, str] | None = None, prepare: str = "") -> tuple[int, dict, str]:

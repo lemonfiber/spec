@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 import unittest
 
-import yaml
+import workflow_steps
 
 WORKFLOW = pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/rust-service-release.yml"
 GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "commit.gpgsign=false",
@@ -19,9 +19,7 @@ SETTLE = "The tag is one the train cuts, on main, at the version the crate and i
 
 
 def step(job: str, named: str) -> str:
-    """The `run` of one named step of the workflow."""
-    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"][job]["steps"]
-    return next(one for one in steps if one.get("name") == named)["run"]
+    return workflow_steps.step(WORKFLOW, job, named)
 
 
 class Settle(unittest.TestCase):
