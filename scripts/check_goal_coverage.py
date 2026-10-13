@@ -86,7 +86,7 @@ AWAITING_A_VERSION = {
     ),
     "N18": (
         "N18 requires N1, whose app side 1.0.0 completes, and B1, whose last goal 0.18.0 locks",
-        [f"N18-R{n}" for n in range(1, 11)],
+        [f"N18-R{n}" for n in range(1, 12)],
     ),
     "N4": (
         "N4 requires N1, whose app side 1.0.0 completes, and G3, locked by 0.10.0 at the latest, released",
@@ -115,7 +115,7 @@ AWAITING_A_VERSION = {
     # N13-R8 is withdrawn, and a withdrawn row is never a goal.
     "N13": (
         "N13 requires N1, whose app side 1.0.0 completes, and A6, locked by 0.13.0, released",
-        [f"N13-R{n}" for n in range(1, 21) if n != 8],
+        [f"N13-R{n}" for n in range(1, 22) if n != 8],
     ),
     "N14": (
         "N14 requires N1, whose app side 1.0.0 completes, and E2, locked by 0.14.0, released",
@@ -153,6 +153,16 @@ AWAITING_A_VERSION = {
         "N27 requires N1, whose app side 1.0.0 completes, and N4, whose app side no version schedules; what they require is locked by 0.11.0 at the latest, released",
         [f"N27-R{n}" for n in range(1, 26)],
     ),
+    # N2-R29 and N2-R30 are N1-R2's parity for `household-allow` and `accept`.
+    "N2": (
+        "N2 requires N1, whose app side 1.0.0 completes; what N2-R29 and N2-R30 rest on is D7, locked by 0.12.0, released, and C2 and G7, locked by 0.6.0 and 0.18.0",
+        ["N2-R29", "N2-R30"],
+    ),
+    # N25-R15 is N1-R2's parity for `plugin-prove`; N25-R1 to N25-R14 are locked by 0.18.0.
+    "N25": (
+        "N25 requires N1, whose app side 1.0.0 completes, and F6, locked by 0.16.0, released; the rest of N25 is locked by 0.18.0",
+        ["N25-R15"],
+    ),
     "N28": (
         "N28 requires N1, whose app side 1.0.0 completes, N2, whose app side no version schedules, and N27; what N1 and N2 require is locked by 0.11.0 at the latest, released",
         [f"N28-R{n}" for n in range(1, 15)],
@@ -167,7 +177,7 @@ AWAITING_A_VERSION = {
     ),
     "N7": (
         "N7 requires N1, whose app side 1.0.0 completes, and A5, locked by 0.13.0, released",
-        [f"N7-R{n}" for n in range(1, 19)],
+        [f"N7-R{n}" for n in range(1, 20)],
     ),
 }
 

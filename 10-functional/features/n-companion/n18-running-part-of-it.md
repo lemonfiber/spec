@@ -108,6 +108,7 @@ crossed.
 | **N18-R8** | The app MUST NOT start or stop a form on its own initiative, including on a schedule or a threshold (`N2`). |
 | **N18-R9** | Forms or profiles that could not be read MUST be told apart from none being active. |
 | **N18-R10** | Before a form is started, a service it holds that is already running MUST be shown as already running, and MUST NOT be shown as one the start would bring up (`B1-R21`). |
+| **N18-R11** | The app MUST offer making a chosen set of forms the active set, and before it is applied MUST show, labelled as a rehearsal (`N6-R1`), what would stop, what would start, and each service both sets hold as one that keeps running and is not restarted (`B1-R21`). It MUST NOT switch on its own initiative (`N18-R8`). |
 
 ## Notes
 
