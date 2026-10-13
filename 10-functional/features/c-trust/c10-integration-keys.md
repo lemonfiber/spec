@@ -177,6 +177,7 @@ and offer the real call after.
 | A key in the trusted environment alone | Registered, with its backing recorded as `tee` and shown in the listing. |
 | An attestation names an app the core does not trust | Refused with a code of its own, naming the app's identity and that the operator can add it as a setting. |
 | The operator removes an app identity they added | Every device key registered from that app is revoked, journaled and alerted. |
+| A phone's attestation chain carries a certificate Google lists as revoked or suspended | Refused with a code of its own, against the snapshot of Google's list this build carries; nothing is fetched. |
 | A backup is restored | Every device key is revoked once the restore lands, journaled and alerted; each phone registers again, asking for the password once. |
 | A device key that proved mints is revoked | The keys it proved stay, each listed with the device key that proved it; the revoke's alert names every active one. |
 | A device key is presented as a credential | It is none: a request carrying only a device key's signature, with no operator session, is refused as a request with no credential is. |
@@ -224,6 +225,7 @@ and offer the real call after.
 | **C10-R31** | The core MUST verify an attestation against the platform roots shipped in its build and MUST NOT send any request to verify one, a revocation list included. |
 | **C10-R32** | Restoring a configuration backup MUST revoke every device key once the restore lands, each journaled as not reversible and alerted as `C10-R26` says. |
 | **C10-R33** | A key minted with a device key's signature MUST record that device key, and the listing MUST show it beside the key (`ARCH-R293`). Revoking a device key MUST NOT revoke the keys it proved, and its alert MUST name each active key it proved. |
+| **C10-R34** | The core MUST refuse, with a code of its own whose words name no key material, an Android key attestation any certificate of which carries a serial number that the build's snapshot of Google's attestation status list lists as revoked or suspended. Each build MUST embed that snapshot, taken at release time and recording where it was read from and when; the core MUST NOT fetch the list at run time (`C10-R31`), and MUST report when its snapshot was taken in the version it answers with (`ARCH-R294`, [releasing](../../../70-operations/releasing.md#the-attestation-status-list)). |
 
 ## Related
 

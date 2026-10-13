@@ -236,6 +236,9 @@ Decisions about a repository outside this organisation, such as
 | Restoring a configuration backup revokes every device key once it lands, journaled and alerted; each phone registers again with the password once | [C10-R32](../10-functional/features/c-trust/c10-integration-keys.md) |
 | A key minted with a device key's signature records that device key as `proved_by`, shown in the keys listing; revoking the device key leaves those keys standing and its alert names them | [C10-R33](../10-functional/features/c-trust/c10-integration-keys.md), [ARCH-R293](../20-architecture/contracts/web-api.md) |
 | `C10-R32`, `C10-R33` and `ARCH-R293` ship in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
+| The core checks an Android attestation chain against a snapshot of Google's attestation status list embedded in each build and refreshed at release time, refusing a revoked or suspended certificate with a code of its own; nothing is fetched, and the version reports the snapshot's date | [C10-R34](../10-functional/features/c-trust/c10-integration-keys.md), [ARCH-R294](../20-architecture/contracts/web-api.md), [releasing](../70-operations/releasing.md#the-attestation-status-list) |
+| Face or fingerprint before a device key signs stays the companion's duty; the core does not read it from an attestation | [N29-R3](../10-functional/features/n-companion/n29-a-key-for-an-app.md) |
+| `C10-R34` and `ARCH-R294` ship in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
 ## Requirements
 

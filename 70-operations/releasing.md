@@ -163,6 +163,24 @@ A store build the shipped list does not name cannot register a device key on any
 that has not added it by hand, so this step is part of the release rather than a later
 fix.
 
+## The attestation status list
+
+The core refuses an Android device key whose attestation chain Google lists as revoked or
+suspended, against a snapshot of Google's attestation status list the build carries, since
+it fetches nothing at run time
+([C10-R34](../10-functional/features/c-trust/c10-integration-keys.md)). Each core release
+takes a fresh snapshot:
+
+1. **Refresh the snapshot** with the core repository's refresh script, which reads the list
+   from Google, checks its shape, and writes it into the tree with where it was read from
+   and when.
+2. **Land it in a pull request of its own** before the release is tagged, so the snapshot a
+   release carries is one a reviewer saw.
+3. **Read its date back** from `lemonfiber version` on the release build.
+
+A snapshot only ages: a build released months ago still refuses what was revoked before it
+was cut and nothing since, which is why the version says when it was taken.
+
 ## What a release must not do
 
 | Never | Because |
