@@ -87,6 +87,12 @@ All three run the **same commands an author runs locally** — the plain subcomm
 against a different build than the operator runs would be vouching for something it had
 not tested.
 
+Before a release reads what the bundled plugins declare, the repository names a full
+commit of the core's `main` in the release's place, and its checks run from that commit,
+built from source, as a first-party plugin's own checks do (`OPS-R89`). The bundle the
+release embeds is checked by the build that release tags, which holds the commit. Once
+that release is published, the repository names it instead of the commit.
+
 ## The review, and its honest limit
 
 A human reads the diff and merges, which is possible precisely because a plugin is data.
@@ -177,7 +183,7 @@ project has said it does not build.
 |----|-------------|
 | **REPO-R54** | *Withdrawn — carried to [REPO-R60](lemonfiber-plugins.md) when the catalogue became a register of origins rather than a copy of what it registers. The number is not reused.* |
 | **REPO-R55** | *Withdrawn — carried to [REPO-R61](lemonfiber-plugins.md) for the same reason: the checks are made against a fetched revision rather than against a copy held here. The number is not reused.* |
-| **REPO-R56** | Those checks MUST run the same commands an author runs locally, from a `lemonfiber` release pinned and named in the repository. |
+| **REPO-R56** | Those checks MUST run the same commands an author runs locally, from a `lemonfiber` release pinned and named in the repository, or, before a release reads what the bundled plugins declare, from a full commit of the core's `main` named in its place and built from source; once that release is published, the repository MUST name it instead. |
 | **REPO-R57** | A catalogue release MUST be signed, and what the signature covers MUST be exactly what was reviewed. |
 | **REPO-R58** | The catalogue MUST NOT publish anything an installed plugin resolves at run time. |
 | **REPO-R59** | The catalogue MUST hold no service, no database and no state beyond the repository itself. |
