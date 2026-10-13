@@ -353,9 +353,11 @@ any it could not reach. `triage` labels and assigns a new issue and tells the
 maintainers. `upstream-drift` holds what a repository takes from another one —
 through `composer.lock`, through `package.json`, or as a committed copy — against
 what that one's `main` ships (**Q-R68**, **Q-R70**). `rust-service-release`
-publishes a service image from a train tag and tells the stack to pin it, and,
-where the service declares itself in a `plugin.toml`, moves that manifest's pin
-through `manifest-pin` as a first-party plugin's image does, and
+publishes a service image from a train tag and tells the stack to pin it, publishes
+one from every commit on `main` as `main-<commit>` and tells nobody, and, where the
+service declares itself in a `plugin.toml`, moves that manifest's pin through
+`manifest-pin` for both as a first-party plugin's image does (**OPS-R90**,
+**OPS-R91**), and
 `rust-coverage` holds a crate to 100% line coverage and gates it on zero
 SonarCloud issues. The sites have theirs: `site-pins` holds the revisions a site
 renders to the sources its pages read, `site-links` fetches every address a
