@@ -38,7 +38,7 @@ contract/capabilities/index.json
 
 - The OpenAPI document is normative for every path, request and answer.
 - `conformance.json` lists the cases an adapter's recordings and its live pass must
-  answer.
+  answer, and what each one asks.
 - `index.json` lists every capability, the majors the core speaks, and each document's
   digest.
 
@@ -212,6 +212,32 @@ are ([ARCH-R120](plugin-manifest.md) onward).
 - `lemonfiber plugin conform` judges the recordings without running anything.
 - Install repeats a live pass of the cases marked `live` against the running adapter.
 
+### What a case asks
+
+Each case in `conformance.json` carries `asked`: the body it posts, a value of its
+operation's request type that the core declares beside the operation, so every adapter
+speaking the contract is recorded answering the same questions. A case asked without
+the key posts `{}`. `lemonfiber plugin record` asks the cases after the first run, the
+contracts in the order the adapter's `speaks` lists them and each contract's cases in
+the order its `conformance.json` lists them.
+
+A string in `asked` that is exactly one of these placeholders is filled before the case
+is posted; any other string is posted as written.
+
+| Placeholder | Filled with |
+|---|---|
+| `{minted}` | A credential minted for this case alone from the core's random source |
+| `{upstream:<field>}` | `<field>` of the `upstream.json` the adapter holds, as the first run wrote it |
+| `{minted:upstream:<field>}` | A credential minted for this case, written to `upstream.json` as `<field>` once the adapter answers the case with a success, as the core writes a credential the adapter replaced |
+| `{<capability>@<major>/<case>#<pointer>}` | The string at the JSON pointer `<pointer>` in the answer to that case, asked earlier in the same run |
+
+Every value a placeholder fills is a credential or an identifier the run made, so it is
+scrubbed from every recording and from everything the run prints as `ARCH-R297` scrubs
+the credentials a run makes. A placeholder naming a case not yet asked, a pointer the
+answer does not hold, a value there that is not a string or a field `upstream.json` does
+not hold fails the service at that case, naming the case and the placeholder
+([ARCH-R296](plugin-manifest.md)).
+
 A plugin whose recordings or live pass fail a case does not fill the capability, and
 the refusal names the case. The first-party adapters are judged by the same runner
 against the same cases. The stream guard's recorded byte cases are `stream.guard`'s
@@ -228,7 +254,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 
 | ID | Requirement |
 |----|-------------|
-| **ARCH-R199** | The core MUST generate an OpenAPI document and a conformance list per capability and major from the port types it calls, and a difference between the types and the published documents MUST fail the build. |
+| **ARCH-R199** | The core MUST generate an OpenAPI document and a conformance list per capability and major from the port types it calls, the list naming for each case the `asked` it posts, and a difference between the types and the published documents MUST fail the build. |
 | **ARCH-R200** | A manifest's `speaks` MUST name only capabilities and majors listed in `contract/capabilities/index.json`, and an unlisted one MUST be refused by name. |
 | **ARCH-R201** | Every operation MUST be at `/lemonfiber/<capability>/v<major>/<operation>` on the adapter's `listens` port, and every request MUST carry the plugin's key as a bearer token. |
 | **ARCH-R202** | The core MUST mint each plugin's key from its own random source, write it to the adapter's configuration directory before the adapter starts, and use it for no other plugin. |
