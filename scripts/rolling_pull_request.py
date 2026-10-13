@@ -55,6 +55,7 @@ import json
 import re
 import subprocess
 import sys
+import time
 import urllib.parse
 from collections.abc import Callable
 
@@ -118,6 +119,27 @@ def graphql(api: Api, query: str, variables: dict) -> None:
         raise subprocess.CalledProcessError(1, "gh api graphql", stderr=json.dumps(errors))
 
 
+#: How many times a pull request whose head still names the branch's previous commit
+#: is read again, and the seconds between reads. The forge moves a pull request's head
+#: a few seconds after its branch, and the branch is already known to be at the commit.
+CATCH_UP_READS, CATCH_UP_SECONDS = 5, 3
+
+
+def pause(seconds: float) -> None:
+    """Wait, between two reads of a pull request."""
+    time.sleep(seconds)
+
+
+def caught_up(repo: str, pull: dict, head: str, api: Api) -> dict:
+    """The pull request read again until its head is `head`, or as last read once the reads run out."""
+    for _ in range(CATCH_UP_READS):
+        if pull["head"]["sha"] == head:
+            break
+        pause(CATCH_UP_SECONDS)
+        pull = api("GET", f"repos/{repo}/pulls/{pull['number']}", None)
+    return pull
+
+
 def wrong_with(pull: dict, author: str, head: str) -> str | None:
     """Why a pull request is not the bump's own at the given commit, or None."""
     number = pull["number"]
@@ -169,7 +191,7 @@ def edited_or_opened(repo: str, branch: str, head: str, author: str, title: str,
         raise Refused(f"{len(found)} pull requests are open on {branch}: "
                       f"{', '.join('#' + str(p['number']) for p in found)}; nothing was edited")
     if found:
-        pull = found[0]
+        pull = caught_up(repo, found[0], head, api)
         wrong = wrong_with(pull, author, head)
         if wrong:
             raise Refused(f"{wrong}; nothing was edited")

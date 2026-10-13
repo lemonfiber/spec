@@ -122,7 +122,7 @@ class TheRefusal(unittest.TestCase):
 
 
 class TheSurvey(unittest.TestCase):
-    def survey(self, required, observed, only=None, widened=None, targeted=None):
+    def survey(self, required, observed, only=None, widened=None, targeted=None, manual=()):
         """The verdict, where each repository's sampled pull requests produced `observed`,
         and the whole listed window produced `widened` (the same, where not given)."""
         self.asked = []
@@ -138,7 +138,8 @@ class TheSurvey(unittest.TestCase):
              mock.patch.object(check_required, "gates_landed", return_value=None), \
              mock.patch.object(check_required, "observed_in", side_effect=seen), \
              mock.patch.object(check_required, "targeted_in",
-                               side_effect=lambda o, n: (targeted or {}).get(n, set())):
+                               side_effect=lambda o, n: (targeted or {}).get(n, set())), \
+             mock.patch.object(check_required, "merges_itself", side_effect=lambda o, n: n not in manual):
             code = check_required.look("lemonfiber", only, out)
         return code, out.getvalue()
 
@@ -214,6 +215,21 @@ class TheSurvey(unittest.TestCase):
         self.assertEqual(code, 0, said)
         self.assertEqual(self.asked, [("brand", check_required.SAMPLED)])
 
+    def test_a_repository_that_does_not_allow_auto_merge_is_refused(self):
+        code, said = self.survey(
+            {"brand": {"a"}, "spec": {"a"}},
+            {"brand": {"a", "labeler / label", "mutation (a)"}, "spec": {"a"}},
+            manual=("brand",),
+        )
+        self.assertEqual(code, 1, said)
+        self.assertIn("lemonfiber/brand does not allow auto-merge", said)
+        self.assertNotIn("lemonfiber/spec does not allow", said)
+
+    def test_one_repository_asked_alone_is_held_to_auto_merge_too(self):
+        code, said = self.survey({"brand": {"a"}}, {"brand": {"a"}}, only="lemonfiber/brand", manual=("brand",))
+        self.assertEqual(code, 1, said)
+        self.assertIn("does not allow auto-merge", said)
+
     def test_one_repository_can_be_asked_about_on_its_own(self):
         code, said = self.survey(
             {"brand": {"a"}},
@@ -287,6 +303,19 @@ class TheSilences(unittest.TestCase):
              mock.patch.object(check_required, "required_in", side_effect=check_required.Unanswerable("protection unreadable")):
             code = check_required.main(["--owner", "lemonfiber"])
         self.assertEqual(code, 1)
+
+    def test_the_auto_merge_setting_is_read_as_the_forge_answers(self):
+        for answer, allowed in (("true\n", True), ("false\n", False)):
+            with self.subTest(answer), mock.patch.object(check_required, "_run", return_value=answer) as ran:
+                self.assertIs(check_required.merges_itself("lemonfiber", "brand"), allowed)
+                self.assertEqual(ran.call_args[0][0], ["gh", "api", "repos/lemonfiber/brand", "--jq", ".allow_auto_merge"])
+
+    def test_an_auto_merge_setting_the_token_cannot_see_refuses(self):
+        for answer in ("null\n", ""):
+            with self.subTest(answer), mock.patch.object(check_required, "_run", return_value=answer), \
+                    self.assertRaises(check_required.Unanswerable) as raised:
+                check_required.merges_itself("lemonfiber", "brand")
+            self.assertIn("Administration: read", str(raised.exception))
 
     def test_the_readers_parse_what_the_forge_answers(self):
         with mock.patch.object(check_required, "_run", return_value="b\na\n"):
@@ -370,7 +399,9 @@ class WhatIsSampled(unittest.TestCase):
              mock.patch.object(check_required, "required_in", return_value={"gates / gates"}), \
              mock.patch.object(check_required, "gates_landed", return_value="2026-10-09T08:00:00Z"), \
              mock.patch.object(check_required, "observed_in",
-                               side_effect=lambda o, n, since, sampled=None: seen.setdefault(n, since) and {"gates / gates"}):
+                               side_effect=lambda o, n, since, sampled=None: seen.setdefault(n, since) and {"gates / gates"}), \
+             mock.patch.object(check_required, "targeted_in", return_value=set()), \
+             mock.patch.object(check_required, "merges_itself", return_value=True):
             check_required.look("lemonfiber", None, io.StringIO())
         self.assertEqual(seen, {"brand": "2026-10-09T08:00:00Z"})
 
