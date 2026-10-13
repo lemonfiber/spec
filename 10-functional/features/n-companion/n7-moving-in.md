@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P3
 labels: [mobile, storage, wiring, ux]
 requires: [N1, A5]
@@ -203,6 +203,7 @@ operator will search for.
 | **N7-R16** | Where a connection is kept because the operator changed it, the app MUST say it is kept; where the operator's value and lemonfiber's both moved, the app MUST show what the service holds beside what lemonfiber would write. The app MUST NOT offer to overwrite the operator's value (`N19-R4`). |
 | **N7-R17** | A write a service rejected MUST be shown with the service's own words, and MUST NOT be paraphrased (`D1-R11`). |
 | **N7-R18** | A replacement MUST show what it would stop before it is agreed to, and afterwards what stopped and what is still running. It MUST NOT be presented as done while anything it replaces is still running, whatever its stance says, and its agreement MUST name what it would stop and MUST NOT be carried forward from another screen or another operation (`N13-R7`). |
+| **N7-R19** | The app MUST offer adopting the operator's own edits as the stack's expected state, and before it is applied MUST show, labelled as a rehearsal (`N6-R1`), each value that would be kept as theirs from then on and each connection it would wire. A value adopted MUST afterwards be shown as the operator's, and MUST NOT be shown as drift. |
 
 ## Notes
 

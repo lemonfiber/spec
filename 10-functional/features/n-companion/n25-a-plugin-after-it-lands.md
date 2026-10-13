@@ -160,6 +160,7 @@ every appearance.
 | **N25-R12** | The app MUST list, on each installed plugin, every setting its services read, with the services that read it, its default and the operator's value where one is recorded, and MUST offer changing it and putting it back to its default, each rehearsed with the services it restarts and agreed to by the offer that rehearsal answered (`ARCH-R254`, `ARCH-R255`). |
 | **N25-R13** | The app MUST list each secret a plugin's services read with whether a value is held and where it came from, MUST NOT show or offer to change a secret's value, and MUST say a secret is changed at the stack's terminal (`ARCH-R256`). |
 | **N25-R14** | A plugin's settings and secrets MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown. |
+| **N25-R15** | Where the stack holds answers a plugin gave outside its contract, the app MUST offer proving the plugin again, and before asking MUST show what the proof would ask and which capability a pass would clear. The yes MUST carry back the offer the stack named (`N2-R27`). A proof that fails MUST leave that capability shown as unfilled with the stack's reason, and MUST NOT be presented as passed (`N25-R2`). |
 
 ## Notes
 

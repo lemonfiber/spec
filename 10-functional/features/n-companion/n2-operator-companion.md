@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P1
 labels: [mobile, ux, verification]
 requires: [N1, C1, C3, G7]
@@ -234,6 +234,8 @@ and a note beside it says a preview cannot ask.
 | **N2-R26** | The member's application opened as a preview (`N2-R25`) MUST NOT send any request, allowance spend or other change to the stack. A control that would do so on a member's own session MUST be drawn and MUST NOT be usable, with a note saying a preview cannot do it. |
 | **N2-R27** | A confirmed update and a confirmed restart MUST carry back the offer the stack answered with when the operator was shown what each would do (`ARCH-R164`). Where the stack refuses the agreement because that offer has moved, the app MUST NOT report it as a failure, MUST read again what the action would do, and MUST offer that for a fresh agreement, as for a repair (`N2-R6`, `ARCH-R142`). |
 | **N2-R28** | The operator MUST be able to see what the household is playing now. It MUST list every session the media server reports. Each session MUST name the member, the title or the series, season and episode, the device, and whether it is paused. The list MUST be kept current from the stack's `playing` event without the operator asking again. It MUST say plainly when nothing is playing, and MUST say when it last heard where the stream has stopped. A member MUST NOT be shown this list or any other member's session. |
+| **N2-R29** | The operator MUST be able to choose, for the whole household and for each member, what happens to what they ask for and how many requests a period allows, in the stack's words (`D7-R1`, `D7-R2`). The change MUST be rehearsed first and the rehearsal MUST show what would change, labelled as a rehearsal (`N6-R1`); only a separate act MUST apply it. Naming only a limit MUST leave the policy as it is, and naming only a policy MUST leave the limit as it is. It MUST be offered only on the operator's side. |
+| **N2-R30** | Where the stack warns about a choice rather than a fault, the app MUST offer accepting it, and before it is accepted MUST show what the stack says the choice costs and MUST take an explicit confirmation distinct from viewing the finding (`N2-R5`). An accepted warning MUST stay readable as accepted and MUST NOT be presented as resolved (`G7-R14`). The app MUST NOT offer accepting a fault, or a warning the stack does not raise in that answer. It MUST be offered only on the operator's side. |
 
 ## Notes
 

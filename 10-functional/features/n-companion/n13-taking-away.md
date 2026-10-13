@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P3
 labels: [mobile, household, storage, ux]
 requires: [N1, A6]
@@ -228,6 +228,7 @@ apart.
 | **N13-R18** | What lemonfiber cannot remove MUST be listed with why it is not lemonfiber's and how to remove it by hand, and one the survey did not find MUST be told apart from one it found (`A6-R6`). After a removal that could not take everything, each thing left MUST be named with what the machine said about it and how to finish it by hand (`A6-R8`). |
 | **N13-R19** | Before a person is removed, the app MUST state what removing them does to their watch history and to their requests — that the requests are destroyed, not handed to anybody — as the stack states it (`D6-R9`), and MUST show every one of the removal's findings in the stack's words, before it is agreed to and after it runs. |
 | **N13-R20** | Before the tier that removes configuration is agreed to from the app, the app MUST say that it removes what admits this app to the stack, so that the app's session ends when it runs and the stack stops offering the surface the pairing reaches. After it has run, the app MUST say that reaching that machine again needs a stack set up and paired again, and why (`N1-R34`); it MUST NOT report the ended session as a refused credential (`N1-R46`), and MUST NOT discard the pairing unless the operator asks it to (`N1-R45`). |
+| **N13-R21** | The app MUST offer removing everything lemonfiber keeps on the machine as its own act, and before it is agreed to MUST show the stack's list of what would go, MUST say that the library, downloads and containers are not touched, and MUST say, as `N13-R20` does, that it removes what admits this app so the app's session ends when it runs. The yes MUST be sent only with that list shown. |
 
 ## Notes
 
