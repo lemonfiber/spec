@@ -399,7 +399,9 @@ class WhatIsSampled(unittest.TestCase):
              mock.patch.object(check_required, "required_in", return_value={"gates / gates"}), \
              mock.patch.object(check_required, "gates_landed", return_value="2026-10-09T08:00:00Z"), \
              mock.patch.object(check_required, "observed_in",
-                               side_effect=lambda o, n, since, sampled=None: seen.setdefault(n, since) and {"gates / gates"}):
+                               side_effect=lambda o, n, since, sampled=None: seen.setdefault(n, since) and {"gates / gates"}), \
+             mock.patch.object(check_required, "targeted_in", return_value=set()), \
+             mock.patch.object(check_required, "merges_itself", return_value=True):
             check_required.look("lemonfiber", None, io.StringIO())
         self.assertEqual(seen, {"brand": "2026-10-09T08:00:00Z"})
 
