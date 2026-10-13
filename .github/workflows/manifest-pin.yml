@@ -117,7 +117,7 @@ jobs:
           gh api "repos/${REPOSITORY}/contents/${manifest}?ref=${PIN_BRANCH}" > held.json
           python3 -I - "$IMAGE" "$DIGEST" "$TAG" <<'PY'
           import base64, json, os, re, sys, tomllib
-          image, digest, tag = sys.argv[1], sys.argv[2], sys.argv[3]
+          image, digest, tag = sys.argv[1], sys.argv[2], sys.argv[3].removeprefix("v")
           text = base64.b64decode(json.load(open("held.json"))["content"]).decode("utf-8")
           declared = [one.get("id") for one in tomllib.loads(text).get("service", []) if one.get("image") == image]
           blocks = re.split(r"(?m)^(?=\[\[?)", text)

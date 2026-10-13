@@ -89,7 +89,7 @@ tag    = "2.11.6"
         code, pinned, written = self.pinned(self.MANIFEST)
         self.assertEqual((code, pinned), (0, "yes"))
         services = {one["id"]: one for one in tomllib.loads(written)["service"]}
-        self.assertEqual((services["door"]["digest"], services["door"]["tag"]), (DIGEST, "v0.18.0"))
+        self.assertEqual((services["door"]["digest"], services["door"]["tag"]), (DIGEST, "0.18.0"))
         self.assertEqual(services["other"]["tag"], "2.11.6")
         self.assertIn('digest = "' + DIGEST, written)
 
