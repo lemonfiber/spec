@@ -207,6 +207,8 @@ are ([ARCH-R120](plugin-manifest.md) onward).
 - **Judged as the core reads.** A recorded answer is held to its operation exactly as a
   live one is: the same schema, status set and size bound.
 
+- `lemonfiber plugin record` takes them, asking the adapter at its pin in front of a fresh
+  container of the upstream at its pin ([ARCH-R296](plugin-manifest.md)).
 - `lemonfiber plugin conform` judges the recordings without running anything.
 - Install repeats a live pass of the cases marked `live` against the running adapter.
 

@@ -21,6 +21,9 @@
 - the core starts the proof's container through the engine API, as an exception to
   ADR-0008's split.
 
+**Amended** by [ADR-0049](0049-a-moved-pin-is-recorded-again-by-the-core.md): §3. The record mode records
+request proofs, claim probes, contributed checks and conformance cases as well as runs.
+
 **Amends** [ADR-0008](0008-hybrid-docker-access.md): a proof's container, which no
 Compose project holds, is created, started and removed through the engine API.
 

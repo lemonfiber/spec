@@ -76,11 +76,33 @@ part deletes that adapter (`ARCH-R266`).
   and each run proof run live: recorded again with `lemonfiber plugin record` and held
   to the recording committed beside the manifest ([ARCH-R285](../20-architecture/contracts/plugin-manifest.md)).
 - **The organisation's shared gates and hooks**, as `shared/adoption.toml` states them.
+- **Its upstream pins**, moved every week by `upstream-pins` where its manifest runs an
+  upstream's image (below).
 
 A repository that builds an image also builds and publishes it from every commit on its
 `main` and from each train tag (`OPS-R90`, `OPS-R91`). The guarded door's and the
 proxy's images are Caddy's, rebuilt with the file capability removed, so they start
 under `standard` (ADR-0045).
+
+## How its upstream pins move
+
+A plugin whose manifest runs an image not under `ghcr.io/lemonfiber/` calls `spec`'s
+reusable `upstream-pins` workflow on a weekly schedule
+([ADR-0049](../00-overview/decisions/0049-a-moved-pin-is-recorded-again-by-the-core.md)).
+lemonfiber's own images move when their repository publishes one (`OPS-R90`).
+
+| Step | What happens |
+|---|---|
+| Which tag | The newest the registry publishes in the pinned tag's spelling and major, so `v3.41.3` follows `v3.40.0`, a fixed build such as `4.0.21.3020-ls327` follows `4.0.20.3014-ls326`, and a major is never crossed (`E1-R10`) |
+| Which digest | The tag's multi-architecture index, publishing `linux/amd64` and `linux/arm64` (`E1-R1`); a digest that moved under the same tag is a rebuild, and is taken |
+| What is written | Each service running the image gets the new `digest` and `tag`, and no other line of `plugin.toml` changes, through the rewrite `manifest-pin` uses for lemonfiber's own images |
+| Its recordings | Taken again by `lemonfiber plugin record` at the lemonfiber `targets.toml` names, and `proofs.json` written from them (`ARCH-R285`) |
+| Who writes it | The image runs and lemonfiber is built in a job holding no secret; the job holding the release App's token works the move out again from the registry and commits only plain files: the manifest with exactly that move, `proofs.json`, and recordings the manifest names taken from that pin |
+| Its pull request | One rolling branch per image, `upstream-pin/<the first service running it>`, opened or edited through `rolling-pull-request` (`OPS-R87`) |
+| When it merges | Armed where no recording still names the image it replaces, and merged once the required checks pass on its commit; otherwise disarmed, naming each recording left behind |
+
+The callers and the media stack's own `pins` workflow never run together: the change
+that turns the callers on stops it, so one mover holds each upstream's pin.
 
 ## Releasing
 
@@ -98,6 +120,7 @@ and the pin moves by a reviewed pull request on the catalogue
 | **REPO-R95** | A first-party plugin's repository MUST hold `plugin.toml` at its root, its starting files under `config/<id>/`, the recordings its claims and proofs name under `recordings/<id>/`, `conformance/` where it speaks a contract, and `targets.toml`. |
 | **REPO-R96** | A first-party plugin's CI MUST validate its manifest against the schema the core it targets publishes, judge its claims and proofs against its recordings, resolve every image digest on both platforms, and run each image under the posture its manifest declares, recording each run proof again and refusing a recording the run does not reproduce. |
 | **REPO-R97** | A first-party plugin's repository that builds an image MUST be a stream the train tags; one that builds none MUST NOT be tagged, and the bundle MUST pin it by revision and tree digest alone. |
+| **REPO-R98** | A first-party plugin's repository whose manifest runs an image not under `ghcr.io/lemonfiber/` MUST call `spec`'s `upstream-pins` workflow on a weekly schedule, and that workflow MUST move each such image's pin to the newest tag its registry publishes in the pinned tag's spelling and major, resolved to the digest of a multi-architecture index publishing `linux/amd64` and `linux/arm64` (`E1-R1`), and to a digest that moved under the same tag, and MUST NOT cross a major (`E1-R10`); each image MUST move on a rolling branch of its own with every recording taken again by `lemonfiber plugin record` at the lemonfiber its `targets.toml` names and `proofs.json` written from them, opened or edited through `rolling-pull-request` (`OPS-R85`, `OPS-R87`); the image MUST run and lemonfiber MUST be built in a job holding no secret, and the job holding the release App's token MUST run nothing that job wrote, MUST work the move out again from the manifest on `main` and the registry, and MUST commit only plain files, read through no link: that manifest with exactly that move, `proofs.json`, and recordings the manifest names taken from exactly that pin; the pull request MUST be armed to merge only where no recording still names the image it replaces, decided by that job alone, and disarmed, naming each, where one does. |
 
 **Affected repos** (`GOV-R7`): every `plugin-<id>` repository listed above, `lemonfiber-decline` and `lemonfiber-request-gate`.
 
@@ -107,3 +130,4 @@ and the pin moves by a reviewed pull request on the catalogue
 - [bundle.md](../20-architecture/contracts/bundle.md) — how the bundle pins each of these
 - [lemonfiber-plugins](lemonfiber-plugins.md) — where the bundle lives, and the CI that holds each copy to its origin
 - [releasing](../70-operations/releasing.md) — `OPS-R86`, `OPS-R90`, `OPS-R91`
+- [ADR-0049](../00-overview/decisions/0049-a-moved-pin-is-recorded-again-by-the-core.md) — a moved pin is recorded again by the core

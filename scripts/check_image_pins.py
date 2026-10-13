@@ -34,10 +34,7 @@ import tomllib
 import manifest_repos
 import stack_manifest
 from manifest_repos import IMAGE_HOME
-from patterns import PRERELEASE_ID, PRERELEASE_SEPARATOR, VERSION
-
-#: The digest of a multi-architecture index, as a stack pin writes it (ADR-0023).
-DIGEST = re.compile(r"\Asha256:[0-9a-f]{64}\Z")
+from patterns import DIGEST, PRERELEASE_ID, PRERELEASE_SEPARATOR, VERSION
 
 #: What may be handed to docker as a reference: letters or digits first, so
 #: nothing beginning with a dash arrives as a flag. Kept beside the call it

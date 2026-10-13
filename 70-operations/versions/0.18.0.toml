@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 526 goals, seeded from the roadmap milestone this version serves;
+# 529 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -852,8 +852,19 @@ goals   = [
     "ARCH-R285",
     "ARCH-R286",
     "ARCH-R287",
+    "ARCH-R295",
+    "ARCH-R296",
+    "ARCH-R297",
 ]
 
+# `ARCH-R295` to `ARCH-R297` record every recording a manifest names again from its pin
+# (ADR-0049): `lemonfiber plugin record` asks one fresh container per service after the
+# first run its adapter performs, records an adapter's conformance cases in front of it,
+# scrubs every credential, and writes a service whole or not at all. `ARCH-R285` is
+# amended in place to name them. A first-party plugin's upstream pins cannot move once
+# the media stack is frozen without them. Added after staging by the maintainer's
+# decision of 2026-10-13 (OPS-R31).
+#
 # `ARCH-R283` to `ARCH-R287` prove a part with no network surface live (ADR-0048): a
 # `[[proof]]` may run its image's own program in a container of its own, with no network,
 # bounded and recorded by the same run, judged wherever a proof is and by the doctor on

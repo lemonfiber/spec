@@ -1,0 +1,302 @@
+# Reusable: one upstream image's pin moved in the calling repository's plugin.toml, its
+# recordings recorded again from the new image, and its rolling pull request opened or
+# edited (REPO-R98, OPS-R85, OPS-R87). `upstream-pins` calls this once for each image its
+# plan names.
+#
+# A moved digest leaves every recording that names the old one refused (ARCH-R121), so
+# the recordings move in the same change: `lemonfiber plugin record`, at the lemonfiber
+# the plugin's targets.toml names and built the way plugin-template's reader builds it,
+# records every recording the manifest names again from a fresh container of the new
+# image (ARCH-R285, ARCH-R295). The reader then writes `proofs.json` from them, as the
+# plugin's own check does.
+#
+# Two jobs, because building lemonfiber runs every dependency's build script and
+# recording runs the upstream's image, and neither belongs beside a token that can
+# write. `record` does all of it holding no secret and reading the repository only, and
+# hands on what it wrote as an artifact. `commit` holds the release App's token, runs
+# nothing from that artifact and trusts none of it, nor anything `record` says of itself.
+# `upstream_pins.py admit` works the move out again from main's manifest and the
+# registry, and refuses the artifact unless every entry is a plain file, the manifest is
+# main's with exactly that move and nothing else, and every other file is `proofs.json`
+# or a recording the manifest names, taken from exactly that pin. No file is read or
+# written through a link, and the plugin is checked out beside the job's own scratch
+# space rather than around it.
+#
+# A bump that leaves no recording naming the image it replaces is armed to merge at its
+# commit, and the required checks judge that commit as they judge any. One that left a
+# recording behind is committed all the same, so the pull request shows what moved and
+# what did not, and is disarmed, naming each such recording (OPS-R87).
+name: upstream-pin
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: "The upstream image whose pin moves, as the manifest names it."
+        type: string
+        required: true
+      directory:
+        description: "The plugin's root in the calling repository, holding plugin.toml."
+        type: string
+        required: false
+        default: "."
+    secrets:
+      RELEASE_APP_KEY:
+        description: "The release App's private key, which writes the commit and the pull request."
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  # The plugin is checked out beside this workflow's own scratch space, not around it,
+  # so nothing the repository holds can stand where a step writes.
+  PLUGIN: plugin
+  SCRATCH: .upstream-pin
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    # Building the lemonfiber a commit names takes most of it.
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    outputs:
+      moved: ${{ steps.move.outputs.moved }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: ${{ env.PLUGIN }}
+          persist-credentials: false
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Move the pin
+        id: move
+        env:
+          IMAGE: ${{ inputs.image }}
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          mkdir "$SCRATCH"
+          manifest="$PLUGIN/$DIRECTORY/plugin.toml"
+          cp -- "$manifest" "$SCRATCH/main.toml"
+          python3 .spec-tooling/scripts/upstream_pins.py apply --manifest "$manifest" \
+            --image "$IMAGE" > "$SCRATCH/move.json"
+          cat "$SCRATCH/move.json"
+          if git -C "$PLUGIN" diff --quiet; then
+            echo "::notice::${IMAGE} no longer moves; the registry answered differently since the plan."
+            echo "moved=no" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python3 .spec-tooling/scripts/upstream_pins.py artifact --manifest "$manifest" \
+            --image "$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "moved=yes" >> "$GITHUB_OUTPUT"
+
+      - name: Which reader the plugin check runs
+        id: reader
+        if: steps.move.outputs.moved == 'yes'
+        run: |
+          python3 .spec-tooling/scripts/upstream_pins.py reader \
+            --workflow .spec-tooling/.github/workflows/first-party-plugin.yml >> "$GITHUB_OUTPUT"
+      - name: The reader, from plugin-template
+        if: steps.move.outputs.moved == 'yes'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: ${{ steps.reader.outputs.repository }}
+          ref: ${{ steps.reader.outputs.revision }}
+          path: .first-party-reader
+          sparse-checkout: .github/reader
+          sparse-checkout-cone-mode: false
+      - name: The reader is this workflow's, and the plugin carries none
+        if: steps.move.outputs.moved == 'yes'
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          root="$PLUGIN/$DIRECTORY"
+          if [ -e "$root/.github/reader" ] || [ -L "$root/.github/reader" ]; then
+            echo "::error::.github/reader is in the plugin. A first-party plugin carries no Python of its own; the reader is this workflow's."
+            exit 1
+          fi
+          mkdir -p "$root/.github"
+          cp -R .first-party-reader/.github/reader "$root/.github/reader"
+
+      # What these two say of themselves decides nothing: the next job reads which
+      # recordings were taken from the files, and the plugin check judges them.
+      - name: Every recording, recorded again from the new image
+        if: steps.move.outputs.moved == 'yes'
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -uo pipefail
+          python3 - "$PLUGIN/$DIRECTORY/.github/reader" <<'PY'
+          import sys
+
+          sys.path.insert(0, sys.argv[1])
+          import reader
+
+          try:
+              done = reader.plugin("record")
+              print(done.stdout + done.stderr)
+              code = done.returncode
+          except (reader.Unasked, OSError) as why:
+              print(why)
+              code = 1
+          if code != 0:
+              print(f"::warning::lemonfiber plugin record exited {code}; the recordings it did not take are named on the pull request")
+          PY
+      - name: Every claim, proof and check, against the new recordings
+        if: steps.move.outputs.moved == 'yes'
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          python3 "$PLUGIN/$DIRECTORY/.github/reader/reader.py" proofs \
+            || echo "::warning::not every assertion holds on the new recordings; the plugin check on the pull request names which"
+      - name: What the next job may commit, staged
+        if: steps.move.outputs.moved == 'yes'
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          rm -rf "$PLUGIN/$DIRECTORY/.github/reader" "$PLUGIN/$DIRECTORY/.lemonfiber" .first-party-reader
+          python3 .spec-tooling/scripts/upstream_pins.py stage --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
+            --main "$SCRATCH/main.toml" --move "$SCRATCH/move.json" --out "$SCRATCH/bump"
+      - name: Hand it on
+        if: steps.move.outputs.moved == 'yes'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.move.outputs.name }}
+          path: ${{ env.SCRATCH }}/bump/
+          if-no-files-found: error
+          retention-days: 1
+
+  # The only job holding a token that can write. It runs no code it did not check out
+  # from spec, and reads the artifact and the repository only as plain files.
+  commit:
+    needs: record
+    if: needs.record.outputs.moved == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: read
+    concurrency:
+      # Two runs would each move the same branch under the other.
+      group: upstream-pin-${{ github.repository }}-${{ inputs.image }}
+      cancel-in-progress: false
+    outputs:
+      branch: ${{ steps.admit.outputs.branch }}
+      head: ${{ steps.commit.outputs.head }}
+      title: ${{ steps.message.outputs.title }}
+      body: ${{ steps.message.outputs.body }}
+      clean: ${{ steps.message.outputs.clean }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: ${{ env.PLUGIN }}
+          persist-credentials: false
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          persist-credentials: false
+      # The artifact's name is worked out here from main's manifest, not taken from the
+      # record job.
+      - name: A scratch directory of this job's own, and the artifact's name
+        id: artifact
+        env:
+          IMAGE: ${{ inputs.image }}
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          mkdir "$SCRATCH"
+          python3 .spec-tooling/scripts/upstream_pins.py artifact --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
+            --image "$IMAGE" >> "$GITHUB_OUTPUT"
+      - name: What the record job wrote, into a directory of its own
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: ${{ env.SCRATCH }}/bump
+      - name: Only the move, admitted
+        id: admit
+        env:
+          IMAGE: ${{ inputs.image }}
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          python3 .spec-tooling/scripts/upstream_pins.py admit --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
+            --image "$IMAGE" --bump "$SCRATCH/bump" --move-out "$SCRATCH/move.json" > "$SCRATCH/written"
+          # A recording new to the tree is marked so the commit below carries it.
+          while IFS= read -r path; do
+            git -C "$PLUGIN" add --intent-to-add -- "$DIRECTORY/$path"
+          done < "$SCRATCH/written"
+          git -C "$PLUGIN" status --short
+          python3 -I -c 'import json, sys; print("branch=" + json.load(open(sys.argv[1]))["branch"])' \
+            "$SCRATCH/move.json" >> "$GITHUB_OUTPUT"
+      # Whether it may merge is read here, from the recordings in the checkout, and the
+      # required checks then judge the committed head; nothing the record job said counts.
+      - name: The commit message and the pull request
+        id: message
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+          LOG: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          python3 .spec-tooling/scripts/upstream_pins.py message --move "$SCRATCH/move.json" \
+            --log "$LOG" --root "$PLUGIN/$DIRECTORY" > "$SCRATCH/message.txt"
+      - name: Which repository the token is for
+        id: here
+        run: echo "name=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+      # `main` takes signed commits only, and a commit GitHub makes for the App is
+      # signed. The token is this repository's alone and can write contents and nothing
+      # else; the pull request is opened in the next job with one of its own.
+      - name: Mint a token that can commit here
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ steps.here.outputs.name }}
+          permission-contents: write
+      - name: Put the change on the branch, signed
+        id: commit
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ steps.admit.outputs.branch }}
+        run: |
+          set -euo pipefail
+          head="$(python3 .spec-tooling/scripts/signed_pin_commit.py --repo "$PLUGIN" \
+            --slug "$REPO" --branch "$BRANCH" --message "$SCRATCH/message.txt")"
+          echo "head=${head}" >> "$GITHUB_OUTPUT"
+
+  # Opened, or the open one edited, only where it is this bump's own (OPS-R87): armed to
+  # merge at the commit above where the bump came out clean, disarmed where it did not.
+  pull-request:
+    needs: commit
+    if: needs.commit.outputs.head != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/rolling-pull-request.yml
+    with:
+      branch: ${{ needs.commit.outputs.branch }}
+      head: ${{ needs.commit.outputs.head }}
+      title: ${{ needs.commit.outputs.title }}
+      body: ${{ needs.commit.outputs.body }}
+      labels: dependencies
+      auto-merge: ${{ needs.commit.outputs.clean == 'yes' }}
+      disarm: ${{ needs.commit.outputs.clean != 'yes' }}
+    secrets:
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}

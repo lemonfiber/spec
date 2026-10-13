@@ -1,0 +1,129 @@
+# Reusable: move every upstream image a first-party plugin pins to the newest release of
+# its own major, one rolling pull request per image (REPO-R98).
+#
+# An upstream image is any a `[[service]]` of the calling repository's plugin.toml runs
+# that is not under ghcr.io/lemonfiber/; those move when their repository publishes one
+# (OPS-R90, OPS-R91). `scripts/upstream_pins.py` reads each one's registry: the newest tag
+# in the pinned tag's spelling and major, and the digest of the multi-architecture index
+# it names (E1-R1). A major is never crossed: that is the operator's decision (E1-R10). A
+# digest that moved under an unchanged tag is a rebuild of the same release, and is taken
+# the same way.
+#
+# Each image that moves is handed to `upstream-pin`, which moves it on a branch of its
+# own, records every recording again from the new image, and opens or edits that
+# branch's pull request. So a bump that breaks something holds back that image and
+# nothing else, and says which. An image whose registry could not be read is named, and
+# fails this run once every other image has been handed on.
+#
+# Called from a plugin repository's schedule:
+#
+#   on:
+#     schedule:
+#       - cron: "30 4 * * 1"
+#     workflow_dispatch:
+#   permissions:
+#     contents: read
+#   concurrency:
+#     group: upstream-pins
+#     cancel-in-progress: false
+#   jobs:
+#     pins:
+#       uses: lemonfiber/spec/.github/workflows/upstream-pins.yml@<sha> # v1.0.N
+#       secrets:
+#         RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
+name: upstream-pins
+on:
+  workflow_call:
+    inputs:
+      directory:
+        description: "The plugin's root in the calling repository, holding plugin.toml."
+        type: string
+        required: false
+        default: "."
+    secrets:
+      RELEASE_APP_KEY:
+        description: "The release App's private key, which writes each rolling pin pull request."
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      images: ${{ steps.plan.outputs.images }}
+      problems: ${{ steps.plan.outputs.problems }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The script from the commit this workflow was called at, so a caller pinned at a
+      # revision runs that revision's script.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          persist-credentials: false
+      - name: Which upstream pins would move
+        id: plan
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          manifest="plugin.toml"
+          [ "$DIRECTORY" = "." ] || manifest="${DIRECTORY%/}/plugin.toml"
+          python3 .spec-tooling/scripts/upstream_pins.py plan --manifest "$manifest" > "$RUNNER_TEMP/plan.json"
+          python3 - "$RUNNER_TEMP/plan.json" <<'PY'
+          import json
+          import os
+          import sys
+
+          plan = json.load(open(sys.argv[1], encoding="utf-8"))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
+              handle.write(f"images={json.dumps([move['image'] for move in plan['moves']])}\n")
+              handle.write(f"problems={len(plan['problems'])}\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(f"## {len(plan['moves'])} upstream pin(s) to move\n\n")
+              for move in plan["moves"]:
+                  summary.write(f"- `{move['image']}` {move['from']['tag']} -> {move['to']['tag']} "
+                                f"`{move['to']['digest'][:19]}…`\n")
+              for problem in plan["problems"]:
+                  summary.write(f"- not read: {problem}\n")
+          PY
+
+  bump:
+    needs: plan
+    if: ${{ needs.plan.outputs.images != '[]' && needs.plan.outputs.images != '' }}
+    strategy:
+      # One image's registry or branch failing says nothing about the others.
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.plan.outputs.images) }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/upstream-pin.yml
+    with:
+      image: ${{ matrix.image }}
+      directory: ${{ inputs.directory }}
+    secrets:
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
+
+  # Every image whose next pin could not be read fails the run, after the ones that
+  # could were handed on, so a registry gone quiet is a red run rather than a pin that
+  # stops moving with nothing said.
+  unread:
+    needs: [plan, bump]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.problems != '0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: An upstream pin could not be read
+        env:
+          PROBLEMS: ${{ needs.plan.outputs.problems }}
+        run: |
+          echo "::error::${PROBLEMS} upstream image(s) could not be read; the plan job's warnings and summary name each"
+          exit 1

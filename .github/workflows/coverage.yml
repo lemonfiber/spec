@@ -111,6 +111,10 @@ jobs:
           coverage run --append scripts/test_first_party_image.py
           coverage run --append scripts/test_manifest_pin.py
           coverage run --append scripts/test_rust_service_release.py
+          coverage run --append scripts/test_paths.py
+          coverage run --append scripts/test_plugin_pin.py
+          coverage run --append scripts/test_registry.py
+          coverage run --append scripts/test_upstream_pins.py
           coverage report --fail-under=100
       # Not a coverage suite: it reads `.coveragerc` against the directories it
       # names and fails on a file omitted from measurement without a reason beside
@@ -237,8 +241,8 @@ jobs:
         run: python3 scripts/test_first_party_plugin.py
       # Not a coverage suite: it runs the first-party image workflow's own steps
       # out of the committed workflow, and checks which event proves and which
-      # publishes, that the service is run under the posture its manifest
-      # declares, and that the pin moves only the services running the image
-      # (OPS-R90, OPS-R91, ARCH-R250).
-      - name: A first-party image is shown run under its posture and pinned where it runs
+      # publishes, and that the service is run under the posture its manifest
+      # declares (OPS-R90, ARCH-R250). Its pin is `manifest-pin`'s, whose suite
+      # runs with the coverage suites above.
+      - name: A first-party image is shown run under its posture
         run: python3 scripts/test_first_party_image.py
