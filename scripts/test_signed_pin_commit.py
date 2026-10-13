@@ -116,13 +116,13 @@ class SignedPinCommit(unittest.TestCase):
         return self.log.read_text(encoding="utf-8").splitlines()
 
     def test_a_changed_file_that_is_a_link_is_refused_and_never_read(self):
-        secret = self.root / "credentials"
-        secret.write_text("ghs_not-a-real-token", encoding="utf-8")
+        guarded = self.root / "guarded-file"
+        guarded.write_text("only the runner may read this", encoding="utf-8")
         ci = self.repo / ".github" / "workflows" / "ci.yml"
         ci.unlink()
-        ci.symlink_to(secret)
-        secret.chmod(0)
-        self.addCleanup(secret.chmod, 0o600)
+        ci.symlink_to(guarded)
+        guarded.chmod(0)
+        self.addCleanup(guarded.chmod, 0o600)
         code, out, err = self.run_main()
         self.assertEqual((code, out), (1, ""))
         self.assertIn("refused: .github/workflows/ci.yml is a link", err)

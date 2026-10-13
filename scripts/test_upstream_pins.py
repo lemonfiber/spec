@@ -36,7 +36,7 @@ BOTH = {("linux", "amd64"), ("linux", "arm64")}
 UNPACKERR_NEXT = "release-0.15.2"
 SONARR_BUILD, SONARR_NEXT_BUILD = "4.0.20.3014-ls326", "4.0.21.3020-ls327"
 IMAGE = "lscr.io/linuxserver/sonarr"
-SECRET = "ghs_not-a-real-token"
+GUARDED_BODY = "only the runner may read this"
 MOVE = {"image": "lscr.io/linuxserver/sonarr", "services": ["sonarr"], "branch": "upstream-pin/sonarr",
         "from": {"tag": SONARR_BUILD, "digest": OLD}, "to": {"tag": SONARR_NEXT_BUILD, "digest": DIGEST}}
 MANIFEST = f'''schema_version = 1
@@ -226,8 +226,8 @@ class InDirectory(unittest.TestCase):
         self.outside = pathlib.Path(tempfile.mkdtemp()).resolve()
         self.addCleanup(shutil.rmtree, self.root, True)
         self.addCleanup(shutil.rmtree, self.outside, True)
-        self.secret = self.outside / "credentials"
-        self.secret.write_text(SECRET)
+        self.guarded = self.outside / "guarded-file"
+        self.guarded.write_text(GUARDED_BODY)
         here = os.getcwd()
         os.chdir(self.root)
         self.addCleanup(os.chdir, here)
@@ -256,9 +256,9 @@ class Stale(InDirectory):
             ("notes.txt", "x"),
         ):
             self.put(path, body)
-        os.symlink(self.secret, self.root / "recordings/sonarr/linked.json")
-        self.secret.chmod(0)
-        self.addCleanup(self.secret.chmod, 0o600)
+        os.symlink(self.guarded, self.root / "recordings/sonarr/linked.json")
+        self.guarded.chmod(0)
+        self.addCleanup(self.guarded.chmod, 0o600)
         self.assertEqual(upstream_pins.stale(self.root, IMAGE, DIGEST),
                          ["conformance/x@1/case.json", "recordings/sonarr/old.json"])
 
@@ -389,12 +389,12 @@ class Staged(InDirectory):
                 shutil.rmtree(self.root / "bump", True)
                 self.staged(SONARR_MANIFEST, IMAGE, {"recordings/sonarr/library-curate-wanted.json": DIGEST})
                 (self.root / "bump" / relative).unlink()
-                os.symlink(self.secret, self.root / "bump" / relative)
-                self.secret.chmod(0)
+                os.symlink(self.guarded, self.root / "bump" / relative)
+                self.guarded.chmod(0)
                 try:
                     self.refused(f"not a plain file: {re.escape(relative)}")
                 finally:
-                    self.secret.chmod(0o600)
+                    self.guarded.chmod(0o600)
 
     def test_the_pin_is_what_the_registry_answers_now_never_what_the_bump_says(self):
         for answer, why in (

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """`paths.py`: a path from a command line stays inside the working directory, and a job
-holding a secret reads and writes files there without ever following a link.
+holding a guarded reads and writes files there without ever following a link.
 
 Stdlib unittest, no dependencies.
 Run:  python3 scripts/test_paths.py
@@ -21,7 +21,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 import paths
 
-SECRET = "ghs_not-a-real-token"
+GUARDED_BODY = "only the runner may read this"
 
 
 class Scratch(unittest.TestCase):
@@ -32,8 +32,8 @@ class Scratch(unittest.TestCase):
         self.root = pathlib.Path(tempfile.mkdtemp()).resolve()
         self.addCleanup(shutil.rmtree, self.outside, True)
         self.addCleanup(shutil.rmtree, self.root, True)
-        self.secret = self.outside / "credentials"
-        self.secret.write_text(SECRET)
+        self.guarded = self.outside / "guarded-file"
+        self.guarded.write_text(GUARDED_BODY)
         here = os.getcwd()
         os.chdir(self.root)
         self.addCleanup(os.chdir, here)
@@ -50,7 +50,7 @@ class Within(Scratch):
 
     def test_a_path_inside_is_resolved_and_one_outside_is_refused(self):
         self.assertEqual(paths.within_cwd("a/../b"), self.root / "b")
-        outside = str(self.secret)
+        outside = str(self.guarded)
         with contextlib.redirect_stdout(io.StringIO()) as said, self.assertRaises(SystemExit):
             paths.within_cwd(outside)
         self.assertIn("escapes the working directory", said.getvalue())
@@ -90,15 +90,15 @@ class Plain(Scratch):
             paths.plain_read(self.root, "a/b.json", 1)
 
     def test_a_link_to_a_secret_is_refused_and_nothing_is_read(self):
-        os.symlink(self.secret, self.root / "plugin.toml")
+        os.symlink(self.guarded, self.root / "plugin.toml")
         (self.root / "recordings").mkdir()
         os.symlink(self.outside, self.root / "recordings/sonarr")
-        self.secret.chmod(0)
-        self.addCleanup(self.secret.chmod, 0o600)
+        self.guarded.chmod(0)
+        self.addCleanup(self.guarded.chmod, 0o600)
         with self.assertRaisesRegex(paths.NotPlain, "plugin.toml is a link"):
             paths.plain_read(self.root, "plugin.toml", 100)
         with self.assertRaisesRegex(paths.NotPlain, "recordings/sonarr is not a plain directory"):
-            paths.plain_read(self.root, "recordings/sonarr/credentials", 100)
+            paths.plain_read(self.root, "recordings/sonarr/guarded-file", 100)
 
     def test_a_hard_link_a_directory_or_a_name_that_leaves_is_refused(self):
         self.file("one")
@@ -119,16 +119,16 @@ class Plain(Scratch):
         paths.plain_write(self.root, "a/b", b"new")
         paths.plain_write(self.root, "c/d/e", b"made")
         self.assertEqual(((self.root / "a/b").read_text(), (self.root / "c/d/e").read_text()), ("new", "made"))
-        os.symlink(self.secret, self.root / "f")
+        os.symlink(self.guarded, self.root / "f")
         with self.assertRaisesRegex(paths.NotPlain, "not a plain file to replace"):
             paths.plain_write(self.root, "f", b"overwritten")
-        self.assertEqual(self.secret.read_text(), SECRET)
+        self.assertEqual(self.guarded.read_text(), GUARDED_BODY)
 
     def test_a_listing_names_plain_files_apart_from_everything_else(self):
         self.file("a/b")
         self.file("c")
         os.link(self.root / "c", self.root / "hard")
-        os.symlink(self.secret, self.root / "link")
+        os.symlink(self.guarded, self.root / "link")
         os.symlink(self.outside, self.root / "dirlink")
         self.assertEqual(paths.plain_files(self.root), (["a/b"], ["c", "dirlink", "hard", "link"]))
 
