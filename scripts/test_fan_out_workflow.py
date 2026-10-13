@@ -250,7 +250,7 @@ class TheLoop(unittest.TestCase):
         self.spec = self.root / "spec"
         (self.spec / "scripts").mkdir(parents=True)
         for name in ("fan_out_pins.py", "workflow_pins.py", "pin_window.py", "signed_pin_commit.py",
-                     "rolling_pull_request.py"):
+                     "paths.py", "rolling_pull_request.py"):
             shutil.copy(HERE / name, self.spec / "scripts" / name)
 
         self.git("init", "-q", "-b", "main")
@@ -617,7 +617,7 @@ class WhoItCanReach(unittest.TestCase):
 
         self.spec = self.root / "spec"
         (self.spec / "scripts").mkdir(parents=True)
-        for name in ("fan_out_pins.py", "workflow_pins.py", "pin_window.py", "signed_pin_commit.py"):
+        for name in ("fan_out_pins.py", "workflow_pins.py", "pin_window.py", "signed_pin_commit.py", "paths.py"):
             shutil.copy(HERE / name, self.spec / "scripts" / name)
         (self.spec / "30-repos").mkdir()
         (self.spec / "30-repos" / "repos.toml").write_text(self.MAP, encoding="utf-8")

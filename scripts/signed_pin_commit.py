@@ -32,8 +32,14 @@ import re
 import subprocess
 import sys
 
+import paths
+
 #: What a staging branch is called beside the branch it stages for.
 STAGING = "-staging"
+
+#: The most of one changed file a commit carries. Each is read as a plain file, never
+#: through a link, because the job making the commit holds the App's token.
+MAX_FILE = 16 * 1024 * 1024
 
 #: The shapes a repository's name and a branch's take. Each is held before it
 #: reaches a command, so neither can be read there as an option or a path out
@@ -93,7 +99,7 @@ def request(repo: pathlib.Path, slug: str, branch: str, base: str, message: str)
                     "additions": [
                         {
                             "path": path,
-                            "contents": base64.b64encode((repo / path).read_bytes()).decode(),
+                            "contents": base64.b64encode(paths.plain_read(repo, path, MAX_FILE)).decode(),
                         }
                         for path in changed
                     ],
@@ -145,9 +151,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"refused: {args.repo} is not a clone", file=sys.stderr)
         return 1
 
-    oid, refusal = commit(
-        args.repo, args.slug, args.branch, args.message.read_text(encoding="utf-8")
-    )
+    try:
+        oid, refusal = commit(
+            args.repo, args.slug, args.branch, args.message.read_text(encoding="utf-8")
+        )
+    except paths.NotPlain as why:
+        oid, refusal = "", f"refused: {why}"
     if refusal:
         print(refusal, file=sys.stderr)
         return 1

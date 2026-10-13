@@ -115,6 +115,19 @@ class SignedPinCommit(unittest.TestCase):
     def calls(self) -> list[str]:
         return self.log.read_text(encoding="utf-8").splitlines()
 
+    def test_a_changed_file_that_is_a_link_is_refused_and_never_read(self):
+        guarded = self.root / "guarded-file"
+        guarded.write_text("only the runner may read this", encoding="utf-8")
+        ci = self.repo / ".github" / "workflows" / "ci.yml"
+        ci.unlink()
+        ci.symlink_to(guarded)
+        guarded.chmod(0)
+        self.addCleanup(guarded.chmod, 0o600)
+        code, out, err = self.run_main()
+        self.assertEqual((code, out), (1, ""))
+        self.assertIn("refused: .github/workflows/ci.yml is a link", err)
+        self.assertFalse(self.request.exists())
+
     def run_named(self, slug: str, branch: str, repo: str | None = None) -> tuple[int, str]:
         err = io.StringIO()
         settings = {"PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}", "GH_LOG": str(self.log),

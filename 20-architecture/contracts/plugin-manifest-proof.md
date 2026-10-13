@@ -304,10 +304,36 @@ pointed at it. A recording taken plainly is not evidence for a request that
 names an `accept`, and one that named an `accept` is not evidence for a request
 that does not.
 
-**A run is recorded by running it.** `lemonfiber plugin record <path>` performs each
-run proof's run, bounded exactly as a proof's is, and writes its recording: the image it
-ran, the arguments, the exit status and the first 1 KiB of standard output, keeping the
-`note` an author wrote.
+**Every recording is taken by `lemonfiber plugin record <path>`,** from the manifest's
+pin, so moving the pin and recording again are one command (`ARCH-R285`). It takes no
+option: the manifest is the list.
+
+| What the manifest names | How it is recorded |
+|---|---|
+| A request proof, a claim probe, a contributed check | Asked of one fresh container of the service at its pin, after its first run (`ARCH-R295`) |
+| A conformance case of a contract the plugin's adapter speaks | Asked of that adapter at its own pin, fronting such a container (`ARCH-R296`) |
+| A run proof | Run, bounded as a proof's run is (`ARCH-R284`) |
+
+**A request is recorded by asking it.** Each service is started once, from its pinned
+digest, under its posture, user and memory limit, with throwaway copies of its starting
+files and data, on a network of its own, its `listens` port published on loopback alone.
+Once its `health` passes, its first run is the core's own: the in-process adapter `api`
+names performs it for a part the bundle assembles, and the plugin's adapter performs it
+over its contract, as install does, for a service that adapter `fronts`. A probe whose
+vocabulary entry says `credential = "operator"` is asked with the key that first run left
+lemonfiber holding; anything else presents nothing the manifest does not write. Each
+recording keeps the request as declared, the status, the `content-type`, the body as
+parsed JSON or its first 1 KiB, and the `note` already there.
+
+**What a recording holds is scrubbed.** Every credential the run made or read, in each
+encoding an answer could echo it in, and each container's id, hostname and addresses
+are written as `<redacted>`, and a recording still holding one is not written. A service
+is recorded whole or not at all: where any step of it fails, its recordings stay as they
+were and the run fails naming the service and the step (`ARCH-R297`).
+
+**A run is recorded by running it,** and its recording holds the image it ran, the
+arguments, the exit status and the first 1 KiB of standard output, keeping the `note` an
+author wrote.
 
 ```json
 {

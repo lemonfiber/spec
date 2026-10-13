@@ -368,7 +368,10 @@ calls `first-party-image`, which proves the image under the posture its manifest
 declares on a pull request (**ARCH-R250**), and from main and a train tag
 publishes it, runs what it published under that posture, and moves the
 manifest's pin on one rolling pull request through `manifest-pin` (**OPS-R90**,
-**OPS-R91**).
+**OPS-R91**). One whose
+manifest runs an upstream's image calls `upstream-pins` weekly, which moves each such
+pin to the newest release of its major and records every recording again from it, one
+rolling pull request per image (**REPO-R98**).
 
 An exact commit is a copy, and a copy goes stale in silence. `workflow-pins` is
 what makes it say so. It reads every

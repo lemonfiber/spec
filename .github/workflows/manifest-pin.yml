@@ -83,9 +83,20 @@ jobs:
           branch="$COMMIT_PIN_BRANCH"
           [ "$GITHUB_REF_TYPE" != tag ] || branch="$TAG_PIN_BRANCH"
           echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+      # The rewrite from the commit this workflow was called at, so a caller pinned at
+      # a revision runs that revision's. No repository of the caller's is checked out:
+      # the manifest arrives through the contents API, into an empty workspace.
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          persist-credentials: false
       - name: Put what this tag or commit published on its rolling branch
         id: pinned
         env:
+          TOOLING: ${{ github.workspace }}/.spec-tooling
           PIN_BRANCH: ${{ steps.branch.outputs.branch }}
           GH_TOKEN: ${{ steps.token.outputs.token }}
           REPOSITORY: ${{ github.repository }}
@@ -115,36 +126,14 @@ jobs:
               -f "ref=refs/heads/${PIN_BRANCH}" -f "sha=${main}" >/dev/null
           fi
           gh api "repos/${REPOSITORY}/contents/${manifest}?ref=${PIN_BRANCH}" > held.json
-          python3 -I - "$IMAGE" "$DIGEST" "$TAG" <<'PY'
-          import base64, json, os, re, sys, tomllib
-          image, digest, tag = sys.argv[1], sys.argv[2], sys.argv[3].removeprefix("v")
-          text = base64.b64decode(json.load(open("held.json"))["content"]).decode("utf-8")
-          declared = [one.get("id") for one in tomllib.loads(text).get("service", []) if one.get("image") == image]
-          blocks = re.split(r"(?m)^(?=\[\[?)", text)
-          running = [i for i, block in enumerate(blocks)
-                     if block.startswith("[[service]]") and re.search(rf'(?m)^image\s*=\s*"{re.escape(image)}"\s*$', block)]
-          if len(running) != len(declared):
-              sys.exit(f"::error::{len(declared)} services run {image} and {len(running)} are written so this can move them")
-          if not running:
-              print(f"::notice::no service of the manifest runs {image}, so there is nothing to pin")
-              open("pinned", "w").write("")
-              sys.exit(0)
-          for at in running:
-              block = blocks[at]
-              for field, value in (("digest", digest), ("tag", tag)):
-                  block, changed = re.subn(rf'(?m)^{field}(\s*)=\s*"[^"]*"', rf'{field}\g<1>= "{value}"', block)
-                  if changed != 1:
-                      sys.exit(f"::error::a service running {image} does not declare `{field}` once")
-              blocks[at] = block
-          written = "".join(blocks)
-          moved = [(one.get("digest"), one.get("tag")) for one in tomllib.loads(written).get("service", [])
-                   if one.get("image") == image]
-          if len(moved) != len(declared) or any(pair != (digest, tag) for pair in moved):
-              sys.exit(f"::error::the manifest as written does not run {image} at {digest} and {tag} everywhere it ran it")
-          open("plugin.toml", "w", encoding="utf-8").write(written)
-          open("pinned", "w").write("yes")
-          PY
-          if [ ! -s pinned ]; then exit 0; fi
+          python3 -I -c 'import base64, json, sys; sys.stdout.buffer.write(base64.b64decode(json.load(open("held.json"))["content"]))' \
+            > plugin.toml
+          moved="$(python3 "$TOOLING/scripts/plugin_pin.py" --manifest plugin.toml \
+            --image "$IMAGE" --tag "${TAG#v}" --digest "$DIGEST")"
+          if [ -z "$moved" ]; then
+            echo "::notice::no service of the manifest runs ${IMAGE}, so there is nothing to pin"
+            exit 0
+          fi
           message="$(printf '%s\n\n%s\n%s\n' \
             "chore(manifest): the image at ${TAG}" \
             "Spec: OPS-R90, OPS-R91" \
