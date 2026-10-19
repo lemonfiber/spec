@@ -252,6 +252,12 @@ Decisions about a repository outside this organisation, such as
 | Until the release that moves the media server in place, the source switch keeps its service, claims and recordings from the media stack as frozen at the switch, with its in-process adapter: its plugin's copy holds what fills its capabilities in the adapter service, and the move needs the generated project the compose cutover brings | [bundle](../20-architecture/contracts/bundle.md) |
 | Each conformance case declares the body it posts, `asked`, as a value of its operation's request type the core declares beside the operation and publishes in `conformance.json`, with placeholders `plugin record` fills from a minted credential, `upstream.json` or an earlier case's answer; the cases are asked after the first run, the contracts in `speaks` order and each contract's cases in published order. `ARCH-R199` and `ARCH-R296` are amended in place | [ARCH-R199](../20-architecture/contracts/capability-contracts.md#what-a-case-asks), [ARCH-R296](../20-architecture/contracts/plugin-manifest.md) |
 
+## 2026-10-19
+
+| Decision | Where it lives |
+|---|---|
+| `lemonfiber plugin record` scrubs the recording machine's own name, kernel version and operating system, as the engine API reports them, wherever they appear, as it scrubs a container's identity; a number an answer gives about the machine, such as its count of processors, stays as answered. `ARCH-R297` is amended in place | [ARCH-R297](../20-architecture/contracts/plugin-manifest.md) |
+
 ## Requirements
 
 | ID | Requirement |
