@@ -19,9 +19,11 @@ what the first wrote. What both do alike is here; how each works its move out is
 workflow that runs the reader everywhere else, so the revision is written once.
 
 `record` puts that reader, checked out from plugin-template, into the plugin, refusing a
-plugin that carries one of its own. It asks `lemonfiber plugin record`, at the
-lemonfiber `targets.toml` names, for every recording the manifest names, then has the
-reader write `proofs.json` from them as the plugin's own check does (`ARCH-R285`). What
+plugin that carries one of its own. It pulls every image the manifest pins, by digest,
+since lemonfiber records only from an image the engine already holds and pulls none.
+It asks `lemonfiber plugin record`, at the lemonfiber `targets.toml` names, for every
+recording the manifest names, then has the reader write `proofs.json` from them as the
+plugin's own check does (`ARCH-R285`). What
 either says decides nothing: a failure is warned of, and the committing job reads which
 recordings were taken from the files. The reader and the lemonfiber it fetched or built
 are removed after.
@@ -63,6 +65,7 @@ import paths
 import plugin_pin
 import registry
 from check_bundle_pins import TARGETS
+from patterns import DIGEST
 
 #: What a staged bump holds, and the most of each file read.
 MANIFEST_FILE, PROOFS_FILE = "plugin.toml", "proofs.json"
@@ -231,10 +234,30 @@ def reader_of(workflow: str) -> dict[str, str]:
     return found
 
 
+def pinned_images(manifest: dict) -> list[str]:
+    """Every `image@digest` the manifest pins a service to, each a reference an engine
+    reads as nothing but one."""
+    found = set()
+    for service in manifest.get("service", []):
+        image, digest = str(service.get("image", "")), str(service.get("digest", ""))
+        if registry.address(image) is not None and DIGEST.match(digest):
+            found.add(f"{image}@{digest}")
+    return sorted(found)
+
+
+def pulled(manifest: dict) -> None:
+    """Every image the manifest pins, pulled by digest; one that could not be is warned of."""
+    for reference in pinned_images(manifest):
+        done = subprocess.run(["docker", "pull", "--quiet", reference], capture_output=True, text=True, check=False)
+        if done.returncode != 0:
+            print(f"::warning::{reference} could not be pulled: {registry.printable(done.stderr)}", flush=True)
+
+
 def recorded(root: pathlib.Path, taken: pathlib.Path) -> None:
     """Every recording the manifest at `root` names, taken again by the reader `taken`
-    from plugin-template, and `proofs.json` written from them; the reader and the
-    lemonfiber it fetched or built are removed after.
+    from plugin-template from the images it pins, pulled first, and `proofs.json`
+    written from them; the reader and the lemonfiber it fetched or built are removed
+    after.
 
     A failure is warned of and decides nothing. The plugin check on the pull request
     judges what was written, and the committing job reads which recordings were taken.
@@ -249,19 +272,20 @@ def recorded(root: pathlib.Path, taken: pathlib.Path) -> None:
     github.mkdir(exist_ok=True)
     shutil.copytree(taken, held, symlinks=True)
     try:
+        pulled(tomllib.loads(paths.plain_read(root, MANIFEST_FILE, MANIFEST_LIMIT).decode("utf-8")))
         loaded = importlib.util.spec_from_file_location("reader", held / READER_FILE)
         reader = importlib.util.module_from_spec(loaded)
         loaded.loader.exec_module(reader)
         try:
             done = reader.plugin("record")
-            print(done.stdout + done.stderr)
+            print(done.stdout + done.stderr, flush=True)
             code = done.returncode
         except (reader.Unasked, OSError) as why:
-            print(why)
+            print(why, flush=True)
             code = 1
         if code != 0:
             print(f"::warning::lemonfiber plugin record exited {code}; the recordings it did not take are named "
-                  "on the pull request")
+                  "on the pull request", flush=True)
         if subprocess.run([sys.executable, str(held / READER_FILE), "proofs"], check=False).returncode != 0:
             print("::warning::not every assertion holds on the new recordings; the plugin check on the pull "
                   "request names which")

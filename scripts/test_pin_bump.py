@@ -20,6 +20,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import yaml
 
@@ -133,6 +134,16 @@ if __name__ == "__main__":
 '''
 
 
+# A `docker` that logs each call and refuses to pull the reference named in `REFUSED`.
+DOCKER = """#!/usr/bin/env python3
+import json, os, sys
+with open(os.environ["DOCKER_LOG"], "a") as log:
+    log.write(json.dumps(sys.argv[1:]) + "\\n")
+if sys.argv[-1] == os.environ["REFUSED"]:
+    sys.exit("Error response from daemon: no such manifest")
+"""
+
+
 class Recorded(InDirectory):
     """`record` puts the workflow's reader into the plugin, asks it, warns of what failed,
     and leaves neither the reader nor what it built behind."""
@@ -163,6 +174,28 @@ class Recorded(InDirectory):
                 self.assertEqual(code, 0)
                 self.assertIn(said, out)
                 self.assertFalse((self.root / "plugin/.github/reader").exists())
+
+    def test_every_pinned_image_is_pulled_by_digest_before_recording_and_one_that_fails_is_warned_of(self):
+        bin_dir = self.root / "bin"
+        bin_dir.mkdir()
+        (bin_dir / "docker").write_text(DOCKER)
+        (bin_dir / "docker").chmod(0o755)
+        log = self.root / "docker.log"
+        patched = mock.patch.dict(os.environ, {"PATH": f"{bin_dir}:{os.environ['PATH']}", "DOCKER_LOG": str(log),
+                                               "REFUSED": f"caddy@{OLD}"})
+        patched.start()
+        self.addCleanup(patched.stop)
+        manifest = "".join(f'[[service]]\nid = "s{at}"\nimage = "{image}"\ndigest = "{digest}"\n\n'
+                           for at, (image, digest) in enumerate((
+                               (IMAGE, DIGEST), (IMAGE, DIGEST), ("caddy", OLD), ("--rm", DIGEST), (IMAGE, "latest"))))
+        self.put("plugin/plugin.toml", manifest)
+        self.put("taken/reader.py", f"RECORD = 0\nPROOFS = 0\n{STAND_IN}")
+        code, out, _ = self.ran("record", "--manifest", "plugin/plugin.toml", "--reader", "taken")
+        self.assertEqual(code, 0)
+        self.assertEqual([json.loads(line) for line in log.read_text().splitlines()],
+                         [["pull", "--quiet", f"caddy@{OLD}"], ["pull", "--quiet", f"{IMAGE}@{DIGEST}"]])
+        self.assertIn(f"::warning::caddy@{OLD} could not be pulled: Error response from daemon: no such manifest", out)
+        self.assertLess(out.index("could not be pulled"), out.index("wrote 2 recordings"))
 
     def test_a_plugin_carrying_a_reader_or_a_linked_github_is_refused_and_nothing_is_run(self):
         self.put("plugin/.github/reader/reader.py", "raise SystemExit('the plugin ran its own')")
