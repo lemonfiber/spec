@@ -326,8 +326,11 @@ recording keeps the request as declared, the status, the `content-type`, the bod
 parsed JSON or its first 1 KiB, and the `note` already there.
 
 **What a recording holds is scrubbed.** Every credential the run made or read, in each
-encoding an answer could echo it in, and each container's id, hostname and addresses
-are written as `<redacted>`, and a recording still holding one is not written. A service
+encoding an answer could echo it in, each container's id, hostname and addresses, and
+the recording machine's name, kernel version and operating system as the engine reports
+them are written as `<redacted>` wherever they appear, and a recording still holding one
+is not written. A number an answer gives about the machine, such as its count of
+processors, is kept as it was answered. A service
 is recorded whole or not at all: where any step of it fails, its recordings stay as they
 were and the run fails naming the service and the step (`ARCH-R297`).
 
