@@ -27,6 +27,7 @@ import yaml
 SCRIPTS = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS))
 
+import pin_bump  # noqa: E402
 import upstream_pins  # noqa: E402
 
 WORKFLOWS = SCRIPTS.parent / ".github/workflows"
@@ -198,7 +199,7 @@ class Described(unittest.TestCase):
         self.assertTrue(clean)
         self.assertIn("newest release in the major", body)
         self.assertIn("recorded again from it by `lemonfiber plugin record`", body)
-        self.assertTrue(body.endswith(f"{upstream_pins.CITED}\n{upstream_pins.SIGNED}"))
+        self.assertTrue(body.endswith(f"{upstream_pins.CITED}\n{pin_bump.SIGNED}"))
         self.assertNotIn("not armed", body)
 
     def test_a_rebuild_says_so(self):
@@ -208,7 +209,7 @@ class Described(unittest.TestCase):
         self.assertIn("published again", body)
 
     def test_a_recording_left_naming_the_old_image_keeps_it_open_and_names_each(self):
-        left = [f"recordings/sonarr/{n}.json" for n in range(upstream_pins.STALE_LISTED + 2)]
+        left = [f"recordings/sonarr/{n}.json" for n in range(pin_bump.STALE_LISTED + 2)]
         _, body, clean = upstream_pins.described(MOVE, left, self.LOG)
         self.assertFalse(clean)
         self.assertIn(f"the record job's log says why: {self.LOG}", body)
@@ -238,29 +239,6 @@ class InDirectory(unittest.TestCase):
         path.write_text(body if isinstance(body, str) else json.dumps(body))
         return path
 
-
-
-class Stale(InDirectory):
-    """Which recordings still name the image a bump replaces, read from the files."""
-
-    def test_only_a_plain_recording_of_the_image_at_another_digest_is_stale(self):
-        for path, body in (
-            ("recordings/sonarr/old.json", {"recorded_from": f"{IMAGE}@{OLD}"}),
-            ("recordings/sonarr/new.json", {"recorded_from": f"{IMAGE}@{DIGEST}"}),
-            ("conformance/x@1/case.json", {"recorded_from": f"{IMAGE}@{OLD}"}),
-            ("recordings/other/old.json", {"recorded_from": f"caddy@{OLD}"}),
-            ("proofs.json", {"proofs": []}),
-            (".github/reader/old.json", {"recorded_from": f"{IMAGE}@{OLD}"}),
-            ("list.json", ["not", "a", "recording"]),
-            ("broken.json", "{"),
-            ("notes.txt", "x"),
-        ):
-            self.put(path, body)
-        os.symlink(self.guarded, self.root / "recordings/sonarr/linked.json")
-        self.guarded.chmod(0)
-        self.addCleanup(self.guarded.chmod, 0o600)
-        self.assertEqual(upstream_pins.stale(self.root, IMAGE, DIGEST),
-                         ["conformance/x@1/case.json", "recordings/sonarr/old.json"])
 
 
 JELLYFIN = f'''schema_version = 1
@@ -321,7 +299,7 @@ class Staged(InDirectory):
         self.put("plugin/proofs.json", {"proofs": []})
         for relative, digest in recordings.items():
             self.put(f"plugin/{relative}", {"recorded_from": f"{image}@{digest}"})
-        staged = upstream_pins.stage(self.root / "plugin", manifest, move, self.root / "bump")
+        staged = pin_bump.stage(self.root / "plugin", manifest, move, self.root / "bump")
         return move, staged
 
     def admit(self, manifest: str, image: str) -> tuple[dict, dict]:
@@ -430,19 +408,6 @@ class Staged(InDirectory):
             upstream_pins.artifact_of(unnamed, IMAGE)
 
 
-class Reader(unittest.TestCase):
-    """The reader's revision is the one `first-party-plugin` pins, written once."""
-
-    def test_the_first_party_plugin_workflow_pins_one_this_reads(self):
-        found = upstream_pins.reader_of((WORKFLOWS / "first-party-plugin.yml").read_text(encoding="utf-8"))
-        self.assertEqual(found["repository"], "lemonfiber/plugin-template")
-        self.assertRegex(found["revision"], r"\A[0-9a-f]{40}\Z")
-
-    def test_a_workflow_pinning_no_full_revision_is_refused(self):
-        with self.assertRaisesRegex(ValueError, "no reader repository and full revision"):
-            upstream_pins.reader_of("env:\n  READER_REPOSITORY: lemonfiber/plugin-template\n  READER_REVISION: main\n")
-
-
 class Main(InDirectory):
     """The command, as each workflow step runs it, from the workspace."""
 
@@ -497,8 +462,11 @@ class Main(InDirectory):
         self.answering(SONARR_NEXT_BUILD, DIGEST)
         self.put("main.toml", MANIFEST)
         self.put("move.json", self.ran("apply", "--manifest", "plugin.toml", "--image", IMAGE)[1])
-        code, out, _ = self.ran("stage", "--manifest", "plugin.toml", "--main", "main.toml", "--move", "move.json",
-                                "--out", "scratch/bump")
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = pin_bump.main(["stage", "--manifest", "plugin.toml", "--main", "main.toml", "--move", "move.json",
+                                  "--out", "scratch/bump"])
+        out = out.getvalue()
         self.assertEqual((code, out), (0, "plugin.toml\n"))
         self.put("checkout/plugin.toml", MANIFEST)
         code, out, _ = self.ran("admit", "--manifest", "checkout/plugin.toml", "--image", IMAGE,
@@ -526,12 +494,6 @@ class Main(InDirectory):
         written = self.output.read_text(encoding="utf-8")
         self.assertRegex(written, r"(?m)^clean<<value_[0-9a-f]{32}\nno\nvalue_[0-9a-f]{32}$")
         self.assertIn("title<<", written)
-
-    def test_reader_prints_the_outputs(self):
-        self.put("first-party-plugin.yml", (WORKFLOWS / "first-party-plugin.yml").read_text())
-        code, out, _ = self.ran("reader", "--workflow", "first-party-plugin.yml")
-        self.assertEqual(code, 0)
-        self.assertRegex(out, r"\Arepository=lemonfiber/plugin-template\nrevision=[0-9a-f]{40}\n\Z")
 
     def test_an_unreadable_file_fails_naming_it(self):
         (self.root / "plugin.toml").unlink()
@@ -572,64 +534,6 @@ class Workflows(unittest.TestCase):
                         str(plan)], cwd=self.root, env=self.env(), check=True)
         self.assertEqual(self.output.read_text(), 'images=["lscr.io/linuxserver/sonarr"]\nproblems=1\n')
         self.assertIn("not read: x: unread", self.summary.read_text())
-
-    def recorded(self, reader_body: str) -> str:
-        (self.root / ".github/reader").mkdir(parents=True)
-        (self.root / ".github/reader/reader.py").write_text(textwrap.dedent(reader_body))
-        done = subprocess.run(["python3", "-c", embedded("upstream-pin.yml", "record", "Every recording, recorded again from the new image"),
-                               ".github/reader"], cwd=self.root, env=self.env(), check=True, capture_output=True, text=True)
-        self.assertFalse(self.output.exists(), "the record step hands nothing on but the files")
-        return done.stdout
-
-    def test_a_record_that_finished_says_what_it_wrote(self):
-        said = self.recorded('''
-            import subprocess
-            class Unasked(RuntimeError):
-                pass
-            def plugin(*asked):
-                assert asked == ("record",)
-                return subprocess.CompletedProcess([], 0, "wrote 2 recordings\\n", "")
-        ''')
-        self.assertIn("wrote 2 recordings", said)
-        self.assertNotIn("::warning::", said)
-
-    def test_a_record_that_failed_or_a_lemonfiber_that_could_not_be_had_is_warned_of(self):
-        for body in ('''
-            import subprocess
-            class Unasked(RuntimeError):
-                pass
-            def plugin(*asked):
-                return subprocess.CompletedProcess([], 1, "", "sonarr: its first run did not finish\\n")
-        ''', '''
-            class Unasked(RuntimeError):
-                pass
-            def plugin(*asked):
-                raise Unasked("lemonfiber at abc did not build")
-        '''):
-            shutil.rmtree(self.root / ".github", True)
-            said = self.recorded(body)
-            self.assertIn("::warning::lemonfiber plugin record exited 1", said)
-
-    def test_nothing_that_runs_the_image_or_builds_lemonfiber_shares_a_job_with_a_secret(self):
-        jobs = yaml.safe_load((WORKFLOWS / "upstream-pin.yml").read_text())["jobs"]
-        record, commit = jobs["record"], jobs["commit"]
-        self.assertNotIn("secrets.", json.dumps(record))
-        self.assertNotIn("environment", record)
-        self.assertEqual(record["permissions"], {"contents": "read"})
-        self.assertEqual((commit["environment"], commit["permissions"]), ("release", {"contents": "read"}))
-        ran = json.dumps(commit["steps"])
-        for untrusted in ("reader", "plugin record", "proofs", "setup-python"):
-            self.assertNotIn(untrusted, ran.replace("first-party-plugin", ""))
-        for job in (record, commit):
-            for one in job["steps"]:
-                if one.get("uses", "").startswith("actions/checkout@"):
-                    self.assertFalse(one["with"]["persist-credentials"])
-
-    def test_the_token_job_checks_the_plugin_out_beside_its_own_scratch(self):
-        steps_of = steps("upstream-pin.yml", "commit")
-        self.assertEqual(steps_of[0]["with"]["path"], "${{ env.PLUGIN }}")
-        names = [one.get("name", "") for one in steps_of]
-        self.assertLess(names.index("Only the move, admitted"), names.index("Mint a token that can commit here"))
 
     def test_a_clean_bump_is_armed_and_any_other_disarmed(self):
         called = yaml.safe_load((WORKFLOWS / "upstream-pin.yml").read_text())["jobs"]["pull-request"]["with"]

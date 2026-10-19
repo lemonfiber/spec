@@ -1,5 +1,6 @@
-"""`first-party-image.yml`'s own steps: which event proves and which publishes, and how the
-manifest's service is run under its posture."""
+"""`first-party-image.yml`'s own steps: which event proves and which publishes, that a push
+changing nothing but a pin publishes nothing, and how the manifest's service is run under
+its posture."""
 
 from __future__ import annotations
 
@@ -11,7 +12,8 @@ import unittest
 
 import workflow_steps
 
-WORKFLOW = pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/first-party-image.yml"
+TOOLING = pathlib.Path(__file__).resolve().parent.parent
+WORKFLOW = TOOLING / ".github/workflows/first-party-image.yml"
 IMAGE = "ghcr.io/lemonfiber/door"
 DIGEST = "sha256:" + "a" * 64
 GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "commit.gpgsign=false",
@@ -37,14 +39,20 @@ class Settle(workflow_steps.Scratch):
         subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
         subprocess.run([*GIT, "commit", "--quiet", "-m", "c"], cwd=self.root, check=True)
         subprocess.run(["git", "remote", "add", "origin", str(self.root)], cwd=self.root, check=True)
-        self.sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True,
-                                  text=True, check=True).stdout.strip()
+        self.sha = self.head()
+        self.before = ""
+
+    def head(self) -> str:
+        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True,
+                              text=True, check=True).stdout.strip()
 
     def settled(self, event: str, kind: str, ref: str, name: str, image: str = "door") -> tuple[int, dict]:
         output = self.root / ".output"
+        output.unlink(missing_ok=True)
         env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(output), "GITHUB_EVENT_NAME": event,
                "GITHUB_SHA": self.sha, "REGISTRY": "ghcr.io/lemonfiber", "IMAGE_NAME": image,
-               "DIRECTORY": ".", "KIND": kind, "REF": ref, "NAME": name}
+               "DIRECTORY": ".", "KIND": kind, "REF": ref, "NAME": name, "BEFORE": self.before,
+               "TOOLING": str(TOOLING)}
         done = subprocess.run(["bash", "-c", step("settle", "A pull request proves; main and a train tag publish")],
                               cwd=self.root, env=env, capture_output=True, text=True)
         said = dict(line.split("=", 1) for line in output.read_text().splitlines()) if output.exists() else {}
@@ -58,6 +66,19 @@ class Settle(workflow_steps.Scratch):
         code, said = self.settled("push", "branch", "refs/heads/main", "main")
         self.assertEqual((code, said["mode"], said["tag"], said["image"]),
                          (0, "publish", f"main-{self.sha[:12]}", IMAGE))
+
+    def test_main_publishes_nothing_from_a_push_changing_nothing_but_a_pin(self):
+        for path, mode in (("recordings/door/a.json", "none"), ("Dockerfile", "publish")):
+            with self.subTest(path=path):
+                self.before = self.head()
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                (self.root / path).write_text(path)
+                (self.root / "plugin.toml").write_text((self.root / "plugin.toml").read_text() + "# moved\n")
+                subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
+                subprocess.run([*GIT, "commit", "--quiet", "-m", "after"], cwd=self.root, check=True)
+                self.sha = self.head()
+                code, said = self.settled("push", "branch", "refs/heads/main", "main")
+                self.assertEqual((code, said["mode"]), (0, mode))
 
     def test_no_other_branch_publishes(self):
         self.assertNotEqual(self.settled("push", "branch", "refs/heads/feature", "feature")[0], 0)

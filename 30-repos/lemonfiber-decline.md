@@ -40,6 +40,8 @@ materials and a provenance attestation, and opens a pull request on
 `lemonfiber-media-stack` setting the service's `tag` and `digest`. The core is tagged
 at the same tag once the stack it embeds pins that digest. Every commit on `main` is
 published too, as `main-<commit>`, and where the repository holds its `plugin.toml`
-that manifest's pin moves to it on a rolling pull request; a commit image is not a
-release and the stack is never told of it (`OPS-R90`, `OPS-R91`). Nothing else is
-published from a branch.
+that manifest's pin moves to it on a rolling pull request, with every recording the
+manifest names taken again from the new image and `proofs.json` written from them; a
+commit image is not a release and the stack is never told of it (`OPS-R90`,
+`OPS-R91`). A commit that changes nothing but that pin, its recordings, its proofs and
+its `targets.toml` publishes nothing. Nothing else is published from a branch.

@@ -8,7 +8,7 @@
 # the plugin's targets.toml names and built the way plugin-template's reader builds it,
 # records every recording the manifest names again from a fresh container of the new
 # image (ARCH-R285, ARCH-R295). The reader then writes `proofs.json` from them, as the
-# plugin's own check does.
+# plugin's own check does. `pin_bump.py` does it, for `manifest-pin` too.
 #
 # Two jobs, because building lemonfiber runs every dependency's build script and
 # recording runs the upstream's image, and neither belongs beside a token that can
@@ -16,11 +16,11 @@
 # hands on what it wrote as an artifact. `commit` holds the release App's token, runs
 # nothing from that artifact and trusts none of it, nor anything `record` says of itself.
 # `upstream_pins.py admit` works the move out again from main's manifest and the
-# registry, and refuses the artifact unless every entry is a plain file, the manifest is
-# main's with exactly that move and nothing else, and every other file is `proofs.json`
-# or a recording the manifest names, taken from exactly that pin. No file is read or
-# written through a link, and the plugin is checked out beside the job's own scratch
-# space rather than around it.
+# registry, and refuses the artifact unless every entry is a plain file, the manifest
+# is main's with exactly that move and nothing else, and every other file is
+# `proofs.json` or a recording the manifest names, taken from exactly that pin. No file
+# is read or written through a link, and the plugin is checked out beside the job's own
+# scratch space rather than around it.
 #
 # A bump that leaves no recording naming the image it replaces is armed to merge at its
 # commit, and the required checks judge that commit as they judge any. One that left a
@@ -104,7 +104,7 @@ jobs:
         id: reader
         if: steps.move.outputs.moved == 'yes'
         run: |
-          python3 .spec-tooling/scripts/upstream_pins.py reader \
+          python3 .spec-tooling/scripts/pin_bump.py reader \
             --workflow .spec-tooling/.github/workflows/first-party-plugin.yml >> "$GITHUB_OUTPUT"
       - name: The reader, from plugin-template
         if: steps.move.outputs.moved == 'yes'
@@ -116,59 +116,21 @@ jobs:
           path: .first-party-reader
           sparse-checkout: .github/reader
           sparse-checkout-cone-mode: false
-      - name: The reader is this workflow's, and the plugin carries none
-        if: steps.move.outputs.moved == 'yes'
-        env:
-          DIRECTORY: ${{ inputs.directory }}
-        run: |
-          set -euo pipefail
-          root="$PLUGIN/$DIRECTORY"
-          if [ -e "$root/.github/reader" ] || [ -L "$root/.github/reader" ]; then
-            echo "::error::.github/reader is in the plugin. A first-party plugin carries no Python of its own; the reader is this workflow's."
-            exit 1
-          fi
-          mkdir -p "$root/.github"
-          cp -R .first-party-reader/.github/reader "$root/.github/reader"
-
-      # What these two say of themselves decides nothing: the next job reads which
-      # recordings were taken from the files, and the plugin check judges them.
+      # What this says of itself decides nothing: the next job reads which recordings
+      # were taken from the files, and the plugin check judges them.
       - name: Every recording, recorded again from the new image
         if: steps.move.outputs.moved == 'yes'
         env:
           DIRECTORY: ${{ inputs.directory }}
         run: |
-          set -uo pipefail
-          python3 - "$PLUGIN/$DIRECTORY/.github/reader" <<'PY'
-          import sys
-
-          sys.path.insert(0, sys.argv[1])
-          import reader
-
-          try:
-              done = reader.plugin("record")
-              print(done.stdout + done.stderr)
-              code = done.returncode
-          except (reader.Unasked, OSError) as why:
-              print(why)
-              code = 1
-          if code != 0:
-              print(f"::warning::lemonfiber plugin record exited {code}; the recordings it did not take are named on the pull request")
-          PY
-      - name: Every claim, proof and check, against the new recordings
-        if: steps.move.outputs.moved == 'yes'
-        env:
-          DIRECTORY: ${{ inputs.directory }}
-        run: |
-          python3 "$PLUGIN/$DIRECTORY/.github/reader/reader.py" proofs \
-            || echo "::warning::not every assertion holds on the new recordings; the plugin check on the pull request names which"
+          python3 .spec-tooling/scripts/pin_bump.py record --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
+            --reader .first-party-reader/.github/reader
       - name: What the next job may commit, staged
         if: steps.move.outputs.moved == 'yes'
         env:
           DIRECTORY: ${{ inputs.directory }}
         run: |
-          set -euo pipefail
-          rm -rf "$PLUGIN/$DIRECTORY/.github/reader" "$PLUGIN/$DIRECTORY/.lemonfiber" .first-party-reader
-          python3 .spec-tooling/scripts/upstream_pins.py stage --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
+          python3 .spec-tooling/scripts/pin_bump.py stage --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
             --main "$SCRATCH/main.toml" --move "$SCRATCH/move.json" --out "$SCRATCH/bump"
       - name: Hand it on
         if: steps.move.outputs.moved == 'yes'

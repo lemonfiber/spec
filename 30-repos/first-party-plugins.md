@@ -80,7 +80,10 @@ part deletes that adapter (`ARCH-R266`).
   upstream's image (below).
 
 A repository that builds an image also builds and publishes it from every commit on its
-`main` and from each train tag (`OPS-R90`, `OPS-R91`). The guarded door's and the
+`main` and from each train tag (`OPS-R90`, `OPS-R91`). `manifest-pin` moves the
+manifest's pin to each, with every recording taken again from the new image as an
+upstream's pin is below, and a commit that changes nothing but the pin, its recordings,
+its proofs and its `targets.toml` publishes no image. The guarded door's and the
 proxy's images are Caddy's, rebuilt with the file capability removed, so they start
 under `standard` (ADR-0045).
 

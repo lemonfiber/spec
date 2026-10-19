@@ -1,17 +1,41 @@
 # Reusable: propose an image a release published as the image every service of
-# the calling repository's plugin.toml running it runs (OPS-R90, OPS-R91).
+# the calling repository's plugin.toml running it runs, with every recording
+# taken again from it (OPS-R90, OPS-R91, ARCH-R285).
 #
 # A train tag's image goes on `release/image-pin` and main's on
 # `release/image-commit-pin`, so the two never move each other's pull request.
-# The manifest is read from main and written on that rolling branch,
-# with every service running the image moved to its digest and tag and nothing
-# else touched, and the change opened as that branch's one pull request
-# (OPS-R85, OPS-R87). A commit that merges a pin publishes and pins nothing, so a
-# pin never pins itself. A manifest with no service running the image pins
-# nothing.
+# The branch is main with every service running the image moved to its digest
+# and tag and nothing else of the manifest touched, and the change is opened as
+# that branch's one pull request (OPS-R85, OPS-R87). A manifest with no service
+# running the image pins nothing.
+#
+# A moved digest leaves every recording that names the old one refused
+# (ARCH-R121), so the recordings move in the same commit. `lemonfiber plugin
+# record`, at the lemonfiber the plugin's targets.toml names and built the way
+# plugin-template's reader builds it, records every recording the manifest
+# names again from a fresh container of the new image, and the reader then
+# writes `proofs.json` from them, as the plugin's own check does (ARCH-R285,
+# ADR-0049).
+#
+# Two jobs, as `upstream-pin` has, through the same `pin_bump.py`. `record`
+# builds lemonfiber and runs the image holding no secret and reading the
+# repository only, and hands on what it wrote as an artifact. `commit` holds the
+# release App's token, runs nothing from that artifact and trusts none of it,
+# nor anything `record` says of itself. `manifest_pin.py admit` works the move
+# out again from main's manifest and this workflow's inputs, and refuses the
+# artifact unless every entry is a plain file, the manifest is main's with
+# exactly that move and nothing else, and every other file is `proofs.json` or a
+# recording the manifest names, taken from exactly the new pin. No file is read
+# or written through a link, and the plugin is checked out beside the job's own
+# scratch space rather than around it.
+#
+# Nothing here arms the pull request to merge. One that left a recording naming
+# the image it replaces is disarmed, naming each such recording (OPS-R87).
 #
 # Called after the image is published, by `first-party-image` and by
-# `rust-service-release` where the repository declares itself in a plugin.toml:
+# `rust-service-release` where the repository declares itself in a plugin.toml.
+# Neither publishes from a push to main that changes nothing but a pin, so
+# merging this pull request starts no other:
 #
 #   pin:
 #     needs: publish
@@ -52,40 +76,28 @@ permissions:
   contents: read
 
 env:
-  TAG_PIN_BRANCH: release/image-pin
-  COMMIT_PIN_BRANCH: release/image-commit-pin
+  # The plugin is checked out beside this workflow's own scratch space, not around it,
+  # so nothing the repository holds can stand where a step writes.
+  PLUGIN: plugin
+  SCRATCH: .manifest-pin
+  # One run moves one pin, so what `record` hands on has one name.
+  ARTIFACT: manifest-pin
 
 jobs:
-  pin:
+  record:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: release
+    # Building the lemonfiber a commit names takes most of it.
+    timeout-minutes: 90
+    permissions:
+      contents: read
     outputs:
-      branch: ${{ steps.pinned.outputs.branch }}
-      head: ${{ steps.pinned.outputs.head }}
-      title: ${{ steps.pinned.outputs.title }}
-      body: ${{ steps.pinned.outputs.body }}
+      moved: ${{ steps.move.outputs.moved }}
     steps:
-      - name: Mint a token that can write the manifest
-        id: token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          client-id: ${{ vars.RELEASE_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_APP_KEY }}
-          owner: ${{ github.repository_owner }}
-          permission-contents: write
-          permission-pull-requests: write
-          repositories: ${{ github.event.repository.name }}
-      - name: Which rolling branch the pin goes on
-        id: branch
-        run: |
-          set -euo pipefail
-          branch="$COMMIT_PIN_BRANCH"
-          [ "$GITHUB_REF_TYPE" != tag ] || branch="$TAG_PIN_BRANCH"
-          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
-      # The rewrite from the commit this workflow was called at, so a caller pinned at
-      # a revision runs that revision's. No repository of the caller's is checked out:
-      # the manifest arrives through the contents API, into an empty workspace.
+          ref: main
+          path: ${{ env.PLUGIN }}
+          persist-credentials: false
       - name: Check out spec's scripts at this workflow's commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -93,80 +105,184 @@ jobs:
           ref: ${{ job.workflow_sha }}
           path: .spec-tooling
           persist-credentials: false
-      - name: Put what this tag or commit published on its rolling branch
-        id: pinned
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Move the pin
+        id: move
         env:
-          TOOLING: ${{ github.workspace }}/.spec-tooling
-          PIN_BRANCH: ${{ steps.branch.outputs.branch }}
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-          REPOSITORY: ${{ github.repository }}
           IMAGE: ${{ inputs.image }}
           TAG: ${{ inputs.tag }}
           DIGEST: ${{ inputs.digest }}
           DIRECTORY: ${{ inputs.directory }}
-          BOT: ${{ steps.token.outputs.app-slug }}[bot]
         run: |
           set -euo pipefail
-          pins="$(gh api "repos/${REPOSITORY}/commits/${GITHUB_SHA}/pulls" --jq "map(select(
-            .merged_at != null and .merge_commit_sha == \"${GITHUB_SHA}\"
-            and (.head.ref == \"${TAG_PIN_BRANCH}\" or .head.ref == \"${COMMIT_PIN_BRANCH}\")
-            and .head.repo.full_name == \"${REPOSITORY}\" and .user.login == \"${BOT}\")) | length")"
-          if [ "$pins" != "0" ]; then
-            echo "::notice::${GITHUB_SHA} merges a pin, so ${TAG} is published and not pinned."
-            exit 0
-          fi
-          manifest="plugin.toml"
-          [ "$DIRECTORY" = "." ] || manifest="${DIRECTORY%/}/plugin.toml"
-          main="$(gh api "repos/${REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
-          if gh api "repos/${REPOSITORY}/git/ref/heads/${PIN_BRANCH}" >/dev/null 2>&1; then
-            gh api --method PATCH "repos/${REPOSITORY}/git/refs/heads/${PIN_BRANCH}" \
-              -f "sha=${main}" -F force=true >/dev/null
-          else
-            gh api --method POST "repos/${REPOSITORY}/git/refs" \
-              -f "ref=refs/heads/${PIN_BRANCH}" -f "sha=${main}" >/dev/null
-          fi
-          gh api "repos/${REPOSITORY}/contents/${manifest}?ref=${PIN_BRANCH}" > held.json
-          python3 -I -c 'import base64, json, sys; sys.stdout.buffer.write(base64.b64decode(json.load(open("held.json"))["content"]))' \
-            > plugin.toml
-          moved="$(python3 "$TOOLING/scripts/plugin_pin.py" --manifest plugin.toml \
-            --image "$IMAGE" --tag "${TAG#v}" --digest "$DIGEST")"
-          if [ -z "$moved" ]; then
+          mkdir "$SCRATCH"
+          manifest="$PLUGIN/$DIRECTORY/plugin.toml"
+          cp -- "$manifest" "$SCRATCH/main.toml"
+          python3 .spec-tooling/scripts/manifest_pin.py apply --manifest "$manifest" --image "$IMAGE" \
+            --tag "$TAG" --digest "$DIGEST" --ref-type "$GITHUB_REF_TYPE" > "$SCRATCH/move.json"
+          cat "$SCRATCH/move.json"
+          if git -C "$PLUGIN" diff --quiet; then
             echo "::notice::no service of the manifest runs ${IMAGE}, so there is nothing to pin"
+            echo "moved=no" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          message="$(printf '%s\n\n%s\n%s\n' \
-            "chore(manifest): the image at ${TAG}" \
-            "Spec: OPS-R90, OPS-R91" \
-            "Signed-off-by: lemonfiber release <info@nightworks.io>")"
-          head="$(gh api --method PUT "repos/${REPOSITORY}/contents/${manifest}" \
-            -f "message=${message}" \
-            -f "content=$(base64 -w0 plugin.toml)" \
-            -f "sha=$(python3 -I -c 'import json; print(json.load(open("held.json"))["sha"])')" \
-            -f "branch=${PIN_BRANCH}" --jq .commit.sha)"
-          delimiter="body_$(openssl rand -hex 16)"
-          {
-            echo "branch=${PIN_BRANCH}"
-            echo "head=${head}"
-            echo "title=chore(manifest): the image at ${TAG}"
-            echo "body<<${delimiter}"
-            printf '%s\n\n%s\n%s\n' \
-              "Every service of plugin.toml running ${IMAGE} runs the image ${TAG} published, at ${DIGEST}." \
-              "Spec: OPS-R90, OPS-R91" \
-              "Signed-off-by: lemonfiber release <info@nightworks.io>"
-            echo "${delimiter}"
-          } >> "$GITHUB_OUTPUT"
-          echo "the manifest's image is proposed at ${TAG}, ${DIGEST}."
+          echo "moved=yes" >> "$GITHUB_OUTPUT"
 
+      - name: Which reader the plugin check runs
+        id: reader
+        if: steps.move.outputs.moved == 'yes'
+        run: |
+          python3 .spec-tooling/scripts/pin_bump.py reader \
+            --workflow .spec-tooling/.github/workflows/first-party-plugin.yml >> "$GITHUB_OUTPUT"
+      - name: The reader, from plugin-template
+        if: steps.move.outputs.moved == 'yes'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: ${{ steps.reader.outputs.repository }}
+          ref: ${{ steps.reader.outputs.revision }}
+          path: .first-party-reader
+          sparse-checkout: .github/reader
+          sparse-checkout-cone-mode: false
+      # What this says of itself decides nothing: the next job reads which recordings
+      # were taken from the files, and the plugin check judges them.
+      - name: Every recording, recorded again from the new image
+        if: steps.move.outputs.moved == 'yes'
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          python3 .spec-tooling/scripts/pin_bump.py record --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
+            --reader .first-party-reader/.github/reader
+      - name: What the next job may commit, staged
+        if: steps.move.outputs.moved == 'yes'
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          python3 .spec-tooling/scripts/pin_bump.py stage --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
+            --main "$SCRATCH/main.toml" --move "$SCRATCH/move.json" --out "$SCRATCH/bump"
+      - name: Hand it on
+        if: steps.move.outputs.moved == 'yes'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: ${{ env.SCRATCH }}/bump/
+          if-no-files-found: error
+          retention-days: 1
+
+  # The only job holding a token that can write. It runs no code it did not check out
+  # from spec, and reads the artifact and the repository only as plain files.
+  commit:
+    needs: record
+    if: needs.record.outputs.moved == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: read
+    concurrency:
+      # Two runs would each move the same branch under the other.
+      group: manifest-pin-${{ github.repository }}-${{ github.ref_type }}
+      cancel-in-progress: false
+    outputs:
+      branch: ${{ steps.admit.outputs.branch }}
+      head: ${{ steps.commit.outputs.head }}
+      title: ${{ steps.message.outputs.title }}
+      body: ${{ steps.message.outputs.body }}
+      clean: ${{ steps.message.outputs.clean }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          path: ${{ env.PLUGIN }}
+          persist-credentials: false
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          persist-credentials: false
+      - name: A scratch directory of this job's own
+        run: mkdir "$SCRATCH"
+      - name: What the record job wrote, into a directory of its own
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: ${{ env.SCRATCH }}/bump
+      - name: Only the move, admitted
+        id: admit
+        env:
+          IMAGE: ${{ inputs.image }}
+          TAG: ${{ inputs.tag }}
+          DIGEST: ${{ inputs.digest }}
+          DIRECTORY: ${{ inputs.directory }}
+        run: |
+          set -euo pipefail
+          python3 .spec-tooling/scripts/manifest_pin.py admit --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
+            --image "$IMAGE" --tag "$TAG" --digest "$DIGEST" --ref-type "$GITHUB_REF_TYPE" \
+            --bump "$SCRATCH/bump" --move-out "$SCRATCH/move.json" > "$SCRATCH/written"
+          # A recording new to the tree is marked so the commit below carries it.
+          while IFS= read -r path; do
+            git -C "$PLUGIN" add --intent-to-add -- "$DIRECTORY/$path"
+          done < "$SCRATCH/written"
+          git -C "$PLUGIN" status --short
+          python3 -I -c 'import json, sys; print("branch=" + json.load(open(sys.argv[1]))["branch"])' \
+            "$SCRATCH/move.json" >> "$GITHUB_OUTPUT"
+      # Whether it came out clean is read here, from the recordings in the checkout, and
+      # the required checks then judge the committed head; nothing the record job said
+      # counts.
+      - name: The commit message and the pull request
+        id: message
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+          LOG: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          python3 .spec-tooling/scripts/manifest_pin.py message --move "$SCRATCH/move.json" \
+            --log "$LOG" --root "$PLUGIN/$DIRECTORY" > "$SCRATCH/message.txt"
+      - name: Which repository the token is for
+        id: here
+        run: echo "name=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+      # `main` takes signed commits only, and a commit GitHub makes for the App is
+      # signed. The token is this repository's alone and can write contents and nothing
+      # else; the pull request is opened in the next job with one of its own.
+      - name: Mint a token that can commit here
+        id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ steps.here.outputs.name }}
+          permission-contents: write
+      - name: Put the change on the branch, signed
+        id: commit
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ steps.admit.outputs.branch }}
+        run: |
+          set -euo pipefail
+          head="$(python3 .spec-tooling/scripts/signed_pin_commit.py --repo "$PLUGIN" \
+            --slug "$REPO" --branch "$BRANCH" --message "$SCRATCH/message.txt")"
+          echo "head=${head}" >> "$GITHUB_OUTPUT"
+
+  # Opened, or the open one edited, only where it is this pin's own (OPS-R87), and
+  # disarmed where the pin did not come out clean.
   pull-request:
-    needs: pin
-    if: needs.pin.outputs.head != ''
+    needs: commit
+    if: needs.commit.outputs.head != ''
     permissions:
       contents: read
     uses: ./.github/workflows/rolling-pull-request.yml
     with:
-      branch: ${{ needs.pin.outputs.branch }}
-      head: ${{ needs.pin.outputs.head }}
-      title: ${{ needs.pin.outputs.title }}
-      body: ${{ needs.pin.outputs.body }}
+      branch: ${{ needs.commit.outputs.branch }}
+      head: ${{ needs.commit.outputs.head }}
+      title: ${{ needs.commit.outputs.title }}
+      body: ${{ needs.commit.outputs.body }}
+      disarm: ${{ needs.commit.outputs.clean != 'yes' }}
     secrets:
       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
