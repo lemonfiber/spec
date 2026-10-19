@@ -259,6 +259,13 @@ Decisions about a repository outside this organisation, such as
 |---|---|
 | `lemonfiber plugin record` scrubs the recording machine's own name, kernel version and operating system, as the engine API reports them, wherever they appear, as it scrubs a container's identity; a number an answer gives about the machine, such as its count of processors, stays as answered. `ARCH-R297` is amended in place | [ARCH-R297](../20-architecture/contracts/plugin-manifest.md) |
 
+## 2026-10-20
+
+| Decision | Where it lives |
+|---|---|
+| A manifest is refused where a claim whose capability a service an adapter of the same plugin `fronts` provides binds a probe whose vocabulary entry says `credential = "operator"`, naming the probe and the adapter. lemonfiber holds only the adapter's key for such a service, and a check of it goes through the adapter's conformance cases. `ARCH-R295` is amended in place to point at it | [ARCH-R302, ARCH-R295](../20-architecture/contracts/plugin-manifest.md) |
+| `ARCH-R302` ships in 0.18.0 with `ARCH-R295`, the goal it closes | [0.18.0](../70-operations/versions/0.18.0.toml) |
+
 ## Requirements
 
 | ID | Requirement |

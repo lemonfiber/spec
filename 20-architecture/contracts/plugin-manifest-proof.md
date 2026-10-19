@@ -321,7 +321,9 @@ Once its `health` passes, its first run is the core's own: the in-process adapte
 names performs it for a part the bundle assembles, and the plugin's adapter performs it
 over its contract, as install does, for a service that adapter `fronts`. A probe whose
 vocabulary entry says `credential = "operator"` is asked with the key that first run left
-lemonfiber holding; anything else presents nothing the manifest does not write. Each
+lemonfiber holding. A service an adapter fronts has no such probe, because the manifest
+refuses one there (`ARCH-R302`). Anything else presents nothing the manifest does not
+write. Each
 recording keeps the request as declared, the status, the `content-type`, the body as
 parsed JSON or its first 1 KiB, and the `note` already there.
 
