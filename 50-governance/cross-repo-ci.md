@@ -357,7 +357,9 @@ publishes a service image from a train tag and tells the stack to pin it, publis
 one from every commit on `main` as `main-<commit>` and tells nobody, and, where the
 service declares itself in a `plugin.toml`, moves that manifest's pin through
 `manifest-pin` for both as a first-party plugin's image does (**OPS-R90**,
-**OPS-R91**), and
+**OPS-R91**). `manifest-pin` takes every recording the manifest names again from the
+new image and writes `proofs.json` from them in a job holding no secret, and commits
+them with the pin through `pin_bump.py`, as `upstream-pin` does.
 `rust-coverage` holds a crate to 100% line coverage and gates it on zero
 SonarCloud issues. The sites have theirs: `site-pins` holds the revisions a site
 renders to the sources its pages read, `site-links` fetches every address a
@@ -370,7 +372,9 @@ calls `first-party-image`, which proves the image under the posture its manifest
 declares on a pull request (**ARCH-R250**), and from main and a train tag
 publishes it, runs what it published under that posture, and moves the
 manifest's pin on one rolling pull request through `manifest-pin` (**OPS-R90**,
-**OPS-R91**). One whose
+**OPS-R91**). Neither it nor `rust-service-release` publishes from a commit that
+changes nothing but a pin, its recordings, its proofs and its `targets.toml`, so
+merging a pin's pull request opens no other. One whose
 manifest runs an upstream's image calls `upstream-pins` weekly, which moves each such
 pin to the newest release of its major and records every recording again from it, one
 rolling pull request per image (**REPO-R98**).

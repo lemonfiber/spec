@@ -4,12 +4,16 @@
 #
 # On a pull request the image is built for linux/amd64 and run under its posture,
 # skipped by a job-level condition where `what changed` found only paths nothing here
-# reads (Q-R76). On a push to main it is published as `main-<12 hex>`, and on a train
-# tag as that tag: each platform on a runner of its own architecture, joined under
-# one index carrying BuildKit's SBOM and provenance, with a build-provenance
+# reads (Q-R76). On a push to main it is published as `main-<12 hex>`, unless the
+# push changes nothing of the plugin but a pin, at most its `plugin.toml`,
+# `proofs.json`, `targets.toml` and what is under its `recordings/`, so merging a
+# pin's pull request never starts the next one (OPS-R90). On a train tag it is
+# published as that tag: each platform on a runner of its own architecture, joined
+# under one index carrying BuildKit's SBOM and provenance, with a build-provenance
 # attestation and an SBOM attestation per platform. The published index is then run
-# under its posture, and one rolling pull request sets the `digest` and `tag` of each
-# service of the manifest that runs it.
+# under its posture, and one rolling pull request through `manifest-pin` sets the
+# `digest` and `tag` of each service of the manifest that runs it and takes every
+# recording again from it.
 #
 # The service whose `image` is `ghcr.io/lemonfiber/<image>` says how it is run: its
 # posture, its user, its configuration directory holding the plugin's starting files
@@ -81,6 +85,13 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
           filter: blob:none
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          persist-credentials: false
       - id: diff
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
@@ -115,6 +126,8 @@ jobs:
           KIND: ${{ github.ref_type }}
           REF: ${{ github.ref }}
           NAME: ${{ github.ref_name }}
+          BEFORE: ${{ github.event.before }}
+          TOOLING: ${{ github.workspace }}/.spec-tooling
         run: |
           set -euo pipefail
           if [ -z "$IMAGE_NAME" ]; then
@@ -132,6 +145,12 @@ jobs:
             [ "$REF" = refs/heads/main ] || { echo "::error::${REF} is not main, and no other branch publishes"; exit 1; }
             mode=publish
             tag="main-${GITHUB_SHA:0:12}"
+            pins="$(python3 "$TOOLING/scripts/pin_bump.py" pins-only --before "$BEFORE" --after "$GITHUB_SHA" \
+              --directory "$DIRECTORY")"
+            if [ "$pins" = yes ]; then
+              mode=none
+              echo "::notice::${GITHUB_SHA} changes nothing of the plugin but a pin, so no image is published from it"
+            fi
           elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = tag ]; then
             if [[ ! "$NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$ ]] \
               || [[ "$NAME" =~ ^v[0-9.]+-rc[0-9]*(\.|$) ]]; then

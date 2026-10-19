@@ -3,8 +3,14 @@
 #
 # A push to `main` publishes the commit as `main-<12 hex>`, and a tag `vX.Y.Z`, or
 # `vX.Y.Z-<identifier>` for a pre-release, on a commit `main` holds publishes that
-# tag. Each platform is built on a runner of its own architecture and pushed by
-# digest; the two are joined under one multi-architecture index at
+# tag. A push to `main` whose change from the commit before it is only a pin's, at
+# most `plugin.toml`, `proofs.json`, `targets.toml` and what is under `recordings/`,
+# publishes nothing, so merging a pin's pull request never starts the next one
+# (OPS-R90). The push's commits before and after are compared here, so a caller
+# needs no path filter of its own.
+#
+# Each platform is built on a runner of its own architecture and pushed by digest;
+# the two are joined under one multi-architecture index at
 # `ghcr.io/lemonfiber/<service>:<tag>`, which carries BuildKit's SBOM and
 # provenance, and gets a build-provenance attestation and an SBOM attestation per
 # platform from GitHub. The index digest is recorded in the run summary.
@@ -12,14 +18,15 @@
 # A train tag's digest is handed to `lemonfiber-media-stack`'s `image-bump`, which
 # opens the pull request pinning it; a commit image is never handed on and never
 # announced. Where the repository declares itself in a `plugin.toml` (ADR-0045 §1),
-# `manifest-pin` proposes the image as the one its services run: a commit image on
-# the rolling `release/image-commit-pin` branch, and a train tag, at the version the
-# manifest declares, on `release/image-pin`. So a service's own run proofs can be
-# taken from the image `main` builds before any release is cut.
+# `manifest-pin` proposes the image as the one its services run, with every
+# recording the manifest names taken again from it and `proofs.json` written from
+# them: a commit image on the rolling `release/image-commit-pin` branch, and a train
+# tag, at the version the manifest declares, on `release/image-pin`. So a service's
+# own run proofs are taken from the image `main` builds before any release is cut.
 #
 # Building, publishing and attesting hold the run's own token and nothing of the
-# caller's secrets; the release App's key reaches only `tell` and `manifest-pin`,
-# which check out and run nothing of the repository's.
+# caller's secrets; the release App's key reaches only `tell` and the jobs of
+# `manifest-pin` that hold it, which run nothing of the repository's.
 #
 # The service id is the calling repository's name without `lemonfiber-`
 # (ADR-0033 §1), so every image repository calls this with nothing to say:
@@ -73,17 +80,27 @@ jobs:
       tag: ${{ steps.what.outputs.tag }}
       kind: ${{ steps.what.outputs.kind }}
       manifest: ${{ steps.what.outputs.manifest }}
+      publish: ${{ steps.what.outputs.publish }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          persist-credentials: false
       - name: A commit on main, or a tag the train cuts on main at the version the crate and its manifest declare
         id: what
         env:
           NAME: ${{ github.ref_name }}
           KIND: ${{ github.ref_type }}
           REPO: ${{ github.event.repository.name }}
+          BEFORE: ${{ github.event.before }}
+          TOOLING: ${{ github.workspace }}/.spec-tooling
         run: |
           set -euo pipefail
           service="${REPO#lemonfiber-}"
@@ -93,12 +110,18 @@ jobs:
           fi
           manifest=false
           [ -e plugin.toml ] && manifest=true
+          publish=yes
 
           # A push, and nothing else: a dispatch could carry the same ref without
           # being what main or the train holds.
           if [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = branch ] && [ "$GITHUB_REF" = refs/heads/main ]; then
             kind=commit
             tag="main-${GITHUB_SHA:0:12}"
+            pins="$(python3 "$TOOLING/scripts/pin_bump.py" pins-only --before "$BEFORE" --after "$GITHUB_SHA")"
+            if [ "$pins" = yes ]; then
+              publish=no
+              echo "::notice::${GITHUB_SHA} changes nothing but a pin, so no image is published from it"
+            fi
           elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = tag ] && [[ "$GITHUB_REF" = refs/tags/* ]]; then
             kind=tag
             tag="$NAME"
@@ -142,11 +165,13 @@ jobs:
             echo "tag=${tag}"
             echo "kind=${kind}"
             echo "manifest=${manifest}"
+            echo "publish=${publish}"
           } >> "$GITHUB_OUTPUT"
-          echo "publishing ${REGISTRY}/${service}:${tag}"
+          [ "$publish" = no ] || echo "publishing ${REGISTRY}/${service}:${tag}"
 
   build:
     needs: settle
+    if: needs.settle.outputs.publish == 'yes'
     strategy:
       matrix:
         include:
@@ -319,8 +344,7 @@ jobs:
 
   # The manifest is the bundle's source for this image once the bundle pins this
   # repository (ADR-0045 §1, §5). `manifest-pin` puts a commit image on the commit
-  # branch and a train tag on the tag branch, and pins nothing from a commit that
-  # merges a pin.
+  # branch and a train tag on the tag branch, with every recording taken again from it.
   manifest:
     needs: [settle, publish]
     if: needs.settle.outputs.manifest == 'true'

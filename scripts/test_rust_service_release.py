@@ -1,6 +1,6 @@
 """`rust-service-release.yml`'s settle step and what it hands on: a commit on main as
-`main-<12 hex>`, or the tag a train cut at the version the crate and, where the repository
-holds one, its plugin.toml declare."""
+`main-<12 hex>` unless it changes nothing but a pin, or the tag a train cut at the version
+the crate and, where the repository holds one, its plugin.toml declare."""
 
 from __future__ import annotations
 
@@ -15,7 +15,8 @@ import unittest
 import workflow_steps
 import yaml
 
-WORKFLOW = pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/rust-service-release.yml"
+TOOLING = pathlib.Path(__file__).resolve().parent.parent
+WORKFLOW = TOOLING / ".github/workflows/rust-service-release.yml"
 GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "commit.gpgsign=false",
        "-c", "core.hooksPath=/dev/null")
 SETTLE = "A commit on main, or a tag the train cuts on main at the version the crate and its manifest declare"
@@ -35,7 +36,7 @@ class Settle(unittest.TestCase):
         (self.root / "Cargo.toml").write_text('[package]\nname = "decline"\nversion = "0.18.0"\n')
 
     def settled(self, manifest: str | None = None, tag: str = "v0.18.0", event: str = "push",
-                ref: str = "") -> tuple[int, dict, str]:
+                ref: str = "", before: str = "") -> tuple[int, dict, str]:
         if manifest is not None:
             (self.root / "plugin.toml").write_text(manifest)
         subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
@@ -48,7 +49,8 @@ class Settle(unittest.TestCase):
         output = self.root / ".output"
         env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(output), "GITHUB_EVENT_NAME": event,
                "GITHUB_REF": ref, "GITHUB_SHA": sha, "REGISTRY": "ghcr.io/lemonfiber",
-               "NAME": ref.rsplit("/", 1)[-1], "KIND": kind, "REPO": "lemonfiber-decline"}
+               "NAME": ref.rsplit("/", 1)[-1], "KIND": kind, "REPO": "lemonfiber-decline", "BEFORE": before,
+               "TOOLING": str(TOOLING)}
         done = subprocess.run(["bash", "-c", step("settle", SETTLE)], cwd=self.root, env=env,
                               capture_output=True, text=True)
         said = dict(line.split("=", 1) for line in output.read_text().splitlines()) if output.exists() else {}
@@ -84,7 +86,32 @@ class Settle(unittest.TestCase):
         code, said, _ = self.settled('schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n',
                                      ref="refs/heads/main")
         self.assertEqual(code, 0)
-        self.assertEqual((said["tag"], said["kind"], said["manifest"]), (f"main-{self.sha[:12]}", "commit", "true"))
+        self.assertEqual((said["tag"], said["kind"], said["manifest"], said["publish"]),
+                         (f"main-{self.sha[:12]}", "commit", "true", "yes"))
+
+    def test_a_commit_on_main_changing_nothing_but_a_pin_publishes_nothing(self):
+        manifest = 'schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n'
+        for changed, publish in (({"plugin.toml": manifest + "# moved\n", "recordings/decline/a.json": "{}",
+                                   "proofs.json": "{}"}, "no"),
+                                 ({"plugin.toml": manifest + "# moved\n", "src/main.rs": "fn main() {}"}, "yes")):
+            with self.subTest(changed=sorted(changed)):
+                shutil.rmtree(self.root / ".git")
+                subprocess.run(["git", "init", "--quiet", "--initial-branch=main"], cwd=self.root, check=True)
+                (self.root / "plugin.toml").write_text(manifest)
+                subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
+                subprocess.run([*GIT, "commit", "--quiet", "-m", "before"], cwd=self.root, check=True)
+                before = subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True,
+                                        text=True, check=True).stdout.strip()
+                for path, body in changed.items():
+                    (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                    (self.root / path).write_text(body)
+                code, said, printed = self.settled(ref="refs/heads/main", before=before)
+                self.assertEqual((code, said["publish"], said["kind"]), (0, publish, "commit"))
+                self.assertEqual("no image is published" in printed, publish == "no")
+
+    def test_a_tag_publishes_whatever_its_commit_changed(self):
+        code, said, _ = self.settled(before="0" * 40)
+        self.assertEqual((code, said["publish"]), (0, "yes"))
 
     def test_another_branch_or_another_event_publishes_nothing(self):
         for event, ref in (("push", "refs/heads/feature"), ("workflow_dispatch", "refs/heads/main"),
@@ -101,7 +128,7 @@ class Settle(unittest.TestCase):
         subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
         env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(self.root / ".output"), "GITHUB_EVENT_NAME": "push",
                "GITHUB_REF": "refs/heads/main", "GITHUB_SHA": "0" * 40, "REGISTRY": "ghcr.io/lemonfiber",
-               "NAME": "main", "KIND": "branch", "REPO": "decline"}
+               "NAME": "main", "KIND": "branch", "REPO": "decline", "BEFORE": "", "TOOLING": str(TOOLING)}
         done = subprocess.run(["bash", "-c", step("settle", SETTLE)], cwd=self.root, env=env,
                               capture_output=True, text=True)
         self.assertNotEqual(done.returncode, 0)
@@ -170,8 +197,9 @@ class HandedOn(unittest.TestCase):
 
     JOBS = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
 
-    def test_only_a_train_tag_tells_the_stack(self):
+    def test_only_a_train_tag_tells_the_stack_and_only_what_settle_publishes_is_built(self):
         self.assertEqual(self.JOBS["pin"]["if"], "needs.settle.outputs.kind == 'tag'")
+        self.assertEqual(self.JOBS["build"]["if"], "needs.settle.outputs.publish == 'yes'")
         self.assertEqual(self.JOBS["manifest"]["if"], "needs.settle.outputs.manifest == 'true'")
         self.assertTrue(self.JOBS["manifest"]["uses"].endswith("manifest-pin.yml"))
 

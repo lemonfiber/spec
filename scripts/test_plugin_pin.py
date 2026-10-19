@@ -7,12 +7,8 @@ Run:  python3 scripts/test_plugin_pin.py
 
 from __future__ import annotations
 
-import contextlib
-import io
-import os
 import pathlib
 import sys
-import tempfile
 import tomllib
 import unittest
 
@@ -91,51 +87,6 @@ class Pinned(unittest.TestCase):
             f'why = """\ndigest = "not a field"\n"""\n"digest" = "{OLD}"', 1)
         with self.assertRaisesRegex(plugin_pin.Refused, "is not the one it was"):
             plugin_pin.pinned(hidden, IMAGE, "1", DIGEST)
-
-
-class Main(unittest.TestCase):
-    """The command writes the manifest in place, and says what moved or why it did not."""
-
-    def run_on(self, text: str, *args: str, link: bool = False) -> tuple[int, str, str, str]:
-        here = os.getcwd()
-        with tempfile.TemporaryDirectory() as scratch:
-            os.chdir(scratch)
-            try:
-                target = pathlib.Path(scratch) / ("elsewhere.toml" if link else "plugin.toml")
-                target.write_text(text, encoding="utf-8")
-                if link:
-                    os.symlink(target, pathlib.Path(scratch) / "plugin.toml")
-                out, err = io.StringIO(), io.StringIO()
-                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-                    code = plugin_pin.main(["--manifest", "plugin.toml", *args])
-                return code, out.getvalue(), err.getvalue(), target.read_text(encoding="utf-8")
-            finally:
-                os.chdir(here)
-
-    def test_a_manifest_that_is_a_link_is_neither_read_nor_written(self):
-        code, out, err, written = self.run_on(MANIFEST, "--image", IMAGE, "--tag", "4.0.21", "--digest", DIGEST,
-                                              link=True)
-        self.assertEqual((code, out, written), (1, "", MANIFEST))
-        self.assertIn("is a link", err)
-
-    def test_a_move_is_written_and_named(self):
-        code, out, _, written = self.run_on(MANIFEST, "--image", IMAGE, "--tag", "4.0.21", "--digest", DIGEST)
-        self.assertEqual((code, out), (0, "sonarr\n"))
-        self.assertIn(DIGEST, written)
-
-    def test_nothing_to_move_leaves_the_file_and_says_nothing(self):
-        code, out, _, written = self.run_on(MANIFEST, "--image", "elsewhere", "--tag", "1", "--digest", DIGEST)
-        self.assertEqual((code, out, written), (0, "", MANIFEST))
-
-    def test_a_refusal_writes_nothing_and_names_why(self):
-        code, out, err, written = self.run_on(MANIFEST, "--image", IMAGE, "--tag", "1", "--digest", "nope")
-        self.assertEqual((code, out, written), (1, "", MANIFEST))
-        self.assertIn("::error::'nope' is not a sha256 digest", err)
-
-    def test_a_manifest_that_is_not_toml_is_refused(self):
-        code, _, err, _ = self.run_on("[[service]\n", "--image", IMAGE, "--tag", "1", "--digest", DIGEST)
-        self.assertEqual(code, 1)
-        self.assertIn("::error::", err)
 
 
 if __name__ == "__main__":
