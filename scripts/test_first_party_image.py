@@ -110,7 +110,8 @@ class Plan(workflow_steps.Scratch):
             (self.root / path).write_text(content, encoding="utf-8")
         plan = self.root / "run.json"
         env = {"PATH": os.environ["PATH"], "IMAGE": IMAGE, "IMAGE_NAME": "door", "DIRECTORY": str(self.root),
-               "PREPARE": prepare, "RUN_PLAN": str(plan), "CONFIG_COPY": str(self.root / "copy")}
+               "PREPARE": prepare, "RUN_PLAN": str(plan), "CONFIG_COPY": str(self.root / "copy"),
+               "MOUNT_TREE": str(self.root / "mounts")}
         done = subprocess.run(["python3", "-I", "-c", embedded("posture", "How the manifest says it runs")],
                               env=env, capture_output=True, text=True)
         return done.returncode, (json.loads(plan.read_text()) if plan.exists() else {}), done.stdout
@@ -171,18 +172,44 @@ C = { url_of = "media.serve" }
         self.assertIn("so it is run as service door is", said)
 
     MOUNTED = '\n[[service.mount]]\nfrom = "Caddyfile"\nto = "/etc/caddy/Caddyfile"\nro = true\n'
+    WRITABLE = '\n[[service.mount]]\nfrom = "data"\nto = "/data"\n\n[[service.mount]]\nfrom = "state/config"\nto = "/config"\n'
 
-    def test_a_further_mount_comes_from_the_starting_files(self):
-        manifest = self.SERVICE + self.MOUNTED
-        code, plan, _ = self.planned(manifest, {"config/door/Caddyfile": ":8080\n"})
+    def test_a_writable_mount_is_an_empty_directory_of_its_own_mount_tree(self):
+        code, plan, _ = self.planned(self.SERVICE + self.WRITABLE, {"config/door/data/kept": "x"})
         self.assertEqual(code, 0)
-        self.assertIn(f"{self.root / 'copy' / 'Caddyfile'}:/etc/caddy/Caddyfile:ro", plan["args"])
+        tree = self.root / "mounts/door"
+        self.assertIn(f"{tree / 'data'}:/data", plan["args"])
+        self.assertIn(f"{tree / 'state/config'}:/config", plan["args"])
+        self.assertEqual([*(tree / "data").iterdir(), *(tree / "state/config").iterdir()], [])
+        self.assertEqual((self.root / "copy/data/kept").read_text(), "x")
 
-    def test_a_mount_the_starting_files_do_not_hold_is_refused(self):
-        for source in ("../../etc", "absent"):
+    def test_a_read_only_mount_is_of_its_own_mount_tree_and_left_to_the_engine(self):
+        code, plan, said = self.planned(self.SERVICE + self.MOUNTED, {"config/door/Caddyfile": ":8080\n"})
+        self.assertEqual(code, 0)
+        self.assertIn(f"{self.root / 'mounts/door/Caddyfile'}:/etc/caddy/Caddyfile:ro", plan["args"])
+        self.assertFalse((self.root / "mounts/door/Caddyfile").exists())
+        self.assertIn("the engine makes it an empty directory", said)
+
+    def test_a_source_outside_its_own_tree_or_inside_another_is_refused(self):
+        for source in ("../../etc", "/etc", "a/./b", "a//b", "", "${HOME}", "Caddyfile/inner"):
             with self.subTest(source=source):
-                manifest = self.SERVICE + self.MOUNTED.replace('"Caddyfile"', f'"{source}"')
-                self.assertNotEqual(self.planned(manifest, {"config/door/Caddyfile": "x"})[0], 0)
+                manifest = self.SERVICE + self.MOUNTED + self.MOUNTED.replace('"Caddyfile"', f'"{source}"', 1).replace(
+                    "/etc/caddy/Caddyfile", "/elsewhere")
+                code, plan, _ = self.planned(manifest)
+                self.assertNotEqual(code, 0)
+                self.assertEqual(plan, {})
+
+    def test_a_target_a_mount_may_not_land_at_is_refused(self):
+        for target, takes_data in (("/", False), ("relative", False), ("/a/../b", False), ("/data/x", True),
+                                   ("/etc/caddy/Caddyfile", False)):
+            with self.subTest(target=target):
+                manifest = self.SERVICE + ("takes_data = true\n" if takes_data else "") + self.MOUNTED + (
+                    self.MOUNTED.replace('"Caddyfile"', '"other"', 1).replace("/etc/caddy/Caddyfile", target))
+                self.assertNotEqual(self.planned(manifest)[0], 0)
+
+    def test_a_target_in_the_data_mount_is_held_only_where_it_takes_data(self):
+        self.assertEqual(self.planned(self.SERVICE + self.WRITABLE)[0], 0)
+        self.assertNotEqual(self.planned(self.SERVICE + "takes_data = true\n" + self.WRITABLE)[0], 0)
 
     def test_posture_prepare_is_run_where_the_plugin_holds_one_and_none_is_named(self):
         self.assertEqual(self.planned(self.SERVICE, {"posture/prepare": "#!/bin/sh\n"})[1]["prepare"], "posture/prepare")
