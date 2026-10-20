@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 35 built, 34 building, 20 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 36 built, 33 building, 20 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -82,6 +82,7 @@ code, and the two move independently.
 | [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
 | [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
 | [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |
+| [N29](n-companion/n29-a-key-for-an-app.md) | A key for an app | N | operator | accepted | `0.18.0` |
 
 ## Building — work has started and is not finished
 
@@ -119,7 +120,6 @@ code, and the two move independently.
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
 | [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0` |
 | [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | — |
-| [N29](n-companion/n29-a-key-for-an-app.md) | A key for an app | N | operator | accepted | `0.18.0` |
 | [N30](n-companion/n30-testing-making-room-and-sharing-the-line.md) | Testing, making room and sharing the line | N | operator | accepted | — |
 
 ## Planned — specified, not yet built
