@@ -69,6 +69,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0048](0048-a-part-without-a-port-is-proved-by-running-its-own-program.md) | A part without a port is proved by running its own program | Accepted |
 | [0049](0049-a-moved-pin-is-recorded-again-by-the-core.md) | A moved pin is recorded again by the core | Accepted |
 | [0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md) | A contract hands its filler all it enforces, and reads back no secret | Accepted |
+| [0051](0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md) | A fresh claimant answers its probe, and the core asks what nothing else does | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

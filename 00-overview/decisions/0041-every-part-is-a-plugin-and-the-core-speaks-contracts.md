@@ -20,6 +20,8 @@
 
 **Amended** by [ADR-0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): §5. The stream guard is applied the media server filler's declaration verbatim inside an envelope that also holds the one proxy address it trusts and where it asks the core about a live-stream pass, and the declaration names the paths it refuses and the query parameters that name another item.
 
+**Amended** by [ADR-0051](0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md): §6. A capability is asked by something in the bundle or by the core over its contract; the core asks `quality.sync`, `archive.extract`, `stream.guard` and `invite.decline`.
+
 **Supersedes** [ADR-0024](0024-what-opens-and-what-never-does.md) where it holds the
 adapter set closed: behaviour no longer lives in lemonfiber's process at all.
 **Amends**:
