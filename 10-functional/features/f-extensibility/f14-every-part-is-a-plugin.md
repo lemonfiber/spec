@@ -92,8 +92,10 @@ would reach before it acts.
 ### The guard follows the media server
 
 The media server's filler declares how its bytes are guarded: which paths carry them,
-what question decides whether a session may have them, and in what form a member's token
-is presented. The stream guard's filler enforces exactly that. Every location a member is
+what question decides whether a session may have them, which paths are refused without
+asking, which query parameters name another item, and in what form a member's token is
+presented. The stream guard's filler enforces exactly that, with the one proxy address it
+trusts and where it asks the core about a live-stream pass beside it. Every location a member is
 given, the stream and the pictures alike, is built from templates the filler declares, so
 a member's app works the same against any media server.
 

@@ -146,28 +146,27 @@ behaviour: a bundled service that stops declaring a capability changes what
 lemonfiber publishes, and a change nobody meant shows up as a diff in a generated
 artefact rather than as a plugin that stopped wiring six months later.
 
-### A capability is something one service asks another for
+### A capability is something the stack asks for
 
-That sentence is the whole admission test, and four of the twenty bundled
-services fail it:
+That sentence is the whole admission test, and every bundled part passes it. The four
+below are configured by lemonfiber rather than queried by another service, and each
+still fills the capability `F14-R8` names for it
+([ADR-0041](../../00-overview/decisions/0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md)
+§6), so a substitute stands in for it as for any other filler.
 
-| Service | Why it declares nothing |
-|---------|-------------------------|
-| Recyclarr | Writes quality profiles into the curating services' own configuration. Nothing asks it for anything. |
-| Unpackerr | Watches the filesystem and unpacks what it finds there. Same. |
-| Homepage | Configured by lemonfiber **writing a file**, not by anything asking Homepage a question |
-| Caddy | The same: lemonfiber writes a stanza into a `Caddyfile`. A plugin's `[[wiring]]` asks lemonfiber for a route, not Caddy. |
+| Service | Capability | What filling it means |
+|---------|------------|-----------------------|
+| Recyclarr | `quality.sync` | Writing the quality profiles lemonfiber chooses into each curator's own configuration |
+| Unpackerr | `archive.extract` | Extracting what lands in each curator's download folder, and handing it back to that curator |
+| Homepage | `dashboard.show` | Showing the panel list the wiring derives |
+| Caddy | `proxy.front` | Serving every household name in the routing table lemonfiber applies |
 
-Homepage is the interesting one, because it *is* probeable — it answers
-`/api/widgets` to anybody — and probeable is not the test. A capability exists
-where one service asks another for something while both are running, and
-substituting the answerer is then a change of which service fills it. Nothing in
-this stack asks Homepage anything, so there is nothing to substitute *for*, and
-publishing `dashboard.present` would put a contract in the vocabulary that
-nothing would ever consume.
+Homepage shows why probeable is not the test: it answers `/api/widgets` to anybody, and
+that is not why it provides a capability. It provides `dashboard.show` because lemonfiber
+asks a dashboard to show the panel list, and substituting the dashboard is then a change
+of which service fills it.
 
-A capability earns its place by something needing to ask for it. These four are
-the honest demonstration that the rule bites.
+A capability earns its place by something needing to ask for it.
 
 ## Probes
 
@@ -225,6 +224,25 @@ established nothing — and reporting that as a failure would say the service is
 broken when the runner is. Against a recording it runs like any other, and is
 reported as a proof against recordings and never as one against the service
 (`F10-R6`).
+
+### A probe is a request, unless the capability's fillers listen on nothing
+
+A probe asks a running service a question over the network, because that is how a
+service filling a capability is reached. `quality.sync` is the exception: its contract
+says a service claiming it listens on nothing, since it writes the profiles into each
+curator's own configuration on its own schedule, so no request could reach it.
+
+Its probe is a run instead: ADR-0048's bounded run of the claimant image's own program
+([a proof that runs the image's own program](plugin-manifest-proof.md#a-proof-that-runs-the-images-own-program)),
+judged on `exit` and `stdout_starts_with` and asked as `none`. A claim binds it with
+`run` where every other probe takes `request` (`ARCH-R283`). The generated entry says
+which kind each probe is: a run probe's `requires` lists the exit statuses that answer it
+under `exit`, in place of `status`, and `stdout_starts_with` as its body constraint.
+
+A run probe is allowed only for a capability whose contract says its fillers listen on
+nothing, and `quality.sync` is that capability
+([ADR-0050](../../00-overview/decisions/0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md)). A run probe declared for any other fails generation, as a capability
+nothing declares does (`ARCH-R309`).
 
 ### A probe asks what the service does, never what the library holds
 
@@ -305,6 +323,7 @@ answer from the binary they already have (`F10-R8`).
 | Every `[[claim]]` names a capability in `provides` | Both given |
 | Every probe the capability declares is bound | Probe and capability given |
 | No binding names a probe the capability does not declare | Probe given, with the ones it declares |
+| A binding asks as its probe does, with `run` for a run probe and `request` for any other | Probe given, with the kind it is |
 | A binding's status is one the probe permits | Status given, with the set |
 | A binding carries one of the body constraints the probe requires | Probe given, with the kinds |
 | A binding's `request.accept` is one media type | Value given, with what is permitted |
@@ -319,11 +338,12 @@ answer from the binary they already have (`F10-R8`).
 | **ARCH-R106** | The core capability vocabulary MUST be published as one machine-readable artefact generated from the types lemonfiber reads it with, MUST carry its own generation, and regenerating it MUST produce no diff, with CI failing if it does. |
 | **ARCH-R107** | The set of bundled services declaring each capability MUST be generated from the stack manifest rather than restated, and generating a vocabulary carrying a capability no bundled service declares MUST fail. |
 | **ARCH-R108** | The capability vocabulary, the extension points and the generated manifest schema MUST each be attached to every release under a stable name, and MUST each be readable from the binary with no network, no catalogue and no running stack, stating the generation reported. |
-| **ARCH-R109** | A service claiming a core capability MUST bind every probe that capability declares to a request on itself, an expectation the probe permits and a recorded response; a claim leaving one unbound, naming one the capability does not declare, or carrying an expectation weaker than the probe requires MUST be refused by naming the probe rather than by parse failure. |
+| **ARCH-R109** | A service claiming a core capability MUST bind every probe that capability declares to a request on itself, or to a run of its own image's program where the probe is a run (`ARCH-R309`), an expectation the probe permits and a recorded response; a claim leaving one unbound, naming one the capability does not declare, or carrying an expectation weaker than the probe requires MUST be refused by naming the probe rather than by parse failure. |
 | **ARCH-R110** | A bundled service MUST declare the capabilities it provides in the stack manifest, in this vocabulary, and a name the vocabulary does not carry MUST be refused by name. |
-| **ARCH-R136** | A bundled service MUST prove each capability in its `provides` with one `[[service.claim]]` in the stack manifest, binding every probe to a request on itself, an expectation the probe permits and a response recorded from its pinned image under `recordings/<service id>/`, by the rules a plugin's claim is held to (`ARCH-R109`); a capability with no claim, a claim for one it does not provide, and a recording from any other image MUST each be refused by name. |
+| **ARCH-R136** | A bundled service MUST prove each capability in its `provides` with one `[[service.claim]]` in the stack manifest, binding every probe to a request on itself, or to a run of its own image's program where the probe is a run (`ARCH-R309`), an expectation the probe permits and a response recorded from its pinned image under `recordings/<service id>/`, by the rules a plugin's claim is held to (`ARCH-R109`); a capability with no claim, a claim for one it does not provide, and a recording from any other image MUST each be refused by name. |
 | **ARCH-R137** | Every bundled claim MUST be judged against its recordings on every change to the stack and before lemonfiber is tagged; a refuted probe MUST refuse the change and the tag, naming the service, the capability and the probe, and a probe that could not be judged MUST be reported unproven and MUST NOT be counted as demonstrated (`F9-R2`, `F9-R5`, `ARCH-R122`). |
 | **ARCH-R119** | A capability's probe MUST be satisfiable by a service holding none of the operator's own data, so that a claim does not rest on what the operator has yet put there. |
+| **ARCH-R309** | A capability's probe MUST be a request, except that a capability whose contract says its fillers listen on nothing MAY declare a probe that is a run of the claimant image's own program, performed as `ARCH-R284` performs a run, judged on `exit` and `stdout_starts_with` alone and asked as `none`; `quality.sync` MUST be that capability, and generating a vocabulary declaring a run probe for any other MUST fail. |
 
 ## Related
 

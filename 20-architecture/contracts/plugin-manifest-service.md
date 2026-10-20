@@ -432,10 +432,11 @@ Starting the service starts the capability's filler first and waits until it is 
 whatever profile the filler sits in. That is the one start-order edge allowed to cross a
 profile (`B1-R14`), because the client and the guard are two plugins and so two profiles.
 
-The client never learns the forwarded port from the guard itself: the guard's filler
-reports it over `network.egress-guard`, and the core sets it on the client over
-`download.torrent` ([capability-contracts](capability-contracts.md#the-forwarded-port),
-`ARCH-R251`). No script is mounted into the guard.
+The client never learns the forwarded port from the guard itself: the core asks the
+guard's filler for it over `network.egress-guard` every minute while the stack runs, when
+the stack starts and after a reconnect the doctor observes, and sets it on the client over
+`download.torrent` when it changes ([capability-contracts](capability-contracts.md#the-forwarded-port),
+`ARCH-R251`). No script is mounted into the guard, and no endpoint is opened for it.
 
 ### Shapes — the only route to a device or a privilege
 

@@ -24,6 +24,8 @@
 **Amended** by [ADR-0049](0049-a-moved-pin-is-recorded-again-by-the-core.md): §3. The record mode records
 request proofs, claim probes, contributed checks and conformance cases as well as runs.
 
+**Amended** by [ADR-0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): §1. A capability whose contract says its fillers listen on nothing may declare a probe that is a run of the filler image's own program, judged on `exit` and `stdout_starts_with`; `quality.sync` is that capability, and a claim binds its probe with `run`.
+
 **Amends** [ADR-0008](0008-hybrid-docker-access.md): a proof's container, which no
 Compose project holds, is created, started and removed through the engine API.
 

@@ -165,11 +165,13 @@ why     = "It has no port: the live question is whether the pinned program start
 | `exit` | integer | The exit status. Not sufficient alone, as a response status is not. |
 | `stdout_starts_with` | string | What the standard output must begin with |
 
-`run` is a `[[proof]]`'s alone. A capability's probes are requests the vocabulary
-declares, and a contributed check is a question asked of a running service, so a
-`[[claim.probe]]` and a check take `request` and nothing else. A run's `expect` takes
-these two keys and no other, and a request's takes none of them; each is refused by
-name where the other's is written (`ARCH-R283`).
+A `[[claim.probe]]` takes `run` only where the vocabulary declares its probe a run,
+which it does for `quality.sync` alone, the one capability whose fillers listen on
+nothing ([capability vocabulary](capability-vocabulary.md#a-probe-is-a-request-unless-the-capabilitys-fillers-listen-on-nothing),
+[ADR-0050](../../00-overview/decisions/0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md)); it takes `request` for every other probe. A contributed check is a
+question asked of a running service, so it takes `request` and nothing else. A run's
+`expect` takes these two keys and no other, and a request's takes none of them; each is
+refused by name where the other's is written (`ARCH-R283`).
 
 **The manifest names no program.** `args` go to the entrypoint the image declares,
 the program the service itself runs, so the proof asks the pinned program a question

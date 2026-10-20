@@ -68,6 +68,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0047](0047-a-phone-hears-its-stacks-without-a-vendors-push-service.md) | A phone hears its stacks without a vendor's push service, in the kinds the core declares | Accepted |
 | [0048](0048-a-part-without-a-port-is-proved-by-running-its-own-program.md) | A part without a port is proved by running its own program | Accepted |
 | [0049](0049-a-moved-pin-is-recorded-again-by-the-core.md) | A moved pin is recorded again by the core | Accepted |
+| [0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md) | A contract hands its filler all it enforces, and reads back no secret | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

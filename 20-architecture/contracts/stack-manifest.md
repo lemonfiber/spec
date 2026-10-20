@@ -243,14 +243,13 @@ that file is generated from **this field**: a capability no service here declare
 fails the generation, which is how `F9-R3` — *a capability nothing implements
 MUST NOT be published* — is enforced by the artefact refusing to be built.
 
-A bundled service that declares nothing has given an answer rather than made an
-omission. Recyclarr writes quality profiles into other services' configuration
-and Unpackerr watches the filesystem; Homepage and Caddy are configured by
-lemonfiber writing a file rather than by anything asking them a question; the
-request gate carries the request service's asks rather than answering any of its
-own, and the decline service answers an invitee's browser rather than another
-service. A capability is something one service asks another for while both are
-running, and nothing asks these — so there is nothing to stand in for.
+Every bundled part provides a capability, so every part has a slot a substitute can
+fill (`F14-R8`). The parts lemonfiber configures rather than another service queries
+provide one too: Recyclarr `quality.sync`, Unpackerr `archive.extract`, Homepage
+`dashboard.show` and Caddy `proxy.front`, with the stream guard, the decline service
+and the request gate providing `stream.guard`, `invite.decline` and `request.gate`
+([ADR-0041](../../00-overview/decisions/0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md)
+§6).
 
 ### `[[service.claim]]` — the evidence for what it provides
 
@@ -284,7 +283,8 @@ fixture = "recordings/jellyfin/media-serve-catalogue.json"
 |-------|------|----------|-------|
 | `capability` | string | ✔ | A capability in this service's `provides` |
 | `probe[].id` | string | ✔ | Names a probe the capability declares. Every one of them, exactly once. |
-| `probe[].request` | table | ✔ | `method`, `path`, and optionally `accept`, on this service. As a plugin's [request](plugin-manifest.md#what-a-request-may-ask-for). |
+| `probe[].request` | table | ✔ unless `run` | `method`, `path`, and optionally `accept`, on this service. As a plugin's [request](plugin-manifest.md#what-a-request-may-ask-for). |
+| `probe[].run` | table | ✔ for a run probe | As a plugin's [`probe[].run`](plugin-manifest.md#claim--the-probes-a-core-name-is-demonstrated-by), where the vocabulary declares the probe a run. |
 | `probe[].expect` | table | ✔ | What the answer must be, within what the probe permits. |
 | `probe[].fixture` | string | ✔ | The recorded response, under `recordings/<service id>/` in the stack directory. |
 
@@ -306,8 +306,9 @@ the same probe is refused the same way. A probe that cannot be judged — its
 recording absent, unreadable, or of another request — is reported unproven, naming
 the recording, and is never counted as demonstrated (`ARCH-R122`).
 
-The four services that provide nothing carry no claim, and there is nothing to
-prove for them: a claim with no capability in `provides` to answer is refused.
+A claim with no capability in `provides` to answer is refused. A claim of
+`quality.sync` binds its probe with `run`, the one capability whose probe is a run
+([capability vocabulary](capability-vocabulary.md#a-probe-is-a-request-unless-the-capabilitys-fillers-listen-on-nothing)).
 
 ### `reaches` and `asks_for` — the errand, where the errand is decided
 

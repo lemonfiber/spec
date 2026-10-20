@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 534 goals, seeded from the roadmap milestone this version serves;
+# 541 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -860,6 +860,13 @@ goals   = [
     "ARCH-R300",
     "ARCH-R301",
     "ARCH-R302",
+    "ARCH-R303",
+    "ARCH-R304",
+    "ARCH-R305",
+    "ARCH-R306",
+    "ARCH-R307",
+    "ARCH-R308",
+    "ARCH-R309",
 ]
 
 # `ARCH-R295` to `ARCH-R297` record every recording a manifest names again from its pin
@@ -869,6 +876,14 @@ goals   = [
 # amended in place to name them. A first-party plugin's upstream pins cannot move once
 # the media stack is frozen without them. Added after staging by the maintainer's
 # decision of 2026-10-13 (OPS-R31).
+#
+# `ARCH-R303` to `ARCH-R309` say what the seven contracts `F14-R8` names carry (ADR-0050):
+# the stream guard's envelope and the refusals the media server declares, the gate's routes
+# with their credentials and token hashes, decline's key and invitations, the extractor's
+# curators, the dashboard's panel list and widgets, and quality sync's probe as a run of its
+# own program. `ARCH-R109`, `ARCH-R136`, `ARCH-R206`, `ARCH-R207`, `ARCH-R251` and
+# `ARCH-R283` are amended in place.
+# Added by the maintainer's decision of 2026-10-20 (OPS-R31).
 #
 # `ARCH-R302` refuses a manifest whose claim binds a probe asked as the operator for a
 # capability a service an adapter fronts provides, the one case `ARCH-R295` could not
