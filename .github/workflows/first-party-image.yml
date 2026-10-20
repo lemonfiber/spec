@@ -17,10 +17,12 @@
 #
 # The service whose `image` is `ghcr.io/lemonfiber/<image>` says how it is run: its
 # posture, its user, its configuration directory holding the plugin's starting files
-# under `config/<service id>/` and each further mount from among them, its scratch
-# space, its constant environment, its memory limit and its health check. Until the
-# manifest names the image, the service whose id is the plugin's says it, and where
-# there is none it is run under `standard` and waited on as its own health check says.
+# under `config/<service id>/`, each further mount from the service's own mount tree
+# apart from it, a writable source an empty directory as lemonfiber makes it
+# (ARCH-R227), its scratch space, its constant environment, its memory limit and its
+# health check. Until the manifest names the image, the service whose id is the
+# plugin's says it, and where there is none it is run under `standard` and waited on
+# as its own health check says.
 # The image is `ghcr.io/lemonfiber/<plugin id>` unless `image` names another.
 # `prepare`, `posture/prepare` where the plugin holds one, is a script of the plugin's
 # run with that configuration directory's copy before the container starts, for what
@@ -363,12 +365,30 @@ jobs:
           PREPARE: ${{ inputs.prepare }}
           RUN_PLAN: ${{ runner.temp }}/run.json
           CONFIG_COPY: ${{ runner.temp }}/config
+          MOUNT_TREE: ${{ runner.temp }}/mounts
         run: |
           set -euo pipefail
           python3 -I - <<'PY'
-          import json, os, pathlib, sys, tomllib
+          import json, os, pathlib, re, sys, tomllib
 
           STANDARD = ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID", "KILL"]
+          PLAIN = re.compile(r"[A-Za-z0-9._/-]+")
+          DATA = "/data"
+
+
+          def is_source(path):
+              """A plain relative path inside the service's own mount tree, with no empty, . or .. step."""
+              return bool(PLAIN.fullmatch(path)) and not path.startswith("/") and all(
+                  step not in ("", ".", "..") for step in path.split("/"))
+
+
+          def is_target(path, takes_data):
+              """One plain absolute path, not the root, and outside the data mount where it takes data."""
+              if not PLAIN.fullmatch(path) or not path.startswith("/") or path == "/" or ".." in path:
+                  return False
+              return not (takes_data and (path == DATA or path.startswith(DATA + "/")))
+
+
           root = pathlib.Path(os.environ["DIRECTORY"])
           image, name = os.environ["IMAGE"], os.environ["IMAGE_NAME"]
           manifest = tomllib.loads((root / "plugin.toml").read_text(encoding="utf-8"))
@@ -414,11 +434,20 @@ jobs:
                       target.write_bytes(path.read_bytes())
           mounted = f"{copy}:{service.get('config_path') or '/config'}"
           args += ["--volume", mounted + (":ro" if service.get("config_ro") else "")]
-          for mount in service.get("mount", []):
-              source = copy / str(mount["from"])
-              if not source.resolve().is_relative_to(copy.resolve()) or not source.exists():
-                  sys.exit(f"::error::service {ident} mounts {mount['from']}, which its starting files under config/{ident}/ do not hold")
-              args += ["--volume", f"{source}:{mount['to']}" + (":ro" if mount.get("ro") else "")]
+          mounts = service.get("mount", [])
+          sources = [str(mount.get("from", "")) for mount in mounts]
+          targets = [str(mount.get("to", "")) for mount in mounts]
+          tree = pathlib.Path(os.environ["MOUNT_TREE"]) / ident
+          for mount, source, target in zip(mounts, sources, targets):
+              if not is_source(source) or any(source.startswith(other + "/") for other in sources):
+                  sys.exit(f"::error::service {ident} mounts {source!r}, which is not a plain relative path in its mount tree mounts/{ident}/, or lies inside another of its sources (ARCH-R227)")
+              if not is_target(target, bool(service.get("takes_data"))) or targets.count(target) > 1:
+                  sys.exit(f"::error::service {ident} mounts {source} at {target!r}, which is not a plain absolute path other than /, lies in /data on a service that takes data, or is another of its mounts' targets (ARCH-R227)")
+              if mount.get("ro"):
+                  print(f"::notice::service {ident} mounts {source} read-only, which lemonfiber does not make, so the engine makes it an empty directory as it starts")
+              else:
+                  (tree / source).mkdir(parents=True, exist_ok=True)
+              args += ["--volume", f"{tree / source}:{target}" + (":ro" if mount.get("ro") else "")]
           for scratch in service.get("tmpfs", []):
               args += ["--tmpfs", str(scratch)]
           if service.get("mem_limit_mib"):
