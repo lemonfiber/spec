@@ -4,6 +4,8 @@
 **Date:** 2026-09-28
 **Decided:** 2026-09-28, by the maintainer, Wessel Verheij: accepted with Seerr's removals of a title with its files forwarded through the gate rather than refused, and locked in 0.17.0. Revised 2026-10-03, by the maintainer: the calls are stated as Seerr v3.5.0 makes them, the gate's own answers are fixed, and the core writes into each Jellyfin route the majors the gate forwards to.
 
+**Amended** by [ADR-0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): §2 and §4. Each route's upstream credential and the hashes of the tokens it admits reach the gate in the routes applied over `request.gate`, so applying the routes applies the tokens, and `the routes it admits` answers each credential's fingerprint, never its value.
+
 ## Context
 
 [C6](../../10-functional/features/c-trust/c6-web-security.md)'s `C6-R20` lets a household-tier service hold a credential that is administrative on

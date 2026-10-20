@@ -18,6 +18,8 @@
 
 **Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): a part's repository and manifest exist before its adapter does, and the bundle assembles a part without one into the stack lemonfiber ships (§4); decline and the request gate declare themselves in `lemonfiber-decline` and `lemonfiber-request-gate`.
 
+**Amended** by [ADR-0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): §5. The stream guard is applied the media server filler's declaration verbatim inside an envelope that also holds the one proxy address it trusts and where it asks the core about a live-stream pass, and the declaration names the paths it refuses and the query parameters that name another item.
+
 **Supersedes** [ADR-0024](0024-what-opens-and-what-never-does.md) where it holds the
 adapter set closed: behaviour no longer lives in lemonfiber's process at all.
 **Amends**:

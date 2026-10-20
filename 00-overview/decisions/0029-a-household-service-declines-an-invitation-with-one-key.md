@@ -4,6 +4,8 @@
 **Date:** 2026-09-25
 **Decided:** 2026-09-25, by the maintainer, Wessel Verheij: with the D6-R15 rewording, the new C6 requirement, CorsHosts naming the household front-door origin, and Homepage holding no Jellyfin key. Revised 2026-10-05, by the maintainer: the service also takes back every invitation whose window closes, removing an account nobody was ever seen in with `DELETE /Users/{id}` under five guards read just before the call, and switching off one somebody has been in (§2a).
 
+**Amended** by [ADR-0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): §5. The key reaches the decline service over `invite.decline`'s `hold`, and the invitations over `apply the invitations it may decline`, each as its token's hash, its account and when it lapses; `held` answers the key's fingerprint, never its value.
+
 ## Context
 
 `D6-R15` gives every invitation a decline address, `G5-R14` puts it in the
