@@ -433,8 +433,9 @@ whatever profile the filler sits in. That is the one start-order edge allowed to
 profile (`B1-R14`), because the client and the guard are two plugins and so two profiles.
 
 The client never learns the forwarded port from the guard itself: the core asks the
-guard's filler for it over `network.egress-guard` every minute while the stack runs, when
-the stack starts and after a reconnect the doctor observes, and sets it on the client over
+guard's filler for it over `network.egress-guard` every minute while the stack runs (from
+the hosted `watch` loop, and from the dashboard's gather while a surface is open), when the
+stack starts and after every diagnosis whose VPN check ran, and sets it on the client over
 `download.torrent` when it changes ([capability-contracts](capability-contracts.md#the-forwarded-port),
 `ARCH-R251`). No script is mounted into the guard, and no endpoint is opened for it.
 

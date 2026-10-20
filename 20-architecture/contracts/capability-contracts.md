@@ -213,6 +213,15 @@ the guard (`network.via`), and sets it back to none when forwarding ends, so a c
 re-acquires a port correctly after a reconnect. Where it could not set the port, it says
 the port was not passed rather than failing silently (`ARCH-R251`).
 
+One pass does all of it, at one interval, and two processes run it each minute: the
+hosted `watch` loop, for as long as the stack runs, and the dashboard's gather, while a
+surface is open. A stack with neither has its port checked at the next thing that runs.
+When the stack starts, and after every diagnosis whose VPN check ran against a running
+stack, the pass compares the guard's port with each client's peer port and sets it where
+they differ, whatever the last answer was. That is the reconnect the doctor observes: the
+diagnosis fixes a client off the forwarded port itself, journals it and says so, and
+offers no separate repair for it.
+
 Nothing is mounted into the guard for this, no endpoint is opened for it to call, and the
 guard holds no credential of the client's: the port crosses through the core, contract to
 contract, so a substitute guard or a substitute client takes part on the same terms.
@@ -331,7 +340,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R213** | A service that speaks a capability's contract MUST also provide that capability, and a manifest where one does not MUST be refused by name; that capability MUST be demonstrated by its contract and MUST NOT require a `[[claim]]`. |
 | **ARCH-R214** | Where the service filling a capability speaks that capability's contract, the core MUST ask it over the contract alone and MUST NOT reach it through an adapter of its own. |
 | **ARCH-R217** | A plugin's conformance recordings MUST sit at `conformance/<capability>@<major>/<case>.json` beside its manifest, one per case of each contract it speaks, each in the recording format of `ARCH-R120` and naming the digest the manifest pins for the service its adapter `fronts`, and `lemonfiber plugin conform` MUST judge each recorded answer as the core reads a live one and MUST name each case whose recording is absent, unreadable, of another request or of another digest. |
-| **ARCH-R251** | The core MUST ask the filler of `network.egress-guard` for the forwarded port every minute while the stack runs, when the stack starts and after a reconnect the doctor observes; where the answer differs from the last, it MUST set it over `download.torrent` on every filler of that capability that takes `network.via` that guard, and MUST set it back to none when forwarding ends; where it could not set it, it MUST say the port was not passed rather than fail silently, and nothing MUST be mounted into the guard and no endpoint opened for it. |
+| **ARCH-R251** | The core MUST ask the filler of `network.egress-guard` for the forwarded port every minute while the stack runs, when the stack starts and after a reconnect the doctor observes; where the answer differs from the last, it MUST set it over `download.torrent` on every filler of that capability that takes `network.via` that guard, and MUST set it back to none when forwarding ends; where it could not set it, it MUST say the port was not passed rather than fail silently, and nothing MUST be mounted into the guard and no endpoint opened for it. The hosted `watch` loop MUST run that pass every minute for as long as the stack runs and the dashboard's gather MUST run the same pass at the same interval while a surface is open; after every diagnosis whose VPN check ran against a running stack the core MUST run one pass that sets the port on each client whose peer port differs from the guard's, journalled and said, and the doctor MUST NOT offer a separate repair for it. |
 | **ARCH-R291** | The core MUST generate the key it issues live-stream passes with and keep it to itself, and MUST confirm a pass only at an endpoint it answers on the guard's network alone; the guard MUST NOT hold the key, and MUST ask the core about a pass on every request for a live stream's bytes (`D11-R13`). |
 | **ARCH-R292** | A live-stream pass MUST travel in one fixed place in one spelling, held to an exact shape, and the guard MUST refuse a request carrying it anywhere else, under another spelling or in another shape. Before it asks the core, the guard MUST hold the request to the normal form it holds an item's byte route to (one canonical path, no byte the forward would re-escape, one spelling of each parameter it reads), and MUST ask about exactly the bytes it forwards. |
 | **ARCH-R303** | `apply a guard` MUST carry the media server filler's declaration verbatim, the one proxy address the guard trusts (`ARCH-R244`) and the endpoint at which it asks the core about a live-stream pass (`ARCH-R291`), and nothing else, and `the guard it enforces` MUST answer all three back as the guard holds them. |
