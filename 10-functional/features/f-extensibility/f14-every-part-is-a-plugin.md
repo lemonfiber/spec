@@ -76,7 +76,11 @@ bundle installs it moves it in place and deletes that adapter
 
 The proxy, the dashboard, quality sync, archive extraction, the stream guard, decline and
 the request gate join the vocabulary. Every capability is asked by something in the
-bundle, so every part has a slot a substitute can fill. A plugin may ask for capabilities
+bundle or by the core over its contract, so every part has a slot a substitute can fill:
+the core asks quality sync, archive extraction, the stream guard and decline, which no
+service of the bundle queries
+([ADR-0051](../../../00-overview/decisions/0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md)).
+A plugin may ask for capabilities
 too, which lets a substitute stand in for a part that itself asks. No plugin links to
 another by name.
 
@@ -183,7 +187,7 @@ nothing crosses to it.
 | **F14-R5** | The core MUST reach an adapter only with a key minted for that plugin alone, on a network shared only by the core, the adapter and its upstream, and an adapter MUST NOT be given a credential lemonfiber holds for anything else. |
 | **F14-R6** | A plugin MUST NOT fill a capability unless its adapter conforms to that capability's contract, proved by recordings against its pinned upstream and by a live conformance pass at install, and first-party adapters MUST be held to the same suite; a first-party plugin the bundle assembles, which has no adapter, MUST fill a capability only through its claims, each proved against its recordings as `F9-R2` holds a bundled service's. |
 | **F14-R7** | Every part of the bundle MUST be a first-party plugin, installed, updated, removed and validated by the path any plugin takes, and the bundle and its first-party manifests MUST be embedded in the binary. |
-| **F14-R8** | The vocabulary MUST name `proxy.front`, `dashboard.show`, `quality.sync`, `archive.extract`, `stream.guard`, `invite.decline` and `request.gate`, each with a contract, and every capability in the vocabulary MUST be asked by something in the bundle. |
+| **F14-R8** | The vocabulary MUST name `proxy.front`, `dashboard.show`, `quality.sync`, `archive.extract`, `stream.guard`, `invite.decline` and `request.gate`, each with a contract, and every capability in the vocabulary MUST be asked by something in the bundle or by the core over its contract. |
 | **F14-R9** | A plugin MAY ask for capabilities and MUST NOT link to a service by name. |
 | **F14-R10** | The stream guard's filler MUST enforce the guard the media server's filler declares, and every location the core gives a member MUST be built from templates the media server's filler declares. |
 | **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its data, undoing it MUST bring that part back with its data, and the rehearsal MUST say what does not carry over. |

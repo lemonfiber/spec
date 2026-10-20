@@ -6,6 +6,8 @@
 
 **Amended** by [ADR-0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): §2 and §4. Each route's upstream credential and the hashes of the tokens it admits reach the gate in the routes applied over `request.gate`, so applying the routes applies the tokens, and `the routes it admits` answers each credential's fingerprint, never its value.
 
+**Amended** by [ADR-0051](0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md): §3. Until the core writes the upstream file, every call but the gate's health is refused with `403`, not forwarded and not recorded; an upstream file that is there and cannot be read stays `503`.
+
 ## Context
 
 [C6](../../10-functional/features/c-trust/c6-web-security.md)'s `C6-R20` lets a household-tier service hold a credential that is administrative on
@@ -250,7 +252,8 @@ the `503` that names an upstream version outside the supported ones (§6).
 |-----------|--------|
 | A call off the list, or on it with parameters or a body the checks refuse | `403`, not forwarded, recorded |
 | A call on the list without its route's token | `401`, not forwarded, not recorded |
-| The upstream file cannot be read | `503`, nothing recorded |
+| No upstream file is written yet | `403`, not forwarded, nothing recorded |
+| The upstream file is there and cannot be read | `503`, nothing recorded |
 | A read the gate makes for its own checks is answered with an error | That status |
 | The upstream does not answer, or answers a read for the gate's checks with something it cannot read | `502` |
 | A sign-in answer the gate cannot read, or an administrator's whose session it cannot end | `502`, the answer goes back to nobody |

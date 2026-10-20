@@ -166,7 +166,12 @@ that is not why it provides a capability. It provides `dashboard.show` because l
 asks a dashboard to show the panel list, and substituting the dashboard is then a change
 of which service fills it.
 
-A capability earns its place by something needing to ask for it.
+A capability earns its place by something needing to ask for it, and the core is one
+such asker. Quality sync, archive extraction, the stream guard and decline are queried by
+no service of the bundle: the core asks each of them over its contract, which is what
+asking means for a part lemonfiber configures
+([ADR-0051](../../00-overview/decisions/0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md)).
+No `[[ask]]` row stands in for the core.
 
 ## Probes
 
@@ -270,7 +275,7 @@ because it reports on a running stack rather than gating an install — a check
 that fails on a fresh installation is a check doing its job, and the remedy it
 carries is the point of it.
 
-### A refusal is evidence; a status alone usually is not
+### A refusal or a redirect is evidence; a status alone usually is not
 
 A binding is held to its probe: where the published probe lists body
 constraints, a binding whose `expect` carries none of them is refused, naming the
@@ -284,7 +289,15 @@ worth stating rather than looking like an inconsistency. **A `401` is not
 something a port proxy can produce.** An emptied container answers a refused
 connection or a gateway error; only an application that has a protected surface
 answers that it is protected. So `"body": []` on a `guarded` probe is not a
-weaker expectation — it is the one case where the status *is* the body's job.
+weaker expectation — it is one of the two cases where the status *is* the body's job.
+
+The other is a redirect to HTTPS, and for the same reason: a port proxy does not send a
+caller elsewhere, and only a server that routes by name answers plain HTTP with `301` or
+`308`. `proxy.front`'s probe is that redirect, because it is all its bundled filler
+answers over plain HTTP, whatever the name and path, with an empty body
+([ADR-0051](../../00-overview/decisions/0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md)).
+A probe constraining only its status is a refusal or a redirect to HTTPS, and nothing
+else.
 
 It is also the one probe every claimant can bind, which is why it is required
 almost everywhere: measured across the bundled stack, the anonymous read of the
