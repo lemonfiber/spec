@@ -11,8 +11,7 @@
 
 ```
 $ git clone https://github.com/lemonfiber/lemonfiber-media-stack ~/dev/media-stack
-$ vim ~/dev/media-stack/compose.yml        # add a service
-$ vim ~/dev/media-stack/services/x.toml    # declare it
+$ vim ~/dev/media-stack/services/x.toml    # declare a service
 $ vim ~/dev/media-stack/stack.toml         # name its file in `include`
 $ lemonfiber up tv --stack-dir ~/dev/media-stack
 
@@ -65,9 +64,12 @@ tractable because the command can be pasted into a shell.
 
 Three edits, all data:
 
-1. A service entry in `compose.yml` with **exactly one** profile.
-2. A manifest entry — ports, health endpoint, description.
+1. A service file with **exactly one** profile — its container, ports, health
+   endpoint, description.
+2. Its file named in the manifest's `include`.
 3. Inclusion in whichever forms should carry it.
+
+lemonfiber writes its Compose entry.
 
 No lemonfiber change, no release (`F1-R5`). This is the direct payoff of
 [ADR-0002](../../00-overview/decisions/0002-profiles-and-forms.md) keeping forms

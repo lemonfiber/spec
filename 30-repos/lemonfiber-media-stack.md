@@ -2,8 +2,8 @@
 
 **Status:** Accepted
 
-The Docker Compose definitions, service profiles, manifest, and app configs.
-YAML/TOML, Hippocratic 3.0.
+The stack's manifest, its service files, each part's starting configuration and the
+recordings its claims are proved against. TOML, Hippocratic 3.0.
 
 **Implements:** the stack side of [B1](../10-functional/features/b-running/b1-forms.md),
 the [manifest contract](../20-architecture/contracts/stack-manifest.md), and
@@ -14,23 +14,16 @@ the [manifest contract](../20-architecture/contracts/stack-manifest.md), and
 lemonfiber writes the stack's Compose project from `stack.toml` and the service files it
 includes
 ([ADR-0043](../00-overview/decisions/0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md)),
-and reads no Compose file from this repository. The repository retires once nothing
-reads it
-([ADR-0042](../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md)
+and this repository holds no Compose file. The repository retires once nothing reads
+it ([ADR-0042](../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md)
 §6), and what follows describes the repository as it stands.
 
 ## What this repo is
 
 The stack's manifest, its service files, each part's starting configuration and the
-recordings its claims are proved against, until each moves to its part's plugin. Its
-Compose project is not load-bearing: what runs without lemonfiber is the project
-lemonfiber writes, from the files it names and the `.env` beside it (`F1-R1`).
-
-Its `compose.yml` and `compose/` go in this order. lemonfiber's core stops reading
-them and runs the project it generates; then this repository's CI moves the checks
-that start the stack and the door (`check_runs.py`, `check_door.py`) onto that
-generated project and deletes `compose.yml` and `compose/`; then the core moves its
-pin of this repository to that commit.
+recordings its claims are proved against, until each moves to its part's plugin. What
+runs, with lemonfiber or without it, is the project lemonfiber writes, from the files it
+names and the `.env` beside it (`F1-R1`).
 
 `lemonfiber` embeds this repo as a submodule pinned to a commit
 ([ADR-0005](../00-overview/decisions/0005-embedded-stack-assets.md)), but the two
@@ -40,63 +33,24 @@ develop and version independently.
 
 ```
 lemonfiber-media-stack/
-├── compose.yml                 stitches the fragments; defines no services
-├── compose/
-│   ├── _common.yml             shared service defaults, via `extends:`
-│   └── <profile>.yml           one fragment per profile — 12 of them
 ├── stack.toml                  the manifest's root — see contract
 ├── services/
 │   └── <id>.toml               one file per service, named by stack.toml's `include`
-├── .env.example                every variable documented inline
-├── stacks/
-│   └── compose.storage.nas.yml overlay: NAS/copy mode
+├── .env.example                every variable the operator sets, documented inline
 ├── config/                     seeded config templates
 │   ├── recyclarr/recyclarr.yml
 │   ├── homepage/{services,widgets,settings}.yaml
-│   └── caddy/Caddyfile
+│   ├── caddy/Caddyfile
+│   └── door/Caddyfile
+├── recordings/                 the answers each claim is proved against
 ├── scripts/                    the checks CI runs
-├── README.md                   standalone usage, no lemonfiber
+├── README.md                   running the project lemonfiber writes, without it
 └── .github/                    CI
 ```
 
-## How `compose.yml` is assembled
-
-Twenty-odd services in one file is a file nobody reads. `compose.yml` therefore
-defines **no services of its own**: it `include:`s one fragment per profile from
-`compose/`, so the file you open to change television automation is `tv.yml` and
-contains Sonarr and nothing else. The manifest's profile list and the directory
-listing are the same list (`REPO-R34`).
-
-Two mechanical points, both load-bearing:
-
-- **Every `include:` entry carries `project_directory: .`** Without it a
-  fragment's relative paths resolve against `compose/`, and `./config/sonarr`
-  silently becomes `compose/config/sonarr`. With it, every relative path in every
-  fragment is root-relative — one rule, no exceptions. The omission is caught
-  rather than tolerated: the fragment's `extends:` path rebases too, Compose
-  cannot find `compose/_common.yml`, and no model is produced at all.
-- **Shared defaults live in `compose/_common.yml`**, reached through `extends:`
-  rather than YAML anchors, because anchors cannot cross a file boundary. That
-  file is deliberately *not* in the include list, so its template services are
-  copied from and never started.
-
-### Caddy lives in the main project
-
-Caddy is a service in the main project — `compose/proxy.yml`, which `compose.yml`
-includes — under the `proxy` profile. Profiles are
-already the off-by-default mechanism, so expressing "optional" a second way as a
-separate file adds nothing and costs something real: a service reachable only via
-`-f` cannot start under bare `docker compose`, and lemonfiber would need a
-hardcoded "this one form takes an extra file" special case — exactly the
-per-service knowledge the manifest contract exists to eliminate (`REPO-R35`,
-`F1-R5`).
-
-An overlay is the right shape only where it modifies services the base project
-already defines, which is what the storage overlay does.
-
 ## The service inventory
 
-22 services, all verified `linux/arm64` + `linux/amd64`. Every one lemonfiber
+23 services, all verified `linux/arm64` + `linux/amd64`. Every one lemonfiber
 does not build is OSI-licensed (2026-07); the request gate and the decline
 service, whose images lemonfiber builds from its own code, carry
 `Hippocratic-3.0` (`F2-R5`). Full descriptions in
@@ -111,129 +65,58 @@ canonical data is in `stack.toml`.
 | `tv` / `movies` / `music` | sonarr / radarr / lidarr |
 | `books` | bindery |
 | `subs` | bazarr |
-| `media` | jellyfin, seerr, request-gate, decline, calibre-web-automated, audiobookshelf, navidrome |
+| `media` | jellyfin, door, seerr, request-gate, decline, calibre-web-automated, audiobookshelf, navidrome |
 | `tuning` | recyclarr, unpackerr |
 | `dash` | homepage |
 | `proxy` | caddy |
 
-## The rules `compose.yml` must obey
+## The rules a service file must obey
 
-These are not style preferences — each is enforced by CI and each has a spec
-requirement behind it:
+These are not style preferences — each is enforced, and each has a spec requirement
+behind it:
 
 | Rule | Why | Requirement |
 |------|-----|-------------|
 | One profile per service | Profiles are facts, forms are intent | `B1-R1` |
-| No `depends_on` across a profile boundary | Any subset must boot | `B1-R14` |
-| Exactly one `${DATA_ROOT}:/data` mount per service | Hardlinks | `ADR-0006` |
-| Pinned image tags, never floating | Nothing changes because time passed | `E1-R1` |
+| No `depends_on`; the one start-order edge is `network.via` | Any subset must boot | `B1-R14`, `ARCH-R236` |
+| A service declares whether it takes data, and lemonfiber writes the one `/data` mount | Hardlinks | `ADR-0006`, `ARCH-R227` |
+| Pinned by index digest, a non-floating tag beside it | Nothing changes because time passed | `E1-R1` |
 | `bind` matches the manifest's tier | Two-tier security | `C6-R1`, `C6-R2` |
-| Only Gluetun holds `NET_ADMIN` | Least privilege | `C6` |
-| qBittorrent uses `network_mode: service:gluetun` | Killswitch isolation | `C2-R12` |
+| Kernel capabilities come from a shape; only Gluetun takes `egress-guard` | Least privilege | `ARCH-R237`, `C6` |
+| qBittorrent runs inside the egress guard's network, `network = { via = "network.egress-guard" }` | Killswitch isolation | `C2-R12` |
 
 ### The single-mount rule, concretely
 
-```yaml
-# ✓ required
-volumes:
-  - ${DATA_ROOT}:/data
-  - ./config/sonarr:/config
+A service file says only whether the service takes data; lemonfiber writes the
+mount, once, at `/data`:
 
-# ✗ CI rejects — two mounts under DATA_ROOT breaks hardlinks
-volumes:
-  - ${DATA_ROOT}/downloads:/downloads
-  - ${DATA_ROOT}/media:/media
+```toml
+# services/sonarr.toml
+takes_data = true
 ```
 
-The second form looks tidier and silently turns every import into a copy. CI's
-manifest lint rejects it (`C5-R5`).
+There is no field for a second mount beneath the data root, so the split that
+silently turns every import into a copy cannot be written (`C5-R5`).
 
-### The VPN wiring, concretely
+## NAS mode
 
-```yaml
-gluetun:
-  cap_add: [NET_ADMIN]
-  devices: ["/dev/net/tun:/dev/net/tun"]
-  environment:
-    VPN_SERVICE_PROVIDER: ${VPN_PROVIDER:-}
-    VPN_TYPE: wireguard
-    VPN_PORT_FORWARDING: ${VPN_PORT_FORWARDING:-off}
-    VPN_PORT_FORWARDING_PROVIDER: ${VPN_PROVIDER:-}
-    PORT_FORWARD_ONLY: ${VPN_PORT_FORWARDING:-off}
-    QBT_USERNAME: ${QBITTORRENT_USERNAME:-admin}
-    QBT_PASSWORD: ${QBITTORRENT_PASSWORD:-}
-    VPN_PORT_FORWARDING_UP_COMMAND: /bin/sh /gluetun/push-port.sh {{PORT}}
-    VPN_PORT_FORWARDING_DOWN_COMMAND: /bin/sh /gluetun/push-port.sh 0
-
-qbittorrent:
-  network_mode: "service:gluetun"
-  depends_on:
-    gluetun:
-      condition: service_healthy
-```
-
-Where the push authenticates, logs in for a session cookie, then sets the port:
-
-```sh
-wget -qO- --keep-session-cookies --save-cookies "$jar" \
-  --post-data "username=$QBT_USERNAME&password=$QBT_PASSWORD" \
-  http://127.0.0.1:8081/api/v2/auth/login | grep -q 'Ok.' || exit 1
-wget -qO- --load-cookies "$jar" --post-data "json={\"listen_port\":$1}" \
-  http://127.0.0.1:8081/api/v2/app/setPreferences
-```
-
-Four things worth stating:
-
-- **The `UP_COMMAND`/`DOWN_COMMAND` pair is how the dynamic forwarded port
-  reaches qBittorrent** — on acquire *and* on release. The DOWN command is not
-  optional: without it qBittorrent won't re-acquire correctly after a reconnect
-  (`C2-R19`).
-- **The push must authenticate.** qBittorrent's WebUI API requires a session,
-  and an unauthenticated `setPreferences` is answered `403 Forbidden`. The port
-  is then granted by the provider and discarded by the stack, with no symptom
-  beyond the peer connectivity that forwarding existed to buy. The credentials
-  live in the operator's environment, and `--keep-session-cookies` is required
-  because the `SID` cookie is a session cookie (`REPO-R38`).
-- **`VPN_PORT_FORWARDING` defaults to `off`** and is enabled only for
-  port-forwarding-capable providers. On NordVPN, Mullvad and the rest it stays
-  off, and the port machinery simply doesn't run (`C2-R16`).
-- **`PORT_FORWARD_ONLY` is tied to the same switch.** Asking for a port does not
-  constrain which server is selected; without this the tunnel can come up on a
-  server that cannot forward, which presents identically to a credential
-  generated without port forwarding (`REPO-R22`).
-
-## Storage overlay
-
-`stacks/compose.storage.nas.yml` replaces each library service's `/data` bind with
-an NFS-backed named volume for [NAS mode](../10-functional/features/c-trust/c5-storage.md).
+In [NAS mode](../10-functional/features/c-trust/c5-storage.md) lemonfiber writes
+each library service's `/data` as an NFS-backed volume from the operator's export.
 Making the \*arrs copy instead of hardlink is an application setting, written over
-each app's API during seeding, not something the overlay does. It is applied with
-`docker compose -f compose.yml -f stacks/compose.storage.nas.yml`.
+each app's API during seeding, not something the project does.
 
 ## CI
 
 | Check | Enforces |
 |-------|----------|
-| `docker compose config` per form | Every form is structurally valid |
-| Manifest ↔ compose parity | Every service in one is in the other (`stack.toml` contract) |
-| Manifest validation | The full [contract](../20-architecture/contracts/stack-manifest.md#validation) ruleset |
-| No cross-profile `depends_on` | `B1-R14` |
-| Single-mount lint | `ADR-0006` |
-| Binding tier matches the manifest | `C6-R1`, `C6-R2` |
-| Killswitch routing | `C2-R12` |
-| No floating tags | `E1-R1` |
+| Manifest validation | The full [contract](../20-architecture/contracts/stack-manifest.md#validation) ruleset, the service model's container rules among it (`ARCH-R246`) |
+| A change's own diff | A moved pin carries a reviewed date, a removal its reason (`F2-R13`, `F2-R14`) |
 | SPDX licence check | Every service OSI-licensed, or `Hippocratic-3.0` where its image is under `ghcr.io/lemonfiber/` (`F2-R5`) |
-| arm64 + amd64 manifest present | `F2-R6` |
-| Negative tests for each rule above | `REPO-R37` |
-
-### Checked against the resolved model, not the source
-
-The parity checks read what `docker compose config` produces, not the YAML
-(`REPO-R36`). A rule like "one mount beneath the data root" can be evaded a dozen
-ways in source text — through an anchor, an overlay, a variable indirection — but
-there is exactly one resolved model, and it is what Docker runs. Interpolating a
-sentinel into `DATA_ROOT` before resolving turns "is this path beneath the data
-root?" into an unambiguous test on an absolute path.
+| arm64 + amd64 index per pin | `F2-R6`, `E1-R1` |
+| Every claim against its recordings | Judged by lemonfiber's own judge at a pinned commit (`ARCH-R137`) |
+| Every profile starts | The project the lemonfiber binary writes, started with plain `docker compose` (`F1-R1`, `REPO-R93`) |
+| The door refuses what it must | Started at the addresses the project fixes, in front of a stand-in for the media server (`D11-R2`) |
+| Negative tests for each manifest rule | `REPO-R37` |
 
 ### The checks are themselves tested
 
@@ -244,23 +127,26 @@ that breaks exactly that rule in a throwaway copy of the stack and asserts the
 violation is reported (`REPO-R37`). The same reasoning as the comment policy's
 fixture tree (`Q-R7`), applied to configuration.
 
-CI starts the profile groups `scripts/check_runs.py --plan` names and checks each
-service answers the probe `stack.toml` declares. A profile that cannot start
-without real credentials or a real provider is named in `check_runs.py` with the
-reason and left out: `torrent`, whose gluetun needs a VPN tunnel and whose
-qbittorrent waits on gluetun.
+CI has the lemonfiber binary, built from the judge's commit with this tree laid
+over the stack it embeds, write the project, starts the profile groups
+`scripts/check_runs.py --plan` names with plain `docker compose` in its directory,
+and checks each service answers the probe `stack.toml` declares. A profile that
+cannot start without real credentials or a real provider is named in
+`check_runs.py` with the reason and left out: `torrent`, whose gluetun needs a VPN
+tunnel and whose qbittorrent waits on gluetun.
 
 ## Adding a service
 
-Four data edits, no Rust (`F1-R5`):
+Three data edits, no Rust (`F1-R5`):
 
-1. A service block in the `compose/<profile>.yml` fragment for its one profile.
-2. A `[[service]]` in `services/<id>.toml` — ports, health, api, criticality, licence.
-3. Its file added to `include` in `stack.toml`.
-4. Add its profile to whichever forms should carry it.
+1. A `[[service]]` in `services/<id>.toml` — its container in the service model, ports,
+   health, api, criticality, licence.
+2. Its file added to `include` in `stack.toml`.
+3. Its profile added to whichever forms should carry it.
 
-CI then holds it to every rule above. This is the whole of
-[J8](../10-functional/journeys/j8-customising.md)'s "add a service" path.
+lemonfiber writes its Compose entry, and CI holds it to every rule above. This is
+the whole of [J8](../10-functional/journeys/j8-customising.md)'s "add a service"
+path.
 
 ## Requirements
 
@@ -273,7 +159,7 @@ CI then holds it to every rule above. This is the whole of
 | **REPO-R20** | CI MUST verify every service declares an OSI licence, or `Hippocratic-3.0` where lemonfiber builds its image from its own code (`F2-R5`), and publishes arm64 + amd64 images. |
 | **REPO-R21** | *Superseded by [ARCH-R251](../20-architecture/contracts/capability-contracts.md): the egress guard's filler reports the forwarded port and the core sets it on the torrent client, so no up/down command pair or script is mounted into the guard. The number is not reused.* |
 | **REPO-R22** | Port forwarding MUST default off and activate only for capable providers. |
-| **REPO-R23** | Adding a service MUST require only data edits — compose, manifest, forms — and no code change. |
+| **REPO-R23** | Adding a service MUST require only data edits — its service file, the manifest's `include`, forms — and no code change. |
 | **REPO-R34** | *Superseded by [ARCH-R224](../20-architecture/contracts/plugin-manifest.md): there is no `compose.yml` and no fragment to assemble. The number is not reused.* |
 | **REPO-R35** | *Superseded by [ARCH-R224](../20-architecture/contracts/plugin-manifest.md): every service is in the one project lemonfiber generates. The number is not reused.* |
 | **REPO-R36** | *Superseded by [ARCH-R246](../20-architecture/contracts/stack-manifest.md): the manifest is checked as it is read, and there is no Compose model beside it. The number is not reused.* |
