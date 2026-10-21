@@ -4,7 +4,9 @@
 **Date:** 2026-10-20
 **Amended:** 2026-10-21, by the maintainer, Wessel Verheij: `invite.decline`'s `held`
 answers the key's SHA-256, the hash the decline service already reports, rather than a
-fingerprint short enough for a second key to share.
+fingerprint short enough for a second key to share. `request.gate`'s `the routes it admits`
+answers each route's credential by its SHA-256 for the same reason: the core tells by it
+which of the media server keys filed under the gate's name the gate holds.
 **Decided:** 2026-10-20, by the maintainer, Wessel Verheij:
 
 - `stream.guard`'s `apply a guard` carries an envelope: the media server filler's
