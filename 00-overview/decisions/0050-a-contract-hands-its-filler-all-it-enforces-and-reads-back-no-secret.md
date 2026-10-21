@@ -2,6 +2,9 @@
 
 **Status:** Accepted
 **Date:** 2026-10-20
+**Amended:** 2026-10-21, by the maintainer, Wessel Verheij: `invite.decline`'s `held`
+answers the key's SHA-256, the hash the decline service already reports, rather than a
+fingerprint short enough for a second key to share.
 **Decided:** 2026-10-20, by the maintainer, Wessel Verheij:
 
 - `stream.guard`'s `apply a guard` carries an envelope: the media server filler's
