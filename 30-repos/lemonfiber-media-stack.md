@@ -21,10 +21,16 @@ reads it
 
 ## What this repo is
 
-A **standalone, runnable Compose project**. Cloned and run with plain
-`docker compose --profile tv up`, it works with no `lemonfiber` binary anywhere
-(`F1-R1`). That is the load-bearing property of this repo, not a side effect: it
-is what makes adopting lemonfiber a reversible decision.
+The stack's manifest, its service files, each part's starting configuration and the
+recordings its claims are proved against, until each moves to its part's plugin. Its
+Compose project is not load-bearing: what runs without lemonfiber is the project
+lemonfiber writes, from the files it names and the `.env` beside it (`F1-R1`).
+
+Its `compose.yml` and `compose/` go in this order. lemonfiber's core stops reading
+them and runs the project it generates; then this repository's CI moves the checks
+that start the stack and the door (`check_runs.py`, `check_door.py`) onto that
+generated project and deletes `compose.yml` and `compose/`; then the core moves its
+pin of this repository to that commit.
 
 `lemonfiber` embeds this repo as a submodule pinned to a commit
 ([ADR-0005](../00-overview/decisions/0005-embedded-stack-assets.md)), but the two

@@ -34,9 +34,11 @@ operate.
 
 ### The stack runs without lemonfiber
 
-`lemonfiber-media-stack` is a real Compose project. Clone it, set a few
-variables, run `docker compose --profile tv up`, and it works with no Rust binary
-anywhere
+The project lemonfiber writes is a real Compose project. It names itself, writes
+every value it runs with into itself, and keeps beside it a `.env` naming the
+profiles of the last start and the files to merge: the project, then the operator's
+overlay where there is one. Run `docker compose up` in the project's directory and
+the stack lemonfiber last started comes up, with no lemonfiber binary running
 ([ADR-0001](../../../00-overview/decisions/0001-docker-compose-as-engine.md)).
 
 This is the load-bearing guarantee. Everything else in this feature is
@@ -138,7 +140,7 @@ Per managed area:
 
 | ID | Requirement |
 |----|-------------|
-| **F1-R1** | The stack MUST be fully operable with plain `docker compose` and no lemonfiber binary. |
+| **F1-R1** | The stack MUST be fully operable with plain `docker compose` in the project's directory, from the project lemonfiber writes, the files it names and the `.env` beside it, with no lemonfiber binary running. |
 | **F1-R2** | Every command MUST support a dry-run mode printing the exact underlying invocation. |
 | **F1-R3** | An external stack directory MUST be usable in place of the embedded stack. |
 | **F1-R4** | Locally modified materialised files MUST be detected by content and MUST NOT be overwritten without a diff and confirmation. |
