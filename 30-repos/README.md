@@ -176,8 +176,9 @@ and hand-write only behaviour ([ADR-0014](../00-overview/decisions/0014-one-gene
 
 - **`lemonfiber`** — logic cannot render. The core crate has no UI dependency, so a
   surface can never grow behaviour of its own.
-- **`lemonfiber-media-stack`** — it runs without lemonfiber. Plain
-  `docker compose` works, which is what makes adopting the tool reversible.
+- **`lemonfiber-media-stack`** — it holds what the bundle has not moved yet, and
+  retires once nothing reads it. The project lemonfiber writes from it runs under
+  plain `docker compose`, which is what makes adopting the tool reversible.
 - **`homebrew-tap`** — nobody writes it by hand. It holds a placeholder until the
   publish job turns it into generated output, and exists only because Homebrew
   requires a repo of that name.

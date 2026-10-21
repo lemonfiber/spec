@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 541 goals, seeded from the roadmap milestone this version serves;
+# 542 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -867,7 +867,14 @@ goals   = [
     "ARCH-R307",
     "ARCH-R308",
     "ARCH-R309",
+    "ARCH-R310",
 ]
+
+# `ARCH-R310` names the subnet of every network of the project, a `/29` of `10.80.0.0/16`
+# chosen from the network's name, because a default engine's pools hold fewer networks
+# than one stack's asks come to and a start failed on that. `F1-R1` is amended in place:
+# plain Compose operability is held by the project lemonfiber writes and the `.env` beside
+# it. Added by the maintainer's decision of 2026-10-21 (OPS-R31).
 
 # `ARCH-R295` to `ARCH-R297` record every recording a manifest names again from its pin
 # (ADR-0049): `lemonfiber plugin record` asks one fresh container per service after the

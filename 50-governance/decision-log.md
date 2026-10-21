@@ -281,6 +281,14 @@ Decisions about a repository outside this organisation, such as
 | The core, asking over a capability's contract, is the asker of `quality.sync`, `archive.extract`, `stream.guard` and `invite.decline`, and no `[[ask]]` row stands in for it. `F14-R8` is amended in place | [ADR-0051](../00-overview/decisions/0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md), [F14-R8](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md) |
 | ADR-0050's contracts carry the shapes today's parts read: the guard's envelope names where the guard reaches the media server and its filler's adapter, as the topology fixes them; the declaration gives each byte path the shape an id has and the paths under it that name no item, a shape on each asked parameter, and the query parameters the upstream reads a token from; a `request.gate` route carries the path segment it answers under and the upstream's supported majors; `invite.decline` is applied each invitation's name and issue time and how the media server tells a claimed account; `archive.extract`'s `watch` takes every curator at once in place of those it watches. `ARCH-R206`, `ARCH-R303`, `ARCH-R305`, `ARCH-R306` and `ARCH-R307` are amended in place | [ADR-0050](../00-overview/decisions/0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md), [ARCH-R206, ARCH-R303, ARCH-R305, ARCH-R306, ARCH-R307](../20-architecture/contracts/capability-contracts.md) |
 
+## 2026-10-21
+
+| Decision | Where it lives |
+|---|---|
+| Plain Compose operability is held by the project lemonfiber writes rather than by the media stack's own Compose files: the project names itself and carries the operator's non-secret values, and a `.env` beside it holds `COMPOSE_PROFILES`, the last start's profiles and every installed plugin's, and `COMPOSE_FILE`, the project then the operator's overlay where one exists, so `docker compose up` in the project's directory runs what lemonfiber last started with no binary running. Secrets stay in each service's own file. `F1-R1` is amended in place | [F1](../10-functional/features/f-extensibility/f1-customisation.md) |
+| The media stack's `compose.yml` and `compose/` go after the core runs its generated project: its CI moves the checks that start the stack and the door onto that project and deletes them, then the core moves its pin | [lemonfiber-media-stack](../30-repos/lemonfiber-media-stack.md) |
+| Every network of the project names a `/29` of `10.80.0.0/16`, chosen from its name, so the engine draws none from its own pools | [plugin-manifest](../20-architecture/contracts/plugin-manifest.md) (`ARCH-R310`) |
+
 ## Requirements
 
 | ID | Requirement |

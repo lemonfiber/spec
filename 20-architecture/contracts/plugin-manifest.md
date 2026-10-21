@@ -347,6 +347,12 @@ subnet lemonfiber holds in which the engine assigns no other address. It tells t
 server the guard's address as the one proxy it trusts, and the guard the proxy's
 (`ARCH-R244`).
 
+**Every network names its subnet.** An engine draws a network that names none from its
+own address pools, and a default install holds about thirty, fewer than one stack's
+asks come to. So lemonfiber gives each network a `/29` of `10.80.0.0/16`, chosen from
+its name, so that a network keeps its subnet when a plugin's networks come or go, and
+none inside the two fixed subnets (`ARCH-R310`).
+
 A plugin's service is placed by the same rules: a filler of an ask is on the network
 that ask derives, whatever installed it, so a stand-in is reached over exactly the
 networks the part it replaced was reached over and gains a route to nothing else
@@ -914,6 +920,7 @@ unreadable.
 | **ARCH-R242** | Each settled ask MUST be a network of its own joining the asking service and the service the ask reaches, with no route off the host; a service given a proxy hostname MUST ask `proxy.front` and one whose dashboard panel reads it `dashboard.show`; an ask filled by a service taking `via` MUST join the service it is inside; and a link by name MUST join the service it names and never a service standing in for it. |
 | **ARCH-R243** | Every adapter and the service it fronts MUST share a network no other service joins, with no route off the host, and the core MUST reach the adapter at its contract port published on the loopback interface; a service that publishes a port or is not confined MUST be on a network of its own carrying its ports and its route off the host, translating no address off the host where it is confined. |
 | **ARCH-R244** | lemonfiber MUST fix the address of the `stream.guard` filler on the network of its ask of `media.serve`, and the addresses of it and of the `proxy.front` filler on the network of its ask of `proxy.front`, each from a subnet lemonfiber holds in which the engine assigns no other address, and MUST tell the media server's filler the guard's address as the one proxy it trusts and the guard the proxy's. |
+| **ARCH-R310** | lemonfiber MUST name the subnet of every network of the project, so the engine draws none from its own address pools: each a `/29` of `10.80.0.0/16`, chosen from the network's name so that it does not move when another network comes or goes, and none inside a fixed subnet `ARCH-R244` names. |
 | **ARCH-R245** | Choosing which service fills an ask MUST regenerate the project in the same journalled change as the setting. |
 | **ARCH-R247** | `{ secret = "<name>" }` MUST name a `[[secret]]` the manifest declares, refused naming the variable otherwise; lemonfiber MUST write its value only to an environment file of the service's own readable by its owner alone (`0600`), named by the entry, MUST NOT write it into the project, and MUST show the variable and the secret's name, never its value, in every rehearsal, reading and diagnostic. |
 | **ARCH-R248** | A setting MUST live in the core's settings store and a secret in the secret store; the operator MUST be able to read and change a setting from the command line, the web API and the companion's operator screens alike, and each change MUST be journalled and MUST regenerate every entry that reads it. |

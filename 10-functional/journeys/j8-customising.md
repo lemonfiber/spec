@@ -36,8 +36,8 @@ breaks or is abandoned, leaves its users with something they can't operate.
 ## The guarantee underneath everything
 
 ```
-$ cd ~/dev/media-stack
-$ docker compose --profile search --profile usenet --profile tv up -d
+$ cd ~/.local/share/lemonfiber/stack
+$ docker compose up -d
 ```
 
 **The stack runs with no lemonfiber binary anywhere** (`F1-R1`).
