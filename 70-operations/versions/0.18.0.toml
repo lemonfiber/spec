@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 544 goals, seeded from the roadmap milestone this version serves;
+# 545 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -870,7 +870,14 @@ goals   = [
     "ARCH-R310",
     "ARCH-R311",
     "ARCH-R312",
+    "ARCH-R313",
 ]
+
+# `ARCH-R313` lets a `[[wiring]]` name the line and the icon beside its service's dashboard
+# entry, so the panel list the core applies to `dashboard.show` (`ARCH-R308`) shows the
+# stack's own parts as its page does today, and a plugin naming neither shows its
+# manifest's description and `<service id>.png`. Added by the maintainer's decision of
+# 2026-10-23 (OPS-R31).
 
 # `ARCH-R311` tells each download client its completed folder per category, shared by both
 # under `/data/downloads/complete/<category>`, over `download.usenet`'s and

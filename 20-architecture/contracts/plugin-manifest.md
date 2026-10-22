@@ -454,9 +454,11 @@ bundle or the operator makes (`F4-R12`), and a manifest has nowhere to write one
 [[wiring]]
 hostname = "comics"
 dashboard_group = "Library"
+dashboard_description = "Comics"
+dashboard_icon = "komga.png"
 ```
 
-Three fields, and none of them names a service outside this plugin. The bundle's
+Five fields, and none of them names a service outside this plugin. The bundle's
 [`[[wiring]]`](bundle.md#wiring--a-choice-of-filler-or-a-link-by-name)
 is the other kind: the stack's choices of filler and its links by name between parts;
 this one is a plugin saying where its *own* entry goes, and lemonfiber writes
@@ -467,6 +469,8 @@ both the route and the panel from it.
 | `service` | string | ✔ where the plugin declares more than one service | Which of this plugin's services this is about. Default: the only one. |
 | `hostname` | string | | The label in front of the operator's domain. A single DNS label — not a name, an address or a port. Default: the service's `id`. |
 | `dashboard_group` | string | | Which group on the bundled dashboard it appears under. Default: the group the stack uses for its tier. |
+| `dashboard_description` | string | | The line beside its entry on the dashboard, at most 60 characters on one line. Default: the manifest's `description`. |
+| `dashboard_icon` | string | | The icon its entry shows, named from the dashboard's own icon set: a file name ending `.png`, `.svg` or `.webp`, or an `mdi-` or `si-` name, of lowercase letters, digits, `.` and `-` alone. Never an address: the page fetches nothing a plugin points it at. Default: `<service id>.png`. |
 
 **An array, and one entry per service at most.** A hostname is a fact about one
 container rather than about a plugin, which only became visible once a plugin
@@ -490,8 +494,9 @@ refused, naming the service and the tier that decides it. That is the same reaso
 plugin that could publish its own address could put an admin surface on the
 household network without touching anything `C6` inspects.
 
-**A link, not a widget.** The dashboard entry is an icon, a link and the
-description the manifest already carries. A widget reads a service's API with a
+**A link, not a widget.** The dashboard entry is an icon, a link and a description:
+the ones the wiring names, or `<service id>.png` and the description the manifest
+already carries. A widget reads a service's API with a
 credential, which means an adapter and a captured value — a recipe, arriving
 with `F8`. A plugin gets the panel that needs nothing and waits for the one that
 needs something.
@@ -938,6 +943,7 @@ unreadable.
 | **ARCH-R244** | lemonfiber MUST fix the address of the `stream.guard` filler on the network of its ask of `media.serve`, and the addresses of it and of the `proxy.front` filler on the network of its ask of `proxy.front`, each from a subnet lemonfiber holds in which the engine assigns no other address, and MUST tell the media server's filler the guard's address as the one proxy it trusts and the guard the proxy's. |
 | **ARCH-R310** | lemonfiber MUST name the subnet of every network of the project, so the engine draws none from its own address pools: each a `/29` of `10.80.0.0/16`, chosen from the network's name alone so that it does not move when another network comes or goes, and none inside a fixed subnet `ARCH-R244` names; one machine runs one lemonfiber stack, since a second project there names the same subnets. |
 | **ARCH-R312** | lemonfiber MUST put the pass service (`ARCH-R291`) on one network, joining it and the `stream.guard` filler and no other service, with no route off the host, and on no other network. |
+| **ARCH-R313** | A service's dashboard entry MUST show the `dashboard_description` and the `dashboard_icon` its `[[wiring]]` names, and the manifest's `description` and `<service id>.png` where it names none; a `dashboard_description` longer than 60 characters or holding a line break, and a `dashboard_icon` that is an address, holds anything but lowercase letters, digits, `.` and `-`, or is neither a file name ending `.png`, `.svg` or `.webp` nor an `mdi-` or `si-` name, MUST be refused naming the field. |
 | **ARCH-R245** | Choosing which service fills an ask MUST regenerate the project in the same journalled change as the setting. |
 | **ARCH-R247** | `{ secret = "<name>" }` MUST name a `[[secret]]` the manifest declares, refused naming the variable otherwise; lemonfiber MUST write its value only to an environment file of the service's own readable by its owner alone (`0600`), named by the entry, MUST NOT write it into the project, and MUST show the variable and the secret's name, never its value, in every rehearsal, reading and diagnostic. |
 | **ARCH-R248** | A setting MUST live in the core's settings store and a secret in the secret store; the operator MUST be able to read and change a setting from the command line, the web API and the companion's operator screens alike, and each change MUST be journalled and MUST regenerate every entry that reads it. |
