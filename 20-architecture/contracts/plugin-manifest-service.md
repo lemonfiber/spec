@@ -323,7 +323,8 @@ file: the first run of the release that stops reading the stack's static Compose
 reads that file once, files every value the assembled parts and the published settings
 read from it under their setting or secret, journals each, and lemonfiber does not read
 the file for them again. A part's later move in place keeps those names (`ARCH-R273`),
-so it migrates nothing (`ARCH-R249`).
+so it migrates nothing. The file stays the one `lemonfiber config` reads and writes, for
+lemonfiber's own keys such as `DATA_ROOT` and `PUID` (`ARCH-R249`).
 
 **A URL is an ask.** `url_of` names a core capability, as an `[[ask]]` does, and is
 settled, shown and counted as one (`F14-R22` to `F14-R25`): the reading says what it

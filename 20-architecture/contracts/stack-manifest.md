@@ -54,8 +54,10 @@ plugin's one service. `host_managed` is this format's alone.
 
 Assembled, a service also keeps every
 [`[[secret]]`](plugin-manifest.md#secret-and-override--declared-before-they-are-held) its
-plugin declares, held in the secret store under its own id (`gluetun:wireguard-key`), so
-its `env` names its secrets as a plugin's does (`ARCH-R275`). A `--stack-dir` service
+plugin declares, so its `env` names its secrets as a plugin's does: one the operator enters
+held in the secret store under its own id (`gluetun:wireguard-key`), and one whose `of`
+names another service read from the store that holds it each time, never copied
+(`ARCH-R275`, `ARCH-R277`). A `--stack-dir` service
 declares none: its file holds one `[[service]]` and nothing else (`ARCH-R264`), so an
 `env` value there naming a secret is refused, naming the variable (`ARCH-R247`).
 

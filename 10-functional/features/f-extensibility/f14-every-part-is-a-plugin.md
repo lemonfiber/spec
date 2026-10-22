@@ -79,7 +79,9 @@ the request gate join the vocabulary. Every capability is asked by something in 
 bundle or by the core over its contract, so every part has a slot a substitute can fill:
 the core asks quality sync, archive extraction, the stream guard and decline, which no
 service of the bundle queries
-([ADR-0051](../../../00-overview/decisions/0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md)).
+([ADR-0051](../../../00-overview/decisions/0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md)),
+and applies the dashboard's panel list
+([ADR-0052](../../../00-overview/decisions/0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md)).
 A plugin may ask for capabilities
 too, which lets a substitute stand in for a part that itself asks. No plugin links to
 another by name.

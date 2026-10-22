@@ -24,6 +24,8 @@
   written and never copied into the secret store, so replacing it regenerates what reads
   it.
 
+**Amended** by [ADR-0052](0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md): §2. An assembled part's `[[secret]]` whose `of` names another service is a credential that crosses, read from its holder and never copied into the secret store; only a secret the operator enters is held as `<service id>:<secret id>`.
+
 **Supersedes in part** [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md):
 the last sentence of §7, when the stack's environment file is read: once, at the first run
 of the release that stops reading the static Compose files, rather than at each part's move

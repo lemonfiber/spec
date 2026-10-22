@@ -116,7 +116,7 @@ asks for them. Their shapes are the generated documents' alone.
 | `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; the country its ratings are named for; replace the administrator's password; allow; claimable; suspend; sessions for an account; whether devices sign in by code |
 | `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app |
 | `library.curate` | Identity; download clients (register, update, set a field, test, list); root folders (register, list); quality profiles; run a command; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck) |
-| `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
+| `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; `file_under`: each category and its completed folder; `filed`: every category and the completed folder it holds for it (below); seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add) |
 | `indexer.proxy` | Solve a challenge; whether it answers |
 | `request.intake` | Initialised; configure identity; answers; search a page of titles a member may ask for; what one title is, its certification in a country and where its poster is published; ask on a member's behalf; requests, each with the id its title is found by; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices |
@@ -126,7 +126,7 @@ asks for them. Their shapes are the generated documents' alone.
 | `dashboard.show` | Apply a panel list (groups of entries and the page's widgets, below); the list it shows |
 | `quality.sync` | Apply profiles to a curator; what it last applied |
 | `archive.extract` | `watch`: every curator at once, each named by the media type it files, with its address, its key and its download folder, which is whom a finished extraction is handed back to, in place of those it watches; `working`: what it is extracting now |
-| `stream.guard` | Apply a guard: the media server filler's declaration verbatim, where the upstream and the adapter are, the one proxy address the guard trusts and where it asks the core about a live-stream pass (below); the guard it enforces, all of it read back; the certificate it presents |
+| `stream.guard` | Apply a guard: the media server filler's declaration verbatim, where the upstream and the adapter are, the one proxy address the guard trusts and the pass service's address, where it asks about a live-stream pass (below); the guard it enforces, all of it read back; the certificate it presents |
 | `invite.decline` | `hold`: the media server key it switches an invitation off with; `held`: that key's SHA-256; `apply the invitations it may decline`: how the media server tells a claimed account, and each invitation's token hash, its account, the name the account was made under, when it was issued and when it lapses |
 | `request.gate` | Apply the routes it admits, for each curator and media server, each with the path segment it answers under and the upstream's supported majors; the routes it admits, each credential by its SHA-256 |
 
@@ -184,8 +184,8 @@ things and nothing else:
   The question goes to the one the declaration names, at that address.
 - **The proxy it trusts.** The one address the guard believes when a request says which
   client it came from: the `proxy.front` filler's fixed address (`ARCH-R244`).
-- **Where it asks about a pass.** The endpoint at which it asks the core about a
-  live-stream pass (below, `ARCH-R291`).
+- **Where it asks about a pass.** The address of the core's pass service, at which it
+  asks about a live-stream pass (below, `ARCH-R291`).
 
 The guard enforces exactly what the envelope holds: the declaration unaltered and nothing
 added to it. `the guard it enforces` answers the whole envelope back as the guard holds
@@ -197,18 +197,42 @@ A live stream is not an item: the media server serves the bytes of whichever liv
 a request names, so the guard cannot ask the media server about one (`D11-R13`). Its
 bytes are served on a pass the core issues instead.
 
-- **The key.** The core generates the key it makes passes with and keeps it to itself.
-  The guard never holds it, so the guard stays the stock filler of `stream.guard`.
+- **The key.** The core generates the key it makes passes with, and the key never
+  leaves lemonfiber's own processes. The guard never holds it, so the guard stays the
+  stock filler of `stream.guard`.
+- **The pass service.** The core confirms a pass through a service of its own: the
+  lemonfiber binary of the running release, run as a service of the project with
+  `lemonfiber pass`, holding the key read-only. It is on one network, which it shares with
+  the `stream.guard` filler and nothing else (`ARCH-R312`), and `apply a guard` hands the
+  guard its address. The core runs on the host and joins no network of the project, so no
+  address on the guard's networks is the core's own.
 - **The question.** For every request for a live stream's bytes, its playlists and
-  segments included, the guard asks the core whether the pass the request carries is
-  good for exactly the live stream the request names, at an endpoint the core answers on
-  the guard's network alone. Anything but a yes, and no answer, is a refusal.
+  segments included, the guard asks the pass service whether the pass the request carries
+  is good for exactly the live stream the request names. Anything but a yes, and no
+  answer, is a refusal.
 - **The one place.** A pass travels in one fixed place, in one spelling, held to an exact
   shape. A request carrying it anywhere else, under another spelling or in another shape,
   is refused, so the guard and the core never read two different passes from one request.
 - **The normal form.** Before it asks, the guard holds the request to the normal form it
   holds an item's byte route to: one canonical path, no byte the forward would re-escape,
   and one spelling of each parameter it reads. It asks about exactly the bytes it forwards.
+
+## The completed folders
+
+Both download clients file a completed download under one folder per category,
+`/data/downloads/complete/<category>`, so a curator's downloads land in one folder
+whichever client fetched them
+([ADR-0052](../../00-overview/decisions/0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md)).
+`file_under` hands the filler of `download.usenet` or `download.torrent` each category and
+its completed folder, and `filed` answers every category the client holds and the
+completed folder it files that category under.
+
+The seed tells every download client its completed folders this way: an assembled client
+through its in-process adapter, and a plugin's over its contract. It reads each back with
+`filed`. A client holding a folder for a category other than the one lemonfiber last filed
+there holds the operator's choice, and the seed keeps it and reports it drifted, as it does
+every seeded value (`D1-R3`). The extractor is handed the folder `filed` reads back, not
+the one lemonfiber wrote (`ARCH-R306`, `ARCH-R311`).
 
 ## The forwarded port
 
@@ -266,16 +290,24 @@ shows. No answer of the gate's holds a credential's value (`ARCH-R305`).
   decline address an invitation carries is the filler's own page (`D6-R15`, `ARCH-R307`).
 - **Extraction.** `watch` gives the filler of `archive.extract` every curator at once, in
   place of those it watches, each named by the media type it files, with the curator's
-  address, its key and its download folder. The
+  address, its key and its download folder: the completed folder the download clients hold
+  for the curator's category, as `filed` reads it back. The
   filler extracts what lands there and hands each finished extraction back to that curator
   itself, so the core makes no call for it. `working` answers what it is extracting now
   (`ARCH-R306`).
-- **The dashboard.** `apply a panel list` gives the filler of `dashboard.show` groups of
+- **The dashboard.** The core applies the panel list to the filler of `dashboard.show`:
+  over the contract where the filler speaks it, and where the filler is the assembled
+  Homepage, which speaks none, through an in-process adapter that writes the files
+  Homepage reads and reads them back, as a request gate speaking no contract is told
+  through the files it reads. `apply a panel list` gives the filler groups of
   entries, each entry a name, an icon, a link and a description, with an optional
   reachability check and an optional widget, and the widgets along the page. Every widget
   is one the core names: a page widget, the machine's resources or a web search box, or a
-  per-entry widget. None reads a credential, so the dashboard holds none (`C6-R20`).
-  `the list it shows` answers the list applied (`ARCH-R308`).
+  per-entry widget. The search box sends a search to the address the core setting
+  `LEMONFIBER_DASHBOARD_SEARCH` holds, the terms appended to it, and to DuckDuckGo where
+  none is recorded ([settings](web-api.md#settings)). None reads a credential, so the
+  dashboard holds none (`C6-R20`). `the list it shows` answers the list applied
+  (`ARCH-R308`).
 
 ## Conformance
 
@@ -358,19 +390,21 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R214** | Where the service filling a capability speaks that capability's contract, the core MUST ask it over the contract alone and MUST NOT reach it through an adapter of its own. |
 | **ARCH-R217** | A plugin's conformance recordings MUST sit at `conformance/<capability>@<major>/<case>.json` beside its manifest, one per case of each contract it speaks, each in the recording format of `ARCH-R120` and naming the digest the manifest pins for the service its adapter `fronts`, and `lemonfiber plugin conform` MUST judge each recorded answer as the core reads a live one and MUST name each case whose recording is absent, unreadable, of another request or of another digest. |
 | **ARCH-R251** | The core MUST ask the filler of `network.egress-guard` for the forwarded port every minute while the stack runs, when the stack starts and after a reconnect the doctor observes; where the answer differs from the last, it MUST set it over `download.torrent` on every filler of that capability that takes `network.via` that guard, and MUST set it back to none when forwarding ends; where it could not set it, it MUST say the port was not passed rather than fail silently, and nothing MUST be mounted into the guard and no endpoint opened for it. The hosted `watch` loop MUST run that pass every minute for as long as the stack runs and the dashboard's gather MUST run the same pass at the same interval while a surface is open; after every diagnosis whose VPN check ran against a running stack the core MUST run one pass that sets the port on each client whose peer port differs from the guard's, journalled and said, and the doctor MUST NOT offer a separate repair for it. |
-| **ARCH-R291** | The core MUST generate the key it issues live-stream passes with and keep it to itself, and MUST confirm a pass only at an endpoint it answers on the guard's network alone; the guard MUST NOT hold the key, and MUST ask the core about a pass on every request for a live stream's bytes (`D11-R13`). |
+| **ARCH-R291** | The core MUST generate the key it issues live-stream passes with, and MUST confirm a pass only through its pass service: the lemonfiber binary of the running release, run as a service of the project with `lemonfiber pass`, holding the key read-only and answering only on the network it shares with the `stream.guard` filler (`ARCH-R312`); the key MUST NOT leave lemonfiber's own processes and the guard MUST NOT hold it, and the guard MUST ask the pass service about a pass on every request for a live stream's bytes (`D11-R13`). |
 | **ARCH-R292** | A live-stream pass MUST travel in one fixed place in one spelling, held to an exact shape, and the guard MUST refuse a request carrying it anywhere else, under another spelling or in another shape. Before it asks the core, the guard MUST hold the request to the normal form it holds an item's byte route to (one canonical path, no byte the forward would re-escape, one spelling of each parameter it reads), and MUST ask about exactly the bytes it forwards. |
-| **ARCH-R303** | `apply a guard` MUST carry the media server filler's declaration verbatim, where the guard reaches the media server and, where it speaks the contract, its filler's adapter, on the network the core's topology fixes (`ARCH-R244`), the one proxy address the guard trusts (`ARCH-R244`) and the endpoint at which it asks the core about a live-stream pass (`ARCH-R291`), and nothing else, and `the guard it enforces` MUST answer all four back as the guard holds them. |
+| **ARCH-R303** | `apply a guard` MUST carry the media server filler's declaration verbatim, where the guard reaches the media server and, where it speaks the contract, its filler's adapter, on the network the core's topology fixes (`ARCH-R244`), the one proxy address the guard trusts (`ARCH-R244`) and the pass service's address, at which it asks about a live-stream pass (`ARCH-R291`), and nothing else, and `the guard it enforces` MUST answer all four back as the guard holds them. |
 | **ARCH-R304** | The filler of `stream.guard` MUST answer `403` to a request on a declared refused path without asking anything, and to a request on a byte path carrying a query parameter that path's declaration marks refused; for one carrying a parameter marked asked, it MUST ask the declared question about the item that parameter names as well as the item in the path and forward only where both answers are "may", and MUST refuse that parameter given more than once or in a shape the question cannot take. |
 | **ARCH-R305** | Each route `apply the routes it admits` gives the filler of `request.gate` MUST hold the path segment it answers under, its upstream's address, the upstream's majors the stack supports, the credential the gate presents to that upstream and the SHA-256 hash of each token the gate admits on it, and the gate MUST refuse a token whose hash no applied route holds, and every call but its health with `403` while no route is applied; `the routes it admits` MUST answer each credential's SHA-256, in lower-case hexadecimal, and MUST NOT answer its value. |
-| **ARCH-R306** | `watch` MUST give the filler of `archive.extract` every curator at once, in place of those it watches, and, for each curator named by the media type it files, that curator's address, its key and its download folder, and the filler MUST hand each finished extraction back to that curator itself; `working` MUST answer what it is extracting now, and the contract MUST have no operation by which the core hands an extraction back. |
+| **ARCH-R306** | `watch` MUST give the filler of `archive.extract` every curator at once, in place of those it watches, and, for each curator named by the media type it files, that curator's address, its key and its download folder, the completed folder the download clients hold for the curator's category as `filed` reads it back (`ARCH-R311`), and the filler MUST hand each finished extraction back to that curator itself; `working` MUST answer what it is extracting now, and the contract MUST have no operation by which the core hands an extraction back. |
 | **ARCH-R307** | `hold` MUST give the filler of `invite.decline` the media server key it switches an invitation off with, and `held` MUST answer that key's SHA-256, in lower-case hexadecimal, and MUST NOT answer its value; `apply the invitations it may decline` MUST give it how the media server tells a claimed account, and each invitation as its token's hash, its account, the name the account was made under, when it was issued and when it lapses, and it MUST act on no invitation the core did not apply. The decline address an invitation carries MUST be the filler's own page (`D6-R15`). |
-| **ARCH-R308** | `apply a panel list` MUST give the filler of `dashboard.show` groups of entries, each a name, an icon, a link and a description with an optional reachability check and an optional widget, and the page's widgets; every widget, on the page or on an entry, MUST be one the core names, the page's being the machine's resources and a web search box, and none MUST read a credential (`C6-R20`); `the list it shows` MUST answer the list applied. |
+| **ARCH-R308** | The core MUST apply the panel list to the filler of `dashboard.show`, over the contract where the filler speaks it, and where the filler is the assembled Homepage, which speaks none, through an in-process adapter that writes the files Homepage reads and reads them back; `apply a panel list` MUST give the filler groups of entries, each a name, an icon, a link and a description with an optional reachability check and an optional widget, and the page's widgets; every widget, on the page or on an entry, MUST be one the core names, the page's being the machine's resources and a web search box, and none MUST read a credential (`C6-R20`); the search box MUST send a search to the address the core setting `LEMONFIBER_DASHBOARD_SEARCH` holds, or to `https://duckduckgo.com/?q=` where none is recorded, and a value of that setting that is not an absolute `https` or `http` address MUST be refused naming the setting; `the list it shows` MUST answer the list applied. |
+| **ARCH-R311** | `file_under` MUST hand the filler of `download.usenet` and of `download.torrent` each category and its completed folder, `/data/downloads/complete/<category>` for both, and `filed` MUST answer every category the client holds and the completed folder it files that category under; the seed MUST tell every download client its completed folders this way, through its in-process adapter where the client is an assembled part and over its contract where a plugin fills the capability, MUST read each back with `filed`, and where a client holds a folder for a category other than the one lemonfiber last filed there MUST keep it and report it drifted (`D1-R3`). |
 
 ## Related
 
 - [ADR-0041](../../00-overview/decisions/0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md)
 - [ADR-0050](../../00-overview/decisions/0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): what the guard, the gate, decline, extraction and the dashboard are applied
+- [ADR-0052](../../00-overview/decisions/0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md): the completed folders, the dashboard's asker and the pass service
 - [F14](../../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md)
 - [capability-vocabulary.md](capability-vocabulary.md): what each capability is, and its probes
 - [plugin-manifest.md](plugin-manifest.md): where `speaks` is declared

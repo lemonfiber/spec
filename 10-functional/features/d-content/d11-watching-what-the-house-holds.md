@@ -110,7 +110,9 @@ client where its bytes are at the guarded front door, with a pass naming that li
 stream and that member, which lapses after a short time. The guard asks the core, on
 every request for a live stream's bytes, its playlists and segments included, whether
 the pass it carries is good for exactly that live stream, and serves nothing the core
-does not confirm. The core keeps the key the pass is made with to itself, and closes
+does not confirm. The key the pass is made with never leaves lemonfiber's own processes:
+the core issues passes, and its pass service, beside the guard, confirms them
+([ARCH-R291](../../../20-architecture/contracts/capability-contracts.md)). The core closes
 the live stream when its pass lapses or the member is removed.
 
 ## States
