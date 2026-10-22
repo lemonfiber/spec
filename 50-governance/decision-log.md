@@ -311,6 +311,8 @@ Decisions about a repository outside this organisation, such as
 |---|---|
 | A `[[wiring]]` may name `dashboard_description` and `dashboard_icon`, the line and the icon beside its service's dashboard entry; without them the entry shows the manifest's `description` and `<service id>.png`. The bundle's manifests name them, so the panel list the core applies to `dashboard.show` shows the stack's parts as the page does today | [ARCH-R313](../20-architecture/contracts/plugin-manifest.md) |
 | `ARCH-R313` ships in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
+| Every service with a port has a dashboard entry unless its `[[wiring]]` sets `dashboard_hidden`; the bundle hides the parts the page leaves out today | [ARCH-R313](../20-architecture/contracts/plugin-manifest.md) |
+| The media server's entry links through the stream guard where one runs, where the household reaches it, and the guard has no entry of its own | [ARCH-R313](../20-architecture/contracts/plugin-manifest.md) |
 
 ## Requirements
 
