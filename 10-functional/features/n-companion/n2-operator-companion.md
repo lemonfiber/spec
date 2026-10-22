@@ -9,7 +9,7 @@ maturity: built
 priority: P1
 labels: [mobile, ux, verification]
 requires: [N1, C1, C3, G7]
-relates: [B2, B4, B5, C2, C7, C8, D5, E1, E4]
+relates: [B2, B4, B5, C2, C7, C8, D5, E1, E4, F14]
 ---
 
 # N2 — The operator's companion
@@ -130,6 +130,24 @@ Afterwards, each service says how it ended, and *not fetched*, *not started* and
 service, one is the machine. A single *failed* would send an operator looking in
 the wrong place.
 
+### A part that moves in place is its own change
+
+A release can run a part of the stack as a plugin where this machine still runs
+it as the stack's own service. Moving it in place keeps its container, its
+configuration, its data and its credentials, and a confirmed update is what
+takes it ([F14](../f-extensibility/f14-every-part-is-a-plugin.md) `F14-R29`,
+`ARCH-R299`). That changes what answers for the part, not only its version, so
+the confirmation names each move on its own: the stack's own service, and the
+plugin that would take its place.
+
+Afterwards each move says how it ended: taken, or not taken and why, in the
+stack's words. A move not taken leaves the service running as it was, which is
+not the same as a service the update failed.
+
+A start takes no move. Where moves are on offer, what a start came to names
+each the same way and says that an update takes it, so an operator who only
+started the stack does not read the part as already moved.
+
 ### The things that go wrong while nobody is watching
 
 Downloads that are stuck ([C7](../c-trust/c7-queue-health.md)), a provider out of
@@ -201,6 +219,7 @@ and a note beside it says a preview cannot ask.
 | A log window is requested for a service that is not running | The absence is stated; an empty window is not shown as though the service were quiet. |
 | Something is running on the machine that the stack does not declare | Named and shown apart from the stack's own services, with no verb offered against it. The app did not start it and cannot say what it is for. |
 | An update would make a change that cannot be undone | Said in the confirmation, against the service it is true of, before the operator agrees. Undoing the update afterwards will not put this back. |
+| A move in place an update tried was not taken | The service keeps running as the stack's own, and the outcome says why against that service and plugin. The move is not reported as a service the update failed. |
 
 ## Acceptance criteria
 
@@ -236,6 +255,9 @@ and a note beside it says a preview cannot ask.
 | **N2-R28** | The operator MUST be able to see what the household is playing now. It MUST list every session the media server reports. Each session MUST name the member, the title or the series, season and episode, the device, and whether it is paused. The list MUST be kept current from the stack's `playing` event without the operator asking again. It MUST say plainly when nothing is playing, and MUST say when it last heard where the stream has stopped. A member MUST NOT be shown this list or any other member's session. |
 | **N2-R29** | The operator MUST be able to choose, for the whole household and for each member, what happens to what they ask for and how many requests a period allows, in the stack's words (`D7-R1`, `D7-R2`). The change MUST be rehearsed first and the rehearsal MUST show what would change, labelled as a rehearsal (`N6-R1`); only a separate act MUST apply it. Naming only a limit MUST leave the policy as it is, and naming only a policy MUST leave the limit as it is. It MUST be offered only on the operator's side. |
 | **N2-R30** | Where the stack warns about a choice rather than a fault, the app MUST offer accepting it, and before it is accepted MUST show what the stack says the choice costs and MUST take an explicit confirmation distinct from viewing the finding (`N2-R5`). An accepted warning MUST stay readable as accepted and MUST NOT be presented as resolved (`G7-R14`). The app MUST NOT offer accepting a fault, or a warning the stack does not raise in that answer. It MUST be offered only on the operator's side. |
+| **N2-R31** | Where the stack reports moves in place an update would take (`ARCH-R299`), the update's confirmation MUST name each one, the stack's own service and the plugin that would take its place, apart from the services the update would change (`N2-R17`), before it is agreed to. |
+| **N2-R32** | The app MUST report what became of each move in place an applied update tried, as taken or as not taken, and where one was not taken MUST state why in the stack's words. A move MUST NOT be reported as how a service took the update (`N2-R18`). |
+| **N2-R33** | Where what a start came to names moves in place on offer (`ARCH-R299`), the app MUST name each one, the stack's own service and the plugin that would take its place, and MUST say that a start does not take it and an update does. |
 
 ## Notes
 

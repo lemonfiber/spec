@@ -39,7 +39,7 @@
       "priority": "P1",
       "labels": ["mobile", "ux", "verification"],
       "requires": ["N1", "C1", "C3", "G7"],
-      "relates": ["B2", "B4", "B5", "C2", "C7", "C8", "D5", "E1", "E4"],
+      "relates": ["B2", "B4", "B5", "C2", "C7", "C8", "D5", "E1", "E4", "F14"],
       "versions": [
         {"version": "0.19.0", "status": "planned"},
         {"version": "0.20.0", "status": "planned"}
