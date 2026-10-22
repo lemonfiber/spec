@@ -305,6 +305,13 @@ Decisions about a repository outside this organisation, such as
 | One machine runs one lemonfiber stack: a network's subnet is derived from its name alone, so two projects on one machine collide, a deliberate limit. `ARCH-R310` is amended in place | [ADR-0052](../00-overview/decisions/0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md), [ARCH-R310](../20-architecture/contracts/plugin-manifest.md), [F1](../10-functional/features/f-extensibility/f1-customisation.md) |
 | `ARCH-R311` and `ARCH-R312` ship in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
+## 2026-10-23
+
+| Decision | Where it lives |
+|---|---|
+| A `[[wiring]]` may name `dashboard_description` and `dashboard_icon`, the line and the icon beside its service's dashboard entry; without them the entry shows the manifest's `description` and `<service id>.png`. The bundle's manifests name them, so the panel list the core applies to `dashboard.show` shows the stack's parts as the page does today | [ARCH-R313](../20-architecture/contracts/plugin-manifest.md) |
+| `ARCH-R313` ships in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
+
 ## Requirements
 
 | ID | Requirement |
