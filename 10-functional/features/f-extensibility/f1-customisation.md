@@ -134,7 +134,7 @@ Per managed area:
 | Fork diverges far from the manifest contract | Validation reports every violation at once, not one per run. |
 | Operator scripting against output | Machine-readable output is a stable interface and MUST be versioned. |
 | Compose file edited to break the single-mount rule | Report the consequence ([C5](../c-trust/c5-storage.md)); do not refuse. It's their system. |
-| Operator wants to run two stacks on one host | Supported via distinct project names and non-overlapping ports; port conflicts detected. |
+| Operator wants to run two stacks on one host | Not supported: one machine runs one lemonfiber stack. Each network's subnet is derived from its name alone, so a second project names the subnets the first holds and the engine refuses its networks ([ARCH-R310](../../../20-architecture/contracts/plugin-manifest.md#the-networks)). |
 
 ## Acceptance criteria
 

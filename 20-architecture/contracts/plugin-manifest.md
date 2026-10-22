@@ -285,6 +285,8 @@ of the two it is:
 | `DATA_ROOT` | The data mount |
 |-------------|----------------|
 | An absolute host path, a bind | That path, bound at `/data` |
+| A path relative to the stack directory that stays inside it, a bind | That path within the stack directory, bound at `/data` |
+| Unset | `./data` within the stack directory, bound at `/data` |
 | `nfs://<server>/<export>`, an NFS export | One NFS volume the project shares, mounted at `/data`, with mount options lemonfiber fixes |
 
 [ADR-0006](../../00-overview/decisions/0006-single-data-mount.md)'s rule holds by
@@ -293,7 +295,8 @@ setting decides where it comes from, never how many there are. The setting is a
 location, not a storage mode: what that location can do is still found by making a
 hardlink there (`C5-R2`).
 
-The server is a host name or an address and the export an absolute path. Either is
+A relative path is read from the stack directory, and one that leaves it or names the
+stack directory itself is refused, naming it. The server is a host name or an address and the export an absolute path. Either is
 refused, naming it, where it holds a comma, whitespace or anything else that would
 change the mount options written. There is no overlay: a service added later takes the
 same mount, which a hand-kept list of the services that take data did not guarantee.
@@ -309,16 +312,18 @@ them as passed ([C5](../../10-functional/features/c-trust/c5-storage.md)).
 ### The networks
 
 Every network in the project, and every service's place on it, is derived by
-lemonfiber from the settled asks between capabilities and the stack's links by name
-(`ARCH-R241`). There is no shared default network: two services share a network only
-where one of the rules below joins them, so every link is one the wiring states. No
+lemonfiber from the settled asks between capabilities, the stack's links by name and the
+pass service's one network (`ARCH-R241`). There is no shared default network: two
+services share a network only where one of the rules below joins them, so every link is one the wiring states. No
 manifest, first-party or third-party, names a network, a subnet or an address, and none
 has a field in which to.
 
 - **An ask is a network.** Each settled ask is a network of its own, joining the asking
   service and the service the ask reaches — the adapter, or the upstream where the ask is
-  `native` — with no route off the host. A link by name joins the service it names, and
-  never a service standing in for it (`ARCH-R242`).
+  `native` — with no route off the host. A link by name joins the service whose id it
+  names: where a part has moved in place, the first-party service holding that reserved
+  id (`ARCH-R301`), and never a service filling the same capability under another id
+  (`ARCH-R242`).
 - **A hostname and a panel are asks.** A service the proxy routes a hostname to asks
   `proxy.front`, and one whose dashboard panel reads it asks `dashboard.show`, so the
   proxy and the dashboard reach exactly the services they front or show.
@@ -332,6 +337,9 @@ has a field in which to.
   cannot reach out, and a confined service publishing nothing has none.
 - **A service taking `via`** has no network: it is inside its filler's, and an ask it
   fills joins the service it is inside.
+- **The pass service and the guard.** The core's pass service, where the guard asks about
+  a live-stream pass (`ARCH-R291`), is on one network, which joins it and the
+  `stream.guard` filler and nothing else, with no route off the host (`ARCH-R312`).
 
 So a link the stack relies on is one its wiring states. Two the shipped stack made over
 its shared network and never wrote down are asks: Prowlarr asks `indexer.proxy` of the
@@ -352,6 +360,12 @@ own address pools, and a default install holds about thirty, fewer than one stac
 asks come to. So lemonfiber gives each network a `/29` of `10.80.0.0/16`, chosen from
 its name, so that a network keeps its subnet when a plugin's networks come or go, and
 none inside the two fixed subnets (`ARCH-R310`).
+
+**One machine runs one stack.** A subnet is derived from the network's name alone, and the
+two fixed subnets are the same in every project, so a second project on the machine names
+the subnets the first holds and the engine refuses its networks. That is a limit lemonfiber
+keeps rather than a fault: one machine runs one lemonfiber stack
+([ADR-0052](../../00-overview/decisions/0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md)).
 
 A plugin's service is placed by the same rules: a filler of an ask is on the network
 that ask derives, whatever installed it, so a stand-in is reached over exactly the
@@ -625,7 +639,9 @@ it being shown. Whatever its source, it reaches the container only through the s
 own secrets file (`ARCH-R247`). A value captured or entered is held in the secret store in
 the plugin's namespace, as `<plugin id>:<secret id>`. An assembled part's plugin id is its
 service's, so the egress guard's key is `gluetun:wireguard-key` whether the bundle
-assembles the part or installs it (`ARCH-R275`).
+assembles the part or installs it. Of an assembled part's secrets, only one the operator
+enters is held in the store; one whose `of` names another service, as the curators' keys
+Unpackerr and Recyclarr declare do, is a credential that crosses (`ARCH-R275`).
 
 **A credential that crosses is read where it is held.** One `F14-R18` or `F14-R20` lets
 cross is not copied into the secret store. lemonfiber reads it from the store that holds
@@ -915,16 +931,17 @@ unreadable.
 | **ARCH-R237** | A device, a group or an added kernel capability MUST come only from a named shape in a closed set holding `egress-guard` and `render`; `render` MUST be declared only by a service that provides `media.serve` or by the upstream an adapter of the same plugin fronts where that adapter speaks it, refused naming `service <id>.shape` elsewhere, and MUST be written as the host's `/dev/dri` device with the group that owns it on the host added, or as nothing where the host has no `/dev/dri`, which the reading MUST say. |
 | **ARCH-R238** | An install or update whose plugin takes any shape MUST state in its reading each service taking it with what the shape gives, and MUST NOT act unless the operator approved that shape for that service apart from the offer, written `<shape>@<service>`, as `F14-R21` holds for the egress guard's. |
 | **ARCH-R239** | The manifest MUST have no field by which a service could mount the engine's socket, run privileged, join the host's network, PID or IPC namespace, name an entrypoint or a command, or obtain a kernel capability, a device or a group other than through a shape. |
-| **ARCH-R240** | The data root MUST be one operator setting, the `lemonfiber config` key `DATA_ROOT`, holding an absolute host path (a bind) or `nfs://<server>/<export>` (an NFS export), and lemonfiber MUST write the single data mount of every service that takes data from it and from nothing else; a server that is not a host name or an address, and an export that is not an absolute path or holds a character that would change the mount options written, MUST be refused naming it; the NFS server and export kept for the retired NAS overlay MUST be folded into it once, journalled; and for an NFS export the doctor MUST report the storage mode as `nas` and MUST say the checks that read a host path were not run rather than report them passed. |
-| **ARCH-R241** | lemonfiber MUST derive every network of the project and every service's place on it from the settled asks between capabilities and the stack's links by name, MUST write no network shared by services that no rule of the derivation joins, and the manifest MUST have no field naming a network, a subnet or an address. |
-| **ARCH-R242** | Each settled ask MUST be a network of its own joining the asking service and the service the ask reaches, with no route off the host; a service given a proxy hostname MUST ask `proxy.front` and one whose dashboard panel reads it `dashboard.show`; an ask filled by a service taking `via` MUST join the service it is inside; and a link by name MUST join the service it names and never a service standing in for it. |
+| **ARCH-R240** | The data root MUST be one operator setting, the `lemonfiber config` key `DATA_ROOT`, holding an absolute host path or a path relative to the stack directory that stays inside it (a bind), or `nfs://<server>/<export>` (an NFS export), and MUST be `./data` within the stack directory where it is unset; lemonfiber MUST write the single data mount of every service that takes data from it and from nothing else; a relative path that leaves the stack directory or names the stack directory itself, a server that is not a host name or an address, and an export that is not an absolute path or holds a character that would change the mount options written, MUST be refused naming it; the NFS server and export kept for the retired NAS overlay MUST be folded into it once, journalled; and for an NFS export the doctor MUST report the storage mode as `nas` and MUST say the checks that read a host path were not run rather than report them passed. |
+| **ARCH-R241** | lemonfiber MUST derive every network of the project and every service's place on it from the settled asks between capabilities, the stack's links by name and the pass service's network (`ARCH-R312`), MUST write no network shared by services that no rule of the derivation joins, and the manifest MUST have no field naming a network, a subnet or an address. |
+| **ARCH-R242** | Each settled ask MUST be a network of its own joining the asking service and the service the ask reaches, with no route off the host; a service given a proxy hostname MUST ask `proxy.front` and one whose dashboard panel reads it `dashboard.show`; an ask filled by a service taking `via` MUST join the service it is inside; and a link by name MUST join the service whose id it names, the first-party service holding that reserved id where the part has moved in place (`ARCH-R301`), and MUST NOT join a service filling the same capability under another id. |
 | **ARCH-R243** | Every adapter and the service it fronts MUST share a network no other service joins, with no route off the host, and the core MUST reach the adapter at its contract port published on the loopback interface; a service that publishes a port or is not confined MUST be on a network of its own carrying its ports and its route off the host, translating no address off the host where it is confined. |
 | **ARCH-R244** | lemonfiber MUST fix the address of the `stream.guard` filler on the network of its ask of `media.serve`, and the addresses of it and of the `proxy.front` filler on the network of its ask of `proxy.front`, each from a subnet lemonfiber holds in which the engine assigns no other address, and MUST tell the media server's filler the guard's address as the one proxy it trusts and the guard the proxy's. |
-| **ARCH-R310** | lemonfiber MUST name the subnet of every network of the project, so the engine draws none from its own address pools: each a `/29` of `10.80.0.0/16`, chosen from the network's name so that it does not move when another network comes or goes, and none inside a fixed subnet `ARCH-R244` names. |
+| **ARCH-R310** | lemonfiber MUST name the subnet of every network of the project, so the engine draws none from its own address pools: each a `/29` of `10.80.0.0/16`, chosen from the network's name alone so that it does not move when another network comes or goes, and none inside a fixed subnet `ARCH-R244` names; one machine runs one lemonfiber stack, since a second project there names the same subnets. |
+| **ARCH-R312** | lemonfiber MUST put the pass service (`ARCH-R291`) on one network, joining it and the `stream.guard` filler and no other service, with no route off the host, and on no other network. |
 | **ARCH-R245** | Choosing which service fills an ask MUST regenerate the project in the same journalled change as the setting. |
 | **ARCH-R247** | `{ secret = "<name>" }` MUST name a `[[secret]]` the manifest declares, refused naming the variable otherwise; lemonfiber MUST write its value only to an environment file of the service's own readable by its owner alone (`0600`), named by the entry, MUST NOT write it into the project, and MUST show the variable and the secret's name, never its value, in every rehearsal, reading and diagnostic. |
 | **ARCH-R248** | A setting MUST live in the core's settings store and a secret in the secret store; the operator MUST be able to read and change a setting from the command line, the web API and the companion's operator screens alike, and each change MUST be journalled and MUST regenerate every entry that reads it. |
-| **ARCH-R249** | The first run of the release that stops reading the stack's static Compose files MUST read the stack's environment file once and file every value the assembled parts and the settings the core publishes read from it under their setting or secret, journalling each, and lemonfiber MUST NOT read the environment file for those values again; a part's later in-place move MUST NOT migrate any of them (`ARCH-R273`). |
+| **ARCH-R249** | At the first run of the release that stops reading the stack's static Compose files, lemonfiber MUST file every value an assembled part or a setting the core publishes reads from the stack's environment file once, under its setting or secret, journalling each, and MUST NOT read that value from the environment file again; a part's later in-place move MUST NOT migrate any of them (`ARCH-R273`); and the environment file MUST stay the file `lemonfiber config` reads and writes for lemonfiber's own keys, such as `DATA_ROOT` and `PUID`. |
 | **ARCH-R250** | A plugin's CI MUST run each of its images under the posture its manifest declares, `standard` included, and a manifest MAY declare `posture = "confined"` only where that run passes under it; lemonfiber MUST write the posture a manifest declares and MUST NOT refuse to install, update or start a service on account of its posture. |
 | **ARCH-R252** | lemonfiber MUST merge one operator-written overlay, `overlay.yml` in its own configuration directory, last, over the project it generates, and MUST NOT read an overlay from anywhere else, a path recorded under the retired `LEMONFIBER_OVERLAY` key included, which the doctor MUST name with where to move it; MUST NOT accept or write an overlay from a plugin, a catalogue, the bundle or itself, so standing beside an existing setup MUST record its alternative ports as a setting the generator writes the published ports from, journalled and reversible; MUST name the overlay and every service it changes as unvetted in the doctor and in every rehearsal; and MUST journal each change to it, by content, when it next writes or starts the project. |
 | **ARCH-R253** | An ask and a `url_of` MUST reach the service that speaks the capability's contract, the filler itself where the filler speaks none, and the upstream that filler's adapter fronts only where the asker names that upstream's declared API in `native`; an ask naming an API the filler's upstream does not declare MUST be reported unfilled, naming the API. |

@@ -3,6 +3,8 @@
 **Status:** Accepted
 **Date:** 2026-07-24
 
+**Amended** by [ADR-0052](0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md): the tree under `downloads/`. Each client keeps its own `incomplete/`, and both file a completed download under `downloads/complete/<category>`, one folder per category that both clients share.
+
 ## Context
 
 An *arr "imports" a completed download by moving it from the download client's

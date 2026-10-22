@@ -579,6 +579,7 @@ each read back as the core's:
 | Core setting | What it holds |
 |--------------|---------------|
 | `LEMONFIBER_DEVICE_KEY_APPS` | The identities of the operator's own builds a device key may come from (`ARCH-R262`) |
+| `LEMONFIBER_DASHBOARD_SEARCH` | The address the dashboard's web search box sends a search to, the terms appended to it: an absolute `https` or `http` address, `https://duckduckgo.com/?q=` where none is recorded (`ARCH-R308`) |
 
 Every other `LEMONFIBER_*` key is `lemonfiber config`'s, read by `GET /api/config`. Each
 command refuses the other's names, naming the command that takes the name, so one name

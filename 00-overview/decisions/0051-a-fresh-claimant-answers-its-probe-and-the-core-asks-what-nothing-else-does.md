@@ -15,6 +15,8 @@
   `archive.extract`, `stream.guard` and `invite.decline`, and no `[[ask]]` row is
   written for it.
 
+**Amended** by [ADR-0052](0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md): §4. The core asks `dashboard.show` as well: over the contract where its filler speaks it, and where the filler is the assembled Homepage, through an in-process adapter that writes Homepage's own files.
+
 **Amends**:
 
 - [ADR-0032](0032-the-request-service-reaches-the-arrs-through-a-gate.md): §3. A gate

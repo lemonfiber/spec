@@ -22,6 +22,8 @@
 
 **Amended** by [ADR-0051](0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md): §6. A capability is asked by something in the bundle or by the core over its contract; the core asks `quality.sync`, `archive.extract`, `stream.guard` and `invite.decline`.
 
+**Amended** by [ADR-0052](0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md): §6. The core asks `dashboard.show` too, through an in-process adapter writing Homepage's own files where the filler speaks no contract.
+
 **Supersedes** [ADR-0024](0024-what-opens-and-what-never-does.md) where it holds the
 adapter set closed: behaviour no longer lives in lemonfiber's process at all.
 **Amends**:
