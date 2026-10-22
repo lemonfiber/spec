@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 36 built, 33 building, 20 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 35 built, 34 building, 20 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -62,7 +62,6 @@ code, and the two move independently.
 | [F12](f-extensibility/f12-home-assistant.md) | Home Assistant | F | operator | accepted | `0.18.0`, `0.19.0` |
 | [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0`, `0.19.0` |
 | [L3](l-release/l3-nas-image.md) | The image for a NAS | L | operator | accepted | `0.18.0` |
-| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | `0.19.0`, `0.20.0` |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0`, `0.19.0` |
 | [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | `0.18.0` |
 | [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | accepted | — |
@@ -114,6 +113,7 @@ code, and the two move independently.
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0`, `0.18.0` |
 | [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0`, `0.19.0` |
 | [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0`, `0.19.0`, `1.0.0` |
+| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | `0.19.0`, `0.20.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |
