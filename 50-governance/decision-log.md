@@ -326,6 +326,7 @@ Decisions about a repository outside this organisation, such as
 | The client the Sonarr, Radarr, Lidarr and Prowlarr adapters share lives once, in `adapter-kit-servarr`, a Rust library each adapter takes by commit as it takes `lemonfiber-adapter-kit`; nothing is published to a registry | [REPO-R99, REPO-R100](../30-repos/adapter-kit-servarr.md) |
 | `request.intake@1`'s conformance cases name their member by 32 lowercase hexadecimal digits, the shape a media server's account id takes | [capability-contracts.md](../20-architecture/contracts/capability-contracts.md#a-request-services-owner) |
 | `ARCH-R319` ships in 0.18.0 with the request service's move | [0.18.0](../70-operations/versions/0.18.0.toml) |
+| A minted secret's `of` names the plugin's own service it is the credential of, as every secret the plugin holds names its owner; a placeholder and an `upstream` field name such a secret | [ARCH-R315, ARCH-R316, ARCH-R317](../20-architecture/contracts/plugin-manifest.md) |
 
 ## Requirements
 
