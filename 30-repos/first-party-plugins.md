@@ -66,6 +66,10 @@ with no adapter declares one service, the bundle assembles it into the stack the
 ships, and its in-process adapter is the core's; the release whose bundle installs the
 part deletes that adapter (`ARCH-R266`).
 
+The adapters in front of Sonarr, Radarr, Lidarr and Prowlarr take the client they share
+from [`adapter-kit-servarr`](adapter-kit-servarr.md) at a commit, and hold only what their
+own upstream alone answers (`REPO-R99`).
+
 ## What its CI runs
 
 - **The manifest**, against the schema the core it targets publishes.
@@ -131,6 +135,7 @@ and the pin moves by a reviewed pull request on the catalogue
 
 - [ADR-0045](../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md) — every bundled part has its repository now, and its adapter later
 - [bundle.md](../20-architecture/contracts/bundle.md) — how the bundle pins each of these
+- [adapter-kit-servarr](adapter-kit-servarr.md) — the client the Servarr adapters share
 - [lemonfiber-plugins](lemonfiber-plugins.md) — where the bundle lives, and the CI that holds each copy to its origin
 - [releasing](../70-operations/releasing.md) — `OPS-R86`, `OPS-R90`, `OPS-R91`
 - [ADR-0049](../00-overview/decisions/0049-a-moved-pin-is-recorded-again-by-the-core.md) — a moved pin is recorded again by the core

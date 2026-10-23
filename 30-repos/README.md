@@ -34,6 +34,7 @@ flowchart TD
         decline["lemonfiber-decline<br/>the decline service"]
         gate["lemonfiber-request-gate<br/>the request gate"]
         plugins["lemonfiber-plugins<br/>the reviewed catalogue"]
+        servarrkit["adapter-kit-servarr<br/>what the Servarr adapters share"]
         tap["homebrew-tap<br/>generated formula"]
         site["website-lemonfiber.app<br/>the public frontpage"]
         docs["website-docs.lemonfiber.app<br/>the documentation site"]
@@ -61,6 +62,7 @@ flowchart TD
     spec -->|board snapshot, specification| site
     spec -->|board snapshot| lfdev
     lemonfiber -->|docs submodule, pinned| contribute
+    servarrkit -->|taken by commit by the Servarr adapters| parts
     kit -->|taken by commit| docs
     kit -->|taken by commit| contribute
     gh -.->|inherited by| impl
@@ -103,6 +105,7 @@ flowchart TD
 | `plugin-homepage` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the dashboard, Homepage; its image is the upstream's, pinned by revision |
 | `plugin-door` | [first-party-plugins.md](first-party-plugins.md) | Dockerfile | The bundle's part for the guarded door, Caddy rebuilt without its file capability; builds its image, so the train tags it |
 | `plugin-caddy` | [first-party-plugins.md](first-party-plugins.md) | Dockerfile | The bundle's part for the proxy, Caddy rebuilt without its file capability, listening on 8080 and 8443; builds its image, so the train tags it |
+| `adapter-kit-servarr` | [adapter-kit-servarr.md](adapter-kit-servarr.md) | Rust | One copy of the Servarr client, taken by each Servarr adapter at a commit |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website-lemonfiber.app` | [website-lemonfiber.md](website-lemonfiber.md) | Astro | The org is the motor; roadmap read, not written |
 | `website-docs.lemonfiber.app` | [website-docs.md](website-docs.md) | Astro | It renders; it does not own — every page pinned to the repo that wrote it |
@@ -112,7 +115,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those forty-two are the repositories this specification governs, which is not the
+Those forty-three are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))
