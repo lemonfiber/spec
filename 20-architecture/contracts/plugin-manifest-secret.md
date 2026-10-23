@@ -16,6 +16,12 @@ of   = "komga"
 why  = "Read the library counts the dashboard panel shows"
 
 [[secret]]
+id   = "series-key"
+of   = "sonarr"
+for  = "subtitle.find"
+why  = "Read the series it finds subtitles for"
+
+[[secret]]
 id     = "upstream-key"
 of     = "sabnzbd"
 minted = true
@@ -57,6 +63,38 @@ their own container, as they take a throwaway copy of its starting files.
 cross is not copied into the secret store. lemonfiber reads it from the store that holds
 it each time it writes an entry naming it, so replacing it regenerates every entry that
 reads it, and no stale copy is left behind (`ARCH-R277`).
+
+**A third-party plugin is granted what crosses to it.** A `[[secret]]` whose `of` names
+another service declares `for`, the capability one of the plugin's own services provides
+that the credential is needed to fill. A third-party plugin declares at most one such
+secret for each capability it fills; a manifest declaring two for one capability, or a
+`for` naming a capability none of its services provides, is refused at install and
+update, naming the secret (`ARCH-R322`). A first-party plugin may leave `for` out,
+because `F14-R18` lets the stack's credentials cross to it whole.
+
+What crosses to a third-party plugin is a grant, and the operator gives it. The install
+or update reading names each credential that would cross as `<setting>@<plugin>`, with
+the capability it is for and the service whose credential it is; the credential is named
+by its setting, as the [credentials read](web-api.md) lists it, never by value. The act
+takes the grant as another approval (`--approve SONARR_API_KEY@comics`), and refuses
+unless every grant the reading names was approved. An update names every grant again
+and takes none over unapproved: one the operator leaves out stops crossing when the
+update is made. Each grant given or ended is journalled with the operation that gives or
+ends it, by credential and plugin, so undoing that operation ends or restores the grant
+(`ARCH-R323`). A granted credential crosses as one `F14-R18` lets cross does: read where
+it is held, into the plugin's secrets file and into each connection an ask of the plugin
+makes to the service whose credential it is.
+
+**A grant is revoked at the credentials surface.** `lemonfiber credentials revoke
+<plugin> <credential>` and the `credentials-revoke` action end one grant: every entry and
+connection of the plugin is written again without the credential, the plugin's services
+that read it restart, and the whole is journalled as one operation that undo reverses.
+It is rehearsed and takes an offer as a plugin write does. The plugin stays installed,
+and each capability the credential was for is reported unfilled for that reason; a
+plugin and credential with no grant between them are refused, naming the grants the
+plugin holds (`ARCH-R324`). The credentials read lists every grant beside the credential
+it crosses: the plugin, the capability it is for and when it was approved, with no value
+(`ARCH-R325`).
 
 **The journal holds a secret's fingerprint, never its value.** A secret's change is
 journalled with the stable fingerprint of the value before and after it, as

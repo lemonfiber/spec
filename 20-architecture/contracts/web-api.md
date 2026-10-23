@@ -92,8 +92,9 @@ and a picture the media server does not hold, are answered as absent.
 
 `/api/credentials` takes none, and it is half a word on purpose. What it answers with is
 every credential the stack holds — what each is, what authenticates with it, where the value
-lives and where it stands — and no value, because the shape it is built from has no field one
-could go in. The two things that can be asked of a line of it are not offered here at all:
+lives and where it stands, and each grant letting it cross to a third-party plugin
+(`ARCH-R325`) — and no value, because the shape it is built from has no field one could go
+in. The two things that can be asked of a line of it are not offered here at all:
 printing a credential over this door would put it through a browser's cache, whatever proxy is
 between and the log each of them keeps, and replacing one is a write a request could be forged
 into making against the credential the stack is currently working on. Both are the terminal's,
@@ -475,6 +476,7 @@ sentence to show somebody.
 POST /api/actions/plugin-install    POST /api/actions/plugin-update
 POST /api/actions/plugin-remove     POST /api/actions/plugin-run
 POST /api/actions/plugin-prove      POST /api/actions/wiring-fill
+POST /api/actions/credentials-revoke
 ```
 
 What is installed and what the stack wires to what are read as their commands answer
@@ -483,7 +485,7 @@ is refused with a code the artefact lists, and is never answered with an empty l
 empty list says nothing is installed, which is a different sentence from *this could not
 be read* (`ARCH-R145`).
 
-The six writes take what their commands take ([ADR-0031](../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)):
+The seven writes take what their commands take ([ADR-0031](../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)):
 
 | Action | Arguments | Answers |
 |--------|-----------|---------|
@@ -493,10 +495,18 @@ The six writes take what their commands take ([ADR-0031](../../00-overview/decis
 | `plugin-run` | `plugin`, `recipe`, `inputs`, `dry_run`, `offer`, `approved` | a job, then `plugins` |
 | `plugin-prove` | `plugin`, `dry_run`, `offer` | a job, then `plugins` |
 | `wiring-fill` | `capability`, `service`, `reason`, `dry_run`, `offer` | `substitution` |
+| `credentials-revoke` | `plugin`, `credential`, `dry_run`, `offer` | a job, then `credentials` |
 
 **The yes is the offer.** Each rehearsal answers an offer built from what it read, and
 the write takes that offer, builds it again from what is there now, and refuses where the
-two differ, naming what moved. A bare `confirm` is no yes to any of the six (`ARCH-R146`).
+two differ, naming what moved. A bare `confirm` is no yes to any of the seven (`ARCH-R146`).
+
+`credentials-revoke` ends one grant a third-party plugin holds, as `lemonfiber credentials
+revoke` does: the credential stops crossing to the plugin, whose services that read it
+restart, and the plugin stays installed (`ARCH-R324`). It is a write over a grant, not over
+a credential: it prints no value and replaces none, so it stays on this door while revealing
+and rotating a credential stay at the terminal. A grant is given only by the install or
+update offer that names it, through `approved`, as `<setting>@<plugin>` (`ARCH-R323`).
 
 `plugin-prove` runs the plugin's live proof again, as `lemonfiber plugin prove` does: a
 pass clears every nonconforming record the plugin holds, and a failure keeps them and

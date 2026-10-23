@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 554 goals, seeded from the roadmap milestone this version serves;
+# 558 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -880,7 +880,19 @@ goals   = [
     "ARCH-R319",
     "ARCH-R320",
     "ARCH-R321",
+    "ARCH-R322",
+    "ARCH-R323",
+    "ARCH-R324",
+    "ARCH-R325",
 ]
+
+# `ARCH-R322` to `ARCH-R325` build `F14-R20`'s grant: a third-party plugin's crossing
+# secret names the capability it is `for`, one per capability; the install or update offer
+# names each credential that would cross as `<setting>@<plugin>` and the act takes it as
+# an approval, every update asking again; `lemonfiber credentials revoke` and the
+# `credentials-revoke` action end one, restarting what read it; the credentials read lists
+# every grant. `F14-R20` ships in 0.18.0 and these are how. Added by the maintainer's
+# decision of 2026-10-23 (OPS-R31).
 
 # `ARCH-R320` and `ARCH-R321` let a curator of films or music be recorded doing what it
 # does: `library.curate`'s kind-bound cases are asked once per media type, of the media
