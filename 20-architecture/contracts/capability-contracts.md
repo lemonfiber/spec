@@ -85,7 +85,9 @@ anything.
   an adapter reads its key and nothing else on the machine can (`F14-R27`).
 - **The upstream's credential.** Where the upstream needs a credential lemonfiber keeps,
   lemonfiber writes it beside the key as `upstream.json`, a JSON object of named strings,
-  each time it creates, rotates or moves that credential. The adapter reads it on each
+  each time it creates, rotates or moves that credential. The adapter's `upstream` names
+  those fields and the secret each holds, which is one lemonfiber mints and seeds into
+  the upstream before its first start (`ARCH-R315`, `ARCH-R317`). The adapter reads it on each
   use and never writes it (`F14-R28`).
 - **Answers.** A success answers `200` with the operation's JSON body, or `204` where
   it has none. A refusal answers a problem document

@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 547 goals, seeded from the roadmap milestone this version serves;
+# 551 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -873,7 +873,20 @@ goals   = [
     "ARCH-R313",
     "ARCH-R291",
     "ARCH-R314",
+    "ARCH-R315",
+    "ARCH-R316",
+    "ARCH-R317",
+    "ARCH-R318",
 ]
+
+# `ARCH-R315` to `ARCH-R318` give an upstream an adapter fronts the credential lemonfiber
+# mints for it: made at install, seeded through the service's environment or a starting
+# file, handed to the adapter through the `upstream.json` fields its `upstream` names, and
+# replaced in every place it was written. A bundled part's manifest names `api` until its
+# move, and the move needs a credential the core holds without reading the service's
+# configuration, so they ship with ADR-0045 §9's goal that no manifest names `api`.
+# `ARCH-R302` is amended in place. Added by the maintainer's decision of 2026-10-23
+# (OPS-R31).
 
 # `ARCH-R291` moves here from 0.19.0, and `ARCH-R314` joins it: the network `ARCH-R312`
 # puts the pass service on and the address `ARCH-R303` hands the guard both name the pass

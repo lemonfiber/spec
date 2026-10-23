@@ -317,6 +317,11 @@ Decisions about a repository outside this organisation, such as
 | A pass is an HMAC-SHA256 under the core's key over the live stream, the member and when it lapses, five minutes after issue, carried in `lfpass`; the guard asks `GET /pass` and `204` confirms | [ARCH-R314](../20-architecture/contracts/capability-contracts.md) |
 | The pass service runs the release's own image, pinned by digest when the project is written; a build with no published image runs without it and says so | [ARCH-R314](../20-architecture/contracts/capability-contracts.md) |
 | The media server's declaration carries the live-stream paths, where each places the live stream's id; the core hands them to the pass service, which asks about the stream they place in a request's path | [ARCH-R314](../20-architecture/contracts/capability-contracts.md) |
+| lemonfiber mints the credential of an upstream an adapter fronts: a `[[secret]]` with `minted = true` is made at install as 32 lowercase hex characters and held as the plugin's; a part moved in place files the credential its service already answers to and mints nothing | [ARCH-R315](../20-architecture/contracts/plugin-manifest.md) |
+| A minted secret reaches the upstream through its `env` or a starting file's `{{secret:<id>}}`, with a `pbkdf2` form for a service that keeps only a hash; such a file is `0600` and shown with the placeholder | [ARCH-R316](../20-architecture/contracts/plugin-manifest.md) |
+| An adapter's `upstream` names each `upstream.json` field and the secret it holds; lemonfiber hands a fronted upstream's credential to nothing else of its own, and `ARCH-R302` is amended in place to say so | [ARCH-R317, ARCH-R302](../20-architecture/contracts/plugin-manifest.md) |
+| Replacing a minted secret writes it everywhere it was written and restarts what reads it | [ARCH-R318](../20-architecture/contracts/plugin-manifest.md) |
+| `ARCH-R315` to `ARCH-R318` ship in 0.18.0 with the moves that need them | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
 ## Requirements
 
