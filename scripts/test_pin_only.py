@@ -941,8 +941,8 @@ class TheWorkflow(unittest.TestCase):
         self.assertEqual(set(shown[True]["pull_request_target"]["types"]),
                          {"opened", "synchronize", "reopened", "labeled", "unlabeled"})
         import check_superseded_runs
-        self.assertEqual((shown["concurrency"]["group"], shown["concurrency"]["cancel-in-progress"]),
-                         check_superseded_runs.PIN_ONLY_BLOCK)
+        block = shown["concurrency"]["group"], shown["concurrency"]["cancel-in-progress"]
+        self.assertEqual(block, check_superseded_runs.PIN_ONLY_BLOCK)
         self.assertNotIn("if", shown["jobs"]["pin-only"])
 
     def test_spec_calls_it_the_way_it_documents(self):
