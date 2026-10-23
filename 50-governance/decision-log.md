@@ -316,6 +316,7 @@ Decisions about a repository outside this organisation, such as
 | The pass service ships in 0.18.0 with the network and the guard address that need it; issuing a pass for a live stream stays in 0.19.0 | [0.18.0](../70-operations/versions/0.18.0.toml) |
 | A pass is an HMAC-SHA256 under the core's key over the live stream, the member and when it lapses, five minutes after issue, carried in `lfpass`; the guard asks `GET /pass` and `204` confirms | [ARCH-R314](../20-architecture/contracts/capability-contracts.md) |
 | The pass service runs the release's own image, pinned by digest when the project is written; a build with no published image runs without it and says so | [ARCH-R314](../20-architecture/contracts/capability-contracts.md) |
+| The media server's declaration carries the live-stream paths, where each places the live stream's id; the core hands them to the pass service, which asks about the stream they place in a request's path | [ARCH-R314](../20-architecture/contracts/capability-contracts.md) |
 
 ## Requirements
 
