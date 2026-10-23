@@ -121,7 +121,7 @@ asks for them. Their shapes are the generated documents' alone.
 | `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; `file_under`: each category and its completed folder; `filed`: every category and the completed folder it holds for it (below); seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add) |
 | `indexer.proxy` | Solve a challenge; whether it answers |
-| `request.intake` | Initialised; configure identity; answers; search a page of titles a member may ask for; what one title is, its certification in a country and where its poster is published; ask on a member's behalf; requests, each with the id its title is found by; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices |
+| `request.intake` | Establish an owner; initialised; configure identity; answers; search a page of titles a member may ask for; what one title is, its certification in a country and where its poster is published; ask on a member's behalf; requests, each with the id its title is found by; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices |
 | `subtitles.fetch` | Watching; watch |
 | `network.egress-guard` | Whether the tunnel is up; the forwarded port |
 | `proxy.front` | Apply a routing table (household names, upstreams, TLS mode and certificate files); the table it serves; reload |
@@ -280,6 +280,22 @@ Nothing is mounted into the guard for this, no endpoint is opened for it to call
 guard holds no credential of the client's: the port crosses through the core, contract to
 contract, so a substitute guard or a substitute client takes part on the same terms.
 
+## A request service's owner
+
+A request service may answer its own key only once it holds an owner, and the owner is
+made by the first sign-in through the identity source, which nothing holding only the
+key can do. `establish` is that step: it carries the identity source `configure
+identity` carries, and the adapter makes its upstream hold an owner through it, so the
+upstream answers the key the core minted for it. An upstream that already holds one, or
+that answers its key from its first start, is answered `204` and left as it was. The
+core asks it once at first run, before anything else it asks the request service, and
+`lemonfiber plugin record` asks it as the contract's first case. `configure identity`
+still finishes the setting up (`ARCH-R319`).
+
+The conformance cases name the member they link, find and ask for by 32 lowercase
+hexadecimal digits, the shape a media server's account id takes, so an upstream that
+holds members only by that id is asked about one it can hold.
+
 ## The request gate's routes
 
 `apply the routes it admits` gives the filler of `request.gate` every route at once, one
@@ -420,6 +436,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R307** | `hold` MUST give the filler of `invite.decline` the media server key it switches an invitation off with, and `held` MUST answer that key's SHA-256, in lower-case hexadecimal, and MUST NOT answer its value; `apply the invitations it may decline` MUST give it how the media server tells a claimed account, and each invitation as its token's hash, its account, the name the account was made under, when it was issued and when it lapses, and it MUST act on no invitation the core did not apply. The decline address an invitation carries MUST be the filler's own page (`D6-R15`). |
 | **ARCH-R308** | The core MUST apply the panel list to the filler of `dashboard.show`, over the contract where the filler speaks it, and where the filler is the assembled Homepage, which speaks none, through an in-process adapter that writes the files Homepage reads and reads them back; `apply a panel list` MUST give the filler groups of entries, each a name, an icon, a link and a description with an optional reachability check and an optional widget, and the page's widgets; every widget, on the page or on an entry, MUST be one the core names, the page's being the machine's resources and a web search box, and none MUST read a credential (`C6-R20`); the search box MUST send a search to the address the core setting `LEMONFIBER_DASHBOARD_SEARCH` holds, or to `https://duckduckgo.com/?q=` where none is recorded, and a value of that setting that is not an absolute `https` or `http` address MUST be refused naming the setting; `the list it shows` MUST answer the list applied. |
 | **ARCH-R311** | `file_under` MUST hand the filler of `download.usenet` and of `download.torrent` each category and its completed folder, `/data/downloads/complete/<category>` for both, and `filed` MUST answer every category the client holds and the completed folder it files that category under; the seed MUST tell every download client its completed folders this way, through its in-process adapter where the client is an assembled part and over its contract where a plugin fills the capability, MUST read each back with `filed`, and where a client holds a folder for a category other than the one lemonfiber last filed there MUST keep it and report it drifted (`D1-R3`). |
+| **ARCH-R319** | `request.intake@1` MUST declare `establish`, taking the identity source `configure_identity` takes and answering `204` once the upstream holds an owner and answers the adapter's upstream credential, `204` where it already did, and a refusal as `configure_identity` is refused otherwise; the core MUST ask it once at first run before any other operation of the contract, and `lemonfiber plugin record` MUST ask it as the contract's first case. |
 | **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits and the shape that id has, and the core MUST hand them to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request's path and has not lapsed, and with `403` otherwise, a path no live-stream path covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
 
 ## Related
