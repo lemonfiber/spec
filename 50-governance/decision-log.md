@@ -330,6 +330,9 @@ Decisions about a repository outside this organisation, such as
 | A replaced minted secret is written into a seeded starting file in place of the value on the line the kept template's text around its placeholder finds, keeping everything the service wrote there; a file where that line is gone is refused by name and the old value stays in force. `ARCH-R318` is amended in place | [ARCH-R318](../20-architecture/contracts/plugin-manifest.md) |
 | A service's starting files hold at most 16 placeholders in all, and a file holding one is written only where no link stands on the way to it beneath the stack directory; `ARCH-R316` is amended in place | [ARCH-R316](../20-architecture/contracts/plugin-manifest.md) |
 | `Q-R83` is amended in place: every label event runs `pin-only`'s job and none skips it, in the pull request's one group, since branch protection reads the check from the newest run of the workflow on the head and a skipped run hid the pass before it. The user chose this over leaving the trigger to `workflows-approved` alone or re-running the check from a second workflow | [Q-R83](../40-quality/ci-cd.md) |
+| `library.curate@1`'s kind-bound cases are published once per media type and asked of an adapter for the media types its upstream files; adding cases is a minor change | [ARCH-R320](../20-architecture/contracts/capability-contracts.md) |
+| `register_download_client` saves without reaching the client, and its case names the client in the bundled download filler's native API, `sabnzbd`, so the cases after it find a held client | [ARCH-R321](../20-architecture/contracts/capability-contracts.md) |
+| `ARCH-R320` and `ARCH-R321` ship in 0.18.0 with the curators' moves | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
 ## Requirements
 
