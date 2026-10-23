@@ -459,7 +459,7 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "built",
+      "maturity": "building",
       "shipped": null,
       "milestones": ["M14", "M6"],
       "milestone": "M14",
@@ -556,13 +556,15 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": ["M6"],
+      "milestone": "M6",
       "priority": "P2",
       "labels": ["mobile", "verification", "storage", "network"],
       "requires": ["N1", "N2", "C1", "D5", "D10"],
       "relates": ["N10", "N12", "N6", "C2", "B2"],
-      "versions": [],
+      "versions": [
+        {"version": "1.0.0", "status": "planned"}
+      ],
       "path": "n-companion/n30-testing-making-room-and-sharing-the-line.md"
     },
     {

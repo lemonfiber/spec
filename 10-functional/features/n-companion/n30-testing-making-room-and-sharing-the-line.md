@@ -43,6 +43,17 @@ narrowed to that check, follows the job, and draws the finding again with the ve
 run came to and when it ran. A run is never rehearsed: the check *is* the disturbance, and
 the core refuses a rehearsal of one.
 
+### Every check, or every check of a group, is run from Health
+
+Beside the run one finding offers, Health offers running every check, the ones that
+disturb included, and each group of checks from that group's heading. Either asks first
+in the same terms, listing every finding it would run that disturbs something: what each
+disturbs and the bound the stack reported, or that it reported none, and, where the stack
+reports transfers moving, that those are interrupted. Agreed, the app sends `diagnose`
+with the disruptive checks included, narrowed to the group for a group's run and not
+narrowed for the whole run, follows the job, and draws Health again with each verdict and
+when it ran. Neither is rehearsed, for the reason a single check is not.
+
 ### Room the stack says costs nothing is given back by category
 
 Storage already lists what is using the disk and what could come back. Beside it, the app
@@ -93,6 +104,7 @@ window with no time zone, a value the stack cannot read, or no download client t
 | Situation | Behaviour |
 |---|---|
 | The stack reports no bound for a disruptive check | The confirmation says the stack gave no bound, and the app adds none (`N2-R8`, `B2-R16`). |
+| A group, or every check, with nothing that disturbs | The confirmation says the run disturbs nothing, and the run is still offered. |
 | Nothing costs nothing to remove | Storage says so; no reclaim control is drawn. |
 | A temporary lift is running | The screen says until when, and offers ending it now. |
 | The phone loses the stack mid-job | The job is the core's; the screen asks after it again when it can (`N1-R24`). |
@@ -110,6 +122,8 @@ window with no time zone, a value the stack cannot read, or no download client t
 | **N30-R7** | A share MUST be set with the measured capacity beside it and the rate it comes to, and upload MUST be set apart from download, starting from the more careful default (`D10-R2`, `D10-R4`). |
 | **N30-R8** | A change to the line MUST be rehearsed before it is applied, showing what each download client would be asked and the ratio cost of a limit that affects seeding, labelled a rehearsal (`D10-R5`, `N6-R1`); applied, the screen MUST show what each client then said it is doing and any overshoot (`D10-R13`). |
 | **N30-R9** | A refusal of any of the three MUST be drawn as a refusal with the stack's remedy, never as an empty or unchanged screen (`G4-R16`). |
+| **N30-R10** | Health MUST offer running every check, the disruptive checks included; before it is sent the app MUST list every finding it would run that disturbs something, each with what it disturbs and the bound the stack reported or that it reported none, and where the stack reports transfers in progress, that they are interrupted; it MUST be followed to its end, Health MUST be drawn again with each verdict and when it ran, and it MUST NOT be offered as a rehearsal (`N1-R2`, `N2-R8`). |
+| **N30-R11** | Each group of checks Health shows MUST offer running that group, the disruptive checks included and narrowed to the group, confirmed, followed and drawn again as `N30-R10` requires, listing only the findings of that group that disturb something. |
 
 ## Notes
 

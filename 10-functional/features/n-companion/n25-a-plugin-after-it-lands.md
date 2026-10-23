@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P3
 labels: [mobile, extensibility, ux]
 requires: [N1, N5, F5, F6]
@@ -107,6 +107,28 @@ Afterwards, what was put back and what was not are shown, because a removal that
 got as far as the files and no further is a different machine from one that
 finished.
 
+### A recipe the plugin offers on demand is run from the plugin
+
+A plugin can declare recipes that run only when asked for by name. Each installed
+plugin lists its demand recipes with the title and the reason the manifest gives, and
+offers running each one. Running is rehearsed first and labelled a rehearsal: every step
+in the order the recipe gives, each adapter named as lemonfiber's, and each pair it would
+carry, with the value's name, where it comes from and the destination by the name the
+manifest gave ([N20](n20-what-a-plugin-may-send.md)). A pair that leaves the machine, or
+releases a value a service answered with, is agreed to as itself, apart from the run and
+with none agreed for the operator; an approval given at install covers no run, and each
+run asks again.
+
+Agreed, the app sends the run with the offer its rehearsal named and the pairs approved,
+follows the job, and shows what ran step by step, a step the stack held with its reason.
+An offer that moved since the rehearsal is rehearsed and shown again, and nothing runs
+until the operator agrees to the new one.
+
+A recipe that asks the operator for a value is not run from the app. It is listed with
+what it asks for, and the app says it is run at the web console or the terminal: a value
+a recipe asks for may be a secret, and the app takes no such value for an install, an
+update or a run.
+
 ### Where it came from, and whether anybody read it, stays on it
 
 Every installed plugin carries the source the operator named, its version, and
@@ -118,7 +140,7 @@ every appearance.
 
 | State | Meaning |
 |-------|---------|
-| Rehearsed | What an install, update or removal would do. Nothing written, no proof asked. |
+| Rehearsed | What an install, update, removal or recipe run would do. Nothing written, no proof asked. |
 | Installed | Proofs held and the stack's checks found nothing made worse. |
 | Put back | Something failed; what went back and what did not are shown. |
 | Updating | Between asking and the answer. Never shown as either version. |
@@ -137,6 +159,9 @@ every appearance.
 - **A setting changed on another surface while the app shows it.** The `settings`
   event brings the new value, and a change agreed to against the old one is
   refused as an offer that moved.
+- **A demand recipe that asks for a value.** Listed with what it asks for and where it
+  is run; not offered here.
+- **A run whose offer moved.** Rehearsed and shown again; nothing runs on the old one.
 - **A reversal that could not finish.** What is still standing is named with its
   reason; the install is not shown as undone.
 - **A plugin whose configuration directory still holds what its service wrote
@@ -161,6 +186,11 @@ every appearance.
 | **N25-R13** | The app MUST list each secret a plugin's services read with whether a value is held and where it came from, MUST NOT show or offer to change a secret's value, and MUST say a secret is changed at the stack's terminal (`ARCH-R256`). |
 | **N25-R14** | A plugin's settings and secrets MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown. |
 | **N25-R15** | Where the stack holds answers a plugin gave outside its contract, the app MUST offer proving the plugin again, and before asking MUST show what the proof would ask and which capability a pass would clear. The yes MUST carry back the offer the stack named (`N2-R27`). A proof that fails MUST leave that capability shown as unfilled with the stack's reason, and MUST NOT be presented as passed (`N25-R2`). |
+| **N25-R16** | Each installed plugin MUST list its demand recipes with the title and reason the manifest gives, and MUST offer running each one that asks the operator for no value (`N1-R2`). |
+| **N25-R17** | Running a demand recipe MUST be rehearsed first and the rehearsal labelled a rehearsal (`N6-R1`), showing every step in the order the recipe gives, each adapter as lemonfiber's, and each pair it would carry with the value's name, where it comes from and the destination by the manifest's name (`N20-R3`, `N20-R5`, `N20-R6`). |
+| **N25-R18** | A pair a run would carry out of the machine, or that releases a value a service answered with, MUST be agreed to as itself, apart from the run and with none agreed for the operator, and an approval given at install MUST NOT be taken as an approval of a run (`N20-R1`, `N20-R2`); the run MUST send the offer its rehearsal named and exactly the pairs approved, and an offer that moved MUST be rehearsed and shown again with nothing run. |
+| **N25-R19** | A run MUST be followed to its end and MUST show what ran, step by step, with each step the stack held and the stack's reason, and MUST NOT be shown as having run where a step was held. |
+| **N25-R20** | A demand recipe that asks the operator for a value MUST NOT be run from the app; it MUST be listed with what it asks for, and the app MUST say it is run at the web console or the terminal. This is the exception to `N1-R2` for runs: the value may be a secret, and the app takes no value a recipe asks for. |
 
 ## Notes
 
