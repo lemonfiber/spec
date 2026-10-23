@@ -31,6 +31,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [contracts/plugin-manifest-service.md](contracts/plugin-manifest-service.md) | **`plugin.toml` `[[service]]`** — each service a plugin runs, field by field |
 | [contracts/plugin-manifest-proof.md](contracts/plugin-manifest-proof.md) | **`plugin.toml` `[[proof]]`** — what must hold before a plugin is installed |
 | [contracts/plugin-manifest-recipe.md](contracts/plugin-manifest-recipe.md) | **`plugin.toml` `[[recipe]]`** — the ordered calls a plugin may declare, bounded by reading |
+| [contracts/plugin-manifest-secret.md](contracts/plugin-manifest-secret.md) | **`plugin.toml` `[[secret]]` and `[[override]]`** — the secrets a plugin holds, minted ones included, and the bundled things it changes |
 | [contracts/capability-vocabulary.md](contracts/capability-vocabulary.md) | **`capability-vocabulary.json`** — what a service can do, what demonstrates it, and who may claim one |
 | [contracts/extension-points.md](contracts/extension-points.md) | **`extension-points.json`** — where a plugin may add a row to a register lemonfiber already runs |
 | [contracts/download-client.md](contracts/download-client.md) | Registering SABnzbd/qBittorrent into a Servarr app — the `fields` schema and per-app category |

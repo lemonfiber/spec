@@ -484,14 +484,14 @@ repository, a bot's included, approves nothing. The check reads who added the
 label and when, and which head each of its own runs saw, from the forge's
 records, never from a commit's dates, which the pusher writes.
 
-A label event runs `pin-only` only when the label is `workflows-approved`. Every
-other label, the ones the gates' labeler and Dependabot add included, skips the
-job in a group of its own run, so it neither runs nor cancels anything. And only
-a push cancels a run in progress: a label event, a reopening and a re-run wait
-behind the run in progress rather than cancelling it, so adding the approval to a
-pull request whose check is running leaves that check to finish. The shared-files
-check refuses a workflow that calls `pin-only` without that group and that
-condition.
+Every label event runs `pin-only`, the labels the gates' labeler and Dependabot
+add included. Branch protection reads a check from the newest run of its workflow
+on the head, so a run that skipped the job for a label would leave the check
+missing although the run before it passed. Only a push cancels a run in progress:
+a label event, a reopening and a re-run wait behind the run in progress rather
+than cancelling it, so adding the approval to a pull request whose check is
+running leaves that check to finish. The shared-files check refuses a workflow
+that calls `pin-only` without that group, or with a condition on the job.
 
 `workflow-pins` and the bot answer different questions and neither replaces the
 other. The bot keeps a pin at the newest tag whether or not it matters; the check

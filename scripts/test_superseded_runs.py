@@ -113,24 +113,32 @@ class Passing(Repository):
         self.assertEqual(self.check(), ([], ""))
 
     def test_a_pull_request_target_workflow_grouped_the_way_pin_only_is(self):
-        labelled = (f"concurrency:\n  group: {superseded.LABELLED_GROUP}\n"
-                    f"  cancel-in-progress: {superseded.PUSH_CANCELS}\n")
-        self.write("pin-only.yml", workflow("on:\n  pull_request_target:\n    types: [opened, labeled]", labelled))
+        group, cancel = superseded.PIN_ONLY_BLOCK
+        block = f"concurrency:\n  group: {group}\n  cancel-in-progress: {cancel}\n"
+        self.write("pin-only.yml", workflow("on:\n  pull_request_target:\n    types: [opened, labeled]", block))
         self.write("ci.yml", workflow("on: [pull_request]", name="ci"))
         self.assertEqual(self.check(), ([], ""))
 
-    def test_a_target_group_with_the_other_s_cancel_is_refused(self):
-        for group, cancel in ((superseded.LABELLED_GROUP, "true"), (superseded.TARGET_GROUP, superseded.PUSH_CANCELS)):
-            with self.subTest(group=group):
+    def test_a_target_group_with_another_cancel_is_refused(self):
+        for cancel in ("${{ github.event.action == 'labeled' }}", "${{ github.run_attempt == 1 }}"):
+            with self.subTest(cancel=cancel):
                 self.write("pin-only.yml", workflow(
-                    "on: [pull_request_target]", f"concurrency:\n  group: {group}\n  cancel-in-progress: {cancel}\n"))
+                    "on: [pull_request_target]",
+                    f"concurrency:\n  group: {superseded.TARGET_GROUP}\n  cancel-in-progress: {cancel}\n"))
                 self.refused("pin-only.yml cancels by the group")
 
+    def test_a_group_of_its_own_run_for_a_label_is_refused(self):
+        group = superseded.TARGET_GROUP + "${{ github.event.action == 'labeled' && format('-{0}', github.run_id) || '' }}"
+        self.write("pin-only.yml", workflow(
+            "on: [pull_request_target]",
+            f"concurrency:\n  group: {group}\n  cancel-in-progress: {superseded.PUSH_CANCELS}\n"))
+        self.refused("pin-only.yml cancels by the group")
+
     def test_two_workflows_grouped_the_way_pin_only_is_sharing_a_name(self):
-        labelled = (f"concurrency:\n  group: {superseded.LABELLED_GROUP}\n"
-                    f"  cancel-in-progress: {superseded.PUSH_CANCELS}\n")
-        self.write("a.yml", workflow("on: [pull_request_target]", labelled, name="pin-only"))
-        self.write("b.yml", workflow("on: [pull_request_target]", labelled, name="pin-only"))
+        group, cancel = superseded.PIN_ONLY_BLOCK
+        block = f"concurrency:\n  group: {group}\n  cancel-in-progress: {cancel}\n"
+        self.write("a.yml", workflow("on: [pull_request_target]", block, name="pin-only"))
+        self.write("b.yml", workflow("on: [pull_request_target]", block, name="pin-only"))
         self.refused("are both named 'pin-only'")
 
     def pin_only_caller(self, group: str, cancel: str, condition: str | None,
@@ -140,34 +148,27 @@ class Passing(Repository):
                 f"concurrency:\n  group: {group}\n  cancel-in-progress: {cancel}\n"
                 f"jobs:\n  pin-only:\n{shown}    permissions:\n      contents: read\n    uses: {uses}\n")
 
-    def test_a_pin_only_caller_with_the_labelled_block_and_condition_passes(self):
+    def test_a_pin_only_caller_with_its_block_and_no_condition_passes(self):
         for uses in ("lemonfiber/spec/.github/workflows/pin-only.yml@" + "a" * 40, "./.github/workflows/pin-only.yml"):
             with self.subTest(uses):
-                self.write("pin-only.yml", self.pin_only_caller(
-                    superseded.LABELLED_GROUP, superseded.PUSH_CANCELS, superseded.SKIP_OTHER_LABELS, uses))
+                self.write("pin-only.yml", self.pin_only_caller(*superseded.PIN_ONLY_BLOCK, None, uses))
                 self.assertEqual(self.check()[0], [])
 
     def test_a_pin_only_caller_still_on_the_plain_block_is_refused(self):
         self.write("pin-only.yml", self.pin_only_caller(superseded.TARGET_GROUP, "true", None))
-        self.refused("job 'pin-only' calls pin-only", superseded.LABELLED_GROUP, superseded.SKIP_OTHER_LABELS)
+        self.refused("job 'pin-only' calls pin-only", *superseded.PIN_ONLY_BLOCK)
 
-    def test_a_pin_only_caller_without_the_condition_is_refused(self):
-        self.write("pin-only.yml", self.pin_only_caller(superseded.LABELLED_GROUP, superseded.PUSH_CANCELS, None))
-        self.refused("job 'pin-only' calls pin-only")
-
-    def test_a_pin_only_caller_with_another_condition_is_refused(self):
-        self.write("pin-only.yml", self.pin_only_caller(
-            superseded.LABELLED_GROUP, superseded.PUSH_CANCELS, "${{ true }}"))
-        self.refused("job 'pin-only' calls pin-only")
+    def test_a_pin_only_caller_that_skips_a_label_is_refused(self):
+        skip = "${{ !((github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.label.name != 'workflows-approved') }}"
+        for condition in (skip, "${{ true }}"):
+            with self.subTest(condition):
+                self.write("pin-only.yml", self.pin_only_caller(*superseded.PIN_ONLY_BLOCK, condition))
+                self.refused("job 'pin-only' calls pin-only", "no condition on the job")
 
     def test_another_workflow_only_pull_request_target_starts_keeps_the_plain_group(self):
         target = f"concurrency:\n  group: {superseded.TARGET_GROUP}\n  cancel-in-progress: true\n"
         self.write("awaiting.yml", workflow("on: [pull_request_target]", target, name="awaiting"))
         self.assertEqual(self.check()[0], [])
-
-    def test_the_label_left_alone_is_pin_only_s_approval(self):
-        import pin_only
-        self.assertIn(f"github.event.label.name != '{pin_only.APPROVED}'", superseded.OTHER_LABEL)
 
     def test_a_workflow_no_pull_request_runs_needs_no_group(self):
         self.write("stale.yml", workflow("on:\n  schedule:\n    - cron: '0 0 * * *'", ""))

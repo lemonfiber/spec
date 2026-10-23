@@ -53,7 +53,7 @@ bundle; `describes`, `without_it`, `license` and `upstream` from its plugin's
 plugin's one service. `host_managed` is this format's alone.
 
 Assembled, a service also keeps every
-[`[[secret]]`](plugin-manifest.md#secret-and-override--declared-before-they-are-held) its
+[`[[secret]]`](plugin-manifest-secret.md#secret-and-override--declared-before-they-are-held) its
 plugin declares, so its `env` names its secrets as a plugin's does: one the operator enters
 held in the secret store under its own id (`gluetun:wireguard-key`), and one whose `of`
 names another service read from the store that holds it each time, never copied

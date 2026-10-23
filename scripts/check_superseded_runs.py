@@ -18,13 +18,14 @@ What it refuses, file by file under ``.github/workflows/``:
   schedule starts is let through: no push and no tag reaches it, and a bump bot
   is asked to cancel its stale run there (Q-R78). So is one that only
   ``pull_request_target`` starts, grouped by its pull request's number
-  (``TARGET_GROUP``), since under that event the ref is the base branch; or
-  grouped the way ``pin-only`` is (``LABELLED_GROUP``, Q-R83), where a label
-  event for any label but the approval is a group of its own run and only a
-  push's first attempt cancels (``PUSH_CANCELS``);
-- a workflow that calls ``pin-only.yml`` without that block, and without the
-  job condition (``SKIP_OTHER_LABELS``) that skips a label event for any label
-  but the approval (Q-R83);
+  (``TARGET_GROUP``), since under that event the ref is the base branch,
+  cancelling on every event or, the way ``pin-only`` is grouped, only on a
+  push's first attempt (``PUSH_CANCELS``, Q-R83);
+- a workflow that calls ``pin-only.yml`` without that group and
+  ``PUSH_CANCELS``, or with a condition on the job that calls it. A run whose
+  job is skipped is the newest of its workflow on the head, and branch
+  protection reads the check from that run alone, so a skip would hide the
+  verdict of the run before it (Q-R83);
 - a job's own group that cancels, and any job's own group in a workflow a pull
   request runs. A job waiting in a group is replaced by the next to arrive
   whatever ``cancel-in-progress`` says, so a push's job can be cancelled by one;
@@ -64,26 +65,15 @@ DISPATCHED = frozenset({"workflow_dispatch", "repository_dispatch", "schedule"})
 #: no push to a branch or a tag starts such a workflow at all.
 TARGET_GROUP = "${{ github.workflow }}-${{ github.event.pull_request.number }}"
 
-#: A label event for any label but `pin-only`'s approval, which `pin-only` neither runs
-#: for nor lets cancel anything (Q-R83). The label is `pin_only.APPROVED`, written out
-#: because the hygiene gate runs this where `pin_only.py`'s YAML reader is not installed.
-OTHER_LABEL = (
-    "(github.event.action == 'labeled' || github.event.action == 'unlabeled') "
-    "&& github.event.label.name != 'workflows-approved'"
-)
-
-#: `pin-only`'s group: `TARGET_GROUP`, and a run of its own for a label event `OTHER_LABEL` names.
-LABELLED_GROUP = TARGET_GROUP + "${{ " + OTHER_LABEL + " && format('-{0}', github.run_id) || '' }}"
-
 #: `pin-only`'s cancel-in-progress: only a push, on its first attempt, cancels the run in
 #: progress; a label event, a reopening and a re-run wait behind it (Q-R83).
 PUSH_CANCELS = "${{ github.event.action == 'synchronize' && github.run_attempt == 1 }}"
 
-#: The two blocks a workflow only `pull_request_target` starts may carry, as (group, cancel-in-progress).
-TARGET_BLOCKS = ((TARGET_GROUP, "true"), (LABELLED_GROUP, PUSH_CANCELS))
+#: `pin-only`'s block, as (group, cancel-in-progress).
+PIN_ONLY_BLOCK = (TARGET_GROUP, PUSH_CANCELS)
 
-#: The condition on the job that calls `pin-only.yml`: a label event `OTHER_LABEL` names runs nothing.
-SKIP_OTHER_LABELS = "${{ !(" + OTHER_LABEL + ") }}"
+#: The two blocks a workflow only `pull_request_target` starts may carry, as (group, cancel-in-progress).
+TARGET_BLOCKS = ((TARGET_GROUP, "true"), PIN_ONLY_BLOCK)
 
 #: A job's `uses` naming `pin-only.yml`, spec's own copy or one pinned from spec.
 PIN_ONLY_CALL = re.compile(r"\A(?:lemonfiber/spec|\.)/\.github/workflows/pin-only\.yml(?:@\S+)?\Z")
@@ -290,14 +280,12 @@ def refused(where: str, one: dict, group: str, wanted: str) -> list[str]:
             f"{HOME}, which cancels only a pull request's run:\n{wanted}"
         )
     said += [
-        f"{where} job {job!r} calls pin-only, and pin-only is called with a label event for any "
-        f"label but `workflows-approved` skipped in a group of its own run, and cancelled only by "
-        f"a push (Q-R83). Give it the block and the condition spec's pin-only.yml documents:\n"
-        f"concurrency:\n  group: {LABELLED_GROUP}\n  cancel-in-progress: {PUSH_CANCELS}\n"
-        f"jobs:\n  {job}:\n    if: {SKIP_OTHER_LABELS}"
+        f"{where} job {job!r} calls pin-only, and pin-only runs on every event it is started by, "
+        f"cancelled only by a push (Q-R83). Give it the block spec's pin-only.yml documents, and "
+        f"no condition on the job:\n"
+        f"concurrency:\n  group: {PIN_ONLY_BLOCK[0]}\n  cancel-in-progress: {PIN_ONLY_BLOCK[1]}"
         for job, (uses, condition) in one["calls"].items()
-        if PIN_ONLY_CALL.match(uses) and ((own, cancel) != (LABELLED_GROUP, PUSH_CANCELS)
-                                          or condition != SKIP_OTHER_LABELS)
+        if PIN_ONLY_CALL.match(uses) and ((own, cancel) != PIN_ONLY_BLOCK or condition is not None)
     ]
     said += [
         f"{where} job {job!r} has a group of its own. A job waiting in a group is "
@@ -315,7 +303,7 @@ def shared_names(read: dict, group: str) -> list[str]:
     named: dict[tuple[str, str], list[str]] = {}
     for where, one in read.items():
         own = (one["group"] or ("", None))[0]
-        if own in (group, TARGET_GROUP, LABELLED_GROUP):
+        if own in (group, TARGET_GROUP):
             named.setdefault((own, one["name"] or where), []).append(where)
     return [
         f"{' and '.join(files)} are both named {name!r}, and the group is keyed on "
