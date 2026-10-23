@@ -342,6 +342,15 @@ plugin = "caddy"
 image = true
 
 [[repo]]
+name = "adapter-kit-servarr"
+node = "servarrkit"
+group = "impl"
+label = "adapter-kit-servarr<br/>what the Servarr adapters share"
+spec = ["adapter-kit-servarr.md"]
+lang = "Rust"
+note = "One copy of the Servarr client, taken by each Servarr adapter at a commit"
+
+[[repo]]
 name = "homebrew-tap"
 node = "tap"
 group = "impl"
@@ -504,6 +513,11 @@ label = "board snapshot"
 from = "lemonfiber"
 to = "website-contribute.lemonfiber.app"
 label = "docs submodule, pinned"
+
+[[edge]]
+from = "adapter-kit-servarr"
+to = "parts"
+label = "taken by commit by the Servarr adapters"
 
 [[edge]]
 from = "website-kit"
