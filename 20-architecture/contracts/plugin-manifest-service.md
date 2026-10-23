@@ -298,6 +298,11 @@ api_key = {{secret:upstream-key}}
   and it is recorded, diffed and shown with the placeholder where the value is.
 - **Text, and one syntax.** A file with a placeholder is UTF-8, and any other form, or a
   secret the manifest does not declare, is refused naming the file and the placeholder.
+- **Replaced where it stands.** The service rewrites its own settings once it runs, so a
+  replaced secret is not written from the template again. lemonfiber keeps the files as
+  shipped, finds the line a placeholder is on by the text around it, and replaces the
+  value there alone, keeping everything the service wrote; a file where that line is gone
+  is refused by name, and the old value stays in force (`ARCH-R318`).
 
 ### Environment — four kinds of value
 
