@@ -387,6 +387,19 @@ is posted; any other string is posted as written.
 | `{minted:upstream:<field>}` | A credential minted for this case, written to `upstream.json` as `<field>` once the adapter answers the case with a success, as the core writes a credential the adapter replaced |
 | `{<capability>@<major>/<case>#<pointer>}` | The string at the JSON pointer `<pointer>` in the answer to that case, asked earlier in the same run |
 
+**A case bound to a kind of media is asked once for each kind.** An operation of
+`library.curate` that takes a kind of media — a `Kind`, a `Record` or a root folder's media
+type — publishes one case per kind it takes, named `<operation>-answers-<media type>`, each
+asking what that kind's case asks. An adapter is asked, and judged on, the cases of the
+media types the upstream it fronts files (`media_types`), so a curator of films records
+what it does with films rather than refusing television (`ARCH-R320`).
+
+**The download client the cases register is a real one.** `register_download_client`'s
+case names the client in the native API of the download filler the bundle ships,
+`sabnzbd`, as the core names the clients it registers, and a curator saves it without
+reaching it: whether it answers is `test_download_clients`'s to say. So the cases after
+it find a client the curator holds (`ARCH-R321`).
+
 Every value a placeholder fills is a credential or an identifier the run made, so it is
 scrubbed from every recording and from everything the run prints as `ARCH-R297` scrubs
 the credentials a run makes. A placeholder naming a case not yet asked, a pointer the
@@ -438,6 +451,8 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R308** | The core MUST apply the panel list to the filler of `dashboard.show`, over the contract where the filler speaks it, and where the filler is the assembled Homepage, which speaks none, through an in-process adapter that writes the files Homepage reads and reads them back; `apply a panel list` MUST give the filler groups of entries, each a name, an icon, a link and a description with an optional reachability check and an optional widget, and the page's widgets; every widget, on the page or on an entry, MUST be one the core names, the page's being the machine's resources and a web search box, and none MUST read a credential (`C6-R20`); the search box MUST send a search to the address the core setting `LEMONFIBER_DASHBOARD_SEARCH` holds, or to `https://duckduckgo.com/?q=` where none is recorded, and a value of that setting that is not an absolute `https` or `http` address MUST be refused naming the setting; `the list it shows` MUST answer the list applied. |
 | **ARCH-R311** | `file_under` MUST hand the filler of `download.usenet` and of `download.torrent` each category and its completed folder, `/data/downloads/complete/<category>` for both, and `filed` MUST answer every category the client holds and the completed folder it files that category under; the seed MUST tell every download client its completed folders this way, through its in-process adapter where the client is an assembled part and over its contract where a plugin fills the capability, MUST read each back with `filed`, and where a client holds a folder for a category other than the one lemonfiber last filed there MUST keep it and report it drifted (`D1-R3`). |
 | **ARCH-R319** | `request.intake@1` MUST declare `establish`, taking the identity source `configure_identity` takes and answering `204` once the upstream holds an owner and answers the adapter's upstream credential, `204` where it already did, and a refusal as `configure_identity` is refused otherwise; the core MUST ask it each time it sets up the request service's identity, before any other operation of the contract, and `lemonfiber plugin record` MUST ask it as the contract's first case. |
+| **ARCH-R320** | An operation of `library.curate@1` that takes a kind of media MUST publish one conformance case per media type it takes, named `<operation>-answers-<media type>`, and an adapter MUST be asked and judged on exactly the cases of the media types its upstream's `media_types` names. |
+| **ARCH-R321** | `register_download_client` MUST save the client it is handed without reaching it, and its conformance case MUST name the client's protocol as the native API of the download filler the bundle ships, `sabnzbd`. |
 | **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits and the shape that id has, and the core MUST hand them to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request's path and has not lapsed, and with `403` otherwise, a path no live-stream path covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
 
 ## Related
