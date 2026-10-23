@@ -313,6 +313,9 @@ Decisions about a repository outside this organisation, such as
 | `ARCH-R313` ships in 0.18.0, joining its goals under `goals-change` review | [0.18.0](../70-operations/versions/0.18.0.toml) |
 | Every service with a port has a dashboard entry unless its `[[wiring]]` sets `dashboard_hidden`; the bundle hides the parts the page leaves out today | [ARCH-R313](../20-architecture/contracts/plugin-manifest.md) |
 | The media server's entry links through the stream guard where one runs, where the household reaches it, and the guard has no entry of its own | [ARCH-R313](../20-architecture/contracts/plugin-manifest.md) |
+| The pass service ships in 0.18.0 with the network and the guard address that need it; issuing a pass for a live stream stays in 0.19.0 | [0.18.0](../70-operations/versions/0.18.0.toml) |
+| A pass is an HMAC-SHA256 under the core's key over the live stream, the member and when it lapses, five minutes after issue, carried in `lfpass`; the guard asks `GET /pass` and `204` confirms | [ARCH-R314](../20-architecture/contracts/capability-contracts.md) |
+| The pass service runs the release's own image, pinned by digest when the project is written; a build with no published image runs without it and says so | [ARCH-R314](../20-architecture/contracts/capability-contracts.md) |
 
 ## Requirements
 

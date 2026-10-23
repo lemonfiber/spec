@@ -36,7 +36,7 @@
 # pass, and the door asks the core about that pass on every request for its bytes. They
 # are the core's and the door's, by the maintainer's decision of 2026-10-12.
 #
-# 68 goals, seeded from the roadmap milestone this version serves;
+# 67 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -113,7 +113,6 @@ goals   = [
     "D11-R11",
     "D11-R12",
     "D11-R13",
-    "ARCH-R291",
     "ARCH-R292",
 ]
 
