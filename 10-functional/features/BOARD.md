@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 42 built, 27 building, 20 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 43 built, 27 building, 19 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -89,6 +89,7 @@ code, and the two move independently.
 | [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0`, `1.0.0` |
 | [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |
 | [N29](n-companion/n29-a-key-for-an-app.md) | A key for an app | N | operator | accepted | `0.18.0` |
+| [N31](n-companion/n31-asking-the-indexers.md) | Asking the indexers | N | operator | accepted | — |
 
 ## Building — work has started and is not finished
 
@@ -145,7 +146,6 @@ code, and the two move independently.
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.23.0` |
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
 | [N26](n-companion/n26-what-the-glue-is-doing.md) | What the glue is doing | N | both | accepted | — |
-| [N31](n-companion/n31-asking-the-indexers.md) | Asking the indexers | N | operator | accepted | — |
 
 ## Withdrawn — no longer to be built
 
