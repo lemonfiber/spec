@@ -461,14 +461,15 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": ["M14"],
+      "milestones": ["M14", "M6"],
       "milestone": "M14",
       "priority": "P3",
       "labels": ["mobile", "extensibility", "ux"],
       "requires": ["N1", "N5", "F5", "F6"],
       "relates": ["N6", "N11", "N20", "F14"],
       "versions": [
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "1.0.0", "status": "planned"}
       ],
       "path": "n-companion/n25-a-plugin-after-it-lands.md"
     },
