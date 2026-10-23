@@ -410,13 +410,13 @@ recorded response. A binding that leaves a probe unbound, names one the
 capability does not declare, or carries an expectation weaker than the probe
 requires is refused naming the probe (`ARCH-R109`).
 
-**No service an adapter fronts is asked as the operator.** For such a service lemonfiber
-holds the key it minted for the adapter and nothing the upstream behind it accepts, so a
-probe whose vocabulary entry says `credential = "operator"` could only be asked there
-with a credential lemonfiber does not have. A claim whose capability such a service
-provides, binding such a probe, is refused, naming the probe and the adapter. What the
-probe would check is checked through the adapter instead: its contract's conformance
-cases ask the adapter with its key (`ARCH-R302`).
+**No service an adapter fronts is asked as the operator.** lemonfiber asks such a service
+nothing itself: the credentials it holds for it are the ones it mints, and those reach
+the adapter through `upstream.json` and nothing else of lemonfiber's, so a probe whose
+vocabulary entry says `credential = "operator"` has no credential to be asked with. A
+claim whose capability such a service provides, binding such a probe, is refused, naming
+the probe and the adapter. What the probe would check is checked through the adapter
+instead: its contract's conformance cases ask the adapter with its key (`ARCH-R302`).
 
 `provides` and this are a declaration and its evidence rather than two lists. A
 core name in `provides` with no claim is refused; a claim whose capability is not
@@ -633,6 +633,11 @@ id   = "api-key"
 of   = "komga"
 why  = "Read the library counts the dashboard panel shows"
 
+[[secret]]
+id     = "upstream-key"
+minted = true
+why    = "The key the adapter signs in to SABnzbd with"
+
 [[override]]
 id   = "homepage.services"
 why  = "Add its own entry to the bundled dashboard"
@@ -642,15 +647,28 @@ why  = "Add its own entry to the bundled dashboard"
 a bundled thing changed but not declared. Both need somewhere to declare one.
 
 A secret a service's [`env`](plugin-manifest-service.md#environment--four-kinds-of-value) names is declared here
-too. Its value is one a recipe captures, a credential `F14-R18` or `F14-R20` lets cross
-to the plugin, or, where neither supplies it, one the operator enters at install without
-it being shown. Whatever its source, it reaches the container only through the service's
+too. Its value is one lemonfiber mints, one a recipe captures, a credential `F14-R18` or
+`F14-R20` lets cross to the plugin, or, where none of those supplies it, one the operator
+enters at install without it being shown. Whatever its source, it reaches the container only through the service's
 own secrets file (`ARCH-R247`). A value captured or entered is held in the secret store in
 the plugin's namespace, as `<plugin id>:<secret id>`. An assembled part's plugin id is its
 service's, so the egress guard's key is `gluetun:wireguard-key` whether the bundle
 assembles the part or installs it. Of an assembled part's secrets, only one the operator
 enters is held in the store; one whose `of` names another service, as the curators' keys
 Unpackerr and Recyclarr declare do, is a credential that crosses (`ARCH-R275`).
+
+**A minted secret is lemonfiber's to make.** `minted = true` declares a credential the
+plugin's own service is given rather than one it hands out: lemonfiber makes the value
+at install, before any of the plugin's services first starts, as 32 lowercase hex
+characters from the operating system's random source, and holds it in the secret store
+as `<plugin id>:<secret id>`. Nobody is asked for it and nothing shows it. It reaches the
+service through its `env` (`{ secret }`) or a [starting file](plugin-manifest-service.md#a-secret-in-a-starting-file),
+and the adapter that `fronts` the service through its `upstream`. A minted secret names
+no `of`, since it is the plugin's own, and no recipe captures it. A part moved in place
+keeps the credential its service already answers to: where lemonfiber reads it from the
+service's configuration before the move, the move files that value under the secret once
+and mints nothing (`ARCH-R315`). `plugin record` and a proof mint a throwaway one for
+their own container, as they take a throwaway copy of its starting files.
 
 **A credential that crosses is read where it is held.** One `F14-R18` or `F14-R20` lets
 cross is not copied into the secret store. lemonfiber reads it from the store that holds
@@ -801,6 +819,9 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | Every `env` name is a variable's name and none of `TZ`, `PUID` and `PGID` | Variable named |
 | Every `env` value is a constant, `{ setting, default }`, `{ url_of }` (with `files` and `native` only) or `{ secret }`, and nothing else | Variable named, with the four kinds |
 | Every `{ secret }` names a `[[secret]]` the manifest declares | Variable and secret named |
+| A `minted` secret names no `of`, and no capture names it | Secret named |
+| Every `{{secret:<id>}}` in a starting file names a `[[secret]]` the manifest declares with no `of`, its form is absent or `pbkdf2`, and the file is UTF-8 | File and placeholder named |
+| `upstream` is declared only on a service that `speaks`, every field name is lowercase letters, digits and `_` starting with a letter, and every value is `{ secret }` naming a `[[secret]]` the manifest declares with no `of` | Service, field and secret named |
 | Every `files` names a medium in `stack.toml`'s vocabulary, and only on `url_of` | Variable named, with the media |
 | Every `setting` is one the core publishes or in the plugin's own namespace | Setting named, with the namespace required |
 | Every `url_of` names a core capability its service does not ask `each` of, and is held to every rule an `[[ask]]` is | Variable and capability named |
@@ -969,7 +990,11 @@ unreadable.
 | **ARCH-R295** | `lemonfiber plugin record` MUST take a service's request recordings from one new container of the image at the digest the manifest pins, as the user its `user_mode` writes, under its posture and memory limit, with a throwaway copy of its starting files at its `config_path`, where the service provides a capability the core hands a certificate (`stream.guard`) a throwaway self-signed certificate and its key written where and as the core writes them for that capability's filler, a throwaway data directory, the entry's constants and `TZ`, `PUID` and `PGID`, on a network of its own that no container joins but the plugin's adapter that `fronts` it, with its `listens` port published on `127.0.0.1` alone; it MUST wait until the service's `health` passes within its `timeout_s`, MUST perform the service's first run as the in-process adapter its `api` names performs it where the bundle assembles the part, or as install performs it through that adapter where one fronts it, MUST ask a probe whose vocabulary entry says `credential = "operator"` with the credential that first run left lemonfiber holding, which no service an adapter fronts has (`ARCH-R302`), and every other request with nothing the manifest does not write, each within 30 seconds, and MUST write each recording with `recorded_from` as that pin, the request as the manifest declares it, the status, the `content-type` and the body as parsed JSON or its first 1 KiB cut at a character boundary, keeping the `note` already at that path. |
 | **ARCH-R296** | For a service the plugin's adapter `fronts`, `lemonfiber plugin record` MUST start that adapter from the digest the manifest pins for it beside the service's container, as lemonfiber runs it and with the key it mints and the `upstream.json` it writes at install, MUST ask it every case of each contract it speaks, the contracts in the order `speaks` lists them and each one's cases in the order its `conformance.json` lists them, posting each case's `asked` with every placeholder in it filled as [capability-contracts.md](capability-contracts.md#what-a-case-asks) says, MUST fail the service at a case whose placeholder it cannot fill, naming the case and the placeholder, and MUST write each to `conformance/<capability>@<major>/<case>.json` with `recorded_from` as the pin of the service it fronts (`ARCH-R217`). |
 | **ARCH-R297** | `lemonfiber plugin record` MUST replace every credential its run made or read, as made and URL-, base64- and JSON-encoded in either case, each container's id, hostname and addresses, and the name, kernel version and operating system the engine API reports for the machine it runs on, each wherever it appears, with `<redacted>` in every recording and in everything it prints, and MUST NOT write a recording still holding one; where a service's container, health, first run or any of its requests fails, or the engine or the pinned image is not available, it MUST write none of that service's recordings, leave those already there unchanged, go on to the next service and exit non-zero naming the service, the step and why with the last 50 lines of the container's log; a recording with no `note` yet MUST be written with an empty one and fail the run naming it; and it MUST remove every container and network it started whatever happened. |
-| **ARCH-R302** | A `[[claim]]` whose capability is provided by a service that an adapter of the same plugin `fronts` MUST NOT bind a probe whose vocabulary entry says `credential = "operator"`, and a manifest where one does MUST be refused naming the probe and the adapter; lemonfiber MUST hold no credential for such a service but the key it mints for the adapter, and MUST check what such a probe would check through the adapter's conformance cases (`ARCH-R296`). |
+| **ARCH-R302** | A `[[claim]]` whose capability is provided by a service that an adapter of the same plugin `fronts` MUST NOT bind a probe whose vocabulary entry says `credential = "operator"`, and a manifest where one does MUST be refused naming the probe and the adapter; lemonfiber MUST NOT ask such a service anything with a credential it holds for it, MUST hold none for it but the secrets it mints for the plugin (`ARCH-R315`), MUST hand those to the adapter only through `upstream.json` (`ARCH-R317`) and to another plugin only as a credential that crosses (`F14-R18`, `F14-R20`), and MUST check what such a probe would check through the adapter's conformance cases (`ARCH-R296`). |
+| **ARCH-R315** | A `[[secret]]` declaring `minted = true` MUST have its value made by lemonfiber at install, before any service of the plugin first starts, as 32 lowercase hexadecimal characters from the operating system's random source, held in the secret store as `<plugin id>:<secret id>`, journalled by fingerprint (`ARCH-R276`) and never shown; one naming an `of`, or named by a capture, MUST be refused naming the secret; where the plugin's service `replaces` a reserved id whose credential lemonfiber reads from that service's configuration, the move MUST file that value under the secret once and MUST NOT mint one; and `plugin record` and a proof MUST mint a throwaway value for their own run. |
+| **ARCH-R316** | lemonfiber MUST write a starting file's `{{secret:<id>}}` as the secret's value and `{{secret:<id>\|pbkdf2}}` as PBKDF2-HMAC-SHA512 of it over 100,000 iterations with a fresh 16-byte random salt, written `@ByteArray(<salt>:<hash>)` with both in base64; MUST write a file holding one readable by the service's owner alone (`0600`); MUST record it, and show it in every diff, rehearsal and reading, with the placeholder in place of the value; and MUST refuse a placeholder naming a secret the manifest does not declare or declares with an `of`, a form other than `pbkdf2`, or one in a file that is not UTF-8, naming the file and the placeholder. |
+| **ARCH-R317** | A service that `speaks` MAY declare `upstream`, each field to `{ secret = "<id>" }`; lemonfiber MUST write exactly those fields, each with its secret's value, to the adapter's `upstream.json` (`F14-R28`) at install and whenever one of them changes, and MUST refuse `upstream` on a service that speaks no contract, a field name that is not lowercase letters, digits and `_` starting with a letter, and a secret the manifest does not declare or declares with an `of`, naming the service, the field and the secret. |
+| **ARCH-R318** | Replacing a minted secret MUST write the new value to every environment file, starting file and `upstream.json` that names it, and restart each service that reads one, before it is called replaced; a starting file whose content differs from what lemonfiber last wrote MUST go through `F1-R4`'s diff and confirmation, with the placeholder in place of each value. |
 
 ## Related
 
