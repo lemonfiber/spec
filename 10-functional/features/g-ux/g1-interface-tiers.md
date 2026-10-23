@@ -88,8 +88,9 @@ writing the table down: it takes away the option of leaving something out quietl
 | A live-refreshing dashboard | CLI | A command ends, and a view that refreshes does not. A command that never ended would not be a command; a script waiting on one would wait forever. | `lemonfiber ps` — the same reading, taken once. The TUI and the web hold it open. |
 | An open event stream | CLI | The same shape one layer down: a stream has no last element, so there is nothing for a command to answer with and exit on. | `lemonfiber logs --follow` streams lines until interrupted; every other reading answers once. |
 | Machine-readable output (`--json`) | TUI, Web | `--json` asks how *this run's* answer is written, which only means something where an answer is written to a pipe. A screen is not a pipe. | The web API **is** the machine-readable form — the identical envelope, byte for byte ([web-api](../../../20-architecture/contracts/web-api.md)). A program wanting an answer from a terminal session uses the CLI, which is in the same binary. |
+| Running the pass service (`lemonfiber pass`) | Web, TUI | It is not an action an operator takes: the project runs it as one of the stack's own services, on the one network it shares with the stream guard, holding the pass key read-only ([`ARCH-R291`](../../../20-architecture/contracts/capability-contracts.md)). A surface starting it would be a second process holding the key outside that network, which is the one thing the service exists to prevent. | None is needed. It runs when the stack runs, and `lemonfiber ps`, the dashboard and the web interface show it as they show every service. |
 
-Four rows is the whole list, and that is the point: almost nothing is genuinely
+Five rows is the whole list, and that is the point: almost nothing is genuinely
 unsuited. The pressure this table is under is the temptation to grow it, because
 every unbuilt thing looks like an exception from the side of not having built it.
 
