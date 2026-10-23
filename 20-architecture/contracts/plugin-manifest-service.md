@@ -298,6 +298,10 @@ api_key = {{secret:upstream-key}}
   and it is recorded, diffed and shown with the placeholder where the value is.
 - **Text, and one syntax.** A file with a placeholder is UTF-8, and any other form, or a
   secret the manifest does not declare, is refused naming the file and the placeholder.
+- **A few, and only through no link.** A service's files hold at most 16 placeholders in
+  all: each is written at install and again whenever its secret is replaced, and the
+  hashed form is a hundred thousand rounds. A file holding one is written only where no
+  link stands on the way to it, since the directory is one the container writes.
 - **Replaced where it stands.** The service rewrites its own settings once it runs, so a
   replaced secret is not written from the template again. lemonfiber keeps the files as
   shipped, finds the line a placeholder is on by the text around it, and replaces the
