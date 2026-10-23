@@ -291,8 +291,9 @@ service that keeps only a hash of its password reads, as `@ByteArray(<salt>:<has
 api_key = {{secret:upstream-key}}
 ```
 
-- **Only the plugin's own.** A placeholder names a `[[secret]]` with no `of`. A
-  credential that crosses is another service's and stays out of this plugin's files.
+- **Only the plugin's own.** A placeholder names a `[[secret]]` whose `of` is one of the
+  plugin's own services. A credential that crosses is another service's and stays out
+  of this plugin's files.
 - **Held as a secret is.** A file holding one is readable by the service's owner alone,
   and it is recorded, diffed and shown with the placeholder where the value is.
 - **Text, and one syntax.** A file with a placeholder is UTF-8, and any other form, or a
