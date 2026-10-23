@@ -105,8 +105,8 @@ AWAITING_A_VERSION = {
         [f"N9-R{n}" for n in range(1, 12)],
     ),
     "N10": (
-        "N10 requires N1, whose app side 1.0.0 completes, and G8, locked by 0.14.0 at the latest, released",
-        [f"N10-R{n}" for n in range(1, 13)],
+        "N10 requires N1, whose app side 1.0.0 completes, and G8, locked by 0.14.0 at the latest, released; what N10-R13 renders, G8-R15, is locked by 0.18.0",
+        [f"N10-R{n}" for n in range(1, 14)],
     ),
     "N12": (
         "N12 requires N1, whose app side 1.0.0 completes, and D5, locked by 0.12.0, released",
