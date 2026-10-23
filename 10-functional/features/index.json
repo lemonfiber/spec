@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/gen_board.py",
-  "counts": {"features": 115, "requirements": 1827, "areas": "A–N"},
+  "counts": {"features": 115, "requirements": 1834, "areas": "A–N"},
   "versions": [
     {"version": "0.1.0", "status": "released", "milestone": "M2", "goals": 9},
     {"version": "0.2.0", "status": "released", "milestone": "M3", "goals": 38},
@@ -26,7 +26,7 @@
     {"version": "0.22.0", "status": "planned", "milestone": "M12", "goals": 29},
     {"version": "0.23.0", "status": "planned", "milestone": "M13", "goals": 40},
     {"version": "0.24.0", "status": "planned", "milestone": "M15", "goals": 42},
-    {"version": "1.0.0", "status": "planned", "milestone": "M6", "goals": 20}
+    {"version": "1.0.0", "status": "planned", "milestone": "M6", "goals": 27}
   ],
   "areas": {"A": "a-getting-started/board.json", "B": "b-running/board.json", "C": "c-trust/board.json", "D": "d-content/board.json", "E": "e-maintenance/board.json", "F": "f-extensibility/board.json", "G": "g-ux/board.json", "H": "h-glue/board.json", "I": "i-remote-access/board.json", "J": "j-runtime/board.json", "K": "k-observability/board.json", "L": "l-release/board.json", "N": "n-companion/board.json"}
 }
