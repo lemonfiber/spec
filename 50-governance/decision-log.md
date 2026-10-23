@@ -327,6 +327,7 @@ Decisions about a repository outside this organisation, such as
 | `request.intake@1`'s conformance cases name their member by 32 lowercase hexadecimal digits, the shape a media server's account id takes | [capability-contracts.md](../20-architecture/contracts/capability-contracts.md#a-request-services-owner) |
 | `ARCH-R319` ships in 0.18.0 with the request service's move | [0.18.0](../70-operations/versions/0.18.0.toml) |
 | A minted secret's `of` names the plugin's own service it is the credential of, as every secret the plugin holds names its owner; a placeholder and an `upstream` field name such a secret | [ARCH-R315, ARCH-R316, ARCH-R317](../20-architecture/contracts/plugin-manifest.md) |
+| A replaced minted secret is written into a seeded starting file in place of the value on the line the kept template's text around its placeholder finds, keeping everything the service wrote there; a file where that line is gone is refused by name and the old value stays in force. `ARCH-R318` is amended in place | [ARCH-R318](../20-architecture/contracts/plugin-manifest.md) |
 
 ## Requirements
 
