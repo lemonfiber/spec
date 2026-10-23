@@ -5,7 +5,7 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [seed, verification]
 relates: [A5, C3, D1, E3, F1]
 ---
