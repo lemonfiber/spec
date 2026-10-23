@@ -322,6 +322,9 @@ Decisions about a repository outside this organisation, such as
 | An adapter's `upstream` names each `upstream.json` field and the secret it holds; lemonfiber hands a fronted upstream's credential to nothing else of its own, and `ARCH-R302` is amended in place to say so | [ARCH-R317, ARCH-R302](../20-architecture/contracts/plugin-manifest.md) |
 | Replacing a minted secret writes it everywhere it was written and restarts what reads it | [ARCH-R318](../20-architecture/contracts/plugin-manifest.md) |
 | `ARCH-R315` to `ARCH-R318` ship in 0.18.0 with the moves that need them | [0.18.0](../70-operations/versions/0.18.0.toml) |
+| `request.intake@1` gains `establish`, carrying the identity source, asked once at first run before anything else and as the first conformance case, so a fresh request service holds an owner before it is asked with its key; adding an operation is a minor change | [ARCH-R319](../20-architecture/contracts/capability-contracts.md) |
+| `request.intake@1`'s conformance cases name their member by 32 lowercase hexadecimal digits, the shape a media server's account id takes | [capability-contracts.md](../20-architecture/contracts/capability-contracts.md#a-request-services-owner) |
+| `ARCH-R319` ships in 0.18.0 with the request service's move | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
 ## Requirements
 

@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 551 goals, seeded from the roadmap milestone this version serves;
+# 552 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -877,7 +877,13 @@ goals   = [
     "ARCH-R316",
     "ARCH-R317",
     "ARCH-R318",
+    "ARCH-R319",
 ]
+
+# `ARCH-R319` adds `establish` to `request.intake@1`, the step that gives a fresh request
+# service an owner through the identity source so it answers the key lemonfiber minted for
+# it. The request service's move out of the core cannot be recorded without it, so it ships
+# with the moves. Added by the maintainer's decision of 2026-10-23 (OPS-R31).
 
 # `ARCH-R315` to `ARCH-R318` give an upstream an adapter fronts the credential lemonfiber
 # mints for it: made at install, seeded through the service's environment or a starting
