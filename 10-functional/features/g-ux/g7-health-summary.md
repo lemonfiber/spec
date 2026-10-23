@@ -5,7 +5,7 @@ kind: feature
 area: G
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [verification, ux]
 requires: [B5]
 relates: [B3, C1, G4]
