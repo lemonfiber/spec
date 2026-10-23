@@ -80,7 +80,7 @@ code, and the two move independently.
 | [N22](n-companion/n22-asking-for-help.md) | Asking for help | N | operator | accepted | — |
 | [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
 | [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
-| [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0` |
+| [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0`, `1.0.0` |
 | [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |
 | [N29](n-companion/n29-a-key-for-an-app.md) | A key for an app | N | operator | accepted | `0.18.0` |
 

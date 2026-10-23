@@ -159,11 +159,6 @@ AWAITING_A_VERSION = {
         "N2 requires N1, whose app side 1.0.0 completes; what N2-R29 and N2-R30 rest on is D7, locked by 0.12.0, released, and C2 and G7, locked by 0.6.0 and 0.18.0; what N2-R31 to N2-R33 rest on is ARCH-R299, locked by 0.18.0",
         ["N2-R29", "N2-R30", "N2-R31", "N2-R32", "N2-R33"],
     ),
-    # N25-R15 is N1-R2's parity for `plugin-prove`; N25-R1 to N25-R14 are locked by 0.18.0.
-    "N25": (
-        "N25 requires N1, whose app side 1.0.0 completes, and F6, locked by 0.16.0, released; the rest of N25 is locked by 0.18.0",
-        ["N25-R15"],
-    ),
     "N28": (
         "N28 requires N1, whose app side 1.0.0 completes, N2, whose app side no version schedules, and N27; what N1 and N2 require is locked by 0.11.0 at the latest, released",
         [f"N28-R{n}" for n in range(1, 15)],
