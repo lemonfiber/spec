@@ -216,6 +216,18 @@ bytes are served on a pass the core issues instead.
 - **The normal form.** Before it asks, the guard holds the request to the normal form it
   holds an item's byte route to: one canonical path, no byte the forward would re-escape,
   and one spelling of each parameter it reads. It asks about exactly the bytes it forwards.
+- **The pass.** A pass names the member it was issued to and the moment it lapses, and
+  carries an HMAC-SHA256 under the core's key over the live stream it is for, that member
+  and that moment, written in base64url without padding. It lapses five minutes after it
+  is issued, and the client asks for another before then. It travels in the `lfpass` query
+  parameter, the one place a player fetching a playlist's segments carries it unaltered.
+- **The answer.** The pass service answers `GET /pass`, asked with the request the guard
+  forwards named in `X-Forwarded-Uri`: `204` where the pass in that request's `lfpass` is
+  good for the live stream its path names and has not lapsed, and `403` for anything else.
+- **The image.** The pass service runs `ghcr.io/lemonfiber/lemonfiber` at the running
+  release, pinned by the digest resolved when the project is written, as every other image
+  of the project is pinned. A build no image was published for writes the project without
+  the pass service and says so.
 
 ## The completed folders
 
@@ -399,6 +411,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R307** | `hold` MUST give the filler of `invite.decline` the media server key it switches an invitation off with, and `held` MUST answer that key's SHA-256, in lower-case hexadecimal, and MUST NOT answer its value; `apply the invitations it may decline` MUST give it how the media server tells a claimed account, and each invitation as its token's hash, its account, the name the account was made under, when it was issued and when it lapses, and it MUST act on no invitation the core did not apply. The decline address an invitation carries MUST be the filler's own page (`D6-R15`). |
 | **ARCH-R308** | The core MUST apply the panel list to the filler of `dashboard.show`, over the contract where the filler speaks it, and where the filler is the assembled Homepage, which speaks none, through an in-process adapter that writes the files Homepage reads and reads them back; `apply a panel list` MUST give the filler groups of entries, each a name, an icon, a link and a description with an optional reachability check and an optional widget, and the page's widgets; every widget, on the page or on an entry, MUST be one the core names, the page's being the machine's resources and a web search box, and none MUST read a credential (`C6-R20`); the search box MUST send a search to the address the core setting `LEMONFIBER_DASHBOARD_SEARCH` holds, or to `https://duckduckgo.com/?q=` where none is recorded, and a value of that setting that is not an absolute `https` or `http` address MUST be refused naming the setting; `the list it shows` MUST answer the list applied. |
 | **ARCH-R311** | `file_under` MUST hand the filler of `download.usenet` and of `download.torrent` each category and its completed folder, `/data/downloads/complete/<category>` for both, and `filed` MUST answer every category the client holds and the completed folder it files that category under; the seed MUST tell every download client its completed folders this way, through its in-process adapter where the client is an assembled part and over its contract where a plugin fills the capability, MUST read each back with `filed`, and where a client holds a folder for a category other than the one lemonfiber last filed there MUST keep it and report it drifted (`D1-R3`). |
+| **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream its path names and has not lapsed and with `403` otherwise; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
 
 ## Related
 

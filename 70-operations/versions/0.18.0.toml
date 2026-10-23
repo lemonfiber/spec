@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 545 goals, seeded from the roadmap milestone this version serves;
+# 547 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -871,7 +871,15 @@ goals   = [
     "ARCH-R311",
     "ARCH-R312",
     "ARCH-R313",
+    "ARCH-R291",
+    "ARCH-R314",
 ]
+
+# `ARCH-R291` moves here from 0.19.0, and `ARCH-R314` joins it: the network `ARCH-R312`
+# puts the pass service on and the address `ARCH-R303` hands the guard both name the pass
+# service, so the service, its key, the pass it confirms and the image it runs ship in the
+# same version. Issuing a pass for a live stream (`D11-R11` to `D11-R13`) stays in 0.19.0.
+# By the maintainer's decision of 2026-10-23 (OPS-R31).
 
 # `ARCH-R313` lets a `[[wiring]]` name the line and the icon beside its service's dashboard
 # entry, so the panel list the core applies to `dashboard.show` (`ARCH-R308`) shows the
