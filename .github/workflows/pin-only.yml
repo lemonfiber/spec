@@ -8,21 +8,21 @@
 #     pull_request_target:
 #       types: [opened, synchronize, reopened, labeled, unlabeled]
 #   concurrency:
-#     group: ${{ github.workflow }}-${{ github.event.pull_request.number }}${{ (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.label.name != 'workflows-approved' && format('-{0}', github.run_id) || '' }}
+#     group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
 #     cancel-in-progress: ${{ github.event.action == 'synchronize' && github.run_attempt == 1 }}
 #   jobs:
 #     pin-only:
-#       if: ${{ !((github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.label.name != 'workflows-approved') }}
 #       permissions:
 #         contents: read
 #         pull-requests: read
 #       uses: lemonfiber/spec/.github/workflows/pin-only.yml@<sha> # v1.0.0
 #
 # `labeled` and `unlabeled` run it again when the approval is given or taken
-# away. A label event for any other label skips the job, in a group of its own
-# run, so the labels the gates and Dependabot add neither run it nor cancel the
-# run in progress. The approval is read from the forge's records, not from the
-# event that started the run.
+# away, and for every other label too, the ones the gates and Dependabot add
+# included. Branch protection reads a check from the newest run of its workflow
+# on the head, so a run that skipped the job would hide the verdict of the run
+# before it. The approval is read from the forge's records, not from the event
+# that started the run.
 #
 # `synchronize` and `reopened` matter as much as `opened`. The verdict is a check
 # on the head commit the event names, and branch protection asks for the check on

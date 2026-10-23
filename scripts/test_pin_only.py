@@ -941,9 +941,9 @@ class TheWorkflow(unittest.TestCase):
         self.assertEqual(set(shown[True]["pull_request_target"]["types"]),
                          {"opened", "synchronize", "reopened", "labeled", "unlabeled"})
         import check_superseded_runs
-        self.assertEqual(shown["concurrency"]["group"], check_superseded_runs.LABELLED_GROUP)
-        self.assertEqual(shown["concurrency"]["cancel-in-progress"], check_superseded_runs.PUSH_CANCELS)
-        self.assertEqual(shown["jobs"]["pin-only"]["if"], f"${{{{ !({check_superseded_runs.OTHER_LABEL}) }}}}")
+        self.assertEqual((shown["concurrency"]["group"], shown["concurrency"]["cancel-in-progress"]),
+                         check_superseded_runs.PIN_ONLY_BLOCK)
+        self.assertNotIn("if", shown["jobs"]["pin-only"])
 
     def test_spec_calls_it_the_way_it_documents(self):
         documented = "\n".join(line[4:] for line in WORKFLOW.read_text(encoding="utf-8").splitlines()
@@ -952,7 +952,7 @@ class TheWorkflow(unittest.TestCase):
         own = yaml.safe_load((WORKFLOW.parent / "pin-only-check.yml").read_text(encoding="utf-8"))
         self.assertEqual(own[True], shown[True])
         self.assertEqual(own["concurrency"], shown["concurrency"])
-        self.assertEqual(own["jobs"]["pin-only"]["if"], shown["jobs"]["pin-only"]["if"])
+        self.assertEqual(own["jobs"]["pin-only"].keys(), shown["jobs"]["pin-only"].keys())
 
     def test_it_refuses_any_event_but_pull_request_target(self):
         script = self.steps[0]["run"]
