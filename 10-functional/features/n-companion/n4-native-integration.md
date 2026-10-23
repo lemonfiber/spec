@@ -116,6 +116,11 @@ A closed app on iOS hears its stacks when the system lets it, which may be rarel
 app says so where notifications are turned on, rather than promising what it cannot do,
 and says the same of Android without a distributor.
 
+What it reads on waking is what the stack hands back of what it raised meanwhile. Unless
+the stack says that hand-back is whole, the app cannot tell whether an alert was lost
+while it was not listening, so it never presents what it told as everything, and says to
+the operator, where notifications are turned on, that some may be missing.
+
 ### Nothing is sent anywhere else
 
 No analytics, no crash reporting to a third party, no telemetry. A diagnostic the
@@ -152,6 +157,7 @@ nothing that would override the reader's own type size or choice of light or dar
 |-----------|-----------|
 | Biometric fails repeatedly | Falls back to the device passcode, never to no lock at all. |
 | The device has no secure storage | The app refuses to store a session and says why, rather than writing it somewhere weaker. |
+| The stack cannot hand back everything raised while the app was away | The app notifies what it was handed and never calls it everything; where notifications are turned on, it says some may be missing. |
 | Notifications are declined after being granted | Honoured immediately; the app does not keep trying. |
 | A notification arrives for a stack that has since been removed | Not shown. A notification for a stack the person no longer has is confusing and leaks that it existed. |
 | The app is backgrounded mid-repair | The repair is the core's, and continues there. The app locks and reports the outcome when next opened. |
@@ -189,6 +195,7 @@ nothing that would override the reader's own type size or choice of light or dar
 | **N4-R25** | The app MUST NOT use Apple's or Google's push service, or any service able to read a notification; it MUST raise each notification locally, from its own pinned connection to the stack, while it runs and when the platform wakes it for background refresh, and on waking MUST notify what the stack raised since it last listened (`ARCH-R281`). |
 | **N4-R26** | On Android, where a UnifiedPush distributor is installed, the app MUST offer waking through it, MUST register the endpoint the distributor gives with each stack the operator turns it on for and remove it when turned off or the stack is removed (`ARCH-R282`), and MUST treat a push as a wake only, reading what to notify over its own connection. |
 | **N4-R27** | Where the operator turns notifications on, the app MUST say that while it is closed it hears a stack only when the platform wakes it, and so may notify late or not at all, on iOS and on Android without a UnifiedPush distributor. |
+| **N4-R28** | Unless the stack says its replay holds every alert raised since the app last listened (`ARCH-R281`), the app MUST NOT present the alerts it notifies on waking as all of them, and MUST say to the operator, where notifications are turned on, that some may be missing; a household member MUST NOT be shown it. |
 
 ## Related
 
