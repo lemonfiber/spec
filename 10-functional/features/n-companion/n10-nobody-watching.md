@@ -5,11 +5,11 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P3
 labels: [mobile, network, notifications, ux]
 requires: [N1, G8]
-relates: [B5, B10, D10, N2, N4]
+relates: [B5, B10, D10, N2, N4, N20]
 ---
 
 # N10 — What the stack does when nobody is watching
@@ -43,6 +43,16 @@ into one list would be taking responsibility for other people's software or
 disclaiming its own.
 
 Each is shown as what it is.
+
+### What lemonfiber sends for a plugin is a list of its own
+
+An installed plugin adds a third kind: a request lemonfiber makes **on the
+plugin's behalf** ([G8](../g-ux/g8-privacy.md) `G8-R15`). It is not lemonfiber's
+own, because lemonfiber has no reason of its own to make it, and not a service's,
+because no service made it. Folded into either list it would answer the wrong
+question, so it is a third list, *On a plugin's behalf*, and each entry names the
+plugin that declared it, what the request is for, and where it goes, as the name
+the manifest gave ([N20](n20-what-a-plugin-may-send.md) `N20-R3`).
 
 ### Every outbound connection carries what turns it off
 
@@ -104,6 +114,8 @@ actually running is asking a reasonable question, and it is answerable.
 
 - **A service making a connection lemonfiber did not ask for.** Shown under
   *theirs*, and not presented as the product's doing.
+- **A request lemonfiber makes for a plugin.** Shown under *On a plugin's
+  behalf*, naming the plugin, and counted in neither of the other two lists.
 - **An observed capacity that has only been observed once.** The source is said;
   the app does not present it as established.
 - **A cap with no monthly figure set.** Distinguished from a cap of zero.
@@ -126,6 +138,7 @@ actually running is asking a reasonable question, and it is answerable.
 | **N10-R10** | A long-running command MUST be shown with what it guarantees and what is missing, and one that is defined but not running MUST be shown as that rather than as absent. |
 | **N10-R11** | The app MUST NOT raise alerts of its own here; what is configured is the core's (`N4-R11`). |
 | **N10-R12** | Connections, capacity or alerts that could not be read MUST be told apart from there being none. |
+| **N10-R13** | Requests lemonfiber makes on an installed plugin's behalf MUST be shown as a list of their own, apart from lemonfiber's own connections and the services', each with the plugin that declared it, its purpose and its destination (`G8-R15`), and MUST NOT be merged into either of the other two lists. |
 
 ## Related
 
@@ -133,6 +146,7 @@ actually running is asking a reasonable question, and it is answerable.
 - [N4](n4-native-integration.md) — notifications arriving on the device
 - [N6](n6-taking-a-copy.md) — what a rehearsal may not look like
 - [G8](../g-ux/g8-privacy.md) — the privacy stance this renders
+- [N20](n20-what-a-plugin-may-send.md) — what a plugin may send, agreed to as itself
 - [B5](../b-running/b5-notifications.md) — what the stack tells somebody about
 - [B10](../b-running/b10-hosting.md) — guarantees made by something that keeps running
 - [D10](../d-content/d10-bandwidth.md) — the line, and what uses it
