@@ -121,7 +121,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `api` | table | | The in-process adapter lemonfiber reaches it through, in `stack.toml`'s shape. `kind` and `key_source` from the published set. Honoured only in a first-party plugin the bundle assembles — see below. |
 | `listens` | integer | ✔ if `api` or `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where lemonfiber, the services that ask and the proxy reach it. Default `port`. |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract names no `api`: it is asked one way. See [capability-contracts.md](capability-contracts.md). |
-| `upstream` | table | | Only where it `speaks`: each field of the `upstream.json` lemonfiber writes for this adapter, to `{ secret = "<id>" }` naming a secret the plugin holds, usually one it [mints](plugin-manifest.md#secret-and-override--declared-before-they-are-held) (`ARCH-R317`). |
+| `upstream` | table | | Only where it `speaks`: each field of the `upstream.json` lemonfiber writes for this adapter, to `{ secret = "<id>" }` naming a secret the plugin holds, usually one it [mints](plugin-manifest-secret.md#secret-and-override--declared-before-they-are-held) (`ARCH-R317`). |
 | `fronts` | string | ✔ if `speaks` | The plugin's own service this adapter stands in front of: the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. |
 | `native` | string | | The API this service answers the stack's other services in, by the name those services know it by (`jellyfin`, `plex`, `emby`). Declared on the upstream an adapter `fronts`, where other services reach that upstream directly rather than through the adapter: a request service is set up against a media server in the media server's native API (`F14-R26`, `ARCH-R221`). |
 | `replaces` | string | | An id the [bundle reserves](bundle.md#the-reserved-register), of the service this service moves in place of: the same container name, configuration directory and data, so an install moves the bundled service rather than running beside it ([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) §4). It names the service's own id, and only that service may take the reserved id, port and hostname (`ARCH-R222`). Only a first-party plugin's install honours it (`F14-R29`), and the service keeps the stack's setting, secret and credential names for that id, so the move migrates none (`ARCH-R273`). |
@@ -378,7 +378,7 @@ naming the API. Where the filler speaks no contract, as the stack's own services
 ask reaches the filler itself (`ARCH-R253`).
 
 **A secret is declared, held, and written apart.** `{ secret = "<name>" }` names a
-[`[[secret]]`](plugin-manifest.md#secret-and-override--declared-before-they-are-held) the manifest
+[`[[secret]]`](plugin-manifest-secret.md#secret-and-override--declared-before-they-are-held) the manifest
 declares: a value lemonfiber mints, one the operator enters, one its recipe captures,
 or a credential `F14-R18` or `F14-R20` lets cross to it. lemonfiber writes it to an environment file of
 the service's own, readable by the owner alone (`0600`), names that file in the entry,
