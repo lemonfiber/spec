@@ -317,7 +317,11 @@ and each one no case answers. An identifier or a moment the service makes afresh
 run, a UUID, 32 hexadecimal digits or an RFC 3339 date and time, is held to its shape
 alone. `--adapter <image>` starts the adapter from an image the engine already holds, the
 one the plugin's CI built from its own `Dockerfile`, in place of its pin, and pulls
-nothing. It is taken only with `--check`, so a recording is only ever written from a pin.
+nothing. A pull request that changes what its adapter answers writes its recordings
+this way, from the adapter it built, and checks them the same way. The pull request
+that then moves the adapter's pin to the published image takes every recording again
+from that pin and holds it to what was written, so no recording ships that its pin does
+not reproduce.
 
 | What the manifest names | How it is recorded |
 |---|---|

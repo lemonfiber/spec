@@ -343,6 +343,7 @@ Decisions about a repository outside this organisation, such as
 | `lemonfiber plugin record` stands in for every party the cases point the upstream at, the identity source as `jellyfin` and the curator as the curator of series, each in its native API on a port of its own, so a later case reads the state install makes and no plugin seeds an upstream for its recordings | [ARCH-R326](../20-architecture/contracts/capability-contracts.md) |
 | The identity source's stand-in signs in the owner whatever password a case minted, since each case mints its own, and lists a key under the name a request service asked to make it for, since a request service finds its key by that name; `ARCH-R326` is amended in place | [ARCH-R326](../20-architecture/contracts/capability-contracts.md) |
 | `ARCH-R326` ships in 0.18.0 with the adapters' moves | [0.18.0](../70-operations/versions/0.18.0.toml) |
+| `lemonfiber plugin record --adapter <image>` writes as well as checks, so a pull request that changes what its adapter answers records from the adapter it built; the pull request moving the adapter's pin to the published image holds every recording to that pin before it ships; `ARCH-R285` is amended in place | [ARCH-R285](../20-architecture/contracts/plugin-manifest.md) |
 
 ## 2026-10-24
 
