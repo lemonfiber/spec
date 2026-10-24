@@ -24,6 +24,8 @@
 
 **Amended** by [ADR-0052](0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md): §6. The core asks `dashboard.show` too, through an in-process adapter writing Homepage's own files where the filler speaks no contract.
 
+**Amended** by [ADR-0053](0053-a-part-claimed-first-is-claimed-over-a-contract-and-an-indexer-source-is-pulled-over-its-own.md): §10. A facet the core asks of every provider is proved by its speakers' conformance, and has no substitute.
+
 **Supersedes** [ADR-0024](0024-what-opens-and-what-never-does.md) where it holds the
 adapter set closed: behaviour no longer lives in lemonfiber's process at all.
 **Amends**:

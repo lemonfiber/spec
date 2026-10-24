@@ -441,11 +441,44 @@ the refusal names the case. The first-party adapters are judged by the same runn
 against the same cases. The stream guard's recorded byte cases are `stream.guard`'s
 conformance suite.
 
+## Facets the core asks of every provider
+
+Two contracts say something about a part beside the capability it fills, and the core
+asks each of every service that speaks it, never choosing among fillers ([ADR-0053](../../00-overview/decisions/0053-a-part-claimed-first-is-claimed-over-a-contract-and-an-indexer-source-is-pulled-over-its-own.md)).
+
+**A part that belongs to whoever claims it first is claimed over `owner.claim@1`.**
+`owner()` answers `Open`, `Settling`, `Ours` or `Theirs`, and `claim()` claims an `Open`
+part with the credential in the adapter's `upstream.json`, answering what it then is. It
+changes nothing that is `Ours` or `Theirs`, and the credential, the plugin's minted
+secret, never crosses a call (`ARCH-R328`). The core asks `claim` at install's first run
+and on every seed, waiting out `Settling` within its patience; a part `Open` after a claim
+it recorded is drift, and a part `Theirs` is refused naming the plugin's secret. One
+doctor check asks `owner()` of every speaker, and reset puts a claim back (`ARCH-R329`).
+`lemonfiber plugin record` asks `claim` before any other case (`ARCH-R330`).
+
+**A curator that reads its indexers from an aggregator is told it over `indexer.pull@1`.**
+`aggregators()` lists the aggregators it reads from, and `add_aggregator` adds one by
+name, address, protocol and key, the protocol being the aggregator's native API
+(`ARCH-R332`). Where the indexer's app sync serves a curator's media, the indexer is told
+about the curator; otherwise a curator speaking `indexer.pull@1` is told about the
+indexer whose native API matches, and an `unsupported` answer leaves the two unpaired.
+While it records, `lemonfiber plugin record` answers the aggregator at the host the case
+names in its native API (`ARCH-R333`).
+
+Each speaker's conformance proves its facet, so neither has a substitute (`ARCH-R331`).
+
+## What a speaker cannot do
+
+An operation the upstream an adapter fronts cannot perform answers `unsupported`.
+Conformance passes it, and the core treats the operation as not offered for that filler,
+by the answer's type alone (`ARCH-R334`).
+
 ## Versioning
 
 A contract's major changes only when an operation is removed or its meaning changes.
 Adding an optional field or an operation is a minor change the core speaks without a new
-major. The core speaks every major listed in `index.json`. When a second major arrives,
+major. An added operation holds every speaker to record again, since a recording no case
+answers and a case no recording answers both fail its conformance (`ARCH-R334`). The core speaks every major listed in `index.json`. When a second major arrives,
 the first stays spoken until it is deprecated by announcement and then removed, as [versioning.md](versioning.md) holds for a plugin manifest.
 
 ## Requirements
@@ -484,6 +517,13 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R321** | `register_download_client` MUST save the client it is handed, and its conformance case MUST name the client's protocol as the native API of the download filler the bundle ships, `sabnzbd`; while it records a curator, `lemonfiber plugin record` MUST answer at the host the case names, reachable from the upstream's container alone, the queries a curator tests a SABnzbd client with, and nothing more. |
 | **ARCH-R326** | A conformance case that hands the upstream an identity source MUST name its protocol as `jellyfin`, and one that hands it a curator MUST name the curator of series; while it records, `lemonfiber plugin record` MUST answer at each host and port the cases name, each party on a port of its own, reachable from the upstream's container alone, in that party's native API: for the identity source, the sign-in of the owner the case names, a key made and listed under the name it was asked to make one for, what server it is, and a list of accounts holding that owner and the member the cases link; for the curator, the queries an upstream tests a curator with before it saves one, its release in every answer; and nothing more. |
 | **ARCH-R327** | Each operation whose answer holds a credential the upstream issues MUST name every place its answer holds one as a JSON pointer, `""` where the whole answer is one, its contract document MUST publish them as `x-lemonfiber-secret`, and `lemonfiber plugin record` MUST scrub the value at each as a credential its run read (`ARCH-R297`). |
+| **ARCH-R328** | `owner.claim@1` MUST declare `owner`, answering `Open`, `Settling`, `Ours` or `Theirs`, and `claim`, which claims an `Open` part with the credential in the adapter's `upstream.json` and answers what the part then is, and MUST NOT change a part that is `Ours` or `Theirs`; the credential MUST be the plugin's minted secret and MUST NOT cross a call. |
+| **ARCH-R329** | The core MUST ask `claim` of every service speaking `owner.claim@1` at install's first run and on every seed, waiting out `Settling` within its patience, MUST report a part `Open` after a claim it recorded as drift and a part `Theirs` as refused naming the plugin's secret, MUST ask `owner` of every speaker in one doctor check, and reset MUST put a claim back. |
+| **ARCH-R330** | `lemonfiber plugin record` MUST ask `claim` of a service whose adapter speaks `owner.claim@1` before any other case. |
+| **ARCH-R331** | `owner.claim` and `indexer.pull` MUST be asked by the core of every service that speaks them and MUST NOT be chosen among fillers; each MUST be proved by its speakers' conformance, and neither has a substitute. |
+| **ARCH-R332** | `indexer.pull@1` MUST declare `aggregators`, listing the aggregators a curator reads its indexers from, and `add_aggregator`, adding one by name, address, protocol and key, the protocol being the aggregator's native API. |
+| **ARCH-R333** | Where an indexer's app sync serves a curator's media, the core MUST tell the indexer about the curator; otherwise it MUST tell a curator speaking `indexer.pull@1` about the indexer whose native API matches, and MUST leave the two unpaired where either answers `unsupported`; while it records, `lemonfiber plugin record` MUST answer the aggregator at the host the case names in its native API. |
+| **ARCH-R334** | An operation the upstream an adapter fronts cannot perform MUST be answered `unsupported`; conformance MUST pass it, and the core MUST treat the operation as not offered for that filler, by the answer's type alone. |
 | **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits and the shape that id has, and the core MUST hand them to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request's path and has not lapsed, and with `403` otherwise, a path no live-stream path covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
 
 ## Related
