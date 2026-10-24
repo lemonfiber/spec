@@ -344,6 +344,13 @@ Decisions about a repository outside this organisation, such as
 | The identity source's stand-in signs in the owner whatever password a case minted, since each case mints its own, and lists a key under the name a request service asked to make it for, since a request service finds its key by that name; `ARCH-R326` is amended in place | [ARCH-R326](../20-architecture/contracts/capability-contracts.md) |
 | `ARCH-R326` ships in 0.18.0 with the adapters' moves | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
+## 2026-10-24
+
+| Decision | Where it lives |
+|---|---|
+| The operator's web console has a feature of its own, G11, shaped as G10 is for the household's side; its first rows give the console a third-party plugin's grants as the companion has them: a switch per grant on install and update, off until turned on and carrying the reading's own line; the grants each plugin holds and every grant on the credentials panel; a revoke read before it runs; all of it shown to the operator alone | [G11-R1 to G11-R5](../10-functional/features/g-ux/g11-operator-web-console.md) |
+| `G11-R1` to `G11-R5` ship in 0.18.0 with `ARCH-R322` to `ARCH-R325` | [0.18.0](../70-operations/versions/0.18.0.toml) |
+
 ## Requirements
 
 | ID | Requirement |

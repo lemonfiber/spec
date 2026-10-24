@@ -7,7 +7,8 @@ The web surface: a static single-page application drawn from the JSON API the
 
 **Implements:** the web side of
 [G1](../10-functional/features/g-ux/g1-interface-tiers.md),
-[G3](../10-functional/features/g-ux/g3-accessibility.md), and the
+[G3](../10-functional/features/g-ux/g3-accessibility.md),
+[G11](../10-functional/features/g-ux/g11-operator-web-console.md), and the
 [web API contract](../20-architecture/contracts/web-api.md).
 
 ---
