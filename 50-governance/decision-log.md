@@ -339,6 +339,9 @@ Decisions about a repository outside this organisation, such as
 | `library.curate@1`'s kind-bound cases are published once per media type and asked of an adapter for the media types its upstream files; adding cases is a minor change | [ARCH-R320](../20-architecture/contracts/capability-contracts.md) |
 | `register_download_client` saves without reaching the client, and its case names the client in the bundled download filler's native API, `sabnzbd`, so the cases after it find a held client | [ARCH-R321](../20-architecture/contracts/capability-contracts.md) |
 | `ARCH-R320` and `ARCH-R321` ship in 0.18.0 with the curators' moves | [0.18.0](../70-operations/versions/0.18.0.toml) |
+| A plugin's pull request proves the adapter it built with the core's recorder alone: `lemonfiber plugin record --check --adapter <image>` takes every recording again from an image the engine holds, writes nothing and fails naming each recording that differs or that no case answers, an identifier or moment the service makes afresh held to its shape alone; recordings are written only from pins; `ARCH-R285` and `ARCH-R296` are amended in place | [ARCH-R285, ARCH-R296](../20-architecture/contracts/plugin-manifest.md) |
+| `lemonfiber plugin record` stands in for every party the cases point the upstream at, the identity source as `jellyfin` and the curator as `sonarr`, so a later case reads the state install makes and no plugin seeds an upstream for its recordings | [ARCH-R326](../20-architecture/contracts/capability-contracts.md) |
+| `ARCH-R326` ships in 0.18.0 with the adapters' moves | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
 ## Requirements
 

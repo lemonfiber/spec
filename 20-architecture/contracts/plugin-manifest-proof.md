@@ -307,8 +307,17 @@ names an `accept`, and one that named an `accept` is not evidence for a request
 that does not.
 
 **Every recording is taken by `lemonfiber plugin record <path>`,** from the manifest's
-pin, so moving the pin and recording again are one command (`ARCH-R285`). It takes no
-option: the manifest is the list.
+pin, so moving the pin and recording again are one command (`ARCH-R285`). What it takes
+is the manifest's list, and no option names a recording. A recording under
+`conformance/` that no case asks is removed.
+
+A pull request proves its own adapter with two options. `--check` takes every recording
+again and writes nothing: it fails naming each recording that differs from what it took
+and each one no case answers. An identifier or a moment the service makes afresh on each
+run, a UUID, 32 hexadecimal digits or an RFC 3339 date and time, is held to its shape
+alone. `--adapter <image>` starts the adapter from an image the engine already holds, the
+one the plugin's CI built from its own `Dockerfile`, in place of its pin, and pulls
+nothing. It is taken only with `--check`, so a recording is only ever written from a pin.
 
 | What the manifest names | How it is recorded |
 |---|---|
