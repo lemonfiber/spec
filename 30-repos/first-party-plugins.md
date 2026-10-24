@@ -81,8 +81,11 @@ own upstream alone answers (`REPO-R99`).
 - **Its recordings, taken again from the commit**: the adapter built from the plugin's own
   `Dockerfile`, and `lemonfiber plugin record --check --adapter <that image>` at the
   lemonfiber `targets.toml` names held to every recording committed beside the manifest
-  ([ARCH-R285](../20-architecture/contracts/plugin-manifest.md)). The plugin holds no
-  recorder of its own.
+  ([ARCH-R285](../20-architecture/contracts/plugin-manifest.md)). A change to what the
+  adapter answers is recorded with `lemonfiber plugin record --adapter <that image>` in the
+  same pull request, and the pull request that moves the adapter's pin to the image its
+  `main` published holds every recording to that pin. The plugin holds no recorder of its
+  own.
 - **The organisation's shared gates and hooks**, as `shared/adoption.toml` states them.
 - **Its upstream pins**, moved every week by `upstream-pins` where its manifest runs an
   upstream's image (below).
