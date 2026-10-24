@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 42 built, 28 building, 20 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 44 built, 26 building, 20 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -74,6 +74,7 @@ code, and the two move independently.
 | [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | `0.18.0` |
 | [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | accepted | — |
 | [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | accepted | — |
+| [N9](n-companion/n9-who-gets-in.md) | Who gets in, and what the stack holds for them | N | operator | accepted | `1.0.0` |
 | [N10](n-companion/n10-nobody-watching.md) | What the stack does when nobody is watching | N | operator | accepted | — |
 | [N11](n-companion/n11-the-record.md) | What was done, and where it came from | N | operator | accepted | — |
 | [N12](n-companion/n12-making-room.md) | Running out of room | N | operator | accepted | — |
@@ -86,6 +87,7 @@ code, and the two move independently.
 | [N22](n-companion/n22-asking-for-help.md) | Asking for help | N | operator | accepted | — |
 | [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
 | [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
+| [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0`, `1.0.0` |
 | [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |
 | [N29](n-companion/n29-a-key-for-an-app.md) | A key for an app | N | operator | accepted | `0.18.0` |
 | [N31](n-companion/n31-asking-the-indexers.md) | Asking the indexers | N | operator | accepted | — |
@@ -115,11 +117,9 @@ code, and the two move independently.
 | [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0`, `0.19.0`, `1.0.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
-| [N9](n-companion/n9-who-gets-in.md) | Who gets in, and what the stack holds for them | N | operator | accepted | `1.0.0` |
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |
 | [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
-| [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0`, `1.0.0` |
 | [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | — |
 | [N30](n-companion/n30-testing-making-room-and-sharing-the-line.md) | Testing, making room and sharing the line | N | operator | accepted | `1.0.0` |
 
