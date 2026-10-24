@@ -168,13 +168,15 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": ["M6"],
+      "milestone": "M6",
       "priority": "P3",
       "labels": ["mobile", "household", "security", "ux"],
       "requires": ["N1", "D6"],
       "relates": ["A7", "G5", "G6", "N2", "N3"],
-      "versions": [],
+      "versions": [
+        {"version": "1.0.0", "status": "planned"}
+      ],
       "path": "n-companion/n9-who-gets-in.md"
     },
     {
