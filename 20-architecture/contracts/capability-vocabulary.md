@@ -126,7 +126,8 @@ has gone.
 | `capabilities[].summary` | One line, in the terms `F2-R1` asks of a bundled service |
 | `capabilities[].contract` | What a service claiming it undertakes to do. The prose a plugin author is held to. |
 | `capabilities[].declared_by` | Every bundled service declaring it. **Generated from the stack manifest**, not written here — see below. |
-| `capabilities[].probes` | What must be demonstrated. At least one. |
+| `capabilities[].probes` | What must be demonstrated. At least one, and none for a facet, which its speakers' conformance proves (`ARCH-R331`). |
+| `capabilities[].facet` | Whether the core asks it of every service that speaks it rather than of one filler it chooses (`ARCH-R331`). A service provides a facet only by speaking its contract. |
 | `removed` | Names a published generation carried and this one does not, each with the generation it went in. |
 
 ### `declared_by` is generated, and it is what enforces `F9-R3`
