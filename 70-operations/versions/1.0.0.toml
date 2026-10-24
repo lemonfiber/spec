@@ -1,11 +1,12 @@
 # **The dashboard.** `lemonfiber` with no subcommand opens a live view of the stack — the capability the whole of v1 has been building toward, and the reason this is 1.0.0 rather than another minor. Released through the signed, multi-platform pipeline on all three platforms.
 #
-# 27 goals, seeded from the roadmap milestone this version serves;
+# 32 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `N1-R2` and `N1-R5` are the companion's parity with every other surface, in what it
 # offers and in what it lets an operator set; `N25-R15` is that parity for proving a
-# plugin again, `N25-R16` to `N25-R20` for running a plugin's demand recipe, and
-# `N30-R10` and `N30-R11` for running every check or a group of them. They are cited in
+# plugin again, `N25-R16` to `N25-R20` for running a plugin's demand recipe,
+# `N30-R10` and `N30-R11` for running every check or a group of them, and `N25-R21`
+# to `N25-R24` with `N9-R12` for a third-party plugin's grants. They are cited in
 # `lemonfiber-companion`, which is searched and not tagged.
 version = "1.0.0"
 milestone = "M6"   # Live TUI
@@ -39,6 +40,11 @@ goals   = [
     "N25-R18",
     "N25-R19",
     "N25-R20",
+    "N25-R21",
+    "N25-R22",
+    "N25-R23",
+    "N25-R24",
+    "N9-R12",
     "N30-R10",
     "N30-R11",
 ]

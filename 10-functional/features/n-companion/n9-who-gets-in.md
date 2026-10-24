@@ -131,6 +131,7 @@ nobody made.
 | **N9-R9** | Where something only works on the household network, the app MUST say so. |
 | **N9-R10** | The front door MUST show what each address faces and why, and MUST say whether it was chosen or derived. |
 | **N9-R11** | Credentials or a door that could not be read MUST be told apart from there being none. |
+| **N9-R12** | The credentials screen MUST list every grant beside the credential it crosses, with the plugin it is granted to, the capability it is for and when it was approved, and never a value (`ARCH-R325`, `F14-R20`). |
 
 ## Related
 

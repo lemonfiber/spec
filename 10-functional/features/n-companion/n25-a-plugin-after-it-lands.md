@@ -191,6 +191,10 @@ every appearance.
 | **N25-R18** | A pair a run would carry out of the machine, or that releases a value a service answered with, MUST be agreed to as itself, apart from the run and with none agreed for the operator, and an approval given at install MUST NOT be taken as an approval of a run (`N20-R1`, `N20-R2`); the run MUST send the offer its rehearsal named and exactly the pairs approved, and an offer that moved MUST be rehearsed and shown again with nothing run. |
 | **N25-R19** | A run MUST be followed to its end and MUST show what ran, step by step, with each step the stack held and the stack's reason, and MUST NOT be shown as having run where a step was held. |
 | **N25-R20** | A demand recipe that asks the operator for a value MUST NOT be run from the app; it MUST be listed with what it asks for, and the app MUST say it is run at the web console or the terminal. This is the exception to `N1-R2` for runs: the value may be a secret, and the app takes no value a recipe asks for. |
+| **N25-R21** | Where an install or update of a third-party plugin names a credential of another service that would cross to it, the rehearsal MUST show each one with the setting it is held under, the service whose credential it is and the capability of the plugin's own it is for, and never its value. The operator MUST approve each one apart from the offer, on a switch of its own that is off until turned on; agreeing to the offer MUST approve none of them, and the yes MUST carry each approved one exactly as the reading names it (`ARCH-R323`, `F14-R20`). Every update MUST ask again, and a grant the plugin already holds MUST NOT be taken as approved. Where the stack refuses the act for a grant left off, the refusal MUST be drawn in the stack's words. |
+| **N25-R22** | Each installed plugin MUST list the grants it holds, each with the setting the credential is held under, the service whose credential it is, the capability it fills and when it was approved, and never a value (`ARCH-R323`). |
+| **N25-R23** | The app MUST offer revoking each grant a plugin holds. The revoke MUST be read first, labelled as nothing ended yet (`N6-R1`), showing the grant it ends and the plugin's services it would restart; the yes MUST carry back the offer the stack named (`N2-R27`). Afterwards the app MUST show whether the grant was ended, the services that restarted and, where they did not, the stack's reason, and MUST say that the plugin stays installed and that rotating the credential is what takes back a value already handed (`ARCH-R324`). |
+| **N25-R24** | A plugin's grants, and revoking them, MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown. |
 
 ## Notes
 
@@ -221,6 +225,9 @@ for and the envelope alone does not carry.
 | `N25-R9` | `install.recorded`, `removal.removed`, and `proofs[].came_to` absent on a rehearsal | A single flag saying a run was a rehearsal |
 | `N25-R10` | — | Whether the record was read: `installed` is a list, and an empty one is the only answer the envelope gives |
 | `N25-R11` | `install.taking[]`: `service`, `shape`, `grants`, `devices`, `approval`; the same under `update.install`; `PLUGIN-26` where an approval is missing | — |
+| `N25-R21` | `install.would.granted[]`: `credential`, `of`, `for`; the same under `update.install`; `PLUGIN-46` where a crossing secret names no capability | The line the yes approves for each grant: a pair and a privileged shape carry their `approval`, and a grant carries none |
+| `N25-R22` | `installed[].granted[]`: `credential`, `of`, `for`, `at` | — |
+| `N25-R23` | `credentials-revoke` with `plugin` and `credential`; `revoked`: `agreement`, `ended`, `grant`, `restarts`, `unrestarted`; `PLUGIN-47` where no such grant is held | — |
 
 ## Related
 

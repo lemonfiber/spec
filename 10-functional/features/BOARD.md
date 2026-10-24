@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**115 features** in areas A–N, **1834 requirements**.
+**115 features** in areas A–N, **1839 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -74,7 +74,7 @@ code, and the two move independently.
 | [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | `0.18.0` |
 | [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | accepted | — |
 | [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | accepted | — |
-| [N9](n-companion/n9-who-gets-in.md) | Who gets in, and what the stack holds for them | N | operator | accepted | — |
+| [N9](n-companion/n9-who-gets-in.md) | Who gets in, and what the stack holds for them | N | operator | accepted | `1.0.0` |
 | [N10](n-companion/n10-nobody-watching.md) | What the stack does when nobody is watching | N | operator | accepted | — |
 | [N11](n-companion/n11-the-record.md) | What was done, and where it came from | N | operator | accepted | — |
 | [N12](n-companion/n12-making-room.md) | Running out of room | N | operator | accepted | — |
