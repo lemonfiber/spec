@@ -5,7 +5,7 @@ kind: feature
 area: G
 audience: operator
 status: accepted
-maturity: building
+maturity: planned
 priority: P2
 labels: [web, ux, extensibility, security]
 requires: [G1, F14]
