@@ -406,16 +406,18 @@ with, and nothing more. So the cases after it find a client the curator holds
 (`ARCH-R321`).
 
 **So is every other party the cases point the upstream at.** A case that hands the
-upstream an identity source or a curator names it in the native API of the filler the
-bundle ships for it: the identity source as `jellyfin`, the media server's, and the
-curator as `sonarr`, the curator of series's. While it records, `lemonfiber plugin record`
-answers at each host the cases name, reached from the upstream's container alone, as
-that party answers what the upstream asks of it and nothing more. The identity source
-signs in the owner the case names with the password the case minted and lists one account
-beside it, the member the cases link. The curator answers the queries an upstream tests a
-curator with before it saves one. So the state a later case reads is the state install
-makes, from the cases alone, and no plugin seeds an upstream for its recordings
-(`ARCH-R326`).
+upstream an identity source names its protocol as `jellyfin`, the native API of the media
+server the bundle ships, and one that hands it a curator names the curator of series.
+While it records, `lemonfiber plugin record` answers each party at the host and port the
+cases name, reached from the upstream's container alone, in that party's native API, as
+it answers what the upstream asks of it and nothing more, each on a port of its own. The
+identity source signs in the owner the case names, whatever password the case minted for
+it, makes and lists a key under the name it was asked to make one for, says which server
+it is, and lists two accounts, the owner and the member the cases link. The curator
+answers in the native API of the curator of series the queries an upstream tests a
+curator with before it saves one, its release in every answer. So the state a later case
+reads is the state install makes, from the cases alone, and no plugin seeds an upstream
+for its recordings (`ARCH-R326`).
 
 Every value a placeholder fills is a credential or an identifier the run made, so it is
 scrubbed from every recording and from everything the run prints as `ARCH-R297` scrubs
@@ -470,7 +472,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R319** | `request.intake@1` MUST declare `establish`, taking the identity source `configure_identity` takes and answering `204` once the upstream holds an owner and answers the adapter's upstream credential, `204` where it already did, and a refusal as `configure_identity` is refused otherwise; the core MUST ask it each time it sets up the request service's identity, before any other operation of the contract, and `lemonfiber plugin record` MUST ask it as the contract's first case. |
 | **ARCH-R320** | An operation of `library.curate@1` that takes a kind of media MUST publish one conformance case per media type it takes, named `<operation>-answers-<media type>`, and an adapter MUST be asked and judged on exactly the cases of the media types its upstream's `media_types` names. |
 | **ARCH-R321** | `register_download_client` MUST save the client it is handed, and its conformance case MUST name the client's protocol as the native API of the download filler the bundle ships, `sabnzbd`; while it records a curator, `lemonfiber plugin record` MUST answer at the host the case names, reachable from the upstream's container alone, the queries a curator tests a SABnzbd client with, and nothing more. |
-| **ARCH-R326** | A conformance case that hands the upstream an identity source MUST name its protocol as `jellyfin` and one that hands it a curator MUST name its protocol as `sonarr`; while it records, `lemonfiber plugin record` MUST answer at each host the cases name, reachable from the upstream's container alone: for the identity source, the sign-in of the owner the case names with the password it minted and a list of accounts holding that owner and the member the cases link; for the curator, the queries an upstream tests a curator with before it saves one; and nothing more. |
+| **ARCH-R326** | A conformance case that hands the upstream an identity source MUST name its protocol as `jellyfin`, and one that hands it a curator MUST name the curator of series; while it records, `lemonfiber plugin record` MUST answer at each host and port the cases name, each party on a port of its own, reachable from the upstream's container alone, in that party's native API: for the identity source, the sign-in of the owner the case names, a key made and listed under the name it was asked to make one for, what server it is, and a list of accounts holding that owner and the member the cases link; for the curator, the queries an upstream tests a curator with before it saves one, its release in every answer; and nothing more. |
 | **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits and the shape that id has, and the core MUST hand them to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request's path and has not lapsed, and with `403` otherwise, a path no live-stream path covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
 
 ## Related
