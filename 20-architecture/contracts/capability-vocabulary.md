@@ -160,6 +160,8 @@ still fills the capability `F14-R8` names for it
 | Unpackerr | `archive.extract` | Extracting what lands in each curator's download folder, and handing it back to that curator |
 | Homepage | `dashboard.show` | Showing the panel list the wiring derives |
 | Caddy | `proxy.front` | Serving every household name in the routing table lemonfiber applies |
+| NZBHydra2, Audiobookshelf | `owner.claim` | Being claimed by lemonfiber before anybody else, and saying who holds it |
+| Bindery | `indexer.pull` | Reading its indexers from the aggregator lemonfiber names |
 
 Homepage shows why probeable is not the test: it answers `/api/widgets` to anybody, and
 that is not why it provides a capability. It provides `dashboard.show` because lemonfiber
@@ -176,6 +178,10 @@ filler speaks it, and where the filler is the assembled Homepage, which speaks n
 through an in-process adapter that writes Homepage's own files
 ([ADR-0052](../../00-overview/decisions/0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md)).
 No `[[ask]]` row stands in for the core.
+
+`owner.claim` and `indexer.pull` are facets: the core asks each of every service that
+speaks it, never choosing among fillers, and each speaker's conformance proves it
+([ADR-0053](../../00-overview/decisions/0053-a-part-claimed-first-is-claimed-over-a-contract-and-an-indexer-source-is-pulled-over-its-own.md)).
 
 ## Probes
 

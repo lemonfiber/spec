@@ -71,6 +71,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md) | A contract hands its filler all it enforces, and reads back no secret | Accepted |
 | [0051](0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md) | A fresh claimant answers its probe, and the core asks what nothing else does | Accepted |
 | [0052](0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md) | A curator's downloads complete into one folder, and the core tells each part what it holds | Accepted |
+| [0053](0053-a-part-claimed-first-is-claimed-over-a-contract-and-an-indexer-source-is-pulled-over-its-own.md) | A part claimed first is claimed over a contract, and an indexer source is pulled over its own | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
