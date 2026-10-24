@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 559 goals, seeded from the roadmap milestone this version serves;
+# 564 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -446,7 +446,16 @@ goals   = [
     "ARCH-R309", "ARCH-R310", "ARCH-R311", "ARCH-R312", "ARCH-R313", "ARCH-R291", "ARCH-R314",
     "ARCH-R315", "ARCH-R316", "ARCH-R317", "ARCH-R318", "ARCH-R319", "ARCH-R320", "ARCH-R321",
     "ARCH-R322", "ARCH-R323", "ARCH-R324", "ARCH-R325", "ARCH-R326",
+    "G11-R1", "G11-R2", "G11-R3", "G11-R4", "G11-R5",
 ]
+
+# `G11-R1` to `G11-R5` are the web console's side of the grant `ARCH-R322` to `ARCH-R325`
+# build: a switch per grant on install and update, the grants each plugin holds and every
+# grant on the credentials panel, a revoke read before it runs, and none of it shown to a
+# member. G1 puts every action on every surface, and the console is where an operator at a
+# browser approves and ends a grant, so they ship with the grant. They are built in
+# `lemonfiber-web`, which is searched and not tagged. Added by the maintainer's decision of
+# 2026-10-24 (OPS-R31).
 
 # `ARCH-R326` and the `--check` and `--adapter` options of `ARCH-R285` and `ARCH-R296` let
 # a plugin's pull request prove the adapter it built against the live upstream with the

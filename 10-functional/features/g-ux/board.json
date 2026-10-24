@@ -213,6 +213,26 @@
         {"version": "0.19.0", "status": "planned"}
       ],
       "path": "g-ux/g10-household-web.md"
+    },
+    {
+      "id": "G11",
+      "title": "The operator's web console",
+      "area": "G",
+      "audience": "operator",
+      "kind": "feature",
+      "status": "accepted",
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M14"],
+      "milestone": "M14",
+      "priority": "P2",
+      "labels": ["web", "ux", "extensibility", "security"],
+      "requires": ["G1", "F14"],
+      "relates": ["G10", "F6", "A7", "N25", "N9"],
+      "versions": [
+        {"version": "0.18.0", "status": "staged"}
+      ],
+      "path": "g-ux/g11-operator-web-console.md"
     }
   ]
 }
