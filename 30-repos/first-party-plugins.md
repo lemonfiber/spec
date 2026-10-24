@@ -77,8 +77,12 @@ own upstream alone answers (`REPO-R99`).
   both platforms.
 - **Each image under its posture**, the image started under what its manifest declares,
   healthy and answering its probes ([ARCH-R250](../20-architecture/contracts/plugin-manifest.md)),
-  and each run proof run live: recorded again with `lemonfiber plugin record` and held
-  to the recording committed beside the manifest ([ARCH-R285](../20-architecture/contracts/plugin-manifest.md)).
+  and each run proof run live.
+- **Its recordings, taken again from the commit**: the adapter built from the plugin's own
+  `Dockerfile`, and `lemonfiber plugin record --check --adapter <that image>` at the
+  lemonfiber `targets.toml` names held to every recording committed beside the manifest
+  ([ARCH-R285](../20-architecture/contracts/plugin-manifest.md)). The plugin holds no
+  recorder of its own.
 - **The organisation's shared gates and hooks**, as `shared/adoption.toml` states them.
 - **Its upstream pins**, moved every week by `upstream-pins` where its manifest runs an
   upstream's image (below).

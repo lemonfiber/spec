@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 558 goals, seeded from the roadmap milestone this version serves;
+# 559 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -884,7 +884,15 @@ goals   = [
     "ARCH-R323",
     "ARCH-R324",
     "ARCH-R325",
+    "ARCH-R326",
 ]
+
+# `ARCH-R326` and the `--check` and `--adapter` options of `ARCH-R285` and `ARCH-R296` let
+# a plugin's pull request prove the adapter it built against the live upstream with the
+# core's recorder alone: the recorder stands in for every party the cases point the upstream
+# at, so no plugin seeds an upstream or keeps a recorder of its own. The adapters' moves
+# are recorded this way, so they ship with the moves. Added by the maintainer's decision of
+# 2026-10-24 (OPS-R31).
 
 # `ARCH-R322` to `ARCH-R325` build `F14-R20`'s grant: a third-party plugin's crossing
 # secret names the capability it is `for`, one per capability; the install or update offer
