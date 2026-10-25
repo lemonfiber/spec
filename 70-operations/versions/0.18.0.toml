@@ -277,7 +277,7 @@
 # companion's screens for them, because a setting the model writes has to be changeable
 # from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
 # stack's images under `standard`, which this version is the first to write them with.
-# 572 goals, seeded from the roadmap milestone this version serves;
+# 573 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -451,7 +451,7 @@ goals   = [
     "ARCH-R309", "ARCH-R310", "ARCH-R311", "ARCH-R312", "ARCH-R313", "ARCH-R291", "ARCH-R314",
     "ARCH-R315", "ARCH-R316", "ARCH-R317", "ARCH-R318", "ARCH-R319", "ARCH-R320", "ARCH-R321",
     "ARCH-R322", "ARCH-R323", "ARCH-R324", "ARCH-R325", "ARCH-R326", "ARCH-R327",
-    "ARCH-R328", "ARCH-R329", "ARCH-R330", "ARCH-R331", "ARCH-R332", "ARCH-R333", "ARCH-R334",
+    "ARCH-R328", "ARCH-R329", "ARCH-R330", "ARCH-R331", "ARCH-R332", "ARCH-R333", "ARCH-R334", "ARCH-R335",
     "G11-R1", "G11-R2", "G11-R3", "G11-R4", "G11-R5",
 ]
 
