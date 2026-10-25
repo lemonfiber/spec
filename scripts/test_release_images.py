@@ -199,8 +199,10 @@ class PluginReposTests(Workspace):
         published = manifest_repos.plugin_repos(registry)
         self.assertEqual(len(published), 21)
         self.assertTrue(all(name == f"plugin-{plugin}" for name, plugin in published.items()))
+        built = ["jellyfin", "door", "caddy", "prowlarr", "sabnzbd", "qbittorrent", "sonarr",
+                 "radarr", "lidarr", "bazarr", "seerr"]
         self.assertEqual(manifest_repos.train_plugins(registry),
-                         {"plugin-jellyfin": "jellyfin", "plugin-door": "door", "plugin-caddy": "caddy"})
+                         {f"plugin-{plugin}": plugin for plugin in built})
 
     def test_every_manifest_not_yet_released_cuts_each_plugin_with_the_core(self):
         registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
