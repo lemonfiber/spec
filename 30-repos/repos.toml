@@ -246,10 +246,10 @@ image = true
 name = "plugin-bindery"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the book curator, Bindery; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the book curator, Bindery: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "bindery"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-bazarr"
@@ -300,10 +300,10 @@ image = false
 name = "plugin-audiobookshelf"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the audiobook server, Audiobookshelf; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the audiobook server, Audiobookshelf: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "audiobookshelf"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-navidrome"

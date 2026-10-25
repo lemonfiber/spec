@@ -94,13 +94,13 @@ flowchart TD
 | `plugin-sonarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the television curator, Sonarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-radarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the film curator, Radarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-lidarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the music curator, Lidarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
-| `plugin-bindery` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the book curator, Bindery; its image is the upstream's, pinned by revision |
+| `plugin-bindery` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the book curator, Bindery: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-bazarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the subtitle fetcher, Bazarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-recyclarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for quality sync, Recyclarr; its image is the upstream's, pinned by revision |
 | `plugin-unpackerr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for archive extraction, Unpackerr; its image is the upstream's, pinned by revision |
 | `plugin-seerr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the request service, Seerr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-calibre-web-automated` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the book library, Calibre-Web Automated; its image is the upstream's, pinned by revision |
-| `plugin-audiobookshelf` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the audiobook server, Audiobookshelf; its image is the upstream's, pinned by revision |
+| `plugin-audiobookshelf` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the audiobook server, Audiobookshelf: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-navidrome` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the music server, Navidrome; its image is the upstream's, pinned by revision |
 | `plugin-homepage` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the dashboard, Homepage; its image is the upstream's, pinned by revision |
 | `plugin-door` | [first-party-plugins.md](first-party-plugins.md) | Dockerfile | The bundle's part for the guarded door, Caddy rebuilt without its file capability; builds its image, so the train tags it |
