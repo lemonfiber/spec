@@ -23,20 +23,20 @@ says with `image` whether it builds an image.
 
 | Repository | The part | Builds an image |
 |---|---|---|
-| `plugin-prowlarr` | the indexer manager | no |
+| `plugin-prowlarr` | the indexer manager, with its adapter | yes |
 | `plugin-flaresolverr` | the solver that gets past an indexer's bot protection | no |
 | `plugin-nzbhydra2` | the Usenet indexer search | no |
-| `plugin-sabnzbd` | the Usenet download client | no |
+| `plugin-sabnzbd` | the Usenet download client, with its adapter | yes |
 | `plugin-gluetun` | the egress guard | no |
-| `plugin-qbittorrent` | the torrent client | no |
-| `plugin-sonarr` | the television curator | no |
-| `plugin-radarr` | the film curator | no |
-| `plugin-lidarr` | the music curator | no |
+| `plugin-qbittorrent` | the torrent client, with its adapter | yes |
+| `plugin-sonarr` | the television curator, with its adapter | yes |
+| `plugin-radarr` | the film curator, with its adapter | yes |
+| `plugin-lidarr` | the music curator, with its adapter | yes |
 | `plugin-bindery` | the book curator | no |
-| `plugin-bazarr` | the subtitle fetcher | no |
+| `plugin-bazarr` | the subtitle fetcher, with its adapter | yes |
 | `plugin-recyclarr` | quality sync | no |
 | `plugin-unpackerr` | archive extraction | no |
-| `plugin-seerr` | the request service | no |
+| `plugin-seerr` | the request service, with its adapter | yes |
 | `plugin-calibre-web-automated` | the book library | no |
 | `plugin-audiobookshelf` | the audiobook server | no |
 | `plugin-navidrome` | the music server | no |

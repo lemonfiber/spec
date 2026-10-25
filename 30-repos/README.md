@@ -85,20 +85,20 @@ flowchart TD
 | `lemonfiber-request-gate` | [lemonfiber-request-gate.md](lemonfiber-request-gate.md) | Rust | An image the stack runs, declared in a plugin.toml of its own; holds the \*arr keys and publishes no port |
 | `lemonfiber-plugins` | [lemonfiber-plugins.md](lemonfiber-plugins.md) | TOML | Reviewed and signed, and never a runtime dependency |
 | `plugin-jellyfin` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's media server: an adapter image in front of Jellyfin, so the train tags it |
-| `plugin-prowlarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the indexer manager, Prowlarr; its image is the upstream's, pinned by revision |
+| `plugin-prowlarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the indexer manager, Prowlarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-flaresolverr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the solver that gets past an indexer's bot protection, FlareSolverr; its image is the upstream's, pinned by revision |
 | `plugin-nzbhydra2` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the Usenet indexer search, NZBHydra2; its image is the upstream's, pinned by revision |
-| `plugin-sabnzbd` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the Usenet download client, SABnzbd; its image is the upstream's, pinned by revision |
+| `plugin-sabnzbd` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the Usenet download client, SABnzbd: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-gluetun` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the egress guard, Gluetun, and the one part taking the egress-guard shape; its image is the upstream's, pinned by revision |
-| `plugin-qbittorrent` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the torrent client, qBittorrent, run inside the egress guard's network; its image is the upstream's, pinned by revision |
-| `plugin-sonarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the television curator, Sonarr; its image is the upstream's, pinned by revision |
-| `plugin-radarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the film curator, Radarr; its image is the upstream's, pinned by revision |
-| `plugin-lidarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the music curator, Lidarr; its image is the upstream's, pinned by revision |
+| `plugin-qbittorrent` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the torrent client, qBittorrent, run inside the egress guard's network: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
+| `plugin-sonarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the television curator, Sonarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
+| `plugin-radarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the film curator, Radarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
+| `plugin-lidarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the music curator, Lidarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-bindery` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the book curator, Bindery; its image is the upstream's, pinned by revision |
-| `plugin-bazarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the subtitle fetcher, Bazarr; its image is the upstream's, pinned by revision |
+| `plugin-bazarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the subtitle fetcher, Bazarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-recyclarr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for quality sync, Recyclarr; its image is the upstream's, pinned by revision |
 | `plugin-unpackerr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for archive extraction, Unpackerr; its image is the upstream's, pinned by revision |
-| `plugin-seerr` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the request service, Seerr; its image is the upstream's, pinned by revision |
+| `plugin-seerr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the request service, Seerr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-calibre-web-automated` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the book library, Calibre-Web Automated; its image is the upstream's, pinned by revision |
 | `plugin-audiobookshelf` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the audiobook server, Audiobookshelf; its image is the upstream's, pinned by revision |
 | `plugin-navidrome` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the music server, Navidrome; its image is the upstream's, pinned by revision |
