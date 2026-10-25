@@ -54,9 +54,10 @@ as `<plugin id>:<secret id>`. Nobody is asked for it and nothing shows it. It re
 service through its `env` (`{ secret }`) or a [starting file](plugin-manifest-service.md#a-secret-in-a-starting-file),
 and the adapter that `fronts` the service through its `upstream`. A minted secret's `of`
 names the plugin's own service it is the credential of, and no recipe captures it. A part moved in place
-keeps the credential its service already answers to: where lemonfiber reads it from the
-service's configuration before the move, the move files that value under the secret once
-and mints nothing (`ARCH-R315`). `plugin record` and a proof mint a throwaway one for
+keeps the credential its service already answers to, secret by secret, by the adapter's
+`upstream` field each one fills: a `username` or `password` is the account lemonfiber set up
+on the service, and any other is the credential lemonfiber reads from its configuration. The
+move files each under its secret once and mints nothing (`ARCH-R315`). `plugin record` and a proof mint a throwaway one for
 their own container, as they take a throwaway copy of its starting files.
 
 **A credential that crosses is read where it is held.** One `F14-R18` or `F14-R20` lets
