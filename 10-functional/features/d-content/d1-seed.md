@@ -42,11 +42,13 @@ them — the copying *is* the problem being solved.
 
 **qBittorrent is the exception, and it runs the other way.** It mints a
 *temporary* WebUI password on every start and asks for it to be replaced, so
-there is nothing durable to read. lemonfiber therefore generates the password,
-sets it, and records it where the VPN's forwarded-port push can authenticate with
-it (`D1-R16`). Without that step the tunnel acquires a port on every connect and
-cannot apply it, which reports as healthy and costs the operator the peer
-connectivity port forwarding exists to buy.
+there is nothing durable to read. lemonfiber therefore mints the WebUI account
+itself when the torrent client's plugin is installed: the client starts with it,
+and the adapter in front of it signs in with it, so the forwarded-port push and
+every curator's registration reach the client through an account lemonfiber holds
+(`D1-R16`). Without it the tunnel acquires a port on every connect and cannot
+apply it, which reports as healthy and costs the operator the peer connectivity
+port forwarding exists to buy.
 
 **NZBHydra2 is the other exception.** It starts with no authentication at all, and in that
 state it answers a read of its whole configuration to anyone who can reach it, including the
@@ -73,7 +75,7 @@ administrator, to get back in (`D1-R25`).
 
 | From | To | What |
 |------|-----|------|
-| lemonfiber | qBittorrent | **WebUI password** — generated, set, and recorded for the forwarded-port push |
+| lemonfiber | qBittorrent | **WebUI account** — minted at install, handed to the client and its adapter |
 | lemonfiber | NZBHydra2 | **Authentication** — an administrator set, its password generated and recorded |
 | SABnzbd, qBittorrent | Sonarr, Radarr, Lidarr, Bindery | Download client registration with categories |
 | Prowlarr | Sonarr, Radarr, Lidarr | Indexer sync (native app sync) |
@@ -244,7 +246,7 @@ Per connection:
 | **D1-R13** | Interruption MUST leave every completed connection intact and valid. |
 | **D1-R14** | A full seed against a healthy stack SHOULD complete within 60 seconds. |
 | **D1-R15** | Bindery MUST be wired via Torznab endpoints, and the absence of Prowlarr app sync MUST be documented in-product. |
-| **D1-R16** | Seeding MUST replace qBittorrent's temporary WebUI password with a generated one and record it where the forwarded-port push reads it. |
+| **D1-R16** | lemonfiber MUST mint the torrent client's WebUI account at install, hand it to the client before it first starts and to the adapter in front of it, and MUST NOT leave the client on the temporary password it makes for itself. |
 | **D1-R17** | Each \*arr that fulfils requests MUST be registered with the request service as a fulfilment target, and one absent from the stack MUST NOT be. |
 | **D1-R18** | Every connection named in the wiring graph MUST be made where the services at both ends are in the stack, and each MUST be proven against the service that received it rather than against a stand-in for it. |
 | **D1-R19** | The request service MUST reach each fulfilling \*arr and Jellyfin only through the request gate: each \*arr MUST be registered with it at the gate's route for that \*arr and with the token lemonfiber minted for that route, never with the \*arr's own key, and it MUST be left holding no Jellyfin API key and no Jellyfin administrator's session ([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
