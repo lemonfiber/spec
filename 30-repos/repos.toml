@@ -165,10 +165,10 @@ image = true
 name = "plugin-prowlarr"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the indexer manager, Prowlarr; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the indexer manager, Prowlarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "prowlarr"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-flaresolverr"
@@ -192,10 +192,10 @@ image = false
 name = "plugin-sabnzbd"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the Usenet download client, SABnzbd; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the Usenet download client, SABnzbd: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "sabnzbd"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-gluetun"
@@ -210,37 +210,37 @@ image = false
 name = "plugin-qbittorrent"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the torrent client, qBittorrent, run inside the egress guard's network; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the torrent client, qBittorrent, run inside the egress guard's network: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "qbittorrent"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-sonarr"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the television curator, Sonarr; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the television curator, Sonarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "sonarr"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-radarr"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the film curator, Radarr; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the film curator, Radarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "radarr"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-lidarr"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the music curator, Lidarr; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the music curator, Lidarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "lidarr"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-bindery"
@@ -255,10 +255,10 @@ image = false
 name = "plugin-bazarr"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the subtitle fetcher, Bazarr; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the subtitle fetcher, Bazarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "bazarr"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-recyclarr"
@@ -282,10 +282,10 @@ image = false
 name = "plugin-seerr"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the request service, Seerr; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the request service, Seerr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "seerr"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-calibre-web-automated"
