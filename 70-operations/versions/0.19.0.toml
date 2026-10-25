@@ -44,7 +44,7 @@ version = "0.19.0"
 milestone = "M16"   # The household's library
 delivers  = "The household's library: find, ask for and play, under the member's own limits"
 status  = "planned"
-repos   = ["lemonfiber", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr"]
+repos   = ["lemonfiber", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2"]
 satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion"]
 goals   = [
     "D4-R21",

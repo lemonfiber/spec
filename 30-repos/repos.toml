@@ -183,10 +183,10 @@ image = false
 name = "plugin-nzbhydra2"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the Usenet indexer search, NZBHydra2; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the Usenet indexer search, NZBHydra2: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "nzbhydra2"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-sabnzbd"

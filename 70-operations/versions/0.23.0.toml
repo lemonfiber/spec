@@ -6,7 +6,7 @@ version = "0.23.0"
 milestone = "M13"   # See everything
 delivers  = "See everything — metrics, dashboards, uptime"
 status  = "planned"
-repos   = ["lemonfiber", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr"]
+repos   = ["lemonfiber", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2"]
 satisfied_in = ["lemonfiber", "plugin-jellyfin"]
 goals   = [
     "B9-R1",

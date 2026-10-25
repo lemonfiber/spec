@@ -25,7 +25,7 @@ says with `image` whether it builds an image.
 |---|---|---|
 | `plugin-prowlarr` | the indexer manager, with its adapter | yes |
 | `plugin-flaresolverr` | the solver that gets past an indexer's bot protection | no |
-| `plugin-nzbhydra2` | the Usenet indexer search | no |
+| `plugin-nzbhydra2` | the Usenet indexer search, with its adapter | yes |
 | `plugin-sabnzbd` | the Usenet download client, with its adapter | yes |
 | `plugin-gluetun` | the egress guard | no |
 | `plugin-qbittorrent` | the torrent client, with its adapter | yes |
