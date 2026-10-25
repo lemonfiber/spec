@@ -32,13 +32,13 @@ says with `image` whether it builds an image.
 | `plugin-sonarr` | the television curator, with its adapter | yes |
 | `plugin-radarr` | the film curator, with its adapter | yes |
 | `plugin-lidarr` | the music curator, with its adapter | yes |
-| `plugin-bindery` | the book curator | no |
+| `plugin-bindery` | the book curator, with its adapter | yes |
 | `plugin-bazarr` | the subtitle fetcher, with its adapter | yes |
 | `plugin-recyclarr` | quality sync | no |
 | `plugin-unpackerr` | archive extraction | no |
 | `plugin-seerr` | the request service, with its adapter | yes |
 | `plugin-calibre-web-automated` | the book library | no |
-| `plugin-audiobookshelf` | the audiobook server | no |
+| `plugin-audiobookshelf` | the audiobook server, with its adapter | yes |
 | `plugin-navidrome` | the music server | no |
 | `plugin-homepage` | the dashboard | no |
 | `plugin-jellyfin` | the media server, with its adapter | yes |
