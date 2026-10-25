@@ -473,6 +473,13 @@ An operation the upstream an adapter fronts cannot perform answers `unsupported`
 Conformance passes it, and the core treats the operation as not offered for that filler,
 by the answer's type alone (`ARCH-R334`).
 
+**A case that reads nothing is not offered either.** A case whose placeholder reads the
+answer to a case that was answered `unsupported`, or to a case of a contract the adapter
+does not speak, is not asked: `lemonfiber plugin record` records it as answered
+`unsupported`, conformance passes it, and install's live pass does not ask it. So a media
+server that is not the household's identity source answers every case naming one of the
+household's members `unsupported` (`ARCH-R334`).
+
 ## Versioning
 
 A contract's major changes only when an operation is removed or its meaning changes.
@@ -523,7 +530,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R331** | `owner.claim` and `indexer.pull` are facets: each MUST be asked by the core of every service that speaks it and MUST NOT be chosen among fillers, MUST be proved by its speakers' conformance, and has no substitute; a facet MUST be spoken and MUST NOT be provided, so it has no entry in the capability vocabulary, and a manifest naming one in `provides` MUST be refused by name. |
 | **ARCH-R332** | `indexer.pull@1` MUST declare `aggregators`, listing the aggregators a curator reads its indexers from, and `add_aggregator`, adding one by name, address, protocol and key, the protocol being the aggregator's native API. |
 | **ARCH-R333** | Where an indexer's app sync serves a curator's media, the core MUST tell the indexer about the curator; otherwise it MUST tell a curator speaking `indexer.pull@1` about the indexer whose native API matches, and MUST leave the two unpaired where either answers `unsupported`; while it records, `lemonfiber plugin record` MUST answer the aggregator at the host the case names in its native API. |
-| **ARCH-R334** | An operation the upstream an adapter fronts cannot perform MUST be answered `unsupported`; conformance MUST pass it, and the core MUST treat the operation as not offered for that filler, by the answer's type alone. |
+| **ARCH-R334** | An operation the upstream an adapter fronts cannot perform MUST be answered `unsupported`; conformance MUST pass it, and the core MUST treat the operation as not offered for that filler, by the answer's type alone; a case whose placeholder reads the answer to a case answered `unsupported`, or to a case of a contract the adapter does not speak, MUST NOT be asked, MUST be recorded as answered `unsupported`, and MUST NOT be asked by install's live pass. |
 | **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits and the shape that id has, and the core MUST hand them to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request's path and has not lapsed, and with `403` otherwise, a path no live-stream path covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
 
 ## Related
