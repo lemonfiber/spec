@@ -8,8 +8,9 @@
   `owner.claim@1`, which the Usenet indexer aggregator and the listening server speak;
 - a curator that reads its indexers from an aggregator is told the aggregator over a new
   contract, `indexer.pull@1`, which the curator of books speaks;
-- both are facets the core asks of every provider, never chosen among fillers, and each is
-  proved by its speakers' conformance rather than by a substitute;
+- both are facets the core asks of every service that speaks them, never chosen among
+  fillers, spoken and never provided, and each is proved by its speakers' conformance
+  rather than by a substitute;
 - an operation an upstream cannot perform answers `unsupported`, conformance passes it,
   and the core treats it as not offered.
 
@@ -60,9 +61,11 @@ speaker of those contracts to them.
    serves a curator's media, the indexer is told about the curator; otherwise a curator
    speaking `indexer.pull@1` is told about the indexer whose native API matches. An
    `unsupported` answer leaves the two unpaired.
-5. **A facet is asked of every provider.** `owner.claim` and `indexer.pull` are asked by
-   the core of every service that speaks them, never chosen among fillers. Each speaker's
-   conformance proves its facet, so neither has a substitute.
+5. **A facet is asked of every speaker.** `owner.claim` and `indexer.pull` are asked by
+   the core of every service that speaks them, never chosen among fillers. A facet is
+   spoken and never provided, so it has no entry in the capability vocabulary, whose
+   capabilities are what a filler is chosen for. Each speaker's conformance proves its
+   facet, so neither has a substitute.
 6. **An operation an upstream cannot perform answers `unsupported`.** Conformance passes
    it, and the core treats the operation as not offered for that filler, by the answer's
    type alone. An operation added to a contract holds every speaker to record again.
