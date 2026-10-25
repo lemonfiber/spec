@@ -65,6 +65,11 @@ service settles as the filler, the core asks it over the contract it speaks and 
 nothing else. A service that speaks none is run and watched, and nothing asks it
 anything.
 
+**An upstream asks; the adapter in front of it answers.** A plugin's `[[ask]]` names the
+part that asks, which is the upstream a person thinks of as asking, not the adapter
+that `fronts` it. The core pairs such an ask by the contracts that adapter speaks and
+asks the adapter, and its report names the upstream (`ARCH-R335`).
+
 ## Paths, keys and answers
 
 - **Paths.** Every operation is at
@@ -531,6 +536,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R332** | `indexer.pull@1` MUST declare `aggregators`, listing the aggregators a curator reads its indexers from, and `add_aggregator`, adding one by name, address, protocol and key, the protocol being the aggregator's native API. |
 | **ARCH-R333** | Where an indexer's app sync serves a curator's media, the core MUST tell the indexer about the curator; otherwise it MUST tell a curator speaking `indexer.pull@1` about the indexer whose native API matches, and MUST leave the two unpaired where either answers `unsupported`; while it records, `lemonfiber plugin record` MUST answer the aggregator at the host the case names in its native API. |
 | **ARCH-R334** | An operation the upstream an adapter fronts cannot perform MUST be answered `unsupported`; conformance MUST pass it, and the core MUST treat the operation as not offered for that filler, by the answer's type alone; a case whose placeholder reads the answer to a case answered `unsupported`, or to a case of a contract the adapter does not speak, MUST NOT be asked, MUST be recorded as answered `unsupported`, and MUST NOT be asked by install's live pass. |
+| **ARCH-R335** | An ask made by a service that an adapter of the same plugin `fronts` MUST be paired by the contracts that adapter speaks, the core MUST ask that adapter for it, and every report of the pairing MUST name the upstream. |
 | **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits and the shape that id has, and the core MUST hand them to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request's path and has not lapsed, and with `403` otherwise, a path no live-stream path covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
 
 ## Related
