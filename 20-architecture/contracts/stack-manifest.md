@@ -179,8 +179,7 @@ media_types = ["tv"]
 | `port` | integer | | The port it is published at on the host: its primary UI/API port. Omitted for a service with no listener, and for one whose only listener is reached across internal networks and published nowhere, as the request gate's is ([ADR-0032](../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
 | `bind` | enum | ✔ if `port` | `loopback` \| `lan`. Enforces [C6](../../10-functional/features/c-trust/c6-web-security.md)'s two-tier policy. |
 | `health` | table | | See below. Absent means lifecycle waits on container state only. |
-| `api` | table | | How lemonfiber talks to it for [seeding](../../10-functional/features/d-content/d1-seed.md). Absent means no API integration. |
-| `listens` | integer | ✔ if `api`, or where it answers on a port other than `port` | The port it answers on inside the container, where `port` is published to. Default `port`. See [`api`](#api). |
+| `listens` | integer | ✔ where it answers on a port other than `port` | The port it answers on inside the container, where `port` is published to. Default `port`. See [No `api`](#no-api). |
 | `criticality` | enum | ✔ | `critical` \| `core` \| `important` \| `enhancing` \| `optional` (`F2-R3`) |
 | `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`), except on a service whose image lemonfiber builds from its own code, which carries `Hippocratic-3.0` and nothing else. Such a service is told by its `image`, under `ghcr.io/lemonfiber/`, where lemonfiber publishes the images it builds and nothing else ([ADR-0033](../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)), together with its `upstream`, under `https://github.com/lemonfiber/`. An upstream's image lemonfiber rebuilds is under `ghcr.io/lemonfiber/` too, and keeps its upstream's licence. |
 | `upstream` | string | ✔ | Project URL, for maintenance review (`F2-R14`) |
@@ -362,52 +361,13 @@ health = { kind = "container" }
 `kind = "http"` is checked against `port` + `path`. Startup is health-gated, not
 process-gated (`B2-R1`), so this is what "started" actually means.
 
-### `api`
+### No `api`
 
-```toml
-api = { kind = "servarr",  key_source = "config-xml", path = "/config/config.xml", version = 3 }
-api = { kind = "sabnzbd",  key_source = "config-ini", path = "/config/sabnzbd.ini" }
-api = { kind = "qbittorrent", key_source = "generated" }
-api = { kind = "seerr",    key_source = "api-settings" }
-api = { kind = "bindery",  key_source = "api-settings" }
-api = { kind = "jellyfin", key_source = "generated" }
-api = { kind = "bazarr",   key_source = "config-yaml", path = "/config/config/config.yaml" }
-```
-
-`kind` selects the client implementation. `servarr` covers Sonarr, Radarr, Lidarr
-and Prowlarr, since they share an API shape — which is what makes one client
-sufficient for four services. `bazarr` is its own, because it is told about the
-\*arrs rather than being one of them, and it is told in a form body whose field
-names are its configuration file's own paths flattened. `jellyfin` is the one media server lemonfiber sets
-an account on rather than reading a key from, so its `key_source` is `generated`
-like qBittorrent's — it mints the administrator password by driving Jellyfin's
-own first-run setup.
-
-`version` is the major version of the service's HTTP API, the `/api/vN` path
-segment. It is **required for `servarr`** and read there, because that one shape
-spans two versions — Sonarr and Radarr answer at `/api/v3`, Lidarr and Prowlarr
-at `/api/v1` — so it is data the manifest carries rather than a guess the client
-makes from a service's name. It is absent for the other kinds, whose one fixed
-version their client already knows.
-
-`key_source` says where the credential comes from:
-
-| Value | Meaning |
-|-------|---------|
-| `config-xml`, `config-ini`, `config-json`, `config-yaml` | The service mints it and writes it to `path`; lemonfiber reads it |
-| `api-settings` | Retrieved over the service's own API once authenticated |
-| `generated` | The service offers nothing durable to read, so lemonfiber generates the credential, sets it, and records it for its consumers (`A7-R14`) |
-| `none` | The API needs no credential at all |
-
-The four file shapes are four shapes, not one with a guess: a reader that sniffed
-the format would be right until a service changed it, and wrong silently. Which
-file a service writes is a fact about that service, so the manifest says it.
-
-`generated` exists because qBittorrent mints only a *temporary* WebUI password
-and asks for it to be replaced. It also has a consumer that is not a service —
-the VPN's forwarded-port push authenticates against the same WebUI API, so the
-recorded value has to reach the stack's environment and not only lemonfiber's own
-store.
+A stack service names no in-process adapter: one whose declaration writes `api` is refused
+as naming a field the format does not have, naming `service <id>.api` (`ARCH-R272`). The
+parts lemonfiber asks are installed through their plugins and asked over the contract the
+adapter in front of each speaks; the parts the bundle assembles are configured through
+their files.
 
 `listens` is where lemonfiber and the services that ask reach it: the port the
 service answers on inside the stack's network, which is not always the one it
@@ -415,14 +375,6 @@ publishes. SABnzbd publishes 8085 and answers on 8080. Without it the inside
 port is a constant in lemonfiber's source, and a service standing in for one that
 listens elsewhere would be registered at a port it does not answer on
 (`ARCH-R144`).
-
-**Bindery is deliberately its own kind.** It is not a Servarr application, and
-Prowlarr's app sync does not cover it (`D1-R15`).
-
-It also has no configuration file to read. Bindery keeps everything in SQLite and
-issues a **per-account** API key, which exists only once first-run setup has
-created an account — so the key is retrieved over its own API after
-authenticating, and `path` does not apply.
 
 ## `[[wiring]]` — the link between two services, and which of them it names
 
@@ -559,7 +511,7 @@ Validation reports **every** violation in one pass, each naming its location
 | `wiring.asks` is a core capability name in shape | Wiring and the name named |
 | No wiring names its own `by` as `to` or `filled_by` | Wiring named |
 | No two wirings carry the same `by` and `asks`, or the same `by` and `to` | Both wirings named |
-| Every service with an `api` declares `listens` | Service named (`ARCH-R144`) |
+| A service names `api` | Service named, as a field the format does not have (`ARCH-R272`) |
 | Every capability in `provides` has exactly one `[[service.claim]]` | Service and capability named (`ARCH-R136`) |
 | Every `[[service.claim]]` names a capability in the service's `provides` | Service and capability named (`ARCH-R136`) |
 | Every probe a claimed capability declares is bound, and no binding names one it does not declare | Service, capability and probe named (`ARCH-R109`) |
@@ -686,7 +638,6 @@ tag = "2.5.2"
 port = 9696
 bind = "loopback"
 health = { kind = "http", path = "/ping", timeout_s = 60 }
-api = { kind = "servarr", key_source = "config-xml", path = "/config/config.xml" }
 criticality = "core"
 license = "GPL-3.0-only"
 upstream = "https://github.com/Prowlarr/Prowlarr"
@@ -723,7 +674,6 @@ tag = "5.0.3"
 port = 8081
 bind = "loopback"
 health = { kind = "http", path = "/api/v2/app/version", timeout_s = 60 }
-api = { kind = "qbittorrent", key_source = "generated" }
 criticality = "core"
 license = "GPL-2.0-only"
 upstream = "https://github.com/qbittorrent/qBittorrent"
@@ -745,7 +695,6 @@ tag = "4.0.15"
 port = 8989
 bind = "loopback"
 health = { kind = "http", path = "/ping", timeout_s = 90 }
-api = { kind = "servarr", key_source = "config-xml", path = "/config/config.xml" }
 criticality = "core"
 license = "GPL-3.0-only"
 upstream = "https://github.com/Sonarr/Sonarr"
@@ -765,7 +714,6 @@ tag = "3.3.0"
 port = 5055
 bind = "lan"
 health = { kind = "http", path = "/api/v1/status", timeout_s = 90 }
-api = { kind = "seerr", key_source = "api-settings" }
 criticality = "important"
 license = "MIT"
 upstream = "https://github.com/seerr-team/seerr"

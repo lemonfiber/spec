@@ -124,5 +124,5 @@ specified, not glossed.
 
 - [D1 Service auto-wiring](../../10-functional/features/d-content/d1-seed.md) — the feature this serves
 - [download-client.md](download-client.md) — the same `fields` shape, pointed the other way
-- [stack-manifest.md](stack-manifest.md) — where a service's `api.kind` selects the client shape
+- [plugin-manifest-service.md](plugin-manifest-service.md) — where the upstream an adapter fronts names its own API with `native`
 - [versioning.md](versioning.md) — why a pinned stack makes a written-down field set safe

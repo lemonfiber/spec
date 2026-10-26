@@ -332,9 +332,8 @@ not reproduce.
 **A request is recorded by asking it.** Each service is started once, from its pinned
 digest, under its posture, user and memory limit, with throwaway copies of its starting
 files and data, on a network of its own, its `listens` port published on loopback alone.
-Once its `health` passes, its first run is the core's own: the in-process adapter `api`
-names performs it for a part the bundle assembles, and the plugin's adapter performs it
-over its contract, as install does, for a service that adapter `fronts`. A probe whose
+Once its `health` passes, its first run is the core's own: the plugin's adapter performs
+it over its contract, as install does, for a service that adapter `fronts`. A probe whose
 vocabulary entry says `credential = "operator"` is asked with the key that first run left
 lemonfiber holding. A service an adapter fronts has no such probe, because the manifest
 refuses one there (`ARCH-R302`). Anything else presents nothing the manifest does not
