@@ -442,6 +442,31 @@ def _gates_known(text: str, spec: pathlib.Path, named: str, tag: str) -> tuple[s
     return after, "".join(f"; {line}, which {GATES} at {tag} does not know" for line in dropped)
 
 
+def _moved(path: pathlib.Path, workflow: str, sha: str, named: str, tag: str,
+           spec: pathlib.Path) -> str | None:
+    """One file's pin on `workflow` moved from `sha` to `named`, and the line
+    saying so; `None` where it could not be rewritten.
+
+    A pin the reader found and this could not rewrite is a disagreement between
+    two halves that must agree. Louder than a silent skip, which would ship a
+    branch that does not fix what it claims to.
+    """
+    before = path.read_text(encoding="utf-8")
+    after = rewritten(before, workflow, sha, named, tag)
+
+    if after == before:
+        return None
+
+    cleared = _gates_known(after, spec, named, tag) if workflow == GATES else (after, "")
+
+    if cleared is None:
+        return None
+
+    path.write_text(cleared[0], encoding="utf-8")
+
+    return f"{path}: {workflow} {sha[:8]} -> {named[:8]} ({tag}){cleared[1]}"
+
+
 def bring_forward(
     repo: pathlib.Path,
     spec: pathlib.Path,
@@ -487,23 +512,12 @@ def bring_forward(
         # twice — and the first rewrite replaces both, leaving the second pass
         # with nothing to change and the refusal below to raise about it.
         for name in dict.fromkeys(where):
-            path = pathlib.Path(name)
-            before = path.read_text(encoding="utf-8")
-            after = rewritten(before, workflow, sha, named, tag)
+            said = _moved(pathlib.Path(name), workflow, sha, named, tag, spec)
 
-            # A pin the reader found and this could not rewrite is a disagreement
-            # between two halves that must agree. Louder than a silent skip,
-            # which would ship a branch that does not fix what it claims to.
-            if after == before:
+            if said is None:
                 return None
 
-            cleared = _gates_known(after, spec, named, tag) if workflow == GATES else (after, "")
-
-            if cleared is None:
-                return None
-
-            path.write_text(cleared[0], encoding="utf-8")
-            moved.append(f"{name}: {workflow} {sha[:8]} -> {named[:8]} ({tag}){cleared[1]}")
+            moved.append(said)
 
     return moved, named
 
