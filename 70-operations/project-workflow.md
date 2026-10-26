@@ -25,7 +25,7 @@ flowchart LR
 | Branch names | `type/short-description` — `feat/health-gate`, `fix/vpn-port`, `docs/forms` |
 | Branch lifetime | Short. Long-lived feature branches drift; break the work down instead |
 | No `develop` branch | Trunk-based; releases are tags off `main`. The one exception: a `release/<version>` branch carrying a hotfix to an already-released version ([staging.md](staging.md), OPS-R33) |
-| History | Signed commits, no AI attribution, `Spec:` trailer ([governance](../50-governance/)) |
+| History | Signed commits, `Spec:` trailer ([governance](../50-governance/)) |
 
 Types mirror the conventional-commit prefixes so branch, commit, and changelog
 agree: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`.

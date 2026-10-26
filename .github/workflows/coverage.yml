@@ -81,7 +81,6 @@ jobs:
           coverage run --append scripts/test_goal_coverage.py
           coverage run --append scripts/test_binding_order.py
           coverage run --append scripts/test_dco_check.py
-          coverage run --append scripts/test_attribution.py
           coverage run --append scripts/test_commit_lint.py
           coverage run --append scripts/test_squash_message.py
           coverage run --append scripts/test_order.py
@@ -94,6 +93,7 @@ jobs:
           coverage run --append scripts/test_services.py
           coverage run --append scripts/test_workflow_pins.py
           coverage run --append scripts/test_fan_out_pins.py
+          coverage run --append scripts/test_fan_out_checks.py
           coverage run --append scripts/test_signed_pin_commit.py
           coverage run --append scripts/test_pin_only.py
           coverage run --append scripts/test_rolling_pull_request.py
@@ -215,10 +215,8 @@ jobs:
       # Not a coverage suite: it drives `shared/hooks/commit-msg` as what it is —
       # a message file in, an exit status out — and holds the three near-misses it
       # must let through, because a hook that refuses prose or a human co-author
-      # is a hook people pass `--no-verify`, and the bypass takes the other three
-      # checks with it. It also reads the hook's list of assistants against
-      # `attribution_check.py`'s: a POSIX shell cannot read a Python tuple, so the
-      # names are spelled twice and nothing else compares them (GOV-R46, Q-R57).
+      # is a hook people pass `--no-verify`, and the bypass takes all three of its
+      # checks with it (Q-R57).
       - name: The hook refuses what CI refuses, and no more (Q-R57, Q-R66)
         run: python3 scripts/test_commit_msg_hook.py
       # Not a coverage suite: it runs the notifier's own steps out of the

@@ -1,7 +1,7 @@
 # Cancels a pull request's runs on the heads a push to it replaced, for the
 # workflows here that cannot do it themselves (Q-R75).
 #
-# attribution, commitlint, dco, explain, hygiene, labeler, security,
+# commitlint, dco, explain, hygiene, labeler, security,
 # spec-references and workflow-pins are reusable workflows that this
 # repository's pull requests also run directly. A concurrency group declared in
 # one is evaluated in each caller's context, where it is the caller's own group,

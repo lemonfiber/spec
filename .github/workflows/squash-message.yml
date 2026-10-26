@@ -28,7 +28,7 @@ on:
 permissions:
   contents: read
 jobs:
-  # Named as `dco` and `attribution` name theirs, so the context reads
+  # Named as `dco` names its own, so the context reads
   # `squash-message` here and `squash-message / squash-message` in a caller.
   squash-message:
     runs-on: ubuntu-latest

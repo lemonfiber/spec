@@ -40,6 +40,13 @@ in exactly one case — a fan-out fired the moment the tag was cut — and disag
 silently in the case the dispatch input exists for, which is bringing everything
 up to a number published earlier.
 
+**A check group the gates no longer know leaves the caller with the pin.** The
+gates refuse a caller whose `checks` or `skip` names a group they do not know,
+so a bump moving `gates.yml` past a group's removal drops that name from both
+lists in the same commit, and touches nothing else in the caller (OPS-R92). What
+the gates know is read from `gates.yml` at the tag, its plan step's `KNOWN`,
+and from nowhere else.
+
 Usage:
   fan_out_pins.py --repo <consumer checkout> --spec <spec checkout with tags> --tag vX.Y.Z
   fan_out_pins.py --consumers
@@ -110,6 +117,25 @@ MAIN = "main"
 
 #: Seconds in the days the pin check counts age in.
 DAY = 86400
+
+#: The shared gates. A caller names the check groups it runs, and skips, in its
+#: `checks` and `skip` inputs, and the gates refuse a group they do not know.
+GATES = "gates.yml"
+
+#: Where `gates.yml` declares every group it knows: its plan step's `KNOWN`.
+KNOWN = "KNOWN:"
+
+#: A caller's `checks` or `skip` input, keyed.
+KEYED = re.compile(r"^(?P<lead>[ \t]+(?P<key>checks|skip):)")
+
+#: How a list with no groups in it is written.
+EMPTY = ("", "''", '""')
+
+#: What opens a YAML value that is not plain words on one line.
+UNREAD = ("'", '"', "|", ">")
+
+#: A job calling the shared gates at any revision.
+CALLS_GATES = re.compile(rf"^[ \t]*uses:[ \t]*lemonfiber/spec/\.github/workflows/{re.escape(GATES)}@")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -254,6 +280,86 @@ def rewritten(text: str, workflow: str, was: str, now: str, tag: str) -> str:
     )
 
 
+def known_at(spec: pathlib.Path, named: str) -> frozenset[str] | None:
+    """The check groups `gates.yml` knows at the revision `named`, read from its
+    `KNOWN`, or `None` where that file or that list cannot be read once."""
+    shown = _git(spec, "show", f"{named}:.github/workflows/{GATES}")
+
+    return known_in(shown.stdout) if shown.returncode == 0 else None
+
+
+def known_in(gates: str) -> frozenset[str] | None:
+    """The check groups a `gates.yml` declares in its `KNOWN`, or `None` where it
+    declares them other than once."""
+    found = [line.strip()[len(KNOWN):].split() for line in gates.splitlines()
+             if line[:1] in (" ", "\t") and line.strip().startswith(KNOWN)]
+
+    return frozenset(found[0]) if len(found) == 1 else None
+
+
+def pruned(text: str, known: frozenset[str]) -> tuple[str, list[str]] | None:
+    """`text` with every group `known` does not hold dropped from the `checks`
+    and `skip` of each job calling the shared gates, and what was dropped.
+
+    The gates refuse a caller naming a group they do not know, so a bump that
+    moved the pin past a group's removal and left the name would fail every pull
+    request in the repository. Nothing else in the file is touched. An absent or
+    empty list is left as it is. `None` where a list is written in a form this
+    does not read, or where every group `checks` names would go, since an empty
+    `checks` runs whatever the gates default to rather than nothing.
+    """
+    lines = text.splitlines(keepends=True)
+    said: list[str] = []
+
+    for at, indent in [(n, _indent(line)) for n, line in enumerate(lines) if CALLS_GATES.match(line)]:
+        for n in _job(lines, at, indent):
+            if _indent(lines[n]) <= indent or not KEYED.match(lines[n]):
+                continue
+            kept = _kept(lines[n], known)
+            if kept is None:
+                return None
+            lines[n], dropped = kept
+            said.extend(dropped)
+
+    return "".join(lines), said
+
+
+def _job(lines: list[str], at: int, indent: int) -> range:
+    """The lines of the job whose `uses` is at line `at`, indented `indent`."""
+    start, end = at, at + 1
+    while start > 0 and (not lines[start - 1].strip() or _indent(lines[start - 1]) >= indent):
+        start -= 1
+    while end < len(lines) and (not lines[end].strip() or _indent(lines[end]) >= indent):
+        end += 1
+    return range(start, end)
+
+
+def _kept(line: str, known: frozenset[str]) -> tuple[str, list[str]] | None:
+    """One `checks` or `skip` line with the groups `known` does not hold taken
+    out, and what was said of it; `None` where it cannot be read or `checks`
+    would be left empty."""
+    body = line.rstrip("\n")
+    keyed = KEYED.match(body)
+    value, hashed, comment = body[keyed.end():].partition("#")
+    written = value.strip()
+    if written[:1] in UNREAD and written not in EMPTY:
+        return None
+    words = [] if written in EMPTY else written.split()
+    kept = [word for word in words if word in known]
+    if kept == words:
+        return line, []
+    if keyed["key"] == "checks" and not kept:
+        return None
+    tail = value[len(value.rstrip()):] + hashed + comment if hashed else ""
+    gone = " ".join(word for word in words if word not in known)
+    return f"{keyed['lead']} {' '.join(kept) or EMPTY[1]}{tail}{line[len(body):]}", [f"{keyed['key']} drops {gone}"]
+
+
+def _indent(line: str) -> int:
+    """How far a line is indented."""
+    return len(line) - len(line.lstrip(" \t"))
+
+
 def commit_named_by(spec: pathlib.Path, tag: str) -> str | None:
     """The revision `tag` names in this checkout, or `None` where it names none.
 
@@ -321,6 +427,46 @@ def due(spec: pathlib.Path, workflow: str, pin: str, named: str, limits: Limits,
     return bool(missed) or nearing
 
 
+def _gates_known(text: str, spec: pathlib.Path, named: str, tag: str) -> tuple[str, str] | None:
+    """A gates caller moved to `named` with what the gates there no longer know
+    dropped from its lists (OPS-R92), and what to say of it; `None` where the
+    gates or the caller's lists could not be read."""
+    known = known_at(spec, named)
+    cleared = pruned(text, known) if known is not None else None
+
+    if cleared is None:
+        return None
+
+    after, dropped = cleared
+
+    return after, "".join(f"; {line}, which {GATES} at {tag} does not know" for line in dropped)
+
+
+def _moved(path: pathlib.Path, workflow: str, sha: str, named: str, tag: str,
+           spec: pathlib.Path) -> str | None:
+    """One file's pin on `workflow` moved from `sha` to `named`, and the line
+    saying so; `None` where it could not be rewritten.
+
+    A pin the reader found and this could not rewrite is a disagreement between
+    two halves that must agree. Louder than a silent skip, which would ship a
+    branch that does not fix what it claims to.
+    """
+    before = path.read_text(encoding="utf-8")
+    after = rewritten(before, workflow, sha, named, tag)
+
+    if after == before:
+        return None
+
+    cleared = _gates_known(after, spec, named, tag) if workflow == GATES else (after, "")
+
+    if cleared is None:
+        return None
+
+    path.write_text(cleared[0], encoding="utf-8")
+
+    return f"{path}: {workflow} {sha[:8]} -> {named[:8]} ({tag}){cleared[1]}"
+
+
 def bring_forward(
     repo: pathlib.Path,
     spec: pathlib.Path,
@@ -366,18 +512,12 @@ def bring_forward(
         # twice — and the first rewrite replaces both, leaving the second pass
         # with nothing to change and the refusal below to raise about it.
         for name in dict.fromkeys(where):
-            path = pathlib.Path(name)
-            before = path.read_text(encoding="utf-8")
-            after = rewritten(before, workflow, sha, named, tag)
+            said = _moved(pathlib.Path(name), workflow, sha, named, tag, spec)
 
-            # A pin the reader found and this could not rewrite is a disagreement
-            # between two halves that must agree. Louder than a silent skip,
-            # which would ship a branch that does not fix what it claims to.
-            if after == before:
+            if said is None:
                 return None
 
-            path.write_text(after, encoding="utf-8")
-            moved.append(f"{name}: {workflow} {sha[:8]} -> {named[:8]} ({tag})")
+            moved.append(said)
 
     return moved, named
 
@@ -464,7 +604,9 @@ def main() -> int:
     if brought is None:
         print(
             f"::error::could not read the pins in {repo} against the spec checkout at "
-            f"{spec}. A shallow clone cannot answer how far behind a pin is, and a "
+            f"{spec}, or the check groups its gates caller lists against those {GATES} "
+            "knows at the tag. A shallow clone cannot answer how far behind a pin is, a "
+            "list written other than as plain words on one line is not read, and a "
             "fan-out that could not ask must not report a repository as current."
         )
         return 2

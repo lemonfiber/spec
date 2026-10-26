@@ -452,7 +452,7 @@ class TheLoop(unittest.TestCase):
             self.log.read_text(encoding="utf-8"),
         )
         body = self.bodies.read_text(encoding="utf-8").rstrip()
-        self.assertIn("\n\nSpec: OPS-R48, OPS-R85\n\n", body)
+        self.assertIn("\n\nSpec: OPS-R48, OPS-R85, OPS-R92\n\n", body)
         self.assertTrue(body.endswith(
             "Signed-off-by: lemonfiber-release-train[bot] "
             "<lemonfiber-release-train[bot]@users.noreply.github.com>"))

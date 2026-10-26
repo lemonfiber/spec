@@ -12,8 +12,8 @@ default:
 #
 # Not here, and what answers each:
 #
-#   commitlint, dco, attribution,          `.githooks/commit-msg`, which `hooks`
-#   the citation gate                      above turns on — all four, before the
+#   commitlint, dco,                       `.githooks/commit-msg`, which `hooks`
+#   the citation gate                      above turns on — all three, before the
 #                                          push, with the line to add
 #   coverage                               `python3 scripts/test_*.py` runs the
 #                                          suites; the 100% floor is measured on

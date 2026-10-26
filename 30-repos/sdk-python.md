@@ -82,7 +82,7 @@ The same standard as the other SDKs, in Python's equivalents:
 - Architecture tests that keep generated code generated and transports behind the client.
 - A backward-compatibility check against the last commit a consumer pins, and a changelog.
 - The organisation's shared workflows: spec-check, DCO, commitlint, hygiene, security,
-  attribution, workflow pins, Sonar and CodeQL.
+  workflow pins, Sonar and CodeQL.
 
 Runtime dependencies are `aiohttp` and `urllib3` and nothing else without a recorded reason.
 The supported Python versions start at the oldest one Home Assistant's current release

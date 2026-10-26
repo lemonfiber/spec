@@ -131,7 +131,6 @@ GENERATED = (
             ".github/workflows/workflow-pins.yml",
             ".github/workflows/security.yml",
             ".github/workflows/dco.yml",
-            ".github/workflows/attribution.yml",
             ".github/workflows/commitlint.yml",
             ".github/workflows/squash-message.yml",
             ".github/workflows/explain.yml",

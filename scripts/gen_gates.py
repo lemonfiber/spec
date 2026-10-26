@@ -105,7 +105,6 @@ CHECKS = (
     Check("security", "security.yml", "gitleaks"),
     Check("security", "security.yml", "osv-scanner"),
     Check("dco", "dco.yml", "dco"),
-    Check("attribution", "attribution.yml", "attribution"),
     Check("commitlint", "commitlint.yml", "commitlint"),
     Check("squash-message", SQUASH, "squash-message"),
     Check("explain", EXPLAIN_FILE, "detect", DETECT),
@@ -646,7 +645,7 @@ HEADER = """\
 #         issues: write
 #       uses: lemonfiber/spec/.github/workflows/gates.yml@<sha>
 #       with:
-#         checks: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs
+#         checks: spec-check hygiene workflow-pins security dco commitlint squash-message explain labeler goals refs
 #
 # `gates` holds no write permission and runs every check's steps, each check in
 # an empty workspace, each step only where the steps before it in the same check
