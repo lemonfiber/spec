@@ -10,6 +10,9 @@ core embeds pins the service from the repository the train tagged, and the copy
 beside that pin runs lemonfiber's image at the tag being cut, without its `v`, by
 the digest the registry holds for that tag.
 
+It runs before a release tag only: a pre-release tags none of these repositories
+(OPS-R86), and `check_bundle_pins.py` holds the same pins to the release.
+
 The registry is asked through `docker buildx imagetools inspect`, which reads the
 index without pulling anything. A tag the registry does not hold is refused as
 unpublished.

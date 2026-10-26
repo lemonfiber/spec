@@ -6,7 +6,7 @@ version = "0.22.0"
 milestone = "M12"   # Safely reachable
 delivers  = "Safely reachable — remote access and one account"
 status  = "planned"
-repos   = ["lemonfiber", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf"]
+repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf"]
 satisfied_in = ["lemonfiber", "plugin-jellyfin"]
 goals   = [
     "I1-R1",

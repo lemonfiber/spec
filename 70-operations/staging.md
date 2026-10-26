@@ -277,9 +277,9 @@ prove. `OPS-R37`'s cited fix and maintainer authorisation stand in its place.
 
 A **pre-release** is a version's artefacts, built by the same pipeline from the same
 commit on the trunk and carrying the same provenance, cut before the version's own
-tag. It is how an image lemonfiber builds reaches the stack before its version
-releases ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)
-§4), and how the maintainers install the exact build the release is cut from.
+tag. It is how the maintainers install the exact build the release is cut from. An
+image lemonfiber builds reaches the stack before its version releases as the commit
+image its repository's `main` publishes (`OPS-R90`), not through a pre-release.
 
 **It is cut only when every goal is met.** The goal gate and the no-stub gate run at
 the commit being tagged and refuse it exactly as they refuse an execute (`OPS-R66`,
@@ -293,8 +293,9 @@ satisfy to ride the train it satisfies here too. The bundle pin differs because 
 first-party plugin is built and proved against the core's pre-release, then tagged
 at the version itself by the release's first step, pinned in the bundle and
 embedded before the core's release tag. So a pre-release tags no first-party
-plugin's repository, and its embedded bundle may pin a plugin that builds an image by
-revision alone (`OPS-R86`).
+plugin's repository, `lemonfiber-decline` and `lemonfiber-request-gate` included, and
+its embedded bundle may pin a plugin that builds an image by revision alone
+(`OPS-R86`).
 
 ### It is never mistaken for the release
 

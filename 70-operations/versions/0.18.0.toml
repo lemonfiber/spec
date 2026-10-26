@@ -273,8 +273,9 @@
 # model writes. `ARCH-R254` to `ARCH-R257` put the settings the model reads on the web
 # API, operator-only and never reading a secret back, and `N25-R12` to `N25-R14` are the
 # companion's screens for them, because a setting the model writes has to be changeable
-# from every surface (`ARCH-R248`). `REPO-R93` has the media stack's CI run each of the
-# stack's images under `standard`, which this version is the first to write them with.
+# from every surface (`ARCH-R248`). `REPO-R93` has each first-party plugin's CI run its
+# images under the posture its manifest declares, which this version is the first to
+# write them with.
 # `ARCH-R336` is how a service that needs an operator's credential to start is held to it:
 # the recorder runs it with declared stand-ins rather than skipping it, a goal locked
 # beside `REPO-R93` under `goals-change` review (OPS-R31).
@@ -330,7 +331,7 @@ milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
 
 status  = "staged"
-repos   = ["lemonfiber", "lemonfiber-decline", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf"]
+repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf"]
 satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
 goals   = [
     "D6-R21", "D6-R22", "D6-R23", "D6-R24", "D6-R25", "D6-R26",

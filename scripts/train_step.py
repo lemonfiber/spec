@@ -15,9 +15,10 @@ The lane does not take the step as an input. It reads it from the repositories:
 So a first step that stopped part-way is finished by running it again, and a
 second step can never be reached while an image is untagged.
 
-A pre-release tags no first-party plugin's repository. The plugin is built and
-proved against the core's pre-release, then tagged at the version itself by the
-release's first step, and its crate declares that version rather than the
+A pre-release tags no first-party plugin's repository, the repositories building
+the stack's own images included, so it is always the second step. The plugin is
+built and proved against the core's pre-release, then tagged at the version itself
+by the release's first step, and its crate declares that version rather than the
 pre-release's.
 
 Two lists are written. `tagging.txt` is what the run tags. `declaring.txt` is

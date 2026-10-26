@@ -29,11 +29,12 @@ version that cuts it reads the same answer.
 
 A first-party plugin's repository is tagged in that first step too, where it
 builds an image (OPS-R86): a `[[repo]]` entry carrying `plugin` is `plugin-<id>`,
-and says with `image` whether it builds one. A tag on one that does publishes the
-images the bundle pins, and every version that cuts the core cuts each of those,
-so a manifest not yet released that names the core and leaves one out is refused.
-One that builds none is never tagged: the bundle pins it by revision and tree
-digest (ADR-0045).
+and says with `image` whether it builds one. One that builds none is never tagged:
+the bundle pins it by revision and tree digest (ADR-0045). A repository carrying
+`service` is a first-party plugin that builds an image too, its id the service's.
+A tag on any of them publishes the images the bundle pins at that release, and
+every version that cuts the core cuts each of them, so a manifest not yet released
+that names the core and leaves one out is refused.
 
 Usage:
   manifest_repos.py --version X.Y.Z --for cut|searched|images|plugins|others
@@ -162,10 +163,13 @@ def plugin_repos(registry: dict) -> dict[str, str]:
 
 
 def train_plugins(registry: dict) -> dict[str, str]:
-    """The first-party plugins whose repository builds an image, which the train tags."""
+    """The first-party plugins whose repository builds an image, which the train tags:
+    every repository building a stack service's image, by its service, and every
+    `plugin-<id>` saying `image = true`."""
     building = {str(entry.get("name", "")) for entry in registry.get("repo", [])
                 if entry.get(BUILDS) is True}
-    return {name: plugin for name, plugin in plugin_repos(registry).items() if name in building}
+    return {**image_repos(registry),
+            **{name: plugin for name, plugin in plugin_repos(registry).items() if name in building}}
 
 
 def images(data: dict, registry: dict) -> list[tuple[str, str, str]]:
@@ -181,8 +185,8 @@ def plugins(data: dict, registry: dict) -> list[tuple[str, str]]:
 
 
 def first(data: dict, registry: dict) -> list[str]:
-    """Every stream this version tags before the core."""
-    return [*(name for name, _, _ in images(data, registry)), *(name for name, _ in plugins(data, registry))]
+    """Every stream this version tags before the core, the image repositories among them."""
+    return [name for name, _ in plugins(data, registry)]
 
 
 def others(data: dict, registry: dict) -> list[str]:

@@ -33,7 +33,9 @@ version's manifest still names it where that release cut it, searched it or embe
 | **REPO-R36** | *Superseded by [ARCH-R246](../20-architecture/contracts/stack-manifest.md): the manifest is checked as it is read, and there is no Compose model beside it. The number is not reused.* |
 | **REPO-R37** | *Withdrawn — the rules a part is held to are the plugin manifest's and the bundle contract's, enforced by each plugin's CI ([REPO-R96](first-party-plugins.md)) and the catalogue's ([REPO-R92](lemonfiber-plugins.md)). The number is not reused.* |
 | **REPO-R38** | *Superseded by [ARCH-R251](../20-architecture/contracts/capability-contracts.md): the port crosses through the core over two contracts, the guard holds none of the client's credentials, and a port that could not be set is said to be unpassed. The number is not reused.* |
-| **REPO-R93** | The stack's CI MUST run each service's pinned image under the posture its manifest declares, `standard` unless it declares `confined` ([ARCH-R234](../20-architecture/contracts/plugin-manifest.md)), and MUST refuse a change under which one fails to start or to pass its health check; the version that first writes the stack's services from the model MUST NOT ship before every image has passed. |
+
+`REPO-R93`, running each image under its posture, is a first-party plugin's CI's, in
+[the first-party plugins' requirements](first-party-plugins.md#requirements).
 
 **Affected repos** (`GOV-R7`): `lemonfiber-media-stack`.
 

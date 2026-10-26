@@ -32,16 +32,17 @@ or, under the guards ADR-0029 §2a states, removes it.
 ## Releasing
 
 On the train ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md) §3–§4).
-Its entry in `repos.toml` carries `service = "decline"`, which is how the train
-knows it. A version that lists this repository in `repos` tags it before the core:
-at `v<version>`, and at `v<version>-<identifier>` for each pre-release. Each signed
-tag builds `linux/amd64` and `linux/arm64` under one index with a software bill of
-materials and a provenance attestation, and opens a pull request setting the
-service's `tag` and `digest` in the repository's own `plugin.toml`, which the
-catalogue's bundle takes once it merges. The core is tagged at the same tag once the
-bundle it embeds pins that digest. Every commit on `main` is published too, as
+Its entry in `repos.toml` carries `service = "decline"`, which is how the train knows
+it. Every version that cuts the core cuts this repository and tags it at `v<version>`
+before the core, and no pre-release tags it (`OPS-R86`). Each signed tag builds
+`linux/amd64` and `linux/arm64` under one index with a software bill of materials and
+a provenance attestation, and opens a pull request setting the service's `tag` and
+`digest` in the repository's own `plugin.toml`, which the catalogue's bundle takes at
+that release once it merges. The core is tagged at the same tag once the bundle it
+embeds pins that release and that digest. Every commit on `main` is published too, as
 `main-<commit>`, and that manifest's pin moves to it on a rolling pull request, with
 every recording the manifest names taken again from the new image and `proofs.json`
 written from them; a commit image is not a release and the bundle is never moved to it
-(`OPS-R90`, `OPS-R91`). A commit that changes nothing but that pin, its recordings, its
-proofs and its `targets.toml` publishes nothing. Nothing else is published from a branch.
+(`OPS-R90`, `OPS-R91`). A commit that changes nothing but that pin, its recordings,
+its proofs and its `targets.toml` publishes nothing. Nothing else is published from a
+branch.

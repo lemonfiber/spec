@@ -77,7 +77,8 @@ own upstream alone answers (`REPO-R99`).
   both platforms.
 - **Each image under its posture**, the image started under what its manifest declares,
   healthy and answering its probes ([ARCH-R250](../20-architecture/contracts/plugin-manifest.md)),
-  and each run proof run live.
+  and each run proof run live, wherever a change moves a service's image, digest,
+  posture, environment or user (`REPO-R93`).
 - **Its recordings, taken again from the commit**: the adapter built from the plugin's own
   `Dockerfile`, and `lemonfiber plugin record --check --adapter <that image>` at the
   lemonfiber `targets.toml` names held to every recording committed beside the manifest
@@ -121,7 +122,8 @@ that turns the callers on stops it, so one mover holds each upstream's pin.
 ## Releasing
 
 Only a repository that builds an image is a stream the train cuts: every version that
-cuts the core cuts it and tags it before the core (`OPS-R86`). One whose image is the
+cuts the core cuts it and tags it before the core, and no pre-release tags it
+(`OPS-R86`). So are `lemonfiber-decline` and `lemonfiber-request-gate`. One whose image is the
 upstream's is never tagged. The bundle pins it by revision and the digest of its tree,
 and the pin moves by a reviewed pull request on the catalogue
 ([lemonfiber-plugins](lemonfiber-plugins.md)).
@@ -130,6 +132,7 @@ and the pin moves by a reviewed pull request on the catalogue
 
 | ID | Requirement |
 |----|-------------|
+| **REPO-R93** | A first-party plugin's CI MUST run each image its manifest runs under the posture the manifest declares, `standard` unless it declares `confined` ([ARCH-R234](../20-architecture/contracts/plugin-manifest.md)), and MUST refuse a change under which one fails to start, to pass its health check or to answer its probes. It MUST run them where a change moves a service's image, digest, posture, environment or user, decided by a job-level `if:` on what change detection found, never by a workflow's `paths:` filter. |
 | **REPO-R94** | Every bundled part MUST have a repository of its own named `plugin-<id>`, `<id>` being both its plugin id and the id of the stack service it takes the place of, listed in `30-repos/repos.toml` with `plugin = "<id>"` and `image` saying whether it builds an image; decline and the request gate MUST instead declare their service in a `plugin.toml` in `lemonfiber-decline` and `lemonfiber-request-gate`. |
 | **REPO-R95** | A first-party plugin's repository MUST hold `plugin.toml` at its root, its starting files under `config/<id>/`, the recordings its claims and proofs name under `recordings/<id>/`, `conformance/` where it speaks a contract, and `targets.toml`. |
 | **REPO-R96** | A first-party plugin's CI MUST validate its manifest against the schema the core it targets publishes, judge its claims and proofs against its recordings, resolve every image digest on both platforms, and run each image under the posture its manifest declares, recording each run proof again and refusing a recording the run does not reproduce. |

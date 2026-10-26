@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """The embedded bundle pins each first-party plugin the train tagged, at that tag — OPS-R86.
 
-A version that cuts a first-party plugin's repository tags it first. The tag
-publishes the plugin's adapter image, the plugin's pin pull request names it in the
+A version that cuts a first-party plugin's repository tags it first, a repository
+building a stack service's image among them, pinned by its service's id. The tag
+publishes the plugin's image, the plugin's pin pull request names it in the
 manifest, the train moves the plugin's pin in the catalogue's bundle, and the core's
 submodule takes that catalogue. Only then may the core be tagged, and this is the
 check that says whether that point has arrived: for every plugin the version cuts,

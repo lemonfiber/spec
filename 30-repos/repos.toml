@@ -25,9 +25,11 @@
 # lang  : what a contributor will be writing.
 # note  : the one thing about it that is not true of its neighbours.
 # service: the stack service whose image the repository builds, which makes it
-#         `lemonfiber-<service>` (ADR-0033 §1). The train tags a repository
-#         carrying it before the core, and the core once the embedded bundle pins
-#         what that tag published (ADR-0033 §4). Absent everywhere else.
+#         `lemonfiber-<service>` (ADR-0033 §1). It is a first-party plugin that
+#         builds an image, its id the service's: every version that cuts the core
+#         cuts it, tags it before the core and never at a pre-release, and tags the
+#         core once the embedded bundle pins what that tag published (ADR-0033 §4,
+#         OPS-R86). Absent everywhere else.
 # plugin: the first-party plugin the repository publishes, which makes it
 #         `plugin-<id>`, its id the id of the stack service it takes the place of
 #         (ADR-0045). Every bundled part has one. Drawn as one node between them in
