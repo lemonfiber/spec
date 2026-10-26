@@ -123,23 +123,19 @@ DAY = 86400
 GATES = "gates.yml"
 
 #: Where `gates.yml` declares every group it knows: its plan step's `KNOWN`.
-KNOWN = re.compile(r"^[ \t]+KNOWN:[ \t]*(\S[^\n]*?)[ \t]*$", re.MULTILINE)
+KNOWN = "KNOWN:"
 
 #: A caller's `checks` or `skip` input, keyed.
-KEYED = re.compile(r"^[ \t]+(?:checks|skip):")
+KEYED = re.compile(r"^(?P<lead>[ \t]+(?P<key>checks|skip):)")
 
-#: The same input read: a plain scalar on one line, or written empty. A value it
-#: does not match, quoted or folded, is one this does not read.
-LISTED = re.compile(
-    r"^(?P<lead>[ \t]+(?P<key>checks|skip):)[ \t]*"
-    r"(?P<words>''|\"\"|[^\s#'\"|>][^#\n]*?)?(?P<tail>[ \t]*(?:#[^\n]*)?)$"
-)
+#: How a list with no groups in it is written.
+EMPTY = ("", "''", '""')
 
-#: How a list every group has left is written.
-EMPTY = ("''", '""')
+#: What opens a YAML value that is not plain words on one line.
+UNREAD = ("'", '"', "|", ">")
 
 #: A job calling the shared gates at any revision.
-CALLS_GATES = re.compile(rf"^(?P<indent>[ \t]*)uses:[ \t]*lemonfiber/spec/\.github/workflows/{re.escape(GATES)}@")
+CALLS_GATES = re.compile(rf"^[ \t]*uses:[ \t]*lemonfiber/spec/\.github/workflows/{re.escape(GATES)}@")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -295,9 +291,10 @@ def known_at(spec: pathlib.Path, named: str) -> frozenset[str] | None:
 def known_in(gates: str) -> frozenset[str] | None:
     """The check groups a `gates.yml` declares in its `KNOWN`, or `None` where it
     declares them other than once."""
-    found = KNOWN.findall(gates)
+    found = [line.strip()[len(KNOWN):].split() for line in gates.splitlines()
+             if line[:1] in (" ", "\t") and line.strip().startswith(KNOWN)]
 
-    return frozenset(found[0].split()) if len(found) == 1 else None
+    return frozenset(found[0]) if len(found) == 1 else None
 
 
 def pruned(text: str, known: frozenset[str]) -> tuple[str, list[str]] | None:
@@ -313,34 +310,49 @@ def pruned(text: str, known: frozenset[str]) -> tuple[str, list[str]] | None:
     """
     lines = text.splitlines(keepends=True)
     said: list[str] = []
-    calls = [(n, len(m["indent"])) for n, line in enumerate(lines) if (m := CALLS_GATES.match(line))]
 
-    for at, indent in calls:
-        start = at
-        while start > 0 and (not lines[start - 1].strip() or _indent(lines[start - 1]) >= indent):
-            start -= 1
-        end = at + 1
-        while end < len(lines) and (not lines[end].strip() or _indent(lines[end]) >= indent):
-            end += 1
-
-        for n in range(start, end):
-            body = lines[n].rstrip("\n")
-            if _indent(body) <= indent or not KEYED.match(body):
+    for at, indent in [(n, _indent(line)) for n, line in enumerate(lines) if CALLS_GATES.match(line)]:
+        for n in _job(lines, at, indent):
+            if _indent(lines[n]) <= indent or not KEYED.match(lines[n]):
                 continue
-            found = LISTED.match(body)
-            if found is None:
+            kept = _kept(lines[n], known)
+            if kept is None:
                 return None
-            written = found["words"] or ""
-            words = [] if written in EMPTY else written.split()
-            kept = [word for word in words if word in known]
-            if kept == words:
-                continue
-            if found["key"] == "checks" and not kept:
-                return None
-            lines[n] = f"{found['lead']} {' '.join(kept) or EMPTY[0]}{found['tail']}{lines[n][len(body):]}"
-            said.append(f"{found['key']} drops {' '.join(w for w in words if w not in known)}")
+            lines[n], dropped = kept
+            said.extend(dropped)
 
     return "".join(lines), said
+
+
+def _job(lines: list[str], at: int, indent: int) -> range:
+    """The lines of the job whose `uses` is at line `at`, indented `indent`."""
+    start, end = at, at + 1
+    while start > 0 and (not lines[start - 1].strip() or _indent(lines[start - 1]) >= indent):
+        start -= 1
+    while end < len(lines) and (not lines[end].strip() or _indent(lines[end]) >= indent):
+        end += 1
+    return range(start, end)
+
+
+def _kept(line: str, known: frozenset[str]) -> tuple[str, list[str]] | None:
+    """One `checks` or `skip` line with the groups `known` does not hold taken
+    out, and what was said of it; `None` where it cannot be read or `checks`
+    would be left empty."""
+    body = line.rstrip("\n")
+    keyed = KEYED.match(body)
+    value, hashed, comment = body[keyed.end():].partition("#")
+    written = value.strip()
+    if written[:1] in UNREAD and written not in EMPTY:
+        return None
+    words = [] if written in EMPTY else written.split()
+    kept = [word for word in words if word in known]
+    if kept == words:
+        return line, []
+    if keyed["key"] == "checks" and not kept:
+        return None
+    tail = value[len(value.rstrip()):] + hashed + comment if hashed else ""
+    gone = " ".join(word for word in words if word not in known)
+    return f"{keyed['lead']} {' '.join(kept) or EMPTY[1]}{tail}{line[len(body):]}", [f"{keyed['key']} drops {gone}"]
 
 
 def _indent(line: str) -> int:
@@ -415,6 +427,21 @@ def due(spec: pathlib.Path, workflow: str, pin: str, named: str, limits: Limits,
     return bool(missed) or nearing
 
 
+def _gates_known(text: str, spec: pathlib.Path, named: str, tag: str) -> tuple[str, str] | None:
+    """A gates caller moved to `named` with what the gates there no longer know
+    dropped from its lists (OPS-R92), and what to say of it; `None` where the
+    gates or the caller's lists could not be read."""
+    known = known_at(spec, named)
+    cleared = pruned(text, known) if known is not None else None
+
+    if cleared is None:
+        return None
+
+    after, dropped = cleared
+
+    return after, "".join(f"; {line}, which {GATES} at {tag} does not know" for line in dropped)
+
+
 def bring_forward(
     repo: pathlib.Path,
     spec: pathlib.Path,
@@ -470,20 +497,13 @@ def bring_forward(
             if after == before:
                 return None
 
-            said = f"{name}: {workflow} {sha[:8]} -> {named[:8]} ({tag})"
+            cleared = _gates_known(after, spec, named, tag) if workflow == GATES else (after, "")
 
-            if workflow == GATES:
-                known = known_at(spec, named)
-                cleared = pruned(after, known) if known is not None else None
+            if cleared is None:
+                return None
 
-                if cleared is None:
-                    return None
-
-                after, dropped = cleared
-                said += "".join(f"; {line}, which {GATES} at {tag} does not know" for line in dropped)
-
-            path.write_text(after, encoding="utf-8")
-            moved.append(said)
+            path.write_text(cleared[0], encoding="utf-8")
+            moved.append(f"{name}: {workflow} {sha[:8]} -> {named[:8]} ({tag}){cleared[1]}")
 
     return moved, named
 
