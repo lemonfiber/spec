@@ -175,6 +175,7 @@ rehearsed run here to the same labelling `N6-R1` requires everywhere else.
 | **A5-R12** | Unsupported existing components MUST be named as unsupported rather than silently ignored. |
 | **A5-R13** | Reading what a replacement would stop MUST answer with an offer naming what it would stop; the replacement MUST take that offer as its yes, alike at the command line and over the web API (`ARCH-R48`), MUST build it again from what is running when it acts, and MUST be refused, naming what moved, where the two differ (`N7-R18`). |
 | **A5-R14** | The survey's `migration` envelope MUST carry, for each service it found, where that service's configuration is read from and where its library is, or MUST say that either could not be read, so that no surface works them out from a service's name or ports (`A5-R2`, `N7-R11`). |
+| **A5-R15** | An import MUST read the operator's other copy of a service through the adapter of the first-party plugin lemonfiber runs that service from, lent as a throwaway container handed that copy's own key and nothing else and removed on every path, confirmed or not; it MUST NOT hand that key to a plugin that is not first-party (`ARCH-R315`). |
 
 ## Related
 

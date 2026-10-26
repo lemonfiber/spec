@@ -94,7 +94,7 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": ["M9", "M14"],
+      "milestones": ["M9", "M14", "M16"],
       "milestone": "M9",
       "priority": null,
       "labels": ["ux", "storage"],
@@ -102,7 +102,8 @@
       "relates": ["A2", "A4", "C5", "E3", "F1"],
       "versions": [
         {"version": "0.13.0", "status": "released"},
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"}
       ],
       "path": "a-getting-started/a5-migration.md"
     },
