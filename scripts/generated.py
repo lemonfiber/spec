@@ -139,7 +139,6 @@ GENERATED = (
             ".github/workflows/labeler.yml",
             ".github/workflows/goal-automations.yml",
             ".github/workflows/spec-references.yml",
-            ".github/workflows/pr-cap.yml",
         ),
     ),
 )

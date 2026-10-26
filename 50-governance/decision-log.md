@@ -355,6 +355,12 @@ Decisions about a repository outside this organisation, such as
 | The operator's web console has a feature of its own, G11, shaped as G10 is for the household's side; its first rows give the console a third-party plugin's grants as the companion has them: a switch per grant on install and update, off until turned on and carrying the reading's own line; the grants each plugin holds and every grant on the credentials panel; a revoke read before it runs; all of it shown to the operator alone | [G11-R1 to G11-R5](../10-functional/features/g-ux/g11-operator-web-console.md) |
 | `G11-R1` to `G11-R5` ship in 0.18.0 with `ARCH-R322` to `ARCH-R325` | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
+## 2026-10-26
+
+| Decision | Where it lives |
+|---|---|
+| How many pull requests a repository holds open is a working agreement, and nothing automates it: no workflow comments on it, the developer command line refuses no claim over it, and the board and the report flag no repository for it. `GOV-R58` is withdrawn, and this replaces what the rows above citing it decided about how many pull requests a repository holds | [GOV-R58](working-in-the-repositories.md) |
+
 ## Requirements
 
 | ID | Requirement |

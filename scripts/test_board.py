@@ -160,8 +160,7 @@ class TheShape(Board):
                                       "trackers", "pulls", "claims", "contested", "repos",
                                       "releases", "proposals", "tools"])
         self.assertEqual(data["tools"], [])
-        self.assertEqual(data["claims"], {"cap": claims.CAP,
-                                          "stale_days": claims.STALE_AFTER.days})
+        self.assertEqual(data["claims"], {"stale_days": claims.STALE_AFTER.days})
         self.assertEqual(data["unread"], [])
         self.assertEqual(set(data["sources"]), {"spec", "core", "app", "lemonfiber"})
 
@@ -285,31 +284,18 @@ class PullsAndProposals(Board):
     def write_prs(self, prs):
         pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
 
-    def test_a_repository_over_the_cap_its_bots_not_counted(self):
-        people = [{"number": n, "url": f"https://x/{n}", "author": {"login": "p",
-                                                                    "__typename": "User"}}
-                  for n in range(1, claims.CAP + 2)]
+    def test_a_repository_counts_every_open_pull_request_its_bots_included(self):
+        person = {"number": 1, "url": "https://x/1", "author": {"login": "p",
+                                                               "__typename": "User"}}
         bot = {"number": 99, "url": "https://x/99", "author": {"login": "dependabot",
                                                               "__typename": "Bot"}}
-        self.write_prs({"core": [*people, bot], "app": people[:claims.CAP]})
+        self.write_prs({"core": [person, bot], "spec": []})
         data, _ = self.snapshot("--prs", "prs.json")
-        core = next(r for r in data["repos"] if r["name"] == "core")
-        self.assertEqual((core["open_pulls"], core["counted_pulls"], core["over_cap"]),
-                         (claims.CAP + 2, claims.CAP + 1, True))
-        spec = next(r for r in data["repos"] if r["name"] == "spec")
-        self.assertEqual((spec["counted_pulls"], spec["over_cap"]), (None, None))
-        self.write_prs({"spec": [], "core": []})
-        data, _ = self.snapshot("--prs", "prs.json")
-        core = next(r for r in data["repos"] if r["name"] == "core")
-        self.assertEqual((core["open_pulls"], core["counted_pulls"], core["over_cap"]),
-                         (0, 0, False), "read and holding none")
-
-    def test_a_repository_at_the_cap_is_not_over_it(self):
-        self.write_prs({"core": [{"number": n, "url": f"https://x/{n}"}
-                                 for n in range(claims.CAP)]})
-        data, _ = self.snapshot("--prs", "prs.json")
-        core = next(r for r in data["repos"] if r["name"] == "core")
-        self.assertEqual((core["counted_pulls"], core["over_cap"]), (claims.CAP, False))
+        held = {r["name"]: r["open_pulls"] for r in data["repos"]}
+        self.assertEqual(held, {"spec": 0, "core": 2, "plugin-x": None},
+                         "read and holding none is nought; not read is null")
+        self.assertEqual(list(data["repos"][0]), ["name", "group", "lang", "note", "pages",
+                                                  "open_pulls", "tracker"])
 
     def test_a_draft_without_a_commit_for_too_long_is_stale(self):
         now = datetime.datetime.now(datetime.UTC)

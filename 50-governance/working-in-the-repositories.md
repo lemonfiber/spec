@@ -53,17 +53,6 @@ sign-off; a claim made from the website adds the requirement's row to the
 repository's tracker as `open`, which is true while the work is in progress and
 which the same pull request turns `done` with its evidence (`GOV-R57`).
 
-## At most three open pull requests
-
-A repository holds at most three open pull requests opened by people and agents;
-the organisation's bots (`dependabot`, the release App) are not counted. The cap
-keeps the shared CI moving and every pull request owned. It is held softly: the
-developer command line refuses to open a fourth, a bot comments on one that is
-opened anyway, and the board flags the repository (`GOV-R58`). Before opening a
-pull request, merge or close one. The comment comes from the shared `pr-cap`
-workflow, which each repository calls as a job named `cap`; the board, the report
-and that workflow all count through `scripts/claims.py`.
-
 ## The developer command line
 
 What contributors repeat in every repository is one tool, `lfdev`, kept in
@@ -200,7 +189,7 @@ Facts about the tools, each of which has produced a wrong conclusion:
 | **GOV-R53** | The author of a pull request MUST check CI on every pull request they own while they wait on any one, and MUST fix a red check at once, before starting new work. |
 | **GOV-R54** | An agent MUST read a pull request's checks through the forge's REST interface, at most once every ten minutes, and MUST NOT poll in a loop. |
 | **GOV-R57** | A claim made with the developer command line MUST open its pull request with an empty signed commit carrying the claimed `Spec:` line and a sign-off; a claim made from the website MUST add the requirement's row to the repository's tracker as `open`. |
-| **GOV-R58** | A repository MUST NOT hold more than three open pull requests opened by people and agents, the organisation's bots not counted; the developer command line MUST refuse to open a fourth, a bot MUST comment on a fourth that is opened anyway, and the board MUST flag the repository. |
+| **GOV-R58** | *Withdrawn: how many pull requests a repository holds open is a working agreement, and nothing enforces, flags or comments on it. The number is not reused.* |
 | **GOV-R59** | The operations contributors repeat (reading the board, finding work, claiming, proposing, reporting a gap, recording status, reading checks, asking what blocks a pull request, recording a decision) MUST be commands of one developer command line kept in an organisation repository, tested like the gates, and reading the forge through REST only. |
 | **GOV-R60** | The organisation's website MUST NOT create a branch, commit, issue or pull request itself: it MUST compose the change in the visitor's browser and open the forge, prefilled, under the visitor's own account, and no bot or server MUST act on the visitor's behalf. |
 | **GOV-R61** | Every action the organisation's website offers a contributor MUST also be a command of the developer command line, and the website MUST name that command beside the action. |
