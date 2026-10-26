@@ -94,6 +94,10 @@ note = "the binary"
 [[ungoverned]]
 name = "plugin-x"
 note = "a plugin"
+
+[[retired]]
+name = "old-stack"
+note = "archived"
 """
 
 RELEASE = {"version": "0.1.0", "tag": "v0.1.0", "released_on": "2026-01-01",
@@ -234,7 +238,7 @@ class TheShape(Board):
         data, _ = self.snapshot()
         self.assertEqual([(r["name"], r["group"], r["tracker"]) for r in data["repos"]],
                          [("spec", "root", None), ("core", "impl", "present"),
-                          ("plugin-x", "ungoverned", None)])
+                          ("plugin-x", "ungoverned", None), ("old-stack", "retired", None)])
         self.assertEqual(data["repos"][1]["pages"], ["core.md"])
 
     def test_releases_from_the_changelog_in_version_order(self):
@@ -277,7 +281,7 @@ class PullsAndProposals(Board):
         prs = {"core": [{"number": 1, "url": "https://x/1", "body": ""}]}
         pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
         data, _ = self.snapshot("--prs", "prs.json")
-        self.assertEqual([r["open_pulls"] for r in data["repos"]], [None, 1, None],
+        self.assertEqual([r["open_pulls"] for r in data["repos"]], [None, 1, None, None],
                          "a repository whose pull requests were not read counts none")
         self.assertIsNone(data["pulls"][0]["author"])
 
@@ -292,7 +296,7 @@ class PullsAndProposals(Board):
         self.write_prs({"core": [person, bot], "spec": []})
         data, _ = self.snapshot("--prs", "prs.json")
         held = {r["name"]: r["open_pulls"] for r in data["repos"]}
-        self.assertEqual(held, {"spec": 0, "core": 2, "plugin-x": None},
+        self.assertEqual(held, {"spec": 0, "core": 2, "plugin-x": None, "old-stack": None},
                          "read and holding none is nought; not read is null")
         self.assertEqual(list(data["repos"][0]), ["name", "group", "lang", "note", "pages",
                                                   "open_pulls", "tracker"])
