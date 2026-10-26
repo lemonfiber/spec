@@ -6,8 +6,15 @@
 # The reader is plugin-template's `.github/reader/`, at the commit named below, so a
 # repository calling this holds no Python of its own and refuses to carry one.
 #
-# `plugin` is skipped by a job-level condition where `what changed` found only paths
-# no part of the verdict reads (Q-R76), and runs wherever that could not be decided.
+# `live` then takes every recording again, against each image the manifest pins run as
+# lemonfiber runs it: under its posture, waited on until its health check passes, and
+# asked every proof, probe and conformance case (REPO-R93). Where the plugin has an
+# adapter service and its tree holds a Dockerfile, the adapter is the image built from
+# the tree. It is lemonfiber's own `plugin record --check`, by the lemonfiber the
+# `plugin` job built or fetched, handed on rather than built twice.
+#
+# Both are skipped by a job-level condition where `what changed` found only paths no
+# part of the verdict reads (Q-R76), and run wherever that could not be decided.
 name: first-party-plugin
 on:
   workflow_call:
@@ -25,6 +32,8 @@ env:
   READER_REPOSITORY: lemonfiber/plugin-template
   READER_REVISION: 0e37c21fe52af41c950fc29ff42f1934a90ed377
   READER: .github/reader
+  # The lemonfiber the `plugin` job built or fetched, handed to `live`.
+  BUILT: first-party-plugin-lemonfiber
 
 jobs:
   scope:
@@ -121,3 +130,94 @@ jobs:
       - name: Every pinned digest, and what vouches for it
         if: ${{ success() || failure() }}
         run: python3 .github/reader/reader.py image
+      - name: The lemonfiber it read with, for live
+        if: ${{ success() || failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ env.BUILT }}
+          path: ${{ inputs.directory }}/.lemonfiber/
+          if-no-files-found: ignore
+          retention-days: 1
+
+  live:
+    needs: [scope, plugin]
+    if: ${{ !cancelled() && (needs.scope.result != 'success' || needs.scope.outputs.code != 'false') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: ${{ inputs.directory }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: The reader, from plugin-template
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: ${{ env.READER_REPOSITORY }}
+          ref: ${{ env.READER_REVISION }}
+          path: .first-party-reader
+          sparse-checkout: ${{ env.READER }}
+          sparse-checkout-cone-mode: false
+      - name: The reader in place
+        env:
+          TAKEN: ${{ github.workspace }}/.first-party-reader
+        run: |
+          set -euo pipefail
+          if [ -e "${READER}" ]; then
+            echo "::error::${READER} is in the plugin. A first-party plugin carries no Python of its own; the reader is this workflow's."
+            exit 1
+          fi
+          mkdir -p "$(dirname "${READER}")"
+          cp -R "${TAKEN}/${READER}" "${READER}"
+          rm -rf "${TAKEN}"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      # Where `plugin` stopped before it had one, the reader builds or fetches it here.
+      - name: The lemonfiber the plugin job read with
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ env.BUILT }}
+          path: ${{ inputs.directory }}/.lemonfiber/
+      - name: The lemonfiber targets.toml names
+        id: lemonfiber
+        run: |
+          set -euo pipefail
+          find .lemonfiber -type f -name lemonfiber -exec chmod +x {} + 2>/dev/null || true
+          python3 -I -c 'import sys; sys.path.insert(0, sys.argv[1]); import reader; print("binary=" + str(reader.binary()))' \
+            "${READER}" >> "$GITHUB_OUTPUT"
+      - name: The adapter, built from this tree
+        id: adapter
+        run: |
+          set -euo pipefail
+          fronting="$(python3 -I -c 'import tomllib; print(sum(1 for one in tomllib.load(open("plugin.toml", "rb")).get("service", []) if "fronts" in one))')"
+          if [ "${fronting}" != "0" ] && [ -f Dockerfile ]; then
+            docker build -q -t first-party-live-adapter .
+            echo "image=first-party-live-adapter" >> "$GITHUB_OUTPUT"
+          else
+            echo "No adapter is built here, so every service runs the image plugin.toml pins."
+          fi
+      - name: Every image the recordings are taken from
+        env:
+          BUILT_ADAPTER: ${{ steps.adapter.outputs.image }}
+        run: |
+          set -euo pipefail
+          python3 -I -c 'import os, tomllib
+          built = bool(os.environ["BUILT_ADAPTER"])
+          for one in tomllib.load(open("plugin.toml", "rb")).get("service", []):
+              if not (built and "fronts" in one):
+                  print(one["image"] + "@" + one["digest"])' | xargs -r -n1 docker pull -q
+      - name: Every recording, taken again from them
+        env:
+          LEMONFIBER: ${{ steps.lemonfiber.outputs.binary }}
+          BUILT_ADAPTER: ${{ steps.adapter.outputs.image }}
+        run: |
+          set -euo pipefail
+          if [ -n "${BUILT_ADAPTER}" ]; then
+            "${LEMONFIBER}" plugin record . --check --adapter "${BUILT_ADAPTER}"
+          else
+            "${LEMONFIBER}" plugin record . --check
+          fi
