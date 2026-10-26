@@ -214,7 +214,7 @@ jobs:
     - name: 'spec-check / spec-check: Set up Python'
       id: spec-check--spec-check--5
       if: ${{ ((steps.plan.outputs.spec-check == 'true')) && (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') }}
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
       continue-on-error: true
@@ -811,7 +811,7 @@ jobs:
     - name: 'hygiene / shared-files: actions/setup-python'
       id: hygiene--shared-files--3
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--shared-files--0.outcome != 'failure') && (steps.hygiene--shared-files--1.outcome != 'failure') && (steps.hygiene--shared-files--2.outcome != 'failure') }}
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
       continue-on-error: true
@@ -874,7 +874,7 @@ jobs:
     - name: 'hygiene / lines: actions/setup-python'
       id: hygiene--lines--2
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--lines--0.outcome != 'failure') && (steps.hygiene--lines--1.outcome != 'failure') }}
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
       continue-on-error: true
@@ -1019,7 +1019,7 @@ jobs:
     - name: 'workflow-pins / workflow-pins: actions/setup-python'
       id: workflow-pins--workflow-pins--3
       if: ${{ ((steps.plan.outputs.workflow-pins == 'true')) && (steps.workflow-pins--workflow-pins--0.outcome != 'failure') && (steps.workflow-pins--workflow-pins--1.outcome != 'failure') && (steps.workflow-pins--workflow-pins--2.outcome != 'failure') }}
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
       continue-on-error: true
@@ -1361,7 +1361,7 @@ jobs:
     - name: 'dco / dco: actions/setup-python'
       id: dco--dco--2
       if: ${{ ((steps.plan.outputs.dco == 'true')) && (steps.dco--dco--0.outcome != 'failure') && (steps.dco--dco--1.outcome != 'failure') }}
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
       continue-on-error: true
@@ -1412,7 +1412,7 @@ jobs:
     - name: 'attribution / attribution: actions/setup-python'
       id: attribution--attribution--2
       if: ${{ ((steps.plan.outputs.attribution == 'true')) && (steps.attribution--attribution--0.outcome != 'failure') && (steps.attribution--attribution--1.outcome != 'failure') }}
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
       continue-on-error: true
@@ -1470,7 +1470,7 @@ jobs:
     - name: 'commitlint / commitlint: actions/setup-python'
       id: commitlint--commitlint--2
       if: ${{ ((steps.plan.outputs.commitlint == 'true')) && (steps.commitlint--commitlint--0.outcome != 'failure') && (steps.commitlint--commitlint--1.outcome != 'failure') }}
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
       continue-on-error: true
@@ -1523,7 +1523,7 @@ jobs:
     - name: 'squash-message / squash-message: actions/setup-python'
       id: squash-message--squash-message--2
       if: ${{ ((steps.plan.outputs.squash-message == 'true')) && (steps.squash-message--squash-message--0.outcome != 'failure') && (steps.squash-message--squash-message--1.outcome != 'failure') }}
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12'
       continue-on-error: true
