@@ -2,19 +2,14 @@
 """The pin check, shown refusing a pin near in time and far in commits (Q-R68).
 
 `hygiene.yml`'s `pins` job says what shared revision a repository is actually
-running. It used to decide that on age alone, and its own comment conceded the
-hole: "a pin days old and dozens of commits behind reads as healthy here". That
-is not a hypothetical. `brand` and `lemonfiber-media-stack` pinned this workflow
-at a revision 94 commits behind and 13 days old — healthy by the day rule, and
-old enough to predate the `pins` job itself, so neither repository ran a pin
-check at all and nothing in either watched any shared pin, including the one
-that had just been updated in both.
+running, by age and by distance: a pin days old can be dozens of commits behind,
+healthy by a day rule alone and old enough to predate the `pins` job itself.
 
 A claim nobody has watched fail is a claim nobody knows works, so what this
-drives is the refusal: the same pin, 94 commits behind and 13 days old, put in
-front of the gate and required to fail. The companion case is the one that
-proves the new rule is what did it — the identical pin with the distance rule
-relaxed goes green, which is the gate as it stood while the defect lived.
+drives is the refusal: a pin 94 commits behind and 13 days old, put in front of
+the gate and required to fail. The companion case is the one that proves the
+distance rule is what did it — the identical pin with that rule relaxed goes
+green.
 
 It drives the step as CI drives it. The shell is read out of the committed YAML
 through a YAML parser, so it is the literal text that runs, and both `gh` and
@@ -228,11 +223,7 @@ class Pins(unittest.TestCase):
     # --- the refusal this exists for ----------------------------------------
 
     def test_a_pin_far_behind_but_days_old_is_refused(self):
-        """The defect, reproduced: 94 commits behind, 13 days old.
-
-        Healthy under the day rule alone, and the reason `brand` and
-        `lemonfiber-media-stack` ran no pin check at all.
-        """
+        """94 commits behind, 13 days old: healthy under the day rule alone."""
         self.caller("ci", FAR)
         code, out = self.run_step({FAR: DEFECT})
         self.assertEqual(code, 1, out)

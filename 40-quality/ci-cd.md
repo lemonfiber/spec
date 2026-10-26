@@ -219,11 +219,10 @@ smoke-test job **runs** the binary on macOS, Linux and Windows (`roadmap M10`
 exit). A binary that builds for Windows and panics on first launch has been
 tested for the wrong thing.
 
-## `lemonfiber-media-stack` and `homebrew-tap` pipelines
+## First-party plugin and `homebrew-tap` pipelines
 
-- **`lemonfiber-media-stack`** — `spec-check`, then the structural checks in its
-  [repo spec](../30-repos/lemonfiber-media-stack.md#ci). No stack boot in CI (no
-  credentials).
+- **`plugin-<id>`** — `spec-check`, then the checks in
+  [the first-party plugins' spec](../30-repos/first-party-plugins.md#what-its-ci-runs).
 - **`homebrew-tap`** — the shared gates only. It holds one generated file and no
   formula-specific check yet.
 

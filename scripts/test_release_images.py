@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Coverage tests for what a version cuts: the repositories it tags and searches,
 the images and plugins it publishes and the pins it records — manifest_repos,
-check_image_pins, check_bundle_pins, train_step and submodule_pins.
+check_image_pins, check_bundle_pins, embedded_bundle, train_step and submodule_pins.
 
 They share the workspace and the in-process runner of `test_release_train.py`,
 and live apart from it so that suite stays within the size cap.
@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tomllib
@@ -21,6 +22,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import check_bundle_pins  # noqa: E402
 import check_image_pins  # noqa: E402
+import embedded_bundle  # noqa: E402
 import manifest_repos  # noqa: E402
 import submodule_pins  # noqa: E402
 import train_step  # noqa: E402
@@ -138,8 +140,9 @@ class PluginReposTests(Workspace):
 
     def test_a_repository_the_registry_gives_a_plugin_is_tagged_first(self):
         data = {"repos": ["lemonfiber", "plugin-jellyfin", "lemonfiber-decline"]}
-        self.assertEqual(manifest_repos.plugins(data, self.registry), [("plugin-jellyfin", "jellyfin")])
-        self.assertEqual(manifest_repos.first(data, self.registry), ["lemonfiber-decline", "plugin-jellyfin"])
+        self.assertEqual(manifest_repos.plugins(data, self.registry),
+                         [("plugin-jellyfin", "jellyfin"), ("lemonfiber-decline", "decline")])
+        self.assertEqual(manifest_repos.first(data, self.registry), ["plugin-jellyfin", "lemonfiber-decline"])
         self.assertEqual(manifest_repos.others(data, self.registry), ["lemonfiber"])
 
     def test_each_way_a_plugin_entry_can_be_wrong_is_refused(self):
@@ -157,20 +160,24 @@ class PluginReposTests(Workspace):
         """Pinned by revision and tree digest, it is no stream the train cuts (ADR-0045)."""
         registry = {"repo": [*self.registry["repo"],
                              {"name": "plugin-sonarr", "plugin": "sonarr", "image": False}]}
-        data = {"status": "planned", "repos": ["lemonfiber", "plugin-jellyfin"]}
+        data = {"status": "planned", "repos": ["lemonfiber", "plugin-jellyfin", "lemonfiber-decline"]}
         self.assertEqual(manifest_repos.unlisted_plugins(data, registry), [])
         self.assertEqual(manifest_repos.plugins({"repos": ["plugin-sonarr", "lemonfiber"]}, registry), [])
         self.assertIn("plugin-sonarr", manifest_repos.plugin_repos(registry))
 
     def test_a_version_cutting_the_core_without_a_plugin_is_refused(self):
+        """The image repositories are first-party plugins that build an image, and owed too."""
         self.assertEqual(manifest_repos.unlisted_plugins({"status": "planned", "repos": ["lemonfiber"]},
-                                                         self.registry), ["plugin-jellyfin"])
+                                                         self.registry), ["lemonfiber-decline", "plugin-jellyfin"])
+        self.assertEqual(manifest_repos.unlisted_plugins({"status": "planned",
+                                                          "repos": ["lemonfiber", "plugin-jellyfin"]},
+                                                         self.registry), ["lemonfiber-decline"])
 
     def test_a_version_not_cutting_the_core_or_already_released_is_not(self):
         for data in ({"status": "planned", "repos": ["lemonfiber-decline"]},
                      {"status": "released", "repos": ["lemonfiber"]},
                      {"status": "yanked", "repos": ["lemonfiber"]},
-                     {"status": "staged", "repos": ["lemonfiber", "plugin-jellyfin"]}):
+                     {"status": "staged", "repos": ["lemonfiber", "plugin-jellyfin", "lemonfiber-decline"]}):
             with self.subTest(data):
                 self.assertEqual(manifest_repos.unlisted_plugins(data, self.registry), [])
 
@@ -203,7 +210,8 @@ class PluginReposTests(Workspace):
                  "radarr", "lidarr", "bazarr", "seerr", "nzbhydra2", "bindery",
                  "audiobookshelf"]
         self.assertEqual(manifest_repos.train_plugins(registry),
-                         {f"plugin-{plugin}": plugin for plugin in built})
+                         {"lemonfiber-decline": "decline", "lemonfiber-request-gate": "request-gate",
+                          **{f"plugin-{plugin}": plugin for plugin in built}})
 
     def test_every_manifest_not_yet_released_cuts_each_plugin_with_the_core(self):
         registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
@@ -316,6 +324,19 @@ class CheckBundlePinsTests(Workspace):
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn("does not pin what v0.2.0 published", out)
+
+    def test_main_holds_an_image_repository_to_the_release_too(self):
+        """A repository building a stack service's image is a first-party plugin, pinned by
+        its service's id (OPS-R86)."""
+        pathlib.Path("30-repos/repos.toml").write_text(
+            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n\n'
+            '[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n', encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin", "lemonfiber-decline"]\n', encoding="utf-8")
+        self.core()
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("decline: the bundle pins it 0 times, not once", out)
 
     def test_main_refuses_a_bundle_pinned_from_another_repository(self):
         self.core(origin="https://github.com/else/plugin-jellyfin")
@@ -437,39 +458,70 @@ printf '%s' "${DOCKER_REPLY}"
         super().tearDown()
 
 
-class CheckImagePinsTests(TrainImages):
-    """The embedded stack pins each tagged image at its tag and digest — ADR-0033 §4."""
+def commit_all(path) -> None:
+    """Stage and commit everything under a test repository."""
+    for args in (("add", "-A"), ("-c", "commit.gpgsign=false", "-c", "user.email=t@t", "-c", "user.name=t",
+                                 "commit", "-q", "-m", "as it stands")):
+        subprocess.run(["git", "-C", str(path), *args], check=True, capture_output=True)
 
-    def stack(self, tag="v0.2.0", digest=TrainImages.DIGEST, image="ghcr.io/lemonfiber/decline"):
-        return {"service": [{"id": "sonarr", "image": "lscr.io/linuxserver/sonarr"},
-                            {"id": "decline", "image": image, "tag": tag, "digest": digest}]}
 
-    def write_stack(self, tag):
-        pathlib.Path("stack.toml").write_text(
+class EmbeddedTests(TrainImages):
+    """A core's clone embedding a catalogue whose bundle pins decline, with its copy beside it."""
+
+    ORIGIN = "https://github.com/lemonfiber/lemonfiber-decline"
+    READER = "pub const SCHEMAS: [u32; 2] = [1, 2];\n"
+
+    def setUp(self):
+        super().setUp()
+        os.environ.update({"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow",
+                           "GIT_CONFIG_VALUE_0": "always"})
+
+    def core(self, tag="0.2.0", origin=ORIGIN, schema=2, copy: str | None = None):
+        """The core's clone, its catalogue's bundle pinning decline from `origin` and its copy
+        running the image at `tag`, or holding `copy` as that copy where one is given."""
+        self.repo("remotes/lf")
+        reader = pathlib.Path("remotes/lf", embedded_bundle.READER)
+        reader.parent.mkdir(parents=True)
+        reader.write_text(self.READER, encoding="utf-8")
+        catalogue = pathlib.Path(self.tmp, "remotes/lemonfiber-plugins")
+        self.repo(str(catalogue))
+        (catalogue / "bundle").mkdir()
+        (catalogue / "bundle/bundle.toml").write_text(
+            f'schema = {schema}\n\n[[plugin]]\nid = "decline"\norigin = "{origin}"\n', encoding="utf-8")
+        where = catalogue / embedded_bundle.COPIES.get(schema, "bundle/plugins/{id}.toml").format(id="decline")
+        where.parent.mkdir(parents=True, exist_ok=True)
+        where.write_text(copy if copy is not None else (
             '[[service]]\nid = "decline"\nimage = "ghcr.io/lemonfiber/decline"\n'
-            f'tag = "{tag}"\ndigest = "{self.DIGEST}"\n', encoding="utf-8")
+            f'tag = "{tag}"\ndigest = "{self.DIGEST}"\n'), encoding="utf-8")
+        commit_all(catalogue)
+        subprocess.run(["git", "-C", "remotes/lf", "submodule", "add", "-q", str(catalogue), "assets/plugins"],
+                       check=True, capture_output=True)
+        commit_all("remotes/lf")
+        subprocess.run(["git", "clone", "-q", "remotes/lf", "checkouts/lf"], check=True, capture_output=True)
 
-    def check(self, tag, version="0.2.0"):
-        return run_main(check_image_pins, ["--version", version, "--tag", tag, "--stack", "stack.toml"])
 
-    def test_a_stack_pinning_the_tag_and_its_digest_passes(self):
-        self.assertEqual(check_image_pins.problems(self.stack(), "v0.2.0", {"decline": self.DIGEST}), [])
+class CheckImagePinsTests(EmbeddedTests):
+    """The embedded bundle pins each tagged image at its tag and digest — ADR-0033 §4."""
 
-    def test_each_way_a_pin_can_be_wrong_is_named(self):
-        said = check_image_pins.problems(
-            self.stack(tag="v0.2.0-pre.1", digest=self.OTHER, image="ghcr.io/else/decline"),
-            "v0.2.0", {"decline": self.DIGEST})
-        self.assertEqual(len(said), 3)
-        self.assertIn("image is 'ghcr.io/else/decline'", said[0])
-        self.assertIn("not 'v0.2.0'", said[1])
-        self.assertIn("ghcr.io/lemonfiber/decline:v0.2.0 published", said[2])
+    def copy(self, tag="0.2.0", digest=TrainImages.DIGEST, image="ghcr.io/lemonfiber/decline"):
+        return {"service": [{"id": "decline", "image": image, "tag": tag, "digest": digest}]}
 
-    def test_a_service_declared_other_than_once_is_refused(self):
-        self.assertIn("0 times", check_image_pins.problems(
-            self.stack(), "v0.2.0", {"request-gate": self.DIGEST})[0])
-        twice = self.stack()
-        twice["service"].append(dict(twice["service"][1]))
-        self.assertIn("2 times", check_image_pins.problems(twice, "v0.2.0", {"decline": self.DIGEST})[0])
+    def check(self, tag, version="0.2.0", core="checkouts/lf", owner="lemonfiber"):
+        return run_main(check_image_pins, ["--version", version, "--tag", tag, "--core", core, "--owner", owner])
+
+    def test_a_copy_running_the_image_at_the_tag_and_its_digest_passes(self):
+        self.assertEqual(check_image_pins.problems(self.copy(), "ghcr.io/lemonfiber/decline", "v0.2.0",
+                                                   self.DIGEST), [])
+
+    def test_each_way_a_copy_can_be_wrong_is_named(self):
+        said = check_image_pins.problems(self.copy(tag="0.2.0-pre.1", digest=self.OTHER),
+                                         "ghcr.io/lemonfiber/decline", "v0.2.0", self.DIGEST)
+        self.assertEqual(len(said), 2)
+        self.assertIn("pinned at tag '0.2.0-pre.1', not '0.2.0'", said[0])
+        self.assertIn("ghcr.io/lemonfiber/decline:v0.2.0 published", said[1])
+        self.assertEqual(check_image_pins.problems(self.copy(image="ghcr.io/else/decline"),
+                                                   "ghcr.io/lemonfiber/decline", "v0.2.0", self.DIGEST),
+                         ["no service of its copy runs ghcr.io/lemonfiber/decline"])
 
     def test_only_a_tag_the_train_cuts_is_one(self):
         for tag in ("v0.2.0", "v0.2.0-pre.1", "v0.2.0-pre.2.a"):
@@ -482,12 +534,6 @@ class CheckImagePinsTests(TrainImages):
         for reference in ("--output=x", "", "ghcr.io/x:v1 --push"):
             self.assertIn("is not a reference", check_image_pins.digest_of(reference)[1])
 
-    def test_a_stack_outside_the_working_directory_is_refused(self):
-        code, said = run_main(check_image_pins, ["--version", "0.2.0", "--tag", "v0.2.0",
-                                                 "--stack", "/etc/hosts"])
-        self.assertEqual(code, 1)
-        self.assertIn("path escapes the working directory", said)
-
     def test_the_registry_is_asked_for_the_index_digest(self):
         self.assertEqual(check_image_pins.digest_of("ghcr.io/lemonfiber/decline:v0.2.0"), (self.DIGEST, ""))
 
@@ -499,61 +545,100 @@ class CheckImagePinsTests(TrainImages):
             os.environ["DOCKER_REPLY"] = reply
             self.assertIn(said, check_image_pins.digest_of("ghcr.io/lemonfiber/x:v0.2.0")[1])
 
-    def test_main_passes_a_stack_that_pins_the_tag(self):
-        self.write_stack("v0.2.0-pre.1")
-        code, out = self.check("v0.2.0-pre.1")
-        self.assertEqual(code, 0)
-        self.assertIn("decline is pinned at v0.2.0-pre.1", out)
-
-    def write_split(self, tag, include='"services/decline.toml"'):
-        pathlib.Path("stack.toml").write_text(f"schema_version = 1\ninclude = [{include}]\n", encoding="utf-8")
-        pathlib.Path("services").mkdir(exist_ok=True)
-        pathlib.Path("services/decline.toml").write_text(
-            '[[service]]\nid = "decline"\nimage = "ghcr.io/lemonfiber/decline"\n'
-            f'tag = "{tag}"\ndigest = "{self.DIGEST}"\n', encoding="utf-8")
-
-    def test_main_reads_each_service_file_the_root_includes(self):
-        self.write_split("v0.2.0")
+    def test_main_passes_a_core_whose_bundle_pins_the_tag(self):
+        self.core()
         code, out = self.check("v0.2.0")
         self.assertEqual(code, 0, out)
-        self.assertIn("decline is pinned at v0.2.0", out)
+        self.assertIn(f"decline is pinned at v0.2.0, {self.DIGEST}.", out)
 
-    def test_main_names_an_include_it_cannot_read(self):
-        self.write_split("v0.2.0", include='"services/decline.toml", "services/gone.toml", "../outside.toml"')
-        code, out = self.check("v0.2.0")
-        self.assertEqual(code, 1)
-        self.assertIn("the stack includes services/gone.toml, which is not a service file beside it", out)
-        self.assertIn("the stack includes ../outside.toml, which is not a service file beside it", out)
+    def test_main_reads_a_schema_1_copy_where_the_bundle_keeps_one(self):
+        self.core(schema=1)
+        self.assertEqual(self.check("v0.2.0")[0], 0)
 
-    def test_main_refuses_a_stack_it_cannot_parse(self):
-        pathlib.Path("stack.toml").write_text("[[service\n", encoding="utf-8")
-        code, out = self.check("v0.2.0")
-        self.assertEqual(code, 1)
-        self.assertIn("the stack manifest cannot be read", out)
-
-    def test_main_refuses_a_stack_still_on_the_pre_release(self):
+    def test_main_refuses_a_bundle_still_on_the_pre_release(self):
         """The pre-release's digests are not the release's, so the core waits for the repin."""
-        self.write_stack("v0.2.0-pre.1")
+        self.core(tag="0.2.0-pre.1")
+        self.assertEqual(self.check("v0.2.0-pre.1")[0], 0)
         code, out = self.check("v0.2.0")
         self.assertEqual(code, 1)
+        self.assertIn("pinned at tag '0.2.0-pre.1', not '0.2.0'", out)
         self.assertIn("does not pin what v0.2.0 published", out)
 
+    def test_main_refuses_a_pin_from_another_repository(self):
+        self.core(origin="https://github.com/else/lemonfiber-decline")
+        self.assertIn("which the train tagged", self.check("v0.2.0")[1])
+
+    def test_main_names_a_copy_it_cannot_find_or_read(self):
+        self.core(schema=3)
+        self.assertIn("schema 3, which keeps no copy this reads", self.check("v0.2.0")[1])
+        shutil.rmtree("checkouts/lf")
+        shutil.rmtree("remotes")
+        self.core(copy="[[service\n")
+        self.assertIn("decline: its copy cannot be read", self.check("v0.2.0")[1])
+        pathlib.Path("checkouts/lf/assets/plugins/bundle/plugins/decline/plugin.toml").unlink()
+        self.assertIn("holds no copy of it at bundle/plugins/decline/plugin.toml", self.check("v0.2.0")[1])
+
     def test_main_refuses_an_image_the_tag_has_not_published(self):
-        self.write_stack("v0.2.0")
+        self.core()
         os.environ["DOCKER_MISSING"] = "ghcr.io/lemonfiber/decline:v0.2.0"
         code, out = self.check("v0.2.0")
         self.assertEqual(code, 1)
         self.assertIn("ghcr.io/lemonfiber/decline:v0.2.0 is not published", out)
 
-    def test_main_passes_a_version_that_cuts_no_image(self):
-        self.assertEqual(self.check("v0.3.0", version="0.3.0"), (0, "0.3.0 cuts no image the stack has to pin.\n"))
+    def test_main_refuses_a_core_that_embeds_no_catalogue(self):
+        self.repo("checkouts/lf")
+        self.assertIn("embeds no submodule", self.check("v0.2.0")[1])
 
-    def test_main_refuses_what_it_cannot_read(self):
-        self.assertEqual(self.check("v0.2.0")[0], 1, "no stack")
+    def test_main_passes_a_version_that_cuts_no_image(self):
+        self.assertEqual(self.check("v0.3.0", version="0.3.0"), (0, "0.3.0 cuts no image the bundle has to pin.\n"))
+
+    def test_main_refuses_what_it_cannot_ask(self):
         self.assertEqual(self.check("v0.9.0", version="0.9.0")[0], 1, "no manifest")
-        code, said = run_main(check_image_pins, ["--version", "0.2.0", "--tag", "v0.2.0 x", "--stack", "s"])
-        self.assertEqual(code, 1)
-        self.assertIn("is not a tag the train cuts", said)
+        for argv, said in ((("v0.2.0 x",), "is not a tag the train cuts"),
+                           (("v0.2.0", "0.2.0", "/etc"), "path escapes the working directory"),
+                           (("v0.2.0", "0.2.0", "checkouts/lf", "a b"), "is not an organisation")):
+            code, out = self.check(*argv)
+            self.assertEqual(code, 1)
+            self.assertIn(said, out)
+
+
+class EmbeddedBundleTests(EmbeddedTests):
+    """The core reads the schema its embedded bundle is written in — OPS-R35."""
+
+    def compat(self, core="checkouts/lf"):
+        return run_main(embedded_bundle, ["--core", core])
+
+    def test_a_bundle_in_a_schema_the_core_reads_passes(self):
+        self.core()
+        self.assertEqual(self.compat(), (0, "compat ok: the embedded bundle is schema 2, and the core reads 1, 2\n"))
+
+    def test_a_bundle_in_a_schema_the_core_does_not_read_is_refused(self):
+        self.core(schema=3)
+        self.assertEqual(self.compat(), (1, "::error::the embedded bundle is schema 3, and the core reads 1, 2\n"))
+
+    def test_a_core_that_says_nothing_of_what_it_reads_is_refused(self):
+        self.core()
+        reader = pathlib.Path("checkouts/lf", embedded_bundle.READER)
+        reader.write_text("pub const SCHEMAS: [u32; 0] = [];\n", encoding="utf-8")
+        self.assertIn("declares no bundle schema it reads", self.compat()[1])
+        reader.unlink()
+        self.assertIn("declares no bundle schema it reads", self.compat()[1])
+
+    def test_a_core_without_its_catalogue_or_outside_the_tree_is_refused(self):
+        self.repo("checkouts/lf")
+        self.assertIn("embeds no submodule", self.compat()[1])
+        self.assertIn("path escapes the working directory", self.compat("/etc")[1])
+
+    def test_a_copy_is_asked_for_by_plugin_id_alone(self):
+        with self.assertRaisesRegex(embedded_bundle.Unread, "is not a plugin id"):
+            embedded_bundle.copy(pathlib.Path("."), {"schema": 2}, "../decline")
+
+    def test_a_copy_leading_out_of_the_catalogue_is_refused(self):
+        pathlib.Path("catalogue/bundle/plugins").mkdir(parents=True)
+        pathlib.Path("outside").mkdir()
+        pathlib.Path("catalogue/bundle/plugins/decline").symlink_to(pathlib.Path("outside").resolve())
+        with self.assertRaisesRegex(embedded_bundle.Unread, "leads out of the catalogue"):
+            embedded_bundle.copy(pathlib.Path("catalogue"), {"schema": 2}, "decline")
 
 
 class TrainStepTests(TrainImages):
@@ -595,12 +680,13 @@ class TrainStepTests(TrainImages):
         self.assertEqual((tagging, declaring), ("lf\n", "lf\n"))
         self.assertIn("tags lf at v0.2.0", said)
 
-    def test_a_pre_release_tag_is_its_own_first_step(self):
-        """The image carries the pre-release; the release still has to publish its own."""
-        self.stream("lemonfiber-decline", tagged=("v0.2.0-pre.1",))
+    def test_a_pre_release_tags_no_image_repository(self):
+        """It is a first-party plugin, tagged at the version by the release alone (OPS-R86)."""
+        self.stream("lemonfiber-decline")
         self.stream("lf")
+        code, _, output, tagging, declaring = self.step(tag="v0.2.0-pre.1")
+        self.assertEqual((code, output, tagging, declaring), (0, "step=streams\n", "lf\n", "lf\n"))
         self.assertEqual(self.step()[2], "step=images\n")
-        self.assertEqual(self.step(tag="v0.2.0-pre.1")[2], "step=streams\n")
 
     def test_a_plugin_is_tagged_in_the_first_step_beside_the_images(self):
         pathlib.Path("30-repos/repos.toml").write_text(
@@ -617,9 +703,11 @@ class TrainStepTests(TrainImages):
 
     def test_a_pre_release_holds_every_plugin_back(self):
         pathlib.Path("30-repos/repos.toml").write_text(
-            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n', encoding="utf-8")
+            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n\n'
+            '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n', encoding="utf-8")
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lemonfiber-decline", "lf", "plugin-jellyfin"]\n', encoding="utf-8")
+        self.stream("lemonfiber-decline")
         self.stream("plugin-jellyfin")
         self.stream("lf")
         code, _, output, tagging, declaring = self.step(tag="v0.2.0-pre.1")
@@ -667,33 +755,26 @@ class TrainStepTests(TrainImages):
 
 
 class SubmodulePinsTests(Workspace):
-    """Every submodule a tag embeds, named as a manifest pins it — OPS-R35.
+    """Every submodule a tag embeds, named as a manifest pins it — OPS-R35."""
 
-    The fixture is `lemonfiber`'s own `.gitmodules` at `v0.10.0`, the release
-    whose manifest recorded the stack and said nothing about `assets/web`.
-    """
-
-    #: What `v0.10.0` actually declares.
+    #: Two submodules, as the core's `.gitmodules` declares them.
     GITMODULES = (
-        '[submodule "assets/media-stack"]\n'
-        "\tpath = assets/media-stack\n"
-        "\turl = https://github.com/lemonfiber/lemonfiber-media-stack.git\n"
         '[submodule "assets/web"]\n'
         "\tpath = assets/web\n"
         "\turl = https://github.com/lemonfiber/lemonfiber-web.git\n"
+        '[submodule "assets/plugins"]\n'
+        "\tpath = assets/plugins\n"
+        "\turl = https://github.com/lemonfiber/lemonfiber-plugins.git\n"
     )
 
     def test_a_tag_with_two_submodules_yields_both(self):
-        """The defect: 0.10.0 embeds the stack and the web app, and the manifest
-        named only the stack because the workflow named the path it knew."""
         code, out = run_main(submodule_pins, [], stdin=self.GITMODULES)
         self.assertEqual(code, 0)
-        self.assertEqual(out, "lemonfiber-media-stack\tassets/media-stack\n"
-                              "lemonfiber-web\tassets/web\n")
+        self.assertEqual(out, "lemonfiber-web\tassets/web\n"
+                              "lemonfiber-plugins\tassets/plugins\n")
 
     def test_a_pin_is_named_for_the_repository_not_the_path(self):
-        """`lemonfiber-media-stack`, which is the naming the manifests already
-        use — the basename of the url, and the name a reader can look up."""
+        """The basename of the url, and the name a reader can look up."""
         for url in ("https://github.com/lemonfiber/lemonfiber-web.git",
                     "https://github.com/lemonfiber/lemonfiber-web/",
                     "git@github.com:lemonfiber/lemonfiber-web.git"):
@@ -702,8 +783,8 @@ class SubmodulePinsTests(Workspace):
     def test_settings_that_are_not_a_submodule_are_passed_over(self):
         declared = submodule_pins.declared(
             "# a comment\n" + self.GITMODULES + "\tbranch = main\n\tshallow = true\n")
-        self.assertEqual(declared, [("lemonfiber-media-stack", "assets/media-stack"),
-                                    ("lemonfiber-web", "assets/web")])
+        self.assertEqual(declared, [("lemonfiber-web", "assets/web"),
+                                    ("lemonfiber-plugins", "assets/plugins")])
 
     def test_a_value_keeps_no_surrounding_whitespace(self):
         """Taken to the end of the line and trimmed here, rather than by a lazy

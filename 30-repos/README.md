@@ -30,7 +30,6 @@ flowchart TD
         sdkpy["sdk-python<br/>the Python client"]
         homeassistant["integration-home-assistant<br/>lemonfiber in Home Assistant"]
         mcp["integration-mcp<br/>lemonfiber for AI assistants"]
-        stack["lemonfiber-media-stack<br/>retiring"]
         decline["lemonfiber-decline<br/>the decline service"]
         gate["lemonfiber-request-gate<br/>the request gate"]
         plugins["lemonfiber-plugins<br/>the reviewed catalogue"]
@@ -80,7 +79,6 @@ flowchart TD
 | `sdk-python` | [sdk-python.md](sdk-python.md) | Python | An asynchronous and a synchronous client over one generated contract |
 | `integration-home-assistant` | [integration-home-assistant.md](integration-home-assistant.md) | Python | The first program to hold an integration key rather than a person's credential |
 | `integration-mcp` | [integration-mcp.md](integration-mcp.md) | Python | Every tool generated from the contract, so an assistant can do nothing the web API does not offer |
-| `lemonfiber-media-stack` | [lemonfiber-media-stack.md](lemonfiber-media-stack.md) | YAML/TOML | Retiring (ADR-0045): each part is a plugin's repository, and this is archived once the compose cutover reads none of it |
 | `lemonfiber-decline` | [lemonfiber-decline.md](lemonfiber-decline.md) | Rust | An image the stack runs, declared in a plugin.toml of its own; holds one Jellyfin key and answers the household |
 | `lemonfiber-request-gate` | [lemonfiber-request-gate.md](lemonfiber-request-gate.md) | Rust | An image the stack runs, declared in a plugin.toml of its own; holds the \*arr keys and publishes no port |
 | `lemonfiber-plugins` | [lemonfiber-plugins.md](lemonfiber-plugins.md) | TOML | Reviewed and signed, and never a runtime dependency |
@@ -115,7 +113,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those forty-three are the repositories this specification governs, which is not the
+Those forty-two are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))
@@ -138,11 +136,11 @@ governance (`GOV-R2`) and quality (`Q-R1`).
 
 ## The relationships that matter
 
-**`lemonfiber-media-stack` → `lemonfiber` (submodule).** `lemonfiber` embeds a
-pinned commit of `lemonfiber-media-stack` and validates its `schema_version` at
-build time (`ARCH-R6`). They version
-independently; the pin says exactly which stack a given binary ships
-([versioning](../20-architecture/contracts/versioning.md)).
+**`lemonfiber-plugins` → `lemonfiber` (submodule).** `lemonfiber` embeds a
+pinned commit of the catalogue and builds the stack it ships from its default bundle
+and the copy of each first-party plugin it pins
+([bundle.toml](../20-architecture/contracts/bundle.md)). They version independently;
+the pin says exactly which stack a given binary ships.
 
 **`lemonfiber` → `homebrew-tap` (generation).** `lemonfiber`'s release CI regenerates the
 formula once the Homebrew publish job is enabled at `1.0.0` (`L1-R3`). The tap is
@@ -179,9 +177,9 @@ and hand-write only behaviour ([ADR-0014](../00-overview/decisions/0014-one-gene
 
 - **`lemonfiber`** — logic cannot render. The core crate has no UI dependency, so a
   surface can never grow behaviour of its own.
-- **`lemonfiber-media-stack`** — it holds what the bundle has not moved yet, and
-  retires once nothing reads it. The project lemonfiber writes from it runs under
-  plain `docker compose`, which is what makes adopting the tool reversible.
+- **`lemonfiber-plugins`** — the stack is data. The bundle pins every part, and the
+  project lemonfiber writes from it runs under plain `docker compose`, which is what
+  makes adopting the tool reversible.
 - **`homebrew-tap`** — nobody writes it by hand. It holds a placeholder until the
   publish job turns it into generated output, and exists only because Homebrew
   requires a repo of that name.

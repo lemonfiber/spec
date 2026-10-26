@@ -3,11 +3,13 @@
 ADR-0033 §4, OPS-R68, Q-R66.
 
 `train_step.py`, `check_image_pins.py` and `check_bundle_pins.py` are measured in
-`test_release_images.py`. What decides whether a core is tagged over a stack pinning
-another tag's image, or a bundle pinning another release of a plugin, is how
-`execute-version` and `prerelease-version` wire them: which step a run is on, that
-both pin checks run before the core is tagged and refuse what does not pin the tag, and that the tag loop, the declared-version check and the
-pre-release record read the lists the step settled.
+`test_release_images.py`. What decides whether a core is tagged over a bundle pinning
+another tag's image, or another release of a plugin, is how
+`execute-version` and `prerelease-version` wire them: which step a release run is on,
+that both pin checks run before the core is tagged and refuse what does not pin the tag,
+that a pre-release is one run tagging no first-party plugin and reading no pin, and that
+the tag loop, the declared-version check and the pre-release record read the lists
+`train_step.py` wrote.
 
 A run stopped part-way is finished by running it again. The tag loop passes over a
 repository already carrying the tag at the commit it would tag and refuses one
@@ -56,7 +58,12 @@ LANES = {
 }
 
 STEP = "Which step of the train this run is (ADR-0033 §4)"
-PINS = "The embedded stack pins each image at this tag"
+#: The pre-release's one run, which tags no first-party plugin.
+PRE_STEP = "What the pre-release tags (OPS-R86)"
+#: The step in each lane that settles what it tags.
+SETTLES = {"execute-version.yml": STEP, "prerelease-version.yml": PRE_STEP}
+PINS = "The embedded bundle pins each image at this tag"
+COMPAT = "Cross-stream compatibility (OPS-R35"
 BUNDLE = "The embedded bundle pins each first-party plugin at this tag"
 #: The two gates a release and a pre-release both pass before anything is tagged.
 GATES = ("Gate — every goal satisfied", "Gate — no requirement it locks is unbuilt")
@@ -65,11 +72,8 @@ DECLARED = "The repos declare"
 RECORDS = ("Record it on the manifest (OPS-R65)", "Wait for the record to land on main (OPS-R62, OPS-R65)")
 STREAMS_ONLY = f"steps.step.outputs.step == '{train_step.STREAMS}'"
 IMAGES_ONLY = f"steps.step.outputs.step == '{train_step.IMAGES}'"
-#: Each lane's notice for the first step, then for the second.
-NOTICES = {
-    "execute-version.yml": ("Images and plugins tagged", "Tagged"),
-    "prerelease-version.yml": ("Images tagged", "Tagged"),
-}
+#: The release's notice for the first step, then for the second.
+NOTICES = ("Images and plugins tagged", "Tagged")
 CLONE = "Read the manifest and clone its repos"
 HOLD = "Hold the core at the commit its plugins were proved with"
 PLUGINS = "plugins"
@@ -148,27 +152,30 @@ class TheWiring(unittest.TestCase):
     """What each lane reads, and in what order."""
 
     def test_the_step_is_settled_before_anything_reads_it(self):
-        for workflow in LANES:
-            with self.subTest(workflow):
-                self.assertLess(position(workflow, STEP), position(workflow, PINS))
-                self.assertLess(position(workflow, PINS), position(workflow, TAG_LOOP))
+        self.assertLess(position("execute-version.yml", STEP), position("execute-version.yml", PINS))
+        self.assertLess(position("execute-version.yml", PINS), position("execute-version.yml", TAG_LOOP))
+        self.assertLess(position("prerelease-version.yml", PRE_STEP), position("prerelease-version.yml", TAG_LOOP))
 
-    def test_the_pin_check_runs_in_the_second_step_only(self):
-        for workflow in LANES:
-            with self.subTest(workflow):
-                self.assertIn(STREAMS_ONLY, step(workflow, PINS)["if"])
-        self.assertIn(STREAMS_ONLY, step("execute-version.yml", BUNDLE)["if"])
+    def test_the_pin_checks_run_in_the_release_s_second_step_only(self):
+        for name in (PINS, BUNDLE):
+            self.assertIn(STREAMS_ONLY, step("execute-version.yml", name)["if"])
 
     def test_a_release_refuses_on_the_bundle_before_anything_is_tagged(self):
         self.assertLess(position("execute-version.yml", STEP), position("execute-version.yml", BUNDLE))
         self.assertLess(position("execute-version.yml", BUNDLE), position("execute-version.yml", TAG_LOOP))
 
-    def test_a_pre_release_reads_no_bundle_pin(self):
+    def test_a_pre_release_reads_no_bundle_or_image_pin(self):
         """A pre-release is what the plugins are built against, so its bundle may pin them by
         revision alone (OPS-R86), and nothing here asks otherwise."""
         self.assertFalse([one for one in steps("prerelease-version.yml")
-                          if str(one.get("name", "")).startswith(BUNDLE)
-                          or "check_bundle_pins.py" in str(one.get("run", ""))])
+                          if str(one.get("name", "")).startswith((BUNDLE, PINS))
+                          or "check_bundle_pins.py" in str(one.get("run", ""))
+                          or "check_image_pins.py" in str(one.get("run", ""))])
+
+    def test_a_pre_release_is_one_run(self):
+        """It tags no first-party plugin, so nothing it does waits on a step."""
+        self.assertFalse([one["name"] for one in steps("prerelease-version.yml")
+                          if "steps.step.outputs" in str(one)])
 
     def test_a_pre_release_passes_the_gates_a_release_passes(self):
         """The same goal gate and no-stub gate, refusing alike, before anything is recorded or
@@ -179,7 +186,7 @@ class TheWiring(unittest.TestCase):
                 self.assertEqual(ours["run"], theirs["run"])
                 self.assertNotIn("continue-on-error", ours)
                 self.assertNotIn("if", ours)
-                self.assertLess(position("prerelease-version.yml", STEP), position("prerelease-version.yml", name))
+                self.assertLess(position("prerelease-version.yml", PRE_STEP), position("prerelease-version.yml", name))
                 for after in (RECORDS[0], TAG_LOOP):
                     self.assertLess(position("prerelease-version.yml", name), position("prerelease-version.yml", after))
 
@@ -190,18 +197,11 @@ class TheWiring(unittest.TestCase):
                 self.assertIn("done < tagging.txt", step(workflow, TAG_LOOP)["run"])
                 self.assertIn("done < declaring.txt", step(workflow, DECLARED)["run"])
 
-    def test_each_step_ends_on_its_own_notice(self):
+    def test_each_release_step_ends_on_its_own_notice(self):
         """The first step says to run again; only the second says to publish."""
-        for workflow in LANES:
-            with self.subTest(workflow):
-                first, second = (step(workflow, name)["if"] for name in NOTICES[workflow])
-                self.assertIn(IMAGES_ONLY, first)
-                self.assertIn(STREAMS_ONLY, second)
-
-    def test_a_pre_release_is_recorded_in_the_run_that_tags_the_core(self):
-        """The record carries the pins of the core this run tags, which the first step has not settled."""
-        for name in RECORDS:
-            self.assertIn(STREAMS_ONLY, step("prerelease-version.yml", name)["if"])
+        first, second = (step("execute-version.yml", name)["if"] for name in NOTICES)
+        self.assertIn(IMAGES_ONLY, first)
+        self.assertIn(STREAMS_ONLY, second)
 
     def test_a_tag_already_recorded_is_not_recorded_again(self):
         """A re-run after the record reached main goes straight to the check and the tag."""
@@ -209,7 +209,7 @@ class TheWiring(unittest.TestCase):
             self.assertIn("steps.read.outputs.recorded != 'true'", step("prerelease-version.yml", name)["if"])
         self.assertEqual(step("prerelease-version.yml", RECORDED)["if"],
                          "${{ steps.read.outputs.recorded == 'true' }}")
-        for before in (PINS.split(" (")[0], "Read the pins these artefacts will carry"):
+        for before in ("Cross-stream compatibility", "Read the pins these artefacts will carry"):
             self.assertLess(position("prerelease-version.yml", before), position("prerelease-version.yml", RECORDED))
         self.assertLess(position("prerelease-version.yml", RECORDED), position("prerelease-version.yml", TAG_LOOP))
 
@@ -247,12 +247,30 @@ class TheSteps(unittest.TestCase):
             self.git("-C", remote, "tag", tagged)
         self.git("clone", "-q", remote, f"checkouts/{name}")
 
-    def stack(self, tag: str):
-        where = self.root / "checkouts/lemonfiber/assets/media-stack"
-        where.mkdir(parents=True)
-        (where / "stack.toml").write_text(
+    def embed(self, catalogue: str):
+        """The core's checkout embedding the catalogue at `catalogue`, not yet checked out."""
+        self.git("-C", catalogue, "add", "-A")
+        self.git("-C", catalogue, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "bundle")
+        self.git("-C", "checkouts/lemonfiber", "-c", "protocol.file.allow=always", "submodule", "add", "-q",
+                 str(self.root / catalogue), "assets/plugins")
+        self.git("-C", "checkouts/lemonfiber", "-c", "user.email=t@t", "-c", "user.name=t",
+                 "commit", "-q", "-m", "embed")
+        self.git("-C", "checkouts/lemonfiber", "submodule", "deinit", "-q", "--all")
+
+    def bundled(self, tag: str):
+        """The core's checkout embedding a catalogue whose bundle pins decline, its copy
+        running the image at `tag`."""
+        self.stream("lemonfiber")
+        catalogue = "remotes/lemonfiber-plugins"
+        self.git("init", "-q", "-b", "main", catalogue)
+        (self.root / catalogue / "bundle/plugins/decline").mkdir(parents=True)
+        (self.root / catalogue / "bundle/bundle.toml").write_text(
+            'schema = 2\n\n[[plugin]]\nid = "decline"\norigin = "https://github.com/o/lemonfiber-decline"\n',
+            encoding="utf-8")
+        (self.root / catalogue / "bundle/plugins/decline/plugin.toml").write_text(
             f'[[service]]\nid = "decline"\nimage = "ghcr.io/lemonfiber/decline"\n'
-            f'tag = "{tag}"\ndigest = "{DIGEST}"\n', encoding="utf-8")
+            f'tag = "{tag.removeprefix("v")}"\ndigest = "{DIGEST}"\n', encoding="utf-8")
+        self.embed(catalogue)
 
     def run_step(self, workflow: str, starts: str, **extra) -> subprocess.CompletedProcess:
         _, tag = LANES[workflow]
@@ -266,60 +284,65 @@ class TheSteps(unittest.TestCase):
     def read(self, name: str) -> str:
         return (self.root / name).read_text(encoding="utf-8")
 
-    def test_an_untagged_image_makes_the_run_tag_it_alone(self):
-        for workflow in LANES:
-            with self.subTest(workflow):
-                self.fresh()
-                self.stream("lemonfiber")
-                self.stream("lemonfiber-decline")
-                done = self.run_step(workflow, STEP)
-                self.assertEqual(done.returncode, 0, done.stderr)
-                self.assertEqual(self.read("output"), "step=images\n")
-                self.assertEqual(self.read("tagging.txt"), "lemonfiber-decline\n")
+    def test_an_untagged_image_makes_the_release_tag_it_alone(self):
+        self.fresh()
+        self.stream("lemonfiber")
+        self.stream("lemonfiber-decline")
+        done = self.run_step("execute-version.yml", STEP)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(self.read("output"), "step=images\n")
+        self.assertEqual(self.read("tagging.txt"), "lemonfiber-decline\n")
 
-    def test_a_tagged_image_makes_the_run_tag_the_core(self):
-        for workflow, (_, tag) in LANES.items():
-            with self.subTest(workflow):
-                self.fresh()
-                self.stream("lemonfiber")
-                self.stream("lemonfiber-decline", tagged=tag)
-                done = self.run_step(workflow, STEP)
-                self.assertEqual(done.returncode, 0, done.stderr)
-                self.assertEqual(self.read("output"), "step=streams\n")
-                self.assertEqual(self.read("tagging.txt"), "lemonfiber\n")
+    def test_a_tagged_image_makes_the_release_tag_the_core(self):
+        self.fresh()
+        self.stream("lemonfiber")
+        self.stream("lemonfiber-decline", tagged="v0.2.0")
+        done = self.run_step("execute-version.yml", STEP)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(self.read("output"), "step=streams\n")
+        self.assertEqual(self.read("tagging.txt"), "lemonfiber\n")
 
-    def test_the_pin_check_passes_a_stack_pinning_the_tag(self):
-        for workflow, (_, tag) in LANES.items():
-            with self.subTest(workflow):
-                self.fresh()
-                self.stack(tag)
-                done = self.run_step(workflow, PINS)
-                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-                self.assertIn(f"decline is pinned at {tag}", done.stdout)
+    def test_the_pin_check_passes_a_bundle_pinning_the_tag(self):
+        self.fresh()
+        self.bundled("v0.2.0")
+        done = self.run_step("execute-version.yml", PINS, **ALLOWED)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("decline is pinned at v0.2.0", done.stdout)
 
-    def test_the_pin_check_refuses_a_stack_pinning_another_tag(self):
+    def test_the_pin_check_refuses_a_bundle_pinning_another_tag(self):
         """The defect it exists for: a core tagged over another tag's image."""
-        for workflow in LANES:
-            with self.subTest(workflow):
-                self.fresh()
-                self.stack("v0.1.0")
-                done = self.run_step(workflow, PINS)
-                self.assertEqual(done.returncode, 1)
-                self.assertIn("pinned at tag 'v0.1.0'", done.stdout)
+        self.fresh()
+        self.bundled("v0.1.0")
+        done = self.run_step("execute-version.yml", PINS, **ALLOWED)
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("pinned at tag '0.1.0'", done.stdout)
 
     def test_the_pin_check_refuses_an_image_the_tag_has_not_published(self):
+        self.fresh()
+        self.bundled("v0.2.0")
+        done = self.run_step("execute-version.yml", PINS, DOCKER_MISSING="ghcr.io/lemonfiber/decline:v0.2.0",
+                             **ALLOWED)
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("is not published", done.stdout)
+
+    def test_compatibility_is_read_off_the_bundle_the_core_embeds(self):
         for workflow, (_, tag) in LANES.items():
-            with self.subTest(workflow):
-                self.fresh()
-                self.stack(tag)
-                done = self.run_step(workflow, PINS, DOCKER_MISSING=f"ghcr.io/lemonfiber/decline:{tag}")
-                self.assertEqual(done.returncode, 1)
-                self.assertIn("is not published", done.stdout)
+            for reads, code in (("[1, 2]", 0), ("[1]", 1)):
+                with self.subTest(workflow=workflow, reads=reads):
+                    self.fresh()
+                    self.bundled(tag)
+                    reader = self.root / "checkouts/lemonfiber/crates/lemonfiber-bundle/src/lib.rs"
+                    reader.parent.mkdir(parents=True)
+                    reader.write_text(f"pub const SCHEMAS: [u32; 2] = {reads};\n", encoding="utf-8")
+                    done = self.run_step(workflow, COMPAT, **ALLOWED)
+                    self.assertEqual(done.returncode, code, done.stdout + done.stderr)
+                    self.assertIn("the embedded bundle is schema 2", done.stdout)
 
     def test_a_pre_release_tags_no_plugin_repository(self):
-        """The plugin is built against the core's pre-release and tagged at the version by the release."""
+        """The plugin, an image repository included, is built against the core's pre-release
+        and tagged at the version by the release (OPS-R86)."""
         for held in ("", "v0.2.0-pre.1"):
-            with self.subTest(images_tagged=bool(held)):
+            with self.subTest(image_tagged=bool(held)):
                 self.fresh()
                 (self.root / "30-repos/repos.toml").write_text(
                     '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n\n'
@@ -330,10 +353,9 @@ class TheSteps(unittest.TestCase):
                 for name in ("lemonfiber", "plugin-jellyfin"):
                     self.stream(name)
                 self.stream("lemonfiber-decline", tagged=held)
-                done = self.run_step("prerelease-version.yml", STEP)
+                done = self.run_step("prerelease-version.yml", PRE_STEP)
                 self.assertEqual(done.returncode, 0, done.stderr)
-                self.assertNotIn("plugin-jellyfin", self.read("tagging.txt") + self.read("declaring.txt"))
-                self.assertEqual(self.read("tagging.txt"), "lemonfiber\n" if held else "lemonfiber-decline\n")
+                self.assertEqual((self.read("tagging.txt"), self.read("declaring.txt")), ("lemonfiber\n", "lemonfiber\n"))
 
     def test_a_release_tags_each_plugin_repository_in_its_first_step(self):
         self.fresh()
@@ -374,20 +396,16 @@ class TheSteps(unittest.TestCase):
             'schema = 1\n\n[[plugin]]\nid = "jellyfin"\n'
             f'origin = "https://github.com/o/plugin-jellyfin"\nrelease = "{release}"\n'
             f'revision = "{self.head(plugin)}"\n', encoding="utf-8")
-        self.git("-C", catalogue, "add", "-A")
-        self.git("-C", catalogue, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "bundle")
         # The pinned origin is on the forge; here it is a repository beside the core.
         self.forge = {**ALLOWED, "GIT_CONFIG_COUNT": "2",
                       "GIT_CONFIG_KEY_1": f"url.{self.root}/remotes/.insteadOf",
                       "GIT_CONFIG_VALUE_1": "https://github.com/o/"}
-        self.git("-C", "checkouts/lemonfiber", "-c", "protocol.file.allow=always", "submodule", "add", "-q",
-                 str(self.root / catalogue), "assets/plugins")
-        self.git("-C", "checkouts/lemonfiber", "-c", "user.email=t@t", "-c", "user.name=t",
-                 "commit", "-q", "-m", "embed")
-        self.git("-C", "checkouts/lemonfiber", "submodule", "deinit", "-q", "--all")
+        self.embed(catalogue)
 
     def test_the_bundle_check_passes_a_version_cutting_no_plugin(self):
         self.fresh()
+        (self.root / "70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lemonfiber"]\n', encoding="utf-8")
         done = self.run_step("execute-version.yml", BUNDLE, OWNER="o")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertIn("cuts no first-party plugin", done.stdout)
@@ -511,7 +529,7 @@ class TheSteps(unittest.TestCase):
             + recorded, encoding="utf-8")
 
     def test_reading_the_manifest_says_whether_the_tag_is_recorded(self):
-        record = f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n'
+        record = f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ lemonfiber-plugins = "{SHA}" }}\n'
         for recorded, says in (("", "false"), (record, "true")):
             with self.subTest(says):
                 self.fresh()
@@ -524,25 +542,18 @@ class TheSteps(unittest.TestCase):
 
     def test_a_record_naming_the_pins_this_run_embeds_lets_the_tag_go_on(self):
         self.fresh()
-        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n')
-        done = self.run_step("prerelease-version.yml", RECORDED, STEP="streams", PINS=f"stack={SHA}")
+        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ lemonfiber-plugins = "{SHA}" }}\n')
+        done = self.run_step("prerelease-version.yml", RECORDED, PINS=f"lemonfiber-plugins={SHA}")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertIn("tagging without recording again", done.stdout)
 
     def test_a_record_naming_other_pins_is_refused(self):
         """The tag and the record would otherwise describe two builds."""
         self.fresh()
-        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n')
-        done = self.run_step("prerelease-version.yml", RECORDED, STEP="streams", PINS=f"stack={'c' * 40}")
+        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ lemonfiber-plugins = "{SHA}" }}\n')
+        done = self.run_step("prerelease-version.yml", RECORDED, PINS=f"lemonfiber-plugins={'c' * 40}")
         self.assertEqual(done.returncode, 1)
         self.assertIn("::error::v0.2.0-pre.1 is recorded with pins", done.stderr)
-
-    def test_a_record_while_an_image_lacks_the_tag_is_refused(self):
-        self.fresh()
-        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n')
-        done = self.run_step("prerelease-version.yml", RECORDED, STEP="images", PINS=f"stack={SHA}")
-        self.assertEqual(done.returncode, 1)
-        self.assertIn("while an image still lacks it", done.stderr)
 
 
 class TheRecordBranch(unittest.TestCase):
@@ -629,7 +640,7 @@ class ThePluginGateWiring(unittest.TestCase):
             with self.subTest(workflow):
                 held = position(workflow, HOLD)
                 self.assertLess(position(workflow, CLONE), held)
-                self.assertLess(held, position(workflow, STEP))
+                self.assertLess(held, position(workflow, SETTLES[workflow]))
                 self.assertLess(held, position(workflow, TAG_LOOP))
                 self.assertEqual(step(workflow, HOLD)["env"]["CORE"],
                                  "${{ needs.plugins.outputs.core }}")

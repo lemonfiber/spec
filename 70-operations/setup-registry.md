@@ -64,7 +64,6 @@ governance check anything can answer is one nothing has to.
 | `lemonfiber` | `spec-check / spec-check`, `dco / dco` |
 | `brand` | `spec-check / spec-check`, `dco / dco` |
 | `homebrew-tap` | `spec-check / spec-check`, `dco / dco` |
-| `lemonfiber-media-stack` | `gate / gate` |
 | `spec` | `dco` |
 
 Every other required check across the fleet carries `15368` (GitHub Actions), or

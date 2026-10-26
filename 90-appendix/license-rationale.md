@@ -95,8 +95,8 @@ is protected, which is a trademark matter, not a software-freedom one.
 Every service the stack orchestrates is OSI-licensed open source, except the
 images lemonfiber builds from its own code, which carry lemonfiber's own
 licence, `Hippocratic-3.0`, like the rest of its code (`F2-R5`). The authoritative
-per-service licence is the `license` field on each `[[service]]`
-in [`stack.toml`](../30-repos/lemonfiber-media-stack.md#the-service-inventory), which is
+per-service licence is the `license` field in each part's
+[`plugin.toml`](../30-repos/first-party-plugins.md#which-repositories), which is
 what the manifest contract validates; this table groups every one of them
 using the same SPDX identifiers.
 

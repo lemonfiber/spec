@@ -169,21 +169,17 @@ jobs:
   # notice, because a pin is expected to trail a merge and a check that reddens
   # the moment anything lands here is one people route around.
   #
-  # Distance is here because age alone was blind in the direction this repository
-  # actually moves. `brand` and `lemonfiber-media-stack` pinned this file at a
-  # revision 94 commits behind and 13 days old: healthy under a day rule, and old
-  # enough to predate this job, so neither repository ran a pin check at all and
-  # nothing there watched any shared pin. Q-R68 asks for the commits not taken to
-  # be reported, and a count of them is the thing a day cannot stand in for —
-  # 148 commits landed here in the 30 days that rule tolerates.
+  # Distance is here because age alone is blind in the direction this repository
+  # actually moves: a pin a few days old can be dozens of commits behind, far
+  # enough to predate the checks those commits added, this one among them. Q-R68
+  # asks for the commits not taken to be reported, and a count of them is the
+  # thing a day cannot stand in for.
   #
-  # STALE_COMMITS is 75 because the fleet's last coordinated fan-out left every
-  # healthy repository 60 commits behind, and the gap that hid the defect above
-  # was 94. The line goes between the state the fleet was deliberately left in and
-  # the state that hid a job that could not run — about a fortnight of this
-  # repository's history at its measured pace, which is the interval the fan-out
-  # runs at (OPS-R48). `fan_out_pins.py` reads both limits from here, so the
-  # release train brings forward every pin this refuses.
+  # STALE_COMMITS is 75: above the gap a coordinated fan-out leaves a healthy
+  # repository at, and about a fortnight of this repository's history at its
+  # measured pace, which is the interval the fan-out runs at (OPS-R48).
+  # `fan_out_pins.py` reads both limits from here, so the release train brings
+  # forward every pin this refuses.
   pins:
     runs-on: ubuntu-latest
     timeout-minutes: 10

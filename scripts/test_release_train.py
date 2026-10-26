@@ -380,7 +380,7 @@ class SetStatusTests(Workspace):
     def test_main_status_pins_and_missing(self):
         self.manifest("0.1.0")
         code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
-                                          "--pin", "lemonfiber-media-stack=abc"])
+                                          "--pin", "lemonfiber-plugins=abc"])
         self.assertEqual(code, 0)
         self.assertIn('status  = "released"', out)
         self.assertIn("[pins]", out)
@@ -397,7 +397,7 @@ class SetStatusTests(Workspace):
         self.manifest("0.1.0")
         code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
                                           "--released-on", "2026-08-22",
-                                          "--pin", "media-stack=abc"])
+                                          "--pin", "lemonfiber-plugins=abc"])
         self.assertEqual(code, 0)
         self.assertIn('released_on = "2026-08-22"', out)
         # Above [pins], or a line-wise reader files the date as a pin.
@@ -429,7 +429,7 @@ class SetStatusTests(Workspace):
         code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
                                           "--released-on", "2026-08-26",
                                           "--released-as", "0.1.1",
-                                          "--pin", "media-stack=abc"])
+                                          "--pin", "lemonfiber-plugins=abc"])
         self.assertEqual(code, 0)
         read = tomllib.loads(out)
         self.assertEqual(read["released_as"], "0.1.1")
@@ -536,14 +536,14 @@ class PrereleaseRecordTests(Workspace):
 
     def test_a_record_is_written_and_the_status_does_not_move(self):
         self.manifest("0.1.0")
-        code, out = self.record(pins=["lemonfiber-media-stack=abc"])
+        code, out = self.record(pins=["lemonfiber-plugins=abc"])
         self.assertEqual(code, 0, out)
         read = tomllib.loads(out)
         self.assertEqual(read["status"], "staged")
         self.assertNotIn("released_on", read)
         self.assertEqual(read["prerelease"][0]["tag"], "v0.1.0-pre.1")
         self.assertEqual(read["prerelease"][0]["unmet"], [])
-        self.assertEqual(read["prerelease"][0]["pins"]["lemonfiber-media-stack"], "abc")
+        self.assertEqual(read["prerelease"][0]["pins"]["lemonfiber-plugins"], "abc")
 
     def test_a_second_record_joins_the_first_rather_than_replacing_it(self):
         self.manifest("0.1.0")
@@ -563,12 +563,12 @@ class PrereleaseRecordTests(Workspace):
         pathlib.Path("70-operations/versions/0.1.0.toml").write_text(staged, encoding="utf-8")
         code, out = run_main(set_status, ["--version", "0.1.0", "--status", "released",
                                           "--released-on", "2026-09-20",
-                                          "--pin", "lemonfiber-media-stack=999"])
+                                          "--pin", "lemonfiber-plugins=999"])
         self.assertEqual(code, 0, out)
         read = tomllib.loads(out)
         self.assertEqual(read["status"], "released")
         self.assertEqual(len(read["prerelease"]), 1)
-        self.assertEqual(read["pins"]["lemonfiber-media-stack"], "999")
+        self.assertEqual(read["pins"]["lemonfiber-plugins"], "999")
 
     def test_a_tag_for_another_version_is_refused(self):
         self.manifest("0.1.0")

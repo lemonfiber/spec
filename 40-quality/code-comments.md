@@ -41,16 +41,14 @@ Each layer points **one step outward**. Nothing is duplicated, and each has a
 different rate of change: the spec changes on decisions, `.docs/` on
 implementation approach, comments on the code beside them.
 
-`lemonfiber-media-stack` and `homebrew-tap` have **no `.docs/` tree** — they are
-YAML and Ruby, their decisions are product decisions, and those belong in the
-canonical spec.
+`homebrew-tap` has **no `.docs/` tree** — it is Ruby, its decisions are product
+decisions, and those belong in the canonical spec.
 
 `brand` **does** carry a `.docs/` tree, but of a different kind: it holds the
 brand *usage* documentation (colour, typography, logo usage) — the repo's own
 domain docs, not Rust implementation notes. The convention is the same (repo-local
 docs, dotted, not shipped in the npm package); the content is design rather than
-code. So: `lemonfiber` and `brand` have `.docs/`; `lemonfiber-media-stack` and
-`homebrew-tap` don't.
+code. So: `lemonfiber` and `brand` have `.docs/`; `homebrew-tap` doesn't.
 
 ## Scope
 

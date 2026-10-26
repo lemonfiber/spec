@@ -170,10 +170,10 @@ board:
 repos:
     python3 scripts/gen_repos.py
 
-# The bundled-service count this repository states, against the stack that holds
-# them. Reads `lemonfiber-media-stack`'s own manifest over the wire, like `links`
-# already does; `--stack <path>` reads a copy inside this checkout instead, and
-# `--write` rewrites the prose rather than refusing it.
+# The bundled-service count this repository states, against the bundle that pins
+# them. Reads the catalogue's default bundle over the wire, like `links` already
+# does; `--bundle <path>` reads a copy inside this checkout instead, and `--write`
+# rewrites the prose rather than refusing it.
 services *flags:
     python3 scripts/check_services.py {{flags}}
 

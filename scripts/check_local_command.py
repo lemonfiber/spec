@@ -207,9 +207,9 @@ def check(repo: pathlib.Path) -> tuple[list[str], int]:
                  f"{one!r}. Every pull request here starts jobs no clone can run "
                  f"— the citation gate, the sign-off, the subject, the secret "
                  f"scan — so an unqualified claim is false whatever the recipe "
-                 f"grows. Name what it leaves out: in the sentence, the way "
-                 f"lemonfiber-media-stack does — \"Everything CI runs bar the "
-                 f"image check, which needs the network\" — or as a list beside "
+                 f"grows. Name what it leaves out: in the sentence — "
+                 f"\"Everything CI runs bar the image check, which needs the "
+                 f"network\" — or as a list beside "
                  f"the recipe, which is better where there are several (Q-R57)"
             )
     return problems, counted

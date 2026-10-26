@@ -75,10 +75,9 @@ the reason, where every copy takes it at once.
 It is also not byte-identical, and that is the difference from `markdownlint.jsonc`:
 each copy opens with a paragraph saying what *that* repository's scripts are and
 why they are worth linting, because the scripts are different in each. What has to
-agree is the two lists and the width. Six repositories in the map carry one —
-`lemonfiber`, `lemonfiber-media-stack`, `lemonfiber-plugins`, `homebrew-tap`,
-`brand` and this one — and so does every `plugin-*` repository outside it; lists
-that nothing compares agree only until the first is edited.
+agree is the two lists and the width. Every repository with Python to lint carries
+one, in the map and outside it; lists that nothing compares agree only until the
+first is edited.
 
 ## Adoption, and why it is written down
 

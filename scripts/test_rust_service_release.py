@@ -1,6 +1,6 @@
 """`rust-service-release.yml`'s settle step and what it hands on: a commit on main as
 `main-<12 hex>` unless it changes nothing but a pin, or the tag a train cut at the version
-the crate and, where the repository holds one, its plugin.toml declare."""
+the crate and its plugin.toml declare, from a repository that holds one."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ WORKFLOW = TOOLING / ".github/workflows/rust-service-release.yml"
 GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "commit.gpgsign=false",
        "-c", "core.hooksPath=/dev/null")
 SETTLE = "A commit on main, or a tag the train cuts on main at the version the crate and its manifest declare"
+MANIFEST = 'schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.18.0"\n'
 
 
 def step(job: str, named: str) -> str:
@@ -27,7 +28,7 @@ def step(job: str, named: str) -> str:
 
 
 class Settle(unittest.TestCase):
-    """A tag publishes where the crate, and a manifest beside it, declare its version."""
+    """A tag publishes where the crate and the manifest beside it declare its version."""
 
     def setUp(self):
         self.root = pathlib.Path(tempfile.mkdtemp())
@@ -35,7 +36,7 @@ class Settle(unittest.TestCase):
         subprocess.run(["git", "init", "--quiet", "--initial-branch=main"], cwd=self.root, check=True)
         (self.root / "Cargo.toml").write_text('[package]\nname = "decline"\nversion = "0.18.0"\n')
 
-    def settled(self, manifest: str | None = None, tag: str = "v0.18.0", event: str = "push",
+    def settled(self, manifest: str | None = MANIFEST, tag: str = "v0.18.0", event: str = "push",
                 ref: str = "", before: str = "") -> tuple[int, dict, str]:
         if manifest is not None:
             (self.root / "plugin.toml").write_text(manifest)
@@ -57,14 +58,16 @@ class Settle(unittest.TestCase):
         self.sha = sha
         return done.returncode, said, done.stdout + done.stderr
 
-    def test_a_crate_alone_publishes_and_pins_no_manifest(self):
-        code, said, _ = self.settled()
-        self.assertEqual((code, said["image"], said["kind"], said["manifest"]),
-                         (0, "ghcr.io/lemonfiber/decline", "tag", "false"))
+    def test_a_crate_without_a_manifest_publishes_nothing(self):
+        code, said, printed = self.settled(None)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(said, {})
+        self.assertIn("'lemonfiber-decline' holds no plugin.toml", printed)
 
-    def test_a_manifest_at_the_tags_version_is_pinned(self):
-        code, said, _ = self.settled('schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.18.0"\n')
-        self.assertEqual((code, said["manifest"]), (0, "true"))
+    def test_a_manifest_at_the_tags_version_is_published_and_pinned(self):
+        code, said, _ = self.settled()
+        self.assertEqual((code, said["image"], said["kind"], said["tag"]),
+                         (0, "ghcr.io/lemonfiber/decline", "tag", "v0.18.0"))
 
     def test_a_manifest_at_another_version_publishes_nothing(self):
         code, said, printed = self.settled('schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n')
@@ -82,12 +85,12 @@ class Settle(unittest.TestCase):
                 self.assertEqual(said, {})
                 self.assertIn("is not a tag the train cuts", printed)
 
-    def test_a_commit_on_main_publishes_its_commit_image_and_pins_a_manifest_of_any_version(self):
+    def test_a_commit_on_main_publishes_its_commit_image_beside_a_manifest_of_any_version(self):
         code, said, _ = self.settled('schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n',
                                      ref="refs/heads/main")
         self.assertEqual(code, 0)
-        self.assertEqual((said["tag"], said["kind"], said["manifest"], said["publish"]),
-                         (f"main-{self.sha[:12]}", "commit", "true", "yes"))
+        self.assertEqual((said["tag"], said["kind"], said["publish"]),
+                         (f"main-{self.sha[:12]}", "commit", "yes"))
 
     def test_a_commit_on_main_changing_nothing_but_a_pin_publishes_nothing(self):
         manifest = 'schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n'
@@ -105,7 +108,7 @@ class Settle(unittest.TestCase):
                 for path, body in changed.items():
                     (self.root / path).parent.mkdir(parents=True, exist_ok=True)
                     (self.root / path).write_text(body)
-                code, said, printed = self.settled(ref="refs/heads/main", before=before)
+                code, said, printed = self.settled(None, ref="refs/heads/main", before=before)
                 self.assertEqual((code, said["publish"], said["kind"]), (0, publish, "commit"))
                 self.assertEqual("no image is published" in printed, publish == "no")
 
@@ -192,15 +195,16 @@ class Published(workflow_steps.Scratch):
 
 
 class HandedOn(unittest.TestCase):
-    """Only a train tag is told to the stack; both kinds reach the manifest's pin, and
-    the release App's key reaches no job that builds or publishes."""
+    """Every published image reaches the manifest's pin and nothing else, and the release
+    App's key reaches no job that builds or publishes."""
 
     JOBS = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
 
-    def test_only_a_train_tag_tells_the_stack_and_only_what_settle_publishes_is_built(self):
-        self.assertEqual(self.JOBS["pin"]["if"], "needs.settle.outputs.kind == 'tag'")
+    def test_every_published_image_reaches_the_manifest_and_only_what_settle_publishes_is_built(self):
+        self.assertEqual(set(self.JOBS), {"settle", "build", "publish", "manifest"})
         self.assertEqual(self.JOBS["build"]["if"], "needs.settle.outputs.publish == 'yes'")
-        self.assertEqual(self.JOBS["manifest"]["if"], "needs.settle.outputs.manifest == 'true'")
+        self.assertEqual(self.JOBS["manifest"]["needs"], ["settle", "publish"])
+        self.assertNotIn("if", self.JOBS["manifest"])
         self.assertTrue(self.JOBS["manifest"]["uses"].endswith("manifest-pin.yml"))
 
     def test_no_job_that_builds_or_publishes_holds_the_release_key(self):

@@ -2,7 +2,7 @@
 """Coverage tests for the bundled-service count gate — Q-R61, Q-R66.
 
 Most of what follows is a refusal, because a gate is worth what it refuses. The two
-that matter are the silences: a stack manifest that could not be read, and a tree
+that matter are the silences: a bundle that could not be read, and a tree
 holding no governed sentence at all. Both would otherwise read as a pass, and the
 second is the one that fires exactly when the prose format has moved under the gate.
 
@@ -27,7 +27,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import check_services  # noqa: E402
 
-STACK = "\n".join(f'[[service]]\nid = "s{n}"\n' for n in range(20))
+BUNDLE = "schema = 2\n\n" + "\n".join(f'[[plugin]]\nid = "s{n}"\n' for n in range(20))
 
 
 def run(argv: list[str]) -> tuple[int, str]:
@@ -50,8 +50,8 @@ class ServiceCount(unittest.TestCase):
         os.chdir(self.tmp)
         self.addCleanup(lambda: shutil.rmtree(self.tmp, ignore_errors=True))
         self.addCleanup(lambda: os.chdir(self.cwd))
-        self.stack = pathlib.Path("stack.toml")
-        self.stack.write_text(STACK, encoding="utf-8")
+        self.bundle = pathlib.Path("bundle.toml")
+        self.bundle.write_text(BUNDLE, encoding="utf-8")
         (self.tmp / "00-overview" / "decisions").mkdir(parents=True)
 
     def page(self, name: str, body: str) -> pathlib.Path:
@@ -61,17 +61,17 @@ class ServiceCount(unittest.TestCase):
         return page
 
     def gate(self, *extra: str):
-        return run(["--stack", str(self.stack), "--root", ".", *extra])
+        return run(["--bundle", str(self.bundle), "--root", ".", *extra])
 
-    def test_prose_that_agrees_with_the_stack_passes(self):
+    def test_prose_that_agrees_with_the_bundle_passes(self):
         self.page("a.md", "The twenty bundled services it composes.\n")
         code, said = self.gate()
         self.assertEqual(code, 0, said)
         self.assertIn("twenty — 1 page(s) agree", said)
 
-    def test_a_root_is_counted_by_its_include_list_alone(self):
-        entries = ", ".join(f'"services/s{n}.toml"' for n in range(22))
-        self.stack.write_text(f"schema_version = 1\ninclude = [{entries}]\n", encoding="utf-8")
+    def test_each_plugin_the_bundle_pins_is_counted_and_nothing_else(self):
+        pins = "\n".join(f'[[plugin]]\nid = "s{n}"\n' for n in range(22))
+        self.bundle.write_text(f'schema = 2\n\n[[profile]]\nid = "tv"\n\n{pins}', encoding="utf-8")
         self.page("a.md", "The twenty-two bundled services it composes.\n")
         code, said = self.gate()
         self.assertEqual(code, 0, said)
@@ -81,7 +81,7 @@ class ServiceCount(unittest.TestCase):
         self.page("a.md", "The nineteen bundled services it composes.\n")
         code, said = self.gate()
         self.assertEqual(code, 1)
-        self.assertIn("a.md says 'nineteen bundled services'; the stack composes twenty", said)
+        self.assertIn("a.md says 'nineteen bundled services'; the bundle pins twenty", said)
 
     def test_writing_puts_the_computed_word_in(self):
         page = self.page("a.md", "The nineteen bundled services it composes.\n")
@@ -104,21 +104,21 @@ class ServiceCount(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("nothing to check", said)
 
-    def test_a_stack_that_is_not_there_cannot_answer(self):
+    def test_a_bundle_that_is_not_there_cannot_answer(self):
         self.page("a.md", "The twenty bundled services.\n")
-        code, said = run(["--stack", "nowhere.toml", "--root", "."])
+        code, said = run(["--bundle", "nowhere.toml", "--root", "."])
         self.assertEqual(code, 2)
-        self.assertIn("no stack manifest at", said)
+        self.assertIn("no bundle at", said)
 
-    def test_a_stack_that_cannot_be_read_cannot_answer(self):
-        self.stack.write_text("[[service\n", encoding="utf-8")
+    def test_a_bundle_that_cannot_be_read_cannot_answer(self):
+        self.bundle.write_text("[[plugin\n", encoding="utf-8")
         self.page("a.md", "The twenty bundled services.\n")
         code, said = self.gate()
         self.assertEqual(code, 2)
         self.assertIn("cannot be read", said)
 
-    def test_a_stack_composing_nothing_cannot_answer(self):
-        self.stack.write_text("schema_version = 1\n", encoding="utf-8")
+    def test_a_bundle_pinning_nothing_cannot_answer(self):
+        self.bundle.write_text("schema = 2\n", encoding="utf-8")
         self.page("a.md", "The twenty bundled services.\n")
         code, said = self.gate()
         self.assertEqual(code, 2)
@@ -126,17 +126,17 @@ class ServiceCount(unittest.TestCase):
 
     def test_a_path_outside_the_working_tree_is_refused(self):
         self.page("a.md", "The twenty bundled services.\n")
-        code, said = run(["--stack", "/etc/hosts", "--root", "."])
+        code, said = run(["--bundle", "/etc/hosts", "--root", "."])
         self.assertEqual(code, 2)
         self.assertIn("escapes the working directory", said)
 
-    def test_a_stack_the_url_cannot_reach_cannot_answer(self):
+    def test_a_bundle_the_url_cannot_reach_cannot_answer(self):
         self.page("a.md", "The twenty bundled services.\n")
-        code, said = run(["--stack", "https://127.0.0.1:1/stack.toml", "--root", "."])
+        code, said = run(["--bundle", "https://127.0.0.1:1/bundle.toml", "--root", "."])
         self.assertEqual(code, 2)
         self.assertIn("could not read", said)
 
-    def test_a_stack_fetched_over_the_wire_is_read(self):
+    def test_a_bundle_fetched_over_the_wire_is_read(self):
         # The fetch itself is stood in for rather than performed: a suite that
         # reached the network would fail on a runner without one and pass by not
         # asking, which is the silence this gate refuses. What is held here is that
@@ -149,19 +149,19 @@ class ServiceCount(unittest.TestCase):
                 return False
 
             def read(self):
-                return STACK.encode("utf-8")
+                return BUNDLE.encode("utf-8")
 
         self.page("a.md", "The twenty bundled services.\n")
         real = check_services.urllib.request.urlopen
         check_services.urllib.request.urlopen = lambda *_, **__: Answered()
         self.addCleanup(lambda: setattr(check_services.urllib.request, "urlopen", real))
-        code, said = run(["--stack", "https://example.test/stack.toml", "--root", "."])
+        code, said = run(["--bundle", "https://example.test/bundle.toml", "--root", "."])
         self.assertEqual(code, 0, said)
         self.assertIn("1 page(s) agree", said)
 
     def test_more_services_than_counting_words_cannot_answer(self):
-        self.stack.write_text(
-            "\n".join(f'[[service]]\nid = "s{n}"\n' for n in range(99)), encoding="utf-8"
+        self.bundle.write_text(
+            "\n".join(f'[[plugin]]\nid = "s{n}"\n' for n in range(99)), encoding="utf-8"
         )
         self.page("a.md", "The twenty bundled services.\n")
         code, said = self.gate()
@@ -212,13 +212,13 @@ class ServiceCount(unittest.TestCase):
                       worktree.read_text(encoding="utf-8"))
 
 
-class TheStackThisRepositoryDescribes(unittest.TestCase):
-    """The committed prose agrees with the stack, read from a copy rather than the wire.
+class TheBundleThisRepositoryDescribes(unittest.TestCase):
+    """The committed prose agrees with itself, read from the tree rather than the wire.
 
     A suite that reached the network would fail on a runner without one and pass by
     not asking, which is the silence the gate itself refuses. What is asserted here is
     that the tree holds governed sentences at all and that they agree with each other —
-    the comparison against the real stack is the workflow's, where the network is.
+    the comparison against the real bundle is the workflow's, where the network is.
     """
 
     def test_every_governed_sentence_in_the_tree_says_the_same_thing(self):

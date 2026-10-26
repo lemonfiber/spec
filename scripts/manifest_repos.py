@@ -21,7 +21,7 @@ them coinciding is the one that needs no migration.
 
 A version that cuts a repository building one of the stack's own images is cut
 in two steps (ADR-0033 §4): those repositories are tagged first, and the rest once
-the stack the core embeds pins what those tags published. The registry, not the
+the bundle the core embeds pins what those tags published. The registry, not the
 manifest, says which repositories those are: a `[[repo]]` entry in
 `30-repos/repos.toml` carrying `service` builds the image of that stack service.
 Whether a repository builds an image is a fact about the repository, and every
@@ -29,11 +29,12 @@ version that cuts it reads the same answer.
 
 A first-party plugin's repository is tagged in that first step too, where it
 builds an image (OPS-R86): a `[[repo]]` entry carrying `plugin` is `plugin-<id>`,
-and says with `image` whether it builds one. A tag on one that does publishes the
-images the bundle pins, and every version that cuts the core cuts each of those,
-so a manifest not yet released that names the core and leaves one out is refused.
-One that builds none is never tagged: the bundle pins it by revision and tree
-digest (ADR-0045).
+and says with `image` whether it builds one. One that builds none is never tagged:
+the bundle pins it by revision and tree digest (ADR-0045). A repository carrying
+`service` is a first-party plugin that builds an image too, its id the service's.
+A tag on any of them publishes the images the bundle pins at that release, and
+every version that cuts the core cuts each of them, so a manifest not yet released
+that names the core and leaves one out is refused.
 
 Usage:
   manifest_repos.py --version X.Y.Z --for cut|searched|images|plugins|others
@@ -81,6 +82,10 @@ PLUGIN_ID = re.compile(r"\A[a-z][a-z0-9]*(?:-[a-z0-9]+)*\Z")
 #: The registry field saying whether a first-party plugin's repository builds an image,
 #: which is what makes it a stream the train tags (OPS-R86).
 BUILDS = "image"
+
+#: The registry's table of repositories nothing is cut from any more, which a
+#: released manifest may still name.
+RETIRED = "retired"
 
 #: The core's repository: the one whose releases carry the changelog, and whose
 #: every version cuts each first-party plugin.
@@ -158,10 +163,13 @@ def plugin_repos(registry: dict) -> dict[str, str]:
 
 
 def train_plugins(registry: dict) -> dict[str, str]:
-    """The first-party plugins whose repository builds an image, which the train tags."""
+    """The first-party plugins whose repository builds an image, which the train tags:
+    every repository building a stack service's image, by its service, and every
+    `plugin-<id>` saying `image = true`."""
     building = {str(entry.get("name", "")) for entry in registry.get("repo", [])
                 if entry.get(BUILDS) is True}
-    return {name: plugin for name, plugin in plugin_repos(registry).items() if name in building}
+    return {**image_repos(registry),
+            **{name: plugin for name, plugin in plugin_repos(registry).items() if name in building}}
 
 
 def images(data: dict, registry: dict) -> list[tuple[str, str, str]]:
@@ -177,8 +185,8 @@ def plugins(data: dict, registry: dict) -> list[tuple[str, str]]:
 
 
 def first(data: dict, registry: dict) -> list[str]:
-    """Every stream this version tags before the core."""
-    return [*(name for name, _, _ in images(data, registry)), *(name for name, _ in plugins(data, registry))]
+    """Every stream this version tags before the core, the image repositories among them."""
+    return [name for name, _ in plugins(data, registry)]
 
 
 def others(data: dict, registry: dict) -> list[str]:
@@ -194,6 +202,14 @@ def unlisted_plugins(data: dict, registry: dict) -> list[str]:
     if data.get("status") in SETTLED or CORE not in named:
         return []
     return [name for name in train_plugins(registry) if name not in named]
+
+
+def retired_cut(data: dict, registry: dict) -> list[str]:
+    """The retired repositories a manifest not yet released cuts."""
+    if data.get("status") in SETTLED:
+        return []
+    retired = {str(entry.get("name", "")) for entry in registry.get(RETIRED, [])}
+    return [name for name in cut(data) if name in retired]
 
 
 def unlisted(missing: list[str]) -> str:

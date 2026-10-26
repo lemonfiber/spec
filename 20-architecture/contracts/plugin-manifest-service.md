@@ -445,9 +445,9 @@ service, as lemonfiber's own do.
 of its images under the posture its manifest declares, `standard` included, and a
 manifest declares `confined` only where that run passes under it. So whether an image
 survives six capabilities, or a read-only root and none, is answered where the image is
-made. The stack's own images are run under `standard` by the media stack's CI, the CI
-that already runs them to record their claims, before the version that writes them
-ships (`REPO-R93`). lemonfiber writes the posture declared and refuses nothing at run
+made. A bundled part's images are run so by its own repository's CI wherever a change
+moves an image, its digest, its posture, its environment or its user (`REPO-R93`).
+lemonfiber writes the posture declared and refuses nothing at run
 time on account of it (`ARCH-R250`).
 
 **`standard` binds no port below 1024.** None of its six capabilities is
