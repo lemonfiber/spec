@@ -27,8 +27,7 @@ The squash merge writes the body to `main` as the commit message. Done.
 
 To find something to pick up, use the board on lemonfiber.app or `lfdev next`;
 a requirement an open pull request already cites is claimed, so talk to its
-author first. A repository holds at most three open pull requests at once
-([working in the repositories](working-in-the-repositories.md)).
+author first.
 
 ### "I want to change how the product behaves"
 

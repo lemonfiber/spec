@@ -17,7 +17,7 @@
 #         issues: write
 #       uses: lemonfiber/spec/.github/workflows/gates.yml@<sha>
 #       with:
-#         checks: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs cap
+#         checks: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs
 #
 # `gates` holds no write permission and runs every check's steps, each check in
 # an empty workspace, each step only where the steps before it in the same check
@@ -34,7 +34,7 @@ on:
       checks:
         description: The checks this caller runs, by group, separated by spaces.
         type: string
-        default: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs cap
+        default: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs
       skip:
         description: Checks to skip for this event, separated by spaces.
         type: string
@@ -62,7 +62,6 @@ jobs:
       plan--labeler: ${{ steps.plan.outputs.labeler }}
       plan--goals: ${{ steps.plan.outputs.goals }}
       plan--refs: ${{ steps.plan.outputs.refs }}
-      plan--cap: ${{ steps.plan.outputs.cap }}
       spec-check--spec-check--citation--outputs--reason: ${{ steps.spec-check--spec-check--citation.outputs.reason }}
       spec-check--spec-check--citation--outputs--status: ${{ steps.spec-check--spec-check--citation.outputs.status }}
       spec-check--spec-check--reached-7: ${{ (steps.spec-check--spec-check--0.outcome != 'failure') && (steps.spec-check--spec-check--1.outcome != 'failure') && (steps.spec-check--spec-check--2.outcome != 'failure') && (steps.spec-check--spec-check--3.outcome != 'failure') && (steps.spec-check--spec-check--4.outcome != 'failure') && (steps.spec-check--spec-check--5.outcome != 'failure') }}
@@ -79,7 +78,7 @@ jobs:
       env:
         REPO: ${{ github.repository }}
         EVENT: ${{ github.event_name }}
-        KNOWN: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs cap
+        KNOWN: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs
         CHECKS: ${{ inputs.checks }}
         SKIP: ${{ inputs.skip }}
       run: |
@@ -1941,64 +1940,6 @@ jobs:
         fi
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'cap / comment: an empty workspace, as its own runner had'
-      id: cap--comment--fresh
-      if: ${{ (needs.gates.outputs.plan--cap == 'true') && (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot') }}
-      run: find "$GITHUB_WORKSPACE" -mindepth 1 -delete
-    - name: 'cap / comment: Check out spec''s scripts at this workflow''s commit'
-      id: cap--comment--0
-      if: ${{ ((needs.gates.outputs.plan--cap == 'true') && (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot')) }}
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        repository: lemonfiber/spec
-        ref: ${{ job.workflow_sha }}
-        path: .spec-tooling
-        persist-credentials: false
-      continue-on-error: true
-      timeout-minutes: 5
-    - name: 'cap / comment: Write the comment, or nothing'
-      id: cap--comment--1
-      if: ${{ ((needs.gates.outputs.plan--cap == 'true') && (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot')) && (steps.cap--comment--0.outcome != 'failure') }}
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-        PR: ${{ github.event.pull_request.number }}
-      run: |
-        set -euo pipefail
-        gh api "repos/$GH_REPO/pulls?state=open&per_page=100" --paginate --slurp \
-          | jq 'add // []' > pulls.json
-        python3 -E -s .spec-tooling/scripts/pr_cap.py --pulls pulls.json --number "$PR" > comment.md
-      continue-on-error: true
-      timeout-minutes: 5
-    - name: 'cap / comment: Upsert or remove the sticky comment'
-      id: cap--comment--2
-      if: ${{ ((needs.gates.outputs.plan--cap == 'true') && (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.type != 'Bot')) && (steps.cap--comment--0.outcome != 'failure') && (steps.cap--comment--1.outcome != 'failure') }}
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-        PR: ${{ github.event.pull_request.number }}
-        SELF: github-actions[bot]
-      run: |
-        set -euo pipefail
-        id=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
-               --jq '.[] | select(.user.login == env.SELF and (.body | startswith("<!-- pr-cap -->"))) | .id' \
-               | sed -n 1p)
-        if [ -s comment.md ]; then
-          if [ -n "$id" ]; then
-            jq -Rs '{body: .}' comment.md | gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" --input - >/dev/null
-            echo "updated the cap comment $id"
-          else
-            jq -Rs '{body: .}' comment.md | gh api -X POST "repos/$GH_REPO/issues/$PR/comments" --input - >/dev/null
-            echo "commented: the repository is over the cap"
-          fi
-        elif [ -n "$id" ]; then
-          gh api -X DELETE "repos/$GH_REPO/issues/comments/$id" >/dev/null
-          echo "removed the cap comment $id: within the cap"
-        else
-          echo "within the cap; nothing to say"
-        fi
-      continue-on-error: true
-      timeout-minutes: 5
     - name: 'squash-message / explain: Post the explainer'
       id: squash-message--explain--0
       if: ${{ (needs.gates.outputs.plan--squash-message == 'true') && (github.event_name == 'pull_request') && (!cancelled() && needs.gates.outputs.squash-message--squash-message--out--needed != '' && github.event.pull_request.head.repo.full_name == github.repository) }}

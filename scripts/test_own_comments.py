@@ -2,7 +2,7 @@
 """A workflow edits and removes only the comments its own token wrote.
 
 Each sticky comment a workflow keeps on a pull request starts with a marker, an
-HTML comment such as `<!-- pr-cap -->`. Anyone can write that marker into a
+HTML comment such as `<!-- spec-references -->`. Anyone can write that marker into a
 comment of their own, and a reply quoting the sticky comment carries it too. A
 lookup by the marker alone then hands the workflow somebody else's comment: it
 rewrites that comment under its author's name, deletes it as stale, or posts
@@ -67,7 +67,6 @@ fi
 STICKY = {
     "explain": ("explain-check.yml", "explain", "Post the explainer", "<!-- explain:dco -->", True),
     "refs": ("spec-references.yml", "comment", "Upsert the sticky comment", "<!-- spec-references -->", False),
-    "cap": ("pr-cap.yml", "comment", "Upsert or remove the sticky comment", "<!-- pr-cap -->", False),
 }
 
 
@@ -94,12 +93,12 @@ class Sticky(unittest.TestCase):
         stub.chmod(0o755)
         self.log = self.tmp / "gh.log"
 
-    def run_step(self, which: str, comments: list[dict], *, say: str = "the comment", needed: str = "true"):
+    def run_step(self, which: str, comments: list[dict], *, needed: str = "true"):
         workflow, job, name, _, _ = STICKY[which]
         found = step(workflow, job, name)
         self.assertEqual(found["env"].get("SELF"), SELF, f"{workflow} names the account it writes as")
         (self.tmp / "comments.json").write_text(json.dumps(comments), encoding="utf-8")
-        (self.tmp / "comment.md").write_text(say, encoding="utf-8")
+        (self.tmp / "comment.md").write_text("the comment", encoding="utf-8")
         self.log.write_text("", encoding="utf-8")
         env = {
             **os.environ,
@@ -159,9 +158,7 @@ class Sticky(unittest.TestCase):
         marker = STICKY["explain"][3]
         stranger = [comment(11, "someone", f"{marker}\nmine now")]
         self.assertEqual(self.run_step("explain", stranger, needed="false"), [])
-        self.assertEqual(self.run_step("cap", [comment(11, "someone", "<!-- pr-cap -->\nx")], say=""), [])
-        own = self.run_step("cap", [comment(11, "someone", "<!-- pr-cap -->\nx"),
-                                    comment(12, SELF, "<!-- pr-cap -->\ny")], say="")
+        own = self.run_step("explain", [*stranger, comment(12, SELF, f"{marker}\ny")], needed="false")
         self.assertEqual(len(own), 1, own)
         self.assertIn("-X DELETE", own[0])
         self.assertIn("issues/comments/12", own[0])

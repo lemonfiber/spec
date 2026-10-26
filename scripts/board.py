@@ -48,7 +48,7 @@ import status_check
 from catalogue import FEATURES_README
 from catalogue import areas as area_names
 from catalogue import features as load_features
-from claims import CAP, STALE_AFTER, is_bot
+from claims import STALE_AFTER, is_bot
 from integrity import elsewhere
 from manifest_repos import CORE
 from paths import within_cwd
@@ -56,7 +56,7 @@ from patterns import CITE, REQ_DEF_ROW, SPEC_TRAILER, ordered
 
 #: The shape of `board.json`. A field removed, renamed or given another meaning
 #: raises it; a field added does not.
-FORMAT = 1
+FORMAT = 2
 #: Where the core keeps one JSON file per release.
 CHANGELOG = "reference/changelog"
 #: The developer command line, and the file at its root listing every command.
@@ -249,22 +249,19 @@ def tracker_state(name: str, present: dict[str, bool], unread: dict[str, str]) -
 def repos(listed: list[dict], read: set[str], trackers_: list[dict],
           unread: dict[str, str]) -> list[dict]:
     """Every repository in the organisation, the map's and the ungoverned ones,
-    with its open pull requests, how many of them the cap counts, and its tracker.
-    The counts are null for a repository whose pull requests were not read, since
-    nought would say that it holds none."""
+    with how many open pull requests it holds and its tracker. The count is null
+    for a repository whose pull requests were not read, since nought would say
+    that it holds none."""
     data = tomllib.loads(pathlib.Path(REPOS).read_text(encoding="utf-8"))
     present = {t["repo"]: t["present"] for t in trackers_}
     rows = data.get("repo", []) + [{**r, "group": UNGOVERNED} for r in data.get("ungoverned", [])]
     out = []
     for repo in rows:
         own = [p for p in listed if p["repo"] == repo["name"]]
-        counted = sum(not p["bot"] for p in own) if repo["name"] in read else None
         out.append({"name": repo["name"], "group": repo.get("group"),
                     "lang": repo.get("lang"), "note": repo.get("note"),
                     "pages": repo.get("spec", []),
-                    "open_pulls": len(own) if counted is not None else None,
-                    "counted_pulls": counted,
-                    "over_cap": counted > CAP if counted is not None else None,
+                    "open_pulls": len(own) if repo["name"] in read else None,
                     "tracker": tracker_state(repo["name"], present, unread)})
     return out
 
@@ -354,7 +351,7 @@ def snapshot(reading: goals.Reading, ref: str, issues: list[dict],
         "versions": versions(reading),
         "trackers": trackers_,
         "pulls": listed,
-        "claims": {"cap": CAP, "stale_days": STALE_AFTER.days},
+        "claims": {"stale_days": STALE_AFTER.days},
         "contested": contested(reading, listed),
         "repos": repos(listed, set(reading.prs), trackers_, reading.unread),
         "releases": releases(reading, ref),

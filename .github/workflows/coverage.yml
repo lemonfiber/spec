@@ -64,7 +64,6 @@ jobs:
           coverage run --append scripts/test_board.py
           coverage run --append scripts/test_in_flight.py
           coverage run --append scripts/test_claims.py
-          coverage run --append scripts/test_pr_cap.py
           coverage run --append scripts/test_assist.py
           coverage run --append scripts/test_check_agents.py
           coverage run --append scripts/test_reopen_resolved.py

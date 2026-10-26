@@ -50,13 +50,13 @@ answers more questions than the gate and does not stop at the first it cannot.
 
 ## Its shape
 
-`format` names the shape, and is `1`. A field removed, renamed or given another
+`format` names the shape, and is `2`. A field removed, renamed or given another
 meaning raises it; a field added does not, so a reader checks `format`, refuses one
 it does not know, and ignores fields it does not know.
 
 | Field | Holds |
 |---|---|
-| `format` | The shape of the file, `1` |
+| `format` | The shape of the file, `2` |
 | `generated_at` | When it was written, UTC, `YYYY-MM-DDTHH:MM:SSZ` |
 | `ref` | The revision each repository was read at |
 | `sources` | The full commit read of `spec` and of every repository, by name |
@@ -67,9 +67,9 @@ it does not know, and ignores fields it does not know.
 | `versions[]` | Each manifest in train order: `version`, `status`, `milestone`, `delivers`, `released_on`, `released_as`, `repos`, `satisfied_in`, `prereleases`, and `goals` (each with `id`, `verdict` and the evidence `state.json` gives a goal) |
 | `trackers[]` | Each repository a version is satisfied in: `repo`, `present`, and `rows` (each with `id`, `state`, `evidence`, `landed`, and `path`, the file in that repository the row is kept in) |
 | `pulls[]` | Each open pull request in those repositories: `repo`, `number`, `url`, `title`, `author`, `bot`, `draft`, `created_at`, `updated_at`, `head` (its branch), `last_commit_at` (when its newest commit was made), `stale` (a draft with no commit for more than `claims.stale_days` days), and `cites` (the identifiers its body and commits cite in `Spec:` lines) |
-| `claims` | The rules the flags below are drawn by: `cap` (the open pull requests from people and agents a repository may hold, `GOV-R58`) and `stale_days` (the days a draft may go without a commit) |
+| `claims` | The rule the stale flag is drawn by: `stale_days` (the days a draft may go without a commit) |
 | `contested[]` | Each goal of a version not released or yanked that more than one open pull request from people or agents cites: `id`, and `pulls` (each as `repo#number`) |
-| `repos[]` | Each repository in `30-repos/repos.toml`, the map's and the ungoverned ones (group `ungoverned`): `name`, `group`, `lang`, `note`, `pages` (its specification pages), `open_pulls`, `counted_pulls` (those opened by people and agents, which the cap counts), `over_cap` (more than `claims.cap`), the three `null` where its pull requests were not read, `tracker` (`present`, `absent` or `unread`, or `null` where no version is satisfied in it) |
+| `repos[]` | Each repository in `30-repos/repos.toml`, the map's and the ungoverned ones (group `ungoverned`): `name`, `group`, `lang`, `note`, `pages` (its specification pages), `open_pulls` (`null` where its pull requests were not read), `tracker` (`present`, `absent` or `unread`, or `null` where no version is satisfied in it) |
 | `releases[]` | Each release the core's changelog records: `version`, `tag`, `released_on`, `delivers`, and `groups` (each with `title` and `entries`, each entry with `summary`, `requirements` and `reference`) |
 | `proposals[]` | Each Draft feature and Draft requirement, and each open `rfc` issue: `kind`, `id` or `number`, `title`, `url` |
 | `tools[]` | Each command of the developer command line, `lfdev`, as `commands.json` at the root of `tool-lfdev` lists them: `name`, `purpose`. The commit read is `sources["tool-lfdev"]`; a list that cannot be read leaves `tools` empty and names `tool-lfdev` under `unread` |
