@@ -35,7 +35,6 @@ WORKFLOWS = HERE.parent / ".github" / "workflows"
 # Analysis` is not among them: an app posts it, and it does not post on a queue's
 # branch, so `gate / gate` from `sonar` is what `main` requires in its place.
 REQUIRED_FROM = (
-    "attribution",
     "codeql",
     "commitlint",
     "coverage",
@@ -49,11 +48,10 @@ REQUIRED_FROM = (
     "workflow-pins",
 )
 
-# The three shared gates that read a base..head range off the event, and the
+# The two shared gates that read a base..head range off the event, and the
 # step in each that does.
 RANGED = {
     "dco": ("dco", "Check sign-off"),
-    "attribution": ("attribution", "Check the record"),
     "commitlint": ("commitlint", "Lint commit subjects"),
 }
 
@@ -150,7 +148,7 @@ class EveryRequiredWorkflowRunsInTheQueue(unittest.TestCase):
 
 
 class TheRangedGatesReadTheBatch(unittest.TestCase):
-    """dco, attribution and commitlint, on the event that used to skip them."""
+    """dco and commitlint, on the event that used to skip them."""
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())

@@ -289,10 +289,13 @@ def known_at(spec: pathlib.Path, named: str) -> frozenset[str] | None:
     `KNOWN`, or `None` where that file or that list cannot be read once."""
     shown = _git(spec, "show", f"{named}:.github/workflows/{GATES}")
 
-    if shown.returncode != 0:
-        return None
+    return known_in(shown.stdout) if shown.returncode == 0 else None
 
-    found = KNOWN.findall(shown.stdout)
+
+def known_in(gates: str) -> frozenset[str] | None:
+    """The check groups a `gates.yml` declares in its `KNOWN`, or `None` where it
+    declares them other than once."""
+    found = KNOWN.findall(gates)
 
     return frozenset(found[0].split()) if len(found) == 1 else None
 

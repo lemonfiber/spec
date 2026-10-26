@@ -77,7 +77,6 @@ the website is never the only way to do anything (`GOV-R61`).
 - Signed, with the key the repository's history verifies.
 - Ending in a `Spec:` trailer naming what the change serves, and a DCO
   `Signed-off-by` ([DCO](dco.md)).
-- Crediting no tool ([`GOV-R46`](ai-contributors.md)).
 - Through the repository's hooks: a hook is never skipped.
 
 A branch is squashed onto its merge base, `git merge-base HEAD origin/main`,

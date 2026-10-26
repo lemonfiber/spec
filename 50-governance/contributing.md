@@ -87,15 +87,14 @@ in a table at the bottom of its feature doc.
 
 ## What a commit message has to carry
 
-Four things. Each is a separate check, each speaks after a push and a red run,
-and one hook says all four before any of that.
+Three things. Each is a separate check, each speaks after a push and a red run,
+and one hook says all three before any of that.
 
 | Rule | What it looks like | Check |
 |------|--------------------|-------|
 | A conventional subject (**OPS-R21**) | `feat: health-gate service startup` | `commitlint` |
 | A DCO sign-off (**GOV-R29**) | `Signed-off-by: Your Name <you@example.com>` | `dco` |
 | A citation of something in this spec (**GOV-R2**) | `Spec: B2-R1, B2-R2` | `spec-check` |
-| No credit to the tool that wrote it (**GOV-R46**) | no `Co-authored-by:` naming an assistant | `attribution` |
 
 The subject types are `feat fix docs refactor test chore ci perf build style
 revert`, optionally scoped (`feat(api):`) and optionally breaking (`feat!:`). A
@@ -210,6 +209,6 @@ job rather than a reporter's (**GOV-R25**).
 - [change-lifecycle.md](change-lifecycle.md) — the full flow
 - [cross-repo-ci.md](cross-repo-ci.md) — what the bot checks
 - [dco.md](dco.md) — the sign-off, and what it asserts
-- [ai-contributors.md](ai-contributors.md) — **GOV-R46** and the rest of what an assistant is held to
+- [ai-contributors.md](ai-contributors.md) — what an assistant is held to
 - [issue-routing.md](issue-routing.md) — which repo an issue belongs in
 - [40-quality/](../40-quality/) — code standards

@@ -17,7 +17,7 @@
 #         issues: write
 #       uses: lemonfiber/spec/.github/workflows/gates.yml@<sha>
 #       with:
-#         checks: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs
+#         checks: spec-check hygiene workflow-pins security dco commitlint squash-message explain labeler goals refs
 #
 # `gates` holds no write permission and runs every check's steps, each check in
 # an empty workspace, each step only where the steps before it in the same check
@@ -34,7 +34,7 @@ on:
       checks:
         description: The checks this caller runs, by group, separated by spaces.
         type: string
-        default: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs
+        default: spec-check hygiene workflow-pins security dco commitlint squash-message explain labeler goals refs
       skip:
         description: Checks to skip for this event, separated by spaces.
         type: string
@@ -55,7 +55,6 @@ jobs:
       plan--workflow-pins: ${{ steps.plan.outputs.workflow-pins }}
       plan--security: ${{ steps.plan.outputs.security }}
       plan--dco: ${{ steps.plan.outputs.dco }}
-      plan--attribution: ${{ steps.plan.outputs.attribution }}
       plan--commitlint: ${{ steps.plan.outputs.commitlint }}
       plan--squash-message: ${{ steps.plan.outputs.squash-message }}
       plan--explain: ${{ steps.plan.outputs.explain }}
@@ -78,7 +77,7 @@ jobs:
       env:
         REPO: ${{ github.repository }}
         EVENT: ${{ github.event_name }}
-        KNOWN: spec-check hygiene workflow-pins security dco attribution commitlint squash-message explain labeler goals refs
+        KNOWN: spec-check hygiene workflow-pins security dco commitlint squash-message explain labeler goals refs
         CHECKS: ${{ inputs.checks }}
         SKIP: ${{ inputs.skip }}
       run: |
@@ -1385,64 +1384,6 @@ jobs:
         fi
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'attribution / attribution: an empty workspace, as its own runner had'
-      id: attribution--attribution--fresh
-      if: ${{ (steps.plan.outputs.attribution == 'true') }}
-      run: find "$GITHUB_WORKSPACE" -mindepth 1 -delete
-    - name: 'attribution / attribution: actions/checkout'
-      id: attribution--attribution--0
-      if: ${{ ((steps.plan.outputs.attribution == 'true')) }}
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        persist-credentials: false
-        fetch-depth: 0
-      continue-on-error: true
-      timeout-minutes: 10
-    - name: 'attribution / attribution: Check out spec''s scripts at this workflow''s commit'
-      id: attribution--attribution--1
-      if: ${{ ((steps.plan.outputs.attribution == 'true')) && (steps.attribution--attribution--0.outcome != 'failure') && (github.repository != 'lemonfiber/spec') }}
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        persist-credentials: false
-        repository: lemonfiber/spec
-        ref: ${{ job.workflow_sha }}
-        path: .spec-tooling
-      continue-on-error: true
-      timeout-minutes: 10
-    - name: 'attribution / attribution: actions/setup-python'
-      id: attribution--attribution--2
-      if: ${{ ((steps.plan.outputs.attribution == 'true')) && (steps.attribution--attribution--0.outcome != 'failure') && (steps.attribution--attribution--1.outcome != 'failure') }}
-      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-      with:
-        python-version: '3.12'
-      continue-on-error: true
-      timeout-minutes: 10
-    - name: 'attribution / attribution: Check the record'
-      id: attribution--attribution--3
-      if: ${{ ((steps.plan.outputs.attribution == 'true')) && (steps.attribution--attribution--0.outcome != 'failure') && (steps.attribution--attribution--1.outcome != 'failure') && (steps.attribution--attribution--2.outcome != 'failure') }}
-      env:
-        EVENT: ${{ github.event_name }}
-        BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
-        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
-        PR_BODY: ${{ github.event.pull_request.body }}
-      run: |
-        if [ "$GITHUB_REPOSITORY" = "lemonfiber/spec" ]; then
-          scripts=scripts
-        else
-          scripts=.spec-tooling/scripts
-        fi
-        if printf '%s' "$BASE_SHA" | grep -Eq '^[0-9a-f]{40}$' \
-           && printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
-          printf '%s' "$PR_BODY" \
-            | python3 -E -s "$scripts/attribution_check.py" "$BASE_SHA" "$HEAD_SHA" --body-on-stdin
-        elif [ "$EVENT" = "merge_group" ]; then
-          echo "::error::A merge group arrived without a base..head range (base '${BASE_SHA}', head '${HEAD_SHA}'), so the batch was not read. Refusing rather than passing over nothing."
-          exit 1
-        else
-          echo "no PR range; skipping"
-        fi
-      continue-on-error: true
-      timeout-minutes: 10
     - name: 'commitlint / commitlint: an empty workspace, as its own runner had'
       id: commitlint--commitlint--fresh
       if: ${{ (steps.plan.outputs.commitlint == 'true') }}
@@ -1675,8 +1616,8 @@ jobs:
           == ''failure'' || steps.hygiene--shared-files--2.outcome == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'' || steps.hygiene--shared-files--5.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure''
           || steps.hygiene--markdown--markdown-only.outcome == ''failure'' || steps.hygiene--markdown--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'' || steps.workflow-pins--workflow-pins--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome
           == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'' || steps.security--gitleaks--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'' || steps.security--osv-scanner--2.outcome == ''failure'' || steps.security--osv-scanner--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success''
-          }}", "attribution--attribution": "${{ !(steps.plan.outputs.attribution == ''true'' || steps.plan.outputs.attribution == ''false'') && ''unreported'' || !((steps.plan.outputs.attribution == ''true'')) && ''skipped'' || (steps.attribution--attribution--0.outcome == ''failure'' || steps.attribution--attribution--1.outcome == ''failure'' || steps.attribution--attribution--2.outcome == ''failure'' || steps.attribution--attribution--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message":
-          "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--3.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
+          }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--3.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome
+          == ''failure'') && ''failure'' || ''success'' }}"}'
       run: |
         set -euo pipefail
         cd "$RUNNER_TEMP"

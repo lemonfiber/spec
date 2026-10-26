@@ -278,8 +278,8 @@ which is exactly the state a queue waits on. A caller of a required reusable
 therefore runs on `merge_group` and lets the workflow inside decide what it can
 answer.
 
-**A gate that reads a range reads the batch's, and never skips.** `dco`,
-`attribution` and `commitlint` take their range from the merge group there:
+**A gate that reads a range reads the batch's, and never skips.** `dco` and
+`commitlint` take their range from the merge group there:
 `main`'s tip to the commits the queue built, one squash per pull request, which
 is exactly what `main` is about to hold. A merge group that arrives without a
 range fails rather than passing over nothing, because a skipped required check

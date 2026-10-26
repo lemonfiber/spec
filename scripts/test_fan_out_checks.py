@@ -99,7 +99,7 @@ class WhatTheGatesKnow(ARepositoryAndASpec, unittest.TestCase):
 
     def test_the_gates_here_know_every_group_their_generator_writes(self):
         self.assertEqual(
-            fan_out_pins.known_at(fan_out_pins.ROOT, "HEAD"),
+            fan_out_pins.known_in((fan_out_pins.ROOT / ".github" / "workflows" / "gates.yml").read_text(encoding="utf-8")),
             frozenset(check.group for check in gen_gates.CHECKS),
         )
 

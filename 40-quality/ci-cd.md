@@ -305,7 +305,7 @@ step of one job, `gates`:
 - spec-check's reading;
 - the hygiene checks;
 - both security scans;
-- workflow pins, DCO, attribution, commit lint and the squash message;
+- workflow pins, DCO, commit lint and the squash message;
 - what the explainers detect.
 
 Each step runs whatever the steps of other checks concluded, so one run reports
@@ -376,8 +376,7 @@ a generated contract or a source file. A `what changed` job that fails, or finds
 no base to compare against, decides nothing, and every job runs.
 
 The gates that judge documentation run on every change: markdown, links, typos,
-spec references, a tracker's generator check, secret scanning, DCO and
-attribution.
+spec references, a tracker's generator check, secret scanning and DCO.
 
 Each skipped job is skipped by a job-level `if:` rather than by a `paths:`
 filter, so it still reports, as skipped, and a skipped required check satisfies

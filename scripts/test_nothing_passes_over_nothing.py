@@ -39,7 +39,6 @@ SCRIPTS = pathlib.Path(__file__).resolve().parent
 ROOT = SCRIPTS.parent
 sys.path.insert(0, str(SCRIPTS))
 
-import attribution_check  # noqa: E402
 import check_local_command  # noqa: E402
 import check_shared_files  # noqa: E402
 import check_stageable  # noqa: E402
@@ -156,16 +155,6 @@ class EveryGateRefusesAnEmptyCollection(unittest.TestCase):
         self.assertTrue(
             any("locks no goal" in one for one in problems), f"got {problems}"
         )
-
-    def test_a_commit_range_holding_nothing_is_refused(self):
-        was = attribution_check._read
-        self.addCleanup(setattr, attribution_check, "_read", was)
-        attribution_check._read = lambda base, head: ""
-        code, out = said(
-            lambda: attribution_check.main(["attribution_check.py", "a", "b"])
-        )
-        self.assertNotEqual(code, 0)
-        self.assertIn("no commit between", out)
 
     def test_a_canonical_directory_holding_nothing_is_refused(self):
         """Both copy checks read their list from the canonical directory.

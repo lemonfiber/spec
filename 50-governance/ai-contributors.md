@@ -24,12 +24,11 @@ because of its provenance, which is the wrong signal to send about the scrutiny
 everything else already gets. It would also be unenforceable, which is the worst
 property a rule can have: obeyed by the careful, ignored by everyone else, and
 leaving reviewers a field they cannot trust in either direction. Review is there
-for a reason. Rule 5 follows from this rather than qualifying it — if provenance
-is not a property of the change, it does not belong in the history.
+for a reason.
 
 ---
 
-## The five rules
+## The four rules
 
 ### 1. The spec is canonical — cite it
 
@@ -66,24 +65,6 @@ left behind, no suppressed lints. If work remains, it isn't done — meet the
 An agent that cannot complete something says so plainly rather than leaving a
 `TODO`.
 
-### 5. No AI attribution in the record (`GOV-R46`)
-
-Commits carry **no** co-author trailer and no reference to the tool that
-produced them. The work is attributed to its author; how it was written is not
-recorded in the history. Keep commit messages about the change, citing the spec.
-
-The pull request body is part of the record too, because a squash merge writes
-the title and body into the commit that lands on the default branch. A repo
-whose commits are clean and whose bodies are not gets exactly the history this
-forbids, one merge later.
-
-**It is a check rather than a paragraph**, which is the half that was missing
-until 2026-09. Every assistant this repo has hosted adds the trailer by default,
-so a rule stated only in prose is a rule broken by whoever has not read this
-section this week — and the reading happens after the commit. `attribution.yml`
-is where it is now enforced; it anchors on the line, never on the prose, so this
-section can go on naming what it forbids.
-
 ## What an agent should read first
 
 For any repo:
@@ -119,7 +100,7 @@ backward from it.
 |----|-------------|
 | **GOV-R26** | Each repo MUST carry an `AGENTS.md` (the tool-agnostic standard) that points to this document rather than restating it, with `CLAUDE.md` pointing to `AGENTS.md`. The guide MUST NOT be specific to one agent. |
 | **GOV-R27** | AI-generated contributions MUST meet the same standards as any other — citation, comment policy, definition of done — with no exemption for being machine-authored. |
-| **GOV-R46** | A contribution MUST NOT credit the tool that produced it — not in a commit trailer, not in a pull request body, not in a squash message — and the prohibition MUST be enforced by a check rather than stated only in prose. |
+| **GOV-R46** | *Withdrawn: what a contribution credits is its author's to write, and nothing checks it. The number is not reused.* |
 
 ## Related
 

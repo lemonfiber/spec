@@ -167,7 +167,7 @@ class TheClaim(Repo):
         self.justfile(
             "Every gate CI runs, in the order CI runs them.\n"
             "\n"
-            "Four jobs are not here: commitlint, dco, attribution and spec-check,\n"
+            "Three jobs are not here: commitlint, dco and spec-check,\n"
             "each of which the commit-msg hook answers before the push.")
         code, said = run_main(self.tmp)
         self.assertEqual(code, 0, said)
