@@ -26,6 +26,7 @@ id     = "upstream-key"
 of     = "sabnzbd"
 minted = true
 why    = "The key the adapter signs in to SABnzbd with"
+carried_from = { file = "/config/sabnzbd.ini", format = "ini", key = "misc.api_key" }
 
 [[override]]
 id   = "homepage.services"
@@ -56,8 +57,19 @@ and the adapter that `fronts` the service through its `upstream`. A minted secre
 names the plugin's own service it is the credential of, and no recipe captures it. A part moved in place
 keeps the credential its service already answers to, secret by secret, by the adapter's
 `upstream` field each one fills: a `username` or `password` is the account lemonfiber set up
-on the service, and any other is the credential lemonfiber reads from its configuration. The
-move files each under its secret once and mints nothing (`ARCH-R315`). `plugin record` and a proof mint a throwaway one for
+on the service, and any other is the credential the service wrote itself, read from where
+the secret's `carried_from` says. The move files each under its secret once (`ARCH-R315`).
+
+**`carried_from` says where a moved service keeps its own credential.** `file` is a path
+inside the replaced service's container, beneath its `config_path`; `format` is `xml`,
+`json`, `yaml` or `ini`; `key` is the dotted path to the value in that file:
+`Config.ApiKey`, `main.apiKey`, `auth.apikey`, or for `ini` the section and entry,
+`misc.api_key`. The move reads the file from the service's configuration directory on the
+host and refuses one that leads away. Where it holds no value, the move takes the
+credential lemonfiber recorded for the service, and mints one only where neither holds any.
+A minted secret an adapter's `upstream` names under any field but `username` and
+`password`, in a plugin whose service `replaces` a reserved id, declares `carried_from`; a
+manifest whose such secret declares none is refused, naming the secret. `plugin record` and a proof mint a throwaway one for
 their own container, as they take a throwaway copy of its starting files.
 
 **A credential that crosses is read where it is held.** One `F14-R18` or `F14-R20` lets
