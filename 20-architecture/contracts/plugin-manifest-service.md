@@ -323,7 +323,7 @@ WIREGUARD_PRIVATE_KEY = { secret = "wireguard-key" }
 | Value | Written as |
 |-------|------------|
 | A string, an integer or a boolean | A constant: the value exactly as declared |
-| `{ setting = "<name>", default = <constant> }` | The operator's value for that setting, or the default where none is recorded |
+| `{ setting = "<name>", default = <constant> }`, with `recorded_with` where only the operator holds it | The operator's value for that setting, or the default where none is recorded |
 | `{ url_of = "<capability>" }`, with `files` and `native` where needed | `http://<service>:<port>`: the service the ask reaches, at the port it `listens` on |
 | `{ secret = "<name>" }` | The value of the `[[secret]]` the manifest declares by that name, in a file of the service's own and never in the project |
 
@@ -344,6 +344,35 @@ namespaced with its id, as its own capabilities are (`gluetun:countries`), and a
 service's with the service's id. The core publishes two, the same for every service:
 `domain`, the operator's domain, and `lan-host`, the address the household reaches the
 machine at. A setting in any other namespace is refused, naming it (`ARCH-R231`).
+
+**A value only the operator holds is stood in for when recorded.** A setting or secret a
+service needs to start or pass its health check, which lemonfiber cannot mint and only
+the operator can supply, declares `recorded_with`: the stand-in `lemonfiber plugin
+record` gives it in the operator's place. It is a constant that reaches no third party,
+such as an address from a documentation range or the provider a service names `custom`,
+or `minted`, 32 random bytes made for that run alone and written in base64. The recorder
+runs the service with those stand-ins and never with an operator's value, and grants it
+what its `shape` grants as lemonfiber runs it, so CI holds it to starting under its
+posture, passing its health check and answering its probes, and skips nothing
+(`REPO-R93`). Every recording taken that way says so in its note (`ARCH-R336`). The egress
+guard dials a tunnel at a documentation address with keys made for the run; the tunnel
+never comes up, and the guard still starts and answers what it is asked:
+
+```toml
+[service.env]
+VPN_SERVICE_PROVIDER    = { setting = "gluetun:provider", default = "", recorded_with = "custom" }
+WIREGUARD_ENDPOINT_IP   = { setting = "gluetun:endpoint-ip", default = "", recorded_with = "192.0.2.1" }
+WIREGUARD_ENDPOINT_PORT = { setting = "gluetun:endpoint-port", default = "", recorded_with = "51820" }
+WIREGUARD_PUBLIC_KEY    = { setting = "gluetun:endpoint-key", default = "", recorded_with = "minted" }
+WIREGUARD_ADDRESSES     = { setting = "gluetun:addresses", default = "", recorded_with = "10.64.0.2/32" }
+WIREGUARD_PRIVATE_KEY   = { secret = "wireguard-key" }
+
+[[secret]]
+id            = "wireguard-key"
+of            = "gluetun"
+why           = "Dial the tunnel to your VPN provider, which knows this machine by the key"
+recorded_with = "minted"
+```
 
 Settings live in the core's settings store, and the operator reads and changes them from
 the command line, the web surface and the companion's operator screens alike, through
