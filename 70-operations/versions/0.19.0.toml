@@ -36,7 +36,10 @@
 # pass, and the door asks the core about that pass on every request for its bytes. They
 # are the core's and the door's, by the maintainer's decision of 2026-10-12.
 #
-# 67 goals, seeded from the roadmap milestone this version serves;
+# `A5-R15` keeps an import from handing the key of the operator's other stack to anything
+# but the first-party adapter lemonfiber already runs for that service. It is the core's.
+#
+# 68 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -114,6 +117,7 @@ goals   = [
     "D11-R12",
     "D11-R13",
     "ARCH-R292",
+    "A5-R15",
 ]
 
 # `N21-R1` to `N21-R11`, `N3-R1` to `N3-R26` but for the three earlier versions lock,

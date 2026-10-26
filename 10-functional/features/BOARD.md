@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**116 features** in areas A–N, **1844 requirements**.
+**116 features** in areas A–N, **1845 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -97,7 +97,7 @@ code, and the two move independently.
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
 | [A2](a-getting-started/a2-setup-wizard.md) | Setup wizard | A | operator | accepted | `0.18.0`, `0.2.0` |
-| [A5](a-getting-started/a5-migration.md) | Migration from an existing stack | A | operator | accepted | `0.13.0`, `0.18.0` |
+| [A5](a-getting-started/a5-migration.md) | Migration from an existing stack | A | operator | accepted | `0.13.0`, `0.18.0`, `0.19.0` |
 | [B2](b-running/b2-lifecycle.md) | Lifecycle control | B | operator | accepted | `0.15.0`, `0.18.0`, `0.8.0` |
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
