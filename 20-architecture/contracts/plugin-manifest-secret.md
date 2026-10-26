@@ -51,7 +51,11 @@ Unpackerr and Recyclarr declare do, is a credential that crosses (`ARCH-R275`).
 plugin's own service is given rather than one it hands out: lemonfiber makes the value
 at install, before any of the plugin's services first starts, as 32 lowercase hex
 characters from the operating system's random source, and holds it in the secret store
-as `<plugin id>:<secret id>`. Nobody is asked for it and nothing shows it. It reaches the
+as `<plugin id>:<secret id>`. `minted = "password"` declares one for a service whose own
+rules refuse a value of one character class, as an administrator password often is: 32
+characters from the same source, holding at least one uppercase letter, one lowercase
+letter, one digit and one of `-`, `_`, `.` and `~`, which every environment file, URL and
+form takes as written. Nobody is asked for it and nothing shows it. It reaches the
 service through its `env` (`{ secret }`) or a [starting file](plugin-manifest-service.md#a-secret-in-a-starting-file),
 and the adapter that `fronts` the service through its `upstream`. A minted secret's `of`
 names the plugin's own service it is the credential of, and no recipe captures it. A part moved in place
