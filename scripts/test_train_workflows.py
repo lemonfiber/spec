@@ -355,7 +355,7 @@ class TheSteps(unittest.TestCase):
                 self.stream("lemonfiber-decline", tagged=held)
                 done = self.run_step("prerelease-version.yml", PRE_STEP)
                 self.assertEqual(done.returncode, 0, done.stderr)
-                self.assertEqual((self.read("tagging.txt"), self.read("declaring.txt")), ("lemonfiber\n",) * 2)
+                self.assertEqual((self.read("tagging.txt"), self.read("declaring.txt")), ("lemonfiber\n", "lemonfiber\n"))
 
     def test_a_release_tags_each_plugin_repository_in_its_first_step(self):
         self.fresh()
