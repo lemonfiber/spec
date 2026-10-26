@@ -40,6 +40,13 @@ in exactly one case — a fan-out fired the moment the tag was cut — and disag
 silently in the case the dispatch input exists for, which is bringing everything
 up to a number published earlier.
 
+**A check group the gates no longer know leaves the caller with the pin.** The
+gates refuse a caller whose `checks` or `skip` names a group they do not know,
+so a bump moving `gates.yml` past a group's removal drops that name from both
+lists in the same commit, and touches nothing else in the caller (OPS-R92). What
+the gates know is read from `gates.yml` at the tag, its plan step's `KNOWN`,
+and from nowhere else.
+
 Usage:
   fan_out_pins.py --repo <consumer checkout> --spec <spec checkout with tags> --tag vX.Y.Z
   fan_out_pins.py --consumers
@@ -110,6 +117,29 @@ MAIN = "main"
 
 #: Seconds in the days the pin check counts age in.
 DAY = 86400
+
+#: The shared gates. A caller names the check groups it runs, and skips, in its
+#: `checks` and `skip` inputs, and the gates refuse a group they do not know.
+GATES = "gates.yml"
+
+#: Where `gates.yml` declares every group it knows: its plan step's `KNOWN`.
+KNOWN = re.compile(r"^[ \t]+KNOWN:[ \t]*(\S[^\n]*?)[ \t]*$", re.MULTILINE)
+
+#: A caller's `checks` or `skip` input, keyed.
+KEYED = re.compile(r"^[ \t]+(?:checks|skip):")
+
+#: The same input read: a plain scalar on one line, or written empty. A value it
+#: does not match, quoted or folded, is one this does not read.
+LISTED = re.compile(
+    r"^(?P<lead>[ \t]+(?P<key>checks|skip):)[ \t]*"
+    r"(?P<words>''|\"\"|[^\s#'\"|>][^#\n]*?)?(?P<tail>[ \t]*(?:#[^\n]*)?)$"
+)
+
+#: How a list every group has left is written.
+EMPTY = ("''", '""')
+
+#: A job calling the shared gates at any revision.
+CALLS_GATES = re.compile(rf"^(?P<indent>[ \t]*)uses:[ \t]*lemonfiber/spec/\.github/workflows/{re.escape(GATES)}@")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -254,6 +284,67 @@ def rewritten(text: str, workflow: str, was: str, now: str, tag: str) -> str:
     )
 
 
+def known_at(spec: pathlib.Path, named: str) -> frozenset[str] | None:
+    """The check groups `gates.yml` knows at the revision `named`, read from its
+    `KNOWN`, or `None` where that file or that list cannot be read once."""
+    shown = _git(spec, "show", f"{named}:.github/workflows/{GATES}")
+
+    if shown.returncode != 0:
+        return None
+
+    found = KNOWN.findall(shown.stdout)
+
+    return frozenset(found[0].split()) if len(found) == 1 else None
+
+
+def pruned(text: str, known: frozenset[str]) -> tuple[str, list[str]] | None:
+    """`text` with every group `known` does not hold dropped from the `checks`
+    and `skip` of each job calling the shared gates, and what was dropped.
+
+    The gates refuse a caller naming a group they do not know, so a bump that
+    moved the pin past a group's removal and left the name would fail every pull
+    request in the repository. Nothing else in the file is touched. An absent or
+    empty list is left as it is. `None` where a list is written in a form this
+    does not read, or where every group `checks` names would go, since an empty
+    `checks` runs whatever the gates default to rather than nothing.
+    """
+    lines = text.splitlines(keepends=True)
+    said: list[str] = []
+    calls = [(n, len(m["indent"])) for n, line in enumerate(lines) if (m := CALLS_GATES.match(line))]
+
+    for at, indent in calls:
+        start = at
+        while start > 0 and (not lines[start - 1].strip() or _indent(lines[start - 1]) >= indent):
+            start -= 1
+        end = at + 1
+        while end < len(lines) and (not lines[end].strip() or _indent(lines[end]) >= indent):
+            end += 1
+
+        for n in range(start, end):
+            body = lines[n].rstrip("\n")
+            if _indent(body) <= indent or not KEYED.match(body):
+                continue
+            found = LISTED.match(body)
+            if found is None:
+                return None
+            written = found["words"] or ""
+            words = [] if written in EMPTY else written.split()
+            kept = [word for word in words if word in known]
+            if kept == words:
+                continue
+            if found["key"] == "checks" and not kept:
+                return None
+            lines[n] = f"{found['lead']} {' '.join(kept) or EMPTY[0]}{found['tail']}{lines[n][len(body):]}"
+            said.append(f"{found['key']} drops {' '.join(w for w in words if w not in known)}")
+
+    return "".join(lines), said
+
+
+def _indent(line: str) -> int:
+    """How far a line is indented."""
+    return len(line) - len(line.lstrip(" \t"))
+
+
 def commit_named_by(spec: pathlib.Path, tag: str) -> str | None:
     """The revision `tag` names in this checkout, or `None` where it names none.
 
@@ -376,8 +467,20 @@ def bring_forward(
             if after == before:
                 return None
 
+            said = f"{name}: {workflow} {sha[:8]} -> {named[:8]} ({tag})"
+
+            if workflow == GATES:
+                known = known_at(spec, named)
+                cleared = pruned(after, known) if known is not None else None
+
+                if cleared is None:
+                    return None
+
+                after, dropped = cleared
+                said += "".join(f"; {line}, which {GATES} at {tag} does not know" for line in dropped)
+
             path.write_text(after, encoding="utf-8")
-            moved.append(f"{name}: {workflow} {sha[:8]} -> {named[:8]} ({tag})")
+            moved.append(said)
 
     return moved, named
 
@@ -464,7 +567,9 @@ def main() -> int:
     if brought is None:
         print(
             f"::error::could not read the pins in {repo} against the spec checkout at "
-            f"{spec}. A shallow clone cannot answer how far behind a pin is, and a "
+            f"{spec}, or the check groups its gates caller lists against those {GATES} "
+            "knows at the tag. A shallow clone cannot answer how far behind a pin is, a "
+            "list written other than as plain words on one line is not read, and a "
             "fan-out that could not ask must not report a repository as current."
         )
         return 2

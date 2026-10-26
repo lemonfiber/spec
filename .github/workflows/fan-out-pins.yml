@@ -297,7 +297,7 @@ jobs:
             "holds it to. Every spec pin here then moves to the tag, so none is left" \
             "to age into the check's refusal on its own." \
             "" \
-            "Spec: OPS-R48, OPS-R85" \
+            "Spec: OPS-R48, OPS-R85, OPS-R92" \
             "" \
             "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
             >"${work}/message"
@@ -311,9 +311,11 @@ jobs:
             "" \
             "**One pull request, rebuilt for each number.** The fan-out keeps this branch and this pull request, rebuilds the branch from \`main\` when the spec publishes another number, and retitles it, so the checks of the number it replaces are cancelled rather than left running beside it." \
             "" \
-            "**It merges itself.** The fan-out arms it to merge at the commit it made once its required checks pass; \`pin-only\` has already held the change to spec's pins moving forward along \`main\`." \
+            "**It merges itself.** The fan-out arms it to merge at the commit it made once its required checks pass; where it moves spec's pins alone, \`pin-only\` has already held them to moving forward along \`main\`." \
             "" \
-            "Spec: OPS-R48, OPS-R85" \
+            "**A check group the gates at \`${TAG}\` no longer know goes with the pin.** Where this repository lists one in its gates caller's \`checks\` or \`skip\`, the bump drops it, since the gates refuse a group they do not know (OPS-R92). That is more than a pin, so \`pin-only\` waits for \`workflows-approved\` before it merges." \
+            "" \
+            "Spec: OPS-R48, OPS-R85, OPS-R92" \
             "" \
             "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
             >"${work}/body"

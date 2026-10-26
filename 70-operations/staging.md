@@ -580,6 +580,7 @@ implementing them are built per repo.
 | **Release blockers** | A manifest's `blockers` list blocks the releasable flip and execute until it is empty |
 | **Drift watchdog** | A scheduled check flags a locked goal whose requirement was withdrawn or superseded |
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
+| **Retired check groups** | A pin fan-out that moves a repository's `gates.yml` pin drops from its `checks` and `skip` every group the gates at the new pin no longer know |
 | **Bump ordering** | An automated bump does not merge itself while a repository downstream of it is running a required check the merge would discard |
 | **One bump per repository** | An automated bump keeps one pull request per repository on one branch, rebuilt from `main` for each new version and retitled to it, rather than opening another beside it |
 | **The bump's own pull request** | A bump edits or arms only the pull request the release app opened from the repository's own branch, at the commit it just made, through the one shared workflow |
@@ -668,6 +669,24 @@ commit. The pin fan-out runs the same script from this repository. A bump that
 looks for its pull request in a way of its own is a second set of rules, and
 eleven of them are how the lookup above came to be copied.
 
+### A bump takes the check groups the gates still know
+
+A repository calls the shared gates with the groups it runs in `checks` and the
+groups it skips in `skip`, and the gates refuse a word in either that names no
+group they know, so a misspelt name cannot quietly run nothing. When a group
+leaves the gates, a caller still naming it would be refused on every pull request
+the moment its pin moved past the removal.
+
+So the pin fan-out drops such a name in the same bump that moves the pin
+(`OPS-R92`). What the gates know is read from `gates.yml` at the tag the bump
+writes, from its plan step's `KNOWN`, and kept nowhere else. Every other part of
+the caller is left as it is, and so is a list that is absent or empty. A list
+written other than as plain words on one line, or a `checks` the bump would
+empty, is not rewritten: the fan-out names the repository as one it could not
+measure, and the pin there waits for a person. A bump that drops a name changes
+more than spec's pins, so `pin-only` holds it until a maintainer adds
+`workflows-approved`.
+
 ### When a goal cannot be cited
 
 A merged commit cannot gain a `Spec:` trailer. So a change that closed several
@@ -716,6 +735,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep, and MUST arm that pull request to merge itself at the commit it made once its required checks pass. A fan-out a tag starts MUST first wait twenty minutes in an environment that holds no runner, and MUST then go on only where its tag is still the newest; one started by hand with a tag MUST NOT wait and MUST NOT be held to the newest tag. |
 | **OPS-R85** | An automated bump MUST keep at most one open pull request per repository, on one branch it rebuilds from the default branch for each new version and whose pull request it retitles to that version; it MUST NOT open a pull request for a version beside one still open for an earlier version, and a pull request it opened for an earlier version on another branch MUST be closed, pointing at the one that replaces it. |
 | **OPS-R87** | An automated bump MUST edit, retitle or arm to merge only an open, unmerged pull request whose head is its own repository's branch, listed by that repository's owner and branch together, which the release app's bot opened, and whose head is the commit the bump has just put on that branch, with the branch itself at that commit and that commit authored as the release app and verified; it MUST open a pull request only from a branch whose tip is such a commit; it MUST arm auto-merge only where asked and pinned to that commit, MUST switch off auto-merge the pull request carries where asked to disarm it, and MUST leave a pull request's auto-merge as it is where asked for neither; a bump whose change did not come out clean MUST ask to disarm. Anything else MUST fail the run without editing the pull request, naming what was found. Every bump MUST do this through `scripts/rolling_pull_request.py`, which a repository other than this one runs through the shared `rolling-pull-request` workflow. |
+| **OPS-R92** | A pin fan-out that moves a repository's pin on the shared gates MUST drop, in the same pull request, every word of that caller's `checks` and `skip` that the gates at the new pin do not know, MUST read what they know from the gates workflow at that pin, and MUST leave the rest of the caller unchanged; where it cannot read a list, or would leave `checks` empty, it MUST NOT rewrite it and MUST name the repository as one it could not measure. |
 | **OPS-R71** | An automated dependency bump MUST NOT merge itself while a repository that depends on it has an open automated bump whose required checks are still running and which that merge would discard; the deferral MUST be stated on the pull request, naming what it waits on. |
 | **OPS-R49** | A version MUST be released from `main`: the tag names a commit on the trunk, and no long-lived release branch is cut. A hotfix to an already-released version MUST branch from that version's tag and MUST be merged back to `main`. |
 | **OPS-R50** | Staging and progress milestones MUST post to the maintainer channel and execute MUST post to the public announcement channel. |
