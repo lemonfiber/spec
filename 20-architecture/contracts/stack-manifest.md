@@ -189,7 +189,7 @@ media_types = ["tv"]
 | `without_it` | string | ✔ | Consequence of its absence (`F2-R2`) |
 | `reaches` | string | | Where this service's own requests go, in terms an operator would recognise. `""` means it reaches nothing — an answer, not an omission. Both this and `asks_for` or neither (`F2-R10`). |
 | `asks_for` | string | | What it asks for there. Never blank, including for a service that reaches nothing (`F2-R10`). |
-| `media_types` | array | | Which media types it handles; drives root-folder seeding. One or more of `tv`, `movies`, `music`, `books`, `comics`. |
+| `media_types` | array | | Which media types it handles; drives root-folder seeding. One or more of `tv`, `movies`, `music`, `books`, `comics`, `audiobooks`, `podcasts`. |
 | `provides` | array | | The capabilities this service provides, in the published [capability vocabulary](capability-vocabulary.md). A name the vocabulary does not carry fails validation, named (`ARCH-R110`). |
 | `claim` | array of tables | ✔ if `provides` | One per capability in `provides`: the probes that demonstrate it, each bound to a request on this service and a recorded response. See [`[[service.claim]]`](#serviceclaim--the-evidence-for-what-it-provides) (`ARCH-R136`). |
 | `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`), and lemonfiber writes it no Compose entry |
@@ -217,7 +217,7 @@ instead. `depends_on` is read and refused the same way, naming `network.via`
 it drives root-folder seeding, so a service declaring `tv` is one lemonfiber can
 seed with `/data/media/tv` without being told again.
 
-The set is `tv`, `movies`, `music`, `books` and `comics`. It was, until now,
+The set is `tv`, `movies`, `music`, `books`, `comics`, `audiobooks` and `podcasts`. It was, until now,
 written down in exactly one place: the validator's own source. That is the shape
 `F4-R14` objects to for declarations generally — a closed enumeration in
 first-party code that something outside has to match without being able to read
@@ -229,6 +229,12 @@ not be used, and the plugin was left to be aimed by hand on first run.
 vocabulary that only admits what is already bundled is one a plugin cannot
 extend the library with, which is the opposite of what
 [F3](../../10-functional/features/f-extensibility/f3-stack-manifests.md) is for.
+
+Every type but `tv` and `movies` is shelf media. A media server whose adapter declares
+only shelf media is a shelf to the household rather than a library, reached from the
+library and never its front door ([`G5-R15`](../../10-functional/features/g-ux/g5-front-door.md)).
+So a listening server declares `audiobooks` and `podcasts`, which it serves and no
+other type names.
 
 ### `provides` — what it can do, so wiring can ask rather than name
 

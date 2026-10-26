@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**116 features** in areas A–N, **1845 requirements**.
+**116 features** in areas A–N, **1846 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 25 shipped, 44 built, 26 building, 20 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 24 shipped, 44 built, 27 building, 20 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -39,7 +39,6 @@ code, and the two move independently.
 | [F2](f-extensibility/f2-service-catalogue.md) | Service catalogue | F | operator | accepted | `0.15.0` |
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | F | operator | accepted | `0.16.0` |
 | [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | F | operator | accepted | `0.17.0` |
-| [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.17.0` |
 | [G6](g-ux/g6-client-apps.md) | Client app guidance | G | household | accepted | `0.11.0` |
 | [G9](g-ux/g9-mobile-handoff.md) | Mobile client handoff | G | both | accepted | `0.17.0` |
 
@@ -112,6 +111,7 @@ code, and the two move independently.
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.18.0`, `0.19.0`, `0.9.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.18.0`, `0.5.0` |
+| [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.10.0`, `0.11.0`, `0.17.0`, `0.18.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0`, `0.18.0` |
 | [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0`, `0.19.0` |
 | [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0`, `0.19.0`, `1.0.0` |

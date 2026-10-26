@@ -94,8 +94,8 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.17.0",
+      "maturity": "building",
+      "shipped": null,
       "milestones": ["M7", "M8", "M14"],
       "milestone": "M7",
       "priority": null,
@@ -105,7 +105,8 @@
       "versions": [
         {"version": "0.10.0", "status": "released"},
         {"version": "0.11.0", "status": "released"},
-        {"version": "0.17.0", "status": "released"}
+        {"version": "0.17.0", "status": "released"},
+        {"version": "0.18.0", "status": "staged"}
       ],
       "path": "g-ux/g5-front-door.md"
     },

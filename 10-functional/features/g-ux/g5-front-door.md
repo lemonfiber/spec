@@ -5,8 +5,7 @@ kind: feature
 area: G
 audience: both
 status: accepted
-maturity: shipped
-shipped: 0.17.0
+maturity: building
 labels: [cli, ux]
 relates: [C6, D4, D6, G6]
 ---
@@ -66,6 +65,22 @@ The household front door is a LAN address, and lemonfiber shows it prominently â
 after setup, on the dashboard, and in invitations. Where mDNS makes a friendly
 name available, that's preferred over a raw IP, since IPs change and a broken
 bookmark is a support request.
+
+### What a service is to the household is the contract in front of it
+
+Seerr and Jellyfin are what the bundled stack ships, not what the door looks for. A
+service is where asking begins because the adapter in front of it speaks
+`request.intake`, and it is a library because the adapter in front of it speaks
+`media.serve`. Its name and the API it answers in decide nothing, so a substitute
+speaking the same contract is the door the same way. The guard in front of the media
+server is met as the library it guards, under that library's name, because that is
+where the household arrives through it.
+
+Not every media server is somewhere to begin. One whose adapter declares only shelf
+media (`music`, `books`, `comics`, `audiobooks` and `podcasts`) holds one kind of media
+and is reached from the library, so it is a shelf. A media server declaring any other
+media type is a library, and so is one declaring none. A part moved in place of one of
+the stack's services is reached on the port that service was published on.
 
 ### Configuration reflected honestly
 
@@ -128,8 +143,8 @@ second quietly becomes the first.
 | ID | Requirement |
 |----|-------------|
 | **G5-R1** | Exactly one household front door MUST be defined at any time. |
-| **G5-R2** | Seerr MUST be the household front door where a request surface exists. |
-| **G5-R3** | In a library-only configuration, Jellyfin MUST be the household front door. |
+| **G5-R2** | A service fronted by an adapter speaking `request.intake` MUST be the household front door where one exists ([`G5-R15`](g5-front-door.md)). |
+| **G5-R3** | Where no service is fronted by an adapter speaking `request.intake`, the library MUST be the household front door ([`G5-R15`](g5-front-door.md)). |
 | **G5-R4** | Where no household-facing service is running, lemonfiber MUST state that there is no front door rather than substituting one silently. |
 | **G5-R5** | Homepage MUST NOT be presented as a household front door. |
 | **G5-R6** | *Superseded by [G5-R14](g5-front-door.md): an invitation carries the address that declines it beside the front door. The number is not reused.* |
@@ -141,6 +156,7 @@ second quietly becomes the first.
 | **G5-R12** | The front door MUST be configurable, with consequences stated. |
 | **G5-R13** | "Service unreachable" MUST be distinguished from "network unreachable". |
 | **G5-R14** | Invitations MUST contain the household front door address, the address that declines the invitation ([`D6-R15`](../d-content/d6-household-identity.md)) and, where the core mints one, the join link the companion opens ([`D6-R22`](../d-content/d6-household-identity.md)), and nothing else. |
+| **G5-R15** | What a service is to the household MUST be judged by the contract the adapter in front of it speaks, and never by its name or the API it answers in. A service whose adapter speaks `request.intake` is where asking begins. One whose adapter speaks `media.serve` is a shelf, never the front door, where every media type the adapter declares is shelf media (`music`, `books`, `comics`, `audiobooks`, `podcasts`), and is the library otherwise, including where it declares none. |
 
 ## Related
 
