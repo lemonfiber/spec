@@ -54,22 +54,21 @@ port forwarding exists to buy.
 state it answers a read of its whole configuration to anyone who can reach it, including the
 indexer accounts it holds and their keys. An indexer account is an account somebody paid
 for. Loopback binding keeps the network out, but not every other container on the stack's
-network, a plugin's among them. So lemonfiber turns authentication on: it names an
-administrator, generates the password, and records it under the service's own
-administrator-password setting (`NZBHYDRA2_ADMIN_PASSWORD`), as it does for the media server.
-It then proves the change by asking the same read again presenting nothing, and being
-refused (`D1-R22`). The connections that reach NZBHydra2 with its API key are not affected:
-the key is a separate credential, and nothing that searches through it changes.
+network, a plugin's among them. So lemonfiber claims it over `owner.claim@1`: its plugin mints
+an administrator and a password and hands them to the adapter in front of it, and lemonfiber
+asks that adapter to claim NZBHydra2 at install and on every seed. The plugin's proof shows a
+read of the configuration presenting nothing is refused (`D1-R22`). The connections that
+reach NZBHydra2 with its API key are not affected: the key is a separate credential, and
+nothing that searches through it changes.
 
-An NZBHydra2 already running with no authentication, which is every stack seeded before
-this, is adopted rather than rebuilt. Authentication is turned on in place, keeping every
-indexer, setting and history it holds, and the indexers it held before are read back
-afterwards (`D1-R23`). An operator who later turns it off, or changes it, has made a choice.
-Seed keeps that choice and reports it as drift, like any other value (`D1-R3`, `D1-R24`). The
-doctor still says what that choice exposes (`D1-R26`), and a reset turns authentication back
-on. A password lemonfiber no longer holds, or one NZBHydra2 refuses, is reported as refused,
-naming the setting. lemonfiber never turns authentication off, or replaces the service's
-administrator, to get back in (`D1-R25`).
+An NZBHydra2 that moves in place from the stack's own keeps the administrator lemonfiber
+already set on it: the move files that account under the plugin's secrets, and every indexer,
+setting and history it holds stays as it was (`D1-R23`). An operator who later turns
+authentication off has made a choice. Seed keeps that choice and reports it as drift, like
+any other value (`D1-R3`, `D1-R24`). The doctor still says when nobody holds it (`D1-R26`),
+and a reset claims it back. One held by an administrator lemonfiber does not hold is reported
+as refused, naming the plugin's secret. lemonfiber never turns authentication off, or
+replaces the service's administrator, to get back in (`D1-R25`).
 
 ### The wiring graph
 
@@ -252,11 +251,11 @@ Per connection:
 | **D1-R19** | The request service MUST reach each fulfilling \*arr and Jellyfin only through the request gate: each \*arr MUST be registered with it at the gate's route for that \*arr and with the token lemonfiber minted for that route, never with the \*arr's own key, and it MUST be left holding no Jellyfin API key and no Jellyfin administrator's session ([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
 | **D1-R20** | Once the request service is initialised, lemonfiber MUST authenticate to it with the request service's own API key and MUST NOT send it the media server administrator's password; the password the initialising sign-in carried MUST be rotated once that sign-in completes. |
 | **D1-R21** | Where the request service is found holding a credential of an \*arr or of Jellyfin, lemonfiber MUST move it to the request gate and prove the move through the request service before revoking anything, MUST then revoke or rotate every credential the request service held, and MUST report any consumer the rotation could not update. |
-| **D1-R22** | Seeding MUST turn on NZBHydra2's authentication, with an administrator lemonfiber names and a password it generates and records under that service's own administrator-password setting, and MUST then prove that a read of its configuration or of the indexers it holds, presenting nothing, is refused. |
-| **D1-R23** | Where NZBHydra2 is found running without authentication that lemonfiber has no record of having set, seeding MUST turn it on without removing or changing any indexer, setting or history the service holds, and MUST prove after the change that every indexer it held before is still held. |
-| **D1-R24** | Where authentication lemonfiber turned on in NZBHydra2 has since been turned off or changed, seeding MUST keep it and report it as drift, and a reset MUST turn it back on. |
-| **D1-R25** | Where the password lemonfiber recorded for NZBHydra2 is missing or refused, seeding MUST report the connection as refused, naming the setting, and MUST NOT turn the service's authentication off or replace its administrator. |
-| **D1-R26** | The doctor MUST report an NZBHydra2 that answers a read of its configuration to a caller presenting nothing, naming the service, what the read exposes, and that a seed or a reset turns its authentication on. |
+| **D1-R22** | lemonfiber MUST claim NZBHydra2 over `owner.claim@1` at install and on every seed, with an administrator and a password its plugin mints and hands to the adapter in front of it (`ARCH-R328`, `ARCH-R329`), and the plugin MUST prove that a read of its configuration presenting nothing is refused. |
+| **D1-R23** | Where NZBHydra2 moves in place from the stack's own, the move MUST file the administrator and password lemonfiber set on it under its plugin's secrets (`ARCH-R315`) and MUST NOT remove or change any indexer, setting or history the service holds. |
+| **D1-R24** | Where NZBHydra2 that lemonfiber claimed is found open again, seeding MUST keep it and report it as drift, and a reset MUST claim it back. |
+| **D1-R25** | Where NZBHydra2 is held by an administrator other than the one lemonfiber holds, seeding MUST report it as refused naming the plugin's secret, and MUST NOT turn the service's authentication off or replace its administrator. |
+| **D1-R26** | The doctor MUST report an NZBHydra2 that nobody holds or that somebody else holds, naming the service and that a seed or a reset claims it. |
 
 ## Related
 
