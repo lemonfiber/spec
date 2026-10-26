@@ -1,39 +1,30 @@
 #!/usr/bin/env python3
-"""The bundled-service count this repository states, against the stack that holds them.
+"""The bundled-service count this repository states, against the bundle that pins them.
 
-Ten pages said "nineteen services" and a twentieth had shipped. Nothing here read
-the stack manifest, so nothing went red, and correcting them by hand only reset the clock:
-the stack repository guards its own prose against its own manifest, and the spec held
-no copy to guard against.
+The default bundle in `lemonfiber-plugins` pins one first-party plugin per bundled
+part (ADR-0042), so the number of its `[[plugin]]` tables is the number of bundled
+services. The prose that states it is held to one shape — `<word> bundled services`
+— which is the whole of what this reads. A sentence that says it differently is not
+governed here: a pattern loose enough to catch every phrasing catches sentences
+about other things, and a gate that rewrites the wrong sentence is worse than one
+that never ran.
 
-So the number is computed, and the prose that states it is held to one shape —
-`<word> bundled services` — which is the whole of what this reads. A sentence that
-says it differently is not governed here, and that is deliberate: a pattern loose
-enough to catch every phrasing catches sentences about other things, and a gate that
-rewrites the wrong sentence is worse than one that never ran.
+**Two silences are refused rather than tolerated**, because both would read as a
+pass: a bundle that could not be read, and a tree in which no governed sentence was
+found. A checker that finds no prose to compare passes in exactly the case where the
+format changed under it.
 
-**Two silences are refused rather than tolerated**, because both would read as a pass:
-a manifest that could not be read, and a tree in which no governed sentence was found.
-The second is the one that matters. A checker that finds no prose to compare passes in
-exactly the case where the format changed under it, which is the shape this repository
-has found in four rules and keeps finding.
+**Decision records are left alone.** An ADR is immutable — superseded, never edited
+— and what it says about the count was true when it was written.
 
-**Decision records are left alone.** An ADR is immutable — superseded, never edited —
-and what it says about nineteen services was true when it was written. Rewriting one to
-match today would be falsifying the record this section exists to keep.
-
-**Which stack, and why not the pinned one.** This reads the stack repository's default
-branch rather than the commit a release embedded. The spec describes the product as it
-stands; what each release shipped is already recorded, per release, in the `[pins]` of
-its version manifest. Reading a pin here would have made this demand "nineteen" today —
-`0.14.0` embeds nineteen services and the stack now holds twenty — so the gate would
-have been green against a stale input and red against the correct prose, which is the
-failure it exists to prevent rather than a version of it.
+**The bundle on the catalogue's default branch, not a pinned one.** The spec
+describes the product as it stands; what each release shipped is recorded, per
+release, in the `[pins]` of its version manifest.
 
 Usage:
-  check_services.py [--stack PATH|URL] [--root PATH] [--write]
+  check_services.py [--bundle PATH|URL] [--root PATH] [--write]
 
-Exit 0 = every governed sentence agrees with the stack; 1 = named ones do not;
+Exit 0 = every governed sentence agrees with the bundle; 1 = named ones do not;
 2 = the question could not be answered.
 """
 from __future__ import annotations
@@ -46,11 +37,10 @@ import tomllib
 import urllib.error
 import urllib.request
 
-import stack_manifest
 from integrity import elsewhere
 
-#: Where the stack says what it composes, when nobody names a copy.
-STACK = "https://raw.githubusercontent.com/lemonfiber/lemonfiber-media-stack/main/stack.toml"
+#: Where the default bundle says what it pins, when nobody names a copy.
+BUNDLE = "https://raw.githubusercontent.com/lemonfiber/lemonfiber-plugins/main/bundle/bundle.toml"
 
 #: Counting words, because the prose counts in words. Shared shape with
 #: `gen_repos.py`'s, and deliberately its own copy: that one counts repositories
@@ -94,25 +84,25 @@ def within_cwd(raw: str) -> pathlib.Path:
 
     The same guard `gate.py` holds its arguments to. A gate that will read a file
     anywhere on the machine is a gate somebody can point at one — and the ordinary
-    way to read a stack that lives elsewhere is the address, which is the default.
+    way to read a bundle that lives elsewhere is the address, which is the default.
     """
     path = pathlib.Path(raw).resolve()
     if not path.is_relative_to(pathlib.Path.cwd().resolve()):
         print(
-            f"::error::path escapes the working directory: {raw}. Read the stack over "
+            f"::error::path escapes the working directory: {raw}. Read the bundle over "
             "the wire, or from a copy inside this checkout."
         )
         raise SystemExit(2)
     return path
 
 
-def read_stack(where: str) -> str:
-    """The manifest, from a path or over the wire. Unreadable is never empty."""
+def read_bundle(where: str) -> str:
+    """The bundle, from a path or over the wire. Unreadable is never empty."""
     if not where.startswith("https://"):
         local = within_cwd(where)
         if local.is_file():
             return local.read_text(encoding="utf-8")
-        print(f"::error::no stack manifest at {where}")
+        print(f"::error::no bundle at {where}")
         raise SystemExit(2)
     try:
         with urllib.request.urlopen(where, timeout=30) as answer:
@@ -123,34 +113,24 @@ def read_stack(where: str) -> str:
 
 
 def services(text: str) -> int:
-    """How many services the manifest composes, refusing a manifest that holds none.
-
-    The root's `include` list alone decides what the stack holds (ARCH-R171), so
-    the root is all this reads; a manifest from before the split counts its
-    inline `[[service]]` tables.
-    """
+    """How many parts the bundle pins, refusing a bundle that pins none."""
     try:
-        composed = stack_manifest.members(tomllib.loads(text))
+        pinned = tomllib.loads(text).get("plugin", [])
     except tomllib.TOMLDecodeError as broken:
-        print(f"::error::the stack manifest cannot be read: {broken}")
+        print(f"::error::the bundle cannot be read: {broken}")
         raise SystemExit(2) from broken
-    if not composed:
-        print("::error::the stack manifest composes no service; this read the wrong file")
+    if not pinned:
+        print("::error::the bundle pins no plugin; this read the wrong file")
         raise SystemExit(2)
-    return composed
+    return len(pinned)
 
 
 def governed(root: pathlib.Path) -> list[pathlib.Path]:
     """Every page holding a governed sentence, decision records excepted.
 
     Which pages are this repository's is `integrity.elsewhere`'s question and is
-    asked rather than answered again here. This skipped `.git` alone, so a
-    checkout under `checkouts/` — which the justfile tells people to make, and
-    which `execute-version` makes nine of — was read as this repository's prose.
-    One tracker there states the bundled count, so `just ci` could go red naming
-    a file in another repository, and `--write` would have rewritten it inside
-    somebody else's git repository, where `.gitignore` means nothing would ever
-    have said so.
+    asked rather than answered again here, so a checkout under `checkouts/` is
+    never read, or rewritten, as this repository's prose.
     """
     found = []
     for page in sorted(root.rglob("*.md")):
@@ -162,14 +142,14 @@ def governed(root: pathlib.Path) -> list[pathlib.Path]:
 
 
 def disagreements(pages: list[pathlib.Path], root: pathlib.Path, said: str) -> list[str]:
-    """Each governed sentence that states something other than what the stack holds."""
+    """Each governed sentence that states something other than what the bundle pins."""
     wrong = []
     for page in pages:
         for stated in SENTENCE.findall(page.read_text(encoding="utf-8", errors="ignore")):
             if stated != said:
                 wrong.append(
                     f"{page.relative_to(root)} says '{stated} bundled services'; "
-                    f"the stack composes {said}"
+                    f"the bundle pins {said}"
                 )
     return wrong
 
@@ -188,13 +168,13 @@ def rewrite(pages: list[pathlib.Path], said: str) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--stack", default=STACK, help="the stack manifest, as a path or a URL")
+    ap.add_argument("--bundle", default=BUNDLE, help="the bundle, as a path or a URL")
     ap.add_argument("--root", default=".", help="the spec checkout to read")
     ap.add_argument("--write", action="store_true", help="rewrite rather than refuse")
     a = ap.parse_args()
 
     root = within_cwd(a.root)
-    said = word(services(read_stack(a.stack)))
+    said = word(services(read_bundle(a.bundle)))
     pages = governed(root)
     if not pages:
         print(
@@ -213,11 +193,11 @@ def main() -> int:
         print(f"::error::{one}")
     if wrong:
         print(
-            "::error::the stack is the source of this number; run "
+            "::error::the bundle is the source of this number; run "
             "`just services` rather than editing the prose."
         )
         return 1
-    print(f"services: {said} — {len(pages)} page(s) agree with the stack")
+    print(f"services: {said} — {len(pages)} page(s) agree with the bundle")
     return 0
 
 

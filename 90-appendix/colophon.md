@@ -14,11 +14,11 @@ the credits cannot drift from what is actually used (GOV-R34).
 
 ## The orchestrated services
 
-The twenty-three bundled services `lemonfiber-media-stack` composes. Every one runs
+The twenty-three bundled services the default bundle pins. Every one runs
 on the user's own hardware, and every one lemonfiber does not build is
 OSI-licensed; the licence breakdown is in
 [license-rationale.md](license-rationale.md#note-on-bundled-services), and the
-pinned images are in [`stack.toml`](../30-repos/lemonfiber-media-stack.md#the-service-inventory).
+pinned images are in each part's [`plugin.toml`](../30-repos/first-party-plugins.md#which-repositories).
 
 | Project | What it does |
 |---------|--------------|
@@ -105,5 +105,5 @@ each be free for public repositories, are in
 
 - [license-rationale.md](license-rationale.md) — the licence of each of these, and of ours
 - [40-quality/tooling.md](../40-quality/tooling.md) — why each tool is in the pipeline
-- [30-repos/lemonfiber-media-stack.md](../30-repos/lemonfiber-media-stack.md) — the service inventory and pinned tags
+- [30-repos/first-party-plugins.md](../30-repos/first-party-plugins.md) — the repository of each bundled part
 - [00-overview/vision.md](../00-overview/vision.md) — the commitment that every bundled service is open

@@ -37,12 +37,12 @@ idiomatic to the org's other generated-from-truth files (`maintainers.toml`,
 version = "0.2.0"
 status  = "staged"        # planned → staged → in_progress → releasable → released → yanked
 released_on = "2026-07-30"   # written when the release is published; absent until then
-repos   = ["lemonfiber", "lemonfiber-media-stack"]   # the streams this version cuts; brand excluded
+repos   = ["lemonfiber", "lemonfiber-decline"]   # the streams this version cuts; brand excluded
 satisfied_in = ["lemonfiber", "lemonfiber-web"]   # where the gate looks for citations; defaults to `repos`
 goals   = ["A2-R1", "A2-R6", "C1-R13"]    # locked Accepted requirement IDs
 
 [pins]                    # recorded at execute, for reproducibility
-lemonfiber-media-stack = "fbdafe0"   # the submodule commit that shipped
+lemonfiber-plugins = "fbdafe0"   # the submodule commit that shipped
 ```
 
 Staging writes it, the report reads it, the gate checks it, and publishing
@@ -235,10 +235,9 @@ commits first, so a goal proven once would come undone as unrelated work landed 
 and a verdict that changes with the depth of a clone is not a verdict.
 
 Before tagging, execute MUST also verify the streams still agree — the embedded
-stack's `schema_version` and `min_cli_version` against the binary
-([versioning.md](../20-architecture/contracts/versioning.md)) — and record the
-exact submodule pins in the manifest, so the release is reproducible from the
-file.
+bundle's `schema` against the bundle schemas the binary reads
+([bundle.md](../20-architecture/contracts/bundle.md)) — and record the exact
+submodule pins in the manifest, so the release is reproducible from the file.
 
 ### The gate is on the lane, not on one workflow
 
@@ -579,7 +578,6 @@ implementing them are built per repo.
 | **Releasable flip** | Every run of the report runs the gate on the version in flight and moves it to `releasable` at full coverage; the frontpage's page for the version shows where each goal stands, and no issue tracks it |
 | **Release blockers** | A manifest's `blockers` list blocks the releasable flip and execute until it is empty |
 | **Drift watchdog** | A scheduled check flags a locked goal whose requirement was withdrawn or superseded |
-| **Submodule bump** | A `lemonfiber-media-stack` release opens a `lemonfiber` PR bumping the submodule pin, gated by the `build.rs` compat check |
 | **Pin fan-out** | When `spec`'s reusable workflows move, an automated PR bumps the pinned `@SHA` in every consumer repo in lockstep |
 | **Bump ordering** | An automated bump does not merge itself while a repository downstream of it is running a required check the merge would discard |
 | **One bump per repository** | An automated bump keeps one pull request per repository on one branch, rebuilt from `main` for each new version and retitled to it, rather than opening another beside it |
@@ -701,7 +699,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R32** | A version MUST progress through `planned → staged → releasable → released` — optionally through `in_progress` between `staged` and `releasable`, with `yanked` terminal — and each transition MUST be recorded in its manifest. |
 | **OPS-R33** | A `release/<version>` branch MAY exist only to carry a hotfix to an already-released version; it MUST be cut from that version's tag and deleted once its fixes are merged back to `main`. |
 | **OPS-R34** | `execute-version` MUST refuse unless every locked goal is satisfied — a merged PR cites its ID **and** the implementation-status tracker marks it done — and the refusal MUST name the unmet goals. Where no merged commit cites a goal and none can, a done row MAY name the merged commit that finished it instead; the gate MUST verify that commit is in a searched repository's history, MUST report which goals were satisfied that way, and MUST refuse, naming the row and the commit, wherever a done row names a commit it cannot find. |
-| **OPS-R35** | Before tagging, execute MUST verify cross-stream compatibility (`schema_version` and `min_cli_version` against the binary) and record the embedded submodule pins in the manifest. |
+| **OPS-R35** | Before tagging, execute MUST verify cross-stream compatibility (the embedded bundle's `schema` against the bundle schemas the binary reads) and record the embedded submodule pins in the manifest. |
 | **OPS-R36** | A fast lane MUST allow staging, gating and executing in one operation when the goals are already satisfied; the goal gate MUST still run. |
 | **OPS-R37** | A hotfix lane MUST allow a patch release from a released tag that bypasses the goal gate, requiring instead a cited fix or issue and maintainer authorisation. |
 | **OPS-R38** | Cross-repo release orchestration MUST authenticate through a scoped, org-owned GitHub App, never a personal access token. |
@@ -713,7 +711,7 @@ count is one that spreads. A goal satisfied this way reads `cited=landed` rather
 | **OPS-R44** | A version's manifest MUST list what blocks its release under `blockers`, each entry saying what blocks it and where it is being dealt with, and the releasable transition, a pre-release and execute MUST refuse while the list is not empty, naming each entry. |
 | **OPS-R45** | *Withdrawn: the frontpage's roadmap shows the next version and its goals, so no planning issue is opened. The number is not reused.* |
 | **OPS-R46** | A scheduled check MUST flag a locked goal whose requirement became `Withdrawn` or `Superseded`. |
-| **OPS-R47** | A `lemonfiber-media-stack` release MUST open a `lemonfiber` PR bumping the embedded submodule pin, gated by the build-time compatibility check. |
+| **OPS-R47** | *Withdrawn — the core embeds no stack repository; the bundle it embeds is the catalogue's, and the train moves its pins (`OPS-R86`). The number is not reused.* |
 | **OPS-R48** | When `spec`'s reusable workflows move, an automated PR MUST bump the pinned `@SHA` in every consumer repo in lockstep, and MUST arm that pull request to merge itself at the commit it made once its required checks pass. A fan-out a tag starts MUST first wait twenty minutes in an environment that holds no runner, and MUST then go on only where its tag is still the newest; one started by hand with a tag MUST NOT wait and MUST NOT be held to the newest tag. |
 | **OPS-R85** | An automated bump MUST keep at most one open pull request per repository, on one branch it rebuilds from the default branch for each new version and whose pull request it retitles to that version; it MUST NOT open a pull request for a version beside one still open for an earlier version, and a pull request it opened for an earlier version on another branch MUST be closed, pointing at the one that replaces it. |
 | **OPS-R87** | An automated bump MUST edit, retitle or arm to merge only an open, unmerged pull request whose head is its own repository's branch, listed by that repository's owner and branch together, which the release app's bot opened, and whose head is the commit the bump has just put on that branch, with the branch itself at that commit and that commit authored as the release app and verified; it MUST open a pull request only from a branch whose tip is such a commit; it MUST arm auto-merge only where asked and pinned to that commit, MUST switch off auto-merge the pull request carries where asked to disarm it, and MUST leave a pull request's auto-merge as it is where asked for neither; a bump whose change did not come out clean MUST ask to disarm. Anything else MUST fail the run without editing the pull request, naming what was found. Every bump MUST do this through `scripts/rolling_pull_request.py`, which a repository other than this one runs through the shared `rolling-pull-request` workflow. |

@@ -3,8 +3,8 @@
 ADR-0033 §4, OPS-R68, Q-R66.
 
 `train_step.py`, `check_image_pins.py` and `check_bundle_pins.py` are measured in
-`test_release_images.py`. What decides whether a core is tagged over a stack pinning
-another tag's image, or a bundle pinning another release of a plugin, is how
+`test_release_images.py`. What decides whether a core is tagged over a bundle pinning
+another tag's image, or another release of a plugin, is how
 `execute-version` and `prerelease-version` wire them: which step a run is on, that
 both pin checks run before the core is tagged and refuse what does not pin the tag, and that the tag loop, the declared-version check and the
 pre-release record read the lists the step settled.
@@ -56,7 +56,8 @@ LANES = {
 }
 
 STEP = "Which step of the train this run is (ADR-0033 §4)"
-PINS = "The embedded stack pins each image at this tag"
+PINS = "The embedded bundle pins each image at this tag"
+COMPAT = "Cross-stream compatibility (OPS-R35"
 BUNDLE = "The embedded bundle pins each first-party plugin at this tag"
 #: The two gates a release and a pre-release both pass before anything is tagged.
 GATES = ("Gate — every goal satisfied", "Gate — no requirement it locks is unbuilt")
@@ -247,12 +248,30 @@ class TheSteps(unittest.TestCase):
             self.git("-C", remote, "tag", tagged)
         self.git("clone", "-q", remote, f"checkouts/{name}")
 
-    def stack(self, tag: str):
-        where = self.root / "checkouts/lemonfiber/assets/media-stack"
-        where.mkdir(parents=True)
-        (where / "stack.toml").write_text(
+    def embed(self, catalogue: str):
+        """The core's checkout embedding the catalogue at `catalogue`, not yet checked out."""
+        self.git("-C", catalogue, "add", "-A")
+        self.git("-C", catalogue, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "bundle")
+        self.git("-C", "checkouts/lemonfiber", "-c", "protocol.file.allow=always", "submodule", "add", "-q",
+                 str(self.root / catalogue), "assets/plugins")
+        self.git("-C", "checkouts/lemonfiber", "-c", "user.email=t@t", "-c", "user.name=t",
+                 "commit", "-q", "-m", "embed")
+        self.git("-C", "checkouts/lemonfiber", "submodule", "deinit", "-q", "--all")
+
+    def bundled(self, tag: str):
+        """The core's checkout embedding a catalogue whose bundle pins decline, its copy
+        running the image at `tag`."""
+        self.stream("lemonfiber")
+        catalogue = "remotes/lemonfiber-plugins"
+        self.git("init", "-q", "-b", "main", catalogue)
+        (self.root / catalogue / "bundle/plugins/decline").mkdir(parents=True)
+        (self.root / catalogue / "bundle/bundle.toml").write_text(
+            'schema = 2\n\n[[plugin]]\nid = "decline"\norigin = "https://github.com/o/lemonfiber-decline"\n',
+            encoding="utf-8")
+        (self.root / catalogue / "bundle/plugins/decline/plugin.toml").write_text(
             f'[[service]]\nid = "decline"\nimage = "ghcr.io/lemonfiber/decline"\n'
-            f'tag = "{tag}"\ndigest = "{DIGEST}"\n', encoding="utf-8")
+            f'tag = "{tag.removeprefix("v")}"\ndigest = "{DIGEST}"\n', encoding="utf-8")
+        self.embed(catalogue)
 
     def run_step(self, workflow: str, starts: str, **extra) -> subprocess.CompletedProcess:
         _, tag = LANES[workflow]
@@ -288,33 +307,46 @@ class TheSteps(unittest.TestCase):
                 self.assertEqual(self.read("output"), "step=streams\n")
                 self.assertEqual(self.read("tagging.txt"), "lemonfiber\n")
 
-    def test_the_pin_check_passes_a_stack_pinning_the_tag(self):
+    def test_the_pin_check_passes_a_bundle_pinning_the_tag(self):
         for workflow, (_, tag) in LANES.items():
             with self.subTest(workflow):
                 self.fresh()
-                self.stack(tag)
-                done = self.run_step(workflow, PINS)
+                self.bundled(tag)
+                done = self.run_step(workflow, PINS, **ALLOWED)
                 self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
                 self.assertIn(f"decline is pinned at {tag}", done.stdout)
 
-    def test_the_pin_check_refuses_a_stack_pinning_another_tag(self):
+    def test_the_pin_check_refuses_a_bundle_pinning_another_tag(self):
         """The defect it exists for: a core tagged over another tag's image."""
         for workflow in LANES:
             with self.subTest(workflow):
                 self.fresh()
-                self.stack("v0.1.0")
-                done = self.run_step(workflow, PINS)
+                self.bundled("v0.1.0")
+                done = self.run_step(workflow, PINS, **ALLOWED)
                 self.assertEqual(done.returncode, 1)
-                self.assertIn("pinned at tag 'v0.1.0'", done.stdout)
+                self.assertIn("pinned at tag '0.1.0'", done.stdout)
 
     def test_the_pin_check_refuses_an_image_the_tag_has_not_published(self):
         for workflow, (_, tag) in LANES.items():
             with self.subTest(workflow):
                 self.fresh()
-                self.stack(tag)
-                done = self.run_step(workflow, PINS, DOCKER_MISSING=f"ghcr.io/lemonfiber/decline:{tag}")
+                self.bundled(tag)
+                done = self.run_step(workflow, PINS, DOCKER_MISSING=f"ghcr.io/lemonfiber/decline:{tag}", **ALLOWED)
                 self.assertEqual(done.returncode, 1)
                 self.assertIn("is not published", done.stdout)
+
+    def test_compatibility_is_read_off_the_bundle_the_core_embeds(self):
+        for workflow, (_, tag) in LANES.items():
+            for reads, code in (("[1, 2]", 0), ("[1]", 1)):
+                with self.subTest(workflow=workflow, reads=reads):
+                    self.fresh()
+                    self.bundled(tag)
+                    reader = self.root / "checkouts/lemonfiber/crates/lemonfiber-bundle/src/lib.rs"
+                    reader.parent.mkdir(parents=True)
+                    reader.write_text(f"pub const SCHEMAS: [u32; 2] = {reads};\n", encoding="utf-8")
+                    done = self.run_step(workflow, COMPAT, **ALLOWED)
+                    self.assertEqual(done.returncode, code, done.stdout + done.stderr)
+                    self.assertIn("the embedded bundle is schema 2", done.stdout)
 
     def test_a_pre_release_tags_no_plugin_repository(self):
         """The plugin is built against the core's pre-release and tagged at the version by the release."""
@@ -374,17 +406,11 @@ class TheSteps(unittest.TestCase):
             'schema = 1\n\n[[plugin]]\nid = "jellyfin"\n'
             f'origin = "https://github.com/o/plugin-jellyfin"\nrelease = "{release}"\n'
             f'revision = "{self.head(plugin)}"\n', encoding="utf-8")
-        self.git("-C", catalogue, "add", "-A")
-        self.git("-C", catalogue, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "bundle")
         # The pinned origin is on the forge; here it is a repository beside the core.
         self.forge = {**ALLOWED, "GIT_CONFIG_COUNT": "2",
                       "GIT_CONFIG_KEY_1": f"url.{self.root}/remotes/.insteadOf",
                       "GIT_CONFIG_VALUE_1": "https://github.com/o/"}
-        self.git("-C", "checkouts/lemonfiber", "-c", "protocol.file.allow=always", "submodule", "add", "-q",
-                 str(self.root / catalogue), "assets/plugins")
-        self.git("-C", "checkouts/lemonfiber", "-c", "user.email=t@t", "-c", "user.name=t",
-                 "commit", "-q", "-m", "embed")
-        self.git("-C", "checkouts/lemonfiber", "submodule", "deinit", "-q", "--all")
+        self.embed(catalogue)
 
     def test_the_bundle_check_passes_a_version_cutting_no_plugin(self):
         self.fresh()
@@ -511,7 +537,7 @@ class TheSteps(unittest.TestCase):
             + recorded, encoding="utf-8")
 
     def test_reading_the_manifest_says_whether_the_tag_is_recorded(self):
-        record = f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n'
+        record = f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ lemonfiber-plugins = "{SHA}" }}\n'
         for recorded, says in (("", "false"), (record, "true")):
             with self.subTest(says):
                 self.fresh()
@@ -524,23 +550,23 @@ class TheSteps(unittest.TestCase):
 
     def test_a_record_naming_the_pins_this_run_embeds_lets_the_tag_go_on(self):
         self.fresh()
-        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n')
-        done = self.run_step("prerelease-version.yml", RECORDED, STEP="streams", PINS=f"stack={SHA}")
+        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ lemonfiber-plugins = "{SHA}" }}\n')
+        done = self.run_step("prerelease-version.yml", RECORDED, STEP="streams", PINS=f"lemonfiber-plugins={SHA}")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertIn("tagging without recording again", done.stdout)
 
     def test_a_record_naming_other_pins_is_refused(self):
         """The tag and the record would otherwise describe two builds."""
         self.fresh()
-        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n')
-        done = self.run_step("prerelease-version.yml", RECORDED, STEP="streams", PINS=f"stack={'c' * 40}")
+        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ lemonfiber-plugins = "{SHA}" }}\n')
+        done = self.run_step("prerelease-version.yml", RECORDED, STEP="streams", PINS=f"lemonfiber-plugins={'c' * 40}")
         self.assertEqual(done.returncode, 1)
         self.assertIn("::error::v0.2.0-pre.1 is recorded with pins", done.stderr)
 
     def test_a_record_while_an_image_lacks_the_tag_is_refused(self):
         self.fresh()
-        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ stack = "{SHA}" }}\n')
-        done = self.run_step("prerelease-version.yml", RECORDED, STEP="images", PINS=f"stack={SHA}")
+        self.manifest(f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ lemonfiber-plugins = "{SHA}" }}\n')
+        done = self.run_step("prerelease-version.yml", RECORDED, STEP="images", PINS=f"lemonfiber-plugins={SHA}")
         self.assertEqual(done.returncode, 1)
         self.assertIn("while an image still lacks it", done.stderr)
 

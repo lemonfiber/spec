@@ -4,7 +4,7 @@
 A version that cuts a repository building one of the stack's own images, or a
 first-party plugin's repository (OPS-R86), is cut in two runs of the same lane.
 The first tags those repositories and stops; the second, once the core embeds a
-stack and a bundle pinning what they published, tags everything else.
+bundle pinning what they published, tags everything else.
 The lane does not take the step as an input. It reads it from the repositories:
 
 - a listed image or plugin repository that does not carry the tag makes this the first

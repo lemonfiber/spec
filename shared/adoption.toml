@@ -14,10 +14,11 @@
 # copy is a gate nobody is holding to the canonical version. The rule is in
 # `40-quality/tooling.md`, under Anti-drift.
 #
-# One row per repository in `30-repos/repos.toml`, every one of them — both of
-# its tables, `[[repo]]` and `[[ungoverned]]` — including the repositories that
-# carry nothing. An empty list is an answer; a missing row is the silence this
-# file exists to end, and is refused as one.
+# One row per repository in `30-repos/repos.toml`'s `[[repo]]` and
+# `[[ungoverned]]` tables, every one of them, including the repositories that
+# carry nothing, and none for its `[[retired]]` table. An empty list is an
+# answer; a missing row is the silence this file exists to end, and is refused
+# as one.
 #
 # `gates` names files in `shared/gates/` and `hooks` names files in
 # `shared/hooks/`. A name neither directory holds is refused: a row describing a
@@ -81,11 +82,6 @@ hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
 name = "integration-mcp"
-gates = ["no_open_codeql_alert.py"]
-hooks = ["commit-msg", "pre-push"]
-
-[[repo]]
-name = "lemonfiber-media-stack"
 gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]
 

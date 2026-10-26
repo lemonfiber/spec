@@ -96,9 +96,7 @@ for the full path, real provider credentials that cannot live in CI.
 | VPN leak test end-to-end | Gated job with test VPN credentials |
 | Full pipeline (search→import) | Manual, M1 exit criterion |
 
-What can't be automated is stated rather than pretended
-([lemonfiber-media-stack CI](../30-repos/lemonfiber-media-stack.md#ci) draws the
-same line): a green CI
+What can't be automated is stated rather than pretended: a green CI
 does not mean the full acquisition path works, because CI has no Usenet account.
 
 ## What MUST be covered

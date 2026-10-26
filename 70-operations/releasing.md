@@ -23,7 +23,6 @@ that tags, a "version" is a number it carries.)
 | Repo | Release trigger | Produces |
 |------|-----------------|----------|
 | `lemonfiber` | git tag `vX.Y.Z` | Binaries, installers, updated formula, changelog, docs |
-| `lemonfiber-media-stack` | git tag `vX.Y.Z` | A pinned stack the binary can embed; `stack_version` moves |
 | `lemonfiber-web` | git tag `vX.Y.Z` | A pinned web surface the binary embeds at build time |
 | `sdk-ts` | git tag `vX.Y.Z` | `@lemonfiber/sdk-ts` published to npm. Not yet tagged; consumers pin a commit |
 | `sdk-php` | git tag `vX.Y.Z` | The PHP client, published to Packagist. Not yet tagged |
@@ -76,8 +75,8 @@ Concretely, a maintainer does **three things**; CI does the rest:
    bookkeeping.
 3. **Review the drafted GitHub Release**, and the homebrew-tap PR once that publish
    job is on (`L1-R3`), then publish.
-   Publishing fires `release-finalize`, which records what shipped, pins the stack
-   commit the release embedded, and regenerates the public roadmap.
+   Publishing fires `release-finalize`, which records what shipped, pins every
+   submodule commit the release embedded, and regenerates the public roadmap.
 
 Everything between step 2 and step 3 is `cargo-dist` and `git-cliff`. A draft is
 published by a person on purpose: it is the one step that reaches the outside

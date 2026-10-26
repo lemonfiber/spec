@@ -53,14 +53,12 @@ jobs:
         run: python3 scripts/check_goal_coverage.py
       - name: A manifest comment says why a goal is there, not how far it has got
         run: python3 scripts/check_manifest_comments.py
-      # The one number here that lives in another repository. `lemonfiber-media-stack`
-      # guards its own prose against its own manifest; this is the half the spec was
-      # missing, which is why ten pages here said nineteen services through the day a
-      # twentieth shipped. Read over the wire rather than from a pin: what each
-      # release embedded is already recorded in that version's `[pins]`, and a pin
-      # read here would have been green against stale input and red against correct
-      # prose.
-      - name: The bundled-service count matches the stack
+      # The one number here that lives in another repository: the parts the
+      # catalogue's default bundle pins. Read over the wire rather than from a pin:
+      # what each release embedded is already recorded in that version's `[pins]`,
+      # and a pin read here would be green against stale input and red against
+      # correct prose.
+      - name: The bundled-service count matches the bundle
         run: python3 scripts/check_services.py
       # Every repository's tracker, read over the wire for the same reason, and
       # the catalogue held to what they make each feature: planned, building,

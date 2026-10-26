@@ -20,9 +20,10 @@
 #
 # A pre-release of a version that cuts a repository building one of the stack's
 # own images is cut in the same two runs as the release (ADR-0033 §4). The first
-# tags those repositories at the pre-release tag and stops. Once the stack pins
-# the image each tag published, and the core's submodule embeds that stack, the
-# second run checks those pins, records the pre-release and tags everything else.
+# tags those repositories at the pre-release tag and stops. Once the catalogue's
+# bundle pins the image each tag published, and the core's submodule embeds that
+# bundle, the second run checks those pins, records the pre-release and tags
+# everything else.
 # A first-party plugin's repository is tagged in neither run.
 # `train_step.py` reads which run this is from the repositories themselves.
 #
@@ -231,50 +232,17 @@ jobs:
           python3 scripts/check_no_stubs.py --version "$VERSION" "${args[@]}"
 
       - name: Cross-stream compatibility (OPS-R35, OPS-R66)
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          git -C checkouts/lemonfiber submodule update --init --depth 1 assets/media-stack
-          stack="checkouts/lemonfiber/assets/media-stack/stack.toml"
-          if [ ! -f "$stack" ]; then
-            echo "::error::the embedded stack carries no stack.toml"
-            exit 1
-          fi
-          mincli=$(sed -nE 's/^min_cli_version[[:space:]]*=[[:space:]]*"(.*)".*/\1/p' "$stack" | head -1)
-          schema=$(sed -nE 's/^schema_version[[:space:]]*=[[:space:]]*([0-9]+).*/\1/p' "$stack" | head -1)
-          if [ -z "$mincli" ] || [ -z "$schema" ]; then
-            echo "::error::the embedded stack declares no min_cli_version or schema_version"
-            exit 1
-          fi
-          # Compared on the version rather than on the tag. A pre-release
-          # identifier orders below the version it precedes, so `sort -V` would
-          # call a pre-release of the minimum older than the minimum — which is
-          # true of the tag and not of what the binary can do.
-          if [ "$(printf '%s\n%s\n' "$mincli" "$VERSION" | sort -V | head -1)" != "$mincli" ]; then
-            echo "::error::stack needs cli >= ${mincli}, pre-releasing ${VERSION}"
-            exit 1
-          fi
-          reads=$(sed -nE 's/^pub const SCHEMA_VERSION: u32 = ([0-9]+);.*/\1/p' \
-            checkouts/lemonfiber/crates/lemonfiber-manifest/src/lib.rs | head -1)
-          if [ -z "$reads" ]; then
-            echo "::error::could not read the binary's schema version"
-            exit 1
-          fi
-          if [ "$schema" != "$reads" ]; then
-            echo "::error::stack is schema ${schema}, binary reads ${reads}"
-            exit 1
-          fi
-          echo "compat ok: binary ${VERSION} >= min_cli ${mincli}, schema ${schema}"
+        run: python3 scripts/embedded_bundle.py --core checkouts/lemonfiber
 
-      - name: The embedded stack pins each image at this tag (ADR-0033 §4, OPS-R66)
+      - name: The embedded bundle pins each image at this tag (ADR-0033 §4, OPS-R66)
         if: ${{ steps.step.outputs.step == 'streams' }}
         env:
           VERSION: ${{ inputs.version }}
           TAG: ${{ steps.tag.outputs.tag }}
+          OWNER: ${{ github.repository_owner }}
         run: |
           python3 scripts/check_image_pins.py --version "$VERSION" --tag "$TAG" \
-            --stack checkouts/lemonfiber/assets/media-stack/stack.toml
+            --core checkouts/lemonfiber --owner "$OWNER"
 
       # What the artefacts will actually embed, so the record answers "which build
       # of the stack went out with it" from the file alone (OPS-R65).
@@ -461,7 +429,7 @@ jobs:
         env:
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          echo "::notice title=Images tagged::$(paste -sd, tagging.txt) carry ${TAG}. Once lemonfiber-media-stack pins the image each tag published and the core's submodule takes that stack, run prerelease-version again with the same identifier: it checks those pins, records the pre-release and tags every other stream."
+          echo "::notice title=Images tagged::$(paste -sd, tagging.txt) carry ${TAG}. Once lemonfiber-plugins' bundle pins the image each tag published and the core's submodule takes that bundle, run prerelease-version again with the same identifier: it checks those pins, records the pre-release and tags every other stream."
 
       - name: Tagged — review and publish to finish
         if: ${{ !inputs.dry_run && steps.step.outputs.step == 'streams' }}

@@ -259,9 +259,7 @@
 # member's client plays on, the door that asks the media server about every byte, where
 # each title's artwork and stream are served with the fingerprint the door presents, a
 # title's details, what a member was part-way through, the progress a player reports
-# back, and the pictures a browser reads from the core. The companion's player (N3-R14 to N3-R16) is built on them. `lemonfiber-media-stack`
-# is cut because `D11-R2` puts the guard in front of the media server in every form that
-# serves it.
+# back, and the pictures a browser reads from the core. The companion's player (N3-R14 to N3-R16) is built on them.
 # `ARCH-R224` to `ARCH-R253` are the one service model every Compose entry is written
 # from (ADR-0043): the stack's own services and every plugin's, generated as one project,
 # with typed ports, mounts, environment and secrets, settings in the core's store, user
@@ -332,7 +330,7 @@ milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
 
 status  = "staged"
-repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf"]
+repos   = ["lemonfiber", "lemonfiber-decline", "plugin-jellyfin", "plugin-door", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf"]
 satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
 goals   = [
     "D6-R21", "D6-R22", "D6-R23", "D6-R24", "D6-R25", "D6-R26",

@@ -1,6 +1,6 @@
 # Every repository in the org — the single source of truth.
 #
-# Two tables, because two different questions are asked of it. `[[repo]]` is the
+# Three tables, because three different questions are asked of it. `[[repo]]` is the
 # map this specification governs: the table in README.md, the diagram and the
 # sentence counting them are GENERATED from it by scripts/gen_repos.py. Never
 # edit either by hand; add the repo here and run the generator. `integrity.py`
@@ -8,9 +8,14 @@
 # end: the count read "eleven" for as long as it took somebody to create a
 # twelfth repository and notice.
 #
-# `[[ungoverned]]`, at the foot, is the rest of the organisation — in it, and
+# `[[ungoverned]]`, near the foot, is the rest of the organisation — in it, and
 # outside the map. Nothing renders it; `shared/adoption.toml` is held to it, and
 # the pin fan-out bumps its pins as it does the map's.
+#
+# `[[retired]]`, at the foot, is every repository nothing is cut from any more.
+# A released version manifest still names it, so `integrity.py` resolves the
+# name; nothing renders it, `shared/adoption.toml` holds no row for it, and the
+# pin fan-out never visits it.
 #
 # order : the order the README lists them in. Not alphabetical — it runs from
 #         the specification outward through the surfaces to the things that
@@ -21,7 +26,7 @@
 # note  : the one thing about it that is not true of its neighbours.
 # service: the stack service whose image the repository builds, which makes it
 #         `lemonfiber-<service>` (ADR-0033 §1). The train tags a repository
-#         carrying it before the core, and the core once the embedded stack pins
+#         carrying it before the core, and the core once the embedded bundle pins
 #         what that tag published (ADR-0033 §4). Absent everywhere else.
 # plugin: the first-party plugin the repository publishes, which makes it
 #         `plugin-<id>`, its id the id of the stack service it takes the place of
@@ -113,15 +118,6 @@ label = "integration-mcp<br/>lemonfiber for AI assistants"
 spec = ["integration-mcp.md"]
 lang = "Python"
 note = "Every tool generated from the contract, so an assistant can do nothing the web API does not offer"
-
-[[repo]]
-name = "lemonfiber-media-stack"
-node = "stack"
-group = "impl"
-label = "lemonfiber-media-stack<br/>retiring"
-spec = ["lemonfiber-media-stack.md"]
-lang = "YAML/TOML"
-note = "Retiring (ADR-0045): each part is a plugin's repository, and this is archived once the compose cutover reads none of it"
 
 [[repo]]
 name = "lemonfiber-decline"
@@ -575,3 +571,14 @@ note = "A plugin, and the catalogue is where a plugin is found"
 [[ungoverned]]
 name = "plugin-plex"
 note = "A plugin, and the catalogue is where a plugin is found"
+
+# ── Retired ──────────────────────────────────────────────────────────────────
+#
+# Named here because a released version manifest names it in `repos`,
+# `satisfied_in` or `[pins]`. A manifest not yet released may search one and may
+# not cut one. A row carries no `spec`, `node`, `label` or `order`, as an
+# ungoverned one carries none.
+
+[[retired]]
+name = "lemonfiber-media-stack"
+note = "Archived: every part it held is a first-party plugin's repository, pinned by the catalogue's bundle"

@@ -639,8 +639,8 @@ class ManifestRepositories(Spec):
         self.assertEqual(integrity.check_manifest_repos(), [])
 
     def test_a_manifest_naming_a_repository_in_the_registry_passes(self):
-        self.registry("lemonfiber", "lemonfiber-media-stack")
-        self.manifest("0.1.0", 'repos = ["lemonfiber"]\nsatisfied_in = ["lemonfiber-media-stack"]\n')
+        self.registry("lemonfiber", "lemonfiber-web")
+        self.manifest("0.1.0", 'repos = ["lemonfiber"]\nsatisfied_in = ["lemonfiber-web"]\n')
         self.assertEqual(integrity.check_manifest_repos(), [])
 
     def test_a_repository_the_registry_does_not_know_is_refused(self):
@@ -653,16 +653,16 @@ class ManifestRepositories(Spec):
 
     def test_satisfied_in_is_read_as_well_as_repos(self):
         self.registry("lemonfiber")
-        self.manifest("0.1.0", 'satisfied_in = ["media-stack"]\n')
+        self.manifest("0.1.0", 'satisfied_in = ["web"]\n')
         self.assertIn("satisfied_in", integrity.check_manifest_repos()[0])
 
     def test_a_pin_is_keyed_by_repository_too(self):
-        """`0.1.0` through `0.8.0` pinned `media-stack`, which is no repository."""
+        """A pin is keyed by the repository whose commit it records."""
         self.registry("lemonfiber")
-        self.manifest("0.1.0", 'repos = ["lemonfiber"]\n\n[pins]\nmedia-stack = "abc123"\n')
+        self.manifest("0.1.0", 'repos = ["lemonfiber"]\n\n[pins]\nweb = "abc123"\n')
         said = integrity.check_manifest_repos()
         self.assertEqual(len(said), 1)
-        self.assertIn("pins 'media-stack'", said[0])
+        self.assertIn("pins 'web'", said[0])
 
     def test_the_template_is_not_a_manifest(self):
         self.registry("lemonfiber")
@@ -691,6 +691,23 @@ class ManifestRepositories(Spec):
         said = integrity.check_manifest_repos()
         self.assertEqual(len(said), 1)
         self.assertIn("cuts lemonfiber and not plugin-jellyfin", said[0])
+
+    def retired_registry(self):
+        self.doc("30-repos/repos.toml", '[[repo]]\nname = "lemonfiber"\n\n[[retired]]\nname = "old-stack"\n')
+
+    def test_a_retired_repository_resolves_wherever_a_released_manifest_names_it(self):
+        self.retired_registry()
+        self.manifest("0.1.0", 'status = "released"\nrepos = ["lemonfiber", "old-stack"]\n'
+                               'satisfied_in = ["old-stack"]\n\n[pins]\nold-stack = "abc123"\n')
+        self.manifest("0.2.0", 'status = "planned"\nrepos = ["lemonfiber"]\nsatisfied_in = ["old-stack"]\n')
+        self.assertEqual(integrity.check_manifest_repos(), [])
+
+    def test_a_version_not_yet_released_cutting_a_retired_repository_is_refused(self):
+        self.retired_registry()
+        self.manifest("0.2.0", 'status = "staged"\nrepos = ["lemonfiber", "old-stack"]\n')
+        said = integrity.check_manifest_repos()
+        self.assertEqual(len(said), 1)
+        self.assertIn("cuts old-stack, which 30-repos/repos.toml lists as retired", said[0])
 
     def test_a_released_version_or_one_carrying_the_plugin_passes(self):
         self.plugin_registry()

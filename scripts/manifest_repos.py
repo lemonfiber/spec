@@ -21,7 +21,7 @@ them coinciding is the one that needs no migration.
 
 A version that cuts a repository building one of the stack's own images is cut
 in two steps (ADR-0033 §4): those repositories are tagged first, and the rest once
-the stack the core embeds pins what those tags published. The registry, not the
+the bundle the core embeds pins what those tags published. The registry, not the
 manifest, says which repositories those are: a `[[repo]]` entry in
 `30-repos/repos.toml` carrying `service` builds the image of that stack service.
 Whether a repository builds an image is a fact about the repository, and every
@@ -81,6 +81,10 @@ PLUGIN_ID = re.compile(r"\A[a-z][a-z0-9]*(?:-[a-z0-9]+)*\Z")
 #: The registry field saying whether a first-party plugin's repository builds an image,
 #: which is what makes it a stream the train tags (OPS-R86).
 BUILDS = "image"
+
+#: The registry's table of repositories nothing is cut from any more, which a
+#: released manifest may still name.
+RETIRED = "retired"
 
 #: The core's repository: the one whose releases carry the changelog, and whose
 #: every version cuts each first-party plugin.
@@ -194,6 +198,14 @@ def unlisted_plugins(data: dict, registry: dict) -> list[str]:
     if data.get("status") in SETTLED or CORE not in named:
         return []
     return [name for name in train_plugins(registry) if name not in named]
+
+
+def retired_cut(data: dict, registry: dict) -> list[str]:
+    """The retired repositories a manifest not yet released cuts."""
+    if data.get("status") in SETTLED:
+        return []
+    retired = {str(entry.get("name", "")) for entry in registry.get(RETIRED, [])}
+    return [name for name in cut(data) if name in retired]
 
 
 def unlisted(missing: list[str]) -> str:
