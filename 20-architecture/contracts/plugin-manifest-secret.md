@@ -67,9 +67,8 @@ inside the replaced service's container, beneath its `config_path`; `format` is 
 `misc.api_key`. The move reads the file from the service's configuration directory on the
 host and refuses one that leads away. Where it holds no value, the move takes the
 credential lemonfiber recorded for the service, and mints one only where neither holds any.
-A minted secret an adapter's `upstream` names under any field but `username` and
-`password`, in a plugin whose service `replaces` a reserved id, declares `carried_from`; a
-manifest whose such secret declares none is refused, naming the secret. `plugin record` and a proof mint a throwaway one for
+A secret whose service writes no credential of its own, as one lemonfiber minted and
+handed it, declares none and is carried as the credential lemonfiber recorded. `plugin record` and a proof mint a throwaway one for
 their own container, as they take a throwaway copy of its starting files.
 
 **A credential that crosses is read where it is held.** One `F14-R18` or `F14-R20` lets
