@@ -173,6 +173,8 @@ change and refuses every other, another change to the same field included. Movin
 | Field | Under | Moved | Why |
 |-------|-------|-------|-----|
 | `PluginPair.approval` | 1 | May be absent, from 0.18.0 | A pair to a service in the stack carries nothing off the machine and asks for no approval, so it carries none. A pair to an external host carries one. |
+| `PluginPlaced.api` | 1 | Removed, from 0.18.0 | No service names an in-process adapter (`ARCH-R272`), so a placed service has none to carry. |
+| `PluginInstalled.adapters` | 1 | Removed, from 0.18.0 | No service names an in-process adapter (`ARCH-R272`), so an installed plugin has none to list. |
 
 ## What a release declares about the stack it carries
 
