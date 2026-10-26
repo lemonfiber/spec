@@ -109,7 +109,7 @@ being a draft.
 |----|-------------|
 | **F11-R1** | This feature MUST NOT be implemented while `F3-R6` stands, and retiring `F3-R6` MUST be a superseding decision record that states what changed, never an edit to the requirement in place. |
 | **F11-R2** | A proposal MUST answer both objections already recorded — that a sandbox confines computation while the risk is I/O, and that an opaque artefact forecloses the readable review `F3-R10` asks for — rather than asserting that the sandbox is strong. |
-| **F11-R3** | A proposal MUST name the cases recipes and named adapters genuinely cannot express, with an example of each, and MUST NOT rest on the possibility that such cases exist. |
+| **F11-R3** | A proposal MUST name the cases recipes and capability contracts genuinely cannot express, with an example of each, and MUST NOT rest on the possibility that such cases exist. |
 | **F11-R4** | Contributed code, if it is ever executed, MUST NOT hold lemonfiber's own authority on the machine: the credential store, the container runtime's socket and the data root MUST be unreachable from it by construction rather than by policy. |
 | **F11-R5** | What contributed code may reach MUST be stated in advance and checkable without running it, and a reach beyond what was stated MUST be refused rather than logged. |
 | **F11-R6** | An operator MUST be able to tell from an installed plugin whether any part of it executes in lemonfiber's process, without reading its source. |
