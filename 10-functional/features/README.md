@@ -160,7 +160,7 @@ demands the tool prove things rather than assume them.
 | [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | Operator |
 | [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | Operator |
 | [F7](f-extensibility/f7-plugin-provenance.md) | Plugin provenance | Operator |
-| [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | Operator |
+| [F8](f-extensibility/f8-recipes.md) | Recipes | Operator |
 | [F9](f-extensibility/f9-bundled-capabilities.md) | Capabilities of the bundled services | Operator |
 | [F10](f-extensibility/f10-authoring.md) | Writing a plugin | Operator |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | Operator |

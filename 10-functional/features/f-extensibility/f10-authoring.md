@@ -244,7 +244,7 @@ Per plugin, while it is being written:
 
 - [F3 Plugin manifests](f3-stack-manifests.md) — the format this is the experience of writing
 - [F5 The plugin catalogue](f5-plugin-catalogue.md) — where one goes afterwards, and why it is optional
-- [F8 Recipes and named adapters](f8-recipes.md) — the part fixtures matter most for
+- [F8 Recipes](f8-recipes.md) — the part fixtures matter most for
 - [plugin-manifest contract](../../../20-architecture/contracts/plugin-manifest.md) — `ARCH-R92`, the generated schema this is built on
 - [ADR-0013](../../../00-overview/decisions/0013-an-sdk-owns-the-api-client.md) · [ADR-0014](../../../00-overview/decisions/0014-one-generated-contract-for-every-sdk.md) — why the API gets an SDK and a plugin does not
 - [G4 Error & remedy model](../g-ux/g4-error-model.md) — the standard a validation message is held to

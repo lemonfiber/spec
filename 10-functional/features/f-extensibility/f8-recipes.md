@@ -1,6 +1,6 @@
 ---
 id: F8
-title: Recipes and named adapters
+title: Recipes
 kind: feature
 area: F
 audience: operator
@@ -12,7 +12,7 @@ requires: [F3, F4]
 relates: [F5, F6, F7, G8, C1]
 ---
 
-# F8 — Recipes and named adapters
+# F8 — Recipes
 
 **Status:** Accepted · **Audience:** Operator · **Area:** F — Extensibility
 
@@ -32,7 +32,10 @@ container nobody had configured.
 
 So a plugin carries **recipes**: ordered calls that capture values, feed them into later
 calls, branch on what came back, and wait when something is not ready yet. Where even that
-cannot reach, it **names** an adapter lemonfiber implements, and never supplies one.
+cannot reach, the plugin brings an adapter that speaks a capability contract in front of
+its part, and lemonfiber asks the part over that contract
+([ADR-0041](../../../00-overview/decisions/0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md)).
+Nothing a plugin supplies runs in lemonfiber's own process.
 
 This is separated from F3 because it is the part with the risk in it. F3's manifest
 describes a container whose reach is fixed by lemonfiber
@@ -169,17 +172,18 @@ loopback, private or link-local address is refused at the call. The manifest sai
 destination was outside; an answer from inside contradicts it, and the contradiction is
 the refusal rather than a thing to be reconciled.
 
-### Where data will not reach, a plugin names an adapter
+### Where data will not reach, a contract does
 
-Some flows cannot be honestly expressed as calls and captures. For those a plugin names
-one of a fixed set of **adapters** lemonfiber implements and ships — the Servarr-shaped
-registration flow, and others as they earn their place. The plugin supplies the
-parameters; lemonfiber supplies the behaviour.
+Some flows cannot be honestly expressed as calls and captures. For those the plugin brings
+an **adapter**: a service of its own, in a container lemonfiber writes like any other, that
+stands in front of its part and speaks a capability contract. lemonfiber asks the part over
+that contract and over nothing else. A plugin's service names no in-process adapter of
+lemonfiber's, and a manifest whose service writes `api` is refused as naming a field the
+format does not have (`ARCH-R272`).
 
-This keeps the awkward cases in code that is reviewed, tested and covered like the rest of
-the product, while still letting a plugin reach them. The set is published rather than
-discovered, and naming one that does not exist is a validation failure listing what is
-available.
+A recipe's call to a service of the stack's is reached through one of lemonfiber's own
+adapters, and the set a call may be reached through is published rather than discovered
+(`F8-R13`, `ARCH-R143`).
 
 ### On the companion
 
@@ -206,8 +210,6 @@ retry, it becomes a button that keeps trying to reach a household's router.
 *A recipe is a sequence, not a program* becomes `N20-R5`: the rehearsal lists
 every step in the order given, and is not summarised into an outcome.
 *Configures Plex* has removed the only thing an operator can actually judge.
-Where a plugin names an adapter, `N20-R6` requires the app to say which, and
-that it is one lemonfiber implements rather than anything the plugin supplied.
 
 ## States
 
@@ -219,7 +221,6 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | `approved` | The operator agreed to each outward and each released pair, named |
 | `address-literal` | The manifest names an address rather than a name; refused |
 | `resolved-inward` | A destination declared external answered with a private, loopback or link-local address; refused at the call |
-| `adapter-unknown` | The manifest names an adapter this lemonfiber does not implement |
 
 ## Edge cases
 
@@ -232,7 +233,7 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | An external name resolves into the home network | Refuse at the call, naming the name and what it answered. Checked per call, because the answer can change between them. |
 | A recipe branches on a value that was never captured | Refuse at validation; the reference is checkable without running anything. |
 | A recipe's call never succeeds | Bound the retries, then fail naming the call and what it last answered. |
-| The manifest names an adapter that does not exist | Refuse, naming the adapter and listing what is available. |
+| A service names `api` | Refuse, naming `service <id>.api` as a field the format does not have (`ARCH-R272`). |
 | A plugin needs a destination it cannot know until it runs | Not expressible, and not worked around. The honest answer is a declaration form that is still statically bounded, decided once for everybody. |
 | An operator has switched off a plugin's reach | Its recipes report that nothing was asked, rather than failing as though the destination were down (`G8-R16`). |
 | A recipe carries a credential lemonfiber holds for one service to another, or to one of the plugin's own | Refuse at validation, naming the credential, whose it is and where it was going. A credential goes back to its own service and nowhere else. |
@@ -257,8 +258,8 @@ that it is one lemonfiber implements rather than anything the plugin supplied.
 | **F8-R8** | A recipe MUST name an in-stack destination by its service id and an external destination by a DNS name, and a manifest containing an address literal, a network range or a bare host port MUST be refused. |
 | **F8-R9** | A destination declared external that resolves to any address not out on the internet, as the plugin manifest contract classes addresses, MUST be refused at the call; the resolution MUST be checked on each call rather than once, every address it answers with MUST be checked, the call MUST connect only to the addresses checked, and no redirect MUST be followed. |
 | **F8-R10** | A recipe MUST NOT reach any host, service or value the manifest has not declared. |
-| **F8-R11** | A plugin MAY name one of a published, fixed set of lemonfiber-implemented adapters for flows recipes cannot express, and MUST NOT supply an adapter of its own. |
-| **F8-R12** | Naming an adapter this lemonfiber does not implement MUST be refused, naming the adapter and the set that is available. |
+| **F8-R11** | *Superseded by [ARCH-R272](../../../20-architecture/contracts/plugin-manifest.md): a plugin's service names no adapter; the core speaks it over contracts. The number is not reused.* |
+| **F8-R12** | *Superseded by [ARCH-R272](../../../20-architecture/contracts/plugin-manifest.md): a plugin's service names no adapter; the core speaks it over contracts. The number is not reused.* |
 | **F8-R13** | The set of adapters MUST be published rather than discovered. |
 | **F8-R14** | A recipe MUST declare whether it runs on install or on demand, and a recipe declaring neither MUST run on install; an install recipe MUST run during an install and an update, after the plugin's proofs and the stack's checks hold and before the install is recorded, and a failure MUST put the install back and name each call that had already reached somewhere. |
 | **F8-R15** | A demand recipe MUST run only when asked for by name, with its own rehearsal, offer and approvals, and an approval MUST NOT carry over from another act or another run; a demand recipe that fails MUST change no install record and MUST name each call that had already reached somewhere. |

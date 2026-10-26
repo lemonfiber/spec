@@ -45,7 +45,7 @@ substitute nothing.
 
 So a manifest carries more than a container, and the rest of it is
 [F8](f8-recipes.md): the ordered calls that turn a first-run flow into data, and the
-named adapters for the flows even those cannot express. This feature says what a manifest
+contract-speaking adapters a plugin brings for the flows even those cannot express. This feature says what a manifest
 *is* and what may be written in it; F8 says what the calls in it may do.
 
 ## Behaviour
@@ -156,7 +156,7 @@ than a manifest's assertion.
 
 No contributed code is loaded into lemonfiber's own process, and there is no opt-in,
 grant or sandbox that changes that. The earlier draft of this feature reserved a
-sandboxed escape hatch; recipes and named adapters replace it, and reserving a code path
+sandboxed escape hatch; recipes and contracts replace it, and reserving a code path
 "for the rare case" is how the rare case becomes the common one. Native plugins are not a
 supported mechanism and never become one.
 
@@ -213,7 +213,6 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | `schema-valid` | The manifest conforms to the published schema and may be considered |
 | `schema-rejected` | The manifest fails validation; refused outright, nothing applied |
 | `undeclared-reach` | A recipe reaches a secret or an override the manifest did not declare; refused |
-| `adapter-unknown` | The manifest names an adapter this lemonfiber does not implement |
 | `proofs-passing` | The declared proofs ran and passed |
 | `proofs-failing` | The declared proofs ran and did not pass; the plugin is not installed |
 | `proofs-unrunnable` | A declared proof could not be run; reported as unproven, never as passed |
@@ -232,7 +231,7 @@ subcommands with meaningful exit statuses. Adding a plugin never requires the wi
 | A recipe changes something the manifest did not list as an override | Refuse the plugin, naming what it reached for. |
 | A declared proof fails | Do not install. A declared-and-failing proof is a rejection, not an advisory. |
 | A declared proof cannot be run at all | Report it as unproven. An unrunnable check is not a satisfied one. |
-| The manifest names an adapter that does not exist | Refuse, naming the adapter and listing what is available. |
+| A service names `api` | Refuse, naming `service <id>.api` as a field the format does not have (`ARCH-R272`). |
 | A referenced image is unsigned | Report it as unproven and say so. A publisher who never signed anything has made no claim, which is a different fact from a claim that did not check out, and an operator deciding whether to proceed needs to tell them apart. |
 | A referenced image claims a signature that does not verify | Refuse. A claimed-and-invalid signature is worse than none and is treated as worse. |
 | A manifest asks for a mount, a device, a kernel capability or a network of its own | Refuse, naming the field and listing what may be declared. There is no field for it, so this is a malformed manifest rather than a permission being withheld. |
