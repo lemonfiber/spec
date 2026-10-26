@@ -40,7 +40,8 @@ A secret a service's [`env`](plugin-manifest-service.md#environment--four-kinds-
 too. Its value is one lemonfiber mints, one a recipe captures, a credential `F14-R18` or
 `F14-R20` lets cross to the plugin, or, where none of those supplies it, one the operator
 enters at install without it being shown. Whatever its source, it reaches the container only through the service's
-own secrets file (`ARCH-R247`). A value captured or entered is held in the secret store in
+own secrets file (`ARCH-R247`). One only the operator can enter that the service needs to start declares
+`recorded_with`, the stand-in a recording runs it with ([`ARCH-R336`](plugin-manifest-service.md#environment--four-kinds-of-value)). A value captured or entered is held in the secret store in
 the plugin's namespace, as `<plugin id>:<secret id>`. An assembled part's plugin id is its
 service's, so the egress guard's key is `gluetun:wireguard-key` whether the bundle
 assembles the part or installs it. Of an assembled part's secrets, only one the operator
