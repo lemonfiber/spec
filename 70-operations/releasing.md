@@ -260,9 +260,10 @@ moves the bundle. A train tag publishes the versioned image and its pin is the o
 the bundle follows.
 
 **An image a plugin runs as its upstream may be built in a repository of its own**
-(`OPS-R93`). `lemonfiber-caddy` and `lemonfiber-door` build the images `plugin-caddy`
-and `plugin-door` run in front of their adapters, Caddy rebuilt without its file
-capability. Each publishes from a commit on its `main` as a plugin's image is
+(`OPS-R93`). `lemonfiber-caddy` builds the image `plugin-caddy` runs in front of its
+adapter, Caddy rebuilt without its file capability, and `lemonfiber-door` the guarded
+door, a Rust service that speaks `stream.guard` itself (ADR-0056), which `plugin-door`
+runs. Each publishes from a commit on its `main` as a plugin's image is
 published, but only from one that changes what the image is built from: the
 `Dockerfile`, its `.dockerignore`, or a path the `Dockerfile` copies in. A commit that
 changes only the documents or the workflows publishes nothing, so the plugin's pin, and

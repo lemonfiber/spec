@@ -160,10 +160,10 @@ pinned_in = "plugin-caddy"
 name = "lemonfiber-door"
 node = "doorimage"
 group = "impl"
-label = "lemonfiber-door<br/>the guarded door's image"
+label = "lemonfiber-door<br/>the guarded door"
 spec = ["lemonfiber-door.md"]
-lang = "Dockerfile"
-note = "Caddy rebuilt without its file capability, with the guard's configuration; plugin-door runs it as its upstream and pins it"
+lang = "Rust"
+note = "The guard on every byte the media server serves, speaking stream.guard itself; plugin-door runs its image and pins it"
 pinned_in = "plugin-door"
 
 [[repo]]
@@ -350,10 +350,10 @@ image = false
 name = "plugin-door"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "Rust"
-note = "The bundle's part for the guarded door: the adapter speaking stream.guard beside lemonfiber-door's image, which it pins; builds the adapter's image, so the train tags it"
+lang = "TOML"
+note = "The bundle's part for the guarded door: the manifest running lemonfiber-door's image, which it pins; builds no image, so the bundle pins its revision"
 plugin = "door"
-image = true
+image = false
 
 [[repo]]
 name = "plugin-caddy"
