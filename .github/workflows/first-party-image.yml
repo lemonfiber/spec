@@ -24,6 +24,10 @@
 # plugin's says it, and where there is none it is run under `standard` and waited on
 # as its own health check says.
 # The image is `ghcr.io/lemonfiber/<plugin id>` unless `image` names another.
+# `pinned_in` names the plugin's repository where the image is built in a repository of
+# its own and that plugin runs it as its upstream (OPS-R90): its manifest, its starting
+# files and its `posture/prepare` are read from that repository's main, the rolling pull
+# request is opened there, and the train cuts no tag here, so a tag publishes nothing.
 # `prepare`, `posture/prepare` where the plugin holds one, is a script of the plugin's
 # run with that configuration directory's copy before the container starts, for what
 # lemonfiber writes there at install, such as a certificate.
@@ -57,6 +61,11 @@ on:
         type: string
         required: false
         default: ""
+      pinned_in:
+        description: "The repository, under this one's owner, of the plugin that runs the image as its upstream, where the image is built apart from it. This repository where empty."
+        type: string
+        required: false
+        default: ""
     secrets:
       RELEASE_APP_KEY:
         description: "The release App's private key, which writes the rolling pin pull request."
@@ -67,6 +76,9 @@ permissions:
 
 env:
   REGISTRY: ghcr.io/lemonfiber
+  # Where the plugin's manifest is read: this repository, or a checkout of the one
+  # `pinned_in` names beside it.
+  PINNED: .pinned
   BUILDKIT: moby/buildkit:v0.33.1@sha256:cec9f139f45e93c5c69c60f8b07cfad9f43f4ef6b6a6cd917527fea5ff2e3dea
   SBOM_SCANNER: docker/buildkit-syft-scanner:1.12.0@sha256:ae4f3b554449e7e25548e7d8ccc029d17357348e30c6e3df01b92bc93654d6a9
 
@@ -93,6 +105,14 @@ jobs:
           repository: lemonfiber/spec
           ref: ${{ job.workflow_sha }}
           path: .spec-tooling
+          persist-credentials: false
+      - name: The plugin that runs the image, where it is built apart from it
+        if: inputs.pinned_in != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ github.repository_owner }}/${{ inputs.pinned_in }}
+          ref: main
+          path: ${{ env.PINNED }}
           persist-credentials: false
       - id: diff
         env:
@@ -125,6 +145,7 @@ jobs:
         env:
           IMAGE_NAME: ${{ inputs.image }}
           DIRECTORY: ${{ inputs.directory }}
+          PINNED_IN: ${{ inputs.pinned_in }}
           KIND: ${{ github.ref_type }}
           REF: ${{ github.ref }}
           NAME: ${{ github.ref_name }}
@@ -132,8 +153,14 @@ jobs:
           TOOLING: ${{ github.workspace }}/.spec-tooling
         run: |
           set -euo pipefail
+          if [ -n "$PINNED_IN" ] && [[ ! "$PINNED_IN" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::'${PINNED_IN}' is not a repository name: lowercase words joined by '-'"
+            exit 1
+          fi
+          MANIFEST="${DIRECTORY%/}"
+          [ -z "$PINNED_IN" ] || MANIFEST="$PINNED"
           if [ -z "$IMAGE_NAME" ]; then
-            IMAGE_NAME="$(python3 -I -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb")).get("plugin", {}).get("id", ""))' "${DIRECTORY%/}/plugin.toml")"
+            IMAGE_NAME="$(python3 -I -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb")).get("plugin", {}).get("id", ""))' "${MANIFEST}/plugin.toml")"
           fi
           if [[ ! "$IMAGE_NAME" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
             echo "::error::'${IMAGE_NAME}' is not an image name: lowercase words joined by '-'"
@@ -147,12 +174,18 @@ jobs:
             [ "$REF" = refs/heads/main ] || { echo "::error::${REF} is not main, and no other branch publishes"; exit 1; }
             mode=publish
             tag="main-${GITHUB_SHA:0:12}"
-            pins="$(python3 "$TOOLING/scripts/pin_bump.py" pins-only --before "$BEFORE" --after "$GITHUB_SHA" \
-              --directory "$DIRECTORY")"
+            pins=no
+            if [ -z "$PINNED_IN" ]; then
+              pins="$(python3 "$TOOLING/scripts/pin_bump.py" pins-only --before "$BEFORE" --after "$GITHUB_SHA" \
+                --directory "$DIRECTORY")"
+            fi
             if [ "$pins" = yes ]; then
               mode=none
               echo "::notice::${GITHUB_SHA} changes nothing of the plugin but a pin, so no image is published from it"
             fi
+          elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = tag ] && [ -n "$PINNED_IN" ]; then
+            echo "::error::the train cuts no tag of an image ${PINNED_IN} runs as its upstream, so ${NAME} publishes nothing"
+            exit 1
           elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = tag ]; then
             if [[ ! "$NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$ ]] \
               || [[ "$NAME" =~ ^v[0-9.]+-rc[0-9]*(\.|$) ]]; then
@@ -343,6 +376,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: The plugin that runs the image, where it is built apart from it
+        if: inputs.pinned_in != ''
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ github.repository_owner }}/${{ inputs.pinned_in }}
+          ref: main
+          path: ${{ env.PINNED }}
+          persist-credentials: false
       - name: The image to run, built here or as published
         env:
           MODE: ${{ needs.settle.outputs.mode }}
@@ -361,7 +402,7 @@ jobs:
         env:
           IMAGE: ${{ needs.settle.outputs.image }}
           IMAGE_NAME: ${{ needs.settle.outputs.name }}
-          DIRECTORY: ${{ inputs.directory }}
+          MANIFEST: ${{ inputs.pinned_in != '' && env.PINNED || inputs.directory }}
           PREPARE: ${{ inputs.prepare }}
           RUN_PLAN: ${{ runner.temp }}/run.json
           CONFIG_COPY: ${{ runner.temp }}/config
@@ -389,7 +430,7 @@ jobs:
               return not (takes_data and (path == DATA or path.startswith(DATA + "/")))
 
 
-          root = pathlib.Path(os.environ["DIRECTORY"])
+          root = pathlib.Path(os.environ["MANIFEST"])
           image, name = os.environ["IMAGE"], os.environ["IMAGE_NAME"]
           manifest = tomllib.loads((root / "plugin.toml").read_text(encoding="utf-8"))
           running = [one for one in manifest.get("service", []) if one.get("image") == image]
@@ -479,7 +520,7 @@ jobs:
       - name: It starts under its posture and passes its health check
         env:
           RUN_PLAN: ${{ runner.temp }}/run.json
-          DIRECTORY: ${{ inputs.directory }}
+          MANIFEST: ${{ inputs.pinned_in != '' && env.PINNED || inputs.directory }}
         run: |
           set -euo pipefail
           python3 -I - <<'PY'
@@ -537,7 +578,7 @@ jobs:
 
 
           if plan["prepare"]:
-              root = pathlib.Path(os.environ["DIRECTORY"]).resolve()
+              root = pathlib.Path(os.environ["MANIFEST"]).resolve()
               script = (root / plan["prepare"]).resolve()
               if not script.is_file() or root not in script.parents:
                   sys.exit(f"::error::{plan['prepare']} is not a script under the plugin's root")
@@ -565,6 +606,7 @@ jobs:
       image: ${{ needs.settle.outputs.image }}
       tag: ${{ needs.settle.outputs.tag }}
       digest: ${{ needs.publish.outputs.digest }}
-      directory: ${{ inputs.directory }}
+      directory: ${{ inputs.pinned_in != '' && '.' || inputs.directory }}
+      repository: ${{ inputs.pinned_in }}
     secrets:
       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
