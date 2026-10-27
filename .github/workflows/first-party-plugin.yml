@@ -136,7 +136,8 @@ jobs:
         with:
           name: ${{ env.BUILT }}
           path: ${{ inputs.directory }}/.lemonfiber/
-          if-no-files-found: ignore
+          include-hidden-files: true
+          if-no-files-found: error
           retention-days: 1
 
   live:
