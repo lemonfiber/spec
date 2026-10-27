@@ -114,7 +114,44 @@ why = "per-profile legs of a run-time matrix; the aggregate `the stack starts` i
 
 [[exempt]]
 name = "mutation"
-why = "the run-time mutation matrix reported bare when it has no shards to run; the aggregate `mutation testing` is required"
+why = "a mutation job reported bare where it did not run: the run-time matrix with no shards, whose aggregate `mutation testing` is required, or the caller of nightworksio/php-mutation-gate's workflow skipped behind failed tests, which `tests and coverage` already refuses"
+
+# The jobs of nightworksio/php-mutation-gate's reusable workflow beside its
+# verdict, reported under the calling job's name. `mutation / verdict` is the
+# required check: it judges the plan, every shard and the survivors' re-run,
+# and fails where any of them could not judge. The others plan, mutate, post
+# or publish, and each one's failure reaches the verdict.
+[[exempt]]
+name = "mutation / fetch"
+why = "reads the default branch's proof ledger, which only saves work; it is skipped where no store is named, and the verdict judges with or without it"
+
+[[exempt]]
+name = "mutation / plan"
+why = "plans the shards; a plan that fails makes `mutation / verdict` cannot-judge, which fails"
+
+[[exempt]]
+prefix = "mutation / shard "
+why = "per-shard legs of a run-time matrix; `mutation / verdict` judges every shard and fails on one that left no result"
+
+[[exempt]]
+name = "mutation / survivors"
+why = "re-runs the last run's survivors beside the shards; `mutation / verdict` judges its result"
+
+[[exempt]]
+name = "mutation / deliver plan"
+why = "posts the pull request comment's planned state, and judges nothing"
+
+[[exempt]]
+name = "mutation / deliver survivors"
+why = "posts the comment's survivors re-checked state, and judges nothing"
+
+[[exempt]]
+name = "mutation / deliver"
+why = "posts the verdict's comment and, on the default branch, writes the ledger; the verdict is `mutation / verdict`'s"
+
+[[exempt]]
+name = "mutation / publish"
+why = "writes the badge and the trend on the default branch, and is skipped on a pull request"
 
 # Jobs that run on a schedule or by hand, and report skipped on every pull
 # request. Required, one would pass every pull request without judging any.
