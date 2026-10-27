@@ -24,6 +24,8 @@
   service that replaces a reserved id keeps the stack's credential names, taken as
   recommended.
 
+**Amended** by `ARCH-R342`: the stack's credential names are named for the capability each credential reaches, not the service's id, so a part moved in place keeps them as the stack names them and migrates none.
+
 **Amended** by [ADR-0046](0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md): §2. An assembled part also keeps its plugin's `[[secret]]`, each held in the service id's namespace.
 
 **Supersedes in part** [ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md):

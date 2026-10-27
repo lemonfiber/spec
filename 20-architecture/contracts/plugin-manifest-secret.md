@@ -86,6 +86,35 @@ cross is not copied into the secret store. lemonfiber reads it from the store th
 it each time it writes an entry naming it, so replacing it regenerates every entry that
 reads it, and no stale copy is left behind (`ARCH-R277`).
 
+**A credential the stack records is named for what it reaches, never for its service.**
+A key or password lemonfiber keeps for a service of the stack or of a first-party plugin
+is named `<CAPABILITY>[_<QUALIFIER>][_<N>]_<ENDING>`:
+
+- **The capability** the service provides first, in the order its manifest lists them,
+  in upper case with `_` for `.` and `-`; an administrator's password on the service
+  filling `identity.source` is named for `identity.source`.
+- **The qualifier** the capability's contract tells its fillers apart by: for
+  `library.curate` the media type the service files first, for `media.serve` none on the
+  service filling `identity.source` and the media type it serves first on any other, and
+  none for any other capability.
+- **An ordinal**, `2` and onwards, only where two services would take one name: each
+  after the first, in the order it was installed, recorded with the service once and
+  kept while it is installed (`ARCH-R347`).
+- **The ending**: `API_KEY`, `PASSWORD`, `USERNAME` or `ADMIN_PASSWORD`.
+
+So the curator filing television keeps its key as `LIBRARY_CURATE_TV_API_KEY`, the torrent
+client's password is `DOWNLOAD_TORRENT_PASSWORD`, the media server's administrator
+password is `IDENTITY_SOURCE_ADMIN_PASSWORD` and an audiobook server's is
+`MEDIA_SERVE_AUDIOBOOKS_PASSWORD`. A plugin's own setting and secret names keep its id as
+their namespace (`gluetun:wireguard-key`), and so does what a third-party plugin's own
+services hold: the plugin chose that id, and it is the plugin's to keep.
+
+A stack an earlier release set up holds each under the service's id, `SONARR_API_KEY`.
+The first run of the release that names them by capability moves each to its name once,
+with a rotation's pending replacement beside it, journalled by both names and never by
+value, and reads the earlier name until it has; a grant recorded under an earlier name is
+rewritten with it (`ARCH-R342`).
+
 **A third-party plugin is granted what crosses to it.** A `[[secret]]` whose `of` names
 another service declares `for`, the capability one of the plugin's own services provides
 that the credential is needed to fill. A third-party plugin declares at most one such
@@ -98,7 +127,7 @@ What crosses to a third-party plugin is a grant, and the operator gives it. The 
 or update reading names each credential that would cross as `<setting>@<plugin>`, with
 the capability it is for and the service whose credential it is; the credential is named
 by its setting, as the [credentials read](web-api.md) lists it, never by value. The act
-takes the grant as another approval (`--approve SONARR_API_KEY@comics`), and refuses
+takes the grant as another approval (`--approve LIBRARY_CURATE_TV_API_KEY@comics`), and refuses
 unless every grant the reading names was approved. An update names every grant again
 and takes none over unapproved: one the operator leaves out stops crossing when the
 update is made. Each grant given or ended is journalled with the operation that gives or
