@@ -10,8 +10,9 @@
 - it reads each request's target as the bytes that arrived, checks them against the
   declaration the core applies in typed code, and forwards exactly those bytes;
 - it answers `503` until the core applies a guard, believes `X-Forwarded-For` only from
-  the one proxy the guard names, and refuses with `403` a question's answer the
-  declaration does not class;
+  the one proxy the guard names, refuses with `403` a question's answer the declaration
+  does not class, and refuses with `403` a request presenting a member's token more
+  than once;
 - `lemonfiber-door` stays the repository that builds the image `plugin-door` runs and
   pins (`OPS-R93`), and `plugin-door` holds the door's manifest with no adapter beside
   it.
@@ -64,7 +65,11 @@ enforces would live in generated text that no test reads byte by byte.
    server that client alone, as the whole of `X-Forwarded-For`. An answer to the
    question in one of the declared refusals is handed back with its own status, an
    answer in none of the declared classes is refused with `403`, and a media server
-   that cannot be reached, or does not answer in time, is answered `502` or `504`.
+   that cannot be reached, or does not answer in time, is answered `502` or `504`. A
+   request presents a member's token once: one carrying more than one `Authorization`
+   header, or a bearer token of the declared shape beside a token in one of the
+   declared query parameters, is refused with `403`, so the question and the request
+   forwarded present the same one.
 5. **The repositories keep their places.** `lemonfiber-door` builds the image and moves
    `plugin-door`'s pin to it (`OPS-R93`). `plugin-door` holds the manifest, which runs
    that image with no adapter service, and builds no image of its own.
