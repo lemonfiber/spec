@@ -303,29 +303,16 @@ on, so "could not check" cannot accidentally render as "passed".
 An error *inside* a check surfaces as a check error, never as a finding about the
 stack (`C1-R8`).
 
-## Seed: one client per API shape
+## Seed: one contract per capability
 
-```rust
-trait Client {
-    async fn identity(&self) -> Result<Identity>;
-    async fn register_download_client(&self, dc: &DownloadClient) -> Result<()>;
-    async fn register_root_folder(&self, rf: &RootFolder) -> Result<()>;
-    // … updating and testing a download client, root folders, quality profiles
-}
-```
-
-`Client` is the Servarr shape's port, and `Servarr` is the one implementation of
-it. Each client implements a narrower port for each other thing asked of its
-service — `Transfers` of `Qbittorrent` and `Sabnzbd`, `Indexers` and `AppSync` of
-`Prowlarr`, `Requests` of `Seerr`, `Subtitles` of `Bazarr`, `Aggregators` of
-`Bindery`, and more besides.
-
-The manifest's `api.kind` selects the client
-([contract](contracts/stack-manifest.md#api)). A service declaring
-`api.kind = "servarr"`, an `api.version`, a port and media types is seeded from
-that declaration alone. What an import carries from a Servarr service, and which
-service a music format is applied to, are keyed by service id, which `ARCH-R18`
-forbids.
+Seeding asks each part through the adapter in front of it, over the capability contract
+that adapter speaks ([capability-contracts.md](contracts/capability-contracts.md)): a
+curator over `library.curate`, a download client over `download.usenet` or
+`download.torrent`, the request service over `request.intake`, the media server over
+`media.serve` and `identity.source`. What one service is told about another is told in
+the second's own API, which the upstream an adapter fronts names with `native`
+([plugin-manifest-service.md](contracts/plugin-manifest-service.md)). No manifest names an
+in-process client, and none is selected by a service's name (`ARCH-R18`).
 
 Every write goes through the journal (`E4-R1`) and consults drift state before
 overwriting (`C9-R3`).
@@ -352,7 +339,7 @@ the server runs only when asked (`G1-R5`).
 | **ARCH-R15** | The render loop MUST NOT await I/O or hold a lock across a frame. |
 | **ARCH-R16** | The render loop MUST take what a background task produces by value — a gathered snapshot, a key, a walk's step, an action's outcome — and MUST share no mutable state with the task that produced it. |
 | **ARCH-R17** | `unverified` MUST be a distinct variant in the finding type, not a severity value. |
-| **ARCH-R18** | Service clients MUST be selected by manifest `api.kind`, never by hardcoded service name. |
+| **ARCH-R18** | A service MUST be asked through the capability contract its adapter speaks, and told about another in the API that other's `native` names, never by a hardcoded service name. |
 | **ARCH-R19** | Web assets MUST be embedded in the binary; no runtime toolchain MAY be required. |
 | **ARCH-R20** | The web API MUST be the same interface the TUI consumes. |
 | **ARCH-R42** | Every surface MUST reach behaviour through a single dispatch entry point in `lemonfiber-core`; a surface MUST NOT orchestrate the core's subsystems directly. |

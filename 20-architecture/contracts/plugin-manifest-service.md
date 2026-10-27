@@ -118,9 +118,8 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate, summed into a form's footprint (`B1-R18`) and never written as a limit. |
 | `mem_limit_mib` | integer | | The most memory the container may hold, in MiB, written as its limit. |
 | `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). |
-| `api` | table | | The in-process adapter lemonfiber reaches it through, in `stack.toml`'s shape. `kind` and `key_source` from the published set. Honoured only in a first-party plugin the bundle assembles — see below. |
-| `listens` | integer | ✔ if `api` or `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where lemonfiber, the services that ask and the proxy reach it. Default `port`. |
-| `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract names no `api`: it is asked one way. See [capability-contracts.md](capability-contracts.md). |
+| `listens` | integer | ✔ if `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where lemonfiber, the services that ask and the proxy reach it. Default `port`. |
+| `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract is asked over it, and no other way. See [capability-contracts.md](capability-contracts.md). |
 | `upstream` | table | | Only where it `speaks`: each field of the `upstream.json` lemonfiber writes for this adapter, to `{ secret = "<id>" }` naming a secret the plugin holds, usually one it [mints](plugin-manifest-secret.md#secret-and-override--declared-before-they-are-held) (`ARCH-R317`). |
 | `fronts` | string | ✔ if `speaks` | The plugin's own service this adapter stands in front of: the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. |
 | `native` | string | | The API this service answers the stack's other services in, by the name those services know it by (`jellyfin`, `plex`, `emby`). Declared on the upstream an adapter `fronts`, where other services reach that upstream directly rather than through the adapter: a request service is set up against a media server in the media server's native API (`F14-R26`, `ARCH-R221`). |
@@ -555,26 +554,14 @@ asks for it and no published contract defines it, so two services both declaring
 would be refusing something with no consequence, which is the defect a stand-in
 gate is warned against in the other direction.
 
-### `api` names an adapter lemonfiber already has
+### No `api`
 
-A plugin's service may declare `api` in the stack manifest's own shape
-([`api`](stack-manifest.md#api)): `kind` names one of the adapters lemonfiber
-implements and `key_source` where the service's credential is read. It is honoured in
-one place: a first-party plugin the bundle pins as `assembled`, whose one service is a
-stack service and is reached through that in-process adapter as the stack's own are; the
-release whose bundle installs the part deletes that adapter. An install or update of a
-plugin naming `api` is refused, naming `service <id>.api` (`ARCH-R272`), as a
-third-party `replaces` is (`F14-R29`); every other plugin speaks a contract instead
-(`F14-R3`).
+A service names no in-process adapter. lemonfiber asks a plugin's service over the
+contract it speaks (`F14-R3`), and a manifest whose service names `api` is refused as
+naming a field the format does not have, naming `service <id>.api` (`ARCH-R272`). The
+API an upstream answers the stack's other services in is its `native`.
 
-The set is fixed and published as `contract/adapters.json`, generated from the
-kinds and key sources lemonfiber implements (`F8-R13`, `ARCH-R143`). A plugin
-cannot add to it: no field lets a manifest supply an adapter (`F8-R11`), and a
-`kind` or `key_source` outside the set is refused, naming it and the set
-(`F8-R12`). A service declaring `api` declares `listens` too, as the stack's own
-services do (`ARCH-R144`).
-
-A service declaring no `api` is operated generically, as `F1-R10` and `F1-R11`
+A service speaking no contract is operated generically, as `F1-R10` and `F1-R11`
 promise for a service lemonfiber does not know: whatever asks for a capability it
 fills is told that nothing here can register it there, rather than being left
 unwired without a word.

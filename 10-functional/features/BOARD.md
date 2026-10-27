@@ -62,7 +62,7 @@ code, and the two move independently.
 | [F4](f-extensibility/f4-capabilities.md) | The capability vocabulary | F | operator | accepted | `0.16.0`, `0.18.0` |
 | [F5](f-extensibility/f5-plugin-catalogue.md) | The plugin catalogue and what vouches for a plugin | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F6](f-extensibility/f6-plugin-lifecycle.md) | Plugin lifecycle | F | operator | accepted | `0.16.0`, `0.18.0` |
-| [F8](f-extensibility/f8-recipes.md) | Recipes and named adapters | F | operator | accepted | `0.17.0`, `0.18.0` |
+| [F8](f-extensibility/f8-recipes.md) | Recipes | F | operator | accepted | `0.17.0`, `0.18.0` |
 | [F10](f-extensibility/f10-authoring.md) | Writing a plugin | F | operator | accepted | `0.16.0`, `0.17.0`, `0.18.0` |
 | [F12](f-extensibility/f12-home-assistant.md) | Home Assistant | F | operator | accepted | `0.18.0`, `0.19.0` |
 | [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0`, `0.19.0` |

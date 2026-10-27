@@ -43,7 +43,7 @@ the first thing they owe is an argument that the reasons for drawing it no longe
 | `F3-R10` asks that a plugin review as a readable diff with nothing opaque needed to understand it. A compiled module is the opposite of a readable diff. | Either an artefact that reviews, or an honest statement that this class of plugin is not reviewable and what stands in for review. |
 | [ADR-0021](../../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) records why the two obvious answers lost. A WASM module is a good sandbox **for computation**, and nothing a plugin needs is computation — it runs a service and calls an API, both of which are I/O the host must grant anyway, so the sandbox constrains the part nobody feared. A supervised subprocess holds lemonfiber's own authority on that machine, so isolating faults buys nothing against misbehaviour. | An answer to both objections, rather than a stronger sandbox. The question is not *how well is it confined* but *what does it still reach*. |
 | The declarative surface buys a property: what runs and what it may reach is stated in advance and checkable without running it. | A way to keep that property, or an explicit account of what is traded for what. |
-| [F8](f8-recipes.md)'s recipes and named adapters were built to replace the escape hatch. | Cases recipes genuinely cannot express, named — not hypothesised. |
+| [F8](f8-recipes.md)'s recipes and the contracts plugins' adapters speak replace the escape hatch. | Cases recipes genuinely cannot express, named — not hypothesised. |
 
 The original question is recorded as [RFC #66](https://github.com/lemonfiber/spec/issues/66),
 which asked whether the plugin surface should commit to a sandboxed WASM escape hatch or
@@ -109,7 +109,7 @@ being a draft.
 |----|-------------|
 | **F11-R1** | This feature MUST NOT be implemented while `F3-R6` stands, and retiring `F3-R6` MUST be a superseding decision record that states what changed, never an edit to the requirement in place. |
 | **F11-R2** | A proposal MUST answer both objections already recorded — that a sandbox confines computation while the risk is I/O, and that an opaque artefact forecloses the readable review `F3-R10` asks for — rather than asserting that the sandbox is strong. |
-| **F11-R3** | A proposal MUST name the cases recipes and named adapters genuinely cannot express, with an example of each, and MUST NOT rest on the possibility that such cases exist. |
+| **F11-R3** | A proposal MUST name the cases recipes and capability contracts genuinely cannot express, with an example of each, and MUST NOT rest on the possibility that such cases exist. |
 | **F11-R4** | Contributed code, if it is ever executed, MUST NOT hold lemonfiber's own authority on the machine: the credential store, the container runtime's socket and the data root MUST be unreachable from it by construction rather than by policy. |
 | **F11-R5** | What contributed code may reach MUST be stated in advance and checkable without running it, and a reach beyond what was stated MUST be refused rather than logged. |
 | **F11-R6** | An operator MUST be able to tell from an installed plugin whether any part of it executes in lemonfiber's process, without reading its source. |
@@ -122,7 +122,7 @@ being a draft.
 
 - [F3 Plugin manifests](f3-stack-manifests.md) — `F3-R6` and `F3-R7`, the prohibition this would have to cross
 - [ADR-0021](../../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) — why a plugin is data, and the two alternatives that lost
-- [F8 Recipes and named adapters](f8-recipes.md) — what was built instead of the escape hatch
+- [F8 Recipes](f8-recipes.md) — what was built instead of the escape hatch
 - [F10 Writing a plugin](f10-authoring.md) — the authoring experience a change here would alter
 - [F4 The capability vocabulary](f4-capabilities.md) — the namespacing and no-overriding rules that hold whatever the mechanism
 - [G8 Privacy stance](../g-ux/g8-privacy.md) — the account of what leaves this machine
