@@ -73,6 +73,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0052](0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md) | A curator's downloads complete into one folder, and the core tells each part what it holds | Accepted |
 | [0053](0053-a-part-claimed-first-is-claimed-over-a-contract-and-an-indexer-source-is-pulled-over-its-own.md) | A part claimed first is claimed over a contract, and an indexer source is pulled over its own | Accepted |
 | [0054](0054-a-media-server-credential-crosses-the-stack-only-over-tls-the-core-pins.md) | A media server credential crosses the stack only over TLS the core pins | Accepted |
+| [0055](0055-a-setting-names-the-values-its-service-accepts-and-what-each-needs.md) | A setting names the values its service accepts and what each needs | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

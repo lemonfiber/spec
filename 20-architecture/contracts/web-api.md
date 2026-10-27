@@ -572,7 +572,10 @@ the core's settings store, and `GET /api/settings` reads them as `lemonfiber set
 does. Each setting carries its name; whose it is, the core's or a plugin's; each service that
 reads it and the variable it is read into; the default its manifest declares; and the
 operator's value where one is recorded, so a value still at its default is told apart from one
-somebody set to the same text (`ARCH-R254`).
+somebody set to the same text (`ARCH-R254`). A setting that declares choices carries each
+value with the `needs` it is a choice under and whether it is one now; each reference
+carries its `needs` and whether they are met; and each service waiting for a setting or a
+secret is named with what it waits for, as status names it (`ARCH-R351`, `ARCH-R352`).
 
 The same read lists each secret a service's environment names, with whose it is, the services
 that read it, where its value came from (the operator, a recipe or a granted credential) and
@@ -599,8 +602,14 @@ The two writes take what `lemonfiber settings set` and `lemonfiber settings clea
 
 | Action | Arguments | Answers |
 |--------|-----------|---------|
-| `settings-set` | `setting`, `value`, `dry_run`, `offer` | `settings` |
-| `settings-clear` | `setting`, `dry_run`, `offer` | `settings` |
+| `settings-set` | `values`, `dry_run`, `offer` | `settings` |
+| `settings-clear` | `settings`, `dry_run`, `offer` | `settings` |
+
+`values` is a table of one or more settings to the value each is set to, and `settings`
+a list of one or more settings. Each act checks them together, so the settings whose
+choices depend on each other move at once, and a value outside its setting's choices, or
+an act that leaves another setting's value outside its own, is refused naming the
+setting, the value and the choices it has (`ARCH-R350`).
 
 `settings-clear` takes the operator's value away, so the declared default is written again.
 Each rehearsal names every entry the change regenerates and every service it restarts, and
@@ -855,6 +864,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R223** | Every sentence the core sends a client over the web API or a capability contract (a refusal's summary and remedy, a reason, a report, and each code's meaning and remedy in the registry) MUST be plain text carrying no markup, and CI MUST refuse a core sentence written with a code span or emphasis. |
 | **ARCH-R254** | The web API MUST answer `GET /api/settings` as `lemonfiber settings --json` answers, with every setting in the core's settings store: its name, whose it is, each service that reads it and the variable it is read into, the declared default, and the operator's value where one is recorded; only the operator MUST be answered, and a member, a key scoped to one, and a `read` or an `act` key MUST be refused. |
 | **ARCH-R255** | `POST /api/actions/settings-set` and `settings-clear` MUST take what `lemonfiber settings set` and `lemonfiber settings clear` take; each rehearsal MUST name every entry the change regenerates and every service it restarts and answer an offer, the write MUST refuse where what it would change moved since, naming what moved, and each write MUST be journalled. |
+| **ARCH-R352** | `GET /api/settings`, `lemonfiber settings --json` and the `settings` event MUST carry, for each setting that declares `one_of`, every value with the `needs` it is a choice under and whether it is a choice now, for each reference its `needs` and whether they are met, and each service `ARCH-R351` keeps from starting with each setting or secret it waits for, never by value. |
 | **ARCH-R256** | The settings read MUST list each secret a service's environment names, with whose it is, the services that read it, where its value came from and whether one is held, and MUST NOT carry a secret's value; neither settings write MUST take a secret, and naming one MUST be refused, naming it. |
 | **ARCH-R257** | The settings MUST ride the operator's event stream as a `settings` event, sent when a client connects and whenever one changes, only to the per-run token and an operator session, and MUST NOT be sent on a member's stream or to a key of any scope. |
 | **ARCH-R258** | `POST /api/device-keys` MUST take `name`, `public_key` (a P-256 SubjectPublicKeyInfo in base64url), `attestation` (an object tagged by `platform`: `{"platform": "android", "chain": […]}`, the key attestation chain as each certificate's DER in base64url, the key's own certificate first, or `{"platform": "ios", "object": …}`, the App Attest attestation object's CBOR in base64url, attested with the SHA-256 of exactly the bytes `public_key` decodes to as its client data hash, hashed once) and `password` from an operator session, and MUST answer the `device-key` envelope with the name, the public half's fingerprint, its `backing` (`strongbox`, `enclave` or `tee`) and the registration time; a missing attestation, one that does not verify, one placing the key in software and one naming an app the core does not trust MUST each be refused with a code of its own listed among the artefact's refusals (`C10-R23`). |

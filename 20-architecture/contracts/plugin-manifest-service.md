@@ -372,7 +372,7 @@ api_key = {{secret:upstream-key}}
 
 ```toml
 [service.env]
-VPN_TYPE              = "wireguard"
+UMASK                 = "002"
 SERVER_COUNTRIES      = { setting = "gluetun:countries", default = "Netherlands" }
 DOMAIN                = { setting = "domain", default = "home.local" }
 INDEXER_URL           = { url_of = "indexer.search" }
@@ -383,7 +383,7 @@ WIREGUARD_PRIVATE_KEY = { secret = "wireguard-key" }
 | Value | Written as |
 |-------|------------|
 | A string, an integer or a boolean | A constant: the value exactly as declared |
-| `{ setting = "<name>", default = <constant> }`, with `recorded_with` where only the operator holds it and `was` where an earlier release kept it in the stack's environment file | The operator's value for that setting, or the default where none is recorded |
+| `{ setting = "<name>", default = <constant> }`, with `recorded_with` where only the operator holds it, `was` where an earlier release kept it in the stack's environment file, `one_of` where the service accepts only some values and `needs` where it is read only beside other settings' values | The operator's value for that setting, or the default where none is recorded; nothing where its `needs` are not met |
 | `{ url_of = "<capability>" }`, with `files` and `native` where needed | `http://<service>:<port>`: the service the ask reaches, at the port it `listens` on |
 | `{ secret = "<name>" }` | The value of the `[[secret]]` the manifest declares by that name, in a file of the service's own and never in the project |
 
@@ -433,6 +433,82 @@ of            = "gluetun"
 why           = "Dial the tunnel to your VPN provider, which knows this machine by the key"
 recorded_with = "minted"
 ```
+
+**A setting names the values its service accepts.** `one_of` lists them: each entry is a
+constant, or `{ values = [...], needs = {...} }`, values that are choices only where the
+other settings `needs` names hold one of the values it lists. A setting's choices are
+declared once in a manifest, on one reference, and hold wherever the manifest reads it.
+`needs` on a reference, or on a [`[[secret]]`](plugin-manifest-secret.md#secret-and-override--declared-before-they-are-held),
+names the settings under whose values the variable is written and the secret asked for
+and written; where they are not met, neither is, and a secret already held is kept. A
+setting `needs` names is one the same service reads, and its value is the operator's, or
+the default where none is recorded (`ARCH-R348`, `ARCH-R349`). The egress guard runs
+Gluetun over WireGuard or OpenVPN, and offers each provider only over what Gluetun runs it
+over with what the guard can hand it, its lists of providers shortened here:
+
+```toml
+[service.env]
+VPN_TYPE                = { setting = "gluetun:vpn-type", default = "wireguard", one_of = ["wireguard", "openvpn"] }
+VPN_PORT_FORWARDING     = { setting = "gluetun:port-forwarding", default = "off", one_of = ["off", { values = ["on"], needs = { "gluetun:provider" = ["perfect privacy", "private internet access", "privatevpn", "protonvpn"] } }] }
+PORT_FORWARD_ONLY       = { setting = "gluetun:port-forwarding", default = "off", needs = { "gluetun:provider" = ["private internet access", "protonvpn"] } }
+WIREGUARD_ADDRESSES     = { setting = "gluetun:addresses", default = "", recorded_with = "10.64.0.2/32", needs = { "gluetun:vpn-type" = ["wireguard"] } }
+WIREGUARD_ENDPOINT_IP   = { setting = "gluetun:endpoint-ip", default = "", recorded_with = "192.0.2.1", needs = { "gluetun:provider" = ["custom"] } }
+WIREGUARD_PRIVATE_KEY   = { secret = "wireguard-key" }
+OPENVPN_USER            = { secret = "openvpn-user" }
+
+[service.env.VPN_SERVICE_PROVIDER]
+setting       = "gluetun:provider"
+default       = ""
+recorded_with = "custom"
+one_of        = [
+    "fastestvpn", "ivpn", "mullvad", "nordvpn", "protonvpn", "surfshark", "windscribe",
+    { values = ["airvpn", "custom"], needs = { "gluetun:vpn-type" = ["wireguard"] } },
+    { values = ["expressvpn", "private internet access", "privatevpn"], needs = { "gluetun:vpn-type" = ["openvpn"] } },
+]
+
+[[secret]]
+id            = "wireguard-key"
+of            = "gluetun"
+why           = "Dial the tunnel to your VPN provider, which knows this machine by the key"
+recorded_with = "minted"
+needs         = { "gluetun:vpn-type" = ["wireguard"] }
+
+[[secret]]
+id            = "openvpn-user"
+of            = "gluetun"
+why           = "Sign in to your VPN provider, which knows your account by this name"
+recorded_with = "minted"
+needs         = { "gluetun:vpn-type" = ["openvpn"] }
+```
+
+A table under `[service.env]` is the same reference written over several lines, for one
+whose choices would not fit on one.
+
+The manifest is held to them when it is validated: `one_of` is not empty and lists no
+value twice, at most one reference to a setting declares it, a reference's `default` is
+one of its setting's values unless it declares `recorded_with`, and every setting a
+`needs` names is one the same service reads, other than the one the reference itself
+reads, listing only values that setting's choices hold where it declares them. A
+manifest failing any is refused naming the variable or the secret and the setting
+(`ARCH-R348`).
+
+**A value outside the choices is refused by name.** A setting's choices are the values
+its `one_of` lists whose `needs` the other settings' values meet. Setting a value that is
+not one of them, or a change that leaves another setting's recorded value outside its
+own, is refused, naming the setting, the value and the choices it has. `settings set`
+takes several settings in one act and checks them together, so the VPN type and the
+provider move at once; `settings clear` takes several the same way (`ARCH-R350`).
+
+**A service waits for what it needs, and says so.** A reference that declares
+`recorded_with` names a value only the operator holds and the service needs to start
+(`ARCH-R336`). Where its `needs` are met and no operator value is recorded, or where a
+setting the service reads holds a value outside its choices, such as one filed from an
+earlier release's environment file, lemonfiber writes the rest of the project and does
+not start that service or any service that runs through it. Status, the doctor and each
+rehearsal of an install, an update or a settings change name the service and each
+setting or secret it waits for, never by value, with the choices where it has them; the
+act that gives the last of them starts it (`ARCH-R351`). So a guard with no provider
+waits, named, rather than restarting in a loop.
 
 Settings live in the core's settings store, and the operator reads and changes them from
 the command line, the web surface and the companion's operator screens alike, through
