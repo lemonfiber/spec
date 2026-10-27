@@ -120,10 +120,11 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate, summed into a form's footprint (`B1-R18`) and never written as a limit. |
 | `mem_limit_mib` | integer | | The most memory the container may hold, in MiB, written as its limit. |
 | `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). |
-| `listens` | integer | ✔ if `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where lemonfiber, the services that ask and the proxy reach it. Default `port`. |
+| `listens` | integer | ✔ if `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where the services that ask and the proxy reach it, and lemonfiber where it declares no `contract`. Default `port`. |
+| `contract` | integer | | Only where it `speaks`: the port it speaks its contracts on inside the container, published on the loopback interface alone and reached by lemonfiber and nothing else. Default `listens`. Declared apart from `listens` where the service also answers the household or another service, so neither reaches its contract routes (`ARCH-R343`). |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract is asked over it, and no other way. See [capability-contracts.md](capability-contracts.md). |
 | `upstream` | table | | Only where it `speaks`: each field of the `upstream.json` lemonfiber writes for this adapter, to `{ secret = "<id>" }` naming a secret the plugin holds, usually one it [mints](plugin-manifest-secret.md#secret-and-override--declared-before-they-are-held) (`ARCH-R317`). |
-| `fronts` | string | ✔ if `speaks` | The plugin's own service this adapter stands in front of: the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. |
+| `fronts` | string | | Only where it `speaks`: the plugin's own service this adapter stands in front of, the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. Absent where the service is its own upstream, answering its contracts itself, and then its recordings are taken against its own pin (`ARCH-R344`). |
 | `native` | string | | The API this service answers the stack's other services in, by the name those services know it by (`jellyfin`, `plex`, `emby`). Declared on the upstream an adapter `fronts`, where other services reach that upstream directly rather than through the adapter: a request service is set up against a media server in the media server's native API (`F14-R26`, `ARCH-R221`). |
 | `replaces` | string | | An id the [bundle reserves](bundle.md#the-reserved-register), of the service this service moves in place of: the same container name, configuration directory and data, so an install moves the bundled service rather than running beside it ([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) §4). It names the service's own id, and only that service may take the reserved id, port and hostname (`ARCH-R222`). Only a first-party plugin's install honours it (`F14-R29`), and the service keeps the stack's setting, secret and credential names for that id, so the move migrates none (`ARCH-R273`). |
 | `shape` | enum | | `egress-guard` \| `render`. The one privileged shape lemonfiber writes for this service, from a closed set; each names who may declare it, and the operator approves it apart from the offer — see [shapes](#shapes--the-only-route-to-a-device-or-a-privilege) (`F14-R12`, `F14-R21`, `ARCH-R237`, `ARCH-R238`). |
@@ -169,9 +170,19 @@ port = 8920
 ```
 
 A port another service already publishes is refused, naming the port and both services
-(`ARCH-R226`). A service that speaks a contract is also published at its `listens` port
-on the loopback interface, at a port the engine chooses, which is where lemonfiber
-reaches it.
+(`ARCH-R226`). A service that speaks a contract is also published at its contract port,
+`contract` or `listens` where it declares none, on the loopback interface, at a port the
+engine chooses, which is where lemonfiber reaches it. A service that also answers somebody
+else, the household at a page or another service at an ask, declares `contract` apart
+from `listens`: its contract port is then published on loopback alone, and no published
+port, ask or proxy route reaches it (`ARCH-R343`).
+
+```toml
+port     = 5056
+bind     = "lan"
+listens  = 8080
+contract = 8081
+```
 
 ### `config_path` — where its own directory lands
 
