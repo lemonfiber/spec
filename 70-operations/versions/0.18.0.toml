@@ -295,7 +295,12 @@
 # from repositories of their own, `lemonfiber-caddy` and `lemonfiber-door`, each moving its
 # plugin's pin on a rolling pull request in the plugin's repository and never tagged by
 # the train: a goal locked under `goals-change` review (OPS-R31).
-# 587 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R348` to `ARCH-R352` and `A2-R18` let a setting name the values its service accepts
+# and what each needs (ADR-0055), so the core refuses a wrong value and holds a service
+# back by name rather than leaving it restarting in a loop, and setup asks for the VPN
+# type and then a provider the egress guard runs: goals locked under `goals-change`
+# review (OPS-R31).
+# 593 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -388,7 +393,7 @@ goals   = [
     "E3-R16",
     "G7-R14",
     "G8-R15", "G8-R16", "G8-R17", "G8-R18",
-    "A2-R16", "A2-R17",
+    "A2-R16", "A2-R17", "A2-R18",
     "ARCH-R173", "ARCH-R174", "ARCH-R175", "ARCH-R176", "ARCH-R177",
     "F8-R19",
     "ARCH-R178", "ARCH-R179",
@@ -451,6 +456,7 @@ goals   = [
     "ARCH-R256", "ARCH-R257",
     "N25-R12", "N25-R13", "N25-R14",
     "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345", "ARCH-R346", "OPS-R93",
+    "ARCH-R348", "ARCH-R349", "ARCH-R350", "ARCH-R351", "ARCH-R352",
     "C10-R18", "C10-R19", "C10-R20", "C10-R21", "C10-R22", "C10-R23", "C10-R24", "C10-R25",
     "C10-R26", "C10-R27", "C10-R28",
     "ARCH-R258", "ARCH-R259", "ARCH-R260", "ARCH-R261",

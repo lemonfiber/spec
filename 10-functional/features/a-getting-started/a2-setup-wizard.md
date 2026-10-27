@@ -68,6 +68,18 @@ A question the operator can't answer is not thoroughness; it's abdication.
 | 14 | Wire | [D1](../d-content/d1-seed.md) — connects everything via API |
 | 15 | Finish | Prints URLs; offers the [first-content walkthrough](../d-content/d3-first-content.md) |
 
+### The VPN is asked for from what the egress guard accepts
+
+Where torrents are chosen and a VPN carries them, the credentials step asks for the
+egress guard's settings from the choices its manifest declares
+([plugin-manifest](../../../20-architecture/contracts/plugin-manifest-service.md#environment--four-kinds-of-value)):
+first each setting that declares choices, each after the settings its choices need, so
+the VPN type comes before the provider and the provider offers only those the guard runs
+over that type; then each setting and secret the guard needs to start that those answers
+make needed, such as the WireGuard key or the OpenVPN username and password, and none
+they leave unneeded. A stack set up with a VPN starts its guard with a provider it runs
+(`A2-R18`).
+
 ### Nothing is written until Review is confirmed
 
 Steps 1–11 are read-only. The operator can abandon at any point and leave no
@@ -174,6 +186,7 @@ resume, roll back, or start over.
 | **A2-R15** | Total elapsed time for an operator with prerequisites in hand SHOULD be under 15 minutes ([NFR](../../../00-overview/vision.md#what-success-looks-like)). |
 | **A2-R16** | The web API MUST serve what setup settled — the data root, the protocols and the service user — read from the configuration as it stands, together with whether this stack is set up, on a read that offers no setup and changes nothing (`N15-R1`, `N15-R2`). |
 | **A2-R17** | After the start step, setup MUST wire the stack as `seed` does ([D1](../d-content/d1-seed.md)), and report each connection made, skipped or failed before it finishes; a stack that did not start is not wired. |
+| **A2-R18** | Where a VPN carries the torrents, setup MUST ask for each setting of the filler of `network.egress-guard` that declares `one_of`, each after every setting its choices' `needs` name, offering only the values that are choices under the answers before it, and then for each setting and secret that declares `recorded_with` whose `needs` those answers meet, and MUST NOT ask for one whose `needs` they leave unmet (`ARCH-R348` to `ARCH-R351`). |
 
 ## Related
 
