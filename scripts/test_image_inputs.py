@@ -134,6 +134,24 @@ class Pushed(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("larger than", err)
 
+    def test_a_commit_or_a_context_git_could_read_otherwise_is_refused_before_git_is_asked(self):
+        after = self.commit()
+        for args in (("--before", self.before, "--after=--output=x"),
+                     ("--before=-p", "--after", after),
+                     ("--before", self.before, "--after", "HEAD"),
+                     ("--before", self.before, "--after", after, "--directory=-door"),
+                     ("--before", self.before, "--after", after, "--directory", "../door"),
+                     ("--before", self.before, "--after", after, "--directory", "door/../.."),
+                     ("--before", self.before, "--after", after, "--directory", "/door")):
+            with self.subTest(args=args):
+                code, out, err = self.ran(*args)
+                self.assertEqual((code, out), (1, ""))
+                self.assertIn("::error::", err)
+        self.assertFalse((self.root / "x").exists())
+
+    def test_a_push_from_nothing_names_no_commit_before(self):
+        self.assertEqual(self.ran("--before", "", "--after", self.commit())[1], "yes")
+
     def test_a_context_with_no_dockerfile_fails(self):
         code, _, err = self.ran("--before", self.before, "--after", self.commit(), "--directory", "nowhere")
         self.assertEqual(code, 1)

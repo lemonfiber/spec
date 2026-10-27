@@ -11,6 +11,10 @@ context `--directory` names, its `.dockerignore`, or a path one of the `Dockerfi
 itself, `.`, takes every path in it. A `COPY --from` takes from a stage or an image,
 not the context, and an `ADD` of a URL takes nothing from it.
 
+Each commit is named in full, forty hexadecimal digits, the commit before by nothing
+where the push has none, and the build context is a relative path of plain names; any
+other is refused before git is asked.
+
 It prints `yes` where the push changed one of them, and where the commit before cannot
 be read, since nothing then says the image is the one already published. Otherwise it
 prints `no`, and so it does where nothing changed.
@@ -24,6 +28,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import json
+import re
 import shlex
 import subprocess
 import sys
@@ -36,6 +41,9 @@ DOCKERFILE, IGNORE = "Dockerfile", ".dockerignore"
 TAKES = ("COPY", "ADD")
 #: The most of the `Dockerfile` read.
 LIMIT = 256 * 1024
+#: A commit as the push names it, and a build context as the caller names it.
+COMMIT = re.compile(r"\A[0-9a-f]{40}\Z")
+CONTEXT = re.compile(r"\A(?:\.|[A-Za-z0-9_][A-Za-z0-9_.-]*(?:/[A-Za-z0-9_][A-Za-z0-9_.-]*)*)/?\Z")
 
 
 def instructions(text: str) -> list[str]:
@@ -83,7 +91,7 @@ def taken(path: str, source: str) -> bool:
 def changed_inputs(changed: list[str], dockerfile: str, directory: str) -> bool:
     """Whether any of `changed`, paths from the repository's root, is something the image
     built from `dockerfile` in the context at `directory` is built from."""
-    at = "" if directory in ("", ".") else f"{directory.strip('/')}/"
+    at = context(directory)
     taken_from = sources(dockerfile)
     for path in changed:
         if not path.startswith(at):
@@ -94,12 +102,28 @@ def changed_inputs(changed: list[str], dockerfile: str, directory: str) -> bool:
     return False
 
 
+def context(directory: str) -> str:
+    """The build context `directory` names as a prefix of the paths under it, or the
+    reason it is refused: a relative path of plain names, with no step out of it and
+    nothing git could read as an option."""
+    if not CONTEXT.match(directory) or ".." in directory.split("/"):
+        raise ValueError(f"{directory!r} is not a build context: a relative path of plain names")
+    return "" if directory.rstrip("/") in ("", ".") else f"{directory.strip('/')}/"
+
+
+def commit(named: str) -> str:
+    """`named`, where it is a commit written as git writes one in full."""
+    if not COMMIT.match(named):
+        raise ValueError(f"{named!r} is not a commit: forty lower-case hexadecimal digits")
+    return named
+
+
 def dockerfile_at(after: str, directory: str) -> str:
     """The `Dockerfile` of the context at `directory`, as commit `after` holds it."""
-    at = "" if directory in ("", ".") else f"{directory.strip('/')}/"
-    shown = subprocess.run(["git", "show", f"{after}:{at}{DOCKERFILE}"], capture_output=True, check=True).stdout
+    shown = subprocess.run(["git", "show", "--end-of-options", f"{commit(after)}:{context(directory)}{DOCKERFILE}"],
+                           capture_output=True, check=True).stdout
     if len(shown) > LIMIT:
-        raise ValueError(f"{at}{DOCKERFILE} is larger than {LIMIT} bytes")
+        raise ValueError(f"{context(directory)}{DOCKERFILE} is larger than {LIMIT} bytes")
     return shown.decode("utf-8")
 
 
@@ -110,7 +134,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--directory", default=".")
     args = parser.parse_args(argv)
     try:
-        changed = changed_between(args.before, args.after)
+        context(args.directory)
+        before = commit(args.before) if args.before else ""
+        changed = changed_between(before, commit(args.after))
         if changed is None:
             print("yes")
             return 0
