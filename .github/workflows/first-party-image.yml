@@ -28,6 +28,8 @@
 # its own and that plugin runs it as its upstream (OPS-R90): its manifest, its starting
 # files and its `posture/prepare` are read from that repository's main, the rolling pull
 # request is opened there, and the train cuts no tag here, so a tag publishes nothing.
+# Such an image is published only from a commit that changes what it is built from:
+# the `Dockerfile`, its `.dockerignore` or a path the `Dockerfile` copies in (OPS-R93).
 # `prepare`, `posture/prepare` where the plugin holds one, is a script of the plugin's
 # run with that configuration directory's copy before the container starts, for what
 # lemonfiber writes there at install, such as a certificate.
@@ -175,13 +177,20 @@ jobs:
             mode=publish
             tag="main-${GITHUB_SHA:0:12}"
             pins=no
+            inputs=yes
             if [ -z "$PINNED_IN" ]; then
               pins="$(python3 "$TOOLING/scripts/pin_bump.py" pins-only --before "$BEFORE" --after "$GITHUB_SHA" \
+                --directory "$DIRECTORY")"
+            else
+              inputs="$(python3 "$TOOLING/scripts/image_inputs.py" --before "$BEFORE" --after "$GITHUB_SHA" \
                 --directory "$DIRECTORY")"
             fi
             if [ "$pins" = yes ]; then
               mode=none
               echo "::notice::${GITHUB_SHA} changes nothing of the plugin but a pin, so no image is published from it"
+            elif [ "$inputs" = no ]; then
+              mode=none
+              echo "::notice::${GITHUB_SHA} changes nothing the image is built from, so no image is published from it"
             fi
           elif [ "$GITHUB_EVENT_NAME" = push ] && [ "$KIND" = tag ] && [ -n "$PINNED_IN" ]; then
             echo "::error::the train cuts no tag of an image ${PINNED_IN} runs as its upstream, so ${NAME} publishes nothing"

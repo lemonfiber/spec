@@ -96,17 +96,23 @@ class Settle(workflow_steps.Scratch):
         code, said = self.settled("push", "branch", "refs/heads/main", "main", "")
         self.assertEqual((code, said["image"], said["name"]), (0, IMAGE, "door"))
 
-    def test_an_image_another_plugin_runs_publishes_every_commit_on_main_and_no_tag(self):
+    def test_an_image_another_plugin_runs_publishes_what_changes_its_inputs_on_main_and_no_tag(self):
         (self.root / ".pinned").mkdir()
         (self.root / ".pinned/plugin.toml").write_text('schema_version = 1\n[plugin]\nid = "caddy"\n')
-        (self.root / "recordings").mkdir()
-        (self.root / "recordings/a.json").write_text("{}")
-        self.before = self.head()
-        subprocess.run(["git", "add", "recordings"], cwd=self.root, check=True)
-        subprocess.run([*GIT, "commit", "--quiet", "-m", "after"], cwd=self.root, check=True)
-        self.sha = self.head()
-        code, said = self.settled("push", "branch", "refs/heads/main", "main", "", "plugin-caddy")
-        self.assertEqual((code, said["mode"], said["image"]), (0, "publish", "ghcr.io/lemonfiber/caddy"))
+        (self.root / "Dockerfile").write_text("FROM scratch\nCOPY bin /bin\n")
+        subprocess.run(["git", "add", "Dockerfile"], cwd=self.root, check=True)
+        subprocess.run([*GIT, "commit", "--quiet", "-m", "image"], cwd=self.root, check=True)
+        for path, mode in (("README.md", "none"), ("recordings/a.json", "none"), ("bin/tool", "publish"),
+                           ("Dockerfile", "publish")):
+            with self.subTest(path=path):
+                self.before = self.head()
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                (self.root / path).write_text(f"FROM scratch\n# {path}\n")
+                subprocess.run(["git", "add", path], cwd=self.root, check=True)
+                subprocess.run([*GIT, "commit", "--quiet", "-m", "after"], cwd=self.root, check=True)
+                self.sha = self.head()
+                code, said = self.settled("push", "branch", "refs/heads/main", "main", "", "plugin-caddy")
+                self.assertEqual((code, said["mode"], said["image"]), (0, mode, "ghcr.io/lemonfiber/caddy"))
         self.assertNotEqual(self.settled("push", "tag", "refs/tags/v0.18.0", "v0.18.0", "caddy", "plugin-caddy")[0], 0)
         for named in ("Plugin-Caddy", "plugin/../caddy", "-caddy"):
             with self.subTest(named=named):
