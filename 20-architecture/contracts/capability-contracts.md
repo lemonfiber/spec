@@ -126,7 +126,7 @@ asks for them. Their shapes are the generated documents' alone.
 | `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; `file_under`: each category and its completed folder; `filed`: every category and the completed folder it holds for it (below); seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add) |
 | `indexer.proxy` | Solve a challenge; whether it answers |
-| `request.intake` | Establish an owner; initialised; configure identity; answers; search a page of titles a member may ask for; what one title is, its certification in a country and where its poster is published; ask on a member's behalf; requests, each with the id its title is found by; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices |
+| `request.intake` | Establish an owner; initialised; configure identity; answers; search a page of titles a member may ask for; what one title is, its certification in a country and where its poster is published; ask on a member's behalf; requests, each with the id its title is found by; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices; the name it files a media server key it mints for itself under |
 | `subtitles.fetch` | Watching; watch |
 | `network.egress-guard` | Whether the tunnel is up; the forwarded port |
 | `proxy.front` | Apply a routing table (household names, upstreams, TLS mode and certificate files); the table it serves; reload |
@@ -301,6 +301,17 @@ still finishes the setting up (`ARCH-R319`).
 The conformance cases name the member they link, find and ask for by 32 lowercase
 hexadecimal digits, the shape a media server's account id takes, so an upstream that
 holds members only by that id is asked about one it can hold.
+
+## The key a request service mints for itself
+
+A request service set up against the media server in the server's native API may mint
+itself a key there, on the sign-in that sets it up, filed under a name of its own.
+`minted_as` answers that name, or `unsupported` where the upstream mints none. Once the
+request service reaches the media server through the gate, the core revokes every key
+the media server holds under that name, so a key nothing uses is not left standing
+([ADR-0032](../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)).
+The core finds the name only this way, and holds no request service's name of its own
+(`ARCH-R340`).
 
 ## The request gate's routes
 
@@ -485,6 +496,15 @@ does not speak, is not asked: `lemonfiber plugin record` records it as answered
 server that is not the household's identity source answers every case naming one of the
 household's members `unsupported` (`ARCH-R334`).
 
+## Applied, in force after a restart
+
+An upstream that reads what it is applied only when it starts cannot put it in force at
+once. An operation that answers `204` may answer `205` instead: applied, and in force
+once the upstream restarts. The core then restarts the service the adapter fronts,
+journalled as any restart of a service is, asks that adapter nothing else until `ready`
+answers, and says in its report that the upstream restarted. Conformance passes either
+answer, and a rehearsal says the upstream may restart (`ARCH-R341`).
+
 ## Versioning
 
 A contract's major changes only when an operation is removed or its meaning changes.
@@ -538,6 +558,8 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R334** | An operation the upstream an adapter fronts cannot perform MUST be answered `unsupported`; conformance MUST pass it, and the core MUST treat the operation as not offered for that filler, by the answer's type alone; a case whose placeholder reads the answer to a case answered `unsupported`, or to a case of a contract the adapter does not speak, MUST NOT be asked, MUST be recorded as answered `unsupported`, and MUST NOT be asked by install's live pass. |
 | **ARCH-R335** | An ask made by a service that an adapter of the same plugin `fronts` MUST be paired by the contracts that adapter speaks, the core MUST ask that adapter for it, and every report of the pairing MUST name the upstream. |
 | **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits and the shape that id has, and the core MUST hand them to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request's path and has not lapsed, and with `403` otherwise, a path no live-stream path covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
+| **ARCH-R340** | `request.intake@1` MUST declare `minted_as`, answering the name under which the upstream files a media server key it mints for itself, or `unsupported` where it mints none; once the request service reaches the media server through the gate, the core MUST revoke every key the media server holds under the name `minted_as` answers, and MUST NOT name a request service's key by any name of its own. |
+| **ARCH-R341** | An operation that answers `204` MAY answer `205`, meaning applied and in force once the upstream restarts, and conformance MUST pass either; on `205` the core MUST restart the service the adapter `fronts`, journalled as a restart of that service, MUST ask that adapter nothing else until `ready` answers, and MUST say the upstream restarted, and a rehearsal of an operation that may be answered so MUST say the upstream may restart. |
 
 ## Related
 

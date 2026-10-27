@@ -29,9 +29,13 @@ cannot serve at all.
 **Support both, selected by a single `.env` variable.**
 
 ```bash
-JELLYFIN_MODE=docker   # default
-JELLYFIN_MODE=native   # host-installed
+MEDIA_SERVER_MODE=docker   # default
+MEDIA_SERVER_MODE=native   # host-installed
 ```
+
+The variable is named for the capability, not the product (`F14-R2`). A stack an earlier
+release set up holds it as `JELLYFIN_MODE`, and lemonfiber moves it to the new name once,
+journalled, reading the old name until it has (`ARCH-R342`).
 
 The insight making this cheap: **the only things that actually differ are a URL
 and a path prefix.** Seerr and Homepage need `JELLYFIN_URL`; Jellyfin needs

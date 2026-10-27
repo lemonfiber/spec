@@ -39,7 +39,7 @@ password ([D1-R16](../../10-functional/features/d-content/d1-seed.md)): there is
 nothing durable to read, so lemonfiber **mints** the administrator password,
 sets it by driving Jellyfin's own first-run setup, and records it where a later
 run — and the Seerr wiring below — can read it back. The generated password is
-recorded under `JELLYFIN_ADMIN_PASSWORD`, beside the account name `admin`. As
+recorded under `MEDIA_SERVER_ADMIN_PASSWORD` (`ARCH-R342`), beside the account name `admin`. As
 with qBittorrent, no randomness means no account is created and nothing is
 recorded, never a guessable fallback.
 

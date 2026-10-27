@@ -76,6 +76,11 @@ A secret whose service writes no credential of its own, as one lemonfiber minted
 handed it, declares none and is carried as the credential lemonfiber recorded. `plugin record` and a proof mint a throwaway one for
 their own container, as they take a throwaway copy of its starting files.
 
+**`was` names the key an earlier release kept it under.** A secret the stack's environment
+file held before the stores did, as the egress guard's key was held under
+`WIREGUARD_PRIVATE_KEY`, declares that key, and the one filing that moves values into the
+stores reads it from there, never from a list the core keeps (`ARCH-R249`, [`ARCH-R337`](plugin-manifest-service.md#environment--four-kinds-of-value)).
+
 **A credential that crosses is read where it is held.** One `F14-R18` or `F14-R20` lets
 cross is not copied into the secret store. lemonfiber reads it from the store that holds
 it each time it writes an entry naming it, so replacing it regenerates every entry that

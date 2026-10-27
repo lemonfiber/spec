@@ -110,6 +110,8 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). At most one service of a plugin may declare a given core name — see below. |
 | `config_path` | string | | Where inside the container its configuration directory is mounted. Default `/config`. |
 | `config_ro` | bool | | `true` to mount the configuration directory read-only. Default `false`. |
+| `shares_config` | string | | Only where it `fronts`: an absolute path inside this adapter where the whole configuration directory of the service it fronts is mounted, so it writes that service's own files — see [`shares_config`](#shares_config--an-adapter-writing-its-upstreams-files) (`ARCH-R339`). |
+| `rebuilt` | array | | Relative paths beneath its configuration directory it rebuilds when missing, a cache or a log, which every backup leaves out — see [`rebuilt`](#rebuilt--what-a-backup-leaves-out) (`ARCH-R338`). |
 | `mount` | array of tables | | Each further path mounted from its own mount tree, `./mounts/<id>`, which lies apart from its configuration directory: `from` (✔), `to` (✔) and `ro` (default `false`) — see [mounts](#mounts--from-its-own-tree-and-nowhere-else). |
 | `tmpfs` | array | | Absolute paths given scratch space in memory, empty whenever the container starts. |
 | `env` | table | | Its environment: a variable's name to one of four typed kinds of value — see [environment](#environment--four-kinds-of-value). |
@@ -199,6 +201,53 @@ one of it. What is permitted is narrow:
 has no business changing it: the guarded door reads its routes there and writes
 nothing.
 
+### `shares_config` — an adapter writing its upstream's files
+
+Some upstreams are configured only through files they read, with no API to set what the
+core applies: a dashboard's layout, a request service's settings. The adapter in front
+of one answers its contract by writing those files, so it needs the upstream's
+configuration directory, and only that:
+
+```toml
+[[service]]
+id            = "homepage-adapter"
+fronts        = "homepage"
+speaks        = ["dashboard.show@1"]
+shares_config = "/upstream"
+```
+
+- **The whole directory, never a part of it.** lemonfiber mounts the configuration
+  directory of the service `fronts` names, which lemonfiber made and no container can
+  replace. A path inside it would be a source the upstream could swap for a link, which
+  the engine follows each time it mounts, at boot with nothing of lemonfiber's running.
+- **Its own upstream alone.** Only a service that `fronts` may declare it, and it shares
+  the directory of that service, which is the same plugin's. Any other service declaring
+  it is refused naming the field.
+- **Held to what is declared.** The path is absolute, not `/`, not within `/data`, and no
+  other mount's target. lemonfiber writes that one mount and no other into the
+  upstream's directory, and the reading of an install or update says the adapter writes
+  its upstream's files.
+
+The adapter runs as the operator's uid (`F14-R27`), which is who owns the directory, so
+nothing beyond the mount is granted for it.
+
+### `rebuilt` — what a backup leaves out
+
+A cache, a scratch area and a log are no part of what breaks, and they are the bulk of a
+configuration directory: a media server's cache alone grows to tens of gigabytes. A
+service names the paths it rebuilds when they are missing, each relative to its
+configuration directory, and every backup leaves them out:
+
+```toml
+[[service]]
+id      = "jellyfin"
+rebuilt = ["cache", "log"]
+```
+
+Each is a relative path with no `..` and no interpolation, refused naming the path
+otherwise. A path the service does not hold is skipped, and nothing beneath the
+configuration directory is left out unless a manifest names it.
+
 ### Mounts — from its own tree, and nowhere else
 
 A second path beside the first — Jellyfin's `/cache`, Audiobookshelf's `/metadata` —
@@ -245,7 +294,8 @@ The proxy keeps its certificates and its own state in two such volumes today
 mount tree once, mounts them from there, and leaves the volumes as they were, so that
 undoing the move finds them.
 
-There is no field by which a mount reaches any other path on the host. In particular
+There is no field by which a mount reaches any other path on the host, but the one by
+which an adapter shares its upstream's directory ([`shares_config`](#shares_config--an-adapter-writing-its-upstreams-files)). In particular
 there is none for the engine's socket, which is root on the host, for a first-party
 service as for anybody else's (`ARCH-R239`).
 
@@ -322,7 +372,7 @@ WIREGUARD_PRIVATE_KEY = { secret = "wireguard-key" }
 | Value | Written as |
 |-------|------------|
 | A string, an integer or a boolean | A constant: the value exactly as declared |
-| `{ setting = "<name>", default = <constant> }`, with `recorded_with` where only the operator holds it | The operator's value for that setting, or the default where none is recorded |
+| `{ setting = "<name>", default = <constant> }`, with `recorded_with` where only the operator holds it and `was` where an earlier release kept it in the stack's environment file | The operator's value for that setting, or the default where none is recorded |
 | `{ url_of = "<capability>" }`, with `files` and `native` where needed | `http://<service>:<port>`: the service the ask reaches, at the port it `listens` on |
 | `{ secret = "<name>" }` | The value of the `[[secret]]` the manifest declares by that name, in a file of the service's own and never in the project |
 
@@ -384,6 +434,14 @@ read from it under their setting or secret, journals each, and lemonfiber does n
 the file for them again. A part's later move in place keeps those names (`ARCH-R273`),
 so it migrates nothing. The file stays the one `lemonfiber config` reads and writes, for
 lemonfiber's own keys such as `DATA_ROOT` and `PUID` (`ARCH-R249`).
+
+**A setting names the key it was.** That filing reads each value from the key the
+manifest names in its `was`, never from a list the core keeps: `{ setting =
+"gluetun:countries", default = "Netherlands", was = "VPN_COUNTRIES" }` is filed from
+`VPN_COUNTRIES`, and a [`[[secret]]`](plugin-manifest-secret.md#secret-and-override--declared-before-they-are-held)
+declares its `was` the same way. `was` is a variable's name, held to the rules a
+variable's name is, and two settings or secrets naming one key, across the stack and
+every installed plugin, are refused naming both (`ARCH-R337`).
 
 **A URL is an ask.** `url_of` names a core capability, as an `[[ask]]` does, and is
 settled, shown and counted as one (`F14-R22` to `F14-R25`): the reading says what it
