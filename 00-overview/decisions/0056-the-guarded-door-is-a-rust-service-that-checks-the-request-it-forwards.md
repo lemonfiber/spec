@@ -9,6 +9,9 @@
   (`ARCH-R344`), and Caddy leaves the door;
 - it reads each request's target as the bytes that arrived, checks them against the
   declaration the core applies in typed code, and forwards exactly those bytes;
+- it answers `503` until the core applies a guard, believes `X-Forwarded-For` only from
+  the one proxy the guard names, and refuses with `403` a question's answer the
+  declaration does not class;
 - `lemonfiber-door` stays the repository that builds the image `plugin-door` runs and
   pins (`OPS-R93`), and `plugin-door` holds the door's manifest with no adapter beside
   it.
@@ -54,7 +57,15 @@ enforces would live in generated text that no test reads byte by byte.
    a corpus of the normal form's edges: an encoded delimiter in a name, a dot segment, a
    `;` parameter, an encoded backslash, an encoded unreserved character and any `%` on a
    byte path.
-4. **The repositories keep their places.** `lemonfiber-door` builds the image and moves
+4. **It fails closed, trusts one proxy, and refuses an answer it was not told about.**
+   Until the core has applied an envelope, the door answers `503` to every request on
+   the household's ports. It believes `X-Forwarded-For` only from the envelope's
+   `proxy`, takes the rightmost entry that proxy sent as the client, and tells the media
+   server that client alone, as the whole of `X-Forwarded-For`. An answer to the
+   question in one of the declared refusals is handed back with its own status, an
+   answer in none of the declared classes is refused with `403`, and a media server
+   that cannot be reached, or does not answer in time, is answered `502` or `504`.
+5. **The repositories keep their places.** `lemonfiber-door` builds the image and moves
    `plugin-door`'s pin to it (`OPS-R93`). `plugin-door` holds the manifest, which runs
    that image with no adapter service, and builds no image of its own.
 
