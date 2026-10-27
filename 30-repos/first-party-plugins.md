@@ -42,7 +42,7 @@ says with `image` whether it builds an image.
 | `plugin-navidrome` | the music server | no |
 | `plugin-homepage` | the dashboard | no |
 | `plugin-jellyfin` | the media server, with its adapter | yes |
-| `plugin-door` | the guarded door | yes |
+| `plugin-door` | the guarded door | no |
 | `plugin-caddy` | the proxy | yes |
 
 Two parts keep the repositories they already have:
@@ -95,9 +95,10 @@ A repository that builds an image also builds and publishes it from every commit
 `main` and from each train tag (`OPS-R90`, `OPS-R91`). `manifest-pin` moves the
 manifest's pin to each, with every recording taken again from the new image as an
 upstream's pin is below, and a commit that changes nothing but the pin, its recordings,
-its proofs and its `targets.toml` publishes no image. The guarded door's and the
-proxy's images are Caddy's, rebuilt with the file capability removed, so they start
-under `standard` (ADR-0045).
+its proofs and its `targets.toml` publishes no image. The proxy's image is Caddy's,
+rebuilt with the file capability removed, so it starts under `standard` (ADR-0045), and
+the guarded door's is a Rust service of its own (ADR-0056); each is built in a
+repository of its own and pinned in its plugin's (`OPS-R93`).
 
 ## How its upstream pins move
 

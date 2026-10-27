@@ -599,9 +599,9 @@ time on account of it (`ARCH-R250`).
 publishes the low port to it. The proxy listens on 8080 and 8443 and publishes 80 and
 443 to them, and its Caddyfile names both (`http_port`, `https_port`). An image whose
 binary carries a file capability `standard` does not hold cannot start under it at any
-port, and Caddy's image carries `NET_BIND_SERVICE` on its binary, so the guarded door
-and the proxy run an image their own repositories rebuild from Caddy's with that
-capability removed ([ADR-0045](../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)).
+port, and Caddy's image carries `NET_BIND_SERVICE` on its binary, so the proxy runs an
+image its own repository rebuilds from Caddy's with that capability removed
+([ADR-0045](../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)).
 
 `mem_limit_mib` is a ceiling and `memory_mib` an estimate, and they are two fields
 because they answer two questions (`ARCH-R235`). The estimate is summed into what a form

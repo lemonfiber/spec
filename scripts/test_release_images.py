@@ -232,7 +232,7 @@ class PluginReposTests(Workspace):
         published = manifest_repos.plugin_repos(registry)
         self.assertEqual(len(published), 21)
         self.assertTrue(all(name == f"plugin-{plugin}" for name, plugin in published.items()))
-        built = ["jellyfin", "door", "caddy", "prowlarr", "sabnzbd", "qbittorrent", "sonarr",
+        built = ["jellyfin", "caddy", "prowlarr", "sabnzbd", "qbittorrent", "sonarr",
                  "radarr", "lidarr", "bazarr", "seerr", "nzbhydra2", "bindery",
                  "audiobookshelf"]
         self.assertEqual(manifest_repos.train_plugins(registry),
