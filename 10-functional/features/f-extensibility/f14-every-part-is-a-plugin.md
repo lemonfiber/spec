@@ -34,6 +34,13 @@ moves every part's behaviour behind a published contract, so the core holds no c
 any service, and every part, first-party or not, is a plugin
 ([ADR-0041](../../../00-overview/decisions/0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md)).
 
+A part's name can still appear in the core where it is not about the part. Three parts
+are named for what they do — the front door, the decline service and the request gate —
+and the core owns those words for the capabilities. A native API is named after the
+application that defined it, and a service is told about another in that API. And a
+household is told which app to install on a television or a phone by the product's own
+name. None of these is code that works only with one service.
+
 ## Behaviour
 
 ### A capability is a contract
@@ -183,7 +190,7 @@ nothing crosses to it.
 | ID | Requirement |
 |----|-------------|
 | **F14-R1** | Every capability in the vocabulary MUST have a published, versioned contract generated from the core's port types, and the core MUST reach every service only through a contract it speaks. |
-| **F14-R2** | The core MUST hold no code specific to any service, and an architecture check MUST refuse a bundled service's name in core code outside the bundle. |
+| **F14-R2** | The core MUST hold no code specific to any service, and an architecture check MUST refuse a bundled service's name in core code outside the bundle, except a name that is also a word the core owns for a capability or concept (the front door, `invite.decline`, `request.gate`), the name of a native API (`ARCH-R18`), and a product's name in words telling a household what to install on its own devices. |
 | **F14-R3** | A service MUST declare the contracts it speaks, and a manifest MUST NOT name an in-process adapter. |
 | **F14-R4** | Every answer from an adapter MUST be held to its contract's schema and bounded in size and time, and an answer outside them MUST be refused and MUST NOT be read. |
 | **F14-R5** | The core MUST reach an adapter only with a key minted for that plugin alone, on a network shared only by the core, the adapter and its upstream, and an adapter MUST NOT be given a credential lemonfiber holds for anything else. |
