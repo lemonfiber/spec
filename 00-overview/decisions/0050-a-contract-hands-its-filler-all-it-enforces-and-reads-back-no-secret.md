@@ -30,6 +30,8 @@ which of the media server keys filed under the gate's name the gate holds.
 - `dashboard.show`'s panel list is groups of entries, with page widgets and per-entry
   widgets the core names, none reading a credential.
 
+**Amended** by [ADR-0054](0054-a-media-server-credential-crosses-the-stack-only-over-tls-the-core-pins.md): §3 and §7. The media server's gate route and `invite.decline`'s `hold` carry the SHA-256 of each certificate the media server's internal TLS port may present.
+
 **Amends**:
 
 - [ADR-0029](0029-a-household-service-declines-an-invitation-with-one-key.md): §5. The
