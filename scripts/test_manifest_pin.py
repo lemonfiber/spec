@@ -205,9 +205,22 @@ class Workflow(unittest.TestCase):
         self.assertEqual(called["disarm"], "${{ needs.commit.outputs.clean != 'yes' }}")
         self.assertNotIn("auto-merge", called)
 
+    def test_the_manifest_moved_is_the_repository_named_or_this_one_and_written_there_alone(self):
+        pinned = "${{ inputs.repository != '' && format('{0}/{1}', github.repository_owner, inputs.repository) || github.repository }}"
+        self.assertEqual(yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["env"]["PINNED"], pinned)
+        for job in ("record", "commit"):
+            with self.subTest(job=job):
+                self.assertEqual(self.JOBS[job]["steps"][0]["with"]["repository"], "${{ env.PINNED }}")
+        steps = {step.get("name"): step for step in self.JOBS["commit"]["steps"]}
+        self.assertIn('name=${PINNED#*/}', steps["Which repository the token is for"]["run"])
+        self.assertEqual(steps["Put the change on the branch, signed"]["env"]["REPO"], "${{ env.PINNED }}")
+        self.assertEqual(self.JOBS["pull-request"]["with"]["repository"], "${{ inputs.repository }}")
+
     def test_one_run_at_a_time_moves_each_rolling_branch(self):
         self.assertEqual(self.JOBS["commit"]["concurrency"],
-                         {"group": "manifest-pin-${{ github.repository }}-${{ github.ref_type }}",
+                         {"group": "manifest-pin-${{ inputs.repository != '' && format('{0}/{1}', "
+                                "github.repository_owner, inputs.repository) || github.repository }}"
+                                "-${{ github.ref_type }}",
                           "cancel-in-progress": False})
 
 

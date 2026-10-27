@@ -69,6 +69,13 @@ on:
         description: Labels a pull request this opens is given, comma-separated.
         type: string
         default: ""
+      repository:
+        description: >-
+          The repository, under the calling one's owner, the branch and the pull request
+          are in, where the bump is another repository's. The calling repository where
+          empty.
+        type: string
+        default: ""
     outputs:
       number:
         description: The pull request's number.
@@ -92,7 +99,15 @@ jobs:
     steps:
       - name: Which repository the token is for
         id: here
-        run: echo "name=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+        env:
+          REPOSITORY: ${{ inputs.repository }}
+          REPO: ${{ inputs.repository != '' && format('{0}/{1}', github.repository_owner, inputs.repository) || github.repository }}
+        run: |
+          if [ -n "$REPOSITORY" ] && [[ ! "$REPOSITORY" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::'${REPOSITORY}' is not a repository name: lowercase words joined by '-'"
+            exit 1
+          fi
+          echo "name=${REPO#*/}" >> "$GITHUB_OUTPUT"
 
       # The app's token, not this workflow's: a pull request `GITHUB_TOKEN` opens
       # starts no workflows, so its required checks would never report. The app
@@ -125,7 +140,7 @@ jobs:
         id: open
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
-          REPO: ${{ github.repository }}
+          REPO: ${{ inputs.repository != '' && format('{0}/{1}', github.repository_owner, inputs.repository) || github.repository }}
           AUTHOR: ${{ steps.token.outputs.app-slug }}[bot]
           BRANCH: ${{ inputs.branch }}
           HEAD_SHA: ${{ inputs.head }}

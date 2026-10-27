@@ -39,6 +39,11 @@
 #         cuts the core cuts it, tags it before the core, and tags the core once the
 #         bundle it embeds pins that tag's release (OPS-R86). One that does not is
 #         never tagged; the bundle pins it by revision and tree digest.
+# pinned_in: the first-party plugin's repository that runs the image this repository
+#         builds as its upstream, which makes it `lemonfiber-<plugin id>`. It
+#         publishes from every commit on its `main` and moves that plugin's pin with a
+#         rolling pull request there; the train never cuts it, and the plugin's release
+#         pins the image its `main` holds (OPS-R93). Absent everywhere else.
 
 [[repo]]
 name = "spec"
@@ -140,6 +145,26 @@ spec = ["lemonfiber-request-gate.md"]
 lang = "Rust"
 note = "An image the stack runs, declared in a plugin.toml of its own; holds the \\*arr keys and publishes no port"
 service = "request-gate"
+
+[[repo]]
+name = "lemonfiber-caddy"
+node = "caddyimage"
+group = "impl"
+label = "lemonfiber-caddy<br/>the proxy's image"
+spec = ["lemonfiber-caddy.md"]
+lang = "Dockerfile"
+note = "Caddy rebuilt without its file capability, listening on 8080 and 8443; plugin-caddy runs it as its upstream and pins it"
+pinned_in = "plugin-caddy"
+
+[[repo]]
+name = "lemonfiber-door"
+node = "doorimage"
+group = "impl"
+label = "lemonfiber-door<br/>the guarded door's image"
+spec = ["lemonfiber-door.md"]
+lang = "Dockerfile"
+note = "Caddy rebuilt without its file capability, with the guard's configuration; plugin-door runs it as its upstream and pins it"
+pinned_in = "plugin-door"
 
 [[repo]]
 name = "lemonfiber-plugins"
@@ -325,8 +350,8 @@ image = false
 name = "plugin-door"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "Dockerfile"
-note = "The bundle's part for the guarded door, Caddy rebuilt without its file capability; builds its image, so the train tags it"
+lang = "Rust"
+note = "The bundle's part for the guarded door: the adapter speaking stream.guard beside lemonfiber-door's image, which it pins; builds the adapter's image, so the train tags it"
 plugin = "door"
 image = true
 
@@ -334,8 +359,8 @@ image = true
 name = "plugin-caddy"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "Dockerfile"
-note = "The bundle's part for the proxy, Caddy rebuilt without its file capability, listening on 8080 and 8443; builds its image, so the train tags it"
+lang = "Rust"
+note = "The bundle's part for the proxy: the adapter speaking proxy.front beside lemonfiber-caddy's image, which it pins; builds the adapter's image, so the train tags it"
 plugin = "caddy"
 image = true
 
@@ -466,6 +491,16 @@ label = "vendored at a pinned commit"
 from = "integration-mcp"
 to = "sdk-python"
 label = "vendored at a pinned commit"
+
+[[edge]]
+from = "lemonfiber-caddy"
+to = "parts"
+label = "image pinned by plugin-caddy"
+
+[[edge]]
+from = "lemonfiber-door"
+to = "parts"
+label = "image pinned by plugin-door"
 
 [[edge]]
 from = "lemonfiber-plugins"

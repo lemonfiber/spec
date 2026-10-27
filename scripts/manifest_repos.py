@@ -73,6 +73,9 @@ REPO_PREFIX = "lemonfiber-"
 #: so it is held to lowercase words joined by single dashes.
 SERVICE_ID = re.compile(r"\A[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 
+#: The registry field naming the plugin repository that runs the image a repository
+#: builds as its upstream and moves its pin (OPS-R93).
+PINNED_IN = "pinned_in"
 #: The registry field naming the first-party plugin a repository publishes.
 PLUGIN = "plugin"
 #: What a first-party plugin's repository is called.
@@ -162,6 +165,33 @@ def plugin_repos(registry: dict) -> dict[str, str]:
     return found
 
 
+def pinned_repos(registry: dict) -> dict[str, str]:
+    """Every repository building the image a first-party plugin runs as its upstream,
+    mapped to the plugin's repository, which moves the pin (OPS-R93).
+
+    Refused rather than skipped where the plugin's repository is not a first-party
+    plugin's, the name is not `lemonfiber-<plugin id>`, or the entry also carries
+    `service` or `plugin`: either would have the train cut it, which it never does.
+    """
+    plugins = plugin_repos(registry)
+    found = {}
+    for entry in registry.get("repo", []):
+        if PINNED_IN not in entry:
+            continue
+        name, pinned = str(entry.get("name", "")), str(entry[PINNED_IN])
+        if pinned not in plugins:
+            sys.exit(f"::error::{REGISTRY}: {name}'s {PINNED_IN} {pinned!r} is no first-party "
+                     "plugin's repository")
+        if name != f"{REPO_PREFIX}{plugins[pinned]}":
+            sys.exit(f"::error::{REGISTRY}: {name} builds the upstream of {pinned}, so it is "
+                     f"named {REPO_PREFIX}{plugins[pinned]}")
+        if SERVICE in entry or PLUGIN in entry:
+            sys.exit(f"::error::{REGISTRY}: {name} carries {PINNED_IN} beside {SERVICE} or "
+                     f"{PLUGIN}, and the train cuts no repository it names")
+        found[name] = pinned
+    return found
+
+
 def train_plugins(registry: dict) -> dict[str, str]:
     """The first-party plugins whose repository builds an image, which the train tags:
     every repository building a stack service's image, by its service, and every
@@ -242,6 +272,11 @@ def main() -> int:
     data = tomllib.loads(path.read_text(encoding="utf-8"))
     if a.asked in ("images", "plugins", "others"):
         registry = tomllib.loads(REGISTRY.read_text(encoding="utf-8"))
+        cut_pinned = [name for name in cut(data) if name in pinned_repos(registry)]
+        if cut_pinned:
+            print(f"::error::{path.name} cuts {', '.join(cut_pinned)}, which the train never "
+                  "cuts: the plugin running each image pins it (OPS-R93)", file=sys.stderr)
+            return 1
         missing = unlisted_plugins(data, registry)
         if missing:
             print(f"::error::{path.name} {unlisted(missing)}", file=sys.stderr)

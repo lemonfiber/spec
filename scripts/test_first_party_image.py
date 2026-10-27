@@ -46,12 +46,14 @@ class Settle(workflow_steps.Scratch):
         return subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True,
                               text=True, check=True).stdout.strip()
 
-    def settled(self, event: str, kind: str, ref: str, name: str, image: str = "door") -> tuple[int, dict]:
+    def settled(self, event: str, kind: str, ref: str, name: str, image: str = "door",
+                pinned_in: str = "") -> tuple[int, dict]:
         output = self.root / ".output"
         output.unlink(missing_ok=True)
         env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(output), "GITHUB_EVENT_NAME": event,
                "GITHUB_SHA": self.sha, "REGISTRY": "ghcr.io/lemonfiber", "IMAGE_NAME": image,
-               "DIRECTORY": ".", "KIND": kind, "REF": ref, "NAME": name, "BEFORE": self.before,
+               "DIRECTORY": ".", "PINNED_IN": pinned_in, "PINNED": ".pinned",
+               "KIND": kind, "REF": ref, "NAME": name, "BEFORE": self.before,
                "TOOLING": str(TOOLING)}
         done = subprocess.run(["bash", "-c", step("settle", "A pull request proves; main and a train tag publish")],
                               cwd=self.root, env=env, capture_output=True, text=True)
@@ -94,6 +96,22 @@ class Settle(workflow_steps.Scratch):
         code, said = self.settled("push", "branch", "refs/heads/main", "main", "")
         self.assertEqual((code, said["image"], said["name"]), (0, IMAGE, "door"))
 
+    def test_an_image_another_plugin_runs_publishes_every_commit_on_main_and_no_tag(self):
+        (self.root / ".pinned").mkdir()
+        (self.root / ".pinned/plugin.toml").write_text('schema_version = 1\n[plugin]\nid = "caddy"\n')
+        (self.root / "recordings").mkdir()
+        (self.root / "recordings/a.json").write_text("{}")
+        self.before = self.head()
+        subprocess.run(["git", "add", "recordings"], cwd=self.root, check=True)
+        subprocess.run([*GIT, "commit", "--quiet", "-m", "after"], cwd=self.root, check=True)
+        self.sha = self.head()
+        code, said = self.settled("push", "branch", "refs/heads/main", "main", "", "plugin-caddy")
+        self.assertEqual((code, said["mode"], said["image"]), (0, "publish", "ghcr.io/lemonfiber/caddy"))
+        self.assertNotEqual(self.settled("push", "tag", "refs/tags/v0.18.0", "v0.18.0", "caddy", "plugin-caddy")[0], 0)
+        for named in ("Plugin-Caddy", "plugin/../caddy", "-caddy"):
+            with self.subTest(named=named):
+                self.assertNotEqual(self.settled("pull_request", "branch", "r", "n", "caddy", named)[0], 0)
+
     def test_an_image_name_that_is_not_one_is_refused(self):
         for image in ("Door", "door/../x", "-door"):
             with self.subTest(image=image):
@@ -109,7 +127,7 @@ class Plan(workflow_steps.Scratch):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_text(content, encoding="utf-8")
         plan = self.root / "run.json"
-        env = {"PATH": os.environ["PATH"], "IMAGE": IMAGE, "IMAGE_NAME": "door", "DIRECTORY": str(self.root),
+        env = {"PATH": os.environ["PATH"], "IMAGE": IMAGE, "IMAGE_NAME": "door", "MANIFEST": str(self.root),
                "PREPARE": prepare, "RUN_PLAN": str(plan), "CONFIG_COPY": str(self.root / "copy"),
                "MOUNT_TREE": str(self.root / "mounts")}
         done = subprocess.run(["python3", "-I", "-c", embedded("posture", "How the manifest says it runs")],
@@ -236,6 +254,26 @@ C = { url_of = "media.serve" }
         os.symlink("/etc/passwd", self.root / "config/door/Caddyfile")
         self.assertNotEqual(self.planned(self.SERVICE)[0], 0)
 
+
+
+class Pinned(unittest.TestCase):
+    """An image another plugin runs is proved and pinned against that plugin's manifest."""
+
+    def test_its_manifest_is_that_plugins_and_the_pin_is_moved_there(self):
+        import yaml
+
+        jobs = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
+        for job in ("settle", "posture"):
+            with self.subTest(job=job):
+                checkout = next(step for step in jobs[job]["steps"]
+                                if step.get("name") == "The plugin that runs the image, where it is built apart from it")
+                self.assertEqual(checkout["if"], "inputs.pinned_in != ''")
+                self.assertEqual(checkout["with"]["repository"],
+                                 "${{ github.repository_owner }}/${{ inputs.pinned_in }}")
+                self.assertEqual(checkout["with"]["ref"], "main")
+        self.assertEqual(jobs["pin"]["with"]["repository"], "${{ inputs.pinned_in }}")
+        self.assertEqual(jobs["pin"]["with"]["directory"],
+                         "${{ inputs.pinned_in != '' && '.' || inputs.directory }}")
 
 if __name__ == "__main__":
     unittest.main()

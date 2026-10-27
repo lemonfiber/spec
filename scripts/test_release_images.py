@@ -105,6 +105,32 @@ class ImageReposTests(Workspace):
                                                       "service": service}]})
             self.assertIn("is not a service id", str(caught.exception))
 
+    PLUGIN = MappingProxyType({"name": "plugin-caddy", "plugin": "caddy", "image": True})
+
+    def test_a_repository_building_a_plugins_upstream_maps_to_that_plugin(self):
+        registry = {"repo": [dict(self.PLUGIN), {"name": "lemonfiber-caddy", "pinned_in": "plugin-caddy"}]}
+        self.assertEqual(manifest_repos.pinned_repos(registry), {"lemonfiber-caddy": "plugin-caddy"})
+        self.assertEqual(manifest_repos.train_plugins(registry), {"plugin-caddy": "caddy"})
+
+    def test_a_pin_in_no_plugin_named_against_it_or_beside_a_cut_field_is_refused(self):
+        for entry, said in (
+            ({"name": "lemonfiber-caddy", "pinned_in": "plugin-door"}, "is no first-party plugin's"),
+            ({"name": "caddy-image", "pinned_in": "plugin-caddy"}, "is named lemonfiber-caddy"),
+            ({"name": "lemonfiber-caddy", "pinned_in": "plugin-caddy", "service": "caddy"}, "beside"),
+        ):
+            with self.subTest(entry=entry), self.assertRaises(SystemExit) as caught:
+                manifest_repos.pinned_repos({"repo": [dict(self.PLUGIN), entry]})
+            self.assertIn(said, str(caught.exception))
+
+    def test_a_version_cutting_a_repository_the_train_never_cuts_is_refused(self):
+        self.write_registry('[[repo]]\nname = "lf"\n\n'
+                            '[[repo]]\nname = "plugin-caddy"\nplugin = "caddy"\nimage = true\n\n'
+                            '[[repo]]\nname = "lemonfiber-caddy"\npinned_in = "plugin-caddy"\n')
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lf", "plugin-caddy", "lemonfiber-caddy"]\n', encoding="utf-8")
+        code, _ = run_main(manifest_repos, ["--version", "0.2.0", "--for", "plugins"])
+        self.assertEqual(code, 1)
+
     def test_main_prints_both_halves_of_the_cut(self):
         self.write_registry('[[repo]]\nname = "lf"\n\n'
                             '[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n')

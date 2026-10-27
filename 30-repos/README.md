@@ -32,6 +32,8 @@ flowchart TD
         mcp["integration-mcp<br/>lemonfiber for AI assistants"]
         decline["lemonfiber-decline<br/>the decline service"]
         gate["lemonfiber-request-gate<br/>the request gate"]
+        caddyimage["lemonfiber-caddy<br/>the proxy's image"]
+        doorimage["lemonfiber-door<br/>the guarded door's image"]
         plugins["lemonfiber-plugins<br/>the reviewed catalogue"]
         servarrkit["adapter-kit-servarr<br/>what the Servarr adapters share"]
         tap["homebrew-tap<br/>generated formula"]
@@ -52,6 +54,8 @@ flowchart TD
     lemonfiber -->|contract artefact| sdkpy
     homeassistant -->|vendored at a pinned commit| sdkpy
     mcp -->|vendored at a pinned commit| sdkpy
+    caddyimage -->|image pinned by plugin-caddy| parts
+    doorimage -->|image pinned by plugin-door| parts
     plugins -->|submodule, pinned; the bundle embedded| lemonfiber
     plugins -->|bundle pins a revision and its tree| parts
     lemonfiber -->|release CI generates| tap
@@ -81,6 +85,8 @@ flowchart TD
 | `integration-mcp` | [integration-mcp.md](integration-mcp.md) | Python | Every tool generated from the contract, so an assistant can do nothing the web API does not offer |
 | `lemonfiber-decline` | [lemonfiber-decline.md](lemonfiber-decline.md) | Rust | An image the stack runs, declared in a plugin.toml of its own; holds one Jellyfin key and answers the household |
 | `lemonfiber-request-gate` | [lemonfiber-request-gate.md](lemonfiber-request-gate.md) | Rust | An image the stack runs, declared in a plugin.toml of its own; holds the \*arr keys and publishes no port |
+| `lemonfiber-caddy` | [lemonfiber-caddy.md](lemonfiber-caddy.md) | Dockerfile | Caddy rebuilt without its file capability, listening on 8080 and 8443; plugin-caddy runs it as its upstream and pins it |
+| `lemonfiber-door` | [lemonfiber-door.md](lemonfiber-door.md) | Dockerfile | Caddy rebuilt without its file capability, with the guard's configuration; plugin-door runs it as its upstream and pins it |
 | `lemonfiber-plugins` | [lemonfiber-plugins.md](lemonfiber-plugins.md) | TOML | Reviewed and signed, and never a runtime dependency |
 | `plugin-jellyfin` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's media server: an adapter image in front of Jellyfin, so the train tags it |
 | `plugin-prowlarr` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the indexer manager, Prowlarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
@@ -101,8 +107,8 @@ flowchart TD
 | `plugin-audiobookshelf` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the audiobook server, Audiobookshelf: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it |
 | `plugin-navidrome` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the music server, Navidrome; its image is the upstream's, pinned by revision |
 | `plugin-homepage` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the dashboard, Homepage; its image is the upstream's, pinned by revision |
-| `plugin-door` | [first-party-plugins.md](first-party-plugins.md) | Dockerfile | The bundle's part for the guarded door, Caddy rebuilt without its file capability; builds its image, so the train tags it |
-| `plugin-caddy` | [first-party-plugins.md](first-party-plugins.md) | Dockerfile | The bundle's part for the proxy, Caddy rebuilt without its file capability, listening on 8080 and 8443; builds its image, so the train tags it |
+| `plugin-door` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the guarded door: the adapter speaking stream.guard beside lemonfiber-door's image, which it pins; builds the adapter's image, so the train tags it |
+| `plugin-caddy` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the proxy: the adapter speaking proxy.front beside lemonfiber-caddy's image, which it pins; builds the adapter's image, so the train tags it |
 | `adapter-kit-servarr` | [adapter-kit-servarr.md](adapter-kit-servarr.md) | Rust | One copy of the Servarr client, taken by each Servarr adapter at a commit |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
 | `website-lemonfiber.app` | [website-lemonfiber.md](website-lemonfiber.md) | Astro | The org is the motor; roadmap read, not written |
@@ -113,7 +119,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those forty-two are the repositories this specification governs, which is not the
+Those forty-four are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))

@@ -34,6 +34,10 @@
 #
 # Called after the image is published, by `first-party-image` and by
 # `rust-service-release` where the repository declares itself in a plugin.toml.
+# `repository` names the plugin's repository, under the calling one's owner, where the
+# image is built apart from the plugin that runs it as its upstream: its manifest is
+# moved there, the token is that repository's alone, and the pull request is opened
+# there (OPS-R90).
 # Neither publishes from a push to main that changes nothing but a pin, so
 # merging this pull request starts no other:
 #
@@ -63,10 +67,15 @@ on:
         type: string
         required: true
       directory:
-        description: "The plugin's root in the calling repository, holding plugin.toml."
+        description: "The plugin's root in the repository whose manifest is moved, holding plugin.toml."
         type: string
         required: false
         default: "."
+      repository:
+        description: "The repository, under the calling one's owner, whose plugin.toml runs the image. The calling repository where empty."
+        type: string
+        required: false
+        default: ""
     secrets:
       RELEASE_APP_KEY:
         description: "The release App's private key, which writes the rolling pin pull request."
@@ -82,6 +91,8 @@ env:
   SCRATCH: .manifest-pin
   # One run moves one pin, so what `record` hands on has one name.
   ARTIFACT: manifest-pin
+  # The repository whose manifest is moved, as owner/name.
+  PINNED: ${{ inputs.repository != '' && format('{0}/{1}', github.repository_owner, inputs.repository) || github.repository }}
 
 jobs:
   record:
@@ -95,6 +106,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          repository: ${{ env.PINNED }}
           ref: main
           path: ${{ env.PLUGIN }}
           persist-credentials: false
@@ -184,7 +196,7 @@ jobs:
       contents: read
     concurrency:
       # Two runs would each move the same branch under the other.
-      group: manifest-pin-${{ github.repository }}-${{ github.ref_type }}
+      group: manifest-pin-${{ inputs.repository != '' && format('{0}/{1}', github.repository_owner, inputs.repository) || github.repository }}-${{ github.ref_type }}
       cancel-in-progress: false
     outputs:
       branch: ${{ steps.admit.outputs.branch }}
@@ -195,6 +207,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          repository: ${{ env.PINNED }}
           ref: main
           path: ${{ env.PLUGIN }}
           persist-credentials: false
@@ -245,7 +258,14 @@ jobs:
             --log "$LOG" --root "$PLUGIN/$DIRECTORY" > "$SCRATCH/message.txt"
       - name: Which repository the token is for
         id: here
-        run: echo "name=${GITHUB_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+        env:
+          REPOSITORY: ${{ inputs.repository }}
+        run: |
+          if [ -n "$REPOSITORY" ] && [[ ! "$REPOSITORY" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::'${REPOSITORY}' is not a repository name: lowercase words joined by '-'"
+            exit 1
+          fi
+          echo "name=${PINNED#*/}" >> "$GITHUB_OUTPUT"
       # `main` takes signed commits only, and a commit GitHub makes for the App is
       # signed. The token is this repository's alone and can write contents and nothing
       # else; the pull request is opened in the next job with one of its own.
@@ -262,7 +282,7 @@ jobs:
         id: commit
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
-          REPO: ${{ github.repository }}
+          REPO: ${{ env.PINNED }}
           BRANCH: ${{ steps.admit.outputs.branch }}
         run: |
           set -euo pipefail
@@ -284,5 +304,6 @@ jobs:
       title: ${{ needs.commit.outputs.title }}
       body: ${{ needs.commit.outputs.body }}
       disarm: ${{ needs.commit.outputs.clean != 'yes' }}
+      repository: ${{ inputs.repository }}
     secrets:
       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
