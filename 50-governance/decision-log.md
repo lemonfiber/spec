@@ -362,6 +362,12 @@ Decisions about a repository outside this organisation, such as
 |---|---|
 | How many pull requests a repository holds open is a working agreement, and nothing automates it: no workflow comments on it, the developer command line refuses no claim over it, and the board and the report flag no repository for it. `GOV-R58` is withdrawn, and this replaces what the rows above citing it decided about how many pull requests a repository holds | [GOV-R58](working-in-the-repositories.md) |
 
+## 2026-10-27
+
+| Decision | Where it lives |
+|---|---|
+| An image a plugin runs as its upstream and lemonfiber builds in a repository of its own is published only from a commit on that repository's `main` that changes what it is built from: its `Dockerfile`, that file's `.dockerignore` or a path the `Dockerfile` copies in, so a commit to its documents or its workflows moves neither the plugin's pin nor the adapter recorded against it. `OPS-R93` is amended in place | [OPS-R93](../70-operations/releasing.md) |
+
 ## Requirements
 
 | ID | Requirement |
