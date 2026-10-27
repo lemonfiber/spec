@@ -27,7 +27,7 @@ service may hold such a credential.* Seerr is a household-tier service
 
 It also receives the Jellyfin administrator's password in transit. The core signs in
 to Seerr through Jellyfin as `admin`, with the password it minted
-(`JELLYFIN_ADMIN_PASSWORD`), whenever it reads or writes Seerr: on every seed, every
+(`MEDIA_SERVER_ADMIN_PASSWORD`), whenever it reads or writes Seerr: on every seed, every
 household read, every invitation and every removal. Seerr forwards that password to
 Jellyfin's `POST /Users/AuthenticateByName`.
 
