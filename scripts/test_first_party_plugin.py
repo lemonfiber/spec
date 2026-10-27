@@ -1,5 +1,6 @@
 """`first-party-plugin.yml`'s own steps: what counts as a change the verdict reads, the
-reader taken into a plugin that carries none, and the record the run writes."""
+reader taken into a plugin that carries none, the record the run writes, and the
+lemonfiber handed from the verdict to the live run."""
 
 from __future__ import annotations
 
@@ -147,6 +148,27 @@ class TheRecord(unittest.TestCase):
         done = self.proved()
         self.assertEqual(done.returncode, 1)
         self.assertIn("is not what this run writes", done.stdout)
+
+
+class HandedToLive(unittest.TestCase):
+    """The live run reads with the lemonfiber the verdict read with, kept in `.lemonfiber/`."""
+
+    def setUp(self):
+        jobs = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
+        self.uploaded = next(one for one in jobs["plugin"]["steps"]
+                             if one.get("uses", "").startswith("actions/upload-artifact@"))
+        self.downloaded = next(one for one in jobs["live"]["steps"]
+                               if one.get("uses", "").startswith("actions/download-artifact@"))
+
+    def test_the_hidden_directory_the_reader_keeps_it_in_is_uploaded(self):
+        self.assertTrue(self.uploaded["with"]["path"].endswith("/.lemonfiber/"))
+        self.assertIs(self.uploaded["with"]["include-hidden-files"], True)
+
+    def test_a_verdict_that_kept_none_says_so(self):
+        self.assertEqual(self.uploaded["with"]["if-no-files-found"], "error")
+
+    def test_the_live_run_takes_what_the_verdict_kept(self):
+        self.assertEqual(self.downloaded["with"]["name"], self.uploaded["with"]["name"])
 
 
 if __name__ == "__main__":
