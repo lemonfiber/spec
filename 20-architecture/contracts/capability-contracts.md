@@ -73,10 +73,10 @@ asks the adapter, and its report names the upstream (`ARCH-R335`).
 ## Paths, keys and answers
 
 - **Paths.** Every operation is at
-  `/lemonfiber/<capability>/v<major>/<operation>`, on the port the adapter `listens`
-  on.
+  `/lemonfiber/<capability>/v<major>/<operation>`, on the adapter's contract port: its
+  `contract`, or the port it `listens` on where it declares none (`ARCH-R343`).
 - **Where.** The core runs on the host, so it reaches an adapter on the host's loopback
-  interface. lemonfiber publishes the adapter's `listens` port on `127.0.0.1` alone and
+  interface. lemonfiber publishes the adapter's contract port on `127.0.0.1` alone and
   names no host port, so the engine gives it a free one. The core asks the engine which
   port that is before it asks the adapter anything, and reaches the adapter nowhere else.
   Nothing off the machine can reach it, and the plugin's key guards it from everything
@@ -373,9 +373,10 @@ are ([ARCH-R120](plugin-manifest.md) onward).
 - **Where.** By convention, beside the manifest: `conformance/<capability>@<major>/<case>.json`,
   one file per case. The manifest lists none of them; the cases come from the published
   `conformance.json`, so a missing recording is named by its case.
-- **Against what.** The upstream is the service the adapter names in `fronts`. Every
-  recording names the digest the manifest pins for that service, and one naming another
-  is refused rather than judged.
+- **Against what.** The upstream is the service the adapter names in `fronts`, or the
+  service itself where it names none and answers its contracts itself, as the decline
+  service and the request gate do. Every recording names the digest the manifest pins for
+  that service, and one naming another is refused rather than judged (`ARCH-R344`).
 - **Judged as the core reads.** A recorded answer is held to its operation exactly as a
   live one is: the same schema, status set and size bound.
 
@@ -519,7 +520,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 |----|-------------|
 | **ARCH-R199** | The core MUST generate an OpenAPI document and a conformance list per capability and major from the port types it calls, the list naming for each case the `asked` it posts, and a difference between the types and the published documents MUST fail the build. |
 | **ARCH-R200** | A manifest's `speaks` MUST name only capabilities and majors listed in `contract/capabilities/index.json`, and an unlisted one MUST be refused by name. |
-| **ARCH-R201** | Every operation MUST be at `/lemonfiber/<capability>/v<major>/<operation>` on the adapter's `listens` port, and every request MUST carry the plugin's key as a bearer token. |
+| **ARCH-R201** | Every operation MUST be at `/lemonfiber/<capability>/v<major>/<operation>` on the adapter's contract port, `contract` or `listens` where it declares none ([ARCH-R343](plugin-manifest.md)), and every request MUST carry the plugin's key as a bearer token. |
 | **ARCH-R202** | The core MUST mint each plugin's key from its own random source, write it to the adapter's configuration directory before the adapter starts, and use it for no other plugin. |
 | **ARCH-R203** | An answer outside its operation's schema, status set, size bound or time bound MUST be refused, MUST NOT be read, and MUST be recorded against the plugin's conformance standing. |
 | **ARCH-R204** | A refusal MUST be a problem document whose `type` the contract declares, and the core MUST map it to a code without reading its prose. |
@@ -530,10 +531,10 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R209** | Install MUST run the live conformance cases against the running adapter, and a failed case MUST keep the plugin from filling the capability and MUST be named. |
 | **ARCH-R210** | No capability type MUST name a product, and a curator MUST be referred to by the media type it files. |
 | **ARCH-R211** | A contract's major MUST change only when an operation is removed or its meaning changes, and the core MUST speak every major its index lists. |
-| **ARCH-R212** | An adapter's `listens` port MUST be published on `127.0.0.1` alone with no host port named, and the core MUST read the host port the engine gave it from the engine and MUST NOT reach an adapter at any other address. |
+| **ARCH-R212** | An adapter's contract port MUST be published on `127.0.0.1` alone with no host port named, and the core MUST read the host port the engine gave it from the engine and MUST NOT reach an adapter at any other address. |
 | **ARCH-R213** | A service that speaks a capability's contract MUST also provide that capability, and a manifest where one does not MUST be refused by name; that capability MUST be demonstrated by its contract and MUST NOT require a `[[claim]]`. A facet (`ARCH-R331`) is spoken and never provided. |
 | **ARCH-R214** | Where the service filling a capability speaks that capability's contract, the core MUST ask it over the contract alone and MUST NOT reach it through an adapter of its own. |
-| **ARCH-R217** | A plugin's conformance recordings MUST sit at `conformance/<capability>@<major>/<case>.json` beside its manifest, one per case of each contract it speaks, each in the recording format of `ARCH-R120` and naming the digest the manifest pins for the service its adapter `fronts`, and `lemonfiber plugin conform` MUST judge each recorded answer as the core reads a live one and MUST name each case whose recording is absent, unreadable, of another request or of another digest. |
+| **ARCH-R217** | A plugin's conformance recordings MUST sit at `conformance/<capability>@<major>/<case>.json` beside its manifest, one per case of each contract it speaks, each in the recording format of `ARCH-R120` and naming the digest the manifest pins for the service its adapter `fronts`, or for the adapter itself where it fronts none ([ARCH-R344](plugin-manifest.md)), and `lemonfiber plugin conform` MUST judge each recorded answer as the core reads a live one and MUST name each case whose recording is absent, unreadable, of another request or of another digest. |
 | **ARCH-R251** | The core MUST ask the filler of `network.egress-guard` for the forwarded port every minute while the stack runs, when the stack starts and after a reconnect the doctor observes; where the answer differs from the last, it MUST set it over `download.torrent` on every filler of that capability that takes `network.via` that guard, and MUST set it back to none when forwarding ends; where it could not set it, it MUST say the port was not passed rather than fail silently, and nothing MUST be mounted into the guard and no endpoint opened for it. The hosted `watch` loop MUST run that pass every minute for as long as the stack runs and the dashboard's gather MUST run the same pass at the same interval while a surface is open; after every diagnosis whose VPN check ran against a running stack the core MUST run one pass that sets the port on each client whose peer port differs from the guard's, journalled and said, and the doctor MUST NOT offer a separate repair for it. |
 | **ARCH-R291** | The core MUST generate the key it issues live-stream passes with, and MUST confirm a pass only through its pass service: the lemonfiber binary of the running release, run as a service of the project with `lemonfiber pass`, holding the key read-only and answering only on the network it shares with the `stream.guard` filler (`ARCH-R312`); the key MUST NOT leave lemonfiber's own processes and the guard MUST NOT hold it, and the guard MUST ask the pass service about a pass on every request for a live stream's bytes (`D11-R13`). |
 | **ARCH-R292** | A live-stream pass MUST travel in one fixed place in one spelling, held to an exact shape, and the guard MUST refuse a request carrying it anywhere else, under another spelling or in another shape. Before it asks the core, the guard MUST hold the request to the normal form it holds an item's byte route to (one canonical path, no byte the forward would re-escape, one spelling of each parameter it reads), and MUST ask about exactly the bytes it forwards. |
