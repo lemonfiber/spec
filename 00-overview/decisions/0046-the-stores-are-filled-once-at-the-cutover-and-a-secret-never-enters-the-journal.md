@@ -26,6 +26,8 @@
 
 **Amended** by [ADR-0052](0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md): §2. An assembled part's `[[secret]]` whose `of` names another service is a credential that crosses, read from its holder and never copied into the secret store; only a secret the operator enters is held as `<service id>:<secret id>`.
 
+**Amended** by `ARCH-R342`: the credential names an assembled part keeps are named for the capability each reaches, not the service's id.
+
 **Supersedes in part** [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md):
 the last sentence of §7, when the stack's environment file is read: once, at the first run
 of the release that stops reading the static Compose files, rather than at each part's move

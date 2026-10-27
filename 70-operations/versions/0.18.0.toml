@@ -289,7 +289,7 @@
 # server only at an internal TLS port, pinned to the certificate the core makes for it
 # (ADR-0054), so the decline service's and the request gate's Jellyfin keys never cross a
 # network in cleartext: a goal locked under `goals-change` review (OPS-R31).
-# 584 goals, seeded from the roadmap milestone this version serves;
+# 585 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -465,7 +465,7 @@ goals   = [
     "ARCH-R315", "ARCH-R316", "ARCH-R317", "ARCH-R318", "ARCH-R319", "ARCH-R320", "ARCH-R321",
     "ARCH-R322", "ARCH-R323", "ARCH-R324", "ARCH-R325", "ARCH-R326", "ARCH-R327",
     "ARCH-R328", "ARCH-R329", "ARCH-R330", "ARCH-R331", "ARCH-R332", "ARCH-R333", "ARCH-R334", "ARCH-R335",
-    "ARCH-R337", "ARCH-R338", "ARCH-R339", "ARCH-R340", "ARCH-R341", "ARCH-R342",
+    "ARCH-R337", "ARCH-R338", "ARCH-R339", "ARCH-R340", "ARCH-R341", "ARCH-R342", "ARCH-R347",
     "G11-R1", "G11-R2", "G11-R3", "G11-R4", "G11-R5",
     "G5-R15",
 ]
@@ -476,7 +476,10 @@ goals   = [
 # upstream's configuration directory (amending `ARCH-R227`), a request service names the
 # key it mints for itself, an upstream may need a restart for what it is applied, and the
 # core's own environment keys are named for what they hold. Added by the maintainer's
-# decision of 2026-10-27 (OPS-R31).
+# decision of 2026-10-27 (OPS-R31). `ARCH-R342` names every credential the stack records
+# for the capability it reaches, reversing `ARCH-R273`'s service-id names, and
+# `ARCH-R347` gives an ordinal where two services would take one name, both by the same
+# decision.
 
 # `G5-R15` judges what a service is to the household by the contract the adapter in front
 # of it speaks, and tells a shelf from the library by the media types a `media.serve`
