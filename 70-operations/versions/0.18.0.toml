@@ -285,7 +285,11 @@
 # `ARCH-R344` lets a service that speaks a contract be its own upstream, with no `fronts`,
 # recorded against its own pin, which is how the decline service and the request gate speak
 # `invite.decline` and `request.gate`: both goals locked under `goals-change` review (OPS-R31).
-# 583 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R345` has every service the core hands a media server credential reach the media
+# server only at an internal TLS port, pinned to the certificate the core makes for it
+# (ADR-0054), so the decline service's and the request gate's Jellyfin keys never cross a
+# network in cleartext: a goal locked under `goals-change` review (OPS-R31).
+# 584 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -440,7 +444,7 @@ goals   = [
     "ARCH-R249", "ARCH-R250", "ARCH-R251", "ARCH-R252", "ARCH-R253", "ARCH-R254", "ARCH-R255",
     "ARCH-R256", "ARCH-R257",
     "N25-R12", "N25-R13", "N25-R14",
-    "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344",
+    "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345",
     "C10-R18", "C10-R19", "C10-R20", "C10-R21", "C10-R22", "C10-R23", "C10-R24", "C10-R25",
     "C10-R26", "C10-R27", "C10-R28",
     "ARCH-R258", "ARCH-R259", "ARCH-R260", "ARCH-R261",

@@ -6,6 +6,8 @@
 
 **Amended** by [ADR-0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): §5. The key reaches the decline service over `invite.decline`'s `hold`, and the invitations over `apply the invitations it may decline`, each as its token's hash, its account and when it lapses; `held` answers the key's fingerprint, never its value.
 
+**Amended** by [ADR-0054](0054-a-media-server-credential-crosses-the-stack-only-over-tls-the-core-pins.md): §6. The key reaches Jellyfin only over an internal TLS port with a certificate the core makes, whose SHA-256 the core hands the service with the key.
+
 ## Context
 
 `D6-R15` gives every invitation a decline address, `G5-R14` puts it in the
