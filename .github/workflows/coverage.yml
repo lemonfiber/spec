@@ -115,6 +115,7 @@ jobs:
           coverage run --append scripts/test_registry.py
           coverage run --append scripts/test_upstream_pins.py
           coverage run --append scripts/test_pin_bump.py
+          coverage run --append scripts/test_image_inputs.py
           coverage report --fail-under=100
       # Not a coverage suite: it reads `.coveragerc` against the directories it
       # names and fails on a file omitted from measurement without a reason beside

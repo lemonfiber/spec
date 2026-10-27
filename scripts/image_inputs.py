@@ -43,7 +43,7 @@ TAKES = ("COPY", "ADD")
 LIMIT = 256 * 1024
 #: A commit as the push names it, and a build context as the caller names it.
 COMMIT = re.compile(r"\A[0-9a-f]{40}\Z")
-CONTEXT = re.compile(r"\A(?:\.|[A-Za-z0-9_][A-Za-z0-9_.-]*(?:/[A-Za-z0-9_][A-Za-z0-9_.-]*)*)/?\Z")
+CONTEXT = re.compile(r"\A(?:\.|\w[\w.-]*(?:/\w[\w.-]*)*)/?\Z", re.ASCII)
 
 
 def instructions(text: str) -> list[str]:
