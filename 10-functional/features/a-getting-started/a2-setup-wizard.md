@@ -56,52 +56,54 @@ A question the operator can't answer is not thoroughness; it's abdication.
 | 2 | Environment preflight | Detects OS, Docker presence, Compose version, daemon reachability |
 | 3 | Protocols | Usenet, torrents, or neither |
 | 4 | Prerequisites | [A1](a1-prerequisites.md) — the account checklist, derived from the protocol choice |
-| 5 | Data location | Proposes a default; **empirically tests hardlinks** ([C5](../c-trust/c5-storage.md)) |
-| 6 | Credentials | [A3](a3-credential-validation.md) — validated as entered |
-| 7 | Quality preference | [D2](../d-content/d2-quality-presets.md) — plain language, not custom formats |
-| 8 | Library serving | Whether to run Jellyfin; if so, [mode](../../../00-overview/decisions/0007-dual-mode-jellyfin.md) |
-| 9 | Household | Whether others will use it; drives [D6](../d-content/d6-household-identity.md) |
-| 10 | Autostart | Whether to start on boot ([B8](../b-running/b8-autostart.md)) |
-| 11 | Review | Complete summary. **Nothing has touched disk yet.** |
-| 12 | Apply | Writes config, creates directories, materialises stack files |
-| 13 | Start | Pulls images with progress, starts the chosen form, waits for health |
-| 14 | Wire | [D1](../d-content/d1-seed.md) — connects everything via API |
-| 15 | Finish | Prints URLs; offers the [first-content walkthrough](../d-content/d3-first-content.md) |
+| 5 | VPN | Whether a VPN carries the torrents, asked only where torrents were chosen; where one does, the egress guard's settings and secrets ([below](#the-vpn-is-asked-for-from-what-the-egress-guard-accepts)) |
+| 6 | Data location | Proposes a default; **empirically tests hardlinks** ([C5](../c-trust/c5-storage.md)) |
+| 7 | Credentials | [A3](a3-credential-validation.md) — validated as entered |
+| 8 | Quality preference | [D2](../d-content/d2-quality-presets.md) — plain language, not custom formats |
+| 9 | Library serving | Whether to run Jellyfin; if so, [mode](../../../00-overview/decisions/0007-dual-mode-jellyfin.md) |
+| 10 | Household | Whether others will use it; drives [D6](../d-content/d6-household-identity.md) |
+| 11 | Autostart | Whether to start on boot ([B8](../b-running/b8-autostart.md)) |
+| 12 | Review | Complete summary. **Nothing has touched disk yet.** |
+| 13 | Apply | Writes config, creates directories, materialises stack files |
+| 14 | Start | Pulls images with progress, starts the chosen form, waits for health |
+| 15 | Wire | [D1](../d-content/d1-seed.md) — connects everything via API |
+| 16 | Finish | Prints URLs; offers the [first-content walkthrough](../d-content/d3-first-content.md) |
 
 ### The VPN is asked for from what the egress guard accepts
 
-Where torrents are chosen and a VPN carries them, the credentials step asks for the
-egress guard's settings from the choices its manifest declares
+Where torrents are chosen and a VPN carries them, the VPN step asks for the egress
+guard's settings from the choices its manifest declares
 ([plugin-manifest](../../../20-architecture/contracts/plugin-manifest-service.md#environment--four-kinds-of-value)):
 first each setting that declares choices, each after the settings its choices need, so
 the VPN type comes before the provider and the provider offers only those the guard runs
 over that type; then each setting and secret the guard needs to start that those answers
 make needed, such as the WireGuard key or the OpenVPN username and password, and none
-they leave unneeded. A stack set up with a VPN starts its guard with a provider it runs
-(`A2-R18`).
+they leave unneeded. The step stays one step: its one answer carries every setting and
+secret given, so a resumed setup finds it answered whole or not at all. A stack set up
+with a VPN starts its guard with a provider it runs (`A2-R18`).
 
 ### Nothing is written until Review is confirmed
 
-Steps 1–11 are read-only. The operator can abandon at any point and leave no
+Steps 1–12 are read-only. The operator can abandon at any point and leave no
 trace beyond a resumable progress file. This matters because a half-applied
 setup is worse than none — it produces a state nobody designed.
 
 ### Time is set honestly
 
 Image pulls are multiple gigabytes. Step 1 states the expected duration, and
-step 13 shows real per-image progress. Silent multi-minute waits read as a hang
+step 14 shows real per-image progress. Silent multi-minute waits read as a hang
 and prompt operators to kill the process mid-write.
 
 ### It is resumable, not restartable
 
 Quitting mid-wizard preserves answers. Returning resumes at the same step. The
-operator is never made to re-answer eleven questions because step 12 failed.
+operator is never made to re-answer twelve steps because step 13 failed.
 
 ### A started stack is wired before setup finishes
 
 Containers that run and know nothing of each other are not a working stack: the
 download clients are not in the automation apps, the indexers are not in the
-search, and the first request goes nowhere. Step 14 is what makes them one stack.
+search, and the first request goes nowhere. Step 15 is what makes them one stack.
 It wires the services exactly as [`seed`](../d-content/d1-seed.md) does, and it says
 what it did with each connection, made, skipped or failed, before Finish prints
 anything (`A2-R17`). A stack that did not start is not wired, because there is
