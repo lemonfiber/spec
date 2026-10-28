@@ -975,7 +975,7 @@ jobs:
     - name: 'hygiene / markdown: markdownlint'
       id: hygiene--markdown--3
       if: ${{ ((steps.plan.outputs.hygiene == 'true')) && (steps.hygiene--markdown--0.outcome != 'failure') && (steps.hygiene--markdown--1.outcome != 'failure') && (steps.hygiene--markdown--markdown-only.outcome != 'failure') }}
-      uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0
+      uses: DavidAnson/markdownlint-cli2-action@696eb3f2509270d7b882d2aa68347bc676e7af34 # v25.0.0
       with:
         globs: '**/*.md'
       continue-on-error: true
