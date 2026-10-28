@@ -374,6 +374,7 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | `lemonfiber plugin record --built <image>` starts the service whose id is the plugin's, and performs its runs, from the image the plugin's tree builds in place of its pin, as `--adapter` does for an adapter, so a built part's recordings and run proofs are taken from the image its CI built before any pin of it is published; `first-party-plugin`'s live job builds the `Dockerfile` wherever there is one and hands the image on as `--adapter` where a service `fronts` and as `--built` otherwise; `ARCH-R285` is amended in place. The user chose this over naming an already-published image in a built part's manifest or declaring the capability the image strips | [ARCH-R285](../20-architecture/contracts/plugin-manifest.md) |
+| `--built` is refused for a service an adapter fronts as well as for an adapter, since that service's recordings are taken with `--adapter` in front of it; `ARCH-R285` is amended in place | [ARCH-R285](../20-architecture/contracts/plugin-manifest.md) |
 
 ## Requirements
 
