@@ -289,8 +289,11 @@
 # server only at an internal TLS port, pinned to the certificate the core makes for it
 # (ADR-0054), so the decline service's and the request gate's Jellyfin keys never cross a
 # network in cleartext. `ARCH-R346` is how the media server comes to serve that port and
-# how the core knows each holder reaches it with a new certificate: both goals locked
-# under `goals-change` review (OPS-R31).
+# how the core knows each holder reaches it with a new certificate, the adapter saying the
+# port is served now only where a handshake already presents the certificate's SHA-256.
+# `ARCH-R353` replaces the certificate where it no longer names the media server's service,
+# and `ARCH-R354` lets the operator replace it from the command line, the web API and the
+# companion alike: all four goals locked under `goals-change` review (OPS-R31).
 # `OPS-R93` publishes the images `plugin-caddy` and `plugin-door` run as their upstreams
 # from repositories of their own, `lemonfiber-caddy` and `lemonfiber-door`, each moving its
 # plugin's pin on a rolling pull request in the plugin's repository and never tagged by
@@ -301,7 +304,7 @@
 # back by name rather than leaving it restarting in a loop, and setup asks for the VPN
 # type and then a provider the egress guard runs: goals locked under `goals-change`
 # review (OPS-R31).
-# 593 goals, seeded from the roadmap milestone this version serves;
+# 595 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -458,7 +461,7 @@ goals   = [
     "ARCH-R256", "ARCH-R257",
     "N25-R12", "N25-R13", "N25-R14",
     "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345", "ARCH-R346", "OPS-R93",
-    "ARCH-R348", "ARCH-R349", "ARCH-R350", "ARCH-R351", "ARCH-R352",
+    "ARCH-R348", "ARCH-R349", "ARCH-R350", "ARCH-R351", "ARCH-R352", "ARCH-R353", "ARCH-R354",
     "C10-R18", "C10-R19", "C10-R20", "C10-R21", "C10-R22", "C10-R23", "C10-R24", "C10-R25",
     "C10-R26", "C10-R27", "C10-R28",
     "ARCH-R258", "ARCH-R259", "ARCH-R260", "ARCH-R261",

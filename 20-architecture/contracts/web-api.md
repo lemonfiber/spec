@@ -476,7 +476,7 @@ sentence to show somebody.
 POST /api/actions/plugin-install    POST /api/actions/plugin-update
 POST /api/actions/plugin-remove     POST /api/actions/plugin-run
 POST /api/actions/plugin-prove      POST /api/actions/wiring-fill
-POST /api/actions/credentials-revoke
+POST /api/actions/credentials-revoke   POST /api/actions/internal-certificate-replace
 ```
 
 What is installed and what the stack wires to what are read as their commands answer
@@ -485,7 +485,7 @@ is refused with a code the artefact lists, and is never answered with an empty l
 empty list says nothing is installed, which is a different sentence from *this could not
 be read* (`ARCH-R145`).
 
-The seven writes take what their commands take ([ADR-0031](../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)):
+The eight writes take what their commands take ([ADR-0031](../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)):
 
 | Action | Arguments | Answers |
 |--------|-----------|---------|
@@ -496,10 +496,11 @@ The seven writes take what their commands take ([ADR-0031](../../00-overview/dec
 | `plugin-prove` | `plugin`, `dry_run`, `offer` | a job, then `plugins` |
 | `wiring-fill` | `capability`, `service`, `reason`, `dry_run`, `offer` | `substitution` |
 | `credentials-revoke` | `plugin`, `credential`, `dry_run`, `offer` | a job, then `credentials` |
+| `internal-certificate-replace` | `dry_run`, `offer` | a job, then `credentials` |
 
 **The yes is the offer.** Each rehearsal answers an offer built from what it read, and
 the write takes that offer, builds it again from what is there now, and refuses where the
-two differ, naming what moved. A bare `confirm` is no yes to any of the seven (`ARCH-R146`).
+two differ, naming what moved. A bare `confirm` is no yes to any of the eight (`ARCH-R146`).
 
 `credentials-revoke` ends one grant a third-party plugin holds, as `lemonfiber credentials
 revoke` does: the credential stops crossing to the plugin, whose services that read it
@@ -507,6 +508,13 @@ restart, and the plugin stays installed (`ARCH-R324`). It is a write over a gran
 a credential: it prints no value and replaces none, so it stays on this door while revealing
 and rotating a credential stay at the terminal. A grant is given only by the install or
 update offer that names it, through `approved`, as `<setting>@<plugin>` (`ARCH-R323`).
+
+`internal-certificate-replace` replaces the certificate the media server presents at its
+internal TLS port, as `lemonfiber credentials --rotate` does for it: every holder of a media
+server credential is handed the new certificate's SHA-256 beside the old, the media server
+serves the new one, and the old SHA-256 is withdrawn once each holder reaches it with the
+new (`ARCH-R345`, `ARCH-R354`). It prints no value and its key never leaves the machine, so
+unlike rotating a credential it is a write on this door.
 
 `plugin-prove` runs the plugin's live proof again, as `lemonfiber plugin prove` does: a
 pass clears every nonconforming record the plugin holds, and a failure keeps them and
