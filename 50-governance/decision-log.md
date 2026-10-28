@@ -369,6 +369,12 @@ Decisions about a repository outside this organisation, such as
 | An image a plugin runs as its upstream and lemonfiber builds in a repository of its own is published only from a commit on that repository's `main` that changes what it is built from: its `Dockerfile`, that file's `.dockerignore` or a path the `Dockerfile` copies in, so a commit to its documents or its workflows moves neither the plugin's pin nor the adapter recorded against it. `OPS-R93` is amended in place | [OPS-R93](../70-operations/releasing.md) |
 | The guarded door is a Rust service built in `lemonfiber-door` that speaks `stream.guard@1` itself, checks each request's target as it arrived and decoded once against the declaration in typed code, and forwards the target it checked; Caddy leaves the door. `lemonfiber-door` keeps `pinned_in = "plugin-door"`, `plugin-door` holds the manifest with no adapter and builds no image, so no version cuts it | [ADR-0056](../00-overview/decisions/0056-the-guarded-door-is-a-rust-service-that-checks-the-request-it-forwards.md) |
 
+## 2026-10-28
+
+| Decision | Where it lives |
+|---|---|
+| `lemonfiber plugin record --built <image>` starts the service whose id is the plugin's, and performs its runs, from the image the plugin's tree builds in place of its pin, as `--adapter` does for an adapter, so a built part's recordings and run proofs are taken from the image its CI built before any pin of it is published; `first-party-plugin`'s live job builds the `Dockerfile` wherever there is one and hands the image on as `--adapter` where a service `fronts` and as `--built` otherwise; `ARCH-R285` is amended in place. The user chose this over naming an already-published image in a built part's manifest or declaring the capability the image strips | [ARCH-R285](../20-architecture/contracts/plugin-manifest.md) |
+
 ## Requirements
 
 | ID | Requirement |

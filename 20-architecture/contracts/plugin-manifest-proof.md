@@ -311,14 +311,17 @@ pin, so moving the pin and recording again are one command (`ARCH-R285`). What i
 is the manifest's list, and no option names a recording. A recording under
 `conformance/` that no case asks is removed.
 
-A pull request proves its own adapter with two options. `--check` takes every recording
+A pull request proves its own adapter, or the image its tree builds, with three options. `--check` takes every recording
 again and writes nothing: it fails naming each recording that differs from what it took
 and each one no case answers. An identifier or a moment the service makes afresh on each
 run, a UUID, 32 hexadecimal digits or an RFC 3339 date and time, is held to its shape
 alone, as it is inside a string that holds a JSON list or object. `--adapter <image>` starts the adapter from an image the engine already holds, the
 one the plugin's CI built from its own `Dockerfile`, in place of its pin, and pulls
-nothing. A pull request that changes what its adapter answers writes its recordings
-this way, from the adapter it built, and checks them the same way. The pull request
+nothing. `--built <image>` does the same for a part whose tree builds the image of its
+own service, the one whose id is the plugin's, where that service is no adapter: it is
+started, and each of its runs performed, from the image the CI built. A pull request that
+changes what its adapter answers, or what its built image does, writes its recordings
+this way, from the image it built, and checks them the same way. The pull request
 that then moves the adapter's pin to the published image takes every recording again
 from that pin and holds it to what was written, so no recording ships that its pin does
 not reproduce.
