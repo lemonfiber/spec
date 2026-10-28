@@ -79,10 +79,11 @@ own upstream alone answers (`REPO-R99`).
   healthy and answering its probes ([ARCH-R250](../20-architecture/contracts/plugin-manifest.md)),
   and each run proof run live, wherever a change moves a service's image, digest,
   posture, environment or user (`REPO-R93`).
-- **Its recordings, taken again from the commit**: the adapter built from the plugin's own
-  `Dockerfile`, and `lemonfiber plugin record --check --adapter <that image>` at the
+- **Its recordings, taken again from the commit**: the image built from the plugin's own
+  `Dockerfile` wherever it has one, and `lemonfiber plugin record --check` at the
   lemonfiber `targets.toml` names held to every recording committed beside the manifest
-  ([ARCH-R285](../20-architecture/contracts/plugin-manifest.md)). A change to what the
+  ([ARCH-R285](../20-architecture/contracts/plugin-manifest.md)), given that image as
+  `--adapter` where a service of the plugin `fronts` one and as `--built` otherwise. A change to what the
   adapter answers is recorded with `lemonfiber plugin record --adapter <that image>` in the
   same pull request, and the pull request that moves the adapter's pin to the image its
   `main` published holds every recording to that pin. The plugin holds no recorder of its
