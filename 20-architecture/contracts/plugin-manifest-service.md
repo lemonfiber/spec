@@ -126,6 +126,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `upstream` | table | | Only where it `speaks`: each field of the `upstream.json` lemonfiber writes for this adapter, to `{ secret = "<id>" }` naming a secret the plugin holds, usually one it [mints](plugin-manifest-secret.md#secret-and-override--declared-before-they-are-held) (`ARCH-R317`). |
 | `fronts` | string | | Only where it `speaks`: the plugin's own service this adapter stands in front of, the upstream it answers its contracts for. It names another service of the same plugin, one that speaks no contract, and its conformance recordings are taken against the digest that service is pinned by. Absent where the service is its own upstream, answering its contracts itself, and then its recordings are taken against its own pin (`ARCH-R344`). |
 | `native` | string | | The API this service answers the stack's other services in, by the name those services know it by (`jellyfin`, `plex`, `emby`). Declared on the upstream an adapter `fronts`, where other services reach that upstream directly rather than through the adapter: a request service is set up against a media server in the media server's native API (`F14-R26`, `ARCH-R221`). |
+| `certificate` | table | | A self-signed certificate lemonfiber makes for the service and writes beneath its configuration directory before it first starts: `key` (✔) and `certificate` (✔), relative paths, and `names` (✔), the host names it is made out to — see [`certificate`](#certificate--one-lemonfiber-makes-for-it) (`ARCH-R356`). Not on a service that provides `stream.guard`, which the core makes one for already. |
 | `replaces` | string | | An id the [bundle reserves](bundle.md#the-reserved-register), of the service this service moves in place of: the same container name, configuration directory and data, so an install moves the bundled service rather than running beside it ([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) §4). It names the service's own id, and only that service may take the reserved id, port and hostname (`ARCH-R222`). Only a first-party plugin's install honours it (`F14-R29`), and the service keeps the stack's setting, secret and credential names for that id, so the move migrates none (`ARCH-R273`). |
 | `shape` | enum | | `egress-guard` \| `render`. The one privileged shape lemonfiber writes for this service, from a closed set; each names who may declare it, and the operator approves it apart from the offer — see [shapes](#shapes--the-only-route-to-a-device-or-a-privilege) (`F14-R12`, `F14-R21`, `ARCH-R237`, `ARCH-R238`). |
 
@@ -258,6 +259,37 @@ rebuilt = ["cache", "log"]
 Each is a relative path with no `..` and no interpolation, refused naming the path
 otherwise. A path the service does not hold is skipped, and nothing beneath the
 configuration directory is left out unless a manifest names it.
+
+### `certificate` — one lemonfiber makes for it
+
+A service that serves TLS of its own needs a certificate and its key in its
+configuration directory before it first starts, and nothing outside the house signs the
+names it is reached by. The service declares what it needs, and lemonfiber makes it:
+
+```toml
+[[service]]
+id = "gateway"
+
+[service.certificate]
+key         = "tls/key.pem"
+certificate = "tls/certificate.pem"
+names       = ["gateway"]
+```
+
+- **Made once, by lemonfiber, before the first start.** A self-signed certificate made
+  out to every name in `names`, its key written first and readable by its owner alone,
+  then the certificate, each at its relative path beneath the configuration directory.
+  Every later start presents the same pair; nothing renews it (`ARCH-R356`).
+- **No program of the plugin's makes it.** A plugin ships data, and lemonfiber runs
+  nothing the plugin ships to write a file of its own (`ARCH-R356`).
+- **Paths that stay inside.** Each is relative, holds no `..` and interpolates nothing,
+  the two differ, and neither is a path a starting file ships. A write that would leave
+  the configuration directory through a link is refused, naming the path.
+- **Recorded as it runs.** `lemonfiber plugin record` and a run proof write a throwaway
+  pair made the same way into their throwaway copy (`ARCH-R295`, `ARCH-R284`).
+
+A service that provides `stream.guard` declares none: the core makes the guarded door's
+certificate itself, and a phone pins it by what the core states.
 
 ### Mounts — from its own tree, and nowhere else
 

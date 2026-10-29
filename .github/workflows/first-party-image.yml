@@ -26,13 +26,13 @@
 # The image is `ghcr.io/lemonfiber/<plugin id>` unless `image` names another.
 # `pinned_in` names the plugin's repository where the image is built in a repository of
 # its own and that plugin runs it as its upstream (OPS-R90): its manifest, its starting
-# files and its `posture/prepare` are read from that repository's main, the rolling pull
-# request is opened there, and the train cuts no tag here, so a tag publishes nothing.
+# files are read from that repository's main, the rolling pull request is opened there,
+# and the train cuts no tag here, so a tag publishes nothing.
 # Such an image is published only from a commit that changes what it is built from:
 # the `Dockerfile`, its `.dockerignore` or a path the `Dockerfile` copies in (OPS-R93).
-# `prepare`, `posture/prepare` where the plugin holds one, is a script of the plugin's
-# run with that configuration directory's copy before the container starts, for what
-# lemonfiber writes there at install, such as a certificate.
+# Where the service declares a `certificate`, or provides `stream.guard`, the copy holds
+# a throwaway self-signed certificate and key, written where lemonfiber writes them at
+# install (ARCH-R356); nothing the plugin ships is run.
 #
 #   jobs:
 #     image:
@@ -58,11 +58,6 @@ on:
         type: string
         required: false
         default: "."
-      prepare:
-        description: "A script under the plugin's root run with the configuration directory's copy before the container starts. posture/prepare where absent and the plugin holds one."
-        type: string
-        required: false
-        default: ""
       pinned_in:
         description: "The repository, under this one's owner, of the plugin that runs the image as its upstream, where the image is built apart from it. This repository where empty."
         type: string
@@ -412,18 +407,19 @@ jobs:
           IMAGE: ${{ needs.settle.outputs.image }}
           IMAGE_NAME: ${{ needs.settle.outputs.name }}
           MANIFEST: ${{ inputs.pinned_in != '' && env.PINNED || inputs.directory }}
-          PREPARE: ${{ inputs.prepare }}
           RUN_PLAN: ${{ runner.temp }}/run.json
           CONFIG_COPY: ${{ runner.temp }}/config
           MOUNT_TREE: ${{ runner.temp }}/mounts
         run: |
           set -euo pipefail
           python3 -I - <<'PY'
-          import json, os, pathlib, re, sys, tomllib
+          import json, os, pathlib, re, subprocess, sys, tomllib
 
           STANDARD = ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID", "KILL"]
           PLAIN = re.compile(r"[A-Za-z0-9._/-]+")
           DATA = "/data"
+          HOST = re.compile(r"[a-z0-9.-]{1,253}")
+          GUARD = {"key": "key.pem", "certificate": "certificate.pem", "names": ["localhost"]}
 
 
           def is_source(path):
@@ -437,6 +433,33 @@ jobs:
               if not PLAIN.fullmatch(path) or not path.startswith("/") or path == "/" or ".." in path:
                   return False
               return not (takes_data and (path == DATA or path.startswith(DATA + "/")))
+
+
+          def certified(service, copy, ident):
+              """A throwaway self-signed certificate and key written where lemonfiber writes them."""
+              declared = service.get("certificate")
+              if "stream.guard" in service.get("provides", []):
+                  if declared:
+                      sys.exit(f"::error::service {ident} provides stream.guard, whose certificate the core makes, and declares certificate too (ARCH-R356)")
+                  declared = GUARD
+              if not declared:
+                  return
+              key, certificate, names = declared.get("key", ""), declared.get("certificate", ""), declared.get("names", [])
+              if not (is_source(key) and is_source(certificate)) or key == certificate:
+                  sys.exit(f"::error::service {ident} declares certificate paths {key!r} and {certificate!r}, which are not two plain relative paths beneath its configuration directory (ARCH-R356)")
+              if not 1 <= len(names) <= 8 or not all(isinstance(one, str) and HOST.fullmatch(one) for one in names):
+                  sys.exit(f"::error::service {ident} declares certificate names {names!r}, which are not one to eight host names (ARCH-R356)")
+              for path in (key, certificate):
+                  if (copy / path).exists():
+                      sys.exit(f"::error::service {ident} ships a starting file at {path}, where its certificate is written (ARCH-R356)")
+                  (copy / path).parent.mkdir(parents=True, exist_ok=True)
+              subprocess.run(["openssl", "req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1",
+                              "-nodes", "-days", "1", "-subj", f"/CN={names[0]}",
+                              "-addext", "subjectAltName=" + ",".join(f"DNS:{one}" for one in names),
+                              "-keyout", str(copy / key), "-out", str(copy / certificate)],
+                             check=True, capture_output=True)
+              (copy / key).chmod(0o600)
+              print(f"::notice::service {ident} is handed a throwaway certificate for {', '.join(names)} at {certificate}, its key at {key}")
 
 
           root = pathlib.Path(os.environ["MANIFEST"])
@@ -482,6 +505,7 @@ jobs:
                   else:
                       target.parent.mkdir(parents=True, exist_ok=True)
                       target.write_bytes(path.read_bytes())
+          certified(service, copy, ident)
           mounted = f"{copy}:{service.get('config_path') or '/config'}"
           args += ["--volume", mounted + (":ro" if service.get("config_ro") else "")]
           mounts = service.get("mount", [])
@@ -518,8 +542,6 @@ jobs:
               "path": health.get("path") or "/",
               "port": port,
               "timeout": int(health.get("timeout_s") or 60),
-              "prepare": os.environ["PREPARE"] or ("posture/prepare" if (root / "posture/prepare").is_file() else ""),
-              "config": str(copy),
           }
           if plan["health"] in ("tcp", "http") and not port:
               sys.exit(f"::error::service {ident} is checked over {plan['health']} and names no port")
@@ -529,7 +551,6 @@ jobs:
       - name: It starts under its posture and passes its health check
         env:
           RUN_PLAN: ${{ runner.temp }}/run.json
-          MANIFEST: ${{ inputs.pinned_in != '' && env.PINNED || inputs.directory }}
         run: |
           set -euo pipefail
           python3 -I - <<'PY'
@@ -586,12 +607,6 @@ jobs:
               return f"its {plan['health']} health check did not pass within {plan['timeout']}s"
 
 
-          if plan["prepare"]:
-              root = pathlib.Path(os.environ["MANIFEST"]).resolve()
-              script = (root / plan["prepare"]).resolve()
-              if not script.is_file() or root not in script.parents:
-                  sys.exit(f"::error::{plan['prepare']} is not a script under the plugin's root")
-              subprocess.run([str(script), plan["config"]], check=True)
           docker("rm", "-fv", NAME, check=False)
           docker("run", "--detach", "--name", NAME, *plan["args"], "first-party-image:candidate")
           try:

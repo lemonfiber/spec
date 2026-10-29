@@ -127,14 +127,14 @@ class Settle(workflow_steps.Scratch):
 class Plan(workflow_steps.Scratch):
     """The service running the image is run as the manifest says."""
 
-    def planned(self, manifest: str, files: dict[str, str] | None = None, prepare: str = "") -> tuple[int, dict, str]:
+    def planned(self, manifest: str, files: dict[str, str] | None = None) -> tuple[int, dict, str]:
         (self.root / "plugin.toml").write_text(manifest, encoding="utf-8")
         for path, content in (files or {}).items():
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_text(content, encoding="utf-8")
         plan = self.root / "run.json"
         env = {"PATH": os.environ["PATH"], "IMAGE": IMAGE, "IMAGE_NAME": "door", "MANIFEST": str(self.root),
-               "PREPARE": prepare, "RUN_PLAN": str(plan), "CONFIG_COPY": str(self.root / "copy"),
+               "RUN_PLAN": str(plan), "CONFIG_COPY": str(self.root / "copy"),
                "MOUNT_TREE": str(self.root / "mounts")}
         done = subprocess.run(["python3", "-I", "-c", embedded("posture", "How the manifest says it runs")],
                               env=env, capture_output=True, text=True)
@@ -235,11 +235,51 @@ C = { url_of = "media.serve" }
         self.assertEqual(self.planned(self.SERVICE + self.WRITABLE)[0], 0)
         self.assertNotEqual(self.planned(self.SERVICE + "takes_data = true\n" + self.WRITABLE)[0], 0)
 
-    def test_posture_prepare_is_run_where_the_plugin_holds_one_and_none_is_named(self):
-        self.assertEqual(self.planned(self.SERVICE, {"posture/prepare": "#!/bin/sh\n"})[1]["prepare"], "posture/prepare")
-        self.assertEqual(self.planned(self.SERVICE, prepare="other/prepare")[1]["prepare"], "other/prepare")
-        (self.root / "posture/prepare").unlink()
-        self.assertEqual(self.planned(self.SERVICE)[1]["prepare"], "")
+    CERTIFICATE = '''
+[service.certificate]
+key = "tls/key.pem"
+certificate = "tls/certificate.pem"
+names = ["door", "door.internal"]
+'''
+    DECLARED = SERVICE + CERTIFICATE
+
+    def subjects(self, path: pathlib.Path) -> str:
+        return subprocess.run(["openssl", "x509", "-in", str(path), "-noout", "-ext", "subjectAltName"],
+                              capture_output=True, text=True, check=True).stdout
+
+    def test_a_declared_certificate_is_written_into_the_copy_with_an_owner_only_key(self):
+        code, _, said = self.planned(self.DECLARED)
+        self.assertEqual(code, 0, said)
+        copy = self.root / "copy"
+        self.assertIn("DNS:door, DNS:door.internal", self.subjects(copy / "tls/certificate.pem"))
+        self.assertEqual((copy / "tls/key.pem").stat().st_mode & 0o777, 0o600)
+
+    def test_a_stream_guard_is_handed_the_certificate_the_core_makes(self):
+        guard = self.SERVICE + 'provides = ["stream.guard"]\n'
+        self.assertEqual(self.planned(guard)[0], 0)
+        copy = self.root / "copy"
+        self.assertIn("DNS:localhost", self.subjects(copy / "certificate.pem"))
+        self.assertTrue((copy / "key.pem").is_file())
+
+    def test_no_certificate_is_written_where_none_is_declared(self):
+        self.assertEqual(self.planned(self.SERVICE)[0], 0)
+        self.assertEqual(sorted((self.root / "copy").rglob("*.pem")), [])
+
+    def test_a_certificate_that_is_not_one_lemonfiber_writes_is_refused(self):
+        refused = [
+            self.DECLARED.replace('key = "tls/key.pem"', 'key = "/etc/key.pem"'),
+            self.DECLARED.replace('key = "tls/key.pem"', 'key = "../key.pem"'),
+            self.DECLARED.replace('key = "tls/key.pem"', 'key = "tls/certificate.pem"'),
+            self.DECLARED.replace('names = ["door", "door.internal"]', 'names = []'),
+            self.DECLARED.replace('names = ["door", "door.internal"]', 'names = ["Door Name"]'),
+            self.SERVICE + 'provides = ["stream.guard"]\n' + self.CERTIFICATE,
+        ]
+        for manifest in refused:
+            with self.subTest(manifest=manifest[-60:]):
+                self.assertNotEqual(self.planned(manifest)[0], 0)
+
+    def test_a_starting_file_where_the_certificate_is_written_is_refused(self):
+        self.assertNotEqual(self.planned(self.DECLARED, {"config/door/tls/key.pem": "shipped\n"})[0], 0)
 
     def test_no_service_yet_is_run_under_standard(self):
         code, plan, said = self.planned('schema_version = 1\n[plugin]\nid = "door"\n')

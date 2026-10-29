@@ -335,11 +335,9 @@ not reproduce.
 **A request is recorded by asking it.** Each service is started once, from its pinned
 digest, under its posture, user and memory limit, with throwaway copies of its starting
 files and data, on a network of its own, its `listens` port published on loopback alone.
-Where the plugin ships `posture/prepare`, the recorder runs it with the copy of the starting
-files of the service whose id is the plugin's before each container of that service starts,
-for what lemonfiber writes there at install, such as a certificate; whatever the recorder
-writes there itself takes its place. Nothing else runs it: a plugin installed, checked or
-proved on somebody's machine runs no program of its own (`ARCH-R295`).
+Where the service declares a `certificate`, or provides `stream.guard`, the copy holds a
+throwaway certificate and key made and written as install writes them (`ARCH-R356`). The
+recorder runs no program the plugin ships.
 Once its `health` passes, its first run is the core's own: the plugin's adapter performs
 it over its contract, as install does, for a service that adapter `fronts`. A probe whose
 vocabulary entry says `credential = "operator"` is asked with the key that first run left
