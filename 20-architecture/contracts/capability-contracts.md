@@ -32,15 +32,20 @@ calls, the way it generates the web API's:
 
 ```text
 contract/capabilities/<capability>/v<major>/openapi.json
+contract/capabilities/<capability>/v<major>/operations/<operation>.json
 contract/capabilities/<capability>/v<major>/conformance.json
+contract/capabilities/<capability>/v<major>/index.json
 contract/capabilities/index.json
 ```
 
-- The OpenAPI document is normative for every path, request and answer.
+- The OpenAPI document is normative for every path, request and answer. Each operation
+  is described in a document of its own under `operations/`, which states its size bound
+  and its time bound.
 - `conformance.json` lists the cases an adapter's recordings and its live pass must
   answer, and what each one asks.
-- `index.json` lists every capability, the majors the core speaks, and each document's
-  digest.
+- A capability's `index.json` lists each of its documents with its digest.
+- The top `index.json` lists every capability, the majors the core speaks, and the
+  capability's own index with its digest.
 
 Nothing here is written by hand. A difference between the types and the published
 documents fails the build, as for the web API.
