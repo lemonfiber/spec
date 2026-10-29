@@ -128,6 +128,7 @@ jobs:
             case "${path}" in
             '' | *.md | docs/* | LICENSE | status.toml | .github/ISSUE_TEMPLATE/*) continue ;;
             .github/*) code=true ;;
+            *) ;;
             esac
             if [ "${DIRECTORY}" = "." ] || [[ "${path}" == "${DIRECTORY%/}/"* ]]; then
               code=true
