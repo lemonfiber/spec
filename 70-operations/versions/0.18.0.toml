@@ -317,7 +317,12 @@
 # install, an update, each start and a rotation so the guard holds the control credential
 # its adapter was handed, restarting it where the guard reads that only at start. Added by
 # the maintainer's decision of 2026-10-29 (OPS-R31).
-# 599 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R358` to `ARCH-R360` take the request gate and the decline service onto their
+# contracts whole: the gate's record and a route's tokens, the decline service's refusals,
+# lapses and page, and the media server key each holds replaced and proven over the
+# contract, so the core reads none of their files. Added by the maintainer's decision of
+# 2026-10-29 (OPS-R31).
+# 602 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -485,7 +490,7 @@ goals   = [
     "N25-R12", "N25-R13", "N25-R14", "N25-R25",
     "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345", "ARCH-R346", "OPS-R93",
     "ARCH-R348", "ARCH-R349", "ARCH-R350", "ARCH-R351", "ARCH-R352", "ARCH-R353", "ARCH-R354",
-    "ARCH-R355", "ARCH-R356", "ARCH-R357",
+    "ARCH-R355", "ARCH-R356", "ARCH-R357", "ARCH-R358", "ARCH-R359", "ARCH-R360",
     "C10-R18", "C10-R19", "C10-R20", "C10-R21", "C10-R22", "C10-R23", "C10-R24", "C10-R25",
     "C10-R26", "C10-R27", "C10-R28",
     "ARCH-R258", "ARCH-R259", "ARCH-R260", "ARCH-R261",
