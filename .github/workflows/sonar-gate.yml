@@ -136,6 +136,7 @@ jobs:
             echo "::error::allowed-open is \"${declared}\". It must be a whole number, and this gate will not guess at one."
             exit 1
             ;;
+          *) ;;
           esac
 
           # The same file on the branch this pull request merges into, read at
