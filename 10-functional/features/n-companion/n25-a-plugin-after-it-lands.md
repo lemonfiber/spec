@@ -58,6 +58,13 @@ them (`F14-R21`). A service
 left unapproved leaves the install refused, and the app says which service it
 was and why it needs the shape.
 
+An adapter whose upstream is configured only through its own files is handed that
+service's whole configuration directory, and writes those files (`ARCH-R339`). It
+asks no approval of its own, but it is a write into another service's
+configuration, so the rehearsal of an install or update names each adapter that
+does, the service whose files it writes, and where that service's directory lands
+inside it.
+
 ### A plugin's settings are the operator's to change
 
 A plugin's services can read values the operator sets: the countries an egress
@@ -204,6 +211,7 @@ every appearance.
 | **N25-R23** | The app MUST offer revoking each grant a plugin holds. The revoke MUST be read first, labelled as nothing ended yet (`N6-R1`), showing the grant it ends and the plugin's services it would restart; the yes MUST carry back the offer the stack named (`N2-R27`). Afterwards the app MUST show whether the grant was ended, the services that restarted and, where they did not, the stack's reason, and MUST say that the plugin stays installed and that rotating the credential is what takes back a value already handed (`ARCH-R324`). |
 | **N25-R24** | A plugin's grants, and revoking them, MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown. |
 | **N25-R25** | The app MUST list, on a screen of the stack's own, every setting and secret in the stack's stores that no installed plugin's services read, grouped as the core's or by the namespace that owns it. It MUST show and offer changing each setting as `N25-R12` says, list each secret as `N25-R13` says, and show all of it to the operator alone as `N25-R14` says (`ARCH-R248`). |
+| **N25-R26** | Where an install or update states `sharing`, the rehearsal MUST name each adapter that writes the files of the service it fronts, that service, and where that service's configuration directory lands inside the adapter (`ARCH-R339`). |
 
 ## Notes
 
