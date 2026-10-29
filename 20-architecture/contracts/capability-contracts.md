@@ -136,7 +136,7 @@ asks for them. Their shapes are the generated documents' alone.
 | `network.egress-guard` | Whether the tunnel is up; the forwarded port; `secure`: hold the guard to the control credential its adapter was handed |
 | `proxy.front` | Apply a routing table (household names, upstreams, TLS mode and certificate files); the table it serves; reload |
 | `dashboard.show` | Apply a panel list (groups of entries and the page's widgets, below); the list it shows |
-| `quality.sync` | Apply profiles to a curator; what it last applied |
+| `quality.sync` | Apply profiles to a curator; what it last applied; `edited`: the hand edit `reapply` would replace, masked, written nothing; `reapply`: write the profiles over that edit and answer the edit it replaced |
 | `archive.extract` | `watch`: every curator at once, each named by the media type it files, with its address, its key and its download folder, which is whom a finished extraction is handed back to, in place of those it watches; `working`: what it is extracting now |
 | `stream.guard` | Apply a guard: the media server filler's declaration verbatim, where the upstream and the adapter are, the one proxy address the guard trusts and the pass service's address, where it asks about a live-stream pass (below); the guard it enforces, all of it read back; the certificate it presents |
 | `invite.decline` | `hold`: the media server key it switches an invitation off with, and the SHA-256 of each certificate the media server's internal TLS port may present; `held`: that key's SHA-256, and the certificates' it holds; `apply the invitations it may decline`: how the media server tells a claimed account, and each invitation's token hash, its account, the name the account was made under, when it was issued and when it lapses; `refusals`: each invitation declined; `lapses`: each invitation taken back when its window closed; `page`: where it serves the page an invitation is declined on |
@@ -310,6 +310,19 @@ only on its next start, so the core restarts the guard (`ARCH-R341`), and `204` 
 guard already holds it. The core asks `secure` after the guard's plugin is installed or
 updated, after every start of the guard, and after it rotates the credential, so a
 rotated credential or a hand-edited file is put right without anybody asking.
+
+## Putting a preset back over a hand edit
+
+An operator who has edited the quality sync's configuration by hand keeps that edit: `apply`
+leaves it, and the preset is reported `customised` (`D2`). Putting the preset back over it
+is the operator's explicit act, agreed to against the lines it loses. `edited` answers that
+edit without writing anything: the configuration's path and the diff of what is on disk
+against what `reapply` would write, every credential value in it masked, or nothing where
+the configuration is the adapter's own. A rehearsal shows it. `reapply` writes the
+profiles over the edit and answers the edit it replaced, masked the same way, and whether
+the profiles are in force now or once the upstream restarts, which the core holds as it
+holds a `205` (`ARCH-R341`). The core asks `reapply` only on the operator's agreement and
+writes the quality sync's configuration itself nowhere.
 
 ## A request service's owner
 
@@ -600,6 +613,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R340** | `request.intake@1` MUST declare `minted_as`, answering the name under which the upstream files a media server key it mints for itself, or `unsupported` where it mints none; once the request service reaches the media server through the gate, the core MUST revoke every key the media server holds under the name `minted_as` answers, and MUST NOT name a request service's key by any name of its own. |
 | **ARCH-R341** | An operation that answers `204` MAY answer `205`, meaning applied and in force once the upstream restarts, and conformance MUST pass either; on `205` the core MUST restart the service the adapter `fronts`, journalled as a restart of that service, MUST ask that adapter nothing else until `ready` answers, and MUST say the upstream restarted, and a rehearsal of an operation that may be answered so MUST say the upstream may restart. |
 | **ARCH-R357** | `network.egress-guard@1` MUST carry `secure`, answering `204` where the guard already holds the control credential its adapter was handed and `205` where it takes it up at its next start; the core MUST ask it after the guard's plugin is installed or updated, after every start of the guard and after it rotates that credential, and MUST hold the answer to `ARCH-R341`. |
+| **ARCH-R361** | `quality.sync@1` MUST carry `edited`, answering without writing anything the hand edit to its upstream's configuration that `reapply` would replace, as that configuration's path and the diff of what is on disk against what `reapply` would write with every credential value masked, or nothing where the configuration is the adapter's own; and `reapply`, writing the profiles it is handed over that edit and answering the edit it replaced, masked the same way, or nothing, and whether the profiles are in force now or once the upstream restarts; the core MUST show `edited` on a rehearsal, MUST ask `reapply` only on the operator's agreement, MUST hold an answer of in force once the upstream restarts to `ARCH-R341` as it holds a `205`, and MUST NOT write the quality sync's configuration itself. |
 
 ## Related
 
