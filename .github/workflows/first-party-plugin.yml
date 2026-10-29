@@ -8,9 +8,10 @@
 #
 # `live` then takes every recording again, against each image the manifest pins run as
 # lemonfiber runs it: under its posture, waited on until its health check passes, and
-# asked every proof, probe and conformance case (REPO-R93). Where the plugin has an
-# adapter service and its tree holds a Dockerfile, the adapter is the image built from
-# the tree. It is lemonfiber's own `plugin record --check`, by the lemonfiber the
+# asked every proof, probe and conformance case (REPO-R93). Where its tree holds a
+# Dockerfile, the image built from it stands in for the pin of the service it builds:
+# each adapter's where a service fronts one, and the service with the plugin's id where
+# no service speaks a contract (ARCH-R285). It is lemonfiber's own `plugin record --check`, by the lemonfiber the
 # `plugin` job built or fetched, handed on rather than built twice.
 #
 # Both are skipped by a job-level condition where `what changed` found only paths no
@@ -190,35 +191,53 @@ jobs:
           find .lemonfiber -type f -name lemonfiber -exec chmod +x {} + 2>/dev/null || true
           python3 -I -c 'import sys; sys.path.insert(0, sys.argv[1]); import reader; print("binary=" + str(reader.binary()))' \
             "${READER}" >> "$GITHUB_OUTPUT"
-      - name: The adapter, built from this tree
-        id: adapter
+      - name: The image this tree builds
+        id: built
         run: |
           set -euo pipefail
-          fronting="$(python3 -I -c 'import tomllib; print(sum(1 for one in tomllib.load(open("plugin.toml", "rb")).get("service", []) if "fronts" in one))')"
-          if [ "${fronting}" != "0" ] && [ -f Dockerfile ]; then
-            docker build -q -t first-party-live-adapter .
-            echo "image=first-party-live-adapter" >> "$GITHUB_OUTPUT"
-          else
-            echo "No adapter is built here, so every service runs the image plugin.toml pins."
+          if [ ! -f Dockerfile ]; then
+            echo "No image is built here, so every service runs the image plugin.toml pins."
+            exit 0
           fi
+          stands_in="$(python3 -I -c 'import tomllib
+          services = tomllib.load(open("plugin.toml", "rb")).get("service", [])
+          if any("fronts" in one for one in services):
+              print("adapter")
+          elif not any(one.get("speaks") for one in services):
+              print("built")')"
+          if [ -z "${stands_in}" ]; then
+            echo "Its own upstream speaks the contracts here, and is recorded from the image plugin.toml pins."
+            exit 0
+          fi
+          docker build -q -t first-party-live-built .
+          {
+            echo "image=first-party-live-built"
+            echo "as=${stands_in}"
+          } >> "$GITHUB_OUTPUT"
       - name: Every image the recordings are taken from
         env:
-          BUILT_ADAPTER: ${{ steps.adapter.outputs.image }}
+          STANDS_IN: ${{ steps.built.outputs.as }}
         run: |
           set -euo pipefail
           python3 -I -c 'import os, tomllib
-          built = bool(os.environ["BUILT_ADAPTER"])
-          for one in tomllib.load(open("plugin.toml", "rb")).get("service", []):
-              if not (built and "fronts" in one):
-                  print(one["image"] + "@" + one["digest"])' | xargs -r -n1 docker pull -q
+          manifest = tomllib.load(open("plugin.toml", "rb"))
+          stands_in = os.environ["STANDS_IN"]
+          plugin = manifest["plugin"]["id"]
+          for one in manifest.get("service", []):
+              if stands_in == "adapter" and "fronts" in one:
+                  continue
+              if stands_in == "built" and one["id"] == plugin:
+                  continue
+              print(one["image"] + "@" + one["digest"])' | xargs -r -n1 docker pull -q
       - name: Every recording, taken again from them
         env:
           LEMONFIBER: ${{ steps.lemonfiber.outputs.binary }}
-          BUILT_ADAPTER: ${{ steps.adapter.outputs.image }}
+          BUILT: ${{ steps.built.outputs.image }}
+          STANDS_IN: ${{ steps.built.outputs.as }}
         run: |
           set -euo pipefail
-          if [ -n "${BUILT_ADAPTER}" ]; then
-            "${LEMONFIBER}" plugin record . --check --adapter "${BUILT_ADAPTER}"
-          else
-            "${LEMONFIBER}" plugin record . --check
-          fi
+          case "${STANDS_IN}" in
+            adapter) "${LEMONFIBER}" plugin record . --check --adapter "${BUILT}" ;;
+            built) "${LEMONFIBER}" plugin record . --check --built "${BUILT}" ;;
+            *) "${LEMONFIBER}" plugin record . --check ;;
+          esac
