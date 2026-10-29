@@ -133,7 +133,7 @@ asks for them. Their shapes are the generated documents' alone.
 | `indexer.proxy` | Solve a challenge; whether it answers |
 | `request.intake` | Establish an owner; initialised; configure identity; answers; search a page of titles a member may ask for; what one title is, its certification in a country and where its poster is published; ask on a member's behalf; requests, each with the id its title is found by; link members; member for an account; requesting; approval first; remove a member; telling and tell; fulfilment targets (list, add, move, test); the media server link (read, set); asking (read, set); left; quota; approves own; decide; hold and release requests; reachable; notices; the name it files a media server key it mints for itself under |
 | `subtitles.fetch` | Watching; watch |
-| `network.egress-guard` | Whether the tunnel is up; the forwarded port |
+| `network.egress-guard` | Whether the tunnel is up; the forwarded port; `secure`: hold the guard to the control credential its adapter was handed |
 | `proxy.front` | Apply a routing table (household names, upstreams, TLS mode and certificate files); the table it serves; reload |
 | `dashboard.show` | Apply a panel list (groups of entries and the page's widgets, below); the list it shows |
 | `quality.sync` | Apply profiles to a curator; what it last applied |
@@ -299,6 +299,17 @@ offers no separate repair for it.
 Nothing is mounted into the guard for this, no endpoint is opened for it to call, and the
 guard holds no credential of the client's: the port crosses through the core, contract to
 contract, so a substitute guard or a substitute client takes part on the same terms.
+
+## Securing the guard
+
+An egress guard's own control server answers the adapter only under a credential the guard
+reads when it starts. lemonfiber mints that credential and hands it to the adapter in its
+upstream credential file (`F14-R28`); `secure` is the operation that makes the guard hold
+it. The adapter writes what the guard reads and answers `205` where the guard takes it up
+only on its next start, so the core restarts the guard (`ARCH-R341`), and `204` where the
+guard already holds it. The core asks `secure` after the guard's plugin is installed or
+updated, after every start of the guard, and after it rotates the credential, so a
+rotated credential or a hand-edited file is put right without anybody asking.
 
 ## A request service's owner
 
@@ -585,6 +596,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits and the shape that id has, and the core MUST hand them to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request's path and has not lapsed, and with `403` otherwise, a path no live-stream path covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
 | **ARCH-R340** | `request.intake@1` MUST declare `minted_as`, answering the name under which the upstream files a media server key it mints for itself, or `unsupported` where it mints none; once the request service reaches the media server through the gate, the core MUST revoke every key the media server holds under the name `minted_as` answers, and MUST NOT name a request service's key by any name of its own. |
 | **ARCH-R341** | An operation that answers `204` MAY answer `205`, meaning applied and in force once the upstream restarts, and conformance MUST pass either; on `205` the core MUST restart the service the adapter `fronts`, journalled as a restart of that service, MUST ask that adapter nothing else until `ready` answers, and MUST say the upstream restarted, and a rehearsal of an operation that may be answered so MUST say the upstream may restart. |
+| **ARCH-R357** | `network.egress-guard@1` MUST carry `secure`, answering `204` where the guard already holds the control credential its adapter was handed and `205` where it takes it up at its next start; the core MUST ask it after the guard's plugin is installed or updated, after every start of the guard and after it rotates that credential, and MUST hold the answer to `ARCH-R341`. |
 
 ## Related
 
