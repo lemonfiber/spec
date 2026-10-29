@@ -138,6 +138,7 @@ jobs:
               gh pr edit "$PR_NUMBER" --remove-label "$LABEL" 2>/dev/null \
                 || echo "::notice::This token cannot edit #${PR_NUMBER}'s labels, as on a fork's pull request; ${LABEL} stays until a run that can."
               ;;
+            *) ;;
             esac
             exit 0
           fi
@@ -162,6 +163,7 @@ jobs:
             echo "#${pr} is maintainer-authored; skip."
             exit 0
             ;;
+          *) ;;
           esac
 
           approved=$(gh api "repos/${GH_REPO}/pulls/${pr}/reviews" \

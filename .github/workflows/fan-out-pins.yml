@@ -322,13 +322,16 @@ jobs:
 
           # The runs of a branch being closed that have not finished, cancelled:
           # the repository's own branch only, never a fork's of the same name.
+          END_GROUP="::endgroup::"
+
           cancel_runs() {
-            HOME_REPO="${OWNER}/$1" gh api "repos/${OWNER}/$1/actions/runs?branch=$2&per_page=50" \
+            local repo="$1" branch="$2"
+            HOME_REPO="${OWNER}/${repo}" gh api "repos/${OWNER}/${repo}/actions/runs?branch=${branch}&per_page=50" \
               --jq '.workflow_runs[] | select(.status != "completed")
                     | select(.head_repository.full_name == env.HOME_REPO) | .id' \
               | while read -r id; do
                   if [ -n "$id" ]; then
-                    gh run cancel "$id" --repo "${OWNER}/$1" >/dev/null || true
+                    gh run cancel "$id" --repo "${OWNER}/${repo}" >/dev/null || true
                   fi
                 done
           }
@@ -340,7 +343,7 @@ jobs:
             if ! gh repo clone "${OWNER}/${repo}" "$at" -- --quiet; then
               echo "::warning::${repo} could not be cloned"
               refused="${refused} ${repo}"
-              echo "::endgroup::"; continue
+              echo "${END_GROUP}"; continue
             fi
 
             # A pin is rewritten by the reader the gate refuses by, so this can
@@ -350,7 +353,7 @@ jobs:
                   --repo "$at" --spec "$SPEC" --tag "$TAG"; then
               echo "::warning::${repo} could not be measured"
               refused="${refused} ${repo}"
-              echo "::endgroup::"; continue
+              echo "${END_GROUP}"; continue
             fi
 
             # Every open pull request this app opened here from the repository's
@@ -365,7 +368,7 @@ jobs:
                  >"${work}/${repo}.open"; then
               echo "::warning::${repo}'s open pull requests could not be listed"
               refused="${refused} ${repo}"
-              echo "::endgroup::"; continue
+              echo "${END_GROUP}"; continue
             fi
             rolling=$(awk -v b="$branch" '$2 == b { print $1; exit }' "${work}/${repo}.open")
 
@@ -391,7 +394,7 @@ jobs:
                    --message "${work}/message" 2>"${work}/refusal"); then
                 echo "::warning::${repo} would not take the bump: $(tr '\n' ' ' <"${work}/refusal")"
                 refused="${refused} ${repo}"
-                echo "::endgroup::"; continue
+                echo "${END_GROUP}"; continue
               fi
 
               # The pull request is found and touched the way every bump's is
@@ -426,7 +429,7 @@ jobs:
                   cancel_runs "$repo" "$old"
                 done
 
-            echo "::endgroup::"
+            echo "${END_GROUP}"
           done
 
           opened=${opened# }; moved=${moved# }; current=${current# }; refused=${refused# }
