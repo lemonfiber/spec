@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**116 features** in areas A–N, **1847 requirements**.
+**116 features** in areas A–N, **1848 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -106,7 +106,7 @@ code, and the two move independently.
 | [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.18.0`, `0.19.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
-| [F14](f-extensibility/f14-every-part-is-a-plugin.md) | Every part is a plugin | F | operator | accepted | `0.18.0` |
+| [F14](f-extensibility/f14-every-part-is-a-plugin.md) | Every part is a plugin | F | operator | accepted | `0.18.0`, `0.19.0` |
 | [G1](g-ux/g1-interface-tiers.md) | Interface tiers | G | both | accepted | `0.18.0`, `0.9.0` |
 | [G2](g-ux/g2-plain-language.md) | Plain-language layer & in-product help | G | both | accepted | `0.18.0`, `0.19.0`, `0.9.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
