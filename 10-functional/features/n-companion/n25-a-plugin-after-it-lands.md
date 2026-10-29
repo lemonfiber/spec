@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P3
 labels: [mobile, extensibility, ux]
 requires: [N1, N5, F5, F6]
@@ -72,6 +72,14 @@ Secrets are listed beside the settings and never shown: each says whether a valu
 is held and where it came from, and nothing more. The app offers no way to change
 one, and says that a secret is changed at the stack's terminal (`ARCH-R256`).
 These screens are the operator's alone; a member never sees them.
+
+A setting or a secret that no installed plugin's services read is the stack's
+own: the core's, or a namespace's that no plugin brought. The app lists those on
+a screen of the stack's, beside what the stack is set to, grouped as the core's
+or by the namespace that owns each, and offers changing them and putting them
+back exactly as it does on a plugin. Without it, a value the stack itself reads
+could be changed from the command line and the web API but not from the
+app (`ARCH-R248`).
 
 | Where | English | Dutch |
 |-------|---------|-------|
@@ -195,6 +203,7 @@ every appearance.
 | **N25-R22** | Each installed plugin MUST list the grants it holds, each with the setting the credential is held under, the service whose credential it is, the capability it fills and when it was approved, and never a value (`ARCH-R323`). |
 | **N25-R23** | The app MUST offer revoking each grant a plugin holds. The revoke MUST be read first, labelled as nothing ended yet (`N6-R1`), showing the grant it ends and the plugin's services it would restart; the yes MUST carry back the offer the stack named (`N2-R27`). Afterwards the app MUST show whether the grant was ended, the services that restarted and, where they did not, the stack's reason, and MUST say that the plugin stays installed and that rotating the credential is what takes back a value already handed (`ARCH-R324`). |
 | **N25-R24** | A plugin's grants, and revoking them, MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown. |
+| **N25-R25** | The app MUST list, on a screen of the stack's own, every setting and secret in the stack's stores that no installed plugin's services read, grouped as the core's or by the namespace that owns it. It MUST show and offer changing each setting as `N25-R12` says, list each secret as `N25-R13` says, and show all of it to the operator alone as `N25-R14` says (`ARCH-R248`). |
 
 ## Notes
 

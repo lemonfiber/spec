@@ -273,7 +273,9 @@
 # model writes. `ARCH-R254` to `ARCH-R257` put the settings the model reads on the web
 # API, operator-only and never reading a secret back, and `N25-R12` to `N25-R14` are the
 # companion's screens for them, because a setting the model writes has to be changeable
-# from every surface (`ARCH-R248`). `REPO-R93` has each first-party plugin's CI run its
+# from every surface (`ARCH-R248`); `N25-R25` is the companion's screen for the settings
+# and secrets no installed plugin reads, the core's and those of a namespace no plugin
+# brought, locked under `goals-change` review (OPS-R31). `REPO-R93` has each first-party plugin's CI run its
 # images under the posture its manifest declares, which this version is the first to
 # write them with.
 # `ARCH-R336` is how a service that needs an operator's credential to start is held to it:
@@ -315,7 +317,7 @@
 # install, an update, each start and a rotation so the guard holds the control credential
 # its adapter was handed, restarting it where the guard reads that only at start. Added by
 # the maintainer's decision of 2026-10-29 (OPS-R31).
-# 598 goals, seeded from the roadmap milestone this version serves;
+# 599 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -480,7 +482,7 @@ goals   = [
     "ARCH-R242", "ARCH-R243", "ARCH-R244", "ARCH-R245", "ARCH-R246", "ARCH-R247", "ARCH-R248",
     "ARCH-R249", "ARCH-R250", "ARCH-R251", "ARCH-R252", "ARCH-R253", "ARCH-R254", "ARCH-R255",
     "ARCH-R256", "ARCH-R257",
-    "N25-R12", "N25-R13", "N25-R14",
+    "N25-R12", "N25-R13", "N25-R14", "N25-R25",
     "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345", "ARCH-R346", "OPS-R93",
     "ARCH-R348", "ARCH-R349", "ARCH-R350", "ARCH-R351", "ARCH-R352", "ARCH-R353", "ARCH-R354",
     "ARCH-R355", "ARCH-R356", "ARCH-R357",
