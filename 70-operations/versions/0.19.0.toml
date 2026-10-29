@@ -39,7 +39,10 @@
 # `A5-R15` keeps an import from handing the key of the operator's other stack to anything
 # but the first-party adapter lemonfiber already runs for that service. It is the core's.
 #
-# 68 goals, seeded from the roadmap milestone this version serves;
+# `F14-R31` proves every capability 0.18.0's `F14-R14` does not name by a substitute of its
+# own, end to end. Added by the maintainer's decision of 2026-10-29 (OPS-R31).
+#
+# 69 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -118,6 +121,7 @@ goals   = [
     "D11-R13",
     "ARCH-R292",
     "A5-R15",
+    "F14-R31",
 ]
 
 # `N21-R1` to `N21-R11`, `N3-R1` to `N3-R26` but for the three earlier versions lock,

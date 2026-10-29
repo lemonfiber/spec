@@ -114,11 +114,14 @@ a member's app works the same against any media server.
 
 ### A substitution replaces
 
-Choosing a filler stops the part it replaces and takes it out of its form. Its data stays
-where it was, so undoing the choice brings it back as it was. The rehearsal says what
-does not carry over: accounts the old media server held are not accounts on the new one,
-and progress stays where it was recorded. Asking the household's members back is offered
-as part of the change.
+Choosing a filler stops the part it replaces and takes it out of its form. Its
+configuration and data stay where they were, and the choice is journalled, so undoing it
+brings back the choice and the part as they were. The rehearsal says what does not carry
+over, read from the contract rather than written per part: for a curator, whatever its
+`records and carry` does not carry; for any other part, each kind of thing the replaced
+filler held. Accounts the old media server held are not accounts on the new one, and
+progress stays where it was recorded. Asking the household's members back is offered as
+part of the change.
 
 ### The egress guard's shape
 
@@ -138,7 +141,9 @@ beside the media server's `render` for hardware transcoding
 Every capability has a substitute beside its first-party filler, built to the same
 contract and run end to end against its pinned upstream: installed, its first-run flow
 run, held to the conformance suite, substituted, the features its capability serves
-exercised, and undone.
+exercised, and undone. The capabilities a second plugin already fills are proved first:
+`media.serve`, `indexer.search`, `library.curate` and `identity.source`. Every other
+capability follows as its substitute is built.
 
 ### Credentials between plugins
 
@@ -190,19 +195,19 @@ nothing crosses to it.
 | ID | Requirement |
 |----|-------------|
 | **F14-R1** | Every capability in the vocabulary MUST have a published, versioned contract generated from the core's port types, and the core MUST reach every service only through a contract it speaks. |
-| **F14-R2** | The core MUST hold no code specific to any service, and an architecture check MUST refuse a bundled service's name in core code outside the bundle, except a name that is also a word the core owns for a capability or concept (the front door, `invite.decline`, `request.gate`), the name of a native API (`ARCH-R18`), and a product's name in words telling a household what to install on its own devices. |
+| **F14-R2** | The core MUST hold no code specific to any service, and an architecture check MUST refuse a bundled service's name in core code outside the bundle, except a name that is also a word the core owns for a capability or concept (the front door, `invite.decline`, `request.gate`), the name of a native API (`ARCH-R18`), a product's name in words telling a household what to install on its own devices, and a name an earlier release or its service wrote, read only by a journalled migration or for a stack being upgraded. |
 | **F14-R3** | A service MUST declare the contracts it speaks, and a manifest MUST NOT name an in-process adapter. |
 | **F14-R4** | Every answer from an adapter MUST be held to its contract's schema and bounded in size and time, and an answer outside them MUST be refused and MUST NOT be read. |
 | **F14-R5** | The core MUST reach an adapter only with a key minted for that plugin alone, on a network shared only by the core, the adapter and its upstream, and an adapter MUST NOT be given a credential lemonfiber holds for anything else. |
-| **F14-R6** | A plugin MUST NOT fill a capability unless its adapter conforms to that capability's contract, proved by recordings against its pinned upstream and by a live conformance pass at install, and first-party adapters MUST be held to the same suite; a first-party plugin the bundle assembles, which has no adapter, MUST fill a capability only through its claims, each proved against its recordings as `F9-R2` holds a bundled service's. |
+| **F14-R6** | A plugin MUST NOT fill a capability unless its adapter conforms to that capability's contract, proved by recordings against its pinned upstream and by a live conformance pass at install; an install or update MUST refuse a plugin any case of whose contracts fails or has no recording, first-party adapters MUST be held to the same suite, and the core MUST NOT build while a first-party adapter the bundle pins leaves a case of a contract it speaks failing or unrecorded; a first-party plugin the bundle assembles, which has no adapter, MUST fill a capability only through its claims, each proved against its recordings as `F9-R2` holds a bundled service's. |
 | **F14-R7** | Every part of the bundle MUST be a first-party plugin, installed, updated, removed and validated by the path any plugin takes, and the bundle and its first-party manifests MUST be embedded in the binary. |
 | **F14-R8** | The vocabulary MUST name `proxy.front`, `dashboard.show`, `quality.sync`, `archive.extract`, `stream.guard`, `invite.decline` and `request.gate`, each with a contract, and every capability in the vocabulary MUST be asked by something in the bundle or by the core over its contract. |
 | **F14-R9** | A plugin MAY ask for capabilities and MUST NOT link to a service by name. |
 | **F14-R10** | The stream guard's filler MUST enforce the guard the media server's filler declares, and every location the core gives a member MUST be built from templates the media server's filler declares. |
-| **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its data, undoing it MUST bring that part back with its data, and the rehearsal MUST say what does not carry over. |
+| **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its configuration and data, and MUST journal the choice; undoing it MUST restore the choice and bring that part back with its configuration and data; and the rehearsal MUST say what does not carry over, read from the contract: for a curator, what its `records and carry` does not carry, and otherwise each kind of thing the replaced filler held. |
 | **F14-R12** | A plugin's service MAY declare `shape = "egress-guard"` only where it is the upstream an adapter of the same plugin fronts and that adapter speaks `network.egress-guard`, or where it is the plugin's one service and provides `network.egress-guard` itself, which lemonfiber MUST honour only where the bundle assembles the plugin and MUST refuse at install and update naming `service <id>.shape`; any other service declaring it MUST be refused at validation naming `service <id>.shape`; and lemonfiber MUST write that service's entry as every plugin's entry plus exactly the `NET_ADMIN` capability and the `/dev/net/tun` device, and MUST write neither for any other service. |
-| **F14-R13** | An adapter MUST declare the upstream releases it supports, each proved by its own recordings, and the core MUST NOT compare versions. |
-| **F14-R14** | Every capability MUST be proved by a substitute other than its first-party filler, run end to end against its pinned upstream through install, its first-run flow, conformance, substitution, the features the capability serves, and undo. |
+| **F14-R13** | An adapter MUST declare the upstream releases it supports, each proved by its own recordings, an install or update MUST refuse a plugin whose adapter lists a release at a digest other than the one its recordings were taken from, and the core MUST NOT compare versions. |
+| **F14-R14** | `media.serve`, `indexer.search`, `library.curate` and `identity.source`, each of which a second plugin fills, MUST each be proved by a substitute other than its first-party filler, run end to end against its pinned upstream through install, its first-run flow, conformance, substitution, the features the capability serves, and undo. |
 | **F14-R15** | Every first-party plugin MUST live in a repository of its own, every first-party adapter MUST be built on the adapter kit, and every image a first-party plugin builds MUST be published from every commit on its repository's `main` and by the release train (`OPS-R90`). |
 | **F14-R16** | An answer outside a contract MUST be recorded against the plugin with the capability, the operation, why and when, and a plugin recorded nonconforming for a capability MUST NOT fill it until it passes a live proof run after the record; updating it, installing it again and proving it again MUST each run that proof, and a passing proof MUST clear its records. |
 | **F14-R17** | The installed plugins as `lemonfiber plugin installed` and `GET /api/plugins` answer them MUST name, for each plugin, every capability it is recorded nonconforming for, with the operation, why and when, and nothing a member is shown MUST name it. |
@@ -219,6 +224,7 @@ nothing crosses to it.
 | **F14-R28** | Where an adapter's upstream needs a credential lemonfiber keeps, lemonfiber MUST be the only writer of it: it MUST write it into the adapter's configuration directory as `upstream.json`, a JSON object of named strings readable by the operator's uid alone, whenever it creates, rotates or moves that credential, and the adapter MUST read it there and MUST NOT write it. |
 | **F14-R29** | An install or update MUST honour a service's `replaces` only where the plugin is first-party, moving the service the bundle reserves under that id in place under the same container name, configuration directory and data; a third-party plugin declaring `replaces` MUST be refused at install and update, naming the service. |
 | **F14-R30** | Where the media server is a plugin's service that speaks `identity.source`, rotating its administrator's password MUST go over that contract: lemonfiber MUST record the replacement under the server's pending setting before asking, MUST hand the adapter the replacement alone, MUST promote it and rewrite the adapter's upstream credential only once the adapter answers that the server took it, and MUST leave the password in force unchanged wherever the adapter refuses. |
+| **F14-R31** | Every capability `F14-R14` does not name MUST be proved by a substitute other than its first-party filler, as `F14-R14` proves the capabilities it names. |
 
 ## Related
 
