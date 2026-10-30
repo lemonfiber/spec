@@ -4,6 +4,7 @@ its posture."""
 
 from __future__ import annotations
 
+import ast
 import json
 import os
 import pathlib
@@ -388,6 +389,32 @@ names = ["door", "door.internal"]
         (self.root / "config/door").mkdir(parents=True)
         os.symlink("/etc/passwd", self.root / "config/door/Caddyfile")
         self.assertNotEqual(self.planned(self.SERVICE)[0], 0)
+
+
+class Address(unittest.TestCase):
+    """The address the posture check asks a container's health on, as the engine lists it."""
+
+    def setUp(self):
+        tree = ast.parse(embedded("posture", "It starts under its posture and passes its health check"))
+        found = next(one for one in tree.body if isinstance(one, ast.FunctionDef) and one.name == "address")
+        namespace: dict = {}
+        exec(compile(ast.Module(body=[found], type_ignores=[]), "address", "exec"), namespace)
+        self.address = namespace["address"]
+
+    def test_the_address_the_network_it_is_on_lists_is_taken_where_none_is_listed_beside_them(self):
+        container = {"NetworkSettings": {"Networks": {"bridge": {"IPAddress": "172.17.0.2"}}}}
+        self.assertEqual(self.address(container), "172.17.0.2")
+
+    def test_an_address_listed_beside_the_networks_is_taken_where_an_engine_still_lists_one(self):
+        container = {
+            "NetworkSettings": {"IPAddress": "172.17.0.3", "Networks": {"bridge": {"IPAddress": ""}}}
+        }
+        self.assertEqual(self.address(container), "172.17.0.3")
+
+    def test_a_container_on_no_network_has_no_address(self):
+        for settings in ({}, {"Networks": None}, {"IPAddress": "", "Networks": {"none": {"IPAddress": ""}}}):
+            with self.subTest(settings=settings):
+                self.assertEqual(self.address({"NetworkSettings": settings}), "")
 
 
 class Pinned(unittest.TestCase):
