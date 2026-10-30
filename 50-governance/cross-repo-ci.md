@@ -374,8 +374,15 @@ publishes it, runs what it published under that posture, and moves the
 manifest's pin on one rolling pull request through `manifest-pin` (**OPS-R90**,
 **OPS-R91**). Neither it nor `rust-service-release` publishes from a commit that
 changes nothing but a pin, its recordings, its proofs and its `targets.toml`, so
-merging a pin's pull request opens no other. One whose
-manifest runs an upstream's image calls `upstream-pins` weekly, which moves each such
+merging a pin's pull request opens no other. A first-party plugin with an adapter
+calls `adapter-release`, which publishes the adapter's image from main and from a train
+tag and writes its digest and tag into the manifest on one rolling pull request, and
+pins nothing from the merge of a pin (**OPS-R90**, **OPS-R91**). Each plugin whose
+image the train tags calls `first-party-bundle` with the pin it follows, `adapter` or
+`image`: once that train pin merges, a job holding no token holds the pull request's
+author to the release App's login, and only then is a token minted, for
+lemonfiber-plugins alone, to ask `bundle-bump` to pin the merged revision (**OPS-R86**).
+One whose manifest runs an upstream's image calls `upstream-pins` weekly, which moves each such
 pin to the newest release of its major and records every recording again from it, one
 rolling pull request per image (**REPO-R98**).
 
