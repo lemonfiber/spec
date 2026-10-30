@@ -699,12 +699,20 @@ lemonfiber answers it with a fence rather than a check (`ARCH-R363`):
   link-local and metadata, the IETF, documentation and benchmarking ranges, multicast
   and reserved, IPv6 unique-local, link-local and site-local), read from the same list,
   to every IPv6 range whose addresses carry an IPv4 one (mapped, compatible, NAT64, 6to4
-  and Teredo), and to each address of the host lemonfiber hands it. Two things pass: the
+  and Teredo), and to each address of the engine's host lemonfiber hands it. Two things pass: the
   engine's own resolver at `127.0.0.11` on port 53 alone, so names still resolve, and the
   answers to connections other services opened to it.
-- **The fence refuses to start without the host's addresses.** lemonfiber always hands at
-  least one, and a fence handed none could not refuse the host at an address no range
-  covers.
+- **lemonfiber asks the engine for its host's addresses.** The host that matters is the
+  one the engine's containers run on, which is not always the machine lemonfiber runs on:
+  an engine can be reached over SSH, or run its containers in a virtual machine. So on
+  every apply and every start lemonfiber runs the fence image's `fence addresses` once, in
+  a throwaway container on the host's network with every capability dropped, a read-only
+  root filesystem and no mount, and hands the fence what it answers. An address the host
+  took since the last start is picked up by the next. Where the answer is empty, cannot be
+  read or holds anything that is not an address, the fenced service does not start, and
+  the start names why.
+- **The fence refuses to start without the host's addresses.** A fence handed none could
+  not refuse the host at an address no range covers.
 - **The fence alone holds `NET_ADMIN`.** The service gains no privilege. Kernel
   capabilities belong to a process, so the service shares the namespace and cannot change
   its rules.
