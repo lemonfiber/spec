@@ -128,7 +128,9 @@ class Moved(unittest.TestCase):
 class Main(unittest.TestCase):
     def setUp(self):
         answering(self, DIGEST)
-        self.dir = pathlib.Path(tempfile.mkdtemp())
+        self.dir = pathlib.Path(tempfile.mkdtemp()).resolve()
+        self.addCleanup(os.chdir, os.getcwd())
+        os.chdir(self.dir)
         self.bundle = self.dir / "bundle.toml"
         self.bundle.write_text(BUNDLE, encoding="utf-8")
         self.message = self.dir / "message.txt"
@@ -195,6 +197,35 @@ class Main(unittest.TestCase):
                 self.assertIn(said, err)
                 self.assertIn(f'digest = "{OLD}"', self.bundle.read_text(encoding="utf-8"))
                 self.assertFalse(self.message.exists())
+
+    def test_a_path_outside_the_working_directory_is_refused(self):
+        outside = pathlib.Path(tempfile.mkdtemp()) / "bundle.toml"
+        outside.write_text(BUNDLE, encoding="utf-8")
+        self.bundle = outside
+        with self.assertRaises(SystemExit) as ended:
+            self.apply()
+        self.assertEqual(ended.exception.code, 2)
+        self.assertIn(f'digest = "{OLD}"', outside.read_text(encoding="utf-8"))
+
+    def test_a_bundle_reached_through_a_link_is_refused(self):
+        target = self.dir / "elsewhere.toml"
+        target.write_text(BUNDLE, encoding="utf-8")
+        self.bundle.unlink()
+        self.bundle.symlink_to(target)
+        code, _, err = self.apply()
+        self.assertEqual(code, 1)
+        self.assertIn("is a link", err)
+        self.assertIn(f'digest = "{OLD}"', target.read_text(encoding="utf-8"))
+        self.assertFalse(self.message.exists())
+
+    def test_the_registry_is_asked_only_about_our_images(self):
+        for image, tag in (
+            ("docker.io/library/caddy", "v2.0.0"),
+            (IMAGE, "--format"),
+            (f"{IMAGE} --push", "v0.18.0"),
+        ):
+            with self.subTest(image=image, tag=tag), self.assertRaises(bundle_image_pin.Refused):
+                bundle_image_pin.published(image, tag)
 
     def test_it_runs_as_a_script(self):
         argv = [

@@ -21,16 +21,20 @@ Prints `moved=yes` or `moved=no`. Refuses, naming what:
 - a digest other than the one the registry answers for the image at that tag, read with
   `docker buildx imagetools inspect` before anything is written;
 - a bundle with no `[<service>]` table to move.
+
+The bundle and the message are paths under the working directory, read and written as
+plain files, never through a link; any other path is refused.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import pathlib
 import re
 import subprocess
 import sys
+
+import paths
 
 #: Where lemonfiber publishes the images it builds, and nothing else (ADR-0033).
 REGISTRY = "ghcr.io/lemonfiber"
@@ -39,6 +43,10 @@ SERVICE = re.compile(r"\A[a-z0-9]+(-[a-z0-9]+)*\Z")
 TAG = re.compile(r"\Av(\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)\Z")
 DIGEST = re.compile(r"\Asha256:[0-9a-f]{64}\Z")
 #: A key of the table, with the quoted value it holds and anything after it on the line.
+#: An image reference the registry is asked about: a registry path under ours and a tag.
+REFERENCE = re.compile(r"\Aghcr\.io/lemonfiber/[a-z0-9]+(-[a-z0-9]+)*:v[0-9A-Za-z.-]{1,127}\Z")
+#: The largest bundle this reads.
+LIMIT = 1 << 20
 FIELD = re.compile(r'\A(?P<key>image|tag|digest)(?P<gap>\s*=\s*)"[^"]*"(?P<rest>.*)\Z')
 
 
@@ -65,9 +73,13 @@ def checked(service: str, repository: str, image: str, tag: str, digest: str) ->
 
 
 def published(image: str, tag: str) -> str:
-    """The digest the registry answers for `image` at `tag`."""
+    """The digest the registry answers for `image` at `tag`, asked only of a reference
+    under lemonfiber's registry."""
+    reference = f"{image}:{tag}"
+    if not REFERENCE.match(reference):
+        raise Refused(f"{reference!r} is not an image of {REGISTRY} at a train tag")
     asked = subprocess.run(
-        ["docker", "buildx", "imagetools", "inspect", f"{image}:{tag}", "--format", "{{json .Manifest}}"],
+        ["docker", "buildx", "imagetools", "inspect", reference, "--format", "{{json .Manifest}}"],
         capture_output=True,
         text=True,
         check=False,
@@ -120,23 +132,25 @@ def main(argv: list[str] | None = None) -> int:
     for name in ("bundle", "service", "repository", "image", "tag", "digest", "message"):
         parser.add_argument(f"--{name}", required=True)
     args = parser.parse_args(argv)
-    bundle = pathlib.Path(args.bundle)
     try:
+        bundle = paths.plain_relative(args.bundle)
+        message_file = paths.plain_relative(args.message)
         version = checked(args.service, args.repository, args.image, args.tag, args.digest)
         answered = published(args.image, args.tag)
         if answered != args.digest:
             raise Refused(f"{args.image}:{args.tag} is {answered} at the registry, not {args.digest}")
-        before = bundle.read_text(encoding="utf-8")
+        root = paths.plain_directory(".")
+        before = paths.plain_read(root, bundle, LIMIT).decode("utf-8")
         after = moved(before, args.service, args.image, version, args.digest)
-    except (Refused, OSError) as why:
+    except (Refused, OSError, ValueError) as why:
         print(f"::error::{why}", file=sys.stderr)
         return 1
     if after == before:
         print("moved=no")
         return 0
-    bundle.write_text(after, encoding="utf-8")
-    pathlib.Path(args.message).write_text(
-        message(args.service, args.image, args.tag, args.digest), encoding="utf-8"
+    paths.plain_write(root, bundle, after.encode("utf-8"))
+    paths.plain_write(
+        root, message_file, message(args.service, args.image, args.tag, args.digest).encode("utf-8")
     )
     print("moved=yes")
     return 0
