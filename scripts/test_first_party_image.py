@@ -16,9 +16,17 @@ TOOLING = pathlib.Path(__file__).resolve().parent.parent
 WORKFLOW = TOOLING / ".github/workflows/first-party-image.yml"
 IMAGE = "ghcr.io/lemonfiber/door"
 DIGEST = "sha256:" + "a" * 64
-GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "commit.gpgsign=false",
-       "-c", "core.hooksPath=/dev/null")
-
+GIT = (
+    "git",
+    "-c",
+    "user.name=test",
+    "-c",
+    "user.email=test@invalid",
+    "-c",
+    "commit.gpgsign=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+)
 
 
 def step(job: str, named: str) -> str:
@@ -43,20 +51,39 @@ class Settle(workflow_steps.Scratch):
         self.before = ""
 
     def head(self) -> str:
-        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True,
-                              text=True, check=True).stdout.strip()
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True, text=True, check=True
+        ).stdout.strip()
 
-    def settled(self, event: str, kind: str, ref: str, name: str, image: str = "door",
-                pinned_in: str = "") -> tuple[int, dict]:
+    def settled(
+        self, event: str, kind: str, ref: str, name: str, image: str = "door", pinned_in: str = ""
+    ) -> tuple[int, dict]:
         output = self.root / ".output"
         output.unlink(missing_ok=True)
-        env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(output), "GITHUB_EVENT_NAME": event,
-               "GITHUB_SHA": self.sha, "REGISTRY": "ghcr.io/lemonfiber", "IMAGE_NAME": image,
-               "DIRECTORY": ".", "PINNED_IN": pinned_in, "PINNED": ".pinned",
-               "KIND": kind, "REF": ref, "NAME": name, "BEFORE": self.before,
-               "TOOLING": str(TOOLING)}
-        done = subprocess.run(["bash", "-c", step("settle", "A pull request proves; main and a train tag publish")],
-                              cwd=self.root, env=env, capture_output=True, text=True)
+        env = {
+            "PATH": os.environ["PATH"],
+            "GITHUB_OUTPUT": str(output),
+            "GITHUB_EVENT_NAME": event,
+            "GITHUB_SHA": self.sha,
+            "REGISTRY": "ghcr.io/lemonfiber",
+            "IMAGE_NAME": image,
+            "DIRECTORY": ".",
+            "PINNED_IN": pinned_in,
+            "PINNED": ".pinned",
+            "KIND": kind,
+            "REF": ref,
+            "NAME": name,
+            "BEFORE": self.before,
+            "TOOLING": str(TOOLING),
+            "GITHUB_REPOSITORY_OWNER": "LemonFiber",
+        }
+        done = subprocess.run(
+            ["bash", "-c", step("settle", "A pull request proves; main and a train tag publish")],
+            cwd=self.root,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
         said = dict(line.split("=", 1) for line in output.read_text().splitlines()) if output.exists() else {}
         return done.returncode, said
 
@@ -66,8 +93,9 @@ class Settle(workflow_steps.Scratch):
 
     def test_main_publishes_its_commit(self):
         code, said = self.settled("push", "branch", "refs/heads/main", "main")
-        self.assertEqual((code, said["mode"], said["tag"], said["image"]),
-                         (0, "publish", f"main-{self.sha[:12]}", IMAGE))
+        self.assertEqual(
+            (code, said["mode"], said["tag"], said["image"]), (0, "publish", f"main-{self.sha[:12]}", IMAGE)
+        )
 
     def test_main_publishes_nothing_from_a_push_changing_nothing_but_a_pin(self):
         for path, mode in (("recordings/door/a.json", "none"), ("Dockerfile", "publish")):
@@ -91,8 +119,24 @@ class Settle(workflow_steps.Scratch):
         self.assertNotEqual(self.settled("push", "tag", "refs/tags/v0.19.0", "v0.19.0")[0], 0)
         self.assertNotEqual(self.settled("push", "tag", "refs/tags/v0.18.0-rc1", "v0.18.0-rc1")[0], 0)
 
+    def test_a_train_tag_of_a_part_still_running_what_its_dockerfile_builds_on_publishes_nothing(self):
+        digest = "sha256:" + "3a" * 32
+        (self.root / "Dockerfile").write_text(f"FROM caddy:2.11.6@{digest}\nUSER 1000:1000\n")
+        for image, refused in (("caddy", True), ("ghcr.io/lemonfiber/door", False)):
+            with self.subTest(image=image):
+                (self.root / "plugin.toml").write_text(
+                    f'schema_version = 1\n[plugin]\nid = "door"\nversion = "0.18.0"\n\n'
+                    f'[[service]]\nid = "door"\nimage = "{image}"\ndigest = "{digest}"\n'
+                )
+                code, said = self.settled("push", "tag", "refs/tags/v0.18.0", "v0.18.0")
+                self.assertEqual((code != 0, said.get("mode")), (refused, None if refused else "publish"))
+        code, said = self.settled("push", "branch", "refs/heads/main", "main")
+        self.assertEqual((code, said["mode"]), (0, "publish"))
+
     def test_the_image_is_the_plugins_id_where_none_is_named(self):
-        (self.root / "plugin.toml").write_text('schema_version = 1\n[plugin]\nid = "door"\nversion = "0.18.0"\n')
+        (self.root / "plugin.toml").write_text(
+            'schema_version = 1\n[plugin]\nid = "door"\nversion = "0.18.0"\n'
+        )
         code, said = self.settled("push", "branch", "refs/heads/main", "main", "")
         self.assertEqual((code, said["image"], said["name"]), (0, IMAGE, "door"))
 
@@ -102,8 +146,12 @@ class Settle(workflow_steps.Scratch):
         (self.root / "Dockerfile").write_text("FROM scratch\nCOPY bin /bin\n")
         subprocess.run(["git", "add", "Dockerfile"], cwd=self.root, check=True)
         subprocess.run([*GIT, "commit", "--quiet", "-m", "image"], cwd=self.root, check=True)
-        for path, mode in (("README.md", "none"), ("recordings/a.json", "none"), ("bin/tool", "publish"),
-                           ("Dockerfile", "publish")):
+        for path, mode in (
+            ("README.md", "none"),
+            ("recordings/a.json", "none"),
+            ("bin/tool", "publish"),
+            ("Dockerfile", "publish"),
+        ):
             with self.subTest(path=path):
                 self.before = self.head()
                 (self.root / path).parent.mkdir(parents=True, exist_ok=True)
@@ -113,7 +161,9 @@ class Settle(workflow_steps.Scratch):
                 self.sha = self.head()
                 code, said = self.settled("push", "branch", "refs/heads/main", "main", "", "plugin-caddy")
                 self.assertEqual((code, said["mode"], said["image"]), (0, mode, "ghcr.io/lemonfiber/caddy"))
-        self.assertNotEqual(self.settled("push", "tag", "refs/tags/v0.18.0", "v0.18.0", "caddy", "plugin-caddy")[0], 0)
+        self.assertNotEqual(
+            self.settled("push", "tag", "refs/tags/v0.18.0", "v0.18.0", "caddy", "plugin-caddy")[0], 0
+        )
         for named in ("Plugin-Caddy", "plugin/../caddy", "-caddy"):
             with self.subTest(named=named):
                 self.assertNotEqual(self.settled("pull_request", "branch", "r", "n", "caddy", named)[0], 0)
@@ -133,11 +183,21 @@ class Plan(workflow_steps.Scratch):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_text(content, encoding="utf-8")
         plan = self.root / "run.json"
-        env = {"PATH": os.environ["PATH"], "IMAGE": IMAGE, "IMAGE_NAME": "door", "MANIFEST": str(self.root),
-               "RUN_PLAN": str(plan), "CONFIG_COPY": str(self.root / "copy"),
-               "MOUNT_TREE": str(self.root / "mounts")}
-        done = subprocess.run(["python3", "-I", "-c", embedded("posture", "How the manifest says it runs")],
-                              env=env, capture_output=True, text=True)
+        env = {
+            "PATH": os.environ["PATH"],
+            "IMAGE": IMAGE,
+            "IMAGE_NAME": "door",
+            "MANIFEST": str(self.root),
+            "RUN_PLAN": str(plan),
+            "CONFIG_COPY": str(self.root / "copy"),
+            "MOUNT_TREE": str(self.root / "mounts"),
+        }
+        done = subprocess.run(
+            ["python3", "-I", "-c", embedded("posture", "How the manifest says it runs")],
+            env=env,
+            capture_output=True,
+            text=True,
+        )
         return done.returncode, (json.loads(plan.read_text()) if plan.exists() else {}), done.stdout
 
     SERVICE = f'''schema_version = 1
@@ -174,12 +234,15 @@ health = {{ kind = "tcp", timeout_s = 30 }}
         self.assertIn(f"{os.getuid()}:{os.getgid()}", plan["args"])
 
     def test_constants_and_settings_are_set_and_another_service_is_not(self):
-        manifest = self.SERVICE + '''
+        manifest = (
+            self.SERVICE
+            + """
 [service.env]
 A = "1"
 B = { setting = "door:b", default = "two" }
 C = { url_of = "media.serve" }
-'''
+"""
+        )
         code, plan, said = self.planned(manifest)
         self.assertEqual(code, 0)
         self.assertIn("A=1", plan["args"])
@@ -188,7 +251,9 @@ C = { url_of = "media.serve" }
         self.assertIn("C names another service", said)
 
     def test_the_service_of_the_plugin_id_says_how_until_one_runs_the_image(self):
-        manifest = 'schema_version = 1\n[plugin]\nid = "door"\n' + self.SERVICE.split("\n", 1)[1].replace(IMAGE, "caddy")
+        manifest = 'schema_version = 1\n[plugin]\nid = "door"\n' + self.SERVICE.split("\n", 1)[1].replace(
+            IMAGE, "caddy"
+        )
         code, plan, said = self.planned(manifest)
         self.assertEqual(code, 0)
         self.assertIn(f"{self.root / 'copy'}:/etc/caddy:ro", plan["args"])
@@ -217,35 +282,57 @@ C = { url_of = "media.serve" }
     def test_a_source_outside_its_own_tree_or_inside_another_is_refused(self):
         for source in ("../../etc", "/etc", "a/./b", "a//b", "", "${HOME}", "Caddyfile/inner"):
             with self.subTest(source=source):
-                manifest = self.SERVICE + self.MOUNTED + self.MOUNTED.replace('"Caddyfile"', f'"{source}"', 1).replace(
-                    "/etc/caddy/Caddyfile", "/elsewhere")
+                manifest = (
+                    self.SERVICE
+                    + self.MOUNTED
+                    + self.MOUNTED.replace('"Caddyfile"', f'"{source}"', 1).replace(
+                        "/etc/caddy/Caddyfile", "/elsewhere"
+                    )
+                )
                 code, plan, _ = self.planned(manifest)
                 self.assertNotEqual(code, 0)
                 self.assertEqual(plan, {})
 
     def test_a_target_a_mount_may_not_land_at_is_refused(self):
-        for target, takes_data in (("/", False), ("relative", False), ("/a/../b", False), ("/data/x", True),
-                                   ("/etc/caddy/Caddyfile", False)):
+        for target, takes_data in (
+            ("/", False),
+            ("relative", False),
+            ("/a/../b", False),
+            ("/data/x", True),
+            ("/etc/caddy/Caddyfile", False),
+        ):
             with self.subTest(target=target):
-                manifest = self.SERVICE + ("takes_data = true\n" if takes_data else "") + self.MOUNTED + (
-                    self.MOUNTED.replace('"Caddyfile"', '"other"', 1).replace("/etc/caddy/Caddyfile", target))
+                manifest = (
+                    self.SERVICE
+                    + ("takes_data = true\n" if takes_data else "")
+                    + self.MOUNTED
+                    + (
+                        self.MOUNTED.replace('"Caddyfile"', '"other"', 1).replace(
+                            "/etc/caddy/Caddyfile", target
+                        )
+                    )
+                )
                 self.assertNotEqual(self.planned(manifest)[0], 0)
 
     def test_a_target_in_the_data_mount_is_held_only_where_it_takes_data(self):
         self.assertEqual(self.planned(self.SERVICE + self.WRITABLE)[0], 0)
         self.assertNotEqual(self.planned(self.SERVICE + "takes_data = true\n" + self.WRITABLE)[0], 0)
 
-    CERTIFICATE = '''
+    CERTIFICATE = """
 [service.certificate]
 key = "tls/key.pem"
 certificate = "tls/certificate.pem"
 names = ["door", "door.internal"]
-'''
+"""
     DECLARED = SERVICE + CERTIFICATE
 
     def subjects(self, path: pathlib.Path) -> str:
-        return subprocess.run(["openssl", "x509", "-in", str(path), "-noout", "-ext", "subjectAltName"],
-                              capture_output=True, text=True, check=True).stdout
+        return subprocess.run(
+            ["openssl", "x509", "-in", str(path), "-noout", "-ext", "subjectAltName"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
 
     def test_a_declared_certificate_is_written_into_the_copy_with_an_owner_only_key(self):
         code, _, said = self.planned(self.DECLARED)
@@ -270,7 +357,7 @@ names = ["door", "door.internal"]
             self.DECLARED.replace('key = "tls/key.pem"', 'key = "/etc/key.pem"'),
             self.DECLARED.replace('key = "tls/key.pem"', 'key = "../key.pem"'),
             self.DECLARED.replace('key = "tls/key.pem"', 'key = "tls/certificate.pem"'),
-            self.DECLARED.replace('names = ["door", "door.internal"]', 'names = []'),
+            self.DECLARED.replace('names = ["door", "door.internal"]', "names = []"),
             self.DECLARED.replace('names = ["door", "door.internal"]', 'names = ["Door Name"]'),
             self.SERVICE + 'provides = ["stream.guard"]\n' + self.CERTIFICATE,
         ]
@@ -289,9 +376,11 @@ names = ["door", "door.internal"]
         self.assertIn("runs ghcr.io/lemonfiber/door yet", said)
 
     def test_a_shape_or_an_unknown_posture_or_a_check_with_no_port_is_refused(self):
-        for manifest in (self.SERVICE + 'shape = "egress-guard"\n',
-                         self.SERVICE.replace('user_mode = "uid"', 'posture = "loose"'),
-                         self.SERVICE.replace("port = 8096\n", "")):
+        for manifest in (
+            self.SERVICE + 'shape = "egress-guard"\n',
+            self.SERVICE.replace('user_mode = "uid"', 'posture = "loose"'),
+            self.SERVICE.replace("port = 8096\n", ""),
+        ):
             with self.subTest(manifest=manifest[-40:]):
                 self.assertNotEqual(self.planned(manifest)[0], 0)
 
@@ -299,7 +388,6 @@ names = ["door", "door.internal"]
         (self.root / "config/door").mkdir(parents=True)
         os.symlink("/etc/passwd", self.root / "config/door/Caddyfile")
         self.assertNotEqual(self.planned(self.SERVICE)[0], 0)
-
 
 
 class Pinned(unittest.TestCase):
@@ -311,15 +399,21 @@ class Pinned(unittest.TestCase):
         jobs = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
         for job in ("settle", "posture"):
             with self.subTest(job=job):
-                checkout = next(step for step in jobs[job]["steps"]
-                                if step.get("name") == "The plugin that runs the image, where it is built apart from it")
+                checkout = next(
+                    step
+                    for step in jobs[job]["steps"]
+                    if step.get("name") == "The plugin that runs the image, where it is built apart from it"
+                )
                 self.assertEqual(checkout["if"], "inputs.pinned_in != ''")
-                self.assertEqual(checkout["with"]["repository"],
-                                 "${{ github.repository_owner }}/${{ inputs.pinned_in }}")
+                self.assertEqual(
+                    checkout["with"]["repository"], "${{ github.repository_owner }}/${{ inputs.pinned_in }}"
+                )
                 self.assertEqual(checkout["with"]["ref"], "main")
         self.assertEqual(jobs["pin"]["with"]["repository"], "${{ inputs.pinned_in }}")
-        self.assertEqual(jobs["pin"]["with"]["directory"],
-                         "${{ inputs.pinned_in != '' && '.' || inputs.directory }}")
+        self.assertEqual(
+            jobs["pin"]["with"]["directory"], "${{ inputs.pinned_in != '' && '.' || inputs.directory }}"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

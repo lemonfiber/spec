@@ -388,6 +388,7 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | `first-party-plugin`'s live job hands the image the plugin's `Dockerfile` builds on as `--built` also where no service speaks a contract and the service whose id is the plugin's pins exactly the image and full digest the `Dockerfile`'s last `FROM` builds on, so a built part's pull requests before its first pin take their recordings from the image it builds rather than from an upstream its posture does not run; the same image at another digest, a `FROM` with no digest, and every other case are unchanged. The user chose this over pinning another repository's image in the template's built part or leaving its live pass unrequired | [ARCH-R285](../20-architecture/contracts/plugin-manifest.md) |
+| A built part's revision whose service of the plugin's id still runs the image its `Dockerfile` builds on, at any digest, ships nothing: the live pass that records it from the image it builds says so as its `unpinned` output, a warning and its summary; `first-party-image` publishes nothing on a train tag of it; and the catalogue's bundle refuses to pin it, so only a revision running `ghcr.io/<owner>/<plugin id>` reaches a bundle or a release. This closes the gap a green live pass for an image the manifest does not install would otherwise leave | [ARCH-R285](../20-architecture/contracts/plugin-manifest.md) |
 
 ## Requirements
 
