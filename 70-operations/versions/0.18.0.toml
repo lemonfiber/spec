@@ -277,7 +277,10 @@
 # and secrets no installed plugin reads, the core's and those of a namespace no plugin
 # brought, locked under `goals-change` review (OPS-R31). `N25-R26` has the companion's
 # rehearsal of an install or update name each adapter writing its upstream's files, the
-# reading `ARCH-R339` asks for, locked under the same review. `REPO-R93` has each first-party plugin's CI run its
+# reading `ARCH-R339` asks for, locked under the same review. `N25-R27` to `N25-R31` are
+# the companion's side of `ARCH-R348` to `ARCH-R352`: a setting changed by choosing among
+# the values the stack lists, several settings moved in one change, and each service the
+# stack holds back shown waiting with what it waits for, locked under the same review. `REPO-R93` has each first-party plugin's CI run its
 # images under the posture its manifest declares, which this version is the first to
 # write them with.
 # `ARCH-R336` is how a service that needs an operator's credential to start is held to it:
@@ -328,7 +331,7 @@
 # back over a hand-edited configuration is shown as a masked diff on a rehearsal and
 # written by the adapter on the operator's agreement, and the core writes that
 # configuration nowhere. Added by the maintainer's decision of 2026-10-30 (OPS-R31).
-# 604 goals, seeded from the roadmap milestone this version serves;
+# 609 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -493,7 +496,8 @@ goals   = [
     "ARCH-R242", "ARCH-R243", "ARCH-R244", "ARCH-R245", "ARCH-R246", "ARCH-R247", "ARCH-R248",
     "ARCH-R249", "ARCH-R250", "ARCH-R251", "ARCH-R252", "ARCH-R253", "ARCH-R254", "ARCH-R255",
     "ARCH-R256", "ARCH-R257",
-    "N25-R12", "N25-R13", "N25-R14", "N25-R25", "N25-R26",
+    "N25-R12", "N25-R13", "N25-R14", "N25-R25", "N25-R26", "N25-R27", "N25-R28",
+    "N25-R29", "N25-R30", "N25-R31",
     "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345", "ARCH-R346", "OPS-R93",
     "ARCH-R348", "ARCH-R349", "ARCH-R350", "ARCH-R351", "ARCH-R352", "ARCH-R353", "ARCH-R354",
     "ARCH-R355", "ARCH-R356", "ARCH-R357", "ARCH-R358", "ARCH-R359", "ARCH-R360",

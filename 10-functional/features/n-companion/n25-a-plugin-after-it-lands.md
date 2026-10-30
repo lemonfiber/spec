@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P3
 labels: [mobile, extensibility, ux]
 requires: [N1, N5, F5, F6]
@@ -88,6 +88,30 @@ back exactly as it does on a plugin. Without it, a value the stack itself reads
 could be changed from the command line and the web API but not from the
 app (`ARCH-R248`).
 
+A setting whose services accept only some values lists them as its choices, and
+a value can be a choice only while other settings hold what it needs: a region
+a VPN provider serves, a type a provider offers (`ARCH-R348`). Such a setting is
+changed by choosing. Every value is shown, a value that is not a choice now with
+what it needs, and nothing outside the choices is sent; the stack would refuse
+it (`ARCH-R350`). Which values go together is the stack's to say, and the app
+holds no rule of its own about it.
+
+Settings that depend on each other are changed together. One change can move
+several settings, and its rehearsal shows each one with what it holds, what it
+will hold and what moving it costs, and the services the change restarts, starts
+and leaves waiting. A change the stack refuses because it would leave another
+setting outside its choices offers that setting in the same change, so the
+operator is never left with two changes each refused for want of the other.
+
+A service the stack holds back until the operator gives it something is waiting,
+not broken (`ARCH-R351`). Services shows it apart from those that run, stopped or
+failed, with everything it waits for: a setting with its choices, a secret by
+name, the service it runs through. A setting it waits for is changed from there,
+and the rehearsal says which services the change would start; a secret it waits
+for is entered at the stack's terminal, as every secret is. The rehearsal of an
+install or an update names each service it would leave waiting before the yes.
+None of this names a value, and none of it is shown to a member.
+
 | Where | English | Dutch |
 |-------|---------|-------|
 | The section on a plugin | Settings | Instellingen |
@@ -98,6 +122,8 @@ app (`ARCH-R248`).
 | A secret that is held | Saved, never shown | Opgeslagen, nooit getoond |
 | A secret with no value | Not set yet | Nog niet ingesteld |
 | Why a secret cannot be changed here | Secrets are changed at the stack's terminal. | Geheimen wijzig je in de terminal van de stack. |
+| The group of services held back | Waiting for you | Wacht op jou |
+| A value that is not a choice now | Needs {setting}: {values} | Vraagt {setting}: {values} |
 
 ### Installed means proven and verified, and a failure says what went back
 
@@ -174,6 +200,10 @@ every appearance.
 - **A setting changed on another surface while the app shows it.** The `settings`
   event brings the new value, and a change agreed to against the old one is
   refused as an offer that moved.
+- **A change that would strand another setting.** Refused by the stack naming that
+  setting; the app offers it in the same change rather than a second one.
+- **A service waiting on a service that waits.** Both are shown waiting, the first
+  naming the second, and giving the second what it needs starts both.
 - **A demand recipe that asks for a value.** Listed with what it asks for and where it
   is run; not offered here.
 - **A run whose offer moved.** Rehearsed and shown again; nothing runs on the old one.
@@ -212,6 +242,11 @@ every appearance.
 | **N25-R24** | A plugin's grants, and revoking them, MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown. |
 | **N25-R25** | The app MUST list, on a screen of the stack's own, every setting and secret in the stack's stores that no installed plugin's services read, grouped as the core's or by the namespace that owns it. It MUST show and offer changing each setting as `N25-R12` says, list each secret as `N25-R13` says, and show all of it to the operator alone as `N25-R14` says (`ARCH-R248`). |
 | **N25-R26** | Where an install or update states `sharing`, the rehearsal MUST name each adapter that writes the files of the service it fronts, that service, and where that service's configuration directory lands inside the adapter (`ARCH-R339`). |
+| **N25-R27** | A setting the stack lists with choices MUST be changed by choosing one of them. The app MUST show every value, each value that is not a choice now with the settings and values it needs, and MUST NOT send a value outside the choices (`ARCH-R348`, `ARCH-R350`, `ARCH-R352`). |
+| **N25-R28** | A change MUST be able to move several settings in one act. Its rehearsal MUST show each setting moved with what it holds, what it will hold and what moving it costs, and the services it restarts, starts and leaves waiting. A refusal naming another setting MUST offer that setting in the same change (`ARCH-R350`). |
+| **N25-R29** | Each service the stack holds back MUST be shown with every setting and secret it waits for, and the service it runs through, never by value. A setting MUST be shown with its choices where it has them. Such a service MUST NOT be shown as stopped, failed or missing (`ARCH-R351`, `ARCH-R352`). |
+| **N25-R30** | A setting a held-back service waits for MUST be offered as a change from where the service is shown. A secret it waits for MUST be said to be entered at the stack's terminal (`N25-R13`). |
+| **N25-R31** | The rehearsal of an install or an update MUST name each service it would leave held back, with what it waits for (`ARCH-R351`). |
 
 ## Notes
 
@@ -245,6 +280,7 @@ for and the envelope alone does not carry.
 | `N25-R21` | `install.would.granted[]`: `credential`, `of`, `for`; the same under `update.install`; `PLUGIN-46` where a crossing secret names no capability | The line the yes approves for each grant: a pair and a privileged shape carry their `approval`, and a grant carries none |
 | `N25-R22` | `installed[].granted[]`: `credential`, `of`, `for`, `at` | — |
 | `N25-R23` | `credentials-revoke` with `plugin` and `credential`; `revoked`: `agreement`, `ended`, `grant`, `restarts`, `unrestarted`; `PLUGIN-47` where no such grant is held | — |
+| `N25-R31` | `install.waiting[]`: `service`, `wants` (a `setting` with its `choices`, a `secret`, a `service`); the same under `update.install` | — |
 
 ## Related
 
