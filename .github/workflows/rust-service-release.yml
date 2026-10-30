@@ -17,9 +17,12 @@
 #
 # The repository declares its service in a `plugin.toml` of its own (ADR-0045 §1),
 # which is what pins the image and what the bundle takes, and one without it
-# publishes nothing. `manifest-pin` proposes each published image as the one its
-# services run, with every recording the manifest names taken again from it and
-# `proofs.json` written from them: a commit image on the rolling
+# publishes nothing, unless it says `pins: bundle`: an image no plugin declares, such
+# as the fence's, holds no plugin.toml, and the bundle's own table for its service
+# pins it, moved by `bundle-image-pin` on each train tag (ARCH-R363).
+# `manifest-pin` proposes each published image as the one its services run, with
+# every recording the manifest names taken again from it and `proofs.json` written
+# from them: a commit image on the rolling
 # `release/image-commit-pin` branch, and a train tag, at the version the manifest
 # declares, on `release/image-pin`. So a service's own run proofs are taken from
 # the image `main` builds before any release is cut. A commit image is never
@@ -57,6 +60,16 @@
 name: rust-service-release
 on:
   workflow_call:
+    inputs:
+      pins:
+        description: >-
+          Where the image's pin lives: `manifest`, the repository's own plugin.toml,
+          which `manifest-pin` moves; or `bundle`, a table of the bundle's own named for
+          the service, which `bundle-image-pin` moves on a train tag, for an image no
+          plugin declares, such as the fence's. A `bundle` repository holds no
+          plugin.toml.
+        type: string
+        default: manifest
     secrets:
       RELEASE_APP_KEY:
         description: "Private key of the release App, which is what may write the manifest's pin."
@@ -78,6 +91,8 @@ jobs:
     outputs:
       image: ${{ steps.what.outputs.image }}
       tag: ${{ steps.what.outputs.tag }}
+      kind: ${{ steps.what.outputs.kind }}
+      service: ${{ steps.what.outputs.service }}
       publish: ${{ steps.what.outputs.publish }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -99,6 +114,7 @@ jobs:
           REPO: ${{ github.event.repository.name }}
           BEFORE: ${{ github.event.before }}
           TOOLING: ${{ github.workspace }}/.spec-tooling
+          PINS: ${{ inputs.pins }}
         run: |
           set -euo pipefail
           service="${REPO#lemonfiber-}"
@@ -106,10 +122,24 @@ jobs:
             echo "::error::'${REPO}' is not named lemonfiber-<service> (ADR-0033 §1)"
             exit 1
           fi
-          if [ ! -f plugin.toml ]; then
-            echo "::error::'${REPO}' holds no plugin.toml, which is what pins its image (ADR-0045 §1)"
-            exit 1
-          fi
+          case "$PINS" in
+            manifest)
+              if [ ! -f plugin.toml ]; then
+                echo "::error::'${REPO}' holds no plugin.toml, which is what pins its image (ADR-0045 §1)"
+                exit 1
+              fi
+              ;;
+            bundle)
+              if [ -f plugin.toml ]; then
+                echo "::error::'${REPO}' is pinned by the bundle and holds a plugin.toml, which would pin it twice"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error::pins is '${PINS}', and an image is pinned by its manifest or by the bundle"
+              exit 1
+              ;;
+          esac
           publish=yes
 
           # A push, and nothing else: a dispatch could carry the same ref without
@@ -147,10 +177,12 @@ jobs:
               echo "::error::the crate declares ${declared}, so it is not tagged ${tag}"
               exit 1
             fi
-            declared="$(python3 -I -c 'import tomllib; print(tomllib.load(open("plugin.toml", "rb"))["plugin"]["version"])')"
-            if [ "v${declared}" != "$tag" ]; then
-              echo "::error::plugin.toml declares ${declared}, so it is not tagged ${tag}"
-              exit 1
+            if [ "$PINS" = manifest ]; then
+              declared="$(python3 -I -c 'import tomllib; print(tomllib.load(open("plugin.toml", "rb"))["plugin"]["version"])')"
+              if [ "v${declared}" != "$tag" ]; then
+                echo "::error::plugin.toml declares ${declared}, so it is not tagged ${tag}"
+                exit 1
+              fi
             fi
           else
             echo "::error::a service image is published for a push to main or a pushed tag, not for ${GITHUB_EVENT_NAME} on ${GITHUB_REF}"
@@ -161,6 +193,7 @@ jobs:
             echo "image=${REGISTRY}/${service}"
             echo "tag=${tag}"
             echo "kind=${kind}"
+            echo "service=${service}"
             echo "publish=${publish}"
           } >> "$GITHUB_OUTPUT"
           [ "$publish" = no ] || echo "publishing ${REGISTRY}/${service}:${tag}"
@@ -323,10 +356,29 @@ jobs:
   # tag branch, with every recording taken again from it.
   manifest:
     needs: [settle, publish]
+    if: inputs.pins == 'manifest'
     permissions:
       contents: read
     uses: ./.github/workflows/manifest-pin.yml
     with:
+      image: ${{ needs.settle.outputs.image }}
+      tag: ${{ needs.settle.outputs.tag }}
+      digest: ${{ needs.publish.outputs.digest }}
+    secrets:
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
+
+  # An image no plugin declares is pinned in the bundle's own table for its service, and
+  # only a train tag moves it (ARCH-R363). A commit image is published and pinned
+  # nowhere.
+  bundle:
+    needs: [settle, publish]
+    if: inputs.pins == 'bundle' && needs.settle.outputs.kind == 'tag'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/bundle-image-pin.yml
+    with:
+      service: ${{ needs.settle.outputs.service }}
       image: ${{ needs.settle.outputs.image }}
       tag: ${{ needs.settle.outputs.tag }}
       digest: ${{ needs.publish.outputs.digest }}

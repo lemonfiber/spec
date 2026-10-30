@@ -234,7 +234,8 @@ registry path without tag or digest, `tag` the human-readable name of the build,
 (`E1-R1`). The table is required where any pinned plugin declares a fenced service, and
 the bundle's validation refuses its absence, naming the plugin. It is built by
 [`lemonfiber-fence`](../../30-repos/lemonfiber-fence.md), which the release train tags
-first, and this pin moves to the image that tag published in the same release.
+first. `bundle-image-pin` then moves this table to the image that tag published, on one
+rolling pull request here, in the same release.
 
 ## `[[plugin]]` — each part, pinned
 

@@ -694,11 +694,17 @@ lemonfiber answers it with a fence rather than a check (`ARCH-R363`):
   the service is written into its network namespace with none of its own, as a service
   taking `via` is.
 - **At start the fence installs nftables rules in that namespace** and holds them. They
-  refuse every new connection the service opens to loopback, `10.0.0.0/8`,
-  `172.16.0.0/12`, `192.168.0.0/16`, `100.64.0.0/10`, `169.254.0.0/16`, multicast,
-  `::1`, `fc00::/7`, `fe80::/10`, `ff00::/8`, and each address of the host lemonfiber
-  hands it. Two things pass: the engine's own resolver at `127.0.0.11`, so names still
-  resolve, and the answers to connections other services opened to it.
+  refuse every new connection the service opens to each range lemonfiber's check on a
+  name somebody else wrote refuses (loopback, the private and carrier-grade NAT ranges,
+  link-local and metadata, the IETF, documentation and benchmarking ranges, multicast
+  and reserved, IPv6 unique-local, link-local and site-local), read from the same list,
+  to every IPv6 range whose addresses carry an IPv4 one (mapped, compatible, NAT64, 6to4
+  and Teredo), and to each address of the host lemonfiber hands it. Two things pass: the
+  engine's own resolver at `127.0.0.11` on port 53 alone, so names still resolve, and the
+  answers to connections other services opened to it.
+- **The fence refuses to start without the host's addresses.** lemonfiber always hands at
+  least one, and a fence handed none could not refuse the host at an address no range
+  covers.
 - **The fence alone holds `NET_ADMIN`.** The service gains no privilege. Kernel
   capabilities belong to a process, so the service shares the namespace and cannot change
   its rules.
