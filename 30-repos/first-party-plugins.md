@@ -84,7 +84,9 @@ own upstream alone answers (`REPO-R99`).
   lemonfiber `targets.toml` names held to every recording committed beside the manifest
   ([ARCH-R285](../20-architecture/contracts/plugin-manifest.md)), given that image as
   `--adapter` where a service of the plugin `fronts` one and as `--built` where no
-  service speaks a contract. A change to what the
+  service speaks a contract and the plugin's own service runs the image published from
+  that `Dockerfile`, or, before its first pin, exactly the image and digest its last
+  `FROM` builds on. A change to what the
   adapter answers is recorded with `lemonfiber plugin record --adapter <that image>` in the
   same pull request, and the pull request that moves the adapter's pin to the image its
   `main` published holds every recording to that pin. The plugin holds no recorder of its

@@ -383,6 +383,12 @@ Decisions about a repository outside this organisation, such as
 | `lemonfiber plugin record` runs the plugin's `posture/prepare`, where it ships one, with the throwaway copy of the starting files of the service whose id is the plugin's before each container of that service starts, as `first-party-image` does before it starts the image it built, so a built part whose service serves what install writes for it, such as a certificate, is recorded as it runs; no other command runs a program a plugin ships; `ARCH-R295` is amended in place. The user chose this over a built part that serves no TLS port or one that declares a capability its image does not serve | [ARCH-R295](../20-architecture/contracts/plugin-manifest.md) |
 | A service declares the certificate it needs, `certificate` with its key and certificate paths beneath its configuration directory and the names it is made out to, and lemonfiber makes it before the service first starts and writes a throwaway one for `plugin record` and a run proof; `posture/prepare` is retired from the manifest format and from `first-party-image`, so no command runs a program a plugin ships. This replaces the decision above; `ARCH-R295` and `ARCH-R284` are amended in place. The user chose this over running the script in a throwaway container | [ARCH-R356](../20-architecture/contracts/plugin-manifest.md) |
 
+## 2026-10-30
+
+| Decision | Where it lives |
+|---|---|
+| `first-party-plugin`'s live job hands the image the plugin's `Dockerfile` builds on as `--built` also where no service speaks a contract and the service whose id is the plugin's pins exactly the image and full digest the `Dockerfile`'s last `FROM` builds on, so a built part's pull requests before its first pin take their recordings from the image it builds rather than from an upstream its posture does not run; the same image at another digest, a `FROM` with no digest, and every other case are unchanged. The user chose this over pinning another repository's image in the template's built part or leaving its live pass unrequired | [ARCH-R285](../20-architecture/contracts/plugin-manifest.md) |
+
 ## Requirements
 
 | ID | Requirement |
