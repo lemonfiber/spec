@@ -171,9 +171,7 @@ such asker. Quality sync, archive extraction, the stream guard and decline are q
 no service of the bundle: the core asks each of them over its contract, which is what
 asking means for a part lemonfiber configures
 ([ADR-0051](../../00-overview/decisions/0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md)).
-The core asks `dashboard.show` too, applying the panel list: over the contract where the
-filler speaks it, and where the filler is the assembled Homepage, which speaks none,
-through an in-process adapter that writes Homepage's own files
+The core asks `dashboard.show` too, applying the panel list over its contract
 ([ADR-0052](../../00-overview/decisions/0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md)).
 No `[[ask]]` row stands in for the core.
 

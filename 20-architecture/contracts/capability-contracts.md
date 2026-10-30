@@ -268,9 +268,8 @@ whichever client fetched them
 its completed folder, and `filed` answers every category the client holds and the
 completed folder it files that category under.
 
-The seed tells every download client its completed folders this way: an assembled client
-through its in-process adapter, and a plugin's over its contract. It reads each back with
-`filed`. A client holding a folder for a category other than the one lemonfiber last filed
+The seed tells every download client its completed folders this way, over its contract,
+and reads each back with `filed`. A client holding a folder for a category other than the one lemonfiber last filed
 there holds the operator's choice, and the seed keeps it and reports it drifted, as it does
 every seeded value (`D1-R3`). The extractor is handed the folder `filed` reads back, not
 the one lemonfiber wrote (`ARCH-R306`, `ARCH-R311`).
@@ -397,13 +396,10 @@ shows. No answer of the gate's holds a credential's value (`ARCH-R305`).
   filler extracts what lands there and hands each finished extraction back to that curator
   itself, so the core makes no call for it. `working` answers what it is extracting now
   (`ARCH-R306`).
-- **The dashboard.** The core applies the panel list to the filler of `dashboard.show`:
-  over the contract where the filler speaks it, and where the filler is the assembled
-  Homepage, which speaks none, through an in-process adapter that writes the files
-  Homepage reads and reads them back, as a request gate speaking no contract is told
-  through the files it reads. `apply a panel list` gives the filler groups of
-  entries, each entry a name, an icon, a link and a description, with an optional
-  reachability check and an optional widget, and the widgets along the page. Every widget
+- **The dashboard.** The core applies the panel list to the filler of `dashboard.show`
+  over its contract. `apply a panel list` gives the filler groups of entries, each entry a
+  name, an icon, a link and a description, with an optional reachability check and an
+  optional widget, and the widgets along the page. Every widget
   is one the core names: a page widget, the machine's resources or a web search box, or a
   per-entry widget. The search box sends a search to the address the core setting
   `LEMONFIBER_DASHBOARD_SEARCH` holds, the terms appended to it, and to DuckDuckGo where
@@ -594,7 +590,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R358** | `request.gate@1` MUST carry `admit tokens`, replacing the token hashes one route admits and leaving every credential it holds as it is, and `record`, answering every refusal and forwarded removal after the entry the core names, each with its sequence number, when, the route, the method, the path and whether it was refused or removed, and how many entries after that one it no longer holds; the core MUST keep where it last read and MUST read the gate's record only through `record` (`C6-R25`), and MUST rotate a token through `admit tokens` (`C6-R24`). |
 | **ARCH-R359** | `invite.decline@1` MUST carry `refusals`, answering each invitation declined as its token's hash, its account and when; `lapses`, answering each invitation taken back as its window closed as its token's hash, its account, the name the account was made under, when it was issued, when it was taken back and whether its account was removed, switched off or left with why; and `page`, answering the path under which the filler serves the page an invitation is declined on, with `{token}` where the token goes; the core MUST read the decline service's records only through `refusals` and `lapses` (`D6-R16`, `D6-R21`) and MUST build an invitation's decline address from `page` (`D6-R15`). |
 | **ARCH-R360** | The core MUST replace the media server key the filler of `request.gate` or `invite.decline` holds only over its contract, handing the replacement in `apply the routes it admits` or `hold` and proving it by the SHA-256 `the routes it admits` or `held` answers before it revokes the key it replaced, and MUST read no file and ask no route of the filler's for it; where the operator asks to see that key, the core MUST answer its own copy. |
-| **ARCH-R308** | The core MUST apply the panel list to the filler of `dashboard.show`, over the contract where the filler speaks it, and where the filler is the assembled Homepage, which speaks none, through an in-process adapter that writes the files Homepage reads and reads them back; `apply a panel list` MUST give the filler groups of entries, each a name, an icon, a link and a description with an optional reachability check and an optional widget, and the page's widgets; every widget, on the page or on an entry, MUST be one the core names, the page's being the machine's resources and a web search box, and none MUST read a credential (`C6-R20`); the search box MUST send a search to the address the core setting `LEMONFIBER_DASHBOARD_SEARCH` holds, or to `https://duckduckgo.com/?q=` where none is recorded, and a value of that setting that is not an absolute `https` or `http` address MUST be refused naming the setting; `the list it shows` MUST answer the list applied. |
+| **ARCH-R308** | The core MUST apply the panel list to the filler of `dashboard.show` over its contract; `apply a panel list` MUST give the filler groups of entries, each a name, an icon, a link and a description with an optional reachability check and an optional widget, and the page's widgets; every widget, on the page or on an entry, MUST be one the core names, the page's being the machine's resources and a web search box, and none MUST read a credential (`C6-R20`); the search box MUST send a search to the address the core setting `LEMONFIBER_DASHBOARD_SEARCH` holds, or to `https://duckduckgo.com/?q=` where none is recorded, and a value of that setting that is not an absolute `https` or `http` address MUST be refused naming the setting; `the list it shows` MUST answer the list applied. |
 | **ARCH-R311** | `file_under` MUST hand the filler of `download.usenet` and of `download.torrent` each category and its completed folder, `/data/downloads/complete/<category>` for both, and `filed` MUST answer every category the client holds and the completed folder it files that category under; the seed MUST tell every download client its completed folders this way, through its in-process adapter where the client is an assembled part and over its contract where a plugin fills the capability, MUST read each back with `filed`, and where a client holds a folder for a category other than the one lemonfiber last filed there MUST keep it and report it drifted (`D1-R3`). |
 | **ARCH-R319** | `request.intake@1` MUST declare `establish`, taking the identity source `configure_identity` takes and answering `204` once the upstream holds an owner and answers the adapter's upstream credential, `204` where it already did, and a refusal as `configure_identity` is refused otherwise; the core MUST ask it each time it sets up the request service's identity, before any other operation of the contract, and `lemonfiber plugin record` MUST ask it as the contract's first case. |
 | **ARCH-R320** | An operation of `library.curate@1` that takes a kind of media MUST publish one conformance case per media type it takes, named `<operation>-answers-<media type>`, and an adapter MUST be asked and judged on exactly the cases of the media types its upstream's `media_types` names. |
