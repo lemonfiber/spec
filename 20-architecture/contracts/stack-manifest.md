@@ -197,8 +197,10 @@ media_types = ["tv"]
 
 `grants` and `depends_on` are not fields. A service needing a kernel capability or a
 device takes a [shape](plugin-manifest-service.md#shapes--the-only-route-to-a-device-or-a-privilege),
-and the one start-order edge the format writes is
-[`network.via`](plugin-manifest-service.md#inside-another-services-network--networkvia)'s.
+and the two start-order edges the format writes are
+[`network.via`](plugin-manifest-service.md#inside-another-services-network--networkvia)'s
+and [`network.fenced`](plugin-manifest-service.md#fenced-from-every-private-address--networkfenced)'s,
+a fenced service on the fence lemonfiber writes beside it (`ARCH-R363`).
 
 Both spellings of the old field, `grants` and the `capabilities` it was called until
 `0.16.0`, are still read, and then refused, naming for each grant the shape that replaces

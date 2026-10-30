@@ -200,13 +200,13 @@ Every line comes from one place:
 | `PUID`, `PGID`, `user` | [`user_mode`](plugin-manifest-service.md#who-it-runs-as-and-how-tightly-it-is-held) |
 | The rest of `environment` | [`env`](plugin-manifest-service.md#environment--four-kinds-of-value), every value literal |
 | `env_file` | The service's own secrets file, where `env` names a `secret` |
-| `ports` | `port`, `listens` and `publish`, on the interface the tier renders, and the contract port on loopback; for a service taking `via`, on its filler's entry |
+| `ports` | `port`, `listens` and `publish`, on the interface the tier renders, and the contract port on loopback; for a service taking `via`, on its filler's entry, and for a fenced service, on its fence's |
 | `volumes` | The data mount where `takes_data`, from the [storage setting](#the-data-root--one-setting-every-data-mount); the configuration directory at `config_path`; each `mount` |
 | `tmpfs` | `tmpfs` |
 | `security_opt`, `cap_drop`, `cap_add`, `pids_limit`, `read_only` | `posture`, with what the shape adds |
 | `mem_limit` | `mem_limit_mib` |
 | `devices`, `group_add` | `shape` |
-| `network_mode`, `depends_on` | [`network.via`](plugin-manifest-service.md#inside-another-services-network--networkvia) |
+| `network_mode`, `depends_on` | [`network.via`](plugin-manifest-service.md#inside-another-services-network--networkvia) and [`network.fenced`](plugin-manifest-service.md#fenced-from-every-private-address--networkfenced) |
 | `networks` | [Derived](#the-networks), never declared |
 
 The only substitutions an entry carries are the variables lemonfiber writes itself: the
@@ -337,6 +337,8 @@ has a field in which to.
   cannot reach out, and a confined service publishing nothing has none.
 - **A service taking `via`** has no network: it is inside its filler's, and an ask it
   fills joins the service it is inside.
+- **A fenced service** has no network either: its fence holds the networks it would have
+  had, and every ask it makes or fills joins the fence (`ARCH-R363`).
 - **The pass service and the guard.** The core's pass service, where the guard asks about
   a live-stream pass (`ARCH-R291`), is on one network, which joins it and the
   `stream.guard` filler and nothing else, with no route off the host (`ARCH-R312`).
@@ -737,6 +739,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | A `confined` service declares no `shape` | Service named |
 | `memory_mib` and `mem_limit_mib` above zero where declared | Service named |
 | `network.via` names a capability in its closed set, one the service does not provide | Service and capability named, with the set |
+| `network` declares `via` or `fenced`, never both | Service named |
 | `shape` is declared only where that shape permits | `service <id>.shape` named |
 | Every `provides` entry is a published core name or namespaced with the plugin's id | Capability named, with the namespace required |
 | Every `[[proof]]` carries `id`, `title`, `expect`, `why` and exactly one of `request` and `run` | Proof and field named |
@@ -869,6 +872,7 @@ unreadable.
 | **ARCH-R235** | `mem_limit_mib` MUST be written as the container's memory limit, and `memory_mib` MUST be an estimate that is never written as a limit. |
 | **ARCH-R236** | `network = { via = "<capability>" }` MUST name a capability from a closed set holding `network.egress-guard` alone and not one the service provides; lemonfiber MUST write the service into the network namespace of the service that fills it, or of the upstream that filler's adapter fronts where an adapter fills it, MUST start that filler first and start the service only once the filler reports healthy, whatever profile the filler sits in, MUST publish the service's ports on the filler's entry on the service's own tier, MUST give the service no network of its own, and MUST settle, show and count it as an ask of that capability. |
 | **ARCH-R237** | A device, a group or an added kernel capability MUST come only from a named shape in a closed set holding `egress-guard` and `render`; `render` MUST be declared only by a service that provides `media.serve` or by the upstream an adapter of the same plugin fronts where that adapter speaks it, refused naming `service <id>.shape` elsewhere, and MUST be written as the host's `/dev/dri` device with the group that owns it on the host added, or as nothing where the host has no `/dev/dri`, which the reading MUST say. |
+| **ARCH-R363** | A service declaring `network = { fenced = true }` MUST NOT also take `via`. lemonfiber MUST write it into the network namespace of a fence container, `<service>-fence`, run from the `fence` image the bundle pins by digest; the fence MUST hold the service's networks and published ports and MUST alone hold `NET_ADMIN`. At start the fence MUST install nftables rules refusing every new connection from that namespace to loopback, RFC 1918, carrier-grade NAT, link-local and metadata, multicast, IPv6 unique-local and link-local, and each address of the host lemonfiber hands it, while passing the engine's resolver at `127.0.0.11` and the answers to connections other services opened. The service MUST start only once the fence reports healthy with every rule in place, and MUST be restarted whenever the fence restarts. lemonfiber MUST refuse to start a fenced service it cannot write inside a fence, such as one that is `host_managed` or one on an engine whose containers cannot hold nftables rules, naming the service and why, and MUST never start one unfenced. |
 | **ARCH-R238** | An install or update whose plugin takes any shape MUST state in its reading each service taking it with what the shape gives, and MUST NOT act unless the operator approved that shape for that service apart from the offer, written `<shape>@<service>`, as `F14-R21` holds for the egress guard's. |
 | **ARCH-R239** | The manifest MUST have no field by which a service could mount the engine's socket, run privileged, join the host's network, PID or IPC namespace, name an entrypoint or a command, or obtain a kernel capability, a device or a group other than through a shape. |
 | **ARCH-R240** | The data root MUST be one operator setting, the `lemonfiber config` key `DATA_ROOT`, holding an absolute host path or a path relative to the stack directory that stays inside it (a bind), or `nfs://<server>/<export>` (an NFS export), and MUST be `./data` within the stack directory where it is unset; lemonfiber MUST write the single data mount of every service that takes data from it and from nothing else; a relative path that leaves the stack directory or names the stack directory itself, a server that is not a host name or an address, and an export that is not an absolute path or holds a character that would change the mount options written, MUST be refused naming it; the NFS server and export kept for the retired NAS overlay MUST be folded into it once, journalled; and for an NFS export the doctor MUST report the storage mode as `nas` and MUST say the checks that read a host path were not run rather than report them passed. |
