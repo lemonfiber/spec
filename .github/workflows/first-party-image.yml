@@ -595,6 +595,14 @@ jobs:
               return None if health is None else health.get("Status") == "healthy"
 
 
+          def address(container):
+              """Where the container answers on the network it is attached to: the address each
+              network it is on lists, since the engine no longer lists one beside them."""
+              settings = container["NetworkSettings"]
+              listed = [one.get("IPAddress", "") for one in (settings.get("Networks") or {}).values()]
+              return next((one for one in [settings.get("IPAddress", ""), *listed] if one), "")
+
+
           def verdict():
               """Why it did not start and pass, or nothing where it did."""
               deadline = time.monotonic() + plan["timeout"]
@@ -602,7 +610,7 @@ jobs:
                   now = inspected()
                   if not now["State"].get("Running"):
                       return f"it stopped, exit {now['State'].get('ExitCode')}"
-                  passed = answers(now["NetworkSettings"]["IPAddress"])
+                  passed = answers(address(now))
                   if passed is None:
                       time.sleep(10)
                       if not inspected()["State"].get("Running"):
