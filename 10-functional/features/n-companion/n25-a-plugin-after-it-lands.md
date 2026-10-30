@@ -112,6 +112,12 @@ for is entered at the stack's terminal, as every secret is. The rehearsal of an
 install or an update names each service it would leave waiting before the yes.
 None of this names a value, and none of it is shown to a member.
 
+Where a plugin brings the egress guard, the core asks the guard to take up the
+control credential its adapter was handed once the plugin is installed or
+updated (`ARCH-R357`). What that came to, where it was more than held at once,
+is part of the account after the yes: the guard restarted to take it up, or why
+it did not.
+
 | Where | English | Dutch |
 |-------|---------|-------|
 | The section on a plugin | Settings | Instellingen |
@@ -247,6 +253,7 @@ every appearance.
 | **N25-R29** | Each service the stack holds back MUST be shown with every setting and secret it waits for, and the service it runs through, never by value. A setting MUST be shown with its choices where it has them. Such a service MUST NOT be shown as stopped, failed or missing (`ARCH-R351`, `ARCH-R352`). |
 | **N25-R30** | A setting a held-back service waits for MUST be offered as a change from where the service is shown. A secret it waits for MUST be said to be entered at the stack's terminal (`N25-R13`). |
 | **N25-R31** | The rehearsal of an install or an update MUST name each service it would leave held back, with what it waits for (`ARCH-R351`). |
+| **N25-R32** | The account of an install or an update after the yes MUST say what asking its egress guard to take up its control credential came to, in the stack's words, wherever the stack says (`ARCH-R357`). |
 
 ## Notes
 
@@ -281,6 +288,7 @@ for and the envelope alone does not carry.
 | `N25-R22` | `installed[].granted[]`: `credential`, `of`, `for`, `at` | — |
 | `N25-R23` | `credentials-revoke` with `plugin` and `credential`; `revoked`: `agreement`, `ended`, `grant`, `restarts`, `unrestarted`; `PLUGIN-47` where no such grant is held | — |
 | `N25-R31` | `install.waiting[]`: `service`, `wants` (a `setting` with its `choices`, a `secret`, a `service`); the same under `update.install` | — |
+| `N25-R32` | `install.secured`, absent where the guard held the credential at once, where no service is a guard and on every rehearsal; the same under `update.install` | — |
 
 ## Related
 
