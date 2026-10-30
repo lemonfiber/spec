@@ -13,7 +13,9 @@
 # each adapter's where a service fronts one, and the service with the plugin's id where
 # no service speaks a contract and that service runs this repository's own image, or,
 # before that image's first pin, the very image and digest the Dockerfile's last FROM
-# builds on (ARCH-R285). A Dockerfile that builds an adapter the manifest does not run yet stands
+# builds on (ARCH-R285). A revision recorded so says it ships nothing, as the job's
+# `unpinned` output, a warning and its summary, and every bundle and train tag refuses
+# it (`first_pin.py`). A Dockerfile that builds an adapter the manifest does not run yet stands
 # in for nothing, and every service runs its pin. It is lemonfiber's own `plugin record --check`, by the lemonfiber the
 # `plugin` job built or fetched, handed on rather than built twice.
 #
@@ -195,34 +197,39 @@ jobs:
           find .lemonfiber -type f -name lemonfiber -exec chmod +x {} + 2>/dev/null || true
           python3 -I -c 'import sys; sys.path.insert(0, sys.argv[1]); import reader; print("binary=" + str(reader.binary()))' \
             "${READER}" >> "$GITHUB_OUTPUT"
+      - name: The workflow's own tooling, at the commit it runs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          sparse-checkout: scripts/first_pin.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
       - name: The image this tree builds
         id: built
         env:
           OWNER: ${{ github.repository_owner }}
+          TOOLING: ${{ github.workspace }}/.spec-tooling
         run: |
           set -euo pipefail
           if [ ! -f Dockerfile ]; then
+            rm -rf "${TOOLING}"
             echo "No image is built here, so every service runs the image plugin.toml pins."
             exit 0
           fi
-          stands_in="$(python3 -I -c 'import re, sys, tomllib
-          manifest = tomllib.load(open("plugin.toml", "rb"))
-          services = manifest.get("service", [])
-          own = "ghcr.io/" + sys.argv[1].lower() + "/" + manifest["plugin"]["id"]
-          froms = [line.split()[1:] for line in open("Dockerfile", encoding="utf-8")
-                   if line.split()[:1] and line.split()[0].upper() == "FROM"]
-          words = [word for word in (froms[-1] if froms else []) if not word.startswith("--")]
-          base = re.fullmatch(r"((?:[^@/:]+(?::[0-9]+)?/)?[^@:]+)(?::[^@/]+)?@(sha256:[0-9a-f]{64})", words[0] if words else "")
-          def runs_it(one):
-              if one["image"] == own:
-                  return True
-              return base is not None and (one["image"], one.get("digest")) == base.groups()
-          if any("fronts" in one for one in services):
-              print("adapter")
-          elif not any(one.get("speaks") for one in services) and any(
-              one["id"] == manifest["plugin"]["id"] and runs_it(one) for one in services
-          ):
-              print("built")' "${OWNER}")"
+          stands_in="$(python3 -I "${TOOLING}/scripts/first_pin.py" stands-in --owner "${OWNER}")"
+          rm -rf "${TOOLING}"
+          read -r stands_in unpinned <<< "${stands_in}"
+          if [ -n "${unpinned}" ]; then
+            echo "unpinned=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "### This revision ships nothing"
+              echo
+              echo "Its service of the plugin's id still runs the image its Dockerfile builds on. It is recorded from the image built here, and no bundle or release takes it until the first pin of that image merges."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::recorded from the image built here, which no pin names yet: this revision ships nothing until the first pin of that image merges"
+          fi
           if [ -z "${stands_in}" ]; then
             echo "Its own upstream speaks the contracts here, and is recorded from the image plugin.toml pins."
             exit 0

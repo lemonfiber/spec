@@ -7,7 +7,9 @@
 # reads (Q-R76). On a push to main it is published as `main-<12 hex>`, unless the
 # push changes nothing of the plugin but a pin, at most its `plugin.toml`,
 # `proofs.json`, `targets.toml` and what is under its `recordings/`, so merging a
-# pin's pull request never starts the next one (OPS-R90). On a train tag it is
+# pin's pull request never starts the next one (OPS-R90). On a train tag of a revision
+# whose service of the plugin's id still runs the image its Dockerfile builds on, before
+# the first pin of its own, nothing is published (ARCH-R285). On any other train tag it is
 # published as that tag: each platform on a runner of its own architecture, joined
 # under one index carrying BuildKit's SBOM and provenance, with a build-provenance
 # attestation and an SBOM attestation per platform. The published index is then run
@@ -205,6 +207,11 @@ jobs:
             declared="$(python3 -I -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb"))["plugin"]["version"])' "${DIRECTORY%/}/plugin.toml")"
             if [ "v${declared}" != "$NAME" ]; then
               echo "::error::the manifest declares ${declared}, so it is not tagged ${NAME}"
+              exit 1
+            fi
+            if ! unshipped="$(python3 -I "$TOOLING/scripts/first_pin.py" ships --owner "$GITHUB_REPOSITORY_OWNER" \
+              --directory "${DIRECTORY%/}" 2>&1)"; then
+              echo "::error::${NAME} is not published: ${unshipped}"
               exit 1
             fi
             mode=publish

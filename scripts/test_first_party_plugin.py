@@ -14,8 +14,17 @@ import unittest
 import yaml
 
 WORKFLOW = pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/first-party-plugin.yml"
-GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "commit.gpgsign=false",
-       "-c", "core.hooksPath=/dev/null")
+GIT = (
+    "git",
+    "-c",
+    "user.name=test",
+    "-c",
+    "user.email=test@invalid",
+    "-c",
+    "commit.gpgsign=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+)
 
 
 def step(job: str, named: str | None = None, number: int | None = None) -> str:
@@ -49,8 +58,9 @@ class WhatChanged(unittest.TestCase):
     def code(self, base: str, directory: str = ".") -> str:
         output = self.root / ".output"
         env = {"PATH": os.environ["PATH"], "BASE": base, "DIRECTORY": directory, "GITHUB_OUTPUT": str(output)}
-        subprocess.run(["bash", "-c", step("scope", number=1)], cwd=self.root, env=env, check=True,
-                       capture_output=True)
+        subprocess.run(
+            ["bash", "-c", step("scope", number=1)], cwd=self.root, env=env, check=True, capture_output=True
+        )
         said = output.read_text(encoding="utf-8")
         output.unlink()
         return said.strip()
@@ -93,10 +103,15 @@ class TheReader(unittest.TestCase):
         self.plugin.mkdir()
 
     def take(self) -> subprocess.CompletedProcess:
-        env = {"PATH": os.environ["PATH"], "READER": ".github/reader",
-               "TAKEN": str(self.root / ".first-party-reader")}
+        env = {
+            "PATH": os.environ["PATH"],
+            "READER": ".github/reader",
+            "TAKEN": str(self.root / ".first-party-reader"),
+        }
         script = step("plugin", "The reader is this workflow's, and the plugin carries none")
-        return subprocess.run(["bash", "-c", script], cwd=self.plugin, env=env, capture_output=True, text=True)
+        return subprocess.run(
+            ["bash", "-c", script], cwd=self.plugin, env=env, capture_output=True, text=True
+        )
 
     def test_the_reader_is_taken_in_and_its_checkout_removed(self):
         done = self.take()
@@ -121,13 +136,16 @@ class TheRecord(unittest.TestCase):
         reader = self.root / ".github" / "reader"
         reader.mkdir(parents=True)
         (reader / "reader.py").write_text(
-            "import pathlib\npathlib.Path('proofs.json').write_text('{\"proofs\": []}\\n')\n", encoding="utf-8"
+            "import pathlib\npathlib.Path('proofs.json').write_text('{\"proofs\": []}\\n')\n",
+            encoding="utf-8",
         )
 
     def proved(self) -> subprocess.CompletedProcess:
         script = step("plugin", "Every claim, proof and contributed check, against its recording")
         env = {"PATH": os.environ["PATH"]}
-        return subprocess.run(["bash", "-e", "-c", script], cwd=self.root, env=env, capture_output=True, text=True)
+        return subprocess.run(
+            ["bash", "-e", "-c", script], cwd=self.root, env=env, capture_output=True, text=True
+        )
 
     def committed(self, content: str) -> None:
         (self.root / "proofs.json").write_text(content, encoding="utf-8")
@@ -155,10 +173,16 @@ class HandedToLive(unittest.TestCase):
 
     def setUp(self):
         jobs = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
-        self.uploaded = next(one for one in jobs["plugin"]["steps"]
-                             if one.get("uses", "").startswith("actions/upload-artifact@"))
-        self.downloaded = next(one for one in jobs["live"]["steps"]
-                               if one.get("uses", "").startswith("actions/download-artifact@"))
+        self.uploaded = next(
+            one
+            for one in jobs["plugin"]["steps"]
+            if one.get("uses", "").startswith("actions/upload-artifact@")
+        )
+        self.downloaded = next(
+            one
+            for one in jobs["live"]["steps"]
+            if one.get("uses", "").startswith("actions/download-artifact@")
+        )
 
     def test_the_hidden_directory_the_reader_keeps_it_in_is_uploaded(self):
         self.assertTrue(self.uploaded["with"]["path"].endswith("/.lemonfiber/"))
@@ -193,10 +217,15 @@ class TheStandIn(unittest.TestCase):
         (self.plugin / "plugin.toml").write_text(manifest, encoding="utf-8")
         output = self.root / ".output"
         output.write_text("", encoding="utf-8")
+        tooling = self.root / ".spec-tooling"
+        (tooling / "scripts").mkdir(parents=True, exist_ok=True)
+        shutil.copy(pathlib.Path(__file__).with_name("first_pin.py"), tooling / "scripts")
         env = {
             "PATH": f"{self.bin}:{os.environ['PATH']}",
             "OWNER": "LemonFiber",
             "GITHUB_OUTPUT": str(output),
+            "GITHUB_STEP_SUMMARY": str(self.root / ".summary"),
+            "TOOLING": str(tooling),
         }
         script = step("live", "The image this tree builds")
         done = subprocess.run(
@@ -204,6 +233,8 @@ class TheStandIn(unittest.TestCase):
         )
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         said = dict(line.split("=", 1) for line in output.read_text(encoding="utf-8").split())
+        self.unpinned = said.get("unpinned") == "true"
+        self.assertFalse(tooling.exists())
         return said.get("as", ""), (self.bin / "asked").exists()
 
     def test_a_part_built_here_stands_in_for_its_own_service(self):
@@ -217,6 +248,7 @@ id    = "{plugin}"
 image = "ghcr.io/lemonfiber/{plugin}"
 """
                 self.assertEqual(self.stands_in(manifest), ("built", True))
+                self.assertFalse(self.unpinned)
 
     def test_an_adapter_built_here_stands_in_for_the_adapter_that_fronts(self):
         manifest = """[plugin]
@@ -285,15 +317,13 @@ digest = "{digest}"
             f"FROM golang:1@sha256:{'0' * 64} AS build\nRUN true\nFROM caddy:2.11.6@{self.UPSTREAM}\n",
         ):
             with self.subTest(dockerfile=dockerfile):
-                self.assertEqual(
-                    self.before_its_first_pin(dockerfile, self.UPSTREAM), ("built", True)
-                )
+                self.assertEqual(self.before_its_first_pin(dockerfile, self.UPSTREAM), ("built", True))
+                self.assertTrue(self.unpinned)
+                self.assertIn("ships nothing", (self.root / ".summary").read_text(encoding="utf-8"))
 
     def test_the_same_image_at_another_digest_is_not_what_the_dockerfile_builds_on(self):
         self.assertEqual(
-            self.before_its_first_pin(
-                f"FROM caddy:2.11.6@{self.UPSTREAM}\n", "sha256:" + "3b" * 32
-            ),
+            self.before_its_first_pin(f"FROM caddy:2.11.6@{self.UPSTREAM}\n", "sha256:" + "3b" * 32),
             ("", False),
         )
 
@@ -304,14 +334,10 @@ digest = "{digest}"
             f"FROM ghcr.io/someone-else/caddy@{self.UPSTREAM}\n",
         ):
             with self.subTest(dockerfile=dockerfile):
-                self.assertEqual(
-                    self.before_its_first_pin(dockerfile, self.UPSTREAM), ("", False)
-                )
+                self.assertEqual(self.before_its_first_pin(dockerfile, self.UPSTREAM), ("", False))
 
     def test_a_part_that_speaks_a_contract_is_recorded_from_its_pin_even_before_it(self):
-        (self.plugin / "Dockerfile").write_text(
-            f"FROM caddy:2.11.6@{self.UPSTREAM}\n", encoding="utf-8"
-        )
+        (self.plugin / "Dockerfile").write_text(f"FROM caddy:2.11.6@{self.UPSTREAM}\n", encoding="utf-8")
         manifest = f"""[plugin]
 id = "door"
 
