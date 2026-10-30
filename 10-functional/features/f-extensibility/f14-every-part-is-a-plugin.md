@@ -117,9 +117,11 @@ a member's app works the same against any media server.
 Choosing a filler stops the part it replaces and takes it out of its form. Its
 configuration and data stay where they were, and the choice is journalled, so undoing it
 brings back the choice and the part as they were. The rehearsal says what does not carry
-over, read from the contract rather than written per part: for a curator, whatever its
-`records and carry` does not carry; for any other part, each kind of thing the replaced
-filler held. Accounts the old media server held are not accounts on the new one, and
+over, read from the contracts rather than written per part: each contract declares the
+kinds of thing its filler holds and which of them it carries to another filler, so the
+rehearsal names each kind a capability of the stopped part holds that the substituted
+capability's contract does not carry. A curator's followed titles and indexers cross by
+its `records and carry`; its download history does not. Accounts the old media server held are not accounts on the new one, and
 progress stays where it was recorded. Asking the household's members back is offered as
 part of the change.
 
@@ -204,7 +206,7 @@ nothing crosses to it.
 | **F14-R8** | The vocabulary MUST name `proxy.front`, `dashboard.show`, `quality.sync`, `archive.extract`, `stream.guard`, `invite.decline` and `request.gate`, each with a contract, and every capability in the vocabulary MUST be asked by something in the bundle or by the core over its contract. |
 | **F14-R9** | A plugin MAY ask for capabilities and MUST NOT link to a service by name. |
 | **F14-R10** | The stream guard's filler MUST enforce the guard the media server's filler declares, and every location the core gives a member MUST be built from templates the media server's filler declares. |
-| **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its configuration and data, and MUST journal the choice; undoing it MUST restore the choice and bring that part back with its configuration and data; and the rehearsal MUST say what does not carry over, read from the contract: for a curator, what its `records and carry` does not carry, and otherwise each kind of thing the replaced filler held. |
+| **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its configuration and data, and MUST journal the choice; undoing it MUST restore the choice and bring that part back with its configuration and data; and the rehearsal MUST say what does not carry over, read from the contracts ([ARCH-R362](../../../20-architecture/contracts/capability-contracts.md)): each kind of thing a capability the stopped part fills declares its filler holds, less each kind the substituted capability's contract carries where the part and its replacement both speak it. |
 | **F14-R12** | A plugin's service MAY declare `shape = "egress-guard"` only where it is the upstream an adapter of the same plugin fronts and that adapter speaks `network.egress-guard`, or where it is the plugin's one service and provides `network.egress-guard` itself, which lemonfiber MUST honour only where the bundle assembles the plugin and MUST refuse at install and update naming `service <id>.shape`; any other service declaring it MUST be refused at validation naming `service <id>.shape`; and lemonfiber MUST write that service's entry as every plugin's entry plus exactly the `NET_ADMIN` capability and the `/dev/net/tun` device, and MUST write neither for any other service. |
 | **F14-R13** | An adapter MUST declare the upstream releases it supports, each proved by its own recordings, an install or update MUST refuse a plugin whose adapter lists a release at a digest other than the one its recordings were taken from, and the core MUST NOT compare versions. |
 | **F14-R14** | `media.serve`, `indexer.search`, `library.curate` and `identity.source`, each of which a second plugin fills, MUST each be proved by a substitute other than its first-party filler, run end to end against its pinned upstream through install, its first-run flow, conformance, substitution, the features the capability serves, and undo. |
