@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import os
 import pathlib
 import shutil
 import tempfile
@@ -85,14 +86,35 @@ class StandsIn(unittest.TestCase):
 
 class Command(unittest.TestCase):
     def setUp(self):
-        self.root = pathlib.Path(tempfile.mkdtemp())
+        self.root = pathlib.Path(tempfile.mkdtemp()).resolve()
         self.addCleanup(shutil.rmtree, self.root, True)
+        self.addCleanup(os.chdir, os.getcwd())
+        os.chdir(self.root)
 
-    def ran(self, *asked: str) -> tuple[int, str, str]:
+    def ran(self, *asked: str, directory: str | None = None) -> tuple[int, str, str]:
         out, err = io.StringIO(), io.StringIO()
+        given = str(self.root) if directory is None else directory
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            code = first_pin.main([*asked, "--owner", "LemonFiber", "--directory", str(self.root)])
+            code = first_pin.main([*asked, "--owner", "LemonFiber", "--directory", given])
         return code, out.getvalue(), err.getvalue()
+
+    def test_a_directory_or_file_leading_out_of_the_working_directory_is_refused(self):
+        outside = pathlib.Path(tempfile.mkdtemp()).resolve()
+        self.addCleanup(shutil.rmtree, outside, True)
+        (outside / "plugin.toml").write_text('[plugin]\nid = "door"\n', encoding="utf-8")
+        (outside / "Dockerfile").write_text(DOCKERFILE, encoding="utf-8")
+        self.assertEqual(self.ran("ships", directory=str(outside))[0], 2)
+        self.assertEqual(self.ran("ships", directory="..")[0], 2)
+        for name in ("plugin.toml", "Dockerfile"):
+            with self.subTest(name):
+                for held in ("plugin.toml", "Dockerfile"):
+                    (self.root / held).unlink(missing_ok=True)
+                (self.root / "plugin.toml").write_text('[plugin]\nid = "door"\n', encoding="utf-8")
+                (self.root / name).unlink(missing_ok=True)
+                (self.root / name).symlink_to(outside / name)
+                code, _, said = self.ran("ships")
+                self.assertEqual(code, 2)
+                self.assertIn("leads out of the working directory", said)
 
     def test_a_revision_before_its_first_pin_is_refused_by_name_and_stands_in_unpinned(self):
         (self.root / "plugin.toml").write_text(

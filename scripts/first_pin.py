@@ -22,6 +22,9 @@ and ships nothing: it is refused here wherever that service runs the image the
 A tree with no `Dockerfile`, or whose service of the plugin's id runs any other image,
 is not refused: an adapter's `Dockerfile` builds on a base its upstream does not run.
 
+`--directory` names a directory under the working directory, and its `plugin.toml` and
+`Dockerfile` are read only where each resolves beneath it.
+
 `ships` prints nothing where the revision may ship. Exit 0 = it may, or `stands-in`
 answered, 1 = it may not (named on standard error), 2 = usage or a manifest that cannot
 be read.
@@ -35,7 +38,7 @@ import re
 import sys
 import tomllib
 
-REFERENCE = re.compile(r"((?:[^@/:]+(?::[0-9]+)?/)?[^@:]+)(?::[^@/]+)?(?:@(sha256:[0-9a-f]{64}))?")
+REFERENCE = re.compile(r"((?:[^@/:]+(?::\d+)?/)?[^@:]+)(?::[^@/]+)?(?:@(sha256:[0-9a-f]{64}))?")
 
 
 def built_on(dockerfile: str) -> tuple[str, str | None] | None:
@@ -95,19 +98,29 @@ def stands_in(manifest: dict, dockerfile: str | None, owner: str) -> str:
     return ""
 
 
+def beneath(root: pathlib.Path, raw: str) -> pathlib.Path | None:
+    """`raw` resolved, where it lies under `root`; none where it leads out of it."""
+    path = (root / raw).resolve()
+    return path if path.is_relative_to(root) else None
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("asked", choices=("ships", "stands-in"))
     parser.add_argument("--owner", required=True)
     parser.add_argument("--directory", default=".")
     asked = parser.parse_args(argv)
-    root = pathlib.Path(asked.directory)
+    root = beneath(pathlib.Path.cwd().resolve(), asked.directory)
+    found = root and beneath(root, "plugin.toml")
+    dockerfile = root and beneath(root, "Dockerfile")
+    if not found or not dockerfile:
+        print(f"{asked.directory} leads out of the working directory", file=sys.stderr)
+        return 2
     try:
-        manifest = tomllib.loads((root / "plugin.toml").read_text(encoding="utf-8"))
+        manifest = tomllib.loads(found.read_text(encoding="utf-8"))
     except (OSError, tomllib.TOMLDecodeError) as unread:
         print(f"plugin.toml could not be read: {unread}", file=sys.stderr)
         return 2
-    dockerfile = root / "Dockerfile"
     text = dockerfile.read_text(encoding="utf-8") if dockerfile.is_file() else None
     if asked.asked == "stands-in":
         print(stands_in(manifest, text, asked.owner))

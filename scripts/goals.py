@@ -143,8 +143,31 @@ class Standing:
         }
 
 
+#: The options this file hands git. Any other argument is a ref or a path in one, and
+#: one starting with `-` is refused rather than read by git as an option.
+OPTIONS = frozenset(
+    {
+        "--is-shallow-repository",
+        "--format=%H%x1f%B%x1e",
+        "--name-only",
+        "--is-ancestor",
+        "--verify",
+        "--end-of-options",
+    }
+)
+ARGUMENT = re.compile(r"\A[^-\s]\S*\Z")
+
+
+def argument(value: str) -> str:
+    """`value`, where git reads it as an option this file hands it or as no option at all."""
+    if value not in OPTIONS and not ARGUMENT.match(value):
+        raise Unread(f"refusing to hand git {value!r}: not an option this reads with, nor a ref")
+    return value
+
+
 def git(path: pathlib.Path, *args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(["git", "-C", str(path), *args], capture_output=True, text=True, check=False)
+    asked = [argument(one) for one in args]
+    return subprocess.run(["git", "-C", str(path), *asked], capture_output=True, text=True, check=False)
 
 
 @functools.cache

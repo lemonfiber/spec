@@ -260,6 +260,13 @@ class Refusals(Train):
     def test_a_ref_git_would_read_as_an_option(self):
         self.assert_refused([*self.checkouts(), "--ref=--output=x"], "is not a revision")
 
+    def test_git_is_handed_no_option_but_its_own(self):
+        for value in ("--output=x", "-c", "", "ref with space"):
+            with self.subTest(value=value), self.assertRaises(goals.Unread):
+                goals.git(pathlib.Path("."), "log", value)
+        self.assertEqual(goals.argument("main:status/0.1.0.toml"), "main:status/0.1.0.toml")
+        self.assertEqual(goals.argument("--end-of-options"), "--end-of-options")
+
     def test_a_pull_request_file_that_is_not_json(self):
         pathlib.Path("prs.json").write_text("{", encoding="utf-8")
         self.assert_refused([*self.checkouts(), "--prs", "prs.json"], "::error::")
