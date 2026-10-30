@@ -30,6 +30,7 @@ Usage:
                 [--citation-optional]
 Exit 0 = pass, 1 = fail (with guidance), 2 = usage error.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -280,9 +281,7 @@ def named_in(diff: str, defined: set[str]) -> set[str]:
 
     found: set[str] = set()
     for line in added_lines(diff, unread()):
-        found.update(
-            rid for rid in CITE.findall(line) if rid.split("-", 1)[0] in families
-        )
+        found.update(rid for rid in CITE.findall(line) if rid.split("-", 1)[0] in families)
     return found
 
 
@@ -463,9 +462,7 @@ def gate() -> int:
         print(f"::error::spec dir not found: {spec_dir}")
         return 2
 
-    text = within_cwd(a.text_file, "text-file").read_text(
-        encoding="utf-8", errors="ignore"
-    )
+    text = within_cwd(a.text_file, "text-file").read_text(encoding="utf-8", errors="ignore")
     diff = the_diff(a.diff_file)
 
     defined = defined_ids(spec_dir)
@@ -482,10 +479,7 @@ def gate() -> int:
     named = named_in(diff, defined)
     unnamed = sorted(rid for rid in named if rid not in defined)
     if unnamed:
-        print(
-            "::error::this change names identifiers that do not exist on spec@main: "
-            f"{', '.join(unnamed)}"
-        )
+        print(f"::error::this change names identifiers that do not exist on spec@main: {', '.join(unnamed)}")
         print(NAMED_GUIDANCE)
         return 1
 

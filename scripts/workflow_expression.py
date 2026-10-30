@@ -60,7 +60,11 @@ def tokens(text: str) -> list[Token]:
         while text[where].isspace():
             where += 1
         token = next(
-            (Token(kind, match.group(0)) for kind, pattern in TOKENS if (match := pattern.match(text, where))),
+            (
+                Token(kind, match.group(0))
+                for kind, pattern in TOKENS
+                if (match := pattern.match(text, where))
+            ),
             None,
         )
         if token is None:
@@ -166,8 +170,12 @@ FUNCTIONS = {
     "contains": (2, contains),
     "startswith": (2, lambda a, b: text_of(a).casefold().startswith(text_of(b).casefold())),
     "endswith": (2, lambda a, b: text_of(a).casefold().endswith(text_of(b).casefold())),
-    "join": (None, lambda items, sep=",": text_of(sep).join(text_of(i) for i in items)
-             if isinstance(items, list) else text_of(items)),
+    "join": (
+        None,
+        lambda items, sep=",": (
+            text_of(sep).join(text_of(i) for i in items) if isinstance(items, list) else text_of(items)
+        ),
+    ),
     "tojson": (1, lambda value: json.dumps(value, indent=2)),
     "fromjson": (1, lambda value: json.loads(value)),
     "format": (None, formatted),
@@ -231,10 +239,16 @@ class Parser:
         while self.peek() and self.peek().text in ("<", "<=", ">", ">="):
             op = self.take().text
             right = self.unary()
-            value = order(value, right, {
-                "<": lambda a, b: a < b, "<=": lambda a, b: a <= b,
-                ">": lambda a, b: a > b, ">=": lambda a, b: a >= b,
-            }[op])
+            value = order(
+                value,
+                right,
+                {
+                    "<": lambda a, b: a < b,
+                    "<=": lambda a, b: a <= b,
+                    ">": lambda a, b: a > b,
+                    ">=": lambda a, b: a >= b,
+                }[op],
+            )
         return value
 
     def unary(self):

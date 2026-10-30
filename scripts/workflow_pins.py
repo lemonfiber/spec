@@ -23,6 +23,7 @@ a bump when a newer tag exists; a pin whose trailing comment names no tag gives
 it nothing to be newer than. `publish-pin-tag.yml` cuts the tag that makes the
 comparison possible, and the comment beside each pin is what carries it.
 """
+
 from __future__ import annotations
 
 import ast
@@ -157,13 +158,13 @@ def held_by(spec: pathlib.Path, head: str, workflow: str) -> list[str]:
             waiting.extend((f"scripts/{name}.py", False) for name in imported(shown.stdout))
         else:
             waiting.extend((f"scripts/{m.group('name')}", True) for m in SCRIPT.finditer(shown.stdout))
-            waiting.extend((f".github/workflows/{m.group('name')}", True) for m in CALLED.finditer(shown.stdout))
+            waiting.extend(
+                (f".github/workflows/{m.group('name')}", True) for m in CALLED.finditer(shown.stdout)
+            )
     return held
 
 
-def commits_between(
-    spec: pathlib.Path, pin: str, head: str, workflow: str
-) -> list[Missed] | None:
+def commits_between(spec: pathlib.Path, pin: str, head: str, workflow: str) -> list[Missed] | None:
     """The commits `head` has and `pin` does not that changed what a pin on `workflow` holds.
 
     Narrowed to the files `held_by` names, because those are the whole of what

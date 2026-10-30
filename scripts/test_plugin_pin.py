@@ -51,7 +51,9 @@ class Pinned(unittest.TestCase):
         self.assertEqual(moved, ["sonarr"])
         self.assertIn(f'digest      = "{DIGEST}"\n', written)
         self.assertIn('tag         = "4.0.21.3020-ls327"  # the build the stack ran\n', written)
-        self.assertEqual(written.replace(DIGEST, OLD).replace("4.0.21.3020-ls327", "4.0.20.3014-ls326"), MANIFEST)
+        self.assertEqual(
+            written.replace(DIGEST, OLD).replace("4.0.21.3020-ls327", "4.0.20.3014-ls326"), MANIFEST
+        )
         services = {one["id"]: one for one in tomllib.loads(written)["service"]}
         self.assertEqual(services["other"]["tag"], "2.11.6")
 
@@ -65,13 +67,20 @@ class Pinned(unittest.TestCase):
         self.assertEqual(plugin_pin.pinned(MANIFEST, "elsewhere", "1", DIGEST), (MANIFEST, []))
 
     def test_a_digest_or_a_tag_that_is_not_one_is_refused(self):
-        for tag, digest in (("1", "sha256:short"), ("1", DIGEST.upper()), ("-1", DIGEST), ('1"\n[x]', DIGEST)):
+        for tag, digest in (
+            ("1", "sha256:short"),
+            ("1", DIGEST.upper()),
+            ("-1", DIGEST),
+            ('1"\n[x]', DIGEST),
+        ):
             with self.subTest(tag=tag, digest=digest), self.assertRaises(plugin_pin.Refused):
                 plugin_pin.pinned(MANIFEST, IMAGE, tag, digest)
 
     def test_a_running_service_without_a_field_to_move_is_refused(self):
-        for field, line in (("digest", f'digest      = "{OLD}"\n'),
-                            ("tag", 'tag         = "4.0.20.3014-ls326"  # the build the stack ran\n')):
+        for field, line in (
+            ("digest", f'digest      = "{OLD}"\n'),
+            ("tag", 'tag         = "4.0.20.3014-ls326"  # the build the stack ran\n'),
+        ):
             without = MANIFEST.replace(line, "")
             with self.subTest(field=field), self.assertRaisesRegex(plugin_pin.Refused, f"`{field}` once"):
                 plugin_pin.pinned(without, IMAGE, "1", DIGEST)
@@ -83,8 +92,8 @@ class Pinned(unittest.TestCase):
 
     def test_a_rewrite_the_manifest_does_not_read_back_is_refused(self):
         hidden = MANIFEST.replace(
-            f'digest      = "{OLD}"',
-            f'why = """\ndigest = "not a field"\n"""\n"digest" = "{OLD}"', 1)
+            f'digest      = "{OLD}"', f'why = """\ndigest = "not a field"\n"""\n"digest" = "{OLD}"', 1
+        )
         with self.assertRaisesRegex(plugin_pin.Refused, "is not the one it was"):
             plugin_pin.pinned(hidden, IMAGE, "1", DIGEST)
 

@@ -12,6 +12,7 @@ Every JSON file is written by one formatter: two-space indent, and an array or
 object holding only strings, numbers, booleans or nulls on one line. Reading a
 file and writing it again gives the same bytes.
 """
+
 import glob
 import json
 import pathlib
@@ -39,7 +40,10 @@ def dumps(value, depth=0):
     if isinstance(value, dict):
         if all(scalar(item) for item in value.values()):
             return json.dumps(value, ensure_ascii=False)
-        fields = [f"{inner}{json.dumps(key, ensure_ascii=False)}: {dumps(item, depth + 1)}" for key, item in value.items()]
+        fields = [
+            f"{inner}{json.dumps(key, ensure_ascii=False)}: {dumps(item, depth + 1)}"
+            for key, item in value.items()
+        ]
         return "{\n" + ",\n".join(fields) + "\n" + INDENT * depth + "}"
     if isinstance(value, list):
         if all(scalar(item) for item in value):
@@ -59,6 +63,7 @@ def by_area(rows):
         directory = row["path"].split("/", 1)[0]
         grouped.setdefault(row["area"], (directory, []))[1].append(row)
     return grouped
+
 
 def count_requirements(feats):
     """Requirement rows across the feature files, so the scale is stated once."""
@@ -109,12 +114,14 @@ def load_version_list():
     part of it the features happen to reach."""
     versions = []
     for data in version_manifests():
-        versions.append({
-            "version": data["version"],
-            "status": data.get("status", "planned"),
-            "milestone": data.get("milestone"),
-            "goals": len(data.get("goals", [])),
-        })
+        versions.append(
+            {
+                "version": data["version"],
+                "status": data.get("status", "planned"),
+                "milestone": data.get("milestone"),
+                "goals": len(data.get("goals", [])),
+            }
+        )
     versions.sort(key=lambda v: ordered(v["version"]))
     return versions
 
@@ -156,28 +163,27 @@ def build_rows(feats, by_feature):
     rows = []
     for fid in sorted(feats, key=_order):
         fm = feats[fid]
-        versions = [
-            {"version": v, "status": s}
-            for v, s in sorted(by_feature.get(fid, {}).items())
-        ]
-        rows.append({
-            "id": fid,
-            "title": fm["title"],
-            "area": fm["area"],
-            "audience": fm["audience"],
-            "kind": fm.get("kind", "feature"),
-            "status": fm["status"],
-            "maturity": fm["maturity"],
-            "shipped": fm.get("shipped"),
-            "milestones": milestones_of(fid, by_feature, by_version),
-            "milestone": next(iter(milestones_of(fid, by_feature, by_version)), None),
-            "priority": fm.get("priority"),
-            "labels": fm.get("labels", []),
-            "requires": fm.get("requires", []),
-            "relates": fm.get("relates", []),
-            "versions": versions,
-            "path": fm["path"].split("features/", 1)[1],
-        })
+        versions = [{"version": v, "status": s} for v, s in sorted(by_feature.get(fid, {}).items())]
+        rows.append(
+            {
+                "id": fid,
+                "title": fm["title"],
+                "area": fm["area"],
+                "audience": fm["audience"],
+                "kind": fm.get("kind", "feature"),
+                "status": fm["status"],
+                "maturity": fm["maturity"],
+                "shipped": fm.get("shipped"),
+                "milestones": milestones_of(fid, by_feature, by_version),
+                "milestone": next(iter(milestones_of(fid, by_feature, by_version)), None),
+                "priority": fm.get("priority"),
+                "labels": fm.get("labels", []),
+                "requires": fm.get("requires", []),
+                "relates": fm.get("relates", []),
+                "versions": versions,
+                "path": fm["path"].split("features/", 1)[1],
+            }
+        )
     return rows
 
 

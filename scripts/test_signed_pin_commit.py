@@ -77,7 +77,9 @@ class SignedPinCommit(unittest.TestCase):
             subprocess.run(["git", "-C", str(self.repo), *args], check=True, capture_output=True)
         self.base = subprocess.run(
             ["git", "-C", str(self.repo), "rev-parse", "HEAD"],
-            check=True, capture_output=True, text=True,
+            check=True,
+            capture_output=True,
+            text=True,
         ).stdout.strip()
         (self.repo / ".github" / "workflows" / "ci.yml").write_text("new\n", encoding="utf-8")
         (self.repo / ".github" / "workflows" / "gone.yml").unlink()
@@ -106,10 +108,18 @@ class SignedPinCommit(unittest.TestCase):
             **env,
         }
         with mock.patch.dict(os.environ, settings), redirect_stdout(out), redirect_stderr(err):
-            code = signed_pin_commit.main([
-                "--repo", str(self.repo), "--slug", "lemonfiber/alpha",
-                "--branch", "ci/take-the-shared-workflows", "--message", str(self.message),
-            ])
+            code = signed_pin_commit.main(
+                [
+                    "--repo",
+                    str(self.repo),
+                    "--slug",
+                    "lemonfiber/alpha",
+                    "--branch",
+                    "ci/take-the-shared-workflows",
+                    "--message",
+                    str(self.message),
+                ]
+            )
         return code, out.getvalue(), err.getvalue()
 
     def calls(self) -> list[str]:
@@ -130,20 +140,36 @@ class SignedPinCommit(unittest.TestCase):
 
     def run_named(self, slug: str, branch: str, repo: str | None = None) -> tuple[int, str]:
         err = io.StringIO()
-        settings = {"PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}", "GH_LOG": str(self.log),
-                    "GH_REQUEST": str(self.request), "GH_OID": OID}
+        settings = {
+            "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
+            "GH_LOG": str(self.log),
+            "GH_REQUEST": str(self.request),
+            "GH_OID": OID,
+        }
         with mock.patch.dict(os.environ, settings), redirect_stdout(io.StringIO()), redirect_stderr(err):
-            code = signed_pin_commit.main([
-                f"--repo={repo or self.repo}", f"--slug={slug}", f"--branch={branch}",
-                "--message", str(self.message),
-            ])
+            code = signed_pin_commit.main(
+                [
+                    f"--repo={repo or self.repo}",
+                    f"--slug={slug}",
+                    f"--branch={branch}",
+                    "--message",
+                    str(self.message),
+                ]
+            )
         return code, err.getvalue()
 
     def test_a_name_that_could_be_read_as_an_option_reaches_no_command(self):
         for slug, branch in (
-            ("--paginate/alpha", "ci/x"), ("lemonfiber/alpha", "--force"), ("lemonfiber", "ci/x"),
-            ("lemonfiber/alpha/x", "ci/x"), ("lemonfiber/alpha", "ci/../main"), ("lemonfiber/alpha", "ci/a..b"), ("lemonfiber/alpha", "ci//x"),
-            ("lemonfiber/alpha", "-x"), ("lemonfiber/alpha", "ci/x\n"), ("lemon fiber/alpha", "ci/x"),
+            ("--paginate/alpha", "ci/x"),
+            ("lemonfiber/alpha", "--force"),
+            ("lemonfiber", "ci/x"),
+            ("lemonfiber/alpha/x", "ci/x"),
+            ("lemonfiber/alpha", "ci/../main"),
+            ("lemonfiber/alpha", "ci/a..b"),
+            ("lemonfiber/alpha", "ci//x"),
+            ("lemonfiber/alpha", "-x"),
+            ("lemonfiber/alpha", "ci/x\n"),
+            ("lemon fiber/alpha", "ci/x"),
         ):
             with self.subTest(slug=slug, branch=branch):
                 code, err = self.run_named(slug, branch)
@@ -207,19 +233,22 @@ class SignedPinCommit(unittest.TestCase):
         sent = json.loads(self.request.read_text(encoding="utf-8"))["variables"]["input"]
         self.assertEqual(
             sent["branch"],
-            {"repositoryNameWithOwner": "lemonfiber/alpha",
-             "branchName": "ci/take-the-shared-workflows-staging"},
+            {
+                "repositoryNameWithOwner": "lemonfiber/alpha",
+                "branchName": "ci/take-the-shared-workflows-staging",
+            },
         )
         self.assertEqual(sent["expectedHeadOid"], self.base)
         self.assertEqual(
             sent["message"],
-            {"headline": "ci(workflows): take the shared workflows at v1.0.9",
-             "body": "Why.\n\nSpec: OPS-R85"},
+            {
+                "headline": "ci(workflows): take the shared workflows at v1.0.9",
+                "body": "Why.\n\nSpec: OPS-R85",
+            },
         )
         self.assertEqual(
             sent["fileChanges"]["additions"],
-            [{"path": ".github/workflows/ci.yml",
-              "contents": base64.b64encode(b"new\n").decode()}],
+            [{"path": ".github/workflows/ci.yml", "contents": base64.b64encode(b"new\n").decode()}],
         )
         self.assertEqual(sent["fileChanges"]["deletions"], [{"path": ".github/workflows/gone.yml"}])
 
@@ -257,7 +286,8 @@ class SignedPinCommit(unittest.TestCase):
 
     def test_a_refusal_with_nothing_said_still_says_refused(self):
         with mock.patch.object(
-            signed_pin_commit, "gh",
+            signed_pin_commit,
+            "gh",
             return_value=subprocess.CompletedProcess([], 1, stdout="", stderr=""),
         ):
             self.assertEqual(signed_pin_commit.place("o/r", "b", OID), "refused")

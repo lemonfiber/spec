@@ -45,9 +45,7 @@ def chains() -> list[tuple[str, tuple[str, ...]]]:
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         for chain in DOCUMENTED.findall(text):
-            found.append(
-                (str(path.relative_to(ROOT)), tuple(s.strip() for s in chain.split("→")))
-            )
+            found.append((str(path.relative_to(ROOT)), tuple(s.strip() for s in chain.split("→"))))
     return found
 
 
@@ -59,9 +57,7 @@ class TheLifecycleIsWrittenOnce(unittest.TestCase):
         nothing to disagree with — the shape this whole file exists to catch,
         one level down.
         """
-        self.assertGreaterEqual(
-            len(chains()), 3, "no documented lifecycle was found to check"
-        )
+        self.assertGreaterEqual(len(chains()), 3, "no documented lifecycle was found to check")
 
     def test_every_documented_chain_is_every_state_in_order(self):
         for where, chain in chains():

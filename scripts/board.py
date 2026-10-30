@@ -84,8 +84,10 @@ def areas(features: dict[str, dict]) -> list[dict]:
     the directory its features live in."""
     names = area_names(pathlib.Path(FEATURES_README).read_text(encoding="utf-8"))
     directories = {fm["area"]: fm["path"].split("/")[2] for fm in features.values()}
-    return [{"id": area, "name": names.get(area), "directory": directory}
-            for area, directory in sorted(directories.items())]
+    return [
+        {"id": area, "name": names.get(area), "directory": directory}
+        for area, directory in sorted(directories.items())
+    ]
 
 
 def keyword(text: str) -> str | None:
@@ -108,10 +110,16 @@ def requirement(ident: str, raw: str, owner: str, draft: bool, versions: list[st
     status = status_of(text, draft)
     replaced = CITE.findall(text) if status == "superseded" else []
     prefix = ident.rsplit("-R", 1)[0]
-    return {"id": ident, "owner": owner,
-            "namespace": "feature" if FEATURE_ID.match(prefix) else prefix,
-            "keyword": keyword(text), "text": text, "status": status,
-            "replaced_by": replaced[0] if replaced else None, "versions": versions}
+    return {
+        "id": ident,
+        "owner": owner,
+        "namespace": "feature" if FEATURE_ID.match(prefix) else prefix,
+        "keyword": keyword(text),
+        "text": text,
+        "status": status,
+        "replaced_by": replaced[0] if replaced else None,
+        "versions": versions,
+    }
 
 
 def requirements(features: dict[str, dict], locked_by: dict[str, list[str]]) -> list[dict]:
@@ -122,8 +130,10 @@ def requirements(features: dict[str, dict], locked_by: dict[str, list[str]]) -> 
     for doc in sorted(d for d in root.rglob("*.md") if not elsewhere(d, root)):
         owner = by_path.get(doc.as_posix(), doc.as_posix())
         draft = owner in features and features[owner]["status"] == "draft"
-        found += [requirement(ident, raw, owner, draft, locked_by.get(ident, []))
-                  for ident, raw in REQ_DEF_ROW.findall(doc.read_text(encoding="utf-8"))]
+        found += [
+            requirement(ident, raw, owner, draft, locked_by.get(ident, []))
+            for ident, raw in REQ_DEF_ROW.findall(doc.read_text(encoding="utf-8"))
+        ]
     return sorted(found, key=lambda r: (r["owner"], ordered_id(r["id"])))
 
 
@@ -135,13 +145,18 @@ def ordered_id(ident: str) -> tuple[str, int]:
 def versions(reading: goals.Reading) -> list[dict]:
     """Each manifest in train order, with the verdict on each goal."""
     fields = ("milestone", "delivers", "released_on", "released_as")
-    return [{"version": m["version"], "status": m.get("status", "planned"),
-             **{name: m.get(name) for name in fields},
-             "repos": m.get("repos", []),
-             "satisfied_in": m.get("satisfied_in", m.get("repos", [])),
-             "prereleases": m.get("prerelease", []),
-             "goals": [g.as_json() for g in standing]}
-            for m, standing in reading.report]
+    return [
+        {
+            "version": m["version"],
+            "status": m.get("status", "planned"),
+            **{name: m.get(name) for name in fields},
+            "repos": m.get("repos", []),
+            "satisfied_in": m.get("satisfied_in", m.get("repos", [])),
+            "prereleases": m.get("prerelease", []),
+            "goals": [g.as_json() for g in standing],
+        }
+        for m, standing in reading.report
+    ]
 
 
 def tracker_file(name: str, checkout: pathlib.Path, ref: str) -> str | None:
@@ -157,8 +172,7 @@ def tracker_file(name: str, checkout: pathlib.Path, ref: str) -> str | None:
 
 def trackers(reading: goals.Reading, ref: str) -> list[dict]:
     """Each repository a version is satisfied in, and the rows its tracker holds."""
-    searched = sorted({name for m, _ in reading.report
-                       for name in m.get("satisfied_in", m.get("repos", []))})
+    searched = sorted({name for m, _ in reading.report for name in m.get("satisfied_in", m.get("repos", []))})
     out = []
     for name in searched:
         if name in reading.unread:
@@ -166,20 +180,31 @@ def trackers(reading: goals.Reading, ref: str) -> list[dict]:
             continue
         rows = goals.tracker(name, reading.checkouts[name], ref)
         kept_in = tracker_file(name, reading.checkouts[name], ref)
-        out.append({"repo": name, "present": True,
-                    "rows": [{"id": r.id, "state": r.state, "evidence": list(r.evidence),
-                              "landed": r.landed,
-                              "path": kept_in or f"{status_check.DIRECTORY}/"
-                                                 f"{status_check.family(r.id)}.toml"}
-                             for r in rows]})
+        out.append(
+            {
+                "repo": name,
+                "present": True,
+                "rows": [
+                    {
+                        "id": r.id,
+                        "state": r.state,
+                        "evidence": list(r.evidence),
+                        "landed": r.landed,
+                        "path": kept_in or f"{status_check.DIRECTORY}/{status_check.family(r.id)}.toml",
+                    }
+                    for r in rows
+                ],
+            }
+        )
     return out
 
 
 def cites(pr: dict) -> list[str]:
     """The identifiers a pull request cites in `Spec:` lines, body and commits."""
     texts = [pr.get("body") or ""] + [c.get("message", "") for c in pr.get("commits") or []]
-    found = {ident for text in texts for trailer in SPEC_TRAILER.findall(text)
-             for ident in CITE.findall(trailer)}
+    found = {
+        ident for text in texts for trailer in SPEC_TRAILER.findall(text) for ident in CITE.findall(trailer)
+    }
     return sorted(found, key=ordered_id)
 
 
@@ -207,25 +232,35 @@ def pulls(prs: dict[str, list[dict]], now: datetime.datetime) -> list[dict]:
             author = (pr.get("author") or {}).get("login")
             draft = bool(pr.get("isDraft"))
             committed = last_commit(pr)
-            out.append({
-                "repo": repo, "number": pr["number"], "url": pr["url"],
-                "title": pr.get("title"), "author": author,
-                "bot": is_bot(pr),
-                "draft": draft, "created_at": pr.get("createdAt"),
-                "updated_at": pr.get("updatedAt"), "head": pr.get("headRefName"),
-                "last_commit_at": committed,
-                "stale": stale(draft, committed or pr.get("createdAt"), now),
-                "cites": cites(pr),
-            })
+            out.append(
+                {
+                    "repo": repo,
+                    "number": pr["number"],
+                    "url": pr["url"],
+                    "title": pr.get("title"),
+                    "author": author,
+                    "bot": is_bot(pr),
+                    "draft": draft,
+                    "created_at": pr.get("createdAt"),
+                    "updated_at": pr.get("updatedAt"),
+                    "head": pr.get("headRefName"),
+                    "last_commit_at": committed,
+                    "stale": stale(draft, committed or pr.get("createdAt"), now),
+                    "cites": cites(pr),
+                }
+            )
     return out
 
 
 def contested(reading: goals.Reading, listed: list[dict]) -> list[dict]:
     """Each goal of a version not yet out that more than one open pull request
     from people or agents cites, with those pull requests as `repo#number`."""
-    open_goals = {goal for manifest, _ in reading.report
-                  if manifest.get("status") not in goals.FINISHED
-                  for goal in manifest.get("goals", [])}
+    open_goals = {
+        goal
+        for manifest, _ in reading.report
+        if manifest.get("status") not in goals.FINISHED
+        for goal in manifest.get("goals", [])
+    }
     claims: dict[str, list[str]] = {}
     for pr in listed:
         if pr["bot"]:
@@ -233,8 +268,11 @@ def contested(reading: goals.Reading, listed: list[dict]) -> list[dict]:
         for ident in pr["cites"]:
             if ident in open_goals:
                 claims.setdefault(ident, []).append(f"{pr['repo']}#{pr['number']}")
-    return [{"id": ident, "pulls": claims[ident]}
-            for ident in sorted(claims, key=ordered_id) if len(claims[ident]) > 1]
+    return [
+        {"id": ident, "pulls": claims[ident]}
+        for ident in sorted(claims, key=ordered_id)
+        if len(claims[ident]) > 1
+    ]
 
 
 def tracker_state(name: str, present: dict[str, bool], unread: dict[str, str]) -> str | None:
@@ -247,24 +285,32 @@ def tracker_state(name: str, present: dict[str, bool], unread: dict[str, str]) -
     return "present" if present[name] else "absent"
 
 
-def repos(listed: list[dict], read: set[str], trackers_: list[dict],
-          unread: dict[str, str]) -> list[dict]:
+def repos(listed: list[dict], read: set[str], trackers_: list[dict], unread: dict[str, str]) -> list[dict]:
     """Every repository in the organisation, the map's, the ungoverned and the
     retired ones, with how many open pull requests it holds and its tracker. The
     count is null for a repository whose pull requests were not read, since
     nought would say that it holds none."""
     data = tomllib.loads(pathlib.Path(REPOS).read_text(encoding="utf-8"))
     present = {t["repo"]: t["present"] for t in trackers_}
-    rows = (data.get("repo", []) + [{**r, "group": UNGOVERNED} for r in data.get("ungoverned", [])]
-            + [{**r, "group": RETIRED_REPOS} for r in data.get(RETIRED_REPOS, [])])
+    rows = (
+        data.get("repo", [])
+        + [{**r, "group": UNGOVERNED} for r in data.get("ungoverned", [])]
+        + [{**r, "group": RETIRED_REPOS} for r in data.get(RETIRED_REPOS, [])]
+    )
     out = []
     for repo in rows:
         own = [p for p in listed if p["repo"] == repo["name"]]
-        out.append({"name": repo["name"], "group": repo.get("group"),
-                    "lang": repo.get("lang"), "note": repo.get("note"),
-                    "pages": repo.get("spec", []),
-                    "open_pulls": len(own) if repo["name"] in read else None,
-                    "tracker": tracker_state(repo["name"], present, unread)})
+        out.append(
+            {
+                "name": repo["name"],
+                "group": repo.get("group"),
+                "lang": repo.get("lang"),
+                "note": repo.get("note"),
+                "pages": repo.get("spec", []),
+                "open_pulls": len(own) if repo["name"] in read else None,
+                "tracker": tracker_state(repo["name"], present, unread),
+            }
+        )
     return out
 
 
@@ -283,14 +329,28 @@ def releases(reading: goals.Reading, ref: str) -> list[dict]:
             entry = json.loads(shown)
         except json.JSONDecodeError as broken:
             raise goals.Unread(f"{CORE}: {CHANGELOG}/{name} is not JSON: {broken}") from broken
-        out.append({"version": entry["version"], "tag": entry.get("tag"),
-                    "released_on": entry.get("released_on"), "delivers": entry.get("delivers"),
-                    "groups": [{"title": g.get("title"),
-                                "entries": [{"summary": e.get("summary"),
-                                             "requirements": e.get("requirements", []),
-                                             "reference": e.get("reference")}
-                                            for e in g.get("entries", [])]}
-                               for g in entry.get("groups") or []]})
+        out.append(
+            {
+                "version": entry["version"],
+                "tag": entry.get("tag"),
+                "released_on": entry.get("released_on"),
+                "delivers": entry.get("delivers"),
+                "groups": [
+                    {
+                        "title": g.get("title"),
+                        "entries": [
+                            {
+                                "summary": e.get("summary"),
+                                "requirements": e.get("requirements", []),
+                                "reference": e.get("reference"),
+                            }
+                            for e in g.get("entries", [])
+                        ],
+                    }
+                    for g in entry.get("groups") or []
+                ],
+            }
+        )
     return sorted(out, key=lambda r: ordered(r["version"]))
 
 
@@ -312,21 +372,33 @@ def tools(checkout: pathlib.Path | None) -> tuple[list[dict], str | None, str | 
     return rows, head.stdout.strip(), None
 
 
-def proposals(features: dict[str, dict], requirements_: list[dict],
-              issues: list[dict]) -> list[dict]:
+def proposals(features: dict[str, dict], requirements_: list[dict], issues: list[dict]) -> list[dict]:
     """The pre-approval feed: Draft features, Draft requirements, open `rfc` issues."""
-    out = [{"kind": "feature", "id": fid, "title": fm["title"], "url": None}
-           for fid, fm in sorted(features.items(), key=lambda kv: (kv[0][0], int(kv[0][1:])))
-           if fm["status"] == "draft"]
-    out += [{"kind": "requirement", "id": r["id"], "title": r["text"], "url": None}
-            for r in requirements_ if r["status"] == "draft"]
-    out += [{"kind": "rfc", "id": issue["number"], "title": issue["title"],
-             "url": issue["html_url"]} for issue in issues if "pull_request" not in issue]
+    out = [
+        {"kind": "feature", "id": fid, "title": fm["title"], "url": None}
+        for fid, fm in sorted(features.items(), key=lambda kv: (kv[0][0], int(kv[0][1:])))
+        if fm["status"] == "draft"
+    ]
+    out += [
+        {"kind": "requirement", "id": r["id"], "title": r["text"], "url": None}
+        for r in requirements_
+        if r["status"] == "draft"
+    ]
+    out += [
+        {"kind": "rfc", "id": issue["number"], "title": issue["title"], "url": issue["html_url"]}
+        for issue in issues
+        if "pull_request" not in issue
+    ]
     return out
 
 
-def snapshot(reading: goals.Reading, ref: str, issues: list[dict],
-             now: datetime.datetime, tool: pathlib.Path | None = None) -> dict:
+def snapshot(
+    reading: goals.Reading,
+    ref: str,
+    issues: list[dict],
+    now: datetime.datetime,
+    tool: pathlib.Path | None = None,
+) -> dict:
     """The whole snapshot, in the documented shape."""
     commands, tool_commit, tool_unread = tools(tool)
     sources = {**reading.sources, **({TOOL: tool_commit} if tool_commit else {})}
@@ -345,8 +417,7 @@ def snapshot(reading: goals.Reading, ref: str, issues: list[dict],
         "generated_at": now.astimezone(datetime.UTC).strftime(STAMP),
         "ref": ref,
         "sources": sources,
-        "unread": [{"repo": repo, "reason": reason}
-                   for repo, reason in sorted(unread.items())],
+        "unread": [{"repo": repo, "reason": reason} for repo, reason in sorted(unread.items())],
         "areas": areas(feats),
         "features": rows,
         "requirements": reqs,
@@ -389,8 +460,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         reading = goals.read(".", args.checkout, args.ref, args.prs, [])
-        issues = (json.loads(within_cwd(args.issues).read_text(encoding="utf-8"))
-                  if args.issues else [])
+        issues = json.loads(within_cwd(args.issues).read_text(encoding="utf-8")) if args.issues else []
         tool = within_cwd(args.tools) if args.tools else None
         data = snapshot(reading, args.ref, issues, datetime.datetime.now(datetime.UTC), tool)
     except (goals.Unread, OSError, json.JSONDecodeError) as broken:

@@ -27,6 +27,7 @@ Usage:
 Exit 0 = every plugin the version cuts is pinned at the tag, or it cuts none, 1 = one
 is not, or the core, its catalogue or the bundle cannot be read, 2 = usage.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -74,15 +75,32 @@ def target_at(pin: dict, path: str, plugin: str) -> tuple[str | None, str | None
     """
     revision = str(pin.get("revision", ""))
     if not check_plugins.COMMIT_RE.match(revision):
-        return None, f"{plugin}: the bundle pins it at {revision or 'no revision'!r}, which is not a full commit"
+        return (
+            None,
+            f"{plugin}: the bundle pins it at {revision or 'no revision'!r}, which is not a full commit",
+        )
     with tempfile.TemporaryDirectory() as box:
         root = pathlib.Path(box)
-        for step in (("init", "--quiet"),
-                     ("-c", "core.hooksPath=/dev/null", "fetch", "--quiet", "--depth", "1", "--no-tags",
-                      str(pin["origin"]), revision)):
+        for step in (
+            ("init", "--quiet"),
+            (
+                "-c",
+                "core.hooksPath=/dev/null",
+                "fetch",
+                "--quiet",
+                "--depth",
+                "1",
+                "--no-tags",
+                str(pin["origin"]),
+                revision,
+            ),
+        ):
             done = git(*step, at=root)
             if done.returncode != 0:
-                return None, f"{plugin}: {revision[:12]} could not be fetched from {pin['origin']}: {last_word(done)}"
+                return (
+                    None,
+                    f"{plugin}: {revision[:12]} could not be fetched from {pin['origin']}: {last_word(done)}",
+                )
         shown = git("show", f"FETCH_HEAD:{path}", at=root)
         if shown.returncode == 0:
             (root / path).parent.mkdir(parents=True, exist_ok=True)
@@ -90,7 +108,9 @@ def target_at(pin: dict, path: str, plugin: str) -> tuple[str | None, str | None
         return check_plugins.targeted(root, {"id": plugin, "targets": path})
 
 
-def unheld(core: pathlib.Path, bundle: dict, wanted: list[tuple[str, str]], places: dict[str, str]) -> list[str]:
+def unheld(
+    core: pathlib.Path, bundle: dict, wanted: list[tuple[str, str]], places: dict[str, str]
+) -> list[str]:
     """Every pinned revision whose `targets.toml` names a commit the core being tagged
     does not hold, or that cannot say what it targets."""
     pinned = {str(pin.get("id")): pin for pin in bundle.get("plugin", []) if isinstance(pin, dict)}
@@ -115,8 +135,11 @@ def targets_places(path: pathlib.Path) -> dict[str, str]:
     if not path.is_file():
         return {}
     entries = tomllib.loads(path.read_text(encoding="utf-8")).get("plugin", [])
-    return {entry["repo"]: entry["targets"] for entry in entries
-            if isinstance(entry, dict) and "repo" in entry and "targets" in entry}
+    return {
+        entry["repo"]: entry["targets"]
+        for entry in entries
+        if isinstance(entry, dict) and "repo" in entry and "targets" in entry
+    }
 
 
 def main() -> int:
@@ -158,8 +181,10 @@ def main() -> int:
     for problem in said:
         print(f"::error::{problem}")
     if said:
-        print(f"::error::the embedded bundle does not pin what {a.tag} published; "
-              "nothing else is tagged until it does")
+        print(
+            f"::error::the embedded bundle does not pin what {a.tag} published; "
+            "nothing else is tagged until it does"
+        )
         return 1
     for _, plugin in wanted:
         print(f"{plugin} is pinned at {release}.")

@@ -106,16 +106,25 @@ def features(spec: pathlib.Path, done: set[str]) -> list[Feature]:
         text = pathlib.Path(path).read_text(encoding="utf-8")
         defined = set(REQ_DEF.findall(text)) - set(REQ_RETIRED_ROW.findall(text))
         derived = derive(defined, done, shipped)
-        version = (max((shipped[r] for r in defined), key=ordered) if derived == "shipped"
-                   else None)
-        found.append(Feature(front["id"], pathlib.Path(path), front.get("maturity", ""),
-                             derived, len(defined & done), len(defined),
-                             front.get("shipped"), version))
+        version = max((shipped[r] for r in defined), key=ordered) if derived == "shipped" else None
+        found.append(
+            Feature(
+                front["id"],
+                pathlib.Path(path),
+                front.get("maturity", ""),
+                derived,
+                len(defined & done),
+                len(defined),
+                front.get("shipped"),
+                version,
+            )
+        )
     return found
 
 
-def done_across(spec: pathlib.Path, trackers: dict[str, pathlib.Path],
-                legacy: pathlib.Path | None) -> set[str]:
+def done_across(
+    spec: pathlib.Path, trackers: dict[str, pathlib.Path], legacy: pathlib.Path | None
+) -> set[str]:
     """Every requirement some tracker records done, refusing any input that was not read.
 
     Fails closed in every direction. A derivation from fewer trackers than there are
@@ -131,7 +140,8 @@ def done_across(spec: pathlib.Path, trackers: dict[str, pathlib.Path],
         raise status_check.Unreadable(
             f"no tracker given for {', '.join(missing)}: every repository a version is "
             "satisfied in keeps one (OPS-R74), and one that was not read is not one that "
-            "records nothing")
+            "records nothing"
+        )
     done: set[str] = set()
     for name, path in trackers.items():
         rows = status_check.load(path, name)
@@ -140,7 +150,8 @@ def done_across(spec: pathlib.Path, trackers: dict[str, pathlib.Path],
         if rows is None and legacy is None:
             raise status_check.Unreadable(
                 f"{name}: its tracker is in the milestone shape, and no --legacy page was "
-                "given to read it through")
+                "given to read it through"
+            )
         done |= {row.id for row in rows or [] if row.done}
     if legacy is not None:
         import gate
@@ -149,9 +160,11 @@ def done_across(spec: pathlib.Path, trackers: dict[str, pathlib.Path],
             raise status_check.Unreadable(f"no Markdown tracker at {legacy}")
         page = gate.done_ids(legacy)
         if not page:
-            raise status_check.Unreadable(f"{legacy} records nothing done, which is a page "
-                                          "that was not read rather than a project with "
-                                          "nothing built")
+            raise status_check.Unreadable(
+                f"{legacy} records nothing done, which is a page "
+                "that was not read rather than a project with "
+                "nothing built"
+            )
         done |= page
     return done
 
@@ -193,15 +206,19 @@ def main() -> int:
     if args.write:
         for feature in moved:
             rewrite(feature)
-            print(f"{feature.id}: {shown(feature.says, feature.says_shipped)} → "
-                  f"{shown(feature.derived, feature.shipped_in)}")
+            print(
+                f"{feature.id}: {shown(feature.says, feature.says_shipped)} → "
+                f"{shown(feature.derived, feature.shipped_in)}"
+            )
         return 0
     for f in moved:
-        print(f"::error::{f.id} is `{shown(f.says, f.says_shipped)}` in the catalogue, and "
-              f"the trackers and manifests make it `{shown(f.derived, f.shipped_in)}`: "
-              f"{f.done} of its {f.defined} requirements are done. "
-              "`maturity.py --write` rewrites it, and the maturity workflow opens that "
-              "pull request hourly (OPS-R78).")
+        print(
+            f"::error::{f.id} is `{shown(f.says, f.says_shipped)}` in the catalogue, and "
+            f"the trackers and manifests make it `{shown(f.derived, f.shipped_in)}`: "
+            f"{f.done} of its {f.defined} requirements are done. "
+            "`maturity.py --write` rewrites it, and the maturity workflow opens that "
+            "pull request hourly (OPS-R78)."
+        )
     if moved:
         return 1
     print("maturity: every feature says what the trackers say.")

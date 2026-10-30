@@ -33,22 +33,26 @@ JUDGED = ("staged", "in_progress")
 
 def manifests() -> list[dict]:
     """Every version manifest, the template apart, in train order."""
-    found = [tomllib.loads(path.read_text(encoding="utf-8"))
-             for path in VERSIONS.glob("*.toml") if path.stem != "TEMPLATE"]
+    found = [
+        tomllib.loads(path.read_text(encoding="utf-8"))
+        for path in VERSIONS.glob("*.toml")
+        if path.stem != "TEMPLATE"
+    ]
     return sorted(found, key=lambda data: ordered(data["version"]))
 
 
 def in_flight() -> str | None:
     """The first version in train order whose goals are locked and judged."""
-    return next((data["version"] for data in manifests()
-                 if data.get("status") in JUDGED), None)
+    return next((data["version"] for data in manifests() if data.get("status") in JUDGED), None)
 
 
 def blockers(version: str) -> list[str]:
     """Each blocker a version's manifest lists, as one line."""
     data = tomllib.loads((VERSIONS / f"{version}.toml").read_text(encoding="utf-8"))
-    return [f"{entry.get('what', '(unnamed)')} — {entry.get('where', 'nowhere named')}"
-            for entry in data.get("blockers", [])]
+    return [
+        f"{entry.get('what', '(unnamed)')} — {entry.get('where', 'nowhere named')}"
+        for entry in data.get("blockers", [])
+    ]
 
 
 def main() -> int:

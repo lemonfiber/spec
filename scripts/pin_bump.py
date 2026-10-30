@@ -134,7 +134,12 @@ def conformance_of(manifest: dict, image: str) -> set[str]:
     runs `image` speaks, as `conformance/<capability>@<major>`."""
     services = manifest.get("service", [])
     running = {one.get("id") for one in services if one.get("image") == image}
-    spoken = {str(contract) for one in services if one.get("fronts") in running for contract in one.get("speaks", [])}
+    spoken = {
+        str(contract)
+        for one in services
+        if one.get("fronts") in running
+        for contract in one.get("speaks", [])
+    }
     return {f"conformance/{contract}" for contract in spoken if CONTRACT.match(contract)}
 
 
@@ -144,7 +149,9 @@ def recordings_named(manifest: dict, image: str, relative: str) -> bool:
     folder, _, name = relative.rpartition("/")
     if not name.endswith(".json") or any(part.startswith(".") for part in relative.split("/")):
         return False
-    return relative in fixtures(manifest) or (folder in conformance_of(manifest, image) and CASE.match(name) is not None)
+    return relative in fixtures(manifest) or (
+        folder in conformance_of(manifest, image) and CASE.match(name) is not None
+    )
 
 
 def stage(root: pathlib.Path, main_text: str, move: dict, out: pathlib.Path) -> list[str]:
@@ -159,8 +166,10 @@ def stage(root: pathlib.Path, main_text: str, move: dict, out: pathlib.Path) -> 
     staged = [MANIFEST_FILE]
     paths.plain_write(out, MANIFEST_FILE, paths.plain_read(root, MANIFEST_FILE, MANIFEST_LIMIT))
     for relative in paths.plain_files(root)[0]:
-        if relative == PROOFS_FILE or (recordings_named(manifest, move["image"], relative)
-                                       and recording_of(paths.plain_read(root, relative, RECORDING_LIMIT)) == pinned):
+        if relative == PROOFS_FILE or (
+            recordings_named(manifest, move["image"], relative)
+            and recording_of(paths.plain_read(root, relative, RECORDING_LIMIT)) == pinned
+        ):
             paths.plain_write(out, relative, paths.plain_read(root, relative, RECORDING_LIMIT))
             staged.append(relative)
     return staged
@@ -183,8 +192,10 @@ def admitted_files(main_text: str, move: dict, bump: pathlib.Path) -> dict[str, 
     written, _ = plugin_pin.pinned(main_text, image, to["tag"], to["digest"])
     admitted = {MANIFEST_FILE: paths.plain_read(bump, MANIFEST_FILE, MANIFEST_LIMIT)}
     if admitted[MANIFEST_FILE] != written.encode():
-        raise Refused(f"{MANIFEST_FILE} is not main's with {image} moved to {to['tag']} at {to['digest']} "
-                      "and nothing else")
+        raise Refused(
+            f"{MANIFEST_FILE} is not main's with {image} moved to {to['tag']} at {to['digest']} "
+            "and nothing else"
+        )
     manifest = tomllib.loads(main_text)
     pinned = f"{image}@{to['digest']}"
     for relative in files:
@@ -212,12 +223,16 @@ def body_of(said: str, left: list[str], log: str, cited: str) -> tuple[str, bool
     """
     lines = [said, ""]
     if not left:
-        lines.append("Every recording of it the manifest names is recorded again from it by `lemonfiber plugin "
-                     "record`, at the lemonfiber `targets.toml` names; the plugin check judges every claim, proof "
-                     "and check against them.")
+        lines.append(
+            "Every recording of it the manifest names is recorded again from it by `lemonfiber plugin "
+            "record`, at the lemonfiber `targets.toml` names; the plugin check judges every claim, proof "
+            "and check against them."
+        )
     else:
-        lines.append("Not every recording was taken again from it, so these still name the image this replaces "
-                     f"and are refused (ARCH-R121); the record job's log says why: {log}")
+        lines.append(
+            "Not every recording was taken again from it, so these still name the image this replaces "
+            f"and are refused (ARCH-R121); the record job's log says why: {log}"
+        )
         lines += [f"- `{path}`" for path in left[:STALE_LISTED]]
         if len(left) > STALE_LISTED:
             lines.append(f"- and {len(left) - STALE_LISTED} more")
@@ -229,7 +244,9 @@ def body_of(said: str, left: list[str], log: str, cited: str) -> tuple[str, bool
 def reader_of(workflow: str) -> dict[str, str]:
     """The reader's repository and revision, as the workflow that runs it pins them."""
     found = {key.lower(): value for key, value in READER.findall(workflow)}
-    if not READER_REPOSITORY.match(found.get("repository", "")) or not READER_REVISION.match(found.get("revision", "")):
+    if not READER_REPOSITORY.match(found.get("repository", "")) or not READER_REVISION.match(
+        found.get("revision", "")
+    ):
         raise ValueError("the workflow pins no reader repository and full revision")
     return found
 
@@ -248,9 +265,13 @@ def pinned_images(manifest: dict) -> list[str]:
 def pulled(manifest: dict) -> None:
     """Every image the manifest pins, pulled by digest; one that could not be is warned of."""
     for reference in pinned_images(manifest):
-        done = subprocess.run(["docker", "pull", "--quiet", reference], capture_output=True, text=True, check=False)
+        done = subprocess.run(
+            ["docker", "pull", "--quiet", reference], capture_output=True, text=True, check=False
+        )
         if done.returncode != 0:
-            print(f"::warning::{reference} could not be pulled: {registry.printable(done.stderr)}", flush=True)
+            print(
+                f"::warning::{reference} could not be pulled: {registry.printable(done.stderr)}", flush=True
+            )
 
 
 def recorded(root: pathlib.Path, taken: pathlib.Path) -> None:
@@ -267,8 +288,10 @@ def recorded(root: pathlib.Path, taken: pathlib.Path) -> None:
         raise Refused(".github in the plugin is not a plain directory")
     held = root / READER_HOME
     if os.path.lexists(held):
-        raise Refused(f"{READER_HOME} is in the plugin. A first-party plugin carries no Python of its own; "
-                      "the reader is this workflow's.")
+        raise Refused(
+            f"{READER_HOME} is in the plugin. A first-party plugin carries no Python of its own; "
+            "the reader is this workflow's."
+        )
     github.mkdir(exist_ok=True)
     shutil.copytree(taken, held, symlinks=True)
     try:
@@ -284,11 +307,16 @@ def recorded(root: pathlib.Path, taken: pathlib.Path) -> None:
             print(why, flush=True)
             code = 1
         if code != 0:
-            print(f"::warning::lemonfiber plugin record exited {code}; the recordings it did not take are named "
-                  "on the pull request", flush=True)
+            print(
+                f"::warning::lemonfiber plugin record exited {code}; the recordings it did not take are named "
+                "on the pull request",
+                flush=True,
+            )
         if subprocess.run([sys.executable, str(held / READER_FILE), "proofs"], check=False).returncode != 0:
-            print("::warning::not every assertion holds on the new recordings; the plugin check on the pull "
-                  "request names which")
+            print(
+                "::warning::not every assertion holds on the new recordings; the plugin check on the pull "
+                "request names which"
+            )
     finally:
         shutil.rmtree(held)
         shutil.rmtree(root / CACHE, ignore_errors=True)
@@ -305,11 +333,20 @@ def pins_only(changed: list[str], directory: str) -> bool:
 def changed_between(before: str, after: str) -> list[str] | None:
     """Every path the working directory's repository changed from `before` to `after`,
     or None where `before` is no commit it holds."""
-    if NO_COMMIT.match(before) or subprocess.run(["git", "cat-file", "-e", f"{before}^{{commit}}"],
-                                                 capture_output=True, check=False).returncode != 0:
+    if (
+        NO_COMMIT.match(before)
+        or subprocess.run(
+            ["git", "cat-file", "-e", f"{before}^{{commit}}"], capture_output=True, check=False
+        ).returncode
+        != 0
+    ):
         return None
-    named = subprocess.run(["git", "diff", "--no-renames", "--name-only", "-z", before, after, "--"],
-                           capture_output=True, text=True, check=True).stdout
+    named = subprocess.run(
+        ["git", "diff", "--no-renames", "--name-only", "-z", before, after, "--"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
     return [path for path in named.split("\0") if path]
 
 
@@ -354,7 +391,9 @@ def admit_into(root: pathlib.Path, files: dict[str, bytes], move: dict, move_out
     write(move_out, json.dumps(move, indent=2).encode())
 
 
-def message(args: argparse.Namespace, described: Callable[[dict, list[str], str], tuple[str, str, bool]]) -> int:
+def message(
+    args: argparse.Namespace, described: Callable[[dict, list[str], str], tuple[str, str, bool]]
+) -> int:
     """The commit message on standard output, and the pull request's title, body and
     whether it came out clean for the step's outputs, as `described` words them from the
     move and the recordings in the checkout."""
@@ -393,13 +432,17 @@ def asked_pins_only(args: argparse.Namespace) -> int:
 
 ASKED = {"reader": asked_reader, "record": asked_record, "stage": asked_stage, "pins-only": asked_pins_only}
 OPTIONS = {
-    "reader": ("--workflow",), "record": ("--manifest", "--reader"),
-    "stage": ("--manifest", "--main", "--move", "--out"), "pins-only": ("--before", "--after"),
+    "reader": ("--workflow",),
+    "record": ("--manifest", "--reader"),
+    "stage": ("--manifest", "--main", "--move", "--out"),
+    "pins-only": ("--before", "--after"),
 }
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     asked = parser.add_subparsers(dest="asked", required=True)
     for name, options in OPTIONS.items():
         one = asked.add_parser(name)

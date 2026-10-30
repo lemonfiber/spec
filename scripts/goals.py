@@ -132,14 +132,19 @@ class Standing:
             self.landed_in.append(f"{name}@{row.landed[:10]}")
 
     def as_json(self) -> dict:
-        return {"id": self.id, "verdict": self.verdict, "cited_in": self.cited_in,
-                "done_in": self.done_in, "partial_in": self.partial_in,
-                "landed_in": self.landed_in, "claims": self.claims}
+        return {
+            "id": self.id,
+            "verdict": self.verdict,
+            "cited_in": self.cited_in,
+            "done_in": self.done_in,
+            "partial_in": self.partial_in,
+            "landed_in": self.landed_in,
+            "claims": self.claims,
+        }
 
 
 def git(path: pathlib.Path, *args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(["git", "-C", str(path), *args], capture_output=True,
-                          text=True, check=False)
+    return subprocess.run(["git", "-C", str(path), *args], capture_output=True, text=True, check=False)
 
 
 @functools.cache
@@ -178,13 +183,18 @@ def tracker(name: str, path: pathlib.Path, ref: str) -> list[status_check.Row]:
     listed = git(path, "ls-tree", "--name-only", f"{ref}:{status_check.DIRECTORY}")
     try:
         if listed.returncode == 0:
-            files = [(f, git(path, "show", f"{ref}:{status_check.DIRECTORY}/{f}").stdout)
-                     for f in listed.stdout.split() if f.endswith(".toml")]
+            files = [
+                (f, git(path, "show", f"{ref}:{status_check.DIRECTORY}/{f}").stdout)
+                for f in listed.stdout.split()
+                if f.endswith(".toml")
+            ]
             return status_check.gathered(files, name)
         shown = git(path, "show", f"{ref}:{status_check.FILE}")
         if shown.returncode != 0:
-            raise Unread(f"{name} keeps no tracker at {ref} (OPS-R74), and a tracker "
-                         "that was not read is not one that records nothing")
+            raise Unread(
+                f"{name} keeps no tracker at {ref} (OPS-R74), and a tracker "
+                "that was not read is not one that records nothing"
+            )
         rows = status_check.parse(shown.stdout, f"{name}:{status_check.FILE}", name)
     except status_check.Unreadable as broken:
         raise Unread(str(broken)) from broken
@@ -211,10 +221,13 @@ def claims(prs: dict[str, list[dict]]) -> dict[str, list[dict]]:
     for repo, listed in prs.items():
         for pr in listed:
             texts = [pr.get("body") or ""] + [c.get("message", "") for c in pr.get("commits") or []]
-            cited = {ident for text in texts for trailer in SPEC_TRAILER.findall(text)
-                     for ident in CITE.findall(trailer)}
-            claim = {"repo": repo, "number": pr["number"], "url": pr["url"],
-                     "draft": bool(pr.get("isDraft"))}
+            cited = {
+                ident
+                for text in texts
+                for trailer in SPEC_TRAILER.findall(text)
+                for ident in CITE.findall(trailer)
+            }
+            claim = {"repo": repo, "number": pr["number"], "url": pr["url"], "draft": bool(pr.get("isDraft"))}
             for ident in cited:
                 found.setdefault(ident, []).append(claim)
     return found
@@ -228,8 +241,13 @@ def revision(name: str, path: pathlib.Path, ref: str) -> str:
     return found.stdout.strip()
 
 
-def as_data(report: list[tuple[dict, list[Standing]]], ref: str, sources: dict[str, str],
-            unread: dict[str, str], now: datetime.datetime) -> dict:
+def as_data(
+    report: list[tuple[dict, list[Standing]]],
+    ref: str,
+    sources: dict[str, str],
+    unread: dict[str, str],
+    now: datetime.datetime,
+) -> dict:
     """The report for a script: its format, what it was read from and when, and each goal."""
     return {
         "format": FORMAT,
@@ -238,25 +256,34 @@ def as_data(report: list[tuple[dict, list[Standing]]], ref: str, sources: dict[s
         "sources": sources,
         "unread": [{"repo": repo, "reason": reason} for repo, reason in sorted(unread.items())],
         "versions": [
-            {"version": m["version"], "status": m.get("status", "planned"),
-             "milestone": m.get("milestone"), "delivers": m.get("delivers"),
-             "goals": [g.as_json() for g in goals]}
-            for m, goals in report],
+            {
+                "version": m["version"],
+                "status": m.get("status", "planned"),
+                "milestone": m.get("milestone"),
+                "delivers": m.get("delivers"),
+                "goals": [g.as_json() for g in goals],
+            }
+            for m, goals in report
+        ],
     }
 
 
 def manifests(spec: pathlib.Path, wanted: list[str]) -> list[dict]:
     """The manifests asked for, or every one, in train order."""
-    found = [data for data in status_check.manifests(spec)
-             if not wanted or data["version"] in wanted]
+    found = [data for data in status_check.manifests(spec) if not wanted or data["version"] in wanted]
     missing = set(wanted) - {data["version"] for data in found}
     if missing:
         raise Unread(f"no manifest for {', '.join(sorted(missing))}")
     return sorted(found, key=lambda data: ordered(data["version"]))
 
 
-def standing(manifest: dict, checkouts: dict[str, pathlib.Path], ref: str,
-             claimed: dict[str, list[dict]], unread: dict[str, str]) -> list[Standing]:
+def standing(
+    manifest: dict,
+    checkouts: dict[str, pathlib.Path],
+    ref: str,
+    claimed: dict[str, list[dict]],
+    unread: dict[str, str],
+) -> list[Standing]:
     """Each goal of one version, read where that version is satisfied.
 
     A repository that cannot be read is added to `unread` with the reason, once
@@ -274,8 +301,13 @@ def standing(manifest: dict, checkouts: dict[str, pathlib.Path], ref: str,
     return list(goals.values())
 
 
-def read_where(goals: dict[str, Standing], name: str, checkouts: dict[str, pathlib.Path],
-               ref: str, unread: dict[str, str]) -> bool:
+def read_where(
+    goals: dict[str, Standing],
+    name: str,
+    checkouts: dict[str, pathlib.Path],
+    ref: str,
+    unread: dict[str, str],
+) -> bool:
     """Read one repository into `goals`, or record in `unread` why it could not
     be; whether it was read. A repository already found unreadable is not tried
     again."""
@@ -291,8 +323,7 @@ def read_where(goals: dict[str, Standing], name: str, checkouts: dict[str, pathl
     return True
 
 
-def read_repository(goals: dict[str, Standing], name: str, path: pathlib.Path,
-                    ref: str) -> None:
+def read_repository(goals: dict[str, Standing], name: str, path: pathlib.Path, ref: str) -> None:
     """What one repository's history and tracker say of each goal.
 
     Both are read before either is applied, so a repository whose tracker
@@ -307,16 +338,16 @@ def read_repository(goals: dict[str, Standing], name: str, path: pathlib.Path,
             goals[row.id].record(name, path, row, ref)
 
 
-def markdown(report: list[tuple[dict, list[Standing]]], ref: str,
-             unread: dict[str, str]) -> str:
+def markdown(report: list[tuple[dict, list[Standing]]], ref: str, unread: dict[str, str]) -> str:
     """The report as a page a person reads: what could not be read, what is still
     to do, then what shipped."""
-    source = (f"Read from each repository at `{ref}`. Written by `scripts/goals.py`; "
-              "`just goals <version>` writes the same from local checkouts (OPS-R76).")
+    source = (
+        f"Read from each repository at `{ref}`. Written by `scripts/goals.py`; "
+        "`just goals <version>` writes the same from local checkouts (OPS-R76)."
+    )
     out = ["# Where every version stands", "", source, ""]
     if unread:
-        note = ("A goal searched in one of these reads unknown unless another "
-                "repository shows it met.")
+        note = "A goal searched in one of these reads unknown unless another repository shows it met."
         out += ["## Not read", "", note, ""]
         out += [f"- **{repo}**: {reason}" for repo, reason in sorted(unread.items())]
         out += [""]
@@ -326,9 +357,10 @@ def markdown(report: list[tuple[dict, list[Standing]]], ref: str,
     finished = [(m, goals) for m, goals in report if m.get("status", "planned") in FINISHED]
     if finished:
         out += ["## Released", "", "| Version | Status | Goals met |", "|---|---|---|"]
-        out += [f"| {m['version']} | {m['status']} | "
-                f"{sum(g.verdict == 'met' for g in goals)} of {len(goals)} |"
-                for m, goals in finished]
+        out += [
+            f"| {m['version']} | {m['status']} | {sum(g.verdict == 'met' for g in goals)} of {len(goals)} |"
+            for m, goals in finished
+        ]
     return "\n".join(out).rstrip("\n") + "\n"
 
 
@@ -336,26 +368,29 @@ def standing_page(manifest: dict, goals: list[Standing]) -> list[str]:
     """One version still on the train: its counts, then its goals by verdict."""
     counts = {verdict: sum(g.verdict == verdict for g in goals) for verdict in VERDICTS}
     summary = ", ".join(f"{counts[v]} {v}" for v in VERDICTS if counts[v])
-    out = [f"## {manifest['version']} — {manifest.get('status', 'planned')}", "",
-           f"{len(goals)} goals: {summary}.", ""]
+    out = [
+        f"## {manifest['version']} — {manifest.get('status', 'planned')}",
+        "",
+        f"{len(goals)} goals: {summary}.",
+        "",
+    ]
     for verdict in VERDICTS:
         rows = [g for g in goals if g.verdict == verdict]
         if not rows:
             continue
         fold = verdict == "met"
-        out += (["<details><summary>Met</summary>", ""] if fold
-                else [f"### {HEADINGS[verdict]}", ""])
-        out += ["| Goal | Done in | Partial in | Cited in | Claimed by |",
-                "|---|---|---|---|---|"]
+        out += ["<details><summary>Met</summary>", ""] if fold else [f"### {HEADINGS[verdict]}", ""]
+        out += ["| Goal | Done in | Partial in | Cited in | Claimed by |", "|---|---|---|---|---|"]
         for g in rows:
             claimed = ", ".join(
-                f"[{c['repo']}#{c['number']}]({c['url']}){' (draft)' if c['draft'] else ''}"
-                for c in g.claims)
+                f"[{c['repo']}#{c['number']}]({c['url']}){' (draft)' if c['draft'] else ''}" for c in g.claims
+            )
             cited = ", ".join(g.cited_in[:3] + g.landed_in[:1])
             if len(g.cited_in) > 3:
                 cited += f" and {len(g.cited_in) - 3} more"
-            out.append(f"| {g.id} | {', '.join(g.done_in)} | {', '.join(g.partial_in)} | "
-                       f"{cited} | {claimed} |")
+            out.append(
+                f"| {g.id} | {', '.join(g.done_in)} | {', '.join(g.partial_in)} | {cited} | {claimed} |"
+            )
         out += ["", "</details>", ""] if fold else [""]
     return out
 
@@ -382,8 +417,9 @@ class Reading:
     prs: dict[str, list[dict]]
 
 
-def read(spec_arg: str, checkout_args: list[str], ref: str, prs_arg: str | None,
-         versions: list[str]) -> Reading:
+def read(
+    spec_arg: str, checkout_args: list[str], ref: str, prs_arg: str | None, versions: list[str]
+) -> Reading:
     """Read every source once, raising `Unread` only for what stops the whole
     report: the spec, an argument or the pull request file.
 
@@ -404,8 +440,7 @@ def read(spec_arg: str, checkout_args: list[str], ref: str, prs_arg: str | None,
             unread[name] = str(broken)
     prs = json.loads(within_cwd(prs_arg).read_text(encoding="utf-8")) if prs_arg else {}
     claimed = claims(prs)
-    report = [(m, standing(m, checkouts, ref, claimed, unread))
-              for m in manifests(spec, versions)]
+    report = [(m, standing(m, checkouts, ref, claimed, unread)) for m in manifests(spec, versions)]
     return Reading(report, sources, unread, checkouts, prs)
 
 
@@ -432,8 +467,9 @@ def main() -> int:
         return 2
     warn(reading.unread)
     page = markdown(reading.report, args.ref, reading.unread)
-    data = as_data(reading.report, args.ref, reading.sources, reading.unread,
-                   datetime.datetime.now(datetime.UTC))
+    data = as_data(
+        reading.report, args.ref, reading.sources, reading.unread, datetime.datetime.now(datetime.UTC)
+    )
     if args.markdown:
         within_cwd(args.markdown).write_text(page, encoding="utf-8")
     if args.json_out:
@@ -441,6 +477,7 @@ def main() -> int:
     if not (args.markdown or args.json_out):
         print(page, end="")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -43,8 +43,18 @@ OTHER = "b" * 40
 BOT = "lemonfiber-release-train[bot]"
 
 
-def pull(number=7, repo=REPO, ref=BRANCH, sha=HEAD, login=BOT, base="main", armed=None,
-         kind="Bot", state="open", merged_at=None):
+def pull(
+    number=7,
+    repo=REPO,
+    ref=BRANCH,
+    sha=HEAD,
+    login=BOT,
+    base="main",
+    armed=None,
+    kind="Bot",
+    state="open",
+    merged_at=None,
+):
     return {
         "number": number,
         "node_id": f"PR_{number}",
@@ -60,14 +70,25 @@ def pull(number=7, repo=REPO, ref=BRANCH, sha=HEAD, login=BOT, base="main", arme
 class Forge:
     """Answers each call from what the case set up, and records every one."""
 
-    def __init__(self, open_pulls=(), at=HEAD, created=None, graphql=None, fails=None,
-                 made_by=BOT, verified=True, rereads=()):
+    def __init__(
+        self,
+        open_pulls=(),
+        at=HEAD,
+        created=None,
+        graphql=None,
+        fails=None,
+        made_by=BOT,
+        verified=True,
+        rereads=(),
+    ):
         self.open_pulls = list(open_pulls)
         # What each read of one pull request answers, in turn; the listed one once these run out.
         self.rereads = list(rereads)
         self.at = at
-        self.made = {"author": {"login": made_by} if made_by else None,
-                     "commit": {"verification": {"verified": verified}}}
+        self.made = {
+            "author": {"login": made_by} if made_by else None,
+            "commit": {"verification": {"verified": verified}},
+        }
         self.created = created if created is not None else pull(number=9)
         self.graphql_answer = graphql if graphql is not None else {"data": {}}
         self.fails = fails
@@ -101,8 +122,12 @@ class Forge:
 def run(forge, *extra, body="the body\n", title="chore(contract): take lemonfiber abcdef12"):
     argv = ["--repo", REPO, "--branch", BRANCH, "--head", HEAD, "--author", BOT, f"--title={title}", *extra]
     out, err = io.StringIO(), io.StringIO()
-    with mock.patch("sys.stdin", io.StringIO(body)), mock.patch.object(rolling, "pause") as paused, \
-            contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+    with (
+        mock.patch("sys.stdin", io.StringIO(body)),
+        mock.patch.object(rolling, "pause") as paused,
+        contextlib.redirect_stdout(out),
+        contextlib.redirect_stderr(err),
+    ):
         code = rolling.main(argv, api=forge)
     forge.paused = paused.call_count
     return code, out.getvalue(), err.getvalue()
@@ -286,19 +311,31 @@ class TheBumpsOwn(unittest.TestCase):
         forge = Forge([pull()])
         code, out, _ = run(forge, body="new body\n", title="chore: the new one")
         self.assertEqual((code, out.strip()), (0, "7"))
-        self.assertEqual(forge.writes(), [("PATCH", f"repos/{REPO}/pulls/7",
-                                           {"title": "chore: the new one", "body": "new body\n"})])
+        self.assertEqual(
+            forge.writes(),
+            [("PATCH", f"repos/{REPO}/pulls/7", {"title": "chore: the new one", "body": "new body\n"})],
+        )
 
     def test_none_open_opens_one_from_the_branch_into_main_and_labels_it(self):
         forge = Forge()
         code, out, _ = run(forge, "--labels= dependencies, ,ci ")
         self.assertEqual((code, out.strip()), (0, "9"))
-        self.assertEqual(forge.writes(), [
-            ("POST", f"repos/{REPO}/pulls",
-             {"title": "chore(contract): take lemonfiber abcdef12", "head": BRANCH, "base": "main",
-              "body": "the body\n"}),
-            ("POST", f"repos/{REPO}/issues/9/labels", {"labels": ["dependencies", "ci"]}),
-        ])
+        self.assertEqual(
+            forge.writes(),
+            [
+                (
+                    "POST",
+                    f"repos/{REPO}/pulls",
+                    {
+                        "title": "chore(contract): take lemonfiber abcdef12",
+                        "head": BRANCH,
+                        "base": "main",
+                        "body": "the body\n",
+                    },
+                ),
+                ("POST", f"repos/{REPO}/issues/9/labels", {"labels": ["dependencies", "ci"]}),
+            ],
+        )
 
     def test_no_labels_asks_for_none(self):
         forge = Forge()
@@ -385,8 +422,10 @@ class WhenTheForgeFails(unittest.TestCase):
 
         err = io.StringIO()
         with mock.patch("sys.stdin", Unreadable()), contextlib.redirect_stderr(err):
-            code = rolling.main(["--repo", REPO, "--branch", BRANCH, "--head", HEAD, "--author", BOT,
-                                 "--title=t"], api=Forge())
+            code = rolling.main(
+                ["--repo", REPO, "--branch", BRANCH, "--head", HEAD, "--author", BOT, "--title=t"],
+                api=Forge(),
+            )
         self.assertEqual(code, 2)
         self.assertIn("standard input is closed", err.getvalue())
 
@@ -417,8 +456,22 @@ class MalformedArguments(unittest.TestCase):
         forge = Forge()
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
-            code = rolling.main(["--repo", REPO, "--branch", BRANCH, "--head", HEAD, "--author", BOT,
-                                 "--title=t", "--auto-merge", "--disarm"], api=forge)
+            code = rolling.main(
+                [
+                    "--repo",
+                    REPO,
+                    "--branch",
+                    BRANCH,
+                    "--head",
+                    HEAD,
+                    "--author",
+                    BOT,
+                    "--title=t",
+                    "--auto-merge",
+                    "--disarm",
+                ],
+                api=forge,
+            )
         self.assertEqual(code, 2)
         self.assertEqual(forge.asked, [])
         self.assertIn("opposite things", err.getvalue())
@@ -454,7 +507,9 @@ class WithAStubbedGh(unittest.TestCase):
             "PATH": f"{stub.parent}{os.pathsep}{os.environ['PATH']}",
             "GH_LOG": str(self.log),
             "GH_REF": json.dumps({"object": {"sha": HEAD}}),
-            "GH_COMMIT": json.dumps({"author": {"login": BOT}, "commit": {"verification": {"verified": True}}}),
+            "GH_COMMIT": json.dumps(
+                {"author": {"login": BOT}, "commit": {"verification": {"verified": True}}}
+            ),
             "GH_PULLS": json.dumps([]),
             "GH_CREATED": json.dumps(pull(number=9)),
         }
@@ -494,12 +549,25 @@ class WithAStubbedGh(unittest.TestCase):
         (work / ".spec-tooling").mkdir(parents=True)
         (work / ".spec-tooling" / "scripts").symlink_to(HERE)
         output, summary = self.scratch / "output", self.scratch / "summary"
-        env = {**self.env, "GITHUB_OUTPUT": str(output), "GITHUB_STEP_SUMMARY": str(summary),
-               "GH_TOKEN": "x", "REPO": REPO, "AUTHOR": BOT, "BRANCH": BRANCH, "HEAD_SHA": HEAD,
-               "TITLE": "chore: t", "BODY": "the body", "LABELS": "", "AUTO_MERGE": "false",
-               "DISARM": "false", **inputs}
-        done = subprocess.run(["bash", "-c", self.step()["run"]], cwd=work, env=env,
-                              capture_output=True, text=True, check=False)
+        env = {
+            **self.env,
+            "GITHUB_OUTPUT": str(output),
+            "GITHUB_STEP_SUMMARY": str(summary),
+            "GH_TOKEN": "x",
+            "REPO": REPO,
+            "AUTHOR": BOT,
+            "BRANCH": BRANCH,
+            "HEAD_SHA": HEAD,
+            "TITLE": "chore: t",
+            "BODY": "the body",
+            "LABELS": "",
+            "AUTO_MERGE": "false",
+            "DISARM": "false",
+            **inputs,
+        }
+        done = subprocess.run(
+            ["bash", "-c", self.step()["run"]], cwd=work, env=env, capture_output=True, text=True, check=False
+        )
         written = output.read_text(encoding="utf-8") if output.exists() else ""
         return done, written, work
 

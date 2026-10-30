@@ -72,9 +72,7 @@ class Generated:
     def every(self) -> list[str]:
         """Every file it writes as the tree stands: the listed ones, then the found."""
         found = sorted(
-            path.relative_to(ROOT).as_posix()
-            for pattern in self.patterns
-            for path in ROOT.glob(pattern)
+            path.relative_to(ROOT).as_posix() for pattern in self.patterns for path in ROOT.glob(pattern)
         )
         return [*self.paths, *found]
 
@@ -301,11 +299,7 @@ def check(out) -> int:
         return 1
 
     for entry in GENERATED:
-        missing = [
-            name
-            for name in (entry.generator, *entry.paths)
-            if not (ROOT / name).exists()
-        ]
+        missing = [name for name in (entry.generator, *entry.paths) if not (ROOT / name).exists()]
         if missing:
             print(
                 f"{entry.generator} is registered as writing {', '.join(entry.paths)} "

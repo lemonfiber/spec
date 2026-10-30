@@ -68,9 +68,7 @@ class Arithmetic(unittest.TestCase):
         self.assertAlmostEqual(gen_contrast.ratio("#767676", "#FFFFFF"), 4.54, places=2)
 
     def test_a_hex_is_read_with_or_without_its_hash(self):
-        self.assertAlmostEqual(
-            gen_contrast.luminance("#FFFFFF"), gen_contrast.luminance("FFFFFF"), places=9
-        )
+        self.assertAlmostEqual(gen_contrast.luminance("#FFFFFF"), gen_contrast.luminance("FFFFFF"), places=9)
 
     def test_the_low_channel_branch_is_linear(self):
         # Below 0.03928 sRGB is linear rather than gamma-encoded, and a colour

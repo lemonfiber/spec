@@ -186,6 +186,7 @@ class WhenANameReportsTwice(Stubbed):
     def test_a_status_error_is_a_failure_and_an_unknown_one_is_not_a_pass(self):
         def one(state):
             return [{"context": "s", "state": state, "created_at": "2026-01-01T00:00:00Z"}]
+
         self.assertEqual(wib.reading([], one("error")), {"s": "FAILURE"})
         self.assertEqual(wib.reading([], one("pending")), {"s": "PENDING"})
         self.assertEqual(wib.reading([], one("sideways")), {"s": "PENDING"})
@@ -229,8 +230,15 @@ class ReadingTheForge(Stubbed):
         # branch that carries none are different facts, and this claims neither.
         self.said["headRefOid"] = "abc123\n"
         self.said["check-runs"] = json.dumps(
-            [{"name": "x", "conclusion": "success", "status": "completed",
-              "completed_at": "2026-01-01T00:00:00Z", "started_at": "2026-01-01T00:00:00Z"}]
+            [
+                {
+                    "name": "x",
+                    "conclusion": "success",
+                    "status": "completed",
+                    "completed_at": "2026-01-01T00:00:00Z",
+                    "started_at": "2026-01-01T00:00:00Z",
+                }
+            ]
         )
         out = wib.look("o/r", 3)
         self.assertIn("nothing required, or branch protection is unreadable", out[0])
@@ -304,8 +312,15 @@ class TheCommandLine(Stubbed):
         )
         self.said["headRefOid"] = "abc123\n"
         self.said["check-runs"] = json.dumps(
-            [{"name": "a", "conclusion": "failure", "status": "completed",
-              "completed_at": "2026-01-01T00:00:00Z", "started_at": "2026-01-01T00:00:00Z"}]
+            [
+                {
+                    "name": "a",
+                    "conclusion": "failure",
+                    "status": "completed",
+                    "completed_at": "2026-01-01T00:00:00Z",
+                    "started_at": "2026-01-01T00:00:00Z",
+                }
+            ]
         )
         self.said["/status"] = json.dumps([])
         code, out = self.run_main(["o/r", "3"])
@@ -368,9 +383,7 @@ class ReadingTheRulesOffTheForge(Stubbed):
         self.assertTrue(wib._state("o/r", 1)["behind"])
 
     def test_a_pull_request_that_is_not_behind_and_is_approved(self):
-        self.said["pr view"] = json.dumps(
-            {"mergeStateStatus": "CLEAN", "reviewDecision": "APPROVED"}
-        )
+        self.said["pr view"] = json.dumps({"mergeStateStatus": "CLEAN", "reviewDecision": "APPROVED"})
         state = wib._state("o/r", 1)
         self.assertFalse(state["behind"])
         self.assertFalse(state["unapproved"])
@@ -414,8 +427,7 @@ class ReadingTheRulesOffTheForge(Stubbed):
 
     def test_a_rule_that_could_not_be_read_is_reported_as_unproven(self):
         on = {"strict": False, "signatures": True, "conversation": True, "reviews": False}
-        said = wib.unmet(on, {"unsigned": False, "unresolved": False,
-                              "unread": ["unsigned", "unresolved"]})
+        said = wib.unmet(on, {"unsigned": False, "unresolved": False, "unread": ["unsigned", "unresolved"]})
         self.assertEqual(len(said), 2, said)
         for sentence in said:
             self.assertIn("could not be read", sentence)
@@ -528,9 +540,7 @@ class WhenThisAndGitHubDisagree(Stubbed):
         # Both say blocked. They agree on the answer; only the detail differs,
         # and the detail is what the rest of the report is for.
         self.assertIsNone(wib.disagrees(wib.blocking(["a"], {}), [], "BLOCKED"))
-        self.assertIsNone(
-            wib.disagrees(wib.blocking(["a"], {"a": "FAILURE"}), [], "BLOCKED")
-        )
+        self.assertIsNone(wib.disagrees(wib.blocking(["a"], {"a": "FAILURE"}), [], "BLOCKED"))
         self.assertIsNone(wib.disagrees(self.clear(), ["sign the commits"], "BLOCKED"))
 
     def test_a_check_still_running_is_not_a_disagreement(self):
@@ -556,14 +566,19 @@ class WhenThisAndGitHubDisagree(Stubbed):
         )
         self.said["headRefOid"] = "abc123\n"
         self.said["check-runs"] = json.dumps(
-            [{"name": "a", "conclusion": "success", "status": "completed",
-              "completed_at": "2026-01-01T00:00:00Z", "started_at": "2026-01-01T00:00:00Z"}]
+            [
+                {
+                    "name": "a",
+                    "conclusion": "success",
+                    "status": "completed",
+                    "completed_at": "2026-01-01T00:00:00Z",
+                    "started_at": "2026-01-01T00:00:00Z",
+                }
+            ]
         )
         self.said["/status"] = json.dumps([])
         self.said["baseRefName"] = "main\n"
-        self.said["mergeStateStatus"] = json.dumps(
-            {"mergeStateStatus": "BLOCKED", "reviewDecision": None}
-        )
+        self.said["mergeStateStatus"] = json.dumps({"mergeStateStatus": "BLOCKED", "reviewDecision": None})
         out = wib.look("o/r", 1)
         self.assertIn("but GitHub says BLOCKED", out[0])
 
@@ -678,7 +693,9 @@ class TheFieldNamesAreReal(unittest.TestCase):
         # mistake and shows the probe notices.
         done = __import__("subprocess").run(
             ("gh", "pr", "view", "--json", "reviewThreads"),
-            capture_output=True, text=True, check=False,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         self.assertIn("Unknown JSON field", done.stderr + done.stdout)
 

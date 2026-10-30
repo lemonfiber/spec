@@ -35,6 +35,7 @@ Writes `step=images|streams` to `$GITHUB_OUTPUT` where the runner names one, and
 prints it either way. Exit 0 = settled, 1 = no manifest or a tag lookup that
 failed, 2 = usage.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -73,9 +74,19 @@ def carries(repo: str, tag: str) -> bool:
     if not (_REPO.match(repo) and _TAG.match(tag)):
         sys.exit(f"::error::{repo!r} at {tag!r} is not a lookup this hands to git")
     result = subprocess.run(
-        ["git", "-C", str(CHECKOUTS / repo), "ls-remote", "--exit-code", "--tags",
-         "origin", f"refs/tags/{tag}"],
-        capture_output=True, text=True, check=False,
+        [
+            "git",
+            "-C",
+            str(CHECKOUTS / repo),
+            "ls-remote",
+            "--exit-code",
+            "--tags",
+            "origin",
+            f"refs/tags/{tag}",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if result.returncode == 0:
         return True

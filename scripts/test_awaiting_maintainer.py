@@ -26,6 +26,7 @@ Stdlib unittest plus PyYAML (the parser is the point — a hand-rolled reader wo
 be testing a different string than CI runs).
 Run:  python3 scripts/test_awaiting_maintainer.py
 """
+
 from __future__ import annotations
 
 import json
@@ -81,7 +82,7 @@ on:
 # Stand in for gh. Every call is logged so a test can ask what was asked, and the
 # answers come from files named in the environment. Dispatch is on the URL and on
 # the --jq expression together, because two of the calls read the same URL.
-GH_STUB = '''#!/usr/bin/env python3
+GH_STUB = """#!/usr/bin/env python3
 import json, os, sys
 
 args = sys.argv[1:]
@@ -146,7 +147,7 @@ if args[0] == "api":
 
 sys.stderr.write("gh stub: nothing answers " + " ".join(args) + "\\n")
 sys.exit(64)
-'''
+"""
 
 
 def step_script() -> str:
@@ -266,8 +267,7 @@ class Gate(unittest.TestCase):
             "REVIEW_STATE": review_state,
             "PR_NUMBER": pr_number,
             "WORKFLOW_REF": (
-                "lemonfiber/lemonfiber/.github/workflows/"
-                "awaiting-maintainer.yml@refs/heads/main"
+                "lemonfiber/lemonfiber/.github/workflows/awaiting-maintainer.yml@refs/heads/main"
             ),
             "DEFAULT_BRANCH": "main",
             "LABEL": LABEL,
@@ -413,16 +413,12 @@ class Gate(unittest.TestCase):
     def test_a_wait_list_every_name_of_which_is_a_workflow_passes_through(self):
         """The control. A refusal that fires on the correct case is worse than
         no refusal, because it blocks every repository at once."""
-        code, out = self.run_step(
-            workflows=("ci", "build", "codeql", "sonar", "release-workflow", "docs")
-        )
+        code, out = self.run_step(workflows=("ci", "build", "codeql", "sonar", "release-workflow", "docs"))
         self.assertEqual(code, 0, out)
         self.assertIn("flagged=true", self.flagged())
 
     def test_a_skipped_required_check_is_not_held_against_the_pull_request(self):
-        code, out = self.run_step(
-            checks_json=checks(**{"check": "pass", "deny": "skipping"})
-        )
+        code, out = self.run_step(checks_json=checks(**{"check": "pass", "deny": "skipping"}))
         self.assertEqual(code, 0, out)
         self.assertIn("flagged=true", self.flagged())
 
@@ -494,9 +490,7 @@ class Gate(unittest.TestCase):
 
     def test_no_required_check_reported_holds(self):
         """gh answers "no checks reported" with an error and no JSON."""
-        code, out = self.run_step(
-            checks_json="", checks_rc=1, checks_err="no checks reported\n"
-        )
+        code, out = self.run_step(checks_json="", checks_rc=1, checks_err="no checks reported\n")
         self.assertNotAnnounced(code, out)
         self.assertIn("No required check has reported on #41 yet", out)
         self.assertIn("no checks reported", out)
@@ -533,8 +527,9 @@ class Gate(unittest.TestCase):
         self.assertNotIn("--remove-label", self.asked())
 
     def test_a_review_whose_token_cannot_write_says_so(self):
-        code, out = self.run_step(event="pull_request_review", review_state="approved",
-                                  pr_number="41", edit_rc=1)
+        code, out = self.run_step(
+            event="pull_request_review", review_state="approved", pr_number="41", edit_rc=1
+        )
         self.assertEqual(code, 0, out)
         self.assertIn(f"pr edit 41 --remove-label {LABEL}", self.asked())
         self.assertIn(f"{LABEL} stays until a run that can", out)
@@ -590,9 +585,7 @@ class Gate(unittest.TestCase):
         Same runs, a shorter declaration: what it holds for changes with the
         file, which is what makes the trigger list and the wait list one thing.
         """
-        short = CALLER.replace(
-            "[ci, build, codeql, sonar, release-workflow]", "[ci, build]"
-        )
+        short = CALLER.replace("[ci, build, codeql, sonar, release-workflow]", "[ci, build]")
         code, out = self.run_step(caller=short, runs_json=runs(ci="success"))
         self.assertNotAnnounced(code, out)
         self.assertIn("build(no run at this commit yet)", out)
@@ -601,8 +594,7 @@ class Gate(unittest.TestCase):
     def test_it_reads_the_callers_file_on_the_default_branch(self):
         self.run_step()
         self.assertIn(
-            "repos/lemonfiber/lemonfiber/contents/"
-            ".github/workflows/awaiting-maintainer.yml?ref=main",
+            "repos/lemonfiber/lemonfiber/contents/.github/workflows/awaiting-maintainer.yml?ref=main",
             self.asked(),
         )
 
@@ -612,9 +604,7 @@ class Gate(unittest.TestCase):
 
     def test_it_asks_about_this_commit(self):
         self.run_step()
-        self.assertIn(
-            "head_sha=0123456789abcdef0123456789abcdef01234567", self.asked()
-        )
+        self.assertIn("head_sha=0123456789abcdef0123456789abcdef01234567", self.asked())
 
     def test_the_step_carries_no_workflow_expressions(self):
         """OPS-R28: event-derived text reaches the shell through the environment."""
@@ -628,9 +618,7 @@ class Gate(unittest.TestCase):
         self.assertIn(f"pr edit 41 --remove-label {LABEL}", self.asked())
 
     def test_an_approving_review_clears_the_label(self):
-        code, out = self.run_step(
-            event="pull_request_review", review_state="approved", pr_number="41"
-        )
+        code, out = self.run_step(event="pull_request_review", review_state="approved", pr_number="41")
         self.assertEqual(code, 0, out)
         self.assertIn(f"pr edit 41 --remove-label {LABEL}", self.asked())
 
@@ -644,9 +632,7 @@ class Gate(unittest.TestCase):
         self.assertIn("--remove-label", self.asked())
 
     def test_a_comment_review_clears_nothing(self):
-        code, out = self.run_step(
-            event="pull_request_review", review_state="commented", pr_number="41"
-        )
+        code, out = self.run_step(event="pull_request_review", review_state="commented", pr_number="41")
         self.assertEqual(code, 0, out)
         self.assertNotIn("--remove-label", self.asked())
 

@@ -35,6 +35,7 @@ Usage, from the root of the repository being checked::
 
 Exit 0 = the local command is described and its description is honest.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -178,19 +179,23 @@ def check(repo: pathlib.Path) -> tuple[list[str], int]:
     found, said = described(repo)
     if not found:
         return [
-            ("no local command: this repository defines no `ci` in a justfile, a "
-             "package.json or a composer.json, so there is nothing a contributor "
-             "can run before a push and nothing here to hold to a description "
-             "(OPS-R51)")
+            (
+                "no local command: this repository defines no `ci` in a justfile, a "
+                "package.json or a composer.json, so there is nothing a contributor "
+                "can run before a push and nothing here to hold to a description "
+                "(OPS-R51)"
+            )
         ], 0
 
     if not said:
         return [
-            (f"{', '.join(found)} is defined here and nothing says what it covers. "
-             f"Put the sentence where the tool prints it — a comment above the "
-             f"`ci` recipe in a justfile, or `scripts-descriptions.ci` in a "
-             f"composer.json — and say what it leaves out, because it leaves out "
-             f"every forge-side job")
+            (
+                f"{', '.join(found)} is defined here and nothing says what it covers. "
+                f"Put the sentence where the tool prints it — a comment above the "
+                f"`ci` recipe in a justfile, or `scripts-descriptions.ci` in a "
+                f"composer.json — and say what it leaves out, because it leaves out "
+                f"every forge-side job"
+            )
         ], 0
 
     problems, counted = [], 0
@@ -204,13 +209,13 @@ def check(repo: pathlib.Path) -> tuple[list[str], int]:
                 continue
             problems.append(
                 f"this sentence says the local command is CI, and it is not: "
-                 f"{one!r}. Every pull request here starts jobs no clone can run "
-                 f"— the citation gate, the sign-off, the subject, the secret "
-                 f"scan — so an unqualified claim is false whatever the recipe "
-                 f"grows. Name what it leaves out: in the sentence — "
-                 f"\"Everything CI runs bar the image check, which needs the "
-                 f"network\" — or as a list beside "
-                 f"the recipe, which is better where there are several (Q-R57)"
+                f"{one!r}. Every pull request here starts jobs no clone can run "
+                f"— the citation gate, the sign-off, the subject, the secret "
+                f"scan — so an unqualified claim is false whatever the recipe "
+                f"grows. Name what it leaves out: in the sentence — "
+                f'"Everything CI runs bar the image check, which needs the '
+                f'network" — or as a list beside '
+                f"the recipe, which is better where there are several (Q-R57)"
             )
     return problems, counted
 
@@ -227,8 +232,10 @@ def main() -> int:
             print(f"::error::{problem}")
         return 1
     found, _ = described(repo)
-    print(f"local command: {', '.join(found)}, described, and "
-          f"{counted} sentence(s) claiming to be CI name what they leave out")
+    print(
+        f"local command: {', '.join(found)}, described, and "
+        f"{counted} sentence(s) claiming to be CI name what they leave out"
+    )
     return 0
 
 

@@ -27,6 +27,7 @@ Usage:
 Exit 0 = every governed sentence agrees with the bundle; 1 = named ones do not;
 2 = the question could not be answered.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -47,11 +48,31 @@ BUNDLE = "https://raw.githubusercontent.com/lemonfiber/lemonfiber-plugins/main/b
 #: and stops where an org past twenty has a different problem, and this one counts
 #: services and would go on past it.
 WORDS = {
-    1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven",
-    8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "twelve", 13: "thirteen",
-    14: "fourteen", 15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen",
-    19: "nineteen", 20: "twenty", 21: "twenty-one", 22: "twenty-two",
-    23: "twenty-three", 24: "twenty-four", 25: "twenty-five",
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+    10: "ten",
+    11: "eleven",
+    12: "twelve",
+    13: "thirteen",
+    14: "fourteen",
+    15: "fifteen",
+    16: "sixteen",
+    17: "seventeen",
+    18: "eighteen",
+    19: "nineteen",
+    20: "twenty",
+    21: "twenty-one",
+    22: "twenty-two",
+    23: "twenty-three",
+    24: "twenty-four",
+    25: "twenty-five",
 }
 
 #: Where the record of a decision lives, which this never edits.
@@ -148,8 +169,7 @@ def disagreements(pages: list[pathlib.Path], root: pathlib.Path, said: str) -> l
         for stated in SENTENCE.findall(page.read_text(encoding="utf-8", errors="ignore")):
             if stated != said:
                 wrong.append(
-                    f"{page.relative_to(root)} says '{stated} bundled services'; "
-                    f"the bundle pins {said}"
+                    f"{page.relative_to(root)} says '{stated} bundled services'; the bundle pins {said}"
                 )
     return wrong
 

@@ -126,9 +126,7 @@ class WhatItRefuses(unittest.TestCase):
     def test_an_accepted_feature_requiring_one_the_spec_moved_on_from(self):
         for status in ("superseded", "withdrawn"):
             with self.subTest(status=status):
-                code, said = run(
-                    tree([KNOWN, ("X2", "accepted", "requires: [X3]\n"), ("X3", status, "")])
-                )
+                code, said = run(tree([KNOWN, ("X2", "accepted", "requires: [X3]\n"), ("X3", status, "")]))
                 self.assertEqual(code, 1)
                 self.assertIn(f"which is {status}", said)
 
@@ -177,9 +175,7 @@ class WhatItLeavesAlone(unittest.TestCase):
 
     def test_a_file_with_no_id_or_status_is_skipped_rather_than_guessed_at(self):
         root = tree([KNOWN, DECLARED])
-        (root / gate.FEATURES / "x-area" / "readme.md").write_text(
-            "# Not a feature\n", encoding="utf-8"
-        )
+        (root / gate.FEATURES / "x-area" / "readme.md").write_text("# Not a feature\n", encoding="utf-8")
         code, said = run(root)
         self.assertEqual(code, 0)
         self.assertIn("1 accepted features", said)

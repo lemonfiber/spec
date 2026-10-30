@@ -8,6 +8,7 @@ worth holding is which subjects the changelog generator can read and which it
 cannot, and building real commits to reach that would be testing git as much as
 this.
 """
+
 import re
 import subprocess
 import sys

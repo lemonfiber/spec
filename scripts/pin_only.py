@@ -77,7 +77,9 @@ GUARDED = (".github/workflows/", ".github/actions/")
 SPEC, MAIN = "lemonfiber/spec", "main"
 
 #: A pin of one of spec's workflows, with the version a tag names beside it.
-PIN = re.compile(r"(?P<path>lemonfiber/spec/\S+?)@(?P<sha>[0-9a-f]{40})(?P<version>[ \t]*#[ \t]*v\d+(?:\.\d+)*)?")
+PIN = re.compile(
+    r"(?P<path>lemonfiber/spec/\S+?)@(?P<sha>[0-9a-f]{40})(?P<version>[ \t]*#[ \t]*v\d+(?:\.\d+)*)?"
+)
 
 #: The label a maintainer adds to approve the change a pull request makes to the checks.
 APPROVED = "workflows-approved"
@@ -187,8 +189,12 @@ def strict(text: str) -> object:
 def at_uses(where: tuple) -> bool:
     """Whether a place in a workflow is a job's `uses` or a step's."""
     return (len(where) == 3 and where[0] == "jobs" and where[2] == "uses") or (
-        len(where) == 5 and where[0] == "jobs" and where[2] == "steps" and isinstance(where[3], int)
-        and where[4] == "uses")
+        len(where) == 5
+        and where[0] == "jobs"
+        and where[2] == "steps"
+        and isinstance(where[3], int)
+        and where[4] == "uses"
+    )
 
 
 Differences = tuple[list[tuple], list[tuple[str, str, str]]]
@@ -241,12 +247,15 @@ def judged(path: str, before: str, after: str, api: Api) -> list[str]:
     (shape_before, pinned_before), (shape_after, pinned_after) = pins(before), pins(after)
     if shape_before != shape_after or [p for p, _ in pinned_before] != [p for p, _ in pinned_after]:
         return [f"{path} changes more than spec's pins"]
-    written = sorted((p, was, now) for (p, was), (_, now) in zip(pinned_before, pinned_after, strict=True)
-                     if was != now)
+    written = sorted(
+        (p, was, now) for (p, was), (_, now) in zip(pinned_before, pinned_after, strict=True) if was != now
+    )
     try:
         old, new = strict(before), strict(after)
     except (Unsafe, yaml.YAMLError) as unsafe:
-        return [f"{path} holds YAML two readers could take differently ({unsafe}), so no change to it is judged a pin"]
+        return [
+            f"{path} holds YAML two readers could take differently ({unsafe}), so no change to it is judged a pin"
+        ]
     elsewhere, moved = differences(old, new)
     if elsewhere:
         places = ", ".join(".".join(str(part) for part in place) or "the document" for place in elsewhere)
@@ -285,8 +294,11 @@ def guarded_tree(repo: str, commit: str, api: Api) -> dict[str, tuple[str, str]]
     below = api([f"repos/{repo}/git/trees/{github['sha']}?recursive=1"], False)
     if below.get("truncated"):
         raise Incomplete(f".github at {commit[:8]} came back truncated")
-    return {f".github/{one['path']}": (one["mode"], one["sha"]) for one in below["tree"]
-            if guarded(f".github/{one['path']}") and one["type"] != "tree"}
+    return {
+        f".github/{one['path']}": (one["mode"], one["sha"])
+        for one in below["tree"]
+        if guarded(f".github/{one['path']}") and one["type"] != "tree"
+    }
 
 
 #: The modes of a file git checks out as a file, rather than a link or a submodule.
@@ -318,8 +330,11 @@ def made(repo: str, base: str, commit: str, api: Api) -> dict[str, tuple[Entry, 
     """
     root = api([f"repos/{repo}/compare/{base}...{commit}"], False)["merge_base_commit"]["sha"]
     before, after = whole_tree(repo, root, api), whole_tree(repo, commit, api)
-    return {path: (before.get(path), after.get(path)) for path in sorted(set(before) | set(after))
-            if before.get(path) != after.get(path)}
+    return {
+        path: (before.get(path), after.get(path))
+        for path in sorted(set(before) | set(after))
+        if before.get(path) != after.get(path)
+    }
 
 
 def moment(stamp: str) -> datetime.datetime:
@@ -335,8 +350,10 @@ def current(repo: str, number: int, head: str, api: Api) -> dict:
     """The pull request, refused where its head has moved past the commit being judged."""
     pull = api([f"repos/{repo}/pulls/{number}"], False)
     if pull["head"]["sha"] != head:
-        raise Moved(f"the pull request's head is {pull['head']['sha'][:8]}, not {head[:8]}, the commit this run "
-                    "was started for; the run started for its head judges it")
+        raise Moved(
+            f"the pull request's head is {pull['head']['sha'][:8]}, not {head[:8]}, the commit this run "
+            "was started for; the run started for its head judges it"
+        )
     return pull
 
 
@@ -403,7 +420,9 @@ def labelled_head(runs: list[dict], events: list[dict], at: str) -> tuple[str, s
     before = [r for r in runs if r["created_at"] <= at]
     if not before:
         return f"no run of this check shows what its head was when `{APPROVED}` was added at {at}"
-    retargeted = sorted(e["created_at"] for e in events if e["event"] == "base_ref_changed" and e["created_at"] >= at)
+    retargeted = sorted(
+        e["created_at"] for e in events if e["event"] == "base_ref_changed" and e["created_at"] >= at
+    )
     if retargeted:
         return f"its base was changed at {retargeted[-1]}, after `{APPROVED}` was added at {at}"
     newest = max(r["created_at"] for r in before)
@@ -412,16 +431,24 @@ def labelled_head(runs: list[dict], events: list[dict], at: str) -> tuple[str, s
         return f"the runs at {newest} name {' and '.join(h[:8] for h in heads)}, so which head `{APPROVED}` was added on is unknown"
     approved = heads[0]
     held = [r["created_at"] for r in before if r["head_sha"] != approved]
-    since = min(r["created_at"] for r in before if r["head_sha"] == approved and (not held or r["created_at"] > max(held)))
+    since = min(
+        r["created_at"]
+        for r in before
+        if r["head_sha"] == approved and (not held or r["created_at"] > max(held))
+    )
     if (moment(at) - moment(since)).total_seconds() < QUIET:
-        return (f"its head became {approved[:8]} at {since}, less than {QUIET} seconds before `{APPROVED}` was "
-                f"added at {at}, so the head the maintainer read is unknown")
+        return (
+            f"its head became {approved[:8]} at {since}, less than {QUIET} seconds before `{APPROVED}` was "
+            f"added at {at}, so the head the maintainer read is unknown"
+        )
     started = sorted((r for r in runs if r["created_at"] >= at), key=lambda r: r["created_at"])
     if not started:
         return f"no run of this check started when `{APPROVED}` was added at {at}, so what it was added on is unconfirmed"
     if started[0]["head_sha"] != approved:
-        return (f"the run `{APPROVED}` started at {at} is for {started[0]['head_sha'][:8]}, not {approved[:8]}, "
-                f"so a push landed as it was added")
+        return (
+            f"the run `{APPROVED}` started at {at} is for {started[0]['head_sha'][:8]}, not {approved[:8]}, "
+            f"so a push landed as it was added"
+        )
     return approved, since
 
 
@@ -445,15 +472,23 @@ def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str |
     at = moves[-1]["created_at"]
     source = pull["head"]["repo"]["full_name"]
     branch = urllib.parse.quote(pull["head"]["ref"], safe="")
-    runs = [r for r in listed(f"repos/{repo}/actions/workflows/{workflow}/runs?event=pull_request_target"
-                              f"&branch={branch}", api, "workflow_runs")
-            if r["head_repository"]["full_name"] == source]
+    runs = [
+        r
+        for r in listed(
+            f"repos/{repo}/actions/workflows/{workflow}/runs?event=pull_request_target&branch={branch}",
+            api,
+            "workflow_runs",
+        )
+        if r["head_repository"]["full_name"] == source
+    ]
     labelled = labelled_head(runs, events, at)
     if isinstance(labelled, str):
         return labelled
     approved, since = labelled
-    print(f"::notice::`{APPROVED}` was added at {at} on {approved}, which held the branch from {since}; "
-          f"the approval is for the change that commit makes (Q-R83).")
+    print(
+        f"::notice::`{APPROVED}` was added at {at} on {approved}, which held the branch from {since}; "
+        f"the approval is for the change that commit makes (Q-R83)."
+    )
     if approved == head:
         return None
     base = pull["base"]["sha"]
@@ -462,19 +497,26 @@ def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str |
     except subprocess.CalledProcessError:
         return f"{approved[:8]}, its head when `{APPROVED}` was added at {at}, cannot be read, so what was approved is unknown"
     if then != made(repo, base, head, api):
-        return f"what {head[:8]} changes is not what {approved[:8]} changed when `{APPROVED}` was added at {at}"
+        return (
+            f"what {head[:8]} changes is not what {approved[:8]} changed when `{APPROVED}` was added at {at}"
+        )
     return None
+
 
 def calling_file(repo: str, given: str | None) -> str | None:
     """The calling workflow's file, from `--workflow` or else the runner; None, said, where neither names one of `repo`'s."""
     workflow = given if given is not None else os.environ.get(RUNNER_WORKFLOW_REF) or None
     if workflow is None:
-        print(f"::error::Neither --workflow nor {RUNNER_WORKFLOW_REF} names the calling workflow, "
-              f"so its runs cannot be read")
+        print(
+            f"::error::Neither --workflow nor {RUNNER_WORKFLOW_REF} names the calling workflow, "
+            f"so its runs cannot be read"
+        )
         return None
     calling = WORKFLOW_REF.fullmatch(workflow)
     if not calling or calling["repo"] != repo:
-        print(f"::error::The calling workflow {workflow!r} is not a workflow of {repo}, so its runs cannot be read")
+        print(
+            f"::error::The calling workflow {workflow!r} is not a workflow of {repo}, so its runs cannot be read"
+        )
         return None
     return calling["file"]
 
@@ -487,10 +529,14 @@ def said(found: list[str], moved: int, unapproved: str | None) -> int:
         return 0
     if found:
         for change in found:
-            print(f"::error::{change}. A change to what the checks run is merged by a maintainer, "
-                  f"not by this check (Q-R83).")
-        print(f"::error::A maintainer approves it by adding `{APPROVED}` for the change it makes, and that has "
-              f"not happened: {unapproved}.")
+            print(
+                f"::error::{change}. A change to what the checks run is merged by a maintainer, "
+                f"not by this check (Q-R83)."
+            )
+        print(
+            f"::error::A maintainer approves it by adding `{APPROVED}` for the change it makes, and that has "
+            f"not happened: {unapproved}."
+        )
         return 1
     if moved:
         print(f"{moved} workflow file(s) change only spec's pins, each moving forward along {SPEC} {MAIN}.")
@@ -504,8 +550,10 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
     parser.add_argument("--repo", required=True)
     parser.add_argument("--number", required=True, type=int)
     parser.add_argument("--head", required=True, help="the head commit the event was for")
-    parser.add_argument("--workflow", help=f"the calling workflow, as `github.workflow_ref` names it; "
-                                           f"{RUNNER_WORKFLOW_REF} when not given")
+    parser.add_argument(
+        "--workflow",
+        help=f"the calling workflow, as `github.workflow_ref` names it; {RUNNER_WORKFLOW_REF} when not given",
+    )
     args = parser.parse_args(argv)
     if not re.fullmatch(r"[0-9a-f]{40}", args.head):
         print(f"::error::--head {args.head!r} is not a commit, so there is nothing to judge")
@@ -515,17 +563,28 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
         return 2
     try:
         found, moved = problems(args.repo, args.number, args.head, api)
-        unapproved = approval(args.repo, current(args.repo, args.number, args.head, api), args.head,
-                              workflow, api) if found else None
+        unapproved = (
+            approval(args.repo, current(args.repo, args.number, args.head, api), args.head, workflow, api)
+            if found
+            else None
+        )
         if found:
             current(args.repo, args.number, args.head, api)
     except Moved as moved_on:
         print(f"::error::{moved_on}.")
         return 1
-    except (subprocess.CalledProcessError, json.JSONDecodeError, UnicodeDecodeError, KeyError, TypeError,
-            Incomplete) as broken:
+    except (
+        subprocess.CalledProcessError,
+        json.JSONDecodeError,
+        UnicodeDecodeError,
+        KeyError,
+        TypeError,
+        Incomplete,
+    ) as broken:
         detail = getattr(broken, "stderr", "") or broken
-        print(f"::error::The pull request could not be read, so nothing says its checks are its base's: {detail}")
+        print(
+            f"::error::The pull request could not be read, so nothing says its checks are its base's: {detail}"
+        )
         return 2
     return said(found, moved, unapproved)
 

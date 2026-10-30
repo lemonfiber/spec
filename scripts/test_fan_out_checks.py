@@ -51,7 +51,8 @@ class Pruned(unittest.TestCase):
 
     def test_a_group_the_gates_dropped_goes_from_checks_and_skip(self):
         said = fan_out_pins.pruned(
-            caller("a" * 40, "    with:\n      checks: spec-check refs gone  # ours\n      skip: gone\n"), KNOWN
+            caller("a" * 40, "    with:\n      checks: spec-check refs gone  # ours\n      skip: gone\n"),
+            KNOWN,
         )
         self.assertEqual(
             said,
@@ -66,7 +67,12 @@ class Pruned(unittest.TestCase):
         self.assertEqual(fan_out_pins.pruned(text, KNOWN), (text, []))
 
     def test_an_absent_or_empty_list_is_left_alone(self):
-        for with_ in ("", "    with:\n      checks:\n", "    with:\n      skip: ''\n", '    with:\n      skip: ""\n'):
+        for with_ in (
+            "",
+            "    with:\n      checks:\n",
+            "    with:\n      skip: ''\n",
+            '    with:\n      skip: ""\n',
+        ):
             with self.subTest(with_=with_):
                 text = caller("a" * 40, with_)
                 self.assertEqual(fan_out_pins.pruned(text, KNOWN), (text, []))
@@ -99,7 +105,9 @@ class WhatTheGatesKnow(ARepositoryAndASpec, unittest.TestCase):
 
     def test_the_gates_here_know_every_group_their_generator_writes(self):
         self.assertEqual(
-            fan_out_pins.known_in((fan_out_pins.ROOT / ".github" / "workflows" / "gates.yml").read_text(encoding="utf-8")),
+            fan_out_pins.known_in(
+                (fan_out_pins.ROOT / ".github" / "workflows" / "gates.yml").read_text(encoding="utf-8")
+            ),
             frozenset(check.group for check in gen_gates.CHECKS),
         )
 
@@ -117,29 +125,37 @@ class ABump(ARepositoryAndASpec, unittest.TestCase):
         return fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.after, LIMITS, NOW)
 
     def test_the_pin_moves_and_the_dropped_group_goes_with_it(self):
-        where = self.wrote("gates.yml", caller(self.before, "    with:\n      checks: spec-check refs gone\n"))
+        where = self.wrote(
+            "gates.yml", caller(self.before, "    with:\n      checks: spec-check refs gone\n")
+        )
         moved, _ = self.bump()
         self.assertEqual(
             where.read_text(encoding="utf-8"),
             caller(self.after, "    with:\n      checks: spec-check refs\n").replace("# v1.0.1", "# v1.0.9"),
         )
         self.assertEqual(len(moved), 1)
-        self.assertTrue(moved[0].endswith("(v1.0.9); checks drops gone, which gates.yml at v1.0.9 does not know"))
+        self.assertTrue(
+            moved[0].endswith("(v1.0.9); checks drops gone, which gates.yml at v1.0.9 does not know")
+        )
 
     def test_a_caller_naming_only_known_groups_moves_its_pin_alone(self):
         text = caller(self.before, "    with:\n      checks: spec-check refs\n")
         where = self.wrote("gates.yml", text)
         moved, _ = self.bump()
-        self.assertEqual(where.read_text(encoding="utf-8"),
-                         text.replace(self.before, self.after).replace("# v1.0.1", "# v1.0.9"))
+        self.assertEqual(
+            where.read_text(encoding="utf-8"),
+            text.replace(self.before, self.after).replace("# v1.0.1", "# v1.0.9"),
+        )
         self.assertEqual(len(moved), 1)
 
     def test_a_caller_with_no_checks_moves_its_pin_alone(self):
         text = caller(self.before)
         where = self.wrote("gates.yml", text)
         self.bump()
-        self.assertEqual(where.read_text(encoding="utf-8"),
-                         text.replace(self.before, self.after).replace("# v1.0.1", "# v1.0.9"))
+        self.assertEqual(
+            where.read_text(encoding="utf-8"),
+            text.replace(self.before, self.after).replace("# v1.0.1", "# v1.0.9"),
+        )
 
     def test_gates_it_cannot_read_or_a_list_it_would_empty_is_could_not_ask(self):
         where = self.wrote("gates.yml", caller(self.before, "    with:\n      checks: gone\n"))
@@ -148,9 +164,7 @@ class ABump(ARepositoryAndASpec, unittest.TestCase):
         unreadable = self.commit("no list here\n", "gates.yml")
         self.git("tag", "-f", "-a", "-m", "v1.0.9", "v1.0.9", unreadable)
         self.wrote("gates.yml", caller(self.before, "    with:\n      checks: refs\n"))
-        self.assertIsNone(
-            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", unreadable, LIMITS, NOW)
-        )
+        self.assertIsNone(fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", unreadable, LIMITS, NOW))
 
 
 if __name__ == "__main__":

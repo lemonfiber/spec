@@ -9,6 +9,7 @@ prints the target repos, one per line, for the workflow to iterate.
 Usage:  check_stageable.py X.Y.Z
 Exit 0 = stageable, non-zero with a named reason otherwise.
 """
+
 from __future__ import annotations
 
 import pathlib
@@ -95,8 +96,7 @@ def unstageable(manifest: pathlib.Path, data: dict) -> list[str]:
         withdrawn = [g for g in goals if g in retired]
         if withdrawn:
             problems.append(
-                "withdrawn or superseded, so not lockable as a goal "
-                f"(OPS-R30): {', '.join(withdrawn)}"
+                f"withdrawn or superseded, so not lockable as a goal (OPS-R30): {', '.join(withdrawn)}"
             )
         drafted = draft_ids(pathlib.Path("."))
         draft = [g for g in goals if g in drafted]

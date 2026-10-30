@@ -33,8 +33,17 @@ WORKFLOWS = SCRIPTS.parent / ".github/workflows"
 IMAGE = "lscr.io/linuxserver/sonarr"
 DIGEST, OLD = "sha256:" + "a" * 64, "sha256:" + "0" * 64
 GUARDED_BODY = "only the runner may read this"
-GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "commit.gpgsign=false",
-       "-c", "core.hooksPath=/dev/null")
+GIT = (
+    "git",
+    "-c",
+    "user.name=test",
+    "-c",
+    "user.email=test@invalid",
+    "-c",
+    "commit.gpgsign=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+)
 
 
 class InDirectory(unittest.TestCase):
@@ -84,8 +93,10 @@ class Stale(InDirectory):
         os.symlink(self.guarded, self.root / "recordings/sonarr/linked.json")
         self.guarded.chmod(0)
         self.addCleanup(self.guarded.chmod, 0o600)
-        self.assertEqual(pin_bump.stale(self.root, IMAGE, DIGEST),
-                         ["conformance/x@1/case.json", "recordings/sonarr/old.json"])
+        self.assertEqual(
+            pin_bump.stale(self.root, IMAGE, DIGEST),
+            ["conformance/x@1/case.json", "recordings/sonarr/old.json"],
+        )
 
 
 class Reader(InDirectory):
@@ -98,7 +109,9 @@ class Reader(InDirectory):
 
     def test_a_workflow_pinning_no_full_revision_is_refused(self):
         with self.assertRaisesRegex(ValueError, "no reader repository and full revision"):
-            pin_bump.reader_of("env:\n  READER_REPOSITORY: lemonfiber/plugin-template\n  READER_REVISION: main\n")
+            pin_bump.reader_of(
+                "env:\n  READER_REPOSITORY: lemonfiber/plugin-template\n  READER_REVISION: main\n"
+            )
 
     def test_reader_prints_the_outputs(self):
         self.put("first-party-plugin.yml", (WORKFLOWS / "first-party-plugin.yml").read_text())
@@ -109,7 +122,7 @@ class Reader(InDirectory):
 
 # A reader answering as plugin-template's does: `plugin` returns what lemonfiber said,
 # or raises `Unasked`, and `reader.py proofs` writes `proofs.json` and exits as told.
-STAND_IN = '''
+STAND_IN = """
 import json, pathlib, subprocess, sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -131,7 +144,7 @@ if __name__ == "__main__":
     assert sys.argv[1:] == ["proofs"]
     (ROOT / "proofs.json").write_text(json.dumps({"proofs": []}))
     sys.exit(PROOFS)
-'''
+"""
 
 
 # A `docker` that logs each call and refuses to pull the reference named in `REFUSED`.
@@ -181,20 +194,29 @@ class Recorded(InDirectory):
         (bin_dir / "docker").write_text(DOCKER)
         (bin_dir / "docker").chmod(0o755)
         log = self.root / "docker.log"
-        patched = mock.patch.dict(os.environ, {"PATH": f"{bin_dir}:{os.environ['PATH']}", "DOCKER_LOG": str(log),
-                                               "REFUSED": f"caddy@{OLD}"})
+        patched = mock.patch.dict(
+            os.environ,
+            {"PATH": f"{bin_dir}:{os.environ['PATH']}", "DOCKER_LOG": str(log), "REFUSED": f"caddy@{OLD}"},
+        )
         patched.start()
         self.addCleanup(patched.stop)
-        manifest = "".join(f'[[service]]\nid = "s{at}"\nimage = "{image}"\ndigest = "{digest}"\n\n'
-                           for at, (image, digest) in enumerate((
-                               (IMAGE, DIGEST), (IMAGE, DIGEST), ("caddy", OLD), ("--rm", DIGEST), (IMAGE, "latest"))))
+        manifest = "".join(
+            f'[[service]]\nid = "s{at}"\nimage = "{image}"\ndigest = "{digest}"\n\n'
+            for at, (image, digest) in enumerate(
+                ((IMAGE, DIGEST), (IMAGE, DIGEST), ("caddy", OLD), ("--rm", DIGEST), (IMAGE, "latest"))
+            )
+        )
         self.put("plugin/plugin.toml", manifest)
         self.put("taken/reader.py", f"RECORD = 0\nPROOFS = 0\n{STAND_IN}")
         code, out, _ = self.ran("record", "--manifest", "plugin/plugin.toml", "--reader", "taken")
         self.assertEqual(code, 0)
-        self.assertEqual([json.loads(line) for line in log.read_text().splitlines()],
-                         [["pull", "--quiet", f"caddy@{OLD}"], ["pull", "--quiet", f"{IMAGE}@{DIGEST}"]])
-        self.assertIn(f"::warning::caddy@{OLD} could not be pulled: Error response from daemon: no such manifest", out)
+        self.assertEqual(
+            [json.loads(line) for line in log.read_text().splitlines()],
+            [["pull", "--quiet", f"caddy@{OLD}"], ["pull", "--quiet", f"{IMAGE}@{DIGEST}"]],
+        )
+        self.assertIn(
+            f"::warning::caddy@{OLD} could not be pulled: Error response from daemon: no such manifest", out
+        )
         self.assertLess(out.index("could not be pulled"), out.index("wrote 2 recordings"))
 
     def test_a_plugin_carrying_a_reader_or_a_linked_github_is_refused_and_nothing_is_run(self):
@@ -223,20 +245,24 @@ class PinsOnly(InDirectory):
     def commit(self) -> str:
         subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
         subprocess.run([*GIT, "commit", "--quiet", "--allow-empty", "-m", "c"], cwd=self.root, check=True)
-        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True, text=True,
-                              check=True).stdout.strip()
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True, text=True, check=True
+        ).stdout.strip()
 
     def asked(self, *changed: str, directory: str = ".", before: str = "") -> str:
         for path in changed:
             self.put(path, f"changed {path}\n")
         after = self.commit()
-        code, out, _ = self.ran("pins-only", "--before", before or self.before, "--after", after,
-                                "--directory", directory)
+        code, out, _ = self.ran(
+            "pins-only", "--before", before or self.before, "--after", after, "--directory", directory
+        )
         self.assertEqual(code, 0)
         return out.strip()
 
     def test_a_pin_its_recordings_its_proofs_and_its_target_are_only_a_pin(self):
-        self.assertEqual(self.asked("plugin.toml", "recordings/x/a.json", "proofs.json", "targets.toml"), "yes")
+        self.assertEqual(
+            self.asked("plugin.toml", "recordings/x/a.json", "proofs.json", "targets.toml"), "yes"
+        )
 
     def test_anything_else_beside_them_is_not(self):
         for path in ("src/main.rs", "README.md", "conformance/x@1/a.json", "nested/plugin.toml"):
@@ -274,7 +300,9 @@ class Workflows(unittest.TestCase):
                 self.assertNotIn("secrets.", json.dumps(record))
                 self.assertNotIn("environment", record)
                 self.assertEqual(record["permissions"], {"contents": "read"})
-                self.assertEqual((commit["environment"], commit["permissions"]), ("release", {"contents": "read"}))
+                self.assertEqual(
+                    (commit["environment"], commit["permissions"]), ("release", {"contents": "read"})
+                )
                 ran = json.dumps(commit["steps"])
                 for untrusted in ("reader", "plugin record", "pin_bump.py record", "proofs", "setup-python"):
                     self.assertNotIn(untrusted, ran.replace("first-party-plugin", ""))
@@ -289,7 +317,9 @@ class Workflows(unittest.TestCase):
                 steps = self.jobs(name)["commit"]["steps"]
                 self.assertEqual(steps[0]["with"]["path"], "${{ env.PLUGIN }}")
                 names = [one.get("name", "") for one in steps]
-                self.assertLess(names.index("Only the move, admitted"), names.index("Mint a token that can commit here"))
+                self.assertLess(
+                    names.index("Only the move, admitted"), names.index("Mint a token that can commit here")
+                )
 
     def test_both_record_and_stage_through_this_script(self):
         for name in self.NAMES:

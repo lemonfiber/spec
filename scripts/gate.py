@@ -33,6 +33,7 @@ warning (OPS-R70), so whatever it finds wrong is an error that refuses the
 verdict: a row naming a commit nobody has is a record nobody can check, whether or
 not the goal it names is met another way.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -53,7 +54,9 @@ from patterns import SPEC_TRAILER as TRAILER
 def git(path: pathlib.Path, *args: str) -> str:
     return subprocess.run(
         ["git", "-C", str(path), *args],
-        capture_output=True, text=True, check=True,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
 
 
@@ -87,9 +90,11 @@ def done_rows(status: pathlib.Path) -> list[tracker.Row]:
     lines = status.read_text(encoding="utf-8").splitlines()
 
     for number in tracker.statusless(lines):
-        print(f"::error::{status}:{number}: this table names no "
-              f"{' or '.join(tracker.STATUS_COLUMNS)} column, so no row in it can be "
-              "read as done or not done")
+        print(
+            f"::error::{status}:{number}: this table names no "
+            f"{' or '.join(tracker.STATUS_COLUMNS)} column, so no row in it can be "
+            "read as done or not done"
+        )
         raise SystemExit(2)
 
     return [row for row in tracker.rows(lines) if row is not None and row.done]
@@ -162,15 +167,15 @@ def tracked_landed(
         if reachable(repo_paths[row.repo], row.landed):
             landed.add(row.id)
         else:
-            faults.append(f"{row.repo} records {row.id} as landed in {row.landed}, and "
-                          "its history has no such commit: name the commit it merged as "
-                          "on that repository's main, or drop `landed` from the row")
+            faults.append(
+                f"{row.repo} records {row.id} as landed in {row.landed}, and "
+                "its history has no such commit: name the commit it merged as "
+                "on that repository's main, or drop `landed` from the row"
+            )
     return landed, faults
 
 
-def landed_ids(
-    status: pathlib.Path, repo_paths: dict[str, pathlib.Path]
-) -> tuple[set[str], list[str]]:
+def landed_ids(status: pathlib.Path, repo_paths: dict[str, pathlib.Path]) -> tuple[set[str], list[str]]:
     """IDs on a done row that names the merged commit which finished them.
 
     The narrow way out of a real dead end. A merged commit cannot gain a `Spec:`
@@ -195,9 +200,11 @@ def landed_ids(
         if not shas:
             continue
         if not any(reachable(path, sha) for sha in shas for path in repo_paths.values()):
-            faults.append(f"{status} names {', '.join(shas)} as where a done row's goals "
-                          "landed, and no searched repository has that commit: name the "
-                          "merged commit, or drop it from the row")
+            faults.append(
+                f"{status} names {', '.join(shas)} as where a done row's goals "
+                "landed, and no searched repository has that commit: name the "
+                "merged commit, or drop it from the row"
+            )
             continue
         landed.update(claimed(row))
     return landed, faults
@@ -230,8 +237,10 @@ def parse_repos(specs: list[str]) -> dict[str, pathlib.Path]:
     be answered, and a search of nothing could.
     """
     if not specs:
-        print("::error::no --repo given, so there is nowhere to read citations from "
-              "and every goal would be called unmet for want of looking")
+        print(
+            "::error::no --repo given, so there is nowhere to read citations from "
+            "and every goal would be called unmet for want of looking"
+        )
         raise SystemExit(2)
     repos: dict[str, pathlib.Path] = {}
     for spec in specs:
@@ -243,9 +252,7 @@ def parse_repos(specs: list[str]) -> dict[str, pathlib.Path]:
     return repos
 
 
-def evaluate(
-    goals: list[str], cited: set[str], done: set[str], landed: set[str] | None = None
-) -> list[dict]:
+def evaluate(goals: list[str], cited: set[str], done: set[str], landed: set[str] | None = None) -> list[dict]:
     """Each goal's two arms, and which way the first of them was satisfied.
 
     `landed` is kept apart from `cited` in the result rather than folded into it, so
@@ -269,7 +276,9 @@ def render_human(name: str, repos: list[str], results: list[dict]) -> None:
     for r in results:
         ok = r["cited"] and r["done"]
         how = {"trailer": "yes    ", "landed": "landed ", None: "NO     "}[r.get("by")]
-        print(f"  {'✓' if ok else '✗'} {r['id']:12}  cited={how} tracked-done={'yes' if r['done'] else 'NO '}")
+        print(
+            f"  {'✓' if ok else '✗'} {r['id']:12}  cited={how} tracked-done={'yes' if r['done'] else 'NO '}"
+        )
 
 
 def judge(a: argparse.Namespace) -> tuple[pathlib.Path, list[str], list[dict], list[str]]:
@@ -309,8 +318,11 @@ def main() -> int:
     if a.format == "json":
         for fault in faults:
             print(f"::error::{fault}", file=sys.stderr)
-        print(json.dumps({"version": manifest.stem, "releasable": releasable,
-                          "goals": results, "faults": faults}))
+        print(
+            json.dumps(
+                {"version": manifest.stem, "releasable": releasable, "goals": results, "faults": faults}
+            )
+        )
         return 0 if releasable else 1
 
     render_human(manifest.name, searched, results)
@@ -319,8 +331,10 @@ def main() -> int:
     if unmet:
         print(f"\n::error::not releasable — {len(unmet)} goal(s) unmet: {', '.join(unmet)}")
     if faults:
-        print(f"\n::error::not releasable — {len(faults)} tracker row(s) name a commit "
-              "no searched history holds")
+        print(
+            f"\n::error::not releasable — {len(faults)} tracker row(s) name a commit "
+            "no searched history holds"
+        )
     if not releasable:
         return 1
     print("\ngate: releasable — every goal satisfied.")

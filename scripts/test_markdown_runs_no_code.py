@@ -18,6 +18,7 @@ linter's workspace holds afterwards.
 Stdlib unittest plus PyYAML, and git.
 Run:  python3 scripts/test_markdown_runs_no_code.py
 """
+
 from __future__ import annotations
 
 import os
@@ -67,8 +68,12 @@ def steps() -> list[dict]:
 
 
 def git(cwd: pathlib.Path, *args: str) -> None:
-    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
-                    *args], cwd=cwd, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", *args],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+    )
 
 
 class Stage(unittest.TestCase):
@@ -94,13 +99,20 @@ class Stage(unittest.TestCase):
 
     def stage(self, repo: str = "lemonfiber/core") -> subprocess.CompletedProcess:
         script = next(one for one in steps() if one.get("id") == "markdown-only")["run"]
-        env = {**os.environ, "REPO": repo, "RUNNER_TEMP": str(self.root / "temp"),
-               "GITHUB_WORKSPACE": str(self.work)}
+        env = {
+            **os.environ,
+            "REPO": repo,
+            "RUNNER_TEMP": str(self.root / "temp"),
+            "GITHUB_WORKSPACE": str(self.work),
+        }
         return subprocess.run(["bash", "-c", script], cwd=self.work, env=env, capture_output=True, text=True)
 
     def held(self) -> dict[str, bytes]:
-        return {str(path.relative_to(self.work)): path.read_bytes()
-                for path in sorted(self.work.rglob("*")) if not path.is_dir() or path.is_symlink()}
+        return {
+            str(path.relative_to(self.work)): path.read_bytes()
+            for path in sorted(self.work.rglob("*"))
+            if not path.is_dir() or path.is_symlink()
+        }
 
     def test_the_linter_comes_after_the_tree_is_replaced(self):
         names = [str(one.get("uses", "")).split("@")[0] or one.get("id") for one in steps()]
@@ -117,8 +129,10 @@ class Stage(unittest.TestCase):
         done = self.stage()
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         held = self.held()
-        expected = {".markdownlint.jsonc": CANONICAL.read_bytes(),
-                    **{path: text.encode() for path, text in MARKDOWN.items()}}
+        expected = {
+            ".markdownlint.jsonc": CANONICAL.read_bytes(),
+            **{path: text.encode() for path, text in MARKDOWN.items()},
+        }
         self.assertEqual(held, expected)
         self.assertIn("4 Markdown file(s)", done.stdout)
         self.assertFalse((self.root / "temp" / "markdown").exists(), "the stage is cleared")

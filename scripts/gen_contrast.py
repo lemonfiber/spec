@@ -57,7 +57,7 @@ def channel(value: int) -> float:
 
 def luminance(hex_colour: str) -> float:
     bare = hex_colour.lstrip("#")
-    red, green, blue = (int(bare[at:at + 2], 16) for at in (0, 2, 4))
+    red, green, blue = (int(bare[at : at + 2], 16) for at in (0, 2, 4))
     return 0.2126 * channel(red) + 0.7152 * channel(green) + 0.0722 * channel(blue)
 
 
@@ -86,8 +86,7 @@ def colours() -> dict[str, str]:
     missing = [one for one in SURFACES if one not in held]
     if missing:
         raise SystemExit(
-            f"::error::{TOKENS} has no {', '.join(missing)}, and the table is "
-            f"measured against those surfaces"
+            f"::error::{TOKENS} has no {', '.join(missing)}, and the table is measured against those surfaces"
         )
     return held
 
@@ -117,8 +116,7 @@ def main() -> None:
     if not TABLE.search(text):
         raise SystemExit(f"::error::no measured table found in {PAGE}")
     PAGE.write_text(TABLE.sub("\n".join(table()), text, count=1), encoding="utf-8")
-    print(f"60-brand: contrast measured for {len(colours())} tokens against "
-          f"{len(SURFACES)} surfaces")
+    print(f"60-brand: contrast measured for {len(colours())} tokens against {len(SURFACES)} surfaces")
 
 
 if __name__ == "__main__":

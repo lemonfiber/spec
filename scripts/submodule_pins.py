@@ -23,6 +23,7 @@ Reads a `.gitmodules` on stdin and prints `<name><TAB><path>` per declared
 submodule, in declaration order. Exit 0 = printed, 1 = it declares nothing or a
 stanza is missing half of itself, 2 = usage.
 """
+
 from __future__ import annotations
 
 import argparse

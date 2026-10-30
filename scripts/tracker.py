@@ -88,9 +88,7 @@ class Row:
         The failure this whole module exists for, caught where it is written
         rather than where it is read.
         """
-        elsewhere = "".join(
-            cell for index, cell in enumerate(self.cells) if index != self.status_at
-        )
+        elsewhere = "".join(cell for index, cell in enumerate(self.cells) if index != self.status_at)
         return tuple(glyph for glyph in GLYPHS if glyph in elsewhere)
 
 

@@ -24,9 +24,28 @@ README = pathlib.Path("30-repos/README.md")
 #: Every bundled part is a repository of its own (ADR-0045), so the count runs past
 #: forty. It stops at ninety-nine: a wrong word is better than a silently unwritten
 #: one, and `word` raises rather than falling back to a digit nobody reviewed.
-ONES = ("", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-        "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
-        "seventeen", "eighteen", "nineteen")
+ONES = (
+    "",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+    "thirteen",
+    "fourteen",
+    "fifteen",
+    "sixteen",
+    "seventeen",
+    "eighteen",
+    "nineteen",
+)
 TENS = ("", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
 #: The largest count `word` spells.
 MOST = 99
@@ -91,12 +110,12 @@ def cell(entry: dict) -> str:
 
 
 def table() -> list[str]:
-    out = ["| Repo | Spec | Language | What's specific about it |",
-           "|------|------|----------|--------------------------|"]
+    out = [
+        "| Repo | Spec | Language | What's specific about it |",
+        "|------|------|----------|--------------------------|",
+    ]
     for entry in repos():
-        out.append(
-            f"| `{entry['name']}` | {cell(entry)} | {entry['lang']} | {entry['note']} |"
-        )
+        out.append(f"| `{entry['name']}` | {cell(entry)} | {entry['lang']} | {entry['note']} |")
     return out
 
 
@@ -124,10 +143,7 @@ def diagram() -> str:
         arrow = "-.->" if edge.get("dotted") else "-->"
         # An edge may name the subgraph rather than a repository; that is the
         # one target with no registry entry, and it is deliberate.
-        ends = [
-            end if end in (IMPL, PARTS) else by_name[end]["node"]
-            for end in (edge["from"], edge["to"])
-        ]
+        ends = [end if end in (IMPL, PARTS) else by_name[end]["node"] for end in (edge["from"], edge["to"])]
         out.append(f"    {ends[0]} {arrow}|{edge['label']}| {ends[1]}")
 
     out.append("```")
@@ -146,9 +162,7 @@ def main() -> None:
     count = len(repos())
     text = DIAGRAM.sub(lambda _: diagram(), text, count=1)
     text = TABLE.sub("\n".join(table()), text, count=1)
-    text = SENTENCE.sub(
-        f"Those {word(count)} are the repositories this specification governs", text
-    )
+    text = SENTENCE.sub(f"Those {word(count)} are the repositories this specification governs", text)
     README.write_text(text, encoding="utf-8")
     print(f"30-repos: diagram, table and count regenerated from {count} registry entries")
 

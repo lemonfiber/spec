@@ -116,9 +116,7 @@ def register(path: pathlib.Path = REGISTER) -> tuple[list[dict], list[dict]]:
         elif "prefix" in entry:
             prefixes.append(entry)
         else:
-            raise Unanswerable(
-                f"an exemption in {path} names neither a check nor a prefix"
-            )
+            raise Unanswerable(f"an exemption in {path} names neither a check nor a prefix")
     return names, prefixes
 
 
@@ -147,9 +145,7 @@ def named(value: str, what: str) -> str:
 def _run(argv: list[str]) -> str:
     done = subprocess.run(argv, capture_output=True, text=True, check=False)
     if done.returncode != 0:
-        raise Unanswerable(
-            f"`{' '.join(argv)}` failed: {done.stderr.strip()}"
-        )
+        raise Unanswerable(f"`{' '.join(argv)}` failed: {done.stderr.strip()}")
     return done.stdout
 
 
@@ -161,9 +157,12 @@ def repositories(owner: str) -> list[str]:
     """
     raw = _run(
         [
-            "gh", "api", "--paginate",
+            "gh",
+            "api",
+            "--paginate",
             "orgs/" + named(owner, "organisation") + "/repos?per_page=100",
-            "--jq", ".[] | select(.archived | not) | .name",
+            "--jq",
+            ".[] | select(.archived | not) | .name",
         ]
     )
     names = [line.strip() for line in raw.splitlines() if line.strip()]
@@ -209,8 +208,12 @@ def gates_landed(owner: str, name: str) -> str | None:
     repo = named(owner, "organisation") + "/" + named(name, "repository")
     raw = _run(
         [
-            "gh", "api", "--paginate", f"repos/{repo}/commits?path={GATES}&sha=main&per_page=100",
-            "--jq", ".[].commit.committer.date",
+            "gh",
+            "api",
+            "--paginate",
+            f"repos/{repo}/commits?path={GATES}&sha=main&per_page=100",
+            "--jq",
+            ".[].commit.committer.date",
         ]
     )
     dates = sorted(line.strip() for line in raw.splitlines() if line.strip())
@@ -228,8 +231,17 @@ def observed_in(owner: str, name: str, sampled: int = SAMPLED, since: str | None
     repo = named(owner, "organisation") + "/" + named(name, "repository")
     raw = _run(
         [
-            "gh", "pr", "list", "-R", repo, "--state", "merged",
-            "--limit", str(LISTED), "--json", "number,mergedAt",
+            "gh",
+            "pr",
+            "list",
+            "-R",
+            repo,
+            "--state",
+            "merged",
+            "--limit",
+            str(LISTED),
+            "--json",
+            "number,mergedAt",
         ]
     )
     pulls = [p for p in json.loads(raw) if since is None or (p.get("mergedAt") or "") >= since]
@@ -263,8 +275,11 @@ def targeted_in(owner: str, name: str, runs: int = TARGET_RUNS) -> set[str]:
     repo = named(owner, "organisation") + "/" + named(name, "repository")
     raw = _run(
         [
-            "gh", "api", f"repos/{repo}/actions/runs?event=pull_request_target&per_page={int(runs)}",
-            "--jq", ".workflow_runs[].id",
+            "gh",
+            "api",
+            f"repos/{repo}/actions/runs?event=pull_request_target&per_page={int(runs)}",
+            "--jq",
+            ".workflow_runs[].id",
         ]
     )
     names: set[str] = set()
@@ -306,10 +321,7 @@ def refusal(repo: str, unrequired: list[str]) -> str:
     """What one repository's unrequired checks say."""
     return "\n".join(
         [
-            (
-                f"{repo}: {len(unrequired)} check(s) run on a pull request and "
-                "cannot refuse one."
-            ),
+            (f"{repo}: {len(unrequired)} check(s) run on a pull request and cannot refuse one."),
             *(f"    {name}" for name in unrequired),
             "",
             (
@@ -332,7 +344,10 @@ def refusal(repo: str, unrequired: list[str]) -> str:
 
 
 def unrequired_in(
-    owner: str, name: str, names: list[dict], prefixes: list[dict],
+    owner: str,
+    name: str,
+    names: list[dict],
+    prefixes: list[dict],
     matched: set[int],
 ) -> list[str]:
     """The checks one repository runs that neither block nor are registered.

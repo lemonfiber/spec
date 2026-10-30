@@ -146,10 +146,14 @@ def pins(manifest: dict) -> tuple[dict[str, dict], list[str]]:
         image = service.get("image", "")
         if not upstream(image):
             continue
-        held = found.setdefault(image, {"tag": service.get("tag", ""), "digest": service.get("digest", ""),
-                                        "services": []})
+        held = found.setdefault(
+            image, {"tag": service.get("tag", ""), "digest": service.get("digest", ""), "services": []}
+        )
         held["services"].append(str(service.get("id", "")))
-        if (held["tag"], held["digest"]) != (service.get("tag", ""), service.get("digest", "")) and image not in apart:
+        if (held["tag"], held["digest"]) != (
+            service.get("tag", ""),
+            service.get("digest", ""),
+        ) and image not in apart:
             apart.append(image)
     for image in apart:
         del found[image]
@@ -185,8 +189,11 @@ def move_of(image: str, held: dict) -> tuple[dict | None, str]:
 def plan(manifest: dict, only: str = "") -> tuple[list[dict], list[str]]:
     """Every upstream pin that would move, and every image that could not be read."""
     found, apart = pins(manifest)
-    problems = [f"{image}: its services are pinned apart, so it is moved by hand"
-                for image in apart if not only or image == only]
+    problems = [
+        f"{image}: its services are pinned apart, so it is moved by hand"
+        for image in apart
+        if not only or image == only
+    ]
     moves = []
     for image, held in found.items():
         if only and image != only:
@@ -217,7 +224,9 @@ def admitted(main_text: str, image: str, bump: pathlib.Path) -> tuple[dict, dict
     """
     moves, problems = plan(tomllib.loads(main_text), image)
     if not moves:
-        raise Refused(f"the registry moves {image} nowhere now: {'; '.join(problems) or 'its pin is the newest'}")
+        raise Refused(
+            f"the registry moves {image} nowhere now: {'; '.join(problems) or 'its pin is the newest'}"
+        )
     return moves[0], pin_bump.admitted_files(main_text, moves[0], bump)
 
 
@@ -227,12 +236,16 @@ def described(move: dict, left: list[str], log: str) -> tuple[str, str, bool]:
     was, now = move["from"], move["to"]
     if was["tag"] == now["tag"]:
         title = f"chore(pins): {names} {now['tag']} rebuilt"
-        said = (f"{move['image']}:{now['tag']} was published again, and its index is now {now['digest']}. "
-                "The release is the same; the build is newer.")
+        said = (
+            f"{move['image']}:{now['tag']} was published again, and its index is now {now['digest']}. "
+            "The release is the same; the build is newer."
+        )
     else:
         title = f"chore(pins): {names} {was['tag']} -> {now['tag']}"
-        said = (f"{move['image']}:{now['tag']} is the newest release in the major {was['tag']} belongs to, "
-                f"and its index is {now['digest']}.")
+        said = (
+            f"{move['image']}:{now['tag']} is the newest release in the major {was['tag']} belongs to, "
+            f"and its index is {now['digest']}."
+        )
     body, clean = pin_bump.body_of(said, left, log, CITED)
     return title, body, clean
 
@@ -271,14 +284,26 @@ def asked_plan(args: argparse.Namespace) -> int:
     return 0
 
 
-ASKED = {"message": asked_message, "artifact": asked_artifact, "admit": asked_admit, "plan": asked_plan,
-         "apply": asked_plan}
+ASKED = {
+    "message": asked_message,
+    "artifact": asked_artifact,
+    "admit": asked_admit,
+    "plan": asked_plan,
+    "apply": asked_plan,
+}
 #: Each subcommand's options beyond `--manifest`, which the four that read a manifest take.
-OPTIONS = {"plan": (), "apply": ("--image",), "artifact": ("--image",), "admit": ("--image", "--bump", "--move-out")}
+OPTIONS = {
+    "plan": (),
+    "apply": ("--image",),
+    "artifact": ("--image",),
+    "admit": ("--image", "--bump", "--move-out"),
+}
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     asked = parser.add_subparsers(dest="asked", required=True)
     for name, options in OPTIONS.items():
         one = asked.add_parser(name)

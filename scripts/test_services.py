@@ -12,6 +12,7 @@ a gate loose enough to catch every phrasing catches sentences about other things
 
 Stdlib unittest, no dependencies. Run:  python3 scripts/test_services.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -160,9 +161,7 @@ class ServiceCount(unittest.TestCase):
         self.assertIn("1 page(s) agree", said)
 
     def test_more_services_than_counting_words_cannot_answer(self):
-        self.bundle.write_text(
-            "\n".join(f'[[plugin]]\nid = "s{n}"\n' for n in range(99)), encoding="utf-8"
-        )
+        self.bundle.write_text("\n".join(f'[[plugin]]\nid = "s{n}"\n' for n in range(99)), encoding="utf-8")
         self.page("a.md", "The twenty bundled services.\n")
         code, said = self.gate()
         self.assertEqual(code, 2)
@@ -179,8 +178,9 @@ class ServiceCount(unittest.TestCase):
         self.assertIn("1 page(s) agree", said)
 
     def test_a_decision_record_is_never_rewritten(self):
-        record = self.page("00-overview/decisions/0023-a-pin.md",
-                           "each of the nineteen bundled services is pinned\n")
+        record = self.page(
+            "00-overview/decisions/0023-a-pin.md", "each of the nineteen bundled services is pinned\n"
+        )
         self.page("a.md", "The twenty bundled services.\n")
         code, said = self.gate("--write")
         self.assertEqual(code, 0, said)
@@ -194,10 +194,10 @@ class ServiceCount(unittest.TestCase):
         and `--write` edits inside somebody else's git repository where
         `.gitignore` means nothing would ever say so.
         """
-        foreign = self.page("checkouts/lemonfiber/IMPLEMENTATION-STATUS.md",
-                            "the nineteen bundled services are wired\n")
-        worktree = self.page(".claude/worktrees/one/b.md",
-                             "The nineteen bundled services.\n")
+        foreign = self.page(
+            "checkouts/lemonfiber/IMPLEMENTATION-STATUS.md", "the nineteen bundled services are wired\n"
+        )
+        worktree = self.page(".claude/worktrees/one/b.md", "The nineteen bundled services.\n")
         self.page("a.md", "The twenty bundled services.\n")
 
         code, said = self.gate()
@@ -206,10 +206,8 @@ class ServiceCount(unittest.TestCase):
 
         code, said = self.gate("--write")
         self.assertEqual(code, 0, said)
-        self.assertIn("nineteen bundled services",
-                      foreign.read_text(encoding="utf-8"))
-        self.assertIn("nineteen bundled services",
-                      worktree.read_text(encoding="utf-8"))
+        self.assertIn("nineteen bundled services", foreign.read_text(encoding="utf-8"))
+        self.assertIn("nineteen bundled services", worktree.read_text(encoding="utf-8"))
 
 
 class TheBundleThisRepositoryDescribes(unittest.TestCase):
@@ -228,9 +226,7 @@ class TheBundleThisRepositoryDescribes(unittest.TestCase):
         stated = {
             said
             for page in pages
-            for said in check_services.SENTENCE.findall(
-                page.read_text(encoding="utf-8", errors="ignore")
-            )
+            for said in check_services.SENTENCE.findall(page.read_text(encoding="utf-8", errors="ignore"))
         }
         self.assertEqual(len(stated), 1, f"the tree states {sorted(stated)}")
 

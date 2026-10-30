@@ -12,6 +12,7 @@ sends someone to the wrong repository.
 Stdlib unittest, no dependencies (the repo has none).
 Run:  python3 scripts/test_status_lint.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -74,14 +75,15 @@ class Workspace(unittest.TestCase):
     def requirements(self, feature="G7", highest=13):
         """A feature document defining R1 up to `highest`, as the spec writes them."""
         pathlib.Path(f"{SPEC}/10-functional/features/f.md").write_text(
-            "\n".join(f"| **{feature}-R{n}** | something |" for n in range(1, highest + 1)),
-            encoding="utf-8")
+            "\n".join(f"| **{feature}-R{n}** | something |" for n in range(1, highest + 1)), encoding="utf-8"
+        )
 
     def manifest(self, version, milestone, goals):
         goal_list = ", ".join(f'"{g}"' for g in goals)
         line = f'milestone = "{milestone}"\n' if milestone else ""
         pathlib.Path(f"{SPEC}/70-operations/versions/{version}.toml").write_text(
-            f'version = "{version}"\n{line}goals = [{goal_list}]\n', encoding="utf-8")
+            f'version = "{version}"\n{line}goals = [{goal_list}]\n', encoding="utf-8"
+        )
 
     def spec_tree(self, feature="G7", highest=13, milestone="M5", version="0.7.0"):
         """One feature's requirements, all of them locked by one version."""
@@ -127,27 +129,43 @@ class Passing(Workspace):
         # about G7's thirteen requirements, in either direction.
         self.spec_tree()
         self.mention("A roadmap note that mentions G7-R20 in passing.\n")
-        code, out = run_main(["--status", self.tracker(
-            "## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"), "--spec", SPEC])
+        code, out = run_main(
+            [
+                "--status",
+                self.tracker("## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"),
+                "--spec",
+                SPEC,
+            ]
+        )
         self.assertEqual(code, 0, out)
 
     def test_naming_an_extra_version_is_allowed(self):
         # A milestone whose groundwork shipped early under another's version
         # should be free to say so.
         code, out = self.lint(
-            "## M5 — Trust · `0.7.0`, and `0.5.0` before it\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n")
+            "## M5 — Trust · `0.7.0`, and `0.5.0` before it\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"
+        )
         self.assertEqual(code, 0, out)
 
     def test_a_heading_for_a_milestone_no_manifest_claims_is_left_alone(self):
-        code, out = self.lint("## M9 — Later · no version yet\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n")
+        code, out = self.lint(
+            "## M9 — Later · no version yet\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"
+        )
         self.assertEqual(code, 0, out)
 
     def test_a_milestone_shipping_in_two_versions_may_name_both(self):
         self.spec_tree()
         self.manifest("0.8.0", "M5", ["G7-R1"])
-        code, out = run_main(["--status", self.tracker(
-            "## M5 — Trust · `0.7.0` and `0.8.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"),
-            "--spec", SPEC])
+        code, out = run_main(
+            [
+                "--status",
+                self.tracker(
+                    "## M5 — Trust · `0.7.0` and `0.8.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"
+                ),
+                "--spec",
+                SPEC,
+            ]
+        )
         self.assertEqual(code, 0, out)
 
     def test_an_unticked_row_claims_nothing(self):
@@ -163,17 +181,30 @@ class Passing(Workspace):
         # counting its milestone would invent a version nothing ships in.
         self.spec_tree()
         pathlib.Path(f"{SPEC}/70-operations/versions/TEMPLATE.toml").write_text(
-            'version = "X.Y.Z"\nmilestone = "M5"\ngoals = ["G7-R1"]\n', encoding="utf-8")
-        code, out = run_main(["--status", self.tracker(
-            "## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"), "--spec", SPEC])
+            'version = "X.Y.Z"\nmilestone = "M5"\ngoals = ["G7-R1"]\n', encoding="utf-8"
+        )
+        code, out = run_main(
+            [
+                "--status",
+                self.tracker("## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"),
+                "--spec",
+                SPEC,
+            ]
+        )
         self.assertEqual(code, 0, out)
 
     def test_a_manifest_naming_no_milestone_still_locks_its_goals(self):
         # `milestone` is optional; `goals` is what a tick is measured against.
         self.requirements(highest=1)
         self.manifest("0.7.0", None, ["G7-R1"])
-        code, out = run_main(["--status", self.tracker(
-            "## M5 — Trust · no version\n\n" + HEADER + "| x | `G7-R1` | ✅ |\n"), "--spec", SPEC])
+        code, out = run_main(
+            [
+                "--status",
+                self.tracker("## M5 — Trust · no version\n\n" + HEADER + "| x | `G7-R1` | ✅ |\n"),
+                "--spec",
+                SPEC,
+            ]
+        )
         self.assertEqual(code, 0, out)
 
 
@@ -187,7 +218,7 @@ class Refusals(Workspace):
         code, out = self.lint("## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R14` | ✅ | y |\n")
         self.assertEqual(code, 1)
         self.assertIn("claims G7-R14, but G7 defines up to R13", out)
-        self.assertIn(f"{TRACKER}:5:", out)          # the row, so it can be found
+        self.assertIn(f"{TRACKER}:5:", out)  # the row, so it can be found
         self.assertIn("2 claim(s) the spec does not back", out)
 
     def test_an_overshoot_is_faulted_even_unticked(self):
@@ -213,8 +244,14 @@ class Refusals(Workspace):
         """
         self.spec_tree()
         self.mention("A roadmap note that mentions G7-R20 in passing.\n")
-        code, out = run_main(["--status", self.tracker(
-            "## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R14` | ☐ | y |\n"), "--spec", SPEC])
+        code, out = run_main(
+            [
+                "--status",
+                self.tracker("## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R14` | ☐ | y |\n"),
+                "--spec",
+                SPEC,
+            ]
+        )
         self.assertEqual(code, 1, out)
         self.assertIn("claims G7-R14, but G7 defines up to R13", out)
         self.assertIn("1 claim(s) the spec does not back", out)
@@ -224,10 +261,15 @@ class Refusals(Workspace):
         # vetted by nothing — the one place the two gates cannot cover between them.
         self.spec_tree()
         pathlib.Path(f"{SPEC}/.git").mkdir()
-        pathlib.Path(f"{SPEC}/.git/x.md").write_text(
-            "| **G7-R14** | invented |\n", encoding="utf-8")
-        code, out = run_main(["--status", self.tracker(
-            "## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R14` | ☐ | y |\n"), "--spec", SPEC])
+        pathlib.Path(f"{SPEC}/.git/x.md").write_text("| **G7-R14** | invented |\n", encoding="utf-8")
+        code, out = run_main(
+            [
+                "--status",
+                self.tracker("## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R14` | ☐ | y |\n"),
+                "--spec",
+                SPEC,
+            ]
+        )
         self.assertEqual(code, 1, out)
         self.assertIn("defines up to R13", out)
 
@@ -240,8 +282,14 @@ class Refusals(Workspace):
     def test_an_omitted_version_is_named_even_when_another_is_right(self):
         self.spec_tree()
         self.manifest("0.8.0", "M5", ["G7-R1"])
-        code, out = run_main(["--status", self.tracker(
-            "## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"), "--spec", SPEC])
+        code, out = run_main(
+            [
+                "--status",
+                self.tracker("## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n"),
+                "--spec",
+                SPEC,
+            ]
+        )
         self.assertEqual(code, 1)
         self.assertIn("ships in 0.7.0, 0.8.0 but does not name 0.8.0", out)
 
@@ -256,11 +304,17 @@ class Refusals(Workspace):
         # tracker row, and the message has to send the reader to the manifest.
         self.requirements(feature="ARCH", highest=48)
         self.manifest("0.7.0", "M5", ["ARCH-R47"])
-        code, out = run_main(["--status", self.tracker(
-            "## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `ARCH-R48` | ✅ | y |\n"), "--spec", SPEC])
+        code, out = run_main(
+            [
+                "--status",
+                self.tracker("## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `ARCH-R48` | ✅ | y |\n"),
+                "--spec",
+                SPEC,
+            ]
+        )
         self.assertEqual(code, 1)
         self.assertIn("locked by no version: ARCH-R48", out)
-        self.assertNotIn("defines up to", out)      # not an overshoot; do not say it is
+        self.assertNotIn("defines up to", out)  # not an overshoot; do not say it is
 
     def test_a_feature_the_spec_never_defines_is_only_faulted_once(self):
         # Nothing to overshoot when nothing is defined, so only the tick is faulted.
@@ -274,7 +328,8 @@ class Refusals(Workspace):
             "## M5 — Trust · `0.9.0`\n\n"
             "| Deliverable | Spec | Status | Landing / notes |\n|---|---|---|---|\n"
             "| x | `G7-R1..R14` | ✅ | y |\n"
-            "| x | `Z9-R1` | ✅ | y |\n")
+            "| x | `Z9-R1` | ✅ | y |\n"
+        )
         self.assertEqual(code, 1)
         self.assertIn("does not name 0.7.0", out)
         self.assertIn("defines up to R13", out)
@@ -289,7 +344,8 @@ class Miscolumned(Workspace):
         code, out = self.lint(
             "## M5 — Trust · `0.7.0`\n\n"
             "| Deliverable | Citations | Status | Landed |\n|---|---|---|---|\n"
-            "| x | `G7-R1..R13` | ✅ | y |\n")
+            "| x | `G7-R1..R13` | ✅ | y |\n"
+        )
         self.assertEqual(code, 1, out)
         self.assertIn("none is named", out)
 
@@ -297,14 +353,16 @@ class Miscolumned(Workspace):
         code, out = self.lint(
             "## M5 — Trust · `0.7.0`\n\n"
             "| Deliverable | Reqs | Status | Landed |\n|---|---|---|---|\n"
-            "| x | `G7-R1..R13` | ✅ | y |\n")
+            "| x | `G7-R1..R13` | ✅ | y |\n"
+        )
         self.assertEqual(code, 0, out)
 
     def test_a_legacy_three_column_table_is_left_alone(self):
         code, out = self.lint(
             "## M5 — Trust · `0.7.0`\n\n"
             "| Deliverable | Status | Landing |\n|---|---|---|\n"
-            "| `G7-R1..R13` | ✅ | y |\n")
+            "| `G7-R1..R13` | ✅ | y |\n"
+        )
         self.assertEqual(code, 0, out)
 
     def test_a_header_with_no_rows_under_it_skips_nothing(self):
@@ -314,7 +372,8 @@ class Miscolumned(Workspace):
         _, out = self.lint(
             "## M5 — Trust · `0.7.0`\n\n"
             "| Deliverable | Citations | Status | Landed |\n|---|---|---|---|\n"
-            "\n| x | `G7-R1..R13` | ✅ | y |\n")
+            "\n| x | `G7-R1..R13` | ✅ | y |\n"
+        )
         self.assertNotIn("none is named", out)
 
 
@@ -429,8 +488,9 @@ class Unclaimed(Workspace):
     def test_a_deferral_inside_a_ticked_row_is_refused(self):
         # The shape exactly: the row claims R1..R12, and its prose explains that
         # R13 was moved to a later milestone — which is what marked R13 done.
-        code, out = self.lint(self.table(
-            "| Backup | `G7-R1..R12` | ✅ | The rest (`G7-R13`) is reassigned to M9. |\n"))
+        code, out = self.lint(
+            self.table("| Backup | `G7-R1..R12` | ✅ | The rest (`G7-R13`) is reassigned to M9. |\n")
+        )
         self.assertEqual(code, 1, out)
         self.assertIn("G7-R13", out)
         self.assertIn("does not claim it", out)
@@ -438,17 +498,23 @@ class Unclaimed(Workspace):
     def test_a_cross_reference_to_work_done_elsewhere_is_allowed(self):
         # Ordinary and must stay legal: a deliverable explains what it rests on,
         # and the requirement it names is claimed by a ticked row of its own.
-        code, out = self.lint(self.table(
-            "| Backup | `G7-R1..R12` | ✅ | Composed with `G7-R13`, which is below. |\n",
-            "| Retention | `G7-R13` | ✅ | y |\n"))
+        code, out = self.lint(
+            self.table(
+                "| Backup | `G7-R1..R12` | ✅ | Composed with `G7-R13`, which is below. |\n",
+                "| Retention | `G7-R13` | ✅ | y |\n",
+            )
+        )
         self.assertEqual(code, 0, out)
 
     def test_an_unticked_row_may_name_anything(self):
         # A row that is not ticked is where an unfinished requirement belongs, so
         # naming one there is the cure rather than the disease.
-        code, out = self.lint(self.table(
-            "| Backup | `G7-R1..R12` | ✅ | y |\n",
-            "| What is still owed | `G7-R13` | ☐ | Not started; see `G7-R1`. |\n"))
+        code, out = self.lint(
+            self.table(
+                "| Backup | `G7-R1..R12` | ✅ | y |\n",
+                "| What is still owed | `G7-R13` | ☐ | Not started; see `G7-R1`. |\n",
+            )
+        )
         self.assertEqual(code, 0, out)
 
     def test_a_table_without_a_spec_column_names_its_requirements_inline(self):
@@ -456,10 +522,10 @@ class Unclaimed(Workspace):
         # where claim and prose cannot be told apart. Reading a fixed column there
         # takes the status cell for the requirements and refuses honest rows.
         self.spec_tree()
-        body = ("## M5 — Trust · `0.7.0`\n\n"
-                + LEGACY_HEADER +
-                "| Form closure (`G7-R1`, `G7-R2`) | ✅ | #14 |\n"
-                "| The rest | ✅ | `G7-R3..R13` |\n")
+        body = (
+            "## M5 — Trust · `0.7.0`\n\n" + LEGACY_HEADER + "| Form closure (`G7-R1`, `G7-R2`) | ✅ | #14 |\n"
+            "| The rest | ✅ | `G7-R3..R13` |\n"
+        )
         code, out = run_main(["--status", self.tracker(body), "--spec", SPEC])
         self.assertEqual(code, 0, out)
 
@@ -469,8 +535,7 @@ class Unclaimed(Workspace):
         # Saying so is better than passing it: an author who wrote a tick there
         # believes it counts.
         self.spec_tree()
-        body = ("## M5 — Trust · `0.7.0`\n\n" + HEADER +
-                "| `G7-R1..R13` ✅ |\n")
+        body = "## M5 — Trust · `0.7.0`\n\n" + HEADER + "| `G7-R1..R13` ✅ |\n"
         code, out = run_main(["--status", self.tracker(body), "--spec", SPEC])
         self.assertEqual(code, 1, out)
         self.assertIn("outside the Status column", out)
@@ -480,11 +545,10 @@ class Unclaimed(Workspace):
         # Two tables under one heading, the second shaped differently. A reader
         # that kept the first table's column would read the second's rows wrong.
         self.spec_tree()
-        body = ("## M5 — Trust · `0.7.0`\n\n" + HEADER +
-                "| Backup | `G7-R1..R12` | ✅ | y |\n"
-                "\nSome prose between them.\n\n"
-                + LEGACY_HEADER +
-                "| Retention (`G7-R13`) | ✅ | #21 |\n")
+        body = (
+            "## M5 — Trust · `0.7.0`\n\n" + HEADER + "| Backup | `G7-R1..R12` | ✅ | y |\n"
+            "\nSome prose between them.\n\n" + LEGACY_HEADER + "| Retention (`G7-R13`) | ✅ | #21 |\n"
+        )
         code, out = run_main(["--status", self.tracker(body), "--spec", SPEC])
         self.assertEqual(code, 0, out)
 
@@ -503,8 +567,9 @@ class TheGlyphBelongsInOneCell(Workspace):
         return "## M5 — Trust · `0.7.0`\n\n" + HEADER + "".join(rows)
 
     def test_the_tick_in_a_partial_rows_prose_is_refused(self):
-        code, out = self.lint(self.table(
-            "| Stack runs | `G7-R1..R13` | ◐ | Three left; this row is ✅ when they start. |\n"))
+        code, out = self.lint(
+            self.table("| Stack runs | `G7-R1..R13` | ◐ | Three left; this row is ✅ when they start. |\n")
+        )
         self.assertEqual(code, 1)
         self.assertIn("outside the Status column", out)
         self.assertIn(f"{TRACKER}:5:", out)
@@ -513,22 +578,25 @@ class TheGlyphBelongsInOneCell(Workspace):
     def test_the_tick_in_a_done_rows_prose_is_refused_too(self):
         # It marks nothing today and is a trap tomorrow: the next editor moves the
         # status cell to `◐` and leaves the sentence where it is.
-        code, out = self.lint(self.table(
-            "| Stack runs | `G7-R1..R13` | ✅ | Everything the ✅ rows above promised. |\n"))
+        code, out = self.lint(
+            self.table("| Stack runs | `G7-R1..R13` | ✅ | Everything the ✅ rows above promised. |\n")
+        )
         self.assertEqual(code, 1)
         self.assertIn("outside the Status column", out)
 
     def test_a_row_keeping_its_glyph_in_the_status_cell_passes(self):
-        code, out = self.lint(self.table(
-            "| Stack runs | `G7-R1..R13` | ✅ | Everything the ticked rows promised. |\n"))
+        code, out = self.lint(
+            self.table("| Stack runs | `G7-R1..R13` | ✅ | Everything the ticked rows promised. |\n")
+        )
         self.assertEqual(code, 0, out)
 
     def test_the_partial_glyph_in_prose_is_left_alone(self):
         # `◐` and `☐` in a sentence cannot mark anything done, so refusing them
         # would be a stricter rule than the harm asks for — and two rows of the
         # real tracker name the state that way.
-        code, out = self.lint(self.table(
-            "| Stack runs | `G7-R1..R13` | ✅ | We settled on ◐ as an answer, not a question. |\n"))
+        code, out = self.lint(
+            self.table("| Stack runs | `G7-R1..R13` | ✅ | We settled on ◐ as an answer, not a question. |\n")
+        )
         self.assertEqual(code, 0, out)
 
     def test_a_tick_in_prose_outside_any_table_is_left_alone(self):
@@ -536,7 +604,9 @@ class TheGlyphBelongsInOneCell(Workspace):
         # able to name the character to do it.
         code, out = self.lint(
             "## M5 — Trust · `0.7.0`\n\nNever name unfinished work inside a ✅ row.\n\n"
-            + HEADER + "| Stack runs | `G7-R1..R13` | ✅ | y |\n")
+            + HEADER
+            + "| Stack runs | `G7-R1..R13` | ✅ | y |\n"
+        )
         self.assertEqual(code, 0, out)
 
 
@@ -545,25 +615,25 @@ class ATableNothingCanBeReadIn(Workspace):
 
     def test_a_table_with_no_status_column_is_refused(self):
         self.spec_tree()
-        body = ("## M5 — Trust · `0.7.0`\n\n"
-                "| Deliverable | Spec | Landing |\n|---|---|---|\n"
-                "| Stack runs | `G7-R1..R13` | #76 |\n")
+        body = (
+            "## M5 — Trust · `0.7.0`\n\n"
+            "| Deliverable | Spec | Landing |\n|---|---|---|\n"
+            "| Stack runs | `G7-R1..R13` | #76 |\n"
+        )
         code, out = run_main(["--status", self.tracker(body), "--spec", SPEC])
         self.assertEqual(code, 1)
         self.assertIn("names no Status column", out)
-        self.assertIn(f"{TRACKER}:3:", out)      # the header, which is what to fix
+        self.assertIn(f"{TRACKER}:3:", out)  # the header, which is what to fix
 
     def test_a_header_with_no_rows_under_it_is_not_refused(self):
         # A table nobody has filled in decides nothing and hides nothing.
         self.spec_tree()
-        body = ("## M5 — Trust · `0.7.0`\n\n"
-                "| Deliverable | Spec | Landing |\n|---|---|---|\n")
+        body = "## M5 — Trust · `0.7.0`\n\n| Deliverable | Spec | Landing |\n|---|---|---|\n"
         code, out = run_main(["--status", self.tracker(body), "--spec", SPEC])
         self.assertEqual(code, 0, out)
 
     def test_a_table_naming_its_status_column_is_not_refused(self):
-        code, out = self.lint(
-            "## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n")
+        code, out = self.lint("## M5 — Trust · `0.7.0`\n\n" + HEADER + "| x | `G7-R1..R13` | ✅ | y |\n")
         self.assertEqual(code, 0, out)
 
 
@@ -578,11 +648,16 @@ class TheReadingItself(Workspace):
         self.assertEqual(read, [None, None])
 
     def test_columns_are_forgotten_at_the_blank_line_after_a_table(self):
-        lines = [*HEADER.splitlines(), "| x | `A1-R1` | ✅ | y |", "",
-                 *LEGACY_HEADER.splitlines(), "| y (`A1-R2`) | ✅ | #1 |"]
+        lines = [
+            *HEADER.splitlines(),
+            "| x | `A1-R1` | ✅ | y |",
+            "",
+            *LEGACY_HEADER.splitlines(),
+            "| y (`A1-R2`) | ✅ | #1 |",
+        ]
         read = tracker.rows(lines)
         self.assertEqual(read[2].claim, "`A1-R1`")
-        self.assertEqual(read[6].claim, lines[6])   # the legacy shape claims itself
+        self.assertEqual(read[6].claim, lines[6])  # the legacy shape claims itself
 
     def test_a_header_naming_neither_column_still_yields_rows(self):
         read = tracker.rows(["| A | B |", "|---|---|", "| one | two |"])

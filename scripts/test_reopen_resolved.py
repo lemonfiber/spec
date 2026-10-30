@@ -26,8 +26,10 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import reopen_resolved as reopen  # noqa: E402
 
-CLOSING = (f"{reopen.CLOSED_BY} cited identifiers do not exist on spec@main: A1-R9, GOV-R70\n\n"
-           "This is sequencing, not rejection.")
+CLOSING = (
+    f"{reopen.CLOSED_BY} cited identifiers do not exist on spec@main: A1-R9, GOV-R70\n\n"
+    "This is sequencing, not rejection."
+)
 
 DIFF = """diff --git a/x.md b/x.md
 --- a/x.md
@@ -44,8 +46,9 @@ DIFF = """diff --git a/x.md b/x.md
 class Forge:
     """Answers as the REST API would for one closed pull request."""
 
-    def __init__(self, *, state="closed", merged=False, closer=reopen.CLOSER,
-                 comments=(CLOSING,), fail_write=False):
+    def __init__(
+        self, *, state="closed", merged=False, closer=reopen.CLOSER, comments=(CLOSING,), fail_write=False
+    ):
         self.pull = {"state": state, "merged": merged}
         self.events = [{"event": "labeled"}, {"event": "closed", "actor": {"login": closer}}]
         self.comments = [{"body": b, "user": {"login": reopen.CLOSER}} for b in comments]
@@ -54,8 +57,9 @@ class Forge:
 
     def __call__(self, args):
         if args[:3] == ["-X", "GET", "search/issues"]:
-            return {"items": [{"repository_url": "https://api.github.com/repos/lemonfiber/core",
-                               "number": 7}]}
+            return {
+                "items": [{"repository_url": "https://api.github.com/repos/lemonfiber/core", "number": 7}]
+            }
         if args[:1] == ["-X"]:
             if self.fail_write:
                 raise subprocess.CalledProcessError(1, "gh", stderr="the branch is gone\n")
@@ -78,12 +82,16 @@ class Spec(unittest.TestCase):
         (self.spec / "f").mkdir(parents=True)
         (self.spec / "f" / "a1.md").write_text(
             "---\nstatus: accepted\n---\n| **A1-R1** | x |\n| **A1-R9** | The tool MUST stop. |\n",
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         (self.spec / "rules.md").write_text(
             "**Status:** Accepted\n\n| **GOV-R70** | A rule MUST hold. |\n"
-            "| **GOV-R71** | *Withdrawn: gone.* |\n", encoding="utf-8")
+            "| **GOV-R71** | *Withdrawn: gone.* |\n",
+            encoding="utf-8",
+        )
         (self.spec / "draft.md").write_text(
-            "**Status:** Draft\n\n| **GOV-R72** | A rule MAY hold. |\n", encoding="utf-8")
+            "**Status:** Draft\n\n| **GOV-R72** | A rule MAY hold. |\n", encoding="utf-8"
+        )
 
     def tearDown(self):
         os.chdir(self.cwd)

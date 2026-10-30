@@ -54,7 +54,7 @@ GONE = "c" * 40
 # the pin in the URL, and logs every call so a test can ask what was asked. A pin
 # with no entry is answered the way the forge answers a revision it does not
 # have: an error body on stdout, and a non-zero exit.
-GH_STUB = '''#!/usr/bin/env python3
+GH_STUB = """#!/usr/bin/env python3
 import json, os, re, sys
 
 args = sys.argv[1:]
@@ -78,12 +78,12 @@ if args and args[0] == "api":
 
 sys.stderr.write("gh stub: nothing answers " + " ".join(args) + "\\n")
 sys.exit(64)
-'''
+"""
 
 # Stand in for date. The step asks it two things: what time it is now, and what
 # time an ISO-8601 string was. BSD date cannot answer the second at all, so this
 # is what lets the suite run anywhere, and it stops the clock besides.
-DATE_STUB = '''#!/usr/bin/env python3
+DATE_STUB = """#!/usr/bin/env python3
 import datetime, os, sys
 
 args = sys.argv[1:]
@@ -93,7 +93,7 @@ else:
     when = os.environ["DATE_NOW"]
 moment = datetime.datetime.fromisoformat(when.replace("Z", "+00:00"))
 sys.stdout.write(str(int(moment.timestamp())) + "\\n")
-'''
+"""
 
 
 def workflow() -> dict:
@@ -167,9 +167,7 @@ class Pins(unittest.TestCase):
         lines = [f"name: {name}", "jobs:"]
         for index, pin in enumerate(pins):
             lines.append(f"  job{index}:")
-            lines.append(
-                f"    uses: lemonfiber/spec/.github/workflows/{shared}@{pin} # main"
-            )
+            lines.append(f"    uses: lemonfiber/spec/.github/workflows/{shared}@{pin} # main")
         path = self.work / ".github" / "workflows" / f"{name}.yml"
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -254,9 +252,7 @@ class Pins(unittest.TestCase):
         the twenty-three.
         """
         self.caller("ci", NEAR)
-        code, out = self.run_step(
-            {NEAR: compared(23, 2, files=(".github/workflows/hygiene.yml",))}
-        )
+        code, out = self.run_step({NEAR: compared(23, 2, files=(".github/workflows/hygiene.yml",))})
         self.assertEqual(code, 0, out)
         self.assertIn("and hygiene.yml changed in them", out)
 
@@ -281,9 +277,7 @@ class Pins(unittest.TestCase):
         how a notice stops being read.
         """
         self.caller("ci", NEAR, shared="hygiene.yml")
-        code, out = self.run_step(
-            {NEAR: compared(5, 1, files=(".github/workflows/sonar-gate.yml",))}
-        )
+        code, out = self.run_step({NEAR: compared(5, 1, files=(".github/workflows/sonar-gate.yml",))})
         self.assertEqual(code, 0, out)
         self.assertIn("none of them touched a workflow this repository runs", out)
         self.assertNotIn("sonar-gate", out)
@@ -314,9 +308,7 @@ class Pins(unittest.TestCase):
         that is being bumped anyway is one somebody wants to know the reason for.
         """
         self.caller("ci", FAR)
-        code, out = self.run_step(
-            {FAR: compared(94, 13, files=(".github/workflows/hygiene.yml",))}
-        )
+        code, out = self.run_step({FAR: compared(94, 13, files=(".github/workflows/hygiene.yml",))})
         self.assertEqual(code, 1, out)
         self.assertIn("and hygiene.yml changed in them", out)
         self.assertIn("whatever has been fixed there has not reached", out)
@@ -327,9 +319,7 @@ class Pins(unittest.TestCase):
         route around.
         """
         self.caller("ci", NEAR)
-        code, out = self.run_step(
-            {NEAR: compared(1, 0, files=(".github/workflows/hygiene.yml",))}
-        )
+        code, out = self.run_step({NEAR: compared(1, 0, files=(".github/workflows/hygiene.yml",))})
         self.assertEqual(code, 0, out)
         self.assertIn("::notice::", out)
         self.assertNotIn("::error::", out)
@@ -362,9 +352,7 @@ class Pins(unittest.TestCase):
         self.caller("ci", FAR)
         code, out = self.run_step({FAR: compared(COMMITS + 5, DAYS + 5)})
         self.assertEqual(code, 1, out)
-        self.assertIn(
-            f"more than {DAYS} days old, and more than {COMMITS} commits behind", out
-        )
+        self.assertIn(f"more than {DAYS} days old, and more than {COMMITS} commits behind", out)
 
     def test_a_close_recent_pin_passes_as_a_notice(self):
         self.caller("ci", NEAR)

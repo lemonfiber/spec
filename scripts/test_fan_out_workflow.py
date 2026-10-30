@@ -234,10 +234,7 @@ def the_mints() -> list[dict]:
 
 
 def a_pin(workflow: str, sha: str) -> str:
-    return (
-        "jobs:\n  one:\n    uses: "
-        f"lemonfiber/spec/.github/workflows/{workflow}@{sha} # v1.0.1\n"
-    )
+    return f"jobs:\n  one:\n    uses: lemonfiber/spec/.github/workflows/{workflow}@{sha} # v1.0.1\n"
 
 
 class TheLoop(unittest.TestCase):
@@ -249,8 +246,14 @@ class TheLoop(unittest.TestCase):
 
         self.spec = self.root / "spec"
         (self.spec / "scripts").mkdir(parents=True)
-        for name in ("fan_out_pins.py", "workflow_pins.py", "pin_window.py", "signed_pin_commit.py",
-                     "paths.py", "rolling_pull_request.py"):
+        for name in (
+            "fan_out_pins.py",
+            "workflow_pins.py",
+            "pin_window.py",
+            "signed_pin_commit.py",
+            "paths.py",
+            "rolling_pull_request.py",
+        ):
             shutil.copy(HERE / name, self.spec / "scripts" / name)
 
         self.git("init", "-q", "-b", "main")
@@ -287,14 +290,20 @@ class TheLoop(unittest.TestCase):
         self.commits = self.root / "commits.log"
         self.refs = self.root / "refs.log"
         self.armed = self.root / "armed.log"
-        for where in (self.log, self.created, self.pushes, self.summary, self.bodies,
-                      self.commits, self.refs, self.armed):
+        for where in (
+            self.log,
+            self.created,
+            self.pushes,
+            self.summary,
+            self.bodies,
+            self.commits,
+            self.refs,
+            self.armed,
+        ):
             where.touch()
 
     def git(self, *args):
-        subprocess.run(
-            ["git", "-C", str(self.spec), *args], check=True, capture_output=True
-        )
+        subprocess.run(["git", "-C", str(self.spec), *args], check=True, capture_output=True)
 
     def commit(self, said: str, workflow: str) -> str:
         where = self.spec / ".github" / "workflows" / workflow
@@ -311,9 +320,7 @@ class TheLoop(unittest.TestCase):
         return got.stdout.strip()
 
     def pinning(self, text: str):
-        (self.fixture / ".github" / "workflows" / "ci.yml").write_text(
-            text, encoding="utf-8"
-        )
+        (self.fixture / ".github" / "workflows" / "ci.yml").write_text(text, encoding="utf-8")
 
     def run_step(self, named: str = "alpha", **extra) -> subprocess.CompletedProcess:
         where = shutil.which("git")
@@ -340,9 +347,7 @@ class TheLoop(unittest.TestCase):
             **extra,
         }
 
-        return subprocess.run(
-            ["bash", "-c", the_step()], capture_output=True, text=True, env=env
-        )
+        return subprocess.run(["bash", "-c", the_step()], capture_output=True, text=True, env=env)
 
     # --- what it does -----------------------------------------------------
 
@@ -389,9 +394,7 @@ class TheLoop(unittest.TestCase):
         made = self.commits.read_text(encoding="utf-8")
         self.assertIn('"branchName": "ci/take-the-shared-workflows-staging"', made)
         self.assertIn('"repositoryNameWithOwner": "lemonfiber/alpha"', made)
-        self.assertIn(
-            '"headline": "ci(workflows): take the shared workflows at v1.0.9"', made
-        )
+        self.assertIn('"headline": "ci(workflows): take the shared workflows at v1.0.9"', made)
         self.assertIn('"path": ".github/workflows/ci.yml"', made)
 
     def test_the_kept_branch_is_moved_to_the_commit_never_reset_to_main(self):
@@ -453,9 +456,12 @@ class TheLoop(unittest.TestCase):
         )
         body = self.bodies.read_text(encoding="utf-8").rstrip()
         self.assertIn("\n\nSpec: OPS-R48, OPS-R85, OPS-R92\n\n", body)
-        self.assertTrue(body.endswith(
-            "Signed-off-by: lemonfiber-release-train[bot] "
-            "<lemonfiber-release-train[bot]@users.noreply.github.com>"))
+        self.assertTrue(
+            body.endswith(
+                "Signed-off-by: lemonfiber-release-train[bot] "
+                "<lemonfiber-release-train[bot]@users.noreply.github.com>"
+            )
+        )
 
     def test_only_the_app_s_own_pull_requests_from_this_repository_are_its(self):
         # A fork's pull request whose branch is named like the bump must not be
@@ -466,7 +472,7 @@ class TheLoop(unittest.TestCase):
         self.run_step()
 
         log = self.log.read_text(encoding="utf-8")
-        listed = log[log.index("pr list"):]
+        listed = log[log.index("pr list") :]
         self.assertIn("isCrossRepository", listed)
         self.assertIn("select(.isCrossRepository | not)", listed)
         self.assertIn('select(.author.login == "app/" + env.APP)', listed)
@@ -497,19 +503,37 @@ class TheLoop(unittest.TestCase):
 
         ran = self.run_step(
             GH_OPEN="3 ci/take-the-shared-workflows-at-v1.0.8\\n4 feature/x\\n",
-            GH_RUNS=json.dumps({"workflow_runs": [
-                {"id": 111, "status": "in_progress", "head_repository": {"full_name": "lemonfiber/alpha"}},
-                {"id": 112, "status": "queued", "head_repository": {"full_name": "lemonfiber/alpha"}},
-                {"id": 113, "status": "completed", "head_repository": {"full_name": "lemonfiber/alpha"}},
-                {"id": 114, "status": "in_progress", "head_repository": {"full_name": "outsider/alpha"}},
-            ]}),
+            GH_RUNS=json.dumps(
+                {
+                    "workflow_runs": [
+                        {
+                            "id": 111,
+                            "status": "in_progress",
+                            "head_repository": {"full_name": "lemonfiber/alpha"},
+                        },
+                        {"id": 112, "status": "queued", "head_repository": {"full_name": "lemonfiber/alpha"}},
+                        {
+                            "id": 113,
+                            "status": "completed",
+                            "head_repository": {"full_name": "lemonfiber/alpha"},
+                        },
+                        {
+                            "id": 114,
+                            "status": "in_progress",
+                            "head_repository": {"full_name": "outsider/alpha"},
+                        },
+                    ]
+                }
+            ),
         )
 
         self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
         log = self.log.read_text(encoding="utf-8")
         self.assertIn("pr close 3 --repo lemonfiber/alpha --delete-branch --comment Replaced by #7", log)
         self.assertNotIn("pr close 4", log)
-        self.assertIn("api repos/lemonfiber/alpha/actions/runs?branch=ci/take-the-shared-workflows-at-v1.0.8", log)
+        self.assertIn(
+            "api repos/lemonfiber/alpha/actions/runs?branch=ci/take-the-shared-workflows-at-v1.0.8", log
+        )
         self.assertIn("run cancel 111 --repo lemonfiber/alpha", log)
         self.assertIn("run cancel 112 --repo lemonfiber/alpha", log)
         self.assertNotIn("run cancel 113", log)
@@ -529,7 +553,9 @@ class TheLoop(unittest.TestCase):
         self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
         log = self.log.read_text(encoding="utf-8")
         self.assertIn("pr close 5 --repo lemonfiber/alpha --delete-branch", log)
-        self.assertIn("pr close 3 --repo lemonfiber/alpha --delete-branch --comment `main` already holds", log)
+        self.assertIn(
+            "pr close 3 --repo lemonfiber/alpha --delete-branch --comment `main` already holds", log
+        )
         self.assertEqual(self.pushes.read_text(encoding="utf-8"), "")
         self.assertIn("current: alpha", self.summary.read_text(encoding="utf-8"))
 
@@ -617,7 +643,13 @@ class WhoItCanReach(unittest.TestCase):
 
         self.spec = self.root / "spec"
         (self.spec / "scripts").mkdir(parents=True)
-        for name in ("fan_out_pins.py", "workflow_pins.py", "pin_window.py", "signed_pin_commit.py", "paths.py"):
+        for name in (
+            "fan_out_pins.py",
+            "workflow_pins.py",
+            "pin_window.py",
+            "signed_pin_commit.py",
+            "paths.py",
+        ):
             shutil.copy(HERE / name, self.spec / "scripts" / name)
         (self.spec / "30-repos").mkdir()
         (self.spec / "30-repos" / "repos.toml").write_text(self.MAP, encoding="utf-8")
@@ -701,11 +733,7 @@ class TheStepIsTheOneThatRuns(unittest.TestCase):
         # string under `set -u`… except that the step sets `-u` and would fail
         # loudly. This catches the rename before the tag does.
         described = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-        step = next(
-            one
-            for one in described["jobs"][JOB]["steps"]
-            if one.get("name") == STEP
-        )
+        step = next(one for one in described["jobs"][JOB]["steps"] if one.get("name") == STEP)
 
         for named in ("GH_TOKEN", "APP", "OWNER", "TAG", "COMMIT", "NAMED", "SPEC"):
             self.assertIn(named, step["env"])
@@ -821,8 +849,10 @@ class TheWait(unittest.TestCase):
         published = yaml.safe_load((WORKFLOW.parent / "publish-pin-tag.yml").read_text(encoding="utf-8"))
         self.assertIs(published["jobs"]["fan-out"]["with"]["settle"], True)
         self.assertNotIn("concurrency", published)
-        self.assertEqual(published["jobs"]["publish-pin-tag"]["concurrency"],
-                         {"group": "publish-pin-tag", "cancel-in-progress": False})
+        self.assertEqual(
+            published["jobs"]["publish-pin-tag"]["concurrency"],
+            {"group": "publish-pin-tag", "cancel-in-progress": False},
+        )
 
 
 if __name__ == "__main__":

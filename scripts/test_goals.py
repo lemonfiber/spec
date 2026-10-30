@@ -56,11 +56,11 @@ class Train(unittest.TestCase):
         self.cwd = os.getcwd()
         os.chdir(self.tmp)
         pathlib.Path("70-operations/versions").mkdir(parents=True)
-        self.manifest("0.2.0", "planned", ["A1-R1", "A1-R2", "A1-R3", "A1-R4", "A1-R5"],
-                      ["core", "app"])
+        self.manifest("0.2.0", "planned", ["A1-R1", "A1-R2", "A1-R3", "A1-R4", "A1-R5"], ["core", "app"])
         self.manifest("0.1.0", "released", ["A1-R9"], ["core"])
         (pathlib.Path("70-operations/versions") / "TEMPLATE.toml").write_text(
-            'version = "X"\ngoals = []\n', encoding="utf-8")
+            'version = "X"\ngoals = []\n', encoding="utf-8"
+        )
         self.repo(".", "Spec: GOV-R12")
         self.repo("core", "Spec: A1-R1, A1-R2")
         self.repo("app", "Spec: A1-R4")
@@ -76,11 +76,14 @@ class Train(unittest.TestCase):
         where = ", ".join(f'"{r}"' for r in searched)
         pathlib.Path(f"70-operations/versions/{version}.toml").write_text(
             f'version = "{version}"\nstatus = "{status}"\nrepos = ["core"]\n'
-            f"satisfied_in = [{where}]\ngoals = [{listed}]\n", encoding="utf-8")
+            f"satisfied_in = [{where}]\ngoals = [{listed}]\n",
+            encoding="utf-8",
+        )
 
     def git(self, path, *args):
-        return subprocess.run(["git", "-C", path, *args], check=True,
-                              capture_output=True, text=True).stdout.strip()
+        return subprocess.run(
+            ["git", "-C", path, *args], check=True, capture_output=True, text=True
+        ).stdout.strip()
 
     def repo(self, path, trailer):
         subprocess.run(["git", "init", "-q", path], check=True, capture_output=True)
@@ -117,9 +120,14 @@ class WhatAReaderIsTold(Train):
     def test_the_format_the_sources_and_when(self):
         _, data = self.report()
         self.assertEqual(data["format"], goals.FORMAT)
-        self.assertEqual(data["sources"], {"spec": self.git(".", "rev-parse", "HEAD"),
-                                           "core": self.git("core", "rev-parse", "HEAD"),
-                                           "app": self.git("app", "rev-parse", "HEAD")})
+        self.assertEqual(
+            data["sources"],
+            {
+                "spec": self.git(".", "rev-parse", "HEAD"),
+                "core": self.git("core", "rev-parse", "HEAD"),
+                "app": self.git("app", "rev-parse", "HEAD"),
+            },
+        )
         self.assertRegex(data["generated_at"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
         self.assertIsNone(data["versions"][0]["milestone"])
 
@@ -133,38 +141,66 @@ class WhatAReaderIsTold(Train):
 
 class EachVerdictFromTheStateThatEarnsIt(Train):
     def test_the_five_verdicts(self):
-        self.commit("core", "status.toml",
-                    '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n'
-                    '[[requirement]]\nid = "A1-R3"\nstate = "done"\nevidence = ["README"]\n'
-                    '[[requirement]]\nid = "A1-R5"\nstate = "partial"\n'
-                    '[[requirement]]\nid = "Z9-R9"\nstate = "done"\nevidence = ["README"]\n')
-        prs = {"app": [{"number": 7, "url": "https://x/7", "isDraft": True, "body": "",
-                        "commits": [{"message": "feat: x\n\nSpec: A1-R5"}]},
-                       {"number": 8, "url": "https://x/8", "isDraft": False,
-                        "body": "Spec: A1-R1", "commits": None}]}
+        self.commit(
+            "core",
+            "status.toml",
+            '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n'
+            '[[requirement]]\nid = "A1-R3"\nstate = "done"\nevidence = ["README"]\n'
+            '[[requirement]]\nid = "A1-R5"\nstate = "partial"\n'
+            '[[requirement]]\nid = "Z9-R9"\nstate = "done"\nevidence = ["README"]\n',
+        )
+        prs = {
+            "app": [
+                {
+                    "number": 7,
+                    "url": "https://x/7",
+                    "isDraft": True,
+                    "body": "",
+                    "commits": [{"message": "feat: x\n\nSpec: A1-R5"}],
+                },
+                {"number": 8, "url": "https://x/8", "isDraft": False, "body": "Spec: A1-R1", "commits": None},
+            ]
+        }
         pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
         found, data = self.report("--prs", "prs.json")
         verdicts = {ident: g["verdict"] for ident, g in found.items()}
-        self.assertEqual(verdicts, {"A1-R1": "met", "A1-R2": "unmarked", "A1-R3": "uncited",
-                                    "A1-R4": "unmarked", "A1-R5": "claimed", "A1-R9": "open"})
+        self.assertEqual(
+            verdicts,
+            {
+                "A1-R1": "met",
+                "A1-R2": "unmarked",
+                "A1-R3": "uncited",
+                "A1-R4": "unmarked",
+                "A1-R5": "claimed",
+                "A1-R9": "open",
+            },
+        )
         self.assertEqual(found["A1-R5"]["partial_in"], ["core"])
         self.assertTrue(found["A1-R5"]["claims"][0]["draft"])
-        self.assertEqual([(v["version"], v["status"]) for v in data["versions"]],
-                         [("0.1.0", "released"), ("0.2.0", "planned")],
-                         "a released version is on the report, with its goals")
+        self.assertEqual(
+            [(v["version"], v["status"]) for v in data["versions"]],
+            [("0.1.0", "released"), ("0.2.0", "planned")],
+            "a released version is on the report, with its goals",
+        )
 
     def test_a_row_naming_where_it_landed_stands_for_a_citation(self):
         sha = self.git("core", "rev-parse", "HEAD")
-        self.commit("core", "status.toml",
-                    f'[[requirement]]\nid = "A1-R3"\nstate = "done"\nevidence = ["README"]\nlanded = "{sha}"\n'
-                    '[[requirement]]\nid = "A1-R2"\nstate = "done"\nevidence = ["README"]\nlanded = "deadbeef"\n')
+        self.commit(
+            "core",
+            "status.toml",
+            f'[[requirement]]\nid = "A1-R3"\nstate = "done"\nevidence = ["README"]\nlanded = "{sha}"\n'
+            '[[requirement]]\nid = "A1-R2"\nstate = "done"\nevidence = ["README"]\nlanded = "deadbeef"\n',
+        )
         found, _ = self.report()
         self.assertEqual(found["A1-R3"]["verdict"], "met")
         self.assertEqual(found["A1-R2"]["landed_in"], [], "a commit the history lacks is nothing")
 
     def test_the_binary_markdown_tracker_is_read_while_it_is_kept(self):
-        self.commit("core", "IMPLEMENTATION-STATUS.md",
-                    LEGACY_HEADER + "| x | `A1-R2` | ✅ | landed in `abc1234` |\n| x | `A1-R4` | ☐ | y |\n")
+        self.commit(
+            "core",
+            "IMPLEMENTATION-STATUS.md",
+            LEGACY_HEADER + "| x | `A1-R2` | ✅ | landed in `abc1234` |\n| x | `A1-R4` | ☐ | y |\n",
+        )
         self.commit("core", "status.toml", '[[milestone]]\nname = "M1"\n')
         found, _ = self.report()
         self.assertEqual(found["A1-R2"]["verdict"], "met")
@@ -173,22 +209,27 @@ class EachVerdictFromTheStateThatEarnsIt(Train):
     def test_a_tracker_split_by_feature_is_read_whole(self):
         self.git("core", "rm", "-q", "status.toml")
         (pathlib.Path("core") / "status").mkdir()
-        self.commit("core", "status/A1.toml",
-                    'requirement = [{ id = "A1-R2", state = "done", evidence = ["README"] }]\n')
+        self.commit(
+            "core",
+            "status/A1.toml",
+            'requirement = [{ id = "A1-R2", state = "done", evidence = ["README"] }]\n',
+        )
         found, _ = self.report()
         self.assertEqual(found["A1-R2"]["verdict"], "met")
 
     def test_a_working_tree_edit_changes_nothing(self):
         (pathlib.Path("core") / "status.toml").write_text(
-            '[[requirement]]\nid = "A1-R2"\nstate = "done"\nevidence = ["README"]\n', encoding="utf-8")
+            '[[requirement]]\nid = "A1-R2"\nstate = "done"\nevidence = ["README"]\n', encoding="utf-8"
+        )
         found, _ = self.report("--ref", "HEAD")
         self.assertEqual(found["A1-R2"]["verdict"], "unmarked")
 
 
 class ThePage(Train):
     def test_markdown_groups_by_verdict_and_folds_what_is_met(self):
-        self.commit("core", "status.toml",
-                    '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n')
+        self.commit(
+            "core", "status.toml", '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n'
+        )
         for n in range(5):
             self.commit("app", f"f{n}", "x", "Spec: A1-R4")
         code, page = run_main([*self.checkouts(), "--version", "0.2.0"])
@@ -229,8 +270,7 @@ class WhatCouldNotBeRead(Train):
     another shows them met, and the report is still written."""
 
     def degraded(self, argv=None):
-        code, said = run_main([*(argv or self.checkouts()), "--json", "state.json",
-                               "--markdown", "STATE.md"])
+        code, said = run_main([*(argv or self.checkouts()), "--json", "state.json", "--markdown", "STATE.md"])
         self.assertEqual(code, 0, said)
         data = json.loads(pathlib.Path("state.json").read_text(encoding="utf-8"))
         found = {g["id"]: g["verdict"] for v in data["versions"] for g in v["goals"]}
@@ -244,8 +284,9 @@ class WhatCouldNotBeRead(Train):
         self.assertEqual(said, "")
 
     def test_a_repository_keeping_no_tracker(self):
-        self.commit("core", "status.toml",
-                    '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n')
+        self.commit(
+            "core", "status.toml", '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n'
+        )
         self.git("app", "rm", "-q", "status.toml")
         self.git("app", "commit", "-q", "-m", "chore: gone", "-m", "Spec: GOV-R12")
         found, unread, _, said = self.degraded()
@@ -261,8 +302,11 @@ class WhatCouldNotBeRead(Train):
 
     def test_an_unreadable_tracker_adds_no_citation_either(self):
         self.commit("core", "status.toml", "[[requirement]\n")
-        prs = {"core": [{"number": 3, "url": "https://x/3", "isDraft": True,
-                         "body": "Spec: A1-R9", "commits": []}]}
+        prs = {
+            "core": [
+                {"number": 3, "url": "https://x/3", "isDraft": True, "body": "Spec: A1-R9", "commits": []}
+            ]
+        }
         pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
         found, unread, data, _ = self.degraded([*self.checkouts(), "--prs", "prs.json"])
         self.assertIn("status.toml", unread["core"])
@@ -279,9 +323,11 @@ class WhatCouldNotBeRead(Train):
 
     def test_a_shallow_clone(self):
         shutil.move("app", "app-origin")
-        subprocess.run(["git", "clone", "-q", "--depth", "1",
-                        f"file://{pathlib.Path('app-origin').resolve()}", "app"],
-                       check=True, capture_output=True)
+        subprocess.run(
+            ["git", "clone", "-q", "--depth", "1", f"file://{pathlib.Path('app-origin').resolve()}", "app"],
+            check=True,
+            capture_output=True,
+        )
         self.commit("app-origin", "later", "x")
         _, unread, _, _ = self.degraded()
         self.assertIn("shallow clone", unread["app"])

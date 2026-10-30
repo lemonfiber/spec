@@ -91,7 +91,9 @@ class AwaitingMaintainer(unittest.TestCase):
 
     def test_a_review_that_decides_clears_a_label_it_carries(self):
         for state in ("approved", "changes_requested", "APPROVED"):
-            self.assertTrue(self.starts(labelled("pull_request_review", ["awaiting-maintainer"], state)), state)
+            self.assertTrue(
+                self.starts(labelled("pull_request_review", ["awaiting-maintainer"], state)), state
+            )
 
     def test_a_review_that_only_comments_starts_nothing(self):
         self.assertFalse(self.starts(labelled("pull_request_review", ["awaiting-maintainer"], "commented")))

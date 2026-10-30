@@ -140,7 +140,11 @@ class Branches(unittest.TestCase):
 
     def git(self, *args):
         return subprocess.run(
-            ["git", *args], cwd=self.tmp, capture_output=True, text=True, check=True,
+            ["git", *args],
+            cwd=self.tmp,
+            capture_output=True,
+            text=True,
+            check=True,
         )
 
     def setUp(self):
@@ -193,8 +197,7 @@ class Branches(unittest.TestCase):
         # The branch edits the same file so the row is on both sides of it.
         self.commit("main.md", "F-R1")
         self.git("checkout", "-q", "-b", "in-flight")
-        (self.tmp / "main.md").write_text(
-            "| **F-R1** | reworded on the branch |\n", encoding="utf-8")
+        (self.tmp / "main.md").write_text("| **F-R1** | reworded on the branch |\n", encoding="utf-8")
         self.git("add", "main.md")
         self.git("commit", "-qm", "reword")
         head = self.git("rev-parse", "HEAD").stdout.strip()

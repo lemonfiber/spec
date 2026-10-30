@@ -12,6 +12,7 @@ Stdlib unittest, no dependencies (the repo has none). A canonical `shared/` and
 a repository to check are built in a temporary directory.
 Run:  python3 scripts/test_shared_files.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -48,8 +49,8 @@ import check_shared_files  # noqa: E402
 MARKDOWNLINT = '{\n  "default": true,\n  "MD013": false\n}\n'
 TYPOS = (
     "[default]\n"
-    "extend-words = { lemonfiber = \"lemonfiber\", ratatui = \"ratatui\" }\n"
-    "extend-ignore-re = [\"\\\\[[a-z]\\\\][a-zA-Z]+\"]\n"
+    'extend-words = { lemonfiber = "lemonfiber", ratatui = "ratatui" }\n'
+    'extend-ignore-re = ["\\\\[[a-z]\\\\][a-zA-Z]+"]\n'
 )
 GATE = """#!/usr/bin/env python3
 \"\"\"A gate, for the fixture to compare copies of.\"\"\"
@@ -109,8 +110,7 @@ class Copies(unittest.TestCase):
         (self.canonical / "scripts").mkdir(parents=True)
         shutil.copy(HERE / "gen_codeowners.py", self.canonical / "scripts")
         (self.canonical / "70-operations").mkdir(parents=True)
-        (self.canonical / "70-operations" / "maintainers.toml").write_text(
-            REGISTRY, encoding="utf-8")
+        (self.canonical / "70-operations" / "maintainers.toml").write_text(REGISTRY, encoding="utf-8")
         (self.canonical / "30-repos").mkdir(parents=True)
         (self.canonical / "30-repos" / "repos.toml").write_text(ORG, encoding="utf-8")
 
@@ -147,7 +147,10 @@ class Copies(unittest.TestCase):
         """What `gen_codeowners.py` writes for a repo, asked of the real script."""
         done = subprocess.run(
             [sys.executable, str(self.canonical / "scripts" / "gen_codeowners.py"), repo_name],
-            capture_output=True, text=True, check=True)
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         return done.stdout
 
     def digest(self, text):
@@ -159,7 +162,8 @@ class Copies(unittest.TestCase):
             "#\n"
             "# Each row is: <sha256>  <path in the repo>  <home>\n"
             "\n" + "\n".join(rows) + "\n",
-            encoding="utf-8")
+            encoding="utf-8",
+        )
 
     def declare(self, rows=None, **carried):
         """Write `shared/adoption.toml`.
@@ -173,11 +177,12 @@ class Copies(unittest.TestCase):
         (self.canonical / "shared" / check_shared_files.ADOPTION).write_text(
             "".join(
                 f'[[repo]]\nname = "{name}"\n'
-                f'gates = {json.dumps(row.get("gates", []))}\n'
-                f'hooks = {json.dumps(row.get("hooks", []))}\n\n'
+                f"gates = {json.dumps(row.get('gates', []))}\n"
+                f"hooks = {json.dumps(row.get('hooks', []))}\n\n"
                 for name, row in rows.items()
             ),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
 
     def write(self, name, text):
         path = self.repo / name
@@ -186,8 +191,7 @@ class Copies(unittest.TestCase):
         return path
 
     def check(self, repo_name="lemonfiber/cli"):
-        return run_main(["--canonical", str(self.canonical), "--repo", repo_name,
-                         "--root", str(self.repo)])
+        return run_main(["--canonical", str(self.canonical), "--repo", repo_name, "--root", str(self.repo)])
 
 
 class Agreeing(Copies):
@@ -200,10 +204,14 @@ class Agreeing(Copies):
         self.assertIn("match their one home", out)
 
     def test_a_workflow_carrying_the_concurrency_group(self):
-        self.write(".github/workflows/ci.yml", (
-            "on: [pull_request]\n"
-            + (self.canonical / "shared" / "concurrency.yml").read_text(encoding="utf-8")
-            + "jobs:\n  check:\n    runs-on: ubuntu-latest\n"))
+        self.write(
+            ".github/workflows/ci.yml",
+            (
+                "on: [pull_request]\n"
+                + (self.canonical / "shared" / "concurrency.yml").read_text(encoding="utf-8")
+                + "jobs:\n  check:\n    runs-on: ubuntu-latest\n"
+            ),
+        )
         code, out = self.check()
         self.assertEqual(code, 0, out)
         self.assertIn("carries the concurrency group", out)
@@ -275,11 +283,13 @@ class Agreeing(Copies):
 
     def test_a_typos_config_adding_words_and_patterns_of_its_own(self):
         # The shared config is a floor: a repo may add entries, never contradict one.
-        self.write("typos.toml",
-                   "[default]\n"
-                   "extend-words = { lemonfiber = \"lemonfiber\", ratatui = \"ratatui\", "
-                   "Servarr = \"Servarr\" }\n"
-                   "extend-ignore-re = [\"\\\\[[a-z]\\\\][a-zA-Z]+\", \"SPDX-.*\"]\n")
+        self.write(
+            "typos.toml",
+            "[default]\n"
+            'extend-words = { lemonfiber = "lemonfiber", ratatui = "ratatui", '
+            'Servarr = "Servarr" }\n'
+            'extend-ignore-re = ["\\\\[[a-z]\\\\][a-zA-Z]+", "SPDX-.*"]\n',
+        )
         self.assertEqual(self.check()[0], 0)
 
     def test_a_repo_running_no_gate_script_is_not_asked_for_one(self):
@@ -320,8 +330,7 @@ class Agreeing(Copies):
         # Listed from the canonical directory rather than named in the script, so
         # a second gate cannot be copied into every repository and compared in
         # none — which is what a hard-coded list did to `shared/hooks/`.
-        (self.canonical / "shared" / "gates" / "another.py").write_text(
-            GATE, encoding="utf-8")
+        (self.canonical / "shared" / "gates" / "another.py").write_text(GATE, encoding="utf-8")
         self.declare(gates=["a_gate.py", "another.py"])
         self.write("scripts/another.py", GATE + "# drifted\n")
         code, out = self.check()
@@ -360,7 +369,8 @@ class Agreeing(Copies):
         directory no repository has ever carried."""
         (self.canonical / "shared" / ".ruff_cache").mkdir()
         (self.canonical / "shared" / ".ruff_cache" / "CACHEDIR.TAG").write_text(
-            "Signature: 8a477f597d28d172789f06886806bc55\n", encoding="utf-8")
+            "Signature: 8a477f597d28d172789f06886806bc55\n", encoding="utf-8"
+        )
         code, out = self.check()
         self.assertEqual(code, 0, out)
         self.assertNotIn(".ruff_cache", out)
@@ -395,9 +405,8 @@ class EmptiedCanonicals(Copies):
         One half goes silent and the other cries wolf, which is how a gate comes
         to be switched off rather than fixed.
         """
-        (self.canonical / "shared" / "ruff.toml").write_text(
-            "line-length = 100\n", encoding="utf-8")
-        self.write("ruff.toml", "line-length = 100\n[lint]\nignore = [\"E501\"]\n")
+        (self.canonical / "shared" / "ruff.toml").write_text("line-length = 100\n", encoding="utf-8")
+        self.write("ruff.toml", 'line-length = 100\n[lint]\nignore = ["E501"]\n')
         code, out = self.check()
         self.assertEqual(code, 1, out)
         self.assertIn("selects no rules", out)
@@ -405,7 +414,8 @@ class EmptiedCanonicals(Copies):
 
     def test_a_typos_config_extending_nothing_compares_nothing(self):
         (self.canonical / "shared" / "typos.toml").write_text(
-            "[files]\nextend-exclude = []\n", encoding="utf-8")
+            "[files]\nextend-exclude = []\n", encoding="utf-8"
+        )
         code, out = self.check()
         self.assertEqual(code, 1, out)
         self.assertIn("extends no words", out)
@@ -501,27 +511,31 @@ class Drifted(Copies):
         self.assertIn("typos.toml is missing; copy", out)
 
     def test_a_typos_config_missing_a_shared_word(self):
-        self.write("typos.toml",
-                   "[default]\n"
-                   "extend-words = { lemonfiber = \"lemonfiber\" }\n"
-                   "extend-ignore-re = [\"\\\\[[a-z]\\\\][a-zA-Z]+\"]\n")
+        self.write(
+            "typos.toml",
+            "[default]\n"
+            'extend-words = { lemonfiber = "lemonfiber" }\n'
+            'extend-ignore-re = ["\\\\[[a-z]\\\\][a-zA-Z]+"]\n',
+        )
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn("typos.toml is missing the shared word 'ratatui'", out)
 
     def test_a_typos_config_contradicting_a_shared_word(self):
-        self.write("typos.toml",
-                   "[default]\n"
-                   "extend-words = { lemonfiber = \"lemonfiber\", ratatui = \"Ratatui\" }\n"
-                   "extend-ignore-re = [\"\\\\[[a-z]\\\\][a-zA-Z]+\"]\n")
+        self.write(
+            "typos.toml",
+            "[default]\n"
+            'extend-words = { lemonfiber = "lemonfiber", ratatui = "Ratatui" }\n'
+            'extend-ignore-re = ["\\\\[[a-z]\\\\][a-zA-Z]+"]\n',
+        )
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn("typos.toml maps 'ratatui' to 'Ratatui', shared is 'ratatui'", out)
 
     def test_a_typos_config_missing_a_shared_pattern(self):
-        self.write("typos.toml",
-                   "[default]\n"
-                   "extend-words = { lemonfiber = \"lemonfiber\", ratatui = \"ratatui\" }\n")
+        self.write(
+            "typos.toml", '[default]\nextend-words = { lemonfiber = "lemonfiber", ratatui = "ratatui" }\n'
+        )
         code, out = self.check()
         self.assertEqual(code, 1)
         self.assertIn(r"missing the shared pattern '\\[[a-z]\\][a-zA-Z]+'", out)
@@ -560,7 +574,8 @@ class Drifted(Copies):
     def test_every_drifted_asset_is_named(self):
         self.manifest(
             f"{self.digest(LOGO)}  .github/logo.svg  brand:assets/logo/lockup.svg",
-            f"{self.digest(LOGO)}  public/logo.svg   brand:assets/logo/lockup.svg")
+            f"{self.digest(LOGO)}  public/logo.svg   brand:assets/logo/lockup.svg",
+        )
         self.write(".github/logo.svg", OTHER)
         self.write("public/logo.svg", OTHER)
         code, out = self.check()
@@ -599,8 +614,7 @@ class Drifted(Copies):
     def test_a_hook_added_to_the_shared_directory_is_compared(self):
         """The hook names were written when there were two. A third is read from
         the canonical directory rather than waited for."""
-        (self.canonical / "shared" / "hooks" / "pre-commit").write_text(
-            HOOK, encoding="utf-8")
+        (self.canonical / "shared" / "hooks" / "pre-commit").write_text(HOOK, encoding="utf-8")
         self.declare(hooks=["pre-commit"])
         self.write(".githooks/pre-commit", HOOK.replace("exit 0", "exit 1"))
         code, out = self.check()
@@ -649,8 +663,9 @@ class Declared(Copies):
         self.write("scripts/a_gate.py", GATE)
         code, out = self.check()
         self.assertEqual(code, 1, out)
-        self.assertIn("scripts/a_gate.py is here and shared/adoption.toml does not "
-                      "record cli as carrying it", out)
+        self.assertIn(
+            "scripts/a_gate.py is here and shared/adoption.toml does not record cli as carrying it", out
+        )
 
     def test_a_hook_declared_and_not_there(self):
         self.declare(hooks=["pre-push"])
@@ -662,8 +677,9 @@ class Declared(Copies):
         self.write(".githooks/pre-push", HOOK)
         code, out = self.check()
         self.assertEqual(code, 1, out)
-        self.assertIn(".githooks/pre-push is here and shared/adoption.toml does not "
-                      "record cli as carrying it", out)
+        self.assertIn(
+            ".githooks/pre-push is here and shared/adoption.toml does not record cli as carrying it", out
+        )
 
     def test_a_repository_with_no_row_of_its_own(self):
         # The silence the whole register is about. A repository nothing declares
@@ -698,7 +714,8 @@ class Declared(Copies):
         # A repository outside it calls these workflows all the same, so it is
         # asked what it carries and a row for it is about somebody.
         (self.canonical / "30-repos" / "repos.toml").write_text(
-            ORG + '\n[[ungoverned]]\nname = "a-plugin"\n', encoding="utf-8")
+            ORG + '\n[[ungoverned]]\nname = "a-plugin"\n', encoding="utf-8"
+        )
         self.declare(rows={"cli": {}, "brand": {}, "a-plugin": {}})
         code, out = self.check("lemonfiber/a-plugin")
         self.assertEqual(code, 0, out)
@@ -708,7 +725,8 @@ class Declared(Copies):
         # unknown and refused the row that would have answered for it, and the
         # only way through was to stop running the check.
         (self.canonical / "30-repos" / "repos.toml").write_text(
-            ORG + '\n[[ungoverned]]\nname = "a-plugin"\n', encoding="utf-8")
+            ORG + '\n[[ungoverned]]\nname = "a-plugin"\n', encoding="utf-8"
+        )
         code, out = self.check("lemonfiber/a-plugin")
         self.assertEqual(code, 1, out)
         self.assertIn("a-plugin has no row in shared/adoption.toml", out)
@@ -721,8 +739,7 @@ class Declared(Copies):
         self.write("scripts/a_gate.py", GATE)
         code, out = self.check()
         self.assertEqual(code, 1, out)
-        self.assertIn("says cli carries gates/renamed.py, which shared/gates/ "
-                      "does not hold", out)
+        self.assertIn("says cli carries gates/renamed.py, which shared/gates/ does not hold", out)
 
     def test_the_repository_list_is_not_there(self):
         (self.canonical / "30-repos" / "repos.toml").unlink()
@@ -732,11 +749,11 @@ class Declared(Copies):
 
     def test_the_repository_list_names_nobody(self):
         (self.canonical / "30-repos" / "repos.toml").write_text(
-            "# every repository in the org\n", encoding="utf-8")
+            "# every repository in the org\n", encoding="utf-8"
+        )
         code, out = self.check()
         self.assertEqual(code, 1, out)
-        self.assertIn("names no repository, so shared/adoption.toml was compared "
-                      "against nothing", out)
+        self.assertIn("names no repository, so shared/adoption.toml was compared against nothing", out)
 
 
 class ThePointer(Copies):
@@ -822,21 +839,24 @@ class NoRegister(Copies):
 
     def test_a_register_that_will_not_parse(self):
         (self.canonical / "shared" / check_shared_files.ADOPTION).write_text(
-            '[[repo]\nname = "cli"\n', encoding="utf-8")
+            '[[repo]\nname = "cli"\n', encoding="utf-8"
+        )
         code, out = self.check()
         self.assertEqual(code, 1, out)
         self.assertIn("shared/adoption.toml could not be read", out)
 
     def test_a_register_naming_no_repository(self):
         (self.canonical / "shared" / check_shared_files.ADOPTION).write_text(
-            "# nobody has declared anything\n", encoding="utf-8")
+            "# nobody has declared anything\n", encoding="utf-8"
+        )
         code, out = self.check()
         self.assertEqual(code, 1, out)
         self.assertIn("shared/adoption.toml names no repository", out)
 
     def test_a_row_that_names_no_repository(self):
         (self.canonical / "shared" / check_shared_files.ADOPTION).write_text(
-            "[[repo]]\ngates = []\nhooks = []\n", encoding="utf-8")
+            "[[repo]]\ngates = []\nhooks = []\n", encoding="utf-8"
+        )
         code, out = self.check()
         self.assertEqual(code, 1, out)
         self.assertIn("holds a row with no `name`", out)
@@ -912,8 +932,7 @@ class Usage(Copies):
     def test_the_manifest_is_read_past_its_own_prose(self):
         # It opens with a comment block explaining itself, and rows are spaced out.
         rows = list(check_shared_files.asset_rows(self.canonical))
-        self.assertEqual(rows, [(self.digest(LOGO), ".github/logo.svg",
-                                 "brand", "assets/logo/lockup.svg")])
+        self.assertEqual(rows, [(self.digest(LOGO), ".github/logo.svg", "brand", "assets/logo/lockup.svg")])
 
 
 if __name__ == "__main__":

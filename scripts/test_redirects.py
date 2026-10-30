@@ -2,6 +2,7 @@
 """Coverage tests for gen_redirects.py — the pages that stand where the book
 stood. Stdlib unittest, no dependencies. Run: python3 scripts/test_redirects.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -37,9 +38,7 @@ class RouteOf(unittest.TestCase):
             "00-overview/vision",
         )
         self.assertEqual(
-            gen_redirects.route_of(
-                pathlib.PurePosixPath("10-functional/features/BOARD.md")
-            ),
+            gen_redirects.route_of(pathlib.PurePosixPath("10-functional/features/BOARD.md")),
             "10-functional/features/board",
         )
 
@@ -74,9 +73,7 @@ class Within(unittest.TestCase):
     def test_a_name_inside_the_directory_resolves(self):
         with tempfile.TemporaryDirectory() as work:
             out = pathlib.Path(work)
-            self.assertEqual(
-                gen_redirects.within(out, "a/b.html"), (out / "a" / "b.html").resolve()
-            )
+            self.assertEqual(gen_redirects.within(out, "a/b.html"), (out / "a" / "b.html").resolve())
 
     def test_a_name_that_leaves_the_directory_does_not(self):
         with tempfile.TemporaryDirectory() as work:
@@ -115,9 +112,7 @@ class Main(unittest.TestCase):
                 page,
             )
             self.assertIn("0; url=https://docs.lemonfiber.app/spec/40-quality/tooling/", page)
-            self.assertIn(
-                'href="https://docs.lemonfiber.app/spec/"', (out / "index.html").read_text()
-            )
+            self.assertIn('href="https://docs.lemonfiber.app/spec/"', (out / "index.html").read_text())
 
     def test_it_refuses_to_run_without_somewhere_to_write(self):
         code, _, complaint = run_main([])

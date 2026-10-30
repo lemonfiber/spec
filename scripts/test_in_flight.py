@@ -51,8 +51,8 @@ class InFlight(unittest.TestCase):
 
     def manifest(self, version, status, extra=""):
         pathlib.Path(f"70-operations/versions/{version}.toml").write_text(
-            f'version = "{version}"\nstatus = "{status}"\ngoals = []\n{extra}',
-            encoding="utf-8")
+            f'version = "{version}"\nstatus = "{status}"\ngoals = []\n{extra}', encoding="utf-8"
+        )
 
     def test_the_first_staged_or_in_progress_version_in_train_order(self):
         self.manifest("0.10.0", "in_progress")
@@ -73,9 +73,9 @@ class InFlight(unittest.TestCase):
         self.assertEqual(run_main(["blockers", "--version", "0.2.0"]), (0, ""))
 
     def test_each_blocker_named(self):
-        self.manifest("0.2.0", "staged",
-                      '[[blockers]]\nwhat = "the stack image"\nwhere = "https://x/1"\n'
-                      '[[blockers]]\n')
+        self.manifest(
+            "0.2.0", "staged", '[[blockers]]\nwhat = "the stack image"\nwhere = "https://x/1"\n[[blockers]]\n'
+        )
         code, said = run_main(["blockers", "--version", "0.2.0"])
         self.assertEqual(code, 1)
         self.assertIn("::error::0.2.0 is blocked: the stack image — https://x/1", said)
@@ -87,8 +87,7 @@ class InFlight(unittest.TestCase):
         self.assertIn("::error::", said)
 
     def test_a_manifest_that_cannot_be_read(self):
-        pathlib.Path("70-operations/versions/0.2.0.toml").write_text("version = [",
-                                                                      encoding="utf-8")
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text("version = [", encoding="utf-8")
         self.assertEqual(run_main(["version"])[0], 2)
 
 

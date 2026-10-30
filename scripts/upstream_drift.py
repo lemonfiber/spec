@@ -398,7 +398,10 @@ def compare(
         *([f"- and {len(changed) - LISTED} more"] if len(changed) > LISTED else []),
         "",
     ]
-    touched = [int(when) for when in git("log", "--format=%ct", f"{pin.revision}..{head}", "--", *changed).stdout.split()]
+    touched = [
+        int(when)
+        for when in git("log", "--format=%ct", f"{pin.revision}..{head}", "--", *changed).stdout.split()
+    ]
     now = clock()
     if touched and all(pin_window.waits(when, now) for when in touched):
         refused = pin_window.refused_at(min(touched))

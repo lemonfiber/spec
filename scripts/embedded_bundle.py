@@ -18,6 +18,7 @@ Usage:
 Exit 0 = the core reads the schema its embedded bundle is written in, 1 = it does
 not, or the catalogue, the bundle or the core's schemas cannot be read, 2 = usage.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -53,8 +54,11 @@ def catalogue_in(core: pathlib.Path) -> pathlib.Path:
     gitmodules = core / ".gitmodules"
     if not gitmodules.is_file():
         raise Unread(f"the core embeds no submodule, so not {CATALOGUE}")
-    paths = [path for name, path in submodule_pins.declared(gitmodules.read_text(encoding="utf-8"))
-             if name == CATALOGUE]
+    paths = [
+        path
+        for name, path in submodule_pins.declared(gitmodules.read_text(encoding="utf-8"))
+        if name == CATALOGUE
+    ]
     if len(paths) != 1:
         raise Unread(f"the core embeds {CATALOGUE} {len(paths)} times, not once")
     where = (core / paths[0]).resolve()
@@ -62,11 +66,15 @@ def catalogue_in(core: pathlib.Path) -> pathlib.Path:
         raise Unread(f"the core's {CATALOGUE} submodule does not sit inside it, at {paths[0]}")
     done = subprocess.run(
         ["git", "-C", str(core), "submodule", "update", "--init", "--depth", "1", "--", paths[0]],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if done.returncode != 0:
         lines = done.stderr.strip().splitlines()
-        raise Unread(f"the core's {CATALOGUE} could not be checked out: {lines[-1] if lines else 'no output'}")
+        raise Unread(
+            f"the core's {CATALOGUE} could not be checked out: {lines[-1] if lines else 'no output'}"
+        )
     return where
 
 
@@ -86,7 +94,9 @@ def copy(catalogue: pathlib.Path, bundle: dict, plugin: str) -> dict:
     """The manifest of the copy the bundle holds of `plugin`."""
     layout = COPIES.get(bundle.get("schema"))
     if layout is None:
-        raise Unread(f"the embedded bundle is schema {bundle.get('schema')!r}, which keeps no copy this reads")
+        raise Unread(
+            f"the embedded bundle is schema {bundle.get('schema')!r}, which keeps no copy this reads"
+        )
     if not SERVICE_ID.match(plugin):
         raise Unread(f"{plugin!r} is not a plugin id")
     path = catalogue / layout.format(id=plugin)

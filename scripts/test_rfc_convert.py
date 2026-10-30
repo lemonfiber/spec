@@ -52,17 +52,24 @@ The tool SHOULD say when it last scanned.
 _No response_
 """
 
-ENV = {"ISSUE_BODY": BODY, "ISSUE_NUMBER": "42", "ISSUE_TITLE": "RFC: Scheduled scans",
-       "ISSUE_URL": "https://github.com/lemonfiber/spec/issues/42", "ISSUE_AUTHOR": "someone",
-       "REPO": "lemonfiber/spec"}
+ENV = {
+    "ISSUE_BODY": BODY,
+    "ISSUE_NUMBER": "42",
+    "ISSUE_TITLE": "RFC: Scheduled scans",
+    "ISSUE_URL": "https://github.com/lemonfiber/spec/issues/42",
+    "ISSUE_AUTHOR": "someone",
+    "REPO": "lemonfiber/spec",
+}
 AREAS = {"A", "B"}
 
 
 class Render(unittest.TestCase):
     def test_a_proposal_in_the_shape_integrity_checks(self):
         proposal = convert.render(ENV, AREAS)
-        self.assertEqual((proposal.number, proposal.title, proposal.path),
-                         ("42", "Scheduled scans", "10-functional/proposals/rfc-42.md"))
+        self.assertEqual(
+            (proposal.number, proposal.title, proposal.path),
+            ("42", "Scheduled scans", "10-functional/proposals/rfc-42.md"),
+        )
         with tempfile.TemporaryDirectory() as tmp:
             path = pathlib.Path(tmp, "rfc-42.md")
             path.write_text(proposal.text, encoding="utf-8")
@@ -86,8 +93,10 @@ class Render(unittest.TestCase):
         cases = {
             "number": ({**ENV, "ISSUE_NUMBER": "4/2"}, "not a number"),
             "area": ({**ENV, "ISSUE_BODY": BODY.replace("B — Running it", "Z — Nowhere")}, "the area"),
-            "title": ({**ENV, "ISSUE_BODY": BODY.replace("Scheduled scans\n", "\n"), "ISSUE_TITLE": "RFC:"},
-                      "no title"),
+            "title": (
+                {**ENV, "ISSUE_BODY": BODY.replace("Scheduled scans\n", "\n"), "ISSUE_TITLE": "RFC:"},
+                "no title",
+            ),
         }
         for why, (env, said) in cases.items():
             with self.subTest(why), self.assertRaisesRegex(convert.Refused, said):
@@ -154,8 +163,9 @@ class Main(unittest.TestCase):
     def test_opens_the_proposal(self):
         code, said = self.run_main(ENV, Forge())
         self.assertEqual(code, 0)
-        self.assertIn("opened https://github.com/lemonfiber/spec/pull/700 with 10-functional/proposals/rfc-42.md",
-                      said)
+        self.assertIn(
+            "opened https://github.com/lemonfiber/spec/pull/700 with 10-functional/proposals/rfc-42.md", said
+        )
 
     def test_refused_and_broken(self):
         self.assertEqual(self.run_main({**ENV, "ISSUE_NUMBER": "x"}, Forge())[0], 1)

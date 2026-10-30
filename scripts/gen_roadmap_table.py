@@ -25,8 +25,7 @@ SHOWN = {
 
 
 def rows() -> list[str]:
-    out = ["| Version | Milestone | Delivers | Status |",
-           "|---------|-----------|----------|--------|"]
+    out = ["| Version | Milestone | Delivers | Status |", "|---------|-----------|----------|--------|"]
     manifests = sorted(
         (p for p in VERSIONS.glob("*.toml") if p.stem != "TEMPLATE"),
         key=lambda p: ordered(p.stem),

@@ -18,6 +18,7 @@ have to pass.
 Stdlib unittest, no dependencies.
 Run:  python3 scripts/test_local_command.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -57,19 +58,16 @@ class Repo(unittest.TestCase):
 
     def justfile(self, said: str, recipe: str = "ci: lint test\n") -> None:
         block = "".join(f"# {line}\n" for line in said.splitlines())
-        (self.tmp / "justfile").write_text(
-            f"default:\n    @just --list\n\n{block}{recipe}", encoding="utf-8")
+        (self.tmp / "justfile").write_text(f"default:\n    @just --list\n\n{block}{recipe}", encoding="utf-8")
 
     def composer(self, said: str | None) -> None:
         document: dict = {"scripts": {"ci": ["@lint", "@test"]}}
         if said is not None:
             document["scripts-descriptions"] = {"ci": said}
-        (self.tmp / "composer.json").write_text(
-            json.dumps(document, indent=2), encoding="utf-8")
+        (self.tmp / "composer.json").write_text(json.dumps(document, indent=2), encoding="utf-8")
 
     def package(self, scripts: dict) -> None:
-        (self.tmp / "package.json").write_text(
-            json.dumps({"scripts": scripts}, indent=2), encoding="utf-8")
+        (self.tmp / "package.json").write_text(json.dumps({"scripts": scripts}, indent=2), encoding="utf-8")
 
 
 class TheFloor(Repo):
@@ -112,7 +110,8 @@ class TheFloor(Repo):
         # A repository with a composer.json for its dependencies and its gate
         # somewhere else. There is no local command here to describe.
         (self.tmp / "composer.json").write_text(
-            json.dumps({"scripts": {"lint": "@php vendor/bin/pint"}}), encoding="utf-8")
+            json.dumps({"scripts": {"lint": "@php vendor/bin/pint"}}), encoding="utf-8"
+        )
         code, said = run_main(self.tmp)
         self.assertEqual(code, 1, said)
         self.assertIn("no local command", said)
@@ -137,12 +136,7 @@ class TheClaim(Repo):
     def test_the_refusal_quotes_the_sentence_rather_than_the_block(self):
         # Five lines of comment and one of them is the problem. A refusal naming
         # the file leaves somebody reading all five.
-        self.justfile(
-            "The gates, in order.\n"
-            "\n"
-            "Run every check CI runs before pushing.\n"
-            "\n"
-            "It is quick.")
+        self.justfile("The gates, in order.\n\nRun every check CI runs before pushing.\n\nIt is quick.")
         code, said = run_main(self.tmp)
         self.assertEqual(code, 1, said)
         self.assertIn("Run every check CI runs before pushing.", said)
@@ -156,8 +150,8 @@ class TheClaim(Repo):
 
     def test_a_claim_qualified_the_other_way(self):
         self.composer(
-            "Every gate CI runs but backward compatibility, in order; "
-            "run `composer bc` for that one.")
+            "Every gate CI runs but backward compatibility, in order; run `composer bc` for that one."
+        )
         code, said = run_main(self.tmp)
         self.assertEqual(code, 0, said)
 
@@ -168,7 +162,8 @@ class TheClaim(Repo):
             "Every gate CI runs, in the order CI runs them.\n"
             "\n"
             "Three jobs are not here: commitlint, dco and spec-check,\n"
-            "each of which the commit-msg hook answers before the push.")
+            "each of which the commit-msg hook answers before the push."
+        )
         code, said = run_main(self.tmp)
         self.assertEqual(code, 0, said)
 
@@ -195,7 +190,8 @@ class WhatItMustLetThrough(Repo):
             "The whole set locally, for a toolchain bump or a failure to reproduce.\n"
             "\n"
             "Not the command to run before a push: CI runs all of this the moment\n"
-            "you push, so running it here first learns nothing sooner.")
+            "you push, so running it here first learns nothing sooner."
+        )
         code, said = run_main(self.tmp)
         self.assertEqual(code, 0, said)
 
@@ -203,8 +199,9 @@ class WhatItMustLetThrough(Repo):
         # The two sites drive npm from a justfile. The description is in the
         # justfile and there is nothing wrong with that.
         self.package({"ci": "npm run lint"})
-        self.justfile("Everything CI runs bar the browser install, which CI does first.",
-                      recipe="ci:\n    npm run ci\n")
+        self.justfile(
+            "Everything CI runs bar the browser install, which CI does first.", recipe="ci:\n    npm run ci\n"
+        )
         code, said = run_main(self.tmp)
         self.assertEqual(code, 0, said)
         self.assertIn("just ci", said)

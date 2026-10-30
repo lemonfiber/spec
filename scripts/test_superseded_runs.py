@@ -13,6 +13,7 @@ Stdlib unittest, no dependencies. The canonical block is the real
 temporary directory.
 Run:  python3 scripts/test_superseded_runs.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -27,10 +28,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import check_superseded_runs as superseded  # noqa: E402
 
-GROUP = (
-    "${{ github.workflow }}-${{ github.event_name == 'pull_request' "
-    "&& github.ref || github.run_id }}"
-)
+GROUP = "${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}"
 
 BLOCK = f"""concurrency:
   group: {GROUP}
@@ -108,30 +106,45 @@ class Passing(Repository):
 
     def test_a_pull_request_target_workflow_grouped_by_its_number(self):
         target = f"concurrency:\n  group: {superseded.TARGET_GROUP}\n  cancel-in-progress: true\n"
-        self.write("pin-only.yml", workflow("on:\n  pull_request_target:\n    types: [opened, synchronize]", target))
+        self.write(
+            "pin-only.yml", workflow("on:\n  pull_request_target:\n    types: [opened, synchronize]", target)
+        )
         self.write("ci.yml", workflow("on: [pull_request]", name="ci"))
         self.assertEqual(self.check(), ([], ""))
 
     def test_a_pull_request_target_workflow_grouped_the_way_pin_only_is(self):
         group, cancel = superseded.PIN_ONLY_BLOCK
         block = f"concurrency:\n  group: {group}\n  cancel-in-progress: {cancel}\n"
-        self.write("pin-only.yml", workflow("on:\n  pull_request_target:\n    types: [opened, labeled]", block))
+        self.write(
+            "pin-only.yml", workflow("on:\n  pull_request_target:\n    types: [opened, labeled]", block)
+        )
         self.write("ci.yml", workflow("on: [pull_request]", name="ci"))
         self.assertEqual(self.check(), ([], ""))
 
     def test_a_target_group_with_another_cancel_is_refused(self):
         for cancel in ("${{ github.event.action == 'labeled' }}", "${{ github.run_attempt == 1 }}"):
             with self.subTest(cancel=cancel):
-                self.write("pin-only.yml", workflow(
-                    "on: [pull_request_target]",
-                    f"concurrency:\n  group: {superseded.TARGET_GROUP}\n  cancel-in-progress: {cancel}\n"))
+                self.write(
+                    "pin-only.yml",
+                    workflow(
+                        "on: [pull_request_target]",
+                        f"concurrency:\n  group: {superseded.TARGET_GROUP}\n  cancel-in-progress: {cancel}\n",
+                    ),
+                )
                 self.refused("pin-only.yml cancels by the group")
 
     def test_a_group_of_its_own_run_for_a_label_is_refused(self):
-        group = superseded.TARGET_GROUP + "${{ github.event.action == 'labeled' && format('-{0}', github.run_id) || '' }}"
-        self.write("pin-only.yml", workflow(
-            "on: [pull_request_target]",
-            f"concurrency:\n  group: {group}\n  cancel-in-progress: {superseded.PUSH_CANCELS}\n"))
+        group = (
+            superseded.TARGET_GROUP
+            + "${{ github.event.action == 'labeled' && format('-{0}', github.run_id) || '' }}"
+        )
+        self.write(
+            "pin-only.yml",
+            workflow(
+                "on: [pull_request_target]",
+                f"concurrency:\n  group: {group}\n  cancel-in-progress: {superseded.PUSH_CANCELS}\n",
+            ),
+        )
         self.refused("pin-only.yml cancels by the group")
 
     def test_two_workflows_grouped_the_way_pin_only_is_sharing_a_name(self):
@@ -141,15 +154,25 @@ class Passing(Repository):
         self.write("b.yml", workflow("on: [pull_request_target]", block, name="pin-only"))
         self.refused("are both named 'pin-only'")
 
-    def pin_only_caller(self, group: str, cancel: str, condition: str | None,
-                        uses: str = "lemonfiber/spec/.github/workflows/pin-only.yml@" + "a" * 40 + " # v1.0.93") -> str:
+    def pin_only_caller(
+        self,
+        group: str,
+        cancel: str,
+        condition: str | None,
+        uses: str = "lemonfiber/spec/.github/workflows/pin-only.yml@" + "a" * 40 + " # v1.0.93",
+    ) -> str:
         shown = f"    if: {condition}\n" if condition is not None else ""
-        return (f"name: pin-only\non:\n  pull_request_target:\n    types: [opened, labeled]\npermissions: {{}}\n"
-                f"concurrency:\n  group: {group}\n  cancel-in-progress: {cancel}\n"
-                f"jobs:\n  pin-only:\n{shown}    permissions:\n      contents: read\n    uses: {uses}\n")
+        return (
+            f"name: pin-only\non:\n  pull_request_target:\n    types: [opened, labeled]\npermissions: {{}}\n"
+            f"concurrency:\n  group: {group}\n  cancel-in-progress: {cancel}\n"
+            f"jobs:\n  pin-only:\n{shown}    permissions:\n      contents: read\n    uses: {uses}\n"
+        )
 
     def test_a_pin_only_caller_with_its_block_and_no_condition_passes(self):
-        for uses in ("lemonfiber/spec/.github/workflows/pin-only.yml@" + "a" * 40, "./.github/workflows/pin-only.yml"):
+        for uses in (
+            "lemonfiber/spec/.github/workflows/pin-only.yml@" + "a" * 40,
+            "./.github/workflows/pin-only.yml",
+        ):
             with self.subTest(uses):
                 self.write("pin-only.yml", self.pin_only_caller(*superseded.PIN_ONLY_BLOCK, None, uses))
                 self.assertEqual(self.check()[0], [])
@@ -177,9 +200,13 @@ class Passing(Repository):
     def test_a_group_that_waits_rather_than_cancels_on_a_schedule(self):
         # One at a time is what `pins` and `sdk-bump` want, and a queued schedule
         # replaced by the next one is no push and no tag.
-        self.write("pins.yml", workflow(
-            "on: [schedule, workflow_dispatch]",
-            "concurrency:\n  group: pins\n  cancel-in-progress: false\n"))
+        self.write(
+            "pins.yml",
+            workflow(
+                "on: [schedule, workflow_dispatch]",
+                "concurrency:\n  group: pins\n  cancel-in-progress: false\n",
+            ),
+        )
         self.write("bump.yml", workflow("on: workflow_dispatch", "concurrency: bump\n", name="bump"))
         self.assertEqual(self.check()[0], [])
 
@@ -187,13 +214,22 @@ class Passing(Repository):
         # A newer upstream move replaces a bump still running (Q-R78). Nothing
         # starts this workflow but a dispatch or the schedule, so its group
         # reaches no push and no tag.
-        self.write("contract-bump.yml", workflow(
-            "on:\n  workflow_dispatch:\n  schedule:\n    - cron: '50 7 * * 1'",
-            "concurrency:\n  group: contract-bump\n  cancel-in-progress: true\n",
-            name="contract-bump"))
-        self.write("rebuild.yml", workflow(
-            "on: [repository_dispatch]",
-            "concurrency:\n  group: rebuild\n  cancel-in-progress: true\n", name="rebuild"))
+        self.write(
+            "contract-bump.yml",
+            workflow(
+                "on:\n  workflow_dispatch:\n  schedule:\n    - cron: '50 7 * * 1'",
+                "concurrency:\n  group: contract-bump\n  cancel-in-progress: true\n",
+                name="contract-bump",
+            ),
+        )
+        self.write(
+            "rebuild.yml",
+            workflow(
+                "on: [repository_dispatch]",
+                "concurrency:\n  group: rebuild\n  cancel-in-progress: true\n",
+                name="rebuild",
+            ),
+        )
         self.assertEqual(self.check()[0], [])
 
     def test_a_reusable_workflow_called_from_elsewhere_carries_none(self):
@@ -202,8 +238,10 @@ class Passing(Repository):
 
     def test_a_reusable_workflow_run_directly_beside_the_canceller(self):
         self.write("hygiene.yml", workflow("on:\n  workflow_call:\n  pull_request:", "", name="hygiene"))
-        self.write(superseded.CANCELLER, workflow(
-            "on:\n  pull_request:\n    types: [synchronize]", name="cancel-superseded"))
+        self.write(
+            superseded.CANCELLER,
+            workflow("on:\n  pull_request:\n    types: [synchronize]", name="cancel-superseded"),
+        )
         self.assertEqual(self.check()[0], [])
 
     def test_a_job_group_that_waits_outside_a_pull_request(self):
@@ -242,9 +280,16 @@ class Refusing(Repository):
     def test_a_group_keyed_on_the_pull_request_number(self):
         # It cancels the right runs, and it is not the block: one form, so one
         # reading of it, everywhere.
-        self.write("ci.yml", workflow("on: [pull_request]", BLOCK.replace(
-            "github.event_name == 'pull_request' && github.ref || github.run_id",
-            "github.event.pull_request.number")))
+        self.write(
+            "ci.yml",
+            workflow(
+                "on: [pull_request]",
+                BLOCK.replace(
+                    "github.event_name == 'pull_request' && github.ref || github.run_id",
+                    "github.event.pull_request.number",
+                ),
+            ),
+        )
         self.refused("ci.yml runs on a pull request")
 
     def test_a_target_group_on_a_workflow_a_pull_request_also_starts(self):
@@ -259,26 +304,38 @@ class Refusing(Repository):
         self.refused("are both named 'pin-only'")
 
     def test_a_group_keyed_on_the_ref_alone_cancels_a_push_to_main(self):
-        self.write("deploy.yml", workflow(
-            "on:\n  push:\n    branches: [main]",
-            "concurrency:\n  group: pages-${{ github.ref }}\n  cancel-in-progress: true\n"))
+        self.write(
+            "deploy.yml",
+            workflow(
+                "on:\n  push:\n    branches: [main]",
+                "concurrency:\n  group: pages-${{ github.ref }}\n  cancel-in-progress: true\n",
+            ),
+        )
         self.refused("deploy.yml cancels by the group 'pages-${{ github.ref }}'", "protected branch or a tag")
 
     def test_a_cancel_decided_by_an_expression_still_cancels(self):
-        self.write("deploy.yml", workflow(
-            "on: push",
-            "concurrency:\n  group: pages\n  cancel-in-progress: ${{ github.event_name == 'push' }}\n"))
+        self.write(
+            "deploy.yml",
+            workflow(
+                "on: push",
+                "concurrency:\n  group: pages\n  cancel-in-progress: ${{ github.event_name == 'push' }}\n",
+            ),
+        )
         self.refused("deploy.yml cancels by the group 'pages'")
 
     def test_a_cancelling_group_on_a_dispatch_that_a_push_also_starts(self):
-        self.write("bump.yml", workflow(
-            "on:\n  workflow_dispatch:\n  push:\n    branches: [main]",
-            "concurrency:\n  group: bump\n  cancel-in-progress: true\n", name="bump"))
+        self.write(
+            "bump.yml",
+            workflow(
+                "on:\n  workflow_dispatch:\n  push:\n    branches: [main]",
+                "concurrency:\n  group: bump\n  cancel-in-progress: true\n",
+                name="bump",
+            ),
+        )
         self.refused("bump.yml cancels by the group 'bump'", "protected branch or a tag")
 
     def test_a_cancelling_group_on_a_workflow_that_names_no_event(self):
-        self.write("bump.yml", "name: bump\nconcurrency:\n  group: bump\n"
-                   "  cancel-in-progress: true\n" + JOBS)
+        self.write("bump.yml", "name: bump\nconcurrency:\n  group: bump\n  cancel-in-progress: true\n" + JOBS)
         self.refused("bump.yml cancels by the group 'bump'")
 
     def test_a_reusable_workflow_that_cancels(self):
@@ -287,8 +344,9 @@ class Refusing(Repository):
 
     def test_a_reusable_workflow_run_directly_with_no_canceller(self):
         self.write("hygiene.yml", workflow("on:\n  workflow_call:\n  pull_request:", ""))
-        self.refused("hygiene.yml is a reusable workflow a pull request also runs directly",
-                     superseded.CANCELLER)
+        self.refused(
+            "hygiene.yml is a reusable workflow a pull request also runs directly", superseded.CANCELLER
+        )
 
     def test_a_canceller_no_pull_request_runs_cancels_nothing(self):
         self.write("hygiene.yml", workflow("on:\n  workflow_call:\n  pull_request:", "", name="hygiene"))

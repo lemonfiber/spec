@@ -23,6 +23,7 @@ Usage:
 Exit 0 = every image the version cuts is pinned at the tag and its digest, or it
 cuts none, 1 = one is not, or the bundle or the registry cannot be read, 2 = usage.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -48,8 +49,12 @@ def cut_by_train(tag: str, version: str) -> bool:
     pre-release identifier (OPS-R61). It becomes part of a reference handed to
     docker, so it is held to this before anything else reads it."""
     named, dash, identifier = tag.removeprefix("v").partition(PRERELEASE_SEPARATOR)
-    return (tag.startswith("v") and named == version and bool(VERSION.match(version))
-            and (not dash or bool(PRERELEASE_ID.match(identifier))))
+    return (
+        tag.startswith("v")
+        and named == version
+        and bool(VERSION.match(version))
+        and (not dash or bool(PRERELEASE_ID.match(identifier)))
+    )
 
 
 def digest_of(reference: str) -> tuple[str, str]:
@@ -58,7 +63,9 @@ def digest_of(reference: str) -> tuple[str, str]:
         return "", f"{reference!r} is not a reference this hands to docker"
     result = subprocess.run(
         ["docker", "buildx", "imagetools", "inspect", reference, "--format", "{{json .Manifest}}"],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if result.returncode != 0:
         lines = result.stderr.strip().splitlines()
@@ -84,12 +91,16 @@ def problems(copy: dict, image: str, tag: str, digest: str) -> list[str]:
         if service.get("tag") != pinned:
             said.append(f"{name}: pinned at tag {service.get('tag')!r}, not {pinned!r}")
         if service.get("digest") != digest:
-            said.append(f"{name}: pinned at digest {service.get('digest')!r}, "
-                        f"not {digest!r}, which {image}:{tag} published")
+            said.append(
+                f"{name}: pinned at digest {service.get('digest')!r}, "
+                f"not {digest!r}, which {image}:{tag} published"
+            )
     return said
 
 
-def unpinned(core: pathlib.Path, owner: str, tag: str, cut: list[tuple[str, str, str]]) -> tuple[list[str], list[str]]:
+def unpinned(
+    core: pathlib.Path, owner: str, tag: str, cut: list[tuple[str, str, str]]
+) -> tuple[list[str], list[str]]:
     """Every way the bundle the core embeds fails to pin what `tag` published, and the
     services it pins."""
     try:
@@ -148,8 +159,10 @@ def main() -> int:
     for problem in said:
         print(f"::error::{problem}")
     if said:
-        print(f"::error::the embedded bundle does not pin what {a.tag} published; "
-              "nothing else is tagged until it does")
+        print(
+            f"::error::the embedded bundle does not pin what {a.tag} published; "
+            "nothing else is tagged until it does"
+        )
         return 1
     print("\n".join(pinned))
     return 0

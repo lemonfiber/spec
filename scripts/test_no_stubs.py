@@ -25,6 +25,7 @@ frontmatter block, a tracker row — is exactly what a patched reader would stop
 testing.
 Run:  python3 scripts/test_no_stubs.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -45,9 +46,7 @@ import check_no_stubs  # noqa: E402
 SCHEMA = {
     "properties": {
         "id": {"type": "string", "pattern": "^[A-N][0-9]+$"},
-        "maturity": {
-            "enum": ["planned", "building", "built", "shipped", "withdrawn"]
-        },
+        "maturity": {"enum": ["planned", "building", "built", "shipped", "withdrawn"]},
     }
 }
 
@@ -92,18 +91,15 @@ class Catalogue(unittest.TestCase):
         path = pathlib.Path(TRACKER)
         path.parent.mkdir(parents=True, exist_ok=True)
         rows = "".join(f"| a deliverable | `{one}` | ✅ | landed |\n" for one in done)
-        path.write_text(f"| Deliverable | Spec | Status | Landing |\n{rows}",
-                        encoding="utf-8")
+        path.write_text(f"| Deliverable | Spec | Status | Landing |\n{rows}", encoding="utf-8")
 
-    def feature(self, fid, maturity, title="A feature", requirements=3,
-                area="b-running", retired=()):
+    def feature(self, fid, maturity, title="A feature", requirements=3, area="b-running", retired=()):
         directory = pathlib.Path(f"10-functional/features/{area}")
         directory.mkdir(parents=True, exist_ok=True)
         rows = "\n".join(
-            f"| **{fid}-R{n}** | *Withdrawn — carried elsewhere. The number is "
-            "not reused.* |"
-            if n in retired else
-            f"| **{fid}-R{n}** | Something MUST happen. |"
+            f"| **{fid}-R{n}** | *Withdrawn — carried elsewhere. The number is not reused.* |"
+            if n in retired
+            else f"| **{fid}-R{n}** | Something MUST happen. |"
             for n in range(1, requirements + 1)
         )
         (directory / f"{fid.lower()}-thing.md").write_text(
@@ -115,8 +111,7 @@ class Catalogue(unittest.TestCase):
     def manifest(self, version, goals):
         listed = ", ".join(f'"{g}"' for g in goals)
         pathlib.Path(f"70-operations/versions/{version}.toml").write_text(
-            f'version = "{version}"\nstatus = "staged"\nrepos = ["lf"]\n'
-            f"goals = [{listed}]\n",
+            f'version = "{version}"\nstatus = "staged"\nrepos = ["lf"]\ngoals = [{listed}]\n',
             encoding="utf-8",
         )
 
@@ -239,8 +234,7 @@ class WhatNoVersionLocks(Catalogue):
         kept so the number is never reused, and OPS-R30 forbids one being a goal
         — so naming them here asks every manifest for the one thing none of them
         may give, and refuses every version for ever."""
-        self.feature("F3", "shipped", requirements=5, area="f-extensibility",
-                     retired=(3, 4))
+        self.feature("F3", "shipped", requirements=5, area="f-extensibility", retired=(3, 4))
         self.tracker("F3-R1", "F3-R2")
         self.manifest("0.16.0", ["F3-R1", "F3-R2"])
         code, said = self.act("0.16.0")
@@ -264,7 +258,8 @@ class WhatNoVersionLocks(Catalogue):
         """It carries example goals, and reading them would hide a real hole."""
         self.feature("F3", "shipped", requirements=2, area="f-extensibility")
         pathlib.Path("70-operations/versions/TEMPLATE.toml").write_text(
-            'version = "0.0.0"\ngoals = ["F3-R2"]\n', encoding="utf-8")
+            'version = "0.0.0"\ngoals = ["F3-R2"]\n', encoding="utf-8"
+        )
         self.manifest("0.16.0", ["F3-R1"])
         _, said = self.act("0.16.0")
         self.assertIn("F3-R2", said)
@@ -312,10 +307,14 @@ class TheSilencesAreRefused(Catalogue):
     def test_a_renamed_maturity_turns_the_gate_off_loudly(self):
         """The rule is written in five words the schema supplies. Rename one and
         a feature standing at it reads as whichever branch catches it last."""
-        self.schema({"properties": {
-            "id": {"pattern": "^[A-N][0-9]+$"},
-            "maturity": {"enum": ["planned", "building", "done", "released"]},
-        }})
+        self.schema(
+            {
+                "properties": {
+                    "id": {"pattern": "^[A-N][0-9]+$"},
+                    "maturity": {"enum": ["planned", "building", "done", "released"]},
+                }
+            }
+        )
         self.feature("E1", "done", area="e-maintenance")
         self.manifest("0.14.0", ["E1-R1"])
         code, said = self.act("0.14.0")
@@ -323,8 +322,9 @@ class TheSilencesAreRefused(Catalogue):
         self.assertIn("built, shipped", said)
 
     def test_the_vocabulary_check_passes_on_the_real_schema(self):
-        self.assertIsNone(check_no_stubs.vocabulary_holds(
-            {"planned", "building", "built", "shipped", "withdrawn"}))
+        self.assertIsNone(
+            check_no_stubs.vocabulary_holds({"planned", "building", "built", "shipped", "withdrawn"})
+        )
 
 
 class BadInput(Catalogue):
@@ -365,7 +365,8 @@ class BadInput(Catalogue):
         repo.mkdir(parents=True)
         (repo / "f").write_text("x")
         (repo / "status.toml").write_text(
-            '[[requirement]]\nid = "B6-R1"\nstate = "done"\nevidence = ["f"]\n', encoding="utf-8")
+            '[[requirement]]\nid = "B6-R1"\nstate = "done"\nevidence = ["f"]\n', encoding="utf-8"
+        )
         code, said = run_main(["--version", "0.15.0", "--repo", "web=checkouts/web"])
         self.assertEqual(code, 1)
         self.assertIn("not built: B6-R2", said)
@@ -387,9 +388,7 @@ class TheRuleItself(unittest.TestCase):
     def test_a_finished_feature_defers_to_the_tracker_as_well(self):
         for state in ("built", "shipped"):
             self.assertEqual(
-                check_no_stubs.unfinished(
-                    ["X1-R1", "X1-R2"], {"maturity": state}, {"X1-R1"}
-                ),
+                check_no_stubs.unfinished(["X1-R1", "X1-R2"], {"maturity": state}, {"X1-R1"}),
                 ["X1-R2"],
             )
 
@@ -402,9 +401,7 @@ class TheRuleItself(unittest.TestCase):
 
     def test_building_defers_to_the_tracker_one_requirement_at_a_time(self):
         self.assertEqual(
-            check_no_stubs.unfinished(
-                ["X1-R1", "X1-R2"], {"maturity": "building"}, {"X1-R1"}
-            ),
+            check_no_stubs.unfinished(["X1-R1", "X1-R2"], {"maturity": "building"}, {"X1-R1"}),
             ["X1-R2"],
         )
 

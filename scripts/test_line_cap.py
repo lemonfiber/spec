@@ -8,6 +8,7 @@ list the test made up.
 Stdlib unittest, no dependencies.
 Run:  python3 scripts/test_line_cap.py
 """
+
 from __future__ import annotations
 
 import io

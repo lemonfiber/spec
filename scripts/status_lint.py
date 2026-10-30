@@ -45,6 +45,7 @@ Usage:
 
 Exit 0 = every claim backed; 1 = claims that are not (named); 2 = usage.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -169,8 +170,7 @@ def headings(lines: list[str]) -> list[tuple[int, str, set[str]]]:
 def overshooting(status, lines, highest) -> list[str]:
     """Ranges that claim past the last requirement their feature defines."""
     return [
-        f"{status}:{number}: claims {feature}-R{last}, but {feature} defines up to "
-        f"R{highest[feature]}"
+        f"{status}:{number}: claims {feature}-R{last}, but {feature} defines up to R{highest[feature]}"
         for number, feature, last in claimed_ranges(lines)
         if feature in highest and last > highest[feature]
     ]
@@ -200,11 +200,7 @@ def misnamed(status, lines, by_milestone) -> list[str]:
 def unlocked(status, lines, locked) -> list[str]:
     """Ticks on requirements no version manifest locks."""
     orphans = sorted(ticked(lines) - locked)
-    return (
-        [f"{status}: marked done but locked by no version: {', '.join(orphans)}"]
-        if orphans
-        else []
-    )
+    return [f"{status}: marked done but locked by no version: {', '.join(orphans)}"] if orphans else []
 
 
 def miscolumned(status, lines) -> list[str]:
@@ -301,7 +297,7 @@ def misplaced_glyph(status, lines) -> list[str]:
     return [
         f"{status}:{number}: writes {DONE} outside the "
         f"{' or '.join(STATUS_COLUMNS)} column, where it says nothing and misleads "
-        "everyone. Write \"ticked\" — the word is safe, the character is not."
+        'everyone. Write "ticked" — the word is safe, the character is not.'
         for number, row in enumerate(tracker.rows(lines), start=1)
         if row is not None and DONE in row.stray_glyphs
     ]

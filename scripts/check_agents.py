@@ -15,6 +15,7 @@ Usage, from the root of the repository being checked::
 Exit 0 = the file is there, opens with the pointer and fits the cap; 1 = it does
 not, each reason named.
 """
+
 from __future__ import annotations
 
 import argparse

@@ -121,9 +121,7 @@ class Generating(Tree, unittest.TestCase):
     def test_a_hyphenated_count_is_found_and_rewritten(self):
         # Past twenty the word carries a hyphen, and a sentence the generator
         # wrote must be one it can find again on the next run.
-        self.readme.write_text(
-            README.replace("Those nine are", "Those twenty-one are"), encoding="utf-8"
-        )
+        self.readme.write_text(README.replace("Those nine are", "Those twenty-one are"), encoding="utf-8")
         self.assertIn("Those three are the repositories this specification governs", self.run_gen())
 
     def test_a_row_the_registry_does_not_name_is_gone(self):
@@ -180,7 +178,9 @@ class Parts(Tree, unittest.TestCase):
 
     def setUp(self):
         super().setUp()
-        self.registry.write_text(REGISTRY + """
+        self.registry.write_text(
+            REGISTRY
+            + """
 [[repo]]
 name = "plugin-sonarr"
 spec = []
@@ -203,7 +203,9 @@ image = true
 from = "sdk-php"
 to = "parts"
 label = "pins"
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
     def test_each_plugin_is_a_row_and_all_of_them_one_node(self):
         out = self.run_gen()
@@ -226,19 +228,28 @@ class Refusing(Tree, unittest.TestCase):
         self.assertIn("counting words", str(raised.exception))
 
     def test_a_readme_with_no_table_refuses(self):
-        self.readme.write_text("```mermaid\nflowchart TD\n```\nThose three are the repositories this specification governs\n", encoding="utf-8")
+        self.readme.write_text(
+            "```mermaid\nflowchart TD\n```\nThose three are the repositories this specification governs\n",
+            encoding="utf-8",
+        )
         with self.assertRaises(SystemExit) as raised:
             self.gen.main()
         self.assertIn("no repository table", str(raised.exception))
 
     def test_a_readme_with_no_diagram_refuses(self):
-        self.readme.write_text(README.replace("```mermaid\nflowchart TD\n    OLD[\"this gets replaced\"]\n```", ""), encoding="utf-8")
+        self.readme.write_text(
+            README.replace('```mermaid\nflowchart TD\n    OLD["this gets replaced"]\n```', ""),
+            encoding="utf-8",
+        )
         with self.assertRaises(SystemExit) as raised:
             self.gen.main()
         self.assertIn("no repository diagram", str(raised.exception))
 
     def test_a_readme_with_no_counting_sentence_refuses(self):
-        self.readme.write_text(README.replace("Those nine are the repositories this specification governs.", ""), encoding="utf-8")
+        self.readme.write_text(
+            README.replace("Those nine are the repositories this specification governs.", ""),
+            encoding="utf-8",
+        )
         with self.assertRaises(SystemExit) as raised:
             self.gen.main()
         self.assertIn("no counting sentence", str(raised.exception))
