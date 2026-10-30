@@ -9,18 +9,27 @@ leaving every comment and every other line as it is, and writes the commit messa
 the rolling pull request takes.
 
     bundle_image_pin.py apply --bundle <bundle.toml> --service <id> \\
-        --image <registry path> --tag <vX.Y.Z> --digest <sha256:…> --message <file>
+        --repository <owner/name> --image <registry path> --tag <vX.Y.Z> \\
+        --digest <sha256:…> --message <file>
 
-Prints `moved=yes` or `moved=no`. Refuses, naming what, an image other than
-`ghcr.io/lemonfiber/<service>`, a tag the train does not cut, a digest that is not
-one, and a bundle with no `[<service>]` table to move.
+Prints `moved=yes` or `moved=no`. Refuses, naming what:
+
+- a repository other than `lemonfiber/lemonfiber-<service>`, the one ADR-0033 builds the
+  image in, so no other repository moves its pin;
+- an image other than `ghcr.io/lemonfiber/<service>`, a tag the train does not cut, or a
+  digest that is not one;
+- a digest other than the one the registry answers for the image at that tag, read with
+  `docker buildx imagetools inspect` before anything is written;
+- a bundle with no `[<service>]` table to move.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import pathlib
 import re
+import subprocess
 import sys
 
 #: Where lemonfiber publishes the images it builds, and nothing else (ADR-0033).
@@ -37,10 +46,14 @@ class Refused(Exception):
     """What was asked cannot be pinned, and why."""
 
 
-def checked(service: str, image: str, tag: str, digest: str) -> str:
+def checked(service: str, repository: str, image: str, tag: str, digest: str) -> str:
     """The version `tag` names, once every argument is what the train hands over."""
     if not SERVICE.match(service):
         raise Refused(f"{service!r} is not a service id")
+    if repository != f"lemonfiber/lemonfiber-{service}":
+        raise Refused(
+            f"{repository!r} is not lemonfiber/lemonfiber-{service}, the repository {service} is built in"
+        )
     if image != f"{REGISTRY}/{service}":
         raise Refused(f"{image!r} is not {REGISTRY}/{service}, the image {service} is published as")
     version = TAG.match(tag)
@@ -49,6 +62,23 @@ def checked(service: str, image: str, tag: str, digest: str) -> str:
     if not DIGEST.match(digest):
         raise Refused(f"{digest!r} is not a sha256 digest")
     return version.group(1)
+
+
+def published(image: str, tag: str) -> str:
+    """The digest the registry answers for `image` at `tag`."""
+    asked = subprocess.run(
+        ["docker", "buildx", "imagetools", "inspect", f"{image}:{tag}", "--format", "{{json .Manifest}}"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if asked.returncode != 0:
+        raise Refused(f"the registry does not answer for {image}:{tag}: {asked.stderr.strip()}")
+    try:
+        digest = json.loads(asked.stdout)["digest"]
+    except (ValueError, KeyError, TypeError) as why:
+        raise Refused(f"the registry's answer for {image}:{tag} names no digest") from why
+    return str(digest)
 
 
 def moved(text: str, service: str, image: str, version: str, digest: str) -> str:
@@ -87,12 +117,17 @@ def message(service: str, image: str, tag: str, digest: str) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("command", choices=["apply"])
-    for name in ("bundle", "service", "image", "tag", "digest", "message"):
+    for name in ("bundle", "service", "repository", "image", "tag", "digest", "message"):
         parser.add_argument(f"--{name}", required=True)
     args = parser.parse_args(argv)
     bundle = pathlib.Path(args.bundle)
     try:
-        version = checked(args.service, args.image, args.tag, args.digest)
+        version = checked(args.service, args.repository, args.image, args.tag, args.digest)
+        answered = published(args.image, args.tag)
+        if answered != args.digest:
+            raise Refused(
+                f"{args.image}:{args.tag} is {answered} at the registry, not {args.digest}"
+            )
         before = bundle.read_text(encoding="utf-8")
         after = moved(before, args.service, args.image, version, args.digest)
     except (Refused, OSError) as why:

@@ -375,6 +375,7 @@ jobs:
     if: inputs.pins == 'bundle' && needs.settle.outputs.kind == 'tag'
     permissions:
       contents: read
+      packages: read
     uses: ./.github/workflows/bundle-image-pin.yml
     with:
       service: ${{ needs.settle.outputs.service }}
