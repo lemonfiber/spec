@@ -153,6 +153,7 @@ class ImageReposTests(Workspace):
         registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
         built = manifest_repos.image_repos(registry)
         self.assertEqual(built, {"lemonfiber-decline": "decline",
+                                 "lemonfiber-fence": "fence",
                                  "lemonfiber-request-gate": "request-gate"})
 
 
@@ -236,7 +237,8 @@ class PluginReposTests(Workspace):
                  "radarr", "lidarr", "bazarr", "seerr", "nzbhydra2", "bindery",
                  "audiobookshelf"]
         self.assertEqual(manifest_repos.train_plugins(registry),
-                         {"lemonfiber-decline": "decline", "lemonfiber-request-gate": "request-gate",
+                         {"lemonfiber-decline": "decline", "lemonfiber-fence": "fence",
+                          "lemonfiber-request-gate": "request-gate",
                           **{f"plugin-{plugin}": plugin for plugin in built}})
 
     def test_every_manifest_not_yet_released_cuts_each_plugin_with_the_core(self):
