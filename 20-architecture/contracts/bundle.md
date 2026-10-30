@@ -64,6 +64,7 @@ schema = 2
 [[wiring]]   # a choice of filler, or a link by name
 [[removed]]  # one per service the catalogue no longer carries
 [[plugin]]   # one per first-party plugin, ordered by id
+[fence]      # the image a fenced service runs behind
 ```
 
 `schema` names the format generation. `schema = 1` is the bundle of plugins alone,
@@ -214,6 +215,26 @@ The torrent client's link to the tunnel is not here. It is
 [`network.via`](plugin-manifest-service.md#inside-another-services-network--networkvia)
 on the client's own service, an ask of `network.egress-guard`, so a substitute egress
 guard takes the client inside its own network.
+
+## `[fence]` — the image a fenced service runs behind
+
+```toml
+[fence]
+image  = "ghcr.io/lemonfiber/fence"
+tag    = "0.18.0"
+digest = "sha256:9e1d…"
+```
+
+A service declaring [`network.fenced`](plugin-manifest-service.md#fenced-from-every-private-address--networkfenced)
+runs inside a fence lemonfiber writes beside it (`ARCH-R363`), and this is the image that
+fence runs. It is pinned here, beside the parts, because the fence is not a part: no
+plugin declares it, and lemonfiber writes one for each fenced service. `image` is the
+registry path without tag or digest, `tag` the human-readable name of the build, and
+`digest` the `sha256:<64 hex>` of its multi-architecture index, which is what runs
+(`E1-R1`). The table is required where any pinned plugin declares a fenced service, and
+the bundle's validation refuses its absence, naming the plugin. It is built by
+[`lemonfiber-fence`](../../30-repos/lemonfiber-fence.md), which the release train tags
+first, and this pin moves to the image that tag published in the same release.
 
 ## `[[plugin]]` — each part, pinned
 

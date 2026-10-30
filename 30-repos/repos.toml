@@ -167,6 +167,16 @@ note = "The guard on every byte the media server serves, speaking stream.guard i
 pinned_in = "plugin-door"
 
 [[repo]]
+name = "lemonfiber-fence"
+node = "fenceimage"
+group = "impl"
+label = "lemonfiber-fence<br/>the fence"
+spec = ["lemonfiber-fence.md"]
+lang = "Dockerfile"
+note = "The fence a fenced service runs behind, refusing every private address it opens; the bundle pins its image"
+service = "fence"
+
+[[repo]]
 name = "lemonfiber-plugins"
 node = "plugins"
 group = "impl"

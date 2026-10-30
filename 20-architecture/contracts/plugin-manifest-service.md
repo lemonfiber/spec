@@ -119,7 +119,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `posture` | enum | | `standard` \| `confined`. How tightly the container is held, as declared. Default `standard`. `confined` only where the plugin's own CI runs the image under it. |
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate, summed into a form's footprint (`B1-R18`) and never written as a limit. |
 | `mem_limit_mib` | integer | | The most memory the container may hold, in MiB, written as its limit. |
-| `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). |
+| `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). `{ fenced = true }`: its own requests go to addresses others hand it, so it runs inside a fence that refuses every private address — see [`network.fenced`](#fenced-from-every-private-address--networkfenced). One or the other, never both. |
 | `listens` | integer | ✔ if `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where the services that ask and the proxy reach it, and lemonfiber where it declares no `contract`. Default `port`. |
 | `contract` | integer | | Only where it `speaks`: the port it speaks its contracts on inside the container, published on the loopback interface alone and reached by lemonfiber and nothing else. Default `listens`. Declared apart from `listens` where the service also answers the household or another service, so neither reaches its contract routes (`ARCH-R343`). |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract is asked over it, and no other way. See [capability-contracts.md](capability-contracts.md). |
@@ -656,8 +656,8 @@ back to the home address (`C2-R12`). `network.via` asks for that, by capability
 - the service is written into the network namespace of the service that holds the
   tunnel: the filler, or where an adapter fills the capability, the upstream that adapter
   fronts, which takes the `egress-guard` shape. It has no network of its own;
-- it starts only once that service reports healthy, which is the one start-order edge
-  the format writes;
+- it starts only once that service reports healthy, one of the two start-order edges the
+  format writes, the other a fenced service's on its fence;
 - the ports it declares are published on that service's entry, on its own tier, since a
   container with no network of its own publishes nothing;
 - it is an ask of the capability, settled, shown and counted as every ask is, so choosing
@@ -675,6 +675,44 @@ the hosted `watch` loop, and from the dashboard's gather while a surface is open
 stack starts and after every diagnosis whose VPN check ran, and sets it on the client over
 `download.torrent` when it changes ([capability-contracts](capability-contracts.md#the-forwarded-port),
 `ARCH-R251`). No script is mounted into the guard, and no endpoint is opened for it.
+
+### Fenced from every private address — `network.fenced`
+
+```toml
+network = { fenced = true }
+```
+
+Some services fetch whatever address they are handed. A challenge solver drives a
+browser to the page an indexer sits behind, and that browser follows redirects and loads
+each resource the page names. An adapter can judge the address it is asked for, but not
+where the browser goes next, so a page can lead it to the router, a NAS, another service
+of the stack or a cloud's metadata address. `network.fenced` declares that, and
+lemonfiber answers it with a fence rather than a check (`ARCH-R363`):
+
+- **The fence is a container lemonfiber writes beside the service**, `<service>-fence`,
+  from the `fence` image it pins. It holds the service's networks and published ports, and
+  the service is written into its network namespace with none of its own, as a service
+  taking `via` is.
+- **At start the fence installs nftables rules in that namespace** and holds them. They
+  refuse every new connection the service opens to loopback, `10.0.0.0/8`,
+  `172.16.0.0/12`, `192.168.0.0/16`, `100.64.0.0/10`, `169.254.0.0/16`, multicast,
+  `::1`, `fc00::/7`, `fe80::/10`, `ff00::/8`, and each address of the host lemonfiber
+  hands it. Two things pass: the engine's own resolver at `127.0.0.11`, so names still
+  resolve, and the answers to connections other services opened to it.
+- **The fence alone holds `NET_ADMIN`.** The service gains no privilege. Kernel
+  capabilities belong to a process, so the service shares the namespace and cannot change
+  its rules.
+- **The service starts only once the fence reports healthy**, which it does once every
+  rule is in place. A fence that restarts restarts the service, so the service never runs
+  in a namespace whose rules were lost.
+- **Where no fence can be written, the service does not start.** A service lemonfiber does
+  not write a Compose entry for, such as a `host_managed` one, or an engine whose
+  containers cannot hold nftables rules, is refused at start. The refusal names the service
+  and says why. Starting it unfenced is never the fallback.
+
+A service may not be both `fenced` and `via`, since each is a namespace of its own. Its
+asks are settled and its networks joined as any service's are; the fence holds those
+networks in its place.
 
 ### Shapes — the only route to a device or a privilege
 

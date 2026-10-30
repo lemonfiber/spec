@@ -71,6 +71,11 @@ gates = []
 hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
+name = "lemonfiber-fence"
+gates = []
+hooks = []
+
+[[repo]]
 name = "lemonfiber-door"
 gates = []
 hooks = ["commit-msg", "pre-push"]
