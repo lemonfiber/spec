@@ -498,6 +498,15 @@ is posted; any other string is posted as written.
 | `{minted:upstream:<field>}` | A credential minted for this case, written to `upstream.json` as `<field>` once the adapter answers the case with a success, as the core writes a credential the adapter replaced |
 | `{<capability>@<major>/<case>#<pointer>}` | The string at the JSON pointer `<pointer>` in the answer to that case, asked earlier in the same run |
 
+**A minted credential's hash is recorded as a placeholder.** A contract may answer a
+credential by its SHA-256 rather than echo it, as `request.gate`'s `admitted` and
+`invite.decline`'s `held` do. A credential minted for a case is fresh on every run, so its
+hash is too. Wherever an answer holds the lower-case hexadecimal SHA-256 of a credential
+the run minted, the recording holds `{minted:sha256}` in its place, and `--check` writes
+what it takes again the same way. A recording therefore proves the hash is of the
+credential the case handed over: the hash of any other value stays as written and differs
+from one run to the next ([ARCH-R285](plugin-manifest.md)).
+
 **A case bound to a kind of media is asked once for each kind.** An operation of
 `library.curate` that takes a kind of media — a `Kind`, a `Record` or a root folder's media
 type — publishes one case per kind it takes, named `<operation>-answers-<media type>`, each
