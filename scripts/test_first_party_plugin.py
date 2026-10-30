@@ -171,5 +171,99 @@ class HandedToLive(unittest.TestCase):
         self.assertEqual(self.downloaded["with"]["name"], self.uploaded["with"]["name"])
 
 
+class TheStandIn(unittest.TestCase):
+    """What the image a plugin's Dockerfile builds stands in for: its adapter where a service
+    fronts one, the plugin's own service where that service runs this repository's own image
+    and nothing speaks a contract, and nothing otherwise."""
+
+    def setUp(self):
+        self.root = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, True)
+        self.bin = self.root / "bin"
+        self.bin.mkdir()
+        docker = self.bin / "docker"
+        docker.write_text('#!/bin/sh\necho "$@" >> "$(dirname "$0")/asked"\n', encoding="utf-8")
+        docker.chmod(0o755)
+        self.plugin = self.root / "part"
+        self.plugin.mkdir()
+        (self.plugin / "Dockerfile").write_text("FROM scratch\n", encoding="utf-8")
+
+    def stands_in(self, manifest: str) -> tuple[str, bool]:
+        (self.plugin / "plugin.toml").write_text(manifest, encoding="utf-8")
+        output = self.root / ".output"
+        output.write_text("", encoding="utf-8")
+        env = {
+            "PATH": f"{self.bin}:{os.environ['PATH']}",
+            "OWNER": "LemonFiber",
+            "GITHUB_OUTPUT": str(output),
+        }
+        script = step("live", "The image this tree builds")
+        done = subprocess.run(
+            ["bash", "-c", script], cwd=self.plugin, env=env, capture_output=True, text=True
+        )
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        said = dict(line.split("=", 1) for line in output.read_text(encoding="utf-8").split())
+        return said.get("as", ""), (self.bin / "asked").exists()
+
+    def test_a_part_built_here_stands_in_for_its_own_service(self):
+        for plugin in ("request-gate", "decline"):
+            with self.subTest(plugin=plugin):
+                manifest = f"""[plugin]
+id = "{plugin}"
+
+[[service]]
+id    = "{plugin}"
+image = "ghcr.io/lemonfiber/{plugin}"
+"""
+                self.assertEqual(self.stands_in(manifest), ("built", True))
+
+    def test_an_adapter_built_here_stands_in_for_the_adapter_that_fronts(self):
+        manifest = """[plugin]
+id = "caddy"
+
+[[service]]
+id    = "caddy"
+image = "ghcr.io/lemonfiber/caddy"
+
+[[service]]
+id     = "caddy-adapter"
+image  = "ghcr.io/lemonfiber/caddy-adapter"
+fronts = "caddy"
+speaks = ["proxy.front@1"]
+"""
+        self.assertEqual(self.stands_in(manifest), ("adapter", True))
+
+    def test_an_adapter_the_manifest_does_not_run_yet_stands_in_for_nothing(self):
+        manifest = """[plugin]
+id = "homepage"
+
+[[service]]
+id    = "homepage"
+image = "ghcr.io/gethomepage/homepage"
+"""
+        self.assertEqual(self.stands_in(manifest), ("", False))
+
+    def test_another_organisations_image_of_the_same_name_is_not_built_here(self):
+        manifest = """[plugin]
+id = "decline"
+
+[[service]]
+id    = "decline"
+image = "ghcr.io/someone-else/decline"
+"""
+        self.assertEqual(self.stands_in(manifest), ("", False))
+
+    def test_a_part_that_speaks_a_contract_from_its_own_image_is_recorded_from_its_pin(self):
+        manifest = """[plugin]
+id = "decline"
+
+[[service]]
+id     = "decline"
+image  = "ghcr.io/lemonfiber/decline"
+speaks = ["invite.decline@1"]
+"""
+        self.assertEqual(self.stands_in(manifest), ("", False))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
