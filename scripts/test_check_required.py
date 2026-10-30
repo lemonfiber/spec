@@ -78,10 +78,7 @@ class TheRegister(unittest.TestCase):
 
     def test_names_and_prefixes_are_kept_apart(self):
         names, prefixes = check_required.register(
-            wrote(
-                '[[exempt]]\nname = "a"\nwhy = "r"\n'
-                '[[exempt]]\nprefix = "b ("\nwhy = "r"\n'
-            )
+            wrote('[[exempt]]\nname = "a"\nwhy = "r"\n[[exempt]]\nprefix = "b ("\nwhy = "r"\n')
         )
         self.assertEqual([e["name"] for e in names], ["a"])
         self.assertEqual([e["prefix"] for e in prefixes], ["b ("])
@@ -89,14 +86,10 @@ class TheRegister(unittest.TestCase):
 
 class TheMatching(unittest.TestCase):
     def test_a_named_check_is_exempt(self):
-        self.assertIsNotNone(
-            check_required.exempt("labeler / label", NAMES, PREFIXES)
-        )
+        self.assertIsNotNone(check_required.exempt("labeler / label", NAMES, PREFIXES))
 
     def test_a_prefixed_check_is_exempt(self):
-        self.assertIsNotNone(
-            check_required.exempt("mutation (kernel)", NAMES, PREFIXES)
-        )
+        self.assertIsNotNone(check_required.exempt("mutation (kernel)", NAMES, PREFIXES))
 
     def test_anything_else_is_not(self):
         self.assertIsNone(check_required.exempt("build", NAMES, PREFIXES))
@@ -116,9 +109,7 @@ class TheRefusal(unittest.TestCase):
         self.assertIn("required-checks.toml", said)
 
     def test_it_warns_against_naming_a_matrix_leg(self):
-        self.assertIn(
-            "run-time matrix", check_required.refusal("lemonfiber/brand", ["x"])
-        )
+        self.assertIn("run-time matrix", check_required.refusal("lemonfiber/brand", ["x"]))
 
 
 class TheSurvey(unittest.TestCase):
@@ -132,14 +123,17 @@ class TheSurvey(unittest.TestCase):
             return (widened or observed)[name] if sampled == check_required.LISTED else observed[name]
 
         out = io.StringIO()
-        with mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)), \
-             mock.patch.object(check_required, "repositories", return_value=list(required)), \
-             mock.patch.object(check_required, "required_in", side_effect=lambda o, n: required[n]), \
-             mock.patch.object(check_required, "gates_landed", return_value=None), \
-             mock.patch.object(check_required, "observed_in", side_effect=seen), \
-             mock.patch.object(check_required, "targeted_in",
-                               side_effect=lambda o, n: (targeted or {}).get(n, set())), \
-             mock.patch.object(check_required, "merges_itself", side_effect=lambda o, n: n not in manual):
+        with (
+            mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)),
+            mock.patch.object(check_required, "repositories", return_value=list(required)),
+            mock.patch.object(check_required, "required_in", side_effect=lambda o, n: required[n]),
+            mock.patch.object(check_required, "gates_landed", return_value=None),
+            mock.patch.object(check_required, "observed_in", side_effect=seen),
+            mock.patch.object(
+                check_required, "targeted_in", side_effect=lambda o, n: (targeted or {}).get(n, set())
+            ),
+            mock.patch.object(check_required, "merges_itself", side_effect=lambda o, n: n not in manual),
+        ):
             code = check_required.look("lemonfiber", only, out)
         return code, out.getvalue()
 
@@ -226,7 +220,9 @@ class TheSurvey(unittest.TestCase):
         self.assertNotIn("lemonfiber/spec does not allow", said)
 
     def test_one_repository_asked_alone_is_held_to_auto_merge_too(self):
-        code, said = self.survey({"brand": {"a"}}, {"brand": {"a"}}, only="lemonfiber/brand", manual=("brand",))
+        code, said = self.survey(
+            {"brand": {"a"}}, {"brand": {"a"}}, only="lemonfiber/brand", manual=("brand",)
+        )
         self.assertEqual(code, 1, said)
         self.assertIn("does not allow auto-merge", said)
 
@@ -255,14 +251,18 @@ def merged(pulls: list[dict]):
 
 class TheSilences(unittest.TestCase):
     def test_an_organisation_with_no_repository_refuses(self):
-        with mock.patch.object(check_required, "_run", return_value="\n"), \
-             self.assertRaises(check_required.Unanswerable) as why:
+        with (
+            mock.patch.object(check_required, "_run", return_value="\n"),
+            self.assertRaises(check_required.Unanswerable) as why,
+        ):
             check_required.repositories("lemonfiber")
         self.assertIn("no repository was listed", str(why.exception))
 
     def test_a_repository_with_no_check_at_all_refuses(self):
-        with mock.patch.object(check_required, "_run", return_value="[]"), \
-             self.assertRaises(check_required.Unanswerable) as why:
+        with (
+            mock.patch.object(check_required, "_run", return_value="[]"),
+            self.assertRaises(check_required.Unanswerable) as why,
+        ):
             check_required.observed_in("lemonfiber", "brand")
         self.assertIn("produced no check name", str(why.exception))
 
@@ -276,31 +276,46 @@ class TheSilences(unittest.TestCase):
 
     def test_a_forge_that_will_not_answer_refuses(self):
         done = mock.Mock(returncode=1, stderr="not found", stdout="")
-        with mock.patch.object(check_required.subprocess, "run", return_value=done), \
-             self.assertRaises(check_required.Unanswerable) as why:
+        with (
+            mock.patch.object(check_required.subprocess, "run", return_value=done),
+            self.assertRaises(check_required.Unanswerable) as why,
+        ):
             check_required._run(["gh", "api", "whatever"])
         self.assertIn("not found", str(why.exception))
 
     def test_a_protection_refused_to_the_token_names_the_permission(self):
         denied = check_required.Unanswerable(
-            "`gh api ...` failed: gh: Resource not accessible by integration (HTTP 403)")
-        with mock.patch.object(check_required, "_run", side_effect=denied), \
-             self.assertRaises(check_required.Unanswerable) as why:
+            "`gh api ...` failed: gh: Resource not accessible by integration (HTTP 403)"
+        )
+        with (
+            mock.patch.object(check_required, "_run", side_effect=denied),
+            self.assertRaises(check_required.Unanswerable) as why,
+        ):
             check_required.required_in("lemonfiber", ".github")
-        self.assertIn("lemonfiber/.github's branch protection could not be read (HTTP 403)", str(why.exception))
+        self.assertIn(
+            "lemonfiber/.github's branch protection could not be read (HTTP 403)", str(why.exception)
+        )
         self.assertIn("Administration: read", str(why.exception))
 
     def test_any_other_failure_to_read_protection_is_said_as_it_came(self):
         missing = check_required.Unanswerable("`gh api ...` failed: Branch not protected (HTTP 404)")
-        with mock.patch.object(check_required, "_run", side_effect=missing), \
-             self.assertRaises(check_required.Unanswerable) as why:
+        with (
+            mock.patch.object(check_required, "_run", side_effect=missing),
+            self.assertRaises(check_required.Unanswerable) as why,
+        ):
             check_required.required_in("lemonfiber", "spec")
         self.assertIs(why.exception, missing)
 
     def test_an_unreadable_protection_is_not_a_clean_repository(self):
-        with mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)), \
-             mock.patch.object(check_required, "repositories", return_value=["brand"]), \
-             mock.patch.object(check_required, "required_in", side_effect=check_required.Unanswerable("protection unreadable")):
+        with (
+            mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)),
+            mock.patch.object(check_required, "repositories", return_value=["brand"]),
+            mock.patch.object(
+                check_required,
+                "required_in",
+                side_effect=check_required.Unanswerable("protection unreadable"),
+            ),
+        ):
             code = check_required.main(["--owner", "lemonfiber"])
         self.assertEqual(code, 1)
 
@@ -308,12 +323,17 @@ class TheSilences(unittest.TestCase):
         for answer, allowed in (("true\n", True), ("false\n", False)):
             with self.subTest(answer), mock.patch.object(check_required, "_run", return_value=answer) as ran:
                 self.assertIs(check_required.merges_itself("lemonfiber", "brand"), allowed)
-                self.assertEqual(ran.call_args[0][0], ["gh", "api", "repos/lemonfiber/brand", "--jq", ".allow_auto_merge"])
+                self.assertEqual(
+                    ran.call_args[0][0], ["gh", "api", "repos/lemonfiber/brand", "--jq", ".allow_auto_merge"]
+                )
 
     def test_an_auto_merge_setting_the_token_cannot_see_refuses(self):
         for answer in ("null\n", ""):
-            with self.subTest(answer), mock.patch.object(check_required, "_run", return_value=answer), \
-                    self.assertRaises(check_required.Unanswerable) as raised:
+            with (
+                self.subTest(answer),
+                mock.patch.object(check_required, "_run", return_value=answer),
+                self.assertRaises(check_required.Unanswerable) as raised,
+            ):
                 check_required.merges_itself("lemonfiber", "brand")
             self.assertIn("Administration: read", str(raised.exception))
 
@@ -322,11 +342,14 @@ class TheSilences(unittest.TestCase):
             self.assertEqual(check_required.repositories("lemonfiber"), ["a", "b"])
         with mock.patch.object(check_required, "_run", return_value='{"checks":[{"context":"a"}]}'):
             self.assertEqual(check_required.required_in("lemonfiber", "brand"), {"a"})
-        rollup = merged([{"statusCheckRollup": [{"name": "a"}, {"context": "b"}, {}]}, {"statusCheckRollup": None}])
+        rollup = merged(
+            [{"statusCheckRollup": [{"name": "a"}, {"context": "b"}, {}]}, {"statusCheckRollup": None}]
+        )
         with mock.patch.object(check_required, "_run", side_effect=rollup):
             self.assertEqual(check_required.observed_in("lemonfiber", "brand"), {"a", "b"})
-        with mock.patch.object(check_required.subprocess, "run",
-                               return_value=mock.Mock(returncode=0, stdout="x")):
+        with mock.patch.object(
+            check_required.subprocess, "run", return_value=mock.Mock(returncode=0, stdout="x")
+        ):
             self.assertEqual(check_required._run(["gh", "api", "x"]), "x")
         asked = []
 
@@ -336,16 +359,21 @@ class TheSilences(unittest.TestCase):
 
         with mock.patch.object(check_required, "_run", side_effect=answer):
             self.assertEqual(check_required.targeted_in("lemonfiber", "brand"), {"pin-only / pin-only"})
-        self.assertEqual(asked, [
-            f"repos/lemonfiber/brand/actions/runs?event=pull_request_target&per_page={check_required.TARGET_RUNS}",
-            "repos/lemonfiber/brand/actions/runs/11/jobs",
-            "repos/lemonfiber/brand/actions/runs/12/jobs",
-        ])
+        self.assertEqual(
+            asked,
+            [
+                f"repos/lemonfiber/brand/actions/runs?event=pull_request_target&per_page={check_required.TARGET_RUNS}",
+                "repos/lemonfiber/brand/actions/runs/11/jobs",
+                "repos/lemonfiber/brand/actions/runs/12/jobs",
+            ],
+        )
 
 
 class WhatIsSampled(unittest.TestCase):
     def test_only_merged_pull_requests_are_asked_about(self):
-        with mock.patch.object(check_required, "_run", side_effect=merged([{"statusCheckRollup": [{"name": "a"}]}])) as ran:
+        with mock.patch.object(
+            check_required, "_run", side_effect=merged([{"statusCheckRollup": [{"name": "a"}]}])
+        ) as ran:
             check_required.observed_in("lemonfiber", "homebrew-tap")
         listing = ran.call_args_list[0].args[0]
         self.assertEqual(listing[listing.index("--state") + 1], "merged")
@@ -360,33 +388,44 @@ class WhatIsSampled(unittest.TestCase):
             {"mergedAt": None, "statusCheckRollup": [{"name": "odd"}]},
         ]
         with mock.patch.object(check_required, "_run", side_effect=merged(pulls)):
-            self.assertEqual(check_required.observed_in("lemonfiber", "brand", since="2026-10-09T09:00:00Z"),
-                             {"gates / gates", "gates / report"})
+            self.assertEqual(
+                check_required.observed_in("lemonfiber", "brand", since="2026-10-09T09:00:00Z"),
+                {"gates / gates", "gates / report"},
+            )
         with mock.patch.object(check_required, "_run", side_effect=merged(pulls)):
-            self.assertEqual(check_required.observed_in("lemonfiber", "brand", sampled=1,
-                                                        since="2026-10-08T00:00:00Z"), {"gates / gates"})
+            self.assertEqual(
+                check_required.observed_in("lemonfiber", "brand", sampled=1, since="2026-10-08T00:00:00Z"),
+                {"gates / gates"},
+            )
         with mock.patch.object(check_required, "_run", side_effect=merged(pulls)):
             self.assertEqual(len(check_required.observed_in("lemonfiber", "brand")), 4)
         with mock.patch.object(check_required, "_run", side_effect=merged(list(reversed(pulls)))):
-            self.assertEqual(check_required.observed_in("lemonfiber", "brand", sampled=1,
-                                                        since="2026-10-08T00:00:00Z"), {"gates / gates"})
+            self.assertEqual(
+                check_required.observed_in("lemonfiber", "brand", sampled=1, since="2026-10-08T00:00:00Z"),
+                {"gates / gates"},
+            )
 
     def test_only_the_sampled_pull_requests_checks_are_read(self):
-        pulls = [{"mergedAt": f"2026-10-09T0{at}:00:00Z", "statusCheckRollup": [{"name": "a"}]} for at in range(9)]
+        pulls = [
+            {"mergedAt": f"2026-10-09T0{at}:00:00Z", "statusCheckRollup": [{"name": "a"}]} for at in range(9)
+        ]
         with mock.patch.object(check_required, "_run", side_effect=merged(pulls)) as ran:
             check_required.observed_in("lemonfiber", "brand")
         self.assertEqual(len(ran.call_args_list), 1 + check_required.SAMPLED)
 
     def test_none_merged_since_the_gates_landed_is_unanswered(self):
         pulls = [{"mergedAt": "2026-10-08T09:00:00Z", "statusCheckRollup": [{"name": "dco / dco"}]}]
-        with mock.patch.object(check_required, "_run", side_effect=merged(pulls)), \
-             self.assertRaises(check_required.Unanswerable) as why:
+        with (
+            mock.patch.object(check_required, "_run", side_effect=merged(pulls)),
+            self.assertRaises(check_required.Unanswerable) as why,
+        ):
             check_required.observed_in("lemonfiber", "brand", since="2026-10-09T00:00:00Z")
         self.assertIn("merged since 2026-10-09T00:00:00Z", str(why.exception))
 
     def test_the_gates_landed_when_main_first_held_its_caller(self):
-        with mock.patch.object(check_required, "_run",
-                               return_value="2026-10-09T12:00:00Z\n2026-10-09T08:00:00Z\n") as ran:
+        with mock.patch.object(
+            check_required, "_run", return_value="2026-10-09T12:00:00Z\n2026-10-09T08:00:00Z\n"
+        ) as ran:
             self.assertEqual(check_required.gates_landed("lemonfiber", "brand"), "2026-10-09T08:00:00Z")
         self.assertIn("path=.github/workflows/gates.yml&sha=main", " ".join(ran.call_args.args[0]))
         with mock.patch.object(check_required, "_run", return_value="\n"):
@@ -394,14 +433,19 @@ class WhatIsSampled(unittest.TestCase):
 
     def test_the_survey_asks_since_the_gates_landed(self):
         seen = {}
-        with mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)), \
-             mock.patch.object(check_required, "repositories", return_value=["brand"]), \
-             mock.patch.object(check_required, "required_in", return_value={"gates / gates"}), \
-             mock.patch.object(check_required, "gates_landed", return_value="2026-10-09T08:00:00Z"), \
-             mock.patch.object(check_required, "observed_in",
-                               side_effect=lambda o, n, since, sampled=None: seen.setdefault(n, since) and {"gates / gates"}), \
-             mock.patch.object(check_required, "targeted_in", return_value=set()), \
-             mock.patch.object(check_required, "merges_itself", return_value=True):
+        with (
+            mock.patch.object(check_required, "register", return_value=(NAMES, PREFIXES)),
+            mock.patch.object(check_required, "repositories", return_value=["brand"]),
+            mock.patch.object(check_required, "required_in", return_value={"gates / gates"}),
+            mock.patch.object(check_required, "gates_landed", return_value="2026-10-09T08:00:00Z"),
+            mock.patch.object(
+                check_required,
+                "observed_in",
+                side_effect=lambda o, n, since, sampled=None: seen.setdefault(n, since) and {"gates / gates"},
+            ),
+            mock.patch.object(check_required, "targeted_in", return_value=set()),
+            mock.patch.object(check_required, "merges_itself", return_value=True),
+        ):
             check_required.look("lemonfiber", None, io.StringIO())
         self.assertEqual(seen, {"brand": "2026-10-09T08:00:00Z"})
 

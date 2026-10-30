@@ -113,7 +113,9 @@ class SameHostRedirects(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         here, there = urllib.parse.urlsplit(req.full_url), urllib.parse.urlsplit(newurl)
         if there.scheme != SCHEME or there.netloc.lower() != here.netloc.lower():
-            raise urllib.error.HTTPError(req.full_url, code, "redirected off the registry; not followed", headers, fp)
+            raise urllib.error.HTTPError(
+                req.full_url, code, "redirected off the registry; not followed", headers, fp
+            )
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 

@@ -17,8 +17,17 @@ import yaml
 
 TOOLING = pathlib.Path(__file__).resolve().parent.parent
 WORKFLOW = TOOLING / ".github/workflows/rust-service-release.yml"
-GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "commit.gpgsign=false",
-       "-c", "core.hooksPath=/dev/null")
+GIT = (
+    "git",
+    "-c",
+    "user.name=test",
+    "-c",
+    "user.email=test@invalid",
+    "-c",
+    "commit.gpgsign=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+)
 SETTLE = "A commit on main, or a tag the train cuts on main at the version the crate and its manifest declare"
 MANIFEST = 'schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.18.0"\n'
 
@@ -36,25 +45,44 @@ class Settle(unittest.TestCase):
         subprocess.run(["git", "init", "--quiet", "--initial-branch=main"], cwd=self.root, check=True)
         (self.root / "Cargo.toml").write_text('[package]\nname = "decline"\nversion = "0.18.0"\n')
 
-    def settled(self, manifest: str | None = MANIFEST, tag: str = "v0.18.0", event: str = "push",
-                ref: str = "", before: str = "", pins: str = "manifest",
-                repo: str = "lemonfiber-decline") -> tuple[int, dict, str]:
+    def settled(
+        self,
+        manifest: str | None = MANIFEST,
+        tag: str = "v0.18.0",
+        event: str = "push",
+        ref: str = "",
+        before: str = "",
+        pins: str = "manifest",
+        repo: str = "lemonfiber-decline",
+    ) -> tuple[int, dict, str]:
         if manifest is not None:
             (self.root / "plugin.toml").write_text(manifest)
         subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
         subprocess.run([*GIT, "commit", "--quiet", "-m", "c"], cwd=self.root, check=True)
         subprocess.run(["git", "remote", "add", "origin", str(self.root)], cwd=self.root, check=True)
-        sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True,
-                             text=True, check=True).stdout.strip()
+        sha = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True, text=True, check=True
+        ).stdout.strip()
         ref = ref or f"refs/tags/{tag}"
         kind = "tag" if ref.startswith("refs/tags/") else "branch"
         output = self.root / ".output"
-        env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(output), "GITHUB_EVENT_NAME": event,
-               "GITHUB_REF": ref, "GITHUB_SHA": sha, "REGISTRY": "ghcr.io/lemonfiber",
-               "NAME": ref.rsplit("/", 1)[-1], "KIND": kind, "REPO": repo, "BEFORE": before,
-               "TOOLING": str(TOOLING), "PINS": pins}
-        done = subprocess.run(["bash", "-c", step("settle", SETTLE)], cwd=self.root, env=env,
-                              capture_output=True, text=True)
+        env = {
+            "PATH": os.environ["PATH"],
+            "GITHUB_OUTPUT": str(output),
+            "GITHUB_EVENT_NAME": event,
+            "GITHUB_REF": ref,
+            "GITHUB_SHA": sha,
+            "REGISTRY": "ghcr.io/lemonfiber",
+            "NAME": ref.rsplit("/", 1)[-1],
+            "KIND": kind,
+            "REPO": repo,
+            "BEFORE": before,
+            "TOOLING": str(TOOLING),
+            "PINS": pins,
+        }
+        done = subprocess.run(
+            ["bash", "-c", step("settle", SETTLE)], cwd=self.root, env=env, capture_output=True, text=True
+        )
         said = dict(line.split("=", 1) for line in output.read_text().splitlines()) if output.exists() else {}
         self.sha = sha
         return done.returncode, said, done.stdout + done.stderr
@@ -67,11 +95,15 @@ class Settle(unittest.TestCase):
 
     def test_a_manifest_at_the_tags_version_is_published_and_pinned(self):
         code, said, _ = self.settled()
-        self.assertEqual((code, said["image"], said["kind"], said["tag"]),
-                         (0, "ghcr.io/lemonfiber/decline", "tag", "v0.18.0"))
+        self.assertEqual(
+            (code, said["image"], said["kind"], said["tag"]),
+            (0, "ghcr.io/lemonfiber/decline", "tag", "v0.18.0"),
+        )
 
     def test_a_manifest_at_another_version_publishes_nothing(self):
-        code, said, printed = self.settled('schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n')
+        code, said, printed = self.settled(
+            'schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n'
+        )
         self.assertNotEqual(code, 0)
         self.assertEqual(said, {})
         self.assertIn("plugin.toml declares 0.17.0", printed)
@@ -87,25 +119,36 @@ class Settle(unittest.TestCase):
                 self.assertIn("is not a tag the train cuts", printed)
 
     def test_a_commit_on_main_publishes_its_commit_image_beside_a_manifest_of_any_version(self):
-        code, said, _ = self.settled('schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n',
-                                     ref="refs/heads/main")
+        code, said, _ = self.settled(
+            'schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n', ref="refs/heads/main"
+        )
         self.assertEqual(code, 0)
-        self.assertEqual((said["tag"], said["kind"], said["publish"]),
-                         (f"main-{self.sha[:12]}", "commit", "yes"))
+        self.assertEqual(
+            (said["tag"], said["kind"], said["publish"]), (f"main-{self.sha[:12]}", "commit", "yes")
+        )
 
     def test_a_commit_on_main_changing_nothing_but_a_pin_publishes_nothing(self):
         manifest = 'schema_version = 1\n[plugin]\nid = "decline"\nversion = "0.17.0"\n'
-        for changed, publish in (({"plugin.toml": manifest + "# moved\n", "recordings/decline/a.json": "{}",
-                                   "proofs.json": "{}"}, "no"),
-                                 ({"plugin.toml": manifest + "# moved\n", "src/main.rs": "fn main() {}"}, "yes")):
+        for changed, publish in (
+            (
+                {
+                    "plugin.toml": manifest + "# moved\n",
+                    "recordings/decline/a.json": "{}",
+                    "proofs.json": "{}",
+                },
+                "no",
+            ),
+            ({"plugin.toml": manifest + "# moved\n", "src/main.rs": "fn main() {}"}, "yes"),
+        ):
             with self.subTest(changed=sorted(changed)):
                 shutil.rmtree(self.root / ".git")
                 subprocess.run(["git", "init", "--quiet", "--initial-branch=main"], cwd=self.root, check=True)
                 (self.root / "plugin.toml").write_text(manifest)
                 subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
                 subprocess.run([*GIT, "commit", "--quiet", "-m", "before"], cwd=self.root, check=True)
-                before = subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True,
-                                        text=True, check=True).stdout.strip()
+                before = subprocess.run(
+                    ["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True, text=True, check=True
+                ).stdout.strip()
                 for path, body in changed.items():
                     (self.root / path).parent.mkdir(parents=True, exist_ok=True)
                     (self.root / path).write_text(body)
@@ -118,8 +161,11 @@ class Settle(unittest.TestCase):
         self.assertEqual((code, said["publish"]), (0, "yes"))
 
     def test_another_branch_or_another_event_publishes_nothing(self):
-        for event, ref in (("push", "refs/heads/feature"), ("workflow_dispatch", "refs/heads/main"),
-                           ("workflow_dispatch", "refs/tags/v0.18.0")):
+        for event, ref in (
+            ("push", "refs/heads/feature"),
+            ("workflow_dispatch", "refs/heads/main"),
+            ("workflow_dispatch", "refs/tags/v0.18.0"),
+        ):
             with self.subTest(event=event, ref=ref):
                 shutil.rmtree(self.root / ".git")
                 subprocess.run(["git", "init", "--quiet", "--initial-branch=main"], cwd=self.root, check=True)
@@ -131,8 +177,10 @@ class Settle(unittest.TestCase):
     def test_an_image_the_bundle_pins_publishes_without_a_manifest_and_names_its_service(self):
         (self.root / "Cargo.toml").write_text('[package]\nname = "fence"\nversion = "0.18.0"\n')
         code, said, _ = self.settled(None, pins="bundle", repo="lemonfiber-fence")
-        self.assertEqual((code, said["image"], said["kind"], said["tag"], said["service"]),
-                         (0, "ghcr.io/lemonfiber/fence", "tag", "v0.18.0", "fence"))
+        self.assertEqual(
+            (code, said["image"], said["kind"], said["tag"], said["service"]),
+            (0, "ghcr.io/lemonfiber/fence", "tag", "v0.18.0", "fence"),
+        )
 
     def test_an_image_the_bundle_pins_with_a_manifest_beside_it_publishes_nothing(self):
         code, said, printed = self.settled(pins="bundle")
@@ -148,12 +196,23 @@ class Settle(unittest.TestCase):
 
     def test_a_repository_not_named_for_a_service_publishes_nothing(self):
         subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
-        env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(self.root / ".output"), "GITHUB_EVENT_NAME": "push",
-               "GITHUB_REF": "refs/heads/main", "GITHUB_SHA": "0" * 40, "REGISTRY": "ghcr.io/lemonfiber",
-               "NAME": "main", "KIND": "branch", "REPO": "decline", "BEFORE": "", "TOOLING": str(TOOLING),
-               "PINS": "manifest"}
-        done = subprocess.run(["bash", "-c", step("settle", SETTLE)], cwd=self.root, env=env,
-                              capture_output=True, text=True)
+        env = {
+            "PATH": os.environ["PATH"],
+            "GITHUB_OUTPUT": str(self.root / ".output"),
+            "GITHUB_EVENT_NAME": "push",
+            "GITHUB_REF": "refs/heads/main",
+            "GITHUB_SHA": "0" * 40,
+            "REGISTRY": "ghcr.io/lemonfiber",
+            "NAME": "main",
+            "KIND": "branch",
+            "REPO": "decline",
+            "BEFORE": "",
+            "TOOLING": str(TOOLING),
+            "PINS": "manifest",
+        }
+        done = subprocess.run(
+            ["bash", "-c", step("settle", SETTLE)], cwd=self.root, env=env, capture_output=True, text=True
+        )
         self.assertNotEqual(done.returncode, 0)
         self.assertIn("is not named lemonfiber-<service>", done.stdout + done.stderr)
 
@@ -193,13 +252,29 @@ class Published(workflow_steps.Scratch):
         for name in ("a" * 64, "b" * 64):
             (self.root / "digests" / name).touch()
         log = self.root / "docker.log"
-        env = {"PATH": f"{bin_dir}:{os.environ['PATH']}", "DOCKER_LOG": str(log), "GH_TOKEN": "t", "ACTOR": "a",
-               "IMAGE": "ghcr.io/lemonfiber/decline", "TAG": "main-0123456789ab",
-               "GITHUB_OUTPUT": str(self.root / ".output"), "GITHUB_STEP_SUMMARY": str(self.root / ".summary")}
+        env = {
+            "PATH": f"{bin_dir}:{os.environ['PATH']}",
+            "DOCKER_LOG": str(log),
+            "GH_TOKEN": "t",
+            "ACTOR": "a",
+            "IMAGE": "ghcr.io/lemonfiber/decline",
+            "TAG": "main-0123456789ab",
+            "GITHUB_OUTPUT": str(self.root / ".output"),
+            "GITHUB_STEP_SUMMARY": str(self.root / ".summary"),
+        }
         if exists:
             env["EXISTS"] = "1"
-        done = subprocess.run(["bash", "-c", workflow_steps.step(workflow, "publish", "Join the platforms under one index, tagged")],
-                              cwd=self.root, env=env, capture_output=True, text=True)
+        done = subprocess.run(
+            [
+                "bash",
+                "-c",
+                workflow_steps.step(workflow, "publish", "Join the platforms under one index, tagged"),
+            ],
+            cwd=self.root,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         return [json.loads(line) for line in log.read_text().splitlines()]
 
@@ -209,7 +284,11 @@ class Published(workflow_steps.Scratch):
                 with self.subTest(workflow=workflow.name, exists=exists):
                     shutil.rmtree(self.root, True)
                     self.root.mkdir()
-                    created = [call for call in self.published(workflow, exists) if call[:3] == ["buildx", "imagetools", "create"]]
+                    created = [
+                        call
+                        for call in self.published(workflow, exists)
+                        if call[:3] == ["buildx", "imagetools", "create"]
+                    ]
                     self.assertEqual(len(created), 0 if exists else 1)
                     self.assertIn("f" * 64, (self.root / ".output").read_text())
 

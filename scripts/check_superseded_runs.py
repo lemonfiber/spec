@@ -42,6 +42,7 @@ The files are read by a reader of the few shapes a workflow's ``on``,
 this on an interpreter with no packages installed. A shape the reader does not
 know is refused as unread rather than passed.
 """
+
 from __future__ import annotations
 
 import pathlib
@@ -203,8 +204,10 @@ def home(canonical: pathlib.Path) -> tuple[str, list[str]]:
     path = canonical / HOME
     if not path.is_file():
         return "", [
-            (f"{HOME} is not here, so no workflow's concurrency group was compared "
-             f"against the one that cancels only a pull request's superseded run (Q-R75)")
+            (
+                f"{HOME} is not here, so no workflow's concurrency group was compared "
+                f"against the one that cancels only a pull request's superseded run (Q-R75)"
+            )
         ]
     try:
         group, cancel = workflow(path.read_text(encoding="utf-8"))["group"] or ("", None)
@@ -212,8 +215,10 @@ def home(canonical: pathlib.Path) -> tuple[str, list[str]]:
         return "", [f"{HOME} could not be read: {unread}"]
     if not group or cancel != "true":
         return "", [
-            (f"{HOME} holds no group that cancels, so every workflow would be held "
-             f"to a block that replaces nothing (Q-R75)")
+            (
+                f"{HOME} holds no group that cancels, so every workflow would be held "
+                f"to a block that replaces nothing (Q-R75)"
+            )
         ]
     return group, []
 
@@ -238,7 +243,8 @@ def findings(repo: pathlib.Path, group: str) -> list[str]:
                 f"rather than passed (Q-R75)"
             )
     runs_directly = {
-        where for where, one in read.items()
+        where
+        for where, one in read.items()
         if "pull_request" in one["events"] and "workflow_call" in one["events"]
     }
     for where, one in read.items():

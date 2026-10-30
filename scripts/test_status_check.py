@@ -72,20 +72,23 @@ class Tree(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def git(self, *args):
-        return subprocess.run(["git", "-C", "repo", *args], check=True,
-                              capture_output=True, text=True).stdout.strip()
+        return subprocess.run(
+            ["git", "-C", "repo", *args], check=True, capture_output=True, text=True
+        ).stdout.strip()
 
     def feature(self, fid, maturity, count, retired=()):
         directory = self.spec / "10-functional" / "features" / "b-running"
         directory.mkdir(parents=True, exist_ok=True)
         rows = "\n".join(
-            f"| **{fid}-R{n}** | *Withdrawn — carried elsewhere.* |" if n in retired
+            f"| **{fid}-R{n}** | *Withdrawn — carried elsewhere.* |"
+            if n in retired
             else f"| **{fid}-R{n}** | Something MUST happen. |"
             for n in range(1, count + 1)
         )
         (directory / f"{fid.lower()}-thing.md").write_text(
-            f"---\nid: {fid}\nmaturity: {maturity}\n---\n\n| ID | Requirement |\n"
-            f"|----|----|\n{rows}\n", encoding="utf-8")
+            f"---\nid: {fid}\nmaturity: {maturity}\n---\n\n| ID | Requirement |\n|----|----|\n{rows}\n",
+            encoding="utf-8",
+        )
 
     def manifest(self, version, goals, satisfied=None, repos=("repo",)):
         listed = ", ".join(f'"{g}"' for g in goals)
@@ -94,8 +97,8 @@ class Tree(unittest.TestCase):
         if satisfied is not None:
             extra = "satisfied_in = [" + ", ".join(f'"{r}"' for r in satisfied) + "]\n"
         (self.spec / "70-operations" / "versions" / f"{version}.toml").write_text(
-            f'version = "{version}"\nrepos = [{cut}]\n{extra}goals = [{listed}]\n',
-            encoding="utf-8")
+            f'version = "{version}"\nrepos = [{cut}]\n{extra}goals = [{listed}]\n', encoding="utf-8"
+        )
 
     def tracker(self, body, path="repo/status.toml"):
         p = pathlib.Path(path)
@@ -119,8 +122,9 @@ class TheOrdinaryRowPasses(Tree):
         self.assertEqual(self.faults('[[requirement]]\nid = "B1-R3"\nstate = "partial"\n'), [])
 
     def test_a_directory_is_evidence(self):
-        self.assertEqual(self.faults(
-            '[[requirement]]\nid = "B1-R1"\nstate = "done"\nevidence = ["src"]\n'), [])
+        self.assertEqual(
+            self.faults('[[requirement]]\nid = "B1-R1"\nstate = "done"\nevidence = ["src"]\n'), []
+        )
 
     def test_a_commit_in_the_history_is_where_it_landed(self):
         sha = self.git("rev-parse", "HEAD")
@@ -219,28 +223,29 @@ class TheShapeIsRefusedBeforeItIsRead(Tree):
         self.assertIn("has no `state`", said)
 
     def test_an_identifier_that_is_not_one(self):
-        self.assertIn("not a requirement identifier",
-                      self.refused('[[requirement]]\nid = "B1"\nstate = "open"\n'))
+        self.assertIn(
+            "not a requirement identifier", self.refused('[[requirement]]\nid = "B1"\nstate = "open"\n')
+        )
 
     def test_a_requirement_recorded_twice(self):
         row = '[[requirement]]\nid = "B1-R2"\nstate = "open"\n'
         self.assertIn("recorded twice", self.refused(row + row))
 
     def test_a_state_that_is_not_one(self):
-        self.assertIn("`finished` is not one of",
-                      self.refused('[[requirement]]\nid = "B1-R2"\nstate = "finished"\n'))
+        self.assertIn(
+            "`finished` is not one of", self.refused('[[requirement]]\nid = "B1-R2"\nstate = "finished"\n')
+        )
 
     def test_evidence_that_is_not_a_list_of_paths(self):
-        self.assertIn("list of paths",
-                      self.refused('[[requirement]]\nid = "B1-R2"\nstate = "open"\nevidence = "x"\n'))
+        self.assertIn(
+            "list of paths", self.refused('[[requirement]]\nid = "B1-R2"\nstate = "open"\nevidence = "x"\n')
+        )
 
     def test_a_done_row_naming_no_evidence(self):
-        self.assertIn("names no evidence",
-                      self.refused('[[requirement]]\nid = "B1-R2"\nstate = "done"\n'))
+        self.assertIn("names no evidence", self.refused('[[requirement]]\nid = "B1-R2"\nstate = "done"\n'))
 
     def test_landed_that_is_not_a_commit(self):
-        self.assertIn("hexadecimal",
-                      self.refused(ROW + 'landed = "HEAD"\n'))
+        self.assertIn("hexadecimal", self.refused(ROW + 'landed = "HEAD"\n'))
 
 
 class ARepositoryPastAThousandLinesSplitsByFeature(Tree):
@@ -251,7 +256,9 @@ class ARepositoryPastAThousandLinesSplitsByFeature(Tree):
             (directory / name).write_text(body, encoding="utf-8")
 
     def test_each_feature_file_is_read(self):
-        self.split({"B1.toml": 'requirement = [\n  { id = "B1-R1", state = "done", evidence = ["src"] },\n]\n'})
+        self.split(
+            {"B1.toml": 'requirement = [\n  { id = "B1-R1", state = "done", evidence = ["src"] },\n]\n'}
+        )
         rows = status_check.load(self.root, "repo")
         self.assertEqual([row.id for row in rows], ["B1-R1"])
 
@@ -282,9 +289,12 @@ class ARepositoryPastAThousandLinesSplitsByFeature(Tree):
             status_check.load(self.root, "repo")
 
     def test_the_short_row_form_reads_as_the_table_form(self):
-        self.tracker('requirement = [\n  { id = "B1-R1", state = "done", evidence = ["src/thing.rs::a_thing_is_held"] },\n]\n')
-        self.assertEqual(status_check.load(self.root, "repo"),
-                         status_check.read(pathlib.Path("repo/status.toml"), "repo"))
+        self.tracker(
+            'requirement = [\n  { id = "B1-R1", state = "done", evidence = ["src/thing.rs::a_thing_is_held"] },\n]\n'
+        )
+        self.assertEqual(
+            status_check.load(self.root, "repo"), status_check.read(pathlib.Path("repo/status.toml"), "repo")
+        )
 
 
 class TheCommandLine(Tree):
@@ -310,8 +320,7 @@ class TheCommandLine(Tree):
 
     def test_a_sibling_that_is_not_name_equals_path(self):
         self.tracker(ROW)
-        code, said = run_main(["check", "--spec", "spec", "--repo-root", "repo",
-                               "--sibling", "web"])
+        code, said = run_main(["check", "--spec", "spec", "--repo-root", "repo", "--sibling", "web"])
         self.assertEqual(code, 2)
         self.assertIn("name=path", said)
 
@@ -323,7 +332,8 @@ class TheCommandLine(Tree):
     def test_repos_names_every_repository_some_version_is_satisfied_in(self):
         self.manifest("0.2.0", ["B1-R3"])
         (self.spec / "70-operations" / "versions" / "TEMPLATE.toml").write_text(
-            'repos = ["template-only"]\n', encoding="utf-8")
+            'repos = ["template-only"]\n', encoding="utf-8"
+        )
         code, said = run_main(["repos", "--spec", "spec"])
         self.assertEqual(code, 0)
         self.assertEqual(said.split(), ["repo", "web"])

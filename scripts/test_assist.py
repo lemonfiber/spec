@@ -23,10 +23,18 @@ import assist  # noqa: E402
 
 FIRST = "FIRST_TIME_CONTRIBUTOR"
 MIRRORS = [
-    {"route": "commands/every-command.md", "remote": "https://github.com/o/core",
-     "branch": "main", "path": "reference/commands.md"},
-    {"route": "architecture", "remote": "https://github.com/o/core",
-     "branch": "main", "path": ".docs/architecture"},
+    {
+        "route": "commands/every-command.md",
+        "remote": "https://github.com/o/core",
+        "branch": "main",
+        "path": "reference/commands.md",
+    },
+    {
+        "route": "architecture",
+        "remote": "https://github.com/o/core",
+        "branch": "main",
+        "path": ".docs/architecture",
+    },
 ]
 MANIFEST = 'version = "0.1.0"\nstatus = "staged"\nrepos = ["core"]\ngoals = ["A1-R1", "A1-R2"]\n'
 TRACKER = '[[requirement]]\nid = "A1-R1"\nstate = "partial"\n'
@@ -55,11 +63,17 @@ class Citation(unittest.TestCase):
 
 class Mirrors(unittest.TestCase):
     def test_a_file_route_and_a_page_under_a_directory_route(self):
-        paths = ["src/content/docs/commands/every-command.md",
-                 "src/content/docs/architecture/00-index.md", "src/pages/index.astro"]
+        paths = [
+            "src/content/docs/commands/every-command.md",
+            "src/content/docs/architecture/00-index.md",
+            "src/pages/index.astro",
+        ]
         said = assist.mirrored(paths, MIRRORS, FIRST)
-        self.assertIn("- `src/content/docs/commands/every-command.md` is rendered from "
-                      "https://github.com/o/core/blob/main/reference/commands.md", said)
+        self.assertIn(
+            "- `src/content/docs/commands/every-command.md` is rendered from "
+            "https://github.com/o/core/blob/main/reference/commands.md",
+            said,
+        )
         self.assertIn("https://github.com/o/core/blob/main/.docs/architecture/00-index.md", said)
         self.assertNotIn("index.astro", said)
 
@@ -134,20 +148,35 @@ class Main(Tree):
         pathlib.Path("mirrors.json").write_text(json.dumps({"mirrors": MIRRORS}), encoding="utf-8")
 
     def test_citation(self):
-        code, out, _ = run_main(["citation", "--paths", "paths.txt", "--text", "text.txt",
-                                 "--association", FIRST])
+        code, out, _ = run_main(
+            ["citation", "--paths", "paths.txt", "--text", "text.txt", "--association", FIRST]
+        )
         self.assertEqual(code, 0)
         self.assertIn("GOV-R12", out)
 
     def test_mirrors_and_silence(self):
-        code, out, _ = run_main(["mirrors", "--paths", "paths.txt", "--mirrors", "mirrors.json",
-                                 "--association", FIRST])
+        code, out, _ = run_main(
+            ["mirrors", "--paths", "paths.txt", "--mirrors", "mirrors.json", "--association", FIRST]
+        )
         self.assertEqual((code, out), (0, ""))
 
     def test_status(self):
         pathlib.Path("text.txt").write_text("Spec: A1-R1\n", encoding="utf-8")
-        code, out, _ = run_main(["status", "--paths", "paths.txt", "--text", "text.txt",
-                                 "--spec", "spec", "--repo-root", "core", "--repo", "core"])
+        code, out, _ = run_main(
+            [
+                "status",
+                "--paths",
+                "paths.txt",
+                "--text",
+                "text.txt",
+                "--spec",
+                "spec",
+                "--repo-root",
+                "core",
+                "--repo",
+                "core",
+            ]
+        )
         self.assertEqual(code, 0)
         self.assertIn("| `A1-R1` | partial |", out)
 
@@ -155,8 +184,15 @@ class Main(Tree):
         pathlib.Path("mirrors.json").write_text("{}", encoding="utf-8")
         cases = {
             "missing": ["citation", "--paths", "nowhere.txt", "--text", "text.txt", "--association", FIRST],
-            "not a mirror table": ["mirrors", "--paths", "paths.txt", "--mirrors", "mirrors.json",
-                                   "--association", FIRST],
+            "not a mirror table": [
+                "mirrors",
+                "--paths",
+                "paths.txt",
+                "--mirrors",
+                "mirrors.json",
+                "--association",
+                FIRST,
+            ],
         }
         for why, argv in cases.items():
             with self.subTest(why):

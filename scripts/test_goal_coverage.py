@@ -73,15 +73,11 @@ def tree(
     root = pathlib.Path(tempfile.mkdtemp())
     features = root / gate.FEATURES / "features" / "x-thing"
     features.mkdir(parents=True)
-    (features / "x1-thing.md").write_text(
-        FEATURE.format(status=status, prefix="X1"), encoding="utf-8"
-    )
+    (features / "x1-thing.md").write_text(FEATURE.format(status=status, prefix="X1"), encoding="utf-8")
     if architecture is not None:
         contracts = root / gate.ARCHITECTURE / "contracts"
         contracts.mkdir(parents=True)
-        (contracts / "a-contract.md").write_text(
-            ARCHITECTURE.format(status=architecture), encoding="utf-8"
-        )
+        (contracts / "a-contract.md").write_text(ARCHITECTURE.format(status=architecture), encoding="utf-8")
     versions = root / gate.VERSIONS
     versions.mkdir(parents=True)
     (versions / "0.1.0.toml").write_text(MANIFEST.format(goals=goals), encoding="utf-8")
@@ -121,7 +117,6 @@ class Isolated(unittest.TestCase):
 
 
 class TheGate(Isolated):
-
     def test_a_locked_accepted_requirement_passes(self):
         code, said = run(tree())
         self.assertEqual(code, 0, said)
@@ -149,7 +144,9 @@ class TheGate(Isolated):
         root = tree(goals='"X1-R1"')
         feature = root / gate.FEATURES / "features" / "x-thing" / "x1-thing.md"
         text = feature.read_text(encoding="utf-8")
-        feature.write_text(text.replace("| The second thing.", "| *Draft:* The second thing."), encoding="utf-8")
+        feature.write_text(
+            text.replace("| The second thing.", "| *Draft:* The second thing."), encoding="utf-8"
+        )
         code, said = run(root)
         self.assertEqual(code, 0, said)
 
@@ -328,8 +325,17 @@ class TheRealTree(unittest.TestCase):
         self.assertEqual(gate.restated_by("restates X1-R1, X1-R2"), ["X1-R1", "X1-R2"])
 
     def test_a_reason_that_is_none_of_the_three_is_refused(self):
-        for reason in ("restates", "restates ", "restates X1-R1,X1-R2", "restates x1-r1",
-                       "dormant until ", "dormant until  ", "principles", "", "a principle"):
+        for reason in (
+            "restates",
+            "restates ",
+            "restates X1-R1,X1-R2",
+            "restates x1-r1",
+            "dormant until ",
+            "dormant until  ",
+            "principles",
+            "",
+            "a principle",
+        ):
             with self.subTest(reason=reason):
                 self.assertIsNone(gate.restated_by(reason))
 

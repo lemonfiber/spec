@@ -53,25 +53,40 @@ class Moved(unittest.TestCase):
 
     def test_main_pins_its_commit_tag_on_the_commit_branch(self):
         written, move = manifest_pin.moved(MANIFEST, IMAGE, "main-0123456789ab", DIGEST, "branch")
-        self.assertEqual(move, {"image": IMAGE, "services": ["door"], "branch": "release/image-commit-pin",
-                                "published": "main-0123456789ab",
-                                "to": {"tag": "main-0123456789ab", "digest": DIGEST}})
+        self.assertEqual(
+            move,
+            {
+                "image": IMAGE,
+                "services": ["door"],
+                "branch": "release/image-commit-pin",
+                "published": "main-0123456789ab",
+                "to": {"tag": "main-0123456789ab", "digest": DIGEST},
+            },
+        )
         services = {one["id"]: one for one in tomllib.loads(written)["service"]}
         self.assertEqual((services["door"]["digest"], services["door"]["tag"]), (DIGEST, "main-0123456789ab"))
         self.assertEqual(services["other"]["tag"], "2.11.6")
 
     def test_a_train_tag_pins_without_its_v_on_the_tag_branch(self):
         _, move = manifest_pin.moved(MANIFEST, IMAGE, "v0.18.0", DIGEST, "tag")
-        self.assertEqual((move["branch"], move["published"], move["to"]["tag"]),
-                         ("release/image-pin", "v0.18.0", "0.18.0"))
+        self.assertEqual(
+            (move["branch"], move["published"], move["to"]["tag"]), ("release/image-pin", "v0.18.0", "0.18.0")
+        )
 
     def test_a_manifest_running_no_service_of_the_image_moves_nothing(self):
-        self.assertEqual(manifest_pin.moved(MANIFEST, f"{IMAGE}-x", "v0.18.0", DIGEST, "tag"), (MANIFEST, None))
+        self.assertEqual(
+            manifest_pin.moved(MANIFEST, f"{IMAGE}-x", "v0.18.0", DIGEST, "tag"), (MANIFEST, None)
+        )
 
     def test_an_image_lemonfiber_does_not_publish_or_another_kind_of_ref_is_refused(self):
-        for image, ref_type, said in (("caddy", "tag", "not an image lemonfiber publishes"),
-                                      (IMAGE, "pull", "publishes no pin")):
-            with self.subTest(image=image, ref_type=ref_type), self.assertRaisesRegex(manifest_pin.Refused, said):
+        for image, ref_type, said in (
+            ("caddy", "tag", "not an image lemonfiber publishes"),
+            (IMAGE, "pull", "publishes no pin"),
+        ):
+            with (
+                self.subTest(image=image, ref_type=ref_type),
+                self.assertRaisesRegex(manifest_pin.Refused, said),
+            ):
                 manifest_pin.moved(MANIFEST, image, "v0.18.0", DIGEST, ref_type)
 
 
@@ -79,14 +94,22 @@ class Described(unittest.TestCase):
     """What the pull request says, and whether it came out clean, from what the committing
     job read itself."""
 
-    MOVE: ClassVar[dict] = {"image": IMAGE, "services": ["door"], "branch": "release/image-pin",
-                            "published": "v0.18.0", "to": {"tag": "0.18.0", "digest": DIGEST}}
+    MOVE: ClassVar[dict] = {
+        "image": IMAGE,
+        "services": ["door"],
+        "branch": "release/image-pin",
+        "published": "v0.18.0",
+        "to": {"tag": "0.18.0", "digest": DIGEST},
+    }
 
     def test_a_pin_leaving_no_recording_behind_names_the_image_and_is_clean(self):
         title, body, clean = manifest_pin.described(self.MOVE, [], LOG)
         self.assertEqual(title, "chore(manifest): the image at v0.18.0")
-        self.assertTrue(body.startswith(f"Every service of plugin.toml running {IMAGE} runs the image v0.18.0 "
-                                        f"published, at {DIGEST}."))
+        self.assertTrue(
+            body.startswith(
+                f"Every service of plugin.toml running {IMAGE} runs the image v0.18.0 published, at {DIGEST}."
+            )
+        )
         self.assertIn("recorded again from it by `lemonfiber plugin record`", body)
         self.assertTrue(body.endswith(f"{manifest_pin.CITED}\n{pin_bump.SIGNED}"))
         self.assertTrue(clean)
@@ -126,8 +149,18 @@ class Command(unittest.TestCase):
         return code, out.getvalue(), err.getvalue()
 
     def published(self, manifest: str = "plugin/plugin.toml", digest: str = DIGEST) -> tuple[str, ...]:
-        return ("--manifest", manifest, "--image", IMAGE, "--tag", "v0.18.0", "--digest", digest,
-                "--ref-type", "tag")
+        return (
+            "--manifest",
+            manifest,
+            "--image",
+            IMAGE,
+            "--tag",
+            "v0.18.0",
+            "--digest",
+            digest,
+            "--ref-type",
+            "tag",
+        )
 
     def recorded(self, digest: str = DIGEST) -> None:
         """What the record job does: move the pin, take the recording again, and stage."""
@@ -138,11 +171,24 @@ class Command(unittest.TestCase):
         self.put(f"plugin/{RECORDING}", {"recorded_from": f"{IMAGE}@{digest}"})
         self.put("plugin/proofs.json", {"proofs": []})
         with contextlib.redirect_stdout(io.StringIO()):
-            pin_bump.main(["stage", "--manifest", "plugin/plugin.toml", "--main", "main.toml", "--move", "move.json",
-                           "--out", "bump"])
+            pin_bump.main(
+                [
+                    "stage",
+                    "--manifest",
+                    "plugin/plugin.toml",
+                    "--main",
+                    "main.toml",
+                    "--move",
+                    "move.json",
+                    "--out",
+                    "bump",
+                ]
+            )
 
     def admit(self) -> tuple[int, str, str]:
-        return self.ran("admit", *self.published("checkout/plugin.toml"), "--bump", "bump", "--move-out", "moved.json")
+        return self.ran(
+            "admit", *self.published("checkout/plugin.toml"), "--bump", "bump", "--move-out", "moved.json"
+        )
 
     def test_the_move_travels_into_the_checkout_and_is_said_clean(self):
         self.recorded()
@@ -212,16 +258,20 @@ class Workflow(unittest.TestCase):
             with self.subTest(job=job):
                 self.assertEqual(self.JOBS[job]["steps"][0]["with"]["repository"], "${{ env.PINNED }}")
         steps = {step.get("name"): step for step in self.JOBS["commit"]["steps"]}
-        self.assertIn('name=${PINNED#*/}', steps["Which repository the token is for"]["run"])
+        self.assertIn("name=${PINNED#*/}", steps["Which repository the token is for"]["run"])
         self.assertEqual(steps["Put the change on the branch, signed"]["env"]["REPO"], "${{ env.PINNED }}")
         self.assertEqual(self.JOBS["pull-request"]["with"]["repository"], "${{ inputs.repository }}")
 
     def test_one_run_at_a_time_moves_each_rolling_branch(self):
-        self.assertEqual(self.JOBS["commit"]["concurrency"],
-                         {"group": "manifest-pin-${{ inputs.repository != '' && format('{0}/{1}', "
-                                "github.repository_owner, inputs.repository) || github.repository }}"
-                                "-${{ github.ref_type }}",
-                          "cancel-in-progress": False})
+        self.assertEqual(
+            self.JOBS["commit"]["concurrency"],
+            {
+                "group": "manifest-pin-${{ inputs.repository != '' && format('{0}/{1}', "
+                "github.repository_owner, inputs.repository) || github.repository }}"
+                "-${{ github.ref_type }}",
+                "cancel-in-progress": False,
+            },
+        )
 
 
 if __name__ == "__main__":

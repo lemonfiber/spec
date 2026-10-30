@@ -125,9 +125,7 @@ def main(argv: list[str] | None = None) -> int:
         version = checked(args.service, args.repository, args.image, args.tag, args.digest)
         answered = published(args.image, args.tag)
         if answered != args.digest:
-            raise Refused(
-                f"{args.image}:{args.tag} is {answered} at the registry, not {args.digest}"
-            )
+            raise Refused(f"{args.image}:{args.tag} is {answered} at the registry, not {args.digest}")
         before = bundle.read_text(encoding="utf-8")
         after = moved(before, args.service, args.image, version, args.digest)
     except (Refused, OSError) as why:

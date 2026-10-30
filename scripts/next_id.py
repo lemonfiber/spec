@@ -48,12 +48,16 @@ def branches() -> list[str]:
     """
     done = subprocess.run(
         ["git", "for-each-ref", "--format=%(refname)", "refs/remotes"],
-        cwd=ROOT, capture_output=True, text=True, check=False,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if done.returncode != 0:
         return []
     return [
-        ref for ref in done.stdout.split()
+        ref
+        for ref in done.stdout.split()
         # `refs/remotes/origin/HEAD` is a symbolic ref to another entry in this
         # same list, so reading it would be reading one branch twice.
         if not ref.endswith("/HEAD")
@@ -66,10 +70,20 @@ def defined_on(ref: str) -> set[str]:
         # POSIX ERE, which is what git grep speaks: no `\s`. The rows are then
         # matched again with REQ_DEF below, so this only has to be no narrower
         # than that pattern.
-        ["git", "grep", "-h", "-E",
-         r"^\|[[:space:]]*\*\*[A-Z]+[0-9]*-R[0-9]+\*\*[[:space:]]*\|",
-         ref, "--", "*.md"],
-        cwd=ROOT, capture_output=True, text=True, check=False,
+        [
+            "git",
+            "grep",
+            "-h",
+            "-E",
+            r"^\|[[:space:]]*\*\*[A-Z]+[0-9]*-R[0-9]+\*\*[[:space:]]*\|",
+            ref,
+            "--",
+            "*.md",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     # Exit 1 is "no match", which is an answer. Anything else is a ref this
     # clone cannot read, and guessing about it would defeat the point.
@@ -112,8 +126,7 @@ def report_prefixes(families: dict[str, dict[int, pathlib.Path]]) -> int:
         print(
             f"{prefix:<8} highest R{max(numbers):<5} "
             f"{len(numbers):>4} defined  "
-            f"{len(files)} file(s)"
-            + (f"  gaps: {', '.join(f'R{g}' for g in gaps)}" if gaps else "")
+            f"{len(files)} file(s)" + (f"  gaps: {', '.join(f'R{g}' for g in gaps)}" if gaps else "")
         )
     return 0
 
@@ -124,7 +137,8 @@ def main() -> int:
     parser.add_argument("-n", "--count", type=int, default=1)
     parser.add_argument("--prefixes", action="store_true", help="list every prefix in use")
     parser.add_argument(
-        "--here", action="store_true",
+        "--here",
+        action="store_true",
         help="read this tree only, ignoring what other branches have taken",
     )
     args = parser.parse_args()
@@ -133,8 +147,8 @@ def main() -> int:
     seen = 0 if args.here else len(branches())
     if args.here:
         print(
-            "# reading this tree only: an identifier taken on an unmerged "
-            "branch will be handed out again.", file=sys.stderr,
+            "# reading this tree only: an identifier taken on an unmerged branch will be handed out again.",
+            file=sys.stderr,
         )
     elif not seen:
         print(

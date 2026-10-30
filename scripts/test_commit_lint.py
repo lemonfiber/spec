@@ -96,7 +96,7 @@ class WhatItRefuses(unittest.TestCase):
 
 class WhatItSkips(unittest.TestCase):
     def test_a_merge_and_a_revert_are_gits_own_words(self):
-        for subject in ("Merge branch 'main' into x", "Revert \"feat: a thing\""):
+        for subject in ("Merge branch 'main' into x", 'Revert "feat: a thing"'):
             with self.subTest(subject=subject):
                 self.assertEqual(gate.unconventional(record(subject)), [])
 
@@ -145,8 +145,17 @@ class WhatGitIsAsked(unittest.TestCase):
 
     def test_the_format_produces_the_shape_the_records_above_assume(self):
         where = pathlib.Path(tempfile.mkdtemp())
-        git = ["git", "-C", str(where), "-c", "user.name=A Person",
-               "-c", "user.email=a@example.com", "-c", "commit.gpgsign=false"]
+        git = [
+            "git",
+            "-C",
+            str(where),
+            "-c",
+            "user.name=A Person",
+            "-c",
+            "user.email=a@example.com",
+            "-c",
+            "commit.gpgsign=false",
+        ]
         subprocess.run([*git, "init", "-q", "-b", "main"], check=True, capture_output=True)
         shas = []
         for subject in ("feat: the first thing", "fix: the second thing"):
@@ -154,8 +163,9 @@ class WhatGitIsAsked(unittest.TestCase):
             subprocess.run([*git, "add", "-A"], check=True, capture_output=True)
             subprocess.run([*git, "commit", "-q", "-m", subject], check=True, capture_output=True)
             shas.append(
-                subprocess.run([*git, "rev-parse", "HEAD"],
-                               capture_output=True, text=True, check=True).stdout.strip()
+                subprocess.run(
+                    [*git, "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+                ).stdout.strip()
             )
 
         os.chdir(where)

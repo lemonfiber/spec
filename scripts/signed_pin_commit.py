@@ -48,23 +48,18 @@ SLUG = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._][A-Za-z0-9._-]*\Z")
 BRANCH = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9._-]*(/[A-Za-z0-9][A-Za-z0-9._-]*)*\Z")
 
 MUTATION = (
-    "mutation($input: CreateCommitOnBranchInput!) "
-    "{ createCommitOnBranch(input: $input) { commit { oid } } }"
+    "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }"
 )
 
 
 def gh(*args: str, stdin: str | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(
-        ["gh", *args], input=stdin, capture_output=True, text=True, check=False
-    )
+    return subprocess.run(["gh", *args], input=stdin, capture_output=True, text=True, check=False)
 
 
 def git(repo: pathlib.Path, *args: str) -> str:
     """One git command run in the clone. The clone is the working directory,
     never an argument, so nothing the caller named is read as an option."""
-    return subprocess.run(
-        ["git", *args], cwd=repo, capture_output=True, text=True, check=True
-    ).stdout
+    return subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True, check=True).stdout
 
 
 def place(slug: str, branch: str, sha: str) -> str:
@@ -72,13 +67,25 @@ def place(slug: str, branch: str, sha: str) -> str:
     not. Empty on success, otherwise what GitHub said."""
     if gh("api", f"repos/{slug}/git/ref/heads/{branch}").returncode == 0:
         done = gh(
-            "api", "--method", "PATCH", f"repos/{slug}/git/refs/heads/{branch}",
-            "-f", f"sha={sha}", "-F", "force=true",
+            "api",
+            "--method",
+            "PATCH",
+            f"repos/{slug}/git/refs/heads/{branch}",
+            "-f",
+            f"sha={sha}",
+            "-F",
+            "force=true",
         )
     else:
         done = gh(
-            "api", "--method", "POST", f"repos/{slug}/git/refs",
-            "-f", f"ref=refs/heads/{branch}", "-f", f"sha={sha}",
+            "api",
+            "--method",
+            "POST",
+            f"repos/{slug}/git/refs",
+            "-f",
+            f"ref=refs/heads/{branch}",
+            "-f",
+            f"sha={sha}",
         )
     return "" if done.returncode == 0 else (done.stderr.strip() or "refused")
 
@@ -119,7 +126,12 @@ def commit(repo: pathlib.Path, slug: str, branch: str, message: str) -> tuple[st
         return "", f"{staging} could not be placed at {base}: {why}"
 
     made = gh(
-        "api", "graphql", "--input", "-", "--jq", ".data.createCommitOnBranch.commit.oid",
+        "api",
+        "graphql",
+        "--input",
+        "-",
+        "--jq",
+        ".data.createCommitOnBranch.commit.oid",
         stdin=json.dumps(request(repo, slug, staging, base, message)),
     )
     oid = made.stdout.strip()
@@ -144,17 +156,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--message", required=True, type=pathlib.Path)
     args = parser.parse_args(argv)
     if not SLUG.match(args.slug) or not BRANCH.match(args.branch) or ".." in args.branch:
-        print(f"refused: {args.slug!r} is not a repository or {args.branch!r} is not a branch",
-              file=sys.stderr)
+        print(
+            f"refused: {args.slug!r} is not a repository or {args.branch!r} is not a branch", file=sys.stderr
+        )
         return 1
     if not args.repo.is_dir():
         print(f"refused: {args.repo} is not a clone", file=sys.stderr)
         return 1
 
     try:
-        oid, refusal = commit(
-            args.repo, args.slug, args.branch, args.message.read_text(encoding="utf-8")
-        )
+        oid, refusal = commit(args.repo, args.slug, args.branch, args.message.read_text(encoding="utf-8"))
     except paths.NotPlain as why:
         oid, refusal = "", f"refused: {why}"
     if refusal:

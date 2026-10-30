@@ -17,6 +17,7 @@ set of comments, and each case is judged by the calls the step made.
 Stdlib unittest plus PyYAML, and `jq`, which the stub filters with.
 Run:  python3 scripts/test_own_comments.py
 """
+
 from __future__ import annotations
 
 import json
@@ -66,7 +67,13 @@ fi
 #: and whether a lookup keeps the newest of its comments (else the oldest).
 STICKY = {
     "explain": ("explain-check.yml", "explain", "Post the explainer", "<!-- explain:dco -->", True),
-    "refs": ("spec-references.yml", "comment", "Upsert the sticky comment", "<!-- spec-references -->", False),
+    "refs": (
+        "spec-references.yml",
+        "comment",
+        "Upsert the sticky comment",
+        "<!-- spec-references -->",
+        False,
+    ),
 }
 
 
@@ -114,11 +121,20 @@ class Sticky(unittest.TestCase):
             "NEEDED": needed,
             "SELF": SELF,
         }
-        done = subprocess.run(["bash", "-c", found["run"]], cwd=self.tmp, env=env,
-                              stdin=subprocess.DEVNULL, capture_output=True, text=True)
+        done = subprocess.run(
+            ["bash", "-c", found["run"]],
+            cwd=self.tmp,
+            env=env,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+        )
         self.assertEqual(done.returncode, 0, done.stderr)
-        return [line for line in self.log.read_text(encoding="utf-8").splitlines()
-                if re.search(r"-X (PATCH|DELETE|POST)", line)]
+        return [
+            line
+            for line in self.log.read_text(encoding="utf-8").splitlines()
+            if re.search(r"-X (PATCH|DELETE|POST)", line)
+        ]
 
     def test_a_strangers_comment_with_the_marker_is_never_edited(self):
         for which, (_, _, _, marker, _) in STICKY.items():
@@ -131,11 +147,14 @@ class Sticky(unittest.TestCase):
     def test_its_own_comment_is_edited_and_the_strangers_left(self):
         for which, (_, _, _, marker, _) in STICKY.items():
             with self.subTest(which):
-                writes = self.run_step(which, [
-                    comment(11, "someone", f"{marker}\nmine now"),
-                    comment(12, SELF, f"{marker}\nthe old one"),
-                    comment(13, "someone", f"> {marker}\n> quoted in a reply"),
-                ])
+                writes = self.run_step(
+                    which,
+                    [
+                        comment(11, "someone", f"{marker}\nmine now"),
+                        comment(12, SELF, f"{marker}\nthe old one"),
+                        comment(13, "someone", f"> {marker}\n> quoted in a reply"),
+                    ],
+                )
                 self.assertEqual(len(writes), 1, writes)
                 self.assertIn("-X PATCH", writes[0])
                 self.assertIn("issues/comments/12", writes[0])
@@ -150,7 +169,9 @@ class Sticky(unittest.TestCase):
     def test_one_of_two_of_its_own_comments_is_chosen(self):
         for which, (_, _, _, marker, newest) in STICKY.items():
             with self.subTest(which):
-                writes = self.run_step(which, [comment(21, SELF, f"{marker}\na"), comment(22, SELF, f"{marker}\nb")])
+                writes = self.run_step(
+                    which, [comment(21, SELF, f"{marker}\na"), comment(22, SELF, f"{marker}\nb")]
+                )
                 self.assertEqual(len(writes), 1, writes)
                 self.assertIn(f"issues/comments/{22 if newest else 21}", writes[0])
 

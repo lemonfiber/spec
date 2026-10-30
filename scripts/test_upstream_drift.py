@@ -164,7 +164,9 @@ class Composer(Upstreams, unittest.TestCase):
         code, said = self.ran("composer")
         self.assertEqual(code, 0, said)
         refused = pin_window.refused_at(self.now - 3600)
-        self.assertIn(f"::warning::lemonfiber/sdk-php is behind lemonfiber/sdk-php main, refused from {refused}", said)
+        self.assertIn(
+            f"::warning::lemonfiber/sdk-php is behind lemonfiber/sdk-php main, refused from {refused}", said
+        )
         self.assertIn("for less than 24 hours", said)
         self.assertIn("`src/Client.php`", said)
         self.assertNotIn("::error::", said)

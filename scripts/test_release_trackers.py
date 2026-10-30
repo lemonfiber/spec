@@ -5,6 +5,7 @@ They share the workspace and the in-process runner of
 `test_release_train.py`, and live apart from it so that suite stays within the
 size cap. Run:  python3 scripts/test_release_trackers.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -28,17 +29,27 @@ class PerRepositoryTrackers(Workspace):
         p.write_text(body, encoding="utf-8")
 
     def head_of(self, path):
-        return subprocess.run(["git", "-C", path, "rev-parse", "HEAD"],
-                              capture_output=True, text=True).stdout.strip()
+        return subprocess.run(
+            ["git", "-C", path, "rev-parse", "HEAD"], capture_output=True, text=True
+        ).stdout.strip()
 
     def test_a_done_row_in_any_searched_repository_is_done(self):
         self.repo("checkouts/lf", trailer="Spec: B1-R4")
         self.repo("checkouts/web", trailer="Spec: C1-R3")
-        self.tracker("checkouts/web", '[[requirement]]\nid = "C1-R3"\nstate = "done"\n'
-                     'evidence = ["f"]\n[[requirement]]\nid = "C1-R4"\nstate = "partial"\n')
+        self.tracker(
+            "checkouts/web",
+            '[[requirement]]\nid = "C1-R3"\nstate = "done"\n'
+            'evidence = ["f"]\n[[requirement]]\nid = "C1-R4"\nstate = "partial"\n',
+        )
         self.manifest("0.1.0", goals=("C1-R3", "C1-R4"))
-        args = ["--manifest", "70-operations/versions/0.1.0.toml",
-                "--repo", "lf=checkouts/lf", "--repo", "web=checkouts/web"]
+        args = [
+            "--manifest",
+            "70-operations/versions/0.1.0.toml",
+            "--repo",
+            "lf=checkouts/lf",
+            "--repo",
+            "web=checkouts/web",
+        ]
         code, said = run_main(gate, args)
         self.assertEqual(code, 1)
         self.assertIn("lf: no tracker", said)
@@ -50,11 +61,16 @@ class PerRepositoryTrackers(Workspace):
         self.repo("checkouts/web", trailer="Spec: GOV-R13")
         sha = self.head_of("checkouts/web")
         repos = gate.parse_repos(["lf=checkouts/lf", "web=checkouts/web"])
-        self.tracker("checkouts/web", '[[requirement]]\nid = "C1-R3"\nstate = "done"\n'
-                     f'evidence = ["f"]\nlanded = "{sha}"\n')
-        self.tracker("checkouts/lf", '[[requirement]]\nid = "C1-R4"\nstate = "done"\n'
-                     f'evidence = ["f"]\nlanded = "{sha}"\n[[requirement]]\nid = "C1-R5"\n'
-                     'state = "partial"\nlanded = "{sha}"\n'.replace("{sha}", sha))
+        self.tracker(
+            "checkouts/web",
+            f'[[requirement]]\nid = "C1-R3"\nstate = "done"\nevidence = ["f"]\nlanded = "{sha}"\n',
+        )
+        self.tracker(
+            "checkouts/lf",
+            '[[requirement]]\nid = "C1-R4"\nstate = "done"\n'
+            f'evidence = ["f"]\nlanded = "{sha}"\n[[requirement]]\nid = "C1-R5"\n'
+            'state = "partial"\nlanded = "{sha}"\n'.replace("{sha}", sha),
+        )
         with contextlib.redirect_stdout(io.StringIO()):
             landed, faults = gate.tracked_landed(gate.trackers(repos), repos)
         self.assertEqual(landed, {"C1-R3"})

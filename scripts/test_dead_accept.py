@@ -125,7 +125,7 @@ class ADeadAcceptList(unittest.TestCase):
         self.config(
             "# There was an `accept` list here and it never ran. The one that\n"
             "# runs passes --accept on the command line.\n"
-            "#   accept = [\"200\", \"206\", \"429\"]\n"
+            '#   accept = ["200", "206", "429"]\n'
             "max_retries = 2\n"
         )
         code, out = self.run_step()

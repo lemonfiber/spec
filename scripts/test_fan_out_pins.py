@@ -55,9 +55,7 @@ class Rewriting(unittest.TestCase):
     """The text a bump leaves behind, with no repository involved."""
 
     def test_the_revision_and_the_tag_both_move(self):
-        said = fan_out_pins.rewritten(
-            a_pin("dco.yml", "a" * 40), "dco.yml", "a" * 40, "b" * 40, "v1.0.9"
-        )
+        said = fan_out_pins.rewritten(a_pin("dco.yml", "a" * 40), "dco.yml", "a" * 40, "b" * 40, "v1.0.9")
         self.assertIn("dco.yml@" + "b" * 40, said)
         self.assertIn("# v1.0.9", said)
         self.assertNotIn("v1.0.1", said)
@@ -130,9 +128,7 @@ class ARepositoryAndASpec:
         shutil.rmtree(self.root, ignore_errors=True)
 
     def git(self, *args):
-        subprocess.run(
-            ["git", "-C", str(self.spec), *args], check=True, capture_output=True
-        )
+        subprocess.run(["git", "-C", str(self.spec), *args], check=True, capture_output=True)
 
     def commit(self, said: str, workflow: str) -> str:
         where = self.spec / ".github" / "workflows" / workflow
@@ -191,9 +187,7 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
     def test_no_spec_checkout_is_could_not_ask_rather_than_nothing_to_do(self):
         self.wrote("ci.yml", a_pin("dco.yml", self.first))
         self.assertIsNone(
-            fan_out_pins.bring_forward(
-                self.repo, self.root / "absent", "v1.0.9", self.third, LIMITS, NOW
-            )
+            fan_out_pins.bring_forward(self.repo, self.root / "absent", "v1.0.9", self.third, LIMITS, NOW)
         )
 
     def test_a_pin_this_checkout_cannot_resolve_is_could_not_ask(self):
@@ -201,9 +195,7 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
         # Reported rather than skipped: the repository is not current, and
         # nobody can tell from the outside which of the two it was.
         self.wrote("ci.yml", a_pin("dco.yml", "f" * 40))
-        self.assertIsNone(
-            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
-        )
+        self.assertIsNone(fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW))
 
     def test_a_repository_pinning_nothing_of_ours_is_answered_not_refused(self):
         self.wrote("ci.yml", "    uses: actions/checkout@" + "a" * 40 + " # v7\n")
@@ -215,9 +207,7 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
         # twice for one pin. Both lines move on the first pass; a second pass
         # over the same path would find nothing left to change and report the
         # repository unanswerable, which is a refusal about nothing.
-        where = self.wrote(
-            "ci.yml", a_pin("dco.yml", self.first) + a_pin("dco.yml", self.first)
-        )
+        where = self.wrote("ci.yml", a_pin("dco.yml", self.first) + a_pin("dco.yml", self.first))
 
         moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
 
@@ -239,9 +229,7 @@ class AgainstARepository(ARepositoryAndASpec, unittest.TestCase):
         fan_out_pins.pins_under = lambda _root: named
         self.addCleanup(setattr, fan_out_pins, "pins_under", was)
 
-        self.assertIsNone(
-            fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW)
-        )
+        self.assertIsNone(fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.third, LIMITS, NOW))
 
 
 class ThePinCheckLimits(ARepositoryAndASpec, unittest.TestCase):
@@ -422,9 +410,7 @@ class TheTwoHalvesAgree(unittest.TestCase):
         where.parent.mkdir(parents=True, exist_ok=True)
         where.write_text(said, encoding="utf-8")
         for args in (["add", "-A"], ["commit", "-qm", workflow]):
-            subprocess.run(
-                ["git", "-C", str(self.spec), *args], check=True, capture_output=True
-            )
+            subprocess.run(["git", "-C", str(self.spec), *args], check=True, capture_output=True)
         got = subprocess.run(
             ["git", "-C", str(self.spec), "rev-parse", "HEAD"],
             capture_output=True,
@@ -439,8 +425,10 @@ class TheTwoHalvesAgree(unittest.TestCase):
         try:
             os.chdir(self.repo)
             past_the_window = int(time.time()) + 2 * pin_window.SECONDS
-            with contextlib.redirect_stdout(io.StringIO()), \
-                    unittest.mock.patch.object(workflow_pins, "clock", return_value=past_the_window):
+            with (
+                contextlib.redirect_stdout(io.StringIO()),
+                unittest.mock.patch.object(workflow_pins, "clock", return_value=past_the_window),
+            ):
                 return workflow_pins.main()
         finally:
             os.chdir(was)
@@ -552,25 +540,19 @@ class WhoItVisits(unittest.TestCase):
     def test_this_repository_is_not_one_of_its_own_consumers(self):
         # `spec` calls its reusable workflows with `./` and pins nothing of its
         # own, so visiting it opens an empty pull request on every tag.
-        where = self.wrote(
-            '[[repo]]\nname = "spec"\n\n[[repo]]\nname = "lemonfiber"\n'
-        )
+        where = self.wrote('[[repo]]\nname = "spec"\n\n[[repo]]\nname = "lemonfiber"\n')
         self.assertEqual(fan_out_pins.consumers(where), ["lemonfiber"])
 
     def test_the_ungoverned_table_is_visited_after_the_map(self):
         # A plugin repository is outside the map and still pins the shared
         # workflows, so its pins go stale the same way.
-        where = self.wrote(
-            '[[ungoverned]]\nname = "plugin-plex"\n\n[[repo]]\nname = "lemonfiber"\n'
-        )
+        where = self.wrote('[[ungoverned]]\nname = "plugin-plex"\n\n[[repo]]\nname = "lemonfiber"\n')
         self.assertEqual(fan_out_pins.consumers(where), ["lemonfiber", "plugin-plex"])
 
     def test_the_map_order_is_kept(self):
         # The README's order runs from the specification outward. A fan-out that
         # sorted them would report its work in an order nothing else uses.
-        where = self.wrote(
-            '[[repo]]\nname = "zulu"\n\n[[repo]]\nname = "alpha"\n'
-        )
+        where = self.wrote('[[repo]]\nname = "zulu"\n\n[[repo]]\nname = "alpha"\n')
         self.assertEqual(fan_out_pins.consumers(where), ["zulu", "alpha"])
 
     def test_the_real_map_is_readable_and_holds_every_repository_but_this_one(self):
@@ -722,9 +704,7 @@ class TheRevisionItWrites(ARepositoryAndASpec, unittest.TestCase):
         moved_on = self.commit("three", "dco.yml")
         where = self.wrote("ci.yml", a_pin("dco.yml", self.first))
 
-        moved = fan_out_pins.bring_forward(
-            self.repo, self.spec, "v1.0.9", self.named(), LIMITS, NOW
-        )
+        moved = fan_out_pins.bring_forward(self.repo, self.spec, "v1.0.9", self.named(), LIMITS, NOW)
         said = where.read_text(encoding="utf-8")
 
         self.assertIsNotNone(moved)
@@ -788,8 +768,10 @@ class TheRevisionItWrites(ARepositoryAndASpec, unittest.TestCase):
             "--tag",
             "v1.0.9",
         ]
-        with unittest.mock.patch.object(fan_out_pins, "ROOT", self.spec), \
-                contextlib.redirect_stdout(io.StringIO()) as said:
+        with (
+            unittest.mock.patch.object(fan_out_pins, "ROOT", self.spec),
+            contextlib.redirect_stdout(io.StringIO()) as said,
+        ):
             self.assertEqual(fan_out_pins.main(), 2)
 
         self.assertIn("does not declare STALE_COMMITS and STALE_DAYS", said.getvalue())

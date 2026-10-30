@@ -62,15 +62,17 @@ def field(body: str, label: str) -> str:
     except StopIteration:
         return ""
     end = next((n for n in range(start + 1, len(lines)) if lines[n].startswith("### ")), len(lines))
-    text = "\n".join(lines[start + 1:end]).strip()
+    text = "\n".join(lines[start + 1 : end]).strip()
     return "" if text == "_No response_" else text
 
 
 def text(value: str) -> str:
     """A field as Markdown prose: a line that would open a heading is escaped,
     so the field cannot add a section of the proposal's own."""
-    return "\n".join(f"\\{line}" if line.lstrip().startswith("#") else line
-                     for line in value.splitlines()) or "(none given)"
+    return (
+        "\n".join(f"\\{line}" if line.lstrip().startswith("#") else line for line in value.splitlines())
+        or "(none given)"
+    )
 
 
 def statements(value: str) -> str:
@@ -122,9 +124,13 @@ Converted from [#{number}]({env.get("ISSUE_URL", "")}), opened by @{env.get("ISS
 
 def gh(args: list[str], request: dict | None = None) -> dict:
     """One call through `gh api`, the request read from standard input."""
-    done = subprocess.run(["gh", "api", *args, *(["--input", "-"] if request is not None else [])],
-                          input=json.dumps(request) if request is not None else None,
-                          capture_output=True, text=True, check=True)
+    done = subprocess.run(
+        ["gh", "api", *args, *(["--input", "-"] if request is not None else [])],
+        input=json.dumps(request) if request is not None else None,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
     return json.loads(done.stdout) if done.stdout.strip() else {}
 
 
@@ -136,36 +142,53 @@ def open_proposal(env: Mapping[str, str], proposal: Proposal, api: Api) -> str:
     base = api([f"repos/{repo}/git/ref/heads/main"], None)["object"]["sha"]
     api([f"repos/{repo}/git/refs"], {"ref": f"refs/heads/{branch}", "sha": base})
     commit = {
-        "query": ("mutation($input: CreateCommitOnBranchInput!) "
-                  "{ createCommitOnBranch(input: $input) { commit { oid } } }"),
-        "variables": {"input": {
-            "branch": {"repositoryNameWithOwner": repo, "branchName": branch},
-            "expectedHeadOid": base,
-            "message": {
-                "headline": f"docs(proposal): RFC #{number} as a Draft proposal",
-                "body": ("A maintainer converted the issue into a proposal, with no identifier; "
-                         "identifiers are allocated when it is approved.\n\n"
-                         "Spec: GOV-R40\n"
-                         "Signed-off-by: lemonfiber release <release@lemonfiber.app>"),
-            },
-            "fileChanges": {"additions": [
-                {"path": proposal.path, "contents": base64.b64encode(proposal.text.encode()).decode()}
-            ]},
-        }},
+        "query": (
+            "mutation($input: CreateCommitOnBranchInput!) "
+            "{ createCommitOnBranch(input: $input) { commit { oid } } }"
+        ),
+        "variables": {
+            "input": {
+                "branch": {"repositoryNameWithOwner": repo, "branchName": branch},
+                "expectedHeadOid": base,
+                "message": {
+                    "headline": f"docs(proposal): RFC #{number} as a Draft proposal",
+                    "body": (
+                        "A maintainer converted the issue into a proposal, with no identifier; "
+                        "identifiers are allocated when it is approved.\n\n"
+                        "Spec: GOV-R40\n"
+                        "Signed-off-by: lemonfiber release <release@lemonfiber.app>"
+                    ),
+                },
+                "fileChanges": {
+                    "additions": [
+                        {"path": proposal.path, "contents": base64.b64encode(proposal.text.encode()).decode()}
+                    ]
+                },
+            }
+        },
     }
     api(["graphql"], commit)
-    pull = api([f"repos/{repo}/pulls"], {
-        "title": f"Proposal: {proposal.title}"[:120],
-        "head": branch,
-        "base": "main",
-        "body": (f"Converted from #{number}, opened by @{env.get('ISSUE_AUTHOR', '')}. "
-                 "Discuss the proposal here; a maintainer approves it with `proposal:approved`, "
-                 "which allocates its identifiers.\n\nCloses #" + number + "\n\nSpec: GOV-R40"),
-        "maintainer_can_modify": True,
-    })
-    api([f"repos/{repo}/issues/{number}/comments"],
-        {"body": f"Converted into a proposal pull request: {pull['html_url']}. "
-                 "The discussion continues there."})
+    pull = api(
+        [f"repos/{repo}/pulls"],
+        {
+            "title": f"Proposal: {proposal.title}"[:120],
+            "head": branch,
+            "base": "main",
+            "body": (
+                f"Converted from #{number}, opened by @{env.get('ISSUE_AUTHOR', '')}. "
+                "Discuss the proposal here; a maintainer approves it with `proposal:approved`, "
+                "which allocates its identifiers.\n\nCloses #" + number + "\n\nSpec: GOV-R40"
+            ),
+            "maintainer_can_modify": True,
+        },
+    )
+    api(
+        [f"repos/{repo}/issues/{number}/comments"],
+        {
+            "body": f"Converted into a proposal pull request: {pull['html_url']}. "
+            "The discussion continues there."
+        },
+    )
     return pull["html_url"]
 
 

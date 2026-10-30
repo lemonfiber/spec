@@ -104,9 +104,13 @@ class Plain(Scratch):
         self.file("one")
         os.link(self.root / "one", self.root / "two")
         (self.root / "dir").mkdir()
-        for relative, why in (("two", "not a plain file"), ("dir", "not a plain file"),
-                              ("../credentials", "not a plain relative path"), (".", "working directory itself"),
-                              ("a//b", "not a plain relative path")):
+        for relative, why in (
+            ("two", "not a plain file"),
+            ("dir", "not a plain file"),
+            ("../credentials", "not a plain relative path"),
+            (".", "working directory itself"),
+            ("a//b", "not a plain relative path"),
+        ):
             with self.subTest(relative=relative), self.assertRaisesRegex(paths.NotPlain, why):
                 paths.plain_read(self.root, relative, 100)
 
@@ -118,7 +122,9 @@ class Plain(Scratch):
         self.file("a/b", "old")
         paths.plain_write(self.root, "a/b", b"new")
         paths.plain_write(self.root, "c/d/e", b"made")
-        self.assertEqual(((self.root / "a/b").read_text(), (self.root / "c/d/e").read_text()), ("new", "made"))
+        self.assertEqual(
+            ((self.root / "a/b").read_text(), (self.root / "c/d/e").read_text()), ("new", "made")
+        )
         os.symlink(self.guarded, self.root / "f")
         with self.assertRaisesRegex(paths.NotPlain, "not a plain file to replace"):
             paths.plain_write(self.root, "f", b"overwritten")

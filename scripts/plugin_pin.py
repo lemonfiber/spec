@@ -45,12 +45,14 @@ def pinned(text: str, image: str, tag: str, digest: str) -> tuple[str, list[str]
     declared = running(before, image)
     blocks = re.split(r"(?m)^(?=\[)", text)
     written_so = [
-        at for at, block in enumerate(blocks)
-        if block.startswith("[[service]]")
-        and re.search(rf'(?m)^image\s*=\s*"{re.escape(image)}"\s*$', block)
+        at
+        for at, block in enumerate(blocks)
+        if block.startswith("[[service]]") and re.search(rf'(?m)^image\s*=\s*"{re.escape(image)}"\s*$', block)
     ]
     if len(written_so) != len(declared):
-        raise Refused(f"{len(declared)} services run {image} and {len(written_so)} are written so this can move them")
+        raise Refused(
+            f"{len(declared)} services run {image} and {len(written_so)} are written so this can move them"
+        )
     for at in written_so:
         block = blocks[at]
         for field, value in zip(FIELDS, (digest, tag), strict=True):
@@ -64,4 +66,3 @@ def pinned(text: str, image: str, tag: str, digest: str) -> tuple[str, list[str]
     if tomllib.loads(written) != before:
         raise Refused(f"the manifest as written is not the one it was with {image} at {tag} and {digest}")
     return written, [str(one.get("id")) for one in declared]
-

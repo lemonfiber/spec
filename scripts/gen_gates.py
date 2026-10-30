@@ -399,12 +399,14 @@ class Carrier:
         self.gate_there = asked_in_act(check, job)
         # Each check starts from an empty workspace, as its own runner did, so
         # nothing one check checked out or wrote is read by the next.
-        (self.here if read_only else self.there).append({
-            "name": f"{check.group} / {check.job}: an empty workspace, as its own runner had",
-            "id": f"{self.base}--fresh",
-            "if": f"${{{{ {self.gate_here if read_only else self.gate_there} }}}}",
-            "run": EMPTIED,
-        })
+        (self.here if read_only else self.there).append(
+            {
+                "name": f"{check.group} / {check.job}: an empty workspace, as its own runner had",
+                "id": f"{self.base}--fresh",
+                "if": f"${{{{ {self.gate_here if read_only else self.gate_there} }}}}",
+                "run": EMPTIED,
+            }
+        )
         for index, original in enumerate(job.get("steps") or []):
             self.carry(index, dict(original))
 
@@ -429,14 +431,16 @@ class Carrier:
             target, failing, chain = self.here, self.failing_here, self.chain_here
         if self.env:
             step["env"] = {**self.env, **(step.get("env") or {})}
-        target.append({
-            "name": f"{self.check.group} / {self.check.job}: {name}",
-            "id": new_id,
-            "if": f"${{{{ {gate} }}}}",
-            **step,
-            "continue-on-error": True,
-            "timeout-minutes": self.timeout,
-        })
+        target.append(
+            {
+                "name": f"{self.check.group} / {self.check.job}: {name}",
+                "id": new_id,
+                "if": f"${{{{ {gate} }}}}",
+                **step,
+                "continue-on-error": True,
+                "timeout-minutes": self.timeout,
+            }
+        )
         self.ids[old_id or str(index)] = new_id
         if not tolerated:
             failing.append(f"steps.{new_id}.outcome == 'failure'")
@@ -491,7 +495,9 @@ def needed(text: str, source: str) -> str:
         for check in CHECKS:
             if check.source == source and check.job == job and check.kind in (VERDICT, DETECT):
                 return f"needs.gates.outputs.{slug(check)}--out--{name}"
-        raise Refused(f".github/workflows/{source} reads needs.{job}.outputs.{name}, and {job!r} runs nowhere gates.yml reads from")
+        raise Refused(
+            f".github/workflows/{source} reads needs.{job}.outputs.{name}, and {job!r} runs nowhere gates.yml reads from"
+        )
 
     return NEEDS_REF.sub(swap, text)
 
@@ -530,14 +536,16 @@ def explainer(check: Check, job: dict) -> list:
         isolated(".github/workflows/explain-check.yml job 'explain'", original)
         step = walk(dict(original), lambda text: needed(inputs_of(text, given), check.source))
         name = step.pop("name", None) or f"step {index + 1}"
-        steps.append({
-            "name": f"{check.group} / {check.job}: {name}",
-            "id": f"{slug(check)}--{index}",
-            "if": f"${{{{ {gate} }}}}",
-            **step,
-            "continue-on-error": True,
-            "timeout-minutes": called.get("timeout-minutes", 10),
-        })
+        steps.append(
+            {
+                "name": f"{check.group} / {check.job}: {name}",
+                "id": f"{slug(check)}--{index}",
+                "if": f"${{{{ {gate} }}}}",
+                **step,
+                "continue-on-error": True,
+                "timeout-minutes": called.get("timeout-minutes", 10),
+            }
+        )
     return steps
 
 
@@ -669,7 +677,7 @@ def unlisted() -> list[str]:
     named = {(check.source, check.job) for check in CHECKS}
     missing = []
     for source in dict.fromkeys(check.source for check in CHECKS):
-        for job in (load(source).get("jobs") or {}):
+        for job in load(source).get("jobs") or {}:
             if (source, job) not in named:
                 missing.append(f".github/workflows/{source} job {job!r}")
     return missing
@@ -699,7 +707,9 @@ def build() -> str:
             # The verdict is an expression over the steps' outcomes, which the
             # runner sets. No step writes it, so no step a pull request's files
             # can reach decides another check's conclusion.
-            verdicts[slug(check)] = verdict(f"steps.plan.outputs.{check.group}", runs(check, job), failing_here)
+            verdicts[slug(check)] = verdict(
+                f"steps.plan.outputs.{check.group}", runs(check, job), failing_here
+            )
 
     missing = unlisted()
     if missing:

@@ -249,18 +249,14 @@ class TheSelfTestNotices(unittest.TestCase):
     def test_a_judgement_that_always_allows(self):
         said = self.complaints("judge", lambda *a, **k: 0, "_reading_alerts")
         self.assertIn("an open alert did not refuse the branch", said)
-        self.assertIn(
-            "a commit with no analysis was allowed on an empty alert list", said
-        )
+        self.assertIn("a commit with no analysis was allowed on an empty alert list", said)
 
     def test_a_judgement_that_always_refuses(self):
         said = self.complaints("judge", lambda *a, **k: 1, "_reading_alerts")
         self.assertIn("no open alert did not allow the branch", said)
 
     def test_an_analysis_reader_that_says_yes_to_everything(self):
-        said = self.complaints(
-            "at", lambda analyses, sha: [RUST], "_reading_analyses"
-        )
+        said = self.complaints("at", lambda analyses, sha: [RUST], "_reading_analyses")
         self.assertIn("no analysis was read as an analysis", said)
         self.assertIn("an analysis of another commit was read as this one's", said)
         self.assertIn("another tool's analysis was read as CodeQL's", said)
@@ -277,16 +273,12 @@ class TheSelfTestNotices(unittest.TestCase):
         self.assertIn("language:rust was satisfied by language:rustacean", said)
 
     def test_a_missing_check_that_calls_everything_absent(self):
-        said = self.complaints(
-            "missing", lambda analysed, wanted: list(wanted), "_reading_a_category"
-        )
+        said = self.complaints("missing", lambda analysed, wanted: list(wanted), "_reading_a_category")
         self.assertIn("a generated category did not satisfy the language it names", said)
         self.assertIn("a mix of both category styles was not read", said)
 
     def test_a_workflow_reader_that_invents_a_language(self):
-        said = self.complaints(
-            "expected", lambda workflow: [PYTHON], "_reading_the_workflow"
-        )
+        said = self.complaints("expected", lambda workflow: [PYTHON], "_reading_the_workflow")
         self.assertIn("the matrix's languages were not read off the workflow", said)
         self.assertIn("a complete set of analyses was called incomplete", said)
         self.assertIn("a language whose analysis never landed was not named", said)
@@ -307,8 +299,11 @@ class TheSelfTestNotices(unittest.TestCase):
 
     def test_the_self_test_fails_out_loud(self):
         out, err = io.StringIO(), io.StringIO()
-        with swapped("judge", lambda *a, **k: 0), contextlib.redirect_stdout(out), \
-                contextlib.redirect_stderr(err):
+        with (
+            swapped("judge", lambda *a, **k: 0),
+            contextlib.redirect_stdout(out),
+            contextlib.redirect_stderr(err),
+        ):
             self.assertEqual(gate.self_test(), 1)
         self.assertIn("FAILED", out.getvalue())
         self.assertIn("self-test:", err.getvalue())
@@ -334,8 +329,11 @@ class Invoked(unittest.TestCase):
         sys.stdin = io.StringIO(stdin)
         sys.argv = ["no_open_codeql_alert.py", *argv]
         try:
-            with working_in(self.tmp), contextlib.redirect_stdout(out), \
-                    contextlib.redirect_stderr(io.StringIO()):
+            with (
+                working_in(self.tmp),
+                contextlib.redirect_stdout(out),
+                contextlib.redirect_stderr(io.StringIO()),
+            ):
                 code = gate.main()
         finally:
             sys.stdin, sys.argv = was_in, was_argv
@@ -353,16 +351,13 @@ class Invoked(unittest.TestCase):
                 self.assertIn("will not guess which", said)
 
     def test_a_workflow_path_that_leaves_the_working_directory(self):
-        code, said = self.run_main(
-            ["--analyses", self.analyses(), "--sha", "aaa", "--workflow", "../x.yml"]
-        )
+        code, said = self.run_main(["--analyses", self.analyses(), "--sha", "aaa", "--workflow", "../x.yml"])
         self.assertEqual(code, 1)
         self.assertIn("refusing to read", said)
 
     def test_a_workflow_that_is_not_there(self):
         code, said = self.run_main(
-            ["--analyses", self.analyses(), "--sha", "aaa",
-             "--workflow", ".github/workflows/absent.yml"]
+            ["--analyses", self.analyses(), "--sha", "aaa", "--workflow", ".github/workflows/absent.yml"]
         )
         self.assertEqual(code, 1)
         self.assertIn("::error::", said)
@@ -370,54 +365,41 @@ class Invoked(unittest.TestCase):
     def test_waiting_while_a_language_has_not_landed(self):
         rows = self.analyses(gate._analysis("aaa", RUST))
         code, said = self.run_main(
-            ["--analyses", rows, "--sha", "aaa", "--workflow", self.workflow,
-             "--complete-only"]
+            ["--analyses", rows, "--sha", "aaa", "--workflow", self.workflow, "--complete-only"]
         )
         self.assertEqual(code, 1)
         self.assertIn("waiting on", said)
         self.assertIn(ACTIONS, said)
 
     def test_waiting_ends_when_every_language_has_landed(self):
-        rows = self.analyses(
-            gate._analysis("aaa", RUST), gate._analysis("aaa", ACTIONS)
-        )
+        rows = self.analyses(gate._analysis("aaa", RUST), gate._analysis("aaa", ACTIONS))
         code, said = self.run_main(
-            ["--analyses", rows, "--sha", "aaa", "--workflow", self.workflow,
-             "--complete-only"]
+            ["--analyses", rows, "--sha", "aaa", "--workflow", self.workflow, "--complete-only"]
         )
         self.assertEqual(code, 0, said)
         self.assertIn("analysed", said)
 
     def test_a_commit_with_nothing_analysed_at_all(self):
         code, said = self.run_main(
-            ["--analyses", self.analyses(), "--sha", "aaa", "--workflow",
-             self.workflow, "--complete-only"]
+            ["--analyses", self.analyses(), "--sha", "aaa", "--workflow", self.workflow, "--complete-only"]
         )
         self.assertEqual(code, 1)
         self.assertIn("nothing analysed", said)
 
     def test_an_alert_list_one_analysis_short_is_refused(self):
         rows = self.analyses(gate._analysis("aaa", RUST))
-        code, said = self.run_main(
-            ["--analyses", rows, "--sha", "aaa", "--workflow", self.workflow]
-        )
+        code, said = self.run_main(["--analyses", rows, "--sha", "aaa", "--workflow", self.workflow])
         self.assertEqual(code, 1)
         self.assertIn("cannot carry a finding from an analysis that did not land", said)
 
     def test_a_complete_analysis_and_no_open_alert(self):
-        rows = self.analyses(
-            gate._analysis("aaa", RUST), gate._analysis("aaa", ACTIONS)
-        )
-        code, said = self.run_main(
-            ["--analyses", rows, "--sha", "aaa", "--workflow", self.workflow]
-        )
+        rows = self.analyses(gate._analysis("aaa", RUST), gate._analysis("aaa", ACTIONS))
+        code, said = self.run_main(["--analyses", rows, "--sha", "aaa", "--workflow", self.workflow])
         self.assertEqual(code, 0, said)
         self.assertIn("No open CodeQL alert stands against this ref.", said)
 
     def test_a_complete_analysis_and_an_open_alert(self):
-        rows = self.analyses(
-            gate._analysis("aaa", RUST), gate._analysis("aaa", ACTIONS)
-        )
+        rows = self.analyses(gate._analysis("aaa", RUST), gate._analysis("aaa", ACTIONS))
         code, said = self.run_main(
             ["--analyses", rows, "--sha", "aaa", "--workflow", self.workflow],
             stdin=json.dumps([ALERT]),

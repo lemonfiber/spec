@@ -291,8 +291,11 @@ def known_at(spec: pathlib.Path, named: str) -> frozenset[str] | None:
 def known_in(gates: str) -> frozenset[str] | None:
     """The check groups a `gates.yml` declares in its `KNOWN`, or `None` where it
     declares them other than once."""
-    found = [line.strip()[len(KNOWN):].split() for line in gates.splitlines()
-             if line[:1] in (" ", "\t") and line.strip().startswith(KNOWN)]
+    found = [
+        line.strip()[len(KNOWN) :].split()
+        for line in gates.splitlines()
+        if line[:1] in (" ", "\t") and line.strip().startswith(KNOWN)
+    ]
 
     return frozenset(found[0]) if len(found) == 1 else None
 
@@ -340,7 +343,7 @@ def _kept(line: str, known: frozenset[str]) -> tuple[str, list[str]] | None:
     would be left empty."""
     body = line.rstrip("\n")
     keyed = KEYED.match(body)
-    value, hashed, comment = body[keyed.end():].partition("#")
+    value, hashed, comment = body[keyed.end() :].partition("#")
     written = value.strip()
     if written[:1] in UNREAD and written not in EMPTY:
         return None
@@ -350,9 +353,11 @@ def _kept(line: str, known: frozenset[str]) -> tuple[str, list[str]] | None:
         return line, []
     if keyed["key"] == "checks" and not kept:
         return None
-    tail = value[len(value.rstrip()):] + hashed + comment if hashed else ""
+    tail = value[len(value.rstrip()) :] + hashed + comment if hashed else ""
     gone = " ".join(word for word in words if word not in known)
-    return f"{keyed['lead']} {' '.join(kept) or EMPTY[1]}{tail}{line[len(body):]}", [f"{keyed['key']} drops {gone}"]
+    return f"{keyed['lead']} {' '.join(kept) or EMPTY[1]}{tail}{line[len(body) :]}", [
+        f"{keyed['key']} drops {gone}"
+    ]
 
 
 def _indent(line: str) -> int:
@@ -442,8 +447,9 @@ def _gates_known(text: str, spec: pathlib.Path, named: str, tag: str) -> tuple[s
     return after, "".join(f"; {line}, which {GATES} at {tag} does not know" for line in dropped)
 
 
-def _moved(path: pathlib.Path, workflow: str, sha: str, named: str, tag: str,
-           spec: pathlib.Path) -> str | None:
+def _moved(
+    path: pathlib.Path, workflow: str, sha: str, named: str, tag: str, spec: pathlib.Path
+) -> str | None:
     """One file's pin on `workflow` moved from `sha` to `named`, and the line
     saying so; `None` where it could not be rewritten.
 
@@ -526,9 +532,7 @@ def main() -> int:
     parsed = argparse.ArgumentParser(description=__doc__)
     parsed.add_argument("--repo", help="the consumer checkout")
     parsed.add_argument("--spec", help="a spec checkout holding the tag")
-    parsed.add_argument(
-        "--tag", help="the published number; its revision is read from it"
-    )
+    parsed.add_argument("--tag", help="the published number; its revision is read from it")
     parsed.add_argument(
         "--consumers",
         action="store_true",

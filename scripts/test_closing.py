@@ -128,9 +128,7 @@ class Closing(Workspace, unittest.TestCase):
 
     def test_the_comment_says_what_was_wrong(self):
         self.run_step(CLOSING, reason="cited identifiers do not exist on spec@main: Z9-R1")
-        body = next(
-            p for p in self.work.glob(".close-comment.md")
-        ).read_text(encoding="utf-8")
+        body = next(p for p in self.work.glob(".close-comment.md")).read_text(encoding="utf-8")
         self.assertIn("Z9-R1", body)
 
     def test_the_comment_says_this_is_sequencing_and_how_to_proceed(self):
@@ -163,9 +161,7 @@ class Deciding(Workspace, unittest.TestCase):
         self.assertIn("no `Spec:` citation found", out)
 
     def test_the_gates_own_fault_refuses_without_blaming_the_pull_request(self):
-        code, out = self.run_step(
-            DECIDING, status="2", reason="no identifiers found in spec checkout"
-        )
+        code, out = self.run_step(DECIDING, status="2", reason="no identifiers found in spec checkout")
         self.assertEqual(code, 1)
         self.assertIn("Nothing was closed", out)
         self.assertIn("not the pull request's", out)
@@ -282,9 +278,7 @@ class Wiring(unittest.TestCase):
     """The conditions that decide which of the two runs, read from the YAML."""
 
     def setUp(self):
-        self.steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"][
-            "spec-check"
-        ]["steps"]
+        self.steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["spec-check"]["steps"]
 
     def named(self, name):
         return next(s for s in self.steps if s.get("name") == name)

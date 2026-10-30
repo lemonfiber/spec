@@ -13,6 +13,7 @@ checked by the message a maintainer would read as well as by the exit code.
 Stdlib unittest, no dependencies (the repo has none).
 Run:  python3 scripts/test_integrity.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -122,8 +123,7 @@ class Clean(Spec):
         self.assertEqual(run_main()[0], 0)
 
     def test_a_link_that_leaves_the_repository_is_not_ours_to_resolve(self):
-        self.doc("00-overview/vision.md",
-                 "[docs](https://docs.lemonfiber.app/) and [mail](mailto:a@b.c)\n")
+        self.doc("00-overview/vision.md", "[docs](https://docs.lemonfiber.app/) and [mail](mailto:a@b.c)\n")
         self.assertEqual(run_main()[0], 0)
 
     def test_a_link_with_nothing_in_it_is_passed_over(self):
@@ -132,8 +132,7 @@ class Clean(Spec):
 
     def test_a_docs_path_belongs_to_the_repo_that_has_one(self):
         # `.docs/` is a repo-local convention in cli, not a path in this tree.
-        self.doc("00-overview/vision.md",
-                 "[a](.docs/plan.md) and [b](../cli/.docs/plan.md)\n")
+        self.doc("00-overview/vision.md", "[a](.docs/plan.md) and [b](../cli/.docs/plan.md)\n")
         self.assertEqual(run_main()[0], 0)
 
     def test_an_adr_citation_that_resolves(self):
@@ -267,16 +266,14 @@ class Statuses(Spec):
         code, out = run_main()
         self.assertEqual(code, 1, out)
         self.assertIn(
-            "notes/x9.md: front matter says status accepted "
-            "and the **Status:** line says Draft",
+            "notes/x9.md: front matter says status accepted and the **Status:** line says Draft",
             out,
         )
 
     def test_only_the_first_status_line_is_compared(self):
         self.doc(
             "notes/x9.md",
-            "---\nstatus: accepted\n---\n\n**Status:** Accepted\n\n"
-            "Quoting another:\n\n**Status:** Draft\n",
+            "---\nstatus: accepted\n---\n\n**Status:** Accepted\n\nQuoting another:\n\n**Status:** Draft\n",
         )
         self.assertEqual(run_main()[0], 0)
 
@@ -329,9 +326,7 @@ class StatedCounts(unittest.TestCase):
 
     def adrs(self, count):
         for number in range(1, count + 1):
-            (self.tmp / "00-overview" / "decisions" / f"{number:04d}-a.md").write_text(
-                "", encoding="utf-8"
-            )
+            (self.tmp / "00-overview" / "decisions" / f"{number:04d}-a.md").write_text("", encoding="utf-8")
 
     def test_a_tree_with_no_catalogue_states_nothing_about_one(self):
         shutil.rmtree(self.features.parent)
@@ -345,9 +340,7 @@ class StatedCounts(unittest.TestCase):
     def test_a_matching_count_is_left_alone(self):
         self.index(77)
         self.adrs(2)
-        (self.tmp / "README.md").write_text(
-            "The 77-feature catalogue, and 2 ADRs.\n", encoding="utf-8"
-        )
+        (self.tmp / "README.md").write_text("The 77-feature catalogue, and 2 ADRs.\n", encoding="utf-8")
         self.assertEqual(integrity.stated_counts(), [])
 
     def test_a_stale_feature_count_is_named_with_its_line(self):
@@ -372,8 +365,7 @@ class StatedCounts(unittest.TestCase):
         """
         self.index(77)
         self.adrs(2)
-        (self.tmp / "README.md").write_text(
-            "The 68-feature catalogue, and 2 ADRs.\n", encoding="utf-8")
+        (self.tmp / "README.md").write_text("The 68-feature catalogue, and 2 ADRs.\n", encoding="utf-8")
         code, out = run_main()
         self.assertEqual(code, 1, out)
         self.assertIn("says 68 features where this repository has 77", out)
@@ -389,8 +381,8 @@ class StatedCounts(unittest.TestCase):
         self.index(77)
         self.adrs(2)
         (self.tmp / "README.md").write_text(
-            "The 77-feature catalogue, and twenty-five architecture decisions.\n",
-            encoding="utf-8")
+            "The 77-feature catalogue, and twenty-five architecture decisions.\n", encoding="utf-8"
+        )
         code, out = run_main()
         self.assertEqual(code, 1, out)
         self.assertIn("so nothing was compared", out)
@@ -423,9 +415,7 @@ class StatedCounts(unittest.TestCase):
     def test_a_stale_adr_count_is_named(self):
         self.index(1)
         self.adrs(20)
-        (self.tmp / "README.md").write_text(
-            "The 1-feature catalogue, and 15 ADRs.\n", encoding="utf-8"
-        )
+        (self.tmp / "README.md").write_text("The 1-feature catalogue, and 15 ADRs.\n", encoding="utf-8")
         found = integrity.stated_counts()
         self.assertEqual(len(found), 1)
         self.assertIn("15 architecture decision records", found[0])
@@ -514,9 +504,7 @@ class Writing(StatedCounts):
         # rather than calling the function and trusting the wiring.
         self.index(77)
         self.adrs(2)
-        (self.tmp / "README.md").write_text(
-            "The 68-feature catalogue, and 2 ADRs.\n", encoding="utf-8"
-        )
+        (self.tmp / "README.md").write_text("The 68-feature catalogue, and 2 ADRs.\n", encoding="utf-8")
         saved, sys.argv = sys.argv, ["integrity.py", "--write"]
         self.addCleanup(setattr, sys, "argv", saved)
         code, out = run_main()
@@ -602,8 +590,7 @@ class ManifestGoalCounts(Spec):
         many there are, and comparing it would redden a manifest that is right."""
         self.manifest(
             "0.1.0",
-            "# 1 goals\n# Two of these 9 goals land in the stack repository\n"
-            + self.locking("A1-R1"),
+            "# 1 goals\n# Two of these 9 goals land in the stack repository\n" + self.locking("A1-R1"),
         )
         self.assertEqual(integrity.stated_goal_counts(), [])
 
@@ -681,8 +668,10 @@ class ManifestRepositories(Spec):
         self.assertIn("no repository was read", integrity.check_manifest_repos()[0])
 
     def plugin_registry(self):
-        self.doc("30-repos/repos.toml",
-                 '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n')
+        self.doc(
+            "30-repos/repos.toml",
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
+        )
 
     def test_a_planned_version_cutting_the_core_without_a_plugin_is_refused(self):
         """OPS-R86: every version that cuts the core cuts each first-party plugin."""
@@ -697,8 +686,11 @@ class ManifestRepositories(Spec):
 
     def test_a_retired_repository_resolves_wherever_a_released_manifest_names_it(self):
         self.retired_registry()
-        self.manifest("0.1.0", 'status = "released"\nrepos = ["lemonfiber", "old-stack"]\n'
-                               'satisfied_in = ["old-stack"]\n\n[pins]\nold-stack = "abc123"\n')
+        self.manifest(
+            "0.1.0",
+            'status = "released"\nrepos = ["lemonfiber", "old-stack"]\n'
+            'satisfied_in = ["old-stack"]\n\n[pins]\nold-stack = "abc123"\n',
+        )
         self.manifest("0.2.0", 'status = "planned"\nrepos = ["lemonfiber"]\nsatisfied_in = ["old-stack"]\n')
         self.assertEqual(integrity.check_manifest_repos(), [])
 
@@ -742,9 +734,11 @@ class Proposals(Spec):
         self.assertEqual(self.faults(), [])
 
     def test_a_gap_naming_the_silent_page(self):
-        self.doc("10-functional/proposals/a-gap.md",
-                 "---\nkind: gap\narea: B\ntitle: Silence\namends: 50-governance/rules.md\n"
-                 "status: draft\n---\n\n## What the specification does not say\n\nHow long.\n")
+        self.doc(
+            "10-functional/proposals/a-gap.md",
+            "---\nkind: gap\narea: B\ntitle: Silence\namends: 50-governance/rules.md\n"
+            "status: draft\n---\n\n## What the specification does not say\n\nHow long.\n",
+        )
         self.assertEqual(self.faults(), [])
 
     def test_no_proposals_directory(self):
@@ -754,19 +748,29 @@ class Proposals(Spec):
     def test_each_fault_named(self):
         cases = {
             "Bad_Name.md": (self.GOOD, "is not named with lower-case"),
-            "extra.md": (self.GOOD.replace("status: draft", "status: draft\nowner: me"), "fields the shape does not: owner"),
+            "extra.md": (
+                self.GOOD.replace("status: draft", "status: draft\nowner: me"),
+                "fields the shape does not: owner",
+            ),
             "kind.md": (self.GOOD.replace("kind: proposal", "kind: idea"), "has kind 'idea'"),
             "area.md": (self.GOOD.replace("area: B", "area: Z"), "names area 'Z'"),
             "title.md": (self.GOOD.replace("title: Scheduled scans", "title:"), "has no title"),
             "status.md": (self.GOOD.replace("status: draft", "status: accepted"), "has status 'accepted'"),
             "amends.md": (self.GOOD.replace("amends: B3", "amends: B9"), "amends 'B9'"),
-            "page.md": (self.GOOD.replace("amends: B3", "amends: 50-governance/none.md"), "amends '50-governance"),
+            "page.md": (
+                self.GOOD.replace("amends: B3", "amends: 50-governance/none.md"),
+                "amends '50-governance",
+            ),
             "ids.md": (self.GOOD + "| **B3-R40** | x |\n", "defines an identifier"),
-            "nothing.md": (self.GOOD.replace("- The dashboard MUST show the next scan.", "Something."),
-                           "no statement under ## Proposed behaviour"),
+            "nothing.md": (
+                self.GOOD.replace("- The dashboard MUST show the next scan.", "Something."),
+                "no statement under ## Proposed behaviour",
+            ),
             "gap.md": ("---\nkind: gap\narea: B\ntitle: G\nstatus: draft\n---\n", "names no feature or page"),
-            "silent.md": ("---\nkind: gap\narea: B\ntitle: G\namends: B3\nstatus: draft\n---\n",
-                          "says nothing under ## What the specification does not say"),
+            "silent.md": (
+                "---\nkind: gap\narea: B\ntitle: G\namends: B3\nstatus: draft\n---\n",
+                "says nothing under ## What the specification does not say",
+            ),
             "bare.md": ("# no front matter\n", "has no front matter"),
         }
         for name, (text, said) in cases.items():

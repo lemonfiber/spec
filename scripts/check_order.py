@@ -52,8 +52,9 @@ def _released_in(root: pathlib.Path) -> tuple[dict[str, str], dict[str, int], se
     # records the *first* version to lock a feature, and the walk was in name
     # order while the ranking a few lines down was numeric. The two disagreed
     # about six features, each recorded as shipping later than it does.
-    for path in sorted((root / VERSIONS).glob("*.toml"),
-                       key=lambda p: ordered(p.stem) if p.stem != "TEMPLATE" else ()):
+    for path in sorted(
+        (root / VERSIONS).glob("*.toml"), key=lambda p: ordered(p.stem) if p.stem != "TEMPLATE" else ()
+    ):
         if path.stem == "TEMPLATE":
             continue
         order.append(path.stem)
@@ -72,9 +73,7 @@ def _requirements(root: pathlib.Path) -> dict[str, list[str]]:
         text = path.read_text(encoding="utf-8")
         found, needs = ID.search(text), REQUIRES.search(text)
         if found and needs:
-            wants[found.group(1)] = [
-                part.strip() for part in needs.group(1).split(",") if part.strip()
-            ]
+            wants[found.group(1)] = [part.strip() for part in needs.group(1).split(",") if part.strip()]
     return wants
 
 
@@ -84,9 +83,7 @@ def _inversion(feature, mine, need, schedule, rank) -> str | None:
     if theirs is None:
         return f"{feature} requires {need}, which no version schedules"
     if rank[theirs] > rank[mine]:
-        return (
-            f"{feature} ships in {mine} but requires {need}, which lands in {theirs}"
-        )
+        return f"{feature} ships in {mine} but requires {need}, which lands in {theirs}"
     return None
 
 

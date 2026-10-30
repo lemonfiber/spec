@@ -7,6 +7,7 @@ They share the workspace and the in-process runner of `test_release_train.py`,
 and live apart from it so that suite stays within the size cap.
 Run:  python3 scripts/test_release_images.py
 """
+
 from __future__ import annotations
 
 import os
@@ -73,8 +74,13 @@ class ImageReposTests(Workspace):
 
     def setUp(self):
         super().setUp()
-        self.registry = {"repo": [{"name": "lf"}, {"name": "lemonfiber-decline", "service": "decline"},
-                                  {"name": "lemonfiber-request-gate", "service": "request-gate"}]}
+        self.registry = {
+            "repo": [
+                {"name": "lf"},
+                {"name": "lemonfiber-decline", "service": "decline"},
+                {"name": "lemonfiber-request-gate", "service": "request-gate"},
+            ]
+        }
 
     def write_registry(self, body):
         pathlib.Path("30-repos").mkdir(exist_ok=True)
@@ -82,8 +88,10 @@ class ImageReposTests(Workspace):
 
     def test_a_repository_the_registry_gives_a_service_is_tagged_first(self):
         data = {"repos": ["lf", "lemonfiber-decline", "ms"]}
-        self.assertEqual(manifest_repos.images(data, self.registry),
-                         [("lemonfiber-decline", "decline", "ghcr.io/lemonfiber/decline")])
+        self.assertEqual(
+            manifest_repos.images(data, self.registry),
+            [("lemonfiber-decline", "decline", "ghcr.io/lemonfiber/decline")],
+        )
         self.assertEqual(manifest_repos.others(data, self.registry), ["lf", "ms"])
 
     def test_a_service_the_version_does_not_cut_is_not_tagged(self):
@@ -101,8 +109,7 @@ class ImageReposTests(Workspace):
         """It becomes part of a reference handed to docker."""
         for service in ("Decline", "--output=x", "a--b", "", "decline/x"):
             with self.assertRaises(SystemExit) as caught:
-                manifest_repos.image_repos({"repo": [{"name": f"lemonfiber-{service}",
-                                                      "service": service}]})
+                manifest_repos.image_repos({"repo": [{"name": f"lemonfiber-{service}", "service": service}]})
             self.assertIn("is not a service id", str(caught.exception))
 
     PLUGIN = MappingProxyType({"name": "plugin-caddy", "plugin": "caddy", "image": True})
@@ -123,19 +130,24 @@ class ImageReposTests(Workspace):
             self.assertIn(said, str(caught.exception))
 
     def test_a_version_cutting_a_repository_the_train_never_cuts_is_refused(self):
-        self.write_registry('[[repo]]\nname = "lf"\n\n'
-                            '[[repo]]\nname = "plugin-caddy"\nplugin = "caddy"\nimage = true\n\n'
-                            '[[repo]]\nname = "lemonfiber-caddy"\npinned_in = "plugin-caddy"\n')
+        self.write_registry(
+            '[[repo]]\nname = "lf"\n\n'
+            '[[repo]]\nname = "plugin-caddy"\nplugin = "caddy"\nimage = true\n\n'
+            '[[repo]]\nname = "lemonfiber-caddy"\npinned_in = "plugin-caddy"\n'
+        )
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lf", "plugin-caddy", "lemonfiber-caddy"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lf", "plugin-caddy", "lemonfiber-caddy"]\n', encoding="utf-8"
+        )
         code, _ = run_main(manifest_repos, ["--version", "0.2.0", "--for", "plugins"])
         self.assertEqual(code, 1)
 
     def test_main_prints_both_halves_of_the_cut(self):
-        self.write_registry('[[repo]]\nname = "lf"\n\n'
-                            '[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n')
+        self.write_registry(
+            '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n'
+        )
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lf", "lemonfiber-decline"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lf", "lemonfiber-decline"]\n', encoding="utf-8"
+        )
         code, out = run_main(manifest_repos, ["--version", "0.2.0", "--for", "images"])
         self.assertEqual((code, out), (0, "lemonfiber-decline\tdecline\tghcr.io/lemonfiber/decline\n"))
         code, out = run_main(manifest_repos, ["--version", "0.2.0", "--for", "others"])
@@ -145,16 +157,22 @@ class ImageReposTests(Workspace):
         """Most versions build no image, and the workflow reads an empty list as one step."""
         self.write_registry('[[repo]]\nname = "lf"\n')
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lf"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lf"]\n', encoding="utf-8"
+        )
         self.assertEqual(run_main(manifest_repos, ["--version", "0.2.0", "--for", "images"]), (0, ""))
 
     def test_the_registry_this_repository_holds_reads_cleanly(self):
         """Every `service` the real registry gives is one the train can act on."""
         registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
         built = manifest_repos.image_repos(registry)
-        self.assertEqual(built, {"lemonfiber-decline": "decline",
-                                 "lemonfiber-fence": "fence",
-                                 "lemonfiber-request-gate": "request-gate"})
+        self.assertEqual(
+            built,
+            {
+                "lemonfiber-decline": "decline",
+                "lemonfiber-fence": "fence",
+                "lemonfiber-request-gate": "request-gate",
+            },
+        )
 
 
 class PluginReposTests(Workspace):
@@ -162,31 +180,41 @@ class PluginReposTests(Workspace):
 
     def setUp(self):
         super().setUp()
-        self.registry = {"repo": [{"name": "lemonfiber"}, {"name": "lemonfiber-decline", "service": "decline"},
-                                  {"name": "plugin-jellyfin", "plugin": "jellyfin", "image": True}]}
+        self.registry = {
+            "repo": [
+                {"name": "lemonfiber"},
+                {"name": "lemonfiber-decline", "service": "decline"},
+                {"name": "plugin-jellyfin", "plugin": "jellyfin", "image": True},
+            ]
+        }
 
     def test_a_repository_the_registry_gives_a_plugin_is_tagged_first(self):
         data = {"repos": ["lemonfiber", "plugin-jellyfin", "lemonfiber-decline"]}
-        self.assertEqual(manifest_repos.plugins(data, self.registry),
-                         [("plugin-jellyfin", "jellyfin"), ("lemonfiber-decline", "decline")])
+        self.assertEqual(
+            manifest_repos.plugins(data, self.registry),
+            [("plugin-jellyfin", "jellyfin"), ("lemonfiber-decline", "decline")],
+        )
         self.assertEqual(manifest_repos.first(data, self.registry), ["plugin-jellyfin", "lemonfiber-decline"])
         self.assertEqual(manifest_repos.others(data, self.registry), ["lemonfiber"])
 
     def test_each_way_a_plugin_entry_can_be_wrong_is_refused(self):
-        for entry, said in (({"name": "jellyfin", "plugin": "jellyfin"}, "so it is named plugin-jellyfin"),
-                            ({"name": "plugin-Jelly", "plugin": "Jelly"}, "is not a plugin id"),
-                            ({"name": "plugin--x", "plugin": "-x"}, "is not a plugin id"),
-                            ({"name": "plugin-x", "plugin": "x", "service": "x"}, "carries both"),
-                            ({"name": "plugin-x", "plugin": "x"}, "does not say `image = true`"),
-                            ({"name": "plugin-x", "plugin": "x", "image": "yes"}, "does not say")):
+        for entry, said in (
+            ({"name": "jellyfin", "plugin": "jellyfin"}, "so it is named plugin-jellyfin"),
+            ({"name": "plugin-Jelly", "plugin": "Jelly"}, "is not a plugin id"),
+            ({"name": "plugin--x", "plugin": "-x"}, "is not a plugin id"),
+            ({"name": "plugin-x", "plugin": "x", "service": "x"}, "carries both"),
+            ({"name": "plugin-x", "plugin": "x"}, "does not say `image = true`"),
+            ({"name": "plugin-x", "plugin": "x", "image": "yes"}, "does not say"),
+        ):
             with self.subTest(entry), self.assertRaises(SystemExit) as caught:
                 manifest_repos.plugin_repos({"repo": [entry]})
             self.assertIn(said, str(caught.exception))
 
     def test_a_plugin_that_builds_no_image_is_never_tagged_nor_owed(self):
         """Pinned by revision and tree digest, it is no stream the train cuts (ADR-0045)."""
-        registry = {"repo": [*self.registry["repo"],
-                             {"name": "plugin-sonarr", "plugin": "sonarr", "image": False}]}
+        registry = {
+            "repo": [*self.registry["repo"], {"name": "plugin-sonarr", "plugin": "sonarr", "image": False}]
+        }
         data = {"status": "planned", "repos": ["lemonfiber", "plugin-jellyfin", "lemonfiber-decline"]}
         self.assertEqual(manifest_repos.unlisted_plugins(data, registry), [])
         self.assertEqual(manifest_repos.plugins({"repos": ["plugin-sonarr", "lemonfiber"]}, registry), [])
@@ -194,17 +222,24 @@ class PluginReposTests(Workspace):
 
     def test_a_version_cutting_the_core_without_a_plugin_is_refused(self):
         """The image repositories are first-party plugins that build an image, and owed too."""
-        self.assertEqual(manifest_repos.unlisted_plugins({"status": "planned", "repos": ["lemonfiber"]},
-                                                         self.registry), ["lemonfiber-decline", "plugin-jellyfin"])
-        self.assertEqual(manifest_repos.unlisted_plugins({"status": "planned",
-                                                          "repos": ["lemonfiber", "plugin-jellyfin"]},
-                                                         self.registry), ["lemonfiber-decline"])
+        self.assertEqual(
+            manifest_repos.unlisted_plugins({"status": "planned", "repos": ["lemonfiber"]}, self.registry),
+            ["lemonfiber-decline", "plugin-jellyfin"],
+        )
+        self.assertEqual(
+            manifest_repos.unlisted_plugins(
+                {"status": "planned", "repos": ["lemonfiber", "plugin-jellyfin"]}, self.registry
+            ),
+            ["lemonfiber-decline"],
+        )
 
     def test_a_version_not_cutting_the_core_or_already_released_is_not(self):
-        for data in ({"status": "planned", "repos": ["lemonfiber-decline"]},
-                     {"status": "released", "repos": ["lemonfiber"]},
-                     {"status": "yanked", "repos": ["lemonfiber"]},
-                     {"status": "staged", "repos": ["lemonfiber", "plugin-jellyfin", "lemonfiber-decline"]}):
+        for data in (
+            {"status": "planned", "repos": ["lemonfiber-decline"]},
+            {"status": "released", "repos": ["lemonfiber"]},
+            {"status": "yanked", "repos": ["lemonfiber"]},
+            {"status": "staged", "repos": ["lemonfiber", "plugin-jellyfin", "lemonfiber-decline"]},
+        ):
             with self.subTest(data):
                 self.assertEqual(manifest_repos.unlisted_plugins(data, self.registry), [])
 
@@ -212,15 +247,19 @@ class PluginReposTests(Workspace):
         pathlib.Path("30-repos").mkdir(exist_ok=True)
         pathlib.Path("30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            f'version = "0.2.0"\nstatus = "planned"\nrepos = {repos}\n', encoding="utf-8")
+            f'version = "0.2.0"\nstatus = "planned"\nrepos = {repos}\n', encoding="utf-8"
+        )
 
     def test_main_prints_the_plugins_a_version_cuts(self):
         self.write('["lemonfiber", "plugin-jellyfin"]')
         code, out = run_main(manifest_repos, ["--version", "0.2.0", "--for", "plugins"])
         self.assertEqual((code, out), (0, "plugin-jellyfin\tjellyfin\n"))
-        self.assertEqual(run_main(manifest_repos, ["--version", "0.2.0", "--for", "others"]), (0, "lemonfiber\n"))
+        self.assertEqual(
+            run_main(manifest_repos, ["--version", "0.2.0", "--for", "others"]), (0, "lemonfiber\n")
+        )
 
     def test_main_refuses_a_version_cutting_the_core_without_a_plugin(self):
         self.write('["lemonfiber"]')
@@ -233,13 +272,30 @@ class PluginReposTests(Workspace):
         published = manifest_repos.plugin_repos(registry)
         self.assertEqual(len(published), 21)
         self.assertTrue(all(name == f"plugin-{plugin}" for name, plugin in published.items()))
-        built = ["jellyfin", "caddy", "prowlarr", "sabnzbd", "qbittorrent", "sonarr",
-                 "radarr", "lidarr", "bazarr", "seerr", "nzbhydra2", "bindery",
-                 "audiobookshelf"]
-        self.assertEqual(manifest_repos.train_plugins(registry),
-                         {"lemonfiber-decline": "decline", "lemonfiber-fence": "fence",
-                          "lemonfiber-request-gate": "request-gate",
-                          **{f"plugin-{plugin}": plugin for plugin in built}})
+        built = [
+            "jellyfin",
+            "caddy",
+            "prowlarr",
+            "sabnzbd",
+            "qbittorrent",
+            "sonarr",
+            "radarr",
+            "lidarr",
+            "bazarr",
+            "seerr",
+            "nzbhydra2",
+            "bindery",
+            "audiobookshelf",
+        ]
+        self.assertEqual(
+            manifest_repos.train_plugins(registry),
+            {
+                "lemonfiber-decline": "decline",
+                "lemonfiber-fence": "fence",
+                "lemonfiber-request-gate": "request-gate",
+                **{f"plugin-{plugin}": plugin for plugin in built},
+            },
+        )
 
     def test_every_manifest_not_yet_released_cuts_each_plugin_with_the_core(self):
         registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
@@ -261,17 +317,25 @@ class CheckBundlePinsTests(Workspace):
         pathlib.Path("30-repos").mkdir()
         pathlib.Path("30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin"]\n', encoding="utf-8"
+        )
         pathlib.Path("70-operations/versions/0.3.0.toml").write_text(
-            'version = "0.3.0"\nrepos = ["lf"]\n', encoding="utf-8")
+            'version = "0.3.0"\nrepos = ["lf"]\n', encoding="utf-8"
+        )
         self.saved_env = dict(os.environ)
         # The pinned origin is on the forge; here it is a repository beside the core.
-        os.environ.update({"GIT_CONFIG_COUNT": "2", "GIT_CONFIG_KEY_0": "protocol.file.allow",
-                           "GIT_CONFIG_VALUE_0": "always",
-                           "GIT_CONFIG_KEY_1": f"url.{pathlib.Path(self.tmp, 'remotes').resolve()}/.insteadOf",
-                           "GIT_CONFIG_VALUE_1": "https://github.com/lemonfiber/"})
+        os.environ.update(
+            {
+                "GIT_CONFIG_COUNT": "2",
+                "GIT_CONFIG_KEY_0": "protocol.file.allow",
+                "GIT_CONFIG_VALUE_0": "always",
+                "GIT_CONFIG_KEY_1": f"url.{pathlib.Path(self.tmp, 'remotes').resolve()}/.insteadOf",
+                "GIT_CONFIG_VALUE_1": "https://github.com/lemonfiber/",
+            }
+        )
 
     def tearDown(self):
         os.environ.clear()
@@ -279,12 +343,27 @@ class CheckBundlePinsTests(Workspace):
         super().tearDown()
 
     def git(self, *args, at="."):
-        subprocess.run(["git", "-C", at, "-c", "commit.gpgsign=false", "-c", "user.email=t@t",
-                        "-c", "user.name=t", *args], check=True, capture_output=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                at,
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "user.email=t@t",
+                "-c",
+                "user.name=t",
+                *args,
+            ],
+            check=True,
+            capture_output=True,
+        )
 
     def head(self, at):
-        return subprocess.run(["git", "-C", at, "rev-parse", "HEAD"], check=True,
-                              capture_output=True, text=True).stdout.strip()
+        return subprocess.run(
+            ["git", "-C", at, "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+        ).stdout.strip()
 
     def plugin(self, targets: str | None = 'lemonfiber = "0.1.0"\n') -> str:
         """The plugin's origin at the revision the bundle pins, and that revision."""
@@ -295,8 +374,14 @@ class CheckBundlePinsTests(Workspace):
             self.git("commit", "-q", "-m", "targets", at="remotes/plugin-jellyfin")
         return self.head("remotes/plugin-jellyfin")
 
-    def core(self, release="0.2.0", origin=ORIGIN, bundle=True, targets: str | None = 'lemonfiber = "0.1.0"\n',
-             revision: str | None = None):
+    def core(
+        self,
+        release="0.2.0",
+        origin=ORIGIN,
+        bundle=True,
+        targets: str | None = 'lemonfiber = "0.1.0"\n',
+        revision: str | None = None,
+    ):
         """A plugin's origin, a catalogue remote holding a bundle pinning it, a core remote
         embedding that, and the core's clone. `targets` may name `{core}`, the core's first commit."""
         self.repo("remotes/lf")
@@ -309,7 +394,8 @@ class CheckBundlePinsTests(Workspace):
             (catalogue / "bundle/bundle.toml").write_text(
                 f'schema = 1\n\n[[plugin]]\nid = "jellyfin"\norigin = "{origin}"\nrelease = "{release}"\n'
                 f'revision = "{pinned}"\n',
-                encoding="utf-8")
+                encoding="utf-8",
+            )
         self.git("add", "-A", at=str(catalogue))
         self.git("commit", "-q", "--allow-empty", "-m", "bundle", at=str(catalogue))
         self.git("submodule", "add", "-q", str(catalogue), "assets/plugins", at="remotes/lf")
@@ -317,28 +403,44 @@ class CheckBundlePinsTests(Workspace):
         self.git("clone", "-q", "remotes/lf", "checkouts/lf")
 
     def check(self, tag="v0.2.0", version="0.2.0", core="checkouts/lf"):
-        return run_main(check_bundle_pins, ["--version", version, "--tag", tag, "--core", core,
-                                            "--owner", "lemonfiber"])
+        return run_main(
+            check_bundle_pins, ["--version", version, "--tag", tag, "--core", core, "--owner", "lemonfiber"]
+        )
 
     def test_a_bundle_pinning_the_release_from_the_tagged_repository_passes(self):
         bundle = {"plugin": [dict(self.PIN)]}
-        self.assertEqual(check_bundle_pins.problems(bundle, "0.2.0", "lemonfiber",
-                                                    [("plugin-jellyfin", "jellyfin")]), [])
+        self.assertEqual(
+            check_bundle_pins.problems(bundle, "0.2.0", "lemonfiber", [("plugin-jellyfin", "jellyfin")]), []
+        )
         dotted = {"plugin": [{**self.PIN, "origin": self.PIN["origin"] + ".git"}]}
-        self.assertEqual(check_bundle_pins.problems(dotted, "0.2.0", "lemonfiber",
-                                                    [("plugin-jellyfin", "jellyfin")]), [])
+        self.assertEqual(
+            check_bundle_pins.problems(dotted, "0.2.0", "lemonfiber", [("plugin-jellyfin", "jellyfin")]), []
+        )
 
     def test_each_way_a_pin_can_be_wrong_is_named(self):
         wanted = [("plugin-jellyfin", "jellyfin")]
         said = check_bundle_pins.problems(
-            {"plugin": [{**self.PIN, "origin": "https://github.com/else/plugin-jellyfin", "release": "0.1.0"}]},
-            "0.2.0", "lemonfiber", wanted)
+            {
+                "plugin": [
+                    {**self.PIN, "origin": "https://github.com/else/plugin-jellyfin", "release": "0.1.0"}
+                ]
+            },
+            "0.2.0",
+            "lemonfiber",
+            wanted,
+        )
         self.assertEqual(len(said), 2)
         self.assertIn("which the train tagged", said[0])
         self.assertIn("not '0.2.0'", said[1])
-        self.assertIn("0 times", check_bundle_pins.problems({"plugin": ["x"]}, "0.2.0", "lemonfiber", wanted)[0])
-        self.assertIn("2 times", check_bundle_pins.problems({"plugin": [dict(self.PIN), dict(self.PIN)]}, "0.2.0",
-                                                            "lemonfiber", wanted)[0])
+        self.assertIn(
+            "0 times", check_bundle_pins.problems({"plugin": ["x"]}, "0.2.0", "lemonfiber", wanted)[0]
+        )
+        self.assertIn(
+            "2 times",
+            check_bundle_pins.problems(
+                {"plugin": [dict(self.PIN), dict(self.PIN)]}, "0.2.0", "lemonfiber", wanted
+            )[0],
+        )
 
     def test_main_passes_a_core_embedding_a_bundle_at_the_tag(self):
         self.core()
@@ -358,9 +460,12 @@ class CheckBundlePinsTests(Workspace):
         its service's id (OPS-R86)."""
         pathlib.Path("30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n\n'
-            '[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n', encoding="utf-8")
+            '[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n',
+            encoding="utf-8",
+        )
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin", "lemonfiber-decline"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin", "lemonfiber-decline"]\n', encoding="utf-8"
+        )
         self.core()
         code, out = self.check()
         self.assertEqual(code, 1)
@@ -383,7 +488,9 @@ class CheckBundlePinsTests(Workspace):
         self.core(targets=f'commit = "{elsewhere}"\n')
         code, out = self.check()
         self.assertEqual(code, 1)
-        self.assertIn(f"targets lemonfiber at {elsewhere}, which the core commit being tagged does not hold", out)
+        self.assertIn(
+            f"targets lemonfiber at {elsewhere}, which the core commit being tagged does not hold", out
+        )
         self.assertIn("does not pin what v0.2.0 published", out)
 
     def test_main_refuses_a_pinned_revision_that_cannot_say_what_it_targets(self):
@@ -402,14 +509,20 @@ class CheckBundlePinsTests(Workspace):
     def test_where_a_registered_plugin_keeps_its_target_is_read_from_the_registry(self):
         pathlib.Path("70-operations/plugins.toml").write_text(
             '[[plugin]]\nid = "jellyfin"\nrepo = "plugin-jellyfin"\ntargets = "ci/targets.toml"\n'
-            '[[plugin]]\nid = "half"\n', encoding="utf-8")
-        self.assertEqual(check_bundle_pins.targets_places(pathlib.Path("70-operations/plugins.toml")),
-                         {"plugin-jellyfin": "ci/targets.toml"})
+            '[[plugin]]\nid = "half"\n',
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            check_bundle_pins.targets_places(pathlib.Path("70-operations/plugins.toml")),
+            {"plugin-jellyfin": "ci/targets.toml"},
+        )
         self.assertEqual(check_bundle_pins.targets_places(pathlib.Path("nowhere.toml")), {})
 
     def test_main_passes_a_version_that_cuts_no_plugin(self):
-        self.assertEqual(self.check(tag="v0.3.0", version="0.3.0"),
-                         (0, "0.3.0 cuts no first-party plugin the bundle has to pin.\n"))
+        self.assertEqual(
+            self.check(tag="v0.3.0", version="0.3.0"),
+            (0, "0.3.0 cuts no first-party plugin the bundle has to pin.\n"),
+        )
 
     def test_main_refuses_a_core_that_does_not_embed_the_catalogue(self):
         self.repo("checkouts/lf")
@@ -418,32 +531,40 @@ class CheckBundlePinsTests(Workspace):
         self.assertIn("embeds no submodule", out)
         pathlib.Path("checkouts/lf/.gitmodules").write_text(
             '[submodule "assets/web"]\n\tpath = assets/web\n\turl = https://github.com/lemonfiber/lemonfiber-web\n',
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         self.assertIn("lemonfiber-plugins 0 times", self.check()[1])
 
     def test_main_refuses_a_submodule_outside_the_core_or_not_checked_out(self):
         self.repo("checkouts/lf")
-        for where, said in (("../elsewhere", "does not sit inside it"), (".", "does not sit inside it"),
-                            ("assets/plugins", "could not be checked out")):
+        for where, said in (
+            ("../elsewhere", "does not sit inside it"),
+            (".", "does not sit inside it"),
+            ("assets/plugins", "could not be checked out"),
+        ):
             with self.subTest(where):
                 pathlib.Path("checkouts/lf/.gitmodules").write_text(
                     f'[submodule "p"]\n\tpath = {where}\n\turl = https://x/lemonfiber-plugins\n',
-                    encoding="utf-8")
+                    encoding="utf-8",
+                )
                 self.assertIn(said, self.check()[1])
 
     def test_main_refuses_a_catalogue_without_a_readable_bundle(self):
         self.core(bundle=False)
         self.assertIn("holds no bundle/bundle.toml", self.check()[1])
         pathlib.Path("checkouts/lf/assets/plugins/bundle").mkdir()
-        pathlib.Path("checkouts/lf/assets/plugins/bundle/bundle.toml").write_text("[[plugin\n", encoding="utf-8")
+        pathlib.Path("checkouts/lf/assets/plugins/bundle/bundle.toml").write_text(
+            "[[plugin\n", encoding="utf-8"
+        )
         self.assertIn("cannot be read", self.check()[1])
 
     def test_main_refuses_what_it_cannot_ask(self):
         self.assertIn("is not a tag the train cuts", self.check(tag="v0.2.0 x")[1])
         self.assertEqual(self.check(tag="v0.9.0", version="0.9.0")[0], 1, "no manifest")
         self.assertIn("path escapes the working directory", self.check(core="/etc")[1])
-        code, said = run_main(check_bundle_pins, ["--version", "0.2.0", "--tag", "v0.2.0", "--core", "c",
-                                                  "--owner", "a b"])
+        code, said = run_main(
+            check_bundle_pins, ["--version", "0.2.0", "--tag", "v0.2.0", "--core", "c", "--owner", "a b"]
+        )
         self.assertEqual(code, 1)
         self.assertIn("is not an organisation", said)
 
@@ -466,11 +587,14 @@ printf '%s' "${DOCKER_REPLY}"
         pathlib.Path("30-repos").mkdir()
         pathlib.Path("30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n',
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lemonfiber-decline", "lf"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lemonfiber-decline", "lf"]\n', encoding="utf-8"
+        )
         pathlib.Path("70-operations/versions/0.3.0.toml").write_text(
-            'version = "0.3.0"\nrepos = ["lf"]\n', encoding="utf-8")
+            'version = "0.3.0"\nrepos = ["lf"]\n', encoding="utf-8"
+        )
         bin_dir = pathlib.Path(self.tmp, "bin")
         bin_dir.mkdir()
         (bin_dir / "docker").write_text(self.DOCKER, encoding="utf-8")
@@ -488,8 +612,21 @@ printf '%s' "${DOCKER_REPLY}"
 
 def commit_all(path) -> None:
     """Stage and commit everything under a test repository."""
-    for args in (("add", "-A"), ("-c", "commit.gpgsign=false", "-c", "user.email=t@t", "-c", "user.name=t",
-                                 "commit", "-q", "-m", "as it stands")):
+    for args in (
+        ("add", "-A"),
+        (
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "user.email=t@t",
+            "-c",
+            "user.name=t",
+            "commit",
+            "-q",
+            "-m",
+            "as it stands",
+        ),
+    ):
         subprocess.run(["git", "-C", str(path), *args], check=True, capture_output=True)
 
 
@@ -501,8 +638,13 @@ class EmbeddedTests(TrainImages):
 
     def setUp(self):
         super().setUp()
-        os.environ.update({"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow",
-                           "GIT_CONFIG_VALUE_0": "always"})
+        os.environ.update(
+            {
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "protocol.file.allow",
+                "GIT_CONFIG_VALUE_0": "always",
+            }
+        )
 
     def core(self, tag="0.2.0", origin=ORIGIN, schema=2, copy: str | None = None):
         """The core's clone, its catalogue's bundle pinning decline from `origin` and its copy
@@ -515,15 +657,27 @@ class EmbeddedTests(TrainImages):
         self.repo(str(catalogue))
         (catalogue / "bundle").mkdir()
         (catalogue / "bundle/bundle.toml").write_text(
-            f'schema = {schema}\n\n[[plugin]]\nid = "decline"\norigin = "{origin}"\n', encoding="utf-8")
-        where = catalogue / embedded_bundle.COPIES.get(schema, "bundle/plugins/{id}.toml").format(id="decline")
+            f'schema = {schema}\n\n[[plugin]]\nid = "decline"\norigin = "{origin}"\n', encoding="utf-8"
+        )
+        where = catalogue / embedded_bundle.COPIES.get(schema, "bundle/plugins/{id}.toml").format(
+            id="decline"
+        )
         where.parent.mkdir(parents=True, exist_ok=True)
-        where.write_text(copy if copy is not None else (
-            '[[service]]\nid = "decline"\nimage = "ghcr.io/lemonfiber/decline"\n'
-            f'tag = "{tag}"\ndigest = "{self.DIGEST}"\n'), encoding="utf-8")
+        where.write_text(
+            copy
+            if copy is not None
+            else (
+                '[[service]]\nid = "decline"\nimage = "ghcr.io/lemonfiber/decline"\n'
+                f'tag = "{tag}"\ndigest = "{self.DIGEST}"\n'
+            ),
+            encoding="utf-8",
+        )
         commit_all(catalogue)
-        subprocess.run(["git", "-C", "remotes/lf", "submodule", "add", "-q", str(catalogue), "assets/plugins"],
-                       check=True, capture_output=True)
+        subprocess.run(
+            ["git", "-C", "remotes/lf", "submodule", "add", "-q", str(catalogue), "assets/plugins"],
+            check=True,
+            capture_output=True,
+        )
         commit_all("remotes/lf")
         subprocess.run(["git", "clone", "-q", "remotes/lf", "checkouts/lf"], check=True, capture_output=True)
 
@@ -535,21 +689,31 @@ class CheckImagePinsTests(EmbeddedTests):
         return {"service": [{"id": "decline", "image": image, "tag": tag, "digest": digest}]}
 
     def check(self, tag, version="0.2.0", core="checkouts/lf", owner="lemonfiber"):
-        return run_main(check_image_pins, ["--version", version, "--tag", tag, "--core", core, "--owner", owner])
+        return run_main(
+            check_image_pins, ["--version", version, "--tag", tag, "--core", core, "--owner", owner]
+        )
 
     def test_a_copy_running_the_image_at_the_tag_and_its_digest_passes(self):
-        self.assertEqual(check_image_pins.problems(self.copy(), "ghcr.io/lemonfiber/decline", "v0.2.0",
-                                                   self.DIGEST), [])
+        self.assertEqual(
+            check_image_pins.problems(self.copy(), "ghcr.io/lemonfiber/decline", "v0.2.0", self.DIGEST), []
+        )
 
     def test_each_way_a_copy_can_be_wrong_is_named(self):
-        said = check_image_pins.problems(self.copy(tag="0.2.0-pre.1", digest=self.OTHER),
-                                         "ghcr.io/lemonfiber/decline", "v0.2.0", self.DIGEST)
+        said = check_image_pins.problems(
+            self.copy(tag="0.2.0-pre.1", digest=self.OTHER),
+            "ghcr.io/lemonfiber/decline",
+            "v0.2.0",
+            self.DIGEST,
+        )
         self.assertEqual(len(said), 2)
         self.assertIn("pinned at tag '0.2.0-pre.1', not '0.2.0'", said[0])
         self.assertIn("ghcr.io/lemonfiber/decline:v0.2.0 published", said[1])
-        self.assertEqual(check_image_pins.problems(self.copy(image="ghcr.io/else/decline"),
-                                                   "ghcr.io/lemonfiber/decline", "v0.2.0", self.DIGEST),
-                         ["no service of its copy runs ghcr.io/lemonfiber/decline"])
+        self.assertEqual(
+            check_image_pins.problems(
+                self.copy(image="ghcr.io/else/decline"), "ghcr.io/lemonfiber/decline", "v0.2.0", self.DIGEST
+            ),
+            ["no service of its copy runs ghcr.io/lemonfiber/decline"],
+        )
 
     def test_only_a_tag_the_train_cuts_is_one(self):
         for tag in ("v0.2.0", "v0.2.0-pre.1", "v0.2.0-pre.2.a"):
@@ -567,9 +731,14 @@ class CheckImagePinsTests(EmbeddedTests):
 
     def test_each_way_the_registry_can_fail_to_answer_is_named(self):
         os.environ["DOCKER_MISSING"] = "ghcr.io/lemonfiber/decline:v0.2.0"
-        self.assertIn("is not published (ERROR", check_image_pins.digest_of("ghcr.io/lemonfiber/decline:v0.2.0")[1])
-        for reply, said in (("not json", "not a descriptor"), ("[]", "not a descriptor"),
-                            ('{"digest": "sha256:short"}', "which is not one")):
+        self.assertIn(
+            "is not published (ERROR", check_image_pins.digest_of("ghcr.io/lemonfiber/decline:v0.2.0")[1]
+        )
+        for reply, said in (
+            ("not json", "not a descriptor"),
+            ("[]", "not a descriptor"),
+            ('{"digest": "sha256:short"}', "which is not one"),
+        ):
             os.environ["DOCKER_REPLY"] = reply
             self.assertIn(said, check_image_pins.digest_of("ghcr.io/lemonfiber/x:v0.2.0")[1])
 
@@ -618,13 +787,17 @@ class CheckImagePinsTests(EmbeddedTests):
         self.assertIn("embeds no submodule", self.check("v0.2.0")[1])
 
     def test_main_passes_a_version_that_cuts_no_image(self):
-        self.assertEqual(self.check("v0.3.0", version="0.3.0"), (0, "0.3.0 cuts no image the bundle has to pin.\n"))
+        self.assertEqual(
+            self.check("v0.3.0", version="0.3.0"), (0, "0.3.0 cuts no image the bundle has to pin.\n")
+        )
 
     def test_main_refuses_what_it_cannot_ask(self):
         self.assertEqual(self.check("v0.9.0", version="0.9.0")[0], 1, "no manifest")
-        for argv, said in ((("v0.2.0 x",), "is not a tag the train cuts"),
-                           (("v0.2.0", "0.2.0", "/etc"), "path escapes the working directory"),
-                           (("v0.2.0", "0.2.0", "checkouts/lf", "a b"), "is not an organisation")):
+        for argv, said in (
+            (("v0.2.0 x",), "is not a tag the train cuts"),
+            (("v0.2.0", "0.2.0", "/etc"), "path escapes the working directory"),
+            (("v0.2.0", "0.2.0", "checkouts/lf", "a b"), "is not an organisation"),
+        ):
             code, out = self.check(*argv)
             self.assertEqual(code, 1)
             self.assertIn(said, out)
@@ -638,11 +811,15 @@ class EmbeddedBundleTests(EmbeddedTests):
 
     def test_a_bundle_in_a_schema_the_core_reads_passes(self):
         self.core()
-        self.assertEqual(self.compat(), (0, "compat ok: the embedded bundle is schema 2, and the core reads 1, 2\n"))
+        self.assertEqual(
+            self.compat(), (0, "compat ok: the embedded bundle is schema 2, and the core reads 1, 2\n")
+        )
 
     def test_a_bundle_in_a_schema_the_core_does_not_read_is_refused(self):
         self.core(schema=3)
-        self.assertEqual(self.compat(), (1, "::error::the embedded bundle is schema 3, and the core reads 1, 2\n"))
+        self.assertEqual(
+            self.compat(), (1, "::error::the embedded bundle is schema 3, and the core reads 1, 2\n")
+        )
 
     def test_a_core_that_says_nothing_of_what_it_reads_is_refused(self):
         self.core()
@@ -676,19 +853,27 @@ class TrainStepTests(TrainImages):
         """A remote for `name`, holding `tagged`, and its clone under checkouts/."""
         self.repo(f"remotes/{name}", trailer="Spec: B1-R4")
         for tag in tagged:
-            subprocess.run(["git", "-C", f"remotes/{name}", "-c", "tag.gpgsign=false", "tag", tag],
-                           check=True, capture_output=True)
-        subprocess.run(["git", "clone", "-q", f"remotes/{name}", f"checkouts/{name}"],
-                       check=True, capture_output=True)
+            subprocess.run(
+                ["git", "-C", f"remotes/{name}", "-c", "tag.gpgsign=false", "tag", tag],
+                check=True,
+                capture_output=True,
+            )
+        subprocess.run(
+            ["git", "clone", "-q", f"remotes/{name}", f"checkouts/{name}"], check=True, capture_output=True
+        )
 
     def step(self, version="0.2.0", tag="v0.2.0"):
         out = pathlib.Path(self.tmp, "output")
         out.unlink(missing_ok=True)
         os.environ["GITHUB_OUTPUT"] = str(out)
         code, said = run_main(train_step, ["--version", version, "--tag", tag])
-        return (code, said, out.read_text(encoding="utf-8") if out.exists() else "",
-                pathlib.Path("tagging.txt").read_text(encoding="utf-8") if code == 0 else "",
-                pathlib.Path("declaring.txt").read_text(encoding="utf-8") if code == 0 else "")
+        return (
+            code,
+            said,
+            out.read_text(encoding="utf-8") if out.exists() else "",
+            pathlib.Path("tagging.txt").read_text(encoding="utf-8") if code == 0 else "",
+            pathlib.Path("declaring.txt").read_text(encoding="utf-8") if code == 0 else "",
+        )
 
     def test_an_untagged_image_makes_it_the_first_step(self):
         """The core is not tagged, and still has to declare the version first."""
@@ -719,9 +904,12 @@ class TrainStepTests(TrainImages):
     def test_a_plugin_is_tagged_in_the_first_step_beside_the_images(self):
         pathlib.Path("30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n\n'
-            '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n', encoding="utf-8")
+            '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
+            encoding="utf-8",
+        )
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lemonfiber-decline", "lf", "plugin-jellyfin"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lemonfiber-decline", "lf", "plugin-jellyfin"]\n', encoding="utf-8"
+        )
         self.stream("lemonfiber-decline", tagged=("v0.2.0",))
         self.stream("plugin-jellyfin")
         self.stream("lf")
@@ -732,9 +920,12 @@ class TrainStepTests(TrainImages):
     def test_a_pre_release_holds_every_plugin_back(self):
         pathlib.Path("30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lf"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n\n'
-            '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n', encoding="utf-8")
+            '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
+            encoding="utf-8",
+        )
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lemonfiber-decline", "lf", "plugin-jellyfin"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lemonfiber-decline", "lf", "plugin-jellyfin"]\n', encoding="utf-8"
+        )
         self.stream("lemonfiber-decline")
         self.stream("plugin-jellyfin")
         self.stream("lf")
@@ -744,9 +935,11 @@ class TrainStepTests(TrainImages):
     def test_a_version_cutting_the_core_without_its_plugin_settles_no_step(self):
         pathlib.Path("30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lemonfiber"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lemonfiber"]\n', encoding="utf-8"
+        )
         code, said = run_main(train_step, ["--version", "0.2.0", "--tag", "v0.2.0"])
         self.assertEqual(code, 1)
         self.assertIn("cuts lemonfiber and not plugin-jellyfin", said)
@@ -771,8 +964,12 @@ class TrainStepTests(TrainImages):
         self.assertIn("could not ask lemonfiber-decline", str(caught.exception))
 
     def test_a_lookup_that_is_not_one_never_reaches_git(self):
-        for repo, tag in (("--upload-pack=x", "v0.2.0"), ("..", "v0.2.0"), ("lf", "-v0.2.0"),
-                          ("lf", "v0.2.0 x")):
+        for repo, tag in (
+            ("--upload-pack=x", "v0.2.0"),
+            ("..", "v0.2.0"),
+            ("lf", "-v0.2.0"),
+            ("lf", "v0.2.0 x"),
+        ):
             with self.assertRaises(SystemExit) as caught:
                 train_step.carries(repo, tag)
             self.assertIn("is not a lookup", str(caught.exception))
@@ -798,30 +995,36 @@ class SubmodulePinsTests(Workspace):
     def test_a_tag_with_two_submodules_yields_both(self):
         code, out = run_main(submodule_pins, [], stdin=self.GITMODULES)
         self.assertEqual(code, 0)
-        self.assertEqual(out, "lemonfiber-web\tassets/web\n"
-                              "lemonfiber-plugins\tassets/plugins\n")
+        self.assertEqual(out, "lemonfiber-web\tassets/web\nlemonfiber-plugins\tassets/plugins\n")
 
     def test_a_pin_is_named_for_the_repository_not_the_path(self):
         """The basename of the url, and the name a reader can look up."""
-        for url in ("https://github.com/lemonfiber/lemonfiber-web.git",
-                    "https://github.com/lemonfiber/lemonfiber-web/",
-                    "git@github.com:lemonfiber/lemonfiber-web.git"):
+        for url in (
+            "https://github.com/lemonfiber/lemonfiber-web.git",
+            "https://github.com/lemonfiber/lemonfiber-web/",
+            "git@github.com:lemonfiber/lemonfiber-web.git",
+        ):
             self.assertEqual(submodule_pins.named(url), "lemonfiber-web")
 
     def test_settings_that_are_not_a_submodule_are_passed_over(self):
         declared = submodule_pins.declared(
-            "# a comment\n" + self.GITMODULES + "\tbranch = main\n\tshallow = true\n")
-        self.assertEqual(declared, [("lemonfiber-web", "assets/web"),
-                                    ("lemonfiber-plugins", "assets/plugins")])
+            "# a comment\n" + self.GITMODULES + "\tbranch = main\n\tshallow = true\n"
+        )
+        self.assertEqual(
+            declared, [("lemonfiber-web", "assets/web"), ("lemonfiber-plugins", "assets/plugins")]
+        )
 
     def test_a_value_keeps_no_surrounding_whitespace(self):
         """Taken to the end of the line and trimmed here, rather than by a lazy
         pattern closed with a trailing `\\s*$` that backtracks."""
         self.assertEqual(
-            submodule_pins.declared('[submodule "assets/web"]\n'
-                                    "  path =   assets/web   \n"
-                                    "  url = https://github.com/lemonfiber/lemonfiber-web.git  \n"),
-            [("lemonfiber-web", "assets/web")])
+            submodule_pins.declared(
+                '[submodule "assets/web"]\n'
+                "  path =   assets/web   \n"
+                "  url = https://github.com/lemonfiber/lemonfiber-web.git  \n"
+            ),
+            [("lemonfiber-web", "assets/web")],
+        )
 
     def test_a_stanza_missing_half_of_itself_is_refused(self):
         with self.assertRaises(SystemExit) as caught:

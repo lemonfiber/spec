@@ -16,6 +16,7 @@ code, which is zero in every branch by design.
 Stdlib unittest plus PyYAML (the parser is the point).
 Run:  python3 scripts/test_milestone.py
 """
+
 from __future__ import annotations
 
 import os
@@ -97,9 +98,7 @@ class Run(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def manifest(self, body=MANIFEST, name="0.15.0"):
-        (self.tmp / "70-operations" / "versions" / f"{name}.toml").write_text(
-            body, encoding="utf-8"
-        )
+        (self.tmp / "70-operations" / "versions" / f"{name}.toml").write_text(body, encoding="utf-8")
 
     def act(self, trailer="Spec: B6-R1", existing="", made="7"):
         (self.tmp / "pr.txt").write_text(f"a change\n\n{trailer}\n", encoding="utf-8")
@@ -114,8 +113,11 @@ class Run(unittest.TestCase):
             "MADE": made,
         }
         done = subprocess.run(
-            ["bash", "-c", step_script()], cwd=self.tmp, env=env,
-            capture_output=True, text=True,
+            ["bash", "-c", step_script()],
+            cwd=self.tmp,
+            env=env,
+            capture_output=True,
+            text=True,
         )
         return done, self.log.read_text(encoding="utf-8")
 
@@ -162,8 +164,7 @@ class APrCitingALockedGoal(Run):
         self.manifest()
         _, log = self.act()
         self.assertIn(
-            "description=Away from the keyboard — remote control, autostart, "
-            "customisation",
+            "description=Away from the keyboard — remote control, autostart, customisation",
             log,
         )
 

@@ -2,6 +2,7 @@
 """Generate a repo's CODEOWNERS from the single maintainers registry (OPS-R17).
 Usage: gen_codeowners.py <repo-name>   ->  prints CODEOWNERS to stdout.
 """
+
 import pathlib
 import sys
 import tomllib
@@ -29,7 +30,7 @@ for m in data.get("maintainer", []):
     else:
         for d in domains:
             if d.startswith(f"{repo}/"):
-                scoped.append((d[len(repo) + 1:], handle))
+                scoped.append((d[len(repo) + 1 :], handle))
 if default:
     lines.append("* " + " ".join(dict.fromkeys(default)))
 for glob, handle in scoped:

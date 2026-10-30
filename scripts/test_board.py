@@ -100,11 +100,21 @@ name = "old-stack"
 note = "archived"
 """
 
-RELEASE = {"version": "0.1.0", "tag": "v0.1.0", "released_on": "2026-01-01",
-           "delivers": "The first run",
-           "groups": [{"title": "New", "entries": [
-               {"summary": "It starts", "requirements": ["A1-R1"], "reference": "#1"},
-               {"summary": "It stops", "requirements": ["A1-R9"]}]}]}
+RELEASE = {
+    "version": "0.1.0",
+    "tag": "v0.1.0",
+    "released_on": "2026-01-01",
+    "delivers": "The first run",
+    "groups": [
+        {
+            "title": "New",
+            "entries": [
+                {"summary": "It starts", "requirements": ["A1-R1"], "reference": "#1"},
+                {"summary": "It stops", "requirements": ["A1-R9"]},
+            ],
+        }
+    ],
+}
 
 
 def run_main(argv):
@@ -125,8 +135,9 @@ class Board(Train):
         features = pathlib.Path("10-functional/features")
         (features / "a-start").mkdir(parents=True)
         # A status after the name is the page's, not the name's.
-        (features / "README.md").write_text("# Features\n\n## A — Getting started · *Draft*\n",
-                                            encoding="utf-8")
+        (features / "README.md").write_text(
+            "# Features\n\n## A — Getting started · *Draft*\n", encoding="utf-8"
+        )
         (features / "a-start" / "a1-first-run.md").write_text(FEATURE, encoding="utf-8")
         (features / "a-start" / "a2-second-run.md").write_text(DRAFT, encoding="utf-8")
         pathlib.Path("50-governance").mkdir()
@@ -138,12 +149,15 @@ class Board(Train):
         self.repo("lemonfiber", "Spec: GOV-R12")
         pathlib.Path("lemonfiber/reference/changelog").mkdir(parents=True)
         self.commit("lemonfiber", "reference/changelog/0.1.0.json", json.dumps(RELEASE))
-        self.commit("lemonfiber", "reference/changelog/0.0.9.json",
-                    json.dumps({"version": "0.0.9", "groups": None}))
+        self.commit(
+            "lemonfiber", "reference/changelog/0.0.9.json", json.dumps({"version": "0.0.9", "groups": None})
+        )
         self.commit("lemonfiber", "reference/changelog/README.md", "not a release")
-        self.commit("core", "status.toml",
-                    '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n'
-                    'landed = "abc1234"\n')
+        self.commit(
+            "core",
+            "status.toml",
+            '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\nlanded = "abc1234"\n',
+        )
 
     def checkouts(self):
         return [*super().checkouts(), "--checkout", "lemonfiber=lemonfiber"]
@@ -159,10 +173,28 @@ class TheShape(Board):
         data, said = self.snapshot()
         self.assertEqual(said, "")
         self.assertEqual(data["format"], board.FORMAT)
-        self.assertEqual(list(data), ["format", "generated_at", "ref", "sources", "unread",
-                                      "areas", "features", "requirements", "versions",
-                                      "trackers", "pulls", "claims", "contested", "repos",
-                                      "releases", "proposals", "tools"])
+        self.assertEqual(
+            list(data),
+            [
+                "format",
+                "generated_at",
+                "ref",
+                "sources",
+                "unread",
+                "areas",
+                "features",
+                "requirements",
+                "versions",
+                "trackers",
+                "pulls",
+                "claims",
+                "contested",
+                "repos",
+                "releases",
+                "proposals",
+                "tools",
+            ],
+        )
         self.assertEqual(data["tools"], [])
         self.assertEqual(data["claims"], {"stale_days": claims.STALE_AFTER.days})
         self.assertEqual(data["unread"], [])
@@ -170,14 +202,12 @@ class TheShape(Board):
 
     def test_areas_are_named_by_the_catalogue(self):
         data, _ = self.snapshot()
-        self.assertEqual(data["areas"],
-                         [{"id": "A", "name": "Getting started", "directory": "a-start"}])
+        self.assertEqual(data["areas"], [{"id": "A", "name": "Getting started", "directory": "a-start"}])
 
     def test_features_are_the_boards_rows(self):
         data, _ = self.snapshot()
         first = data["features"][0]
-        self.assertEqual((first["id"], first["maturity"], first["labels"]),
-                         ("A1", "building", ["ux"]))
+        self.assertEqual((first["id"], first["maturity"], first["labels"]), ("A1", "building", ["ux"]))
         self.assertEqual([v["version"] for v in first["versions"]], ["0.1.0", "0.2.0"])
 
     def test_every_requirement_with_its_text_and_status(self):
@@ -187,13 +217,18 @@ class TheShape(Board):
         self.assertEqual(found["A1-R1"]["owner"], "A1")
         self.assertEqual(found["A1-R1"]["namespace"], "feature")
         self.assertEqual(found["A1-R1"]["versions"], ["0.2.0"])
-        self.assertEqual([found[i]["keyword"] for i in ("A1-R1", "A1-R2", "A1-R3", "A1-R4")],
-                         ["MUST", "SHOULD", "MAY", None])
+        self.assertEqual(
+            [found[i]["keyword"] for i in ("A1-R1", "A1-R2", "A1-R3", "A1-R4")],
+            ["MUST", "SHOULD", "MAY", None],
+        )
         self.assertEqual(found["A1-R5"]["status"], "withdrawn")
         self.assertIsNone(found["A1-R5"]["replaced_by"])
         self.assertEqual(found["A2-R1"]["status"], "draft")
-        self.assertEqual(board.status_of("*Draft:* The tool MAY sing.", False), "draft",
-                         "a row marked Draft in an accepted feature")
+        self.assertEqual(
+            board.status_of("*Draft:* The tool MAY sing.", False),
+            "draft",
+            "a row marked Draft in an accepted feature",
+        )
         self.assertEqual(found["GOV-R1"]["status"], "superseded")
         self.assertEqual(found["GOV-R1"]["replaced_by"], "GOV-R2")
         self.assertEqual(found["GOV-R1"]["owner"], "50-governance/rules.md")
@@ -213,22 +248,37 @@ class TheShape(Board):
     def test_trackers_hold_their_rows(self):
         data, _ = self.snapshot()
         core = next(t for t in data["trackers"] if t["repo"] == "core")
-        self.assertEqual(core, {"repo": "core", "present": True, "rows": [
-            {"id": "A1-R1", "state": "done", "evidence": ["README"], "landed": "abc1234",
-             "path": "status.toml"}]})
+        self.assertEqual(
+            core,
+            {
+                "repo": "core",
+                "present": True,
+                "rows": [
+                    {
+                        "id": "A1-R1",
+                        "state": "done",
+                        "evidence": ["README"],
+                        "landed": "abc1234",
+                        "path": "status.toml",
+                    }
+                ],
+            },
+        )
 
     def test_a_row_names_the_file_of_a_tracker_split_by_feature(self):
         self.git("core", "rm", "-q", "status.toml")
         pathlib.Path("core/status").mkdir()
-        self.commit("core", "status/A1.toml",
-                    '[[requirement]]\nid = "A1-R1"\nstate = "open"\nevidence = []\n')
+        self.commit(
+            "core", "status/A1.toml", '[[requirement]]\nid = "A1-R1"\nstate = "open"\nevidence = []\n'
+        )
         data, _ = self.snapshot()
         core = next(t for t in data["trackers"] if t["repo"] == "core")
         self.assertEqual([r["path"] for r in core["rows"]], ["status/A1.toml"])
 
     def test_a_row_names_the_markdown_tracker_it_was_read_from(self):
-        self.commit("core", "IMPLEMENTATION-STATUS.md",
-                    LEGACY_HEADER + "| x | `A1-R2` | ✅ | landed in `abc1234` |\n")
+        self.commit(
+            "core", "IMPLEMENTATION-STATUS.md", LEGACY_HEADER + "| x | `A1-R2` | ✅ | landed in `abc1234` |\n"
+        )
         self.commit("core", "status.toml", '[[milestone]]\nname = "M1"\n')
         data, _ = self.snapshot()
         core = next(t for t in data["trackers"] if t["repo"] == "core")
@@ -236,9 +286,15 @@ class TheShape(Board):
 
     def test_every_repository_with_its_tracker(self):
         data, _ = self.snapshot()
-        self.assertEqual([(r["name"], r["group"], r["tracker"]) for r in data["repos"]],
-                         [("spec", "root", None), ("core", "impl", "present"),
-                          ("plugin-x", "ungoverned", None), ("old-stack", "retired", None)])
+        self.assertEqual(
+            [(r["name"], r["group"], r["tracker"]) for r in data["repos"]],
+            [
+                ("spec", "root", None),
+                ("core", "impl", "present"),
+                ("plugin-x", "ungoverned", None),
+                ("old-stack", "retired", None),
+            ],
+        )
         self.assertEqual(data["repos"][1]["pages"], ["core.md"])
 
     def test_releases_from_the_changelog_in_version_order(self):
@@ -246,8 +302,7 @@ class TheShape(Board):
         self.assertEqual([r["version"] for r in data["releases"]], ["0.0.9", "0.1.0"])
         self.assertEqual(data["releases"][0]["groups"], [])
         entries = data["releases"][1]["groups"][0]["entries"]
-        self.assertEqual(entries[0], {"summary": "It starts", "requirements": ["A1-R1"],
-                                      "reference": "#1"})
+        self.assertEqual(entries[0], {"summary": "It starts", "requirements": ["A1-R1"], "reference": "#1"})
         self.assertIsNone(entries[1]["reference"])
 
     def test_no_core_checkout_means_no_releases(self):
@@ -259,47 +314,68 @@ class TheShape(Board):
 
 class PullsAndProposals(Board):
     def test_pull_requests_with_what_they_cite(self):
-        prs = {"app": [
-            {"number": 7, "url": "https://x/7", "title": "feat: greet", "isDraft": True,
-             "createdAt": "2026-01-01T00:00:00Z", "updatedAt": "2026-01-02T00:00:00Z",
-             "headRefName": "feat/greet", "author": {"login": "someone", "__typename": "User"},
-             "body": "Spec: A1-R2", "commits": [{"message": "feat: x\n\nSpec: A1-R10, A1-R3"}]},
-            {"number": 8, "url": "https://x/8", "author": {"login": "dependabot",
-                                                          "__typename": "Bot"},
-             "body": None, "commits": None}]}
+        prs = {
+            "app": [
+                {
+                    "number": 7,
+                    "url": "https://x/7",
+                    "title": "feat: greet",
+                    "isDraft": True,
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "updatedAt": "2026-01-02T00:00:00Z",
+                    "headRefName": "feat/greet",
+                    "author": {"login": "someone", "__typename": "User"},
+                    "body": "Spec: A1-R2",
+                    "commits": [{"message": "feat: x\n\nSpec: A1-R10, A1-R3"}],
+                },
+                {
+                    "number": 8,
+                    "url": "https://x/8",
+                    "author": {"login": "dependabot", "__typename": "Bot"},
+                    "body": None,
+                    "commits": None,
+                },
+            ]
+        }
         pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
         data, _ = self.snapshot("--prs", "prs.json")
         first, second = data["pulls"]
         self.assertEqual(first["cites"], ["A1-R2", "A1-R3", "A1-R10"])
-        self.assertEqual((first["author"], first["bot"], first["draft"], first["head"]),
-                         ("someone", False, True, "feat/greet"))
+        self.assertEqual(
+            (first["author"], first["bot"], first["draft"], first["head"]),
+            ("someone", False, True, "feat/greet"),
+        )
         self.assertEqual(first["created_at"], "2026-01-01T00:00:00Z")
-        self.assertEqual((second["author"], second["bot"], second["cites"]),
-                         ("dependabot", True, []))
+        self.assertEqual((second["author"], second["bot"], second["cites"]), ("dependabot", True, []))
 
     def test_pull_requests_are_counted_per_repository(self):
         prs = {"core": [{"number": 1, "url": "https://x/1", "body": ""}]}
         pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
         data, _ = self.snapshot("--prs", "prs.json")
-        self.assertEqual([r["open_pulls"] for r in data["repos"]], [None, 1, None, None],
-                         "a repository whose pull requests were not read counts none")
+        self.assertEqual(
+            [r["open_pulls"] for r in data["repos"]],
+            [None, 1, None, None],
+            "a repository whose pull requests were not read counts none",
+        )
         self.assertIsNone(data["pulls"][0]["author"])
 
     def write_prs(self, prs):
         pathlib.Path("prs.json").write_text(json.dumps(prs), encoding="utf-8")
 
     def test_a_repository_counts_every_open_pull_request_its_bots_included(self):
-        person = {"number": 1, "url": "https://x/1", "author": {"login": "p",
-                                                               "__typename": "User"}}
-        bot = {"number": 99, "url": "https://x/99", "author": {"login": "dependabot",
-                                                              "__typename": "Bot"}}
+        person = {"number": 1, "url": "https://x/1", "author": {"login": "p", "__typename": "User"}}
+        bot = {"number": 99, "url": "https://x/99", "author": {"login": "dependabot", "__typename": "Bot"}}
         self.write_prs({"core": [person, bot], "spec": []})
         data, _ = self.snapshot("--prs", "prs.json")
         held = {r["name"]: r["open_pulls"] for r in data["repos"]}
-        self.assertEqual(held, {"spec": 0, "core": 2, "plugin-x": None, "old-stack": None},
-                         "read and holding none is nought; not read is null")
-        self.assertEqual(list(data["repos"][0]), ["name", "group", "lang", "note", "pages",
-                                                  "open_pulls", "tracker"])
+        self.assertEqual(
+            held,
+            {"spec": 0, "core": 2, "plugin-x": None, "old-stack": None},
+            "read and holding none is nought; not read is null",
+        )
+        self.assertEqual(
+            list(data["repos"][0]), ["name", "group", "lang", "note", "pages", "open_pulls", "tracker"]
+        )
 
     def test_a_draft_without_a_commit_for_too_long_is_stale(self):
         now = datetime.datetime.now(datetime.UTC)
@@ -308,47 +384,81 @@ class PullsAndProposals(Board):
             return (now - datetime.timedelta(days=days)).strftime(board.STAMP)
 
         old = claims.STALE_AFTER.days + 1
-        self.write_prs({"core": [
-            {"number": 1, "url": "u", "isDraft": True,
-             "commits": [{"message": "a", "committedDate": ago(old + 5)},
-                         {"message": "b", "committedDate": ago(old)}]},
-            {"number": 2, "url": "u", "isDraft": True, "createdAt": ago(old + 5),
-             "commits": [{"message": "a", "committedDate": ago(1)}]},
-            {"number": 3, "url": "u", "isDraft": False,
-             "commits": [{"message": "a", "committedDate": ago(old)}]},
-            {"number": 4, "url": "u", "isDraft": True, "createdAt": ago(old), "commits": []},
-            {"number": 5, "url": "u", "isDraft": True}]})
+        self.write_prs(
+            {
+                "core": [
+                    {
+                        "number": 1,
+                        "url": "u",
+                        "isDraft": True,
+                        "commits": [
+                            {"message": "a", "committedDate": ago(old + 5)},
+                            {"message": "b", "committedDate": ago(old)},
+                        ],
+                    },
+                    {
+                        "number": 2,
+                        "url": "u",
+                        "isDraft": True,
+                        "createdAt": ago(old + 5),
+                        "commits": [{"message": "a", "committedDate": ago(1)}],
+                    },
+                    {
+                        "number": 3,
+                        "url": "u",
+                        "isDraft": False,
+                        "commits": [{"message": "a", "committedDate": ago(old)}],
+                    },
+                    {"number": 4, "url": "u", "isDraft": True, "createdAt": ago(old), "commits": []},
+                    {"number": 5, "url": "u", "isDraft": True},
+                ]
+            }
+        )
         data, _ = self.snapshot("--prs", "prs.json")
         found = {p["number"]: p for p in data["pulls"]}
         self.assertEqual(found[1]["last_commit_at"], ago(old), "the newest commit")
-        self.assertEqual({n: p["stale"] for n, p in found.items()},
-                         {1: True, 2: False, 3: False, 4: True, 5: False})
+        self.assertEqual(
+            {n: p["stale"] for n, p in found.items()}, {1: True, 2: False, 3: False, 4: True, 5: False}
+        )
         self.assertIsNone(found[4]["last_commit_at"])
 
     def test_a_goal_claimed_by_more_than_one_pull_request(self):
         def pr(number, cites, kind="User"):
-            return {"number": number, "url": f"https://x/{number}", "body": f"Spec: {cites}",
-                    "author": {"login": "p", "__typename": kind}}
+            return {
+                "number": number,
+                "url": f"https://x/{number}",
+                "body": f"Spec: {cites}",
+                "author": {"login": "p", "__typename": kind},
+            }
 
-        self.write_prs({
-            "core": [pr(1, "A1-R2, A1-R9"), pr(2, "A1-R3"), pr(3, "A1-R3", "Bot")],
-            "app": [pr(4, "A1-R2, A1-R9"), pr(5, "A1-R4")]})
+        self.write_prs(
+            {
+                "core": [pr(1, "A1-R2, A1-R9"), pr(2, "A1-R3"), pr(3, "A1-R3", "Bot")],
+                "app": [pr(4, "A1-R2, A1-R9"), pr(5, "A1-R4")],
+            }
+        )
         data, _ = self.snapshot("--prs", "prs.json")
-        self.assertEqual(data["contested"],
-                         [{"id": "A1-R2", "pulls": ["app#4", "core#1"]}],
-                         "a released version's goal and a bot's citation contest nothing")
+        self.assertEqual(
+            data["contested"],
+            [{"id": "A1-R2", "pulls": ["app#4", "core#1"]}],
+            "a released version's goal and a bot's citation contest nothing",
+        )
 
     def test_the_pre_approval_feed(self):
-        issues = [{"number": 4, "title": "RFC: a thing", "html_url": "https://x/i/4"},
-                  {"number": 5, "title": "a pull request", "html_url": "https://x/p/5",
-                   "pull_request": {}}]
+        issues = [
+            {"number": 4, "title": "RFC: a thing", "html_url": "https://x/i/4"},
+            {"number": 5, "title": "a pull request", "html_url": "https://x/p/5", "pull_request": {}},
+        ]
         pathlib.Path("issues.json").write_text(json.dumps(issues), encoding="utf-8")
         data, _ = self.snapshot("--issues", "issues.json")
-        self.assertEqual(data["proposals"], [
-            {"kind": "feature", "id": "A2", "title": "Second run", "url": None},
-            {"kind": "requirement", "id": "A2-R1", "title": "The tool MUST remember.",
-             "url": None},
-            {"kind": "rfc", "id": 4, "title": "RFC: a thing", "url": "https://x/i/4"}])
+        self.assertEqual(
+            data["proposals"],
+            [
+                {"kind": "feature", "id": "A2", "title": "Second run", "url": None},
+                {"kind": "requirement", "id": "A2-R1", "title": "The tool MUST remember.", "url": None},
+                {"kind": "rfc", "id": 4, "title": "RFC: a thing", "url": "https://x/i/4"},
+            ],
+        )
 
 
 class WhatCouldNotBeRead(Board):
@@ -381,8 +491,7 @@ class WhatCouldNotBeRead(Board):
 
     def test_an_issues_file_that_is_not_json(self):
         pathlib.Path("issues.json").write_text("[", encoding="utf-8")
-        code, said = run_main([*self.checkouts(), "--json", "board.json",
-                               "--issues", "issues.json"])
+        code, said = run_main([*self.checkouts(), "--json", "board.json", "--issues", "issues.json"])
         self.assertEqual(code, 2)
         self.assertIn("::error::", said)
         self.assertFalse(pathlib.Path("board.json").exists())
@@ -391,14 +500,28 @@ class WhatCouldNotBeRead(Board):
 class TheTools(Board):
     def test_every_command_the_tool_lists_and_the_commit_read(self):
         self.repo("tool-lfdev", "Spec: REPO-R76")
-        head = self.commit("tool-lfdev", "commands.json", json.dumps(
-            {"generated_by": "python -m lfdev.commands",
-             "commands": [{"name": "next", "purpose": "What to pick up"},
-                          {"name": "claim", "purpose": "Say you are on it"}]}))
+        head = self.commit(
+            "tool-lfdev",
+            "commands.json",
+            json.dumps(
+                {
+                    "generated_by": "python -m lfdev.commands",
+                    "commands": [
+                        {"name": "next", "purpose": "What to pick up"},
+                        {"name": "claim", "purpose": "Say you are on it"},
+                    ],
+                }
+            ),
+        )
         data, said = self.snapshot("--tools", "tool-lfdev")
         self.assertEqual(said, "")
-        self.assertEqual(data["tools"], [{"name": "next", "purpose": "What to pick up"},
-                                         {"name": "claim", "purpose": "Say you are on it"}])
+        self.assertEqual(
+            data["tools"],
+            [
+                {"name": "next", "purpose": "What to pick up"},
+                {"name": "claim", "purpose": "Say you are on it"},
+            ],
+        )
         self.assertEqual(data["sources"]["tool-lfdev"], head.strip())
 
     def test_a_tool_checkout_without_the_list_is_unread_and_the_rest_written(self):
@@ -406,9 +529,13 @@ class TheTools(Board):
         data, _ = self.snapshot("--tools", "tool-lfdev")
         self.assertEqual(data["tools"], [])
         self.assertNotIn("tool-lfdev", data["sources"])
-        self.assertIn({"repo": "tool-lfdev",
-                       "reason": f"commands.json could not be read at {pathlib.Path('tool-lfdev').resolve()}"},
-                      data["unread"])
+        self.assertIn(
+            {
+                "repo": "tool-lfdev",
+                "reason": f"commands.json could not be read at {pathlib.Path('tool-lfdev').resolve()}",
+            },
+            data["unread"],
+        )
 
     def test_a_list_that_is_not_one_is_unread(self):
         self.repo("tool-lfdev", "Spec: REPO-R76")
@@ -426,8 +553,7 @@ class TheHash(Board):
         data, _ = self.snapshot("--hash", "board.sha256")
         written = pathlib.Path("board.sha256").read_text(encoding="utf-8").strip()
         self.assertEqual(written, board.content_hash(data))
-        self.assertEqual(board.content_hash({**data, "generated_at": "1970-01-01T00:00:00Z"}),
-                         written)
+        self.assertEqual(board.content_hash({**data, "generated_at": "1970-01-01T00:00:00Z"}), written)
         self.assertNotEqual(board.content_hash({**data, "ref": "elsewhere"}), written)
 
     def test_changed_against_what_was_published(self):
@@ -435,8 +561,11 @@ class TheHash(Board):
         same = pathlib.Path("board.sha256").read_text(encoding="utf-8")
         pathlib.Path("published.sha256").write_text(same, encoding="utf-8")
         self.snapshot("--previous", "published.sha256", "--changed", "changed.txt")
-        self.assertEqual(pathlib.Path("changed.txt").read_text(encoding="utf-8"), "false\n",
-                         "a run over the same sources asks for no rebuild")
+        self.assertEqual(
+            pathlib.Path("changed.txt").read_text(encoding="utf-8"),
+            "false\n",
+            "a run over the same sources asks for no rebuild",
+        )
         pathlib.Path("published.sha256").write_text("0" * 64 + "\n", encoding="utf-8")
         self.snapshot("--previous", "published.sha256", "--changed", "changed.txt")
         self.assertEqual(pathlib.Path("changed.txt").read_text(encoding="utf-8"), "true\n")

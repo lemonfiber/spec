@@ -40,8 +40,7 @@ class ItRefusesAStateClaimedForARequirement(unittest.TestCase):
 
     def test_a_sentence_wrapped_across_lines_is_read_whole(self):
         text = "# `A1-R1` and `A1-R2`\n# are\n# built.\n"
-        self.assertEqual(lint.claims(text), [(2, "are built",
-                                             "`A1-R1` and `A1-R2` are built.")])
+        self.assertEqual(lint.claims(text), [(2, "are built", "`A1-R1` and `A1-R2` are built.")])
 
     def test_a_long_sentence_is_quoted_short(self):
         long = "`A1-R1` is built, " + "and so on " * 30 + "end."
@@ -84,14 +83,14 @@ class TheCommandLine(unittest.TestCase):
         return code, out.getvalue()
 
     def test_a_clean_train_passes(self):
-        code, said = self.run_on({"0.1.0.toml": "# `A1-R1` asks for a form.\nversion = \"0.1.0\"\n"})
+        code, said = self.run_on({"0.1.0.toml": '# `A1-R1` asks for a form.\nversion = "0.1.0"\n'})
         self.assertEqual(code, 0)
         self.assertIn("1 manifests say why", said)
 
     def test_a_claim_is_named_with_its_file_and_line_and_where_it_belongs(self):
-        code, said = self.run_on({"0.1.0.toml": "version = \"0.1.0\"\n\n# `A1-R1` is built.\n"})
+        code, said = self.run_on({"0.1.0.toml": 'version = "0.1.0"\n\n# `A1-R1` is built.\n'})
         self.assertEqual(code, 1)
-        self.assertIn("0.1.0.toml:3: \"is built\"", said)
+        self.assertIn('0.1.0.toml:3: "is built"', said)
         self.assertIn("status.toml (OPS-R79)", said)
 
     def test_no_manifests_is_not_a_pass(self):

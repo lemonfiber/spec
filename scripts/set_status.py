@@ -36,6 +36,7 @@ Usage:
                 [--pin name=sha ...] > <manifest>
 Exit 0 = emitted, 1 = the manifest is missing or misshapen, 2 = usage.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -86,8 +87,7 @@ def stamped(text: str, key: str, value: str, beneath: str) -> str:
     text, n = re.subn(rf"(?m)^{key}\s*=.*$", line, text)
     if n:
         return text
-    return re.sub(rf"(?m)^({beneath}\s*=.*)$", lambda m: f"{m.group(1)}\n{line}",
-                  text, count=1)
+    return re.sub(rf"(?m)^({beneath}\s*=.*)$", lambda m: f"{m.group(1)}\n{line}", text, count=1)
 
 
 def with_released_on(text: str, date: str) -> str:
@@ -196,9 +196,7 @@ def refuse_inconsistent(a: argparse.Namespace) -> None:
     if a.status == "yanked" and not a.withdrawn_because:
         sys.exit("::error::--withdrawn-because is required to withdraw a release")
     if a.withdrawn_because and a.status != "yanked":
-        sys.exit(
-            f"::error::--withdrawn-because belongs to a withdrawn manifest, not {a.status!r}"
-        )
+        sys.exit(f"::error::--withdrawn-because belongs to a withdrawn manifest, not {a.status!r}")
     if a.released_on and a.status != "released":
         sys.exit(f"::error::--released-on belongs to a released manifest, not {a.status!r}")
     if a.released_as and a.status != "released":
@@ -224,8 +222,7 @@ def refuse_half_a_prerelease(a: argparse.Namespace) -> None:
     # on a planned one, of a version nobody has committed to yet.
     if a.prerelease and a.status not in IN_FLIGHT:
         sys.exit(
-            f"::error::a pre-release belongs to a version in flight, not {a.status!r} "
-            f"({'/'.join(IN_FLIGHT)})"
+            f"::error::a pre-release belongs to a version in flight, not {a.status!r} ({'/'.join(IN_FLIGHT)})"
         )
     if a.prerelease and not a.prerelease_on:
         sys.exit("::error::--prerelease-on is required to record a pre-release")
@@ -273,21 +270,22 @@ def main() -> int:
     if not path.is_file():
         print(f"::error::no manifest at {path}", file=sys.stderr)
         return 1
-    text, n = re.subn(r"(?m)^status\s*=.*$", f'status  = "{a.status}"',
-                      path.read_text(encoding="utf-8"))
+    text, n = re.subn(r"(?m)^status\s*=.*$", f'status  = "{a.status}"', path.read_text(encoding="utf-8"))
     if n != 1:
         print(f"::error::expected exactly one status line in {path}, found {n}", file=sys.stderr)
         return 1
     text = stamps(text, a)
 
     sys.stdout.write(text)
-    print(f"{path.name}: status={a.status}"
-          + (f", released_on={a.released_on}" if a.released_on else "")
-          + (f", released_as={a.released_as}" if a.released_as else "")
-          + (", withdrawn" if a.withdrawn_because else "")
-          + (f", prerelease={a.prerelease}" if a.prerelease else "")
-          + (f", pins={len(a.pin)}" if a.pin else ""),
-          file=sys.stderr)
+    print(
+        f"{path.name}: status={a.status}"
+        + (f", released_on={a.released_on}" if a.released_on else "")
+        + (f", released_as={a.released_as}" if a.released_as else "")
+        + (", withdrawn" if a.withdrawn_because else "")
+        + (f", prerelease={a.prerelease}" if a.prerelease else "")
+        + (f", pins={len(a.pin)}" if a.pin else ""),
+        file=sys.stderr,
+    )
     return 0
 
 

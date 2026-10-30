@@ -11,6 +11,7 @@ Usage:
                --spec-url https://github.com/lemonfiber/spec/blob/main
 Prints the comment markdown (with a stable marker) to stdout.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -49,8 +50,7 @@ def adr_entries(spec_dir: pathlib.Path):
     for f in sorted(dec.iterdir()):
         m = ADR_FILE.match(f.name)
         if m:
-            yield (f"ADR-{int(m.group(1)):04d}",
-                   (f"00-overview/decisions/{f.name}", first_heading(f)))
+            yield (f"ADR-{int(m.group(1)):04d}", (f"00-overview/decisions/{f.name}", first_heading(f)))
 
 
 def index(spec_dir: pathlib.Path) -> dict[str, tuple[str, str]]:

@@ -70,8 +70,7 @@ def walkers() -> set[str]:
     return {
         path.name
         for path in SCRIPTS.glob("*.py")
-        if not path.name.startswith("test_")
-        and WALKS.search(path.read_text(encoding="utf-8"))
+        if not path.name.startswith("test_") and WALKS.search(path.read_text(encoding="utf-8"))
     }
 
 
@@ -112,8 +111,7 @@ class EveryWalkIsBounded(unittest.TestCase):
                     confined = SCOPED[name] in text
                     self.assertTrue(
                         confined,
-                        f"{name} is declared confined to {SCOPED[name]} and no longer "
-                        "names it",
+                        f"{name} is declared confined to {SCOPED[name]} and no longer names it",
                     )
                     continue
                 bounded = ASKS in text
@@ -152,9 +150,7 @@ class EveryGateRefusesAnEmptyCollection(unittest.TestCase):
         problems = check_stageable.unstageable(
             pathlib.Path("0.1.0.toml"), {"status": "planned", "repos": ["lf"]}
         )
-        self.assertTrue(
-            any("locks no goal" in one for one in problems), f"got {problems}"
-        )
+        self.assertTrue(any("locks no goal" in one for one in problems), f"got {problems}")
 
     def test_a_canonical_directory_holding_nothing_is_refused(self):
         """Both copy checks read their list from the canonical directory.
@@ -171,9 +167,7 @@ class EveryGateRefusesAnEmptyCollection(unittest.TestCase):
             for asked in (check_shared_files.gates, check_shared_files.hooks):
                 with self.subTest(check=asked.__name__):
                     complaints = asked(repo, canonical, "cli", {})
-                    self.assertTrue(
-                        complaints, f"{asked.__name__} was happy about nothing"
-                    )
+                    self.assertTrue(complaints, f"{asked.__name__} was happy about nothing")
 
     def test_a_register_declaring_nothing_is_refused(self):
         """What the two checks above decide *adoption* by.
@@ -188,7 +182,7 @@ class EveryGateRefusesAnEmptyCollection(unittest.TestCase):
             canonical = pathlib.Path(where) / "canonical"
             (canonical / "shared").mkdir(parents=True)
             register = canonical / "shared" / check_shared_files.ADOPTION
-            for answered in ("# nobody yet\n", '[[repo]]\ngates = []\n'):
+            for answered in ("# nobody yet\n", "[[repo]]\ngates = []\n"):
                 with self.subTest(register=answered):
                     register.write_text(answered, encoding="utf-8")
                     rows, refused = check_shared_files.register(canonical)

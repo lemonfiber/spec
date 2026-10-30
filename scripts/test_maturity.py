@@ -49,7 +49,8 @@ class Catalogue(unittest.TestCase):
         self.manifest("0.1.0", "released", ["B1-R1", "B1-R2"])
         self.manifest("0.2.0", "planned", ["B1-R3"])
         (pathlib.Path("spec/70-operations/versions") / "TEMPLATE.toml").write_text(
-            'version = "X"\nstatus = "released"\ngoals = ["B1-R3"]\n', encoding="utf-8")
+            'version = "X"\nstatus = "released"\ngoals = ["B1-R3"]\n', encoding="utf-8"
+        )
         pathlib.Path("repo").mkdir()
         (pathlib.Path("repo") / "f").write_text("x")
 
@@ -61,19 +62,23 @@ class Catalogue(unittest.TestCase):
         listed = ", ".join(f'"{g}"' for g in goals)
         pathlib.Path(f"spec/70-operations/versions/{version}.toml").write_text(
             f'version = "{version}"\nstatus = "{status}"\nrepos = ["repo"]\ngoals = [{listed}]\n',
-            encoding="utf-8")
+            encoding="utf-8",
+        )
 
     def feature(self, fid, says, count, retired=(), shipped=None):
         directory = pathlib.Path("spec/10-functional/features/b-running")
         directory.mkdir(parents=True, exist_ok=True)
         rows = "\n".join(
-            f"| **{fid}-R{n}** | *Withdrawn — carried elsewhere.* |" if n in retired
+            f"| **{fid}-R{n}** | *Withdrawn — carried elsewhere.* |"
+            if n in retired
             else f"| **{fid}-R{n}** | Something MUST happen. |"
-            for n in range(1, count + 1))
+            for n in range(1, count + 1)
+        )
         path = directory / f"{fid.lower()}.md"
         version = f"shipped: {shipped}\n" if shipped else ""
-        path.write_text(f"---\nid: {fid}\nmaturity: {says}\n{version}labels: [x]\n---\n\n{rows}\n",
-                        encoding="utf-8")
+        path.write_text(
+            f"---\nid: {fid}\nmaturity: {says}\n{version}labels: [x]\n---\n\n{rows}\n", encoding="utf-8"
+        )
         return path
 
     def done(self, *ids):
@@ -103,7 +108,9 @@ class TheFourStates(Catalogue):
         self.feature("B1", "planned", 3)
         code, said = self.act(*self.done("B1-R1"), "--check")
         self.assertEqual(code, 1)
-        self.assertIn("B1 is `planned` in the catalogue, and the trackers and manifests make it `building`", said)
+        self.assertIn(
+            "B1 is `planned` in the catalogue, and the trackers and manifests make it `building`", said
+        )
         self.assertIn("1 of its 3", said)
 
     def test_a_finished_feature_missing_a_requirement_is_refused(self):
@@ -140,7 +147,6 @@ class Writing(Catalogue):
         self.assertIn("B1: planned → built", said)
         self.assertIn("maturity: built\nlabels: [x]", path.read_text(encoding="utf-8"))
         self.assertEqual(self.act("--tracker", "repo=repo", "--check")[0], 0)
-
 
     def test_shipped_names_the_latest_released_version_and_leaves_with_it(self):
         self.manifest("0.3.0", "released", ["B1-R2"])
@@ -183,7 +189,9 @@ class Refusals(Catalogue):
         self.manifest("0.3.0", "planned", ["B1-R3"])
         pathlib.Path("spec/70-operations/versions/0.3.0.toml").write_text(
             'version = "0.3.0"\nstatus = "planned"\nrepos = ["repo"]\n'
-            'satisfied_in = ["repo", "web"]\ngoals = ["B1-R3"]\n', encoding="utf-8")
+            'satisfied_in = ["repo", "web"]\ngoals = ["B1-R3"]\n',
+            encoding="utf-8",
+        )
         self.assert_unread(self.done("B1-R1", "B1-R2"), "no tracker given for web")
 
     def test_a_tracker_path_that_is_not_there(self):

@@ -27,6 +27,7 @@ about the rest, and silence reads as a pass.
 
 Stdlib unittest, no dependencies. Run:  python3 scripts/test_plugins.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -54,7 +55,9 @@ commit = "{"a" * 40}"
 path = "{AT}"
 """
 
-ENTRY = PIN + """
+ENTRY = (
+    PIN
+    + """
 [[plugin]]
 id = "komga"
 repo = "plugin-komga"
@@ -63,6 +66,7 @@ targets = "targets.toml"
 report = "proofs.json"
 ref = "main"
 """
+)
 
 #: A plugin's own reader. The gate runs the pinned one, so this never runs; if it
 #: did, it would leave a mark and pass whatever it was asked.
@@ -158,10 +162,28 @@ class PluginGate(unittest.TestCase):
     def written(self) -> dict:
         return json.loads((self.plugin / "proofs.json").read_text(encoding="utf-8"))
 
-    def gate(self, version: str = "0.16.0", schema: int = 1, checkout: bool = True,
-             build: str = BUILD, candidate: str = "lemonfiber"):
-        argv = ["--version", version, "--schema", str(schema), "--registry", str(self.registry),
-                "--candidate", candidate, "--build", build, "--reader", str(self.pinned)]
+    def gate(
+        self,
+        version: str = "0.16.0",
+        schema: int = 1,
+        checkout: bool = True,
+        build: str = BUILD,
+        candidate: str = "lemonfiber",
+    ):
+        argv = [
+            "--version",
+            version,
+            "--schema",
+            str(schema),
+            "--registry",
+            str(self.registry),
+            "--candidate",
+            candidate,
+            "--build",
+            build,
+            "--reader",
+            str(self.pinned),
+        ]
         if checkout:
             argv += ["--checkout", f"plugin-komga={self.plugin}"]
         return run(argv)
@@ -203,8 +225,7 @@ class PluginGate(unittest.TestCase):
         self.assertEqual(code, 0, said)
         self.assertIn("1 of 1 ride 0.1.0, all proved with the candidate", said)
         self.assertEqual(self.written()["lemonfiber"], "0.1.0")
-        self.assertEqual((self.plugin / "targets.toml").read_text(encoding="utf-8"),
-                         'lemonfiber = "0.1.0"\n')
+        self.assertEqual((self.plugin / "targets.toml").read_text(encoding="utf-8"), 'lemonfiber = "0.1.0"\n')
 
     # Proved with the candidate, not read from what the plugin committed.
 
@@ -227,8 +248,9 @@ class PluginGate(unittest.TestCase):
         self.assertEqual(code, 0, said)
         held = self.plugin / ".lemonfiber" / "0.17.0" / BUILD / "lemonfiber"
         self.assertEqual(held.read_bytes(), b"the candidate")
-        self.assertEqual((self.plugin / "targets.toml").read_text(encoding="utf-8"),
-                         'lemonfiber = "0.17.0"\n')
+        self.assertEqual(
+            (self.plugin / "targets.toml").read_text(encoding="utf-8"), 'lemonfiber = "0.17.0"\n'
+        )
 
     def test_the_committed_report_is_never_read_in_place_of_the_run(self):
         """A reader that writes nothing leaves nothing behind that could pass."""
@@ -236,12 +258,16 @@ class PluginGate(unittest.TestCase):
         self.targets()
         (self.plugin / "proofs.json").write_text(
             json.dumps({"lemonfiber": "0.17.0", "proofs": [{"id": "answers", "outcome": "passed"}]}),
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         self.reader('print("::error::lemonfiber read nothing here: no manifest")\nraise SystemExit(1)\n')
         code, said = self.gate(version="0.17.0")
         self.assertEqual(code, 1)
-        self.assertIn("::error::komga's proofs could not be run against the candidate: "
-                      "lemonfiber read nothing here: no manifest", said)
+        self.assertIn(
+            "::error::komga's proofs could not be run against the candidate: "
+            "lemonfiber read nothing here: no manifest",
+            said,
+        )
         self.assertFalse((self.plugin / "proofs.json").exists())
 
     def test_what_the_reader_prints_is_shown_and_not_acted_on(self):
@@ -255,15 +281,17 @@ class PluginGate(unittest.TestCase):
         stop = next(line for line in lines if line.startswith("::stop-commands::"))
         resume = f"::{stop.removeprefix('::stop-commands::')}::"
         self.assertRegex(resume, r"^::[0-9a-f]{32}::$")
-        shown = lines[lines.index(stop) + 1:lines.index(resume)]
+        shown = lines[lines.index(stop) + 1 : lines.index(resume)]
         self.assertEqual(shown, ["::error::lemonfiber read nothing here"])
         self.assertEqual(lines[lines.index(resume) + 1], "::endgroup::")
 
     def test_a_reader_that_dies_is_named_by_its_last_word(self):
         self.manifest()
         self.targets()
-        self.reader('import sys\nprint("Traceback", file=sys.stderr)\n'
-                    'print("KeyError: \'proofs\'", file=sys.stderr)\nsys.exit(1)\n')
+        self.reader(
+            'import sys\nprint("Traceback", file=sys.stderr)\n'
+            "print(\"KeyError: 'proofs'\", file=sys.stderr)\nsys.exit(1)\n"
+        )
         code, said = self.gate()
         self.assertEqual(code, 1)
         self.assertIn("could not be run against the candidate: KeyError: 'proofs'", said)
@@ -289,13 +317,15 @@ class PluginGate(unittest.TestCase):
         self.targets()
         self.report()
         (self.plugin / ".github" / "reader" / "json.py").write_text(
-            "import pathlib\npathlib.Path('shadow-ran').write_text('yes')\n", encoding="utf-8")
+            "import pathlib\npathlib.Path('shadow-ran').write_text('yes')\n", encoding="utf-8"
+        )
         code, said = self.gate()
         self.assertEqual(code, 0, said)
         self.assertFalse(pathlib.Path("own-reader-ran").exists())
         self.assertFalse((self.plugin / "shadow-ran").exists())
-        self.assertEqual([path.name for path in (self.plugin / ".github").rglob("*")],
-                         ["reader", "reader.py"])
+        self.assertEqual(
+            [path.name for path in (self.plugin / ".github").rglob("*")], ["reader", "reader.py"]
+        )
         self.assertEqual((self.plugin / AT).read_text(encoding="utf-8"), READER)
 
     def test_a_harness_that_is_a_link_is_removed_and_not_followed(self):
@@ -360,7 +390,7 @@ class PluginGate(unittest.TestCase):
 
     def pin(self, table: str) -> tuple[int, str]:
         head, _, rest = ENTRY.partition("[reader]")
-        self.registry.write_text(head + table + rest[rest.index("[[plugin]]"):], encoding="utf-8")
+        self.registry.write_text(head + table + rest[rest.index("[[plugin]]") :], encoding="utf-8")
         return self.gate()
 
     def test_a_registry_pinning_no_reader_cannot_answer(self):
@@ -382,7 +412,8 @@ class PluginGate(unittest.TestCase):
         for path in ("/etc/reader.py", "../reader.py", ".github/../../reader.py", "reader.py"):
             with self.subTest(path):
                 code, said = self.pin(
-                    f'[reader]\nrepo = "plugin-template"\ncommit = "{"a" * 40}"\npath = "{path}"\n\n')
+                    f'[reader]\nrepo = "plugin-template"\ncommit = "{"a" * 40}"\npath = "{path}"\n\n'
+                )
                 self.assertEqual(code, 2)
                 self.assertIn("is not a file inside a repository", said)
 
@@ -396,13 +427,15 @@ class PluginGate(unittest.TestCase):
             "root = pathlib.Path(__file__).resolve().parents[2]\n"
             "own = root / '.lemonfiber' / '0.16.0' / 'aarch64-apple-darwin' / 'lemonfiber'\n"
             "own.parent.mkdir(parents=True)\n"
-            "own.write_bytes(b'published')\n"
-            + READER)
+            "own.write_bytes(b'published')\n" + READER
+        )
         code, said = self.gate()
         self.assertEqual(code, 1)
         self.assertIn(
             "komga's reader fetched .lemonfiber/0.16.0/aarch64-apple-darwin/lemonfiber rather "
-            f"than proving the candidate at .lemonfiber/0.16.0/{BUILD}/lemonfiber", said)
+            f"than proving the candidate at .lemonfiber/0.16.0/{BUILD}/lemonfiber",
+            said,
+        )
 
     def test_a_reader_that_does_not_finish_fails(self):
         self.manifest()
@@ -512,22 +545,66 @@ class PluginGate(unittest.TestCase):
         self.assertIn("not a plugin that passed", said)
 
     def test_a_checkout_argument_without_an_equals_cannot_answer(self):
-        code, said = run(["--version", "0.16.0", "--schema", "1", "--registry", str(self.registry),
-                          "--candidate", "lemonfiber", "--build", BUILD, "--reader", str(self.pinned),
-                          "--checkout", "nope"])
+        code, said = run(
+            [
+                "--version",
+                "0.16.0",
+                "--schema",
+                "1",
+                "--registry",
+                str(self.registry),
+                "--candidate",
+                "lemonfiber",
+                "--build",
+                BUILD,
+                "--reader",
+                str(self.pinned),
+                "--checkout",
+                "nope",
+            ]
+        )
         self.assertEqual(code, 2)
         self.assertIn("wants repo=path", said)
 
     def test_a_path_outside_the_working_tree_is_refused(self):
-        code, said = run(["--version", "0.16.0", "--schema", "1", "--registry", str(self.registry),
-                          "--candidate", "lemonfiber", "--build", BUILD, "--reader", str(self.pinned),
-                          "--checkout", "plugin-komga=/etc"])
+        code, said = run(
+            [
+                "--version",
+                "0.16.0",
+                "--schema",
+                "1",
+                "--registry",
+                str(self.registry),
+                "--candidate",
+                "lemonfiber",
+                "--build",
+                BUILD,
+                "--reader",
+                str(self.pinned),
+                "--checkout",
+                "plugin-komga=/etc",
+            ]
+        )
         self.assertEqual(code, 2)
         self.assertIn("escapes the working directory", said)
 
     def test_a_version_that_is_not_a_version_cannot_answer(self):
-        code, said = run(["--version", "0.16", "--schema", "1", "--registry", str(self.registry),
-                          "--candidate", "lemonfiber", "--build", BUILD, "--reader", str(self.pinned)])
+        code, said = run(
+            [
+                "--version",
+                "0.16",
+                "--schema",
+                "1",
+                "--registry",
+                str(self.registry),
+                "--candidate",
+                "lemonfiber",
+                "--build",
+                BUILD,
+                "--reader",
+                str(self.pinned),
+            ]
+        )
         self.assertEqual(code, 2)
         self.assertIn("wants X.Y.Z", said)
 
@@ -584,8 +661,9 @@ class PluginGate(unittest.TestCase):
     def test_an_unreadable_report_fails(self):
         self.targets()
         self.manifest()
-        self.reader("import pathlib\n"
-                    "(pathlib.Path(__file__).resolve().parents[2] / 'proofs.json').write_text('{')\n")
+        self.reader(
+            "import pathlib\n(pathlib.Path(__file__).resolve().parents[2] / 'proofs.json').write_text('{')\n"
+        )
         code, said = self.gate()
         self.assertEqual(code, 1)
         self.assertIn("proof report at", said)
@@ -691,8 +769,15 @@ class PluginGate(unittest.TestCase):
     def test_a_declaration_that_is_not_a_table_names_everything_it_lacks(self):
         self.targets()
         self.manifest()
-        self.report(proofs=[{"id": "claimed", "outcome": "failing-as-declared",
-                             "declared": ["fixtures/identity-anonymous.json"]}])
+        self.report(
+            proofs=[
+                {
+                    "id": "claimed",
+                    "outcome": "failing-as-declared",
+                    "declared": ["fixtures/identity-anonymous.json"],
+                }
+            ]
+        )
         code, said = self.gate()
         self.assertEqual(code, 1)
         self.assertIn("names no fixture, constraint, held, reason", said)

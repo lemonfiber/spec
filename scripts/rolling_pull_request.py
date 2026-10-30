@@ -83,8 +83,7 @@ ARM = (
 )
 
 DISARM = (
-    "mutation($id: ID!) "
-    "{ disablePullRequestAutoMerge(input: {pullRequestId: $id}) { clientMutationId } }"
+    "mutation($id: ID!) { disablePullRequestAutoMerge(input: {pullRequestId: $id}) { clientMutationId } }"
 )
 
 #: One call to the forge through `gh api`: the method, the path and the JSON
@@ -101,8 +100,13 @@ def gh(method: str, path: str, payload: dict | None = None) -> object:
     args = ["gh", "api", "--method", method, path]
     if payload is not None:
         args += ["--input", "-"]
-    done = subprocess.run(args, input=json.dumps(payload) if payload is not None else None,
-                          capture_output=True, text=True, check=True)
+    done = subprocess.run(
+        args,
+        input=json.dumps(payload) if payload is not None else None,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
     return json.loads(done.stdout) if done.stdout.strip() else {}
 
 
@@ -164,8 +168,11 @@ def own(pulls: list[dict], repo: str, branch: str) -> list[dict]:
         if at == repo and pull["head"]["ref"] == branch:
             found.append(pull)
         else:
-            print(f"#{pull['number']} is from {at or 'a deleted repository'}:{pull['head']['ref']}, "
-                  f"not {repo}:{branch}; it is not the bump's and is left alone", file=sys.stderr)
+            print(
+                f"#{pull['number']} is from {at or 'a deleted repository'}:{pull['head']['ref']}, "
+                f"not {repo}:{branch}; it is not the bump's and is left alone",
+                file=sys.stderr,
+            )
     return found
 
 
@@ -177,19 +184,24 @@ def the_bumps_commit(repo: str, branch: str, head: str, author: str, api: Api) -
     made = api("GET", f"repos/{repo}/commits/{head}", None)
     by = (made.get("author") or {}).get("login")
     if by != author or made["commit"]["verification"]["verified"] is not True:
-        raise Refused(f"{head} was not made and signed as {author} (its author is {by or 'nobody known'}), "
-                      "so it is not the bump's commit; nothing was edited")
+        raise Refused(
+            f"{head} was not made and signed as {author} (its author is {by or 'nobody known'}), "
+            "so it is not the bump's commit; nothing was edited"
+        )
 
 
-def edited_or_opened(repo: str, branch: str, head: str, author: str, title: str, body: str,
-                     labels: list[str], api: Api) -> dict:
+def edited_or_opened(
+    repo: str, branch: str, head: str, author: str, title: str, body: str, labels: list[str], api: Api
+) -> dict:
     """The bump's own open pull request, edited, or one opened where none is; anything else refused."""
     owner = repo.split("/")[0]
     query = urllib.parse.urlencode({"head": f"{owner}:{branch}", "state": "open", "per_page": PER_PAGE})
     found = own(api("GET", f"repos/{repo}/pulls?{query}", None), repo, branch)
     if len(found) > 1:
-        raise Refused(f"{len(found)} pull requests are open on {branch}: "
-                      f"{', '.join('#' + str(p['number']) for p in found)}; nothing was edited")
+        raise Refused(
+            f"{len(found)} pull requests are open on {branch}: "
+            f"{', '.join('#' + str(p['number']) for p in found)}; nothing was edited"
+        )
     if found:
         pull = caught_up(repo, found[0], head, api)
         wrong = wrong_with(pull, author, head)
@@ -201,7 +213,9 @@ def edited_or_opened(repo: str, branch: str, head: str, author: str, title: str,
     pull = api("POST", f"repos/{repo}/pulls", {"title": title, "head": branch, "base": BASE, "body": body})
     wrong = wrong_with(pull, author, head)
     if wrong:
-        raise Refused(f"the pull request just opened is not as asked: {wrong}; it is neither labelled nor armed")
+        raise Refused(
+            f"the pull request just opened is not as asked: {wrong}; it is neither labelled nor armed"
+        )
     if labels:
         api("POST", f"repos/{repo}/issues/{pull['number']}/labels", {"labels": labels})
     print(f"::notice::opened #{pull['number']} from {branch}, at {head}", file=sys.stderr)
@@ -212,16 +226,29 @@ def armed(pull: dict, head: str, auto_merge: bool, disarm: bool, api: Api) -> No
     """Arm the pull request at `head`, or switch its arming off, where asked; else leave it."""
     if auto_merge:
         graphql(api, ARM, {"id": pull["node_id"], "method": MERGE_METHOD, "head": head})
-        print(f"::notice::#{pull['number']} merges itself at {head} once its required checks pass",
-              file=sys.stderr)
+        print(
+            f"::notice::#{pull['number']} merges itself at {head} once its required checks pass",
+            file=sys.stderr,
+        )
     elif disarm and pull.get("auto_merge"):
         graphql(api, DISARM, {"id": pull["node_id"]})
-        print(f"::notice::#{pull['number']} no longer merges itself: its change wants reading",
-              file=sys.stderr)
+        print(
+            f"::notice::#{pull['number']} no longer merges itself: its change wants reading", file=sys.stderr
+        )
 
 
-def rolled(repo: str, branch: str, head: str, author: str, title: str, body: str,
-           labels: list[str], auto_merge: bool, api: Api, disarm: bool = False) -> int:
+def rolled(
+    repo: str,
+    branch: str,
+    head: str,
+    author: str,
+    title: str,
+    body: str,
+    labels: list[str],
+    auto_merge: bool,
+    api: Api,
+    disarm: bool = False,
+) -> int:
     """Open or edit the bump's pull request, arm or disarm it where asked, and return its number."""
     the_bumps_commit(repo, branch, head, author, api)
     pull = edited_or_opened(repo, branch, head, author, title, body, labels, api)
@@ -264,16 +291,27 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
         return 2
     try:
         body = sys.stdin.read()
-        number = rolled(args.repo, args.branch, args.head, args.author, args.title, body,
-                        [label.strip() for label in args.labels.split(",") if label.strip()], args.auto_merge, api,
-                        disarm=args.disarm)
+        number = rolled(
+            args.repo,
+            args.branch,
+            args.head,
+            args.author,
+            args.title,
+            body,
+            [label.strip() for label in args.labels.split(",") if label.strip()],
+            args.auto_merge,
+            api,
+            disarm=args.disarm,
+        )
     except Refused as refused:
         print(f"::error::{refused}.", file=sys.stderr)
         return 1
     except (OSError, subprocess.CalledProcessError, json.JSONDecodeError, KeyError, TypeError) as broken:
         detail = getattr(broken, "stderr", "") or broken
-        print(f"::error::The forge could not be read or written, so the pull request was left as it was: {detail}",
-              file=sys.stderr)
+        print(
+            f"::error::The forge could not be read or written, so the pull request was left as it was: {detail}",
+            file=sys.stderr,
+        )
         return 2
     print(number)
     return 0

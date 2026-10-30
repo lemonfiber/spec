@@ -76,9 +76,7 @@ def run(*argv: str) -> tuple[int, str, str]:
 
 class Checked(unittest.TestCase):
     def test_what_the_train_hands_over_is_taken(self):
-        self.assertEqual(
-            bundle_image_pin.checked("fence", REPOSITORY, IMAGE, "v0.18.0", DIGEST), "0.18.0"
-        )
+        self.assertEqual(bundle_image_pin.checked("fence", REPOSITORY, IMAGE, "v0.18.0", DIGEST), "0.18.0")
         self.assertEqual(
             bundle_image_pin.checked("fence", REPOSITORY, IMAGE, "v0.18.0-beta.1", DIGEST),
             "0.18.0-beta.1",
@@ -87,10 +85,18 @@ class Checked(unittest.TestCase):
     def test_anything_else_is_refused_naming_it(self):
         for args, said in [
             (("Fence", REPOSITORY, IMAGE, "v0.18.0", DIGEST), "not a service id"),
-            (("fence", "lemonfiber/plugin-sonarr", IMAGE, "v0.18.0", DIGEST),
-             "is not lemonfiber/lemonfiber-fence, the repository fence is built in"),
-            (("fence", "elsewhere/lemonfiber-fence", IMAGE, "v0.18.0", DIGEST), "is not lemonfiber/lemonfiber-fence"),
-            (("fence", REPOSITORY, "ghcr.io/else/fence", "v0.18.0", DIGEST), "is not ghcr.io/lemonfiber/fence"),
+            (
+                ("fence", "lemonfiber/plugin-sonarr", IMAGE, "v0.18.0", DIGEST),
+                "is not lemonfiber/lemonfiber-fence, the repository fence is built in",
+            ),
+            (
+                ("fence", "elsewhere/lemonfiber-fence", IMAGE, "v0.18.0", DIGEST),
+                "is not lemonfiber/lemonfiber-fence",
+            ),
+            (
+                ("fence", REPOSITORY, "ghcr.io/else/fence", "v0.18.0", DIGEST),
+                "is not ghcr.io/lemonfiber/fence",
+            ),
             (("fence", REPOSITORY, IMAGE, "0.18.0", DIGEST), "not a tag the train cuts"),
             (("fence", REPOSITORY, IMAGE, "v0.18.0-rc1", DIGEST), "not a tag the train cuts"),
             (("fence", REPOSITORY, IMAGE, "v0.18.0", "sha256:abc"), "not a sha256 digest"),
@@ -114,7 +120,7 @@ class Moved(unittest.TestCase):
         twice = BUNDLE + "\n[fence]\n"
         with self.assertRaisesRegex(bundle_image_pin.Refused, "holds 2"):
             bundle_image_pin.moved(twice, "fence", IMAGE, "0.18.0", DIGEST)
-        partial = "[fence]\nimage = \"x\"\n"
+        partial = '[fence]\nimage = "x"\n'
         with self.assertRaisesRegex(bundle_image_pin.Refused, "names no digest, tag"):
             bundle_image_pin.moved(partial, "fence", IMAGE, "0.18.0", DIGEST)
 
@@ -129,8 +135,21 @@ class Main(unittest.TestCase):
 
     def apply(self, tag: str = "v0.18.0", digest: str = DIGEST, repository: str = REPOSITORY):
         return run(
-            "apply", "--bundle", str(self.bundle), "--service", "fence", "--repository", repository,
-            "--image", IMAGE, "--tag", tag, "--digest", digest, "--message", str(self.message),
+            "apply",
+            "--bundle",
+            str(self.bundle),
+            "--service",
+            "fence",
+            "--repository",
+            repository,
+            "--image",
+            IMAGE,
+            "--tag",
+            tag,
+            "--digest",
+            digest,
+            "--message",
+            str(self.message),
         )
 
     def test_a_tag_moves_the_pin_and_writes_the_message(self):
@@ -179,8 +198,22 @@ class Main(unittest.TestCase):
 
     def test_it_runs_as_a_script(self):
         argv = [
-            "bundle_image_pin.py", "apply", "--bundle", str(self.bundle), "--service", "fence",
-            "--repository", REPOSITORY, "--image", IMAGE, "--tag", "v0.18.0", "--digest", DIGEST, "--message", str(self.message),
+            "bundle_image_pin.py",
+            "apply",
+            "--bundle",
+            str(self.bundle),
+            "--service",
+            "fence",
+            "--repository",
+            REPOSITORY,
+            "--image",
+            IMAGE,
+            "--tag",
+            "v0.18.0",
+            "--digest",
+            DIGEST,
+            "--message",
+            str(self.message),
         ]
         with (
             mock.patch.object(sys, "argv", argv),
@@ -213,8 +246,11 @@ class Workflow(unittest.TestCase):
         names = [one.get("name", one.get("uses", "")) for one in commit["steps"]]
         login = names.index("Log in to the registry, to read")
         moved = names.index("Move the table")
-        minted = next(index for index, name in enumerate(names) if "create-github-app-token" in name
-                      or name == "Mint a token that can commit to the bundle")
+        minted = next(
+            index
+            for index, name in enumerate(names)
+            if "create-github-app-token" in name or name == "Mint a token that can commit to the bundle"
+        )
         self.assertLess(login, moved)
         self.assertLess(moved, minted)
         self.assertIn("--repository", commit["steps"][moved]["run"])

@@ -25,6 +25,7 @@ Usage, from the root of the repository being checked::
 
 Exit 0 = every copy agrees with its home, 1 = at least one does not.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -77,14 +78,15 @@ CARRIED = {
     GATES: (
         "scripts",
         "gate scripts",
-        ("A gate script decides whether a branch merges, so a copy that is gone "
-         "is a merge gate that stopped running"),
+        (
+            "A gate script decides whether a branch merges, so a copy that is gone "
+            "is a merge gate that stopped running"
+        ),
     ),
     HOOKS: (
         ".githooks",
         "hooks",
-        ("A hook that is gone is a guard that stopped running in every clone "
-         "that had it turned on"),
+        ("A hook that is gone is a guard that stopped running in every clone that had it turned on"),
     ),
 }
 
@@ -114,16 +116,16 @@ def typos(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     got_words = got.get("default", {}).get("extend-words", {})
     if not want_words:
         return [
-            (f"shared/{TYPOS} extends no words, so every repository's copy would "
-             "pass this having been compared against nothing")
+            (
+                f"shared/{TYPOS} extends no words, so every repository's copy would "
+                "pass this having been compared against nothing"
+            )
         ]
     for word, value in want_words.items():
         if word not in got_words:
             problems.append(f"typos.toml is missing the shared word {word!r}")
         elif got_words[word] != value:
-            problems.append(
-                f"typos.toml maps {word!r} to {got_words[word]!r}, shared is {value!r}"
-            )
+            problems.append(f"typos.toml maps {word!r} to {got_words[word]!r}, shared is {value!r}")
 
     want_res = want.get("default", {}).get("extend-ignore-re", [])
     got_res = got.get("default", {}).get("extend-ignore-re", [])
@@ -169,14 +171,11 @@ def ruff(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     # exactly this without anything looking wrong.
     if not want_select:
         return [
-            (f"shared/{RUFF} selects no rules, so the floor every repository is "
-             "held to was read as empty")
+            (f"shared/{RUFF} selects no rules, so the floor every repository is held to was read as empty")
         ]
     for rule in want_select:
         if rule not in got_select:
-            problems.append(
-                f"ruff.toml does not select {rule!r}, which the shared config does"
-            )
+            problems.append(f"ruff.toml does not select {rule!r}, which the shared config does")
 
     want_ignore = want.get("lint", {}).get("ignore", [])
     got_ignore = got.get("lint", {}).get("ignore", [])
@@ -192,9 +191,7 @@ def ruff(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     want_width = want.get("line-length")
     got_width = got.get("line-length")
     if got_width is not None and want_width is not None and got_width > want_width:
-        problems.append(
-            f"ruff.toml allows {got_width} columns, shared allows {want_width}"
-        )
+        problems.append(f"ruff.toml allows {got_width} columns, shared allows {want_width}")
     return problems
 
 
@@ -219,14 +216,18 @@ def pointer(repo: pathlib.Path, canonical: pathlib.Path) -> list[str]:
     want = canonical / POINTER
     if not want.is_file():
         return [
-            (f"{POINTER} is not in the canonical checkout, so every repository's "
-             f"copy of it was compared against nothing")
+            (
+                f"{POINTER} is not in the canonical checkout, so every repository's "
+                f"copy of it was compared against nothing"
+            )
         ]
     text = want.read_bytes()
     if not text.strip():
         return [
-            (f"the canonical {POINTER} is empty, so every repository's copy would "
-             f"pass this having been compared against a blank file")
+            (
+                f"the canonical {POINTER} is empty, so every repository's copy would "
+                f"pass this having been compared against a blank file"
+            )
         ]
 
     problems = []
@@ -293,8 +294,7 @@ def assets(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str]:
         actual = hashlib.sha256(target.read_bytes()).hexdigest()
         if actual != digest:
             problems.append(
-                f"{path} differs from {home_repo}/{home_path}; "
-                f"copy it again rather than editing it here"
+                f"{path} differs from {home_repo}/{home_path}; copy it again rather than editing it here"
             )
     return problems
 
@@ -377,12 +377,7 @@ def codeowners(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[s
         check=False,
     )
     if written.returncode != 0:
-        return [
-            (
-                f"gen_codeowners.py could not generate for {name}: "
-                f"{written.stderr.strip() or 'no output'}"
-            )
-        ]
+        return [(f"gen_codeowners.py could not generate for {name}: {written.stderr.strip() or 'no output'}")]
     if not got.is_file():
         return [
             (
@@ -419,29 +414,32 @@ def register(canonical: pathlib.Path) -> tuple[dict, list[str]]:
     path = canonical / "shared" / ADOPTION
     if not path.is_file():
         return {}, [
-            (f"shared/{ADOPTION} is not here, so every repository reads as having "
-             f"adopted nothing, and every copy that has been deleted reads as one "
-             f"that was never taken")
+            (
+                f"shared/{ADOPTION} is not here, so every repository reads as having "
+                f"adopted nothing, and every copy that has been deleted reads as one "
+                f"that was never taken"
+            )
         ]
     try:
         held = tomllib.loads(path.read_text(encoding="utf-8"))
     except tomllib.TOMLDecodeError as unreadable:
         return {}, [
-            (f"shared/{ADOPTION} could not be read, so no repository's copies were "
-             f"held to a declaration: {unreadable}")
+            (
+                f"shared/{ADOPTION} could not be read, so no repository's copies were "
+                f"held to a declaration: {unreadable}"
+            )
         ]
     rows = held.get("repo", [])
     if not rows:
         return {}, [
-            (f"shared/{ADOPTION} names no repository, so every repository in the "
-             f"org would be refused as unknown and none would be compared")
+            (
+                f"shared/{ADOPTION} names no repository, so every repository in the "
+                f"org would be refused as unknown and none would be compared"
+            )
         ]
     named = {row.get("name", ""): row for row in rows}
     if "" in named:
-        return {}, [
-            (f"shared/{ADOPTION} holds a row with no `name`, which declares "
-             f"adoption for nobody")
-        ]
+        return {}, [(f"shared/{ADOPTION} holds a row with no `name`, which declares adoption for nobody")]
     return named, []
 
 
@@ -468,48 +466,53 @@ def unregistered(canonical: pathlib.Path, rows: dict) -> list[str]:
     listed = canonical / ORG
     if not listed.is_file():
         return [
-            (f"{ORG} is not here, so shared/{ADOPTION} was compared against no "
-             f"list of repositories and a missing row could not be seen")
+            (
+                f"{ORG} is not here, so shared/{ADOPTION} was compared against no "
+                f"list of repositories and a missing row could not be seen"
+            )
         ]
     read = tomllib.loads(listed.read_text(encoding="utf-8"))
-    known = [
-        one.get("name", "")
-        for table in ORG_TABLES
-        for one in read.get(table, [])
-    ]
+    known = [one.get("name", "") for table in ORG_TABLES for one in read.get(table, [])]
     if not known:
         return [
-            (f"{ORG} names no repository, so shared/{ADOPTION} was compared "
-             f"against nothing and any row could be missing from it")
+            (
+                f"{ORG} names no repository, so shared/{ADOPTION} was compared "
+                f"against nothing and any row could be missing from it"
+            )
         ]
     problems = [
-        (f"{one} is a repository in {ORG} with no row in shared/{ADOPTION}, so "
-         f"nothing records which shared gates and hooks it carries. Add a row "
-         f"naming them, an empty list included (Q-R74)")
-        for one in known if one not in rows
+        (
+            f"{one} is a repository in {ORG} with no row in shared/{ADOPTION}, so "
+            f"nothing records which shared gates and hooks it carries. Add a row "
+            f"naming them, an empty list included (Q-R74)"
+        )
+        for one in known
+        if one not in rows
     ]
     problems += [
-        (f"shared/{ADOPTION} holds a row for {one}, which is not a repository "
-         f"{ORG} lists in either of its tables. A row nothing is ever checked "
-         f"against is a declaration about nobody")
-        for one in rows if one not in known
+        (
+            f"shared/{ADOPTION} holds a row for {one}, which is not a repository "
+            f"{ORG} lists in either of its tables. A row nothing is ever checked "
+            f"against is a declaration about nobody"
+        )
+        for one in rows
+        if one not in known
     ]
     for holds in sorted(CARRIED):
-        held = {
-            one.name for one in (canonical / "shared" / holds).iterdir() if one.is_file()
-        }
+        held = {one.name for one in (canonical / "shared" / holds).iterdir() if one.is_file()}
         problems += [
-            (f"shared/{ADOPTION} says {who} carries {holds}/{gone}, which "
-             f"shared/{holds}/ does not hold. A row naming a file that is not "
-             f"there is compared against nothing")
+            (
+                f"shared/{ADOPTION} says {who} carries {holds}/{gone}, which "
+                f"shared/{holds}/ does not hold. A row naming a file that is not "
+                f"there is compared against nothing"
+            )
             for who, row in rows.items()
             for gone in sorted(set(row.get(holds, [])) - held)
         ]
     return problems
 
 
-def copies(repo: pathlib.Path, canonical: pathlib.Path, name: str, row: dict,
-           holds: str) -> list[str]:
+def copies(repo: pathlib.Path, canonical: pathlib.Path, name: str, row: dict, holds: str) -> list[str]:
     """One canonical directory's members, against what this repository declares.
 
     Three answers rather than two. A file declared and present is compared byte
@@ -525,17 +528,12 @@ def copies(repo: pathlib.Path, canonical: pathlib.Path, name: str, row: dict,
     compared nowhere.
     """
     where, kind, cost = CARRIED[holds]
-    names = sorted(
-        one.name for one in (canonical / "shared" / holds).iterdir() if one.is_file()
-    )
+    names = sorted(one.name for one in (canonical / "shared" / holds).iterdir() if one.is_file())
     # An empty directory is zero comparisons and a clean report, which reads as
     # the copies matching — about every repository in the org, and about files
     # that decide merges.
     if not names:
-        return [
-            (f"shared/{holds}/ holds no file, so no repository's {kind} were "
-             f"compared against anything")
-        ]
+        return [(f"shared/{holds}/ holds no file, so no repository's {kind} were compared against anything")]
     declared = set(row.get(holds, []))
     complaints = []
     for one in names:
@@ -558,14 +556,11 @@ def copies(repo: pathlib.Path, canonical: pathlib.Path, name: str, row: dict,
             )
             continue
         if got.read_bytes() != want.read_bytes():
-            complaints.append(
-                f"{where}/{one} differs from the canonical copy; replace it with {want}"
-            )
+            complaints.append(f"{where}/{one} differs from the canonical copy; replace it with {want}")
     return complaints
 
 
-def hooks(repo: pathlib.Path, canonical: pathlib.Path, name: str,
-          row: dict) -> list[str]:
+def hooks(repo: pathlib.Path, canonical: pathlib.Path, name: str, row: dict) -> list[str]:
     """The hooks this repository declares it carries.
 
     Adopted rather than required: a repository that has not turned hooks on is
@@ -575,8 +570,7 @@ def hooks(repo: pathlib.Path, canonical: pathlib.Path, name: str,
     return copies(repo, canonical, name, row, HOOKS)
 
 
-def gates(repo: pathlib.Path, canonical: pathlib.Path, name: str,
-          row: dict) -> list[str]:
+def gates(repo: pathlib.Path, canonical: pathlib.Path, name: str, row: dict) -> list[str]:
     """The gate scripts this repository declares it carries.
 
     Held to the same three answers as the hooks, and it matters more here. These
@@ -606,19 +600,23 @@ def adoption(repo: pathlib.Path, canonical: pathlib.Path, name: str) -> list[str
     if not name:
         return [
             *structure,
-            (f"--repo was not given, so shared/{ADOPTION} could not be read for "
-             f"this repository and its gates and hooks were compared against "
-             f"nothing"),
+            (
+                f"--repo was not given, so shared/{ADOPTION} could not be read for "
+                f"this repository and its gates and hooks were compared against "
+                f"nothing"
+            ),
         ]
     if name not in rows:
         return [
             *structure,
-            (f"{name} has no row in shared/{ADOPTION}, so whether it has adopted "
-             f"any shared gate or hook is recorded nowhere — and an unknown "
-             f"repository is exactly the silence a conditional check reads as a "
-             f"pass. Add a row naming what it carries, an empty list included, "
-             f"and name the repository in {ORG} too if neither of its tables "
-             f"holds it yet (Q-R74)"),
+            (
+                f"{name} has no row in shared/{ADOPTION}, so whether it has adopted "
+                f"any shared gate or hook is recorded nowhere — and an unknown "
+                f"repository is exactly the silence a conditional check reads as a "
+                f"pass. Add a row naming what it carries, an empty list included, "
+                f"and name the repository in {ORG} too if neither of its tables "
+                f"holds it yet (Q-R74)"
+            ),
         ]
     return [
         *structure,
@@ -653,10 +651,7 @@ def unaccounted(canonical: pathlib.Path) -> list[str]:
     repository has ever carried. A gate that cries about a cache is a gate people
     learn to run past.
     """
-    held = {
-        one.name for one in (canonical / "shared").iterdir()
-        if not one.name.startswith(".")
-    }
+    held = {one.name for one in (canonical / "shared").iterdir() if not one.name.startswith(".")}
     missed = sorted(held - COMPARED - NOT_A_COPY)
     if not missed:
         return []
@@ -698,10 +693,12 @@ def main() -> int:
             print(f"::error::{problem}")
         print(f"\n{len(problems)} shared file(s) out of step with {canonical / 'shared'}.")
         return 1
-    print("shared files: lint configs, brand assets, the agent pointer and CODEOWNERS "
-          "match their one home, the hooks and gate scripts here are the ones "
-          "this repository declares, and every workflow a pull request runs "
-          "carries the concurrency group")
+    print(
+        "shared files: lint configs, brand assets, the agent pointer and CODEOWNERS "
+        "match their one home, the hooks and gate scripts here are the ones "
+        "this repository declares, and every workflow a pull request runs "
+        "carries the concurrency group"
+    )
     return 0
 
 

@@ -63,6 +63,7 @@ name the reader looks for on the machine it runs on.
 Exit 0 = every plugin that rides this version validates, or none rides it;
 1 = named plugins do not; 2 = the question could not be answered.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -291,8 +292,7 @@ def declared(plugin: str, proof: dict) -> tuple[list[str], list[str]]:
         missing = [field for field in DECLARED if entry.get(field) in (None, "")]
         if missing:
             problems.append(
-                f"{plugin}'s proof {named} is {AS_DECLARED} and its declaration "
-                f"names no {', '.join(missing)}"
+                f"{plugin}'s proof {named} is {AS_DECLARED} and its declaration names no {', '.join(missing)}"
             )
             continue
         place = f" at {entry['place']}" if entry.get("place") else ""
@@ -365,8 +365,9 @@ def transcript(plugin: str, said: str) -> None:
 
 def why_unrun(ran: subprocess.CompletedProcess) -> str:
     """The reader's own account of why it wrote no report."""
-    errors = [line.removeprefix("::error::") for line in ran.stdout.splitlines()
-              if line.startswith("::error::")]
+    errors = [
+        line.removeprefix("::error::") for line in ran.stdout.splitlines() if line.startswith("::error::")
+    ]
     if errors:
         return "; ".join(errors)
     last = ran.stderr.strip().splitlines()
@@ -387,13 +388,18 @@ def prove(root: pathlib.Path, entry: dict, version: str, sources: Sources) -> tu
             # Isolated: neither the reader's directory nor the environment's Python
             # settings decide what it imports.
             [sys.executable, "-I", str(reader), "proofs"],
-            cwd=root, capture_output=True, text=True, timeout=PROOFS_TIMEOUT_S, check=False,
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=PROOFS_TIMEOUT_S,
+            check=False,
         )
     except subprocess.TimeoutExpired:
         return [f"{plugin}'s proofs did not finish within {PROOFS_TIMEOUT_S} seconds"], 1
     transcript(plugin, ran.stdout + ran.stderr)
     fetched = sorted(
-        str(path.relative_to(root)) for path in (root / CACHE).rglob(BINARY)
+        str(path.relative_to(root))
+        for path in (root / CACHE).rglob(BINARY)
         if path.is_file() and path != held
     )
     if fetched:
@@ -418,10 +424,7 @@ def check_report(root: pathlib.Path, entry: dict, version: str) -> tuple[list[st
         return [why], []
     against = report.get("lemonfiber")
     if against != version:
-        elsewhere = (
-            f"{plugin}'s proofs were run against {against or 'nothing stated'}, "
-            f"not {version}"
-        )
+        elsewhere = f"{plugin}'s proofs were run against {against or 'nothing stated'}, not {version}"
         return [elsewhere], []
     proofs = report.get("proofs")
     if not proofs:
@@ -441,9 +444,7 @@ def check_report(root: pathlib.Path, entry: dict, version: str) -> tuple[list[st
             problems.extend(wrong)
             named.extend(lines)
             continue
-        problems.append(
-            f"{plugin}'s proof {proof.get('id', '(unnamed)')} is {outcome or 'not stated'}"
-        )
+        problems.append(f"{plugin}'s proof {proof.get('id', '(unnamed)')} is {outcome or 'not stated'}")
     return problems, named
 
 
@@ -550,10 +551,7 @@ def main() -> int:
         return 1
     print(f"plugins ok: {gated} of {len(entries)} ride {a.version}, all proved with the candidate.")
     if named:
-        print(
-            f"{len(named)} proof(s) fail as declared, named above; "
-            "none is counted as passed (OPS-R72)."
-        )
+        print(f"{len(named)} proof(s) fail as declared, named above; none is counted as passed (OPS-R72).")
     return 0
 
 

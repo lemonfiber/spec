@@ -23,8 +23,17 @@ sys.path.insert(0, str(SCRIPTS))
 
 import image_inputs  # noqa: E402
 
-GIT = ("git", "-c", "user.name=test", "-c", "user.email=test@invalid", "-c", "commit.gpgsign=false",
-       "-c", "core.hooksPath=/dev/null")
+GIT = (
+    "git",
+    "-c",
+    "user.name=test",
+    "-c",
+    "user.email=test@invalid",
+    "-c",
+    "commit.gpgsign=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+)
 DOCKERFILE = """\
 # The image.
 FROM rust:1@sha256:{zero} AS build
@@ -44,8 +53,10 @@ class Sources(unittest.TestCase):
     """What a `Dockerfile` takes from its build context."""
 
     def test_copy_and_add_take_their_sources_and_nothing_else(self):
-        self.assertEqual(image_inputs.sources(DOCKERFILE),
-                         ["Cargo.toml", "Cargo.lock", "src", "config/caddy/*.json", "assets/a b"])
+        self.assertEqual(
+            image_inputs.sources(DOCKERFILE),
+            ["Cargo.toml", "Cargo.lock", "src", "config/caddy/*.json", "assets/a b"],
+        )
 
     def test_a_source_takes_itself_what_is_under_it_and_what_its_pattern_matches(self):
         self.assertTrue(image_inputs.taken("src/main.rs", "src"))
@@ -86,8 +97,9 @@ class Pushed(unittest.TestCase):
     def commit(self) -> str:
         subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
         subprocess.run([*GIT, "commit", "--quiet", "--allow-empty", "-m", "c"], cwd=self.root, check=True)
-        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True, text=True,
-                              check=True).stdout.strip()
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=self.root, capture_output=True, text=True, check=True
+        ).stdout.strip()
 
     def ran(self, *args: str) -> tuple[int, str, str]:
         out, err = io.StringIO(), io.StringIO()
@@ -109,7 +121,9 @@ class Pushed(unittest.TestCase):
                 self.assertEqual(self.asked(path), "yes")
 
     def test_documents_workflows_and_anything_else_are_not(self):
-        self.assertEqual(self.asked("README.md", "AGENTS.md", ".github/workflows/image.yml", "typos.toml"), "no")
+        self.assertEqual(
+            self.asked("README.md", "AGENTS.md", ".github/workflows/image.yml", "typos.toml"), "no"
+        )
         self.assertEqual(self.asked(), "no")
 
     def test_a_context_in_a_directory_is_read_there(self):
@@ -136,13 +150,15 @@ class Pushed(unittest.TestCase):
 
     def test_a_commit_or_a_context_git_could_read_otherwise_is_refused_before_git_is_asked(self):
         after = self.commit()
-        for args in (("--before", self.before, "--after=--output=x"),
-                     ("--before=-p", "--after", after),
-                     ("--before", self.before, "--after", "HEAD"),
-                     ("--before", self.before, "--after", after, "--directory=-door"),
-                     ("--before", self.before, "--after", after, "--directory", "../door"),
-                     ("--before", self.before, "--after", after, "--directory", "door/../.."),
-                     ("--before", self.before, "--after", after, "--directory", "/door")):
+        for args in (
+            ("--before", self.before, "--after=--output=x"),
+            ("--before=-p", "--after", after),
+            ("--before", self.before, "--after", "HEAD"),
+            ("--before", self.before, "--after", after, "--directory=-door"),
+            ("--before", self.before, "--after", after, "--directory", "../door"),
+            ("--before", self.before, "--after", after, "--directory", "door/../.."),
+            ("--before", self.before, "--after", after, "--directory", "/door"),
+        ):
             with self.subTest(args=args):
                 code, out, err = self.ran(*args)
                 self.assertEqual((code, out), (1, ""))

@@ -44,6 +44,7 @@ Prints one repository per line; `images` prints `<repo>\t<service>\t<image>`,
 registry entry that breaks ADR-0033 §1 or OPS-R86, or a manifest that cuts the
 core without a first-party plugin, 2 = usage.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -94,7 +95,7 @@ RETIRED = "retired"
 #: every version cuts each first-party plugin.
 CORE = "lemonfiber"
 #: The states after which a manifest is a record rather than a plan.
-SETTLED = STATES[STATES.index("released"):]
+SETTLED = STATES[STATES.index("released") :]
 
 
 def cut(data: dict) -> list[str]:
@@ -132,8 +133,10 @@ def image_repos(registry: dict) -> dict[str, str]:
         if not SERVICE_ID.match(service):
             sys.exit(f"::error::{REGISTRY}: {name}'s {SERVICE} {service!r} is not a service id")
         if name != f"{REPO_PREFIX}{service}":
-            sys.exit(f"::error::{REGISTRY}: {name} builds {service!r}, so ADR-0033 §1 names it "
-                     f"{REPO_PREFIX}{service}")
+            sys.exit(
+                f"::error::{REGISTRY}: {name} builds {service!r}, so ADR-0033 §1 names it "
+                f"{REPO_PREFIX}{service}"
+            )
         found[name] = service
     return found
 
@@ -154,13 +157,16 @@ def plugin_repos(registry: dict) -> dict[str, str]:
         if not PLUGIN_ID.match(plugin):
             sys.exit(f"::error::{REGISTRY}: {name}'s {PLUGIN} {plugin!r} is not a plugin id")
         if name != f"{PLUGIN_PREFIX}{plugin}":
-            sys.exit(f"::error::{REGISTRY}: {name} publishes {plugin!r}, so it is named "
-                     f"{PLUGIN_PREFIX}{plugin}")
+            sys.exit(
+                f"::error::{REGISTRY}: {name} publishes {plugin!r}, so it is named {PLUGIN_PREFIX}{plugin}"
+            )
         if SERVICE in entry:
             sys.exit(f"::error::{REGISTRY}: {name} carries both {SERVICE} and {PLUGIN}")
         if not isinstance(entry.get(BUILDS), bool):
-            sys.exit(f"::error::{REGISTRY}: {name} carries {PLUGIN} and does not say "
-                     f"`{BUILDS} = true` or `{BUILDS} = false`")
+            sys.exit(
+                f"::error::{REGISTRY}: {name} carries {PLUGIN} and does not say "
+                f"`{BUILDS} = true` or `{BUILDS} = false`"
+            )
         found[name] = plugin
     return found
 
@@ -180,14 +186,19 @@ def pinned_repos(registry: dict) -> dict[str, str]:
             continue
         name, pinned = str(entry.get("name", "")), str(entry[PINNED_IN])
         if pinned not in plugins:
-            sys.exit(f"::error::{REGISTRY}: {name}'s {PINNED_IN} {pinned!r} is no first-party "
-                     "plugin's repository")
+            sys.exit(
+                f"::error::{REGISTRY}: {name}'s {PINNED_IN} {pinned!r} is no first-party plugin's repository"
+            )
         if name != f"{REPO_PREFIX}{plugins[pinned]}":
-            sys.exit(f"::error::{REGISTRY}: {name} builds the upstream of {pinned}, so it is "
-                     f"named {REPO_PREFIX}{plugins[pinned]}")
+            sys.exit(
+                f"::error::{REGISTRY}: {name} builds the upstream of {pinned}, so it is "
+                f"named {REPO_PREFIX}{plugins[pinned]}"
+            )
         if SERVICE in entry or PLUGIN in entry:
-            sys.exit(f"::error::{REGISTRY}: {name} carries {PINNED_IN} beside {SERVICE} or "
-                     f"{PLUGIN}, and the train cuts no repository it names")
+            sys.exit(
+                f"::error::{REGISTRY}: {name} carries {PINNED_IN} beside {SERVICE} or "
+                f"{PLUGIN}, and the train cuts no repository it names"
+            )
         found[name] = pinned
     return found
 
@@ -196,10 +207,11 @@ def train_plugins(registry: dict) -> dict[str, str]:
     """The first-party plugins whose repository builds an image, which the train tags:
     every repository building a stack service's image, by its service, and every
     `plugin-<id>` saying `image = true`."""
-    building = {str(entry.get("name", "")) for entry in registry.get("repo", [])
-                if entry.get(BUILDS) is True}
-    return {**image_repos(registry),
-            **{name: plugin for name, plugin in plugin_repos(registry).items() if name in building}}
+    building = {str(entry.get("name", "")) for entry in registry.get("repo", []) if entry.get(BUILDS) is True}
+    return {
+        **image_repos(registry),
+        **{name: plugin for name, plugin in plugin_repos(registry).items() if name in building},
+    }
 
 
 def images(data: dict, registry: dict) -> list[tuple[str, str, str]]:
@@ -244,8 +256,10 @@ def retired_cut(data: dict, registry: dict) -> list[str]:
 
 def unlisted(missing: list[str]) -> str:
     """What is wrong with a manifest that cuts the core without `missing`."""
-    return (f"cuts {CORE} and not {', '.join(missing)}; every version that cuts the core "
-            "cuts each first-party plugin that builds an image (OPS-R86)")
+    return (
+        f"cuts {CORE} and not {', '.join(missing)}; every version that cuts the core "
+        "cuts each first-party plugin that builds an image (OPS-R86)"
+    )
 
 
 def manifest_for(version: str) -> pathlib.Path:
@@ -261,8 +275,9 @@ def manifest_for(version: str) -> pathlib.Path:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--version", required=True)
-    ap.add_argument("--for", dest="asked", required=True,
-                    choices=("cut", "searched", "images", "plugins", "others"))
+    ap.add_argument(
+        "--for", dest="asked", required=True, choices=("cut", "searched", "images", "plugins", "others")
+    )
     a = ap.parse_args()
 
     path = manifest_for(a.version)
@@ -274,16 +289,22 @@ def main() -> int:
         registry = tomllib.loads(REGISTRY.read_text(encoding="utf-8"))
         cut_pinned = [name for name in cut(data) if name in pinned_repos(registry)]
         if cut_pinned:
-            print(f"::error::{path.name} cuts {', '.join(cut_pinned)}, which the train never "
-                  "cuts: the plugin running each image pins it (OPS-R93)", file=sys.stderr)
+            print(
+                f"::error::{path.name} cuts {', '.join(cut_pinned)}, which the train never "
+                "cuts: the plugin running each image pins it (OPS-R93)",
+                file=sys.stderr,
+            )
             return 1
         missing = unlisted_plugins(data, registry)
         if missing:
             print(f"::error::{path.name} {unlisted(missing)}", file=sys.stderr)
             return 1
         listed = {"images": images, "plugins": plugins}
-        rows = (["\t".join(row) for row in listed[a.asked](data, registry)] if a.asked in listed
-                else others(data, registry))
+        rows = (
+            ["\t".join(row) for row in listed[a.asked](data, registry)]
+            if a.asked in listed
+            else others(data, registry)
+        )
         if rows:
             print("\n".join(rows))
         return 0

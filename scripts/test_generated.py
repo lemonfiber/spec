@@ -65,9 +65,7 @@ class TheRegistry(unittest.TestCase):
         out = io.StringIO()
         self.assertEqual(generated.listing(out), 0)
         rows = [line.split("\t") for line in out.getvalue().splitlines()]
-        self.assertEqual(
-            len(rows), sum(len(e.every()) for e in generated.GENERATED)
-        )
+        self.assertEqual(len(rows), sum(len(e.every()) for e in generated.GENERATED))
         self.assertIn(
             ["30-repos/README.md", "scripts/gen_repos.py", "python3 scripts/gen_repos.py"],
             rows,
@@ -106,8 +104,9 @@ class TheSilences(unittest.TestCase):
 
     def test_a_git_that_cannot_answer_refuses(self):
         out = io.StringIO()
-        with mock.patch.object(generated, "run", return_value=None), mock.patch.object(
-            generated, "moved", return_value=None
+        with (
+            mock.patch.object(generated, "run", return_value=None),
+            mock.patch.object(generated, "moved", return_value=None),
         ):
             self.assertEqual(generated.check(out), 1)
         self.assertIn("compared nothing", out.getvalue())
@@ -122,15 +121,17 @@ class TheRun(unittest.TestCase):
 
     def test_a_tree_that_matches_passes(self):
         out = io.StringIO()
-        with mock.patch.object(generated, "run", return_value=None), mock.patch.object(
-            generated, "moved", return_value=[]
+        with (
+            mock.patch.object(generated, "run", return_value=None),
+            mock.patch.object(generated, "moved", return_value=[]),
         ):
             self.assertEqual(generated.check(out), 0)
 
     def test_a_file_that_moved_is_refused_with_its_owner_named(self):
         out = io.StringIO()
-        with mock.patch.object(generated, "run", return_value=None), mock.patch.object(
-            generated, "moved", return_value=["30-repos/README.md"]
+        with (
+            mock.patch.object(generated, "run", return_value=None),
+            mock.patch.object(generated, "moved", return_value=["30-repos/README.md"]),
         ):
             self.assertEqual(generated.check(out), 1)
         self.assertIn("scripts/gen_repos.py", out.getvalue())
@@ -162,9 +163,7 @@ class TheRun(unittest.TestCase):
         changed = mock.Mock(returncode=0, stdout="a.md\n")
         untracked = mock.Mock(returncode=0, stdout="new/board.json\na.md\n")
         with mock.patch.object(generated, "_git", side_effect=[changed, untracked]):
-            self.assertEqual(
-                generated.moved(["a.md", "new/board.json"]), ["a.md", "new/board.json"]
-            )
+            self.assertEqual(generated.moved(["a.md", "new/board.json"]), ["a.md", "new/board.json"])
 
     def test_moved_says_nothing_when_git_cannot_list_untracked_files(self):
         changed = mock.Mock(returncode=0, stdout="")
@@ -191,13 +190,14 @@ class FoundByShape(unittest.TestCase):
                 (root / area).mkdir()
                 (root / area / "board.json").write_text("{}", encoding="utf-8")
             entry = generated.Generated(
-                generator="g.py", recipe="r", paths=("index.json",), owns="o",
+                generator="g.py",
+                recipe="r",
+                paths=("index.json",),
+                owns="o",
                 patterns=("*/board.json",),
             )
             with mock.patch.object(generated, "ROOT", root):
-                self.assertEqual(
-                    entry.every(), ["index.json", "a-one/board.json", "b-two/board.json"]
-                )
+                self.assertEqual(entry.every(), ["index.json", "a-one/board.json", "b-two/board.json"])
                 with mock.patch.object(generated, "GENERATED", (entry,)):
                     self.assertIs(generated.owner_of("b-two/board.json"), entry)
 
@@ -212,9 +212,10 @@ class TheBanner(unittest.TestCase):
 
     def test_a_file_that_does_not_name_its_generator_is_refused(self):
         out = io.StringIO()
-        with mock.patch.object(
-            generated, "unbannered", return_value=["thing.md"]
-        ), mock.patch.object(generated, "GENERATED", (ONE,)):
+        with (
+            mock.patch.object(generated, "unbannered", return_value=["thing.md"]),
+            mock.patch.object(generated, "GENERATED", (ONE,)),
+        ):
             self.assertEqual(generated.banners(out), 1)
         self.assertIn("thing.md", out.getvalue())
         self.assertIn("scripts/gen_thing.py", out.getvalue())
@@ -244,17 +245,17 @@ class TheBanner(unittest.TestCase):
     def test_a_banner_inside_the_window_counts(self):
         with tempfile.TemporaryDirectory() as where:
             root = pathlib.Path(where)
-            (root / "thing.md").write_text(
-                "# Thing\n\nwritten by scripts/gen_thing.py\n", encoding="utf-8"
-            )
+            (root / "thing.md").write_text("# Thing\n\nwritten by scripts/gen_thing.py\n", encoding="utf-8")
             with mock.patch.object(generated, "ROOT", root):
                 self.assertEqual(generated.unbannered(ONE), [])
 
     def test_the_check_runs_the_banner_rule_after_the_diff(self):
         out = io.StringIO()
-        with mock.patch.object(generated, "run", return_value=None), mock.patch.object(
-            generated, "moved", return_value=[]
-        ), mock.patch.object(generated, "banners", return_value=1) as looked:
+        with (
+            mock.patch.object(generated, "run", return_value=None),
+            mock.patch.object(generated, "moved", return_value=[]),
+            mock.patch.object(generated, "banners", return_value=1) as looked,
+        ):
             self.assertEqual(generated.check(out), 1)
         looked.assert_called_once()
 

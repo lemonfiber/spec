@@ -56,9 +56,7 @@ def tree(features: list[tuple[str, str]], versions: list[tuple[str, str, str]]) 
     where = root / gate.FEATURES / "x-area"
     where.mkdir(parents=True)
     for fid, extra in features:
-        (where / f"{fid.lower()}.md").write_text(
-            FEATURE.format(fid=fid, extra=extra), encoding="utf-8"
-        )
+        (where / f"{fid.lower()}.md").write_text(FEATURE.format(fid=fid, extra=extra), encoding="utf-8")
     plans = root / gate.VERSIONS
     plans.mkdir(parents=True)
     for version, status, goals in versions:
@@ -135,9 +133,7 @@ class WhatItRefuses(unittest.TestCase):
         self.assertIn("X2 ships in 0.2.0 but requires X3, which lands in 0.3.0", said)
 
     def test_a_feature_requiring_one_no_version_schedules(self):
-        code, said = run(
-            tree([KNOWN, ("X2", "requires: [X9]\n")], [FIRST, ("0.2.0", "planned", '"X2-R1"')])
-        )
+        code, said = run(tree([KNOWN, ("X2", "requires: [X9]\n")], [FIRST, ("0.2.0", "planned", '"X2-R1"')]))
         self.assertEqual(code, 1)
         self.assertIn("requires X9, which no version schedules", said)
 

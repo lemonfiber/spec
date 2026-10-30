@@ -85,8 +85,14 @@ SHA = "b" * 40
 DIGEST = "sha256:" + "a" * 64
 
 #: What lets the core's checkout take a submodule from a local remote, and the owner it is asked for.
-ALLOWED = MappingProxyType({"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow",
-                            "GIT_CONFIG_VALUE_0": "always", "OWNER": "o"})
+ALLOWED = MappingProxyType(
+    {
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "protocol.file.allow",
+        "GIT_CONFIG_VALUE_0": "always",
+        "OWNER": "o",
+    }
+)
 
 #: Stands in for `docker buildx imagetools inspect <ref> --format ...`.
 DOCKER = f"""#!/bin/sh
@@ -154,7 +160,9 @@ class TheWiring(unittest.TestCase):
     def test_the_step_is_settled_before_anything_reads_it(self):
         self.assertLess(position("execute-version.yml", STEP), position("execute-version.yml", PINS))
         self.assertLess(position("execute-version.yml", PINS), position("execute-version.yml", TAG_LOOP))
-        self.assertLess(position("prerelease-version.yml", PRE_STEP), position("prerelease-version.yml", TAG_LOOP))
+        self.assertLess(
+            position("prerelease-version.yml", PRE_STEP), position("prerelease-version.yml", TAG_LOOP)
+        )
 
     def test_the_pin_checks_run_in_the_release_s_second_step_only(self):
         for name in (PINS, BUNDLE):
@@ -167,15 +175,21 @@ class TheWiring(unittest.TestCase):
     def test_a_pre_release_reads_no_bundle_or_image_pin(self):
         """A pre-release is what the plugins are built against, so its bundle may pin them by
         revision alone (OPS-R86), and nothing here asks otherwise."""
-        self.assertFalse([one for one in steps("prerelease-version.yml")
-                          if str(one.get("name", "")).startswith((BUNDLE, PINS))
-                          or "check_bundle_pins.py" in str(one.get("run", ""))
-                          or "check_image_pins.py" in str(one.get("run", ""))])
+        self.assertFalse(
+            [
+                one
+                for one in steps("prerelease-version.yml")
+                if str(one.get("name", "")).startswith((BUNDLE, PINS))
+                or "check_bundle_pins.py" in str(one.get("run", ""))
+                or "check_image_pins.py" in str(one.get("run", ""))
+            ]
+        )
 
     def test_a_pre_release_is_one_run(self):
         """It tags no first-party plugin, so nothing it does waits on a step."""
-        self.assertFalse([one["name"] for one in steps("prerelease-version.yml")
-                          if "steps.step.outputs" in str(one)])
+        self.assertFalse(
+            [one["name"] for one in steps("prerelease-version.yml") if "steps.step.outputs" in str(one)]
+        )
 
     def test_a_pre_release_passes_the_gates_a_release_passes(self):
         """The same goal gate and no-stub gate, refusing alike, before anything is recorded or
@@ -186,9 +200,13 @@ class TheWiring(unittest.TestCase):
                 self.assertEqual(ours["run"], theirs["run"])
                 self.assertNotIn("continue-on-error", ours)
                 self.assertNotIn("if", ours)
-                self.assertLess(position("prerelease-version.yml", PRE_STEP), position("prerelease-version.yml", name))
+                self.assertLess(
+                    position("prerelease-version.yml", PRE_STEP), position("prerelease-version.yml", name)
+                )
                 for after in (RECORDS[0], TAG_LOOP):
-                    self.assertLess(position("prerelease-version.yml", name), position("prerelease-version.yml", after))
+                    self.assertLess(
+                        position("prerelease-version.yml", name), position("prerelease-version.yml", after)
+                    )
 
     def test_what_is_tagged_and_what_declares_are_the_lists_the_step_wrote(self):
         """`repos.txt` is everything the version cuts, which neither step tags."""
@@ -207,11 +225,16 @@ class TheWiring(unittest.TestCase):
         """A re-run after the record reached main goes straight to the check and the tag."""
         for name in RECORDS:
             self.assertIn("steps.read.outputs.recorded != 'true'", step("prerelease-version.yml", name)["if"])
-        self.assertEqual(step("prerelease-version.yml", RECORDED)["if"],
-                         "${{ steps.read.outputs.recorded == 'true' }}")
+        self.assertEqual(
+            step("prerelease-version.yml", RECORDED)["if"], "${{ steps.read.outputs.recorded == 'true' }}"
+        )
         for before in ("Cross-stream compatibility", "Read the pins these artefacts will carry"):
-            self.assertLess(position("prerelease-version.yml", before), position("prerelease-version.yml", RECORDED))
-        self.assertLess(position("prerelease-version.yml", RECORDED), position("prerelease-version.yml", TAG_LOOP))
+            self.assertLess(
+                position("prerelease-version.yml", before), position("prerelease-version.yml", RECORDED)
+            )
+        self.assertLess(
+            position("prerelease-version.yml", RECORDED), position("prerelease-version.yml", TAG_LOOP)
+        )
 
 
 class TheSteps(unittest.TestCase):
@@ -224,25 +247,42 @@ class TheSteps(unittest.TestCase):
         (self.root / "scripts").symlink_to(HERE)
         (self.root / "30-repos").mkdir()
         (self.root / "30-repos/repos.toml").write_text(
-            '[[repo]]\nname = "lemonfiber"\n\n'
-            '[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n', encoding="utf-8")
+            '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n',
+            encoding="utf-8",
+        )
         (self.root / "70-operations/versions").mkdir(parents=True)
         (self.root / "70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lemonfiber", "lemonfiber-decline"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lemonfiber", "lemonfiber-decline"]\n', encoding="utf-8"
+        )
         self.bin = self.root / "bin"
         self.bin.mkdir()
         (self.bin / "docker").write_text(DOCKER, encoding="utf-8")
         (self.bin / "docker").chmod(0o755)
 
     def git(self, *args):
-        subprocess.run(["git", "-c", "commit.gpgsign=false", "-c", "tag.gpgsign=false", *args],
-                       check=True, capture_output=True, cwd=self.root)
+        subprocess.run(
+            ["git", "-c", "commit.gpgsign=false", "-c", "tag.gpgsign=false", *args],
+            check=True,
+            capture_output=True,
+            cwd=self.root,
+        )
 
     def stream(self, name: str, tagged: str = ""):
         remote = f"remotes/{name}"
         self.git("init", "-q", "-b", "main", remote)
-        self.git("-C", remote, "-c", "user.email=t@t", "-c", "user.name=t",
-                 "commit", "-q", "--allow-empty", "-m", "as it stands")
+        self.git(
+            "-C",
+            remote,
+            "-c",
+            "user.email=t@t",
+            "-c",
+            "user.name=t",
+            "commit",
+            "-q",
+            "--allow-empty",
+            "-m",
+            "as it stands",
+        )
         if tagged:
             self.git("-C", remote, "tag", tagged)
         self.git("clone", "-q", remote, f"checkouts/{name}")
@@ -251,10 +291,29 @@ class TheSteps(unittest.TestCase):
         """The core's checkout embedding the catalogue at `catalogue`, not yet checked out."""
         self.git("-C", catalogue, "add", "-A")
         self.git("-C", catalogue, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "bundle")
-        self.git("-C", "checkouts/lemonfiber", "-c", "protocol.file.allow=always", "submodule", "add", "-q",
-                 str(self.root / catalogue), "assets/plugins")
-        self.git("-C", "checkouts/lemonfiber", "-c", "user.email=t@t", "-c", "user.name=t",
-                 "commit", "-q", "-m", "embed")
+        self.git(
+            "-C",
+            "checkouts/lemonfiber",
+            "-c",
+            "protocol.file.allow=always",
+            "submodule",
+            "add",
+            "-q",
+            str(self.root / catalogue),
+            "assets/plugins",
+        )
+        self.git(
+            "-C",
+            "checkouts/lemonfiber",
+            "-c",
+            "user.email=t@t",
+            "-c",
+            "user.name=t",
+            "commit",
+            "-q",
+            "-m",
+            "embed",
+        )
         self.git("-C", "checkouts/lemonfiber", "submodule", "deinit", "-q", "--all")
 
     def bundled(self, tag: str):
@@ -266,20 +325,35 @@ class TheSteps(unittest.TestCase):
         (self.root / catalogue / "bundle/plugins/decline").mkdir(parents=True)
         (self.root / catalogue / "bundle/bundle.toml").write_text(
             'schema = 2\n\n[[plugin]]\nid = "decline"\norigin = "https://github.com/o/lemonfiber-decline"\n',
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         (self.root / catalogue / "bundle/plugins/decline/plugin.toml").write_text(
             f'[[service]]\nid = "decline"\nimage = "ghcr.io/lemonfiber/decline"\n'
-            f'tag = "{tag.removeprefix("v")}"\ndigest = "{DIGEST}"\n', encoding="utf-8")
+            f'tag = "{tag.removeprefix("v")}"\ndigest = "{DIGEST}"\n',
+            encoding="utf-8",
+        )
         self.embed(catalogue)
 
     def run_step(self, workflow: str, starts: str, **extra) -> subprocess.CompletedProcess:
         _, tag = LANES[workflow]
         output = self.root / "output"
         output.write_text("", encoding="utf-8")
-        env = {**os.environ, "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
-               "VERSION": "0.2.0", "TAG": tag, "GITHUB_OUTPUT": str(output), **extra}
-        return subprocess.run(["bash", "-e", "-c", step(workflow, starts)["run"]],
-                              capture_output=True, text=True, cwd=self.root, env=env, check=False)
+        env = {
+            **os.environ,
+            "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
+            "VERSION": "0.2.0",
+            "TAG": tag,
+            "GITHUB_OUTPUT": str(output),
+            **extra,
+        }
+        return subprocess.run(
+            ["bash", "-e", "-c", step(workflow, starts)["run"]],
+            capture_output=True,
+            text=True,
+            cwd=self.root,
+            env=env,
+            check=False,
+        )
 
     def read(self, name: str) -> str:
         return (self.root / name).read_text(encoding="utf-8")
@@ -320,8 +394,9 @@ class TheSteps(unittest.TestCase):
     def test_the_pin_check_refuses_an_image_the_tag_has_not_published(self):
         self.fresh()
         self.bundled("v0.2.0")
-        done = self.run_step("execute-version.yml", PINS, DOCKER_MISSING="ghcr.io/lemonfiber/decline:v0.2.0",
-                             **ALLOWED)
+        done = self.run_step(
+            "execute-version.yml", PINS, DOCKER_MISSING="ghcr.io/lemonfiber/decline:v0.2.0", **ALLOWED
+        )
         self.assertEqual(done.returncode, 1)
         self.assertIn("is not published", done.stdout)
 
@@ -346,47 +421,63 @@ class TheSteps(unittest.TestCase):
                 self.fresh()
                 (self.root / "30-repos/repos.toml").write_text(
                     '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "lemonfiber-decline"\nservice = "decline"\n\n'
-                    '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n', encoding="utf-8")
+                    '[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
+                    encoding="utf-8",
+                )
                 (self.root / "70-operations/versions/0.2.0.toml").write_text(
                     'version = "0.2.0"\nrepos = ["lemonfiber", "lemonfiber-decline", "plugin-jellyfin"]\n',
-                    encoding="utf-8")
+                    encoding="utf-8",
+                )
                 for name in ("lemonfiber", "plugin-jellyfin"):
                     self.stream(name)
                 self.stream("lemonfiber-decline", tagged=held)
                 done = self.run_step("prerelease-version.yml", PRE_STEP)
                 self.assertEqual(done.returncode, 0, done.stderr)
-                self.assertEqual((self.read("tagging.txt"), self.read("declaring.txt")), ("lemonfiber\n", "lemonfiber\n"))
+                self.assertEqual(
+                    (self.read("tagging.txt"), self.read("declaring.txt")), ("lemonfiber\n", "lemonfiber\n")
+                )
 
     def test_a_release_tags_each_plugin_repository_in_its_first_step(self):
         self.fresh()
         (self.root / "30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         (self.root / "70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n', encoding="utf-8"
+        )
         for name in ("lemonfiber", "plugin-jellyfin"):
             self.stream(name)
         done = self.run_step("execute-version.yml", STEP)
         self.assertEqual(done.returncode, 0, done.stderr)
-        self.assertEqual((self.read("output"), self.read("tagging.txt")), ("step=images\n", "plugin-jellyfin\n"))
+        self.assertEqual(
+            (self.read("output"), self.read("tagging.txt")), ("step=images\n", "plugin-jellyfin\n")
+        )
 
     def head(self, at: str) -> str:
-        return subprocess.run(["git", "-C", str(self.root / at), "rev-parse", "HEAD"], check=True,
-                              capture_output=True, text=True).stdout.strip()
+        return subprocess.run(
+            ["git", "-C", str(self.root / at), "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
 
     def catalogue(self, release: str):
         """The core's checkout embedding a catalogue whose bundle pins jellyfin at `release`,
         at a revision whose `targets.toml` names the core commit before the embedding."""
         (self.root / "30-repos/repos.toml").write_text(
             '[[repo]]\nname = "lemonfiber"\n\n[[repo]]\nname = "plugin-jellyfin"\nplugin = "jellyfin"\nimage = true\n',
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         (self.root / "70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lemonfiber", "plugin-jellyfin"]\n', encoding="utf-8"
+        )
         self.stream("lemonfiber")
         plugin = "remotes/plugin-jellyfin"
         self.git("init", "-q", "-b", "main", plugin)
-        (self.root / plugin / "targets.toml").write_text(f'commit = "{self.head("checkouts/lemonfiber")}"\n',
-                                                          encoding="utf-8")
+        (self.root / plugin / "targets.toml").write_text(
+            f'commit = "{self.head("checkouts/lemonfiber")}"\n', encoding="utf-8"
+        )
         self.git("-C", plugin, "add", "-A")
         self.git("-C", plugin, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "targets")
         catalogue = "remotes/lemonfiber-plugins"
@@ -395,17 +486,23 @@ class TheSteps(unittest.TestCase):
         (self.root / catalogue / "bundle/bundle.toml").write_text(
             'schema = 1\n\n[[plugin]]\nid = "jellyfin"\n'
             f'origin = "https://github.com/o/plugin-jellyfin"\nrelease = "{release}"\n'
-            f'revision = "{self.head(plugin)}"\n', encoding="utf-8")
+            f'revision = "{self.head(plugin)}"\n',
+            encoding="utf-8",
+        )
         # The pinned origin is on the forge; here it is a repository beside the core.
-        self.forge = {**ALLOWED, "GIT_CONFIG_COUNT": "2",
-                      "GIT_CONFIG_KEY_1": f"url.{self.root}/remotes/.insteadOf",
-                      "GIT_CONFIG_VALUE_1": "https://github.com/o/"}
+        self.forge = {
+            **ALLOWED,
+            "GIT_CONFIG_COUNT": "2",
+            "GIT_CONFIG_KEY_1": f"url.{self.root}/remotes/.insteadOf",
+            "GIT_CONFIG_VALUE_1": "https://github.com/o/",
+        }
         self.embed(catalogue)
 
     def test_the_bundle_check_passes_a_version_cutting_no_plugin(self):
         self.fresh()
         (self.root / "70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nrepos = ["lemonfiber"]\n', encoding="utf-8")
+            'version = "0.2.0"\nrepos = ["lemonfiber"]\n', encoding="utf-8"
+        )
         done = self.run_step("execute-version.yml", BUNDLE, OWNER="o")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertIn("cuts no first-party plugin", done.stdout)
@@ -438,7 +535,8 @@ class TheSteps(unittest.TestCase):
         (self.root / "scripts/gate.py").write_text(
             f"import sys\nprint({says!r})\nprint('B1-R4 unmet' if {answer} else 'releasable')\n"
             f"sys.exit({answer})\n",
-            encoding="utf-8")
+            encoding="utf-8",
+        )
         (self.root / "searched.txt").write_text("lemonfiber\n", encoding="utf-8")
 
     def test_a_pre_release_with_a_goal_unmet_is_refused(self):
@@ -475,8 +573,13 @@ class TheSteps(unittest.TestCase):
         self.stub_gh()
         self.stream("lemonfiber")
         (self.root / "tagging.txt").write_text("lemonfiber\n", encoding="utf-8")
-        head = subprocess.run(["git", "-C", "checkouts/lemonfiber", "rev-parse", "HEAD"], cwd=self.root,
-                              capture_output=True, text=True, check=True).stdout.strip()
+        head = subprocess.run(
+            ["git", "-C", "checkouts/lemonfiber", "rev-parse", "HEAD"],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
         return head, held.replace("HEAD", head)
 
     def test_the_tag_loop_tags_a_repository_that_lacks_the_tag(self):
@@ -486,8 +589,10 @@ class TheSteps(unittest.TestCase):
                 head, _ = self.tagging()
                 done = self.run_step(workflow, TAG_LOOP, GH_LOG=str(self.log), OWNER="o")
                 self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-                self.assertIn(f"api --method POST repos/o/lemonfiber/git/refs -f ref=refs/tags/{tag} -f sha={head}",
-                              self.calls())
+                self.assertIn(
+                    f"api --method POST repos/o/lemonfiber/git/refs -f ref=refs/tags/{tag} -f sha={head}",
+                    self.calls(),
+                )
 
     def test_the_tag_loop_passes_over_a_repository_carrying_the_tag_at_its_commit(self):
         """A run that stopped part-way through the loop is finished by running it again."""
@@ -505,8 +610,9 @@ class TheSteps(unittest.TestCase):
             with self.subTest(workflow):
                 self.fresh()
                 head, _ = self.tagging()
-                done = self.run_step(workflow, TAG_LOOP, GH_LOG=str(self.log), OWNER="o",
-                                     GH_HELD=f"lemonfiber={SHA}")
+                done = self.run_step(
+                    workflow, TAG_LOOP, GH_LOG=str(self.log), OWNER="o", GH_HELD=f"lemonfiber={SHA}"
+                )
                 self.assertEqual(done.returncode, 1)
                 self.assertIn(f"::error::lemonfiber carries {tag} at {SHA[:8]}, not {head[:8]}", done.stdout)
                 self.assertFalse([call for call in self.calls() if "POST" in call])
@@ -525,8 +631,9 @@ class TheSteps(unittest.TestCase):
     def manifest(self, recorded: str = ""):
         """0.2.0 as staged, holding `recorded` as its pre-release records."""
         (self.root / "70-operations/versions/0.2.0.toml").write_text(
-            'version = "0.2.0"\nstatus = "staged"\nrepos = ["lemonfiber", "lemonfiber-decline"]\n'
-            + recorded, encoding="utf-8")
+            'version = "0.2.0"\nstatus = "staged"\nrepos = ["lemonfiber", "lemonfiber-decline"]\n' + recorded,
+            encoding="utf-8",
+        )
 
     def test_reading_the_manifest_says_whether_the_tag_is_recorded(self):
         record = f'\n[[prerelease]]\ntag = "v0.2.0-pre.1"\npins = {{ lemonfiber-plugins = "{SHA}" }}\n'
@@ -566,9 +673,12 @@ class TheRecordBranch(unittest.TestCase):
         self.bin.mkdir()
         (self.bin / "gh").write_text(GH, encoding="utf-8")
         (self.bin / "gh").chmod(0o755)
-        for path in ("70-operations/versions/0.2.0.toml", "00-overview/roadmap.md",
-                     "10-functional/features/index.json",
-                     "10-functional/features/a-one/board.json"):
+        for path in (
+            "70-operations/versions/0.2.0.toml",
+            "00-overview/roadmap.md",
+            "10-functional/features/index.json",
+            "10-functional/features/a-one/board.json",
+        ):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_text("written\n", encoding="utf-8")
         self.log = self.root / "gh.log"
@@ -577,18 +687,31 @@ class TheRecordBranch(unittest.TestCase):
     def run_action(self, **extra) -> tuple[subprocess.CompletedProcess, list[str]]:
         steps = yaml.safe_load(TRANSITION.read_text(encoding="utf-8"))["runs"]["steps"]
         run = next(one for one in steps if one.get("name") == REBUILT)["run"]
-        env = {**os.environ, "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}", "GH_LOG": str(self.log),
-               "OWNER": "o", "VERSION": "0.2.0", "STATUS": "staged", "PRERELEASE": "v0.2.0-pre.1", **extra}
-        done = subprocess.run(["bash", "-e", "-c", run], capture_output=True, text=True,
-                              cwd=self.root, env=env, check=False)
+        env = {
+            **os.environ,
+            "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
+            "GH_LOG": str(self.log),
+            "OWNER": "o",
+            "VERSION": "0.2.0",
+            "STATUS": "staged",
+            "PRERELEASE": "v0.2.0-pre.1",
+            **extra,
+        }
+        done = subprocess.run(
+            ["bash", "-e", "-c", run], capture_output=True, text=True, cwd=self.root, env=env, check=False
+        )
         return done, self.log.read_text(encoding="utf-8").splitlines()
 
     def test_a_branch_an_earlier_run_left_is_deleted_before_it_is_made_again(self):
         done, calls = self.run_action(GH_BRANCH_LEFT="1")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        deleted = calls.index("api --method DELETE repos/o/spec/git/refs/heads/release/0.2.0-prerelease-0.2.0-pre.1")
-        made = calls.index("api --method POST repos/o/spec/git/refs "
-                           f"-f ref=refs/heads/release/0.2.0-prerelease-0.2.0-pre.1 -f sha={SHA} --silent")
+        deleted = calls.index(
+            "api --method DELETE repos/o/spec/git/refs/heads/release/0.2.0-prerelease-0.2.0-pre.1"
+        )
+        made = calls.index(
+            "api --method POST repos/o/spec/git/refs "
+            f"-f ref=refs/heads/release/0.2.0-prerelease-0.2.0-pre.1 -f sha={SHA} --silent"
+        )
         self.assertLess(deleted, made)
         self.assertTrue(calls[-1].startswith("pr merge https://github.com/o/spec/pull/1"))
 
@@ -642,8 +765,7 @@ class ThePluginGateWiring(unittest.TestCase):
                 self.assertLess(position(workflow, CLONE), held)
                 self.assertLess(held, position(workflow, SETTLES[workflow]))
                 self.assertLess(held, position(workflow, TAG_LOOP))
-                self.assertEqual(step(workflow, HOLD)["env"]["CORE"],
-                                 "${{ needs.plugins.outputs.core }}")
+                self.assertEqual(step(workflow, HOLD)["env"]["CORE"], "${{ needs.plugins.outputs.core }}")
 
     def test_the_candidate_is_built_where_the_release_builds_its_linux_archive(self):
         for workflow in LANES:
@@ -653,8 +775,9 @@ class ThePluginGateWiring(unittest.TestCase):
     def test_the_commit_handed_on_is_the_one_settled(self):
         for workflow in LANES:
             with self.subTest(workflow):
-                self.assertEqual(jobs(workflow)[PLUGINS]["outputs"]["core"],
-                                 "${{ steps.prove.outputs.core }}")
+                self.assertEqual(
+                    jobs(workflow)[PLUGINS]["outputs"]["core"], "${{ steps.prove.outputs.core }}"
+                )
         outputs = yaml.safe_load(PROVE.read_text(encoding="utf-8"))["outputs"]
         self.assertEqual(outputs["core"]["value"], "${{ steps.core.outputs.sha }}")
 
@@ -720,26 +843,35 @@ class ThePluginGateSteps(unittest.TestCase):
             (self.bin / name).write_text(body, encoding="utf-8")
             (self.bin / name).chmod(0o755)
         self.commits: list[str] = []
-        self.remote("lemonfiber", {
-            "crates/lemonfiber-manifest/src/lib.rs": "pub const SCHEMA_VERSION: u32 = 1;\n"})
+        self.remote(
+            "lemonfiber", {"crates/lemonfiber-manifest/src/lib.rs": "pub const SCHEMA_VERSION: u32 = 1;\n"}
+        )
         self.remote("lemonfiber", {"README.md": "moved on\n"})
-        self.remote("plugin-komga", {
-            "plugin.toml": 'schema_version = 1\n[plugin]\nid = "komga"\n',
-            "targets.toml": 'lemonfiber = "0.1.0"\n',
-            "proofs.json": '{"lemonfiber": "0.1.0", "proofs": []}\n',
-            ".github/reader/reader.py": OWN,
-        })
+        self.remote(
+            "plugin-komga",
+            {
+                "plugin.toml": 'schema_version = 1\n[plugin]\nid = "komga"\n',
+                "targets.toml": 'lemonfiber = "0.1.0"\n',
+                "proofs.json": '{"lemonfiber": "0.1.0", "proofs": []}\n',
+                ".github/reader/reader.py": OWN,
+            },
+        )
         self.remote("plugin-template", {".github/reader/reader.py": READER})
         self.pinned = self.git("rev-parse", "HEAD", cwd=self.root / "remotes/plugin-template.git")
         # A later commit the pin does not name, so fetching the head would be caught.
         self.remote("plugin-template", {".github/reader/reader.py": OWN})
         (self.root / "70-operations/plugins.toml").write_text(
-            REGISTRY.format(commit=self.pinned), encoding="utf-8")
+            REGISTRY.format(commit=self.pinned), encoding="utf-8"
+        )
 
     def git(self, *args, cwd=None) -> str:
         done = subprocess.run(
             ["git", "-c", "commit.gpgsign=false", "-c", "user.email=t@t", "-c", "user.name=t", *args],
-            check=True, capture_output=True, text=True, cwd=cwd or self.root)
+            check=True,
+            capture_output=True,
+            text=True,
+            cwd=cwd or self.root,
+        )
         return done.stdout.strip()
 
     def remote(self, name: str, files: dict[str, str]):
@@ -758,18 +890,23 @@ class ThePluginGateSteps(unittest.TestCase):
     def run_shell(self, script: str, **extra) -> tuple[subprocess.CompletedProcess, dict[str, str]]:
         output = self.root / "output"
         output.write_text("", encoding="utf-8")
-        env = {**os.environ, "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
-               "GITHUB_OUTPUT": str(output), "OWNER": "test",
-               "CARGO_ASKED": str(self.root / "cargo-asked"),
-               # The forge's URLs, answered by the local remotes.
-               "GIT_CONFIG_COUNT": "2",
-               "GIT_CONFIG_KEY_0": f"url.{(self.root / 'remotes').as_uri()}/.insteadOf",
-               "GIT_CONFIG_VALUE_0": "https://github.com/test/",
-               "GIT_CONFIG_KEY_1": "protocol.file.allow",
-               "GIT_CONFIG_VALUE_1": "always",
-               **extra}
-        done = subprocess.run(["bash", "-e", "-c", script], capture_output=True, text=True,
-                              cwd=self.root, env=env, check=False)
+        env = {
+            **os.environ,
+            "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
+            "GITHUB_OUTPUT": str(output),
+            "OWNER": "test",
+            "CARGO_ASKED": str(self.root / "cargo-asked"),
+            # The forge's URLs, answered by the local remotes.
+            "GIT_CONFIG_COUNT": "2",
+            "GIT_CONFIG_KEY_0": f"url.{(self.root / 'remotes').as_uri()}/.insteadOf",
+            "GIT_CONFIG_VALUE_0": "https://github.com/test/",
+            "GIT_CONFIG_KEY_1": "protocol.file.allow",
+            "GIT_CONFIG_VALUE_1": "always",
+            **extra,
+        }
+        done = subprocess.run(
+            ["bash", "-e", "-c", script], capture_output=True, text=True, cwd=self.root, env=env, check=False
+        )
         said = dict(line.split("=", 1) for line in output.read_text(encoding="utf-8").splitlines())
         return done, said
 
@@ -780,24 +917,42 @@ class ThePluginGateSteps(unittest.TestCase):
 
         done, built = self.run_shell(action_step("Build")["run"], CORE=self.commits[0])
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertEqual(built, {
-            "build": "x86_64-unknown-linux-gnu",
-            "binary": "checkouts/lemonfiber/target/x86_64-unknown-linux-gnu/dist/lemonfiber",
-        })
-        self.assertEqual(self.git("rev-parse", "HEAD", cwd=self.root / "checkouts/lemonfiber"),
-                         self.commits[0])
-        self.assertEqual((self.root / "cargo-asked").read_text(encoding="utf-8").split(),
-                         ["build", "--locked", "--profile", "dist",
-                          "--target", "x86_64-unknown-linux-gnu", "-p", "lemonfiber"])
+        self.assertEqual(
+            built,
+            {
+                "build": "x86_64-unknown-linux-gnu",
+                "binary": "checkouts/lemonfiber/target/x86_64-unknown-linux-gnu/dist/lemonfiber",
+            },
+        )
+        self.assertEqual(
+            self.git("rev-parse", "HEAD", cwd=self.root / "checkouts/lemonfiber"), self.commits[0]
+        )
+        self.assertEqual(
+            (self.root / "cargo-asked").read_text(encoding="utf-8").split(),
+            [
+                "build",
+                "--locked",
+                "--profile",
+                "dist",
+                "--target",
+                "x86_64-unknown-linux-gnu",
+                "-p",
+                "lemonfiber",
+            ],
+        )
 
         done, fetched = self.run_shell(action_step("Fetch the reader")["run"])
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertEqual(fetched, {"reader": "reader/.github/reader/reader.py"})
         self.assertEqual(self.git("rev-parse", "HEAD", cwd=self.root / "reader"), self.pinned)
 
-        done, _ = self.run_shell(action_step("Prove")["run"], VERSION="0.2.0",
-                                 BUILD=built["build"], BINARY=built["binary"],
-                                 READER=fetched["reader"])
+        done, _ = self.run_shell(
+            action_step("Prove")["run"],
+            VERSION="0.2.0",
+            BUILD=built["build"],
+            BINARY=built["binary"],
+            READER=fetched["reader"],
+        )
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertNotIn("the plugin's own reader ran", done.stdout)
         self.assertIn("plugins ok: 1 of 1 ride 0.2.0, all proved with the candidate.", done.stdout)
@@ -811,31 +966,37 @@ class ThePluginGateSteps(unittest.TestCase):
         done, fetched = self.run_shell(action_step("Fetch the reader")["run"])
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         done, _ = self.run_shell(
-            action_step("Prove")["run"], VERSION="0.2.0", BUILD="x86_64-unknown-linux-gnu",
+            action_step("Prove")["run"],
+            VERSION="0.2.0",
+            BUILD="x86_64-unknown-linux-gnu",
             BINARY="checkouts/lemonfiber/target/x86_64-unknown-linux-gnu/dist/lemonfiber",
-            READER=fetched["reader"])
+            READER=fetched["reader"],
+        )
         self.assertEqual(done.returncode, 1)
         self.assertIn("::warning::plugin-komga@main could not be cloned", done.stdout)
         self.assertIn("not a plugin that passed", done.stdout)
 
     def test_a_reader_pinned_to_a_commit_the_template_lacks_is_refused(self):
         (self.root / "70-operations/plugins.toml").write_text(
-            REGISTRY.format(commit="b" * 40), encoding="utf-8")
+            REGISTRY.format(commit="b" * 40), encoding="utf-8"
+        )
         done, _ = self.run_shell(action_step("Fetch the reader")["run"])
         self.assertNotEqual(done.returncode, 0)
         self.assertNotIn("the reader is", done.stdout)
 
     def test_a_registry_refusing_its_reader_pin_is_shown(self):
         (self.root / "70-operations/plugins.toml").write_text(
-            REGISTRY.format(commit="main"), encoding="utf-8")
+            REGISTRY.format(commit="main"), encoding="utf-8"
+        )
         done, _ = self.run_shell(action_step("Fetch the reader")["run"])
         self.assertEqual(done.returncode, 1)
         self.assertIn("pins 'main', which is not a full commit", done.stdout)
 
     def test_a_registry_that_cannot_be_read_is_shown(self):
         (self.root / "70-operations/plugins.toml").write_text("[[plugin]\n", encoding="utf-8")
-        done, _ = self.run_shell(action_step("Prove")["run"], VERSION="0.2.0", BUILD="x",
-                                 BINARY="x", READER="x")
+        done, _ = self.run_shell(
+            action_step("Prove")["run"], VERSION="0.2.0", BUILD="x", BINARY="x", READER="x"
+        )
         self.assertEqual(done.returncode, 1)
         self.assertIn("cannot be read", done.stdout)
 
@@ -847,8 +1008,8 @@ class ThePluginGateSteps(unittest.TestCase):
                 done, _ = self.run_shell(step(workflow, HOLD)["run"], CORE=self.commits[0])
                 self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
                 self.assertEqual(
-                    self.git("rev-parse", "HEAD", cwd=self.root / "checkouts/lemonfiber"),
-                    self.commits[0])
+                    self.git("rev-parse", "HEAD", cwd=self.root / "checkouts/lemonfiber"), self.commits[0]
+                )
                 self.assertIn(f"lemonfiber held at {self.commits[0][:8]}", done.stdout)
 
     def test_the_tagging_job_refuses_without_a_settled_commit(self):
@@ -871,7 +1032,9 @@ class EveryMintNamesWhatItUses(unittest.TestCase):
     others; a mint naming none would carry all of them."""
 
     def mints(self):
-        files = sorted(WORKFLOWS.glob("*.yml")) + sorted((HERE.parent / ".github" / "actions").glob("*/action.yml"))
+        files = sorted(WORKFLOWS.glob("*.yml")) + sorted(
+            (HERE.parent / ".github" / "actions").glob("*/action.yml")
+        )
         for path in files:
             read = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
             jobs = read.get("jobs") or {"action": (read.get("runs") or {})}

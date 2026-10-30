@@ -226,20 +226,16 @@ def restated_by(reason: str) -> list[str] | None:
     if reason == "principle":
         return []
     if reason.startswith(DORMANT):
-        return [] if reason[len(DORMANT):].strip() else None
+        return [] if reason[len(DORMANT) :].strip() else None
     if not reason.startswith(RESTATES):
         return None
-    ids = reason[len(RESTATES):].split(", ")
+    ids = reason[len(RESTATES) :].split(", ")
     return ids if all(REQUIREMENT.match(rid) for rid in ids) else None
 
 
 def declared() -> dict[str, str]:
     """The table flattened to one entry per requirement, against its note."""
-    return {
-        rid: note
-        for note, ids in AWAITING_A_VERSION.values()
-        for rid in ids
-    }
+    return {rid: note for note, ids in AWAITING_A_VERSION.values() for rid in ids}
 
 
 def accepted_requirements(root: pathlib.Path) -> dict[str, str]:
@@ -324,9 +320,7 @@ def unreached(rid: str, ids: list[str], everything: dict[str, str], locked: set[
     return gone
 
 
-def stale_exemptions(
-    architecture: dict[str, str], everything: dict[str, str], locked: set[str]
-) -> list[str]:
+def stale_exemptions(architecture: dict[str, str], everything: dict[str, str], locked: set[str]) -> list[str]:
     """Exemptions that have stopped being true, on AWAITING_A_VERSION's terms.
 
     A restatement is held to what it restates: the row is exempt because a version

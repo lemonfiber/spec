@@ -26,6 +26,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 HOOK = ROOT / "shared" / "hooks" / "commit-msg"
 
+
 def message(extra: str = "") -> str:
     """A message every check of the hook is content with.
 
@@ -45,9 +46,7 @@ def refused(text: str) -> tuple[int, str]:
     with tempfile.TemporaryDirectory() as where:
         path = pathlib.Path(where) / "COMMIT_EDITMSG"
         path.write_text(text, encoding="utf-8")
-        done = subprocess.run(
-            ["sh", str(HOOK), str(path)], capture_output=True, text=True
-        )
+        done = subprocess.run(["sh", str(HOOK), str(path)], capture_output=True, text=True)
     return done.returncode, done.stdout + done.stderr
 
 
@@ -74,9 +73,7 @@ class WhatItRefuses(unittest.TestCase):
 
 #: The contributing document's table of what a commit message has to carry.
 #: A row names a requirement in bold and the check that enforces it in backticks.
-RULE_ROW = re.compile(
-    r"^\| [^|]*\(\*\*([A-Z0-9-]+)\*\*\) \| [^|]+ \| `([a-z-]+)` \|$", re.MULTILINE
-)
+RULE_ROW = re.compile(r"^\| [^|]*\(\*\*([A-Z0-9-]+)\*\*\) \| [^|]+ \| `([a-z-]+)` \|$", re.MULTILINE)
 
 #: The heading that section opens with.
 COMMIT_SECTION = "## What a commit message has to carry"
@@ -139,10 +136,12 @@ class TheDocumentAndTheHookAgree(unittest.TestCase):
             with self.subTest(check=check, requirement=requirement):
                 code, said = refused(BREAKS[check](message()))
                 self.assertEqual(
-                    code, 1,
+                    code,
+                    1,
                     f"the document says {check} enforces {requirement}, and the "
                     f"hook accepts a message that would fail it: {said}",
                 )
+
 
 if __name__ == "__main__":
     unittest.main()

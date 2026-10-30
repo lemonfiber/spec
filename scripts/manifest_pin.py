@@ -55,8 +55,13 @@ def moved(main_text: str, image: str, tag: str, digest: str, ref_type: str) -> t
     written, services = plugin_pin.pinned(main_text, image, pinned, digest)
     if not services:
         return main_text, None
-    return written, {"image": image, "services": services, "branch": BRANCHES[ref_type], "published": tag,
-                     "to": {"tag": pinned, "digest": digest}}
+    return written, {
+        "image": image,
+        "services": services,
+        "branch": BRANCHES[ref_type],
+        "published": tag,
+        "to": {"tag": pinned, "digest": digest},
+    }
 
 
 def admitted(main_text: str, args: argparse.Namespace, bump: pathlib.Path) -> tuple[dict, dict[str, bytes]]:
@@ -69,8 +74,10 @@ def admitted(main_text: str, args: argparse.Namespace, bump: pathlib.Path) -> tu
 
 def described(move: dict, left: list[str], log: str) -> tuple[str, str, bool]:
     """The pull request's title and body for a move, and whether it came out clean."""
-    said = (f"Every service of plugin.toml running {move['image']} runs the image {move['published']} published, "
-            f"at {move['to']['digest']}.")
+    said = (
+        f"Every service of plugin.toml running {move['image']} runs the image {move['published']} published, "
+        f"at {move['to']['digest']}."
+    )
     body, clean = pin_bump.body_of(said, left, log, CITED)
     return f"chore(manifest): the image at {move['published']}", body, clean
 
@@ -102,7 +109,9 @@ OPTIONS = {"apply": PUBLISHED, "admit": (*PUBLISHED, "--bump", "--move-out"), "m
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     asked = parser.add_subparsers(dest="asked", required=True)
     for name, options in OPTIONS.items():
         one = asked.add_parser(name)

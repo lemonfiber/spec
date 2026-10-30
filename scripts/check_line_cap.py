@@ -22,6 +22,7 @@ Usage, from the root of the repository being checked::
 Exit 0 = every counted file is within the cap, 1 = at least one is over it, or the
 tree could not be listed.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -42,9 +43,23 @@ LOCKFILES = frozenset({"package-lock.json"})
 #: Images and fonts, by extension.
 ASSETS = frozenset(
     {
-        ".apng", ".avif", ".bmp", ".gif", ".ico", ".jpeg", ".jpg", ".png", ".svg",
-        ".tif", ".tiff", ".webp",
-        ".eot", ".otf", ".ttf", ".woff", ".woff2",
+        ".apng",
+        ".avif",
+        ".bmp",
+        ".gif",
+        ".ico",
+        ".jpeg",
+        ".jpg",
+        ".png",
+        ".svg",
+        ".tif",
+        ".tiff",
+        ".webp",
+        ".eot",
+        ".otf",
+        ".ttf",
+        ".woff",
+        ".woff2",
     }
 )
 

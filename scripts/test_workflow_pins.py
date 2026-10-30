@@ -11,6 +11,7 @@ place.
 Stdlib unittest, no dependencies (the repo has none).
 Run:  python3 scripts/test_workflow_pins.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -61,9 +62,7 @@ class Reading(unittest.TestCase):
         (root / ".github" / "workflows").mkdir(parents=True)
 
         for name in ("ci.yml", "labels.yml"):
-            (root / ".github" / "workflows" / name).write_text(
-                a_pin("dco.yml", "c" * 40), encoding="utf-8"
-            )
+            (root / ".github" / "workflows" / name).write_text(a_pin("dco.yml", "c" * 40), encoding="utf-8")
 
         found = workflow_pins.pins_under(root)
         self.assertEqual(len(found), 1)
@@ -122,20 +121,23 @@ class ASpecAndARepository:
         self.git("commit", "-q", "-m", said)
         return subprocess.run(
             ["git", "-C", str(self.spec), "rev-parse", "HEAD"],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
 
     def pin(self, sha: str):
-        (self.repo / ".github" / "workflows" / "ci.yml").write_text(
-            a_pin("dco.yml", sha), encoding="utf-8"
-        )
+        (self.repo / ".github" / "workflows" / "ci.yml").write_text(a_pin("dco.yml", sha), encoding="utf-8")
 
     def run_main(self, now: int = LATER) -> tuple[int, str]:
         was = pathlib.Path.cwd()
         os.chdir(self.repo)
         said = io.StringIO()
         try:
-            with contextlib.redirect_stdout(said), mock.patch.object(workflow_pins, "clock", return_value=now):
+            with (
+                contextlib.redirect_stdout(said),
+                mock.patch.object(workflow_pins, "clock", return_value=now),
+            ):
                 code = workflow_pins.main()
         finally:
             os.chdir(was)
@@ -147,10 +149,15 @@ class ASpecAndARepository:
         where.write_text(said, encoding="utf-8")
         stamp = {"GIT_COMMITTER_DATE": f"@{when} +0000", "GIT_AUTHOR_DATE": f"@{when} +0000"}
         for args in (["add", "-A"], ["commit", "-q", "-m", said]):
-            subprocess.run(["git", "-C", str(self.spec), *args], check=True, capture_output=True,
-                           env={**os.environ, **stamp})
-        return subprocess.run(["git", "-C", str(self.spec), "rev-parse", "HEAD"],
-                              capture_output=True, text=True, check=True).stdout.strip()
+            subprocess.run(
+                ["git", "-C", str(self.spec), *args],
+                check=True,
+                capture_output=True,
+                env={**os.environ, **stamp},
+            )
+        return subprocess.run(
+            ["git", "-C", str(self.spec), "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+        ).stdout.strip()
 
 
 class AgainstARepository(ASpecAndARepository, unittest.TestCase):
@@ -207,11 +214,7 @@ class AgainstARepository(ASpecAndARepository, unittest.TestCase):
         # the point: the guard is for the caller that comes later. An argument
         # beginning with `-` is an option to git rather than a revision, and the
         # answer for one is the same "could not ask" everything else here gives.
-        self.assertIsNone(
-            workflow_pins.commits_between(
-                self.spec, "--output=/tmp/x", self.second, "dco.yml"
-            )
-        )
+        self.assertIsNone(workflow_pins.commits_between(self.spec, "--output=/tmp/x", self.second, "dco.yml"))
 
     def test_no_checkout_is_our_fault_too(self):
         self.pin(self.second)
@@ -274,7 +277,8 @@ class TheWindow(ASpecAndARepository, unittest.TestCase):
         self.dated("sonar moved", self.NOW - 2 * pin_window.SECONDS, "sonar.yml")
         self.dated("fresh", self.NOW - 60)
         (self.repo / ".github" / "workflows" / "ci.yml").write_text(
-            a_pin("dco.yml", self.second) + a_pin("sonar.yml", old), encoding="utf-8")
+            a_pin("dco.yml", self.second) + a_pin("sonar.yml", old), encoding="utf-8"
+        )
         code, out = self.run_main(self.NOW)
         self.assertEqual(code, 1, out)
         self.assertIn("::warning::dco.yml", out)
@@ -303,9 +307,10 @@ class WhatAPinHolds(ASpecAndARepository, unittest.TestCase):
 
     def setUp(self):
         super().setUp()
-        self.put(".github/workflows/dco.yml",
-                 "run: python3 .spec-tooling/scripts/dco_check.py\n"
-                 "uses: ./.github/workflows/notify.yml\n")
+        self.put(
+            ".github/workflows/dco.yml",
+            "run: python3 .spec-tooling/scripts/dco_check.py\nuses: ./.github/workflows/notify.yml\n",
+        )
         self.put(".github/workflows/notify.yml", 'run: python3 "$scripts/notify.py"\n')
         self.put("scripts/dco_check.py", "import re\nfrom patterns import CITE\n")
         self.put("scripts/patterns.py", "CITE = 1\n")
@@ -317,8 +322,9 @@ class WhatAPinHolds(ASpecAndARepository, unittest.TestCase):
     def recorded(self, said: str) -> str:
         self.git("add", "-A")
         self.git("commit", "-q", "-m", said)
-        return subprocess.run(["git", "-C", str(self.spec), "rev-parse", "HEAD"],
-                              capture_output=True, text=True, check=True).stdout.strip()
+        return subprocess.run(
+            ["git", "-C", str(self.spec), "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+        ).stdout.strip()
 
     def put(self, path: str, text: str) -> None:
         where = self.spec / path
@@ -334,16 +340,27 @@ class WhatAPinHolds(ASpecAndARepository, unittest.TestCase):
     def test_the_files_it_holds(self):
         self.assertEqual(
             sorted(workflow_pins.held_by(self.spec, self.held, "dco.yml")),
-            [".github/workflows/dco.yml", ".github/workflows/notify.yml",
-             "scripts/dco_check.py", "scripts/notify.py", "scripts/patterns.py"],
+            [
+                ".github/workflows/dco.yml",
+                ".github/workflows/notify.yml",
+                "scripts/dco_check.py",
+                "scripts/notify.py",
+                "scripts/patterns.py",
+            ],
         )
 
     def test_a_workflow_taken_away_is_still_named(self):
-        self.assertEqual(workflow_pins.held_by(self.spec, self.held, "gone.yml"), [".github/workflows/gone.yml"])
+        self.assertEqual(
+            workflow_pins.held_by(self.spec, self.held, "gone.yml"), [".github/workflows/gone.yml"]
+        )
 
     def test_a_change_to_each_held_file_refuses(self):
-        for path in ("scripts/dco_check.py", "scripts/patterns.py", ".github/workflows/notify.yml",
-                     "scripts/notify.py"):
+        for path in (
+            "scripts/dco_check.py",
+            "scripts/patterns.py",
+            ".github/workflows/notify.yml",
+            "scripts/notify.py",
+        ):
             with self.subTest(path):
                 code, out = self.changed(path)
                 self.assertEqual(code, 1, out)

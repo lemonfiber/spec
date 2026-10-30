@@ -49,10 +49,18 @@ Api = Callable[[list[str]], object]
 def newly_defined(diff: str) -> set[str]:
     """The identifiers a diff's added definition rows define and its removed
     rows did not: a row moved or reworded defines nothing new."""
-    added = {m for line in diff.splitlines() if line.startswith("+") and not line.startswith("+++")
-             for m in REQ_DEF.findall(line[1:])}
-    removed = {m for line in diff.splitlines() if line.startswith("-") and not line.startswith("---")
-               for m in REQ_DEF.findall(line[1:])}
+    added = {
+        m
+        for line in diff.splitlines()
+        if line.startswith("+") and not line.startswith("+++")
+        for m in REQ_DEF.findall(line[1:])
+    }
+    removed = {
+        m
+        for line in diff.splitlines()
+        if line.startswith("-") and not line.startswith("---")
+        for m in REQ_DEF.findall(line[1:])
+    }
     return added - removed
 
 
@@ -102,8 +110,9 @@ def owed(repo: str, number: int, spec_dir: pathlib.Path, api: Api) -> list[str] 
         return None
     comments = api([f"repos/{repo}/issues/{number}/comments?per_page=100"])
     # The closing comment is the one `spec-check` wrote: anyone can write its words.
-    closing = [c["body"] for c in comments
-               if (c.get("user") or {}).get("login") == CLOSER and unknown_in(c["body"])]
+    closing = [
+        c["body"] for c in comments if (c.get("user") or {}).get("login") == CLOSER and unknown_in(c["body"])
+    ]
     if not closing:
         return None
     last = unknown_in(closing[-1])  # the newest closing comment decides
@@ -113,9 +122,11 @@ def owed(repo: str, number: int, spec_dir: pathlib.Path, api: Api) -> list[str] 
 def reopen(repo: str, number: int, ids: list[str], sha: str, api: Api) -> None:
     """Reopen the pull request and say why."""
     api(["-X", "PATCH", f"repos/{repo}/pulls/{number}", "-f", "state=open"])
-    body = (f"Reopened: {', '.join(ids)} {'is' if len(ids) == 1 else 'are'} defined on "
-            f"spec@main as of {sha[:7]}, so the citation `spec-check` closed this for now "
-            "resolves and it runs again on this reopen (GOV-R56).")
+    body = (
+        f"Reopened: {', '.join(ids)} {'is' if len(ids) == 1 else 'are'} defined on "
+        f"spec@main as of {sha[:7]}, so the citation `spec-check` closed this for now "
+        "resolves and it runs again on this reopen (GOV-R56)."
+    )
     api(["-X", "POST", f"repos/{repo}/issues/{number}/comments", "-f", f"body={body}"])
 
 

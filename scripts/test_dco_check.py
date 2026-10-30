@@ -73,7 +73,9 @@ class WhatItAccepts(unittest.TestCase):
 
     def test_the_address_is_matched_whatever_its_case(self):
         self.assertEqual(
-            gate.unsigned(record(email="A.Person@Example.COM", body="Signed-off-by: X <a.person@example.com>")),
+            gate.unsigned(
+                record(email="A.Person@Example.COM", body="Signed-off-by: X <a.person@example.com>")
+            ),
             [],
         )
 
@@ -168,8 +170,17 @@ class WhatGitIsAsked(unittest.TestCase):
 
     def test_the_format_produces_the_shape_the_records_above_assume(self):
         where = pathlib.Path(tempfile.mkdtemp())
-        git = ["git", "-C", str(where), "-c", "user.name=A Person",
-               "-c", "user.email=a@example.com", "-c", "commit.gpgsign=false"]
+        git = [
+            "git",
+            "-C",
+            str(where),
+            "-c",
+            "user.name=A Person",
+            "-c",
+            "user.email=a@example.com",
+            "-c",
+            "commit.gpgsign=false",
+        ]
         subprocess.run([*git, "init", "-q", "-b", "main"], check=True, capture_output=True)
         shas = []
         for n in ("one", "two"):
@@ -177,11 +188,13 @@ class WhatGitIsAsked(unittest.TestCase):
             subprocess.run([*git, "add", "-A"], check=True, capture_output=True)
             subprocess.run(
                 [*git, "commit", "-q", "-m", f"feat: {n}\n\n{SIGNED}"],
-                check=True, capture_output=True,
+                check=True,
+                capture_output=True,
             )
             shas.append(
-                subprocess.run([*git, "rev-parse", "HEAD"],
-                               capture_output=True, text=True, check=True).stdout.strip()
+                subprocess.run(
+                    [*git, "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+                ).stdout.strip()
             )
 
         os.chdir(where)

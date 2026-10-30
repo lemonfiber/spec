@@ -33,7 +33,9 @@ import spec_refs as refs
 URL = "https://example.invalid/blob/main"
 
 
-def spec(rows: str = "| **X1-R1** | The first thing. |\n", adrs: dict[str, str] | None = None) -> pathlib.Path:
+def spec(
+    rows: str = "| **X1-R1** | The first thing. |\n", adrs: dict[str, str] | None = None
+) -> pathlib.Path:
     """A spec checkout defining these requirements and these decisions."""
     root = pathlib.Path(tempfile.mkdtemp())
     (root / "10-functional").mkdir(parents=True)
@@ -160,9 +162,7 @@ class WhatItWrites(unittest.TestCase):
     def test_a_draft_is_linked_and_said_to_be_one(self):
         said = refs.build(["X1-R1"], {"X1-R1": ("a.md", "Proposed.")}, URL, {"X1-R1": "a.md"})
         self.assertIn(f"[`X1-R1`]({URL}/a.md) — Proposed.", said)
-        self.assertIn(
-            "⚠️ X1-R1 is Draft: implementation must not cite it until it is Accepted", said
-        )
+        self.assertIn("⚠️ X1-R1 is Draft: implementation must not cite it until it is Accepted", said)
 
     def test_an_accepted_citation_says_nothing_of_drafts(self):
         said = refs.build(["X1-R1"], {"X1-R1": ("a.md", "Agreed.")}, URL, {"X2-R1": "b.md"})
@@ -183,9 +183,12 @@ class WhatItRefusesToRead(unittest.TestCase):
         argv = sys.argv
         sys.argv = [
             "spec_refs.py",
-            "--spec-dir", str(spec_dir),
-            "--text-file", str(text_file),
-            "--spec-url", URL + "/",
+            "--spec-dir",
+            str(spec_dir),
+            "--text-file",
+            str(text_file),
+            "--spec-url",
+            URL + "/",
         ]
         try:
             with contextlib.redirect_stdout(said):

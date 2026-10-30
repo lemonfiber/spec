@@ -11,6 +11,7 @@ commit reached the default branch, which is when the window starts. A commit
 dated later than the run is counted as past the window, so a date written by hand
 can only make a gate stricter.
 """
+
 from __future__ import annotations
 
 import datetime

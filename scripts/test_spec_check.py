@@ -14,6 +14,7 @@ account GitHub names, refused for anyone claiming to be it (Q-R66).
 Stdlib unittest, no dependencies (the repo has none).
 Run:  python3 scripts/test_spec_check.py
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -74,9 +75,7 @@ class GateCase(unittest.TestCase):
 
     def check(self, text, *extra, spec_dir=SPEC, text_file=TEXT):
         (self.root / TEXT).write_text(text, encoding="utf-8")
-        return run_main(
-            ["--spec-dir", spec_dir, "--text-file", text_file, *extra]
-        )
+        return run_main(["--spec-dir", spec_dir, "--text-file", text_file, *extra])
 
     def check_diff(self, diff, text="Spec: GOV-R12\n", *extra, diff_file=DIFF):
         """The same gate, handed a change's diff as well as its text."""
@@ -87,13 +86,7 @@ class GateCase(unittest.TestCase):
 def a_diff(*added, path="tests/SomeTest.php"):
     """A unified diff adding the given lines, shaped as git writes one."""
     body = "".join(f"+{line}\n" for line in added)
-    return (
-        f"diff --git a/{path} b/{path}\n"
-        f"--- a/{path}\n"
-        f"+++ b/{path}\n"
-        f"@@ -0,0 +1,{len(added)} @@\n"
-        f"{body}"
-    )
+    return f"diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ -0,0 +1,{len(added)} @@\n{body}"
 
 
 class Citations(GateCase):
@@ -189,9 +182,7 @@ class Drafts(GateCase):
     def test_a_draft_feature_is_refused_by_name(self):
         code, out = self.check("Spec: X9-R1\n")
         self.assertEqual(code, 1)
-        self.assertIn(
-            "X9-R1 is Draft: implementation must not cite it until it is Accepted (x9.md)", out
-        )
+        self.assertIn("X9-R1 is Draft: implementation must not cite it until it is Accepted (x9.md)", out)
         self.assertIn("A Draft is proposed and not binding", out)
 
     def test_a_draft_document_is_read_by_its_status_line(self):
@@ -238,8 +229,7 @@ class Drafts(GateCase):
 
     def test_the_frontmatter_outranks_a_status_line_in_the_body(self):
         (self.root / SPEC / "x9.md").write_text(
-            DRAFT_FEATURE.replace("status: draft", "status: accepted")
-            + "\n**Status:** Draft\n",
+            DRAFT_FEATURE.replace("status: draft", "status: accepted") + "\n**Status:** Draft\n",
             encoding="utf-8",
         )
         code, _ = self.check("Spec: X9-R1\n")
@@ -381,7 +371,6 @@ class AMergeGroup(GateCase):
         self.assertIn("no `Spec:` citation found", out)
 
 
-
 class WhatAFileNames(GateCase):
     """GOV-R3 over the lines a change adds, not only over its trailer."""
 
@@ -399,9 +388,7 @@ class WhatAFileNames(GateCase):
     def test_a_perfect_trailer_does_not_rescue_a_file(self):
         # The whole point of the second half: the citation can be impeccable and
         # the comment beside the rule can still send somebody nowhere.
-        code, out = self.check_diff(
-            a_diff("// GOV-R120 — the rule this keeps."), "Spec: GOV-R12\n"
-        )
+        code, out = self.check_diff(a_diff("// GOV-R120 — the rule this keeps."), "Spec: GOV-R12\n")
         self.assertEqual(code, 1)
         self.assertIn("GOV-R120", out)
 
@@ -409,9 +396,7 @@ class WhatAFileNames(GateCase):
         # This file names identifiers that do not resolve, because that is what a
         # test of "refuse an unknown identifier" is. Reading it would have the
         # gate refuse the change that teaches it to refuse.
-        code, out = self.check_diff(
-            a_diff("GOV-R120", path="scripts/test_spec_check.py"), "Spec: GOV-R12\n"
-        )
+        code, out = self.check_diff(a_diff("GOV-R120", path="scripts/test_spec_check.py"), "Spec: GOV-R12\n")
         self.assertEqual(code, 0, out)
 
     def test_the_exemption_is_two_paths_and_not_a_pattern(self):
@@ -435,9 +420,7 @@ class WhatAFileNames(GateCase):
         (fixtures / "spec-check-fixtures").write_text(
             "# names ids that do not resolve, on purpose\nrender.rs\n", encoding="utf-8"
         )
-        code, out = self.check_diff(
-            a_diff("Gone GOV-R120 (withdrawn)", path="render.rs"), "Spec: GOV-R12\n"
-        )
+        code, out = self.check_diff(a_diff("Gone GOV-R120 (withdrawn)", path="render.rs"), "Spec: GOV-R12\n")
         self.assertEqual(code, 0, out)
         self.assertIn("not read for identifiers", out)
         self.assertIn("render.rs", out)
@@ -478,9 +461,7 @@ class WhatAFileNames(GateCase):
         fixtures.mkdir(parents=True, exist_ok=True)
         (self.root / "render.rs").write_text("fixture", encoding="utf-8")
         (fixtures / "spec-check-fixtures").write_text("render.rs\n", encoding="utf-8")
-        code, out = self.check_diff(
-            a_diff("GOV-R120", path="other.rs"), "Spec: GOV-R12\n"
-        )
+        code, out = self.check_diff(a_diff("GOV-R120", path="other.rs"), "Spec: GOV-R12\n")
         self.assertEqual(code, 1)
         self.assertIn("GOV-R120", out)
 
@@ -506,9 +487,7 @@ class WhatAFileNames(GateCase):
     def test_a_merge_group_citing_nothing_is_still_asked(self):
         # The event where presence is not required returns early on the trailer.
         # GOV-R3 is the half a queue can change, so it runs before that.
-        code, out = self.check_diff(
-            a_diff("// GOV-R120"), "no trailer at all\n", "--citation-optional"
-        )
+        code, out = self.check_diff(a_diff("// GOV-R120"), "no trailer at all\n", "--citation-optional")
         self.assertEqual(code, 1)
         self.assertIn("GOV-R120", out)
 
@@ -534,6 +513,7 @@ class WhatAFileNames(GateCase):
         code, out = self.check("Spec: GOV-R12\n", "--diff-file", "/etc/hosts")
         self.assertEqual(code, 2)
         self.assertIn("diff-file must be within", out)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

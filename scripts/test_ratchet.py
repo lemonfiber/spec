@@ -17,6 +17,7 @@ Stdlib unittest plus PyYAML (the parser is the point — a hand-rolled reader wo
 be testing a different string than CI runs).
 Run:  python3 scripts/test_ratchet.py
 """
+
 from __future__ import annotations
 
 import os
@@ -118,8 +119,17 @@ class Ratchet(unittest.TestCase):
         self.stubs = stubs
         self.log = self.tmp / "curl.log"
 
-    def run_step(self, declared, *, base=None, status="200", fails=False,
-                 standing=None, sonar_status=None, base_ref="main"):
+    def run_step(
+        self,
+        declared,
+        *,
+        base=None,
+        status="200",
+        fails=False,
+        standing=None,
+        sonar_status=None,
+        base_ref="main",
+    ):
         """Run the step with `allowed-open: declared` against a base branch file.
 
         `standing` is how many issues SonarCloud reports against the base branch.
@@ -134,9 +144,7 @@ class Ratchet(unittest.TestCase):
             "GH_TOKEN": "not-a-real-token",
             "API": "https://api.github.com",
             "REPO": "lemonfiber/sdk-php",
-            "WORKFLOW_REF": (
-                "lemonfiber/sdk-php/.github/workflows/sonar.yml@refs/pull/12/merge"
-            ),
+            "WORKFLOW_REF": ("lemonfiber/sdk-php/.github/workflows/sonar.yml@refs/pull/12/merge"),
             "BASE_REF": base_ref,
             "ALLOWED": str(declared),
             "CURL_STATUS": status,
@@ -215,9 +223,7 @@ class Ratchet(unittest.TestCase):
         self.assertIn("not knowing whether the ratchet held", out)
 
     def test_a_sonarcloud_that_will_not_answer_leaves_a_raise_refused(self):
-        code, out = self.run_step(
-            3, base=DECLARES.format(n=0), standing=28, sonar_status="401"
-        )
+        code, out = self.run_step(3, base=DECLARES.format(n=0), standing=28, sonar_status="401")
         self.assertEqual(code, 1)
         self.assertIn("could not read how many issues stand against main", out)
 
@@ -279,16 +285,13 @@ class Ratchet(unittest.TestCase):
         self.run_step(0, base=DECLARES_NOTHING)
         asked = self.log.read_text(encoding="utf-8")
         self.assertIn(
-            "https://api.github.com/repos/lemonfiber/sdk-php/contents/"
-            ".github/workflows/sonar.yml?ref=main",
+            "https://api.github.com/repos/lemonfiber/sdk-php/contents/.github/workflows/sonar.yml?ref=main",
             asked,
         )
 
     def test_a_merge_groups_full_ref_is_asked_as_a_branch(self):
         """A merge group names its base `refs/heads/main`; both hosts want `main`."""
-        code, out = self.run_step(
-            1, base=DECLARES_NOTHING, standing=1, base_ref="refs/heads/main"
-        )
+        code, out = self.run_step(1, base=DECLARES_NOTHING, standing=1, base_ref="refs/heads/main")
         self.assertEqual(code, 0, out)
         asked = self.log.read_text(encoding="utf-8")
         self.assertIn("sonar.yml?ref=main\n", asked)
@@ -296,9 +299,7 @@ class Ratchet(unittest.TestCase):
         self.assertNotIn("refs/heads", asked)
 
     def test_a_commented_out_declaration_is_not_read(self):
-        code, out = self.run_step(
-            1, base=DECLARES_NOTHING + "#     allowed-open: 5\n", standing=0
-        )
+        code, out = self.run_step(1, base=DECLARES_NOTHING + "#     allowed-open: 5\n", standing=0)
         self.assertEqual(code, 1)
         self.assertIn("allowed-open is 1 on this pull request and 0 on main", out)
 

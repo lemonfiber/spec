@@ -63,12 +63,16 @@ def citation(paths: list[str], text: str, association: str) -> str:
     if association not in FIRST_TIME or SPEC_TRAILER.search(text) or not paths:
         return ""
     if any(path.startswith(PROPOSALS) for path in paths):
-        return (f"This adds a proposal, so it cites the RFC process: add `Spec: {PROPOSAL_CITE}` "
-                "on its own line to the pull request's description, which the squash merge writes to `main`.")
+        return (
+            f"This adds a proposal, so it cites the RFC process: add `Spec: {PROPOSAL_CITE}` "
+            "on its own line to the pull request's description, which the squash merge writes to `main`."
+        )
     if all(path.endswith(PROSE) for path in paths):
-        return ("This changes prose only. Where it fixes wording and changes no rule, it is routine "
-                f"maintenance: add `Spec: {PROSE_CITE}` on its own line to the pull request's "
-                "description, which the squash merge writes to `main`. Where it changes what a requirement says, cite that one.")
+        return (
+            "This changes prose only. Where it fixes wording and changes no rule, it is routine "
+            f"maintenance: add `Spec: {PROSE_CITE}` on its own line to the pull request's "
+            "description, which the squash merge writes to `main`. Where it changes what a requirement says, cite that one."
+        )
     return ""
 
 
@@ -77,7 +81,7 @@ def upstream(path: str, mirrors: list[dict]) -> str | None:
     for mirror in mirrors:
         route = f"{CONTENT}/{mirror['route']}"
         if path == route or path.startswith(f"{route}/"):
-            rest = path[len(route):]
+            rest = path[len(route) :]
             return f"{mirror['remote']}/blob/{mirror['branch']}/{mirror['path']}{rest}"
     return None
 
@@ -90,15 +94,16 @@ def mirrored(paths: list[str], mirrors: list[dict], association: str) -> str:
     if not found:
         return ""
     listed = [f"- `{path}` is rendered from {source}" for path, source in found]
-    lead = ("This site mirrors these pages from the repositories that own them, so an "
-            "edit here is overwritten by the next pin bump. Edit them there instead:")
+    lead = (
+        "This site mirrors these pages from the repositories that own them, so an "
+        "edit here is overwritten by the next pin bump. Edit them there instead:"
+    )
     return "\n".join([lead, "", *listed])
 
 
 def touches_tracker(paths: list[str]) -> bool:
     """Whether the pull request changes the repository's tracker."""
-    return any(path == status_check.FILE or path.startswith(f"{status_check.DIRECTORY}/")
-               for path in paths)
+    return any(path == status_check.FILE or path.startswith(f"{status_check.DIRECTORY}/") for path in paths)
 
 
 def reminder(paths: list[str], text: str, spec: pathlib.Path, root: pathlib.Path, repo: str) -> str:
@@ -110,9 +115,11 @@ def reminder(paths: list[str], text: str, spec: pathlib.Path, root: pathlib.Path
         return ""
     rows = {row.id: row.state for row in status_check.load(root, repo) or []}
     table = [f"| `{goal}` | {rows.get(goal, 'not recorded')} |" for goal in goals]
-    lead = ("This cites a version's goals and leaves the tracker as it was. Where it "
-            "finishes or advances one, record it in the same pull request, with "
-            "`lfdev status <id> <state>` or by editing the row (OPS-R74):")
+    lead = (
+        "This cites a version's goals and leaves the tracker as it was. Where it "
+        "finishes or advances one, record it in the same pull request, with "
+        "`lfdev status <id> <state>` or by editing the row (OPS-R74):"
+    )
     return "\n".join([lead, "", "| Goal | In the tracker |", "|---|---|", *table])
 
 
@@ -137,8 +144,11 @@ def main() -> int:
             said = mirrored(paths, listed, args.association)
         else:
             text = within_cwd(args.text).read_text(encoding="utf-8")
-            said = (citation(paths, text, args.association) if args.rule == "citation" else
-                    reminder(paths, text, within_cwd(args.spec), within_cwd(args.repo_root), args.repo))
+            said = (
+                citation(paths, text, args.association)
+                if args.rule == "citation"
+                else reminder(paths, text, within_cwd(args.spec), within_cwd(args.repo_root), args.repo)
+            )
     except (OSError, ValueError, KeyError, TypeError, status_check.Unreadable) as broken:
         print(f"::error::{broken}", file=sys.stderr)
         return 2

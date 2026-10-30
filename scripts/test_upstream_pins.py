@@ -38,8 +38,13 @@ UNPACKERR_NEXT = "release-0.15.2"
 SONARR_BUILD, SONARR_NEXT_BUILD = "4.0.20.3014-ls326", "4.0.21.3020-ls327"
 IMAGE = "lscr.io/linuxserver/sonarr"
 GUARDED_BODY = "only the runner may read this"
-MOVE = {"image": "lscr.io/linuxserver/sonarr", "services": ["sonarr"], "branch": "upstream-pin/sonarr",
-        "from": {"tag": SONARR_BUILD, "digest": OLD}, "to": {"tag": SONARR_NEXT_BUILD, "digest": DIGEST}}
+MOVE = {
+    "image": "lscr.io/linuxserver/sonarr",
+    "services": ["sonarr"],
+    "branch": "upstream-pin/sonarr",
+    "from": {"tag": SONARR_BUILD, "digest": OLD},
+    "to": {"tag": SONARR_NEXT_BUILD, "digest": DIGEST},
+}
 MANIFEST = f'''schema_version = 1
 
 [[service]]
@@ -60,10 +65,30 @@ class Choice(unittest.TestCase):
     """Which tag is taken from a registry's list, and how a tag is read."""
 
     PUBLISHED = (
-        "latest", "4.0.15", "4.0.20", "4.0.21-develop", "4.0.20.3014-ls300", "5.0.0",
-        "v3.41.3", "3.99.0", "10.11.11", "12.1", "12.0-rc7", UNPACKERR_NEXT, "release-1.0.0",
-        "V3.1.4", "V4.0.0", "0.64.2", "0.65.0", SONARR_BUILD, SONARR_NEXT_BUILD,
-        "5.0.0.4000-ls1", "4.0.21.3020", "5.2.4_v2.0.15-ls479", "5.2.5_v2.0.15-ls480", "5.2.5-libtorrentv1",
+        "latest",
+        "4.0.15",
+        "4.0.20",
+        "4.0.21-develop",
+        "4.0.20.3014-ls300",
+        "5.0.0",
+        "v3.41.3",
+        "3.99.0",
+        "10.11.11",
+        "12.1",
+        "12.0-rc7",
+        UNPACKERR_NEXT,
+        "release-1.0.0",
+        "V3.1.4",
+        "V4.0.0",
+        "0.64.2",
+        "0.65.0",
+        SONARR_BUILD,
+        SONARR_NEXT_BUILD,
+        "5.0.0.4000-ls1",
+        "4.0.21.3020",
+        "5.2.4_v2.0.15-ls479",
+        "5.2.5_v2.0.15-ls480",
+        "5.2.5-libtorrentv1",
         "1.6.3-ls370",
     )
 
@@ -87,8 +112,9 @@ class Choice(unittest.TestCase):
                 self.assertEqual(upstream_pins.newest_in_major(current, list(self.PUBLISHED)), wanted)
 
     def test_a_later_build_of_the_same_release_is_taken(self):
-        self.assertEqual(upstream_pins.newest_in_major("4.0.20.3014-ls300", [SONARR_BUILD, "4.0.20.3014"]),
-                         SONARR_BUILD)
+        self.assertEqual(
+            upstream_pins.newest_in_major("4.0.20.3014-ls300", [SONARR_BUILD, "4.0.20.3014"]), SONARR_BUILD
+        )
 
     def test_a_tag_is_read_as_prefix_numbers_and_suffix(self):
         for tag, wanted in (
@@ -103,8 +129,11 @@ class Choice(unittest.TestCase):
                 self.assertEqual(upstream_pins.version_of(tag), wanted)
 
     def test_only_lemonfibers_own_images_are_left_to_their_releases(self):
-        for image, wanted in (("ghcr.io/lemonfiber/door", False), ("ghcr.io/lemonfiber-x/y", True),
-                              ("ghcr.io/seerr-team/seerr", True)):
+        for image, wanted in (
+            ("ghcr.io/lemonfiber/door", False),
+            ("ghcr.io/lemonfiber-x/y", True),
+            ("ghcr.io/seerr-team/seerr", True),
+        ):
             with self.subTest(image=image):
                 self.assertEqual(upstream_pins.upstream(image), wanted)
 
@@ -138,13 +167,23 @@ class Planning(unittest.TestCase):
 
     def test_an_upstream_image_moves_on_a_branch_named_after_its_service_and_lemonfibers_does_not(self):
         image = "lscr.io/linuxserver/sonarr"
-        self.registry(tags={image: ([SONARR_NEXT_BUILD], "")}, resolved={(image, SONARR_NEXT_BUILD): (DIGEST, BOTH, "")})
+        self.registry(
+            tags={image: ([SONARR_NEXT_BUILD], "")}, resolved={(image, SONARR_NEXT_BUILD): (DIGEST, BOTH, "")}
+        )
         moves, problems = upstream_pins.plan(self.manifest())
         self.assertEqual(problems, [])
-        self.assertEqual(moves, [{
-            "image": image, "services": ["sonarr"], "branch": "upstream-pin/sonarr",
-            "from": {"tag": SONARR_BUILD, "digest": OLD}, "to": {"tag": SONARR_NEXT_BUILD, "digest": DIGEST},
-        }])
+        self.assertEqual(
+            moves,
+            [
+                {
+                    "image": image,
+                    "services": ["sonarr"],
+                    "branch": "upstream-pin/sonarr",
+                    "from": {"tag": SONARR_BUILD, "digest": OLD},
+                    "to": {"tag": SONARR_NEXT_BUILD, "digest": DIGEST},
+                }
+            ],
+        )
 
     def test_a_rebuild_under_the_same_tag_moves_and_an_unchanged_pin_does_not(self):
         image = "lscr.io/linuxserver/sonarr"
@@ -159,9 +198,13 @@ class Planning(unittest.TestCase):
         for answers, said in (
             ({}, "its tags could not be listed"),
             ({"tags": {image: ([SONARR_NEXT_BUILD], "")}}, "could not be resolved"),
-            ({"tags": {image: ([SONARR_NEXT_BUILD], "")},
-              "resolved": {(image, SONARR_NEXT_BUILD): (DIGEST, {("linux", "amd64")}, "")}},
-             "does not publish linux/arm64, so it is not taken (F2-R6)"),
+            (
+                {
+                    "tags": {image: ([SONARR_NEXT_BUILD], "")},
+                    "resolved": {(image, SONARR_NEXT_BUILD): (DIGEST, {("linux", "amd64")}, "")},
+                },
+                "does not publish linux/arm64, so it is not taken (F2-R6)",
+            ),
         ):
             with self.subTest(said=said):
                 self.registry(**answers)
@@ -170,18 +213,31 @@ class Planning(unittest.TestCase):
                 self.assertIn(said, problems[0])
 
     def test_services_pinned_apart_or_a_service_id_that_names_no_branch_are_not_moved(self):
-        apart = MANIFEST + f'\n[[service]]\nid = "again"\nimage = "lscr.io/linuxserver/sonarr"\ndigest = "{LATER}"\ntag = "4"\n'
+        apart = (
+            MANIFEST
+            + f'\n[[service]]\nid = "again"\nimage = "lscr.io/linuxserver/sonarr"\ndigest = "{LATER}"\ntag = "4"\n'
+        )
         self.registry()
-        twice = apart + '\n[[service]]\nid = "third"\nimage = "lscr.io/linuxserver/sonarr"\ndigest = "x"\ntag = "5"\n'
-        self.assertEqual(upstream_pins.plan(self.manifest(twice)),
-                         ([], ["lscr.io/linuxserver/sonarr: its services are pinned apart, so it is moved by hand"]))
-        moves, problems = upstream_pins.plan(self.manifest(MANIFEST.replace('id     = "sonarr"', 'id     = "Sonarr!"')))
+        twice = (
+            apart
+            + '\n[[service]]\nid = "third"\nimage = "lscr.io/linuxserver/sonarr"\ndigest = "x"\ntag = "5"\n'
+        )
+        self.assertEqual(
+            upstream_pins.plan(self.manifest(twice)),
+            ([], ["lscr.io/linuxserver/sonarr: its services are pinned apart, so it is moved by hand"]),
+        )
+        moves, problems = upstream_pins.plan(
+            self.manifest(MANIFEST.replace('id     = "sonarr"', 'id     = "Sonarr!"'))
+        )
         self.assertEqual(moves, [])
         self.assertIn("is not a service id", problems[0])
 
     def test_only_the_image_asked_for_is_read_or_named(self):
         fake = self.registry()
-        apart = MANIFEST + f'\n[[service]]\nid = "again"\nimage = "lscr.io/linuxserver/sonarr"\ndigest = "{LATER}"\ntag = "4"\n'
+        apart = (
+            MANIFEST
+            + f'\n[[service]]\nid = "again"\nimage = "lscr.io/linuxserver/sonarr"\ndigest = "{LATER}"\ntag = "4"\n'
+        )
         for text in (MANIFEST, apart):
             moves, problems = upstream_pins.plan(self.manifest(text), "elsewhere")
             self.assertEqual((moves, problems, fake.listed), ([], [], {}))
@@ -240,7 +296,6 @@ class InDirectory(unittest.TestCase):
         return path
 
 
-
 JELLYFIN = f'''schema_version = 1
 
 [[service]]
@@ -263,14 +318,17 @@ service = "jellyfin"
 fixture = "fixtures/system-info-public.json"
 '''
 JELLYFIN_IMAGE = "docker.io/jellyfin/jellyfin"
-SONARR_MANIFEST = MANIFEST + '''
+SONARR_MANIFEST = (
+    MANIFEST
+    + """
 [[claim]]
 capability = "library.curate"
 
 [[claim.probe]]
 id      = "wanted"
 fixture = "recordings/sonarr/library-curate-wanted.json"
-'''
+"""
+)
 
 
 class Staged(InDirectory):
@@ -282,8 +340,10 @@ class Staged(InDirectory):
 
     def answer(self, tag: str, digest: str, published: list[str] | None = None) -> None:
         """The registry the token job asks, as it answers now."""
-        fake = Registry(tags={IMAGE: (published or [tag], ""), JELLYFIN_IMAGE: (["10.11.12"], "")},
-                        resolved={(IMAGE, tag): (digest, BOTH, ""), (JELLYFIN_IMAGE, "10.11.12"): (DIGEST, BOTH, "")})
+        fake = Registry(
+            tags={IMAGE: (published or [tag], ""), JELLYFIN_IMAGE: (["10.11.12"], "")},
+            resolved={(IMAGE, tag): (digest, BOTH, ""), (JELLYFIN_IMAGE, "10.11.12"): (DIGEST, BOTH, "")},
+        )
         patched = mock.patch.multiple(upstream_pins.registry, tags=fake.tags, resolve=fake.resolve)
         patched.start()
         self.addCleanup(patched.stop)
@@ -292,8 +352,10 @@ class Staged(InDirectory):
         """A plugin whose pin moved and was recorded again, staged as `record` stages it."""
         self.put("plugin/plugin.toml", manifest)
         self.put("main.toml", manifest)
-        move = {"image": image, "to": {"tag": "10.11.12" if image == JELLYFIN_IMAGE else SONARR_NEXT_BUILD,
-                                       "digest": DIGEST}}
+        move = {
+            "image": image,
+            "to": {"tag": "10.11.12" if image == JELLYFIN_IMAGE else SONARR_NEXT_BUILD, "digest": DIGEST},
+        }
         written, _ = upstream_pins.plugin_pin.pinned(manifest, image, move["to"]["tag"], DIGEST)
         self.put("plugin/plugin.toml", written)
         self.put("plugin/proofs.json", {"proofs": []})
@@ -306,26 +368,38 @@ class Staged(InDirectory):
         return upstream_pins.admitted(manifest, image, self.root / "bump")
 
     def test_the_manifest_proofs_and_new_recordings_travel_and_nothing_else(self):
-        _, staged = self.staged(SONARR_MANIFEST, IMAGE, {
-            "recordings/sonarr/library-curate-wanted.json": DIGEST,
-            "recordings/sonarr/unnamed.json": DIGEST,
-        })
-        self.assertEqual(staged, ["plugin.toml", "proofs.json", "recordings/sonarr/library-curate-wanted.json"])
+        _, staged = self.staged(
+            SONARR_MANIFEST,
+            IMAGE,
+            {
+                "recordings/sonarr/library-curate-wanted.json": DIGEST,
+                "recordings/sonarr/unnamed.json": DIGEST,
+            },
+        )
+        self.assertEqual(
+            staged, ["plugin.toml", "proofs.json", "recordings/sonarr/library-curate-wanted.json"]
+        )
         move, files = self.admit(SONARR_MANIFEST, IMAGE)
         self.assertEqual(move["branch"], "upstream-pin/sonarr")
         self.assertEqual(move["from"], {"tag": SONARR_BUILD, "digest": OLD})
-        self.assertEqual(sorted(files), ["plugin.toml", "proofs.json", "recordings/sonarr/library-curate-wanted.json"])
+        self.assertEqual(
+            sorted(files), ["plugin.toml", "proofs.json", "recordings/sonarr/library-curate-wanted.json"]
+        )
 
     def test_a_recording_still_of_the_old_pin_stays_behind(self):
         _, staged = self.staged(SONARR_MANIFEST, IMAGE, {"recordings/sonarr/library-curate-wanted.json": OLD})
         self.assertNotIn("recordings/sonarr/library-curate-wanted.json", staged)
 
     def test_jellyfins_fixtures_and_conformance_cases_travel(self):
-        _, staged = self.staged(JELLYFIN, JELLYFIN_IMAGE, {
-            "fixtures/system-info-public.json": DIGEST,
-            "conformance/identity.source@1/create_admin-answers.json": DIGEST,
-            "conformance/identity.source@1/Not A Case.json": DIGEST,
-        })
+        _, staged = self.staged(
+            JELLYFIN,
+            JELLYFIN_IMAGE,
+            {
+                "fixtures/system-info-public.json": DIGEST,
+                "conformance/identity.source@1/create_admin-answers.json": DIGEST,
+                "conformance/identity.source@1/Not A Case.json": DIGEST,
+            },
+        )
         self.assertIn("conformance/identity.source@1/create_admin-answers.json", staged)
         self.assertIn("fixtures/system-info-public.json", staged)
         self.assertNotIn("conformance/identity.source@1/Not A Case.json", staged)
@@ -353,7 +427,9 @@ class Staged(InDirectory):
     def test_a_changed_line_outside_the_block_is_refused(self):
         self.staged(SONARR_MANIFEST, IMAGE, {})
         bumped = (self.root / "bump/plugin.toml").read_text()
-        self.put("bump/plugin.toml", bumped.replace('capability = "library.curate"', 'capability = "anything"'))
+        self.put(
+            "bump/plugin.toml", bumped.replace('capability = "library.curate"', 'capability = "anything"')
+        )
         self.refused("is not main's with .* and nothing else")
 
     def test_a_recording_naming_another_digest_is_refused(self):
@@ -377,7 +453,10 @@ class Staged(InDirectory):
     def test_the_pin_is_what_the_registry_answers_now_never_what_the_bump_says(self):
         for answer, why in (
             ((SONARR_NEXT_BUILD, LATER), "is not main's with .* moved to"),
-            (("4.0.22.3030-ls328", DIGEST, [SONARR_BUILD, "4.0.22.3030-ls328"]), "moved to 4.0.22.3030-ls328"),
+            (
+                ("4.0.22.3030-ls328", DIGEST, [SONARR_BUILD, "4.0.22.3030-ls328"]),
+                "moved to 4.0.22.3030-ls328",
+            ),
             ((SONARR_BUILD, OLD), "moves .* nowhere now"),
         ):
             with self.subTest(answer=answer):
@@ -455,8 +534,10 @@ class Main(InDirectory):
         self.assertEqual((self.root / "plugin.toml").read_text(encoding="utf-8"), MANIFEST)
 
     def test_artifact_names_the_bump_after_its_first_service(self):
-        self.assertEqual(self.ran("artifact", "--manifest", "plugin.toml", "--image", IMAGE)[:2],
-                         (0, "name=upstream-pin-sonarr\n"))
+        self.assertEqual(
+            self.ran("artifact", "--manifest", "plugin.toml", "--image", IMAGE)[:2],
+            (0, "name=upstream-pin-sonarr\n"),
+        )
 
     def test_stage_then_admit_carries_the_move_into_another_checkout(self):
         self.answering(SONARR_NEXT_BUILD, DIGEST)
@@ -464,20 +545,45 @@ class Main(InDirectory):
         self.put("move.json", self.ran("apply", "--manifest", "plugin.toml", "--image", IMAGE)[1])
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            code = pin_bump.main(["stage", "--manifest", "plugin.toml", "--main", "main.toml", "--move", "move.json",
-                                  "--out", "scratch/bump"])
+            code = pin_bump.main(
+                [
+                    "stage",
+                    "--manifest",
+                    "plugin.toml",
+                    "--main",
+                    "main.toml",
+                    "--move",
+                    "move.json",
+                    "--out",
+                    "scratch/bump",
+                ]
+            )
         out = out.getvalue()
         self.assertEqual((code, out), (0, "plugin.toml\n"))
         self.put("checkout/plugin.toml", MANIFEST)
-        code, out, _ = self.ran("admit", "--manifest", "checkout/plugin.toml", "--image", IMAGE,
-                                "--bump", "scratch/bump", "--move-out", "scratch/move.json")
+        code, out, _ = self.ran(
+            "admit",
+            "--manifest",
+            "checkout/plugin.toml",
+            "--image",
+            IMAGE,
+            "--bump",
+            "scratch/bump",
+            "--move-out",
+            "scratch/move.json",
+        )
         self.assertEqual((code, out), (0, "plugin.toml\n"))
         self.assertIn(DIGEST, (self.root / "checkout/plugin.toml").read_text())
-        self.assertEqual(json.loads((self.root / "scratch/move.json").read_text())["branch"], "upstream-pin/sonarr")
+        self.assertEqual(
+            json.loads((self.root / "scratch/move.json").read_text())["branch"], "upstream-pin/sonarr"
+        )
 
     def test_a_manifest_path_that_names_no_manifest_or_goes_through_a_link_is_refused(self):
         os.symlink(self.root, self.root / "linked")
-        for manifest, why in (("main.toml", "is not a plugin.toml"), ("linked/plugin.toml", "passes through a link")):
+        for manifest, why in (
+            ("main.toml", "is not a plugin.toml"),
+            ("linked/plugin.toml", "passes through a link"),
+        ):
             with self.subTest(manifest=manifest):
                 code, _, err = self.ran("plan", "--manifest", manifest)
                 self.assertEqual(code, 1)
@@ -486,7 +592,9 @@ class Main(InDirectory):
     def test_message_writes_the_commit_and_the_pull_request(self):
         self.put("move.json", MOVE)
         self.put("recordings/sonarr/old.json", {"recorded_from": f"{IMAGE}@{OLD}"})
-        code, out, _ = self.ran("message", "--move", "move.json", "--log", "https://x.test/run\x1b[31m", "--root", ".")
+        code, out, _ = self.ran(
+            "message", "--move", "move.json", "--log", "https://x.test/run\x1b[31m", "--root", "."
+        )
         self.assertEqual(code, 0)
         self.assertTrue(out.startswith(f"chore(pins): sonarr {SONARR_BUILD} -> {SONARR_NEXT_BUILD}\n\n"))
         self.assertIn("https://x.test/run??31m", out)
@@ -524,14 +632,28 @@ class Workflows(unittest.TestCase):
         self.output, self.summary = self.root / ".output", self.root / ".summary"
 
     def env(self, **more: str) -> dict[str, str]:
-        return {"PATH": os.environ["PATH"], "HOME": str(self.root), "GITHUB_OUTPUT": str(self.output),
-                "GITHUB_STEP_SUMMARY": str(self.summary), **more}
+        return {
+            "PATH": os.environ["PATH"],
+            "HOME": str(self.root),
+            "GITHUB_OUTPUT": str(self.output),
+            "GITHUB_STEP_SUMMARY": str(self.summary),
+            **more,
+        }
 
     def test_the_plan_hands_on_each_image_and_counts_what_it_could_not_read(self):
         plan = self.root / "plan.json"
         plan.write_text(json.dumps({"moves": [{**MOVE}], "problems": ["x: unread"]}))
-        subprocess.run(["python3", "-c", embedded("upstream-pins.yml", "plan", "Which upstream pins would move"),
-                        str(plan)], cwd=self.root, env=self.env(), check=True)
+        subprocess.run(
+            [
+                "python3",
+                "-c",
+                embedded("upstream-pins.yml", "plan", "Which upstream pins would move"),
+                str(plan),
+            ],
+            cwd=self.root,
+            env=self.env(),
+            check=True,
+        )
         self.assertEqual(self.output.read_text(), 'images=["lscr.io/linuxserver/sonarr"]\nproblems=1\n')
         self.assertIn("not read: x: unread", self.summary.read_text())
 

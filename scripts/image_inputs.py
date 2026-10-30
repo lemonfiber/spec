@@ -120,15 +120,20 @@ def commit(named: str) -> str:
 
 def dockerfile_at(after: str, directory: str) -> str:
     """The `Dockerfile` of the context at `directory`, as commit `after` holds it."""
-    shown = subprocess.run(["git", "show", "--end-of-options", f"{commit(after)}:{context(directory)}{DOCKERFILE}"],
-                           capture_output=True, check=True).stdout
+    shown = subprocess.run(
+        ["git", "show", "--end-of-options", f"{commit(after)}:{context(directory)}{DOCKERFILE}"],
+        capture_output=True,
+        check=True,
+    ).stdout
     if len(shown) > LIMIT:
         raise ValueError(f"{context(directory)}{DOCKERFILE} is larger than {LIMIT} bytes")
     return shown.decode("utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("--before", required=True)
     parser.add_argument("--after", required=True)
     parser.add_argument("--directory", default=".")
@@ -140,7 +145,11 @@ def main(argv: list[str] | None = None) -> int:
         if changed is None:
             print("yes")
             return 0
-        print("yes" if changed_inputs(changed, dockerfile_at(args.after, args.directory), args.directory) else "no")
+        print(
+            "yes"
+            if changed_inputs(changed, dockerfile_at(args.after, args.directory), args.directory)
+            else "no"
+        )
         return 0
     except (OSError, ValueError, subprocess.CalledProcessError) as why:
         print(f"::error::{why}", file=sys.stderr)

@@ -209,9 +209,7 @@ class TheSonarGateAsksTheBatch(unittest.TestCase):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
         self.script = self.tmp / "step.sh"
-        self.script.write_text(
-            step("sonar-gate", "gate", MERGE_GROUP_STEP)["run"], encoding="utf-8"
-        )
+        self.script.write_text(step("sonar-gate", "gate", MERGE_GROUP_STEP)["run"], encoding="utf-8")
         self.stubs = self.tmp / "stubs"
         self.stubs.mkdir()
         for name, body in (("curl", CURL_STUB), ("gh", GH_STUB)):
@@ -274,9 +272,7 @@ class TheSonarGateAsksTheBatch(unittest.TestCase):
     # --- what it refuses -------------------------------------------------------
 
     def test_a_new_issue_on_any_pull_request_refuses_the_batch(self):
-        code, out = self.run_step(
-            subjects="feat: one (#12)\nfix: two (#13)", CURL_PR_TOTAL_13=2
-        )
+        code, out = self.run_step(subjects="feat: one (#12)\nfix: two (#13)", CURL_PR_TOTAL_13=2)
         self.assertEqual(code, 1)
         self.assertIn("#13 carries 2 new issue(s); this repository requires zero (Q-R64)", out)
         self.assertIn("refused this batch", self.summarised())

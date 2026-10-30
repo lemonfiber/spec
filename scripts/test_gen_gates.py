@@ -54,8 +54,11 @@ def context(event_name="pull_request", head_repo=REPO, inputs=None, steps=None, 
         event = {"pull_request": {"head": {"repo": {"full_name": head_repo}, "sha": HEAD}, "number": 7}}
     return {
         "github": {"event_name": event_name, "repository": REPO, "event": event, "token": "t", "sha": HEAD},
-        "inputs": {"checks": " ".join(dict.fromkeys(c.group for c in gen_gates.CHECKS)),
-                   "skip": "", **(inputs or {})},
+        "inputs": {
+            "checks": " ".join(dict.fromkeys(c.group for c in gen_gates.CHECKS)),
+            "skip": "",
+            **(inputs or {}),
+        },
         "steps": steps or {},
         "needs": needs or {},
         "env": {},
@@ -113,8 +116,13 @@ class Runner:
                 continue
             started.append(sid)
             outcome = "failure" if sid in self.failing else "success"
-            outputs = {"status": "1" if sid in self.failing else "0", "reason": "r",
-                       "needed": "true", "said": "s", "citation": "needed"}
+            outputs = {
+                "status": "1" if sid in self.failing else "0",
+                "reason": "r",
+                "needed": "true",
+                "said": "s",
+                "citation": "needed",
+            }
             ctx["steps"][sid] = {"outcome": outcome, "outputs": outputs}
         return ctx, started
 
@@ -159,7 +167,9 @@ class Generation(unittest.TestCase):
         workflow = generated()
         self.assertNotIn("secrets", workflow[True]["workflow_call"])
         self.assertNotIn("secrets.", gen_gates.build())
-        self.assertEqual(workflow["jobs"]["gates"]["permissions"], {"contents": "read", "pull-requests": "read"})
+        self.assertEqual(
+            workflow["jobs"]["gates"]["permissions"], {"contents": "read", "pull-requests": "read"}
+        )
         self.assertEqual(workflow["permissions"], {"contents": "read", "pull-requests": "read"})
 
     def test_the_committed_file_is_what_the_reusables_say(self):
@@ -168,8 +178,9 @@ class Generation(unittest.TestCase):
     def test_two_jobs_and_the_permissions_each_holds(self):
         jobs = generated()["jobs"]
         self.assertEqual(list(jobs), ["gates", "report"])
-        self.assertEqual(jobs["report"]["permissions"],
-                         {"contents": "read", "pull-requests": "write", "issues": "write"})
+        self.assertEqual(
+            jobs["report"]["permissions"], {"contents": "read", "pull-requests": "write", "issues": "write"}
+        )
         self.assertEqual(jobs["report"]["needs"], "gates")
 
     def test_no_check_is_published_as_a_check_run_of_its_own(self):
@@ -203,8 +214,9 @@ class Generation(unittest.TestCase):
                         continue
                     assigned = re.match(r"(\w+)=[\"']?([^\"'\s]*)", line)
                     if assigned and ("scripts" in assigned[2] or "canonical" in assigned[2]):
-                        self.assertTrue(assigned[2].startswith((".spec-canonical", ".spec-tooling")),
-                                        (step["id"], line))
+                        self.assertTrue(
+                            assigned[2].startswith((".spec-canonical", ".spec-tooling")), (step["id"], line)
+                        )
                         if assigned[2].startswith(".spec-tooling"):
                             readers.add(assigned[1])
                     ran = re.search(r"python3 (?:-I |-E -s )?[\"']?([^\"'\s]+)", line)
@@ -235,10 +247,21 @@ class Generation(unittest.TestCase):
 
     def test_each_scanner_reads_what_to_pass_over_from_the_base_branch(self):
         steps = generated()["jobs"]["gates"]["steps"]
-        restores = {s["id"].rsplit("--", 1)[0]: s for s in steps
-                    if s["name"].endswith("The files that say what to pass over are the base branch's")}
-        self.assertEqual(set(restores), {"hygiene--actionlint", "hygiene--typos", "hygiene--links",
-                                         "security--gitleaks", "security--osv-scanner"})
+        restores = {
+            s["id"].rsplit("--", 1)[0]: s
+            for s in steps
+            if s["name"].endswith("The files that say what to pass over are the base branch's")
+        }
+        self.assertEqual(
+            set(restores),
+            {
+                "hygiene--actionlint",
+                "hygiene--typos",
+                "hygiene--links",
+                "security--gitleaks",
+                "security--osv-scanner",
+            },
+        )
         self.assertEqual(len({s["run"] for s in restores.values()}), 1)
         read = {check: set(s["env"]["CONFIGS"].split()) for check, s in restores.items()}
         self.assertLessEqual({".github/actionlint.yaml", ".shellcheckrc"}, read["hygiene--actionlint"])
@@ -255,8 +278,12 @@ class Generation(unittest.TestCase):
         }
         ids = [s.get("id") for s in steps]
         for check, said in scanners.items():
-            scan = next(s for s in steps if s.get("id", "").startswith(check + "--")
-                        and (s.get("uses", "").startswith(said) or said in s.get("run", "")))
+            scan = next(
+                s
+                for s in steps
+                if s.get("id", "").startswith(check + "--")
+                and (s.get("uses", "").startswith(said) or said in s.get("run", ""))
+            )
             self.assertLess(ids.index(restores[check]["id"]), ids.index(scan["id"]), check)
         typos = next(s for s in steps if s.get("uses", "").startswith("crate-ci/typos@"))
         self.assertEqual(typos["with"], {"config": "typos.toml", "isolated": True})
@@ -264,8 +291,12 @@ class Generation(unittest.TestCase):
     def test_spec_s_scripts_are_checked_out_at_the_commit_gates_was_called_at(self):
         # So a caller pinned at a revision runs that revision's scripts, with the
         # arguments that revision's steps pass them.
-        tooling = [step for job in generated()["jobs"].values() for step in job["steps"]
-                   if step.get("with", {}).get("path") == ".spec-tooling"]
+        tooling = [
+            step
+            for job in generated()["jobs"].values()
+            for step in job["steps"]
+            if step.get("with", {}).get("path") == ".spec-tooling"
+        ]
         self.assertTrue(tooling)
         for step in tooling:
             self.assertEqual(step["with"]["repository"], "lemonfiber/spec", step["id"])
@@ -288,13 +319,28 @@ class Generation(unittest.TestCase):
                 self.assertNotIn("${{", step.get("run", ""), step.get("id"))
 
     def test_the_scanner_runs_shut_in_and_builds_nothing(self):
-        osv = next(s for s in generated()["jobs"]["gates"]["steps"]
-                   if s.get("id", "").startswith("security--osv-scanner--") and "docker run" in s.get("run", ""))
+        osv = next(
+            s
+            for s in generated()["jobs"]["gates"]["steps"]
+            if s.get("id", "").startswith("security--osv-scanner--") and "docker run" in s.get("run", "")
+        )
         words = osv["run"].split("docker run", 1)[1].split()
         self.assertNotIn("uses", osv)
-        for word in ("--no-call-analysis=all", "--cap-drop", "no-new-privileges", '"${GITHUB_WORKSPACE}:/src:ro"'):
+        for word in (
+            "--no-call-analysis=all",
+            "--cap-drop",
+            "no-new-privileges",
+            '"${GITHUB_WORKSPACE}:/src:ro"',
+        ):
             self.assertIn(word, words)
-        self.assertFalse([w for w in words if w == "-e" or w.startswith(("--env", "--privileged", "--network=host", "--mount"))], words)
+        self.assertFalse(
+            [
+                w
+                for w in words
+                if w == "-e" or w.startswith(("--env", "--privileged", "--network=host", "--mount"))
+            ],
+            words,
+        )
         self.assertEqual([w for w in words if w.startswith(("--volume", "-v"))], ["--volume"])
         image = osv["env"]["OSV_IMAGE"]
         self.assertRegex(image, r"^ghcr\.io/google/osv-scanner-action:v[0-9.]+@sha256:[0-9a-f]{64}$")
@@ -315,7 +361,9 @@ class Generation(unittest.TestCase):
     def test_each_hand_fetched_scanner_is_watched_by_one_script(self):
         steps = generated()["jobs"]["gates"]["steps"]
         watches = [s for s in steps if s["name"].endswith("is not far behind the latest release")]
-        self.assertEqual({s["env"]["KNOB"] for s in watches}, {"ACTIONLINT_VERSION", "GITLEAKS_VERSION", "OSV_VERSION"})
+        self.assertEqual(
+            {s["env"]["KNOB"] for s in watches}, {"ACTIONLINT_VERSION", "GITLEAKS_VERSION", "OSV_VERSION"}
+        )
         self.assertEqual(len({s["run"] for s in watches}), 1)
         for watch in watches:
             self.assertIn(watch["env"]["KNOB"], watch["env"])
@@ -353,9 +401,13 @@ class Generation(unittest.TestCase):
 
     def test_a_jobs_outputs_are_carried_out_of_gates(self):
         outputs = generated()["jobs"]["gates"]["outputs"]
-        self.assertEqual(outputs["explain--detect--out--citation"], "${{ steps.explain--detect--d.outputs.citation }}")
-        self.assertEqual(outputs["squash-message--squash-message--out--needed"],
-                         "${{ steps.squash-message--squash-message--check.outputs.needed }}")
+        self.assertEqual(
+            outputs["explain--detect--out--citation"], "${{ steps.explain--detect--d.outputs.citation }}"
+        )
+        self.assertEqual(
+            outputs["squash-message--squash-message--out--needed"],
+            "${{ steps.squash-message--squash-message--check.outputs.needed }}",
+        )
 
     def test_each_pin_keeps_the_version_its_reusable_names(self):
         for line in gen_gates.build().splitlines():
@@ -369,7 +421,11 @@ class Generation(unittest.TestCase):
             if check.kind == gen_gates.EXPLAIN:
                 continue
             base = gen_gates.slug(check)
-            first = next(i for i, sid in enumerate(ids) if sid and sid.startswith(base + "--") and sid != base + "--fresh")
+            first = next(
+                i
+                for i, sid in enumerate(ids)
+                if sid and sid.startswith(base + "--") and sid != base + "--fresh"
+            )
             self.assertEqual(ids[first - 1], base + "--fresh", check)
             self.assertEqual(steps[first - 1]["run"], 'find "$GITHUB_WORKSPACE" -mindepth 1 -delete')
 
@@ -468,8 +524,14 @@ class Behaviour(unittest.TestCase):
 
 
 def bash(script: str, env: dict, cwd: pathlib.Path | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(["bash", "-c", script], env={**os.environ, **env}, cwd=cwd,
-                          capture_output=True, text=True, check=False)
+    return subprocess.run(
+        ["bash", "-c", script],
+        env={**os.environ, **env},
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
 
 class Scripts(unittest.TestCase):
@@ -485,30 +547,64 @@ class Scripts(unittest.TestCase):
         return dict(line.split("=", 1) for line in self.out.read_text().splitlines())
 
     def test_the_plan_runs_what_is_listed_and_not_skipped(self):
-        said = bash(gen_gates.PLAN, {"KNOWN": "a b c", "CHECKS": "a b", "SKIP": "b",
-                                     "REPO": REPO, "EVENT": "pull_request",
-                                     "GITHUB_OUTPUT": str(self.out)})
+        said = bash(
+            gen_gates.PLAN,
+            {
+                "KNOWN": "a b c",
+                "CHECKS": "a b",
+                "SKIP": "b",
+                "REPO": REPO,
+                "EVENT": "pull_request",
+                "GITHUB_OUTPUT": str(self.out),
+            },
+        )
         self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
         self.assertEqual(self.outputs(), {"a": "true", "b": "false", "c": "false"})
 
     def test_the_plan_refuses_a_name_that_is_no_check(self):
-        said = bash(gen_gates.PLAN, {"KNOWN": "a b", "CHECKS": "a sanity", "SKIP": "",
-                                     "REPO": REPO, "EVENT": "push",
-                                     "GITHUB_OUTPUT": str(self.out)})
+        said = bash(
+            gen_gates.PLAN,
+            {
+                "KNOWN": "a b",
+                "CHECKS": "a sanity",
+                "SKIP": "",
+                "REPO": REPO,
+                "EVENT": "push",
+                "GITHUB_OUTPUT": str(self.out),
+            },
+        )
         self.assertEqual(said.returncode, 1)
         self.assertIn("sanity is not one of the shared gates", said.stdout)
 
     def test_the_plan_refuses_the_spec_repository(self):
-        said = bash(gen_gates.PLAN, {"KNOWN": "a", "CHECKS": "a", "SKIP": "", "REPO": "lemonfiber/spec",
-                                     "EVENT": "pull_request", "GITHUB_OUTPUT": str(self.out)})
+        said = bash(
+            gen_gates.PLAN,
+            {
+                "KNOWN": "a",
+                "CHECKS": "a",
+                "SKIP": "",
+                "REPO": "lemonfiber/spec",
+                "EVENT": "pull_request",
+                "GITHUB_OUTPUT": str(self.out),
+            },
+        )
         self.assertEqual(said.returncode, 1)
         self.assertIn("runs its gates as its own workflows", said.stdout)
         self.assertEqual(self.out.read_text(), "")
 
     def test_the_plan_refuses_an_event_that_is_not_its_callers(self):
         for event in ("pull_request_target", "workflow_run", "issue_comment"):
-            said = bash(gen_gates.PLAN, {"KNOWN": "a", "CHECKS": "a", "SKIP": "", "REPO": REPO,
-                                         "EVENT": event, "GITHUB_OUTPUT": str(self.out)})
+            said = bash(
+                gen_gates.PLAN,
+                {
+                    "KNOWN": "a",
+                    "CHECKS": "a",
+                    "SKIP": "",
+                    "REPO": REPO,
+                    "EVENT": event,
+                    "GITHUB_OUTPUT": str(self.out),
+                },
+            )
             self.assertEqual(said.returncode, 1, event)
             self.assertIn(f"not {event}", said.stdout)
 
@@ -517,9 +613,16 @@ class Scripts(unittest.TestCase):
         temp = self.tmp / "temp"
         workspace.mkdir(exist_ok=True)
         temp.mkdir(exist_ok=True)
-        return bash(script, {"VERDICTS": json.dumps(verdicts), "GITHUB_STEP_SUMMARY": str(self.summary),
-                             "GITHUB_WORKSPACE": str(workspace), "RUNNER_TEMP": str(temp)},
-                    cwd=workspace)
+        return bash(
+            script,
+            {
+                "VERDICTS": json.dumps(verdicts),
+                "GITHUB_STEP_SUMMARY": str(self.summary),
+                "GITHUB_WORKSPACE": str(workspace),
+                "RUNNER_TEMP": str(temp),
+            },
+            cwd=workspace,
+        )
 
     def plant(self) -> None:
         # What a pull request's tree can hold at the workspace root: a module
@@ -548,7 +651,9 @@ class Scripts(unittest.TestCase):
         self.assertIn("| x / y | failure |", self.summary.read_text())
         self.assertEqual(self.held({"z--w": "success"}).returncode, 0)
 
-    def restore(self, base: dict, tracked: dict, configs: str, base_sha: str = HEAD, linked: dict | None = None):
+    def restore(
+        self, base: dict, tracked: dict, configs: str, base_sha: str = HEAD, linked: dict | None = None
+    ):
         # A repository holding the pull request's files, and a `gh` that answers
         # for the base branch's: each path it holds, a 404 for the rest.
         tree = self.tmp / "tree"
@@ -573,20 +678,40 @@ class Scripts(unittest.TestCase):
             'path=$(printf "%b" "${path//%/\\\\x}")\n'
             f'if [ -f "{served}/$path" ]; then cat "{served}/$path"; '
             'elif [ "$path" = "fails" ]; then echo "gh: Server Error (HTTP 502)" >&2; exit 1; '
-            'else echo "gh: Not Found (HTTP 404)" >&2; exit 1; fi\n')
+            'else echo "gh: Not Found (HTTP 404)" >&2; exit 1; fi\n'
+        )
         (fake / "gh").chmod(0o755)
-        step = next(s for s in generated()["jobs"]["gates"]["steps"]
-                    if s["name"].endswith("The files that say what to pass over are the base branch's"))
-        said = bash(step["run"], {"PATH": f"{fake}:{os.environ['PATH']}", "REPO": REPO, "BASE_SHA": base_sha,
-                                  "CONFIGS": configs, "RUNNER_TEMP": str(self.tmp)}, cwd=tree)
+        step = next(
+            s
+            for s in generated()["jobs"]["gates"]["steps"]
+            if s["name"].endswith("The files that say what to pass over are the base branch's")
+        )
+        said = bash(
+            step["run"],
+            {
+                "PATH": f"{fake}:{os.environ['PATH']}",
+                "REPO": REPO,
+                "BASE_SHA": base_sha,
+                "CONFIGS": configs,
+                "RUNNER_TEMP": str(self.tmp),
+            },
+            cwd=tree,
+        )
         return said, tree
 
     def test_the_base_branch_s_copy_replaces_the_pull_request_s(self):
         said, tree = self.restore(
             base={"lychee.toml": "exclude = []\n", "docs/.gitignore": "build/\n", "a b/.gitignore": "out/\n"},
-            tracked={"lychee.toml": "exclude = ['.*']\n", "docs/.gitignore": "*.md\n", "a b/.gitignore": "*.md\n",
-                     "deep/.gitignore": "*.md\n", ".lycheeignore": ".*\n", "README.md": "x\n"},
-            configs="lychee.toml .lycheeignore .gitignore")
+            tracked={
+                "lychee.toml": "exclude = ['.*']\n",
+                "docs/.gitignore": "*.md\n",
+                "a b/.gitignore": "*.md\n",
+                "deep/.gitignore": "*.md\n",
+                ".lycheeignore": ".*\n",
+                "README.md": "x\n",
+            },
+            configs="lychee.toml .lycheeignore .gitignore",
+        )
         self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
         self.assertEqual((tree / "lychee.toml").read_text(), "exclude = []\n")
         self.assertEqual((tree / "docs/.gitignore").read_text(), "build/\n")
@@ -598,16 +723,20 @@ class Scripts(unittest.TestCase):
         self.assertIn(".lycheeignore: the base branch has none, so none is read", said.stdout)
 
     def test_a_copy_the_pull_request_deleted_comes_back(self):
-        said, tree = self.restore(base={".gitleaks.toml": "[extend]\nuseDefault = true\n"},
-                                  tracked={"README.md": "x\n"}, configs=".gitleaks.toml")
+        said, tree = self.restore(
+            base={".gitleaks.toml": "[extend]\nuseDefault = true\n"},
+            tracked={"README.md": "x\n"},
+            configs=".gitleaks.toml",
+        )
         self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
         self.assertEqual((tree / ".gitleaks.toml").read_text(), "[extend]\nuseDefault = true\n")
 
     def test_a_link_in_place_of_a_copy_is_removed_and_its_target_untouched(self):
         target = self.tmp / "outside"
         target.write_text("kept\n")
-        said, tree = self.restore(base={}, tracked={"README.md": "x\n"}, configs="typos.toml",
-                                  linked={"typos.toml": target})
+        said, tree = self.restore(
+            base={}, tracked={"README.md": "x\n"}, configs="typos.toml", linked={"typos.toml": target}
+        )
         self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
         self.assertFalse((tree / "typos.toml").is_symlink())
         self.assertEqual(target.read_text(), "kept\n")
@@ -616,15 +745,22 @@ class Scripts(unittest.TestCase):
         elsewhere = self.tmp / "elsewhere"
         elsewhere.mkdir()
         (elsewhere / "actionlint.yaml").write_text("ignore: ['.*']\n")
-        said, _ = self.restore(base={".github/actionlint.yaml": "{}\n"}, tracked={"README.md": "x\n"},
-                               configs=".github/actionlint.yaml", linked={".github": elsewhere})
+        said, _ = self.restore(
+            base={".github/actionlint.yaml": "{}\n"},
+            tracked={"README.md": "x\n"},
+            configs=".github/actionlint.yaml",
+            linked={".github": elsewhere},
+        )
         self.assertEqual(said.returncode, 1)
         self.assertIn(".github is a link", said.stdout)
         self.assertEqual((elsewhere / "actionlint.yaml").read_text(), "ignore: ['.*']\n")
 
     def test_a_copy_with_no_directory_to_hold_it_is_not_read(self):
-        said, tree = self.restore(base={".github/actionlint.yaml": "{}\n"}, tracked={"README.md": "x\n"},
-                                  configs=".github/actionlint.yaml")
+        said, tree = self.restore(
+            base={".github/actionlint.yaml": "{}\n"},
+            tracked={"README.md": "x\n"},
+            configs=".github/actionlint.yaml",
+        )
         self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
         self.assertFalse((tree / ".github").exists())
 
@@ -634,7 +770,9 @@ class Scripts(unittest.TestCase):
         self.assertIn("fails could not be read at the base branch", said.stdout)
 
     def test_a_push_keeps_its_own_copies(self):
-        said, tree = self.restore(base={}, tracked={"lychee.toml": "own\n"}, configs="lychee.toml", base_sha="")
+        said, tree = self.restore(
+            base={}, tracked={"lychee.toml": "own\n"}, configs="lychee.toml", base_sha=""
+        )
         self.assertEqual(said.returncode, 0, said.stdout + said.stderr)
         self.assertEqual((tree / "lychee.toml").read_text(), "own\n")
 
@@ -677,11 +815,7 @@ class Refusals(unittest.TestCase):
         text = f"name: one\non:\n  workflow_call:\n{top}jobs:\n  job:\n{job}"
         (self.tmp / "one.yml").write_text(text, encoding="utf-8")
 
-    STEP = (
-        "    runs-on: ubuntu-latest\n"
-        "    steps:\n"
-        "      - uses: actions/checkout@" + "1" * 40 + " # v7\n"
-    )
+    STEP = "    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@" + "1" * 40 + " # v7\n"
 
     def refused(self, *words: str) -> None:
         with self.assertRaises(gen_gates.Refused) as caught:
@@ -727,29 +861,47 @@ class Refusals(unittest.TestCase):
 
     def test_an_actor_is_not_asked_about_its_actions(self):
         # report runs only actions/ ones, which a test of the generated file holds.
-        self.source(self.STEP + "      - uses: someone/tool@" + "2" * 40 + " # v1\n",
-                    top="permissions:\n  pull-requests: write\n")
-        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.ACT),)):
+        self.source(
+            self.STEP + "      - uses: someone/tool@" + "2" * 40 + " # v1\n",
+            top="permissions:\n  pull-requests: write\n",
+        )
+        with mock.patch.object(
+            gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.ACT),)
+        ):
             self.assertIn("someone/tool@", gen_gates.build())
 
     def test_python_started_beside_the_tree(self):
-        for script in ("python3 - <<'PY'", "python3 -c 'import json'", "python3 scripts/x.py",
-                       "python3 -E -s -m x", "python3 -E -s - <<'PY'", "python -c x", "x | python3 -E y.py"):
+        for script in (
+            "python3 - <<'PY'",
+            "python3 -c 'import json'",
+            "python3 scripts/x.py",
+            "python3 -E -s -m x",
+            "python3 -E -s - <<'PY'",
+            "python -c x",
+            "x | python3 -E y.py",
+        ):
             self.source(self.STEP + f"      - run: {json.dumps(script)}\n")
             self.refused("starts Python without isolating it", "python3 -I", "python3 -E -s <path>")
 
     def test_python_started_isolated_is_carried(self):
-        for script in ("python3 -I - <<'PY'", "python3 -E -s .spec-tooling/scripts/x.py",
-                       'python3 -E -s "$reader" --root .'):
+        for script in (
+            "python3 -I - <<'PY'",
+            "python3 -E -s .spec-tooling/scripts/x.py",
+            'python3 -E -s "$reader" --root .',
+        ):
             self.source(self.STEP + f"      - run: {json.dumps(script)}\n")
             self.assertIn(script, gen_gates.build())
 
     def test_an_explainer_starting_python_beside_the_tree(self):
         (self.tmp / "explain-check.yml").write_text(
             "on:\n  workflow_call:\njobs:\n  explain:\n    runs-on: ubuntu-latest\n"
-            "    steps:\n      - run: python3 - <<'PY'\n", encoding="utf-8")
+            "    steps:\n      - run: python3 - <<'PY'\n",
+            encoding="utf-8",
+        )
         self.source("    uses: ./.github/workflows/explain-check.yml\n")
-        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)):
+        with mock.patch.object(
+            gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)
+        ):
             self.refused("explain-check.yml job 'explain' starts Python without isolating it")
 
     def test_a_script_carrying_an_expression(self):
@@ -757,14 +909,22 @@ class Refusals(unittest.TestCase):
         self.refused("has an expression in its script", "Pass it through env")
 
     def test_an_explainer_script_carrying_an_expression(self):
-        called = (pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/explain-check.yml").read_text(
-            encoding="utf-8")
+        called = (
+            pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/explain-check.yml"
+        ).read_text(encoding="utf-8")
         (self.tmp / "explain-check.yml").write_text(
-            called.replace('set -euo pipefail\n', 'set -euo pipefail\n          echo "${{ inputs.title }}"\n', 1),
-            encoding="utf-8")
-        self.source("    uses: ./.github/workflows/explain-check.yml\n"
-                    "    with:\n      check: x\n      title: t\n      body: b\n")
-        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)):
+            called.replace(
+                "set -euo pipefail\n", 'set -euo pipefail\n          echo "${{ inputs.title }}"\n', 1
+            ),
+            encoding="utf-8",
+        )
+        self.source(
+            "    uses: ./.github/workflows/explain-check.yml\n"
+            "    with:\n      check: x\n      title: t\n      body: b\n"
+        )
+        with mock.patch.object(
+            gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)
+        ):
             self.refused("explain-check.yml job 'explain' has an expression in its script")
 
     def test_a_write_permission_put_nowhere(self):
@@ -773,25 +933,38 @@ class Refusals(unittest.TestCase):
 
     def test_a_write_permission_on_a_check_that_acts_is_carried(self):
         self.source(self.STEP, top="permissions:\n  pull-requests: write\n")
-        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.ACT),)):
+        with mock.patch.object(
+            gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.ACT),)
+        ):
             self.assertIn("one / job", gen_gates.build())
 
     def test_an_explainer_that_is_not_a_plain_call(self):
         self.source("    uses: ./.github/workflows/other.yml\n")
-        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)):
+        with mock.patch.object(
+            gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)
+        ):
             self.refused("is not a plain call")
 
     def test_an_explainer_missing_an_input(self):
-        shutil.copy(pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/explain-check.yml",
-                    self.tmp / "explain-check.yml")
+        shutil.copy(
+            pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/explain-check.yml",
+            self.tmp / "explain-check.yml",
+        )
         self.source("    uses: ./.github/workflows/explain-check.yml\n    with:\n      check: x\n")
-        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)):
+        with mock.patch.object(
+            gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.EXPLAIN),)
+        ):
             self.refused("reads inputs.title, which an explainer does not pass")
 
     def test_a_job_read_that_nothing_carries(self):
-        self.source(self.STEP + "      - name: write\n        run: echo \"$X\"\n        env:\n          X: ${{ needs.elsewhere.outputs.x }}\n",
-                    top="permissions:\n  pull-requests: write\n")
-        with mock.patch.object(gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.ACT),)):
+        self.source(
+            self.STEP
+            + '      - name: write\n        run: echo "$X"\n        env:\n          X: ${{ needs.elsewhere.outputs.x }}\n',
+            top="permissions:\n  pull-requests: write\n",
+        )
+        with mock.patch.object(
+            gen_gates, "CHECKS", (gen_gates.Check("one", "one.yml", "job", gen_gates.ACT),)
+        ):
             self.refused("reads needs.elsewhere.outputs.x")
 
     def test_a_job_deciding_by_a_status_function(self):
@@ -803,12 +976,17 @@ class Refusals(unittest.TestCase):
         self.refused("step deciding by a status function")
 
     def test_a_reference_to_a_step_that_is_not_earlier(self):
-        self.source(self.STEP + "      - run: echo \"$X\"\n        env:\n          X: ${{ steps.later.outputs.x }}\n")
+        self.source(
+            self.STEP + '      - run: echo "$X"\n        env:\n          X: ${{ steps.later.outputs.x }}\n'
+        )
         self.refused("steps.later")
 
     def test_a_moved_step_referring_to_a_step_that_is_not_earlier(self):
-        self.source(self.STEP + "      - name: write\n        run: echo \"$X\"\n        env:\n          X: ${{ steps.later.outputs.x }}\n",
-                    top="permissions:\n  pull-requests: write\n")
+        self.source(
+            self.STEP
+            + '      - name: write\n        run: echo "$X"\n        env:\n          X: ${{ steps.later.outputs.x }}\n',
+            top="permissions:\n  pull-requests: write\n",
+        )
         with mock.patch.object(gen_gates, "MOVED", {("one", "job"): frozenset({"write"})}):
             self.refused("steps.later")
 
@@ -825,16 +1003,20 @@ class Refusals(unittest.TestCase):
         self.assertIn("KEPT: 'yes'", gen_gates.build())
 
     def test_a_wrapped_condition_and_a_list_are_carried(self):
-        self.source(self.STEP + "      - run: echo\n        if: ${{ github.event_name == 'push' }}\n"
-                    "        with:\n          many: [a, b]\n")
+        self.source(
+            self.STEP + "      - run: echo\n        if: ${{ github.event_name == 'push' }}\n"
+            "        with:\n          many: [a, b]\n"
+        )
         workflow = yaml.safe_load(gen_gates.build())
         step = workflow["jobs"]["gates"]["steps"][-3]
         self.assertTrue(step["if"].endswith("&& (github.event_name == 'push') }}"), step["if"])
         self.assertEqual(step["with"]["many"], ["a", "b"])
 
     def test_a_moved_step_waits_on_the_steps_before_it_in_gates(self):
-        self.source(self.STEP + "      - run: make\n      - name: write\n        run: echo\n",
-                    top="permissions:\n  pull-requests: write\n")
+        self.source(
+            self.STEP + "      - run: make\n      - name: write\n        run: echo\n",
+            top="permissions:\n  pull-requests: write\n",
+        )
         with mock.patch.object(gen_gates, "MOVED", {("one", "job"): frozenset({"write"})}):
             workflow = yaml.safe_load(gen_gates.build())
         moved = next(s for s in workflow["jobs"]["report"]["steps"] if s["id"] == "one--job--2")

@@ -9,6 +9,7 @@ goal-advance comment, or an out-of-scope advisory.
 Usage:  pr_goals.py --pr-text <file>
 Prints a JSON object; exit 0 always (classification, not a gate).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,6 +22,8 @@ from patterns import CITE, IN_FLIGHT, ordered
 from patterns import SPEC_TRAILER as TRAILER
 
 VERSIONS = pathlib.Path("70-operations/versions")
+
+
 def within_cwd(raw: str) -> pathlib.Path:
     path = pathlib.Path(raw).resolve()
     if not path.is_relative_to(pathlib.Path.cwd().resolve()):
@@ -67,17 +70,21 @@ def main() -> None:
 
     goals = set(version["goals"])
     in_scope = sorted(ids & goals)
-    print(json.dumps({
-        "staged": version["version"],
-        # What the version is for, in the manifest's own words. Carried so the
-        # milestone this PR is assigned to can be described without a second
-        # sentence being written in a workflow and drifting from the first.
-        "delivers": version.get("delivers", ""),
-        "cited": sorted(ids),
-        "in_scope": in_scope,
-        "out_of_scope": sorted(ids - goals),
-        "advisory": bool(ids) and not in_scope,  # cites requirements, none in scope
-    }))
+    print(
+        json.dumps(
+            {
+                "staged": version["version"],
+                # What the version is for, in the manifest's own words. Carried so the
+                # milestone this PR is assigned to can be described without a second
+                # sentence being written in a workflow and drifting from the first.
+                "delivers": version.get("delivers", ""),
+                "cited": sorted(ids),
+                "in_scope": in_scope,
+                "out_of_scope": sorted(ids - goals),
+                "advisory": bool(ids) and not in_scope,  # cites requirements, none in scope
+            }
+        )
+    )
 
 
 if __name__ == "__main__":

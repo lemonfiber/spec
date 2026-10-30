@@ -9,6 +9,7 @@ words for anyone whose browser does not follow the refresh.
 
 Usage: gen_redirects.py <output directory>
 """
+
 from __future__ import annotations
 
 import html

@@ -6,6 +6,7 @@ label registry, and the coupling between `maturity` and `shipped`, and rejects
 unknown keys. Exit 0 when every feature is valid, 1 with the violations named.
 Run from the repo root.
 """
+
 import glob
 import pathlib
 import re
@@ -61,11 +62,7 @@ def _identity(fm, path):
 def _lists(fm, path):
     out = [f"{path}: label '{v}' is not in the registry" for v in fm.get("labels", []) if v not in LABELS]
     for key in ("requires", "relates"):
-        out += [
-            f"{path}: {key} entry '{v}' is malformed"
-            for v in fm.get(key, [])
-            if not ID_RE.match(v)
-        ]
+        out += [f"{path}: {key} entry '{v}' is malformed" for v in fm.get(key, []) if not ID_RE.match(v)]
     # `depends` conflated "cannot be built without" with "worth reading", which is
     # how features came to be scheduled before the things they need. Split, so the
     # first can be enforced and the second left alone.
@@ -87,8 +84,7 @@ def _shipped(fm, path):
     if version is None:
         return out
     if fm.get("maturity") != "shipped":
-        out.append(f"{path}: shipped = '{version}' on a feature whose maturity is "
-                   f"'{fm.get('maturity')}'")
+        out.append(f"{path}: shipped = '{version}' on a feature whose maturity is '{fm.get('maturity')}'")
     if not VERSION.match(version):
         out.append(f"{path}: shipped = '{version}' is not a version")
     return out
@@ -98,13 +94,7 @@ def problems_for(path):
     fm = metafm.load(path)
     if fm is None:
         return [f"{path}: no frontmatter block"]
-    return (
-        _keys(fm, path)
-        + _enums(fm, path)
-        + _identity(fm, path)
-        + _lists(fm, path)
-        + _shipped(fm, path)
-    )
+    return _keys(fm, path) + _enums(fm, path) + _identity(fm, path) + _lists(fm, path) + _shipped(fm, path)
 
 
 def main():

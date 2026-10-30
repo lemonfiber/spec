@@ -9,6 +9,7 @@ are where the subtlety is — whose sign-off counts, who is exempt and why — a
 suite that had to build real commits to reach them would test git as much as
 this.
 """
+
 import re
 import subprocess
 import sys

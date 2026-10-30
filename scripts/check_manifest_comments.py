@@ -103,10 +103,12 @@ def main() -> int:
     faults = []
     for path in manifests:
         for line, words, sentence in claims(path.read_text(encoding="utf-8")):
-            faults.append(f"{path.relative_to(root)}:{line}: \"{words}\" says how far a goal "
-                          f"has got, in \"{sentence}\". A manifest comment says why a goal "
-                          "is in the version; where it stands is its repository's "
-                          "status.toml (OPS-R79).")
+            faults.append(
+                f'{path.relative_to(root)}:{line}: "{words}" says how far a goal '
+                f'has got, in "{sentence}". A manifest comment says why a goal '
+                "is in the version; where it stands is its repository's "
+                "status.toml (OPS-R79)."
+            )
     for fault in faults:
         print(f"::error::{fault}")
     if faults:

@@ -25,6 +25,7 @@ printed as Markdown, the lines to add included.
 
 Exit 0 = the squash will hold it, 1 = it will not, 2 = the check could not run.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -43,11 +44,13 @@ def title_problem(title: str) -> list[str]:
     """What is wrong with the title as `main`'s subject, if anything."""
     if conventional(title):
         return []
-    return [(
-        f"The title `{title}` is not a conventional subject. It becomes the commit's subject "
-        f"on `main`. Start it with a type, `type: what it does` or `type(scope): what it does`, "
-        f"where the type is one of {TYPES.replace('|', ', ')}."
-    )]
+    return [
+        (
+            f"The title `{title}` is not a conventional subject. It becomes the commit's subject "
+            f"on `main`. Start it with a type, `type: what it does` or `type(scope): what it does`, "
+            f"where the type is one of {TYPES.replace('|', ', ')}."
+        )
+    ]
 
 
 def citation_problems(body: str, spec_dir: pathlib.Path) -> list[str]:
@@ -57,11 +60,13 @@ def citation_problems(body: str, spec_dir: pathlib.Path) -> list[str]:
         raise Refused(2, "::error::no identifiers found in the spec checkout, so nothing can be resolved")
     cited = cited_ids(body)
     if not cited:
-        return [(
-            "The body has no `Spec:` line. Add one on its own line, naming what the change "
-            "serves, e.g. `Spec: OPS-R1`; routine maintenance cites `GOV-R12`. It is the "
-            "citation `main` keeps."
-        )]
+        return [
+            (
+                "The body has no `Spec:` line. Add one on its own line, naming what the change "
+                "serves, e.g. `Spec: OPS-R1`; routine maintenance cites `GOV-R12`. It is the "
+                "citation `main` keeps."
+            )
+        ]
     retired = retired_ids(spec_dir)
     drafts = draft_ids(spec_dir)
     problems = []
@@ -125,9 +130,11 @@ def gate() -> int:
     if not problems:
         print(PASSED)
         return 0
-    print("The squash merge writes this pull request's title and body to `main` as one commit, "
-          "and the branch's commit messages do not reach it. Edit the title or body; there is "
-          "nothing to push, and this check runs again on the edit.\n")
+    print(
+        "The squash merge writes this pull request's title and body to `main` as one commit, "
+        "and the branch's commit messages do not reach it. Edit the title or body; there is "
+        "nothing to push, and this check runs again on the edit.\n"
+    )
     # A problem running to several lines stays inside its bullet.
     print("\n".join("- " + problem.replace("\n", "\n  ") for problem in problems))
     return 1
