@@ -3,25 +3,31 @@
 #
 # A train tag opens one rolling pull request on the calling repository naming the image
 # it published: `release/adapter-pin` from `adapter-release`, `release/image-pin` from
-# `manifest-pin`. Once that pull request merges, the merge commit is the revision whose
-# manifest names that image, and `bundle-bump` in lemonfiber-plugins moves the bundle's
-# pin and copy to it. It is told the calling repository's address, and refuses a plugin
-# the bundle does not pin from there, so a copy of a plugin's repository moves nothing but
-# its own pin.
+# `manifest-pin`. Once that pull request merges, its merge commit on main is the revision
+# whose manifest names that image, and `bundle-bump` in lemonfiber-plugins moves the
+# bundle's pin and copy to it. It is told the calling repository's address, and refuses a
+# plugin the bundle does not pin from there, so a copy of a plugin's repository moves
+# nothing but its own pin.
 #
-# Only a pull request the release App opened moves a pin. `author` holds no token and no
-# secret and is judged before any job that does; `bump` runs only on its answer, and
-# mints the App's token for lemonfiber-plugins alone, able to dispatch a workflow and
-# nothing else, then holds the author to the token's own App before it asks.
+# It runs on each push to main, so the job holding the release App's key runs from main
+# behind the calling repository's `release` environment, whose branch policy admits main
+# and `v*` tags only. `author` holds the run's own token, able to read the repository and
+# its pull requests and nothing else, and no secret: it finds the pull request the pushed
+# commit merged and answers only where the release App opened it from this repository's
+# pin branch. `bump` runs only on that answer, mints the App's token for
+# lemonfiber-plugins alone, able to dispatch a workflow and nothing else, and holds the
+# release App's login to the token's own App before it asks.
 #
 #   on:
-#     pull_request:
-#       types: [closed]
+#     push:
 #       branches: [main]
 #   permissions:
 #     contents: read
 #   jobs:
 #     bundle:
+#       permissions:
+#         contents: read
+#         pull-requests: read
 #       uses: lemonfiber/spec/.github/workflows/first-party-bundle.yml@<sha> # vX.Y.Z
 #       with:
 #         pin: adapter
@@ -50,29 +56,38 @@ env:
 
 jobs:
   author:
-    name: who opened the pin
+    name: which pin the push merged
     if: >-
-      github.event_name == 'pull_request'
-      && github.event.pull_request.merged == true
-      && (inputs.pin == 'adapter' || inputs.pin == 'image')
-      && github.event.pull_request.head.ref == format('release/{0}-pin', inputs.pin)
-      && github.event.pull_request.head.repo.full_name == github.repository
+      github.event_name == 'push'
+      && github.ref == 'refs/heads/main'
       && github.repository_owner == 'lemonfiber'
+      && (inputs.pin == 'adapter' || inputs.pin == 'image')
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions: {}
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       opened: ${{ steps.who.outputs.opened }}
     steps:
-      - name: The release App opened it
+      - name: The release App opened the pin this commit merged
         id: who
         env:
-          AUTHOR: ${{ github.event.pull_request.user.login }}
-          BRANCH: ${{ github.event.pull_request.head.ref }}
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: release/${{ inputs.pin }}-pin
         run: |
           set -euo pipefail
-          [ "$AUTHOR" = "$RELEASE_BOT" ] \
-            || { echo "::error::${BRANCH} was opened by ${AUTHOR}, not ${RELEASE_BOT}, so nothing is pinned"; exit 1; }
+          merged="$(gh api "repos/${REPOSITORY}/commits/${GITHUB_SHA}/pulls" --jq "map(select(
+            .merged_at != null and .merge_commit_sha == \"${GITHUB_SHA}\"
+            and .head.ref == \"${BRANCH}\" and .head.repo.full_name == \"${REPOSITORY}\"))
+            | map(.user.login) | join(\" \")")"
+          if [ -z "$merged" ]; then
+            echo "${GITHUB_SHA} merges no ${BRANCH}, so nothing is pinned."
+            exit 0
+          fi
+          [ "$merged" = "$RELEASE_BOT" ] \
+            || { echo "::error::${BRANCH} was opened by ${merged}, not ${RELEASE_BOT}, so nothing is pinned"; exit 1; }
           echo "opened=release" >> "$GITHUB_OUTPUT"
 
   bump:
@@ -80,11 +95,11 @@ jobs:
     if: needs.author.outputs.opened == 'release'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: release
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
       - name: Read the plugin's id at the merged revision
         id: plugin
         run: |
@@ -111,18 +126,15 @@ jobs:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           OWNER: ${{ github.repository_owner }}
           PLUGIN: ${{ steps.plugin.outputs.id }}
-          REVISION: ${{ github.event.pull_request.merge_commit_sha }}
           ORIGIN: ${{ github.server_url }}/${{ github.repository }}
-          AUTHOR: ${{ github.event.pull_request.user.login }}
-          BRANCH: ${{ github.event.pull_request.head.ref }}
           BOT: ${{ steps.token.outputs.app-slug }}[bot]
         run: |
           set -euo pipefail
-          [ "$AUTHOR" = "$BOT" ] \
-            || { echo "::error::${BRANCH} was opened by ${AUTHOR}, not ${BOT}, so nothing is pinned"; exit 1; }
-          [[ "$REVISION" =~ ^[0-9a-f]{40}$ ]] \
-            || { echo "::error::the merge named no commit: '${REVISION}'"; exit 1; }
+          [ "$RELEASE_BOT" = "$BOT" ] \
+            || { echo "::error::the token is ${BOT}'s, not ${RELEASE_BOT}'s, so nothing is pinned"; exit 1; }
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]] \
+            || { echo "::error::the push named no commit: '${GITHUB_SHA}'"; exit 1; }
           gh api --method POST \
             "repos/${OWNER}/lemonfiber-plugins/actions/workflows/bundle-bump.yml/dispatches" \
-            -f ref=main -f "inputs[id]=${PLUGIN}" -f "inputs[revision]=${REVISION}" -f "inputs[origin]=${ORIGIN}"
-          echo "asked lemonfiber-plugins to pin ${PLUGIN} at ${REVISION}."
+            -f ref=main -f "inputs[id]=${PLUGIN}" -f "inputs[revision]=${GITHUB_SHA}" -f "inputs[origin]=${ORIGIN}"
+          echo "asked lemonfiber-plugins to pin ${PLUGIN} at ${GITHUB_SHA}."

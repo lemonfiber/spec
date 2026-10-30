@@ -42,6 +42,14 @@ class Pin(unittest.TestCase):
     def test_the_pin_waits_behind_the_release_environment(self):
         self.assertEqual(JOBS["pin"]["environment"], "release")
 
+    def test_every_job_reading_the_key_itself_is_behind_the_release_environment(self):
+        readers = {
+            name: job for name, job in JOBS.items() if "secrets.RELEASE_APP_KEY" in yaml.safe_dump(job)
+        }
+        self.assertEqual(set(readers), {"pin", "pull-request"})
+        self.assertEqual(readers["pin"]["environment"], "release")
+        self.assertEqual(readers["pull-request"]["uses"], "./.github/workflows/rolling-pull-request.yml")
+
     def test_only_the_pin_mints_and_for_the_calling_repository_alone(self):
         minted = [
             (name, one)
