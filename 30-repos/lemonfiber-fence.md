@@ -18,11 +18,15 @@ declares [`network.fenced`](../20-architecture/contracts/plugin-manifest-service
 At start it installs nftables rules in the namespace it holds and reports healthy once
 every rule is in place. The rules refuse new connections to each range the core's
 `lemonfiber-outward` classes as internal, read from that crate, to every IPv6 range whose
-addresses carry an IPv4 one, and to each host address lemonfiber hands it. They pass the
+addresses carry an IPv4 one, and to each address of the engine's host lemonfiber hands it. They pass the
 engine's resolver on port 53 and the answers to connections other services opened. It
 then holds the namespace and does nothing else. It exits, and so reports unhealthy, where
 it is handed no host address or any rule cannot be installed, so the service behind it
 never starts unfenced.
+
+Run as `fence addresses`, it prints each address of the host whose network it is on, one
+to a line, and installs nothing. lemonfiber runs it that way on the host's network, with
+every capability dropped, to learn the addresses it then hands each fence.
 
 ## What it holds, and what it does not
 
