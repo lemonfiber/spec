@@ -11,7 +11,9 @@
 # asked every proof, probe and conformance case (REPO-R93). Where its tree holds a
 # Dockerfile, the image built from it stands in for the pin of the service it builds:
 # each adapter's where a service fronts one, and the service with the plugin's id where
-# no service speaks a contract (ARCH-R285). It is lemonfiber's own `plugin record --check`, by the lemonfiber the
+# that service runs this repository's own image and no service speaks a contract
+# (ARCH-R285). A Dockerfile that builds an adapter the manifest does not run yet stands
+# in for nothing, and every service runs its pin. It is lemonfiber's own `plugin record --check`, by the lemonfiber the
 # `plugin` job built or fetched, handed on rather than built twice.
 #
 # Both are skipped by a job-level condition where `what changed` found only paths no
@@ -194,18 +196,24 @@ jobs:
             "${READER}" >> "$GITHUB_OUTPUT"
       - name: The image this tree builds
         id: built
+        env:
+          OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
           if [ ! -f Dockerfile ]; then
             echo "No image is built here, so every service runs the image plugin.toml pins."
             exit 0
           fi
-          stands_in="$(python3 -I -c 'import tomllib
-          services = tomllib.load(open("plugin.toml", "rb")).get("service", [])
+          stands_in="$(python3 -I -c 'import sys, tomllib
+          manifest = tomllib.load(open("plugin.toml", "rb"))
+          services = manifest.get("service", [])
+          own = "ghcr.io/" + sys.argv[1].lower() + "/" + manifest["plugin"]["id"]
           if any("fronts" in one for one in services):
               print("adapter")
-          elif not any(one.get("speaks") for one in services):
-              print("built")')"
+          elif not any(one.get("speaks") for one in services) and any(
+              one["id"] == manifest["plugin"]["id"] and one["image"] == own for one in services
+          ):
+              print("built")' "${OWNER}")"
           if [ -z "${stands_in}" ]; then
             echo "Its own upstream speaks the contracts here, and is recorded from the image plugin.toml pins."
             exit 0
