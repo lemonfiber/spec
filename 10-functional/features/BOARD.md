@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**116 features** in areas A–N, **1850 requirements**.
+**116 features** in areas A–N, **1855 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 24 shipped, 44 built, 27 building, 20 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 24 shipped, 43 built, 28 building, 20 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -86,7 +86,6 @@ code, and the two move independently.
 | [N22](n-companion/n22-asking-for-help.md) | Asking for help | N | operator | accepted | — |
 | [N23](n-companion/n23-what-keeps-going.md) | What keeps going, and what stopped moving | N | operator | accepted | — |
 | [N24](n-companion/n24-choosing-and-trying.md) | Choosing how good, and trying one | N | operator | accepted | — |
-| [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0`, `1.0.0` |
 | [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |
 | [N29](n-companion/n29-a-key-for-an-app.md) | A key for an app | N | operator | accepted | `0.18.0` |
 | [N31](n-companion/n31-asking-the-indexers.md) | Asking the indexers | N | operator | accepted | — |
@@ -120,6 +119,7 @@ code, and the two move independently.
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |
 | [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
+| [N25](n-companion/n25-a-plugin-after-it-lands.md) | A plugin after it lands | N | operator | accepted | `0.18.0`, `1.0.0` |
 | [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | — |
 | [N30](n-companion/n30-testing-making-room-and-sharing-the-line.md) | Testing, making room and sharing the line | N | operator | accepted | `1.0.0` |
 
