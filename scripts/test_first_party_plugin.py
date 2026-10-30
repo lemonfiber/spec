@@ -173,8 +173,9 @@ class HandedToLive(unittest.TestCase):
 
 class TheStandIn(unittest.TestCase):
     """What the image a plugin's Dockerfile builds stands in for: its adapter where a service
-    fronts one, the plugin's own service where that service runs this repository's own image
-    and nothing speaks a contract, and nothing otherwise."""
+    fronts one, the plugin's own service where nothing speaks a contract and that service
+    runs this repository's own image or, before its first pin, exactly the image and digest
+    the Dockerfile's last FROM builds on, and nothing otherwise."""
 
     def setUp(self):
         self.root = pathlib.Path(tempfile.mkdtemp())
@@ -261,6 +262,64 @@ id = "decline"
 id     = "decline"
 image  = "ghcr.io/lemonfiber/decline"
 speaks = ["invite.decline@1"]
+"""
+        self.assertEqual(self.stands_in(manifest), ("", False))
+
+    UPSTREAM = "sha256:" + "3a" * 32
+
+    def before_its_first_pin(self, dockerfile: str, digest: str) -> tuple[str, bool]:
+        (self.plugin / "Dockerfile").write_text(dockerfile, encoding="utf-8")
+        return self.stands_in(f"""[plugin]
+id = "door"
+
+[[service]]
+id     = "door"
+image  = "caddy"
+digest = "{digest}"
+""")
+
+    def test_a_part_before_its_first_pin_stands_in_where_it_pins_what_its_dockerfile_builds_on(self):
+        for dockerfile in (
+            f"FROM caddy:2.11.6@{self.UPSTREAM}\nUSER 1000:1000\n",
+            f"from --platform=$BUILDPLATFORM caddy@{self.UPSTREAM} AS door\n",
+            f"FROM golang:1@sha256:{'0' * 64} AS build\nRUN true\nFROM caddy:2.11.6@{self.UPSTREAM}\n",
+        ):
+            with self.subTest(dockerfile=dockerfile):
+                self.assertEqual(
+                    self.before_its_first_pin(dockerfile, self.UPSTREAM), ("built", True)
+                )
+
+    def test_the_same_image_at_another_digest_is_not_what_the_dockerfile_builds_on(self):
+        self.assertEqual(
+            self.before_its_first_pin(
+                f"FROM caddy:2.11.6@{self.UPSTREAM}\n", "sha256:" + "3b" * 32
+            ),
+            ("", False),
+        )
+
+    def test_a_dockerfile_that_builds_on_no_digest_or_on_another_image_last_stands_in_for_nothing(self):
+        for dockerfile in (
+            "FROM caddy:2.11.6\n",
+            f"FROM caddy:2.11.6@{self.UPSTREAM} AS build\nFROM scratch\n",
+            f"FROM ghcr.io/someone-else/caddy@{self.UPSTREAM}\n",
+        ):
+            with self.subTest(dockerfile=dockerfile):
+                self.assertEqual(
+                    self.before_its_first_pin(dockerfile, self.UPSTREAM), ("", False)
+                )
+
+    def test_a_part_that_speaks_a_contract_is_recorded_from_its_pin_even_before_it(self):
+        (self.plugin / "Dockerfile").write_text(
+            f"FROM caddy:2.11.6@{self.UPSTREAM}\n", encoding="utf-8"
+        )
+        manifest = f"""[plugin]
+id = "door"
+
+[[service]]
+id     = "door"
+image  = "caddy"
+digest = "{self.UPSTREAM}"
+speaks = ["stream.guard@1"]
 """
         self.assertEqual(self.stands_in(manifest), ("", False))
 
