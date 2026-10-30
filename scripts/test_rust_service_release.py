@@ -37,7 +37,8 @@ class Settle(unittest.TestCase):
         (self.root / "Cargo.toml").write_text('[package]\nname = "decline"\nversion = "0.18.0"\n')
 
     def settled(self, manifest: str | None = MANIFEST, tag: str = "v0.18.0", event: str = "push",
-                ref: str = "", before: str = "") -> tuple[int, dict, str]:
+                ref: str = "", before: str = "", pins: str = "manifest",
+                repo: str = "lemonfiber-decline") -> tuple[int, dict, str]:
         if manifest is not None:
             (self.root / "plugin.toml").write_text(manifest)
         subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
@@ -50,8 +51,8 @@ class Settle(unittest.TestCase):
         output = self.root / ".output"
         env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(output), "GITHUB_EVENT_NAME": event,
                "GITHUB_REF": ref, "GITHUB_SHA": sha, "REGISTRY": "ghcr.io/lemonfiber",
-               "NAME": ref.rsplit("/", 1)[-1], "KIND": kind, "REPO": "lemonfiber-decline", "BEFORE": before,
-               "TOOLING": str(TOOLING)}
+               "NAME": ref.rsplit("/", 1)[-1], "KIND": kind, "REPO": repo, "BEFORE": before,
+               "TOOLING": str(TOOLING), "PINS": pins}
         done = subprocess.run(["bash", "-c", step("settle", SETTLE)], cwd=self.root, env=env,
                               capture_output=True, text=True)
         said = dict(line.split("=", 1) for line in output.read_text().splitlines()) if output.exists() else {}
@@ -127,11 +128,30 @@ class Settle(unittest.TestCase):
                 self.assertEqual(said, {})
                 self.assertIn("is published for a push to main or a pushed tag", printed)
 
+    def test_an_image_the_bundle_pins_publishes_without_a_manifest_and_names_its_service(self):
+        (self.root / "Cargo.toml").write_text('[package]\nname = "fence"\nversion = "0.18.0"\n')
+        code, said, _ = self.settled(None, pins="bundle", repo="lemonfiber-fence")
+        self.assertEqual((code, said["image"], said["kind"], said["tag"], said["service"]),
+                         (0, "ghcr.io/lemonfiber/fence", "tag", "v0.18.0", "fence"))
+
+    def test_an_image_the_bundle_pins_with_a_manifest_beside_it_publishes_nothing(self):
+        code, said, printed = self.settled(pins="bundle")
+        self.assertNotEqual(code, 0)
+        self.assertEqual(said, {})
+        self.assertIn("would pin it twice", printed)
+
+    def test_a_pin_neither_the_manifest_nor_the_bundle_publishes_nothing(self):
+        code, said, printed = self.settled(pins="registry")
+        self.assertNotEqual(code, 0)
+        self.assertEqual(said, {})
+        self.assertIn("pins is 'registry'", printed)
+
     def test_a_repository_not_named_for_a_service_publishes_nothing(self):
         subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
         env = {"PATH": os.environ["PATH"], "GITHUB_OUTPUT": str(self.root / ".output"), "GITHUB_EVENT_NAME": "push",
                "GITHUB_REF": "refs/heads/main", "GITHUB_SHA": "0" * 40, "REGISTRY": "ghcr.io/lemonfiber",
-               "NAME": "main", "KIND": "branch", "REPO": "decline", "BEFORE": "", "TOOLING": str(TOOLING)}
+               "NAME": "main", "KIND": "branch", "REPO": "decline", "BEFORE": "", "TOOLING": str(TOOLING),
+               "PINS": "manifest"}
         done = subprocess.run(["bash", "-c", step("settle", SETTLE)], cwd=self.root, env=env,
                               capture_output=True, text=True)
         self.assertNotEqual(done.returncode, 0)
@@ -200,12 +220,18 @@ class HandedOn(unittest.TestCase):
 
     JOBS = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
 
-    def test_every_published_image_reaches_the_manifest_and_only_what_settle_publishes_is_built(self):
-        self.assertEqual(set(self.JOBS), {"settle", "build", "publish", "manifest"})
+    def test_every_published_image_reaches_its_pin_and_only_what_settle_publishes_is_built(self):
+        self.assertEqual(set(self.JOBS), {"settle", "build", "publish", "manifest", "bundle"})
         self.assertEqual(self.JOBS["build"]["if"], "needs.settle.outputs.publish == 'yes'")
         self.assertEqual(self.JOBS["manifest"]["needs"], ["settle", "publish"])
-        self.assertNotIn("if", self.JOBS["manifest"])
+        self.assertEqual(self.JOBS["manifest"]["if"], "inputs.pins == 'manifest'")
         self.assertTrue(self.JOBS["manifest"]["uses"].endswith("manifest-pin.yml"))
+        self.assertEqual(self.JOBS["bundle"]["needs"], ["settle", "publish"])
+        self.assertEqual(
+            self.JOBS["bundle"]["if"],
+            "inputs.pins == 'bundle' && needs.settle.outputs.kind == 'tag'",
+        )
+        self.assertTrue(self.JOBS["bundle"]["uses"].endswith("bundle-image-pin.yml"))
 
     def test_no_job_that_builds_or_publishes_holds_the_release_key(self):
         for name in ("settle", "build", "publish"):
