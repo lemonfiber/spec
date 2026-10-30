@@ -26,7 +26,5 @@ concurrency:
 jobs:
   gate:
     uses: ./.github/workflows/sonar-gate.yml
-    with:
-      allowed-open: 9
     secrets:
       sonar-token: ${{ secrets.SONAR_TOKEN }}
