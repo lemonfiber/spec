@@ -11,6 +11,7 @@ What the core asks of whatever fills a capability, and how an adapter answers.
 [F14-R6](../../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md),
 [F14-R8](../../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md),
 [F14-R10](../../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md),
+[F14-R11](../../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md),
 [F14-R13](../../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md)
 
 ---
@@ -34,6 +35,7 @@ calls, the way it generates the web API's:
 contract/capabilities/<capability>/v<major>/openapi.json
 contract/capabilities/<capability>/v<major>/operations/<operation>.json
 contract/capabilities/<capability>/v<major>/conformance.json
+contract/capabilities/<capability>/v<major>/holds.json
 contract/capabilities/<capability>/v<major>/index.json
 contract/capabilities/index.json
 ```
@@ -43,6 +45,8 @@ contract/capabilities/index.json
   and its time bound.
 - `conformance.json` lists the cases an adapter's recordings and its live pass must
   answer, and what each one asks.
+- `holds.json` lists each kind of thing a filler of the contract holds, and whether the
+  contract carries it from one filler to another ([below](#what-a-filler-holds)).
 - A capability's `index.json` lists each of its documents with its digest.
 - The top `index.json` lists every capability, the majors the core speaks, and the
   capability's own index with its digest.
@@ -407,6 +411,47 @@ shows. No answer of the gate's holds a credential's value (`ARCH-R305`).
   dashboard holds none (`C6-R20`). `the list it shows` answers the list applied
   (`ARCH-R308`).
 
+## What a filler holds
+
+Each contract declares the kinds of thing a filler of it holds that lemonfiber does not
+write into it, and so would not write into a replacement: what the household and the
+operator made in it. A kind lemonfiber seeds into every filler, such as a download client
+registered with a curator or a route applied to the proxy, is not one: the seed writes
+it again into whatever fills the capability next. Each kind is declared with a stable
+id, the words a rehearsal names it in, and whether the contract carries it from one
+filler to another. A kind is carried only where an operation of the contract reads it
+from one filler and writes it into another, as `records and carry` does for a curator.
+
+| Capability | Holds | Carried |
+|---|---|---|
+| `identity.source` | Accounts and their passwords; invitations still open | None |
+| `media.serve` | Libraries as the operator arranged them; watch history and progress; devices signed in | None |
+| `library.curate` | Followed series, films, artists and authors; indexers; quality profiles edited by hand; download history | Followed series, films, artists and authors; indexers |
+| `download.usenet`, `download.torrent` | Transfers in progress and finished; torrents seeding | None |
+| `indexer.search` | Indexers added by hand; search history | None |
+| `indexer.proxy` | Nothing | None |
+| `request.intake` | Requests and their history | None |
+| `subtitles.fetch` | Subtitles fetched and their history; language choices made by hand | None |
+| `network.egress-guard` | Nothing | None |
+| `proxy.front` | Certificates it obtained | None |
+| `dashboard.show` | Nothing | None |
+| `quality.sync` | A configuration edited by hand | None |
+| `archive.extract` | Nothing | None |
+| `stream.guard` | Nothing | None |
+| `invite.decline` | Refusals and lapses it recorded | None |
+| `request.gate` | Its record of refusals and forwarded removals | None |
+
+The declaration is generated from the contract's types and published as `holds.json`
+beside the contract's other documents, so it moves with the contract's major. Adding a
+kind is a minor change; removing one, or one no longer carried, changes the major.
+
+A substitution's rehearsal (`F14-R11`) reads what does not carry over from these
+declarations and from no list kept per part. For the part a substitution stops, it names
+each kind every capability that part fills declares held, less each kind the substituted
+capability's contract carries where the part and its replacement both speak that
+contract. A part that fills a second capability takes what that capability holds with it,
+since the substitution stops the whole part (`ARCH-R362`).
+
 ## Conformance
 
 A plugin's repository holds a recording for every case in the capability's
@@ -614,6 +659,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R341** | An operation that answers `204` MAY answer `205`, meaning applied and in force once the upstream restarts, and conformance MUST pass either; on `205` the core MUST restart the service the adapter `fronts`, journalled as a restart of that service, MUST ask that adapter nothing else until `ready` answers, and MUST say the upstream restarted, and a rehearsal of an operation that may be answered so MUST say the upstream may restart. |
 | **ARCH-R357** | `network.egress-guard@1` MUST carry `secure`, answering `204` where the guard already holds the control credential its adapter was handed and `205` where it takes it up at its next start; the core MUST ask it after the guard's plugin is installed or updated, after every start of the guard and after it rotates that credential, and MUST hold the answer to `ARCH-R341`. |
 | **ARCH-R361** | `quality.sync@1` MUST carry `edited`, answering without writing anything the hand-edited configuration of its upstream that `reapply` would replace, as that configuration's path, the whole of what is on disk and the whole of what `reapply` would write in its place, each at most 64 KiB, or nothing where the configuration is the adapter's own; and `reapply`, writing the profiles it is handed over that edit and answering the configuration it replaced and what it wrote in the same shape, or nothing, and whether the profiles are in force now or once the upstream restarts; the core MUST mask each text itself, top to bottom with every parent key in view, before anything reads it, taking out every value it keeps as a secret and every value under a key naming a credential and showing a text it cannot read line by line by its keys alone, MUST make the diff it shows from the two masked texts and from no diff an adapter answers, MUST show it on a rehearsal, MUST ask `reapply` only on the operator's agreement, MUST hold an answer of in force once the upstream restarts to `ARCH-R341` as it holds a `205`, and MUST NOT write the quality sync's configuration itself. |
+| **ARCH-R362** | Every capability contract MUST declare, generated from its types and published as `holds.json` beside its other documents, each kind of thing a filler of it holds that lemonfiber does not seed, each with a stable id, the words a rehearsal names it in, and whether an operation of the contract carries it from one filler to another; and the rehearsal of a substitution MUST name, for the part it stops, each kind every capability that part fills declares held, less each kind the substituted capability's contract carries where the part and its replacement both speak that contract, read from those declarations and from no list kept per part. |
 
 ## Related
 
