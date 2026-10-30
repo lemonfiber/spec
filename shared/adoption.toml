@@ -72,8 +72,8 @@ hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
 name = "lemonfiber-fence"
-gates = []
-hooks = []
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
 name = "lemonfiber-door"
