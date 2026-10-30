@@ -62,7 +62,11 @@ as `<plugin id>:<secret id>`. `minted = "password"` declares one for a service w
 rules refuse a value of one character class, as an administrator password often is: 32
 characters from the same source, holding at least one uppercase letter, one lowercase
 letter, one digit and one of `-`, `_`, `.` and `~`, which every environment file, URL and
-form takes as written. Nobody is asked for it and nothing shows it. It reaches the
+form takes as written. `minted = "email"` declares one for a service whose own rules refuse an
+account name that is not an email address, as Komga's administrator is: 32 lowercase hex
+characters from the same source, then `@<plugin id>.invalid`, a domain no mail is ever
+delivered to (RFC 2606), so what the credentials read shows is exactly what signs in.
+Nobody is asked for it and nothing shows it. It reaches the
 service through its `env` (`{ secret }`) or a [starting file](plugin-manifest-service.md#a-secret-in-a-starting-file),
 and the adapter that `fronts` the service through its `upstream`. A minted secret's `of`
 names the plugin's own service it is the credential of, and no recipe captures it. A part moved in place
@@ -70,6 +74,19 @@ keeps the credential its service already answers to, secret by secret, by the ad
 `upstream` field each one fills: a `username` or `password` is the account lemonfiber set up
 on the service, and any other is the credential the service wrote itself, read from where
 the secret's `carried_from` says. The move files each under its secret once (`ARCH-R315`).
+
+**A part claimed against an account outside the house takes a code that lapses.** A
+service that is made the household's by a code an outside account issues, as a Plex
+server is claimed with the code plex.tv shows its owner, declares that code as a
+`[[secret]]` with `lapses_s`, the seconds it holds once issued, and `recorded_with`, the
+stand-in `plugin record` hands it. lemonfiber cannot mint it and does not keep it: the
+operator enters it, without it being shown, only at an act that asks `claim` of that
+part while it is `Open`, and it reaches the adapter that fronts the service through its
+`upstream` alone. Once that claim answers, or once `lapses_s` has passed since it was
+entered, it is removed from the secret store and from `upstream.json`, and a later act
+finding the part `Open` asks for a fresh one. The credential the service then writes for
+itself is read by the adapter from the configuration directory it shares
+([`ARCH-R339`](plugin-manifest-service.md)), and never crosses a call (`ARCH-R364`).
 
 **`carried_from` says where a moved service keeps its own credential.** `file` is a path
 inside the replaced service's container, beneath its `config_path`; `format` is `xml`,

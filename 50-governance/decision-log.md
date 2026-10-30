@@ -392,6 +392,13 @@ Decisions about a repository outside this organisation, such as
 | Wherever an answer holds the lower-case hexadecimal SHA-256 of a credential the recording run minted, `lemonfiber plugin record` writes `{minted:sha256}` in its place and `--check` takes it again the same way, so a contract answering a minted credential by its hash records the same answer on every run, and a hash of any other value still differs. The user chose this over holding every 64-digit hexadecimal string to its shape alone, and over handing those cases a fixed credential; `ARCH-R285` is amended in place | [ARCH-R285](../20-architecture/contracts/plugin-manifest.md), [capability contracts](../20-architecture/contracts/capability-contracts.md) |
 | The host addresses a fence refuses are the engine's host's, asked of the engine on every apply and start by running the fence image's `fence addresses` once on the host's network with every capability dropped, read-only, with no mount and removed after; an empty, unreadable or malformed answer leaves the fenced service unstarted with the reason named. The user chose this over reading the interfaces of the machine lemonfiber runs on, which is not the engine's host where the engine is remote or runs its containers in a virtual machine; `ARCH-R363` is amended in place | [ARCH-R363](../20-architecture/contracts/plugin-manifest.md) |
 
+## 2026-10-31
+
+| Decision | Where it lives |
+|---|---|
+| `minted = "email"` mints a credential for a service that refuses an account name that is not an email address: 32 lowercase hexadecimal characters, then `@<plugin id>.invalid`, so the credentials read shows exactly what signs in. The user chose this over the adapter adding a domain to a hexadecimal name the operator would then see without it | [ARCH-R315](../20-architecture/contracts/plugin-manifest.md) |
+| A part claimed against an account outside the house, as a Plex server is claimed with the code plex.tv issues, speaks `owner.claim@1` with that code as an operator-entered secret declaring `lapses_s` and `recorded_with`. It is asked only when a claim of the part while it is `Open` needs it, reaches the adapter through `upstream` alone, and is removed once the claim answers or the code lapses. The adapter reads the credential the service then writes for itself from the configuration directory it shares, and `plugin record` records the upstream's refusal of the stand-in code. The user chose this over leaving such a part's claim to a recipe, outside the facet's doctor check and reset | [ARCH-R364](../20-architecture/contracts/capability-contracts.md), [ARCH-R328](../20-architecture/contracts/capability-contracts.md) |
+
 ## Requirements
 
 | ID | Requirement |
