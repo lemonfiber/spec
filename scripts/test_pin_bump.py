@@ -99,7 +99,6 @@ class Stale(InDirectory):
         )
 
 
-
 class Conformance(unittest.TestCase):
     """Which conformance cases a pin of an image takes again with it."""
 
@@ -119,6 +118,7 @@ class Conformance(unittest.TestCase):
         }
         self.assertFalse(pin_bump.recordings_named(manifest, IMAGE, self.CASE))
         self.assertTrue(pin_bump.recordings_named(manifest, "caddy", self.CASE))
+
 
 class Reader(InDirectory):
     """The reader's revision is the one `first-party-plugin` pins, written once."""
