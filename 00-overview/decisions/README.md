@@ -75,6 +75,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0054](0054-a-media-server-credential-crosses-the-stack-only-over-tls-the-core-pins.md) | A media server credential crosses the stack only over TLS the core pins | Accepted |
 | [0055](0055-a-setting-names-the-values-its-service-accepts-and-what-each-needs.md) | A setting names the values its service accepts and what each needs | Accepted |
 | [0056](0056-the-guarded-door-is-a-rust-service-that-checks-the-request-it-forwards.md) | The guarded door is a Rust service that checks the request it forwards | Accepted |
+| [0057](0057-plex-serves-the-household-without-handing-out-its-owners-token.md) | Plex serves the household without handing out its owner's token, unless the operator opts in | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
