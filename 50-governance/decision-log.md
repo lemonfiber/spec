@@ -438,6 +438,12 @@ Decisions about a repository outside this organisation, such as
 | The guards' file shapes leave the core's shared sidecar crate for the guard repositories that read them, in the slice that moves the guards, and the catalogue pin moves to the commit that also carries the fence's pin. The user chose this over keeping the shapes in the core until later | `ARCH-R299` in [the bundle contract](../20-architecture/contracts/bundle.md) |
 | Every credential lemonfiber holds, its own included, is a secret in the secret store: the indexer key, the Usenet password, an administrator's password it mints and a rotation's pending replacement, each under the name the stack already gives it, filed from the environment file once and journalled by fingerprint; a journal an earlier release wrote has each credential's value replaced by its fingerprints the first time it is written again, and undoing such an entry says the secret must be replaced at the terminal unless the store still holds what it recorded. The user chose one home in the secret store over keeping the value in the environment file with its previous value in the store, and over fingerprints with no previous value kept | `ARCH-R276` in [the plugin manifest](../20-architecture/contracts/plugin-manifest.md), [ADR-0046](../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) |
 
+## 2026-11-01
+
+| Decision | Where it lives |
+|---|---|
+| The logo is the pixel set the user approved: a whole pixel lemon with a play triangle and a leaf, on a 32-cell grid with a 16-cell redraw below 32px, a pixel wordmark with "fiber" in amber (`fiber-light` over `fiber`), a hero, an icon, a favicon, a tray template and mono marks, all drawn by `brand/scripts/logo.py` from its grids with every colour from the tokens. It replaces the lemon cross-section and the wordmark typeset in Bricolage Grotesque; the tray is drawn in ink and paper so the palette stays closed, and the generator is proprietary with the marks | [brand rules](../60-brand/brand-rules.md) (`DES-R4`, `DES-R6`), [surface mapping](../60-brand/surface-mapping.md) (`DES-R32`, `DES-R35`), [licence rationale](../90-appendix/license-rationale.md) |
+
 ## Requirements
 
 | ID | Requirement |

@@ -10,17 +10,20 @@ page carries only what is a **requirement**.
 
 ## The mark
 
-A lemon cross-section whose pith reads as a fibre patch panel — eight segments,
-eight jacketed strands terminated in the rind. Both halves, the playful object and
-the precise engineering, must survive any reproduction.
+A whole pixel lemon with a play triangle on its face and a leaf on its stem,
+drawn on a 32-cell grid, with a 16-cell redraw for the sizes where 32 cells cannot
+each get a pixel. Every file of it is drawn by the `brand` repository's generator
+(`scripts/logo.py`) from those grids, with every cell's colour taken from the
+tokens.
 
 | Constraint | Requirement |
 |------------|-------------|
-| Minimum size | 24px screen / 9mm print for the full mark; below that, the four-segment crop (`mark-small.svg`), min 16px |
-| Clear space | One strand-connector width (8.5% of mark diameter) on all four sides |
+| Minimum size | The 32-cell mark, icon and lockups at 32px screen / 9mm print; below that, the 16-cell icon (`app-icon-16.svg`) or mark (`mark-small.svg`, `favicon.svg`), min 16px. The tray icon at 16, 22 and 32px |
+| Clear space | 4 cells of the mark's own grid on all four sides, measured from the lemon's outermost cell (2 cells on the 16-cell) |
+| Scale | Shown at a whole multiple of its grid, so every cell lands on whole pixels; never smoothed |
 | Colour | Only from the token palette — never recoloured to match a partner brand |
 | Geometry | Never rotated, skewed, stretched; no gradients, bevels, or drop shadows |
-| Outlining | The wordmark ships as outlines; never re-typeset it — edit the SVG or request an export |
+| Source | Every mark and the wordmark come from the generator's grids; never re-drawn or re-typeset — change the grid in `brand` |
 
 ## The closed palette
 
@@ -45,9 +48,10 @@ Two hard exclusions:
 
 ## The wordmark
 
-Always lowercase, always one word, "fiber" always in a second colour except in
-one-colour reproduction. Set only in **Bricolage Grotesque ExtraBold (800)**, and
-since it ships outlined, never re-set in a text field.
+Always lowercase, always one word, "fiber" always in amber (`fiber-light` over
+`fiber`) except in one-colour reproduction. It is drawn in pixel cells by the
+`brand` repository's generator, on the same grid as the mark, and is never set in
+a typeface or re-drawn.
 
 ## Capitalisation — prose vs. identifier
 
@@ -68,9 +72,9 @@ lowercase; in ordinary prose it is capitalised.
 ## The don'ts, as requirements
 
 - No tagline, descriptor, or strapline added to the lockup.
-- No recolouring of segments or strands outside the palette.
+- No recolouring of the mark's cells outside the palette.
 - No stretching, rotating, or effects on the mark.
-- No full mark below its minimum size — switch to the crop.
+- No 32-cell mark below its minimum size — switch to the 16-cell.
 
 ## Governing a visual repo
 
@@ -94,9 +98,9 @@ This keeps brand under governance without pretending aesthetics are requirements
 | **DES-R1** | Brand usage MUST draw only from the token palette; no colour outside the tokens. |
 | **DES-R2** | The palette MUST contain no blue, teal, or cyan. |
 | **DES-R3** | Amber (`fiber`) MUST NOT be used as a background fill at scale or as body text. |
-| **DES-R4** | The full mark MUST NOT be rendered below its minimum size; the crop MUST be used instead. |
+| **DES-R4** | The 32-cell mark MUST NOT be rendered below its minimum size; the 16-cell redraw MUST be used instead. |
 | **DES-R5** | The mark MUST NOT be rotated, skewed, stretched, or given gradients, bevels, or shadows. |
-| **DES-R6** | The wordmark MUST be set only in Bricolage Grotesque 800 and MUST NOT be re-typeset from its outlined form. |
+| **DES-R6** | The wordmark MUST be the pixel wordmark the `brand` repository's generator draws from its grids, with "fiber" in amber except in one-colour reproduction, and MUST NOT be set in a typeface or re-drawn. |
 | **DES-R7** | No tagline or descriptor MAY be added to any lockup. |
 | **DES-R8** | A change altering what the brand rules permit MUST follow the normal change lifecycle as a `DES-R` change; a change within the rules MAY cite `GOV-R12`. |
 | **DES-R21** | In public-facing prose the name MUST be written **Lemonfiber** (capital L); the command, binary, package, repository, crate, code identifiers, and the logo wordmark MUST be lowercase `lemonfiber`. |
