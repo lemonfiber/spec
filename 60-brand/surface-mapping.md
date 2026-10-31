@@ -19,9 +19,9 @@ flowchart LR
 
 | | Web UI | TUI | Companion | CLI |
 |---|--------|-----|-----------|-----|
-| Logo (SVG) | ✅ full | ⚠️ ASCII mark only | ✅ app icon, launch mark, outlined mark in the app | ⚠️ ASCII mark, optional |
+| Logo (SVG) | ✅ full | ⚠️ ASCII mark only | ✅ app icon, launch mark, the brand's mark file in the app | ⚠️ ASCII mark, optional |
 | Colour palette | ✅ all tokens | ⚠️ mapped to terminal capability | ✅ the brand's tokens, as two themes | ❌ terminal default |
-| Bricolage Grotesque | ✅ | ❌ terminal font, not ours | ❌ the wordmark only; text in Golos Text and DM Mono | ❌ |
+| Bricolage Grotesque | ✅ | ❌ terminal font, not ours | ❌ text in Golos Text and DM Mono | ❌ |
 | Space / radius / shadow | ✅ | ❌ meaningless | ✅ the brand's spacing and radii; hairlines rather than shadow | ❌ |
 | The *voice* (plain, warm, precise) | ✅ | ✅ | ✅ | ✅ |
 
@@ -64,8 +64,8 @@ Two constraints make this safe:
    palette sees their colours; the TUI maps *roles*, not exact hexes, so it
    remains legible in any theme.
 
-The mark, in the TUI, is an **ASCII rendering** — the patch-panel slice
-suggested in text, shown in the wizard header and nowhere that needs it to be
+The mark, in the TUI, is an **ASCII rendering** — the pixel lemon and its play
+triangle suggested in text, shown in the wizard header and nowhere that needs it to be
 precise. It is not the SVG and does not pretend to be.
 
 ## CLI — name, not brand
@@ -104,7 +104,7 @@ which is what gives the app the platform's accessibility tree.
 
 **Where the brand is worn in full is the app icon and the launch mark**, which
 are ours and are where somebody recognises the product on a home screen. Inside
-the app a mark is the outlined asset, never re-typeset (`DES-R6`, `DES-R35`).
+the app a mark is the brand's own file, never re-drawn or re-typeset (`DES-R6`, `DES-R35`).
 
 ## Why this asymmetry is stated, not hidden
 
@@ -129,15 +129,15 @@ full on the web, restrained in the TUI, none in machine output.
 | **DES-R24** | *Superseded by [DES-R28](surface-mapping.md)–[DES-R31](surface-mapping.md): the companion draws with a member theme and an operator theme, chosen by whose session it is, built on the brand's tokens. The number is not reused.* |
 | **DES-R25** | *Superseded by [DES-R32](surface-mapping.md): the companion sets its text in Golos Text and its figures in DM Mono, at the reader's chosen size. The number is not reused.* |
 | **DES-R26** | *Superseded by [DES-R33](surface-mapping.md) and [DES-R34](surface-mapping.md): the companion takes its spacing and radii from the brand's tokens, and its motion stops under reduced motion. The number is not reused.* |
-| **DES-R27** | *Superseded by [DES-R35](surface-mapping.md): the icon and launch mark carry the full brand, and a mark inside the app is the outlined asset. The number is not reused.* |
+| **DES-R27** | *Superseded by [DES-R35](surface-mapping.md): the icon and launch mark carry the full brand, and a mark inside the app is the brand's own file. The number is not reused.* |
 | **DES-R28** | The companion MUST draw every screen with one of two themes: the member theme on a screen drawn for a household member's session, and the operator theme on a screen drawn for the operator's session, decided as `N3-R1` decides the application. It MUST NOT offer a setting that chooses between them. A screen drawn for no session MUST use the member theme. |
 | **DES-R29** | The member theme MUST draw, whatever the platform's light or dark setting, on the ink theme's `canvas` (#100F0A), raise on `ink-soft`, and set text in `paper` and `text-muted` at their ink-theme values. `lemon`, with `ink` on it, MUST be the fill of the one primary action on a screen and of nothing else at scale, and `fiber` MUST be used only as signal: a watched-progress line and a new-item mark. The member theme MUST NOT use the severity tokens (`DES-R36`). |
 | **DES-R30** | The operator theme MUST draw, whatever the platform's light or dark setting, on `ink` with `line` hairlines one pixel wide, raise on `ink-soft`, and set text in `paper`, `text-muted` and `text-faint` at their ink-theme values. It MUST use `lemon` for the operator's own actions, `fiber` for activity, and the severity tokens (`DES-R36`) for how a thing stands. Each severity MUST be drawn with a shape of its own as well as its colour (`G3-R1`). |
 | **DES-R31** | Artwork a stack serves (a poster, a backdrop, a still) is content and not asserted colour: `DES-R1` to `DES-R3` govern every colour the companion asserts and do not govern the pixels of artwork. The companion MUST NOT derive an asserted colour from artwork. A scrim over artwork MUST be `canvas` or `ink` running to transparent. |
-| **DES-R32** | The companion MUST set interface text in Golos Text, and figures, identifiers, timestamps and log text in DM Mono, both bundled with the app and never fetched at run time. Text MUST scale with the platform's text-size setting, a size the theme names being the size at the platform's default. Bricolage Grotesque MUST appear only in the outlined wordmark (`DES-R6`). |
+| **DES-R32** | The companion MUST set interface text in Golos Text, and figures, identifiers, timestamps and log text in DM Mono, both bundled with the app and never fetched at run time. Text MUST scale with the platform's text-size setting, a size the theme names being the size at the platform's default. Bricolage Grotesque MUST NOT appear; the wordmark is the brand's drawn file (`DES-R6`). |
 | **DES-R33** | The companion MUST take every colour, spacing, radius and type value from the brand's `tokens.json` at one pinned brand commit, and MUST hardcode none. Radii MUST be the brand's `sm` and `md` (3 and 4 px), with `pill` only on a chip or a button. |
 | **DES-R34** | The companion MAY animate press feedback, screen transitions and cross-fades. Under the platform's reduced-motion setting, every animation MUST stop or become a fade, nothing MUST play or advance on its own, and nothing MUST flash (`G3-R6`). |
-| **DES-R35** | The companion's icon and launch mark MUST carry the full brand. A mark or wordmark inside the app MUST be the outlined asset (`DES-R5`, `DES-R6`), and MUST NOT stand in for a title, a label or a control. |
+| **DES-R35** | The companion's icon and launch mark MUST carry the full brand. A mark or wordmark inside the app MUST be the brand's own file, drawn by its generator and shown at a whole multiple of its grid (`DES-R5`, `DES-R6`), and MUST NOT stand in for a title, a label or a control. |
 | **DES-R36** | The brand's tokens MUST include the severity colours `ok` and `alarm` and the tints `warn-tint` and `alarm-tint`, each with a paper and an ink value, with `fiber` serving as warning. They MUST be measured with every other token (`DES-R15`, `DES-R16`), and every surface that draws severity MUST take it from them. |
 
 ## Related

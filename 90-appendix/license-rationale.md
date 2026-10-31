@@ -15,7 +15,7 @@ ADR. No component's design depends on the licence choice.
 | `lemonfiber-media-stack` | Hippocratic License 3.0 |
 | `homebrew-tap` | Hippocratic License 3.0 |
 | `spec` | CC BY-SA 4.0 |
-| `brand` — marks (`assets/logo/*`) | **Proprietary, all rights reserved** |
+| `brand` — marks (`assets/logo/*`, `scripts/logo.py`) | **Proprietary, all rights reserved** |
 | `brand` — tokens + docs | Hippocratic 3.0 (tokens) / CC BY-SA 4.0 (docs) |
 
 The [Hippocratic License](https://firstdonoharm.dev/) is an *ethical source*
@@ -68,7 +68,7 @@ builds on it.
 ## The brand marks are proprietary — deliberately
 
 The one component that is **not** open in any form is the logo and marks
-(`brand/assets/logo/*`). This is not a contradiction of the project's values; it
+(`brand/assets/logo/*`, and `brand/scripts/logo.py`, which draws them). This is not a contradiction of the project's values; it
 is the standard pattern for open projects with a protected identity.
 
 **Rust, Mozilla, Python and Docker all do this**: the software is open, the
@@ -79,7 +79,7 @@ impersonate the project. Trademark protection is what keeps "lemonfiber" meaning
 
 So within `brand`:
 
-- **Marks** (`assets/logo/*`) — proprietary, all rights reserved. Use requires
+- **Marks** (`assets/logo/*`, and `scripts/logo.py`, which draws them) — proprietary, all rights reserved. Use requires
   permission.
 - **Tokens** (`tokens/*`) — Hippocratic 3.0, because the web UI embeds them and
   they must be freely usable by anyone building on or forking the code.

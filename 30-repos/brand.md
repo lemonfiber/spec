@@ -25,7 +25,10 @@ referenced where the web UI shows a logo.
 
 ```
 brand/
-├── assets/logo/        SVG marks — proprietary (see licence)
+├── assets/logo/        SVG marks and their PNG exports — proprietary (see licence)
+├── scripts/
+│   ├── logo.py         draws every file in assets/logo/ — proprietary
+│   └── check_tokens.py the token gate
 ├── tokens/
 │   ├── tokens.css      CSS custom properties
 │   └── tokens.json     the same values as data
@@ -48,7 +51,7 @@ concrete ([licence rationale](../90-appendix/license-rationale.md)):
 
 | Path | Licence | Why |
 |------|---------|-----|
-| `assets/logo/*` | **Proprietary**, all rights reserved | Trademark protection — anyone could otherwise ship a fork under the exact name and mark |
+| `assets/logo/*`, `scripts/logo.py` | **Proprietary**, all rights reserved | Trademark protection — anyone could otherwise ship a fork under the exact name and mark |
 | `tokens/*` | Open (same as tokens are meant to be embedded) | The web UI embeds them; they must be freely usable |
 | `.docs/*` | CC BY-SA 4.0 | Documentation, like the spec |
 
@@ -74,6 +77,7 @@ contracts, are the spec's; the detailed how is the repo's.**
 | Check | Enforces |
 |-------|----------|
 | `spec-check` | Governance — every change cites a spec identifier ([GOV](../50-governance/cross-repo-ci.md)) |
+| `just logo-check` (`scripts/logo.py --check`), in `just ci` only | Every file under `assets/logo/` is what the generator's grids draw, and nothing else is there |
 | `tokens` (`scripts/check_tokens.py`) | Every colour in `tokens.json` appears in `tokens.css` as `--lf-color-<name>` with the same value; `ink`, `ink-soft`, `text-muted`, `leaf` and `fiber-deep` each meet WCAG AA on `paper`; `--self-test` first holds the arithmetic to ratios WCAG states |
 
 The check compares colours only: the font, size, space and radius groups, the

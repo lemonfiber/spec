@@ -15,8 +15,8 @@
 # READMEs reach for. Renaming them in every README would be churn for no gain,
 # so the home is recorded here instead.
 
-694ec10889edce57e2e8b7fc6248d2d6a4aca032adfaad785974b6c12ce722fb  .github/logo.svg                       brand:assets/logo/lockup-horizontal.svg
-b1d5ef3c2db6fbcf74c71544cffe89065b6b7ddfb81eee82f50826d983042259  .github/logo-on-ink.svg                brand:assets/logo/lockup-horizontal-on-ink.svg
+16002f7a2b1373fef8f1277ac1e37b59a9a9b4ead37da329541e8c2990b318a6  .github/logo.svg                       brand:assets/logo/lockup-horizontal.svg
+a8cac7ba0c0727b9672df91eb989f66208c0b98d595437b981a6ac2fe0e9af13  .github/logo-on-ink.svg                brand:assets/logo/lockup-horizontal-on-ink.svg
 49644a8c94f0d413a7bff5b2252701362b111086926f41835013ad904a9174c1  .github/discord.svg                    .github:.github/discord.svg
 c1092d6b7340c2b63cd075a1cb3465fcb94b795ac99a51a93368c71b93def56c  .github/nightworks-dark.png            .github:.github/nightworks-dark.png
 e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  .github/nightworks-white.png           .github:.github/nightworks-white.png
@@ -24,14 +24,14 @@ e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  .github/nightw
 # The site serves the same marks from its own tree, because a built page cannot
 # reach into another repository at request time.
 
-694ec10889edce57e2e8b7fc6248d2d6a4aca032adfaad785974b6c12ce722fb  public/brand/lockup-horizontal.svg     brand:assets/logo/lockup-horizontal.svg
-694ec10889edce57e2e8b7fc6248d2d6a4aca032adfaad785974b6c12ce722fb  public/brand/logo.svg                  brand:assets/logo/lockup-horizontal.svg
-b1d5ef3c2db6fbcf74c71544cffe89065b6b7ddfb81eee82f50826d983042259  public/brand/logo-on-ink.svg           brand:assets/logo/lockup-horizontal-on-ink.svg
-450aa4d489e512bd2dd937a59080a7a2f615a164ac4fc0bb51c027f6f7160173  public/brand/lockup-horizontal-knockout.svg  brand:assets/logo/lockup-horizontal-knockout.svg
-2f5692a931e5c9f1d67d1752eaff8eb2456dde80e5ddb4a2e4b1d31547ab742b  public/brand/mark-small.svg            brand:assets/logo/mark-small.svg
-2f5692a931e5c9f1d67d1752eaff8eb2456dde80e5ddb4a2e4b1d31547ab742b  public/favicon.svg                     brand:assets/logo/mark-small.svg
-b757049f07c0c2ff2c0594b81c4b9891bb4f701da15f8b86baeab26b0679db7a  public/brand/wordmark.svg              brand:assets/logo/wordmark.svg
-80d91a5a9b08e868c553da7ef57ed9a0dbc7d8ca741ae3f84f018e90dc2dc671  public/brand/wordmark-mono.svg         brand:assets/logo/wordmark-mono.svg
+16002f7a2b1373fef8f1277ac1e37b59a9a9b4ead37da329541e8c2990b318a6  public/brand/lockup-horizontal.svg     brand:assets/logo/lockup-horizontal.svg
+16002f7a2b1373fef8f1277ac1e37b59a9a9b4ead37da329541e8c2990b318a6  public/brand/logo.svg                  brand:assets/logo/lockup-horizontal.svg
+a8cac7ba0c0727b9672df91eb989f66208c0b98d595437b981a6ac2fe0e9af13  public/brand/logo-on-ink.svg           brand:assets/logo/lockup-horizontal-on-ink.svg
+d33779134df78f31080e74d87002473acc571f6e4d8f4bdc5912c6cc7cff10c8  public/brand/lockup-horizontal-knockout.svg  brand:assets/logo/lockup-horizontal-knockout.svg
+05b00eaabccd502b6580aa32021bcead3ca40ee5f908b71a271d7f36641da6ea  public/brand/mark-small.svg            brand:assets/logo/mark-small.svg
+05b00eaabccd502b6580aa32021bcead3ca40ee5f908b71a271d7f36641da6ea  public/favicon.svg                     brand:assets/logo/mark-small.svg
+df2e55f37f26f07f27d9b9e3e71c2640d25c2d1dcc0cdfb1af448b369affdb89  public/brand/wordmark.svg              brand:assets/logo/wordmark.svg
+82edae07f1463181938af7124679c21b420dfd8705f4e6a16c83850ed86924f2  public/brand/wordmark-mono.svg         brand:assets/logo/wordmark-mono.svg
 49644a8c94f0d413a7bff5b2252701362b111086926f41835013ad904a9174c1  public/brand/discord.svg               .github:.github/discord.svg
 c1092d6b7340c2b63cd075a1cb3465fcb94b795ac99a51a93368c71b93def56c  public/brand/nightworks-dark.png       .github:.github/nightworks-dark.png
 e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  public/brand/nightworks-white.png      .github:.github/nightworks-white.png
@@ -54,7 +54,7 @@ e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  public/brand/n
 # Home Assistant shows an integration's icon and logo from the PNG files in its own
 # `brand/` directory, so the integration carries the brand's exports for it.
 
-e89133eb651164cedd65e5a3ba6dab2fa9b63369d6bacba135485f9b601e8d06  custom_components/lemonfiber/brand/icon.png     brand:assets/logo/export/home-assistant/icon.png
-c4e5526ba54a625b57eb7657b621109847da63e758f59bd46dea8b577ab68a03  custom_components/lemonfiber/brand/icon@2x.png  brand:assets/logo/export/home-assistant/icon@2x.png
-77d0061b11560ba71f7d6366b2bbb4dc72fe4ae85bbe662ba629b2a44c64dd8e  custom_components/lemonfiber/brand/logo.png     brand:assets/logo/export/home-assistant/logo.png
-35d6eae64c90d37fbd6d0faedc0e52230f7fbaaed52419cc58ec59a2ce21e035  custom_components/lemonfiber/brand/logo@2x.png  brand:assets/logo/export/home-assistant/logo@2x.png
+c1297f0e093c3a0931b5355fd63149f0cd829092ffff07ab1df9eeecb668cd52  custom_components/lemonfiber/brand/icon.png     brand:assets/logo/export/home-assistant/icon.png
+1321b438c5dfe911e7602c888aacf2955ac0b4c437c58a8ec7934d135d0f349f  custom_components/lemonfiber/brand/icon@2x.png  brand:assets/logo/export/home-assistant/icon@2x.png
+c56b2a49a0175bb70527ee9a1fa2d42b7df13153a96b65da6e7e238450ad8caf  custom_components/lemonfiber/brand/logo.png     brand:assets/logo/export/home-assistant/logo.png
+3ecc21949dcbccfa4d141b3423f7f94f6a05e7a688f95d640c87c0f15fbcc7d5  custom_components/lemonfiber/brand/logo@2x.png  brand:assets/logo/export/home-assistant/logo@2x.png

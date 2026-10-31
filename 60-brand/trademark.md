@@ -11,7 +11,7 @@ just leaves people guessing.
 ## What's protected
 
 The name **lemonfiber**, the **logo and wordmark**, and the marks under
-`brand/assets/logo/` are proprietary ([licence rationale](../90-appendix/license-rationale.md)).
+`brand/assets/logo/`, with the generator that draws them, are proprietary ([licence rationale](../90-appendix/license-rationale.md)).
 The code (Hippocratic 3.0) and the design **tokens** (open) are not.
 
 This is the ordinary shape of an open project with a protected identity — Rust,
