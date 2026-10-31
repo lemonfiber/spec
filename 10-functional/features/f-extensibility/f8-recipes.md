@@ -181,9 +181,9 @@ that contract and over nothing else. A plugin's service names no in-process adap
 lemonfiber's, and a manifest whose service writes `api` is refused as naming a field the
 format does not have (`ARCH-R272`).
 
-A recipe's call to a service of the stack's is reached through one of lemonfiber's own
-adapters, and the set a call may be reached through is published rather than discovered
-(`F8-R13`, `ARCH-R143`).
+A recipe's call to a service of the stack's reaches it in the API that service's
+`native` names, and the set of native APIs a call may reach one in is published, in the
+stack manifest's schema, rather than discovered (`F8-R13`, `ARCH-R143`).
 
 ### On the companion
 
@@ -260,7 +260,7 @@ every step in the order given, and is not summarised into an outcome.
 | **F8-R10** | A recipe MUST NOT reach any host, service or value the manifest has not declared. |
 | **F8-R11** | *Superseded by [ARCH-R272](../../../20-architecture/contracts/plugin-manifest.md): a plugin's service names no adapter; the core speaks it over contracts. The number is not reused.* |
 | **F8-R12** | *Superseded by [ARCH-R272](../../../20-architecture/contracts/plugin-manifest.md): a plugin's service names no adapter; the core speaks it over contracts. The number is not reused.* |
-| **F8-R13** | The set of adapters MUST be published rather than discovered. |
+| **F8-R13** | The set of native APIs a recipe's call may reach a service in MUST be published rather than discovered. |
 | **F8-R14** | A recipe MUST declare whether it runs on install or on demand, and a recipe declaring neither MUST run on install; an install recipe MUST run during an install and an update, after the plugin's proofs and the stack's checks hold and before the install is recorded, and a failure MUST put the install back and name each call that had already reached somewhere. |
 | **F8-R15** | A demand recipe MUST run only when asked for by name, with its own rehearsal, offer and approvals, and an approval MUST NOT carry over from another act or another run; a demand recipe that fails MUST change no install record and MUST name each call that had already reached somewhere. |
 | **F8-R16** | A value a recipe takes from the credential store for a service MUST be held to that service, and so MUST every value a recipe captures from a call that carried or read such a value, which no release frees; every other value a recipe captures from the answer of a service in this stack MUST be held to that service by its origin, whatever it holds; a pair, a call or a guard carrying or reading a held value for any other destination MUST fail validation, except a capture of that other kind carried there by a pair carrying a release, and a release on a pair that frees nothing — a credential-store value, a value captured from a call that carried or read one, an operator's input, an external host's answer, or a capture going back to its own service — MUST fail validation. |

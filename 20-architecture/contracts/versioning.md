@@ -175,6 +175,8 @@ change and refuses every other, another change to the same field included. Movin
 | `PluginPair.approval` | 1 | May be absent, from 0.18.0 | A pair to a service in the stack carries nothing off the machine and asks for no approval, so it carries none. A pair to an external host carries one. |
 | `PluginPlaced.api` | 1 | Removed, from 0.18.0 | No service names an in-process adapter (`ARCH-R272`), so a placed service has none to carry. |
 | `PluginInstalled.adapters` | 1 | Removed, from 0.18.0 | No service names an in-process adapter (`ARCH-R272`), so an installed plugin has none to list. |
+| `PluginStep.adapter` | 1 | Removed, from 0.18.0 | A step's call is said to reach a service in the API that service's `native` names (`ARCH-R143`), carried as `PluginStep.native`. |
+| `PluginStepAdapter` | 1 | Removed, from 0.18.0 | The type of `PluginStep.adapter` alone, which is removed, so nothing names it. |
 | `SeedReport.unsupported` | 1 | Removed, from 0.18.0 | It listed each stack service declaring an API through an in-process adapter lemonfiber could not ask; no service names one (`ARCH-R272`), so there is nothing to list. |
 | `StatusReport.unsupported` | 1 | Removed, from 0.18.0 | It listed each stack service declaring an API through an in-process adapter lemonfiber could not ask; no service names one (`ARCH-R272`), so there is nothing to list. |
 | `StuckReport.unsupported` | 1 | Removed, from 0.18.0 | It listed each stack service declaring an API through an in-process adapter lemonfiber could not ask; no service names one (`ARCH-R272`), so there is nothing to list. |
