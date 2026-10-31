@@ -68,6 +68,7 @@ jobs:
   execute:
     needs: plugins
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 10
     steps:
       - name: Validate the version string

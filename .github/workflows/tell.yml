@@ -50,9 +50,9 @@ on:
         type: string
         default: "{}"
       environment:
-        description: "A deployment environment the job runs in, whose protection is a further gate on top of the default-branch check. Empty for none."
+        description: "The deployment environment the job runs in, whose protection is a further gate on top of the default-branch check, and which holds the release App's key. `release` where empty."
         type: string
-        default: ""
+        default: "release"
     secrets:
       RELEASE_APP_KEY:
         description: "Private key of the release App, which is what may reach the other repositories."
@@ -65,7 +65,7 @@ jobs:
   tell:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || 'release' }}
     steps:
       - name: Only the default branch, or a tag it holds, tells anyone
         env:

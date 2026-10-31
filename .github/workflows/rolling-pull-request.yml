@@ -93,6 +93,7 @@ permissions:
 jobs:
   open:
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 10
     outputs:
       number: ${{ steps.open.outputs.number }}

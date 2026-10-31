@@ -35,6 +35,7 @@ permissions:
 jobs:
   finalize:
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 10
     steps:
       - name: Mint the release App token

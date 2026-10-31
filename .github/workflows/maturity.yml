@@ -29,6 +29,7 @@ concurrency:
 jobs:
   follow:
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 10
     permissions:
       contents: read
