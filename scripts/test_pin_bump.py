@@ -99,6 +99,27 @@ class Stale(InDirectory):
         )
 
 
+class Conformance(unittest.TestCase):
+    """Which conformance cases a pin of an image takes again with it."""
+
+    CASE = "conformance/request.gate@1/admit-answers.json"
+
+    def test_a_service_answering_its_own_contracts_takes_its_cases_with_its_own_pin(self):
+        manifest = {"service": [{"id": "gate", "image": IMAGE, "speaks": ["request.gate@1"]}]}
+        self.assertTrue(pin_bump.recordings_named(manifest, IMAGE, self.CASE))
+        self.assertFalse(pin_bump.recordings_named(manifest, "caddy", self.CASE))
+
+    def test_an_adapter_takes_its_cases_with_the_pin_of_the_service_it_fronts_alone(self):
+        manifest = {
+            "service": [
+                {"id": "adapter", "image": IMAGE, "speaks": ["request.gate@1"], "fronts": "upstream"},
+                {"id": "upstream", "image": "caddy"},
+            ]
+        }
+        self.assertFalse(pin_bump.recordings_named(manifest, IMAGE, self.CASE))
+        self.assertTrue(pin_bump.recordings_named(manifest, "caddy", self.CASE))
+
+
 class Reader(InDirectory):
     """The reader's revision is the one `first-party-plugin` pins, written once."""
 
