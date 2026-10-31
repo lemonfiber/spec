@@ -89,8 +89,8 @@ AWAITING_A_VERSION = {
         [f"N18-R{n}" for n in range(1, 12)],
     ),
     "N4": (
-        "N4 requires N1, whose app side 1.0.0 completes, and G3, locked by 0.10.0 at the latest, released",
-        [f"N4-R{n}" for n in range(1, 29)],
+        "N4 requires N1, whose app side 1.0.0 completes, and G3, locked by 0.10.0 at the latest, released; N4-R25 to N4-R27 are locked by 0.19.0",
+        [f"N4-R{n}" for n in range(1, 29) if n not in (25, 26, 27)],
     ),
     "N6": (
         "N6 requires N1, whose app side 1.0.0 completes, and E3, locked by 0.14.0 at the latest, released",
@@ -150,8 +150,8 @@ AWAITING_A_VERSION = {
         [f"N26-R{n}" for n in range(1, 20)],
     ),
     "N27": (
-        "N27 requires N1, whose app side 1.0.0 completes, and N4, whose app side no version schedules; what they require is locked by 0.11.0 at the latest, released",
-        [f"N27-R{n}" for n in range(1, 26)],
+        "N27 requires N1, whose app side 1.0.0 completes, and N4, whose app side no version schedules; what they require is locked by 0.11.0 at the latest, released; N27-R17 is locked by 0.19.0",
+        [f"N27-R{n}" for n in range(1, 26) if n != 17],
     ),
     # N2-R29 and N2-R30 are N1-R2's parity for `household-allow` and `accept`;
     # N2-R31 to N2-R33 render the moves in place `ARCH-R299` reports.
@@ -164,8 +164,8 @@ AWAITING_A_VERSION = {
         [f"N28-R{n}" for n in range(1, 15)],
     ),
     "N30": (
-        "N30 requires N1, whose app side 1.0.0 completes, N2, whose app side no version schedules, C1, locked by 0.8.0, and D5 and D10, locked by 0.12.0, released; what it sends, ARCH-R288 and ARCH-R289, is locked by 0.19.0",
-        [f"N30-R{n}" for n in range(1, 10)],
+        "N30 requires N1, whose app side 1.0.0 completes, N2, whose app side no version schedules, C1, locked by 0.8.0, and D5 and D10, locked by 0.12.0, released; what it sends, ARCH-R288 and ARCH-R289, is locked by 0.19.0, with N30-R4, N30-R5 and N30-R9",
+        [f"N30-R{n}" for n in range(1, 10) if n not in (4, 5, 9)],
     ),
     "N31": (
         "N31 requires N1, whose app side 1.0.0 completes, N2, whose app side no version schedules, N8, whose app side no version schedules, and D9, locked by 0.4.0, released; what it reads, ARCH-R290, is locked by 0.19.0",

@@ -76,13 +76,15 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": ["M16"],
+      "milestone": "M16",
       "priority": "P1",
       "labels": ["mobile", "security", "ux"],
       "requires": ["N1", "G3"],
       "relates": ["A7", "B5", "C4", "G8", "N2", "N3"],
-      "versions": [],
+      "versions": [
+        {"version": "0.19.0", "status": "planned"}
+      ],
       "path": "n-companion/n4-native-integration.md"
     },
     {
@@ -503,13 +505,15 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": ["M16"],
+      "milestone": "M16",
       "priority": "P2",
       "labels": ["mobile", "storage", "security", "ux"],
       "requires": ["N1", "N4"],
       "relates": ["N2", "N3", "N13", "G3"],
-      "versions": [],
+      "versions": [
+        {"version": "0.19.0", "status": "planned"}
+      ],
       "path": "n-companion/n27-what-the-phone-keeps.md"
     },
     {
@@ -559,13 +563,14 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": ["M6"],
-      "milestone": "M6",
+      "milestones": ["M16", "M6"],
+      "milestone": "M16",
       "priority": "P2",
       "labels": ["mobile", "verification", "storage", "network"],
       "requires": ["N1", "N2", "C1", "D5", "D10"],
       "relates": ["N10", "N12", "N6", "C2", "B2"],
       "versions": [
+        {"version": "0.19.0", "status": "planned"},
         {"version": "1.0.0", "status": "planned"}
       ],
       "path": "n-companion/n30-testing-making-room-and-sharing-the-line.md"

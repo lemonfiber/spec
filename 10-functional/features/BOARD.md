@@ -115,13 +115,13 @@ code, and the two move independently.
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0`, `0.18.0` |
 | [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0`, `0.19.0` |
 | [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0`, `0.19.0`, `1.0.0` |
-| [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | — |
+| [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | `0.19.0` |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |
 | [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
-| [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | — |
-| [N30](n-companion/n30-testing-making-room-and-sharing-the-line.md) | Testing, making room and sharing the line | N | operator | accepted | `1.0.0` |
+| [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | `0.19.0` |
+| [N30](n-companion/n30-testing-making-room-and-sharing-the-line.md) | Testing, making room and sharing the line | N | operator | accepted | `0.19.0`, `1.0.0` |
 
 ## Planned — specified, not yet built
 
