@@ -127,7 +127,10 @@ def unpinned(
         if missing:
             said.append(missing)
             continue
-        table = embedded_bundle.own_table(bundle, service)
+        table, wrong = embedded_bundle.own_table(bundle, repo, service)
+        if wrong:
+            said += wrong
+            continue
         if table is not None:
             wrong = [f"{service}: {problem}" for problem in tabled(table, image, tag, digest)]
             said += wrong

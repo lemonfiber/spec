@@ -22,7 +22,9 @@ Prints `moved=yes` or `moved=no`. Refuses, naming what:
 - a digest other than the one the registry answers for the image at that tag, read with
   `docker buildx imagetools inspect` before anything is written;
 - a bundle holding the `[<service>]` table more than once, or one naming no `image`,
-  `tag` or `digest`.
+  `tag` or `digest`;
+- a bundle pinning `<service>` as a part, beside whose pin a table of the same name
+  would stand.
 
 The bundle and the message are paths under the working directory, read and written as
 plain files, never through a link; any other path is refused.
@@ -35,6 +37,7 @@ import json
 import re
 import subprocess
 import sys
+import tomllib
 
 import paths
 from patterns import COMMIT_IMAGE
@@ -128,6 +131,17 @@ def moved(text: str, service: str, image: str, version: str, digest: str) -> str
     return "\n".join(lines)
 
 
+def unshadowed(text: str, service: str) -> None:
+    """Refuse a bundle that pins `service` as a part, whose own pin a table of its name
+    would stand beside, or one that is not TOML."""
+    try:
+        parts = tomllib.loads(text).get("plugin", [])
+    except tomllib.TOMLDecodeError as why:
+        raise Refused(f"the bundle is not TOML: {why}") from why
+    if any(isinstance(pin, dict) and pin.get("id") == service for pin in parts):
+        raise Refused(f"the bundle pins {service} as a part, and no table of its own pins it beside that")
+
+
 def seeded(lines: list[str], header: str, wanted: dict[str, str]) -> str:
     """`lines` with a `header` table naming `wanted`, before the first `[[plugin]]` pin, or
     at the end where there is none."""
@@ -167,6 +181,7 @@ def main(argv: list[str] | None = None) -> int:
             raise Refused(f"{args.image}:{args.tag} is {answered} at the registry, not {args.digest}")
         root = paths.plain_directory(".")
         before = paths.plain_read(root, bundle, LIMIT).decode("utf-8")
+        unshadowed(before, args.service)
         after = moved(before, args.service, args.image, version, args.digest)
     except (Refused, OSError, ValueError) as why:
         print(f"::error::{why}", file=sys.stderr)

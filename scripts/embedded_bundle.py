@@ -29,7 +29,7 @@ import sys
 import tomllib
 
 import submodule_pins
-from manifest_repos import SERVICE_ID
+from manifest_repos import REPO_PREFIX, SERVICE_ID
 
 #: The catalogue the core embeds the bundle from (ADR-0042).
 CATALOGUE = "lemonfiber-plugins"
@@ -126,11 +126,21 @@ def pinned_once(bundle: dict, plugin: str, origin: str) -> tuple[dict | None, li
     return pin, []
 
 
-def own_table(bundle: dict, service: str) -> dict | None:
-    """The table of the bundle's own that pins `service`'s image, where no part declares
-    it and the bundle pins it apart from its parts, as it pins the fence (ARCH-R363)."""
+def own_table(bundle: dict, repo: str, service: str) -> tuple[dict | None, list[str]]:
+    """The table of the bundle's own that pins the image `repo` builds for `service`, where
+    no part declares it and the bundle pins it apart from its parts, as it pins the fence
+    (ARCH-R363), and every way it fails to be the one pin of it.
+
+    Only a repository building a stack service's image, `lemonfiber-<service>`, is ever
+    pinned so, and never beside a pin of a part with the same id: a table may not stand in
+    for the part's own pin, which the train holds to more than a tag."""
     table = bundle.get(service)
-    return table if isinstance(table, dict) and "image" in table else None
+    if repo != f"{REPO_PREFIX}{service}" or not isinstance(table, dict):
+        return None, []
+    parts = [pin for pin in bundle.get("plugin", []) if isinstance(pin, dict) and pin.get("id") == service]
+    if parts:
+        return None, [f"{service}: the bundle pins it as a part and in a table of its own, and one pin is kept"]
+    return table, []
 
 
 def reads(core: pathlib.Path) -> list[int]:

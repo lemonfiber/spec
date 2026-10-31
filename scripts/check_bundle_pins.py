@@ -53,7 +53,10 @@ def problems(bundle: dict, release: str, owner: str, wanted: list[tuple[str, str
     a table of the bundle's own, as it pins the fence, until a release a commit (OPS-R94)."""
     said = []
     for repo, plugin in wanted:
-        table = embedded_bundle.own_table(bundle, plugin)
+        table, wrong = embedded_bundle.own_table(bundle, repo, plugin)
+        said += wrong
+        if wrong:
+            continue
         if table is not None:
             tag = str(table.get("tag"))
             early = PRERELEASE_SEPARATOR in release and COMMIT_IMAGE.match(tag)
@@ -125,7 +128,7 @@ def unheld(
     pinned = {str(pin.get("id")): pin for pin in bundle.get("plugin", []) if isinstance(pin, dict)}
     said = []
     for repo, plugin in wanted:
-        if embedded_bundle.own_table(bundle, plugin) is not None:
+        if embedded_bundle.own_table(bundle, repo, plugin)[0] is not None:
             continue
         target, why = target_at(pinned[plugin], places.get(repo, TARGETS), plugin)
         if why is not None:

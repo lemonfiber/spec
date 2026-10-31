@@ -185,6 +185,18 @@ class Main(unittest.TestCase):
         self.assertIn('tag    = "main-8de8b3aa2b24"  # the build', self.bundle.read_text(encoding="utf-8"))
         self.assertIn("A commit on lemonfiber-fence's main published", self.message.read_text(encoding="utf-8"))
 
+    def test_a_bundle_pinning_the_service_as_a_part_or_not_toml_moves_nothing(self):
+        for text, said in (
+            (BUNDLE.replace('id = "door"', 'id = "fence"'), "pins fence as a part"),
+            ("[[plugin\n", "is not TOML"),
+        ):
+            with self.subTest(said=said):
+                self.bundle.write_text(text, encoding="utf-8")
+                code, out, err = self.apply()
+                self.assertEqual((code, out), (1, ""))
+                self.assertIn(said, err)
+                self.assertEqual(self.bundle.read_text(encoding="utf-8"), text)
+
     def test_the_same_pin_again_moves_nothing(self):
         self.apply()
         self.message.unlink()

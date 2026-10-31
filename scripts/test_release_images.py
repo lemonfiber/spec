@@ -455,7 +455,16 @@ class CheckBundlePinsTests(Workspace):
         for tag, release in (("main-8de8b3aa2b24", "0.2.0"), ("0.1.0", "0.2.0"), ("main-8de8", "0.2.0-pre.1")):
             with self.subTest(tag=tag, release=release):
                 self.assertEqual(said(tag, release), [f"fence: its table pins tag {tag!r}, not {release!r}"])
-        self.assertIn("0 times", check_bundle_pins.problems({"fence": {"tag": "0.2.0"}}, "0.2.0", "lemonfiber", wanted)[0])
+        stands_in = {"jellyfin": {"image": "x", "tag": "0.2.0"}}
+        self.assertIn(
+            "0 times",
+            check_bundle_pins.problems(stands_in, "0.2.0", "lemonfiber", [("plugin-jellyfin", "jellyfin")])[0],
+        )
+        beside = {"fence": {"tag": "0.2.0"}, "plugin": [{**self.PIN, "id": "fence"}]}
+        self.assertEqual(
+            check_bundle_pins.problems(beside, "0.2.0", "lemonfiber", wanted),
+            ["fence: the bundle pins it as a part and in a table of its own, and one pin is kept"],
+        )
         table = {"fence": {"image": "ghcr.io/lemonfiber/fence", "tag": "0.2.0"}}
         self.assertEqual(check_bundle_pins.unheld(pathlib.Path("nowhere"), table, wanted, {}), [])
 
