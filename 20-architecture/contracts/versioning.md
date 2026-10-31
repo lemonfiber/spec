@@ -178,6 +178,7 @@ change and refuses every other, another change to the same field included. Movin
 | `PluginStep.adapter` | 1 | Removed, from 0.18.0 | A step's call is said to reach a service in the API that service declares as its `native` (`ARCH-R143`), carried as `PluginStep.native`. |
 | `PluginStepAdapter` | 1 | Removed, from 0.18.0 | The type of `PluginStep.adapter` alone, which is removed, so nothing names it. |
 | `PluginAdapterOwner` | 1 | Removed, from 0.18.0 | The type of `PluginStepAdapter.owner` alone, which is removed, so nothing names it. |
+| `ApiKind` | 1 | Removed, from 0.18.0 | The type of `PluginStepAdapter.kind` alone, which is removed, so nothing names it. |
 | `SeedReport.unsupported` | 1 | Removed, from 0.18.0 | It listed each stack service declaring an API through an in-process adapter lemonfiber could not ask; no service names one (`ARCH-R272`), so there is nothing to list. |
 | `StatusReport.unsupported` | 1 | Removed, from 0.18.0 | It listed each stack service declaring an API through an in-process adapter lemonfiber could not ask; no service names one (`ARCH-R272`), so there is nothing to list. |
 | `StuckReport.unsupported` | 1 | Removed, from 0.18.0 | It listed each stack service declaring an API through an in-process adapter lemonfiber could not ask; no service names one (`ARCH-R272`), so there is nothing to list. |
