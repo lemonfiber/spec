@@ -312,7 +312,9 @@ is the manifest's list, and no option names a recording. A recording under
 `conformance/` that no case asks is removed.
 
 A pull request proves its own adapter, or the image its tree builds, with three options. `--check` takes every recording
-again and writes nothing: it fails naming each recording that differs from what it took
+again and writes nothing, but a conformance case the adapter's
+[`outside`](plugin-manifest-service.md) names, which reaches a host outside the stack: that
+one it leaves as recorded, names with its host, and still requires (`ARCH-R367`). It fails naming each recording that differs from what it took
 and each one no case answers. An identifier or a moment the service makes afresh on each
 run, a UUID, 32 hexadecimal digits or an RFC 3339 date and time, is held to its shape
 alone, as it is inside a string that holds a JSON list or object. Any other value a
