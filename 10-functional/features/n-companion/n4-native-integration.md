@@ -112,6 +112,15 @@ stack raised while it slept. On Android, where a UnifiedPush distributor such as
 installed, the stack can wake the app through it; the push says only that the stack has
 something to say, and what is notified is read over the app's own connection.
 
+Waking through a distributor is turned on stack by stack, on each stack's settings. The
+app registers it under the name this phone's key already carries on that stack
+([N29](n29-a-key-for-an-app.md)), so one phone has one name in every listing, with a
+WebPush key pair made on the phone for that stack alone and deleted with the stack or
+when waking is turned off. Where more than one distributor is installed, the operator
+chooses which, once, and can change it. Turned off while the stack cannot be reached,
+the phone stops waking for it at once, sends the removal the next time it reaches the
+stack, and says that the stack holds the endpoint until then.
+
 A closed app on iOS hears its stacks when the system lets it, which may be rarely. The
 app says so where notifications are turned on, rather than promising what it cannot do,
 and says the same of Android without a distributor.
@@ -196,6 +205,8 @@ nothing that would override the reader's own type size or choice of light or dar
 | **N4-R26** | On Android, where a UnifiedPush distributor is installed, the app MUST offer waking through it, MUST register the endpoint the distributor gives with each stack the operator turns it on for and remove it when turned off or the stack is removed (`ARCH-R282`), and MUST treat a push as a wake only, reading what to notify over its own connection. |
 | **N4-R27** | Where the operator turns notifications on, the app MUST say that while it is closed it hears a stack only when the platform wakes it, and so may notify late or not at all, on iOS and on Android without a UnifiedPush distributor. |
 | **N4-R28** | Unless the stack says its replay holds every alert raised since the app last listened (`ARCH-R281`), the app MUST NOT present the alerts it notifies on waking as all of them, and MUST say to the operator, where notifications are turned on, that some may be missing; a household member MUST NOT be shown it. |
+| **N4-R29** | Waking through UnifiedPush MUST be turned on stack by stack, on that stack's settings, and MUST be registered under the name this phone's key carries on that stack (`N29`), with a WebPush key pair made on the phone for that stack alone and deleted with the stack or when waking is turned off; where more than one distributor is installed, the operator MUST choose which, once, and MUST be able to change it (`ARCH-R282`). |
+| **N4-R30** | Waking turned off while the stack cannot be reached MUST stop at once, the removal MUST be sent the next time the phone reaches that stack, and the app MUST say that the stack holds the endpoint until then. |
 
 ## Related
 

@@ -83,11 +83,17 @@ paired and signed in.
 how long readings are kept, the order of the stacks, and clearing saved data. It is
 also where a phone with no secure storage says that it keeps nothing.
 
-**A stack's settings**, one per stack: which of the kinds of notification that stack
-raises may reach the phone, within the phone's own notification settings, and which
-kinds are marked as new. The kinds of notification are the core's (`N4-R11`): a closed
-list the contract publishes, of which each stack says the ones it raises (`ARCH-R279`,
-`ARCH-R280`), so the app offers a stack's kinds and no others.
+**The notification page**, for the whole phone, with a section for each stack: which of
+the kinds of notification that stack raises may reach the phone, within the phone's own
+notification settings, and from which severity a problem may. The kinds of notification
+are the core's (`N4-R11`): a closed list the contract publishes, of which each stack says
+the ones it raises (`ARCH-R279`, `ARCH-R280`), so the app offers a stack's kinds and no
+others. A kind nobody has chosen for yet is on. A kind the stack stops raising leaves its
+section, and what was chosen for it is kept for the day it raises it again. The floor for
+problems is the phone's own: the stack still raises every alert, and the phone does not
+notify a problem below the floor the operator set for that stack.
+
+**A stack's settings**, one per stack: which kinds are marked as new.
 
 The app also remembers where the operator was — which stack and which tab — and opens
 there, after the lock.
@@ -149,7 +155,7 @@ the list. A mark is announced to a screen reader and never shown by colour alone
 | **N27-R14** | App settings MUST offer when to ask for the passcode again (`N4-R19`): immediately, which MUST be the choice until the operator sets one, or after 1, 5 or 15 minutes, or 1 hour. |
 | **N27-R15** | App settings MUST offer the order of the stacks, and every list of stacks MUST follow it. |
 | **N27-R16** | The app MUST open, after the lock, on the stack and tab the operator last used, and on the first stack in their order where that stack is gone. |
-| **N27-R17** | Each stack's settings MUST offer, for each kind of notification that stack raises, whether it may reach the phone, and a kind switched off MUST NOT be notified; the kinds offered MUST be the ones the stack declares, and the app MUST NOT add a kind of its own (`N4-R11`). |
+| **N27-R17** | The notification page MUST offer, in a section for each stack, for each kind of notification that stack raises, whether it may reach the phone, and a kind switched off MUST NOT be notified; a kind not yet chosen for MUST be on; the kinds offered MUST be the ones the stack declares, and the app MUST NOT add a kind of its own (`N4-R11`). A kind the stack stops raising MUST leave its section, and the choice made for it MUST be kept for if the stack raises it again. |
 | **N27-R18** | Each stack's settings MUST offer which of updates, requests and problems are marked as new. |
 | **N27-R19** | An update, request or problem newer than the newest of its kind the operator has seen for that stack MUST be marked as new, where that kind is switched on; the first reading of a stack MUST record what it holds as seen. |
 | **N27-R20** | *What's new* MUST list every item marked as new across the stacks, filterable by kind and by stack; opening an item MUST mark it as seen, and the list MUST offer marking everything seen. |
@@ -158,6 +164,7 @@ the list. A mark is announced to a screen reader and never shown by colour alone
 | **N27-R23** | Artwork MUST be held in memory only, for as long as the app runs. It MUST NOT be written to a disk cache, the platform's URL cache, a temporary file or a backup. It MUST be dropped when the stack it came from is removed from the phone or its session ends, and MUST NOT be drawn while the app is locked (`N27-R22`). |
 | **N27-R24** | Artwork MUST be fetched only from the core's own API (`D11-R9`, `D11-R10`), or from a location the core states for it (`D11-R3`) which the media server's guarded front door serves ([ADR-0027](../../../00-overview/decisions/0027-a-member-plays-what-the-core-authorised.md)), on a request the app makes itself carrying the credential of the session the screen is drawn for. The app MUST NOT compose an artwork address of its own beyond the core's paths for a title it listed, MUST NOT carry a credential in an address, and MUST NOT log one (`N1-R15`). |
 | **N27-R25** | Artwork MUST be fetched over TLS pinned the way the request it was fetched on is: to the stack's certificate where it came from the core's API (`N1-R22`), and to the certificate the core states for the guarded front door where it came from there (`D11-R7`). An answer presenting any other certificate MUST be refused, and the title drawn as its lettered poster (`N3-R24`). |
+| **N27-R26** | Each stack's section of the notification page MUST offer the lowest severity of problem that may reach the phone from that stack, and a problem below it MUST NOT be notified; the floor MUST be kept on the phone and MUST NOT be sent to the stack, which still raises every alert (`N4-R11`, `ARCH-R279`). Until the operator sets one, every problem the stack raises MUST reach the phone. |
 
 ## Notes
 
