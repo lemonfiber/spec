@@ -98,6 +98,20 @@ def problems(copy: dict, image: str, tag: str, digest: str) -> list[str]:
     return said
 
 
+def tabled(table: dict, image: str, tag: str, digest: str) -> list[str]:
+    """Every way the bundle's own table for an image fails to pin `image` at `tag`, without
+    its `v`, and `digest` (OPS-R94)."""
+    pinned = tag.removeprefix("v")
+    said = []
+    if table.get("image") != image:
+        said.append(f"its table pins {table.get('image')!r}, not {image!r}")
+    if table.get("tag") != pinned:
+        said.append(f"its table pins tag {table.get('tag')!r}, not {pinned!r}")
+    if table.get("digest") != digest:
+        said.append(f"its table pins digest {table.get('digest')!r}, not {digest!r}, which {image}:{tag} published")
+    return said
+
+
 def unpinned(
     core: pathlib.Path, owner: str, tag: str, cut: list[tuple[str, str, str]]
 ) -> tuple[list[str], list[str]]:
@@ -112,6 +126,13 @@ def unpinned(
         digest, missing = digest_of(f"{image}:{tag}")
         if missing:
             said.append(missing)
+            continue
+        table = embedded_bundle.own_table(bundle, service)
+        if table is not None:
+            wrong = [f"{service}: {problem}" for problem in tabled(table, image, tag, digest)]
+            said += wrong
+            if not wrong:
+                pinned.append(f"{service} is pinned at {tag}, {digest}.")
             continue
         _, wrong = embedded_bundle.pinned_once(bundle, service, embedded_bundle.origin(owner, repo))
         if wrong:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Moving an image the bundle pins apart from its parts — ARCH-R363.
+"""Moving an image the bundle pins apart from its parts — ARCH-R363, OPS-R94.
 
 Run:  python3 scripts/test_bundle_image_pin.py
 """
@@ -81,6 +81,10 @@ class Checked(unittest.TestCase):
             bundle_image_pin.checked("fence", REPOSITORY, IMAGE, "v0.18.0-beta.1", DIGEST),
             "0.18.0-beta.1",
         )
+        self.assertEqual(
+            bundle_image_pin.checked("fence", REPOSITORY, IMAGE, "main-8de8b3aa2b24", DIGEST),
+            "main-8de8b3aa2b24",
+        )
 
     def test_anything_else_is_refused_naming_it(self):
         for args, said in [
@@ -97,8 +101,11 @@ class Checked(unittest.TestCase):
                 ("fence", REPOSITORY, "ghcr.io/else/fence", "v0.18.0", DIGEST),
                 "is not ghcr.io/lemonfiber/fence",
             ),
-            (("fence", REPOSITORY, IMAGE, "0.18.0", DIGEST), "not a tag the train cuts"),
-            (("fence", REPOSITORY, IMAGE, "v0.18.0-rc1", DIGEST), "not a tag the train cuts"),
+            (("fence", REPOSITORY, IMAGE, "0.18.0", DIGEST), "neither a tag the train cuts"),
+            (("fence", REPOSITORY, IMAGE, "v0.18.0-rc1", DIGEST), "neither a tag the train cuts"),
+            (("fence", REPOSITORY, IMAGE, "main-8de8b3aa2b2", DIGEST), "nor a commit image's"),
+            (("fence", REPOSITORY, IMAGE, "main-8DE8B3AA2B24", DIGEST), "nor a commit image's"),
+            (("fence", REPOSITORY, IMAGE, "next-8de8b3aa2b24", DIGEST), "nor a commit image's"),
             (("fence", REPOSITORY, IMAGE, "v0.18.0", "sha256:abc"), "not a sha256 digest"),
         ]:
             with self.subTest(args=args), self.assertRaisesRegex(bundle_image_pin.Refused, said):
@@ -114,9 +121,19 @@ class Moved(unittest.TestCase):
         self.assertIn('[after]\nimage = "untouched"', after)
         self.assertIn("# The image a fenced service runs behind.", after)
 
-    def test_a_bundle_without_one_table_or_its_fields_is_refused(self):
-        with self.assertRaisesRegex(bundle_image_pin.Refused, "holds 0 \\[fence\\] tables"):
-            bundle_image_pin.moved("schema = 2\n", "fence", IMAGE, "0.18.0", DIGEST)
+    def test_a_bundle_without_the_table_has_it_written_before_the_first_pin(self):
+        pins = 'schema = 2\n\n[[plugin]]\nid = "door"\n'
+        self.assertEqual(
+            bundle_image_pin.moved(pins, "fence", IMAGE, "main-8de8b3aa2b24", DIGEST),
+            f'schema = 2\n\n[fence]\nimage = "{IMAGE}"\ntag = "main-8de8b3aa2b24"\n'
+            f'digest = "{DIGEST}"\n\n[[plugin]]\nid = "door"\n',
+        )
+        self.assertEqual(
+            bundle_image_pin.moved("schema = 2\n", "fence", IMAGE, "0.18.0", DIGEST),
+            f'schema = 2\n\n[fence]\nimage = "{IMAGE}"\ntag = "0.18.0"\ndigest = "{DIGEST}"\n',
+        )
+
+    def test_a_bundle_with_more_than_one_table_or_its_fields_missing_is_refused(self):
         twice = BUNDLE + "\n[fence]\n"
         with self.assertRaisesRegex(bundle_image_pin.Refused, "holds 2"):
             bundle_image_pin.moved(twice, "fence", IMAGE, "0.18.0", DIGEST)
@@ -161,6 +178,12 @@ class Main(unittest.TestCase):
         said = self.message.read_text(encoding="utf-8")
         self.assertTrue(said.startswith("chore(bundle): the fence image at v0.18.0\n\n"))
         self.assertIn(f"{IMAGE}@{DIGEST}", said)
+
+    def test_a_commit_image_moves_the_pin_and_says_so(self):
+        code, out, _ = self.apply(tag="main-8de8b3aa2b24")
+        self.assertEqual((code, out), (0, "moved=yes\n"))
+        self.assertIn('tag    = "main-8de8b3aa2b24"  # the build', self.bundle.read_text(encoding="utf-8"))
+        self.assertIn("A commit on lemonfiber-fence's main published", self.message.read_text(encoding="utf-8"))
 
     def test_the_same_pin_again_moves_nothing(self):
         self.apply()
@@ -256,18 +279,19 @@ class Main(unittest.TestCase):
 
 
 class Workflow(unittest.TestCase):
-    """The token is minted only for a pushed train tag in the organisation, judged before
-    any step runs, for lemonfiber-plugins alone, and nothing checked out keeps it."""
+    """The token is minted only for a push to main or a pushed train tag in the
+    organisation, judged before any step runs, for lemonfiber-plugins alone, and nothing
+    checked out keeps it."""
 
     JOBS = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
 
-    def test_only_a_train_tag_of_the_services_own_repository_reaches_the_token(self):
+    def test_only_main_or_a_train_tag_of_the_services_own_repository_reaches_the_token(self):
         guard = self.JOBS["commit"]["if"]
         for held in (
             "github.repository_owner == 'lemonfiber'",
             "github.repository == format('{0}/lemonfiber-{1}', github.repository_owner, inputs.service)",
             "github.event_name == 'push'",
-            "github.ref_type == 'tag'",
+            "(github.ref_type == 'tag' || github.ref == 'refs/heads/main')",
         ):
             self.assertIn(held, guard)
 

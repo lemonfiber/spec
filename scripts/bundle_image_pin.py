@@ -3,24 +3,26 @@
 
 The fence is no part: no plugin declares it, and lemonfiber writes one beside each
 fenced service. So its image is pinned in a table of the bundle's own, `[<service>]`,
-rather than in a plugin's manifest, and the train tag that published an image moves
-that table to it. This rewrites the table's `image`, `tag` and `digest` in place,
-leaving every comment and every other line as it is, and writes the commit message
-the rolling pull request takes.
+rather than in a plugin's manifest, and each image published from the service's `main`
+or a train tag moves that table to it (OPS-R94). This rewrites the table's `image`,
+`tag` and `digest` in place, leaving every comment and every other line as it is, or
+writes the table where the bundle holds none, and writes the commit message the rolling
+pull request takes.
 
     bundle_image_pin.py apply --bundle <bundle.toml> --service <id> \\
-        --repository <owner/name> --image <registry path> --tag <vX.Y.Z> \\
+        --repository <owner/name> --image <registry path> --tag <vX.Y.Z | main-<commit>> \\
         --digest <sha256:…> --message <file>
 
 Prints `moved=yes` or `moved=no`. Refuses, naming what:
 
 - a repository other than `lemonfiber/lemonfiber-<service>`, the one ADR-0033 builds the
   image in, so no other repository moves its pin;
-- an image other than `ghcr.io/lemonfiber/<service>`, a tag the train does not cut, or a
-  digest that is not one;
+- an image other than `ghcr.io/lemonfiber/<service>`, a tag that is neither one the train
+  cuts nor `main-` and twelve lowercase hexadecimal digits, or a digest that is not one;
 - a digest other than the one the registry answers for the image at that tag, read with
   `docker buildx imagetools inspect` before anything is written;
-- a bundle with no `[<service>]` table to move.
+- a bundle holding the `[<service>]` table more than once, or one naming no `image`,
+  `tag` or `digest`.
 
 The bundle and the message are paths under the working directory, read and written as
 plain files, never through a link; any other path is refused.
@@ -35,6 +37,7 @@ import subprocess
 import sys
 
 import paths
+from patterns import COMMIT_IMAGE
 
 #: Where lemonfiber publishes the images it builds, and nothing else (ADR-0033).
 REGISTRY = "ghcr.io/lemonfiber"
@@ -44,7 +47,9 @@ TAG = re.compile(r"\Av(\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)\Z")
 DIGEST = re.compile(r"\Asha256:[0-9a-f]{64}\Z")
 #: A key of the table, with the quoted value it holds and anything after it on the line.
 #: An image reference the registry is asked about: a registry path under ours and a tag.
-REFERENCE = re.compile(r"\Aghcr\.io/lemonfiber/[a-z0-9]+(-[a-z0-9]+)*:v[0-9A-Za-z.-]{1,127}\Z")
+REFERENCE = re.compile(
+    r"\Aghcr\.io/lemonfiber/[a-z0-9]+(-[a-z0-9]+)*:(v[0-9A-Za-z.-]{1,127}|main-[0-9a-f]{12})\Z"
+)
 #: The largest bundle this reads.
 LIMIT = 1 << 20
 FIELD = re.compile(r'\A(?P<key>image|tag|digest)(?P<gap>\s*=\s*)"[^"]*"(?P<rest>.*)\Z')
@@ -55,7 +60,8 @@ class Refused(Exception):
 
 
 def checked(service: str, repository: str, image: str, tag: str, digest: str) -> str:
-    """The version `tag` names, once every argument is what the train hands over."""
+    """What the table's `tag` becomes, once every argument is what a publish hands over:
+    the version a train tag names, or the commit tag itself."""
     if not SERVICE.match(service):
         raise Refused(f"{service!r} is not a service id")
     if repository != f"lemonfiber/lemonfiber-{service}":
@@ -64,11 +70,13 @@ def checked(service: str, repository: str, image: str, tag: str, digest: str) ->
         )
     if image != f"{REGISTRY}/{service}":
         raise Refused(f"{image!r} is not {REGISTRY}/{service}, the image {service} is published as")
-    version = TAG.match(tag)
-    if not version or re.search(r"-rc\d*(\.|\Z)", tag):
-        raise Refused(f"{tag!r} is not a tag the train cuts")
     if not DIGEST.match(digest):
         raise Refused(f"{digest!r} is not a sha256 digest")
+    if COMMIT_IMAGE.match(tag):
+        return tag
+    version = TAG.match(tag)
+    if not version or re.search(r"-rc\d*(\.|\Z)", tag):
+        raise Refused(f"{tag!r} is neither a tag the train cuts nor a commit image's")
     return version.group(1)
 
 
@@ -77,7 +85,7 @@ def published(image: str, tag: str) -> str:
     under lemonfiber's registry."""
     reference = f"{image}:{tag}"
     if not REFERENCE.match(reference):
-        raise Refused(f"{reference!r} is not an image of {REGISTRY} at a train tag")
+        raise Refused(f"{reference!r} is not an image of {REGISTRY} at a train tag or a commit")
     asked = subprocess.run(
         ["docker", "buildx", "imagetools", "inspect", reference, "--format", "{{json .Manifest}}"],
         capture_output=True,
@@ -94,11 +102,14 @@ def published(image: str, tag: str) -> str:
 
 
 def moved(text: str, service: str, image: str, version: str, digest: str) -> str:
-    """`text` with the `[<service>]` table naming `image` at `version` and `digest`."""
+    """`text` with the `[<service>]` table naming `image` at `version` and `digest`, written
+    before the first pin where the bundle holds none."""
     wanted = {"image": image, "tag": version, "digest": digest}
     lines = text.split("\n")
     header = f"[{service}]"
     starts = [index for index, line in enumerate(lines) if line.strip() == header]
+    if not starts:
+        return seeded(lines, header, wanted)
     if len(starts) != 1:
         raise Refused(f"the bundle holds {len(starts)} {header} tables, and one is moved")
     seen = set()
@@ -117,11 +128,26 @@ def moved(text: str, service: str, image: str, version: str, digest: str) -> str
     return "\n".join(lines)
 
 
+def seeded(lines: list[str], header: str, wanted: dict[str, str]) -> str:
+    """`lines` with a `header` table naming `wanted`, before the first `[[plugin]]` pin, or
+    at the end where there is none."""
+    table = [header, *(f'{key} = "{value}"' for key, value in wanted.items()), ""]
+    at = next((index for index, line in enumerate(lines) if line.strip() == "[[plugin]]"), None)
+    if at is None:
+        return "\n".join(lines).rstrip("\n") + "\n\n" + "\n".join(table)
+    return "\n".join(lines[:at] + table + lines[at:])
+
+
 def message(service: str, image: str, tag: str, digest: str) -> str:
     """The commit message, and so the pull request's title and body."""
+    published = (
+        f"A commit on lemonfiber-{service}'s main published"
+        if COMMIT_IMAGE.match(tag)
+        else f"The release train tagged {tag} in lemonfiber-{service}, which published"
+    )
     return (
         f"chore(bundle): the {service} image at {tag}\n\n"
-        f"The release train tagged {tag} in lemonfiber-{service}, which published\n"
+        f"{published}\n"
         f"{image}@{digest}. The bundle's [{service}] table now pins it.\n"
     )
 

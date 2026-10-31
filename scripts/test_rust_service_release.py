@@ -306,10 +306,7 @@ class HandedOn(unittest.TestCase):
         self.assertEqual(self.JOBS["manifest"]["if"], "inputs.pins == 'manifest'")
         self.assertTrue(self.JOBS["manifest"]["uses"].endswith("manifest-pin.yml"))
         self.assertEqual(self.JOBS["bundle"]["needs"], ["settle", "publish"])
-        self.assertEqual(
-            self.JOBS["bundle"]["if"],
-            "inputs.pins == 'bundle' && needs.settle.outputs.kind == 'tag'",
-        )
+        self.assertEqual(self.JOBS["bundle"]["if"], "inputs.pins == 'bundle'")
         self.assertTrue(self.JOBS["bundle"]["uses"].endswith("bundle-image-pin.yml"))
 
     def test_no_job_that_builds_or_publishes_holds_the_release_key(self):

@@ -126,6 +126,13 @@ def pinned_once(bundle: dict, plugin: str, origin: str) -> tuple[dict | None, li
     return pin, []
 
 
+def own_table(bundle: dict, service: str) -> dict | None:
+    """The table of the bundle's own that pins `service`'s image, where no part declares
+    it and the bundle pins it apart from its parts, as it pins the fence (ARCH-R363)."""
+    table = bundle.get(service)
+    return table if isinstance(table, dict) and "image" in table else None
+
+
 def reads(core: pathlib.Path) -> list[int]:
     """The bundle schemas the core reads."""
     source = core / READER

@@ -19,7 +19,8 @@
 # which is what pins the image and what the bundle takes, and one without it
 # publishes nothing, unless it says `pins: bundle`: an image no plugin declares, such
 # as the fence's, holds no plugin.toml, and the bundle's own table for its service
-# pins it, moved by `bundle-image-pin` on each train tag (ARCH-R363).
+# pins it, moved by `bundle-image-pin` on each commit image and train tag (ARCH-R363,
+# OPS-R94).
 # `manifest-pin` proposes each published image as the one its services run, with
 # every recording the manifest names taken again from it and `proofs.json` written
 # from them: a commit image on the rolling
@@ -65,7 +66,8 @@ on:
         description: >-
           Where the image's pin lives: `manifest`, the repository's own plugin.toml,
           which `manifest-pin` moves; or `bundle`, a table of the bundle's own named for
-          the service, which `bundle-image-pin` moves on a train tag, for an image no
+          the service, which `bundle-image-pin` moves on each commit image and train
+          tag, for an image no
           plugin declares, such as the fence's. A `bundle` repository holds no
           plugin.toml.
         type: string
@@ -368,11 +370,11 @@ jobs:
       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
 
   # An image no plugin declares is pinned in the bundle's own table for its service, and
-  # only a train tag moves it (ARCH-R363). A commit image is published and pinned
-  # nowhere.
+  # each commit image and train tag moves it there: a commit's between releases, and the
+  # tag's, which the core's release requires (ARCH-R363, OPS-R94).
   bundle:
     needs: [settle, publish]
-    if: inputs.pins == 'bundle' && needs.settle.outputs.kind == 'tag'
+    if: inputs.pins == 'bundle'
     permissions:
       contents: read
       packages: read
