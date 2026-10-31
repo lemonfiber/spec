@@ -19,6 +19,7 @@ import sys
 import tomllib
 import unittest
 from types import MappingProxyType
+from unittest import mock
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -739,6 +740,23 @@ class CheckImagePinsTests(EmbeddedTests):
         self.assertIn("not 'ghcr.io/lemonfiber/fence'", said[0])
         self.assertIn("tag 'main-8de8b3aa2b24', not '0.2.0'", said[1])
         self.assertIn(f"which {image}:v0.2.0 published", said[2])
+
+    def test_a_service_pinned_in_a_table_of_its_own_is_read_from_it(self):
+        """The fence is no part, so its pin is `[fence]` and no copy — OPS-R94."""
+        image = "ghcr.io/lemonfiber/fence"
+        cut = [("lemonfiber-fence", "fence", image)]
+
+        def unpinned(bundle):
+            with mock.patch.object(embedded_bundle, "read", return_value=(pathlib.Path("."), bundle)):
+                return check_image_pins.unpinned(pathlib.Path("."), "lemonfiber", "v0.2.0", cut)
+
+        table = {"image": image, "tag": "0.2.0", "digest": self.DIGEST}
+        self.assertEqual(unpinned({"fence": table}), ([], [f"fence is pinned at v0.2.0, {self.DIGEST}."]))
+        said, pinned = unpinned({"fence": {**table, "tag": "main-8de8b3aa2b24"}})
+        self.assertEqual((len(said), pinned), (1, []))
+        self.assertIn("tag 'main-8de8b3aa2b24', not '0.2.0'", said[0])
+        beside = {"fence": table, "plugin": [{"id": "fence", "origin": "https://github.com/lemonfiber/lemonfiber-fence"}]}
+        self.assertIn("as a part and in a table of its own", unpinned(beside)[0][0])
 
     def test_each_way_a_copy_can_be_wrong_is_named(self):
         said = check_image_pins.problems(
