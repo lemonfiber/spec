@@ -98,6 +98,20 @@ def problems(copy: dict, image: str, tag: str, digest: str) -> list[str]:
     return said
 
 
+def tabled(table: dict, image: str, tag: str, digest: str) -> list[str]:
+    """Every way the bundle's own table for an image fails to pin `image` at `tag`, without
+    its `v`, and `digest` (OPS-R94)."""
+    pinned = tag.removeprefix("v")
+    said = []
+    if table.get("image") != image:
+        said.append(f"its table pins {table.get('image')!r}, not {image!r}")
+    if table.get("tag") != pinned:
+        said.append(f"its table pins tag {table.get('tag')!r}, not {pinned!r}")
+    if table.get("digest") != digest:
+        said.append(f"its table pins digest {table.get('digest')!r}, not {digest!r}, which {image}:{tag} published")
+    return said
+
+
 def unpinned(
     core: pathlib.Path, owner: str, tag: str, cut: list[tuple[str, str, str]]
 ) -> tuple[list[str], list[str]]:
@@ -113,20 +127,32 @@ def unpinned(
         if missing:
             said.append(missing)
             continue
-        _, wrong = embedded_bundle.pinned_once(bundle, service, embedded_bundle.origin(owner, repo))
-        if wrong:
-            said += wrong
-            continue
-        try:
-            copy = embedded_bundle.copy(catalogue, bundle, service)
-        except embedded_bundle.Unread as why:
-            said.append(str(why))
-            continue
-        wrong = [f"{service}: {problem}" for problem in problems(copy, image, tag, digest)]
+        wrong = held(catalogue, bundle, (owner, repo, service), image, tag, digest)
         said += wrong
         if not wrong:
             pinned.append(f"{service} is pinned at {tag}, {digest}.")
     return said, pinned
+
+
+def held(
+    catalogue: pathlib.Path, bundle: dict, who: tuple[str, str, str], image: str, tag: str, digest: str
+) -> list[str]:
+    """Every way the bundle fails to pin what `tag` published for one service, `who` being
+    the owner, the repository and the service: in a table of its own, or in its part's copy."""
+    owner, repo, service = who
+    table, wrong = embedded_bundle.own_table(bundle, repo, service)
+    if wrong:
+        return wrong
+    if table is not None:
+        return [f"{service}: {problem}" for problem in tabled(table, image, tag, digest)]
+    _, wrong = embedded_bundle.pinned_once(bundle, service, embedded_bundle.origin(owner, repo))
+    if wrong:
+        return wrong
+    try:
+        copy = embedded_bundle.copy(catalogue, bundle, service)
+    except embedded_bundle.Unread as why:
+        return [str(why)]
+    return [f"{service}: {problem}" for problem in problems(copy, image, tag, digest)]
 
 
 def main() -> int:

@@ -19,6 +19,7 @@ import sys
 import tomllib
 import unittest
 from types import MappingProxyType
+from unittest import mock
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -441,6 +442,33 @@ class CheckBundlePinsTests(Workspace):
             )[0],
         )
 
+    def test_a_table_of_the_bundles_own_is_held_to_the_release_and_a_pre_release_to_a_commit(self):
+        """The fence is pinned in `[fence]`, a commit image until the train tags it — OPS-R94."""
+        wanted = [("lemonfiber-fence", "fence")]
+
+        def said(tag, release="0.2.0"):
+            bundle = {"fence": {"image": "ghcr.io/lemonfiber/fence", "tag": tag, "digest": "x"}}
+            return check_bundle_pins.problems(bundle, release, "lemonfiber", wanted)
+
+        self.assertEqual(said("0.2.0"), [])
+        self.assertEqual(said("main-8de8b3aa2b24", "0.2.0-pre.1"), [])
+        self.assertEqual(said("0.2.0-pre.1", "0.2.0-pre.1"), [])
+        for tag, release in (("main-8de8b3aa2b24", "0.2.0"), ("0.1.0", "0.2.0"), ("main-8de8", "0.2.0-pre.1")):
+            with self.subTest(tag=tag, release=release):
+                self.assertEqual(said(tag, release), [f"fence: its table pins tag {tag!r}, not {release!r}"])
+        stands_in = {"jellyfin": {"image": "x", "tag": "0.2.0"}}
+        self.assertIn(
+            "0 times",
+            check_bundle_pins.problems(stands_in, "0.2.0", "lemonfiber", [("plugin-jellyfin", "jellyfin")])[0],
+        )
+        beside = {"fence": {"tag": "0.2.0"}, "plugin": [{**self.PIN, "id": "fence"}]}
+        self.assertEqual(
+            check_bundle_pins.problems(beside, "0.2.0", "lemonfiber", wanted),
+            ["fence: the bundle pins it as a part and in a table of its own, and one pin is kept"],
+        )
+        table = {"fence": {"image": "ghcr.io/lemonfiber/fence", "tag": "0.2.0"}}
+        self.assertEqual(check_bundle_pins.unheld(pathlib.Path("nowhere"), table, wanted, {}), [])
+
     def test_main_passes_a_core_embedding_a_bundle_at_the_tag(self):
         self.core()
         code, out = self.check()
@@ -696,6 +724,39 @@ class CheckImagePinsTests(EmbeddedTests):
         self.assertEqual(
             check_image_pins.problems(self.copy(), "ghcr.io/lemonfiber/decline", "v0.2.0", self.DIGEST), []
         )
+
+    def test_a_table_of_the_bundles_own_is_held_to_the_image_tag_and_digest(self):
+        """The fence's `[fence]` table, which no copy holds — OPS-R94."""
+        image = "ghcr.io/lemonfiber/fence"
+        right = {"image": image, "tag": "0.2.0", "digest": self.DIGEST}
+        self.assertEqual(check_image_pins.tabled(right, image, "v0.2.0", self.DIGEST), [])
+        said = check_image_pins.tabled(
+            {"image": "ghcr.io/else/fence", "tag": "main-8de8b3aa2b24", "digest": "sha256:0"},
+            image,
+            "v0.2.0",
+            self.DIGEST,
+        )
+        self.assertEqual(len(said), 3)
+        self.assertIn("not 'ghcr.io/lemonfiber/fence'", said[0])
+        self.assertIn("tag 'main-8de8b3aa2b24', not '0.2.0'", said[1])
+        self.assertIn(f"which {image}:v0.2.0 published", said[2])
+
+    def test_a_service_pinned_in_a_table_of_its_own_is_read_from_it(self):
+        """The fence is no part, so its pin is `[fence]` and no copy — OPS-R94."""
+        image = "ghcr.io/lemonfiber/fence"
+        cut = [("lemonfiber-fence", "fence", image)]
+
+        def unpinned(bundle):
+            with mock.patch.object(embedded_bundle, "read", return_value=(pathlib.Path("."), bundle)):
+                return check_image_pins.unpinned(pathlib.Path("."), "lemonfiber", "v0.2.0", cut)
+
+        table = {"image": image, "tag": "0.2.0", "digest": self.DIGEST}
+        self.assertEqual(unpinned({"fence": table}), ([], [f"fence is pinned at v0.2.0, {self.DIGEST}."]))
+        said, pinned = unpinned({"fence": {**table, "tag": "main-8de8b3aa2b24"}})
+        self.assertEqual((len(said), pinned), (1, []))
+        self.assertIn("tag 'main-8de8b3aa2b24', not '0.2.0'", said[0])
+        beside = {"fence": table, "plugin": [{"id": "fence", "origin": "https://github.com/lemonfiber/lemonfiber-fence"}]}
+        self.assertIn("as a part and in a table of its own", unpinned(beside)[0][0])
 
     def test_each_way_a_copy_can_be_wrong_is_named(self):
         said = check_image_pins.problems(

@@ -41,6 +41,7 @@ import check_plugins
 import embedded_bundle
 import manifest_repos
 from check_image_pins import cut_by_train
+from patterns import COMMIT_IMAGE, PRERELEASE_SEPARATOR
 
 #: Where a plugin says which lemonfiber it targets, unless the plugin registry
 #: names another place for it.
@@ -48,9 +49,20 @@ TARGETS = "targets.toml"
 
 
 def problems(bundle: dict, release: str, owner: str, wanted: list[tuple[str, str]]) -> list[str]:
-    """Every way the bundle fails to pin a wanted (repo, id) at `release`."""
+    """Every way the bundle fails to pin a wanted (repo, id) at `release`: as a part, or in
+    a table of the bundle's own, as it pins the fence, until a release a commit (OPS-R94)."""
     said = []
     for repo, plugin in wanted:
+        table, wrong = embedded_bundle.own_table(bundle, repo, plugin)
+        said += wrong
+        if wrong:
+            continue
+        if table is not None:
+            tag = str(table.get("tag"))
+            early = PRERELEASE_SEPARATOR in release and COMMIT_IMAGE.match(tag)
+            if tag != release and not early:
+                said.append(f"{plugin}: its table pins tag {tag!r}, not {release!r}")
+            continue
         pin, wrong = embedded_bundle.pinned_once(bundle, plugin, embedded_bundle.origin(owner, repo))
         said += wrong
         if pin is not None and pin.get("release") != release:
@@ -116,6 +128,8 @@ def unheld(
     pinned = {str(pin.get("id")): pin for pin in bundle.get("plugin", []) if isinstance(pin, dict)}
     said = []
     for repo, plugin in wanted:
+        if embedded_bundle.own_table(bundle, repo, plugin)[0] is not None:
+            continue
         target, why = target_at(pinned[plugin], places.get(repo, TARGETS), plugin)
         if why is not None:
             said.append(why)
