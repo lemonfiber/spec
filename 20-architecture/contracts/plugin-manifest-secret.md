@@ -177,12 +177,15 @@ replacement are held in the secret store, under `INDEXER_APIKEY`, `USENET_PASS`,
 stack's environment file. The first run of the release that files the environment file
 files each it holds there into the store once (`ARCH-R276`).
 
-**The journal holds a secret's fingerprint, never its value.** A secret's change is
-journalled with the stable fingerprint of the value before and after it, as
-[A7](../../10-functional/features/a-getting-started/a7-credential-management.md)
-references a credential, and never with the value, sealed or otherwise. A journal an
-earlier release wrote has each credential's value replaced by its fingerprints the first
-time it is written again. The secret store
+**The journal holds a secret's keyed fingerprint, never its value.** A secret's change
+is journalled with the keyed fingerprint of the value before and after it, an
+HMAC-SHA256 under a random key only the secret store holds, made with the store and
+never journalled, shown or exported, so a journal that travels without the store says
+nothing about any value; never with the value, sealed or otherwise, and never with a
+fingerprint anybody without that key can compute. A journal an earlier release wrote
+has each credential's value or unkeyed fingerprint replaced by its keyed fingerprint the
+first time it is written again, where the value or the store's value it fingerprints is
+at hand, and otherwise by a mark no value matches. The secret store
 keeps each secret's one previous value. Undoing the change restores it only while the
 values held still match the fingerprints the entry recorded; otherwise the undo says the
 secret must be replaced at the terminal, naming it (`ARCH-R276`).
