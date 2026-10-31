@@ -30,6 +30,7 @@ concurrency:
 jobs:
   tell:
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 5
     steps:
       - name: Mint a token that can reach tool-lfdev

@@ -383,8 +383,10 @@ image the train tags calls `first-party-bundle` with the pin it follows, `adapte
 the pull request the pushed commit merged and answers only where the release App opened
 it from the repository's pin branch, and only then does a job behind the repository's
 `release` environment mint a token, for lemonfiber-plugins alone, to ask `bundle-bump` to
-pin the merged revision (**OPS-R86**). Each job of either workflow that reads the release
-App's key runs behind that environment.
+pin the merged revision (**OPS-R86**). Every job that reads the release App's key, here
+and in each repository calling these workflows, runs behind that repository's `release`
+environment, which deploys only from main and `v*` tags; `tell` runs in it where its
+caller names no other.
 One whose manifest runs an upstream's image calls `upstream-pins` weekly, which moves each such
 pin to the newest release of its major and records every recording again from it, one
 rolling pull request per image (**REPO-R98**).

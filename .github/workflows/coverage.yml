@@ -256,3 +256,16 @@ jobs:
       # runs with the coverage suites above.
       - name: A first-party image is shown run under its posture
         run: python3 scripts/test_first_party_image.py
+      # Not a coverage suite: it reads the reusable adapter release and bundle workflows,
+      # and runs the bundle's author step against a stubbed `gh`, checking that only a
+      # push merging the release App's train pin reaches the job holding the key, which
+      # runs behind the `release` environment (OPS-R86, OPS-R90, OPS-R91).
+      - name: An adapter's release and bundle pin hold the key behind the release environment
+        run: |
+          python3 scripts/test_adapter_release.py
+          python3 scripts/test_first_party_bundle.py
+      # Not a coverage suite: it reads every workflow here, and checks that each job
+      # reading the release App's key runs behind the `release` environment, which
+      # deploys only from main and `v*` tags.
+      - name: Every job reading the release key runs behind the release environment
+        run: python3 scripts/test_release_key_environment.py

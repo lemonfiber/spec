@@ -31,6 +31,7 @@ permissions:
 jobs:
   tell:
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 10
     steps:
       # Allowed to fail, for the reason the dispatch below is. This step is the

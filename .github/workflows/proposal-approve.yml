@@ -29,6 +29,7 @@ jobs:
   approve:
     if: github.event.label.name == 'proposal:approved'
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 15
     steps:
       - name: Verify the maintainer may write (GOV-R41)

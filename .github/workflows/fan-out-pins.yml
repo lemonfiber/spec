@@ -110,6 +110,7 @@ jobs:
     # the newest number.
     if: ${{ !cancelled() && (needs.settle.result == 'skipped' || needs.settle.outputs.newest == 'true') }}
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 30
     # One at a time. Two tags fanned out together would otherwise open two pull
     # requests per repository, each bumping past the other, and the second would

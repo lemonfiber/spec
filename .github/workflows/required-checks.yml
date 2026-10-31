@@ -33,6 +33,7 @@ permissions:
 jobs:
   required-checks:
     runs-on: ubuntu-latest
+    environment: release
     timeout-minutes: 30
     outputs:
       red: ${{ steps.look.outputs.red }}
