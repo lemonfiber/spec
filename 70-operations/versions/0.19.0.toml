@@ -16,9 +16,11 @@
 # (ADR-0047): the closed list of notification kinds every alert names, the kinds a stack
 # raises on the alerts read, the alerts a resumed stream replays, and the UnifiedPush
 # endpoints a phone registers to be woken. They are the core's. The companion's side is
-# `N27-R17`, each stack's kinds offered as switches, and `N4-R25` to `N4-R27`, waking without
-# Apple's or Google's push and through UnifiedPush where Android has a distributor; scheduled
-# here beside the core's by the maintainer's decision of 2026-10-31 (OPS-R31).
+# `N27-R17` and `N27-R26`, each stack's kinds offered as switches on the notification page with
+# a floor for problems kept on the phone, and `N4-R25` to `N4-R27`, `N4-R29` and `N4-R30`,
+# waking without Apple's or Google's push and through UnifiedPush where Android has a
+# distributor, stack by stack; scheduled here beside the core's by the maintainer's decisions
+# of 2026-10-31 (OPS-R31).
 #
 # `B5-R1`, released in 0.5.0, is amended in place: a new request and an answered invitation
 # reach the operator's phone as the `request` and `member` kinds, never a household member,
@@ -28,10 +30,10 @@
 #
 # `ARCH-R288` and `ARCH-R289` are what the companion's N30 sends: a disruptive finding that
 # says what it disturbs, its bound and how to run it, and a `space` agreement narrowed to the
-# categories of the offer. They are the core's. `N30-R4`, `N30-R5` and `N30-R9` are the
-# companion's side of `ARCH-R289`: the room that costs nothing given back one category at a
-# time, against the stack's named offer; scheduled here by the maintainer's decision of
-# 2026-10-31 (OPS-R31).
+# categories of the offer. They are the core's. `N30-R4`, `N30-R5`, `N30-R9` and `N30-R12`
+# are the companion's side of `ARCH-R289`: the room that costs nothing given back one
+# category at a time, against the stack's named offer, each confirmed once and answered
+# without a path; scheduled here by the maintainer's decisions of 2026-10-31 (OPS-R31).
 #
 # `ARCH-R290` is what the companion's N31 reads: a trace that says a search would settle it
 # and what the search spends. It is the core's; N31 itself is the companion's.
@@ -47,7 +49,7 @@
 # `F14-R31` proves every capability 0.18.0's `F14-R14` does not name by a substitute of its
 # own, end to end. Added by the maintainer's decision of 2026-10-29 (OPS-R31).
 #
-# 76 goals, seeded from the roadmap milestone this version serves;
+# 80 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -119,14 +121,18 @@ goals   = [
     "ARCH-R281",
     "ARCH-R282",
     "N27-R17",
+    "N27-R26",
     "N4-R25",
     "N4-R26",
     "N4-R27",
+    "N4-R29",
+    "N4-R30",
     "ARCH-R288",
     "ARCH-R289",
     "N30-R4",
     "N30-R5",
     "N30-R9",
+    "N30-R12",
     "ARCH-R290",
     "D11-R11",
     "D11-R12",

@@ -63,8 +63,11 @@ gave the offer. Each category is its own control, nothing is selected for the op
 nothing else is offered: media, anything seeding and anything left alone stay where they
 are (`N12-R4`, `N12-R5`, `D5-R5`).
 
-Agreeing to a category sends `space` with the offer's name and that category alone
-(`ARCH-R289`), follows the job, and says what came back. An offer that moved since it was
+Agreeing to a category asks once, naming the category, its size, how many files it holds
+and that it cannot be undone. The yes sends `space` with the offer's name and that
+category alone (`ARCH-R289`), follows the job, and says what came back: the room returned
+and how many items went, and each item left behind with the stack's reason for it, never
+a path. An offer that moved since it was
 read is read again and shown again, and nothing is removed until the operator agrees to the
 new one (`ARCH-R142`). Stopping a download seeding stays its own action (`N12-R7`).
 
@@ -124,6 +127,7 @@ window with no time zone, a value the stack cannot read, or no download client t
 | **N30-R9** | A refusal of any of the three MUST be drawn as a refusal with the stack's remedy, never as an empty or unchanged screen (`G4-R16`). |
 | **N30-R10** | Health MUST offer running every check, the disruptive checks included; before it is sent the app MUST list every finding it would run that disturbs something, each with what it disturbs and the bound the stack reported or that it reported none, and where the stack reports transfers in progress, that they are interrupted; it MUST be followed to its end, Health MUST be drawn again with each verdict and when it ran, and it MUST NOT be offered as a rehearsal (`N1-R2`, `N2-R8`). |
 | **N30-R11** | Each group of checks Health shows MUST offer running that group, the disruptive checks included and narrowed to the group, confirmed, followed and drawn again as `N30-R10` requires, listing only the findings of that group that disturb something. |
+| **N30-R12** | A category MUST be agreed to through one confirmation naming the category, its size, how many files it holds and that it cannot be undone; what came back MUST be said as the room returned and how many items went, with each item left behind and the stack's reason for it, and MUST NOT name a path (`N12-R6`). |
 
 ## Notes
 
