@@ -130,14 +130,15 @@ def fixtures(value: object) -> set[str]:
 
 
 def conformance_of(manifest: dict, image: str) -> set[str]:
-    """The conformance directories of every contract an adapter fronting a service that
-    runs `image` speaks, as `conformance/<capability>@<major>`."""
+    """The conformance directories of every contract answered from `image`, as
+    `conformance/<capability>@<major>`: those an adapter fronting a service that runs it
+    speaks, and those a service that runs it and fronts none speaks itself (ARCH-R344)."""
     services = manifest.get("service", [])
     running = {one.get("id") for one in services if one.get("image") == image}
     spoken = {
         str(contract)
         for one in services
-        if one.get("fronts") in running
+        if one.get("fronts", one.get("id")) in running
         for contract in one.get("speaks", [])
     }
     return {f"conformance/{contract}" for contract in spoken if CONTRACT.match(contract)}
