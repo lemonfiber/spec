@@ -315,7 +315,10 @@ A pull request proves its own adapter, or the image its tree builds, with three 
 again and writes nothing: it fails naming each recording that differs from what it took
 and each one no case answers. An identifier or a moment the service makes afresh on each
 run, a UUID, 32 hexadecimal digits or an RFC 3339 date and time, is held to its shape
-alone, as it is inside a string that holds a JSON list or object. `--adapter <image>` starts the adapter from an image the engine already holds, the
+alone, as it is inside a string that holds a JSON list or object. Any other value a
+service makes afresh is named, place by place, in its request's
+[`varies`](plugin-manifest.md#what-a-request-may-ask-for), and held to the shape named
+there at that place alone. `--adapter <image>` starts the adapter from an image the engine already holds, the
 one the plugin's CI built from its own `Dockerfile`, in place of its pin, and pulls
 nothing. `--built <image>` does the same for a part whose tree builds the image of its
 own service, the one whose id is the plugin's, where that service is no adapter: it is
