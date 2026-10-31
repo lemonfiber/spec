@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 24 shipped, 44 built, 27 building, 20 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 23 shipped, 44 built, 28 building, 20 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -28,7 +28,6 @@ code, and the two move independently.
 | [C5](c-trust/c5-storage.md) | Storage & hardlink management | C | operator | accepted | `0.6.0` |
 | [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.6.0` |
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
-| [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.17.0` |
 | [D5](d-content/d5-disk-space.md) | Disk space management | D | operator | accepted | `0.12.0` |
 | [D8](d-content/d8-parental-controls.md) | Parental controls | D | both | accepted | `0.12.0` |
 | [D9](d-content/d9-pipeline-trace.md) | "Where is my show?" pipeline trace | D | both | accepted | `0.4.0` |
@@ -101,6 +100,7 @@ code, and the two move independently.
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0` |
 | [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.17.0`, `0.18.0`, `0.9.0` |
+| [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.12.0`, `0.17.0`, `0.18.0`, `0.4.0` |
 | [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.18.0`, `0.4.0` |
 | [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0`, `0.19.0` |
 | [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.18.0`, `0.19.0` |
