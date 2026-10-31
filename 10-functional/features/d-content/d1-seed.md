@@ -256,6 +256,8 @@ Per connection:
 | **D1-R24** | Where NZBHydra2 that lemonfiber claimed is found open again, seeding MUST keep it and report it as drift, and a reset MUST claim it back. |
 | **D1-R25** | Where NZBHydra2 is held by an administrator other than the one lemonfiber holds, seeding MUST report it as refused naming the plugin's secret, and MUST NOT turn the service's authentication off or replace its administrator. |
 | **D1-R26** | The doctor MUST report an NZBHydra2 that nobody holds or that somebody else holds, naming the service and that a seed or a reset claims it. |
+| **D1-R27** | Where Plex is the media server, seeding MUST link the request service to it in the mode `C6-R26` names, through the request gate (`C6-R27`), and the doctor MUST report on every run the mode, whose Plex account the request service's owner is, whether members can sign in to its page with Plex, and in `owner` mode, as a standing notice, that it holds a token of the operator's own Plex account ([ADR-0057](../../../00-overview/decisions/0057-plex-serves-the-household-without-handing-out-its-owners-token.md)). |
+| **D1-R28** | Where Plex is the media server, a household member MUST be able to ask for a title through lemonfiber's own surfaces, which ask the request service on their behalf, in every mode; the request service's own page MUST offer members Plex sign-in only in `owner` and `fronted`. |
 
 ## Related
 
