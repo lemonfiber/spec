@@ -566,8 +566,8 @@ goals   = [
 ]
 
 # `ARCH-R143` and `F8-R13` say a recipe step's call reaches a service in the API that
-# service's `native` names, from the set the stack manifest's schema publishes, and
-# retire `contract/adapters.json`, which `0.17.0` locked. Added by the maintainer's
+# service declares as its `native`, and retire `contract/adapters.json`, which `0.17.0`
+# locked. Added by the maintainer's
 # decision of 2026-10-31 (OPS-R31).
 
 # `ARCH-R337` to `ARCH-R342` take the last part names out of the core (`F14-R2`): a
