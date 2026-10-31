@@ -354,7 +354,11 @@
 # `ARCH-R365` and `ARCH-R366` let a media server's guard find an item in a query value and
 # send its question to the adapter on the member's token alone, so Plex's streams are
 # guarded. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 621 goals, seeded from the roadmap milestone this version serves;
+# `OPS-R94` pins the fence at the commit image `lemonfiber-fence`'s `main` published until
+# the train tags it, so the bundle can pin it, and a fenced part be installed, before the
+# release that first tags it; the core's release tag is refused while the pin names a
+# commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
+# 622 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -522,7 +526,7 @@ goals   = [
     "N25-R12", "N25-R13", "N25-R14", "N25-R25", "N25-R26", "N25-R27", "N25-R28",
     "N25-R29", "N25-R30", "N25-R31", "N25-R32",
     "N9-R13", "N9-R14", "N9-R15", "N9-R16", "N9-R17", "N5-R14",
-    "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345", "ARCH-R346", "OPS-R93",
+    "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345", "ARCH-R346", "OPS-R93", "OPS-R94",
     "ARCH-R348", "ARCH-R349", "ARCH-R350", "ARCH-R351", "ARCH-R352", "ARCH-R353", "ARCH-R354",
     "ARCH-R355", "ARCH-R356", "ARCH-R357", "ARCH-R358", "ARCH-R359", "ARCH-R360",
     "ARCH-R361", "ARCH-R362", "ARCH-R363", "ARCH-R364", "ARCH-R365", "ARCH-R366",

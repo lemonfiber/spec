@@ -233,9 +233,14 @@ registry path without tag or digest, `tag` the human-readable name of the build,
 `digest` the `sha256:<64 hex>` of its multi-architecture index, which is what runs
 (`E1-R1`). The table is required where any pinned plugin declares a fenced service, and
 the bundle's validation refuses its absence, naming the plugin. It is built by
-[`lemonfiber-fence`](../../30-repos/lemonfiber-fence.md), which the release train tags
-first. `bundle-image-pin` then moves this table to the image that tag published, on one
-rolling pull request here, in the same release.
+[`lemonfiber-fence`](../../30-repos/lemonfiber-fence.md), whose every commit on `main`
+publishes an image under `main-` and the commit's first twelve characters, and
+`bundle-image-pin` moves this table to it, or writes the table where the bundle holds
+none, on one rolling pull request here. So between releases `tag` names a commit, and
+what runs is a real build held to its digest. The release train tags `lemonfiber-fence`
+first, and `bundle-image-pin` moves the table to the image that tag published, in the
+same release; the core's release tag is refused while the table names a commit, or any
+release but the one being cut (`OPS-R94`).
 
 ## `[[plugin]]` — each part, pinned
 

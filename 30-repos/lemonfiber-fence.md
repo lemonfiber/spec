@@ -41,9 +41,11 @@ every capability dropped, to learn the addresses it then hands each fence.
 It is on the release train, as every image lemonfiber builds for the stack is
 ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)).
 Its `release` workflow calls spec's `rust-service-release` with `pins: bundle`, because no
-plugin's manifest declares the fence. Every commit on `main` publishes a commit image,
-pinned nowhere. A tag the train cuts publishes the tag, and `bundle-image-pin` moves the
-bundle's `[fence]` table to the image it published, on one rolling pull request in
-`lemonfiber-plugins`. Each image is built for `linux/amd64` and `linux/arm64` under one
+plugin's manifest declares the fence. Every commit on `main` publishes a commit image under
+`main-<commit>`, and `bundle-image-pin` moves the bundle's `[fence]` table to it, writing
+the table where the bundle holds none, on one rolling pull request in
+`lemonfiber-plugins`. A tag the train cuts publishes the tag, and the same pull request
+moves the table to the image it published, which the core's release requires
+(`OPS-R94`). Each image is built for `linux/amd64` and `linux/arm64` under one
 index, with a software bill of materials and a provenance attestation. Its entry in
 `repos.toml` carries `service = "fence"`, which is how the train knows it.
