@@ -170,10 +170,19 @@ plugin holds (`ARCH-R324`). The credentials read lists every grant beside the cr
 it crosses: the plugin, the capability it is for and when it was approved, with no value
 (`ARCH-R325`).
 
+**Every credential lemonfiber holds is a secret.** The indexer key and the Usenet password
+the operator enters, an administrator's password lemonfiber mints and a rotation's pending
+replacement are held in the secret store, under `INDEXER_APIKEY`, `USENET_PASS`, the name
+`ARCH-R342` gives the password, and that name followed by `_PENDING`, and never in the
+stack's environment file. The first run of the release that files the environment file
+files each it holds there into the store once (`ARCH-R276`).
+
 **The journal holds a secret's fingerprint, never its value.** A secret's change is
 journalled with the stable fingerprint of the value before and after it, as
 [A7](../../10-functional/features/a-getting-started/a7-credential-management.md)
-references a credential, and never with the value, sealed or otherwise. The secret store
+references a credential, and never with the value, sealed or otherwise. A journal an
+earlier release wrote has each credential's value replaced by its fingerprints the first
+time it is written again. The secret store
 keeps each secret's one previous value. Undoing the change restores it only while the
 values held still match the fingerprints the entry recorded; otherwise the undo says the
 secret must be replaced at the terminal, naming it (`ARCH-R276`).
