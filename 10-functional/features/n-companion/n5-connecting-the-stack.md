@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P2
 labels: [mobile, extensibility, ux]
 requires: [N1, F4, F5]
@@ -69,6 +69,14 @@ silently breaks a service the operator was not thinking about is the failure
 this surface exists to prevent.
 
 It is stated before the change, not reported after it.
+
+### What a substitution leaves behind is said too
+
+The part a substitution stops keeps its configuration and data, but what it
+held is not all carried to its replacement. The rehearsal names each kind of
+thing that stays behind, in the stack's words, read from the contracts rather
+than from a list the app keeps (`F14-R11`, `ARCH-R362`). The app shows each one
+before the yes, beside what the substitution would leave unfilled.
 
 ### Unfilled is a state, not an error
 
@@ -148,6 +156,7 @@ name, state and consequence on this surface is the core's answer rendered
 | **N5-R11** | An install in progress MUST NOT be rendered as installed until the core reports it. |
 | **N5-R12** | The app MUST hold no copy of the capability vocabulary, and MUST render the names, states and consequences the core answers with. |
 | **N5-R13** | Where the wiring cannot be read, the app MUST say so and MUST NOT render the stack as settled. |
+| **N5-R14** | A substitution's rehearsal MUST name, in the stack's words, each kind of thing the part it stops holds that does not carry over to its replacement, before it is agreed to (`F14-R11`, `ARCH-R362`). |
 
 ## Related
 

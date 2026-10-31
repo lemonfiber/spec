@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P3
 labels: [mobile, household, security, ux]
 requires: [N1, D6]
@@ -58,6 +58,34 @@ is carried and is shown, on the same argument `F7-R3` already makes for settings
 
 `N2-R12` stands. The app reports state, names consumers, and offers whatever
 reconciliation the core has. It does not offer a text field.
+
+Replacing the media server's internal certificate is one of those
+reconciliations: the core makes the new certificate and its key on the machine,
+and the key never leaves it (`ARCH-R354`). The phone sends the agreement and
+reads back public facts — a certificate's SHA-256, the services that hold it,
+and what the replacement came to.
+
+### The internal certificate is replaced from its card
+
+The media server's internal certificate is listed like any credential, with the
+services that hold its SHA-256 and the SHA-256 of the one in force, short enough
+to compare at a glance. Before and after a replacement, that short form is how
+the operator sees it landed.
+
+Replacing it is read first. The rehearsal says, in the stack's words, which
+services are handed the new SHA-256 and whether the media server restarts, and
+the app adds who is watching on it now (`N2-R28`), because a restart stops their
+stream. The yes carries back what the rehearsal answered; where that has moved,
+the app reads it again rather than calling it a failure.
+
+The replacement is followed to its end. *Replaced* is said only where the stack
+says it, and every other outcome in its own words, with each holder and whether
+it reached the media server with the new certificate. An outcome short of
+replaced offers starting again.
+
+This is not the certificate the phone pinned when it was paired (`N1-R19`). The
+screen says so: replacing it does not touch the pairing, and cannot make the app
+accept a different machine.
 
 ### An invitation says what it grants before it is sent
 
@@ -132,6 +160,19 @@ nobody made.
 | **N9-R10** | The front door MUST show what each address faces and why, and MUST say whether it was chosen or derived. |
 | **N9-R11** | Credentials or a door that could not be read MUST be told apart from there being none. |
 | **N9-R12** | The credentials screen MUST list every grant beside the credential it crosses, with the plugin it is granted to, the capability it is for and when it was approved, and never a value (`ARCH-R325`, `F14-R20`). |
+| **N9-R13** | The credentials screen MUST list the media server's internal certificate with its state and every service that holds its SHA-256, MUST show the SHA-256 of the certificate in force in the comparable form of `N1-R51`, and MUST NOT ask for, carry or show its key (`ARCH-R354`). |
+| **N9-R14** | The app MUST offer replacing the media server's internal certificate. The replacement MUST be read first and labelled as nothing replaced yet (`N6-R1`), MUST show in the stack's words every service handed the new SHA-256 and whether the media server restarts, and MUST name who is watching on the media server now (`N2-R28`). The yes MUST carry back the offer the stack answered with, and an answer refused because that offer moved MUST be read again rather than reported as a failure (`N2-R27`, `ARCH-R354`). |
+| **N9-R15** | After the yes, the app MUST follow the replacement to its end and MUST show it as replaced only where the stack says it was, with the new certificate's SHA-256 in the comparable form of `N1-R51`. Every other outcome MUST be shown in its own words with each holder and whether it reached the media server with the new certificate, and an outcome short of replaced MUST offer starting again. |
+| **N9-R16** | Replacing the internal certificate MUST NOT change the certificate the app pins for the stack (`N1-R19`), and the screen offering it MUST say that the phone's pairing is unaffected. |
+| **N9-R17** | The internal certificate and replacing it MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown. |
+
+## Notes
+
+| Row | What `credentials` carries | Not carried |
+|---|---|---|
+| `N9-R13` | `held[]` where `setting` is `internal-certificate`: `fingerprint`, `state`, `consumers` | — |
+| `N9-R14` | `internal-certificate-replace` with `dry_run`; `rotated.offer`; `rotated.settled` `rehearsed` with its `detail`; `CRED-4` where the offer moved | Who is watching, which `N2-R28` reads from `playing` |
+| `N9-R15` | `internal-certificate-replace` with `offer`; `rotated.settled` in each arm; `rotated.consumers[]`: `consumer`, `reach` with its `detail` | — |
 
 ## Related
 
