@@ -345,7 +345,10 @@
 # with the code that account issues, entered by the operator when a claim needs it and
 # removed once the claim answers or the code lapses, so Plex is claimed over the facet.
 # Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 613 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R365` and `ARCH-R366` let a media server's guard find an item in a query value and
+# send its question to the adapter on the member's token alone, so Plex's streams are
+# guarded. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
+# 615 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -515,7 +518,7 @@ goals   = [
     "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345", "ARCH-R346", "OPS-R93",
     "ARCH-R348", "ARCH-R349", "ARCH-R350", "ARCH-R351", "ARCH-R352", "ARCH-R353", "ARCH-R354",
     "ARCH-R355", "ARCH-R356", "ARCH-R357", "ARCH-R358", "ARCH-R359", "ARCH-R360",
-    "ARCH-R361", "ARCH-R362", "ARCH-R363", "ARCH-R364",
+    "ARCH-R361", "ARCH-R362", "ARCH-R363", "ARCH-R364", "ARCH-R365", "ARCH-R366",
     "C10-R18", "C10-R19", "C10-R20", "C10-R21", "C10-R22", "C10-R23", "C10-R24", "C10-R25",
     "C10-R26", "C10-R27", "C10-R28",
     "ARCH-R258", "ARCH-R259", "ARCH-R260", "ARCH-R261",
