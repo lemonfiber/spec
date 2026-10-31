@@ -366,7 +366,7 @@
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 624 goals, seeded from the roadmap milestone this version serves;
+# 626 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -562,7 +562,13 @@ goals   = [
     "ARCH-R337", "ARCH-R338", "ARCH-R339", "ARCH-R340", "ARCH-R341", "ARCH-R342", "ARCH-R347",
     "G11-R1", "G11-R2", "G11-R3", "G11-R4", "G11-R5",
     "G5-R15",
+    "ARCH-R143", "F8-R13",
 ]
+
+# `ARCH-R143` and `F8-R13` say a recipe step's call reaches a service in the API that
+# service's `native` names, from the set the stack manifest's schema publishes, and
+# retire `contract/adapters.json`, which `0.17.0` locked. Added by the maintainer's
+# decision of 2026-10-31 (OPS-R31).
 
 # `ARCH-R337` to `ARCH-R342` take the last part names out of the core (`F14-R2`): a
 # plugin's setting and secret name the environment key an earlier release kept them
