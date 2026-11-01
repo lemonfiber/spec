@@ -44,6 +44,14 @@ e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  public/brand/n
 
 32548c774fa39f2614094826cc6c77bc35a2cce244df6b817ead2e200518ca5c  app-modules/design/resources/tokens.json  brand:tokens/tokens.json
 
+# The companion draws its launcher icon, launch mark and notification icon from
+# the brand's own SVGs, and gives iOS the brand's opaque touch icon as its app
+# icon, so it carries a copy of each.
+
+ae7e270969e7e20fd71601267b2bd88652aa07713f752ac462ea4e3a2c28f6c4  bridge/resources/brand/mark-primary.svg   brand:assets/logo/mark-primary.svg
+b67e41776a3f0b7c6c599e09e75cc64068d56d50041c5f13648ef0f4f0d3f0d9  bridge/resources/brand/tray-knockout.svg  brand:assets/logo/tray-knockout.svg
+f5e5949c0172dc75e43d64acc99559c149c7a24c5350f8d81be943cdec5baa66  public/icon.png                          brand:assets/logo/export/app-icon-touch-1024.png
+
 # The accessibility page measures the palette rather than quoting it, so the
 # spec needs the palette in its own tree: a generator cannot reach another
 # repository, and the three ratios that went wrong here went wrong precisely
