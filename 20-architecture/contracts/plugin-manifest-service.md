@@ -115,7 +115,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `mount` | array of tables | | Each further path mounted from its own mount tree, `./mounts/<id>`, which lies apart from its configuration directory: `from` (✔), `to` (✔) and `ro` (default `false`) — see [mounts](#mounts--from-its-own-tree-and-nowhere-else). |
 | `tmpfs` | array | | Absolute paths given scratch space in memory, empty whenever the container starts. |
 | `env` | table | | Its environment: a variable's name to one of four typed kinds of value — see [environment](#environment--four-kinds-of-value). |
-| `user_mode` | enum | | `image` \| `puid-env` \| `uid`. Who the container runs as. Default `image`, and `uid` where the service speaks a contract or is `confined` — see [who it runs as](#who-it-runs-as-and-how-tightly-it-is-held). |
+| `user_mode` | enum or table | | `image` \| `puid-env` \| `uid` \| `{ uid_env = "<NAME>", gid_env = "<NAME>" }`. Who the container runs as. Default `image`, and `uid` where the service speaks a contract or is `confined` — see [who it runs as](#who-it-runs-as-and-how-tightly-it-is-held). |
 | `posture` | enum | | `standard` \| `confined`. How tightly the container is held, as declared. Default `standard`. `confined` only where the plugin's own CI runs the image under it. |
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate, summed into a form's footprint (`B1-R18`) and never written as a limit. |
 | `mem_limit_mib` | integer | | The most memory the container may hold, in MiB, written as its limit. |
@@ -423,7 +423,8 @@ WIREGUARD_PRIVATE_KEY = { secret = "wireguard-key" }
 A variable's name is upper-case letters, digits and `_`, and does not start with a
 digit. `TZ`, `PUID` and `PGID` are lemonfiber's: it writes the operator's time zone into
 every entry and the pair where `user_mode` asks for it, and a manifest naming one is
-refused (`ARCH-R229`).
+refused (`ARCH-R229`). So are the two variables a `user_mode` table names, in that
+service's `env` (`ARCH-R372`).
 
 **Nothing a manifest writes is interpolated.** Compose substitutes `${…}` from the
 stack's environment file in any value, quoted or not. Every constant, every setting's
@@ -600,12 +601,15 @@ credential is read from where it is held whenever the entry is written, never co
 |-------------|------------|
 | `image` | No user: the image decides |
 | `puid-env` | `PUID` and `PGID` set to the operator's uid and gid, for an image that drops to them itself |
+| `{ uid_env = "<NAME>", gid_env = "<NAME>" }` | The two variables it names set to the operator's uid and gid, for an image that drops to them itself under names of its own. `puid-env` is this table naming `PUID` and `PGID`. |
 | `uid` | The operator's uid and gid as the container's user |
 
 The `PUID`/`PGID` pair is a LinuxServer.io convention, and setting it on an image that
 ignores it is a silent no-op that reads like a security control. So the manifest says
 which kind of image it is, rather than lemonfiber asserting something about an image
-nobody checked. A service that speaks a contract is built for lemonfiber's, reads a key
+nobody checked. An image that drops to the operator under other names, as Plex's reads
+`PLEX_UID` and `PLEX_GID`, names them in the table, so its files and those of an adapter
+running as the operator beside it have one owner (`ARCH-R372`). A service that speaks a contract is built for lemonfiber's, reads a key
 written readable by the operator's uid alone, and is `uid` (`F14-R27`, `ARCH-R233`).
 
 | `posture` | Written as |
