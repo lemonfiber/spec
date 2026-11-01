@@ -130,7 +130,7 @@ asks for them. Their shapes are the generated documents' alone.
 | Capability | Operations |
 |---|---|
 | `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; the country its ratings are named for; replace the administrator's password; allow; claimable; suspend; sessions for an account; whether devices sign in by code |
-| `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app; serve the internal TLS port with the core's certificate |
+| `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app, and list what it holds under an app's name that is no key it made; serve the internal TLS port with the core's certificate |
 | `library.curate` | Identity; download clients (register, update, set a field, test, list); root folders (register, list); quality profiles; run a command; whether anything is wanted, read without searching; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck) |
 | `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; `file_under`: each category and its completed folder; `filed`: every category and the completed folder it holds for it (below); seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add) |
@@ -379,6 +379,16 @@ still finishes the setting up (`ARCH-R319`).
 The conformance cases name the member they link, find and ask for by 32 lowercase
 hexadecimal digits, the shape a media server's account id takes, so an upstream that
 holds members only by that id is asked about one it can hold.
+
+## What a media server holds under an app's name
+
+`astray` lists what the media server holds under an app's name that its filler did not
+make or no longer records: on Plex, a managed Home account titled for the app that the
+adapter has no record of making, as when the adapter's configuration directory was
+lost or somebody took the name. It is read, never acted on. A key for an app is minted,
+listed, dated and revoked only as one the filler made, and what `astray` answers is left
+for the operator, whom the doctor tells where in the media server to remove it
+(`ARCH-R373`).
 
 ## The key a request service mints for itself
 
@@ -704,6 +714,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R369** | `media.serve@1` MUST declare `furnish`, taking each media type the stack files with the folder the media server reads it at beneath the data root's `media/<type>`, adding a library for each type whose folder exists and that no library reads, never renaming, re-pointing or removing a library, and answering for each type whether a library now reads it, a type the media server does not take answered not held; the core MUST ask it at install's first run and on every seed once `owner.claim` answers `Ours` ([ADR-0057](../../00-overview/decisions/0057-plex-serves-the-household-without-handing-out-its-owners-token.md)). |
 | **ARCH-R370** | On a media server whose accounts plex.tv holds, a `media.serve` key for an app MUST be a managed account in the Plex Home of the account that claimed the server, named for the app and shared every library: `mint` creating it and answering its account token once, `filed_as` and `dated` reading the Home's accounts named for the app, `answers_to` asking the server with the token, and `revoke` removing the account. |
 | **ARCH-R371** | `identity.source` over a Plex media server MUST read the household as the Home accounts of the account that claimed it and the plex.tv accounts its libraries are shared with, never the request service's own account; an invitation MUST share the libraries with the plex.tv account it names, and taking it back or withdrawing a member MUST remove that share, or the Home account where the member is one. |
+| **ARCH-R373** | `media.serve@1` MUST declare `astray`, taking an app's name and answering each key or account the media server holds under that name that its filler did not make or no longer records, by its id and the name it is held under and never its secret; nothing MUST act on what it answers. The doctor MUST ask it for every app the core mints a key for, on every run, and MUST report each it answers, saying in plain words that the media server holds it, that lemonfiber did not make it or no longer knows it and leaves it alone, and where in the media server to remove it; it MUST report nothing where `astray` answers none, and MUST say so where a filler answers it `unsupported`. |
 | **ARCH-R331** | `owner.claim` and `indexer.pull` are facets: each MUST be asked by the core of every service that speaks it and MUST NOT be chosen among fillers, MUST be proved by its speakers' conformance, and has no substitute; a facet MUST be spoken and MUST NOT be provided, so it has no entry in the capability vocabulary, and a manifest naming one in `provides` MUST be refused by name. |
 | **ARCH-R332** | `indexer.pull@1` MUST declare `aggregators`, listing the aggregators a curator reads its indexers from, and `add_aggregator`, adding one by name, address, protocol and key, the protocol being the aggregator's native API. |
 | **ARCH-R333** | Where an indexer's app sync serves a curator's media, the core MUST tell the indexer about the curator; otherwise it MUST tell a curator speaking `indexer.pull@1` about the indexer whose native API matches, and MUST leave the two unpaired where either answers `unsupported`; while it records, `lemonfiber plugin record` MUST answer the aggregator at the host the case names in its native API. |
