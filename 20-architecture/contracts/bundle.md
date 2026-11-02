@@ -366,6 +366,14 @@ whose `replaces` names that id
 stages is what keeps a part's port reserved through its move: an installed part is still
 the bundle's.
 
+The plugin holding a reservation is known by its `[plugin].id`, so that id answers only
+to its pin. A plugin whose id a pin names is installed and updated only where it is
+first-party (`ARCH-R300`): from the tree this build embeds, or from the signed release the
+pin names, at the pin's manifest and tree digests either way. Any other source of that id,
+a path, a checkout, or a release the pin does not name, is refused, naming the id and
+saying this build carries it (`ARCH-R374`). That closes impersonation for every rule that
+passes over the holder.
+
 ## Validation
 
 Validation reports **every** violation in one pass, each naming its location (`F1-R9`).
@@ -418,6 +426,7 @@ Each release of lemonfiber carries a JSON schema of `bundle.toml`,
 | **ARCH-R299** | Where the stack runs a part as its own service and the bundle pins that part `installed`, `lemonfiber update stack --confirm` MUST move it in place through the plugin install path: the plugin's service takes the same container name, configuration directory, data and setting, secret and credential names (`ARCH-R273`), and the stack's own service is stopped and left out of the stack; the move MUST be rehearsed and shown by the update's rehearsal before anything changes, MUST take the confirmed update as its yes, and MUST be journalled as one operation and undone as one unit (`F6-R9`); until an update is confirmed the stack's own service MUST keep running, assembled from the pin's copy, what its deleted in-process adapter filled MUST be reported unfilled, and `up` and the doctor MUST name the move as not yet taken. A part filling `invite.decline` or `request.gate`, one of lemonfiber's own guards, MUST instead be moved so by the first act of the release carrying its pin that writes the stack's project and leaves the stack running (an `up`, `start`, `restart`, `switch` or start at boot, a confirmed update, a plugin install, update or removal, a choice of filler, a setting set or cleared, or a reset), and by no act that stops the stack, pulls images, watches it, uninstalls it or undoes a change; with no yes of its own, shown by that act's rehearsal and journalled as one operation of its own. A guard whose capability the operator has given another filler MUST NOT be moved. An undo of that move, or a removal of the guard it installed, MUST be refused naming the release that moved it, and lemonfiber MUST NOT configure the stack's own service of either through its files. |
 | **ARCH-R300** | lemonfiber MUST trust a plugin as first-party only at the id, the manifest digest and the tree digest its pin names. |
 | **ARCH-R301** | A link by name or a choice of filler naming a reserved id MUST reach the first-party service whose `replaces` names it, and the checks that refuse a plugin service an id, port or hostname the running stack holds MUST pass over that service. |
+| **ARCH-R374** | A plugin whose `[plugin].id` a pin names MUST be installed or updated only at that pin's id, manifest and tree digests (`ARCH-R300`), from the tree the build embeds or the signed release the pin names; an install or update of that id from any other source MUST be refused naming the id and saying this build carries it; and the checks of the reserved register (`ARCH-R269`) MUST pass over the plugin of that id. |
 
 ## Related
 
