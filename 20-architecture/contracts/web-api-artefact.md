@@ -41,7 +41,7 @@ what it looks like.** Neither restates the other.
 A refusal's body is a kind the artefact already describes, `error`, and a problem's `code` is
 a string there, because the core raises hundreds of codes and most of them reach a client
 only to be shown. The few that a client branches on are the codes a refusal carries, so the
-artefact lists those beside the kinds, keyed by code:
+artefact lists those beside the kinds, keyed by code, one file per code family:
 
 ```json
 "refusals": {
@@ -123,11 +123,14 @@ something that happens to a build nobody was watching.
 The artefact is a directory, `contract/web-api/`, so that no file in it outgrows a reader:
 
 - `index.json` carries `api_version` and names every other file: `kinds` maps each kind to
-  its file, and `key_callable`, `reads` and `refusals` each name the file holding that list.
+  its file, `refusals` maps each code family to its file, and `key_callable` and `reads`
+  each name the file holding that list.
 - `kinds/<kind>.json` is the schema of the envelope carrying that kind.
 - `defs/<Name>.json` is one definition. Every definition is here, whether one kind carries it
   or nine, so a definition several kinds share is written once.
-- `key-callable.json`, `reads.json` and `refusals.json` are the lists the index names.
+- `refusals/<FAMILY>.json` is the refusals of one code family, `ADMIT` or `LIFE`, keyed by
+  code as the list above shows.
+- `key-callable.json` and `reads.json` are the lists the index names.
 
 A `$ref` is a path to a definition's file, resolved against the file it appears in:
 `../defs/Remedy.json` from a kind, `Code.json` from another definition. A definition's name is
