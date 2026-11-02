@@ -6,7 +6,7 @@ The image of the fence: a small container that holds a fenced service's network 
 and refuses every connection that service opens to a private address. One Dockerfile and
 the program that installs the rules.
 
-**Implements:** `ARCH-R363`. Its place in the organisation is
+**Implements:** `ARCH-R363`, and the reading of the render group `ARCH-R237` asks for. Its place in the organisation is
 [ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md).
 
 ---
@@ -27,6 +27,11 @@ never starts unfenced.
 Run as `fence addresses`, it prints each address of the host whose network it is on, one
 to a line, and installs nothing. lemonfiber runs it that way on the host's network, with
 every capability dropped, to learn the addresses it then hands each fence.
+
+Run as `fence render-group`, it prints the id of the group that owns the host's render
+device under `/dev/dri`, or nothing where there is none, and installs nothing. lemonfiber
+runs it that way with the host's `/dev/dri` mounted read-only and every capability
+dropped, to learn the group it adds to a service taking `render`.
 
 ## What it holds, and what it does not
 

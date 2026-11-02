@@ -231,8 +231,9 @@ fence runs. It is pinned here, beside the parts, because the fence is not a part
 plugin declares it, and lemonfiber writes one for each fenced service. `image` is the
 registry path without tag or digest, `tag` the human-readable name of the build, and
 `digest` the `sha256:<64 hex>` of its multi-architecture index, which is what runs
-(`E1-R1`). The table is required where any pinned plugin declares a fenced service, and
-the bundle's validation refuses its absence, naming the plugin. It is built by
+(`E1-R1`). The table is required where any pinned plugin declares a fenced service or a
+service taking `render`, whose group lemonfiber reads with it (`ARCH-R237`), and the
+bundle's validation refuses its absence, naming the plugin. It is built by
 [`lemonfiber-fence`](../../30-repos/lemonfiber-fence.md), whose every commit on `main`
 publishes an image under `main-` and the commit's first twelve characters, and
 `bundle-image-pin` moves this table to it, or writes the table where the bundle holds
