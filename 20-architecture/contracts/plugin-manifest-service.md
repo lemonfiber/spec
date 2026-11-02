@@ -743,7 +743,9 @@ networks in its place.
 A shape is a name, never a list: no manifest names a kernel capability, a device or a
 group (`ARCH-R237`). The render group is read from the host's device rather than
 declared, because its id differs from machine to machine and a manifest naming one
-would be naming a number it cannot know. Where the host has no `/dev/dri`, as under
+would be naming a number it cannot know. The host is the engine's, so lemonfiber asks the
+engine: on every apply and start it runs the pinned `fence` image as `fence render-group`
+in a throwaway container that holds the host's `/dev/dri` read-only and nothing else. Where the host has no `/dev/dri`, as under
 Docker Desktop or on a machine without a GPU, `render` is written as nothing and the
 reading says the service runs without hardware transcoding.
 
