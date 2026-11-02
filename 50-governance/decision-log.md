@@ -450,6 +450,12 @@ Decisions about a repository outside this organisation, such as
 |----|-------------|
 | **GOV-R49** | A decision the maintainer makes MUST be recorded in this specification on the day it is made: as a requirement or an ADR where it decides what is built, and as a dated row in this log, pointing at that requirement or ADR or standing as the record itself, where it decides how the work is done. A decision recorded only outside a repository MUST NOT be acted on as settled. |
 
+## 2026-11-02
+
+| Decision | Where it lives |
+|---|---|
+| A fence is lemonfiber's own container, not a service a manifest declares: the postures and shapes of `ARCH-R234` and `ARCH-R237` hold every declared service, and the fence is written with a read-only root, no capability but `NET_ADMIN`, the image's own user, no mount, no new privileges, at most 1024 processes and 32 MiB. The user chose this over a third shape no manifest may declare and over running the fence as a non-root user; `ARCH-R234`, `ARCH-R237` and `ARCH-R363` are amended in place | [ARCH-R234, ARCH-R237, ARCH-R363](../20-architecture/contracts/plugin-manifest.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
