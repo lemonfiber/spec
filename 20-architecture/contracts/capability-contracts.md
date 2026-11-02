@@ -661,8 +661,21 @@ answer, and a rehearsal says the upstream may restart (`ARCH-R341`).
 
 A contract's major changes only when an operation is removed or its meaning changes.
 Adding an optional field or an operation is a minor change the core speaks without a new
-major. An added operation holds every speaker to record again, since a recording no case
-answers and a case no recording answers both fail its conformance (`ARCH-R334`). The core speaks every major listed in `index.json`. When a second major arrives,
+major. A recording no case answers and a case no recording answers both fail a speaker's
+conformance (`ARCH-R334`).
+
+**An added operation holds only the speakers recorded since.** Each operation carries the
+minor of its major it was added at, the operations a major was published with being at
+`0`. A speaker is held to a recording for every case of every operation at or below the
+highest minor among the operations its recordings answer, and a case of an operation
+above it passes as answered `unsupported`: the speaker was recorded against a core from
+before the operation existed. A speaker recorded again is asked every case, so the next
+recording holds it to the added operation. At run time an adapter built before the
+operation answers it `unsupported` too, since the adapter kit answers an operation it does
+not know, of a capability and major it speaks, `unsupported` rather than
+`unknown-operation` (`ARCH-R375`).
+
+The core speaks every major listed in `index.json`. When a second major arrives,
 the first stays spoken until it is deprecated by announcement and then removed, as [versioning.md](versioning.md) holds for a plugin manifest.
 
 ## Requirements
@@ -715,6 +728,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R370** | On a media server whose accounts plex.tv holds, a `media.serve` key for an app MUST be a managed account in the Plex Home of the account that claimed the server, named for the app and shared every library: `mint` creating it and answering its account token once, `filed_as` and `dated` reading the Home's accounts named for the app, `answers_to` asking the server with the token, and `revoke` removing the account. |
 | **ARCH-R371** | `identity.source` over a Plex media server MUST read the household as the Home accounts of the account that claimed it and the plex.tv accounts its libraries are shared with, never the request service's own account; an invitation MUST share the libraries with the plex.tv account it names, and taking it back or withdrawing a member MUST remove that share, or the Home account where the member is one. |
 | **ARCH-R373** | `media.serve@1` MUST declare `astray`, taking an app's name and answering each key or account the media server holds under that name that its filler did not make or no longer records, by its id, the name it is held under and where in the media server it is removed, never its secret; nothing MUST act on what it answers. The doctor MUST ask it for every app the core mints a key for, on every run, and MUST report each it answers, saying in plain words that the media server holds it, that lemonfiber did not make it or no longer knows it and leaves it alone, and where in the media server to remove it; it MUST report nothing where `astray` answers none, and MUST say so where a filler answers it `unsupported`. |
+| **ARCH-R375** | Every operation of a contract major MUST carry the minor it was added at, `0` for those the major was published with; conformance MUST hold a speaker to a recording for every case of every operation at or below the highest minor among the operations its recordings answer, and MUST pass a case of an operation above that minor as answered `unsupported`; the adapter kit MUST answer an operation it does not know, of a capability and major it speaks, `unsupported` and never `unknown-operation`. |
 | **ARCH-R331** | `owner.claim` and `indexer.pull` are facets: each MUST be asked by the core of every service that speaks it and MUST NOT be chosen among fillers, MUST be proved by its speakers' conformance, and has no substitute; a facet MUST be spoken and MUST NOT be provided, so it has no entry in the capability vocabulary, and a manifest naming one in `provides` MUST be refused by name. |
 | **ARCH-R332** | `indexer.pull@1` MUST declare `aggregators`, listing the aggregators a curator reads its indexers from, and `add_aggregator`, adding one by name, address, protocol and key, the protocol being the aggregator's native API. |
 | **ARCH-R333** | Where an indexer's app sync serves a curator's media, the core MUST tell the indexer about the curator; otherwise it MUST tell a curator speaking `indexer.pull@1` about the indexer whose native API matches, and MUST leave the two unpaired where either answers `unsupported`; while it records, `lemonfiber plugin record` MUST answer the aggregator at the host the case names in its native API. |
