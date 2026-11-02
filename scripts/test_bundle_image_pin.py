@@ -178,6 +178,7 @@ class Main(unittest.TestCase):
         said = self.message.read_text(encoding="utf-8")
         self.assertTrue(said.startswith("chore(bundle): the fence image at v0.18.0\n\n"))
         self.assertIn(f"{IMAGE}@{DIGEST}", said)
+        self.assertTrue(said.endswith("\n\nSpec: ARCH-R237, ARCH-R363, OPS-R87, OPS-R94\n"), said)
 
     def test_a_commit_image_moves_the_pin_and_says_so(self):
         code, out, _ = self.apply(tag="main-8de8b3aa2b24")

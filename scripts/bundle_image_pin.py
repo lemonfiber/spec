@@ -55,6 +55,8 @@ REFERENCE = re.compile(
 )
 #: The largest bundle this reads.
 LIMIT = 1 << 20
+#: What the commit and the pull request cite.
+CITED = "Spec: ARCH-R237, ARCH-R363, OPS-R87, OPS-R94"
 FIELD = re.compile(r'\A(?P<key>image|tag|digest)(?P<gap>\s*=\s*)"[^"]*"(?P<rest>.*)\Z')
 
 
@@ -162,7 +164,8 @@ def message(service: str, image: str, tag: str, digest: str) -> str:
     return (
         f"chore(bundle): the {service} image at {tag}\n\n"
         f"{published}\n"
-        f"{image}@{digest}. The bundle's [{service}] table now pins it.\n"
+        f"{image}@{digest}. The bundle's [{service}] table now pins it.\n\n"
+        f"{CITED}\n"
     )
 
 
