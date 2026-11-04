@@ -129,7 +129,7 @@ asks for them. Their shapes are the generated documents' alone.
 
 | Capability | Operations |
 |---|---|
-| `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; the country its ratings are named for; replace the administrator's password; allow; claimable; suspend; sessions for an account; whether devices sign in by code |
+| `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; the country its ratings are named for; replace the administrator's password; allow; claimable; suspend; sessions for an account; whether devices sign in by code; sign a member in by a code an outside service shows, and who that code signed in |
 | `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app, and list what it holds under an app's name that is no key it made; serve the internal TLS port with the core's certificate |
 | `library.curate` | Identity; download clients (register, update, set a field, test, list); root folders (register, list); quality profiles; run a command; whether anything is wanted, read without searching; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck) |
 | `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; `file_under`: each category and its completed folder; `filed`: every category and the completed folder it holds for it (below); seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
@@ -390,6 +390,40 @@ lost or somebody took the name. It is read, never acted on. A key for an app is 
 listed, dated and revoked only as one the filler made, and what `astray` answers is left
 for the operator. Each is answered with where in the media server it is removed, in the
 words the server's own screens use, and the doctor tells the operator that (`ARCH-R373`).
+
+## Signing in by a code
+
+An identity source whose accounts an outside service holds, as plex.tv holds Plex's,
+signs a member in by a code that service shows them, never by a password.
+`sign_in_by_code` makes a code at that service for the device it is named, and answers
+the code's id, the code, where the member approves it and when it lapses.
+`signed_by_code` answers, for that id, the member the approved code proved, once the
+account is one `household` answers, and nothing while the code waits, once it lapses or
+where the account is no member. Such a source answers `whoever` and `claim`
+`unsupported`, and `standing` asks the outside service with the token `signed_by_code`
+answered, then reads the account in the household again. No member's password passes
+through lemonfiber or the adapter. Both operations are `identity.source@1`'s from minor
+`1`, so a source recorded before them passes their cases as `unsupported` (`ARCH-R375`,
+`ARCH-R377`).
+
+## A Plex household
+
+`identity.source` over Plex reads the household as the Home accounts of the account that
+claimed the server and the plex.tv accounts its libraries are shared with, never the
+request service's own account (`ARCH-R371`). A member signs in by a plex.tv code approved
+at `plex.tv/link`, checked against that household (`ARCH-R377`). What an account may watch
+is said in Plex's own terms (`ARCH-R378`):
+
+| Operation | Answered over Plex |
+|---|---|
+| `ratings` | The certificates Plex's libraries hold, each at the age the plugin's own table holds it at for the country `country` answers. Plex keeps no ages, so the table is the plugin's. Where it does not hold that country, none, and the core names the certificates from its own mapping and says in the answer that they are lemonfiber's, not the server's |
+| `country` | The country of the plex.tv account that claimed the server |
+| `allow`, `claimable` | On a share: the libraries, and a content-rating filter admitting only the certificates at or under the age limit where unrated content is held back, or refusing those above it where it is let through. On a Home account: the libraries, and the restriction profile nearest at or under the age limit |
+| `suspend` | The share or Home account kept, open to no library, until `allow` opens them |
+| `sessions` | The account's sessions the server lists as playing |
+| `startup_completed` | Whether the server is claimed |
+| `create_admin`, `replace_admin_password` | `unsupported`: the server's setup is `owner.claim`'s, and its owner's password is plex.tv's |
+| `signs_devices_in` | True |
 
 ## The key a request service mints for itself
 
@@ -738,6 +772,8 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R373** | `media.serve@1` MUST declare `astray`, taking an app's name and answering each key or account the media server holds under that name that its filler did not make or no longer records, by its id, the name it is held under and where in the media server it is removed, never its secret; nothing MUST act on what it answers. The doctor MUST ask it for every app the core mints a key for, on every run, and MUST report each it answers, saying in plain words that the media server holds it, that lemonfiber did not make it or no longer knows it and leaves it alone, and where in the media server to remove it; it MUST report nothing where `astray` answers none, and MUST say so where a filler answers it `unsupported`. |
 | **ARCH-R375** | Every operation of a contract major MUST carry the minor it was added at, `0` for those the major was published with; conformance MUST hold a speaker to a recording for every case of every operation at or below the highest minor among the operations its recordings answer, and MUST pass a case of an operation above that minor as answered `unsupported`; the adapter kit MUST answer an operation it does not know, of a capability and major it speaks, `unsupported` and never `unknown-operation`. |
 | **ARCH-R376** | An adapter speaking a contract that publishes a conformance case per media type MUST front an upstream whose `media_types` names at least one media type, and where the adapter declares `media_types` of its own they MUST be the upstream's; a manifest that does not MUST be refused naming the upstream `[[service]]` and the `media_types` to declare on it, and `lemonfiber plugin record`, `plugin conform` and `plugin record --check` MUST each refuse it. |
+| **ARCH-R377** | `identity.source@1` MUST declare `sign_in_by_code` and `signed_by_code` at minor `1`: the first taking a device and answering a code issued by the outside service that holds the source's accounts, with the code's id, where the member approves it and when it lapses; the second taking that id and answering the member the code proved, with a token, only once it is approved and the account is one `household` answers, and nothing while it waits, once it lapses or for an account that is no member. A source whose accounts an outside service holds MUST answer `whoever` and `claim` `unsupported`, and its `standing` MUST ask that service with the token and read the account in the household again; no member's password MUST pass through lemonfiber or the adapter. Over Plex, the code is a plex.tv PIN approved at `plex.tv/link`. |
+| **ARCH-R378** | `identity.source` over Plex MUST answer `ratings` with the certificates Plex's libraries hold, each at the age the plugin's own table holds it at for the country `country` answers, and with none where that table does not hold the country, so the core names its own mapping and says in the answer that it is lemonfiber's; `country` with the country of the plex.tv account that claimed the server; `allow` and `claimable` by writing, on a share, the libraries and a content-rating filter admitting only the certificates at or under the age limit where unrated content is held back or refusing those above it where it is let through, and on a Home account the libraries and the restriction profile nearest at or under the age limit; `suspend` by keeping the share or Home account open to no library until `allow` opens them; `sessions` with the account's sessions the server lists as playing; `startup_completed` with whether the server is claimed; `signs_devices_in` with true; and `create_admin` and `replace_admin_password` `unsupported`. |
 | **ARCH-R331** | `owner.claim` and `indexer.pull` are facets: each MUST be asked by the core of every service that speaks it and MUST NOT be chosen among fillers, MUST be proved by its speakers' conformance, and has no substitute; a facet MUST be spoken and MUST NOT be provided, so it has no entry in the capability vocabulary, and a manifest naming one in `provides` MUST be refused by name. |
 | **ARCH-R332** | `indexer.pull@1` MUST declare `aggregators`, listing the aggregators a curator reads its indexers from, and `add_aggregator`, adding one by name, address, protocol and key, the protocol being the aggregator's native API. |
 | **ARCH-R333** | Where an indexer's app sync serves a curator's media, the core MUST tell the indexer about the curator; otherwise it MUST tell a curator speaking `indexer.pull@1` about the indexer whose native API matches, and MUST leave the two unpaired where either answers `unsupported`; while it records, `lemonfiber plugin record` MUST answer the aggregator at the host the case names in its native API. |

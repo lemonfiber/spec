@@ -15,6 +15,8 @@
 - a Plex household is the owner's Home accounts and the plex.tv accounts the server is
   shared with.
 
+**Amended** by [ADR-0058](0058-a-plex-member-signs-in-by-plexs-own-code.md): §7. A member of the household signs in to lemonfiber by a plex.tv code, and what each may watch is said in Plex's own terms.
+
 **Amends**:
 
 - [ADR-0032](0032-the-request-service-reaches-the-arrs-through-a-gate.md): §1 gains a
