@@ -66,7 +66,9 @@ Over Plex the code is a plex.tv PIN. The adapter:
 granted, then reads the account in the household again. No member's password passes
 through lemonfiber or the adapter.
 
-The core's sign-in surface for a code is the core's to build, and comes with its own rows.
+A source that holds its accounts itself, as Jellyfin does, answers both new operations
+`unsupported`. The core's sign-in surface for a code is the core's to build, and comes
+with its own rows.
 
 ### 2. Certificates in Plex's own terms
 
