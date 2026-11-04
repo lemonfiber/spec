@@ -76,6 +76,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0055](0055-a-setting-names-the-values-its-service-accepts-and-what-each-needs.md) | A setting names the values its service accepts and what each needs | Accepted |
 | [0056](0056-the-guarded-door-is-a-rust-service-that-checks-the-request-it-forwards.md) | The guarded door is a Rust service that checks the request it forwards | Accepted |
 | [0057](0057-plex-serves-the-household-without-handing-out-its-owners-token.md) | Plex serves the household without handing out its owner's token, unless the operator opts in | Accepted |
+| [0058](0058-a-plex-member-signs-in-by-plexs-own-code.md) | A Plex member signs in by Plex's own code, and what they may watch is said in Plex's terms | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
