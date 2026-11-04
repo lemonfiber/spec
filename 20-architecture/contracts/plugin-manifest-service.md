@@ -105,7 +105,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `criticality` | enum | ✔ | As `stack.toml`. `critical` only with `shape = "egress-guard"` — see below. |
 | `reaches` | string | | Where this service's own requests go, as `stack.toml` declares it. Both this and `asks_for` or neither; a first-party plugin's service declares both (`F2-R10`, `ARCH-R270`). |
 | `asks_for` | string | | What it asks for there, as `stack.toml` declares it. Never blank (`ARCH-R270`). |
-| `media_types` | array | | Which media types it handles, in `stack.toml`'s vocabulary. Drives root-folder seeding, which is how a plugin's service is pointed at the library the stack already fills. |
+| `media_types` | array | | Which media types it handles, in `stack.toml`'s vocabulary. Drives root-folder seeding, which is how a plugin's service is pointed at the library the stack already fills. An upstream an adapter fronts declares the media it files whenever the adapter speaks a contract asked once per media type, and an adapter declaring its own declares the same ones ([ARCH-R376](capability-contracts.md)). |
 | `takes_data` | bool | | `true` if it needs the data root mounted at `/data`, from the operator's [storage setting](plugin-manifest.md#the-data-root--one-setting-every-data-mount). Default `false`. |
 | `provides` | array | | The capabilities this service claims (`F4-R1`). Core names from the published vocabulary; a plugin's own MUST be namespaced (`F4-R4`). At most one service of a plugin may declare a given core name — see below. |
 | `config_path` | string | | Where inside the container its configuration directory is mounted. Default `/config`. |
