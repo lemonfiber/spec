@@ -381,6 +381,34 @@ The conformance cases name the member they link, find and ask for by 32 lowercas
 hexadecimal digits, the shape a media server's account id takes, so an upstream that
 holds members only by that id is asked about one it can hold.
 
+## A request service linked to Plex
+
+Where Plex is the media server, the identity source `establish` and `configure identity`
+carry is spoken to as `plex`, at the request gate's Plex route, served at a bare host and
+port, with the key the request service's owner signs in with as its credential, where one
+is carried (`ARCH-R379`). An identity source's credential is optional for this:
+
+| Mode (`C6-R26`) | The credential carried |
+|---|---|
+| `managed` | The token of the request service's own managed account (`ARCH-R370`) |
+| `fronted` | The gate token |
+| `owner` | None: the operator signs in through Plex's own sign-in on the request service's page |
+
+The adapter signs its upstream in with the key, which makes the owner on a fresh request
+service, then points it at the route. In `owner` mode, `establish` answers `204` once the
+operator's sign-in has made the owner, and is refused naming that sign-in until then.
+
+Members are linked by their Plex ids from the accounts plex.tv lists on the owner, and
+found by them. `link_members` imports them, then answers `unsupported` where the request
+service holds none of them by Plex id, as in `managed` mode, where the owner shares
+nothing and plex.tv lists nobody. A member it holds no account for, such as a managed Home
+account with no email, is answered none by `member_for`, and lemonfiber asks the request
+service as its owner on their behalf (`D1-R28`).
+
+The media server link over Plex is the route alone: `media_server_link` answers it with an
+empty key, and `link_media_server` writes the host, port and whether it is encrypted, and
+refuses a key or a path, since the request service reaches Plex with its owner's token.
+
 ## What a media server holds under an app's name
 
 `astray` lists what the media server holds under an app's name that its filler did not
@@ -775,6 +803,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R376** | An adapter speaking a contract that publishes a conformance case per media type MUST front an upstream whose `media_types` names at least one media type, and where the adapter declares `media_types` of its own they MUST be the upstream's; a manifest that does not MUST be refused naming the upstream `[[service]]` and the `media_types` to declare on it, and `lemonfiber plugin record`, `plugin conform` and `plugin record --check` MUST each refuse it. |
 | **ARCH-R377** | `identity.source@1` MUST declare `sign_in_by_code` and `signed_by_code` at minor `1`: the first taking a device and answering a code issued by the outside service that holds the source's accounts, with the code's id, where the member approves it and when it lapses; the second taking that id and answering the member the code proved, with a token, only once it is approved and the account is one `household` answers, and nothing while it waits, once it lapses or for an account that is no member. A source whose accounts an outside service holds MUST answer `whoever` and `claim` `unsupported`, and its `standing` MUST ask that service with the token and read the account in the household again; no member's password MUST pass through lemonfiber or the adapter. A source that holds its accounts itself MUST answer both `unsupported`. Over Plex, the code is a plex.tv PIN approved at `plex.tv/link`. |
 | **ARCH-R378** | `identity.source` over Plex MUST answer `ratings` with the certificates Plex's libraries hold, each at the age the plugin's own table holds it at for the country `country` answers, and with none where that table does not hold the country, so the core names its own mapping and says in the answer that it is lemonfiber's; `country` with the country of the plex.tv account that claimed the server; `allow` and `claimable` by writing, on a share, the libraries and a content-rating filter admitting only the certificates at or under the age limit where unrated content is held back or refusing those above it where it is let through, and on a Home account the libraries and the restriction profile nearest at or under the age limit; `suspend` by keeping the share or Home account open to no library until `allow` opens them; `sessions` with the account's sessions the server lists as playing; `startup_completed` with whether the server is claimed; `signs_devices_in` with true; and `create_admin` and `replace_admin_password` `unsupported`. |
+| **ARCH-R379** | An identity source `request.intake`'s `establish` and `configure_identity` carry MUST take its credential as optional. Where Plex is the media server it MUST name the protocol `plex`, the request gate's Plex route, served at a bare host and port, as where it is, and as its credential the key the request service's owner signs in with: the request service's own managed account token in `managed` mode, the gate token in `fronted` mode, and none in `owner` mode, where `establish` MUST answer `204` once the operator's own sign-in has made the owner and MUST be refused naming that sign-in until then; a filler MUST sign its upstream in with the key and then point it at the route. `link_members` MUST import the members plex.tv lists on the owner by their Plex ids and MUST answer `unsupported` where the request service then holds none of them by Plex id; `member_for` and `requesting` MUST find a member by their Plex id and answer none for one it holds no account for, for whom the core MUST ask as the request service's owner. Over Plex, `media_server_link` MUST answer the route with an empty key, and `link_media_server` MUST write the route's host, port and encryption and MUST refuse a key or a path, naming that the request service reaches Plex with its owner's token. |
 | **ARCH-R331** | `owner.claim` and `indexer.pull` are facets: each MUST be asked by the core of every service that speaks it and MUST NOT be chosen among fillers, MUST be proved by its speakers' conformance, and has no substitute; a facet MUST be spoken and MUST NOT be provided, so it has no entry in the capability vocabulary, and a manifest naming one in `provides` MUST be refused by name. |
 | **ARCH-R332** | `indexer.pull@1` MUST declare `aggregators`, listing the aggregators a curator reads its indexers from, and `add_aggregator`, adding one by name, address, protocol and key, the protocol being the aggregator's native API. |
 | **ARCH-R333** | Where an indexer's app sync serves a curator's media, the core MUST tell the indexer about the curator; otherwise it MUST tell a curator speaking `indexer.pull@1` about the indexer whose native API matches, and MUST leave the two unpaired where either answers `unsupported`; while it records, `lemonfiber plugin record` MUST answer the aggregator at the host the case names in its native API. |
