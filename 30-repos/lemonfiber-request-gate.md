@@ -6,7 +6,9 @@ The request gate: the one image through which the request service reaches the
 \*arrs and the media server. Rust, one crate, one image.
 
 **Implements:** [ADR-0032](../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md),
-for `C6-R20` to `C6-R25` and `D1-R19` to `D1-R21`. Its place in the organisation is
+for `C6-R20` to `C6-R25` and `D1-R19` to `D1-R21`, and
+[ADR-0057](../00-overview/decisions/0057-plex-serves-the-household-without-handing-out-its-owners-token.md),
+for `C6-R27`, `C6-R28`, `ARCH-R380` and `ARCH-R383`. Its place in the organisation is
 [ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md).
 
 ---
@@ -16,8 +18,11 @@ for `C6-R20` to `C6-R25` and `D1-R19` to `D1-R21`. Its place in the organisation
 The source of `ghcr.io/lemonfiber/request-gate`, which the stack runs as the
 service `request-gate`. It publishes no port, answers only Seerr, and builds each
 call on its fixed list itself rather than forwarding what it was sent. It holds
-the Sonarr and Radarr keys and a Jellyfin key, and the request service holds only
-the gate's tokens.
+the Sonarr and Radarr keys and the media server's: a Jellyfin key, or the request
+service's own Plex account token. The request service holds only the gate's tokens,
+or, linked to Plex in `owner` mode, a token of the account that claimed Plex, which
+the gate checks at plex.tv. In `fronted` mode it also answers plex.tv's calls for the
+request service. plex.tv's account read is its only egress.
 
 ## What it holds, and what it does not
 
