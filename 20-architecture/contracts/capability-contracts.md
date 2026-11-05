@@ -144,7 +144,7 @@ asks for them. Their shapes are the generated documents' alone.
 | `archive.extract` | `watch`: every curator at once, each named by the media type it files, with its address, its key and its download folder, which is whom a finished extraction is handed back to, in place of those it watches; `working`: what it is extracting now |
 | `stream.guard` | Apply a guard: the media server filler's declaration verbatim, where the upstream and the adapter are, the one proxy address the guard trusts and the pass service's address, where it asks about a live-stream pass (below); the guard it enforces, all of it read back; the certificate it presents |
 | `invite.decline` | `hold`: the media server key it switches an invitation off with, and the SHA-256 of each certificate the media server's internal TLS port may present; `held`: that key's SHA-256, and the certificates' it holds; `apply the invitations it may decline`: how the media server tells a claimed account, and each invitation's token hash, its account, the name the account was made under, when it was issued and when it lapses; `refusals`: each invitation declined; `lapses`: each invitation taken back when its window closed; `page`: where it serves the page an invitation is declined on |
-| `request.gate` | Apply the routes it admits, for each curator and media server, each with the path segment it answers under and the upstream's supported majors; the routes it admits, each credential by its SHA-256; `admit tokens`: the token hashes one route admits, its credential left as it is; `record`: every refusal and forwarded removal since an entry, and how many it no longer holds |
+| `request.gate` | Apply the routes it admits, for each curator and the media server (a Plex route where Plex is the media server), each with the path segment it answers under and the upstream's supported majors; the routes it admits, each credential by its SHA-256; `admit tokens`: the token hashes one route admits, its credential left as it is; `record`: every refusal and forwarded removal since an entry, and how many it no longer holds |
 
 The capability types are neutral: none names a product. A curator is referred to by the
 media type it files, never by its id.
@@ -419,6 +419,12 @@ listed, dated and revoked only as one the filler made, and what `astray` answers
 for the operator. Each is answered with where in the media server it is removed, in the
 words the server's own screens use, and the doctor tells the operator that (`ARCH-R373`).
 
+What an app's key is, as the outside service that holds the media server's accounts knows
+it, is read with `account`: on Plex, the managed account's plex.tv id, uuid, user name and
+title. The core reads it for the request service's own account and applies it to the
+gate's Plex route in `fronted` mode. A server whose accounts no outside service holds
+answers it `unsupported`. It is `media.serve@1`'s from minor `1` (`ARCH-R381`).
+
 ## Signing in by a code
 
 An identity source whose accounts an outside service holds, as plex.tv holds Plex's,
@@ -478,6 +484,25 @@ the one port the gate reaches it at (`ARCH-R345`). Applying the routes applies t
 a token whose hash no applied route holds is refused, and a rotation applies the new hash
 beside the old until the new token is proved
 ([ADR-0032](../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md) §2).
+
+Where Plex is the media server, the media server's route is a Plex route. The gate answers
+it at a bare host and port, port `32400` on the stack's network, in Plex's own API, rather
+than under a path segment. The route holds:
+
+- the request service's own managed account token as the credential the gate presents to
+  Plex (`ARCH-R370`);
+- the SHA-256 of each certificate Plex's internal TLS port may present;
+- the link mode `PLEX_LINK_MODE` names (`C6-R26`), which says what else it holds and what
+  the gate admits:
+  - `managed`: the hash of that token;
+  - `owner`: the plex.tv account id of the account that claimed Plex, and the gate admits
+    a token plex.tv answers as that account;
+  - `fronted`: the hash of the gate token, the request service's own account as plex.tv
+    knows it, the household's Plex accounts with this server's identifier, and the server,
+    which the gate answers plex.tv's calls from (`C6-R28`).
+
+The core applies the route on every seed, so the household it holds follows the household
+(`ARCH-R380`).
 
 `the routes it admits` answers each route as the gate holds it, with each credential's
 SHA-256, in lower-case hexadecimal, in place of its value. The core tells by it which of
@@ -694,6 +719,11 @@ makes it `Ours` brings its routes up, and one that finds it `Open` again takes t
 One doctor check asks `owner()` of every speaker, and reset puts a claim back
 (`ARCH-R329`).
 `lemonfiber plugin record` asks `claim` before any other case (`ARCH-R330`).
+`claimed_by()` answers the outside account a part claimed against one is `Ours` through:
+on Plex, the plex.tv account id that claimed it. A part that is not `Ours` answers none,
+and one claimed with the plugin's own secret answers `unsupported`. It is `owner.claim@1`'s
+from minor `1`, and the core applies it to the gate's Plex route in `owner` mode
+(`ARCH-R382`).
 
 **A curator that reads its indexers from an aggregator is told it over `indexer.pull@1`.**
 `aggregators()` lists the aggregators it reads from, and `add_aggregator` adds one by
@@ -804,6 +834,10 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R377** | `identity.source@1` MUST declare `sign_in_by_code` and `signed_by_code` at minor `1`: the first taking a device and answering a code issued by the outside service that holds the source's accounts, with the code's id, where the member approves it and when it lapses; the second taking that id and answering the member the code proved, with a token, only once it is approved and the account is one `household` answers, and nothing while it waits, once it lapses or for an account that is no member. A source whose accounts an outside service holds MUST answer `whoever` and `claim` `unsupported`, and its `standing` MUST ask that service with the token and read the account in the household again; no member's password MUST pass through lemonfiber or the adapter. A source that holds its accounts itself MUST answer both `unsupported`. Over Plex, the code is a plex.tv PIN approved at `plex.tv/link`. |
 | **ARCH-R378** | `identity.source` over Plex MUST answer `ratings` with the certificates Plex's libraries hold, each at the age the plugin's own table holds it at for the country `country` answers, and with none where that table does not hold the country, so the core names its own mapping and says in the answer that it is lemonfiber's; `country` with the country of the plex.tv account that claimed the server; `allow` and `claimable` by writing, on a share, the libraries and a content-rating filter admitting only the certificates at or under the age limit where unrated content is held back or refusing those above it where it is let through, and on a Home account the libraries and the restriction profile nearest at or under the age limit; `suspend` by keeping the share or Home account open to no library until `allow` opens them; `sessions` with the account's sessions the server lists as playing; `startup_completed` with whether the server is claimed; `signs_devices_in` with true; and `create_admin` and `replace_admin_password` `unsupported`. |
 | **ARCH-R379** | An identity source `request.intake`'s `establish` and `configure_identity` carry MUST take its credential as optional. Where Plex is the media server it MUST name the protocol `plex`, the request gate's Plex route, served at a bare host and port, as where it is, and as its credential the key the request service's owner signs in with: the request service's own managed account token in `managed` mode, the gate token in `fronted` mode, and none in `owner` mode, where `establish` MUST answer `204` once the operator's own sign-in has made the owner and MUST be refused naming that sign-in until then; a filler MUST sign its upstream in with the key and then point it at the route. `link_members` MUST import the members plex.tv lists on the owner by their Plex ids and MUST answer `unsupported` where the request service then holds none of them by Plex id; `member_for` and `requesting` MUST find a member by their Plex id and answer none for one it holds no account for, for whom the core MUST ask as the request service's owner. Over Plex, `media_server_link` MUST answer the route with an empty key, and `link_media_server` MUST write the route's host, port and encryption and MUST refuse a key or a path, naming that the request service reaches Plex with its owner's token. |
+| **ARCH-R380** | Where Plex is the media server, `apply the routes it admits` MUST give the filler of `request.gate` one Plex route in place of the media server's route. The gate MUST answer it in Plex's own API at port `32400`, with no path segment. It MUST hold the request service's own managed account token as its credential (`ARCH-R370`), the SHA-256 of each certificate Plex's internal TLS port may present, and the `PLEX_LINK_MODE` (`C6-R26`). In `managed` it MUST hold that token's hash as the one token admitted. In `owner` it MUST hold the plex.tv account id `claimed_by` answers (`ARCH-R382`). In `fronted` it MUST hold the gate token's hash, the request service's own account as `account` answers it (`ARCH-R381`), the household's Plex accounts as `identity.source` reads them, each with this server's identifier, and the server's name and identifier. The core MUST apply it on every seed. |
+| **ARCH-R381** | `media.serve@1` MUST declare `account` from minor `1`, answering, for a key filed under an app, that app's account as the outside service holding the media server's accounts knows it: on Plex, the managed account's plex.tv id, uuid, user name and title. It MUST answer `unsupported` on a server whose accounts no outside service holds, and MUST NOT answer a token. |
+| **ARCH-R382** | `owner.claim@1` MUST declare `claimed_by` from minor `1`, answering, for a part claimed against an account outside the house, that account's id at the outside service once `owner` answers `Ours`, and none before. It MUST answer `unsupported` for a part claimed with the plugin's own secret. |
+| **ARCH-R383** | In `fronted` mode the core MUST resolve `plex.tv` and `discover.provider.plex.tv` to the request gate for the request service alone, as network aliases of the gate on the network the two share, written into the project in that mode only. It MUST make a certificate authority for the gate alone, and a certificate signed by it naming only those two hosts. It MUST write that certificate and its key beneath the gate's configuration directory at `plex-tv/certificate.pem` and `plex-tv/key.pem`, readable by the operator's uid alone, and the authority's certificate beneath the request service's configuration directory at `plex-tv/authority.pem`, named to it in `NODE_EXTRA_CA_CERTS` (`C6-R28`). Leaving `fronted` MUST take the aliases and the authority's certificate away. |
 | **ARCH-R331** | `owner.claim` and `indexer.pull` are facets: each MUST be asked by the core of every service that speaks it and MUST NOT be chosen among fillers, MUST be proved by its speakers' conformance, and has no substitute; a facet MUST be spoken and MUST NOT be provided, so it has no entry in the capability vocabulary, and a manifest naming one in `provides` MUST be refused by name. |
 | **ARCH-R332** | `indexer.pull@1` MUST declare `aggregators`, listing the aggregators a curator reads its indexers from, and `add_aggregator`, adding one by name, address, protocol and key, the protocol being the aggregator's native API. |
 | **ARCH-R333** | Where an indexer's app sync serves a curator's media, the core MUST tell the indexer about the curator; otherwise it MUST tell a curator speaking `indexer.pull@1` about the indexer whose native API matches, and MUST leave the two unpaired where either answers `unsupported`; while it records, `lemonfiber plugin record` MUST answer the aggregator at the host the case names in its native API. |
