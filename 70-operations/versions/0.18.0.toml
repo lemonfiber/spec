@@ -393,11 +393,16 @@
 # handed in each mode, members linked and found by their Plex ids, and the media server
 # link as the gate's route alone. Added by the maintainer's decision of 2026-11-05
 # (OPS-R31).
+# `ARCH-R380` to `ARCH-R383` give `C6-R26` to `C6-R28` their contracts: the request gate's
+# Plex route at a port of its own, holding what each mode admits and answers; the request
+# service's own account and the account that claimed Plex, read over `media.serve` and
+# `owner.claim`; and how `plex.tv` reaches the gate in `fronted` mode. Added by the
+# maintainer's decision of 2026-11-05 (OPS-R31).
 # `OPS-R94` pins the fence at the commit image `lemonfiber-fence`'s `main` published until
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 642 goals, seeded from the roadmap milestone this version serves;
+# 646 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -571,6 +576,7 @@ goals   = [
     "ARCH-R361", "ARCH-R362", "ARCH-R363", "ARCH-R364", "ARCH-R365", "ARCH-R366",
     "ARCH-R367", "ARCH-R368", "ARCH-R369", "ARCH-R370", "ARCH-R371", "ARCH-R372", "ARCH-R373",
     "ARCH-R374", "ARCH-R375", "ARCH-R376", "ARCH-R377", "ARCH-R378", "ARCH-R379",
+    "ARCH-R380", "ARCH-R381", "ARCH-R382", "ARCH-R383",
     "C6-R26", "C6-R27", "C6-R28", "D1-R27", "D1-R28",
     "C10-R18", "C10-R19", "C10-R20", "C10-R21", "C10-R22", "C10-R23", "C10-R24", "C10-R25",
     "C10-R26", "C10-R27", "C10-R28",
