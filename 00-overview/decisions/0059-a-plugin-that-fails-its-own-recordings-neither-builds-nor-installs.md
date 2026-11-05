@@ -60,8 +60,8 @@ image, digest and media types of what it fronts. It judges every case of every c
 spoken, and refuses the build on any case that is not `Passed`, naming the plugin, the
 contract and the case.
 
-The replay never waits on anything, so the build script drives it to completion on the
-spot, without an async runtime.
+The client bounds every answer in time, so the build script, which has no async runtime
+of its own, drives the replay to completion on a runtime of one thread with a clock.
 
 ### 4. Install and update refuse
 
