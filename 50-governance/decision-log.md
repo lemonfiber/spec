@@ -498,6 +498,7 @@ Decisions about a repository outside this organisation, such as
 | In `owner` mode the gate admits tokens plex.tv answers as the account `owner.claim`'s new `claimed_by` names. The user chose this over the gate reading the server's own account itself | [ARCH-R382](../20-architecture/contracts/capability-contracts.md) |
 | In `fronted` mode `plex.tv` resolves to the gate through network aliases on the network it shares with the request service. The core makes the authority and the gate's certificate, and names the authority to the request service in `NODE_EXTRA_CA_CERTS`. The user chose this over fixed addresses on a pinned subnet | [ARCH-R383](../20-architecture/contracts/capability-contracts.md) |
 | The household the gate lists to the request service in `fronted` mode is applied to its Plex route on every seed, as `identity.source` reads it. The user chose this over the gate reading it live over `identity.source` | [ARCH-R380](../20-architecture/contracts/capability-contracts.md) |
+| An ask's `native` names one API or a list of APIs, and is filled by an upstream declaring any one of them, so the request gate asks the media server in Jellyfin's or Plex's own API and is handed the route for the one the media server speaks. The user chose this over two optional asks, and over the core ignoring the gate's named API for Plex | [ARCH-R253](../20-architecture/contracts/plugin-manifest.md), [ARCH-R380](../20-architecture/contracts/capability-contracts.md) |
 
 ## Related
 

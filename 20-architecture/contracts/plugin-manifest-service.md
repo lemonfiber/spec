@@ -580,8 +580,10 @@ never names a service: that would be a link by name, which a plugin may not intr
 what fills a capability is, by default, the service that speaks its contract. A service
 that talks to the upstream in the upstream's own API says so with `native`, naming the API
 the upstream declares (`native = "servarr"`), and its ask then reaches the service the
-adapter `fronts`; a filler whose upstream declares no such API leaves the ask unfilled,
-naming the API. Where the filler speaks no contract, as the stack's own services do, the
+adapter `fronts`. An ask may name a list of APIs it talks in any of
+(`native = ["jellyfin", "plex"]`), as the request gate does, and is then filled by an
+upstream declaring any one of them, reached in the API that upstream declares. A filler
+whose upstream declares none of them leaves the ask unfilled, naming every API it names. Where the filler speaks no contract, as the stack's own services do, the
 ask reaches the filler itself (`ARCH-R253`).
 
 **A secret is declared, held, and written apart.** `{ secret = "<name>" }` names a
