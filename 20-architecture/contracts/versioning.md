@@ -164,6 +164,12 @@ Every payload carries `api_version`. Additive changes leave it alone; removing o
 retyping a field increments it. Scripts can assert on it rather than
 pattern-matching output shapes.
 
+**Until lemonfiber tags `1.0`, the contract changes shape under the version it has.** A
+field removed, retyped or widened before then leaves `api_version` at `1` and needs no
+declaration: the check holding the contract to its committed surface says what the change
+drops and writes the new surface. The SDKs move in the same release train as the core
+that changed it. From `1.0` on, the rule above and the declarations below hold.
+
 A narrower break lands without moving it only as a declaration: the field, type or refusal, how it moved
 and why, written into the core's list of declared breaks under the version it was
 accepted at. The check holding the contract to its committed surface accepts exactly that
