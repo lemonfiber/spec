@@ -77,6 +77,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0056](0056-the-guarded-door-is-a-rust-service-that-checks-the-request-it-forwards.md) | The guarded door is a Rust service that checks the request it forwards | Accepted |
 | [0057](0057-plex-serves-the-household-without-handing-out-its-owners-token.md) | Plex serves the household without handing out its owner's token, unless the operator opts in | Accepted |
 | [0058](0058-a-plex-member-signs-in-by-plexs-own-code.md) | A Plex member signs in by Plex's own code, and what they may watch is said in Plex's terms | Accepted |
+| [0059](0059-a-plugin-that-fails-its-own-recordings-neither-builds-nor-installs.md) | A plugin that fails its own recordings neither builds into the core nor installs | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

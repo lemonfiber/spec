@@ -466,6 +466,13 @@ Decisions about a repository outside this organisation, such as
 | A fence is lemonfiber's own container, not a service a manifest declares: the postures and shapes of `ARCH-R234` and `ARCH-R237` hold every declared service, and the fence is written with a read-only root, no capability but `NET_ADMIN`, the image's own user, no mount, no new privileges, at most 1024 processes and 32 MiB. The user chose this over a third shape no manifest may declare and over running the fence as a non-root user; `ARCH-R234`, `ARCH-R237` and `ARCH-R363` are amended in place | [ARCH-R234, ARCH-R237, ARCH-R363](../20-architecture/contracts/plugin-manifest.md) |
 | The render group a service taking `render` is given is the engine's host's, asked of the engine on every apply and start by running the pinned `fence` image's `fence render-group` once with every capability dropped, read-only, with the host's `/dev/dri` mounted read-only and nothing else, and removed after; where it answers no group, `render` is written as nothing and the reading says the service runs without hardware transcoding. The user chose this over reading `/dev/dri` on the machine lemonfiber runs on, which is not the engine's host where the engine is remote or runs its containers in a virtual machine, and over a setting recorded at setup; `ARCH-R237` is amended in place | [ARCH-R237](../20-architecture/contracts/plugin-manifest.md), [lemonfiber-fence](../30-repos/lemonfiber-fence.md) |
 
+## 2026-11-04
+
+| Decision | Where it lives |
+|---|---|
+| The core does not build while a plugin the bundle pins has a case of a contract it speaks that fails or has no recording; the judge moves into a crate the bundle's build script can depend on. The user chose this over a required test that judges every pinned copy | [F14-R6](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md), [ADR-0059](../00-overview/decisions/0059-a-plugin-that-fails-its-own-recordings-neither-builds-nor-installs.md) |
+| An install or update refuses a plugin with a case of a contract it speaks that fails or has no recording, naming each, whoever made the plugin. The user chose this over refusing first-party plugins alone | [F14-R6](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md), [ADR-0059](../00-overview/decisions/0059-a-plugin-that-fails-its-own-recordings-neither-builds-nor-installs.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
