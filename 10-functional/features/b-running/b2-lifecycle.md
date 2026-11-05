@@ -5,7 +5,7 @@ kind: feature
 area: B
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [cli]
 requires: [G7]
 relates: [B1, B3, B8]
