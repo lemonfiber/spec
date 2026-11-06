@@ -33,7 +33,7 @@ jobs:
           # since it was written; this one did not, and a pinned version is not
           # the same protection — a pin says *which* code, and this says the
           # code does not get to run at install time.
-          python3 -m pip install --quiet --only-binary :all: "pyyaml==6.0.2"
+          python3 -m pip install --quiet --only-binary :all: "pyyaml==6.0.3"
           python3 - <<'PY'
           import subprocess, yaml
           failed = []

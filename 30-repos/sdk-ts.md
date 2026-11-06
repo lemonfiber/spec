@@ -74,9 +74,26 @@ lines, statements, branches and functions; `strict` TypeScript with
 `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`; `typescript-eslint`
 `strictTypeChecked` with no warnings tolerated; no escape hatches.
 
-Two obligations are specific to a published library: **no runtime dependencies**
+Three obligations are specific to a published library: **no runtime dependencies**
 without a recorded reason, since a client library's dependency tree becomes every
-consumer's problem; and **a changelog**, since people pin it.
+consumer's problem; **a changelog**, since people pin it; and **a
+backward-compatibility check**, so a breaking change fails the build rather than
+surprising a consumer.
+
+The check reads the surface API Extractor reports for each entry point
+`package.json` exports, built from the pull request's head, from its base and from
+the commit [`lemonfiber-web`](lemonfiber-web.md) pins (`REPO-R103`). A name an
+entry point stops reporting, a member a type stops holding, a declaration or
+member whose text changed and a union that lost a member are breaks; a
+declaration, a member or a union member that only arrived is not. A break the
+base already makes is the base's, and a title with `!` after its type declares
+one.
+
+## Requirements
+
+| ID | Requirement |
+|----|-------------|
+| **REPO-R103** | Every pull request that changes code MUST run a backward-compatibility check comparing the API Extractor report of each entry point `package.json` exports with the same report built from the commit `lemonfiber-web`'s default branch pins, and MUST fail where the head breaks that surface in a way its base does not and the title does not declare a break with `!` after its type. A removed entry point, declaration or member, a declaration or member whose text changed, and a union that lost a member MUST each count as a break. A pin that cannot be read and a report that cannot be built MUST fail the check. |
 
 ## Related
 
