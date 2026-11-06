@@ -43,7 +43,7 @@ sdk-ts/
 └── problem.ts     the error model, in the plain language G2 requires
 ```
 
-**The name carries the language, not the product.** `sdk-ts` leaves `sdk-py` and `sdk-rs`
+**The name carries the language, not the product.** `sdk-ts` leaves `sdk-python` and `sdk-rust`
 free without renaming anything. Each is a peer implementation of one specification; none is
 the reference, because **the spec is the reference** — an SDK that disagrees with the
 contract is wrong, not authoritative.
@@ -91,8 +91,8 @@ toolchain inside a Rust workspace whose gates all assume Rust.
 - **`lemonfiber-web` gains a dependency it does not control**, pinned like every other.
 - **The difficult requirements are implemented and tested once**, and a bug in resumption is
   fixed once for every consumer rather than per client.
-- **A future `sdk-py` must reimplement them**, not translate them. The spec is what both
-  conform to; neither SDK is the source of truth for the other.
+- **`sdk-python` and `sdk-rust` must reimplement them**, not translate them. The spec is what each
+  conforms to; no SDK is the source of truth for another.
 - **The API can no longer be changed quietly.** This is the point, and it is also the cost.
 
 ## Revisit if

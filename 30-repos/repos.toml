@@ -109,6 +109,15 @@ lang = "Python"
 note = "An asynchronous and a synchronous client over one generated contract"
 
 [[repo]]
+name = "sdk-rust"
+node = "sdkrs"
+group = "impl"
+label = "sdk-rust<br/>the Rust client"
+spec = ["sdk-rust.md"]
+lang = "Rust"
+note = "An asynchronous client over one generated contract, behind a transport the caller may replace"
+
+[[repo]]
 name = "integration-home-assistant"
 node = "homeassistant"
 group = "impl"
@@ -491,6 +500,16 @@ label = "pinned; every call goes through it"
 from = "lemonfiber"
 to = "sdk-python"
 label = "contract artefact"
+
+[[edge]]
+from = "lemonfiber"
+to = "sdk-rust"
+label = "contract artefact"
+
+[[edge]]
+from = "lemonfiber"
+to = "sdk-rust"
+label = "pinned by commit; the substitute proof drives a stack through it"
 
 [[edge]]
 from = "integration-home-assistant"

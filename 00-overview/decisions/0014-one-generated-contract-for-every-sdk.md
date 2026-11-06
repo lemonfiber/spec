@@ -6,7 +6,7 @@
 ## Context
 
 [ADR-0013](0013-an-sdk-owns-the-api-client.md) put the API client in `sdk-ts` and left room
-for `sdk-py` and `sdk-rs`. A PHP client now exists too, and that turns a hypothetical into a
+for `sdk-python` and `sdk-rust`. A PHP client now exists too, and that turns a hypothetical into a
 present problem: **two clients hand-writing types against a prose contract are two sources of
 truth**, and a third would be a third.
 

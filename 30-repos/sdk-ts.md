@@ -20,7 +20,7 @@ API should reach for, and the only thing `lemonfiber-web` uses to talk to the co
 
 Named for the language rather than the product
 ([ADR-0013](../00-overview/decisions/0013-an-sdk-owns-the-api-client.md)), so
-`sdk-py` and `sdk-rs` need no renaming. Each is a peer implementation of one
+`sdk-python` and `sdk-rust` need no renaming. Each is a peer implementation of one
 specification. **The spec is the reference**; an SDK that disagrees with the
 contract is wrong.
 
