@@ -143,9 +143,25 @@ beside the media server's `render` for hardware transcoding
 Every capability has a substitute beside its first-party filler, built to the same
 contract and run end to end against its pinned upstream: installed, its first-run flow
 run, held to the conformance suite, substituted, the features its capability serves
-exercised, and undone. The capabilities a second plugin already fills are proved first:
-`media.serve`, `indexer.search`, `library.curate` and `identity.source`. Every other
-capability follows as its substitute is built.
+exercised, and undone. The capabilities a second plugin already fills are proved first,
+each by a substitute standing in for the bundle's choice. No curator takes every media
+type, so a curator is proved by another standing in for a type both declare.
+
+| Capability | The bundle's choice | Proved by |
+|---|---|---|
+| `media.serve` | Jellyfin | Emby for films and series, Navidrome for music, Audiobookshelf for audiobooks |
+| `identity.source` | Jellyfin | Emby |
+| `indexer.search` | Prowlarr | NZBHydra2 |
+| `library.curate` | Sonarr, for series | Medusa, for series |
+
+Every other capability follows as its substitute is built.
+
+Plex runs in the proof unclaimed, with no plex.tv account. Its run proves install and the
+reading that names it `Open` and asks for its claim code, and nothing past them. What a
+Plex claimed against plex.tv does is proved by no run: the claim with the operator's code
+(`ARCH-R364`), the household and its sign-in over Plex (`ARCH-R371`, `ARCH-R377`), its
+ratings (`ARCH-R378`), the account that claimed it (`ARCH-R382`), and the request gate's
+Plex route and its stand-in for plex.tv (`C6-R27`, `C6-R28`). Each still binds.
 
 ### Credentials between plugins
 
@@ -209,7 +225,7 @@ nothing crosses to it.
 | **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its configuration and data, and MUST journal the choice; undoing it MUST restore the choice and bring that part back with its configuration and data; and the rehearsal MUST say what does not carry over, read from the contracts ([ARCH-R362](../../../20-architecture/contracts/capability-contracts.md)): each kind of thing a capability the stopped part fills declares its filler holds, less each kind the substituted capability's contract carries where the part and its replacement both speak it. |
 | **F14-R12** | A plugin's service MAY declare `shape = "egress-guard"` only where it is the upstream an adapter of the same plugin fronts and that adapter speaks `network.egress-guard`, or where it is the plugin's one service and provides `network.egress-guard` itself, which lemonfiber MUST honour only where the bundle assembles the plugin and MUST refuse at install and update naming `service <id>.shape`; any other service declaring it MUST be refused at validation naming `service <id>.shape`; and lemonfiber MUST write that service's entry as every plugin's entry plus exactly the `NET_ADMIN` capability and the `/dev/net/tun` device, and MUST write neither for any other service. |
 | **F14-R13** | An adapter MUST declare the upstream releases it supports, each proved by its own recordings, an install or update MUST refuse a plugin whose adapter lists a release at a digest other than the one its recordings were taken from, and the core MUST NOT compare versions. |
-| **F14-R14** | `media.serve`, `indexer.search`, `library.curate` and `identity.source`, each of which a second plugin fills, MUST each be proved by a substitute other than its first-party filler, run end to end against its pinned upstream through install, its first-run flow, conformance, substitution, the features the capability serves, and undo. |
+| **F14-R14** | `media.serve`, `indexer.search`, `library.curate` and `identity.source`, each of which a second plugin fills, MUST each be proved by a substitute other than its first-party filler, run end to end against its pinned upstream through install, its first-run flow, conformance, substitution, the features the capability serves, and undo, `library.curate` by one curator substituting another for a media type both declare; a substitute whose upstream is claimed against an account outside the house MUST also be run unclaimed through install and the reading that names it `Open`. |
 | **F14-R15** | Every first-party plugin MUST live in a repository of its own, every first-party adapter MUST be built on the adapter kit, and every image a first-party plugin builds MUST be published from every commit on its repository's `main` and by the release train (`OPS-R90`). |
 | **F14-R16** | An answer outside a contract MUST be recorded against the plugin with the capability, the operation, why and when, and a plugin recorded nonconforming for a capability MUST NOT fill it until it passes a live proof run after the record; updating it, installing it again and proving it again MUST each run that proof, and a passing proof MUST clear its records. |
 | **F14-R17** | The installed plugins as `lemonfiber plugin installed` and `GET /api/plugins` answer them MUST name, for each plugin, every capability it is recorded nonconforming for, with the operation, why and when, and nothing a member is shown MUST name it. |

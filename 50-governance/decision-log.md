@@ -505,6 +505,15 @@ Decisions about a repository outside this organisation, such as
 | An ask's `native` names one API or a list of APIs, and is filled by an upstream declaring any one of them, so the request gate asks the media server in Jellyfin's or Plex's own API and is handed the route for the one the media server speaks. The user chose this over two optional asks, and over the core ignoring the gate's named API for Plex | [ARCH-R253](../20-architecture/contracts/plugin-manifest.md), [ARCH-R380](../20-architecture/contracts/capability-contracts.md) |
 | Until lemonfiber tags `1.0`, the web API and the machine-readable output change shape under `api_version` 1 with no declared break, widenings included, and the SDKs follow in the same train; the surface check states what a change drops rather than refusing it. The user's standing rule | [versioning](../20-architecture/contracts/versioning.md#the-machine-readable-output-contract) |
 
+## 2026-11-06
+
+| Decision | Where it lives |
+|---|---|
+| The substitutes proving `F14-R14` are Emby for `media.serve` and `identity.source`, Navidrome and Audiobookshelf for `media.serve` over music and audiobooks, and NZBHydra2 for `indexer.search`. The user chose Emby for the media server because Plex runs with no plex.tv account | [F14-R14](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md) |
+| `library.curate` is proved by one curator standing in for another over a media type both declare: Medusa for Sonarr, over series. The user chose a second series curator, and Medusa over SickGear and SickChill | [F14-R14](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md) |
+| Plex runs in the proof unclaimed, with no plex.tv account, so its run proves install and the reading that names it `Open`. `ARCH-R364`, `ARCH-R371`, `ARCH-R377`, `ARCH-R378`, `ARCH-R382`, `C6-R27` and `C6-R28` still bind, and no run proves them | [F14-R14](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md) |
+| The substitute proofs run on every push to the core's `main`, nightly, and on a pull request whose scope touches a contract, the bundle pin or a substitute's pin, decided by a scope job so the check stays requirable, with one job per capability in parallel | [F14-R14](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

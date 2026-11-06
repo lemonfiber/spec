@@ -462,7 +462,10 @@
 # its choice, keeps the replaced part's configuration and data, and its rehearsal reads
 # what does not carry over from the contract; and the substitutes proved end to end are
 # those of the four capabilities a second plugin fills. Every other capability's
-# substitute is `F14-R31`, which 0.19.0 locks.
+# substitute is `F14-R31`, which 0.19.0 locks. `F14-R14` is amended in place again by the
+# maintainer's decision of 2026-11-06 (OPS-R31): a curator is proved by another standing
+# in for a media type both declare, and a substitute claimed against an account outside
+# the house is also run unclaimed through install and the reading that names it `Open`.
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
