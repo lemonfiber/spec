@@ -638,6 +638,14 @@ note = "A plugin, and the catalogue is where a plugin is found"
 name = "plugin-plex"
 note = "A plugin, and the catalogue is where a plugin is found"
 
+[[ungoverned]]
+name = "plugin-emby"
+note = "A plugin, and the catalogue is where a plugin is found"
+
+[[ungoverned]]
+name = "plugin-medusa"
+note = "A plugin, and the catalogue is where a plugin is found"
+
 # ── Retired ──────────────────────────────────────────────────────────────────
 #
 # Named here because a released version manifest names it in `repos`,
