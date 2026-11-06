@@ -288,7 +288,13 @@
 # read first and followed to its end, never touching the certificate the phone pins.
 # `N5-R14` has a substitution's rehearsal name what stays behind with the part it stops,
 # the companion's side of `ARCH-R362`. Both locked under the same review by the
-# maintainer's decision of 2026-10-31 (OPS-R31). `REPO-R93` has each first-party plugin's CI run its
+# maintainer's decision of 2026-10-31 (OPS-R31).
+# `N2-R34` to `N2-R37` and `N25-R33` to `N25-R35` are the companion's side of `ARCH-R237`,
+# `ARCH-R298`, `ARCH-R299` and `ARCH-R316`: lemonfiber's own guards moved for good, a start's
+# offer to install a part this build carries, the services a start wrote without the host's
+# render devices, the secrets a starting file's placeholders name, the starting files an
+# update reshipped, and the secrets a recipe captures. Locked under the same review by the
+# maintainer's decision of 2026-11-06 (OPS-R31). `REPO-R93` has each first-party plugin's CI run its
 # images under the posture its manifest declares, which this version is the first to
 # write them with.
 # `ARCH-R336` is how a service that needs an operator's credential to start is held to it:
@@ -411,7 +417,7 @@
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 652 goals, seeded from the roadmap milestone this version serves;
+# 659 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -580,7 +586,8 @@ goals   = [
     "ARCH-R249", "ARCH-R250", "ARCH-R251", "ARCH-R252", "ARCH-R253", "ARCH-R254", "ARCH-R255",
     "ARCH-R256", "ARCH-R257",
     "N25-R12", "N25-R13", "N25-R14", "N25-R25", "N25-R26", "N25-R27", "N25-R28",
-    "N25-R29", "N25-R30", "N25-R31", "N25-R32",
+    "N25-R29", "N25-R30", "N25-R31", "N25-R32", "N25-R33", "N25-R34", "N25-R35",
+    "N2-R34", "N2-R35", "N2-R36", "N2-R37",
     "N9-R13", "N9-R14", "N9-R15", "N9-R16", "N9-R17", "N5-R14",
     "REPO-R93", "ARCH-R336", "ARCH-R343", "ARCH-R344", "ARCH-R345", "ARCH-R346", "OPS-R93", "OPS-R94",
     "ARCH-R348", "ARCH-R349", "ARCH-R350", "ARCH-R351", "ARCH-R352", "ARCH-R353", "ARCH-R354",

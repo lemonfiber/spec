@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P1
 labels: [mobile, ux, verification]
 requires: [N1, C1, C3, G7]
@@ -148,6 +148,33 @@ A start takes no move. Where moves are on offer, what a start came to names
 each the same way and says that an update takes it, so an operator who only
 started the stack does not read the part as already moved.
 
+One of lemonfiber's own guards is moved onto its plugin by the first act that
+writes the stack and leaves it running, for good and with no yes of its own
+(`ARCH-R299`). Wherever an act's rehearsal or account names such a move, the app
+names each the same way, says it takes no yes and is not undone, and names a guard
+the act could not move as still on offer, with the stack's reason.
+
+### A start can offer to install a part
+
+A start on a machine that has never run a part the bundle installs offers to
+install that part's plugin from this build, offline, before anything of the form
+is written (`ARCH-R298`). The start's rehearsal names each install it offers, by
+the plugin, with the stack's reason where its install could not be read, and a
+start sent with no yes writes and starts nothing and says the same. The
+start's one yes carries its offer back and installs them all. Where the stack
+takes no such agreement for a start over the web API, the app offers no yes for a
+start that names an install and says it is agreed at the terminal; a start naming
+an install that could not be read offers no yes either, and says why.
+
+### A start says which services run without the render devices
+
+A service taking `render` is written with the host's render devices and the group
+that owns them, which the stack asks the engine for on every start that writes it
+(`ARCH-R237`). Where the host answers no group, or the stack could not ask, the
+service is written without them and runs with no hardware transcoding. What a
+start came to names each such service, with the stack's reason the group was not
+asked or not kept, so the operator knows why playback converts in software.
+
 ### The things that go wrong while nobody is watching
 
 Downloads that are stuck ([C7](../c-trust/c7-queue-health.md)), a provider out of
@@ -258,6 +285,10 @@ and a note beside it says a preview cannot ask.
 | **N2-R31** | Where the stack reports moves in place an update would take (`ARCH-R299`), the update's confirmation MUST name each one, the stack's own service and the plugin that would take its place, apart from the services the update would change (`N2-R17`), before it is agreed to. |
 | **N2-R32** | The app MUST report what became of each move in place an applied update tried, as taken or as not taken, and where one was not taken MUST state why in the stack's words. A move MUST NOT be reported as how a service took the update (`N2-R18`). |
 | **N2-R33** | Where what a start came to names moves in place on offer (`ARCH-R299`), the app MUST name each one, the stack's own service and the plugin that would take its place, and MUST say that a start does not take it and an update does. |
+| **N2-R34** | Where an act's rehearsal or account names one of lemonfiber's own guards moved onto its plugin (`ARCH-R299`), the app MUST name each, the stack's own service and the plugin that takes its place, and MUST say the move takes no yes of its own and is not undone; a guard the act could not move MUST be named as still on offer with the stack's reason. |
+| **N2-R35** | Where a start's rehearsal, or what a start came to, names parts it would install from this build (`ARCH-R298`), the app MUST name each by its plugin and, where its install could not be read, give the stack's reason, and where the start wrote and started nothing for want of a yes, MUST say so. |
+| **N2-R36** | A start's yes MUST carry back the offer its rehearsal named, and MUST NOT be offered where an install it names could not be read, the app saying why. Where the stack takes no offer for a start over the web API, the app MUST NOT offer a yes for a start whose rehearsal names an install, and MUST say it is agreed at the terminal. |
+| **N2-R37** | Where what a start came to names services taking `render` that it wrote without the host's render devices, the app MUST name each, say it runs without hardware transcoding, and give the stack's reason the group owning those devices was not asked or not kept, in the stack's words (`ARCH-R237`). |
 
 ## Notes
 
