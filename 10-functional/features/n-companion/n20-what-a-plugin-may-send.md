@@ -74,9 +74,10 @@ A rehearsal lists every step in the order the recipe gives, labelled as a
 rehearsal. An app that summarised it — *configures Plex* — would have removed the
 only thing an operator can actually judge.
 
-Where a recipe step is reached through an adapter, the app says which adapter, and
-that it is one lemonfiber implements and ships rather than anything the plugin
-supplied.
+Where a recipe step calls a service of the stack whose installed plugin declares the
+API it is reached in, the app names that API as the plugin declared it, drawn as
+plain text, so a manifest cannot dress the name up as something else. Where none is
+declared, or the destination is outside the stack, the step names no API.
 
 ### Nothing a plugin wrote runs here
 
@@ -96,11 +97,11 @@ refuses it. It is a promise that the app does not grow a second door.
 | **N20-R3** | A destination MUST be shown as the name the manifest gave, and MUST NOT be shown as a resolved address. |
 | **N20-R4** | Where a call was refused because an external name answered from inside the network, the app MUST show that refusal and its reason, and MUST NOT render it as a network error to retry. |
 | **N20-R5** | A rehearsed recipe MUST show every step in the order the recipe gives, labelled as a rehearsal (`N6-R1`), and MUST NOT be summarised into an outcome. |
-| **N20-R6** | Where a recipe step is reached through an adapter, the app MUST show which one, and that it is lemonfiber's rather than the plugin's. |
+| **N20-R6** | Where a recipe step's destination is a service of the stack whose installed plugin declares the API it is reached in, the app MUST show that API by its declared name, drawn as plain text the manifest cannot style, and MUST show nothing in its place where none is declared. |
 | **N20-R7** | The app MUST NOT execute content a plugin supplied, MUST NOT offer to, and MUST NOT present any opt-in, sandbox or capability grant that would (`F3-R6`). |
 | **N20-R8** | A plugin declaring native or executable content MUST be shown as refused with the reason, and MUST NOT be offered for installation (`F3-R7`). |
 | **N20-R9** | A refusal the core gave about a plugin MUST carry the core's own reason (`N5-R10`). |
-| **N20-R10** | Recipes, pairs, destinations or adapters that could not be read MUST be told apart from there being none. |
+| **N20-R10** | Recipes, pairs, destinations or a step's API that could not be read MUST be told apart from there being none. |
 
 ## Notes
 
