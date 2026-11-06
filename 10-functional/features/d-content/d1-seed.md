@@ -177,14 +177,17 @@ Idempotence is not rehearsal. Running seed twice changing nothing is a property
 of the operation; a run that deliberately writes nothing is a rehearsal, and
 `N7-R10` holds it to the labelling `N6-R1` requires everywhere else.
 
-### The request service reaches the \*arrs through a gate
+### The request service reaches the curators through a gate
 
-Seerr is household tier, and a key to Sonarr, Radarr or Jellyfin is administration
-of that service. So the connections *Sonarr, Radarr → Seerr* and *Jellyfin → Seerr*
-are made through the request gate
+Seerr is household tier, and a key to a curator or to the media server is
+administration of that service. So the connections *curator → Seerr* and *media
+server → Seerr* are made through the request gate
 ([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)).
-Seerr is registered with each \*arr at the gate's route for it and holds a token
-lemonfiber minted for that route; the gate holds the \*arr's key (`D1-R19`). Once
+Seerr is registered with each curator at the gate's route for the media type it files
+and holds a token lemonfiber minted for that route; the gate asks the curator's adapter
+over `library.curate` with a request key of its own and holds no curator's key
+([ADR-0060](../../../00-overview/decisions/0060-the-request-gate-asks-a-curator-over-its-contract.md),
+`D1-R19`). Once
 Seerr is initialised, lemonfiber speaks to it with Seerr's own key, and the
 administrator's password the initialising sign-in carried is rotated (`D1-R20`). A
 stack whose Seerr already holds the keys has them taken back, each move proved
@@ -245,9 +248,9 @@ Per connection:
 | **D1-R14** | A full seed against a healthy stack SHOULD complete within 60 seconds. |
 | **D1-R15** | Bindery MUST be wired via Torznab endpoints, and the absence of Prowlarr app sync MUST be documented in-product. |
 | **D1-R16** | lemonfiber MUST mint the torrent client's WebUI account at install, hand it to the client before it first starts and to the adapter in front of it, and MUST NOT leave the client on the temporary password it makes for itself. |
-| **D1-R17** | Each \*arr that fulfils requests MUST be registered with the request service as a fulfilment target, and one absent from the stack MUST NOT be. |
+| **D1-R17** | Each curator that fulfils requests MUST be registered with the request service as a fulfilment target, and one absent from the stack MUST NOT be. |
 | **D1-R18** | Every connection named in the wiring graph MUST be made where the services at both ends are in the stack, and each MUST be proven against the service that received it rather than against a stand-in for it. |
-| **D1-R19** | The request service MUST reach each fulfilling \*arr and Jellyfin only through the request gate: each \*arr MUST be registered with it at the gate's route for that \*arr and with the token lemonfiber minted for that route, never with the \*arr's own key, and it MUST be left holding no Jellyfin API key and no Jellyfin administrator's session ([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
+| **D1-R19** | The request service MUST reach each fulfilling curator and the media server only through the request gate: each curator MUST be registered with it at the gate's route for the media type it files and with the token lemonfiber minted for that route, never with the curator's own key, and it MUST be left holding no media server API key and no media server administrator's session ([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
 | **D1-R20** | Once the request service is initialised, lemonfiber MUST authenticate to it with the request service's own API key and MUST NOT send it the media server administrator's password; the password the initialising sign-in carried MUST be rotated once that sign-in completes. |
 | **D1-R21** | Where the request service is found holding a credential of an \*arr or of Jellyfin, lemonfiber MUST move it to the request gate and prove the move through the request service before revoking anything, MUST then revoke or rotate every credential the request service held, and MUST report any consumer the rotation could not update. |
 | **D1-R22** | lemonfiber MUST claim NZBHydra2 over `owner.claim@1` at install and on every seed, with an administrator and a password its plugin mints and hands to the adapter in front of it (`ARCH-R328`, `ARCH-R329`), and the plugin MUST prove that a read of its configuration presenting nothing is refused. |

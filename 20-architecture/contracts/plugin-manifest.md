@@ -443,7 +443,7 @@ each       = true               # every service that fills it, not one
 | `service` | string | | The plugin's own service that asks. Required where the plugin declares more than one service |
 | `capability` | string | ✔ | A core name the published vocabulary carries |
 | `each` | bool | | `true` to reach every service that fills it. Default `false`: one filler, settled by the operator's choice or the stack's own (`F14-R23`) |
-| `native` | string or array | | The upstream's own API the service talks in, as the upstream declares it in its `native`, or a list of APIs it talks in any of (`["jellyfin", "plex"]`). The ask then reaches the upstream the filler's adapter `fronts` rather than the adapter, where that upstream declares the API or one of the list (`ARCH-R253`) |
+| `native` | string or array | | The upstream's own API the service talks in, as the upstream declares it in its `native`, or a list of APIs it talks in any of (`["jellyfin", "emby", "plex"]`). The ask then reaches the upstream the filler's adapter `fronts` rather than the adapter, where that upstream declares the API or one of the list (`ARCH-R253`) |
 
 The bundle's [`[[wiring]]`](bundle.md#wiring--a-choice-of-filler-or-a-link-by-name) has
 `filled_by`, `to` and `why`; an ask has none of them. A link by name is the exception the

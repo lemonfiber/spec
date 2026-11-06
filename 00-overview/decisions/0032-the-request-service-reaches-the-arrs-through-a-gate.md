@@ -8,6 +8,8 @@
 
 **Amended** by [ADR-0051](0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md): §3. Until the core writes the upstream file, every call but the gate's health is refused with `403`, not forwarded and not recorded; an upstream file that is there and cannot be read stays `503`.
 
+**Amended** by [ADR-0060](0060-the-request-gate-asks-a-curator-over-its-contract.md): §1, §2, §3, §4, §6 and §7. A curator's route is named by the media type it files and reaches the curator's adapter under a request key, each \*arr call is answered by the gate or built as a `library.curate` request operation, the gate holds no curator's key and shares a network with no curator, and the media server's route may be an Emby route.
+
 ## Context
 
 [C6](../../10-functional/features/c-trust/c6-web-security.md)'s `C6-R20` lets a household-tier service hold a credential that is administrative on

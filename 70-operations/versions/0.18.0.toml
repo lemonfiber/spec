@@ -401,11 +401,17 @@
 # `ARCH-R384` reads the server's name and identifier over `media.serve`'s `listed_as`, which
 # the gate's Plex route holds in `fronted` mode. Added by the maintainer's decision of
 # 2026-11-05 (OPS-R31).
+# `C6-R29`, `ARCH-R385` and `ARCH-R386` have the request gate ask each curator over
+# `library.curate`'s request operations under a request key of its own, so a series is
+# requested from Medusa as from Sonarr, and `C6-R30` and `ARCH-R387` give the gate an Emby
+# route, so `F14-R14` proves both through the request service (ADR-0060). `C6-R22` to
+# `C6-R24`, `D1-R17`, `D1-R19`, `ARCH-R305` and `ARCH-R380` are amended in place to match.
+# Added by the maintainer's decision of 2026-11-06 (OPS-R31).
 # `OPS-R94` pins the fence at the commit image `lemonfiber-fence`'s `main` published until
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 647 goals, seeded from the roadmap milestone this version serves;
+# 652 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -583,7 +589,8 @@ goals   = [
     "ARCH-R367", "ARCH-R368", "ARCH-R369", "ARCH-R370", "ARCH-R371", "ARCH-R372", "ARCH-R373",
     "ARCH-R374", "ARCH-R375", "ARCH-R376", "ARCH-R377", "ARCH-R378", "ARCH-R379",
     "ARCH-R380", "ARCH-R381", "ARCH-R382", "ARCH-R383", "ARCH-R384",
-    "C6-R26", "C6-R27", "C6-R28", "D1-R27", "D1-R28",
+    "ARCH-R385", "ARCH-R386", "ARCH-R387",
+    "C6-R26", "C6-R27", "C6-R28", "C6-R29", "C6-R30", "D1-R27", "D1-R28",
     "C10-R18", "C10-R19", "C10-R20", "C10-R21", "C10-R22", "C10-R23", "C10-R24", "C10-R25",
     "C10-R26", "C10-R27", "C10-R28",
     "ARCH-R258", "ARCH-R259", "ARCH-R260", "ARCH-R261",
