@@ -1,0 +1,123 @@
+# Reusable: move the pins the core's substitute proofs run at to what each substitute's
+# repository names now, on one rolling pull request in the core (F14-R14, OPS-R87).
+#
+# `substitutes.toml` names each arm's repository and commit. The core calls this on a
+# schedule and on dispatch:
+#
+#   pins:
+#     uses: lemonfiber/spec/.github/workflows/substitute-pin.yml@<sha> # v1.0.N
+#     secrets:
+#       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
+#
+# The file holds the only thing that moves, and a pull request moving it is one the
+# substitutes job runs every arm on, so a substitute that stopped proving a capability
+# reds that pull request rather than main.
+#
+# The App's token is minted after the pins are read, for the core alone, and can write
+# contents and nothing else. The pull request is opened in the next job, with one of its
+# own.
+name: substitute-pin
+
+on:
+  workflow_call:
+    secrets:
+      RELEASE_APP_KEY:
+        description: "The release App's private key, which writes the rolling pin pull request."
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  CORE: core
+  BRANCH: release/substitute-pins
+  SCRATCH: .substitute-pin
+
+jobs:
+  commit:
+    if: github.repository == 'lemonfiber/lemonfiber'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    concurrency:
+      # Two runs would each move the same branch under the other.
+      group: substitute-pin
+      cancel-in-progress: false
+    outputs:
+      branch: ${{ env.BRANCH }}
+      head: ${{ steps.commit.outputs.head }}
+      title: ${{ steps.message.outputs.title }}
+      body: ${{ steps.message.outputs.body }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          path: ${{ env.CORE }}
+          persist-credentials: false
+      - name: Check out spec's scripts at this workflow's commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+          persist-credentials: false
+      - name: Move the pins
+        id: move
+        run: |
+          set -euo pipefail
+          mkdir "$SCRATCH"
+          python3 .spec-tooling/scripts/substitute_pin.py apply \
+            --pins "$CORE/substitutes.toml" --message "$SCRATCH/message.txt" >> "$GITHUB_OUTPUT"
+      - name: The commit message and the pull request
+        id: message
+        if: steps.move.outputs.moved == 'yes'
+        run: |
+          set -euo pipefail
+          python3 -I - "$SCRATCH/message.txt" <<'PY' >> "$GITHUB_OUTPUT"
+          import sys
+          text = open(sys.argv[1], encoding="utf-8").read()
+          title, _, body = text.partition("\n\n")
+          print(f"title={title}")
+          print("body<<BODY_END")
+          print(body.rstrip("\n"))
+          print("BODY_END")
+          PY
+      # `main` takes signed commits only, and a commit GitHub makes for the App is signed.
+      - name: Mint a token that can commit to the core
+        id: token
+        if: steps.move.outputs.moved == 'yes'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: lemonfiber
+          permission-contents: write
+      - name: Put the change on the branch, signed
+        id: commit
+        if: steps.move.outputs.moved == 'yes'
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          head="$(python3 .spec-tooling/scripts/signed_pin_commit.py --repo "$CORE" \
+            --slug "$REPOSITORY" --branch "$BRANCH" --message "$SCRATCH/message.txt")"
+          echo "head=${head}" >> "$GITHUB_OUTPUT"
+
+  # Opened, or the open one edited, only where it is this pin's own (OPS-R87). Not armed:
+  # it merges once a person has read what its arms proved.
+  pull-request:
+    needs: commit
+    if: needs.commit.outputs.head != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/rolling-pull-request.yml
+    with:
+      branch: ${{ needs.commit.outputs.branch }}
+      head: ${{ needs.commit.outputs.head }}
+      title: ${{ needs.commit.outputs.title }}
+      body: ${{ needs.commit.outputs.body }}
+      auto-merge: false
+    secrets:
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
