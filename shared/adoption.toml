@@ -179,6 +179,16 @@ name = "plugin-plex"
 gates = []
 hooks = ["commit-msg", "pre-push"]
 
+[[repo]]
+name = "plugin-emby"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-medusa"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
 
 [[repo]]
 name = "adapter-kit-servarr"
