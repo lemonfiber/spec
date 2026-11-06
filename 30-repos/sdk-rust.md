@@ -32,9 +32,10 @@ disagrees with the contract is wrong.
 | The client | Asynchronous. Every read, action, job, key, device key and setup step the surface serves is a method on it |
 | The transport | A trait the client sends every request through. The default is `reqwest` over `rustls` with the `ring` provider, the stack the core's own pinned client uses |
 
-A caller may hand the client its own transport. The transport sends the request it is given
-and nothing else: the address, the pin, the credential header and the reading of the answer
-are the client's, so no transport can weaken any of them.
+A caller may hand the client its own transport for a stack on this machine. A stack anywhere
+else is reached only through the default, which checks its pin, so no argument reaches one
+through a transport that does not (`ARCH-R99`). Whatever the transport, the address, the
+credential header and the reading of the answer are the client's.
 
 ## What is generated and what is written
 
