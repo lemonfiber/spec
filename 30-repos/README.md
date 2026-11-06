@@ -28,6 +28,7 @@ flowchart TD
         sdk["sdk-ts<br/>the TypeScript client"]
         sdkphp["sdk-php<br/>the PHP client"]
         sdkpy["sdk-python<br/>the Python client"]
+        sdkrs["sdk-rust<br/>the Rust client"]
         homeassistant["integration-home-assistant<br/>lemonfiber in Home Assistant"]
         mcp["integration-mcp<br/>lemonfiber for AI assistants"]
         decline["lemonfiber-decline<br/>the decline service"]
@@ -53,6 +54,8 @@ flowchart TD
     lemonfiber -->|contract artefact| sdkphp
     companion -->|pinned; every call goes through it| sdkphp
     lemonfiber -->|contract artefact| sdkpy
+    lemonfiber -->|contract artefact| sdkrs
+    lemonfiber -->|pinned by commit; the substitute proof drives a stack through it| sdkrs
     homeassistant -->|vendored at a pinned commit| sdkpy
     mcp -->|vendored at a pinned commit| sdkpy
     caddyimage -->|image pinned by plugin-caddy| parts
@@ -82,6 +85,7 @@ flowchart TD
 | `sdk-ts` | [sdk-ts.md](sdk-ts.md) | TypeScript | Owns the stream's hard parts so no consumer reimplements them |
 | `sdk-php` | [sdk-php.md](sdk-php.md) | PHP | The same contract, implemented as a peer rather than translated |
 | `sdk-python` | [sdk-python.md](sdk-python.md) | Python | An asynchronous and a synchronous client over one generated contract |
+| `sdk-rust` | [sdk-rust.md](sdk-rust.md) | Rust | An asynchronous client over one generated contract, behind a transport the caller may replace |
 | `integration-home-assistant` | [integration-home-assistant.md](integration-home-assistant.md) | Python | The first program to hold an integration key rather than a person's credential |
 | `integration-mcp` | [integration-mcp.md](integration-mcp.md) | Python | Every tool generated from the contract, so an assistant can do nothing the web API does not offer |
 | `lemonfiber-decline` | [lemonfiber-decline.md](lemonfiber-decline.md) | Rust | An image the stack runs, declared in a plugin.toml of its own; holds one Jellyfin key and answers the household |
@@ -121,7 +125,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those forty-five are the repositories this specification governs, which is not the
+Those forty-six are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))

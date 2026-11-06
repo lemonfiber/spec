@@ -91,6 +91,11 @@ gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
+name = "sdk-rust"
+gates = ["no_open_codeql_alert.py"]
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
 name = "integration-home-assistant"
 gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]
