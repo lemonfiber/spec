@@ -44,7 +44,7 @@ The split is the same in every SDK
 
 | | |
 |---|---|
-| **Generated** into `src/generated/`, never edited by hand | Response shapes, request bodies, every action and its arguments, the reads and their parameters, the refusal codes, the actions a key may call, the wire version |
+| **Generated** into `crates/lemonfiber-sdk/src/contract/`, never edited by hand | Response shapes, request bodies, every action and its arguments, the reads and their parameters, the refusal codes, the actions a key may call, the wire version |
 | **Written**, once, in Rust | The stream's behaviour, the token's placement, the address and its pin, the error model's wording |
 
 Everything generated comes from the `contract/web-api/` directory, vendored at the
@@ -85,6 +85,8 @@ The same standard as the Rust workspace in `lemonfiber`:
 - `unsafe_code` forbidden, `missing_docs` denied, clippy's pedantic set as warnings, and
   `unwrap`, `expect`, `panic` and indexing denied; CI fails on any warning.
 - 100% line coverage, enforced as a gate.
+- Mutation testing of the written client, every mutant told apart, run in CI.
+- A backward-compatibility check against the commit the core pins, and a changelog.
 - `cargo deny` over the dependency tree, with the core's policy on licences, sources and
   duplicate versions.
 - The organisation's shared workflows: spec-check, DCO, commitlint, hygiene, security,
