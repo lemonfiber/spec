@@ -138,14 +138,15 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": ["M9"],
+      "milestones": ["M9", "M16"],
       "milestone": "M9",
       "priority": null,
       "labels": ["updates", "cli"],
       "requires": ["B5"],
       "relates": ["B2", "C2", "C5"],
       "versions": [
-        {"version": "0.15.0", "status": "released"}
+        {"version": "0.15.0", "status": "released"},
+        {"version": "0.19.0", "status": "planned"}
       ],
       "path": "b-running/b8-autostart.md"
     },

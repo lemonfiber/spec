@@ -73,6 +73,13 @@ This is exactly the class of silent post-reboot degradation the feature exists t
 prevent: everything appears to be running, but torrents get no incoming
 connections.
 
+What the verification came to is kept, against the restart it ran after, and read
+with `lemonfiber boot`, served at `GET /api/boot`. The read says when the machine
+last started, what the verification against that start found, the newest one
+against any start, why a run started nothing, and since when the stack has failed
+to come back. A verification against an earlier start is never presented as one
+against the latest, which is the case that looks most like success.
+
 ### Boot failure is reported, not silent
 
 If the stack did not come back, the operator is told the next time they interact
@@ -153,6 +160,8 @@ the operator most needs to see and the one that looks most like success.
 | **B8-R12** | On battery power, autostart MUST NOT occur unless explicitly opted in. |
 | **B8-R13** | A recurring boot failure MUST be reported as one ongoing condition, not once per boot. |
 | **B8-R14** | Boot before network availability MUST retry rather than fail permanently. |
+| **B8-R15** | A run at boot that reached the stack MUST keep, against the moment the machine started, when it finished, what it came to (`passed`, `failed` or `waiting-for-install`), each service that did not come back, whether the tunnel `held`, was `not-established` or was `not-checked`, the forwarded port found before the start, the one passed at it and whether every client took it, and the sentence it raised; a run that started nothing MUST keep why against that moment; a rehearsal MUST keep nothing. |
+| **B8-R16** | `lemonfiber boot --json`, served at `GET /api/boot`, MUST answer when this machine last started, the verification kept against that moment, the newest kept against any, why a run against that moment started nothing, and the `boot.start` condition's onset and the count of starts it has recurred for, every instant written as `ARCH-R274` writes one and each part absent where nothing is kept; it MUST NOT present a verification as against the latest start where the machine will not say when it started, and a record it cannot read MUST be refused naming it, never answered as no verification. |
 
 ## Related
 
