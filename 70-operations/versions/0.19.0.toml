@@ -49,7 +49,7 @@
 # `F14-R31` proves every capability 0.18.0's `F14-R14` does not name by a substitute of its
 # own, end to end. Added by the maintainer's decision of 2026-10-29 (OPS-R31).
 #
-# 82 goals, seeded from the roadmap milestone this version serves;
+# 84 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -62,6 +62,8 @@ satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber
 goals   = [
     "B8-R15",
     "B8-R16",
+    "C7-R16",
+    "ARCH-R389",
     "D4-R21",
     "F12-R14",
     "F13-R15",
@@ -154,3 +156,6 @@ goals   = [
 # `B8-R15` and `B8-R16` keep what the post-boot verification came to and serve it at
 # `GET /api/boot`, the read the companion's `N16-R7` draws, by the maintainer's decision of
 # 2026-11-07.
+# `C7-R16` and `ARCH-R389` let the operator have lemonfiber act once on each stuck item,
+# through `library.curate@1`'s `unqueue` and `grab` from minor 2, by the maintainer's
+# decision of 2026-11-08.
