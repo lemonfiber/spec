@@ -524,6 +524,12 @@ Decisions about a repository outside this organisation, such as
 | The companion draws lemonfiber's own guards moved for good, the secrets a starting file's placeholders name, the starting files an update reshipped, and the secrets a recipe captures. The user chose drawing them over leaving them unread | `N2-R34` in [N2](../10-functional/features/n-companion/n2-operator-companion.md), `N25-R33` to `N25-R35` in [N25](../10-functional/features/n-companion/n25-a-plugin-after-it-lands.md) |
 | `N2-R34` to `N2-R37` and `N25-R33` to `N25-R35` ship in 0.18.0, joining its goals under `goals-change` review, beside the core rows they report on. The user chose 0.18.0 over 0.19.0 | [0.18.0](../70-operations/versions/0.18.0.toml) |
 
+## 2026-11-07
+
+| Decision | Where it lives |
+|---|---|
+| The web API's `up` and `switch` take the offer their rehearsal names for what they would install, as the command line does, and a start naming an install that could not be read offers no yes and says why | [ARCH-R388](../20-architecture/contracts/bundle.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
