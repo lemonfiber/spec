@@ -533,6 +533,12 @@ Decisions about a repository outside this organisation, such as
 | A service that speaks for itself may list no release in `about`, since no image can carry its own digest; a release it does list is still held to its own pin | [ARCH-R344](../20-architecture/contracts/plugin-manifest.md), [ARCH-R205](../20-architecture/contracts/capability-contracts.md) |
 | What the post-boot verification came to is kept against the restart it ran after and read at `GET /api/boot`, locked in 0.19.0 | [B8-R15, B8-R16](../10-functional/features/b-running/b8-autostart.md) |
 
+## 2026-11-08
+
+| Decision | Where it lives |
+|---|---|
+| With `LEMONFIBER_STUCK_SEARCH_AGAIN` on, off by default, lemonfiber acts once on each stuck item: the curator drops it from its client and blocklists the release, then searches again; undo grabs the release again by its fingerprint and lifts the blocklist entry, through `unqueue` and `grab` in `library.curate@1` minor 2 | [C7-R16](../10-functional/features/c-trust/c7-queue-health.md), [ARCH-R389](../20-architecture/contracts/capability-contracts.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

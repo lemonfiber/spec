@@ -140,13 +140,14 @@
       "status": "accepted",
       "maturity": "shipped",
       "shipped": "0.6.0",
-      "milestones": ["M5"],
+      "milestones": ["M5", "M16"],
       "milestone": "M5",
       "priority": null,
       "labels": ["queue", "verification"],
       "requires": ["B3", "B5"],
       "relates": ["C1", "C3", "C8", "D9"],
       "versions": [
+        {"version": "0.19.0", "status": "planned"},
         {"version": "0.6.0", "status": "released"}
       ],
       "path": "c-trust/c7-queue-health.md"
