@@ -416,6 +416,9 @@
 # `F14-R22` and `C6-R22` are amended in place, so an `[[ask]]` narrows to the fillers of the
 # media it names and the request gate reaches the curators of series and films alone, by the
 # maintainer's decision of 2026-11-07.
+# `ARCH-R205` and `ARCH-R344` are amended in place, so a service that speaks for itself may
+# list no release, since no image can carry its own digest, by the maintainer's decision of
+# 2026-11-07.
 # `ARCH-R388` lets a start's yes reach `ARCH-R298` over the web API, so the companion can
 # answer it, and a start whose install could not be read offers no yes. Added by the
 # maintainer's decision of 2026-11-07 (OPS-R31).
