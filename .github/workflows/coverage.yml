@@ -99,6 +99,7 @@ jobs:
           coverage run --append scripts/test_pin_only.py
           coverage run --append scripts/test_pin_only_shapes.py
           coverage run --append scripts/test_rolling_pull_request.py
+          coverage run --append scripts/test_substitute_pin.py
           coverage run --append scripts/test_local_command.py
           coverage run --append scripts/test_nothing_passes_over_nothing.py
           coverage run --append scripts/test_generated.py
