@@ -43,9 +43,16 @@ adapter-kit-servarr/
     └── curator    library.curate as Sonarr, Radarr and Lidarr answer it: download
                    clients, root folders, quality profiles, hard links, records
                    carried between curators, the catalogue, the queue, release
-                   probes and the reads a trace makes, each kind of media in the
-                   Servarr words it is spoken in
+                   probes, the reads a trace makes, and the request operations
+                   the request gate asks, each kind of media in the Servarr
+                   words it is spoken in
 ```
+
+The request operations are `catalogued`, `titles`, `held_title`, `request`, `search`,
+`remove` and `downloading` (`ARCH-R385`), which Sonarr and Radarr answer and a curator
+of music refuses as unsupported. Which key opens them is the core's adapter kit's to
+decide, and the Sonarr and Radarr adapters each hand it the configuration directory the
+request gate's keys are written to (`ARCH-R386`).
 
 What only one upstream answers stays in that upstream's adapter: Lidarr's music
 formats in `plugin-lidarr`, Prowlarr's applications and indexers in
