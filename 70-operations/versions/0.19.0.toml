@@ -49,7 +49,7 @@
 # `F14-R31` proves every capability 0.18.0's `F14-R14` does not name by a substitute of its
 # own, end to end. Added by the maintainer's decision of 2026-10-29 (OPS-R31).
 #
-# 80 goals, seeded from the roadmap milestone this version serves;
+# 82 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -60,6 +60,8 @@ status  = "planned"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf"]
 satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion"]
 goals   = [
+    "B8-R15",
+    "B8-R16",
     "D4-R21",
     "F12-R14",
     "F13-R15",
@@ -149,3 +151,6 @@ goals   = [
 # after the one that touches it, by the maintainer's decision of 2026-10-11. They are
 # the companion's and the web surface's, so `lemonfiber-companion` and `lemonfiber-web`
 # are searched.
+# `B8-R15` and `B8-R16` keep what the post-boot verification came to and serve it at
+# `GET /api/boot`, the read the companion's `N16-R7` draws, by the maintainer's decision of
+# 2026-11-07.

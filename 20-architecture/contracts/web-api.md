@@ -68,6 +68,7 @@ GET /api/update?…
 GET /api/news
 GET /api/plugins       GET /api/wiring       GET /api/settings
 GET /api/playing       GET /api/watching?…
+GET /api/boot
 GET /api/askable?…      GET /api/askable/{id}/poster?…
 ```
 
@@ -177,6 +178,19 @@ the bundle itself, because a browser has no path on the host to be told and hand
 over is the only form `--out` can take on a screen. The name is resolved beneath the bundles
 directory rather than followed, so one carrying a path, or climbing out of that directory, is
 refused by name.
+
+### What became of the last restart
+
+```
+GET /api/boot
+```
+
+The `boot` envelope `lemonfiber boot --json` prints: when this machine last started, the
+post-boot verification kept against that start and the newest kept against any, why a run
+against it started nothing, and since when and for how many starts the stack has not come back
+(`B8-R16`). It takes no parameter, because the restart worth reading about is the last one. A
+verification against an earlier start is answered beside the latest start rather than as it, so
+a surface can tell "passed" from "not run since the restart".
 
 ### What is playing
 
