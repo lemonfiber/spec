@@ -530,6 +530,7 @@ Decisions about a repository outside this organisation, such as
 |---|---|
 | The web API's `up` and `switch` take the offer their rehearsal names for what they would install, as the command line does, and a start naming an install that could not be read offers no yes and says why | [ARCH-R388](../20-architecture/contracts/bundle.md) |
 | An `[[ask]]` names the media it reaches fillers of in `media_types`, so the request gate's `each` ask of `library.curate` reaches the curators of series and films alone, and the core narrows no service's ask on that service's behalf | [F14-R22](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md), [C6-R22](../10-functional/features/c-trust/c6-web-security.md) |
+| A service that speaks for itself may list no release in `about`, since no image can carry its own digest; a release it does list is still held to its own pin | [ARCH-R344](../20-architecture/contracts/plugin-manifest.md), [ARCH-R205](../20-architecture/contracts/capability-contracts.md) |
 
 ## Related
 
