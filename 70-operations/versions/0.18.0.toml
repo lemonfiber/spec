@@ -413,6 +413,9 @@
 # route, so `F14-R14` proves both through the request service (ADR-0060). `C6-R22` to
 # `C6-R24`, `D1-R17`, `D1-R19`, `ARCH-R305` and `ARCH-R380` are amended in place to match.
 # Added by the maintainer's decision of 2026-11-06 (OPS-R31).
+# `F14-R22` and `C6-R22` are amended in place, so an `[[ask]]` narrows to the fillers of the
+# media it names and the request gate reaches the curators of series and films alone, by the
+# maintainer's decision of 2026-11-07.
 # `ARCH-R388` lets a start's yes reach `ARCH-R298` over the web API, so the companion can
 # answer it, and a start whose install could not be read offers no yes. Added by the
 # maintainer's decision of 2026-11-07 (OPS-R31).

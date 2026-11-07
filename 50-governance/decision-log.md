@@ -529,6 +529,7 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | The web API's `up` and `switch` take the offer their rehearsal names for what they would install, as the command line does, and a start naming an install that could not be read offers no yes and says why | [ARCH-R388](../20-architecture/contracts/bundle.md) |
+| An `[[ask]]` names the media it reaches fillers of in `media_types`, so the request gate's `each` ask of `library.curate` reaches the curators of series and films alone, and the core narrows no service's ask on that service's behalf | [F14-R22](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md), [C6-R22](../10-functional/features/c-trust/c6-web-security.md) |
 
 ## Related
 

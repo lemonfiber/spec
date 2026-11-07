@@ -433,9 +433,10 @@ demonstrate.
 
 ```toml
 [[ask]]
-service    = "subfinder"        # optional where the plugin declares one service
-capability = "library.curate"
-each       = true               # every service that fills it, not one
+service     = "subfinder"       # optional where the plugin declares one service
+capability  = "library.curate"
+each        = true              # every service that fills it, not one
+media_types = ["tv", "movies"]  # only the fillers that file one of these
 ```
 
 | Field | Type | Req | Meaning |
@@ -444,6 +445,7 @@ each       = true               # every service that fills it, not one
 | `capability` | string | ✔ | A core name the published vocabulary carries |
 | `each` | bool | | `true` to reach every service that fills it. Default `false`: one filler, settled by the operator's choice or the stack's own (`F14-R23`) |
 | `native` | string or array | | The upstream's own API the service talks in, as the upstream declares it in its `native`, or a list of APIs it talks in any of (`["jellyfin", "emby", "plex"]`). The ask then reaches the upstream the filler's adapter `fronts` rather than the adapter, where that upstream declares the API or one of the list (`ARCH-R253`) |
+| `media_types` | array | | The media, in `stack.toml`'s vocabulary, the service asks a filler of. The ask then reaches only the fillers that file at least one of them, an adapter by the `media_types` of the upstream it `fronts` (`F14-R22`). Default: every filler, whatever it files |
 
 The bundle's [`[[wiring]]`](bundle.md#wiring--a-choice-of-filler-or-a-link-by-name) has
 `filled_by`, `to` and `why`; an ask has none of them. A link by name is the exception the
@@ -752,6 +754,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | `upstream` is declared only on a service that `speaks`, every field name is lowercase letters, digits and `_` starting with a letter, and every value is `{ secret }` naming a `[[secret]]` the manifest declares whose `of` is one of the plugin's own services | Service, field and secret named |
 | `outside` is declared only on a service that `fronts` another, every key names a case of a contract that service speaks, written `<capability>@<major>/<case>`, and every host is a DNS name (`ARCH-R367`) | Service and entry named |
 | Every `files` names a medium in `stack.toml`'s vocabulary, and only on `url_of` | Variable named, with the media |
+| Every `[[ask]]`'s `media_types` lists at least one medium, each in `stack.toml`'s vocabulary and none twice | Ask named, with the media |
 | Every `setting` is one the core publishes or in the plugin's own namespace | Setting named, with the namespace required |
 | Every `one_of` lists at least one value and no value twice, at most one reference to a setting declares it, and a reference's `default` is one of its setting's values unless it declares `recorded_with` | Variable and setting named, with the values (`ARCH-R348`) |
 | Every setting a `needs` names is one the same service reads and not the one the reference reads, and lists only values its choices hold where it declares them | Variable or secret named, with the setting (`ARCH-R348`) |
