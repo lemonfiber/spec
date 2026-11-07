@@ -5,8 +5,7 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-maturity: shipped
-shipped: 0.6.0
+maturity: building
 labels: [queue, verification]
 requires: [B3, B5]
 relates: [C1, C3, C8, D9]
