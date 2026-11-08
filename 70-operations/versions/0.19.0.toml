@@ -49,7 +49,7 @@
 # `F14-R31` proves every capability 0.18.0's `F14-R14` does not name by a substitute of its
 # own, end to end. Added by the maintainer's decision of 2026-10-29 (OPS-R31).
 #
-# 94 goals, seeded from the roadmap milestone this version serves;
+# 111 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -74,6 +74,23 @@ goals   = [
     "K2-R15",
     "K2-R16",
     "ARCH-R390",
+    "H5-R1",
+    "H5-R2",
+    "H5-R3",
+    "H5-R4",
+    "H5-R5",
+    "H5-R6",
+    "H5-R7",
+    "H5-R8",
+    "H5-R9",
+    "H5-R10",
+    "H5-R11",
+    "H5-R12",
+    "H5-R13",
+    "H5-R14",
+    "H5-R15",
+    "H5-R16",
+    "ARCH-R391",
     "D4-R21",
     "F12-R14",
     "F13-R15",
@@ -173,3 +190,6 @@ goals   = [
 # provisions and reads (ADR-0061), so the companion's N16 page draws it; `K2-R3`, `K2-R4`,
 # `K2-R5`, `K2-R7`, `K2-R8`, `K2-R10` and `K2-R12` move here from 0.23.0 with it, by the
 # maintainer's decision of 2026-11-08.
+# `H5-R1` to `H5-R15` move here from 0.21.0, and `H5-R16` and `ARCH-R391` join them: the queue
+# heals by strikes over the curator and the client, and its read is the one the companion's
+# N16 page draws (ADR-0063), by the maintainer's decision of 2026-11-08.

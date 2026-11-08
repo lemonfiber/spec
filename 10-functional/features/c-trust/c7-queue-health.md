@@ -74,9 +74,9 @@ torrent, clean up an orphan. Offered per [C3](c3-auto-remediation.md), never
 applied silently.
 
 One is the operator's to switch on rather than to agree to each time. With
-`LEMONFIBER_STUCK_SEARCH_AGAIN` on, lemonfiber acts once on each item `stuck` names: its
-curator drops the download from its client and blocklists that release, and is then asked
-to search for the title again. The act is journalled, and putting it back asks the
+`LEMONFIBER_STUCK_SEARCH_AGAIN` on, lemonfiber acts on each item queue self-healing has
+struck out ([H5](../h-glue/h5-queue-selfheal.md)): its curator drops the download from its
+client and blocklists that release, and is then asked to search for the title again. The act is journalled, and putting it back asks the
 curator to grab the same release again and lifts its blocklist entry. Off, which is the
 default, the stuck items are only reported.
 
@@ -136,7 +136,7 @@ Per item:
 | **C7-R13** | Large queues MUST be summarised by category rather than enumerated. |
 | **C7-R14** | Self-resolving stalls MUST clear their condition and be recorded. |
 | **C7-R15** | An empty queue MUST be distinguishable from an unreadable one. |
-| **C7-R16** | A setting, `LEMONFIBER_STUCK_SEARCH_AGAIN`, off by default and changeable only by the operator, MUST decide whether lemonfiber acts on stuck items. While it is on, lemonfiber MUST act on each item `stuck` names once and never again: ask its curator to drop the download from its client and blocklist that release, then ask the curator to search for the title again, journalling the act with the release's fingerprint and never its identity; it MUST NOT act where the curator or its download client cannot be reached or its credential is unverified; and putting the act back MUST ask the curator to grab the release with that fingerprint again and lift its blocklist entry, saying so where no indexer offers it any more ([ARCH-R389](../../../20-architecture/contracts/capability-contracts.md)). |
+| **C7-R16** | A setting, `LEMONFIBER_STUCK_SEARCH_AGAIN`, off by default and changeable only by the operator, MUST decide whether lemonfiber acts on stuck items. While it is on, lemonfiber MUST act on each item queue self-healing has struck out ([H5](../h-glue/h5-queue-selfheal.md)): ask its curator to drop the download from its client and blocklist that release, then ask the curator to search for the title again, journalling the act with the release's fingerprint and never its identity; it MUST NOT act where the curator or its download client cannot be reached or its credential is unverified; and putting the act back MUST ask the curator to grab the release with that fingerprint again and lift its blocklist entry, saying so where no indexer offers it any more ([ARCH-R389](../../../20-architecture/contracts/capability-contracts.md), [ADR-0063](../../../00-overview/decisions/0063-the-queue-heals-by-strikes-over-the-curator-and-the-client.md)). |
 
 ## Related
 
