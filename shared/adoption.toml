@@ -196,6 +196,11 @@ gates = []
 hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
+name = "adapter-kit-music"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
 name = "plugin-jellyfin"
 gates = []
 hooks = ["commit-msg", "pre-push"]
