@@ -103,6 +103,16 @@ whether it is here, already asked for, or may be asked for. The session is the
 member's media-server account ([D6](d6-household-identity.md)); there is still no
 lemonfiber account.
 
+### Music and books are asked for through the core
+
+The request service carries series and films alone. Music and books are asked for
+through the core itself, which is their intake: a member's search reaches each curator
+filing them over its own contract, `music.curate` or `books.curate`, and an ask goes from
+the core to that curator, journalled. A member asks for an album or a whole artist, and
+for a book, a whole author or a series, each found by the curator's own lookup and named
+by its reference there, its name, its artist or author, its year and its cover. The
+member sees one search and one ask whatever carries them, and is never told which.
+
 ## States
 
 Per request:
@@ -159,6 +169,8 @@ Per request:
 | **D4-R18** | Which kinds of title a member's search covers MUST be the kinds the stack can deliver now (`D4-R4`), decided by the core and said in its answer; the member MUST NOT be offered a kind to choose. |
 | **D4-R19** | A title a member's search finds with no certification MUST have its certification looked up by the core before it is offered, and where none is found it MUST be treated as unrated under that member's unrated policy (`D8-R5`), never as allowed. |
 | **D4-R20** | A member's ask MUST be an action of the web API, rehearsed before it is sent so the member is told what it would leave of their allowance and whether it waits for approval, and sent with an `Idempotency-Key` so a retry after no answer asks once (`ARCH-R165`); `request.intake` MUST carry the search and the ask as operations of its own. |
+| **D4-R22** | A member MUST be able to search for and ask for music and books wherever the stack runs a curator speaking `music.curate` or `books.curate` (`ARCH-R395`, `ARCH-R396`), through the same search and ask as series and films (`D4-R15`, `D4-R16`, `D4-R20`): the core MUST answer the search from each such curator's own lookup and send the ask to that curator, journalling it, and `request.intake` MUST NOT carry either. A music title MUST be an album or an artist, and a book title a book, an author or a series, each named by the curator's reference for it, its name, its artist or author, its year and its cover, and said to be here, already asked for, or may be asked for. |
+| **D4-R23** | An ask for a whole artist, a whole author or a series MUST wait for the operator's approval whatever the household's policy; an ask for an album or a book MUST follow the policy as an ask for a series or a film does (`D7-R16`). |
 | **D4-R21** | Every request a member or the operator reads MUST name the title it asks for, a request still awaiting approval included: where no library holds the title yet, the core MUST name it from the request service's own record of that title. A request neither can name MUST still be shown and decidable, and MUST NOT make the rest of the reading unreadable. |
 
 ## Related

@@ -156,6 +156,7 @@ Per member: `within-quota`, `near-quota`, `quota-exhausted`, `unlimited`.
 | **D7-R12** | Partially available content MUST charge quota only for the missing portion. |
 | **D7-R13** | Critical disk state MUST block requests, with disk stated to the operator as the reason, distinct from quota. A member is told as `D7-R15` says. |
 | **D7-R14** | Operator requests MUST NOT be quota-limited. |
+| **D7-R16** | The household's policy, limits, approval, declines and expiry MUST hold for an ask for music or books (`D4-R22`) as for one for a series or a film: an album or a book MUST count as one request against the member's limit, an ask waiting for approval MUST be on the same household list, numbered among the others, and approving, declining and expiring MUST act on it; the core MUST keep these asks itself, since no request service holds them. |
 | **D7-R15** | Before a member asks, what a request would use of their allowance MUST be stated as what it leaves room for, in titles of each kind counted against the allowance, and MUST NOT be stated as a size. An estimate MUST still say it is one (`D7-R4`). A request blocked for want of room on the disk MUST be told to a member as the house having no room for new things right now, and MUST NOT be told as their own limit. |
 
 ## Related
