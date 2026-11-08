@@ -80,6 +80,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0059](0059-a-plugin-that-fails-its-own-recordings-neither-builds-nor-installs.md) | A plugin that fails its own recordings neither builds into the core nor installs | Accepted |
 | [0060](0060-the-request-gate-asks-a-curator-over-its-contract.md) | The request gate asks a curator over its contract, and answers Emby beside Jellyfin and Plex | Accepted |
 | [0061](0061-the-outside-watcher-is-a-capability-the-core-provisions.md) | The outside watcher is a capability the core provisions and reads | Accepted |
+| [0062](0062-a-job-checks-in-to-the-outside-watcher-over-its-contract.md) | A job checks in to the outside watcher over its contract | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See
