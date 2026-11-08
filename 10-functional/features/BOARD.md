@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**116 features** in areas A–N, **1885 requirements**.
+**116 features** in areas A–N, **1886 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -134,7 +134,7 @@ code, and the two move independently.
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.20.0` |
 | [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `0.20.0` |
 | [H4](h-glue/h4-subtitles.md) | Subtitles | H | both | accepted | `0.20.0` |
-| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `0.21.0` |
+| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `0.19.0` |
 | [H6](h-glue/h6-library-cleanup.md) | Library cleanup | H | both | accepted | `0.21.0` |
 | [H7](h-glue/h7-transcoding.md) | Transcoding | H | operator | accepted | `0.21.0` |
 | [H8](h-glue/h8-stats.md) | Playback statistics | H | both | accepted | `0.21.0` |

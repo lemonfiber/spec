@@ -84,6 +84,14 @@ Newly-added downloads are exempt for a configurable grace period so a torrent st
 finding peers, or a Usenet job still queued behind others, is not judged before it
 has had a fair chance to start.
 
+### It is one path, and it is read
+
+Queue self-healing is the one way lemonfiber acts on a wedged download: the act
+[C7](../c-trust/c7-queue-health.md) names, behind its switch, gated by strikes and grace.
+It classifies from what the curator and the download client each answer, pairing the two
+by the client's own id for the item, and every run is kept and read at `GET /api/queue`
+([ADR-0063](../../../00-overview/decisions/0063-the-queue-heals-by-strikes-over-the-curator-and-the-client.md)).
+
 ### Every step has a non-interactive equivalent
 
 The classification report, the dry-run, and the healing run are each reachable as
@@ -163,6 +171,7 @@ careful is most easily turned into a button.
 | **H5-R13** | Because removal is followed by a blocklist and re-search, the remedy for a wrongly-removed item MUST be a fresh search that can re-acquire it — no wanted content is abandoned by a removal. |
 | **H5-R14** | Classification, dry-run, and healing MUST each be reachable non-interactively. |
 | **H5-R15** | Self-healing MUST be able to be switched off while classification remains readable, so the operator can observe without acting. |
+| **H5-R16** | `lemonfiber queue --json`, served at `GET /api/queue`, MUST answer whether healing is on, the strikes and grace window in force, every unhealthy item with its curator, release, classification and why, its strikes, when it was added and until when it is in grace, and what the next run would do to it where healing is on, every curator or download client that could not be reached or verified, the mount mismatch where there is one, whether the list may be short, when the classification last ran, and the newest runs, each with whether it was rehearsed and each item's acts (remove, blocklist and search) as each came out ([ADR-0063](../../../00-overview/decisions/0063-the-queue-heals-by-strikes-over-the-curator-and-the-client.md)). |
 
 ## Related
 

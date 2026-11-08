@@ -1,7 +1,9 @@
 # More glue — queue self-healing, library cleanup, transcoding and playback statistics.
 #
-# 59 goals, seeded from the roadmap milestone this version serves;
+# 44 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
+# `H5-R1` to `H5-R15` moved to 0.19.0 with the queue's read (ADR-0063), by the maintainer's
+# decision of 2026-11-08.
 version = "0.21.0"
 milestone = "M11"   # Ecosystem glue
 delivers  = "Ecosystem glue: self-healing, cleanup, transcoding, statistics"
@@ -9,21 +11,6 @@ status  = "planned"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf"]
 satisfied_in = ["lemonfiber", "plugin-jellyfin"]
 goals   = [
-    "H5-R1",
-    "H5-R2",
-    "H5-R3",
-    "H5-R4",
-    "H5-R5",
-    "H5-R6",
-    "H5-R7",
-    "H5-R8",
-    "H5-R9",
-    "H5-R10",
-    "H5-R11",
-    "H5-R12",
-    "H5-R13",
-    "H5-R14",
-    "H5-R15",
     "H6-R1",
     "H6-R2",
     "H6-R3",
