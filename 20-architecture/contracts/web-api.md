@@ -68,7 +68,7 @@ GET /api/update?…
 GET /api/news
 GET /api/plugins       GET /api/wiring       GET /api/settings
 GET /api/playing       GET /api/watching?…
-GET /api/boot          GET /api/watcher
+GET /api/boot          GET /api/watcher      GET /api/queue
 GET /api/askable?…      GET /api/askable/{id}/poster?…
 ```
 
@@ -207,6 +207,23 @@ lemonfiber provisioned, never by its name or its target, so an operator's own mo
 `not-reporting` where it holds no reading newer than its interval and grace. A watcher that does
 not answer, or nothing filling `status.watch`, is answered `reachable: false` with everything it
 should cover uncovered, never as nothing wrong. It takes no parameter.
+
+### What the queue holds
+
+```
+GET /api/queue
+```
+
+The `queue` envelope `lemonfiber queue --json` prints (`H5-R16`): whether healing acts, the
+strikes and grace window in force, every unhealthy download with its curator, release,
+classification and why, its strikes, when it was added and until when it is in grace, and
+what the next run would do to it where healing is on. It names every curator or download
+client that could not be reached or verified, including a client that names no download by
+its own id, the mount mismatch where there is one, whether the list may be short, when the
+queue was last classified, and the newest runs, each with whether it was rehearsed and each
+item's three acts as each came out. A record that cannot be read is refused, never answered
+as a healthy queue. It takes no parameter, and running a pass is not served: `lemonfiber
+queue heal` is asked for at a terminal.
 
 ### What is playing
 
