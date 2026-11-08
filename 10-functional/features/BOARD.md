@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 22 shipped, 47 built, 27 building, 19 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 22 shipped, 48 built, 27 building, 18 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -68,6 +68,7 @@ code, and the two move independently.
 | [F13](f-extensibility/f13-mcp.md) | An assistant's way in | F | operator | accepted | `0.18.0`, `0.19.0` |
 | [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.10.0`, `0.11.0`, `0.17.0`, `0.18.0` |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.18.0`, `0.5.0` |
+| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `0.19.0` |
 | [L3](l-release/l3-nas-image.md) | The image for a NAS | L | operator | accepted | `0.18.0` |
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | `0.18.0`, `0.19.0`, `0.20.0` |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0`, `0.19.0` |
@@ -135,7 +136,6 @@ code, and the two move independently.
 | [H2](h-glue/h2-autobrr.md) | Announce-driven grabbing | H | operator | accepted | `0.20.0` |
 | [H3](h-glue/h3-quality-sync.md) | Quality-profile sync | H | operator | accepted | `0.20.0` |
 | [H4](h-glue/h4-subtitles.md) | Subtitles | H | both | accepted | `0.20.0` |
-| [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `0.19.0` |
 | [H6](h-glue/h6-library-cleanup.md) | Library cleanup | H | both | accepted | `0.21.0` |
 | [H7](h-glue/h7-transcoding.md) | Transcoding | H | operator | accepted | `0.21.0` |
 | [H8](h-glue/h8-stats.md) | Playback statistics | H | both | accepted | `0.21.0` |
