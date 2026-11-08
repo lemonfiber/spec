@@ -381,7 +381,9 @@ operator chooses it, and nothing installs it until the operator asks, so no `up`
 Its copy lies at `bundle/plugins/<id>/` as a part's does, and the build embeds it in the
 first-party set beside every part (`ARCH-R300`), so it is installed from the tree the
 build carries, offline, as an `installed` part is (`ARCH-R374`), and its services' ids,
-ports and hostnames are reserved as a part's are (`ARCH-R269`) (`ARCH-R394`).
+ports and hostnames are reserved as a part's are (`ARCH-R269`) (`ARCH-R394`). Its
+services are no bundled service, so `F2-R5`'s licence rule, which the parts keep, does not
+hold for it.
 
 ## The reserved register
 
@@ -430,7 +432,7 @@ Validation reports **every** violation in one pass, each naming its location (`F
 | Every `[[offered]]` carries every field it requires and no `fills` or `stage`; no service of it declares `replaces`; `profile` is a declared profile, and `[plugin].forms` names exactly the forms whose closure holds it | Plugin and field named (`ARCH-R394`) |
 | No id is both a `[[plugin]]` and an `[[offered]]` | The id named (`ARCH-R394`) |
 | `last_release` is `YYYY-MM-DD` and not in the future | Plugin and value named (`F2-R14`) |
-| Every pinned plugin's `license` is an OSI licence, except where its `upstream` is under `https://github.com/lemonfiber/` and a service's image is under `ghcr.io/lemonfiber/`, where it is `Hippocratic-3.0` and nothing else | Plugin and licence named (`F2-R5`) |
+| Every part's `license` is an OSI licence, except where its `upstream` is under `https://github.com/lemonfiber/` and a service's image is under `ghcr.io/lemonfiber/`, where it is `Hippocratic-3.0` and nothing else | Plugin and licence named (`F2-R5`) |
 | Every service of a pinned plugin declares `reaches` and `asks_for` | Plugin and service named (`F2-R10`, `ARCH-R270`) |
 | No reserved id, port or hostname is taken twice across the pinned plugins | Each one and both plugins named (`ARCH-R269`) |
 | A copy is the tree at the pinned revision, and its digests are the pin's | Plugin and the differing path named (`ARCH-R267`, `REPO-R92`) |
