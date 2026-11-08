@@ -1,7 +1,10 @@
 # ADR-0061: The outside watcher is a capability the core provisions and reads
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-11-08
+**Decided:** 2026-11-08, by the maintainer, Wessel Verheij: the outside watcher is
+`status.watch@1`, provisioned by the core under its own tags and read at
+`GET /api/watcher`.
 
 ## Context
 
