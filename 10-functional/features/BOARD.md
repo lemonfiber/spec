@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**116 features** in areas A–N, **1886 requirements**.
+**116 features** in areas A–N, **1889 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -56,7 +56,7 @@ code, and the two move independently.
 | [C10](c-trust/c10-integration-keys.md) | Integration keys | C | operator | accepted | `0.18.0` |
 | [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.18.0`, `0.4.0` |
 | [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0`, `0.19.0` |
-| [D7](d-content/d7-approval-quotas.md) | Request approval & quotas | D | both | accepted | `0.12.0`, `0.18.0` |
+| [D7](d-content/d7-approval-quotas.md) | Request approval & quotas | D | both | accepted | `0.12.0`, `0.18.0`, `0.19.0` |
 | [D10](d-content/d10-bandwidth.md) | Bandwidth & scheduling | D | operator | accepted | `0.12.0`, `0.18.0` |
 | [E3](e-maintenance/e3-backup-restore.md) | Backup & restore | E | operator | accepted | `0.14.0`, `0.18.0`, `0.3.0` |
 | [F4](f-extensibility/f4-capabilities.md) | The capability vocabulary | F | operator | accepted | `0.16.0`, `0.18.0` |

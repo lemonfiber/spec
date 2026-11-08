@@ -140,7 +140,7 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": ["M8", "M14"],
+      "milestones": ["M8", "M14", "M16"],
       "milestone": "M8",
       "priority": null,
       "labels": ["household"],
@@ -148,7 +148,8 @@
       "relates": ["D4", "D5", "D6", "D8"],
       "versions": [
         {"version": "0.12.0", "status": "released"},
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"}
       ],
       "path": "d-content/d7-approval-quotas.md"
     },
