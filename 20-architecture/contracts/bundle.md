@@ -63,7 +63,8 @@ schema = 2
 [[form]]     # one per form
 [[wiring]]   # a choice of filler, or a link by name
 [[removed]]  # one per service the catalogue no longer carries
-[[plugin]]   # one per first-party plugin, ordered by id
+[[plugin]]   # one per part of the stack, ordered by id
+[[offered]]  # one per first-party plugin the stack does not ship, ordered by id
 [fence]      # the image a fenced service runs behind
 ```
 
@@ -356,6 +357,32 @@ repository. A first-party plugin keeps its starting files at `config/<id>/` and 
 recordings at `recordings/<id>/`, the paths the media stack held them at, so every
 materialised file and every fixture keeps its path when a part's source moves.
 
+## `[[offered]]` — a first-party plugin the stack does not ship
+
+```toml
+[[offered]]
+id           = "medusa"
+origin       = "https://github.com/lemonfiber/plugin-medusa"
+revision     = "a5e22904c7a7321a1528fc17b233aa09d32d49ac"
+manifest     = "sha256:41d7…"
+tree         = "sha256:0c9e…"
+profile      = "tv"
+last_release = "2026-10-21"
+```
+
+A first-party plugin that is no part of the stack lemonfiber ships: a second filler of
+a capability a part already fills, which the operator installs in its place. It is
+pinned as a part is, by `id`, `origin`, `revision`, `manifest`, `tree`, `last_release`
+and optionally `release`, each as [`[[plugin]]`](#plugin--each-part-pinned) states it,
+and by the `profile` every service of it sits in, since the bundle is the one place a
+profile is assigned. It names no `fills` and no `stage`: it fills nothing until the
+operator chooses it, and nothing installs it until the operator asks, so no `up` or
+`switch` offers it and no update moves it in. No service of it declares `replaces`.
+Its copy lies at `bundle/plugins/<id>/` as a part's does, and the build embeds it in the
+first-party set beside every part (`ARCH-R300`), so it is installed from the tree the
+build carries, offline, as an `installed` part is (`ARCH-R374`), and its services' ids,
+ports and hostnames are reserved as a part's are (`ARCH-R269`) (`ARCH-R394`).
+
 ## The reserved register
 
 The ids, the published ports and the proxy hostnames of every service a pinned plugin
@@ -400,6 +427,8 @@ Validation reports **every** violation in one pass, each naming its location (`F
 | An `installed` plugin's service whose id is the plugin's declares `replaces` naming it | Plugin named |
 | `profile` is a declared profile, and `[plugin].forms` names exactly the forms whose closure holds it | Plugin, profile and forms named |
 | Every `fills` entry is provided or spoken by a service of the plugin | Plugin and capability named |
+| Every `[[offered]]` carries every field it requires and no `fills` or `stage`; no service of it declares `replaces`; `profile` is a declared profile, and `[plugin].forms` names exactly the forms whose closure holds it | Plugin and field named (`ARCH-R394`) |
+| No id is both a `[[plugin]]` and an `[[offered]]` | The id named (`ARCH-R394`) |
 | `last_release` is `YYYY-MM-DD` and not in the future | Plugin and value named (`F2-R14`) |
 | Every pinned plugin's `license` is an OSI licence, except where its `upstream` is under `https://github.com/lemonfiber/` and a service's image is under `ghcr.io/lemonfiber/`, where it is `Hippocratic-3.0` and nothing else | Plugin and licence named (`F2-R5`) |
 | Every service of a pinned plugin declares `reaches` and `asks_for` | Plugin and service named (`F2-R10`, `ARCH-R270`) |
@@ -417,7 +446,7 @@ Each release of lemonfiber carries a JSON schema of `bundle.toml`,
 | ID | Requirement |
 |----|-------------|
 | **ARCH-R263** | lemonfiber MUST assemble the stack it ships from the bundle it embeds and the plugin trees it pins, and from nothing else, but the pass service, which it writes itself (`ARCH-R291`), and the media server's service, its claims and their recordings, which it MUST read from the media stack as frozen at the source switch until the release that moves the media server in place (`ARCH-R299`); and it MUST NOT carry or materialise a `stack.toml`, an `include` list or a `services/` file for it. |
-| **ARCH-R265** | The default bundle MUST declare, in `bundle/bundle.toml` at `schema = 2`, every profile, form and removed service of the stack it ships, as `[[profile]]`, `[[form]]` and `[[removed]]` with the fields this contract states, and one `[[plugin]]` per first-party plugin; no plugin manifest MAY declare a profile, a form or a removed service; and lemonfiber MUST read `schema` 1 and 2 and MUST refuse any other, naming both. |
+| **ARCH-R265** | The default bundle MUST declare, in `bundle/bundle.toml` at `schema = 2`, every profile, form and removed service of the stack it ships, as `[[profile]]`, `[[form]]` and `[[removed]]` with the fields this contract states, and one `[[plugin]]` per first-party plugin that is a part of it, and MAY declare one `[[offered]]` per first-party plugin that is not; no plugin manifest MAY declare a profile, a form or a removed service; and lemonfiber MUST read `schema` 1 and 2 and MUST refuse any other, naming both. |
 | **ARCH-R266** | Each `[[plugin]]` MUST name `id`, `origin`, `revision`, `manifest`, `tree`, `fills`, `stage`, `profile` and `last_release`, and MAY name `release`; `id` MUST be the plugin's own and the id of the service that takes the part's place; an `assembled` plugin MUST declare exactly one service, speaking no contract, whose claims' fixtures lie under `recordings/<id>/`; an `installed` plugin's service of that id MUST declare `replaces` naming it; every service of the plugin MUST sit in the declared profile `profile` names, and `[plugin].forms` MUST name exactly the forms whose closure holds it; and each violation MUST be refused naming the plugin and the field. |
 | **ARCH-R267** | `tree` MUST be the SHA-256 of a listing, sorted by path bytewise, of one line per file of the plugin's tree (`plugin.toml`, `config/<service id>/` for every service, every recording the manifest names, and `conformance/`), each line the file's SHA-256 in lowercase hex, two spaces, its path relative to the repository root and a line feed; and the catalogue's copy at `bundle/plugins/<id>/` MUST be that tree, each file at its path in the plugin's repository. |
 | **ARCH-R268** | A bundle `[[wiring]]` MUST be either a choice of filler, naming `by`, `asks`, `filled_by` and `why`, where `by`'s plugin asks that capability in its `[[ask]]` and not `each` and `filled_by` provides or speaks it, or a link by name, naming `by`, `to` and `why`; every service it names MUST be a pinned plugin's; and a wiring of any other shape, an ask without `filled_by` among them, MUST be refused naming the wiring. |
@@ -428,6 +457,7 @@ Each release of lemonfiber carries a JSON schema of `bundle.toml`,
 | **ARCH-R299** | Where the stack runs a part as its own service and the bundle pins that part `installed`, `lemonfiber update stack --confirm` MUST move it in place through the plugin install path: the plugin's service takes the same container name, configuration directory, data and setting, secret and credential names (`ARCH-R273`), and the stack's own service is stopped and left out of the stack; the move MUST be rehearsed and shown by the update's rehearsal before anything changes, MUST take the confirmed update as its yes, and MUST be journalled as one operation and undone as one unit (`F6-R9`); until an update is confirmed the stack's own service MUST keep running, assembled from the pin's copy, what its deleted in-process adapter filled MUST be reported unfilled, and `up` and the doctor MUST name the move as not yet taken. A part filling `invite.decline` or `request.gate`, one of lemonfiber's own guards, MUST instead be moved so by the first act of the release carrying its pin that writes the stack's project and leaves the stack running (an `up`, `start`, `restart`, `switch` or start at boot, a confirmed update, a plugin install, update or removal, a choice of filler, a setting set or cleared, or a reset), and by no act that stops the stack, pulls images, watches it, uninstalls it or undoes a change; with no yes of its own, shown by that act's rehearsal and journalled as one operation of its own. A guard whose capability the operator has given another filler MUST NOT be moved. An undo of that move, or a removal of the guard it installed, MUST be refused naming the release that moved it, and lemonfiber MUST NOT configure the stack's own service of either through its files. |
 | **ARCH-R300** | lemonfiber MUST trust a plugin as first-party only at the id, the manifest digest and the tree digest its pin names. |
 | **ARCH-R301** | A link by name or a choice of filler naming a reserved id MUST reach the first-party service whose `replaces` names it, and the checks that refuse a plugin service an id, port or hostname the running stack holds MUST pass over that service. |
+| **ARCH-R394** | Each `[[offered]]` MUST name `id`, `origin`, `revision`, `manifest`, `tree`, `profile` and `last_release`, MAY name `release`, each as a `[[plugin]]` does, and MUST name neither `fills` nor `stage`; no service of it MAY declare `replaces`, every service of it MUST sit in the profile `profile` names, and `[plugin].forms` MUST name exactly the forms whose closure holds it; no id MAY be both a `[[plugin]]` and an `[[offered]]`; and each violation MUST be refused naming the plugin and the field. The build MUST embed every `[[offered]]` pin and its tree in its first-party set as it does a part's, `ARCH-R269`, `ARCH-R300` and `ARCH-R374` MUST hold for it as for a pinned part, and lemonfiber MUST install it only where the operator asks, from that embedded tree, offline: no `up`, `switch`, update or other act MUST install, offer or move it on its own account. |
 | **ARCH-R374** | A plugin whose `[plugin].id` a pin names MUST be installed or updated only at that pin's id, manifest and tree digests (`ARCH-R300`), from the tree the build embeds or the signed release the pin names; an install or update of that id from any other source MUST be refused naming the id and saying this build carries it; and the checks of the reserved register (`ARCH-R269`) MUST pass over the plugin of that id. |
 
 ## Related
