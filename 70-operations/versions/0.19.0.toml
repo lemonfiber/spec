@@ -49,7 +49,7 @@
 # `F14-R31` proves every capability 0.18.0's `F14-R14` does not name by a substitute of its
 # own, end to end. Added by the maintainer's decision of 2026-10-29 (OPS-R31).
 #
-# 112 goals, seeded from the roadmap milestone this version serves;
+# 113 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -92,6 +92,7 @@ goals   = [
     "H5-R16",
     "ARCH-R391",
     "ARCH-R392",
+    "ARCH-R393",
     "D4-R21",
     "F12-R14",
     "F13-R15",
@@ -196,3 +197,6 @@ goals   = [
 # N16 page draws (ADR-0063), by the maintainer's decision of 2026-11-08; `ARCH-R392` joins
 # them, `library.curate@1` minor 3 naming each downloading entry's queue id, by the
 # maintainer's decision of 2026-11-08.
+# `ARCH-R393` lets a first-party plugin provide a capability whose contract the build speaks
+# before a bundled service declares it, so the outside watcher's bundled declarer can be
+# built, by the maintainer's decision of 2026-11-08.
