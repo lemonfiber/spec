@@ -539,6 +539,7 @@ Decisions about a repository outside this organisation, such as
 |---|---|
 | With `LEMONFIBER_STUCK_SEARCH_AGAIN` on, off by default, lemonfiber acts once on each stuck item: the curator drops it from its client and blocklists the release, then searches again; undo grabs the release again by its fingerprint and lifts the blocklist entry, through `unqueue` and `grab` in `library.curate@1` minor 2 | [C7-R16](../10-functional/features/c-trust/c7-queue-health.md), [ARCH-R389](../20-architecture/contracts/capability-contracts.md) |
 | The outside watcher is `status.watch@1`, provisioned by the core under its own tags and paired by the ids it keeps, read at `GET /api/watcher`; seven K2 rows move to 0.19.0 with it | [ADR-0061](../00-overview/decisions/0061-the-outside-watcher-is-a-capability-the-core-provisions.md), [K2-R15, K2-R16](../10-functional/features/k-observability/k2-uptime.md), [ARCH-R390](../20-architecture/contracts/capability-contracts.md) |
+| A job checks in to the outside watcher through `check_in`, a fifth operation of `status.watch@1`; the jobs are the hosted commands that act on a beat, today the guard under `lemonfiber:job:guard`; a critical service is one whose criticality is `critical` or `core` | [ADR-0061](../00-overview/decisions/0061-the-outside-watcher-is-a-capability-the-core-provisions.md), [ARCH-R390](../20-architecture/contracts/capability-contracts.md) |
 
 ## Related
 
