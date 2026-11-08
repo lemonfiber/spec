@@ -58,7 +58,8 @@ stack performs — are watched by heartbeat checks: the job is expected to check
 each interval, and a missed check-in is itself an alarm. A cron job that silently
 stops is caught by its silence, not only by a downstream symptom appearing days
 later. The jobs are the commands the machine's service manager hosts that act on a beat:
-the guard checks in each minute while it holds.
+the guard checks in each minute while it holds, and the clock that closes requests at each
+hourly wake ([ADR-0062](../../../00-overview/decisions/0062-a-job-checks-in-to-the-outside-watcher-over-its-contract.md)).
 
 ### It is honest about how it can be configured
 
