@@ -543,6 +543,7 @@ Decisions about a repository outside this organisation, such as
 | Queue self-healing is the one way lemonfiber acts on a wedged download, behind `LEMONFIBER_STUCK_SEARCH_AGAIN`, gated by strikes (3) and grace (30 min), checked every 10 min, slow past a 7-day estimate; `download.*` `transfers` answer an id, a state and an added time from minor 2; read at `GET /api/queue`; H5 moves to 0.19.0 | [ADR-0063](../00-overview/decisions/0063-the-queue-heals-by-strikes-over-the-curator-and-the-client.md), [H5-R16](../10-functional/features/h-glue/h5-queue-selfheal.md), [ARCH-R391](../20-architecture/contracts/capability-contracts.md), [C7-R16](../10-functional/features/c-trust/c7-queue-health.md) |
 | From `library.curate@1` minor 3, `downloading` answers each entry's queue id, so healing acts on an item the client flags by ids alone | [ARCH-R392](../20-architecture/contracts/capability-contracts.md) |
 | A first-party plugin may provide a capability whose contract the build speaks before a bundled service declares it, and the authoring commands take its recordings; any other plugin is refused it, and the vocabulary does not carry it until a bundled service declares it | [ARCH-R393](../20-architecture/contracts/capability-vocabulary.md) |
+| A first-party plugin the stack does not ship is pinned in the bundle as `[[offered]]`, with no `fills` and no `stage`: embedded in the first-party set, installed only when the operator asks, from the tree the build carries | [ARCH-R394](../20-architecture/contracts/bundle.md) |
 
 ## Related
 
