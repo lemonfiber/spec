@@ -68,7 +68,7 @@ GET /api/update?…
 GET /api/news
 GET /api/plugins       GET /api/wiring       GET /api/settings
 GET /api/playing       GET /api/watching?…
-GET /api/boot
+GET /api/boot          GET /api/watcher
 GET /api/askable?…      GET /api/askable/{id}/poster?…
 ```
 
@@ -191,6 +191,22 @@ against it started nothing, and since when and for how many starts the stack has
 (`B8-R16`). It takes no parameter, because the restart worth reading about is the last one. A
 verification against an earlier start is answered beside the latest start rather than as it, so
 a surface can tell "passed" from "not run since the restart".
+
+### What the outside watcher sees
+
+```
+GET /api/watcher
+```
+
+The `watcher` envelope `lemonfiber watcher --json` prints: which plugin fills `status.watch`,
+whether its monitor answers and why not, when it was asked, every monitor it holds with what it
+sees, and every critical service and household entry point no active monitor covers (`K2-R16`).
+A monitor is paired with the service, entry point or job it covers by the record of what
+lemonfiber provisioned, never by its name or its target, so an operator's own monitor carries no
+`covers`. Its state is `expected-down` where the stack was stopped on purpose and
+`not-reporting` where it holds no reading newer than its interval and grace. A watcher that does
+not answer, or nothing filling `status.watch`, is answered `reachable: false` with everything it
+should cover uncovered, never as nothing wrong. It takes no parameter.
 
 ### What is playing
 
