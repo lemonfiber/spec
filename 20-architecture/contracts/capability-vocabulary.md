@@ -141,6 +141,13 @@ So `declared_by` is read out of the pinned stack manifest at generation time, an
 a capability nothing declares **fails generation**. The rule is enforced by the
 artefact refusing to be built rather than by a reviewer noticing.
 
+A capability whose contract the build already speaks, and that no bundled service
+declares yet, is the one way out of that loop. Its bundled declarer is a first-party
+plugin, and that plugin has to declare it before it can be bundled. So a first-party
+plugin may provide it, and the authoring commands take its recordings, while the
+vocabulary still does not carry it and a third-party plugin is refused it
+(`ARCH-R393`).
+
 It follows that moving the stack pin can move this file, which is the intended
 behaviour: a bundled service that stops declaring a capability changes what
 lemonfiber publishes, and a change nobody meant shows up as a diff in a generated
@@ -363,6 +370,7 @@ answer from the binary they already have (`F10-R8`).
 | **ARCH-R137** | Every bundled claim MUST be judged against its recordings on every change to the stack and before lemonfiber is tagged; a refuted probe MUST refuse the change and the tag, naming the service, the capability and the probe, and a probe that could not be judged MUST be reported unproven and MUST NOT be counted as demonstrated (`F9-R2`, `F9-R5`, `ARCH-R122`). |
 | **ARCH-R119** | A capability's probe MUST be satisfiable by a service holding none of the operator's own data, so that a claim does not rest on what the operator has yet put there. |
 | **ARCH-R309** | A capability's probe MUST be a request, except that a capability whose contract says its fillers listen on nothing MAY declare a probe that is a run of the claimant image's own program, performed as `ARCH-R284` performs a run, judged on `exit` and `stdout_starts_with` alone and asked as `none`; `quality.sync` MUST be that capability, and generating a vocabulary declaring a run probe for any other MUST fail. |
+| **ARCH-R393** | A capability whose contract this build speaks and that no bundled service declares yet MUST be accepted in the `provides` of a first-party plugin's service that speaks its contract (`F14-R19`), by `lemonfiber plugin claims`, `plugin record` and `plugin conform` as by an install, so the bundled declarer `F9-R3` asks for can be built; it MUST be refused by name in the `provides` of any other plugin's service, and the vocabulary MUST NOT carry it until a bundled service declares it (`ARCH-R107`). |
 
 ## Related
 
