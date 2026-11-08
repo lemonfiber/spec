@@ -38,8 +38,8 @@ or worse, hidden by one.
 
 ### A monitor per critical service and per entry point
 
-Every critical service gets a live monitor, and so does every household-facing
-entry point — the paths a member actually uses to request and to watch. The
+Every critical service, one whose criticality is `critical` or `core`, gets a live
+monitor, and so does every household-facing entry point — the paths a member actually uses to request and to watch. The
 question the monitor answers is not "is the container running?" but "does this
 respond to something the household would do?"
 
@@ -57,7 +57,8 @@ Jobs that are supposed to run on a schedule — the periodic maintenance a healt
 stack performs — are watched by heartbeat checks: the job is expected to check in
 each interval, and a missed check-in is itself an alarm. A cron job that silently
 stops is caught by its silence, not only by a downstream symptom appearing days
-later.
+later. The jobs are the commands the machine's service manager hosts that act on a beat:
+the guard checks in each minute while it holds.
 
 ### It is honest about how it can be configured
 

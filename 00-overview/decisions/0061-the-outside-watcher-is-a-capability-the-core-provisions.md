@@ -4,7 +4,9 @@
 **Date:** 2026-11-08
 **Decided:** 2026-11-08, by the maintainer, Wessel Verheij: the outside watcher is
 `status.watch@1`, provisioned by the core under its own tags and read at
-`GET /api/watcher`.
+`GET /api/watcher`. Amended the same day, by the maintainer: a job checks in through a fifth
+operation, `check_in`; the jobs are the hosted commands that act on a beat; and a critical
+service is one whose criticality is `critical` or `core`.
 
 ## Context
 
@@ -32,7 +34,7 @@ falsehood `K2-R8` forbids in another form.
 `status.watch@1` is the outside watcher's contract. A plugin fills it with an adapter in
 front of its monitor, as every part fills a capability
 ([ADR-0041](0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md)). The core asks
-it four operations:
+it five operations:
 
 | Operation | Answers or does |
 |---|---|
@@ -40,18 +42,23 @@ it four operations:
 | `monitors` | Every monitor it holds: its id, the tag lemonfiber gave it where it made it, its name, its kind (`http`, `keyword`, `port`, `ping`, `dns`, `docker` or `heartbeat`), its target, whether it is active or paused, a heartbeat's expected interval and grace, its state (`up`, `down`, `pending` or `paused`) and since when, and its last reading |
 | `provision` | Makes or updates the one monitor holding a tag, of a kind, at a target, at an interval, a heartbeat's grace and a count of failed checks before it alarms; answers its id and what it watches where it could not watch what it was asked to |
 | `retire` | Removes the monitor holding a tag; nothing where none holds it |
+| `check_in` | Records a check-in of the heartbeat holding a tag, as the job it watches makes one each interval; refused where no heartbeat holds the tag |
 
 A tag is lemonfiber's own: `lemonfiber:service:<id>`, `lemonfiber:entry:<id>` or
 `lemonfiber:job:<id>`. `provision` is idempotent by it: provisioning a tag twice leaves
-one monitor. A monitor the operator made holds no tag and is never provisioned over or
-retired.
+one monitor. A monitor the operator made holds no tag and is never provisioned over,
+retired or checked in to.
 
 ### 2. The core provisions what it covers
 
 Where a plugin fills `status.watch`, the core provisions a monitor for every critical
 service, every household-facing entry point over the path the household uses (the front
 door's household address, never an internal one), and every job the stack runs on a
-schedule as a heartbeat. It retires every tagged monitor whose service, entry point or
+schedule as a heartbeat. A critical service is one whose manifest names its criticality
+`critical` or `core`. A job is a command the machine's service manager hosts that acts on
+a beat: the guard, which checks the data location and passes the forwarded port on, checks
+in each minute under `lemonfiber:job:guard`, and its heartbeat is provisioned only where
+the service manager hosts the guard, since an unhosted guard is not expected to run. It retires every tagged monitor whose service, entry point or
 job is gone. Each monitor alarms only after the failed checks the contract names
 (`K2-R9`). Provisioning runs at every act that writes the project and leaves the stack
 running, and on its own, without a terminal (`K2-R14`).
