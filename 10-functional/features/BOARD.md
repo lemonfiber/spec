@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 22 shipped, 45 built, 28 building, 20 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 22 shipped, 47 built, 27 building, 19 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -51,6 +51,7 @@ code, and the two move independently.
 | [C1](c-trust/c1-diagnostics.md) | Diagnostics | C | operator | accepted | `0.1.0`, `0.18.0`, `0.2.0`, `0.8.0` |
 | [C3](c-trust/c3-auto-remediation.md) | Auto-remediation | C | operator | accepted | `0.18.0`, `0.7.0` |
 | [C4](c-trust/c4-support-bundle.md) | Support bundle | C | operator | accepted | `0.18.0`, `0.7.0` |
+| [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.19.0`, `0.6.0` |
 | [C9](c-trust/c9-drift.md) | Config drift detection & seed policy | C | operator | accepted | `0.18.0`, `0.4.0`, `0.7.0` |
 | [C10](c-trust/c10-integration-keys.md) | Integration keys | C | operator | accepted | `0.18.0` |
 | [D3](d-content/d3-first-content.md) | First-content walkthrough | D | operator | accepted | `0.18.0`, `0.4.0` |
@@ -68,6 +69,7 @@ code, and the two move independently.
 | [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.10.0`, `0.11.0`, `0.17.0`, `0.18.0` |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.18.0`, `0.5.0` |
 | [L3](l-release/l3-nas-image.md) | The image for a NAS | L | operator | accepted | `0.18.0` |
+| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | `0.18.0`, `0.19.0`, `0.20.0` |
 | [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0`, `0.19.0` |
 | [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | `0.18.0` |
 | [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | accepted | — |
@@ -99,7 +101,6 @@ code, and the two move independently.
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0`, `0.19.0` |
 | [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.17.0`, `0.18.0`, `0.9.0` |
-| [C7](c-trust/c7-queue-health.md) | Queue health & stuck items | C | operator | accepted | `0.19.0`, `0.6.0` |
 | [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.12.0`, `0.17.0`, `0.18.0`, `0.4.0` |
 | [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.18.0`, `0.4.0` |
 | [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0`, `0.19.0` |
@@ -113,8 +114,8 @@ code, and the two move independently.
 | [G4](g-ux/g4-error-model.md) | Error & remedy model | G | both | accepted | `0.18.0`, `0.5.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0`, `0.18.0` |
 | [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0`, `0.19.0` |
+| [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.19.0`, `0.23.0` |
 | [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0`, `0.19.0`, `1.0.0` |
-| [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | `0.18.0`, `0.19.0`, `0.20.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | `0.19.0` |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |
@@ -144,7 +145,6 @@ code, and the two move independently.
 | [J2](j-runtime/j2-podman.md) | Running under Podman | J | operator | draft | `0.24.0` |
 | [J3](j-runtime/j3-native.md) | Running natively, without containers | J | operator | draft | `0.24.0` |
 | [K1](k-observability/k1-metrics.md) | Metrics & dashboards | K | operator | accepted | `0.23.0` |
-| [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.19.0`, `0.23.0` |
 | [L1](l-release/l1-release-engineering.md) | v1 release engineering | L | operator | accepted | `1.0.0` |
 | [N26](n-companion/n26-what-the-glue-is-doing.md) | What the glue is doing | N | both | accepted | — |
 

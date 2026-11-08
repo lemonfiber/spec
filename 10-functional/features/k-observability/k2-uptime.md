@@ -5,7 +5,7 @@ kind: feature
 area: K
 audience: operator
 status: accepted
-maturity: planned
+maturity: building
 priority: P2
 labels: [observability, verification]
 requires: [B5]
