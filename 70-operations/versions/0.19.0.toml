@@ -49,7 +49,7 @@
 # `F14-R31` proves every capability 0.18.0's `F14-R14` does not name by a substitute of its
 # own, end to end. Added by the maintainer's decision of 2026-10-29 (OPS-R31).
 #
-# 84 goals, seeded from the roadmap milestone this version serves;
+# 94 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -64,6 +64,16 @@ goals   = [
     "B8-R16",
     "C7-R16",
     "ARCH-R389",
+    "K2-R3",
+    "K2-R4",
+    "K2-R5",
+    "K2-R7",
+    "K2-R8",
+    "K2-R10",
+    "K2-R12",
+    "K2-R15",
+    "K2-R16",
+    "ARCH-R390",
     "D4-R21",
     "F12-R14",
     "F13-R15",
@@ -159,3 +169,7 @@ goals   = [
 # `C7-R16` and `ARCH-R389` let the operator have lemonfiber act once on each stuck item,
 # through `library.curate@1`'s `unqueue` and `grab` from minor 2, by the maintainer's
 # decision of 2026-11-08.
+# `K2-R15`, `K2-R16` and `ARCH-R390` make the outside watcher a capability the core
+# provisions and reads (ADR-0061), so the companion's N16 page draws it; `K2-R3`, `K2-R4`,
+# `K2-R5`, `K2-R7`, `K2-R8`, `K2-R10` and `K2-R12` move here from 0.23.0 with it, by the
+# maintainer's decision of 2026-11-08.

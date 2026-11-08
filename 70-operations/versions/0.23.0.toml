@@ -1,7 +1,9 @@
 # Watching the watcher — metrics, dashboards and uptime monitoring.
 #
-# 40 goals, seeded from the roadmap milestone this version serves;
+# 33 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
+# `K2-R3`, `K2-R4`, `K2-R5`, `K2-R7`, `K2-R8`, `K2-R10` and `K2-R12` moved to 0.19.0 with
+# the outside watcher (ADR-0061), by the maintainer's decision of 2026-11-08.
 version = "0.23.0"
 milestone = "M13"   # See everything
 delivers  = "See everything — metrics, dashboards, uptime"
@@ -37,16 +39,9 @@ goals   = [
     "K1-R14",
     "K2-R1",
     "K2-R2",
-    "K2-R3",
-    "K2-R4",
-    "K2-R5",
     "K2-R6",
-    "K2-R7",
-    "K2-R8",
     "K2-R9",
-    "K2-R10",
     "K2-R11",
-    "K2-R12",
     "K2-R13",
     "K2-R14",
 ]
