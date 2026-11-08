@@ -31,13 +31,14 @@
       "status": "accepted",
       "maturity": "planned",
       "shipped": null,
-      "milestones": ["M13"],
-      "milestone": "M13",
+      "milestones": ["M16", "M13"],
+      "milestone": "M16",
       "priority": "P2",
       "labels": ["observability", "verification"],
       "requires": ["B5"],
       "relates": ["G7"],
       "versions": [
+        {"version": "0.19.0", "status": "planned"},
         {"version": "0.23.0", "status": "planned"}
       ],
       "path": "k-observability/k2-uptime.md"

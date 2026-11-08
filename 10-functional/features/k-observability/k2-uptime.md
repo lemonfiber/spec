@@ -43,6 +43,14 @@ entry point — the paths a member actually uses to request and to watch. The
 question the monitor answers is not "is the container running?" but "does this
 respond to something the household would do?"
 
+The monitor fills `status.watch`, and the core provisions a monitor for each critical
+service, entry point and scheduled job under a tag of its own, keeping the id each
+answered. That record is how a monitor is paired with what it covers, so a renamed
+monitor or a shared host never pairs the wrong one; the operator's own monitors hold no
+tag and are left alone ([ADR-0061](../../../00-overview/decisions/0061-the-outside-watcher-is-a-capability-the-core-provisions.md)).
+`lemonfiber watcher`, served at `GET /api/watcher`, reads what each monitor sees beside
+what it covers.
+
 ### Heartbeats for scheduled work
 
 Jobs that are supposed to run on a schedule — the periodic maintenance a healthy
@@ -146,6 +154,8 @@ monitor at all, and from a phone there is no way to tell which one is on screen.
 | **K2-R12** | An entry point MUST be monitored over the path the household actually uses, and internal reachability MUST NOT be reported as household reachability. |
 | **K2-R13** | An alert that could not be delivered MUST be surfaced as undelivered rather than recorded as delivered. |
 | **K2-R14** | Provisioning monitors and running the detection proof MUST each be reachable non-interactively. |
+| **K2-R15** | Where a plugin fills `status.watch`, lemonfiber MUST provision a monitor for every critical service, for every household-facing entry point over the household's own path, and for every job the stack runs on a schedule as a heartbeat, each under the tag `lemonfiber:service:<id>`, `lemonfiber:entry:<id>` or `lemonfiber:job:<id>`, MUST keep the id each provision answered and pair a monitor with what it covers by that record alone, never by its name or target, MUST retire every tagged monitor whose service, entry point or job is gone, and MUST NOT provision over or retire a monitor holding no tag ([ADR-0061](../../../00-overview/decisions/0061-the-outside-watcher-is-a-capability-the-core-provisions.md)). |
+| **K2-R16** | `lemonfiber watcher --json`, served at `GET /api/watcher`, MUST answer which plugin fills `status.watch`, whether its monitor answers and why not, when it was asked, every monitor with its name, kind, state and since when, its last reading, a heartbeat's interval, grace and last check-in, whether it is active, the household or internal path an entry point's monitor watches, what it was asked to watch and what it watches instead where provisioning could not make it watch what it should, and what it covers where lemonfiber made it; its state MUST be `expected-down` where what it covers is stopped on purpose and `not-reporting` where it holds no reading newer than its interval and grace; every critical service and entry point with no active monitor MUST be listed as uncovered; and a monitor that cannot be reached MUST be answered as blind, never as nothing wrong. |
 
 ## Related
 
