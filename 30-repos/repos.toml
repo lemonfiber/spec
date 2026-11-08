@@ -393,6 +393,15 @@ lang = "Rust"
 note = "One copy of the Servarr client, taken by each Servarr adapter at a commit"
 
 [[repo]]
+name = "adapter-kit-music"
+node = "musickit"
+group = "impl"
+label = "adapter-kit-music<br/>what the music curators' adapters share"
+spec = ["adapter-kit-music.md"]
+lang = "Rust"
+note = "One copy of music.curate as a music curator answers it, taken by each music curator's adapter at a commit"
+
+[[repo]]
 name = "homebrew-tap"
 node = "tap"
 group = "impl"
@@ -580,6 +589,11 @@ label = "docs submodule, pinned"
 from = "adapter-kit-servarr"
 to = "parts"
 label = "taken by commit by the Servarr adapters"
+
+[[edge]]
+from = "adapter-kit-music"
+to = "parts"
+label = "taken by commit by the music curators' adapters"
 
 [[edge]]
 from = "website-kit"
