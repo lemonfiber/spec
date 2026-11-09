@@ -54,6 +54,11 @@ An install is not done when the writes succeed. Two things must hold, in order:
 2. **The stack's own verification passes over what the plugin changed** — everything else
    still works.
 
+A warning about a service the plugin itself brings, such as the caveat that a firewall
+rule may not apply to a port it publishes, is the service's own and not something the
+install broke: it is reported, naming the check and the service, and the install stands.
+A warning about any other service, and any failure, fails the verification.
+
 The second is what a plugin cannot check for itself. A plugin can substitute a media
 server, pass every one of its own proofs, and leave the request service unable to sign
 anybody in. Its proofs were never going to catch that; the stack's own checks are.
