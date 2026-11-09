@@ -149,8 +149,8 @@ asks for them. Their shapes are the generated documents' alone.
 | `archive.extract` | `watch`: every curator at once, each named by the media type it files, with its address, its key and its download folder, which is whom a finished extraction is handed back to, in place of those it watches; `working`: what it is extracting now |
 | `stream.guard` | Apply a guard: the media server filler's declaration verbatim, where the upstream and the adapter are, the one proxy address the guard trusts and the pass service's address, where it asks about a live-stream pass (below); the guard it enforces, all of it read back; the certificate it presents |
 | `invite.decline` | `hold`: the media server key it switches an invitation off with, and the SHA-256 of each certificate the media server's internal TLS port may present; `held`: that key's SHA-256, and the certificates' it holds; `apply the invitations it may decline`: how the media server tells a claimed account, and each invitation's token hash, its account, the name the account was made under, when it was issued and when it lapses; `refusals`: each invitation declined; `lapses`: each invitation taken back when its window closed; `page`: where it serves the page an invitation is declined on |
-| `music.curate` | What a member asks for of music, below: look up albums or artists by words; ask for one; the profiles an ask is made with |
-| `books.curate` | What a member asks for of books, below: look up books, authors or series by words; ask for one; the profiles an ask is made with |
+| `music.curate` | What a member asks for of music, below: look up albums or artists by words; ask for one; the units it answers for and the profiles an ask is made with |
+| `books.curate` | What a member asks for of books, below: look up books, authors or series by words; ask for one; the units it answers for and the profiles an ask is made with |
 | `request.gate` | Apply the routes it admits, for each curator and the media server (a Plex route where Plex is the media server, an Emby route where Emby is), each with the path segment it answers under and the upstream's supported majors; the routes it admits, each credential by its SHA-256; `admit tokens`: the token hashes one route admits, its credential left as it is; `record`: every refusal and forwarded removal since an entry, and how many it no longer holds |
 
 The capability types are neutral: none names a product. A curator is referred to by the
@@ -575,7 +575,7 @@ curator already wants it, or `may-ask`.
 | `lookup` | A page of candidates of one unit found by words, each with where the next page begins until there is none |
 | `candidate` | One candidate of one unit by the curator's reference for it, as `lookup` would answer it, or nothing where its catalogue holds no such reference |
 | `request` | Asks for one candidate by its unit and reference, at a root folder and the profiles it holds, monitoring an album or a book alone, or every one of an artist, an author or a series and those that come later, then searching where asked; answers the candidate as it now stands |
-| `profiles` | The root folders and the profiles a request may name: quality, and for music metadata |
+| `profiles` | The units of its medium it answers for as it is configured now, and the root folders and the profiles a request may name: quality, and for music metadata |
 
 A request naming a root folder or a profile the curator does not hold is refused, as is
 one whose reference its catalogue does not hold.
@@ -584,7 +584,8 @@ A curator that cannot carry an ask exactly as asked MAY carry it as near as it c
 plugin MUST say how in its documentation: a request it cannot make without searching searches,
 and a series whose later books it can follow only through each author's own series follows them
 that way. A unit it cannot answer at all, or cannot answer as it is configured, is refused as
-unsupported, with a sentence naming what it lacks.
+unsupported, with a sentence naming what it lacks, and is left out of the units `profiles`
+answers.
 
 ### The outside watcher
 

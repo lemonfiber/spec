@@ -41,8 +41,9 @@ adapter-kit-music/
                    or an artist by words, a page at a time; one candidate by its
                    reference; request, monitoring an
                    album alone or an artist with every album and those that come
-                   later, then searching where asked; the root folders, quality
-                   and metadata profiles a request is made with
+                   later, then searching where asked; the units it answers for,
+                   and the root folders, quality and metadata profiles a request
+                   is made with
 ```
 
 What only one upstream answers stays in that upstream's adapter, with its release,
