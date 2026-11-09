@@ -38,7 +38,8 @@ and copies none of it.
 adapter-kit-music/
 └── src/
     └── curator    music.curate as a music curator answers it: lookup of an album
-                   or an artist by words, a page at a time; request, monitoring an
+                   or an artist by words, a page at a time; one candidate by its
+                   reference; request, monitoring an
                    album alone or an artist with every album and those that come
                    later, then searching where asked; the root folders, quality
                    and metadata profiles a request is made with
