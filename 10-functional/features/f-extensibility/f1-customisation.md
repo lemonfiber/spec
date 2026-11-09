@@ -154,6 +154,7 @@ Per managed area:
 | **F1-R12** | Machine-readable output MUST be a versioned, stable interface. |
 | **F1-R13** | A configuration violating internal guidance MUST be reported with its consequence, and MUST NOT be refused. |
 | **F1-R14** | Multiple independent stacks MUST be supportable on one host, with port conflicts detected. |
+| **F1-R15** | lemonfiber MUST answer one read of how its stack runs without it, for the operator alone and refused to a member's key: whether it runs the stack it ships or the operator's own, and where that is; the directory the Compose project is written to and the `.env` beside it; the exact `docker compose` words that bring the stack up with no lemonfiber running, built by the function its own driver builds them with; how any action is run without questions; and each part that does not run under those words alone, with why. A stack directory that cannot be read MUST refuse the read, naming what failed, and MUST NOT be answered as the stack it ships. |
 
 ## Related
 
