@@ -566,7 +566,7 @@ takes a unit: for music an `album` (a release group) or an `artist`, for books a
 `author` or a `series`. A candidate is named by the curator's own reference for it, a
 string, with its name, its artist or author, its year, a cover where it has one, for a
 book the format the household files it in, and its state: `here`, `asked` where the curator
-already wants it, or `may_ask`.
+already wants it, or `may-ask`.
 
 | Operation | Answers or does |
 |---|---|
