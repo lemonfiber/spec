@@ -563,8 +563,9 @@ member's behalf, under the key its install minted for the core. Everything else 
 of either does, its download clients, folders, queue and pipeline, stays on
 `library.curate@1`, whose title operations stay series and films alone. Each operation
 takes a unit: for music an `album` (a release group) or an `artist`, for books a `book`, an
-`author` or a `series`. A candidate is named by the curator's own reference for it, a
-string, with its name, its artist or author, its year, a cover where it has one, for a
+`author` or a `series`. A candidate is named by a reference the curator's adapter gives it,
+a string, which the adapter may compose from what its curator knows the candidate by, so that
+`candidate` can find it again, with its name, its artist or author, its year, a cover where it has one, for a
 book the format the household files it in, and its state: `here` where the house holds all of
 it, `partly-here` where it holds some of an artist, an author or a series, `asked` where the
 curator already wants it, or `may-ask`.
@@ -578,6 +579,12 @@ curator already wants it, or `may-ask`.
 
 A request naming a root folder or a profile the curator does not hold is refused, as is
 one whose reference its catalogue does not hold.
+
+A curator that cannot carry an ask exactly as asked MAY carry it as near as it can, and its
+plugin MUST say how in its documentation: a request it cannot make without searching searches,
+and a series whose later books it can follow only through each author's own series follows them
+that way. A unit it cannot answer at all, or cannot answer as it is configured, is refused as
+unsupported, with a sentence naming what it lacks.
 
 ### The outside watcher
 
