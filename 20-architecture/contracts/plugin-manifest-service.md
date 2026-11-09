@@ -606,6 +606,13 @@ credential is read from where it is held whenever the entry is written, never co
 | `{ uid_env = "<NAME>", gid_env = "<NAME>" }` | The two variables it names set to the operator's uid and gid, for an image that drops to them itself under names of its own. `puid-env` is this table naming `PUID` and `PGID`. |
 | `uid` | The operator's uid and gid as the container's user |
 
+The operator's uid and gid are `PUID` and `PGID`, each where the operator set it, and
+otherwise the one owning the stack directory, which is who lemonfiber writes every
+service's configuration as. A service that speaks a contract reads nothing but what
+lemonfiber writes for it, so it runs as the stack directory's owner whatever `PUID` and
+`PGID` say. Root is never the operator's uid: where root owns the stack directory, or its
+owner cannot be read, the uid and gid are 1000 (`ARCH-R233`).
+
 The `PUID`/`PGID` pair is a LinuxServer.io convention, and setting it on an image that
 ignores it is a silent no-op that reads like a security control. So the manifest says
 which kind of image it is, rather than lemonfiber asserting something about an image
