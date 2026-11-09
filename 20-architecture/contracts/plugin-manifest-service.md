@@ -706,9 +706,11 @@ lemonfiber answers it with a fence rather than a check (`ARCH-R363`):
   link-local and metadata, the IETF, documentation and benchmarking ranges, multicast
   and reserved, IPv6 unique-local, link-local and site-local), read from the same list,
   to every IPv6 range whose addresses carry an IPv4 one (mapped, compatible, NAT64, 6to4
-  and Teredo), and to each address of the engine's host lemonfiber hands it. Two things pass: the
-  engine's own resolver at `127.0.0.11` on port 53 alone, so names still resolve, and the
-  answers to connections other services opened to it.
+  and Teredo), and to each address of the engine's host lemonfiber hands it. Three things
+  pass: every connection out of the namespace's own loopback interface to any address but
+  `127.0.0.11`, which reaches nothing outside the namespace, so a service whose parts talk
+  to each other over it runs; the engine's own resolver at `127.0.0.11` on port 53 alone,
+  so names still resolve; and the answers to connections other services opened to it.
 - **lemonfiber asks the engine for its host's addresses.** The host that matters is the
   one the engine's containers run on, which is not always the machine lemonfiber runs on:
   an engine can be reached over SSH, or run its containers in a virtual machine. So on

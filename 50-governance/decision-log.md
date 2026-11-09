@@ -551,6 +551,12 @@ Decisions about a repository outside this organisation, such as
 | What is new lists every request by its reference and orders them by when each was asked, so an ask for music or books the core keeps is new beside the films and series the request service files | [ARCH-R140](../20-architecture/contracts/web-api.md), [D7-R16](../10-functional/features/d-content/d7-approval-quotas.md) |
 | An install's verification counts a warning about a service the plugin brings as reported rather than as broken, and leaves out whether a move onto a plugin is on offer, which it reads before the install is recorded; a warning about any other service and any failure still put the install back | [F6-R4](../10-functional/features/f-extensibility/f6-plugin-lifecycle.md), [F6-R5](../10-functional/features/f-extensibility/f6-plugin-lifecycle.md) |
 
+## 2026-11-09
+
+| Decision | Where it lives |
+|---|---|
+| A fence passes every new connection out of its namespace's own loopback interface to any address but the resolver's, so a fenced service whose parts talk over loopback, as FlareSolverr's browser and its driver do, runs; the resolver keeps port 53 alone. `ARCH-R363` is amended in place. The user chose this over passing all of loopback and over running FlareSolverr unfenced | [ARCH-R363](../20-architecture/contracts/plugin-manifest.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
