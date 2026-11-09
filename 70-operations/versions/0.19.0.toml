@@ -49,7 +49,7 @@
 # `F14-R31` proves every capability 0.18.0's `F14-R14` does not name by a substitute of its
 # own, end to end. Added by the maintainer's decision of 2026-10-29 (OPS-R31).
 #
-# 120 goals, seeded from the roadmap milestone this version serves;
+# 123 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -100,6 +100,9 @@ goals   = [
     "ARCH-R395",
     "ARCH-R396",
     "F1-R15",
+    "D4-R24",
+    "D4-R25",
+    "D4-R26",
     "D4-R21",
     "F12-R14",
     "F13-R15",
@@ -216,3 +219,6 @@ goals   = [
 # maintainer's decision of 2026-11-08.
 # `F1-R15` answers one read of how the stack runs without lemonfiber, so the companion can
 # show it under N19, by the maintainer's decision of 2026-11-09.
+# `D4-R24`, `D4-R25` and `D4-R26` answer which kinds a member may ask for, serve music and book
+# covers, and report kept asks as arrived, so the companion's music and books pages can be
+# built, by the maintainer's decision of 2026-11-09.

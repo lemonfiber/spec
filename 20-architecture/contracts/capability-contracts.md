@@ -565,8 +565,9 @@ of either does, its download clients, folders, queue and pipeline, stays on
 takes a unit: for music an `album` (a release group) or an `artist`, for books a `book`, an
 `author` or a `series`. A candidate is named by the curator's own reference for it, a
 string, with its name, its artist or author, its year, a cover where it has one, for a
-book the format the household files it in, and its state: `here`, `asked` where the curator
-already wants it, or `may-ask`.
+book the format the household files it in, and its state: `here` where the house holds all of
+it, `partly-here` where it holds some of an artist, an author or a series, `asked` where the
+curator already wants it, or `may-ask`.
 
 | Operation | Answers or does |
 |---|---|
