@@ -5,7 +5,7 @@ kind: feature
 area: D
 audience: household
 status: accepted
-maturity: built
+maturity: building
 labels: [household]
 relates: [D1, D6, D7, D8, D11, G6]
 ---
