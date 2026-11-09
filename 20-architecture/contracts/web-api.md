@@ -70,6 +70,7 @@ GET /api/plugins       GET /api/wiring       GET /api/settings
 GET /api/playing       GET /api/watching?…
 GET /api/boot          GET /api/watcher      GET /api/queue
 GET /api/askable?…      GET /api/askable/{id}/poster?…
+GET /api/askable/kinds?…                      GET /api/stack
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -155,6 +156,11 @@ saying a guarantee the operator believes is in force is not.
 `/api/front-door` takes none, because the question takes none: which one address the household
 is given is derived from what the stack runs rather than asked for, so a parameter here would be
 a way for one surface to be told a different door from another.
+
+`/api/stack` takes none either: it answers how the stack runs without lemonfiber (`F1-R15`), as
+`lemonfiber stack --json` writes it, the operator's alone. A member and a key of any scope are
+refused it, because it names where this machine keeps its project and settings, and a login in
+the container engine's address is withheld from the words it says.
 
 `/api/requests` answers with the household and what each member has asked for, the same
 document `lemonfiber household --json` writes. Each request carries what a member's own screen
@@ -275,6 +281,12 @@ every search is a live question to the request service and to the catalogue behi
 - **What the member may ask for.** Beside the titles, `asking`: what their period allows and has
   left of each kind and when it next frees up, as the household read says it, and `approval`, a
   household sentence saying whether what they ask for waits for whoever runs the house.
+
+`/api/askable/kinds` takes `member` as the search does, answered to the same callers with the
+same refusals, and says which kinds that member may ask for now, each with the units a title of
+it is asked for in (`D4-R24`): series and films where a curator of them runs, with no units, and
+music or books where a curator speaking `music.curate` or `books.curate` is settled, in the units
+its `profiles` answers. A kind the member's allowance takes none of is left out.
 
 `/api/askable/{id}/poster` is the poster of a title a page offered, named by its id in the path
 and its `kind` as a parameter, with `member` as the search takes it and answered to the same
