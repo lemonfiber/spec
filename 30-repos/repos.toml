@@ -384,6 +384,15 @@ plugin = "caddy"
 image = true
 
 [[repo]]
+name = "plugin-ntfy"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "TOML"
+note = "The stack's own push server, ntfy, which the bundle offers and does not ship; its image is the upstream's, pinned by revision"
+plugin = "ntfy"
+image = false
+
+[[repo]]
 name = "adapter-kit-servarr"
 node = "servarrkit"
 group = "impl"

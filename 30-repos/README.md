@@ -46,7 +46,7 @@ flowchart TD
         kit["website-kit<br/>what both sites run"]
         lfdev["tool-lfdev<br/>the developer command line"]
         brand["brand<br/>design tokens"]
-        parts["plugin-*<br/>twenty-one first-party plugins"]
+        parts["plugin-*<br/>twenty-two first-party plugins"]
     end
 
     web -->|submodule, pinned| lemonfiber
@@ -117,6 +117,7 @@ flowchart TD
 | `plugin-homepage` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the dashboard, Homepage; its image is the upstream's, pinned by revision |
 | `plugin-door` | [first-party-plugins.md](first-party-plugins.md) | TOML | The bundle's part for the guarded door: the manifest running lemonfiber-door's image, which it pins; builds no image, so the bundle pins its revision |
 | `plugin-caddy` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's part for the proxy: the adapter speaking proxy.front beside lemonfiber-caddy's image, which it pins; builds the adapter's image, so the train tags it |
+| `plugin-ntfy` | [first-party-plugins.md](first-party-plugins.md) | TOML | The stack's own push server, ntfy, which the bundle offers and does not ship; its image is the upstream's, pinned by revision |
 | `adapter-kit-servarr` | [adapter-kit-servarr.md](adapter-kit-servarr.md) | Rust | One copy of the Servarr client, taken by each Servarr adapter at a commit |
 | `adapter-kit-music` | [adapter-kit-music.md](adapter-kit-music.md) | Rust | One copy of music.curate as a music curator answers it, taken by each music curator's adapter at a commit |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
@@ -128,7 +129,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those forty-seven are the repositories this specification governs, which is not the
+Those forty-eight are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))

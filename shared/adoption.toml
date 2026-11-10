@@ -304,3 +304,8 @@ hooks = ["commit-msg", "pre-push"]
 name = "plugin-caddy"
 gates = []
 hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-ntfy"
+gates = []
+hooks = ["commit-msg", "pre-push"]
