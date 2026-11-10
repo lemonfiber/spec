@@ -71,6 +71,7 @@ GET /api/playing       GET /api/watching?…
 GET /api/boot          GET /api/watcher      GET /api/queue
 GET /api/askable?…      GET /api/askable/{id}/poster?…
 GET /api/askable/kinds?…                      GET /api/stack
+GET /api/requests/{reference}/poster?…
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -299,6 +300,21 @@ address, and no redirect followed; the member's client is never sent to the cata
 outside the member's limits is refused as `WISH-3`, as an ask is; one with no poster, a poster
 that is not a raster image or is larger, and an operator who switched posters off
 (`LEMONFIBER_REACH_POSTERS`, `G8-R5`) are answered as `WISH-13`.
+
+For music and books it takes `unit` beside `kind`, as the search does, and the id is the
+curator's reference: it answers that candidate's cover (`D4-R25`), read back from its curator,
+under the same setting and size cap. A cover lies wherever the curator says, so the core fetches
+it from any host, but only over HTTPS with no credentials, its host resolved and refused where it
+stands for a loopback, private, link-local or otherwise non-public address, and no redirect
+followed. Each host it fetched a cover from is named under the posters entry of the account of
+what leaves this machine.
+
+`/api/requests/{reference}/poster` is the cover of an ask for music or books the core keeps,
+named by its reference (`music-3`), served after the search that found it is gone and fetched as
+a candidate's cover is. It takes `member`: a member's own request has replaced it with themselves
+and reads only the covers of their own asks, the operator reads any, and a `read` or an `act` key
+is not answered. A reference no kept ask goes by, or one another member made, is refused as
+`WISH-3`.
 
 `ask` takes `id` and `kind`, as a page of `/api/askable` named the title, `seasons` for a series
 (none names every season not already here or on its way, `D4-R11`), `name`, which the operator
