@@ -99,7 +99,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `digest` | string | ✔ | `sha256:…`. What actually runs. |
 | `tag` | string | ✔ | The human-readable version the digest corresponds to. Recorded and shown; never resolved. |
 | `port` | integer | | The port it is published at on the host: its primary UI/API port. Omitted for a service that publishes nothing. |
-| `bind` | enum | ✔ if `port` | `loopback` \| `lan`. A **tier**, not an address, and every port the service publishes is published on it — see [ports](#ports--the-tier-is-lemonfibers-the-numbers-are-the-manifests). |
+| `bind` | enum | ✔ if `port` | `loopback` \| `lan` \| `proxied`. A **tier**, not an address, and every port the service publishes is published on it — see [ports](#ports--the-tier-is-lemonfibers-the-numbers-are-the-manifests). |
 | `publish` | array of tables | | Each further port it publishes on its tier: `port`, on the host (✔), and `listens`, inside the container (default `port`). Only where `port` is declared. |
 | `health` | table | | As `stack.toml`. Absent means lifecycle waits on container state only. |
 | `criticality` | enum | ✔ | As `stack.toml`. `critical` only with `shape = "egress-guard"` — see below. |
@@ -150,12 +150,18 @@ the digest is what runs, and the tag is a label on it.
 
 ### Ports — the tier is lemonfiber's, the numbers are the manifest's
 
-A service declares `loopback` or `lan`. It cannot declare an address or a
+A service declares `loopback`, `lan` or `proxied`. It cannot declare an address or a
 host-facing interface, because a service that could write its own address could
 place an admin surface on the LAN without touching anything
 [C6](../../10-functional/features/c-trust/c6-web-security.md) inspects. lemonfiber
-renders the tier to an interface for every service alike, and the two-tier policy
+renders the tier to an interface for every service alike, and the tier policy
 stays a property of the system rather than a request a manifest makes.
+
+`proxied` is for a service the household reaches and lemonfiber talks to on this
+machine, such as the stack's own push server. Its ports are published on the loopback
+interface alone, where lemonfiber reaches it, and the household reaches it by name
+through the proxy's TLS and no other way, so no credential it is sent crosses the
+network in clear (`ARCH-R408`).
 
 The numbers are the manifest's. `port` is where the service is published on the host
 and `listens` where it answers inside its container, so an image answering on 8080 is
