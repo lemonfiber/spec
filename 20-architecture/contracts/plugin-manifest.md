@@ -250,7 +250,7 @@ route a manifest can take on anybody's behalf.
 lemonfiber also writes the stack's own wiring for a plugin's service, from the same
 declaration and by the same argument — a plugin that supplies no Compose entry supplies
 no proxy stanza and no dashboard entry either, and gets both written for it. The proxy
-reaches a service at its `listens` port. For a `lan` service:
+reaches a service at its `listens` port. For a `lan` or `proxied` service:
 
 ```caddyfile
 comics.{$DOMAIN} {
@@ -491,7 +491,7 @@ by lemonfiber from what the manifest already declares — the id and port to rea
 it on, the tier that decides whether it is reachable at all, and the description
 that goes beside it.
 
-**The tier governs, not the plugin.** Only `lan` services are proxied, because
+**The tier governs, not the plugin.** Only `lan` and `proxied` services are proxied, because
 the bundled policy is that an admin surface does not get a hostname — every
 admin stanza in the shipped `Caddyfile` is commented out with what you would be
 accepting written next to it. A `loopback` service gets no route, and there is
@@ -938,6 +938,7 @@ unreadable.
 | **ARCH-R318** | lemonfiber MUST keep, as shipped, the starting files of every service whose files name a minted secret; replacing a minted secret MUST mint and hold a new value and, before it is called replaced, write it to every environment file and `upstream.json` that names it and, in every starting file whose kept copy names it, in place of the value on the line the text around the placeholder finds, keeping the rest of the file and deriving the hashed form afresh for `\|pbkdf2` and `\|bcrypt` (`ARCH-R406`), and MUST restart each service that reads one; where that line is not found in a file, the replacement MUST be refused naming the file before anything is written, and the old value MUST stay in force. |
 | **ARCH-R406** | lemonfiber MUST write a starting file's `{{secret:<id>\|bcrypt}}` as bcrypt of the secret's value at cost 10 with a fresh 16-byte random salt, written in the modular crypt form `$2b$10$<salt><hash>`; every other rule `ARCH-R316` and `ARCH-R318` hold a hashed form to MUST hold for it as for `\|pbkdf2`, and a replaced secret MUST be hashed afresh with a fresh salt. |
 | **ARCH-R407** | A service MAY declare `args`, one to sixteen strings lemonfiber MUST write, in order and each as a literal, as the Compose `command` handed to the image's own entrypoint, and MUST start the service with them wherever it runs it, `plugin record` and every live proof included; an empty list, more than sixteen entries, a value that is not a string, and an entry that is empty, is longer than 256 characters or holds `$`, `{{` or a control character MUST each be refused naming the service and the entry; lemonfiber MUST NOT write `command` from anything else and MUST NOT write `entrypoint`. |
+| **ARCH-R408** | A service MAY declare `bind = "proxied"`, a tier beside `loopback` and `lan` that `ARCH-R104` lets decide whether it is reachable by name: lemonfiber MUST publish its `port` and every port its `[[service.publish]]` names on the loopback interface alone, MUST give it a proxy route at its hostname as it gives a `lan` service, reaching it at its `listens` port on the stack's network, and MUST NOT publish any of its ports on another interface; where the stack runs no proxy, the reading MUST say the service is reachable on this machine alone. |
 | **ARCH-R322** | A `[[secret]]` whose `of` names a service outside its plugin MAY declare `for`, naming a capability a service of the same plugin `provides`; a third-party plugin's such secret MUST declare it, and an install or update MUST be refused, naming the secret, where a third-party plugin declares two such secrets for one capability or a `for` names a capability none of its services provides. |
 | **ARCH-R323** | An install or update of a third-party plugin MUST name in its reading each credential that would cross to it as `<setting>@<plugin>`, with the capability it is for and the service whose credential it is, MUST NOT act unless each was approved in that act, and MUST NOT let a credential cross that the act did not approve; each grant given or ended MUST be journalled with the operation that gives or ends it, by credential and plugin and never by value, so undoing the operation ends or restores the grant.; a grant recorded under a credential's earlier name MUST be rewritten to its name (`ARCH-R342`) in the run that moves the credential, journalled so undoing it writes the earlier record back. |
 | **ARCH-R324** | `lemonfiber credentials revoke <plugin> <credential>` and the `credentials-revoke` action MUST end one grant by writing every entry and connection of the plugin again without the credential and restarting the plugin's services that read it, journalled as one operation undo reverses and taking an offer as a plugin write does (`ARCH-R146`); the plugin MUST stay installed with each capability the credential was for reported unfilled for that reason, and a plugin and credential with no grant between them MUST be refused, naming the grants the plugin holds. |
