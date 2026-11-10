@@ -1,6 +1,6 @@
 # Watching the watcher — metrics, dashboards and uptime monitoring.
 #
-# 33 goals, seeded from the roadmap milestone this version serves;
+# 41 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `K2-R3`, `K2-R4`, `K2-R5`, `K2-R7`, `K2-R8`, `K2-R10` and `K2-R12` moved to 0.19.0 with
 # the outside watcher (ADR-0061), by the maintainer's decision of 2026-11-08.
@@ -23,6 +23,14 @@ goals   = [
     "B9-R10",
     "B9-R11",
     "B9-R12",
+    "ARCH-R397",
+    "ARCH-R398",
+    "ARCH-R399",
+    "ARCH-R400",
+    "ARCH-R401",
+    "ARCH-R402",
+    "ARCH-R403",
+    "ARCH-R404",
     "K1-R1",
     "K1-R2",
     "K1-R3",
