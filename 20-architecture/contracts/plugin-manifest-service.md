@@ -115,6 +115,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `mount` | array of tables | | Each further path mounted from its own mount tree, `./mounts/<id>`, which lies apart from its configuration directory: `from` (✔), `to` (✔) and `ro` (default `false`) — see [mounts](#mounts--from-its-own-tree-and-nowhere-else). |
 | `tmpfs` | array | | Absolute paths given scratch space in memory, empty whenever the container starts. |
 | `env` | table | | Its environment: a variable's name to one of four typed kinds of value — see [environment](#environment--four-kinds-of-value). |
+| `args` | array | | The arguments handed to the image's own entrypoint, for an image that runs nothing until it is told what to: one to sixteen constant strings, each 1 to 256 characters, none holding `$`, `{{` or a control character. Written as Compose `command`, each a literal. Absent means the image's own command (`ARCH-R407`). |
 | `user_mode` | enum or table | | `image` \| `puid-env` \| `uid` \| `{ uid_env = "<NAME>", gid_env = "<NAME>" }`. Who the container runs as. Default `image`, and `uid` where the service speaks a contract or is `confined` — see [who it runs as](#who-it-runs-as-and-how-tightly-it-is-held). |
 | `posture` | enum | | `standard` \| `confined`. How tightly the container is held, as declared. Default `standard`. `confined` only where the plugin's own CI runs the image under it. |
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate, summed into a form's footprint (`B1-R18`) and never written as a limit. |
@@ -840,7 +841,7 @@ name (`ARCH-R84`), rather than having it ignored:
 | `host_managed` | Native-mode lifecycle is the operating system's (`B2-R15`). A plugin cannot install a system service. |
 | `profile` | Assigned, not declared: by the [bundle](bundle.md#profiles-and-forms-for-a-part) for a first-party plugin, and `plugin-<id>` for any other ([what lemonfiber writes](plugin-manifest.md#what-lemonfiber-writes)). |
 | `environment` | Free-form variables. A free-form pair is how a manifest would configure its way past what the format says it does, and a value carrying `${…}` would read the stack's environment file, credentials included. A service's environment is [`env`](#environment--four-kinds-of-value) instead, where every value is one of four typed kinds and nothing is interpolated. |
-| `ports`, `volumes`, `networks`, `network_mode`, `devices`, `cap_add`, `user`, `privileged`, `entrypoint`, `command` | Compose's own keys. Each is what lemonfiber writes from the typed fields above or never writes at all, and a manifest naming one is naming the output rather than declaring the service. |
+| `ports`, `volumes`, `networks`, `network_mode`, `devices`, `cap_add`, `user`, `privileged`, `entrypoint`, `command` | Compose's own keys. Each is what lemonfiber writes from the typed fields above or never writes at all, `command` from `args` alone and `entrypoint` never, and a manifest naming one is naming the output rather than declaring the service. |
 | `last_release` | An abandonment signal maintained by the people reviewing the bundled pins, in the bundle beside each pin (`F2-R14`). Self-reported by a plugin it would signal nothing. |
 
 ## Related
