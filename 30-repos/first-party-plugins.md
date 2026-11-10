@@ -2,8 +2,9 @@
 
 **Status:** Accepted
 
-One page for every bundled part's repository. Each is a first-party plugin, written in
-the same manifest as anybody's, pinned by the default bundle and embedded in the binary.
+One page for every bundled part's repository, and for each first-party plugin the bundle
+offers rather than ships. Each is a first-party plugin, written in the same manifest as
+anybody's, pinned by the default bundle and embedded in the binary.
 
 **Implements:** [ADR-0045](../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md),
 for [F14-R7](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md)
@@ -49,6 +50,13 @@ Two parts keep the repositories they already have:
 [`lemonfiber-decline`](lemonfiber-decline.md) and
 [`lemonfiber-request-gate`](lemonfiber-request-gate.md) each declare their service in a
 `plugin.toml` of their own beside the image they build (`REPO-R94`).
+
+`plugin-ntfy` is a first-party plugin the bundle offers and does not ship, pinned as an
+`[[offered]]` and installed only where the operator asks
+([ARCH-R394](../20-architecture/contracts/bundle.md)). It runs the stack's own push
+server, ntfy, the self-hosted channel offered first for notifications
+([B9-R11](../10-functional/features/b-running/b9-notification-backends.md)), and builds
+no image. Its repository is held to everything below as a part's is.
 
 ## What each holds
 

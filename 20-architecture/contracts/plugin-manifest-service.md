@@ -375,9 +375,10 @@ stands in for a part that has one on the same terms.
 
 An upstream that reads its key from its own settings file is given it there. A starting
 file names a secret the plugin holds as `{{secret:<id>}}`, and lemonfiber writes the
-value in its place; `{{secret:<id>|pbkdf2}}` writes the salted PBKDF2-HMAC-SHA512 form a
-service that keeps only a hash of its password reads, as `@ByteArray(<salt>:<hash>)`
-(`ARCH-R316`):
+value in its place. A service that keeps only a hash of its password is given the hash
+it reads: `{{secret:<id>|pbkdf2}}` writes the salted PBKDF2-HMAC-SHA512 form, as
+`@ByteArray(<salt>:<hash>)`, and `{{secret:<id>|bcrypt}}` the salted bcrypt form at
+cost 10, as `$2b$10$<salt><hash>` (`ARCH-R316`, `ARCH-R406`):
 
 ```ini
 # config/sabnzbd/sabnzbd.ini
@@ -392,9 +393,10 @@ api_key = {{secret:upstream-key}}
 - **Text, and one syntax.** A file with a placeholder is UTF-8, and any other form, or a
   secret the manifest does not declare, is refused naming the file and the placeholder.
 - **A few, and only through no link.** A service's files hold at most 16 placeholders in
-  all: each is written at install and again whenever its secret is replaced, and the
-  hashed form is a hundred thousand rounds. A file holding one is written only where no
-  link stands on the way to it, since the directory is one the container writes.
+  all: each is written at install and again whenever its secret is replaced, and a
+  hashed form is a hundred thousand rounds of PBKDF2 or bcrypt at cost 10. A file
+  holding one is written only where no link stands on the way to it, since the
+  directory is one the container writes.
 - **Replaced where it stands.** The service rewrites its own settings once it runs, so a
   replaced secret is not written from the template again. lemonfiber keeps the files as
   shipped, finds the line a placeholder is on by the text around it, and replaces the

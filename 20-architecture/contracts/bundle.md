@@ -371,7 +371,9 @@ last_release = "2026-10-21"
 ```
 
 A first-party plugin that is no part of the stack lemonfiber ships: a second filler of
-a capability a part already fills, which the operator installs in its place. It is
+a capability a part already fills, which the operator installs in its place, or a
+service the stack runs beside its parts, filling nothing, as the stack's own push server
+is (`B9-R11`). It is
 pinned as a part is, by `id`, `origin`, `revision`, `manifest`, `tree`, `last_release`
 and optionally `release`, each as [`[[plugin]]`](#plugin--each-part-pinned) states it,
 and by the `profile` every service of it sits in, since the bundle is the one place a
