@@ -71,7 +71,7 @@ GET /api/playing       GET /api/watching?…
 GET /api/boot          GET /api/watcher      GET /api/queue
 GET /api/askable?…      GET /api/askable/{id}/poster?…
 GET /api/askable/kinds?…                      GET /api/stack
-GET /api/requests/{reference}/poster?…
+GET /api/requests/{reference}/poster?…        GET /api/notify
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -467,6 +467,51 @@ command line as here (`ARCH-R282`):
 ```
 POST /api/push-endpoints        GET /api/push-endpoints        DELETE /api/push-endpoints/{name}
 ```
+
+**Where a message goes.** The core is the one fan-out between what the stack has to say and
+the back-ends it is said on (`B9-R2`). What reaches it is B5's own alerts and the events the
+curators and the media server send it (`ARCH-R397`), at an address only they hold a key to:
+
+```
+POST /api/notify/events        GET /api/notify        POST /api/actions/push-woken
+```
+
+`/api/notify/events` takes one neutral event from a filler, with the events key the core minted
+for that filler when it seeded it, and nothing else; B5's policy decides whether it is worth
+telling, exactly as it does for the core's own alerts (`B9-R5`), and a failure or a health
+problem is told as `problem` and an import or an addition as `completion`.
+
+The core delivers each alert worth telling to every back-end that is not held, each on its own,
+so one that fails costs the others nothing (`B9-R7`). It speaks each kind itself: ntfy, gotify,
+a webhook, an Apprise URL, and UnifiedPush through the phones' push endpoints. A delivery carries
+the alert's notification kind and its summary as B5 words it, and never a member's name, what
+anybody is watching or the title a member asked for (`B9-R8`). Each kind is an entry of its own
+in the account of what leaves this machine, with a switch of its own.
+
+`/api/notify` is what the core keeps of it, the operator's alone: a member session and a key of
+any scope are refused it. It carries `state` (`unconfigured`, `ready`, `degraded` or
+`unreachable`), `backends` in the order they were added, and `unread`, each back-end whose
+record could not be read with why; a store that cannot be read at all refuses the read rather
+than answering none. Each back-end carries its `id`, its `kind`, `where` it reaches (host and
+topic or path, never a credential), `chosen_by`, `hosted` (its host and what leaves for it)
+where it is hosted, `proof` (`unproven`, proven at an instant, or held with why), `last`, its
+newest delivery, `failures`, every failed delivery since its last confirmed one, newest first,
+and `retry` where one is pending. A delivery carries `at`, its notification kind and its
+`outcome`: `confirmed` where its arrival was observed, `sent` where the back-end took it and
+its arrival was not observed, or failed with what the back-end answered.
+
+**A back-end is proven, not assumed.** `lemonfiber notify test` sends a test carrying an id, and
+a back-end is proven only once that id is seen arriving: in an ntfy topic's or a gotify server's
+own history, or confirmed by the phone a wake went to. A webhook and an Apprise URL keep no
+history the core can read, so they stay unproven, and a back-end is `ready` only when at least
+one is proven (`B9-R3`). Each delivery to a back-end whose history is readable is confirmed the
+same way.
+
+**A phone confirms its wake.** Every wake carries an id inside the sealed payload. The phone
+sends it back over its own pinned connection with `push-woken`, taking the endpoint's `name` and
+the `id`, and that delivery is then `confirmed`. A distributor's `404` or `410` is a failed
+delivery shown as such; the endpoint stays registered until the phone or the operator removes it
+(`N4-R30`).
 
 **What is playing rides the stream.** A `playing` event carries every session the media server
 is playing now, in the envelope `GET /api/playing` answers the same credential with, and it is
@@ -962,10 +1007,17 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R279** | The artefact MUST publish the notification kinds as a closed union, `problem`, `completion`, `update`, `backup`, `request` and `member`, and every `alert` event MUST carry exactly one as `notification` beside its event kind: `problem` for every condition at warning or worse, at onset and resolution; `completion` for work the operator asked for finishing; `update` for an update to the stack or lemonfiber being available; `backup` for a backup that succeeded; `request` for a household member's request newly waiting on the operator; and `member` for an invitation accepted, declined or lapsed. `request` and `member` alerts MUST ride the operator's stream and wake only endpoints an operator session registered, and MUST NOT reach a member's stream; the core MUST NOT raise an alert addressed to a household member (`B5-R1`). |
 | **ARCH-R280** | `GET /api/alerts` MUST carry `kinds`, the notification kinds this stack raises as it is configured, each from the union `ARCH-R279` publishes. |
 | **ARCH-R281** | A stream opened with `Last-Event-ID` MUST be sent, before any other event, every `alert` event raised after that id, oldest first, from the last 24 hours and at most the last 200; where the id is older than the oldest kept or unknown, it MUST send those kept and mark the replay `partial`. A stream opened without one MUST be sent no past alert (`ARCH-R162`). |
-| **ARCH-R282** | An operator session MUST be able to register a UnifiedPush endpoint for one device with `POST /api/push-endpoints`, taking `name`, an `https` `endpoint`, and the WebPush `p256dh` key and `auth` secret, and to list them with `GET /api/push-endpoints` and remove one with `DELETE /api/push-endpoints/{name}`; the command line MUST list and remove them too. On every alert's onset and resolution the core MUST send each registered endpoint a WebPush message encrypted under RFC 8291 whose content says only that the stack has something to say, MUST forget an endpoint its distributor answers `404` or `410`, and MUST refuse an endpoint that is not `https` or whose name another holds, naming it. A member session and a key MUST NOT register, list or remove endpoints. Every registration and removal MUST be journaled. |
+| **ARCH-R282** | An operator session MUST be able to register a UnifiedPush endpoint for one device with `POST /api/push-endpoints`, taking `name`, an `https` `endpoint`, and the WebPush `p256dh` key and `auth` secret, and to list them with `GET /api/push-endpoints` and remove one with `DELETE /api/push-endpoints/{name}`; the command line MUST list and remove them too. On every alert's onset and resolution the core MUST send each registered endpoint a WebPush message encrypted under RFC 8291 whose content says only that the stack has something to say and carries the wake's id, MUST record a distributor's `404` or `410` as a failed delivery and keep the endpoint, and MUST refuse an endpoint that is not `https` or whose name another holds, naming it. A member session and a key MUST NOT register, list or remove endpoints. Every registration and removal MUST be journaled. |
 | **ARCH-R288** | A finding a read leaves `unverified` because checking it disturbs something MUST carry `disruptive`: what checking it disturbs, in the stack's words; `bounded` (whole seconds the disturbance is bounded to, or absent where the stack bounds none); and `only` (the check or group a `diagnose` action takes to run it); and the `diagnose` action MUST accept that `only` as given. |
 | **ARCH-R289** | The `space` action MUST accept `only`, a list of categories the offer it answers names as costing nothing, and with the offer's name MUST reclaim those categories alone; a category the offer does not name MUST be refused, naming it, with nothing removed. |
 | **ARCH-R290** | A `trace` that stopped at `monitored` where asking the indexers would tell nothing at the quality from nothing at all MUST carry `searchable`: what the search spends, in the stack's words, and that it covers the curator's wanted list at the quality in force; a trace that would spend no search MUST NOT carry it. The `search` action MUST accept `disruptive` absent or `true`, and the artefact MUST NOT publish a default it refuses. |
+| **ARCH-R398** | `POST /api/notify/events` MUST accept a neutral event only with the events key the core minted for the filler that sends it, MUST refuse every other caller, and MUST hand each event to B5's policy, a `failed` or `health` event as `problem` and an `imported` or `added` event as `completion`; seed MUST mint each curator's and the media server's events key, write it to that filler's adapter readable by the operator's uid alone, and ask its `events` with the core's address and that key. |
+| **ARCH-R399** | The core MUST deliver every alert B5 says is worth telling to each configured back-end that is not held, each independently of the others, speaking ntfy, gotify, a webhook, an Apprise URL and UnifiedPush itself; a delivery MUST carry the alert's notification kind and summary and MUST NOT carry a member's name, what anybody is watching or a title a member asked for; each kind MUST be an outbound entry with its own switch. |
+| **ARCH-R400** | `GET /api/notify` MUST answer the operator session alone with `state`, `backends` and `unread` as the section on where a message goes says, each delivery's `outcome` `confirmed`, `sent` or failed with the back-end's answer; a member session and a key MUST be refused it, and a store that cannot be read MUST refuse the read. |
+| **ARCH-R401** | `lemonfiber notify add`, `set`, `test`, `remove` and `list` MUST configure, prove and list back-ends non-interactively; a back-end's secret MUST be kept in the credential store and never in its record; no back-end MUST be configured by default; a back-end on a host the core knows to be hosted MUST be refused unless added with `--hosted`, and one so added MUST carry the note that it leaves the self-hosted posture. |
+| **ARCH-R402** | A back-end MUST be reported proven only once a test carrying an id it was sent is observed arriving, in an ntfy topic's or a gotify server's history or confirmed by the phone a wake went to; one whose arrival cannot be observed MUST stay unproven; each delivery to a back-end whose history is readable MUST be confirmed the same way. |
+| **ARCH-R403** | A delivery that fails MUST be retried at the back-end's own attempts and delays, five at 1, 5, 15, 60 and 360 minutes unless `notify add` or `notify set` gave others, and then stand failed; a back-end answering `401` or `403`, or whose credential `notify set` changed, MUST be held, with no delivery to it, until `notify test` proves it again. |
+| **ARCH-R404** | Every wake MUST carry an id inside its sealed payload, and `POST /api/actions/push-woken`, taking the endpoint's `name` and the `id`, MUST mark that wake's delivery `confirmed` for the operator session that registered the endpoint and refuse any other caller. |
 
 ## The artefact
 

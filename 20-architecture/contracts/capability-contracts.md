@@ -135,8 +135,8 @@ asks for them. Their shapes are the generated documents' alone.
 | Capability | Operations |
 |---|---|
 | `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; the country its ratings are named for; replace the administrator's password; allow; claimable; suspend; sessions for an account; whether devices sign in by code; sign a member in by a code an outside service shows, and who that code signed in |
-| `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app, and list what it holds under an app's name that is no key it made; an app's account and the server itself as the outside service holding its accounts knows them; serve the internal TLS port with the core's certificate |
-| `library.curate` | Identity; download clients (register, update, set a field, test, list); root folders (register, list); quality profiles; run a command; whether anything is wanted, read without searching; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck); requests (a title by its catalogue reference, the titles held, one title held, request, search, remove, what is downloading) |
+| `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app, and list what it holds under an app's name that is no key it made; an app's account and the server itself as the outside service holding its accounts knows them; serve the internal TLS port with the core's certificate; `events`: tell the core what the server did (below) |
+| `library.curate` | Identity; download clients (register, update, set a field, test, list); root folders (register, list); quality profiles; run a command; whether anything is wanted, read without searching; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck); requests (a title by its catalogue reference, the titles held, one title held, request, search, remove, what is downloading); `events`: tell the core what its upstream did (below) |
 | `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; `file_under`: each category and its completed folder; `filed`: every category and the completed folder it holds for it (below); seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add) |
 | `indexer.proxy` | Solve a challenge; whether it answers |
@@ -587,6 +587,26 @@ that way. A unit it cannot answer at all, or cannot answer as it is configured, 
 unsupported, with a sentence naming what it lacks, and is left out of the units `profiles`
 answers.
 
+### Telling the core what happened
+
+`library.curate@1` and `media.serve@1` carry `events`, so the stack's own event sources reach
+the back-ends the household chose without anybody configuring a service's notifications by hand
+(`B9-R4`). `events` takes the core's address and a key the core minted for that one filler. From
+then on the adapter has its upstream tell it what happened, by whatever that upstream's own
+notification connection is, and sends each happening to that address with that key as one of
+the neutral events below. Asked again it replaces the address and the key; asked with neither
+it stops. The adapter sends nothing it was not asked to.
+
+| Event | Sent by | When |
+|---|---|---|
+| `imported` | a curator | A title, an episode, an album or a book it fetched is imported into the library |
+| `failed` | a curator | A grab or an import failed, with the upstream's own reason |
+| `health` | a curator or the media server | The upstream raised a problem about itself, or cleared one, with its own words |
+| `added` | the media server | A title was added to a library |
+
+Each event names the title by the curator's or the server's reference and its name, never a
+member, an account or what anybody is watching. The media server sends nothing of playback.
+
 ### The outside watcher
 
 `status.watch@1` is the contract of the monitor that watches the stack from outside it
@@ -971,6 +991,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R385** | `library.curate@1` MUST declare `catalogued`, `titles`, `held_title`, `request`, `search`, `remove` and `downloading` from minor `1`, each taking a kind of media, `tv` or `movies`, and naming a title by its TheTVDB id for a series and its TMDB id for a film, as `lookup` MUST answer a series' and a film's reference too, as the section on a curator's requests says. `request` MUST add a title it does not hold monitoring the seasons named and no other, MUST monitor a title it holds with the seasons named and every unmonitored episode of them, changing nothing else, and MUST refuse a root folder or a quality profile the curator does not hold; `remove` MUST remove the title with its files and exclude nothing from a later import. The core MUST NOT ask any of them ([ADR-0060](../../00-overview/decisions/0060-the-request-gate-asks-a-curator-over-its-contract.md)). |
 | **ARCH-R395** | `music.curate@1` MUST declare `lookup`, `candidate`, `request` and `profiles` as the section on a member's music and books says, with the units `album` and `artist` and each reference a string; a curator filing music MAY speak it, and the core MUST ask nothing of music through `library.curate@1`'s title operations. |
 | **ARCH-R396** | `books.curate@1` MUST declare `lookup`, `candidate`, `request` and `profiles` as the section on a member's music and books says, with the units `book`, `author` and `series`, each reference a string and each candidate naming the format the household files it in; a curator filing books MAY speak it, and the core MUST ask nothing of books through `library.curate@1`'s title operations. |
+| **ARCH-R397** | `library.curate@1` and `media.serve@1` MUST carry `events` as the section on telling the core what happened says, at a minor of each; an adapter asked it MUST send the core, at the address and with the key it was handed, each `imported`, `failed` and `health` event from a curator and each `health` and `added` event from the media server, and nothing else; asked with no address it MUST stop; an event MUST NOT name a member, an account or what anybody is watching. |
 | **ARCH-R390** | `status.watch@1` MUST declare `reachable`, `monitors`, `provision`, `retire` and `check_in` as the section on the outside watcher says; `provision` MUST be idempotent by its tag, leaving one monitor for a tag provisioned twice, and `provision`, `retire` and `check_in` MUST NOT touch a monitor holding no tag or a tag outside `lemonfiber:`; an adapter whose monitor cannot be configured MUST answer `provision`, `retire` and `check_in` `unsupported` rather than claim a monitor it did not make ([ADR-0061](../../00-overview/decisions/0061-the-outside-watcher-is-a-capability-the-core-provisions.md), [ADR-0062](../../00-overview/decisions/0062-a-job-checks-in-to-the-outside-watcher-over-its-contract.md)). |
 | **ARCH-R391** | From minor 2, `transfers` of `download.torrent@1` and `download.usenet@1` MUST answer each item's id in the client, the category it is filed under, its state (`downloading`, `stalled`, `metadata`, `error`, `queued` or `paused`) and when it was added; the core MUST pair a curator's queue entry with a client's item by that id alone, never by name, and MUST classify an item of a speaker of an earlier minor from the curator's view alone, saying so ([ADR-0063](../../00-overview/decisions/0063-the-queue-heals-by-strikes-over-the-curator-and-the-client.md)). |
 | **ARCH-R392** | From minor 3, `downloading` of `library.curate@1` MUST answer each entry's queue id, the id `unqueue` takes, beside the download client's id for it; the core MUST pair an entry with the client's item by the client's id, and MUST act on it by the queue id alone ([ADR-0063](../../00-overview/decisions/0063-the-queue-heals-by-strikes-over-the-curator-and-the-client.md)). |
