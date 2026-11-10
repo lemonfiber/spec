@@ -324,7 +324,20 @@ class TheSilences(unittest.TestCase):
             with self.subTest(answer), mock.patch.object(check_required, "_run", return_value=answer) as ran:
                 self.assertIs(check_required.merges_itself("lemonfiber", "brand"), allowed)
                 self.assertEqual(
-                    ran.call_args[0][0], ["gh", "api", "repos/lemonfiber/brand", "--jq", ".allow_auto_merge"]
+                    ran.call_args[0][0],
+                    [
+                        "gh",
+                        "api",
+                        "graphql",
+                        "-f",
+                        f"query={check_required.AUTO_MERGE}",
+                        "-f",
+                        "owner=lemonfiber",
+                        "-f",
+                        "name=brand",
+                        "--jq",
+                        ".data.repository.autoMergeAllowed",
+                    ],
                 )
 
     def test_an_auto_merge_setting_the_token_cannot_see_refuses(self):
@@ -335,7 +348,7 @@ class TheSilences(unittest.TestCase):
                 self.assertRaises(check_required.Unanswerable) as raised,
             ):
                 check_required.merges_itself("lemonfiber", "brand")
-            self.assertIn("Administration: read", str(raised.exception))
+            self.assertIn("could not be read", str(raised.exception))
 
     def test_the_readers_parse_what_the_forge_answers(self):
         with mock.patch.object(check_required, "_run", return_value="b\na\n"):

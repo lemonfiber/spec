@@ -81,6 +81,12 @@ TARGET_RUNS = 10
 # the separate callers it replaced, whose names no protection requires any more.
 GATES = ".github/workflows/gates.yml"
 
+# Whether a repository lets a pull request be armed to merge itself, read over
+# GraphQL: the REST field answers the release train's token with nothing.
+AUTO_MERGE = (
+    "query($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { autoMergeAllowed } }"
+)
+
 
 class Unanswerable(Exception):
     """The question could not be asked. Never the same as a clean answer."""
@@ -192,13 +198,27 @@ def required_in(owner: str, name: str) -> set[str]:
 
 def merges_itself(owner: str, name: str) -> bool:
     """Whether the repository lets a pull request be armed to merge once its checks pass."""
-    repo = named(owner, "organisation") + "/" + named(name, "repository")
-    said = _run(["gh", "api", f"repos/{repo}", "--jq", ".allow_auto_merge"]).strip()
+    organisation, repository = named(owner, "organisation"), named(name, "repository")
+    said = _run(
+        [
+            "gh",
+            "api",
+            "graphql",
+            "-f",
+            f"query={AUTO_MERGE}",
+            "-f",
+            f"owner={organisation}",
+            "-f",
+            f"name={repository}",
+            "--jq",
+            ".data.repository.autoMergeAllowed",
+        ]
+    ).strip()
     if said not in ("true", "false"):
         raise Unanswerable(
-            f"{repo}'s auto-merge setting could not be read (it answered {said or 'nothing'!r}): "
-            "the token this runs with sees it only with the repository permission "
-            "Administration: read, and an unread setting is not one that allows it"
+            f"{organisation}/{repository}'s auto-merge setting could not be read "
+            f"(it answered {said or 'nothing'!r}), "
+            "and an unread setting is not one that allows it"
         )
     return said == "true"
 
