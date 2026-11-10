@@ -154,7 +154,7 @@ Per alert condition:
 | Notification would contain a credential | Redact. Same rules as the support bundle. |
 | Alert fires while the stack is intentionally stopped | Suppress operational alerts when the operator stopped things deliberately. |
 | Quiet hours configured | Hold non-critical alerts; critical ones always deliver. |
-| Household member has no notification target | Seerr handles this; lemonfiber does not chase it. |
+| Household member has no notification target | Nothing is sent to them: a member hears `ready` only on their own phone or a back-end the operator offered them and they chose. |
 | Same condition on multiple services | Group into one alert naming all affected services. |
 | Alert resolves before being read | Still show it in history — a transient VPN drop matters even after recovery. |
 | Operator disables all channels | Permitted. In-app remains, and lemonfiber states that external delivery is off. |
@@ -163,7 +163,7 @@ Per alert condition:
 
 | ID | Requirement |
 |----|-------------|
-| **B5-R1** | lemonfiber MUST NOT duplicate notifications that Seerr or the \*arrs already send to their own users; a new request and an answered invitation MUST reach the operator alone, as the `request` and `member` notification kinds (`ARCH-R279`), and MUST NOT be sent to a household member. |
+| **B5-R1** | lemonfiber MUST NOT duplicate notifications that Seerr or the \*arrs already send to their own users; a new request and an answered invitation MUST reach the operator alone, as the `request` and `member` notification kinds (`ARCH-R279`), and MUST NOT be sent to a household member; the one alert a household member receives is `ready`, for something they asked for arriving, where nothing else already tells them. |
 | **B5-R2** | Setup MUST ask notification appetite once, offering presets rather than an event checklist. |
 | **B5-R3** | Every individual event MUST remain configurable after setup. |
 | **B5-R4** | In-app delivery MUST be unconditional and MUST NOT require configuration. |
