@@ -481,6 +481,18 @@ for that filler when it seeded it, and nothing else; B5's policy decides whether
 telling, exactly as it does for the core's own alerts (`B9-R5`), and a failure or a health
 problem is told as `problem` and an import or an addition as `completion`.
 
+**Where a filler reaches it.** A container reaches this machine as `host.docker.internal`, so
+the address seed hands each filler is `https://host.docker.internal:<port>/api/notify/events`,
+at the port the web surface was last served encrypted on where a container reaches it: on the
+network, or on an engine that forwards that name to this machine's own loopback. It is handed
+with the digest of the certificate the surface presents, which the adapter pins, so the key it
+sends crosses no connection in clear and reaches nothing but this core. The surface answers
+that name at this door and at no other. `LEMONFIBER_EVENTS_ADDRESS`, an `https` address the
+web surface is reached at, takes the place of `host.docker.internal` and its port, with the
+same certificate pinned. Where neither exists, seed asks no filler and says why. On an engine
+that does not resolve `host.docker.internal` by itself, each adapter is told it is the
+engine's host gateway (`ARCH-R409`).
+
 The core delivers each alert worth telling to every back-end that is not held, each on its own,
 so one that fails costs the others nothing (`B9-R7`). It speaks each kind itself: ntfy, gotify,
 a webhook, an Apprise URL, and UnifiedPush through the phones' push endpoints. A delivery carries
@@ -1028,6 +1040,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R288** | A finding a read leaves `unverified` because checking it disturbs something MUST carry `disruptive`: what checking it disturbs, in the stack's words; `bounded` (whole seconds the disturbance is bounded to, or absent where the stack bounds none); and `only` (the check or group a `diagnose` action takes to run it); and the `diagnose` action MUST accept that `only` as given. |
 | **ARCH-R289** | The `space` action MUST accept `only`, a list of categories the offer it answers names as costing nothing, and with the offer's name MUST reclaim those categories alone; a category the offer does not name MUST be refused, naming it, with nothing removed. |
 | **ARCH-R290** | A `trace` that stopped at `monitored` where asking the indexers would tell nothing at the quality from nothing at all MUST carry `searchable`: what the search spends, in the stack's words, and that it covers the curator's wanted list at the quality in force; a trace that would spend no search MUST NOT carry it. The `search` action MUST accept `disruptive` absent or `true`, and the artefact MUST NOT publish a default it refuses. |
+| **ARCH-R409** | Seed MUST ask each filler's `events` with the address `https://host.docker.internal:<port>/api/notify/events`, `<port>` the port the web surface was last served encrypted on where a container reaches it, or with `LEMONFIBER_EVENTS_ADDRESS` followed by `/api/notify/events` where that `https` address is set, and with the SHA-256 digest of the certificate the web surface presents, which the adapter MUST pin; the web surface MUST answer the name `host.docker.internal` at `POST /api/notify/events` and nowhere else; where neither address exists seed MUST ask no filler and MUST say why; an adapter MUST be given `host.docker.internal` as the engine's host gateway where the engine does not resolve it itself. |
 | **ARCH-R398** | `POST /api/notify/events` MUST accept a neutral event only with the events key the core minted for the filler that sends it, MUST refuse every other caller, and MUST hand each event to B5's policy, a `failed` or `health` event as `problem` and an `imported` or `added` event as `completion`; seed MUST mint each curator's and the media server's events key, write it to that filler's adapter readable by the operator's uid alone, and ask its `events` with the core's address and that key. |
 | **ARCH-R399** | The core MUST deliver every alert B5 says is worth telling to each configured back-end that is not held, each independently of the others, speaking ntfy, gotify, a webhook, an Apprise URL and UnifiedPush itself; a delivery MUST carry the alert's notification kind and summary and MUST NOT carry a member's name, what anybody is watching or a title a member asked for; each kind MUST be an outbound entry with its own switch. |
 | **ARCH-R400** | `GET /api/notify` MUST answer the operator session alone with `state`, `backends` and `unread` as the section on where a message goes says, each delivery's `outcome` `confirmed`, `sent` or failed with the back-end's answer; a member session and a key MUST be refused it, and a store that cannot be read MUST refuse the read. |
