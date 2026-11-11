@@ -159,7 +159,7 @@ Plus a failure flag naming the stage where it stopped and why.
 | **D9-R12** | Household members MUST be able to see progress of their own requests in simplified form. |
 | **D9-R13** | Series and season level queries MUST aggregate per-item states with a summary. |
 | **D9-R14** | Retained history MUST be bounded, and the horizon MUST be stated. |
-| **D9-R15** | The trace, queue health and the stuck list MUST follow an album and a book as they follow a film or a series: by the curator that files music or books, with the album or the book as the item, and an artist's or author's other titles never standing in for it. |
+| **D9-R15** | The trace, queue health and the stuck list MUST follow an album and a book as they follow a film or a series: by the curator that files music or books, with the album or the book as the item, named by its own title in queue health, searched for where the trace is asked to search, and looked for in the media server's music or book library, and an artist's or author's other titles never standing in for it. |
 
 ## Related
 
