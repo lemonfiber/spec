@@ -5,7 +5,7 @@ kind: feature
 area: B
 audience: both
 status: accepted
-maturity: planned
+maturity: building
 priority: P2
 labels: [notifications, verification]
 requires: [B5]
