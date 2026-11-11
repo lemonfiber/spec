@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 22 shipped, 46 built, 29 building, 18 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 22 shipped, 46 built, 30 building, 17 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -99,6 +99,7 @@ code, and the two move independently.
 | [A5](a-getting-started/a5-migration.md) | Migration from an existing stack | A | operator | accepted | `0.13.0`, `0.18.0`, `0.19.0` |
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0`, `0.19.0` |
+| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.23.0` |
 | [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.17.0`, `0.18.0`, `0.9.0` |
 | [D1](d-content/d1-seed.md) | Service auto-wiring | D | operator | accepted | `0.12.0`, `0.17.0`, `0.18.0`, `0.4.0` |
 | [D2](d-content/d2-quality-presets.md) | Quality presets in plain language | D | operator | accepted | `0.18.0`, `0.4.0` |
@@ -129,7 +130,6 @@ code, and the two move independently.
 
 | ID | Feature | Area | Audience | Status | Ships in |
 |----|---------|------|----------|--------|----------|
-| [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.23.0` |
 | [F11](f-extensibility/f11-executing-contributed-code.md) | Executing contributed code | F | operator | draft | — |
 | [G11](g-ux/g11-operator-web-console.md) | The operator's web console | G | operator | accepted | `0.18.0` |
 | [H1](h-glue/h1-cross-seed.md) | Cross-seeding | H | operator | accepted | `0.20.0` |
