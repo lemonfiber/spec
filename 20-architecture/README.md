@@ -33,6 +33,8 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [contracts/plugin-manifest-recipe.md](contracts/plugin-manifest-recipe.md) | **`plugin.toml` `[[recipe]]`** — the ordered calls a plugin may declare, bounded by reading |
 | [contracts/plugin-manifest-secret.md](contracts/plugin-manifest-secret.md) | **`plugin.toml` `[[secret]]` and `[[override]]`** — the secrets a plugin holds, minted ones included, and the bundled things it changes |
 | [contracts/capability-vocabulary.md](contracts/capability-vocabulary.md) | **`capability-vocabulary.json`** — what a service can do, what demonstrates it, and who may claim one |
+| [contracts/capability-contracts.md](contracts/capability-contracts.md) | **Capability contracts** — what the core asks of whatever fills a capability, and how an adapter answers |
+| [contracts/capability-contracts-request-gate.md](contracts/capability-contracts-request-gate.md) | **The request gate's routes** — what the filler of `request.gate` admits, what a curator and a member reach through it, and what a filler tells the core |
 | [contracts/extension-points.md](contracts/extension-points.md) | **`extension-points.json`** — where a plugin may add a row to a register lemonfiber already runs |
 | [contracts/download-client.md](contracts/download-client.md) | Registering SABnzbd/qBittorrent into a Servarr app — the `fields` schema and per-app category |
 | [contracts/prowlarr-application.md](contracts/prowlarr-application.md) | Registering a Servarr \*arr as a Prowlarr application — the `/api/v1` `fields` schema and per-media sync categories |
@@ -42,6 +44,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [contracts/web-api.md](contracts/web-api.md) | What the web surface may ask for, how live state arrives, what guards it |
 | [contracts/web-api-artefact.md](contracts/web-api-artefact.md) | **The web API artefact** — the generated contract, the refusals it lists, and how it reaches an SDK |
 | [contracts/web-api-getting-in.md](contracts/web-api-getting-in.md) | **Getting in to the web API** — the per-run token, sessions, integration keys and the limit wrong answers meet |
+| [contracts/web-api-live-state.md](contracts/web-api-live-state.md) | **The web API's live state** — the event stream, what reaches the operator and a member, and where a message goes |
 | [contracts/web-api-wire.md](contracts/web-api-wire.md) | **The web API on the wire** — the token's header, the address, the heartbeat, resumption, a job's outcome, an action sent again, the payload's type and how an instant is written |
 | [contracts/design-tokens.md](contracts/design-tokens.md) | The `brand` → `lemonfiber-web` interface — the visual language as data the app consumes |
 
