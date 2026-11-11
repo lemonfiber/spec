@@ -51,6 +51,7 @@ Run:  python3 scripts/check_required.py
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import json
 import pathlib
 import re
@@ -80,6 +81,10 @@ TARGET_RUNS = 10
 # The caller of the shared checks. A pull request merged before it landed ran
 # the separate callers it replaced, whose names no protection requires any more.
 GATES = ".github/workflows/gates.yml"
+
+# How many repositories are surveyed at once. One at a time, the whole
+# organisation took longer than the job's 30 minutes.
+SURVEYED_AT_ONCE = 8
 
 # Whether a repository lets a pull request be armed to merge itself, read over
 # GraphQL: the REST field answers the release train's token with nothing.
@@ -397,15 +402,20 @@ def look(owner: str, only: str | None, out) -> int:
 
     repos = [only.split("/", 1)[1]] if only else repositories(owner)
 
-    for name in repos:
+    def surveyed(name: str) -> tuple[list[str], bool]:
+        return unrequired_in(owner, name, names, prefixes, matched), merges_itself(owner, name)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=SURVEYED_AT_ONCE) as pool:
+        answers = list(pool.map(surveyed, repos))
+
+    for name, (unrequired, merges) in zip(repos, answers, strict=True):
         repo = f"{owner}/{name}"
         looked += 1
-        unrequired = unrequired_in(owner, name, names, prefixes, matched)
         if unrequired:
             print(refusal(repo, unrequired), file=out)
             print(file=out)
             refused += 1
-        if not merges_itself(owner, name):
+        if not merges:
             print(
                 f"{repo} does not allow auto-merge, so the release train's bump there is "
                 "opened and never merges itself (OPS-R48). Turn on Settings → General → "
