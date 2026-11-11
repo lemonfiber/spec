@@ -71,7 +71,8 @@ GET /api/playing       GET /api/watching?…
 GET /api/boot          GET /api/watcher      GET /api/queue
 GET /api/askable?…      GET /api/askable/{id}/poster?…
 GET /api/askable/kinds?…                      GET /api/stack
-GET /api/requests/{reference}/poster?…
+GET /api/requests/{reference}/poster?…        GET /api/notify
+GET /api/notify/mine
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
