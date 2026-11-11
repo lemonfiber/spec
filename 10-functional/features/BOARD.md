@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 22 shipped, 46 built, 30 building, 17 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 21 shipped, 46 built, 31 building, 17 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -29,7 +29,6 @@ code, and the two move independently.
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
 | [D5](d-content/d5-disk-space.md) | Disk space management | D | operator | accepted | `0.12.0` |
 | [D8](d-content/d8-parental-controls.md) | Parental controls | D | both | accepted | `0.12.0` |
-| [D9](d-content/d9-pipeline-trace.md) | "Where is my show?" pipeline trace | D | both | accepted | `0.4.0` |
 | [E1](e-maintenance/e1-stack-updates.md) | Stack updates | E | operator | accepted | `0.17.0` |
 | [E2](e-maintenance/e2-self-update.md) | Self-update | E | operator | accepted | `0.14.0` |
 | [E4](e-maintenance/e4-rollback.md) | Rollback | E | operator | accepted | `0.14.0` |
@@ -106,6 +105,7 @@ code, and the two move independently.
 | [D4](d-content/d4-request-flow.md) | Household request flow | D | household | accepted | `0.11.0`, `0.19.0` |
 | [D6](d-content/d6-household-identity.md) | Household identity & invitations | D | both | accepted | `0.11.0`, `0.17.0`, `0.18.0`, `0.19.0` |
 | [D7](d-content/d7-approval-quotas.md) | Request approval & quotas | D | both | accepted | `0.12.0`, `0.18.0`, `0.19.0` |
+| [D9](d-content/d9-pipeline-trace.md) | "Where is my show?" pipeline trace | D | both | accepted | `0.19.0`, `0.4.0` |
 | [D11](d-content/d11-watching-what-the-house-holds.md) | Watching what the house holds | D | household | accepted | `0.18.0`, `0.19.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0`, `0.19.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
