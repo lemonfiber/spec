@@ -58,6 +58,13 @@ server, ntfy, the self-hosted channel offered first for notifications
 ([B9-R11](../10-functional/features/b-running/b9-notification-backends.md)), and builds
 no image. Its repository is held to everything below as a part's is.
 
+`plugin-emby` and `plugin-medusa` are offered the same way, each a second filler of what a
+part fills: Emby in Jellyfin's place as the media server and identity source, and Medusa in
+Sonarr's as the television curator. `plugin-plex` puts Plex in the media server's place and
+is neither shipped nor offered: the operator installs it from its repository. Each builds an
+adapter image, so the train tags it, and each repository is held to everything below as a
+part's is.
+
 ## What each holds
 
 | Path | What it is |

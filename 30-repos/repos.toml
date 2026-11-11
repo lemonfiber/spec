@@ -384,6 +384,33 @@ plugin = "caddy"
 image = true
 
 [[repo]]
+name = "plugin-emby"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "Emby as the media server and identity source, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it"
+plugin = "emby"
+image = true
+
+[[repo]]
+name = "plugin-medusa"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "Medusa as the television curator, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it"
+plugin = "medusa"
+image = true
+
+[[repo]]
+name = "plugin-plex"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "Plex as the media server, which the bundle neither ships nor offers: an adapter image in front of the upstream's, so the train tags it"
+plugin = "plex"
+image = true
+
+[[repo]]
 name = "plugin-ntfy"
 group = "impl"
 spec = ["first-party-plugins.md"]
@@ -655,18 +682,6 @@ note = "A plugin, and the catalogue is where a plugin is found"
 
 [[ungoverned]]
 name = "plugin-uptime-kuma"
-note = "A plugin, and the catalogue is where a plugin is found"
-
-[[ungoverned]]
-name = "plugin-plex"
-note = "A plugin, and the catalogue is where a plugin is found"
-
-[[ungoverned]]
-name = "plugin-emby"
-note = "A plugin, and the catalogue is where a plugin is found"
-
-[[ungoverned]]
-name = "plugin-medusa"
 note = "A plugin, and the catalogue is where a plugin is found"
 
 # ── Retired ──────────────────────────────────────────────────────────────────
