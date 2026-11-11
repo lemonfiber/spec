@@ -39,12 +39,12 @@ name = "explain / explain"
 why = "explains a squash-message refusal in a comment, in spec's own runs; the refusal is squash-message's"
 
 [[exempt]]
-name = "explain"
-why = "the same explainer reported skipped under its caller's job name, where squash-message needed nothing explained"
-
-[[exempt]]
 name = "pin-only"
 why = "pin-only reported skipped under its caller's job name, for a label event that is not the approval; `pin-only / pin-only` is the verdict (Q-R83)"
+
+[[exempt]]
+name = "alerts"
+why = "the CodeQL alerts caller's own name, reported skipped where its run was cancelled before the job started; `alerts / alerts` is the verdict"
 
 [[exempt]]
 name = "dco / explain"
@@ -67,14 +67,6 @@ name = "told"
 why = "posts an outcome to Discord; the outcome is decided by the job it follows"
 
 [[exempt]]
-name = "telling"
-why = "posts a scheduled run's finding to Discord, and is skipped on a pull request"
-
-[[exempt]]
-name = "age"
-why = "reports on a schedule how far behind its upstream a pin is, and is skipped on a pull request"
-
-[[exempt]]
 name = "cancel"
 why = "cancels a pull request's runs on the heads a push replaced, and judges nothing"
 
@@ -90,16 +82,15 @@ name = "what changed"
 why = "decides which jobs run, and a failure runs them all; the jobs it scopes are the verdict"
 
 # Complement legs. Each carries a condition that is false on a pull request
-# (`sonar-gate`'s is false on a merge group too) and is therefore always skipped
-# on one. Requiring one would deadlock the branch permanently: a skipped check
-# never reports, and protection waits.
+# (`sonar-gate`'s is false on a merge group too) and is therefore always reported
+# skipped on one, which judges nothing.
 [[exempt]]
 name = "gate / not-a-pull-request"
-why = "always skipped on a pull request; requiring it would deadlock the branch"
+why = "always reported skipped on a pull request, where it judges nothing"
 
 [[exempt]]
 name = "sonar-gate / not-a-pull-request"
-why = "always skipped on a pull request; requiring it would deadlock the branch"
+why = "always reported skipped on a pull request, where it judges nothing"
 
 # Per-shard legs whose aggregate is already required. Naming a leg would also
 # name a set that moves: these come from a matrix computed at run time, so a
@@ -107,10 +98,6 @@ why = "always skipped on a pull request; requiring it would deadlock the branch"
 [[exempt]]
 prefix = "mutation ("
 why = "per-module legs of a run-time matrix; the aggregate `mutation testing` is required"
-
-[[exempt]]
-prefix = "runs ("
-why = "per-profile legs of a run-time matrix; the aggregate `the stack starts` is required"
 
 [[exempt]]
 name = "mutation"
@@ -175,10 +162,6 @@ why = "the Dependabot app's own check run, which posts on some pull requests onl
 [[exempt]]
 name = "sdk-drift"
 why = "reads the upstream SDK's head, not the change; the bump pull request answers it"
-
-[[exempt]]
-name = "contract-drift"
-why = "reads the core's contract at its head, not the change; the bump pull request answers it"
 
 # Push- and release-triggered jobs. They are not pull-request gates: they run
 # after a merge or on a tag, so on a pull request there is nothing to require.
