@@ -204,6 +204,7 @@ Every line comes from one place:
 | `volumes` | The data mount where `takes_data`, from the [storage setting](#the-data-root--one-setting-every-data-mount); the configuration directory at `config_path`; each `mount` |
 | `tmpfs` | `tmpfs` |
 | `command` | `args`, each a literal (`ARCH-R407`) |
+| `extra_hosts` | `host.docker.internal` as the engine's host gateway, for a service speaking a capability contract, which tells the core what happened there (`ARCH-R409`) |
 | `security_opt`, `cap_drop`, `cap_add`, `pids_limit`, `read_only` | `posture`, with what the shape adds |
 | `mem_limit` | `mem_limit_mib` |
 | `devices`, `group_add` | `shape` |
