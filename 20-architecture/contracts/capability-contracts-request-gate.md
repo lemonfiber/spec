@@ -115,8 +115,8 @@ answers.
 the back-ends the household chose without anybody configuring a service's notifications by hand
 (`B9-R4`). `events` takes the core's address, the digest of the certificate the core presents
 there, which the adapter pins, and a key the core minted for that one filler. From
-then on the adapter has its upstream tell it what happened, by whatever that upstream's own
-notification connection is, and sends each happening to that address with that key as one of
+then on the adapter hears what its upstream did, by push or by poll as the section below
+says, and sends each happening to that address with that key as one of
 the neutral events below, refusing any connection that presents another certificate. Asked
 again it replaces the address, the digest and the key; asked with none of them it stops. The adapter sends nothing it was not asked to.
 
@@ -129,6 +129,55 @@ again it replaces the address, the digest and the key; asked with none of them i
 
 Each event names the title by the curator's or the server's reference and its name, never a
 member, an account or what anybody is watching. The media server sends nothing of playback.
+
+#### How an adapter hears its upstream
+
+An adapter hears its upstream one of two ways, and `events` answers which, so seed can say it
+beside the wiring (`ARCH-R411`):
+
+- **Push**, where the upstream's own notification connection can reach the adapter and is
+  configured or configurable without installing anything into it. The adapter registers one
+  connection pointing at itself, at a path carrying a random secret it made for that
+  connection, and accepts a push nowhere else. Each push it hears is checked against the
+  upstream's own API before it is sent on, so a forged push sends nothing the upstream did not
+  do. On its own start, and once a day, it also reads the upstream's history from its cursor
+  and sends whatever push missed while it was down.
+- **Poll**, where no push is configured: the upstream offers no notification connection, its
+  connection cannot carry a request to an arbitrary address, or it needs something nobody
+  installed or paid for. The adapter reads the upstream's own history or activity, newest
+  after its cursor, every `every` seconds the core asked for (`ARCH-R412`).
+
+An adapter never installs a plugin into its upstream, enables a paid feature or turns on a
+notification type that carries what anybody watches, in order to push. Where push becomes
+available later, a plugin installed or a licence added, the next `events` ask moves it to push.
+
+**The cursor.** In either way, the adapter keeps a cursor: the upstream's own position of
+the newest happening it has sent, an id where the upstream numbers its history and its own
+timestamp with the item's id where it does not. The cursor sits in a file beneath the
+adapter's configuration directory, written after each send the core answered, so a restart
+neither repeats nor loses one. A first ask, with no cursor kept, sets the cursor at the
+upstream's newest happening and sends nothing older, so wiring a stack never sends its whole
+library. A cursor naming a position the upstream no longer holds, its history pruned or
+reset, moves to the upstream's newest happening and the adapter says so in its log. After
+time away, everything after the cursor is sent oldest first, a page at a time, with no limit
+on how far back. Asked with none of address, digest and key, the adapter stops and drops
+its cursor, so a later ask starts from the newest happening again. Asked again with another
+address, digest or key, it keeps its cursor.
+
+**The interval.** `every` is the poll interval the core asks, in whole seconds, from 15 to
+3600; the core asks `LEMONFIBER_EVENTS_POLL`, 60 where unset (`ARCH-R412`). An adapter
+hearing by push takes it as the interval of nothing and keeps the daily reconcile.
+
+| Upstream | Push, where | Poll, otherwise | Cursor |
+|---|---|---|---|
+| Jellyfin | Its webhook plugin, where installed: one generic destination carrying `ItemAdded` alone | Items sorted by when they were added, newer than the cursor, for `added`; activity-log entries naming no user at a warning or error, for `health` | The newest item's added time with its id; the newest activity entry's id |
+| Emby | Its webhooks, where the server offers them: one webhook carrying `library.new` alone | As Jellyfin, by Emby's own items and activity log | As Jellyfin |
+| Medusa | Never: its notifiers post only to fixed services' addresses | History, newer than the cursor: `Downloaded` as `imported`, `Failed` as `failed`; it sends no `health`, as its API names no problem with itself | The history row id |
+| Sonarr, Radarr, Lidarr | A Connect webhook, which every one of them carries: on import, on import or download failure, on a health issue and its restoring | History since the cursor, and the health list compared with the last one read | The history record id |
+| Bindery | Its webhook: `bookImported`, `downloadFailed` and `health` alone | History since the cursor, and its health | The history record id |
+| Plex | Its webhooks, where the server's owner holds Plex Pass: `library.new` alone | Recently added, newer than the cursor; it sends no `health` | The newest item's added time with its key |
+| Audiobookshelf | Never: its notifications reach Apprise alone | Each library's items sorted by when they were added, newer than the cursor; no `health` | The newest item's added time with its id |
+| Navidrome | Never: it has no notification connection | Albums newest first, newer than the cursor; no `health` | The newest album's created time with its id |
 
 ### The outside watcher
 
