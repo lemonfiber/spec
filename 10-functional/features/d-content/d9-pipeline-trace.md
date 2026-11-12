@@ -5,8 +5,7 @@ kind: feature
 area: D
 audience: both
 status: accepted
-maturity: shipped
-shipped: 0.4.0
+maturity: building
 labels: [verification, ux]
 relates: [B4, C3, C7, D3, D4]
 ---
