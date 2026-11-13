@@ -30,6 +30,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [contracts/plugin-manifest.md](contracts/plugin-manifest.md) | **`plugin.toml`** — the lemonfiber ↔ plugin interface, and the Compose entry lemonfiber writes from it |
 | [contracts/plugin-manifest-service.md](contracts/plugin-manifest-service.md) | **`plugin.toml` `[[service]]`** — each service a plugin runs, field by field |
 | [contracts/plugin-manifest-proof.md](contracts/plugin-manifest-proof.md) | **`plugin.toml` `[[proof]]`** — what must hold before a plugin is installed |
+| [contracts/plugin-manifest-validation.md](contracts/plugin-manifest-validation.md) | **`plugin.toml` validation** — the rules a manifest is held to, and what each refusal names |
 | [contracts/plugin-manifest-recipe.md](contracts/plugin-manifest-recipe.md) | **`plugin.toml` `[[recipe]]`** — the ordered calls a plugin may declare, bounded by reading |
 | [contracts/plugin-manifest-secret.md](contracts/plugin-manifest-secret.md) | **`plugin.toml` `[[secret]]` and `[[override]]`** — the secrets a plugin holds, minted ones included, and the bundled things it changes |
 | [contracts/capability-vocabulary.md](contracts/capability-vocabulary.md) | **`capability-vocabulary.json`** — what a service can do, what demonstrates it, and who may claim one |
