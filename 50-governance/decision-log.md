@@ -569,19 +569,15 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | The core's release tag is held to embed a bundle pinning, at that version, every first-party plugin the bundle pins that builds an image, shipped or offered; a first-party plugin that builds an image and that the bundle neither ships nor offers, as Plex, is still tagged by the train before the core and its image published at the tag, and the check names it as one the bundle does not pin. `OPS-R86` is amended in place. The user chose this over offering Plex in the bundle and over marking its repository as building no image | [OPS-R86](../70-operations/releasing.md) |
-
-## 2026-11-13
-
-| Decision | Where it lives |
-|---|---|
 | A location in the survey may also be `{"none": why}`: a service that keeps no library, such as an indexer or a downloader, says so rather than being said unread. Both locations come from the engine's mounts and the matching first-party manifest's `config_path` and data mount; the survey starts no container and lends no key. `A5-R14` is amended in place. The user chose a third tag over leaving `library` out | [A5-R14](../10-functional/features/a-getting-started/a5-migration.md) |
 | A curator states how much it holds below its cutoff through `cutoff_unmet`, a read added to `library.curate@1` at minor `4`, and the upgrade's total for each kind, music among them, is that runtime times the bytes per hour of the preset or format in force; a curator that does not speak minor `4` makes the total `{"unknown": why}`. The upgrade states no rate per hour beside it. The user chose the runtime below the cutoff over every hour held | [ARCH-R425](../20-architecture/contracts/capability-contracts.md), [D2-R15](../10-functional/features/d-content/d2-quality-presets.md) |
-
-## 2026-11-13
-
-| Decision | Where it lives |
-|---|---|
 | Every surface reaches behaviour through `lemonfiber_core::app::dispatch`, in the command line and the web API alike, and an architecture test holds the core paths a surface may name to an allow-list of model, port and error types and pure helpers. The plugin authoring reads of a plugin's own source (`plugin claims`, `plugin conform`, `plugin provenance`, `plugin record`) are commands answered with no stack, and their machine-readable output is the `plugin-claims`, `plugin-conformance`, `plugin-provenance` and `plugin-recording` envelopes carrying `api_version`, published in the contract and served by no route. The three published documents (`plugin capabilities --json`, `plugin extension-points --json`, `plugin schema`) stay the published files byte for byte, each carrying its own version. The user chose this over enveloping the authoring output at the command line only and over exempting authoring that needs no stack from `ARCH-R42` | [ARCH-R9](../20-architecture/contracts/versioning.md), [ARCH-R42](../20-architecture/component-model.md), [capability-vocabulary.md](../20-architecture/contracts/capability-vocabulary.md) |
+| Ended work is answered with a kind of its own, `ended`, carrying the name, the action and `ended: "released"` or `ended: "let-go"`, so `job` only ever means work still going. The user chose a new kind over an optional field on `job` | [ARCH-R132](../20-architecture/contracts/web-api-wire.md#a-jobs-outcome) |
+| The event stream's kinds are one closed list in the core, each with its payload type, whether a newer one replaces an older one, and who hears it; the stream can say nothing the list does not name, and the artefact's index carries it as `events: {heartbeat_seconds, kinds}` | [ARCH-R173](../20-architecture/contracts/web-api-artefact.md#what-else-each-release-publishes) |
+| The examples are written by a harness that runs commands against the core's fixture fakes, into `examples/kinds/` and `examples/actions/`, a read being exemplified by the kind it answers. The user chose this over a typed example written per payload | [ARCH-R174](../20-architecture/contracts/web-api-artefact.md#what-else-each-release-publishes) |
+| The version bump commits the previous release's web API artefact under `contract/released/`, and a test holds `contract/contract-diff.json` to what it and the current artefact generate, which `release-contract` attaches. The user chose this over a differ run in the release job, in Rust or in Python | [ARCH-R176](../20-architecture/contracts/web-api-artefact.md#what-else-each-release-publishes) |
+| `contract/web-api.openapi.json` is one self-contained OpenAPI 3.1 document, every definition inlined, rather than one referring out to `defs/` | [ARCH-R177](../20-architecture/contracts/web-api-artefact.md#what-else-each-release-publishes) |
+| Each release commits one `contract/capabilities/released.json`, each capability's majors and their operations, rewritten by the version bump, which refuses an operation dropped under an unchanged major as CI does. The user chose one file over one beside each major, and over a full snapshot per version | [ARCH-R211](../20-architecture/contracts/capability-contracts.md#versioning) |
 
 ## Related
 

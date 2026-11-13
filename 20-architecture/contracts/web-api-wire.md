@@ -86,7 +86,7 @@ parses either way:
 | Still in flight | `202` | the identical envelope the accepting reply carried |
 | Finished | `200` | the equivalent command's machine-readable output |
 | Stopped on a failure | the status the failure warrants — `404` for something named that the stack does not have, `400` for a request asked wrongly, `409` for work that found other work holding the stack, `500` otherwise | the error envelope the failure renders |
-| Ended before it finished | `200` | the `job` envelope, saying whether the name was released or let go |
+| Ended before it finished | `200` | the `ended` envelope: the name, the action, and `ended`, which is `released` or `let-go` |
 | Not a name this run issued | `404` | a refusal, not the name repeated back |
 
 Status rather than a field, because the alternative is a shape only this endpoint has — and a
@@ -107,6 +107,17 @@ enough and it was let go. The two are different news to whoever comes back to th
 the first is somebody's decision, and the second is a guard that stopped guarding because
 the screen watching it went away. So the answer says which, and neither is told as work
 that finished or work still going (`ARCH-R132`).
+
+It is a kind of its own, `ended`, rather than a field on `job`:
+
+```json
+{ "job": "9f2c41a07be35d18", "action": "watch", "ended": "let-go" }
+```
+
+So the kind alone tells the four standings apart: `job` is work still going, the command's own
+kind is work that finished, `error` is work that stopped on a failure, and `ended` is work that
+ended before it finished. A `job` that also meant "over" would be one kind with two meanings,
+told apart only by the status beside it.
 
 The stream is not the mechanism. A client that reconnects sends the last id it saw, and a
 client connecting for the first time has none to send, so an event announcing the end reaches

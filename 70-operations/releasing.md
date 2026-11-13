@@ -61,7 +61,11 @@ flowchart TD
 
 Concretely, a maintainer does **three things**; CI does the rest:
 
-1. **Merge the version bump.** The workspace's `Cargo.toml` must already declare
+1. **Merge the version bump**, made with `just version X.Y.Z`. Beside the version it
+   commits the previous release's web API artefact under `contract/released/`, which
+   `contract/contract-diff.json` is generated against (`ARCH-R176`), and rewrites
+   `contract/capabilities/released.json` from the index this release publishes (`ARCH-R211`).
+   The workspace's `Cargo.toml` must already declare
    the version being released, on `main`, before anything is tagged — `cargo-dist`
    releases the tag whose version the workspace carries, so a tag cut over a
    stale one names a version nothing will build. This is a step in its own right

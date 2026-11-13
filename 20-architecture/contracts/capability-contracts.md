@@ -824,6 +824,15 @@ operation answers it `unsupported` too, since the adapter kit answers an operati
 not know, of a capability and major it speaks, `unsupported` rather than
 `unknown-operation` (`ARCH-R375`).
 
+**Each release commits the index it published.** `contract/capabilities/released.json` names,
+for every capability, each major the release listed and the operations each held. The version
+bump rewrites it from the index the release publishes, and refuses to where a major it already
+names would lose an operation. A test holds the index the core generates to it on every pull
+request, so an operation dropped under an unchanged major fails CI rather than reaching a
+plugin, and a major retired outright passes only beside a higher major of the same capability.
+`release-tag` refuses a tag while the file differs from the index. A change of meaning, which
+no check can tell, is judged in review (`ARCH-R211`).
+
 The core speaks every major listed in `index.json`. When a second major arrives,
 the first stays spoken until it is deprecated by announcement and then removed, as [versioning.md](versioning.md) holds for a plugin manifest.
 
