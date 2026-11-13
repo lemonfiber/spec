@@ -46,7 +46,8 @@ jobs:
         run: |
           set -euo pipefail
           read_pin() {
-            yq -e ".jobs.gitleaks.env.$1" .github/workflows/security.yml
+            local name=$1
+            yq -e ".jobs.gitleaks.env.${name}" .github/workflows/security.yml
           }
           version=$(read_pin GITLEAKS_VERSION)
           digest=$(read_pin GITLEAKS_SHA256)
