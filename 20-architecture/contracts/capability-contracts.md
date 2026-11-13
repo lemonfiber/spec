@@ -135,7 +135,7 @@ asks for them. Their shapes are the generated documents' alone.
 | Capability | Operations |
 |---|---|
 | `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; the country its ratings are named for; replace the administrator's password; allow; claimable; suspend; sessions for an account; whether devices sign in by code; sign a member in by a code an outside service shows, and who that code signed in |
-| `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app, and list what it holds under an app's name that is no key it made; an app's account and the server itself as the outside service holding its accounts knows them; serve the internal TLS port with the core's certificate; `events`: tell the core what the server did (below) |
+| `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app, and list what it holds under an app's name that is no key it made; an app's account and the server itself as the outside service holding its accounts knows them; serve the internal TLS port with the core's certificate; `events`: tell the core what the server did (below); live TV: the channels an account may watch, tune a channel for an account and untune it (below) |
 | `library.curate` | Identity; download clients (register, update, set a field, test, list); root folders (register, list); quality profiles; run a command; whether anything is wanted, read without searching; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck); requests (a title by its catalogue reference, the titles held, one title held, request, search, remove, what is downloading); `events`: tell the core what its upstream did (below) |
 | `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; `file_under`: each category and its completed folder; `filed`: every category and the completed folder it holds for it (below); seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add) |
@@ -219,12 +219,17 @@ A filler of `media.serve` answers `GET /lemonfiber/media.serve/v1/declared` with
   refused (`ARCH-R368`).
 - **The live-stream paths.** Path patterns under which the upstream serves a live
   stream's bytes, its playlists and segments included, each with where the live stream's
-  id sits and the shape that id has. They are what a pass is asked about: the core hands
+  id sits and the shape that id has. Where the upstream names the live stream in a query
+  value of its transcoding routes rather than in the path, as Jellyfin names it in
+  `LiveStreamId`, the live-stream path names that parameter, and the guard reads it as it
+  reads an item in a query value: decoded once, carried once under its declared
+  spelling, its value matched whole by the shape and holding no `%` (`ARCH-R417`). They are what a pass is asked about: the core hands
   them to the pass service, and the live stream a request names is the one a live-stream
   path places in its path.
 - **The locations.** Templates for an item's stream, poster and backdrop, with
   `{base}` and `{item}`, built by the core against the household address and the guard's
-  TLS port.
+  TLS port, and, from minor `4`, for the playlist a browser plays an item from, built
+  against the address the front door serves the guard at (`ARCH-R419`).
 - **The ports.** The port the upstream listens on, the upstream's own encrypted port
   where a household client expects it, and, for a filler of `identity.source`, the
   internal TLS port it serves with the certificate the core makes for it, where every
@@ -286,20 +291,64 @@ bytes are served on a pass the core issues instead.
 - **The normal form.** Before it asks, the guard holds the request to the normal form it
   holds an item's byte route to: one canonical path, no byte the forward would re-escape,
   and one spelling of each parameter it reads. It asks about exactly the bytes it forwards.
-- **The pass.** A pass names the member it was issued to and the moment it lapses, and
-  carries an HMAC-SHA256 under the core's key over the live stream it is for, that member
-  and that moment, written in base64url without padding. It lapses five minutes after it
-  is issued, and the client asks for another before then. It travels in the `lfpass` query
-  parameter, the one place a player fetching a playlist's segments carries it unaltered.
+- **The pass.** The core draws two keys from its pass key with HKDF-SHA256, one for
+  live-stream passes and one for item passes, so neither kind of pass is ever good as the
+  other. A live-stream pass names the member it was issued to and the moment it lapses,
+  and carries an HMAC-SHA256 under the live-stream key over the live stream it is for,
+  that member and that moment, written `<member>.<lapses>.<mac>`. An item pass, which a
+  browser plays on, seals with AES-256-GCM under the item key, behind a nonce drawn for
+  it, the member and the token of a session on the member's own account, with the item
+  it is for and the moment it lapses as the data it is bound to, written
+  `<nonce>.<lapses>.<sealed>`. Every part but the moment is base64url without padding.
+  A pass lapses five minutes after it is issued, and the client asks for another before
+  then. It travels in the `lfpass` query parameter, the one place a player fetching a
+  playlist's parts carries it unaltered, and the guard writes it into every address of a
+  playlist it serves on a pass and takes it off what it forwards (`ARCH-R314`,
+  `ARCH-R418`).
 - **The answer.** The pass service answers `GET /pass`, asked with the request the guard
-  forwards named in `X-Forwarded-Uri`: `204` where the pass in that request's `lfpass` is
-  good for the live stream its path names and has not lapsed, and `403` for anything else.
-  The live stream a path names is the one a live-stream path of the declaration places in
-  it; a path no live-stream path covers names none, and is answered `403`.
+  forwards named in `X-Forwarded-Uri`. On a live-stream path it answers `204` where the
+  pass in that request's `lfpass` is good for the live stream the path names and has not
+  lapsed. On a byte path it answers `204` where the pass opens under the item key for the
+  item the path names and has not lapsed, with the session's token in
+  `Lemonfiber-Session`, which the guard asks its item question with and presents to the
+  upstream as it does a token a client presents, and writes nowhere else. It answers `403`
+  for anything else. The live stream or item a path names is the one a live-stream path
+  or a byte path of the declaration places in it; a path neither covers names none, and
+  is answered `403`.
 - **The image.** The pass service runs `ghcr.io/lemonfiber/lemonfiber` at the running
   release, pinned by the digest resolved when the project is written, as every other image
   of the project is pinned. A build no image was published for writes the project without
   the pass service and says so.
+
+## Live TV
+
+From minor `4`, a filler of `media.serve` answers three operations for live TV, so a
+server recorded before them passes their cases as `unsupported`, as Plex's adapter
+answers them (`ARCH-R421`):
+
+- `channels` answers the live TV channels one member may watch, each with its id, its
+  name, its number where it has one, and the programme on it now with its title, its
+  certificate and when it ends. It answers none where the member's own account may not
+  watch live TV. The adapter reads that from the member's own standing at the server,
+  never from what its own credential may watch.
+- `tune` opens one channel's live stream on one member's account where that account may
+  watch live TV and that channel, and answers the id the live stream is closed by and two
+  paths at the upstream: the tuner's own stream and a transcoded playlist naming the live
+  stream in its query, each one a live-stream path of the declaration covers. It answers
+  none where the account may not watch it.
+- `untune` closes a live stream by the id `tune` answered.
+
+The core asks `channels` and `tune` for the member who asked, reads each programme's
+certificate against the member's limits, and leaves out a channel whose programme now is
+outside them. It issues a pass for each path `tune` answered, for the live stream a
+live-stream path places in it, and refuses a path no live-stream path covers, so no pass
+is issued for bytes the guard would not ask about. Asked to renew, it asks `channels`
+again for that member and refuses where the channel is gone or its programme now is
+outside their limits. It keeps, owner-only, each live stream it opened: the member, the
+channel, the id it is closed by, the live streams its paths name and when its last pass
+lapses, and no pass. It asks `untune` for each whose pass lapsed unrenewed, every minute
+while it serves the web API and whenever the household is read, for one the client says
+it stopped, and for every one a removed member opened (`D11-R12`).
 
 ## The completed folders
 
@@ -847,7 +896,11 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R346** | `serve TLS` MUST give the filler of `media.serve` the path, inside the container of the upstream it fronts, of the PKCS#12 the core wrote with an empty password at `lemonfiber/internal.p12` beneath that upstream's configuration directory, readable by the operator's uid alone and holding the certificate of [ARCH-R345](capability-contracts.md), and that certificate's SHA-256; the adapter MUST make its upstream serve the internal TLS port its declaration names with that certificate, answering `204` only where a handshake to that port already presents a certificate with that SHA-256, `205` where the upstream serves it only once it restarts ([ARCH-R341](capability-contracts.md)), and `unsupported` where its upstream serves no internal TLS port; and the core MUST count a holder of a media server credential as having reached the media server with a new certificate once that holder answers the new certificate's SHA-256 among those it holds, `held` for the filler of `invite.decline` and `the routes it admits` for the filler of `request.gate`, and the media server answers `ready` after serving it. |
 | **ARCH-R353** | Before the stack starts, the core MUST replace the media server's internal certificate as [ARCH-R345](capability-contracts.md) replaces it wherever the certificate kept is not made out to the service name the filler of `identity.source` runs as. |
 | **ARCH-R354** | The credentials read MUST list the media server's internal certificate by the SHA-256 of the certificate in force, never its key; the operator MUST be able to replace it as [ARCH-R345](capability-contracts.md) replaces it from the command line (`lemonfiber credentials --rotate`), the web API (`internal-certificate-replace`) and the companion's operator screens alike ([ARCH-R248](plugin-manifest.md)); each rehearsal MUST name every holder handed the new SHA-256 and whether the media server restarts, answering an offer the replacement takes, and each replacement MUST be journalled. |
-| **ARCH-R314** | A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the core's pass key over the live stream it is for, that member and that moment, written in base64url without padding, and MUST lapse five minutes after it is issued; it MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits and the shape that id has, and the core MUST hand them to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request's path and has not lapsed, and with `403` otherwise, a path no live-stream path covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
+| **ARCH-R314** | The core MUST draw a live-stream key and an item key from its pass key with HKDF-SHA256. A live-stream pass MUST name the member it was issued to and the moment it lapses and MUST carry an HMAC-SHA256 under the live-stream key over the live stream it is for, that member and that moment; an item pass MUST seal with AES-256-GCM under the item key, behind a nonce drawn for it, the member and a session token on the member's own account, bound to the item it is for and the moment it lapses; both MUST be written in base64url without padding but for the moment, and MUST lapse five minutes after they are issued; a pass MUST travel in the `lfpass` query parameter; the media server filler's declaration MUST carry the live-stream paths, each a path pattern with where the live stream's id sits, in the path or in one query parameter, and the shape that id has, and the core MUST hand them and the byte paths to the pass service; the pass service MUST answer `GET /pass`, asked with the forwarded request named in `X-Forwarded-Uri`, with `204` where the pass in that request's `lfpass` is good for the live stream a live-stream path places in that request, or opens for the item a byte path places in it with that session's token in `Lemonfiber-Session`, and has not lapsed, and with `403` otherwise, a request neither covers included; it MUST run `ghcr.io/lemonfiber/lemonfiber` at the running release pinned by the digest resolved when the project is written, and a build no image was published for MUST write the project without it and say so. |
+| **ARCH-R417** | A live-stream path of `media.serve`'s declaration MAY name the query parameter its live stream is found in; the guard MUST read that parameter decoded once, MUST refuse a request carrying it more than once, under another spelling or not at all, or with a value the stream's shape does not match whole or that still holds a `%`, and MUST ask the pass service about the live stream that value names. |
+| **ARCH-R418** | The guard MUST take `lfpass` off every request it forwards, MUST write the request's pass into every address of a playlist it serves on a pass and change nothing else of it, MUST ask the pass service about a request on a byte path carrying `lfpass` in place of reading a member's token from it, refusing one carrying both, and MUST ask its item question with the session `Lemonfiber-Session` answers and present it to the upstream, writing it nowhere else; neither the guard nor the pass service MUST log a pass or a session. |
+| **ARCH-R419** | `media.serve`'s declaration MUST carry from minor `4` the template of the playlist a browser plays an item from, with `{base}` and `{item}`, and the core MUST build it against the address the stack's front door serves the guard at, with a certificate a browser trusts, and MUST state no browser location where the front door serves no route to the guard. |
+| **ARCH-R421** | `media.serve@1` MUST declare `channels`, `tune` and `untune` from minor `4`: `channels` answering, for one member, the live TV channels their own account may watch, each with its id, name, number and the programme on it now with its title, certificate and end, and none where their account may not watch live TV, never read from the adapter's own credential's view; `tune` opening one channel's live stream on that member's account where it may watch it, and answering the id it is closed by and the paths of the tuner's own stream and of a transcoded playlist, each covered by a live-stream path of the declaration, and nothing where it may not; `untune` closing a live stream by that id. A server without live TV MUST answer all three `unsupported`. |
 | **ARCH-R340** | `request.intake@1` MUST declare `minted_as`, answering the name under which the upstream files a media server key it mints for itself, or `unsupported` where it mints none; once the request service reaches the media server through the gate, the core MUST revoke every key the media server holds under the name `minted_as` answers, and MUST NOT name a request service's key by any name of its own. |
 | **ARCH-R341** | An operation that answers `204` MAY answer `205`, meaning applied and in force once the upstream restarts, and conformance MUST pass either; on `205` the core MUST restart the service the adapter `fronts`, journalled as a restart of that service, MUST ask that adapter nothing else until `ready` answers, and MUST say the upstream restarted, and a rehearsal of an operation that may be answered so MUST say the upstream may restart. |
 | **ARCH-R357** | `network.egress-guard@1` MUST carry `secure`, answering `204` where the guard already holds the control credential its adapter was handed and `205` where it takes it up at its next start; the core MUST ask it after the guard's plugin is installed or updated, after every start of the guard and after it rotates that credential, and MUST hold the answer to `ARCH-R341`. |

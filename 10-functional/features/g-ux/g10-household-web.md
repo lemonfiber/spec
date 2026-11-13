@@ -66,6 +66,14 @@ The stream comes from the media server over the local network. Away from that
 network it is declined, saying so, rather than buffering against something it
 cannot reach.
 
+**The browser plays on a pass, through the front door.** A page can neither pin the
+guarded door's certificate nor keep a member's session out of its own script's reach.
+So the player asks the core to play a title and is answered an address at the stack's
+front door, which presents a certificate the browser trusts, carrying a short-lived
+pass for that title alone ([D11](../d-content/d11-watching-what-the-house-holds.md)).
+It hands that address to the player unchanged, asks for a new pass before the one it
+holds lapses, and never holds the member's media server session itself.
+
 **A member is handed the service that faces them, not the one that happens to be
 the door.** A household reaches two: somewhere to ask for things, and somewhere
 to watch them. Which of those is the *front* door is an arrangement the operator
@@ -146,6 +154,7 @@ and the household member is the one who finds out.
 | **G10-R4** | A member MUST be able to see their own requests, ask for something, see what the household holds, and play it. |
 | **G10-R12** | Where the household reaches a service that faces them, the surface MUST be able to hand them its address, whether or not that service is the front door. |
 | **G10-R13** | Where a service a member is handed to cannot be reached from where they are, the surface MUST say so, and MUST NOT present an address it knows will not answer. |
+| **G10-R14** | The player MUST play a title from the address the core answers for it at the stack's front door with the pass in it (`D11-R14`), unchanged, MUST ask the core for a new pass before the one it holds lapses, and MUST NOT hold a media server session or token of the member's. |
 | **G10-R5** | Before a member asks for something, the surface MUST state whether it needs approval and whether they have allowance left. |
 | **G10-R6** | What a member may watch MUST be the core's answer. The surface MAY render it, and MUST NOT compute, cache or enforce a second copy of it. |
 | **G10-R7** | Where the media server cannot be reached, playback MUST be declined with the reason, and MUST NOT be queued or shown as buffering. |
