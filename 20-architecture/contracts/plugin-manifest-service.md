@@ -120,7 +120,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `posture` | enum | | `standard` \| `confined`. How tightly the container is held, as declared. Default `standard`. `confined` only where the plugin's own CI runs the image under it. |
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate, summed into a form's footprint (`B1-R18`) and never written as a limit. |
 | `mem_limit_mib` | integer | | The most memory the container may hold, in MiB, written as its limit. |
-| `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). `{ fenced = true }`: its own requests go to addresses others hand it, so it runs inside a fence that refuses every private address — see [`network.fenced`](#fenced-from-every-private-address--networkfenced). One or the other, never both. |
+| `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). `{ fenced = true }`: its own requests go to addresses others hand it, so it runs inside a fence that refuses every private address — see [`network.fenced`](#fenced-from-every-private-address--networkfenced). One or the other, never both. `{ egress_for = "<id>" }`: it carries another service of its own plugin out of the machine, and nothing else — see [`network.egress_for`](#carrying-a-sibling-out--networkegress_for). |
 | `listens` | integer | ✔ if `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where the services that ask and the proxy reach it, and lemonfiber where it declares no `contract`. Default `port`. |
 | `contract` | integer | | Only where it `speaks`: the port it speaks its contracts on inside the container, published on the loopback interface alone and reached by lemonfiber and nothing else. Default `listens`. Declared apart from `listens` where the service also answers the household or another service, so neither reaches its contract routes (`ARCH-R343`). |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract is asked over it, and no other way. See [capability-contracts.md](capability-contracts.md). |
@@ -752,6 +752,27 @@ lemonfiber answers it with a fence rather than a check (`ARCH-R363`):
 A service may not be both `fenced` and `via`, since each is a namespace of its own. Its
 asks are settled and its networks joined as any service's are; the fence holds those
 networks in its place.
+
+### Carrying a sibling out — `network.egress_for`
+
+```toml
+network = { egress_for = "request-gate" }
+```
+
+A confined service holding another service's credential has no route off the host. Where
+one call it makes must still reach a host outside the machine, a second service of the
+same plugin carries it there, holding nothing (`ARCH-R422`):
+
+- **It is the only one that reaches out.** It is on a network of its own that translates
+  addresses off the host, and on one network shared with the service it names and nothing
+  else. The service it names keeps no route off the host.
+- **It holds nothing worth taking.** It is confined, and declares no secret, no
+  configuration directory, no mount, no data, no published port, no contract, no ask and no
+  capability. Each is refused naming `service <id>.network.egress_for`, and so is an
+  `egress_for` naming no other service of its plugin, `via` and `fenced` beside it.
+- **What it carries is its own program's to limit.** The request gate's egress service
+  answers only a tunnel to plex.tv's port 443, and the gate's TLS runs through it to
+  plex.tv, so it reads nothing it carries (`C6-R22`).
 
 ### Shapes — the only route to a device or a privilege
 
