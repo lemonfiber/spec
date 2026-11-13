@@ -25,7 +25,10 @@ holds the media server's credential: a Jellyfin or an Emby key, or the request
 service's own Plex account token. The request service holds only the gate's tokens,
 or, linked to Plex in `owner` mode, a token of the account that claimed Plex, which
 the gate checks at plex.tv. In `fronted` mode it also answers plex.tv's calls for the
-request service. plex.tv's account read is its only egress.
+request service. plex.tv's account read is its only egress, carried by its egress
+service, `request-gate-egress`, which runs from the same image, holds nothing and
+answers nothing but a tunnel to plex.tv's port 443; the gate itself has no route off
+the host.
 
 ## What it holds, and what it does not
 
