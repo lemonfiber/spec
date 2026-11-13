@@ -6,11 +6,14 @@ lemonfiber's own image: every service of the manifest running it moves to the di
 published and to its tag, a train tag's without its `v`, and every recording the
 manifest names is taken again from it through `pin_bump.py` (`ARCH-R285`). A train
 tag's move goes on `release/image-pin` and a commit's on `release/image-commit-pin`, so
-the two never move each other's pull request.
+the two never move each other's pull request; an adapter's, published by
+`adapter-release`, on `release/adapter-pin` and `release/adapter-commit-pin`, which
+`first-party-bundle` follows with `pin: adapter`.
 
-    manifest_pin.py apply   --manifest plugin.toml --image <i> --tag <t> --digest <d> --ref-type <branch|tag>
+    manifest_pin.py apply   --manifest plugin.toml --image <i> --tag <t> --digest <d> --ref-type <branch|tag> \\
+                            [--pin image|adapter]
     manifest_pin.py admit   --manifest plugin.toml --image <i> --tag <t> --digest <d> --ref-type <branch|tag> \\
-                            --bump <dir> --move-out <move.json>
+                            [--pin image|adapter] --bump <dir> --move-out <move.json>
     manifest_pin.py message --move move.json --log <url> [--root .]
 
 `apply` moves the pin in the job holding no secret and prints the move as JSON, or
@@ -37,19 +40,26 @@ import pin_bump
 import plugin_pin
 from manifest_repos import IMAGE_HOME
 
-#: The rolling branch each kind of publish moves the pin on.
-BRANCHES = {"tag": "release/image-pin", "branch": "release/image-commit-pin"}
+#: The rolling branch each kind of publish moves the pin on, by whose pin it is.
+BRANCHES = {
+    "image": {"tag": "release/image-pin", "branch": "release/image-commit-pin"},
+    "adapter": {"tag": "release/adapter-pin", "branch": "release/adapter-commit-pin"},
+}
 #: What the commit and the pull request cite.
 CITED = "Spec: OPS-R90, OPS-R91, ARCH-R121, ARCH-R285"
 Refused = plugin_pin.Refused
 
 
-def moved(main_text: str, image: str, tag: str, digest: str, ref_type: str) -> tuple[str, dict | None]:
+def moved(
+    main_text: str, image: str, tag: str, digest: str, ref_type: str, pin: str = "image"
+) -> tuple[str, dict | None]:
     """The manifest with every service running `image` at what was published, and the
     move, or the manifest as it was and None where no service runs it."""
     if not image.startswith(f"{IMAGE_HOME}/"):
         raise Refused(f"{image} is not an image lemonfiber publishes")
-    if ref_type not in BRANCHES:
+    if pin not in BRANCHES:
+        raise Refused(f"{pin!r} is not a pin: {', '.join(BRANCHES)}")
+    if ref_type not in BRANCHES[pin]:
         raise Refused(f"a {ref_type!r} publishes no pin")
     pinned = tag.removeprefix("v") if ref_type == "tag" else tag
     written, services = plugin_pin.pinned(main_text, image, pinned, digest)
@@ -58,7 +68,7 @@ def moved(main_text: str, image: str, tag: str, digest: str, ref_type: str) -> t
     return written, {
         "image": image,
         "services": services,
-        "branch": BRANCHES[ref_type],
+        "branch": BRANCHES[pin][ref_type],
         "published": tag,
         "to": {"tag": pinned, "digest": digest},
     }
@@ -66,7 +76,7 @@ def moved(main_text: str, image: str, tag: str, digest: str, ref_type: str) -> t
 
 def admitted(main_text: str, args: argparse.Namespace, bump: pathlib.Path) -> tuple[dict, dict[str, bytes]]:
     """The move and the files a staged bump may commit, or `Refused` naming why."""
-    _, move = moved(main_text, args.image, args.tag, args.digest, args.ref_type)
+    _, move = moved(main_text, args.image, args.tag, args.digest, args.ref_type, args.pin)
     if move is None:
         raise Refused(f"main's manifest runs no service of {args.image}")
     return move, pin_bump.admitted_files(main_text, move, bump)
@@ -84,7 +94,7 @@ def described(move: dict, left: list[str], log: str) -> tuple[str, str, bool]:
 
 def asked_apply(args: argparse.Namespace) -> int:
     root, text = pin_bump.manifest_text(args.manifest)
-    written, move = moved(text, args.image, args.tag, args.digest, args.ref_type)
+    written, move = moved(text, args.image, args.tag, args.digest, args.ref_type, args.pin)
     if move is not None:
         paths.plain_write(root, pin_bump.MANIFEST_FILE, written.encode())
     print(json.dumps(move, indent=2))
@@ -118,6 +128,8 @@ def main(argv: list[str] | None = None) -> int:
         for option in options:
             one.add_argument(option, required=True)
     asked.choices["message"].add_argument("--root", default=".")
+    for name in ("apply", "admit"):
+        asked.choices[name].add_argument("--pin", choices=sorted(BRANCHES), default="image")
     args = parser.parse_args(argv)
     try:
         return ASKED[args.asked](args)

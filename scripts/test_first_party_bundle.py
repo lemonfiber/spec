@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 import unittest
 
+import manifest_pin
 import yaml
 
 WORKFLOWS = pathlib.Path(__file__).resolve().parent.parent / ".github/workflows"
@@ -156,10 +157,11 @@ class Branches(unittest.TestCase):
 
     def test_adapter_release_opens_the_adapter_pin(self):
         release = yaml.safe_load((WORKFLOWS / "adapter-release.yml").read_text(encoding="utf-8"))
-        self.assertEqual(release["env"]["TAG_PIN_BRANCH"], "release/adapter-pin")
+        self.assertEqual(release["jobs"]["manifest"]["with"]["pin"], "adapter")
+        self.assertEqual(manifest_pin.BRANCHES["adapter"]["tag"], "release/adapter-pin")
 
     def test_manifest_pin_opens_the_image_pin(self):
-        self.assertIn("release/image-pin", (WORKFLOWS / "manifest-pin.yml").read_text(encoding="utf-8"))
+        self.assertEqual(manifest_pin.BRANCHES["image"]["tag"], "release/image-pin")
 
 
 class Interpolation(unittest.TestCase):
