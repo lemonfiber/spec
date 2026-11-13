@@ -111,9 +111,14 @@ never what the administrator's may, and reads the programme on it now against th
 member's limits. Where both allow it, the core opens the live stream as the member and
 answers the client where its bytes are at the guarded front door, as the tuner sends
 them and transcoded as a playlist, each with a pass naming that live stream and that
-member, which lapses five minutes after it is issued. The client asks for a new pass
-before then, and the core asks both questions again each time, so a programme that
-moves outside the member's limits stops being served within five minutes.
+member, which lapses five minutes after it is issued. A player keeps asking at the
+address it started from, so the client renews the pass it holds before it lapses rather
+than taking a new one: the core asks both questions again each time and, where both
+still allow it, holds the same pass good for five minutes more. A programme that moves
+outside the member's limits stops being served within five minutes. The member's paired
+client presents its own session beside the pass, and the guard hands that session to the
+media server as it does for an item, so the media server's own live TV switch applies
+too.
 
 The guard asks the core, on every request for a live stream's bytes, its playlists and
 segments included, whether the pass it carries is good for exactly that live stream,
@@ -135,8 +140,8 @@ paired client's grant, and answers where the title streams from at the stack's f
 door, which presents a certificate the browser trusts, with a pass for that title and
 that member. The session's token is sealed inside the pass, readable only with the key
 that never leaves lemonfiber's own processes, and the core keeps no copy. The pass
-lapses five minutes after it is issued, and the browser hands it back for a new one
-before then, which the core seals again around the same session.
+lapses five minutes after it is issued, and the browser renews it before then, so the
+core holds the same pass, and the session it seals, good for five minutes more.
 
 On every request on that title's byte routes carrying a pass, the guard asks the pass
 service, which confirms the pass is for the item the request names and has not lapsed,
@@ -194,11 +199,11 @@ they are removed and lapses as a grant does.
 | **D11-R9** | The core MUST serve a title's poster and backdrop to the member whose shelf holds it, read from the media server as that member, at `GET /api/held/{id}/poster` and `GET /api/held/{id}/backdrop`. It MUST answer only an `image/*` body of at most 2 MiB, marked `Cache-Control: private`, MUST keep no copy, and MUST answer a title outside the member's limits, or a picture the media server does not hold, as absent. |
 | **D11-R10** | The core MUST serve the poster of a title a member's search offered and the house does not hold, to that member alone, fetched by the core from the location the request service gave for that title and nowhere else, `image/*` only, at most 2 MiB, with `Cache-Control: private`; it MUST refuse a location that is not HTTPS or that resolves to a loopback, private or link-local address, and the member's client MUST NOT be sent to the catalogue's host. |
 | **D11-R11** | A member's paired client MUST be able to watch a live TV channel only through the core, which MUST open the channel's live stream on the member's behalf only where the media server answers that the member's own account may watch live TV and that channel, never as the administrator's account may, and the programme on it is within the member's limits (`D8-R9`). The core MUST answer a member the channels they may watch, each with its programme now, leaving out one whose programme now is outside their limits. The guard's item question MUST NOT stand in for either answer. |
-| **D11-R12** | The core MUST answer the client the location of the live stream's bytes at the guarded front door, as the tuner sends them and as a transcoded playlist, each with a pass the core issued for that live stream and that member alone, which lapses five minutes after it is issued; it MUST issue a new pass for the same live stream only after asking both questions of `D11-R11` again, and MUST close the live stream when its pass lapses unrenewed, when the client says it stopped, or when the member is removed (`D6-R8`). |
+| **D11-R12** | The core MUST answer the client the location of the live stream's bytes at the guarded front door, as the tuner sends them and as a transcoded playlist, each with a pass the core issued for that live stream and that member alone, which lapses five minutes after it is issued; it MUST renew a pass, holding that same pass good for five minutes more, only after asking both questions of `D11-R11` again, and MUST close the live stream when its pass lapses unrenewed, when the client says it stopped, or when the member is removed (`D6-R8`). |
 | **D11-R13** | The guard MUST serve a live stream's bytes, its playlists and segments included, only to a request whose pass the core confirms, asked of the core on every such request, for exactly the live stream the request names, and MUST refuse one whose pass is absent, lapsed or not confirmed, or where the core does not answer. A live stream's bytes MUST NOT be served on an item's byte route (`D11-R2`), save that a transcoded live stream MUST be served on the media server's transcoding routes where the live stream is named in the one query parameter the media server declares for it, on its pass, and on no other route or parameter. |
-| **D11-R14** | The core MUST answer a member's browser, for one title the member may watch, where it streams from at the stack's front door, with a pass for that title and that member that lapses five minutes after it is issued and seals a session on the member's own account, opened for that browser as a grant is (`D11-R1`), so that the session's token is readable only with the key the pass is made with; the core MUST NOT keep the token, MUST seal the same session again into a new pass only for the member and the title the pass it is handed back names, and MUST end the session when the member is removed. |
+| **D11-R14** | The core MUST answer a member's browser, for one title the member may watch, where it streams from at the stack's front door, with a pass for that title and that member that lapses five minutes after it is issued and seals a session on the member's own account, opened for that browser as a grant is (`D11-R1`), so that the session's token is readable only with the key the pass is made with; the core MUST NOT keep the token, MUST renew a pass, holding that same pass good for five minutes more, only for the member and the title it names, and MUST end the session when the member is removed. |
 | **D11-R15** | The guard MUST accept a browser's pass only on the byte routes of the title it names, asked of the pass service on every request, and MUST ask its item question with the session the pass service hands it and present that session to the media server as it does a session a client presents; it MUST refuse a pass that is lapsed, altered, for another title or not confirmed, or where the pass service does not answer, and MUST write the session only into the request it forwards and the question it asks, and log neither the pass nor the session. |
-| **D11-R16** | The guard MUST write a request's pass into every address of a playlist it serves on that pass, so a player fetching the playlist's parts carries it unaltered, and MUST change nothing else of the playlist. |
+| **D11-R16** | The guard MUST write a request's pass into every address of a playlist it serves on that pass that is relative or at the guard's own origin, and, on a live-stream pass, the live stream's parameter as the request carried it where the live stream is named in one, so a player fetching the playlist's parts carries both unaltered; it MUST write nothing into an address at another origin, MUST bound what it writes, and MUST change nothing else of the playlist. |
 
 ## Related
 
