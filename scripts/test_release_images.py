@@ -420,6 +420,37 @@ class CheckBundlePinsTests(Workspace):
             check_bundle_pins.problems(dotted, "0.2.0", "lemonfiber", [("plugin-jellyfin", "jellyfin")]), []
         )
 
+    def test_a_plugin_the_bundle_neither_ships_nor_offers_is_passed_over_by_name(self):
+        wanted = [
+            ("plugin-jellyfin", "jellyfin"),
+            ("plugin-plex", "plex"),
+            ("lemonfiber-fence", "fence"),
+            ("lemonfiber-decline", "decline"),
+        ]
+        bundle = {"offered": [dict(self.PIN)], "fence": {"tag": "0.2.0"}}
+        self.assertEqual(
+            check_bundle_pins.bundled(bundle, wanted),
+            (
+                [("plugin-jellyfin", "jellyfin"), ("lemonfiber-fence", "fence"), ("lemonfiber-decline", "decline")],
+                ["plex"],
+            ),
+        )
+        self.assertEqual(check_bundle_pins.bundled({"plex": {}}, [("plugin-plex", "plex")]), ([], ["plex"]))
+
+    def test_a_plugin_the_bundle_offers_is_held_to_the_release_as_one_it_ships(self):
+        wanted = [("plugin-jellyfin", "jellyfin")]
+        self.assertEqual(check_bundle_pins.problems({"offered": [dict(self.PIN)]}, "0.2.0", "lemonfiber", wanted), [])
+        self.assertIn(
+            "not '0.3.0'",
+            check_bundle_pins.problems({"offered": [dict(self.PIN)]}, "0.3.0", "lemonfiber", wanted)[0],
+        )
+        self.assertIn(
+            "2 times",
+            check_bundle_pins.problems(
+                {"plugin": [dict(self.PIN)], "offered": [dict(self.PIN)]}, "0.2.0", "lemonfiber", wanted
+            )[0],
+        )
+
     def test_each_way_a_pin_can_be_wrong_is_named(self):
         wanted = [("plugin-jellyfin", "jellyfin")]
         said = check_bundle_pins.problems(
@@ -477,6 +508,22 @@ class CheckBundlePinsTests(Workspace):
         code, out = self.check()
         self.assertEqual(code, 0, out)
         self.assertIn("jellyfin is pinned at 0.2.0.", out)
+
+    def test_main_names_a_cut_plugin_the_bundle_does_not_pin_and_holds_the_rest(self):
+        pathlib.Path("30-repos/repos.toml").write_text(
+            pathlib.Path("30-repos/repos.toml").read_text(encoding="utf-8")
+            + '\n[[repo]]\nname = "plugin-plex"\nplugin = "plex"\nimage = true\n',
+            encoding="utf-8",
+        )
+        pathlib.Path("70-operations/versions/0.2.0.toml").write_text(
+            'version = "0.2.0"\nrepos = ["lf", "plugin-jellyfin", "plugin-plex"]\n', encoding="utf-8"
+        )
+        self.core()
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertIn("plex is tagged at 0.2.0, and the bundle neither ships nor offers it.", out)
+        self.assertIn("jellyfin is pinned at 0.2.0.", out)
+        self.assertNotIn("plex is pinned", out)
 
     def test_main_reads_a_pre_release_as_its_own_release(self):
         self.core(release="0.2.0-pre.1")

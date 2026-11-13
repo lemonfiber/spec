@@ -564,6 +564,12 @@ Decisions about a repository outside this organisation, such as
 | A member of a Plex household the request service holds no account for is asked for by the core as the request service's owner, with `request.intake`'s `ask` carrying no member. The core keeps each such request beside the member and counts it toward their allowance, and refuses, filing nothing, an ask for a member whose asks wait for approval. The user chose this over asking with no limits and over a queue of the core's own for approval | [ARCH-R423](../20-architecture/contracts/capability-contracts.md), [D1-R28](../10-functional/features/d-content/d1-seed.md) |
 | Whether the request service's own page offers members sign-in through the identity source is carried on its identity setup as `members_sign_in`, false in `managed` and true in `owner` and `fronted` where Plex is the media server. The user chose this over an operation of its own | [ARCH-R424](../20-architecture/contracts/capability-contracts.md), [D1-R28](../10-functional/features/d-content/d1-seed.md) |
 
+## 2026-11-13
+
+| Decision | Where it lives |
+|---|---|
+| The core's release tag is held to embed a bundle pinning, at that version, every first-party plugin the bundle pins that builds an image, shipped or offered; a first-party plugin that builds an image and that the bundle neither ships nor offers, as Plex, is still tagged by the train before the core and its image published at the tag, and the check names it as one the bundle does not pin. `OPS-R86` is amended in place. The user chose this over offering Plex in the bundle and over marking its repository as building no image | [OPS-R86](../70-operations/releasing.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

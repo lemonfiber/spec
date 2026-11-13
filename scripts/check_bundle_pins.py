@@ -6,9 +6,11 @@ building a stack service's image among them, pinned by its service's id. The tag
 publishes the plugin's image, the plugin's pin pull request names it in the
 manifest, the train moves the plugin's pin in the catalogue's bundle, and the core's
 submodule takes that catalogue. Only then may the core be tagged, and this is the
-check that says whether that point has arrived: for every plugin the version cuts,
-the bundle the core embeds pins it from the repository the train tagged, at the
-release that tag names.
+check that says whether that point has arrived: for every plugin the version cuts
+that the bundle pins, shipped or offered, the bundle the core embeds pins it from the
+repository the train tagged, at the release that tag names. A plugin the bundle
+neither ships nor offers, as it does not Plex, is tagged and published all the same,
+and is named here as one the bundle does not pin.
 
 The catalogue is found and read as `embedded_bundle.py` finds it. That the copy
 beside each pin is the manifest at the pinned revision is the catalogue's own CI to
@@ -70,6 +72,21 @@ def problems(bundle: dict, release: str, owner: str, wanted: list[tuple[str, str
     return said
 
 
+def bundled(bundle: dict, wanted: list[tuple[str, str]]) -> tuple[list[tuple[str, str]], list[str]]:
+    """The wanted (repo, id) the release holds the bundle to, and the ids of the
+    `plugin-<id>` repositories the bundle neither ships nor offers, which it does not
+    (OPS-R86). A repository building a stack service's image is always held: the stack
+    runs that service."""
+    ids = {str(pin.get("id")) for pin in embedded_bundle.pins(bundle)}
+    kept, passed = [], []
+    for repo, plugin in wanted:
+        if plugin in ids or repo.startswith(embedded_bundle.REPO_PREFIX):
+            kept.append((repo, plugin))
+        else:
+            passed.append(plugin)
+    return kept, passed
+
+
 def git(*args: str, at: pathlib.Path) -> subprocess.CompletedProcess:
     """One git command, its output kept, its failure left to the caller."""
     return subprocess.run(["git", "-C", str(at), *args], capture_output=True, text=True, check=False)
@@ -125,7 +142,7 @@ def unheld(
 ) -> list[str]:
     """Every pinned revision whose `targets.toml` names a commit the core being tagged
     does not hold, or that cannot say what it targets."""
-    pinned = {str(pin.get("id")): pin for pin in bundle.get("plugin", []) if isinstance(pin, dict)}
+    pinned = {str(pin.get("id")): pin for pin in embedded_bundle.pins(bundle)}
     said = []
     for repo, plugin in wanted:
         if embedded_bundle.own_table(bundle, repo, plugin)[0] is not None:
@@ -189,6 +206,9 @@ def main() -> int:
         return 1
 
     release = a.tag.removeprefix("v")
+    wanted, passed = bundled(read, wanted)
+    for plugin in passed:
+        print(f"{plugin} is tagged at {release}, and the bundle neither ships nor offers it.")
     said = problems(read, release, a.owner, wanted)
     if not said:
         said = unheld(core, read, wanted, targets_places(pathlib.Path(check_plugins.REGISTRY)))

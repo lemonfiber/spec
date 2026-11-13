@@ -115,12 +115,23 @@ def origin(owner: str, repo: str) -> str:
     return f"https://github.com/{owner}/{repo}"
 
 
+#: The tables a bundle pins a first-party plugin in: one it ships, and one it offers
+#: and does not ship (ARCH-R394). Each pins a revision and keeps a copy alike.
+PIN_TABLES = ("plugin", "offered")
+
+
+def pins(bundle: dict) -> list[dict]:
+    """Every first-party plugin the bundle pins, shipped or offered."""
+    return [pin for table in PIN_TABLES for pin in bundle.get(table, []) if isinstance(pin, dict)]
+
+
 def pinned_once(bundle: dict, plugin: str, origin: str) -> tuple[dict | None, list[str]]:
-    """The bundle's one pin of `plugin`, and every way it fails to be one pin from `origin`."""
-    pins = [pin for pin in bundle.get("plugin", []) if isinstance(pin, dict) and pin.get("id") == plugin]
-    if len(pins) != 1:
-        return None, [f"{plugin}: the bundle pins it {len(pins)} times, not once"]
-    pin = pins[0]
+    """The bundle's one pin of `plugin`, shipped or offered, and every way it fails to be
+    one pin from `origin`."""
+    pins_of = [pin for pin in pins(bundle) if pin.get("id") == plugin]
+    if len(pins_of) != 1:
+        return None, [f"{plugin}: the bundle pins it {len(pins_of)} times, not once"]
+    pin = pins_of[0]
     if str(pin.get("origin", "")).rstrip("/").removesuffix(".git") != origin:
         return pin, [f"{plugin}: pinned from {pin.get('origin')!r}, not {origin!r}, which the train tagged"]
     return pin, []
@@ -137,7 +148,7 @@ def own_table(bundle: dict, repo: str, service: str) -> tuple[dict | None, list[
     table = bundle.get(service)
     if repo != f"{REPO_PREFIX}{service}" or not isinstance(table, dict):
         return None, []
-    parts = [pin for pin in bundle.get("plugin", []) if isinstance(pin, dict) and pin.get("id") == service]
+    parts = [pin for pin in pins(bundle) if pin.get("id") == service]
     if parts:
         return None, [f"{service}: the bundle pins it as a part and in a table of its own, and one pin is kept"]
     return table, []
