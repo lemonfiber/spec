@@ -43,6 +43,16 @@
 # pass, and the door asks the core about that pass on every request for its bytes. They
 # are the core's and the door's, by the maintainer's decision of 2026-10-12.
 #
+# `D11-R14` to `D11-R16`, `G10-R14`, `ARCH-R417` to `ARCH-R421` are what live TV and the
+# browser play on: the channels a member may watch, `tune` and `untune` over `media.serve`,
+# a transcoded live stream read from its one query parameter, an item pass sealing a
+# session on the member's own account for a browser, the playlist the guard writes the
+# pass into, and the reads and actions that answer them. `D11-R11` to `D11-R13` and
+# `ARCH-R314` are amended in place. They are the core's, the door's, the media servers'
+# adapters' and the web surface's, by the maintainer's decisions of 2026-11-13 (OPS-R31).
+# `lemonfiber-door` is searched for `D11-R13`, `D11-R15`, `D11-R16`, `ARCH-R292`,
+# `ARCH-R417` and `ARCH-R418`.
+#
 # `A5-R15` keeps an import from handing the key of the operator's other stack to anything
 # but the first-party adapter lemonfiber already runs for that service. It is the core's.
 #
@@ -54,7 +64,7 @@
 # core's side of `G10-R12`, `G10-R13` and `N9-R10`; added by the maintainer's decision of
 # 2026-11-13 (OPS-R31).
 #
-# 127 goals, seeded from the roadmap milestone this version serves;
+# 136 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -63,7 +73,7 @@ milestone = "M16"   # The household's library
 delivers  = "The household's library: find, ask for and play, under the member's own limits"
 status  = "planned"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex"]
-satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion"]
+satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion", "lemonfiber-door"]
 goals   = [
     "B8-R15",
     "B8-R16",
@@ -189,6 +199,15 @@ goals   = [
     "D11-R12",
     "D11-R13",
     "ARCH-R292",
+    "D11-R14",
+    "D11-R15",
+    "D11-R16",
+    "G10-R14",
+    "ARCH-R417",
+    "ARCH-R418",
+    "ARCH-R419",
+    "ARCH-R420",
+    "ARCH-R421",
     "A5-R15",
     "F14-R31",
     "ARCH-R416",

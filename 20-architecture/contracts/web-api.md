@@ -72,7 +72,7 @@ GET /api/boot          GET /api/watcher      GET /api/queue
 GET /api/askable?…      GET /api/askable/{id}/poster?…
 GET /api/askable/kinds?…                      GET /api/stack
 GET /api/requests/{reference}/poster?…        GET /api/notify
-GET /api/notify/mine
+GET /api/notify/mine   GET /api/channels?…
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -91,6 +91,11 @@ at most 2 MiB, marked `Cache-Control: private` (D11-R9). They exist for a browse
 neither present a session to the guarded front door nor pin its certificate, so it fetches the
 picture here with its own token and draws it from memory. A title outside the member's limits,
 and a picture the media server does not hold, are answered as absent.
+
+`/api/channels` is the live TV channels a member may watch, each with the programme on it now,
+read as the member, so a channel whose programme now is outside their limits is left out and a
+member whose account may not watch live TV is answered none (D11-R11). It is narrowed to the
+member who asks, as the held shelf is.
 
 `/api/clients` takes none either, and for a different reason: what to watch on is the same answer on every machine, because the client landscape belongs to the platforms rather than to a stack. It reads nothing and asks nothing of the engine, so it answers where nothing is set up yet — which is when somebody deciding what to tell the house is most likely to ask. Naming a device would let a surface show one row and call it the answer, and the row most worth reading is the one saying a device is poorly served and what to do instead.
 
@@ -447,6 +452,21 @@ Long-running actions return a job identifier and report progress on the event st
 browser tab that closes mid-repair does not orphan the work. The identifier is **redeemable**
 — see [a job's outcome](web-api-wire.md#a-jobs-outcome) — because a name that cannot be turned back into an
 outcome makes the reply an acknowledgement rather than an answer.
+
+### Watching on a pass
+
+Two actions answer where something streams from with a pass in it, and answer at once rather
+than with a job (D11). `tune` takes a channel as `id` and answers kind `tuned`: the channel, the
+member, the tuner's own stream as `direct` and the transcoded playlist as `transcoded`, each a
+whole address at the guarded front door carrying its pass, the fingerprint of the certificate
+the door presents, and when the passes lapse, or, where nothing can be located, `unlocated` with
+the reason. Asked with `stream`, the live stream a location it answered names, it asks the media
+server again and answers new passes for it, and with `stop` as well it closes it. `play` takes a
+title as `id` and the browser's `device`, and answers kind `play`: the title, the member, the
+title's playlist at the stack's front door carrying an item pass as `stream_from`, and when the
+pass lapses, or `unlocated` with the reason. Asked with `pass`, the pass it holds, in place of
+`device`, it answers a new pass around the same session. Each is narrowed to the member who
+asks, and each location is offered as a QR code wherever a surface shows it (`ARCH-R420`).
 
 ### Rehearsing
 
@@ -888,6 +908,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R289** | The `space` action MUST accept `only`, a list of categories the offer it answers names as costing nothing, and with the offer's name MUST reclaim those categories alone; a category the offer does not name MUST be refused, naming it, with nothing removed. |
 | **ARCH-R290** | A `trace` that stopped at `monitored` where asking the indexers would tell nothing at the quality from nothing at all MUST carry `searchable`: what the search spends, in the stack's words, and that it covers the curator's wanted list at the quality in force; a trace that would spend no search MUST NOT carry it. The `search` action MUST accept `disruptive` absent or `true`, and the artefact MUST NOT publish a default it refuses. |
 | **ARCH-R409** | Seed MUST ask each filler's `events` with the address `https://host.docker.internal:<port>/api/notify/events`, `<port>` the port the web surface was last served encrypted on where a container reaches it, or with `LEMONFIBER_EVENTS_ADDRESS` followed by `/api/notify/events` where that `https` address is set, and with the SHA-256 digest of the certificate the web surface presents, which the adapter MUST pin; the web surface MUST answer the name `host.docker.internal` at `POST /api/notify/events` and nowhere else; where neither address exists seed MUST ask no filler and MUST say why; an adapter MUST be given `host.docker.internal` as the engine's host gateway where the engine does not resolve it itself. |
+| **ARCH-R420** | The web API MUST serve `GET /api/channels`, narrowed to the member who asks, with the channels `D11-R11` answers; MUST answer action `tune` taking `id` (a channel), or `stream` with an optional `stop`, with kind `tuned` carrying `channel`, `member`, `direct`, `transcoded`, `fingerprint` and `lapses`, or `unlocated`; and MUST answer action `play` taking `id` and `device`, or `id` and `pass`, with kind `play` carrying `id`, `member`, `stream_from` and `lapses`, or `unlocated`; each at once and without a job, each narrowed to the member who asks, and `lemonfiber channels`, `lemonfiber tune` and `lemonfiber play` MUST answer the same. |
 | **ARCH-R398** | `POST /api/notify/events` MUST accept a neutral event only with the events key the core minted for the filler that sends it, MUST refuse every other caller, and MUST hand each event to B5's policy, a `failed` or `health` event as `problem` and an `imported` or `added` event as `completion`; seed MUST mint each curator's and the media server's events key, write it to that filler's adapter readable by the operator's uid alone, and ask its `events` with the core's address and that key. |
 | **ARCH-R399** | The core MUST deliver every alert B5 says is worth telling to each configured back-end that is not held, each independently of the others, speaking ntfy, gotify, a webhook, an Apprise URL and UnifiedPush itself; a delivery MUST carry the alert's notification kind and summary and MUST NOT carry a member's name, what anybody is watching or a title a member asked for; each kind MUST be an outbound entry with its own switch. |
 | **ARCH-R400** | `GET /api/notify` MUST answer the operator session alone with `state`, `backends` and `unread` as the section on where a message goes says, each delivery's `outcome` `confirmed`, `sent` or failed with the back-end's answer; a member session and a key MUST be refused it, and a store that cannot be read MUST refuse the read. |
