@@ -402,6 +402,18 @@ Each of these has its own remedy, and a client that read them from the status al
 offer one remedy for all four. So a client decides what a refusal means from its code. It
 never decides from the sentence, which is written for a person and may be reworded.
 
+A household member's session, and a key scoped to a member, is answered with the same
+envelope and the same code, worded for the household (`G4-R16`). The problem's `summary` and
+`meaning` both carry the household sentence the registry declares for the code, its one
+remedy is the household remedy, and `detail`, `cause` and `steps` are absent. A code the
+registry declares a fault of the stack says that it is not working right now and that
+whoever runs the house has been told. What stands in the way of part of a member's read is
+carried the same way: each obstacle is a code, a sentence and a remedy, and a member is told
+the code's household words. A member's read carries none of what is written for the
+operator alone: the notes about other members, the caution about what a limit is, a
+request's size, and where a refusal was passed on to. The core chooses the wording in one
+place, for every route and for the member's stream alike.
+
 That sentence is plain text, and so is every other sentence the core sends a client: a
 refusal's summary and remedy, a reason, a report, and the meaning and remedy each code
 carries in the registry. None carries markup. A name is written as the name, with no
@@ -877,7 +889,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R170** | SDK generation MUST refuse a `$ref` in the contract artefact that it cannot resolve to a definition in the vendored copy, naming the reference and the file it appears in, and MUST write nothing when it refuses. |
 | **ARCH-R173** | The contract artefact MUST describe the event stream: every event kind `GET /api/events` emits, with the schema of its payload, and the heartbeat's interval, generated from the types the stream serialises. |
 | **ARCH-R174** | The contract artefact MUST carry one example of each kind, each read and each action, drawn from the core's golden test fixtures, and CI MUST refuse an example that does not validate against its schema. |
-| **ARCH-R175** | The core MUST publish its code registry as `contract/codes.json`, each code with its family, name, severity, exit code, HTTP status, summary, meaning, remedy and the version it first appeared in (`since`), generated from the registry it raises from; `reference/error-codes.md` MUST be generated from that file, and CI MUST refuse either when it differs from what generates it. |
+| **ARCH-R175** | The core MUST publish its code registry as `contract/codes.json`, each code with its family, name, severity, exit code, HTTP status, summary, meaning, remedy, the household sentence and remedy a member's session is told in their place, whether it is a fault of the stack, and the version it first appeared in (`since`), generated from the registry it raises from; `reference/error-codes.md` MUST be generated from that file, and CI MUST refuse either when it differs from what generates it. |
 | **ARCH-R176** | `release-contract` MUST attach `contract-diff.json` to each release, naming every kind, definition, read, action, refusal and event kind that release's contract artefact added, removed or changed against the previous release's. |
 | **ARCH-R177** | The core MUST generate `contract/web-api.openapi.json`, an OpenAPI document of the web API, from the contract artefact, and CI MUST refuse it when it differs from what the artefact generates. |
 | **ARCH-R178** | The event stream MUST carry, to the operator and to a `read` or `act` key, a `playing` event with every session the media server is playing now, in the envelope `GET /api/playing` answers that credential with, sent when a client connects and again every 5 seconds, the pace a member's stream sends what they are playing at. |
