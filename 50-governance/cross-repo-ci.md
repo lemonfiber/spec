@@ -360,8 +360,8 @@ service declares itself in a `plugin.toml`, moves that manifest's pin through
 **OPS-R91**). `manifest-pin` takes every recording the manifest names again from the
 new image and writes `proofs.json` from them in a job holding no secret, and commits
 them with the pin through `pin_bump.py`, as `upstream-pin` does.
-`rust-coverage` holds a crate to 100% line coverage and gates it on zero
-SonarCloud issues. The sites have theirs: `site-pins` holds the revisions a site
+`rust-coverage` holds a crate to 100% line coverage, naming each line no test ran
+where it falls short, and gates it on zero SonarCloud issues. The sites have theirs: `site-pins` holds the revisions a site
 renders to the sources its pages read, `site-links` fetches every address a
 built site sends a reader to, and `site-deploy` publishes the one build to
 GitHub Pages and Cloudflare. A first-party plugin that carries no code of its own

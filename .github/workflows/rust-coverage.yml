@@ -76,9 +76,24 @@ jobs:
         env:
           IGNORED: ${{ inputs.ignored }}
         run: cargo llvm-cov --locked --ignore-filename-regex "$IGNORED" --fail-under-lines 100 --lcov --output-path lcov.info
+      # A gate that is not met names each line no test ran, as an annotation on that
+      # line, so the line is found from the run rather than by measuring again.
+      - name: Name each line no test ran
+        if: ${{ failure() && hashFiles('lcov.info') != '' }}
+        run: |
+          awk -v root="$GITHUB_WORKSPACE/" '
+            /^SF:/ {
+              file = substr($0, 4)
+              if (index(file, root) == 1) file = substr(file, length(root) + 1)
+              gsub(/%/, "%25", file); gsub(/:/, "%3A", file); gsub(/,/, "%2C", file)
+            }
+            /^DA:/ { split(substr($0, 4), hit, ","); if (hit[2] == 0) printf "::error file=%s,line=%s::No test runs this line\n", file, hit[1] }
+          ' lcov.info
       # The report names each file by its absolute path, which is the same path in
-      # the scan job's checkout: both run in this repository's workspace.
+      # the scan job's checkout: both run in this repository's workspace. It is kept
+      # when the gate is not met too, so the report can be read whole.
       - name: Hand the report to the scan
+        if: ${{ !cancelled() && hashFiles('lcov.info') != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: lcov
