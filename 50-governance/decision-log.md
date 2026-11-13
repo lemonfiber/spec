@@ -579,6 +579,14 @@ Decisions about a repository outside this organisation, such as
 | `contract/web-api.openapi.json` is one self-contained OpenAPI 3.1 document, every definition inlined, rather than one referring out to `defs/` | [ARCH-R177](../20-architecture/contracts/web-api-artefact.md#what-else-each-release-publishes) |
 | Each release commits one `contract/capabilities/released.json`, each capability's majors and their operations, rewritten by the version bump, which refuses an operation dropped under an unchanged major as CI does. The user chose one file over one beside each major, and over a full snapshot per version | [ARCH-R211](../20-architecture/contracts/capability-contracts.md#versioning) |
 
+## 2026-11-13
+
+| Decision | Where it lives |
+|---|---|
+| What refusing a plugin's reach to one host stops is both worked out by the core and written by the author: the core states every recipe step that calls the host and every step depending on one of those, and a `[[reach]]` entry's `stops` line leads that where the manifest gives one. A step to a refused host comes to `declined`, nothing is asked of it, and it fails nothing. The user chose both over the core's derivation alone and over the author's line alone | [G8-R16](../10-functional/features/g-ux/g8-privacy.md), [plugin-manifest.md](../20-architecture/contracts/plugin-manifest.md) |
+| A third-party plugin none of whose forms are running waits until one is started: an install proves it alone and stops it again, and a form the stack stops declaring later is named in the plan with the plugin naming it. The user chose this over an install starting the plugin's forms | [ARCH-R96](../20-architecture/contracts/plugin-manifest.md) |
+| A contract call's deadline travels on the HTTP request and the transport applies it, connecting within a shorter bound, so an adapter that took the call and answered late is told apart from one that refused the connection. The user chose this over keeping an outer timeout with a separate signal of the connection | [ARCH-R203](../20-architecture/contracts/capability-contracts.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

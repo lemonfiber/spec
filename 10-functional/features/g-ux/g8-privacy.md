@@ -72,7 +72,9 @@ answering a different question — *why does this tool reach out*, *what do the
 services it runs reach out for*, and *who asked for this one*.
 
 The third kind is attributed to the plugin that declared it, and it is refusable
-like the first. Refusing it is not free and does not pretend to be: a plugin whose
+like the first: each host by itself, under `plugin.<id>.reach.<host>`, with what
+refusing it stops worked out from the recipe steps that depend on that host and led by
+the author's own line where the manifest gives one. Refusing it is not free and does not pretend to be: a plugin whose
 reach is switched off is a plugin whose recipes cannot run, and the account says
 so in those words rather than leaving the operator to discover it. What it is
 **not** is a silent failure — a refused reach is reported as nothing having been

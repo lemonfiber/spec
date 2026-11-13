@@ -82,6 +82,7 @@ schema_version = 1
 [[proof]]         # what must hold before it is installed
 [[contribution]]  # a row at a published extension point
 [[recipe]]        # the ordered calls that configure what it installed (F8)
+[[reach]]         # what stops working where a host its recipes reach is refused (G8-R16)
 [[secret]]        # every value it will hold (F3-R17)
 [[override]]      # every bundled thing it will change (F3-R18)
 [requires]        # what the plugin needs of lemonfiber
@@ -116,7 +117,7 @@ forms       = ["library", "full"]
 | `without_it` | string | ✔ | The consequence of its absence (`F2-R2`) |
 | `upstream` | string | ✔ | Project URL, so the operator can judge the thing rather than the wrapper |
 | `license` | string | ✔ | SPDX identifier. **Not** required to be OSI-approved — see below. |
-| `forms` | array | ✔ | Which forms the service joins. Every entry MUST name a form the stack declares (`ARCH-R96`). The core refuses an empty list and compares no entry with the stack's forms. |
+| `forms` | array | ✔ | Which forms the service joins. Every entry MUST name a form the stack declares (`ARCH-R96`). The core refuses an empty list, and refuses at install an entry the stack does not declare, naming it. |
 
 `description` and `without_it` are required of a plugin for the same reason they
 are required of a bundled service: the catalogue exists to convert an inventory
@@ -154,9 +155,14 @@ profile rather than an existing one, because a profile is the unit that starts
 and stops together, and a stranger's service joining `tv` would mean
 `lemonfiber up tv` could no longer be described without naming what is installed.
 
-The core writes that profile as `plugin-<id>` and adds it to no form's closure: an
-install starts it alone, a removal takes it down alone, and `lemonfiber up <form>`
-names only the profiles the stack's own forms declare. `0.18.0` locks `ARCH-R96`.
+The core writes that profile as `plugin-<id>` and adds it to the closure of each form
+the manifest names, so `lemonfiber up <form>` starts it beside that form's own profiles,
+and naming no form starts every plugin that names a form the stack declares. An install
+proves the plugin alone, starting its services by themselves; where none of its forms
+is running, they are stopped again once it is installed, and the plugin waits until one
+of its forms is started. A removal takes them down alone. A form the stack stops
+declaring after the install is named in the plan of every start, with the plugin that
+names it, and a plugin that names no other declared form does not start.
 
 A first-party plugin's services sit in the profile the [bundle](bundle.md) assigns it
 instead, assembled or installed, so a part keeps the profile it has as a stack service
@@ -652,6 +658,31 @@ A plugin may declare ordered calls that configure what it installed, each bounde
 what it reads, and run only when asked for by name. The whole of `[[recipe]]` is on [its
 own page](plugin-manifest-recipe.md).
 
+## `[[reach]]` — what refusing a host stops
+
+```toml
+[[reach]]
+host  = "api.example.com"
+stops = "New comics arrive without their covers."
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `host` | string | ✔ | A host outside the stack that one of the plugin's recipes calls or carries a value to, as `call.to` or `pair.to` writes it. |
+| `stops` | string | ✔ | What stops working where the operator refuses that host, in one line, in the terms the operator reads. |
+
+Each host outside the stack that a plugin's recipes reach is a request lemonfiber makes
+on the plugin's behalf, and each is refused by itself, under the setting
+`plugin.<id>.reach.<host>` (`G8-R16`). Its entry in the account of what leaves the
+machine carries whether it is allowed, that setting, and what refusing it costs. The
+core works the cost out from the recipes: every step that calls the host, and every step
+that reads a value one of those steps captured or is guarded on one, by recipe and step.
+Where a `[[reach]]` names the host, its `stops` leads the cost, in the author's words,
+and the steps follow it. A `[[reach]]` is optional, because the steps are always stated.
+
+A `[[reach]]` naming a host no recipe reaches, and two naming one host, are each refused
+by name.
+
 ## `[[secret]]` and `[[override]]` — declared before they are held
 
 A plugin declares every secret it holds, the ones lemonfiber mints for its own service
@@ -744,7 +775,8 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | `certificate` names two different relative paths beneath the configuration directory, with no `..`, no interpolation and no starting file at either, and one to eight host names, on a service that does not provide `stream.guard` | `service <id>.certificate` named, with what is permitted (`ARCH-R356`) |
 | `replaces` names an id the bundle reserves, and the declaring service's own | `service <id>.replaces` named (`ARCH-R222`) |
 | `license` present | Plugin named |
-| Every `forms` entry names a declared form | Both named |
+| Every `forms` entry names a declared form, checked at install against the stack it joins | Both named |
+| Every `[[reach]]` names a host a recipe calls or carries a value to, once, with a `stops` line | Host named |
 | Every entry in `requires.capabilities` is offered | Capability named, never a version |
 | `config_path` is one absolute path, not `/`, and outside the data root | Path named, with what is permitted |
 | Every `mount.from` is a relative path inside the service's own mount tree, `./mounts/<id>`, with no `..`, no interpolation and none inside another of its sources | Mount named, with what is permitted |
