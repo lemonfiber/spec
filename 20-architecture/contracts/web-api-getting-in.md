@@ -26,7 +26,10 @@ expensive, and a credential re-sent on every request is a credential with more c
 leak.
 
 The request body is `{ "password": … }`. The reply is the envelope, `kind: "admission"`,
-carrying the session's own secret and the moment it stops being one. That secret travels in
+carrying the session's own secret and the moment it stops being one, and for a member's
+session the member's id as `member` and their display name as the media server holds it as
+`name`, read when the session opens; a sign-in whose name cannot be read is refused as one the
+media server could not confirm (`D6-R19`). That secret travels in
 `X-Lemonfiber-Token`, exactly as the per-run token does, so the surface has **one credential
 header** to read and a client has one thing to hold rather than two.
 

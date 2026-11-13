@@ -43,7 +43,8 @@ adapter-kit-music/
                    album alone or an artist with every album and those that come
                    later, then searching where asked; the units it answers for,
                    and the root folders, quality and metadata profiles a request
-                   is made with
+                   is made with; remove, taking an album or an artist off with
+                   its files
 ```
 
 What only one upstream answers stays in that upstream's adapter, with its release,
