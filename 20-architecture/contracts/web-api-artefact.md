@@ -83,12 +83,21 @@ no reader keeps a hand-written copy of something the server knows.
 **The event stream.** `GET /api/events` sends events whose payloads are the server's types
 like any kind's. The artefact describes each event kind the stream emits with the schema of
 its payload, and the interval the heartbeat keeps (`ARCH-R61`), so a client generates the
-events it handles as it generates the kinds it reads (`ARCH-R173`).
+events it handles as it generates the kinds it reads (`ARCH-R173`). The index carries them as
+`events`: `heartbeat_seconds`, and `kinds`, each event kind to the file of its envelope's
+schema, whether a newer one replaces an older one (`state`) or each one is kept (`record`), and
+who hears it (`anyone`, or the `operator` alone). The core declares the stream's kinds as one
+closed list, and the stream can say nothing that list does not name, so the description comes
+from the types the stream sends rather than from a second list kept beside them.
 
 **Examples.** A schema says what may be sent; an example says what is. The artefact carries
 one example for each kind, each read and each action, taken from the core's golden test
 fixtures rather than written for the page, and CI validates every example against its schema,
-so an example that has stopped being true fails a build rather than a reader (`ARCH-R174`).
+so an example that has stopped being true fails a build rather than a reader (`ARCH-R174`). A
+harness runs each command against the core's fixture fakes and writes what it answered:
+`examples/kinds/<kind>.json` is an envelope of that kind, and `examples/actions/<action>.json`
+is the arguments an action was sent with and the envelope it answered. A read answers with a
+kind, so its example is that kind's.
 
 **The code registry.** Every code the core raises has a family, a name, a severity, the exit
 code the command line ends with, the HTTP status the web API answers with, a summary, what it
@@ -101,12 +110,19 @@ code and asks what it means (`ARCH-R175`).
 **What changed.** Each release attaches `contract-diff.json`: every kind, definition, read,
 action, refusal and event that release's artefact added, removed or changed against the
 previous release's. An SDK reading the diff knows what taking the release means before it
-regenerates, and the documentation shows it per release (`ARCH-R176`).
+regenerates, and the documentation shows it per release (`ARCH-R176`). The previous release's
+artefact is committed under `contract/released/` by the version bump, copied from that
+release's tag, and the diff is a generated file, `contract/contract-diff.json`, which CI
+refuses when it differs from what the two artefacts generate. So `release-contract` attaches a
+file the tagged tree already holds, and the job holding the write token builds nothing.
 
 **OpenAPI.** Tools that read OpenAPI and nothing else are given
 `contract/web-api.openapi.json`, generated from the artefact, and CI refuses it when it
 differs from what the artefact generates. The artefact stays the source; the OpenAPI
-document is a rendering of it (`ARCH-R177`).
+document is a rendering of it (`ARCH-R177`). It is one self-contained OpenAPI 3.1 document,
+every definition inlined under `components/schemas` rather than referred to in `defs/`, since
+many OpenAPI tools do not follow a reference into another file, and OpenAPI 3.1 takes the
+artefact's JSON Schemas as they are.
 
 ## How the artefact reaches an SDK
 
@@ -123,14 +139,16 @@ something that happens to a build nobody was watching.
 The artefact is a directory, `contract/web-api/`, so that no file in it outgrows a reader:
 
 - `index.json` carries `api_version` and names every other file: `kinds` maps each kind to
-  its file, `refusals` maps each code family to its file, and `key_callable` and `reads`
-  each name the file holding that list.
+  its file, `refusals` maps each code family to its file, `key_callable` and `reads` each
+  name the file holding that list, `events` describes the event stream, and `examples` maps
+  each kind and each action to its example's file.
 - `kinds/<kind>.json` is the schema of the envelope carrying that kind.
 - `defs/<Name>.json` is one definition. Every definition is here, whether one kind carries it
   or nine, so a definition several kinds share is written once.
 - `refusals/<FAMILY>.json` is the refusals of one code family, `ADMIT` or `LIFE`, keyed by
   code as the list above shows.
 - `key-callable.json` and `reads.json` are the lists the index names.
+- `examples/kinds/<kind>.json` and `examples/actions/<action>.json` are the examples.
 
 A `$ref` is a path to a definition's file, resolved against the file it appears in:
 `../defs/Remedy.json` from a kind, `Code.json` from another definition. A definition's name is
