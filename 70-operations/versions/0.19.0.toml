@@ -64,7 +64,13 @@
 # core's side of `G10-R12`, `G10-R13` and `N9-R10`; added by the maintainer's decision of
 # 2026-11-13 (OPS-R31).
 #
-# 136 goals, seeded from the roadmap milestone this version serves;
+# `N3-R31` to `N3-R36` and `N2-R38` are the companion's side of `D4-R22` to `D4-R26`:
+# music and books searched and asked for from the Search tab behind the kinds the core
+# lists, named in household words on Requests and Home, a member choosing how they are
+# told an ask arrived, and a request named by its reference on the operator's screens.
+# Added by the maintainer's decisions of 2026-11-09 and 2026-11-13 (OPS-R31).
+#
+# 143 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -172,6 +178,13 @@ goals   = [
     "N3-R24",
     "N3-R25",
     "N3-R26",
+    "N3-R31",
+    "N3-R32",
+    "N3-R33",
+    "N3-R34",
+    "N3-R35",
+    "N3-R36",
+    "N2-R38",
     "N1-R77",
     "G2-R14",
     "G2-R15",

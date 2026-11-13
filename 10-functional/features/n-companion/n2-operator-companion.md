@@ -289,6 +289,7 @@ and a note beside it says a preview cannot ask.
 | **N2-R35** | Where a start's rehearsal, or what a start came to, names parts it would install from this build (`ARCH-R298`), the app MUST name each by its plugin and, where its install could not be read, give the stack's reason, and where the start wrote and started nothing for want of a yes, MUST say so. |
 | **N2-R36** | A start's yes MUST carry back the offer its rehearsal named, and MUST NOT be offered where an install it names could not be read, the app saying why. Where the stack takes no offer for a start over the web API, the app MUST NOT offer a yes for a start whose rehearsal names an install, and MUST say it is agreed at the terminal. |
 | **N2-R37** | Where what a start came to names services taking `render` that it wrote without the host's render devices, the app MUST name each, say it runs without hardware transcoding, and give the stack's reason the group owning those devices was not asked or not kept, in the stack's words (`ARCH-R237`). |
+| **N2-R38** | The operator's list of what the household asked for and the news feed MUST name a request by the reference the core gives it, MUST send that reference unchanged to approve or decline it, and the news feed MUST list requests newest asked first, in the core's order. |
 
 ## Notes
 
