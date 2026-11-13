@@ -270,7 +270,7 @@ class PluginReposTests(Workspace):
     def test_the_registry_this_repository_holds_names_its_plugins(self):
         registry = tomllib.loads((HERE.parent / "30-repos/repos.toml").read_text(encoding="utf-8"))
         published = manifest_repos.plugin_repos(registry)
-        self.assertEqual(len(published), 25)
+        self.assertEqual(len(published), 28)
         self.assertTrue(all(name == f"plugin-{plugin}" for name, plugin in published.items()))
         built = [
             "jellyfin",
@@ -289,6 +289,9 @@ class PluginReposTests(Workspace):
             "emby",
             "medusa",
             "plex",
+            "transmission",
+            "nzbget",
+            "byparr",
         ]
         self.assertEqual(
             manifest_repos.train_plugins(registry),

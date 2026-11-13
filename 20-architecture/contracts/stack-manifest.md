@@ -493,7 +493,7 @@ Validation reports **every** violation in one pass, each naming its location
 | Every `form.profiles` entry references a declared profile | Both named |
 | Exactly one profile per service | Service named |
 | No `grants`, `capabilities` or `depends_on` | Service and field named, with the shape or field that replaces it (`ARCH-R246`) |
-| Every container field is held to the plugin manifest's [validation](plugin-manifest.md#validation) | As that table names (`ARCH-R225`) |
+| Every container field is held to the plugin manifest's [validation](plugin-manifest-validation.md#validation) | As that table names (`ARCH-R225`) |
 | `digest` present and well-formed | Service named (`E1-R1`) |
 | `tag` is not `latest` or otherwise floating | Service named (`E1-R1`) |
 | `bind` present when `port` is | Service named |
