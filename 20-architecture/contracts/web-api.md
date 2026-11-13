@@ -72,7 +72,7 @@ GET /api/boot          GET /api/watcher      GET /api/queue
 GET /api/askable?…      GET /api/askable/{id}/poster?…
 GET /api/askable/kinds?…                      GET /api/stack
 GET /api/requests/{reference}/poster?…        GET /api/notify
-GET /api/notify/mine
+GET /api/notify/mine   GET /api/settled
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
@@ -159,6 +159,13 @@ machine's service manager and what became of each — installed or not, running 
 where the words of a command with no terminal are being written. Naming one would let a
 surface show a single row and call it the answer, and the row worth reading is the one
 saying a guarantee the operator believes is in force is not.
+
+`/api/settled` takes none, and answers the operator alone: what setup settled, read from the
+configuration as it stands, which is the data root, the ways of downloading and the user the
+services run as with where that user comes from (`set`, `part-set` or `stack-owner`), beside
+whether this stack is set up (`none`, `part-way` or `done`) (A2-R16). It offers no setup and
+changes nothing, so it is the read a surface asks before deciding whether to offer setup, and it
+answers as readily where setup is part-way as where it is done.
 
 `/api/front-door` takes none, because the question takes none: which one address the household
 is given is derived from what the stack runs rather than asked for, so a parameter here would be
