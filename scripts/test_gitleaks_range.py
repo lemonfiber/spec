@@ -230,7 +230,7 @@ class History(unittest.TestCase):
 
     def test_it_reads_the_gitleaks_security_yml_pins(self):
         fetch = named(self.steps, "The gitleaks security.yml pins")["run"]
-        self.assertIn(".jobs.gitleaks.env.$1", fetch)
+        self.assertIn(".jobs.gitleaks.env.${name}", fetch)
         self.assertIn(".github/workflows/security.yml", fetch)
         pinned = yaml.safe_load(SECURITY.read_text(encoding="utf-8"))["jobs"]["gitleaks"]["env"]
         for knob in ("GITLEAKS_VERSION", "GITLEAKS_SHA256"):
