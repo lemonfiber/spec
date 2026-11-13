@@ -371,6 +371,30 @@ class AMergeGroup(GateCase):
         self.assertIn("no `Spec:` citation found", out)
 
 
+class AWrappedTrailer(unittest.TestCase):
+    """A `Spec:` list wrapped onto lines of its own is still the one trailer."""
+
+    def test_every_line_of_a_wrapped_list_is_cited(self):
+        text = (
+            "feat: a thing\n\nSpec: GOV-R1, GOV-R2,\nGOV-R3, ADR-0016\n  GOV-R4\n"
+            "Signed-off-by: A Person <a@example.org>\n"
+        )
+        self.assertEqual(
+            spec_check.cited_ids(text), {"GOV-R1", "GOV-R2", "GOV-R3", "GOV-R4", "ADR-0016"}
+        )
+
+    def test_prose_after_a_trailer_is_not_part_of_it(self):
+        text = "Spec: GOV-R1\nGOV-R2 is what this leaves to the next change.\n"
+        self.assertEqual(spec_check.cited_ids(text), {"GOV-R1"})
+
+    def test_a_list_after_the_sign_off_is_not_part_of_the_trailer(self):
+        text = "Spec: GOV-R1\nSigned-off-by: A Person <a@example.org>\nGOV-R2\n"
+        self.assertEqual(spec_check.cited_ids(text), {"GOV-R1"})
+
+    def test_two_trailers_are_each_read(self):
+        self.assertEqual(spec_check.cited_ids("Spec: GOV-R1\nSpec: GOV-R2\n"), {"GOV-R1", "GOV-R2"})
+
+
 class WhatAFileNames(GateCase):
     """GOV-R3 over the lines a change adds, not only over its trailer."""
 

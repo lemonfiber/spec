@@ -348,6 +348,11 @@ class GateTests(Workspace):
         self.assertTrue(results[0]["cited"])
         gate.render_human("m.toml", ["lf"], results)  # exercise the renderer
 
+    def test_a_trailer_wrapped_onto_a_line_of_its_own_cites_both_lines(self):
+        self.repo("checkouts/lf", trailer="Spec: B1-R4,\nC1-R3")
+        cited = gate.cited_ids(gate.parse_repos(["lf=checkouts/lf"]))
+        self.assertTrue({"B1-R4", "C1-R3"} <= cited)
+
     def test_shallow_clone_is_refused(self):
         self.repo("origin/lf", trailer="Spec: B1-R4")
         subprocess.run(
