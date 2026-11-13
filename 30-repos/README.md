@@ -46,7 +46,7 @@ flowchart TD
         kit["website-kit<br/>what both sites run"]
         lfdev["tool-lfdev<br/>the developer command line"]
         brand["brand<br/>design tokens"]
-        parts["plugin-*<br/>twenty-five first-party plugins"]
+        parts["plugin-*<br/>twenty-eight first-party plugins"]
     end
 
     web -->|submodule, pinned| lemonfiber
@@ -120,6 +120,9 @@ flowchart TD
 | `plugin-emby` | [first-party-plugins.md](first-party-plugins.md) | Rust | Emby as the media server and identity source, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it |
 | `plugin-medusa` | [first-party-plugins.md](first-party-plugins.md) | Rust | Medusa as the television curator, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it |
 | `plugin-plex` | [first-party-plugins.md](first-party-plugins.md) | Rust | Plex as the media server, which the bundle neither ships nor offers: an adapter image in front of the upstream's, so the train tags it |
+| `plugin-transmission` | [first-party-plugins.md](first-party-plugins.md) | Rust | Transmission as the torrent client, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it |
+| `plugin-nzbget` | [first-party-plugins.md](first-party-plugins.md) | Rust | NZBGet as the Usenet download client, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it |
+| `plugin-byparr` | [first-party-plugins.md](first-party-plugins.md) | Rust | Byparr as the solver for an indexer's bot protection, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it |
 | `plugin-ntfy` | [first-party-plugins.md](first-party-plugins.md) | TOML | The stack's own push server, ntfy, which the bundle offers and does not ship; its image is the upstream's, pinned by revision |
 | `adapter-kit-servarr` | [adapter-kit-servarr.md](adapter-kit-servarr.md) | Rust | One copy of the Servarr client, taken by each Servarr adapter at a commit |
 | `adapter-kit-music` | [adapter-kit-music.md](adapter-kit-music.md) | Rust | One copy of music.curate as a music curator answers it, taken by each music curator's adapter at a commit |
@@ -132,7 +135,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those fifty-one are the repositories this specification governs, which is not the
+Those fifty-four are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))
