@@ -109,6 +109,7 @@ jobs:
           coverage run --append scripts/test_job_conditions.py
           coverage run --append scripts/test_gen_gates.py
           coverage run --append scripts/test_gen_gates_refusals.py
+          coverage run --append scripts/test_gitleaks_range.py
           coverage run --append scripts/test_line_cap.py
           coverage run --append scripts/test_upstream_drift.py
           coverage run --append scripts/test_first_party_image.py

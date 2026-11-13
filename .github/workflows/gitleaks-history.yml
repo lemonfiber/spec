@@ -1,0 +1,123 @@
+# Every repository's whole history, every branch and tag, read for secrets once
+# a day (Q-R53).
+#
+# The shared gitleaks check reads only the commits its event brings: a pull
+# request's base..head, a push's before..after. A commit no such event judged,
+# pushed past a pull request or on a branch nobody has opened one from, is read
+# here. Each repository is read with its default branch's `.gitleaks.toml` and
+# `.gitleaksignore`, as a pull request into it is judged. The gitleaks it runs is
+# the one `security.yml` pins, read from that file, so the two never differ.
+#
+# It reports rather than gates, as `required-checks.yml` does: it names the
+# repositories with a finding in the run's summary and tells the maintainers.
+name: gitleaks-history
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "40 5 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  history:
+    runs-on: ubuntu-latest
+    environment: release
+    timeout-minutes: 60
+    outputs:
+      red: ${{ steps.read.outputs.red }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The release App is installed across the organisation, so a repository the
+      # workflow token cannot see is still read, and is not left out in silence.
+      - id: token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-contents: read
+
+      - name: The gitleaks security.yml pins
+        run: |
+          set -euo pipefail
+          read_pin() {
+            yq -e ".jobs.gitleaks.env.$1" .github/workflows/security.yml
+          }
+          version=$(read_pin GITLEAKS_VERSION)
+          digest=$(read_pin GITLEAKS_SHA256)
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz"
+          archive="${RUNNER_TEMP}/gitleaks.tar.gz"
+          curl -sSfL --proto '=https' --tlsv1.2 \
+            --retry 3 --retry-delay 2 --retry-all-errors \
+            -o "$archive" "$url"
+          sha256sum --check --strict <<<"${digest}  ${archive}"
+          tar xzf "$archive" -C "$RUNNER_TEMP" gitleaks
+          rm -f "$archive"
+
+      - name: Every repository's history
+        id: read
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          repos=$(gh api --paginate "orgs/${OWNER}/repos?per_page=100" --jq '.[].name' | sort)
+          if [ -z "$repos" ]; then
+            echo "::error::No repository was listed for ${OWNER}, so no history was read."
+            exit 1
+          fi
+          header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          echo "::add-mask::${header#AUTHORIZATION: basic }"
+          export GIT_CONFIG_COUNT=1
+          export GIT_CONFIG_KEY_0="http.https://github.com/.extraheader"
+          export GIT_CONFIG_VALUE_0="$header"
+          found=""
+          clean=0
+          for name in $repos; do
+            at="${RUNNER_TEMP}/history/${name}"
+            echo "::group::${OWNER}/${name}"
+            if ! git clone --quiet "https://github.com/${OWNER}/${name}.git" "$at"; then
+              echo "::error::${OWNER}/${name} could not be cloned, so its history was not read."
+              found+="- ${OWNER}/${name} (not cloned)"$'\n'
+            elif ! git -C "$at" rev-parse --verify --quiet HEAD >/dev/null; then
+              echo "${OWNER}/${name} holds no commit."
+            elif ! (cd "$at" && "${RUNNER_TEMP}/gitleaks" git --no-banner --redact --exit-code 1 .); then
+              found+="- ${OWNER}/${name}"$'\n'
+            else
+              clean=$((clean + 1))
+            fi
+            rm -rf -- "$at"
+            echo "::endgroup::"
+          done
+          {
+            echo "## gitleaks over every branch and tag of every repository"
+            echo
+            echo "${clean} read clean."
+            printf '%s' "$found"
+          } >>"$GITHUB_STEP_SUMMARY"
+          printf 'red=%s\n' "$([ -z "$found" ] && echo false || echo true)" >>"$GITHUB_OUTPUT"
+
+      - name: A history holds a finding
+        if: steps.read.outputs.red == 'true'
+        run: exit 1
+
+  told:
+    needs: history
+    if: always() && needs.history.result == 'failure'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      title: "🔑 a repository's history was not read clean"
+      body: >-
+        A commit on a branch or tag reads as a secret to gitleaks, or a history
+        could not be read. A real secret is revoked first; a fixture goes in
+        that repository's `.gitleaksignore`. The run page names the repository,
+        the commit and the rule, with the value redacted.
+      url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      color: "15158332"
+    secrets:
+      webhook: ${{ secrets.DISCORD_MAINTAINERS_WEBHOOK }}
