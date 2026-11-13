@@ -501,7 +501,7 @@ delivers  = "Plugins — the calls that configure what one installed, and what t
 
 status  = "staged"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr"]
-satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp"]
+satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp", "lemonfiber-door"]
 goals   = [
     "D6-R21", "D6-R22", "D6-R23", "D6-R24", "D6-R25", "D6-R26",
     "N21-R12",
