@@ -49,7 +49,12 @@
 # `F14-R31` proves every capability 0.18.0's `F14-R14` does not name by a substitute of its
 # own, end to end. Added by the maintainer's decision of 2026-10-29 (OPS-R31).
 #
-# 126 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R416` lets a member read the front door, narrowed to the services facing the
+# household, each saying whether its address answers from where the member is. It is the
+# core's side of `G10-R12`, `G10-R13` and `N9-R10`; added by the maintainer's decision of
+# 2026-11-13 (OPS-R31).
+#
+# 127 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -186,6 +191,7 @@ goals   = [
     "ARCH-R292",
     "A5-R15",
     "F14-R31",
+    "ARCH-R416",
 ]
 
 # `N21-R1` to `N21-R11`, `N3-R1` to `N3-R26` but for the three earlier versions lock,

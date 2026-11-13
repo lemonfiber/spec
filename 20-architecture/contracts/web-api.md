@@ -159,6 +159,20 @@ saying a guarantee the operator believes is in force is not.
 is given is derived from what the stack runs rather than asked for, so a parameter here would be
 a way for one surface to be told a different door from another.
 
+Each service it names, the door and each beside it, carries its address or why it has none,
+and `reaches`: `here` where the address answers from the network the request came from,
+`not-here` where it does not, and `unknown` where the core cannot tell. The core judges it from
+the request's source: a request from this machine, a loopback, private, link-local or unique
+local address is from the household's network, one from any other address but the shared
+carrier range is from away, and one from the shared carrier range or with no source is
+unknown. An address on a private or link-local number, a `.local` name or a name of one label
+answers on the household's network alone, so it reaches `here` from there and `not-here` from
+away; every other address is `unknown`. A member and a key scoped to one are answered with the
+services facing the household alone, those facing `asking`, `watching` or a `shelf`; the
+others are never gathered for them. Their answer names how the door was chosen nowhere, says
+everything in the household's words, and leaves out an address that reaches `not-here`, saying
+instead that it cannot be reached from where they are (`ARCH-R416`).
+
 `/api/stack` takes none either: it answers how the stack runs without lemonfiber (`F1-R15`), as
 `lemonfiber stack --json` writes it, the operator's alone. A member and a key of any scope are
 refused it, because it names where this machine keeps its project and settings, and a login in
@@ -882,6 +896,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R403** | A delivery that fails MUST be retried at the back-end's own attempts and delays, five at 1, 5, 15, 60 and 360 minutes unless `notify add` or `notify set` gave others, and then stand failed; a back-end answering `401` or `403`, or whose credential `notify set` changed, MUST be held, with no delivery to it, until `notify test` proves it again. |
 | **ARCH-R404** | Every wake MUST carry an id inside its sealed payload, and `POST /api/actions/push-woken`, taking the endpoint's `name` and the `id`, MUST mark that wake's delivery `confirmed` for the operator session that registered the endpoint and refuse any other caller. |
 | **ARCH-R405** | `lemonfiber notify set <id> --members <name>` MUST offer a back-end to the household under that name and `--no-members` withdraw it; `GET /api/notify/mine` MUST answer a member session with the back-ends offered to members, each by its household name and whether this member receives on it, and whether their own push endpoint is registered, and nothing technical; `POST /api/actions/notify-choose` MUST set which offered back-ends that member receives `ready` alerts on and refuse an id not offered; a key MUST be refused both, and a back-end withdrawn MUST stop reaching every member who chose it. |
+| **ARCH-R416** | The web API MUST answer `GET /api/front-door` with `reaches` on the door and on each service beside it, `here`, `not-here` or `unknown`, judged by the core from the request's source as the section on the front door says, and with why a service has no address where it has none. A member, and a key scoped to one, MUST be answered with the services facing `asking`, `watching` or a `shelf` alone, narrowed by the command that runs rather than filtered from every service, in the household's words and without how the door was chosen, and MUST NOT be handed an address that reaches `not-here` ([G10-R12](../../10-functional/features/g-ux/g10-household-web.md), [G10-R13](../../10-functional/features/g-ux/g10-household-web.md), [N9-R10](../../10-functional/features/n-companion/n9-who-gets-in.md)). |
 
 ## The artefact
 

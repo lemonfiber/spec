@@ -98,9 +98,16 @@ curator already wants it, or `may-ask`.
 | `candidate` | One candidate of one unit by the curator's reference for it, as `lookup` would answer it, or nothing where its catalogue holds no such reference |
 | `request` | Asks for one candidate by its unit and reference, at a root folder and the profiles it holds, monitoring an album or a book alone, or every one of an artist, an author or a series and those that come later, then searching where asked; answers the candidate as it now stands |
 | `profiles` | The units of its medium it answers for as it is configured now, and the root folders and the profiles a request may name: quality, and for music metadata |
+| `remove` | Removes one candidate it holds by its unit and reference with its files, excluding nothing from a later import: an album or a book alone, or an artist, an author or a series with every title of theirs it holds; an artist or an author `request` added only to hold an album or a book goes with it where nothing else of theirs is held |
 
 A request naming a root folder or a profile the curator does not hold is refused, as is
-one whose reference its catalogue does not hold.
+one whose reference its catalogue does not hold, and a `remove` of a candidate it does not
+hold.
+
+The core journals every ask it sends, whether at once or once the operator approves it.
+Undoing one asks `remove` for it where the curator held none of it before the ask, and takes
+the ask the core keeps off the household list; an ask for the rest of an artist, an author or
+a series held in part is journalled with nothing to undo, and the history says so.
 
 A curator that cannot carry an ask exactly as asked MAY carry it as near as it can, and its
 plugin MUST say how in its documentation: a request it cannot make without searching searches,
