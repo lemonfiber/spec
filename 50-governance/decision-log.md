@@ -561,6 +561,12 @@ Decisions about a repository outside this organisation, such as
 | A fence passes every new connection out of its namespace's own loopback interface to any address but the resolver's, so a fenced service whose parts talk over loopback, as FlareSolverr's browser and its driver do, runs; the resolver keeps port 53 alone. `ARCH-R363` is amended in place. The user chose this over passing all of loopback and over running FlareSolverr unfenced | [ARCH-R363](../20-architecture/contracts/plugin-manifest.md) |
 | A service whose operator set no `PUID` and `PGID` runs as the owner of the stack directory, 1000 where that is root or cannot be read, as an adapter already runs whatever they say, so a service writes the configuration lemonfiber made for it on a machine whose operator is not uid 1000. `ARCH-R233` is amended in place. The user chose this over setup recording the invoking user's ids and over a fixed 1000 | [ARCH-R233](../20-architecture/contracts/plugin-manifest.md) |
 
+## 2026-11-13
+
+| Decision | Where it lives |
+|---|---|
+| A location in the survey may also be `{"none": why}`: a service that keeps no library, such as an indexer or a downloader, says so rather than being said unread. Both locations come from the engine's mounts and the matching first-party manifest's `config_path` and data mount; the survey starts no container and lends no key. `A5-R14` is amended in place. The user chose a third tag over leaving `library` out | [A5-R14](../10-functional/features/a-getting-started/a5-migration.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
