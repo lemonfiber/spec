@@ -575,6 +575,7 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | A location in the survey may also be `{"none": why}`: a service that keeps no library, such as an indexer or a downloader, says so rather than being said unread. Both locations come from the engine's mounts and the matching first-party manifest's `config_path` and data mount; the survey starts no container and lends no key. `A5-R14` is amended in place. The user chose a third tag over leaving `library` out | [A5-R14](../10-functional/features/a-getting-started/a5-migration.md) |
+| A curator states how much it holds below its cutoff through `cutoff_unmet`, a read added to `library.curate@1` at minor `4`, and the upgrade's total for each kind, music among them, is that runtime times the bytes per hour of the preset or format in force; a curator that does not speak minor `4` makes the total `{"unknown": why}`. The upgrade states no rate per hour beside it. The user chose the runtime below the cutoff over every hour held | [ARCH-R425](../20-architecture/contracts/capability-contracts.md), [D2-R15](../10-functional/features/d-content/d2-quality-presets.md) |
 
 ## 2026-11-13
 

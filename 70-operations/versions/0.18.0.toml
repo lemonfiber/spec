@@ -412,6 +412,9 @@
 # `ARCH-R424` let the core ask as the request service's owner for a member it holds no
 # account for, and say whether its page offers members sign-in, which `D1-R28` needs.
 # Added by the maintainer's decision of 2026-11-13 (OPS-R31).
+# `ARCH-R425` has a curator answer the runtime it holds below its cutoff, which the upgrade
+# multiplies by the rate in force for each kind to state its total, as `D2-R15` asks. Added by
+# the maintainer's decision of 2026-11-13 (OPS-R31).
 # `C6-R29`, `ARCH-R385` and `ARCH-R386` have the request gate ask each curator over
 # `library.curate`'s request operations under a request key of its own, so a series is
 # requested from Medusa as from Sonarr, and `C6-R30` and `ARCH-R387` give the gate an Emby
@@ -431,7 +434,7 @@
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 663 goals, seeded from the roadmap milestone this version serves;
+# 664 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -610,7 +613,7 @@ goals   = [
     "ARCH-R367", "ARCH-R368", "ARCH-R369", "ARCH-R370", "ARCH-R371", "ARCH-R372", "ARCH-R373",
     "ARCH-R374", "ARCH-R375", "ARCH-R376", "ARCH-R377", "ARCH-R378", "ARCH-R379",
     "ARCH-R380", "ARCH-R381", "ARCH-R382", "ARCH-R383", "ARCH-R384",
-    "ARCH-R385", "ARCH-R386", "ARCH-R387", "ARCH-R388", "ARCH-R422", "ARCH-R423", "ARCH-R424",
+    "ARCH-R385", "ARCH-R386", "ARCH-R387", "ARCH-R388", "ARCH-R422", "ARCH-R423", "ARCH-R424", "ARCH-R425",
     "C6-R26", "C6-R27", "C6-R28", "C6-R29", "C6-R30", "D1-R27", "D1-R28",
     "C10-R18", "C10-R19", "C10-R20", "C10-R21", "C10-R22", "C10-R23", "C10-R24", "C10-R25",
     "C10-R26", "C10-R27", "C10-R28",
