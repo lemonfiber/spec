@@ -5,7 +5,8 @@ Each case is a real repository in a temporary directory with two commits, so
 what is compared is what git answers rather than a stand-in for it. The gate is
 shown refusing an unlabelled change to a staged version's goals and to a
 released one's, passing the same change once labelled, passing over a planned
-version and a new one, and refusing a comparison it could not make.
+version and a new one, passing over goals the base gained after the head
+forked from it, and refusing a comparison it could not make.
 
 Stdlib unittest, no dependencies.
 Run:  python3 scripts/test_goals_change.py
@@ -182,6 +183,33 @@ class GoalsChangeTest(unittest.TestCase):
         self.assertEqual(
             self.run_gate("--base", base, "--head", head, "--summary"), (0, "0.16.0: -B-R1\n0.17.0: +C-R3\n")
         )
+
+    def test_goals_the_base_gained_after_the_fork_are_not_the_change(self) -> None:
+        fork = self.repo.commit({"0.18.0.toml": written("0.18.0", "staged", ["A-R1"])})
+        head = self.repo.commit({"README.md": "versions\n"})
+        self.repo.git("checkout", "-q", "-b", "later", fork)
+        base = self.repo.commit({"0.18.0.toml": written("0.18.0", "staged", ["A-R1", "B-R2"])})
+        self.assertEqual(
+            self.run_gate("--base", base, "--head", head),
+            (0, "goals-change: no staged or released version's goals move here.\n"),
+        )
+
+    def test_a_change_after_the_fork_is_still_the_change(self) -> None:
+        fork = self.repo.commit({"0.18.0.toml": written("0.18.0", "staged", ["A-R1"])})
+        head = self.repo.commit({"0.18.0.toml": written("0.18.0", "staged", [])})
+        self.repo.git("checkout", "-q", "-b", "later", fork)
+        base = self.repo.commit({"0.18.0.toml": written("0.18.0", "staged", ["A-R1", "B-R2"])})
+        code, said = self.run_gate("--base", base, "--head", head)
+        self.assertEqual(code, 1)
+        self.assertIn("::error::the locked goals move — 0.18.0: -A-R1", said)
+
+    def test_commits_that_share_no_history_are_refused(self) -> None:
+        base = self.repo.commit({"0.17.0.toml": written("0.17.0", "staged", ["A-R1"])})
+        self.repo.git("checkout", "-q", "--orphan", "apart")
+        head = self.repo.commit({"0.17.0.toml": written("0.17.0", "staged", [])})
+        code, said = self.run_gate("--base", base, "--head", head)
+        self.assertEqual(code, 1)
+        self.assertIn("share no commit", said)
 
     def test_a_revision_that_names_no_commit_is_refused(self) -> None:
         head = self.repo.commit({"0.17.0.toml": written("0.17.0", "staged", ["A-R1"])})

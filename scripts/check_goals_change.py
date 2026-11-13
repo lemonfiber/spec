@@ -9,7 +9,8 @@ anybody — the sentence was the only thing standing between a release and a
 scope that drifts in silence.
 
 This reads every version manifest a change touches and compares the goals at
-the base with the goals at the head. A manifest whose base is past `planned` is
+the commit the head forked from the base with the goals at the head, so goals
+the base gained after the fork are not read as the change taking them out. A manifest whose base is past `planned` is
 frozen: a released one included, because a release that stops claiming a goal
 is a change to what was promised. A frozen manifest whose goals moved refuses
 the change unless the label is on it, and names the version and every goal
@@ -77,6 +78,15 @@ def commit(revision: str) -> str:
     return found
 
 
+def forked(base: str, head: str) -> str:
+    """The commit two commits git resolved last share, which is what the head changed from."""
+    asked = _git("merge-base", base, head)
+    found = asked.stdout.strip()
+    if asked.returncode != 0 or not OBJECT.fullmatch(found):
+        raise Unreadable(f"{base} and {head} share no commit, so what {head} changed cannot be told")
+    return found
+
+
 def touched(base: str, head: str) -> list[str]:
     """The version manifests that differ between two commits git resolved."""
     asked = _git("diff", "--name-only", base, head, "--", VERSIONS)
@@ -134,7 +144,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        moved = changes(commit(args.base), commit(args.head))
+        head = commit(args.head)
+        moved = changes(forked(commit(args.base), head), head)
     except Unreadable as why:
         print(f"::error::{why}")
         return 1
