@@ -65,6 +65,12 @@ is neither shipped nor offered: the operator installs it from its repository. Ea
 adapter image, so the train tags it, and each repository is held to everything below as a
 part's is.
 
+`plugin-transmission`, `plugin-nzbget` and `plugin-byparr` are offered the same way, each a
+second filler of what a part fills: Transmission in qBittorrent's place as the torrent client,
+NZBGet in SABnzbd's as the Usenet download client, and Byparr in FlareSolverr's as the solver
+an indexer's bot protection is passed with. Each builds an adapter image, so the train tags it,
+and each repository is held to everything below as a part's is.
+
 ## What each holds
 
 | Path | What it is |

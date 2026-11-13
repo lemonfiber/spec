@@ -189,6 +189,21 @@ name = "plugin-medusa"
 gates = []
 hooks = ["commit-msg", "pre-push"]
 
+[[repo]]
+name = "plugin-transmission"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-nzbget"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-byparr"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
 
 [[repo]]
 name = "adapter-kit-servarr"

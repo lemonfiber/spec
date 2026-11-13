@@ -411,6 +411,33 @@ plugin = "plex"
 image = true
 
 [[repo]]
+name = "plugin-transmission"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "Transmission as the torrent client, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it"
+plugin = "transmission"
+image = true
+
+[[repo]]
+name = "plugin-nzbget"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "NZBGet as the Usenet download client, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it"
+plugin = "nzbget"
+image = true
+
+[[repo]]
+name = "plugin-byparr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "Byparr as the solver for an indexer's bot protection, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it"
+plugin = "byparr"
+image = true
+
+[[repo]]
 name = "plugin-ntfy"
 group = "impl"
 spec = ["first-party-plugins.md"]
