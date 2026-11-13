@@ -64,13 +64,17 @@
 # core's side of `G10-R12`, `G10-R13` and `N9-R10`; added by the maintainer's decision of
 # 2026-11-13 (OPS-R31).
 #
+# `ARCH-R426` names each request's kind and unit on the household list and the news, which
+# the companion's music and books (`N3-R31`, `N3-R32`) read; added by the maintainer's
+# decision of 2026-11-13 (OPS-R31).
+#
 # `N3-R31` to `N3-R36` and `N2-R38` are the companion's side of `D4-R22` to `D4-R26`:
 # music and books searched and asked for from the Search tab behind the kinds the core
 # lists, named in household words on Requests and Home, a member choosing how they are
 # told an ask arrived, and a request named by its reference on the operator's screens.
 # Added by the maintainer's decisions of 2026-11-09 and 2026-11-13 (OPS-R31).
 #
-# 143 goals, seeded from the roadmap milestone this version serves;
+# 144 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -224,6 +228,7 @@ goals   = [
     "A5-R15",
     "F14-R31",
     "ARCH-R416",
+    "ARCH-R426",
 ]
 
 # `N21-R1` to `N21-R11`, `N3-R1` to `N3-R26` but for the three earlier versions lock,
