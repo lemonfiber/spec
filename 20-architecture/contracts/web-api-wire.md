@@ -86,7 +86,7 @@ parses either way:
 | Still in flight | `202` | the identical envelope the accepting reply carried |
 | Finished | `200` | the equivalent command's machine-readable output |
 | Stopped on a failure | the status the failure warrants — `404` for something named that the stack does not have, `400` for a request asked wrongly, `409` for work that found other work holding the stack, `500` otherwise | the error envelope the failure renders |
-| Ended before it finished | `200` | the `ended` envelope: the name, the action, and `ended`, which is `released` or `let-go` |
+| Ended before it finished | `200` | the `ended` envelope: the name, the action, and `ended`, which is `released`, `let-go` or `quiet` |
 | Not a name this run issued | `404` | a refusal, not the name repeated back |
 
 Status rather than a field, because the alternative is a shape only this endpoint has — and a
@@ -118,6 +118,11 @@ So the kind alone tells the four standings apart: `job` is work still going, the
 kind is work that finished, `error` is work that stopped on a failure, and `ended` is work that
 ended before it finished. A `job` that also meant "over" would be one kind with two meanings,
 told apart only by the status beside it.
+
+A follow of what services say has no outcome either, and ends a third way: the services it
+follows stopped saying anything, because their containers stopped. Nobody decided it and it was
+not let go, so it says neither. It says `quiet`, and a client tells it apart from a follow that
+was released or let go without reading any status.
 
 The stream is not the mechanism. A client that reconnects sends the last id it saw, and a
 client connecting for the first time has none to send, so an event announcing the end reaches
