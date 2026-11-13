@@ -101,7 +101,8 @@ kind, so its example is that kind's.
 
 **The code registry.** Every code the core raises has a family, a name, a severity, the exit
 code the command line ends with, the HTTP status the web API answers with, a summary, what it
-means, what to do about it, and the version it appeared in. The core publishes that registry
+means, what to do about it, what a household member's session is told in their place and
+whether it is a fault of the stack, and the version it appeared in. The core publishes that registry
 as `contract/codes.json`, generated from the registry it raises from, and the reference page
 `reference/error-codes.md` is generated from that file. The refusals list above is the part
 of it a client branches on; the registry is the whole of it, for the reader who is shown a
