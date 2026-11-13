@@ -78,14 +78,15 @@ contracts, are the spec's; the detailed how is the repo's.**
 |-------|----------|
 | `spec-check` | Governance — every change cites a spec identifier ([GOV](../50-governance/cross-repo-ci.md)) |
 | `just logo-check` (`scripts/logo.py --check`), in `just ci` only | Every file under `assets/logo/` is what the generator's grids draw, and nothing else is there |
-| `tokens` (`scripts/check_tokens.py`) | Every colour in `tokens.json` appears in `tokens.css` as `--lf-color-<name>` with the same value; `ink`, `ink-soft`, `text-muted`, `leaf` and `fiber-deep` each meet WCAG AA on `paper`; `--self-test` first holds the arithmetic to ratios WCAG states |
+| `tokens` (`scripts/check_tokens.py`) | Every token in `tokens.json` appears in `tokens.css` and every `--lf-` property in `tokens.css` appears in `tokens.json`, with identical values, the ink theme's included; `ink`, `ink-soft`, `text-muted`, `leaf` and `fiber-deep` each meet WCAG AA on `paper`, and the ink theme's `text`, `text-muted`, `text-faint` and `fiber-deep` on its own `paper`; `--self-test` first holds the arithmetic to ratios WCAG states and the parity check to each way the two files can drift apart |
 
-The check compares colours only: the font, size, space and radius groups, the
-stylesheet's `--lf-color-text` and the ink theme are not compared, so `ARCH-R38`'s
-identical values are checked for colours alone. The contrast half computes the
-ratio of each of those five colours on `paper` and fails on one below AA; no other
-surface, and neither theme's other pairings, are measured, so it covers part of
-what `ARCH-R40` asks. A recolour that looks fine and fails that meter is caught
+A JSON key names its CSS property: `color.ink` is `--lf-color-ink`, `size.displayXl`
+is `--lf-size-display-xl`, and `font.weightBody` and `font.trackingDisplay` are
+`--lf-weight-body` and `--lf-tracking-display`. A number under `space` or `radius`
+is that many px, and a CSS font stack is its `font` family followed by its
+`fallback` list, so `font` stays the bare family names its readers take. The
+contrast half measures the pairings above and no others, so it covers part of what
+`ARCH-R40` asks. A recolour that looks fine and fails that meter is caught
 here, not in the web UI.
 
 ## Publishing

@@ -42,7 +42,7 @@ e27b53ced4cb69dd3f9ae3d9510cfc78d174fd2f5fd5dd3ed315acb445286b6c  public/brand/n
 # equal to the brand's own, so the two checks in series mean the application
 # paints what the brand says and not what somebody typed.
 
-32548c774fa39f2614094826cc6c77bc35a2cce244df6b817ead2e200518ca5c  app-modules/design/resources/tokens.json  brand:tokens/tokens.json
+98abf6b30592eda8fe265b06a9d10acf777dc8dbcb815bb70f387c6581d1a89c  app-modules/design/resources/tokens.json  brand:tokens/tokens.json
 
 # The companion draws its launcher icon, launch mark and notification icon from
 # the brand's own SVGs, and gives iOS the brand's opaque touch icon as its app
@@ -57,7 +57,7 @@ f5e5949c0172dc75e43d64acc99559c149c7a24c5350f8d81be943cdec5baa66  public/icon.pn
 # repository, and the three ratios that went wrong here went wrong precisely
 # because nothing local could be checked against.
 
-32548c774fa39f2614094826cc6c77bc35a2cce244df6b817ead2e200518ca5c  60-brand/tokens.json  brand:tokens/tokens.json
+98abf6b30592eda8fe265b06a9d10acf777dc8dbcb815bb70f387c6581d1a89c  60-brand/tokens.json  brand:tokens/tokens.json
 
 # Home Assistant shows an integration's icon and logo from the PNG files in its own
 # `brand/` directory, so the integration carries the brand's exports for it.
