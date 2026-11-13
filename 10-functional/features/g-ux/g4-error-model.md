@@ -105,7 +105,8 @@ declares, in order, as data:
 ```
 
 `came` is one of `answered`, `skipped`, `not-reached`, `unreachable`, `refused`,
-`withheld`, `unexpected`, `uncaptured` and `oversized`, and `landed` says whether that step
+`withheld`, `declined`, `unexpected`, `uncaptured` and `oversized`, `declined` being a step
+whose host the operator refused, so nothing was asked of it (`G8-R16`), and `landed` says whether that step
 reached somewhere other than the plugin's own services. A client reads what landed
 from the data rather than from the sentence. Every other problem carries no
 `steps` at all, so a client that has never met one reads every problem as it did.

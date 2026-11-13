@@ -292,6 +292,14 @@ never as what the answer held there, and what a call carried or an operator gave
 named, never shown. A recipe that holds is reported on
 the install, every step with what it came to.
 
+**A step to a refused host asks nothing** (`G8-R16`). Where the operator refused a host
+under `plugin.<id>.reach.<host>`, a step that calls it is not sent, and comes to
+`declined`. So does every later step that reads a value a declined step would have
+captured, or is guarded on a declined step or on such a value. Nothing is asked of a
+declined step's host, and a declined step is not a failure: the recipe runs every other
+step, an install whose only unmade steps were declined is installed, and the report says
+which steps were declined.
+
 A demand recipe runs only through `lemonfiber plugin run <plugin> <recipe>` and
 the `plugin-run` action. Its reading lists the steps and pairs, its offer covers
 them, and its approvals are given to that act and to no other: approving a pair

@@ -583,6 +583,14 @@ Decisions about a repository outside this organisation, such as
 |---|---|
 | Every surface reaches behaviour through `lemonfiber_core::app::dispatch`, in the command line and the web API alike, and an architecture test holds the core paths a surface may name to an allow-list of model, port and error types and pure helpers. The plugin authoring reads of a plugin's own source (`plugin claims`, `plugin conform`, `plugin provenance`, `plugin record`) are commands answered with no stack, and their machine-readable output is the `plugin-claims`, `plugin-conformance`, `plugin-provenance` and `plugin-recording` envelopes carrying `api_version`, published in the contract and served by no route. The three published documents (`plugin capabilities --json`, `plugin extension-points --json`, `plugin schema`) stay the published files byte for byte, each carrying its own version. The user chose this over enveloping the authoring output at the command line only and over exempting authoring that needs no stack from `ARCH-R42` | [ARCH-R9](../20-architecture/contracts/versioning.md), [ARCH-R42](../20-architecture/component-model.md), [capability-vocabulary.md](../20-architecture/contracts/capability-vocabulary.md) |
 
+## 2026-11-13
+
+| Decision | Where it lives |
+|---|---|
+| What refusing a plugin's reach to one host stops is both worked out by the core and written by the author: the core states every recipe step that calls the host and every step depending on one of those, and a `[[reach]]` entry's `stops` line leads that where the manifest gives one. A step to a refused host comes to `declined`, nothing is asked of it, and it fails nothing. The user chose both over the core's derivation alone and over the author's line alone | [G8-R16](../10-functional/features/g-ux/g8-privacy.md), [plugin-manifest.md](../20-architecture/contracts/plugin-manifest.md) |
+| A third-party plugin none of whose forms are running waits until one is started: an install proves it alone and stops it again, and a form the stack stops declaring later is named in the plan with the plugin naming it. The user chose this over an install starting the plugin's forms | [ARCH-R96](../20-architecture/contracts/plugin-manifest.md) |
+| A contract call's deadline travels on the HTTP request and the transport applies it, connecting within a shorter bound, so an adapter that took the call and answered late is told apart from one that refused the connection. The user chose this over keeping an outer timeout with a separate signal of the connection | [ARCH-R203](../20-architecture/contracts/capability-contracts.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
