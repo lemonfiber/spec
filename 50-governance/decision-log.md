@@ -576,6 +576,12 @@ Decisions about a repository outside this organisation, such as
 |---|---|
 | A location in the survey may also be `{"none": why}`: a service that keeps no library, such as an indexer or a downloader, says so rather than being said unread. Both locations come from the engine's mounts and the matching first-party manifest's `config_path` and data mount; the survey starts no container and lends no key. `A5-R14` is amended in place. The user chose a third tag over leaving `library` out | [A5-R14](../10-functional/features/a-getting-started/a5-migration.md) |
 
+## 2026-11-13
+
+| Decision | Where it lives |
+|---|---|
+| Every surface reaches behaviour through `lemonfiber_core::app::dispatch`, in the command line and the web API alike, and an architecture test holds the core paths a surface may name to an allow-list of model, port and error types and pure helpers. The plugin authoring reads of a plugin's own source (`plugin claims`, `plugin conform`, `plugin provenance`, `plugin record`) are commands answered with no stack, and their machine-readable output is the `plugin-claims`, `plugin-conformance`, `plugin-provenance` and `plugin-recording` envelopes carrying `api_version`, published in the contract and served by no route. The three published documents (`plugin capabilities --json`, `plugin extension-points --json`, `plugin schema`) stay the published files byte for byte, each carrying its own version. The user chose this over enveloping the authoring output at the command line only and over exempting authoring that needs no stack from `ARCH-R42` | [ARCH-R9](../20-architecture/contracts/versioning.md), [ARCH-R42](../20-architecture/component-model.md), [capability-vocabulary.md](../20-architecture/contracts/capability-vocabulary.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
