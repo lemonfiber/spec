@@ -570,6 +570,12 @@ Decisions about a repository outside this organisation, such as
 |---|---|
 | The core's release tag is held to embed a bundle pinning, at that version, every first-party plugin the bundle pins that builds an image, shipped or offered; a first-party plugin that builds an image and that the bundle neither ships nor offers, as Plex, is still tagged by the train before the core and its image published at the tag, and the check names it as one the bundle does not pin. `OPS-R86` is amended in place. The user chose this over offering Plex in the bundle and over marking its repository as building no image | [OPS-R86](../70-operations/releasing.md) |
 
+## 2026-11-13
+
+| Decision | Where it lives |
+|---|---|
+| A location in the survey may also be `{"none": why}`: a service that keeps no library, such as an indexer or a downloader, says so rather than being said unread. Both locations come from the engine's mounts and the matching first-party manifest's `config_path` and data mount; the survey starts no container and lends no key. `A5-R14` is amended in place. The user chose a third tag over leaving `library` out | [A5-R14](../10-functional/features/a-getting-started/a5-migration.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
