@@ -178,7 +178,7 @@ hearing by push takes it as the interval of nothing and keeps the daily reconcil
 | Upstream | Push, where | Poll, otherwise | Cursor |
 |---|---|---|---|
 | Jellyfin | Its webhook plugin, where installed: one generic destination carrying `ItemAdded` alone | Items sorted by when they were added, newer than the cursor, for `added`; activity-log entries naming no user at a warning or error, for `health` | The newest item's added time with its id; the newest activity entry's id |
-| Emby | Its webhooks, where the server offers them: one webhook carrying `library.new` alone | As Jellyfin, by Emby's own items and activity log | As Jellyfin |
+| Emby | Never: its webhooks need Emby Premiere, and its documented API neither registers a webhook nor says whether Premiere is active | As Jellyfin, by Emby's own items and activity log | As Jellyfin |
 | Medusa | Never: its notifiers post only to fixed services' addresses | History, newer than the cursor: `Downloaded` as `imported`, `Failed` as `failed`; it sends no `health`, as its API names no problem with itself | The history row id |
 | Sonarr, Radarr, Lidarr | A Connect webhook, which every one of them carries: on import, on import or download failure, on a health issue and its restoring | History since the cursor, and the health list compared with the last one read | The history record id |
 | Bindery | Its webhook: `bookImported`, `downloadFailed` and `health` alone | History since the cursor, and its health | The history record id |
