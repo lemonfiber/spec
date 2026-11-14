@@ -193,7 +193,7 @@ media_types = ["tv"]
 | `claim` | array of tables | ✔ if `provides` | One per capability in `provides`: the probes that demonstrate it, each bound to a request on this service and a recorded response. See [`[[service.claim]]`](#serviceclaim--the-evidence-for-what-it-provides) (`ARCH-R136`). |
 | `host_managed` | bool | | `true` for native-mode Jellyfin — lifecycle is the OS's (`B2-R15`), and lemonfiber writes it no Compose entry |
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate the stack declares, summed into a form's footprint and never shown as a measurement (`B1-R18`). |
-| `publish`, `takes_data`, `config_path`, `config_ro`, `mount`, `tmpfs`, `env`, `user_mode`, `posture`, `mem_limit_mib`, `network`, `shape` | | | The rest of its container, each as the [plugin manifest](plugin-manifest.md#service--what-runs) declares it (`ARCH-R225`). |
+| `publish`, `takes_data`, `config_path`, `config_ro`, `mount`, `tmpfs`, `env`, `user_mode`, `posture`, `mem_limit_mib`, `network`, `shape`, `container_hostname` | | | The rest of its container, each as the [plugin manifest](plugin-manifest.md#service--what-runs) declares it (`ARCH-R225`). |
 
 `grants` and `depends_on` are not fields. A service needing a kernel capability or a
 device takes a [shape](plugin-manifest-service.md#shapes--the-only-route-to-a-device-or-a-privilege),

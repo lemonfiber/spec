@@ -45,6 +45,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | A `user_mode` table names two different variables' names, neither `TZ` nor one the service's `env` declares | Variable named |
 | Every `env` value is a constant, `{ setting, default }`, `{ url_of }` (with `files` and `native` only) or `{ secret }`, and nothing else | Variable named, with the four kinds |
 | `args`, where declared, holds one to sixteen entries, each a string of 1 to 256 characters holding no `$`, no `{{` and no control character | Service named, with the entry (`ARCH-R407`) |
+| `container_hostname`, where declared, is one DNS label of lowercase letters, digits and hyphens, at most 63 of them, beginning with a letter and not ending with a hyphen, and none of `inf`, `infinity` and `nan` | Service named, with the name and what it breaks (`ARCH-R427`) |
 | Every `{ secret }` names a `[[secret]]` the manifest declares | Variable and secret named |
 | A `minted` secret's `of` names one of the plugin's own services, and no capture names it | Secret named |
 | `minted` is `true`, `"password"` or `"email"` | Secret named, with the three |
