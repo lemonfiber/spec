@@ -104,7 +104,7 @@ are now watched again, by the two different means below; the rest is not.
 
 | What | Where it lives now | Who notices it going stale | To bring it back |
 |------|--------------------|----------------------------|------------------|
-| `gitleaks` CLI version | `.github/workflows/security.yml` — `GITLEAKS_VERSION`, read both by the step that downloads it and by the step that checks it | **The step that checks it**, which fails the run once the release it names has been superseded for more than 30 days | Done, but not by Dependabot — see below |
+| `gitleaks` CLI version | `.github/workflows/security.yml` — `GITLEAKS_VERSION`, read by the step that downloads it, by the step that checks it, and by `gitleaks-history.yml` | **The step that checks it**, which fails the run once the release it names has been superseded for more than 30 days | Done, but not by Dependabot — see below |
 | `osv-scanner` version | `.github/workflows/security.yml` — the `google/osv-scanner-action/osv-scanner-action` pin | **Dependabot**, under `github-actions` | Done. The action is a container action, so the `uses:` pin is what fixes the scanner version |
 | `python-version:` written inline in workflows | nine sites, all `"3.12"` — seven here, one in `lemonfiber`, one in `brand` | **Nobody**, until 3.12 leaves support in Oct 2028 | No Dependabot manager reads it; a scheduled check, or `.python-version` + a linter that reads it |
 | `node-version:` written inline in workflows | **nowhere** — every repo uses `node-version-file: .nvmrc` | n/a | The manager watched nothing; it can simply go |

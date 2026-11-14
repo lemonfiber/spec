@@ -1100,9 +1100,56 @@ jobs:
         done
       continue-on-error: true
       timeout-minutes: 10
-    - name: 'security / gitleaks: gitleaks (CLI)'
-      id: security--gitleaks--2
+    - name: 'security / gitleaks: The commits this event brings'
+      id: security--gitleaks--range
       if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') && (steps.security--gitleaks--1.outcome != 'failure') }}
+      env:
+        GITLEAKS_VERSION: 8.30.1
+        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.event.after }}
+        PUSHED: ${{ github.ref }}
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      run: |
+        set -euo pipefail
+        history="--full-history --diff-filter=tuxdb"
+        if [ -z "$HEAD_SHA" ]; then
+          echo "No pull request, queue or push names the commits, so the whole history is read."
+          echo "log-opts=${history} --all" >>"$GITHUB_OUTPUT"
+          exit 0
+        fi
+        commit='^[0-9a-f]{40}([0-9a-f]{24})?$'
+        for sha in "$BASE_SHA" "$HEAD_SHA"; do
+          if [ -n "$sha" ] && ! [[ "$sha" =~ $commit ]]; then
+            echo "::error::${sha} is not a commit id, so no range of commits can be named from it."
+            exit 1
+          fi
+        done
+        if ! git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
+          echo "::error::${HEAD_SHA} is the commit this event brings, and the checkout does not hold it."
+          exit 1
+        fi
+        default="refs/remotes/origin/${DEFAULT_BRANCH}"
+        if [ -n "$BASE_SHA" ] && ! [[ "$BASE_SHA" =~ ^0+$ ]] &&
+          git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+          commits="${BASE_SHA}..${HEAD_SHA}"
+        elif [ "$PUSHED" != "refs/heads/${DEFAULT_BRANCH}" ] && [ -n "$DEFAULT_BRANCH" ] &&
+          git rev-parse --verify --quiet "${default}^{commit}" >/dev/null; then
+          commits="${HEAD_SHA} --not ${default}"
+        else
+          commits="${HEAD_SHA}"
+        fi
+        echo "Read: git log ${commits}"
+        echo "log-opts=${history} ${commits}" >>"$GITHUB_OUTPUT"
+      continue-on-error: true
+      timeout-minutes: 10
+    - name: 'security / gitleaks: gitleaks (CLI)'
+      id: security--gitleaks--3
+      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') && (steps.security--gitleaks--1.outcome != 'failure') && (steps.security--gitleaks--range.outcome != 'failure') }}
+      env:
+        GITLEAKS_VERSION: 8.30.1
+        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        LOG_OPTS: ${{ steps.security--gitleaks--range.outputs.log-opts }}
       run: |
         set -euo pipefail
         url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
@@ -1131,15 +1178,12 @@ jobs:
         tar xzf "$archive" -C "$RUNNER_TEMP" gitleaks
         rm -f "$archive"
 
-        "${RUNNER_TEMP}/gitleaks" git --no-banner --redact --exit-code 1 .
-      env:
-        GITLEAKS_VERSION: 8.30.1
-        GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        "${RUNNER_TEMP}/gitleaks" git --no-banner --redact --exit-code 1 --log-opts="$LOG_OPTS" .
       continue-on-error: true
       timeout-minutes: 10
     - name: 'security / gitleaks: The pinned gitleaks is not far behind the latest release'
-      id: security--gitleaks--3
-      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') && (steps.security--gitleaks--1.outcome != 'failure') && (steps.security--gitleaks--2.outcome != 'failure') }}
+      id: security--gitleaks--4
+      if: ${{ ((steps.plan.outputs.security == 'true')) && (steps.security--gitleaks--0.outcome != 'failure') && (steps.security--gitleaks--1.outcome != 'failure') && (steps.security--gitleaks--range.outcome != 'failure') && (steps.security--gitleaks--3.outcome != 'failure') }}
       env:
         GITLEAKS_VERSION: 8.30.1
         GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
@@ -1615,9 +1659,9 @@ jobs:
           == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--links--0.outcome == ''failure'' || steps.hygiene--links--1.outcome == ''failure'' || steps.hygiene--links--2.outcome == ''failure'' || steps.hygiene--links--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--invite": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--invite--0.outcome == ''failure'' || steps.hygiene--invite--1.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--shared-files": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--shared-files--0.outcome == ''failure'' || steps.hygiene--shared-files--1.outcome
           == ''failure'' || steps.hygiene--shared-files--2.outcome == ''failure'' || steps.hygiene--shared-files--3.outcome == ''failure'' || steps.hygiene--shared-files--4.outcome == ''failure'' || steps.hygiene--shared-files--5.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--lines": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--lines--0.outcome == ''failure'' || steps.hygiene--lines--1.outcome == ''failure'' || steps.hygiene--lines--2.outcome == ''failure'' || steps.hygiene--lines--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "hygiene--markdown": "${{ !(steps.plan.outputs.hygiene == ''true'' || steps.plan.outputs.hygiene == ''false'') && ''unreported'' || !((steps.plan.outputs.hygiene == ''true'')) && ''skipped'' || (steps.hygiene--markdown--0.outcome == ''failure'' || steps.hygiene--markdown--1.outcome == ''failure''
           || steps.hygiene--markdown--markdown-only.outcome == ''failure'' || steps.hygiene--markdown--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "workflow-pins--workflow-pins": "${{ !(steps.plan.outputs.workflow-pins == ''true'' || steps.plan.outputs.workflow-pins == ''false'') && ''unreported'' || !((steps.plan.outputs.workflow-pins == ''true'')) && ''skipped'' || (steps.workflow-pins--workflow-pins--0.outcome == ''failure'' || steps.workflow-pins--workflow-pins--1.outcome == ''failure'' || steps.workflow-pins--workflow-pins--2.outcome == ''failure'' || steps.workflow-pins--workflow-pins--3.outcome == ''failure'' || steps.workflow-pins--workflow-pins--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--gitleaks": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--gitleaks--0.outcome == ''failure'' || steps.security--gitleaks--1.outcome
-          == ''failure'' || steps.security--gitleaks--2.outcome == ''failure'' || steps.security--gitleaks--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'' || steps.security--osv-scanner--2.outcome == ''failure'' || steps.security--osv-scanner--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome == ''failure'') && ''failure'' || ''success''
-          }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--3.outcome == ''failure'' || steps.squash-message--squash-message--check.outcome
-          == ''failure'') && ''failure'' || ''success'' }}"}'
+          == ''failure'' || steps.security--gitleaks--range.outcome == ''failure'' || steps.security--gitleaks--3.outcome == ''failure'' || steps.security--gitleaks--4.outcome == ''failure'') && ''failure'' || ''success'' }}", "security--osv-scanner": "${{ !(steps.plan.outputs.security == ''true'' || steps.plan.outputs.security == ''false'') && ''unreported'' || !((steps.plan.outputs.security == ''true'')) && ''skipped'' || (steps.security--osv-scanner--0.outcome == ''failure'' || steps.security--osv-scanner--1.outcome == ''failure'' || steps.security--osv-scanner--2.outcome == ''failure'' || steps.security--osv-scanner--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "dco--dco": "${{ !(steps.plan.outputs.dco == ''true'' || steps.plan.outputs.dco == ''false'') && ''unreported'' || !((steps.plan.outputs.dco == ''true'')) && ''skipped'' || (steps.dco--dco--0.outcome == ''failure'' || steps.dco--dco--1.outcome == ''failure'' || steps.dco--dco--2.outcome == ''failure'' || steps.dco--dco--3.outcome
+          == ''failure'') && ''failure'' || ''success'' }}", "commitlint--commitlint": "${{ !(steps.plan.outputs.commitlint == ''true'' || steps.plan.outputs.commitlint == ''false'') && ''unreported'' || !((steps.plan.outputs.commitlint == ''true'')) && ''skipped'' || (steps.commitlint--commitlint--0.outcome == ''failure'' || steps.commitlint--commitlint--1.outcome == ''failure'' || steps.commitlint--commitlint--2.outcome == ''failure'' || steps.commitlint--commitlint--3.outcome == ''failure'') && ''failure'' || ''success'' }}", "squash-message--squash-message": "${{ !(steps.plan.outputs.squash-message == ''true'' || steps.plan.outputs.squash-message == ''false'') && ''unreported'' || !((steps.plan.outputs.squash-message == ''true'')) && ''skipped'' || (steps.squash-message--squash-message--0.outcome == ''failure'' || steps.squash-message--squash-message--1.outcome == ''failure'' || steps.squash-message--squash-message--2.outcome == ''failure'' || steps.squash-message--squash-message--3.outcome
+          == ''failure'' || steps.squash-message--squash-message--check.outcome == ''failure'') && ''failure'' || ''success'' }}"}'
       run: |
         set -euo pipefail
         cd "$RUNNER_TEMP"

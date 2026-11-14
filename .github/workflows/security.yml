@@ -97,7 +97,56 @@ jobs:
               fi
             done < "$listed"
           done
+      # The scan reads the commits this event brings, not every ref the checkout
+      # fetched, so a branch holding a fixture shaped like a key does not judge
+      # every other pull request. A pull request brings base..head, a queue its
+      # batch, a push before..after. A push opening a branch, or one whose before
+      # the checkout lacks, brings what the default branch does not hold, and the
+      # whole history when it is the default branch. An event naming no commits
+      # reads everything, as gitleaks-history.yml does daily for every repository.
+      # A revision git cannot resolve makes gitleaks read nothing and pass, so
+      # each one is resolved here first.
+      - name: The commits this event brings
+        id: range
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.event.after }}
+          PUSHED: ${{ github.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          history="--full-history --diff-filter=tuxdb"
+          if [ -z "$HEAD_SHA" ]; then
+            echo "No pull request, queue or push names the commits, so the whole history is read."
+            echo "log-opts=${history} --all" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          commit='^[0-9a-f]{40}([0-9a-f]{24})?$'
+          for sha in "$BASE_SHA" "$HEAD_SHA"; do
+            if [ -n "$sha" ] && ! [[ "$sha" =~ $commit ]]; then
+              echo "::error::${sha} is not a commit id, so no range of commits can be named from it."
+              exit 1
+            fi
+          done
+          if ! git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
+            echo "::error::${HEAD_SHA} is the commit this event brings, and the checkout does not hold it."
+            exit 1
+          fi
+          default="refs/remotes/origin/${DEFAULT_BRANCH}"
+          if [ -n "$BASE_SHA" ] && ! [[ "$BASE_SHA" =~ ^0+$ ]] &&
+            git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            commits="${BASE_SHA}..${HEAD_SHA}"
+          elif [ "$PUSHED" != "refs/heads/${DEFAULT_BRANCH}" ] && [ -n "$DEFAULT_BRANCH" ] &&
+            git rev-parse --verify --quiet "${default}^{commit}" >/dev/null; then
+            commits="${HEAD_SHA} --not ${default}"
+          else
+            commits="${HEAD_SHA}"
+          fi
+          echo "Read: git log ${commits}"
+          echo "log-opts=${history} ${commits}" >>"$GITHUB_OUTPUT"
       - name: gitleaks (CLI)
+        env:
+          LOG_OPTS: ${{ steps.range.outputs.log-opts }}
         run: |
           set -euo pipefail
           url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
@@ -126,7 +175,7 @@ jobs:
           tar xzf "$archive" -C "$RUNNER_TEMP" gitleaks
           rm -f "$archive"
 
-          "${RUNNER_TEMP}/gitleaks" git --no-banner --redact --exit-code 1 .
+          "${RUNNER_TEMP}/gitleaks" git --no-banner --redact --exit-code 1 --log-opts="$LOG_OPTS" .
 
       # The watch. It runs after the scan, so a fault here never stands in for a
       # secret going unfound — it says only that the scanner doing the finding is

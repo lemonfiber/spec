@@ -341,6 +341,15 @@ never the pull request's. That covers `.gitleaks.toml` and `.gitleaksignore`,
 `.gitignore` files that decide which files a scanner reads. A change to one of
 them judges the pull requests after it merges, never the one that carries it.
 
+gitleaks reads the commits the event brings and no others: a pull request's
+base..head, a merge queue's batch, a push's before..after. A push that opens a
+branch brings the commits the default branch does not hold. A fixture shaped
+like a key on one branch therefore judges that branch's pull request and no
+other. `gitleaks-history.yml` reads every branch and tag of every repository in
+the organisation once a day, with each repository's default-branch
+`.gitleaks.toml` and `.gitleaksignore`, and tells the maintainers when a history
+holds a finding or cannot be read.
+
 **A bump that changes nothing is not pushed.** A bot that regenerates a
 repository against an upstream compares what it would commit with what its
 open branch already carries, and leaves the branch alone where they match. A
