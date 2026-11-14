@@ -49,7 +49,9 @@ The survey output is a plain statement of findings. Nothing is modified.
 Where each service keeps its configuration and where its library is are findings
 like any other, so the survey's machine-readable answer carries both for every
 service it found, or says it could not read them. No surface works either out
-from a service's name or its ports (`A5-R14`).
+from a service's name or its ports (`A5-R14`). Both are paths on this machine, so the
+survey is the operator's alone: a member and a key of any scope are refused it, as
+they are refused how the stack runs.
 
 ### Adoption, not replacement
 
