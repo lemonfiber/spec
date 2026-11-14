@@ -73,6 +73,19 @@ class Moved(unittest.TestCase):
             (move["branch"], move["published"], move["to"]["tag"]), ("release/image-pin", "v0.18.0", "0.18.0")
         )
 
+    def test_an_adapters_pin_moves_on_the_branches_the_bundle_follows(self):
+        for ref_type, tag, branch in (
+            ("tag", "v0.18.0", "release/adapter-pin"),
+            ("branch", "main-0123456789ab", "release/adapter-commit-pin"),
+        ):
+            with self.subTest(ref_type=ref_type):
+                _, move = manifest_pin.moved(MANIFEST, IMAGE, tag, DIGEST, ref_type, "adapter")
+                self.assertEqual(move["branch"], branch)
+
+    def test_a_pin_of_no_kind_it_knows_is_refused(self):
+        with self.assertRaisesRegex(manifest_pin.Refused, "'other' is not a pin"):
+            manifest_pin.moved(MANIFEST, IMAGE, "v0.18.0", DIGEST, "tag", "other")
+
     def test_a_manifest_running_no_service_of_the_image_moves_nothing(self):
         self.assertEqual(
             manifest_pin.moved(MANIFEST, f"{IMAGE}-x", "v0.18.0", DIGEST, "tag"), (MANIFEST, None)
@@ -201,6 +214,21 @@ class Command(unittest.TestCase):
         self.assertTrue(out.startswith("chore(manifest): the image at v0.18.0\n\n"))
         self.assertRegex(self.output.read_text(), r"(?m)^clean<<value_[0-9a-f]{32}\nyes\nvalue_[0-9a-f]{32}$")
 
+    def test_an_adapters_move_is_admitted_onto_the_adapter_pin(self):
+        self.recorded()
+        code, _, _ = self.ran(
+            "admit",
+            *self.published("checkout/plugin.toml"),
+            "--pin",
+            "adapter",
+            "--bump",
+            "bump",
+            "--move-out",
+            "moved.json",
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads((self.root / "moved.json").read_text())["branch"], "release/adapter-pin")
+
     def test_a_bump_for_another_digest_than_the_one_published_is_refused(self):
         self.recorded(LATER)
         code, _, err = self.admit()
@@ -262,13 +290,20 @@ class Workflow(unittest.TestCase):
         self.assertEqual(steps["Put the change on the branch, signed"]["env"]["REPO"], "${{ env.PINNED }}")
         self.assertEqual(self.JOBS["pull-request"]["with"]["repository"], "${{ inputs.repository }}")
 
+    def test_both_jobs_move_the_pin_on_the_branches_the_caller_names(self):
+        for job, step in (("record", "Move the pin"), ("commit", "Only the move, admitted")):
+            with self.subTest(job=job):
+                named = next(one for one in self.JOBS[job]["steps"] if one.get("name") == step)
+                self.assertEqual(named["env"]["PIN"], "${{ inputs.pin }}")
+                self.assertIn('--pin "$PIN"', named["run"])
+
     def test_one_run_at_a_time_moves_each_rolling_branch(self):
         self.assertEqual(
             self.JOBS["commit"]["concurrency"],
             {
                 "group": "manifest-pin-${{ inputs.repository != '' && format('{0}/{1}', "
                 "github.repository_owner, inputs.repository) || github.repository }}"
-                "-${{ github.ref_type }}",
+                "-${{ inputs.pin }}-${{ github.ref_type }}",
                 "cancel-in-progress": False,
             },
         )

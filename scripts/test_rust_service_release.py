@@ -279,7 +279,7 @@ class Published(workflow_steps.Scratch):
         return [json.loads(line) for line in log.read_text().splitlines()]
 
     def test_a_new_tag_is_created_and_a_published_one_never_moves(self):
-        for workflow in (WORKFLOW, WORKFLOW.parent / "first-party-image.yml"):
+        for workflow in (WORKFLOW, WORKFLOW.parent / "first-party-image.yml", WORKFLOW.parent / "adapter-release.yml"):
             for exists in (False, True):
                 with self.subTest(workflow=workflow.name, exists=exists):
                     shutil.rmtree(self.root, True)

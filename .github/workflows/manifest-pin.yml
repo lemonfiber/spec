@@ -3,7 +3,10 @@
 # taken again from it (OPS-R90, OPS-R91, ARCH-R285).
 #
 # A train tag's image goes on `release/image-pin` and main's on
-# `release/image-commit-pin`, so the two never move each other's pull request.
+# `release/image-commit-pin`, so the two never move each other's pull request. An
+# adapter's, called with `pin: adapter` by `adapter-release`, goes on
+# `release/adapter-pin` and `release/adapter-commit-pin`, the branches
+# `first-party-bundle` follows with `pin: adapter`.
 # The branch is main with every service running the image moved to its digest
 # and tag and nothing else of the manifest touched, and the change is opened as
 # that branch's one pull request (OPS-R85, OPS-R87). A manifest with no service
@@ -76,6 +79,11 @@ on:
         type: string
         required: false
         default: ""
+      pin:
+        description: "Whose rolling branches the pin moves on: `image` for release/image-pin and release/image-commit-pin, `adapter` for release/adapter-pin and release/adapter-commit-pin."
+        type: string
+        required: false
+        default: image
     secrets:
       RELEASE_APP_KEY:
         description: "The release App's private key, which writes the rolling pin pull request."
@@ -128,13 +136,14 @@ jobs:
           TAG: ${{ inputs.tag }}
           DIGEST: ${{ inputs.digest }}
           DIRECTORY: ${{ inputs.directory }}
+          PIN: ${{ inputs.pin }}
         run: |
           set -euo pipefail
           mkdir "$SCRATCH"
           manifest="$PLUGIN/$DIRECTORY/plugin.toml"
           cp -- "$manifest" "$SCRATCH/main.toml"
           python3 .spec-tooling/scripts/manifest_pin.py apply --manifest "$manifest" --image "$IMAGE" \
-            --tag "$TAG" --digest "$DIGEST" --ref-type "$GITHUB_REF_TYPE" > "$SCRATCH/move.json"
+            --tag "$TAG" --digest "$DIGEST" --ref-type "$GITHUB_REF_TYPE" --pin "$PIN" > "$SCRATCH/move.json"
           cat "$SCRATCH/move.json"
           if git -C "$PLUGIN" diff --quiet; then
             echo "::notice::no service of the manifest runs ${IMAGE}, so there is nothing to pin"
@@ -196,7 +205,7 @@ jobs:
       contents: read
     concurrency:
       # Two runs would each move the same branch under the other.
-      group: manifest-pin-${{ inputs.repository != '' && format('{0}/{1}', github.repository_owner, inputs.repository) || github.repository }}-${{ github.ref_type }}
+      group: manifest-pin-${{ inputs.repository != '' && format('{0}/{1}', github.repository_owner, inputs.repository) || github.repository }}-${{ inputs.pin }}-${{ github.ref_type }}
       cancel-in-progress: false
     outputs:
       branch: ${{ steps.admit.outputs.branch }}
@@ -232,10 +241,11 @@ jobs:
           TAG: ${{ inputs.tag }}
           DIGEST: ${{ inputs.digest }}
           DIRECTORY: ${{ inputs.directory }}
+          PIN: ${{ inputs.pin }}
         run: |
           set -euo pipefail
           python3 .spec-tooling/scripts/manifest_pin.py admit --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
-            --image "$IMAGE" --tag "$TAG" --digest "$DIGEST" --ref-type "$GITHUB_REF_TYPE" \
+            --image "$IMAGE" --tag "$TAG" --digest "$DIGEST" --ref-type "$GITHUB_REF_TYPE" --pin "$PIN" \
             --bump "$SCRATCH/bump" --move-out "$SCRATCH/move.json" > "$SCRATCH/written"
           # A recording new to the tree is marked so the commit below carries it.
           while IFS= read -r path; do

@@ -359,6 +359,20 @@ jobs:
           subject-digest: ${{ steps.index.outputs.digest }}
           push-to-registry: true
           create-storage-record: false
+      - name: Attest the linux/amd64 image's build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ needs.settle.outputs.image }}
+          subject-digest: ${{ steps.index.outputs.amd64 }}
+          push-to-registry: true
+          create-storage-record: false
+      - name: Attest the linux/arm64 image's build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ needs.settle.outputs.image }}
+          subject-digest: ${{ steps.index.outputs.arm64 }}
+          push-to-registry: true
+          create-storage-record: false
       - name: Attest the linux/amd64 image's SBOM
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
