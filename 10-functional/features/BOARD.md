@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 21 shipped, 51 built, 26 building, 17 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 21 shipped, 52 built, 25 building, 17 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -83,6 +83,7 @@ code, and the two move independently.
 | [N13](n-companion/n13-taking-away.md) | Taking something away | N | operator | accepted | — |
 | [N14](n-companion/n14-what-version.md) | What is running, and what is newer | N | operator | accepted | — |
 | [N15](n-companion/n15-the-words.md) | The words, and watching it happen | N | operator | accepted | — |
+| [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
 | [N18](n-companion/n18-running-part-of-it.md) | Running part of it on purpose | N | operator | accepted | — |
 | [N20](n-companion/n20-what-a-plugin-may-send.md) | What a plugin may send, and what it may never run | N | operator | accepted | `0.18.0` |
 | [N21](n-companion/n21-asking-somebody-in.md) | Asking somebody in | N | operator | accepted | `0.18.0`, `0.19.0` |
@@ -122,7 +123,6 @@ code, and the two move independently.
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | `0.19.0` |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |
-| [N17](n-companion/n17-where-a-message-goes.md) | Where a message goes | N | operator | accepted | — |
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
 | [N30](n-companion/n30-testing-making-room-and-sharing-the-line.md) | Testing, making room and sharing the line | N | operator | accepted | `0.19.0`, `1.0.0` |
 
