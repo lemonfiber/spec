@@ -92,6 +92,11 @@
 # networks and the resolver, which the dashboard declares; added by the maintainer's
 # decision of 2026-11-15 (OPS-R31).
 #
+# `D11-R17`, `ARCH-R436` and `ARCH-R437` are the live TV guide: each channel's programmes
+# across a window the operator sets, 12 hours by default, as far as the media server's guide
+# holds them, each filtered to the member's limits, through a `guide` operation and read
+# beside the channels read; added by the maintainer's decision of 2026-11-15 (OPS-R31).
+#
 # `ARCH-R426` names each request's kind and unit on the household list and the news, which
 # the companion's music and books (`N3-R31`, `N3-R32`) read; added by the maintainer's
 # decision of 2026-11-13 (OPS-R31).
@@ -102,7 +107,7 @@
 # told an ask arrived, and a request named by its reference on the operator's screens.
 # Added by the maintainer's decisions of 2026-11-09 and 2026-11-13 (OPS-R31).
 #
-# 152 goals, seeded from the roadmap milestone this version serves;
+# 155 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -161,6 +166,8 @@ goals   = [
     "ARCH-R433",
     "ARCH-R434",
     "ARCH-R435",
+    "ARCH-R436",
+    "ARCH-R437",
     "ARCH-R395",
     "ARCH-R396",
     "F1-R15",
@@ -255,6 +262,7 @@ goals   = [
     "D11-R14",
     "D11-R15",
     "D11-R16",
+    "D11-R17",
     "G10-R14",
     "ARCH-R417",
     "ARCH-R418",
