@@ -67,7 +67,7 @@ GET /api/history
 GET /api/update?…
 GET /api/news
 GET /api/plugins       GET /api/wiring       GET /api/settings
-GET /api/playing       GET /api/watching?…
+GET /api/playing       GET /api/watching?…    GET /api/channels?…
 GET /api/boot          GET /api/watcher      GET /api/queue
 GET /api/askable?…      GET /api/askable/{id}/poster?…
 GET /api/askable/kinds?…                      GET /api/stack
@@ -83,7 +83,9 @@ it under: what it is, a series' seasons and episodes, and where each is served a
 front door beside the fingerprint the door presents (D11). It is read as the member whose shelf
 it is, so a title outside their limits is answered as absent, the same answer a title the
 household does not hold gets. `/api/watching` is what a member was part-way through and how far,
-located the same way.
+located the same way. `/api/channels` is the live TV channels a member may watch, each with the
+programme on it now, read as the member, so a channel whose programme now is outside their limits
+is left out (D11-R11).
 
 `/api/held/{id}/poster` and `/api/held/{id}/backdrop` are the two reads that answer bytes rather
 than an envelope: the title's picture, read as the member and passed on as an `image/*` body of
