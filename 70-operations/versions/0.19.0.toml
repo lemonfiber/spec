@@ -69,6 +69,10 @@
 # protection, so `F14-R31`'s substitute for `indexer.proxy` is reached; added by the
 # maintainer's decision of 2026-11-16 (OPS-R31).
 #
+# `ARCH-R429` holds every challenge solver an indexer is told about to the fence, since
+# the indexer hands it the addresses it fetches past its adapter's screen; added by the
+# maintainer's decision of 2026-11-15 (OPS-R31).
+#
 # `ARCH-R426` names each request's kind and unit on the household list and the news, which
 # the companion's music and books (`N3-R31`, `N3-R32`) read; added by the maintainer's
 # decision of 2026-11-13 (OPS-R31).
@@ -79,7 +83,7 @@
 # told an ask arrived, and a request named by its reference on the operator's screens.
 # Added by the maintainer's decisions of 2026-11-09 and 2026-11-13 (OPS-R31).
 #
-# 145 goals, seeded from the roadmap milestone this version serves;
+# 146 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -131,6 +135,7 @@ goals   = [
     "ARCH-R414",
     "ARCH-R415",
     "ARCH-R428",
+    "ARCH-R429",
     "ARCH-R395",
     "ARCH-R396",
     "F1-R15",
