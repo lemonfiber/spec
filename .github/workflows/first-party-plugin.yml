@@ -36,7 +36,7 @@ permissions:
 
 env:
   READER_REPOSITORY: lemonfiber/plugin-template
-  READER_REVISION: 4c2b0e1b6c800b3a0d000e0de3baa63cbc23aa5a
+  READER_REVISION: c46ff6aa65826e21d861b5486b87abd90e07b41b
   READER: .github/reader
   # A lemonfiber pull request's head is taken where the plugin's targets.toml names a
   # commit main does not hold yet (F10-R18); the catalogue and the release train take none.
