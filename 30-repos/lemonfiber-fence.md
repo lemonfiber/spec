@@ -33,6 +33,13 @@ device under `/dev/dri`, or nothing where there is none, and installs nothing. l
 runs it that way with the host's `/dev/dri` mounted read-only and every capability
 dropped, to learn the group it adds to a service taking `render`.
 
+Run as `fence ask <method> <port> <path>`, it asks `127.0.0.1` at that port on that path,
+follows no redirect, reads at most 64 KiB of the answer and prints its status, its
+`content-type` and its body, and installs nothing. lemonfiber runs it that way in a
+throwaway container joined to the network namespace of a service that publishes no port,
+with every capability dropped and a read-only root, to ask that service's request proofs
+(`ARCH-R430`).
+
 ## What it holds, and what it does not
 
 | Holds | Does not hold |
