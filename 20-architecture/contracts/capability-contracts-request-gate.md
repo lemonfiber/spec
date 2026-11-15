@@ -195,7 +195,7 @@ hearing by push takes it as the interval of nothing and keeps the daily reconcil
 |---|---|
 | `reachable` | Whether the monitor answers, and why not where it does not |
 | `monitors` | Every monitor it holds: its id, its tag where lemonfiber made it, its name, its kind (`http`, `keyword`, `port`, `ping`, `dns`, `docker` or `heartbeat`), its target, whether it is active, a heartbeat's interval and grace in seconds and its last check-in, its state (`up`, `down`, `pending` or `paused`) and since when, and its last reading |
-| `provision` | Makes or updates the one monitor holding a tag, of a kind, at a target, at an interval, a heartbeat's grace and a count of failed checks before it alarms; answers its id, and what it watches instead and why where it could not watch what it was asked to |
+| `provision` | Makes or updates the one monitor holding a tag, of a kind, at a target, at an interval, a heartbeat's grace and a count of failed checks before it alarms, and from minor `1` the statuses an `http` or `keyword` monitor reads up (`ARCH-R433`); answers its id, and what it watches instead and why where it could not watch what it was asked to |
 | `retire` | Removes the monitor holding a tag, and nothing where none does |
 | `check_in` | Records a check-in of the heartbeat holding a tag, as the job it watches makes one each interval; refused where no heartbeat holds the tag |
 
