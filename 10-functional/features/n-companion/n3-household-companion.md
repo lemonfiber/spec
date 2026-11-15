@@ -118,6 +118,29 @@ default sound, and one with no subtitles in it plays with none: subtitles in a
 language nobody asked for are a screen covered in words they cannot read. It is
 never refused for either.
 
+### Live TV, where the house offers it
+
+Where the house lets a member watch live TV, Home carries a *Live TV* shelf after
+their own titles: each channel the core lists for them, with what is on now, and
+*See all*, which opens the full guide. Where the core lists no channel for them,
+the shelf is not there at all, rather than empty, and no fifth tab appears for it.
+
+The guide is every channel's programmes over the window the core answers, laid
+out as a grid to scroll through in time and across channels. The window is the
+core's: the operator chooses how far it reaches, and the core leaves out what is
+outside the member's limits. The app draws what came back and nothing more, so it
+neither widens the window nor filters it a second time
+([D11](../d-content/d11-watching-what-the-house-holds.md)).
+
+A channel plays the way a title does. The player takes the tuner's own stream
+where the phone can decode it and the house's converted stream where it cannot,
+and renews the pass it plays on before it lapses. When the house will not renew
+it, because the member's limits now rule it out, live TV was switched off for
+them, or the house cannot be reached, the picture stops when the pass lapses, the
+member reads why in the house's words, and a way back to the channels is offered.
+Nothing tries again behind their back. Away from home, a channel is declined in
+the same words as a title.
+
 ### What a member is never shown
 
 No lifecycle controls, no logs, no credentials, no other member's requests, no
@@ -197,6 +220,11 @@ does not hold a second copy of them.
 | **N3-R34** | The Search tab MUST offer a kind or unit of title only where the core's answer lists it as askable for that member (`D4-R24`), and MUST NOT offer one the core does not list. |
 | **N3-R35** | Home MUST show a member's music and book asks on its shelves of their own asks (`N3-R23`). One that has arrived MUST be drawn as here with no Play action (`D4-R26`), and MUST say where to find it in words that name no service. |
 | **N3-R36** | A member MUST be able to choose, from Requests, which of the ways the operator offered the household tell them that something they asked for has arrived, and MUST NOT be offered the choice where none is offered. That notification MUST be the core's (`N17-R9`); the app MUST NOT raise one of its own. |
+| **N3-R37** | Where the core lists channels a member may watch (`D11`), Home MUST show a Live TV shelf after the member's own shelves (`N3-R23`), each channel with what is on it now, and a *See all* that opens the guide. Where the core lists none, the shelf MUST NOT be drawn, and the app MUST NOT add a tab for live TV (`N3-R19`). |
+| **N3-R38** | The guide MUST show every channel the core lists with its programmes over the window the core answers, as a grid a member can scroll in time and across channels, and MUST NOT widen, narrow or filter that window itself (`D11`). |
+| **N3-R39** | A channel MUST play the tuner's stream where the phone's player can decode it and the transcoded playlist otherwise, the player deciding, and the app MUST renew the pass it plays on before it lapses (`D11`). |
+| **N3-R40** | Where the core refuses to renew a pass, or cannot be reached to renew it, playback MUST stop when the pass lapses, the app MUST show why in the core's household sentence, or in one of its own where nothing arrives from the house, and MUST offer a way back to the channels. It MUST NOT retry on its own. |
+| **N3-R41** | Away from home, playing a channel MUST be declined in the same words as playing a title. |
 
 ## Related
 
