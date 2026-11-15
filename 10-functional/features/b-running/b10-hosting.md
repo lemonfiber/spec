@@ -60,10 +60,11 @@ the operator would have typed.
 |----------|----------------------|
 | **macOS** | Installs a launch agent in the operator's own login session |
 | **Linux** | Installs a user service in the operator's own session |
+| **Windows** | Registers a task in the operator's own Task Scheduler |
 | **Anything else** | Says it cannot configure this platform, and says what to do instead |
 
-Both of the supported forms belong to the operator's account. Neither needs
-administrative rights, and neither installs anything another user of the machine
+All three supported forms belong to the operator's account. None needs
+administrative rights, and none installs anything another user of the machine
 inherits. A media stack on a home machine that demanded root to keep a clock
 running would be a worse product than the terminal it replaces.
 
