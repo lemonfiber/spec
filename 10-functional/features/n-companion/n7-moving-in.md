@@ -212,7 +212,7 @@ operator will search for.
 
 | Row | Carried | Not carried |
 |---|---|---|
-| `N7-R11` | `migration`, served at `/api/migration`: `standing` (each project, its services, `running`, `adoptable`) and `read`, which is false where the engine could not look | The configuration source and the library location of each service `A5-R2` names. The survey carries projects, services and ports; the library appears only as the filesystems in `linking` |
+| `N7-R11` | `migration`, served at `/api/migration`: `standing` (each project, its services, `running`, `adoptable`, and `config` and `library`, each the host path, why it could not be read, or why the service keeps none) and `read`, which is false where the engine could not look | — |
 | `N7-R12` | `modes`: `mode`, `what`, `disturbs`, `preselected`, least destructive first. The action route accepts `migrate-adopt`, `migrate-import`, `migrate-beside` and `migrate-replace`, and each answers unconfirmed with what it would come to | — |
 | `N7-R13` | `linking`: `because`, `cost`, `remedy`, `filesystems`, and `forced`, which is always false | No action carries the remedy out. It is offered as words, and there is no act for the app to offer beside them |
 | `N7-R14` | `unsupported`, each with `what` and `because`; `not_carried` for what no mode carries | — |
