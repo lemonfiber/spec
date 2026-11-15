@@ -71,6 +71,10 @@ NZBGet in SABnzbd's as the Usenet download client, and Byparr in FlareSolverr's 
 an indexer's bot protection is passed with. Each builds an adapter image, so the train tags it,
 and each repository is held to everything below as a part's is.
 
+`plugin-dashy` is offered the same way, Dashy in Homepage's place as the dashboard. It runs
+`lemonfiber-dashy`'s image as its upstream, which it pins (`OPS-R93`), and builds an adapter
+image, so the train tags it, and its repository is held to everything below as a part's is.
+
 ## What each holds
 
 | Path | What it is |

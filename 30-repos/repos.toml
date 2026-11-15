@@ -176,6 +176,16 @@ note = "The guard on every byte the media server serves, speaking stream.guard i
 pinned_in = "plugin-door"
 
 [[repo]]
+name = "lemonfiber-dashy"
+node = "dashyimage"
+group = "impl"
+label = "lemonfiber-dashy<br/>the offered dashboard's image"
+spec = ["lemonfiber-dashy.md"]
+lang = "Dockerfile"
+note = "Dashy with its outbound endpoints held to the addresses its page names and its ping removed; plugin-dashy runs it as its upstream and pins it"
+pinned_in = "plugin-dashy"
+
+[[repo]]
 name = "lemonfiber-fence"
 node = "fenceimage"
 group = "impl"
@@ -447,6 +457,15 @@ plugin = "ntfy"
 image = false
 
 [[repo]]
+name = "plugin-dashy"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "Dashy as the dashboard, which the bundle offers and does not ship: the adapter speaking dashboard.show beside lemonfiber-dashy's image, which it pins; builds the adapter's image, so the train tags it"
+plugin = "dashy"
+image = true
+
+[[repo]]
 name = "adapter-kit-servarr"
 node = "servarrkit"
 group = "impl"
@@ -602,6 +621,11 @@ label = "image pinned by plugin-caddy"
 from = "lemonfiber-door"
 to = "parts"
 label = "image pinned by plugin-door"
+
+[[edge]]
+from = "lemonfiber-dashy"
+to = "parts"
+label = "image pinned by plugin-dashy"
 
 [[edge]]
 from = "lemonfiber-plugins"
