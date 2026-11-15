@@ -211,6 +211,19 @@ with when it was reached. The doctor pulls no image for it. A run is the one che
 may hold a doctor run past `C1-R12`'s thirty seconds, once, after its pin moves
 (`ARCH-R287`).
 
+### A proof of a service that publishes no port
+
+A request proof is asked of a service where the engine publishes it on the host. A
+service that publishes nothing there, such as a challenge solver that answers anybody who
+reaches it, is asked from inside its own network namespace instead (`ARCH-R430`): the
+`fence` image the bundle pins runs once as `fence ask`, in a throwaway container joined to
+the namespace of the service's fence, or of the service where it is not fenced. It asks
+`127.0.0.1` at the port named, follows no redirect, reads at most 64 KiB, and prints what
+was answered, which is judged as any answer is. The container holds no capability, no
+mount and a read-only root, is held to the fence's memory limit, and is removed once it
+ends. Nothing is published for it, so the service stays reachable only from the stack's
+network.
+
 ### What an assertion is declared to fail on
 
 A `[[proof]]` and a `doctor.check` row may carry `expected`: the recordings it
