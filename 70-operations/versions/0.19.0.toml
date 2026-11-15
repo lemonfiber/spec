@@ -82,6 +82,12 @@
 # host's scheduler fires `lemonfiber run`, health is the last run's exit, and a failed run
 # reaches the operator alone; added by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
+# `ARCH-R432` writes down the statuses a service's health path reads up by, and `ARCH-R433`
+# hands them to the outside watcher's monitor of it, so a service that refuses a caller
+# presenting nothing reads up at install and to the watcher alike; `ARCH-R434` names the
+# hosts the dashboard may ask for a status, so its checks reach nothing off the stack's
+# network; added by the maintainer's decisions of 2026-11-15 (OPS-R31).
+#
 # `ARCH-R426` names each request's kind and unit on the household list and the news, which
 # the companion's music and books (`N3-R31`, `N3-R32`) read; added by the maintainer's
 # decision of 2026-11-13 (OPS-R31).
@@ -92,7 +98,7 @@
 # told an ask arrived, and a request named by its reference on the operator's screens.
 # Added by the maintainer's decisions of 2026-11-09 and 2026-11-13 (OPS-R31).
 #
-# 148 goals, seeded from the roadmap milestone this version serves;
+# 151 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -147,6 +153,9 @@ goals   = [
     "ARCH-R429",
     "ARCH-R430",
     "ARCH-R431",
+    "ARCH-R432",
+    "ARCH-R433",
+    "ARCH-R434",
     "ARCH-R395",
     "ARCH-R396",
     "F1-R15",
