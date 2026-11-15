@@ -75,6 +75,10 @@ and each repository is held to everything below as a part's is.
 `lemonfiber-dashy`'s image as its upstream, which it pins (`OPS-R93`), and builds an adapter
 image, so the train tags it, and its repository is held to everything below as a part's is.
 
+`plugin-traefik` is offered the same way, Traefik in Caddy's place as the proxy. It runs
+Traefik's own image, pinned by tag and digest, and builds an adapter image, so the train tags
+it, and its repository is held to everything below as a part's is.
+
 ## What each holds
 
 | Path | What it is |
