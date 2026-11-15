@@ -78,6 +78,10 @@
 # publishes nothing is still proved at install; added by the maintainer's decision of
 # 2026-11-15 (OPS-R31).
 #
+# `ARCH-R431` lets a service run to completion on a schedule rather than run for good: the
+# host's scheduler fires `lemonfiber run`, health is the last run's exit, and a failed run
+# reaches the operator alone; added by the maintainer's decision of 2026-11-15 (OPS-R31).
+#
 # `ARCH-R426` names each request's kind and unit on the household list and the news, which
 # the companion's music and books (`N3-R31`, `N3-R32`) read; added by the maintainer's
 # decision of 2026-11-13 (OPS-R31).
@@ -88,7 +92,7 @@
 # told an ask arrived, and a request named by its reference on the operator's screens.
 # Added by the maintainer's decisions of 2026-11-09 and 2026-11-13 (OPS-R31).
 #
-# 147 goals, seeded from the roadmap milestone this version serves;
+# 148 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -142,6 +146,7 @@ goals   = [
     "ARCH-R428",
     "ARCH-R429",
     "ARCH-R430",
+    "ARCH-R431",
     "ARCH-R395",
     "ARCH-R396",
     "F1-R15",
