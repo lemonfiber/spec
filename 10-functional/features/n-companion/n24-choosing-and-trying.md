@@ -135,7 +135,7 @@ every import costs its size again. The app shows which happened (`D3-R8`).
 | `N24-R1` | `quality-set`, taking a preset and a media type; `quality` lists the choices in force, overall first | — |
 | `N24-R2` | `quality.music` and `music`: `format`, `means`, `size_per_hour` | — |
 | `N24-R3` | `disposition: held`, and `needs_transcoding_here` and `transcoding` per choice | — |
-| `N24-R4` | `quality-upgrade`, unconfirmed and confirmed; `upgrade` per media type: `preset`, `size_per_hour`, `outcome` | What an upgrade costs in total. `D2-R7` asks for the cost stated; the contract carries a rate per hour, not a sum. A statement that choosing affects future acquisitions only (`D2-R6`) is not carried as words |
+| `N24-R4` | `quality-upgrade`, unconfirmed and confirmed; `upgrade` per media type: `preset`, `total` (the bytes re-fetching it would take, or why that could not be worked out), `outcome` | A statement that choosing affects future acquisitions only (`D2-R6`) is not carried as words |
 | `N24-R5` | `customised` | — |
 | `N24-R6` | `walkthrough`, with an optional item; `shape`: `pipeline` or `library-only`; `suggestions` | — |
 | `N24-R7` | `in_background`, and `state: abandoned` — *whatever was in flight stays in flight* | — |
