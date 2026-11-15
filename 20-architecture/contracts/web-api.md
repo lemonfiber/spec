@@ -99,6 +99,13 @@ read as the member, so a channel whose programme now is outside their limits is 
 member whose account may not watch live TV is answered none (D11-R11). It is narrowed to the
 member who asks, as the held shelf is.
 
+`/api/guide` is the same channels, each with its programmes from now across the guide window
+`LEMONFIBER_GUIDE_HOURS` holds, each programme outside the member's limits left out as a gap,
+and `guide_until`, the end of the last programme the media server's guide holds inside the
+window, or nothing where it holds none (D11-R17). It is narrowed to the member who asks. A
+surface reads one of the two: a shelf of what is on now reads `/api/channels`, a full guide
+reads `/api/guide`.
+
 `/api/clients` takes none either, and for a different reason: what to watch on is the same answer on every machine, because the client landscape belongs to the platforms rather than to a stack. It reads nothing and asks nothing of the engine, so it answers where nothing is set up yet — which is when somebody deciding what to tell the house is most likely to ask. Naming a device would let a surface show one row and call it the answer, and the row most worth reading is the one saying a device is poorly served and what to do instead.
 
 `/api/credentials` takes none, and it is half a word on purpose. What it answers with is
@@ -632,6 +639,7 @@ each read back as the core's:
 |--------------|---------------|
 | `LEMONFIBER_DEVICE_KEY_APPS` | The identities of the operator's own builds a device key may come from (`ARCH-R262`) |
 | `LEMONFIBER_DASHBOARD_SEARCH` | The address the dashboard's web search box sends a search to, the terms appended to it: an absolute `https` or `http` address, `https://duckduckgo.com/?q=` where none is recorded (`ARCH-R308`) |
+| `LEMONFIBER_GUIDE_HOURS` | How many hours from now the live TV guide answers each channel's programmes across: a whole number from 1 to 168, 12 where none is recorded (`D11-R17`) |
 
 Every other `LEMONFIBER_*` key is `lemonfiber config`'s, read by `GET /api/config`. Each
 command refuses the other's names, naming the command that takes the name, so one name
@@ -924,6 +932,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R290** | A `trace` that stopped at `monitored` where asking the indexers would tell nothing at the quality from nothing at all MUST carry `searchable`: what the search spends, in the stack's words, and that it covers the curator's wanted list at the quality in force; a trace that would spend no search MUST NOT carry it. The `search` action MUST accept `disruptive` absent or `true`, and the artefact MUST NOT publish a default it refuses. |
 | **ARCH-R409** | Seed MUST ask each filler's `events` with the address `https://host.docker.internal:<port>/api/notify/events`, `<port>` the port the web surface was last served encrypted on where a container reaches it, or with `LEMONFIBER_EVENTS_ADDRESS` followed by `/api/notify/events` where that `https` address is set, and with the SHA-256 digest of the certificate the web surface presents, which the adapter MUST pin; the web surface MUST answer the name `host.docker.internal` at `POST /api/notify/events` and nowhere else; where neither address exists seed MUST ask no filler and MUST say why; an adapter MUST be given `host.docker.internal` as the engine's host gateway where the engine does not resolve it itself. |
 | **ARCH-R420** | The web API MUST serve `GET /api/channels`, narrowed to the member who asks, with the channels `D11-R11` answers; MUST answer action `tune` taking `id` (a channel), or `stream` with an optional `stop`, with kind `tuned` carrying `channel`, `member`, `stream`, the live stream a renewal or a stop names, `direct`, `transcoded`, `fingerprint` and `lapses`, or `unlocated`; and MUST answer action `play` taking `id` and `device`, or `id` and `pass` to renew it, with kind `play` carrying `id`, `member`, `stream_from` and `lapses`, or `unlocated`; each at once and without a job, each narrowed to the member who asks, and `lemonfiber channels`, `lemonfiber tune` and `lemonfiber play` MUST answer the same. |
+| **ARCH-R437** | The web API MUST serve `GET /api/guide`, narrowed to the member who asks, with the channels `D11-R11` answers them, each carrying `programmes`, each with `title`, `certificate`, `starts` and `ends`, and `guide_until`, as `D11-R17` answers them, at once and without a job, and `lemonfiber guide` MUST answer the same. |
 | **ARCH-R398** | `POST /api/notify/events` MUST accept a neutral event only with the events key the core minted for the filler that sends it, MUST refuse every other caller, and MUST hand each event to B5's policy, a `failed` or `health` event as `problem` and an `imported` or `added` event as `completion`; seed MUST mint each curator's and the media server's events key, write it to that filler's adapter readable by the operator's uid alone, and ask its `events` with the core's address and that key. |
 | **ARCH-R399** | The core MUST deliver every alert B5 says is worth telling to each configured back-end that is not held, each independently of the others, speaking ntfy, gotify, a webhook, an Apprise URL and UnifiedPush itself; a delivery MUST carry the alert's notification kind and summary and MUST NOT carry a member's name, what anybody is watching or a title a member asked for; each kind MUST be an outbound entry with its own switch. |
 | **ARCH-R400** | `GET /api/notify` MUST answer the operator session alone with `state`, `backends` and `unread` as the section on where a message goes says, each delivery's `outcome` `confirmed`, `sent` or failed with the back-end's answer; a member session and a key MUST be refused it, and a store that cannot be read MUST refuse the read. |
