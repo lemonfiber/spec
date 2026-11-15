@@ -121,7 +121,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `posture` | enum | | `standard` \| `confined`. How tightly the container is held, as declared. Default `standard`. `confined` only where the plugin's own CI runs the image under it. |
 | `memory_mib` | integer | | The memory it expects to need, in MiB. An estimate, summed into a form's footprint (`B1-R18`) and never written as a limit. |
 | `mem_limit_mib` | integer | | The most memory the container may hold, in MiB, written as its limit. |
-| `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). `{ fenced = true }`: its own requests go to addresses others hand it, so it runs inside a fence that refuses every private address — see [`network.fenced`](#fenced-from-every-private-address--networkfenced). One or the other, never both. `{ egress_for = "<id>" }`: it carries another service of its own plugin out of the machine, and nothing else — see [`network.egress_for`](#carrying-a-sibling-out--networkegress_for). |
+| `network` | table | | `{ via = "<capability>" }`: it runs inside the network of the service that fills that capability, and has none of its own — see [`network.via`](#inside-another-services-network--networkvia). `{ fenced = true }`: its own requests go to addresses others hand it, so it runs inside a fence that refuses every private address — see [`network.fenced`](#fenced-from-every-private-address--networkfenced). `{ internal = true }`: it reaches the stack's own services and nothing else, so it runs inside a fence that refuses everything outside its own networks — see [`network.internal`](#held-inside-the-stack--networkinternal). One of `via`, `fenced` and `internal`, never two. `{ egress_for = "<id>" }`: it carries another service of its own plugin out of the machine, and nothing else — see [`network.egress_for`](#carrying-a-sibling-out--networkegress_for). |
 | `listens` | integer | ✔ if `speaks`, or where it answers on a port other than `port` | The port it answers on inside the container: where `port` is published to, and where the services that ask and the proxy reach it, and lemonfiber where it declares no `contract`. Default `port`. |
 | `contract` | integer | | Only where it `speaks`: the port it speaks its contracts on inside the container, published on the loopback interface alone and reached by lemonfiber and nothing else. Default `listens`. Declared apart from `listens` where the service also answers the household or another service, so neither reaches its contract routes (`ARCH-R343`). |
 | `speaks` | array | | Each capability contract the service answers as an adapter, written `capability@major` from `contract/capabilities/index.json` (`ARCH-R200`). A service that speaks a contract is asked over it, and no other way. See [capability-contracts.md](capability-contracts.md). |
@@ -754,6 +754,40 @@ A service may not be both `fenced` and `via`, since each is a namespace of its o
 asks are settled and its networks joined as any service's are; the fence holds those
 networks in its place.
 
+### Held inside the stack — `network.internal`
+
+```toml
+network = { internal = true }
+```
+
+Some services have no business outside the stack at all. A dashboard asks the stack's
+services whether they are up and draws a page; a page it is configured with, or a
+widget it fetches, should never lead it to the router, the host or the internet.
+`network.internal` declares that, and lemonfiber answers it with the same fence a fenced
+service runs in, holding the opposite rules (`ARCH-R435`):
+
+- **The fence is the one `network.fenced` writes**: `<service>-fence`, from the pinned
+  `fence` image, holding the service's networks and published ports, alone holding
+  `NET_ADMIN`, handed the engine's host's addresses on every apply and every start,
+  healthy only once every rule is in place, restarting the service when it restarts, and
+  refusing to start without the host's addresses.
+- **Its rules pass only what is inside the stack.** A new connection the service opens
+  passes to an address inside one of the namespace's own networks, save that network's
+  gateway and every address of the engine's host, out of the namespace's own loopback
+  interface to any address but `127.0.0.11`, and to the engine's resolver at
+  `127.0.0.11` on port 53, and every other is refused, so the service reaches the
+  services its asks join it to and resolves their names, and reaches neither the host,
+  the network the host is on nor anywhere beyond it. The answers to connections others
+  opened to it pass, so its published port and its proxy route answer.
+- **Where no fence can be written, the service does not start**, as for a fenced
+  service; starting it unheld is never the fallback.
+
+A fence rather than a network the engine marks internal: the fence refuses the host by
+the addresses lemonfiber hands it, where an internal network leaves what reaches the host
+to the engine; the service keeps its published port and the networks its asks derive, so
+nothing else in the stack changes for it; and the rules are the ones `network.fenced`
+already proves. A service may be only one of `via`, `fenced` and `internal`.
+
 ### Carrying a sibling out — `network.egress_for`
 
 ```toml
@@ -770,7 +804,8 @@ same plugin carries it there, holding nothing (`ARCH-R422`):
 - **It holds nothing worth taking.** It is confined, and declares no secret, no
   configuration directory, no mount, no data, no published port, no contract, no ask and no
   capability. Each is refused naming `service <id>.network.egress_for`, and so is an
-  `egress_for` naming no other service of its plugin, `via` and `fenced` beside it.
+  `egress_for` naming no other service of its plugin, `via`, `fenced` and `internal`
+  beside it.
 - **What it carries is its own program's to limit.** The request gate's egress service
   answers only a tunnel to plex.tv's port 443, and the gate's TLS runs through it to
   plex.tv, so it reads nothing it carries (`C6-R22`).
