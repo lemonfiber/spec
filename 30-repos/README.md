@@ -47,7 +47,7 @@ flowchart TD
         kit["website-kit<br/>what both sites run"]
         lfdev["tool-lfdev<br/>the developer command line"]
         brand["brand<br/>design tokens"]
-        parts["plugin-*<br/>twenty-nine first-party plugins"]
+        parts["plugin-*<br/>thirty first-party plugins"]
     end
 
     web -->|submodule, pinned| lemonfiber
@@ -128,6 +128,7 @@ flowchart TD
 | `plugin-byparr` | [first-party-plugins.md](first-party-plugins.md) | Rust | Byparr as the solver for an indexer's bot protection, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it |
 | `plugin-ntfy` | [first-party-plugins.md](first-party-plugins.md) | TOML | The stack's own push server, ntfy, which the bundle offers and does not ship; its image is the upstream's, pinned by revision |
 | `plugin-dashy` | [first-party-plugins.md](first-party-plugins.md) | Rust | Dashy as the dashboard, which the bundle offers and does not ship: the adapter speaking dashboard.show beside lemonfiber-dashy's image, which it pins; builds the adapter's image, so the train tags it |
+| `plugin-traefik` | [first-party-plugins.md](first-party-plugins.md) | Rust | Traefik as the proxy, which the bundle offers and does not ship: the adapter speaking proxy.front beside the upstream's image, which it pins; builds the adapter's image, so the train tags it |
 | `adapter-kit-servarr` | [adapter-kit-servarr.md](adapter-kit-servarr.md) | Rust | One copy of the Servarr client, taken by each Servarr adapter at a commit |
 | `adapter-kit-music` | [adapter-kit-music.md](adapter-kit-music.md) | Rust | One copy of music.curate as a music curator answers it, taken by each music curator's adapter at a commit |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
@@ -139,7 +140,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those fifty-six are the repositories this specification governs, which is not the
+Those fifty-seven are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))

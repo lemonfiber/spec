@@ -466,6 +466,15 @@ plugin = "dashy"
 image = true
 
 [[repo]]
+name = "plugin-traefik"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "Traefik as the proxy, which the bundle offers and does not ship: the adapter speaking proxy.front beside the upstream's image, which it pins; builds the adapter's image, so the train tags it"
+plugin = "traefik"
+image = true
+
+[[repo]]
 name = "adapter-kit-servarr"
 node = "servarrkit"
 group = "impl"

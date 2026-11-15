@@ -334,3 +334,8 @@ hooks = ["commit-msg", "pre-push"]
 name = "plugin-dashy"
 gates = []
 hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-traefik"
+gates = []
+hooks = ["commit-msg", "pre-push"]
