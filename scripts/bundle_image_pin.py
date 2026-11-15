@@ -35,19 +35,18 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sys
 import tomllib
 
+import imagetools
 import paths
-from patterns import COMMIT_IMAGE
+from patterns import COMMIT_IMAGE, DIGEST
 
 #: Where lemonfiber publishes the images it builds, and nothing else (ADR-0033).
 REGISTRY = "ghcr.io/lemonfiber"
 
 SERVICE = re.compile(r"\A[a-z0-9]+(-[a-z0-9]+)*\Z")
 TAG = re.compile(r"\Av(\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)\Z")
-DIGEST = re.compile(r"\Asha256:[0-9a-f]{64}\Z")
 #: A key of the table, with the quoted value it holds and anything after it on the line.
 #: An image reference the registry is asked about: a registry path under ours and a tag.
 REFERENCE = re.compile(
@@ -91,16 +90,14 @@ def published(image: str, tag: str) -> str:
     reference = f"{image}:{tag}"
     if not REFERENCE.match(reference):
         raise Refused(f"{reference!r} is not an image of {REGISTRY} at a train tag or a commit")
-    asked = subprocess.run(
-        ["docker", "buildx", "imagetools", "inspect", reference, "--format", "{{json .Manifest}}"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if asked.returncode != 0:
-        raise Refused(f"the registry does not answer for {image}:{tag}: {asked.stderr.strip()}")
     try:
-        digest = json.loads(asked.stdout)["digest"]
+        answered = imagetools.manifest(reference)
+    except imagetools.Absent as why:
+        raise Refused(f"the registry holds no {reference}: {why}") from why
+    except imagetools.Unanswered as why:
+        raise Refused(str(why)) from why
+    try:
+        digest = json.loads(answered)["digest"]
     except (ValueError, KeyError, TypeError) as why:
         raise Refused(f"the registry's answer for {image}:{tag} names no digest") from why
     return str(digest)

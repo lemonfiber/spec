@@ -17,6 +17,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from unittest import mock
 
 import bundle_image_pin
+import imagetools
 import yaml
 
 WORKFLOW = pathlib.Path(__file__).resolve().parent.parent / ".github/workflows/bundle-image-pin.yml"
@@ -49,6 +50,7 @@ REPOSITORY = "lemonfiber/lemonfiber-fence"
 DOCKER = """#!/bin/sh
 case "$ANSWERED" in
 fail) echo "manifest unknown" >&2; exit 1 ;;
+busy) echo "toomanyrequests: retry later" >&2; exit 1 ;;
 none) echo '{}' ;;
 *) printf '{"digest": "%s"}\\n' "$ANSWERED" ;;
 esac
@@ -223,10 +225,17 @@ class Main(unittest.TestCase):
     def test_a_digest_the_registry_does_not_answer_moves_nothing(self):
         for answered, said in [
             ("sha256:" + "b" * 64, f"is sha256:{'b' * 64} at the registry, not {DIGEST}"),
-            ("fail", "the registry does not answer for ghcr.io/lemonfiber/fence:v0.18.0: manifest unknown"),
+            ("fail", "the registry holds no ghcr.io/lemonfiber/fence:v0.18.0: manifest unknown"),
+            (
+                "busy",
+                (
+                    "ghcr.io/lemonfiber/fence:v0.18.0 could not be checked: its registry did not answer in "
+                    f"{imagetools.ATTEMPTS} attempts (toomanyrequests: retry later)"
+                ),
+            ),
             ("none", "names no digest"),
         ]:
-            with self.subTest(answered=answered):
+            with self.subTest(answered=answered), mock.patch.object(imagetools.time, "sleep"):
                 answering(self, answered)
                 code, _, err = self.apply()
                 self.assertEqual(code, 1)

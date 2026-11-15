@@ -26,6 +26,7 @@ sys.path.insert(0, str(HERE))
 import check_bundle_pins  # noqa: E402
 import check_image_pins  # noqa: E402
 import embedded_bundle  # noqa: E402
+import imagetools  # noqa: E402
 import manifest_repos  # noqa: E402
 from test_release_train import Workspace, run_main  # noqa: E402
 
@@ -656,9 +657,11 @@ class TrainImages(Workspace):
     OTHER = "sha256:" + "b" * 64
 
     #: Stands in for `docker buildx imagetools inspect`. Prints DOCKER_REPLY as
-    #: the index descriptor, unless the reference is named in DOCKER_MISSING.
+    #: the index descriptor, unless the reference is named in DOCKER_MISSING, which
+    #: it says it does not hold, or in DOCKER_BUSY, for which it is rate limited.
     DOCKER = """#!/bin/sh
 case " ${DOCKER_MISSING:-} " in *" $4 "*) echo "ERROR: $4: not found" >&2; exit 1 ;; esac
+case " ${DOCKER_BUSY:-} " in *" $4 "*) echo "ERROR: 429 Too Many Requests" >&2; exit 1 ;; esac
 printf '%s' "${DOCKER_REPLY}"
 """
 
@@ -846,6 +849,14 @@ class CheckImagePinsTests(EmbeddedTests):
         os.environ["DOCKER_MISSING"] = "ghcr.io/lemonfiber/decline:v0.2.0"
         self.assertIn(
             "is not published (ERROR", check_image_pins.digest_of("ghcr.io/lemonfiber/decline:v0.2.0")[1]
+        )
+        os.environ["DOCKER_BUSY"] = "ghcr.io/lemonfiber/busy:v0.2.0"
+        with mock.patch.object(imagetools.time, "sleep"):
+            said = check_image_pins.digest_of("ghcr.io/lemonfiber/busy:v0.2.0")[1]
+        self.assertEqual(
+            said,
+            "ghcr.io/lemonfiber/busy:v0.2.0 could not be checked: its registry did not answer in "
+            f"{imagetools.ATTEMPTS} attempts (ERROR: 429 Too Many Requests)",
         )
         for reply, said in (
             ("not json", "not a descriptor"),

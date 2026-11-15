@@ -14,8 +14,9 @@ It runs before a release tag only: a pre-release tags none of these repositories
 (OPS-R86), and `check_bundle_pins.py` holds the same pins to the release.
 
 The registry is asked through `docker buildx imagetools inspect`, which reads the
-index without pulling anything. A tag the registry does not hold is refused as
-unpublished.
+index without pulling anything. A tag the registry says it does not hold is refused
+as unpublished; one it never answers for, after `imagetools` has asked again, could
+not be checked.
 
 Usage:
   check_image_pins.py --version X.Y.Z --tag <tag> --core <core checkout> --owner <org>
@@ -30,11 +31,11 @@ import argparse
 import json
 import pathlib
 import re
-import subprocess
 import sys
 import tomllib
 
 import embedded_bundle
+import imagetools
 import manifest_repos
 from patterns import DIGEST, PRERELEASE_ID, PRERELEASE_SEPARATOR, VERSION
 
@@ -61,17 +62,14 @@ def digest_of(reference: str) -> tuple[str, str]:
     """The digest the registry holds for a reference, or why there is none."""
     if not _REFERENCE.match(reference):
         return "", f"{reference!r} is not a reference this hands to docker"
-    result = subprocess.run(
-        ["docker", "buildx", "imagetools", "inspect", reference, "--format", "{{json .Manifest}}"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        lines = result.stderr.strip().splitlines()
-        return "", f"{reference} is not published ({lines[-1] if lines else 'inspect failed'})"
     try:
-        digest = json.loads(result.stdout).get("digest", "")
+        answered = imagetools.manifest(reference)
+    except imagetools.Absent as why:
+        return "", f"{reference} is not published ({why})"
+    except imagetools.Unanswered as why:
+        return "", str(why)
+    try:
+        digest = json.loads(answered).get("digest", "")
     except (json.JSONDecodeError, AttributeError):
         return "", f"the registry's answer for {reference} is not a descriptor"
     if not DIGEST.match(str(digest)):
