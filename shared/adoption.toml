@@ -81,6 +81,11 @@ gates = []
 hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
+name = "lemonfiber-dashy"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
 name = "sdk-php"
 gates = ["no_open_codeql_alert.py"]
 hooks = ["commit-msg", "pre-push"]
@@ -322,5 +327,10 @@ hooks = ["commit-msg", "pre-push"]
 
 [[repo]]
 name = "plugin-ntfy"
+gates = []
+hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-dashy"
 gates = []
 hooks = ["commit-msg", "pre-push"]

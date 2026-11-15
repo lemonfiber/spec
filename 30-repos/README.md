@@ -35,6 +35,7 @@ flowchart TD
         gate["lemonfiber-request-gate<br/>the request gate"]
         caddyimage["lemonfiber-caddy<br/>the proxy's image"]
         doorimage["lemonfiber-door<br/>the guarded door"]
+        dashyimage["lemonfiber-dashy<br/>the offered dashboard's image"]
         fenceimage["lemonfiber-fence<br/>the fence"]
         plugins["lemonfiber-plugins<br/>the reviewed catalogue"]
         servarrkit["adapter-kit-servarr<br/>what the Servarr adapters share"]
@@ -46,7 +47,7 @@ flowchart TD
         kit["website-kit<br/>what both sites run"]
         lfdev["tool-lfdev<br/>the developer command line"]
         brand["brand<br/>design tokens"]
-        parts["plugin-*<br/>twenty-eight first-party plugins"]
+        parts["plugin-*<br/>twenty-nine first-party plugins"]
     end
 
     web -->|submodule, pinned| lemonfiber
@@ -61,6 +62,7 @@ flowchart TD
     mcp -->|vendored at a pinned commit| sdkpy
     caddyimage -->|image pinned by plugin-caddy| parts
     doorimage -->|image pinned by plugin-door| parts
+    dashyimage -->|image pinned by plugin-dashy| parts
     plugins -->|submodule, pinned; the bundle embedded| lemonfiber
     plugins -->|bundle pins a revision and its tree| parts
     lemonfiber -->|release CI generates| tap
@@ -94,6 +96,7 @@ flowchart TD
 | `lemonfiber-request-gate` | [lemonfiber-request-gate.md](lemonfiber-request-gate.md) | Rust | An image the stack runs, declared in a plugin.toml of its own; holds the \*arr keys and publishes no port |
 | `lemonfiber-caddy` | [lemonfiber-caddy.md](lemonfiber-caddy.md) | Dockerfile | Caddy rebuilt without its file capability, listening on 8080 and 8443; plugin-caddy runs it as its upstream and pins it |
 | `lemonfiber-door` | [lemonfiber-door.md](lemonfiber-door.md) | Rust | The guard on every byte the media server serves, speaking stream.guard itself; plugin-door runs its image and pins it |
+| `lemonfiber-dashy` | [lemonfiber-dashy.md](lemonfiber-dashy.md) | Dockerfile | Dashy with its outbound endpoints held to the addresses its page names and its ping removed; plugin-dashy runs it as its upstream and pins it |
 | `lemonfiber-fence` | [lemonfiber-fence.md](lemonfiber-fence.md) | Dockerfile | The fence a fenced service runs behind, refusing every private address it opens; the bundle pins its image |
 | `lemonfiber-plugins` | [lemonfiber-plugins.md](lemonfiber-plugins.md) | TOML | Reviewed and signed, and never a runtime dependency |
 | `plugin-jellyfin` | [first-party-plugins.md](first-party-plugins.md) | Rust | The bundle's media server: an adapter image in front of Jellyfin, so the train tags it |
@@ -124,6 +127,7 @@ flowchart TD
 | `plugin-nzbget` | [first-party-plugins.md](first-party-plugins.md) | Rust | NZBGet as the Usenet download client, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it |
 | `plugin-byparr` | [first-party-plugins.md](first-party-plugins.md) | Rust | Byparr as the solver for an indexer's bot protection, which the bundle offers and does not ship: an adapter image in front of the upstream's, so the train tags it |
 | `plugin-ntfy` | [first-party-plugins.md](first-party-plugins.md) | TOML | The stack's own push server, ntfy, which the bundle offers and does not ship; its image is the upstream's, pinned by revision |
+| `plugin-dashy` | [first-party-plugins.md](first-party-plugins.md) | Rust | Dashy as the dashboard, which the bundle offers and does not ship: the adapter speaking dashboard.show beside lemonfiber-dashy's image, which it pins; builds the adapter's image, so the train tags it |
 | `adapter-kit-servarr` | [adapter-kit-servarr.md](adapter-kit-servarr.md) | Rust | One copy of the Servarr client, taken by each Servarr adapter at a commit |
 | `adapter-kit-music` | [adapter-kit-music.md](adapter-kit-music.md) | Rust | One copy of music.curate as a music curator answers it, taken by each music curator's adapter at a commit |
 | `homebrew-tap` | [homebrew-tap.md](homebrew-tap.md) | Ruby | Generated; exists so `brew` works |
@@ -135,7 +139,7 @@ flowchart TD
 | `brand` | [brand.md](brand.md) | CSS/SVG | Tokens are generated; the marks are not open |
 | `.github` | this page | Markdown | Org-wide community health files; no spec of its own |
 
-Those fifty-four are the repositories this specification governs, which is not the
+Those fifty-six are the repositories this specification governs, which is not the
 same as every repository in the organisation and is no longer close to it. A
 plugin is a repository too, and where one comes from is the reviewed catalogue's
 to answer ([F5](../10-functional/features/f-extensibility/f5-plugin-catalogue.md))
