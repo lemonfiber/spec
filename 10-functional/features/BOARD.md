@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 21 shipped, 54 built, 23 building, 17 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 21 shipped, 55 built, 22 building, 17 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -96,6 +96,7 @@ code, and the two move independently.
 | [N27](n-companion/n27-what-the-phone-keeps.md) | What the phone keeps | N | operator | accepted | `0.19.0` |
 | [N28](n-companion/n28-finding-your-way.md) | Finding your way | N | operator | accepted | — |
 | [N29](n-companion/n29-a-key-for-an-app.md) | A key for an app | N | operator | accepted | `0.18.0` |
+| [N30](n-companion/n30-testing-making-room-and-sharing-the-line.md) | Testing, making room and sharing the line | N | operator | accepted | `0.19.0`, `1.0.0` |
 | [N31](n-companion/n31-asking-the-indexers.md) | Asking the indexers | N | operator | accepted | — |
 
 ## Building — work has started and is not finished
@@ -124,7 +125,6 @@ code, and the two move independently.
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
 | [N16](n-companion/n16-nobody-was-looking.md) | What happened while nobody was looking | N | operator | accepted | — |
 | [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
-| [N30](n-companion/n30-testing-making-room-and-sharing-the-line.md) | Testing, making room and sharing the line | N | operator | accepted | `0.19.0`, `1.0.0` |
 
 ## Planned — specified, not yet built
 
