@@ -107,7 +107,13 @@
 # told an ask arrived, and a request named by its reference on the operator's screens.
 # Added by the maintainer's decisions of 2026-11-09 and 2026-11-13 (OPS-R31).
 #
-# 155 goals, seeded from the roadmap milestone this version serves;
+# `N3-R37` to `N3-R41` are the companion's side of live TV (`D11`): a Live TV shelf on
+# Home and a full guide over the window the core answers, a channel played direct or
+# transcoded on a pass renewed before it lapses, a refused renewal stopping playback
+# with the core's sentence, and away from home declined as a title is. They follow the
+# guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
+#
+# 160 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -231,6 +237,11 @@ goals   = [
     "N3-R34",
     "N3-R35",
     "N3-R36",
+    "N3-R37",
+    "N3-R38",
+    "N3-R39",
+    "N3-R40",
+    "N3-R41",
     "N2-R38",
     "N1-R77",
     "G2-R14",
