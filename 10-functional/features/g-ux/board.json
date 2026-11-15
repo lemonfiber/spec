@@ -73,7 +73,7 @@
       "audience": "both",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "building",
+      "maturity": "built",
       "shipped": null,
       "milestones": ["M5", "M14"],
       "milestone": "M5",
