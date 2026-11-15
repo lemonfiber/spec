@@ -97,6 +97,9 @@ env:
   # so nothing the repository holds can stand where a step writes.
   PLUGIN: plugin
   SCRATCH: .manifest-pin
+  # A lemonfiber pull request's head is taken where the plugin's targets.toml names a
+  # commit main does not hold yet (F10-R18); the catalogue and the release train take none.
+  LEMONFIBER_PULL_HEADS: "true"
   # One run moves one pin, so what `record` hands on has one name.
   ARTIFACT: manifest-pin
   # The repository whose manifest is moved, as owner/name.
