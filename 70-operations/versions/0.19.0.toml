@@ -82,6 +82,10 @@
 # host's scheduler fires `lemonfiber run`, health is the last run's exit, and a failed run
 # reaches the operator alone; added by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
+# `ARCH-R438` offers that run to the operator over the web as the action `run`, so a browser
+# reaches what the command line reaches and the `ran` kind has an action that answers with
+# it; added by the maintainer's decision of 2026-11-16 (OPS-R31).
+#
 # `ARCH-R432` writes down the statuses a service's health path reads up by, and `ARCH-R433`
 # hands them to the outside watcher's monitor of it, so a service that refuses a caller
 # presenting nothing reads up at install and to the watcher alike; `ARCH-R434` names the
@@ -113,7 +117,7 @@
 # with the core's sentence, and away from home declined as a title is. They follow the
 # guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
-# 160 goals, seeded from the roadmap milestone this version serves;
+# 161 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -168,6 +172,7 @@ goals   = [
     "ARCH-R429",
     "ARCH-R430",
     "ARCH-R431",
+    "ARCH-R438",
     "ARCH-R432",
     "ARCH-R433",
     "ARCH-R434",
