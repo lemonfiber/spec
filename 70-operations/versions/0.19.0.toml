@@ -96,6 +96,11 @@
 # hosts the dashboard may ask for a status, so its checks reach nothing off the stack's
 # network; added by the maintainer's decisions of 2026-11-15 (OPS-R31).
 #
+# `ARCH-R440` lets a plugin's own proof send a header from a closed list of named
+# non-credential headers the core holds, `Target-URL` alone, so the dashboard's proxy can be
+# proved to refuse an address its configuration does not name; added by the maintainer's
+# decision of 2026-11-16 (OPS-R31).
+#
 # `ARCH-R435` holds a service inside the stack: a fence whose rules pass only its own
 # networks and the resolver, which the dashboard declares; added by the maintainer's
 # decision of 2026-11-15 (OPS-R31).
@@ -126,7 +131,7 @@
 # with the core's sentence, and away from home declined as a title is. They follow the
 # guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
-# 162 goals, seeded from the roadmap milestone this version serves;
+# 163 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -185,6 +190,7 @@ goals   = [
     "ARCH-R432",
     "ARCH-R433",
     "ARCH-R434",
+    "ARCH-R440",
     "ARCH-R435",
     "ARCH-R439",
     "ARCH-R436",

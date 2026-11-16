@@ -222,6 +222,15 @@ had nowhere to write anything; a header map would have made it a convention
 instead, unenforceable because a service may call its credential header whatever
 it likes. With one named field it stays a property of the format.
 
+A plugin's own `[[proof]]` may carry more, and only by name: `headers`, each one of
+a closed list the core holds, which grows only by a change to the core and holds
+`Target-URL` alone. A claim probe, a contributed check and a `health` probe carry
+none. A credential header can be called anything, so the format cannot refuse
+credentials by name; it lets through only headers it has named, none of them a
+credential, and refuses a value shaped like a secret in those
+([plugin-manifest-proof](plugin-manifest-proof.md#a-proof-may-send-a-named-header),
+`ARCH-R440`).
+
 None of the probe body-constraint sets in this vocabulary changed when that
 field arrived, and that is the test of it: the sets were never the obstacle.
 `media.serve`'s `catalogue` probe requires a JSON assertion, and once a claimant
