@@ -339,3 +339,8 @@ hooks = ["commit-msg", "pre-push"]
 name = "plugin-traefik"
 gates = []
 hooks = ["commit-msg", "pre-push"]
+
+[[repo]]
+name = "plugin-configarr"
+gates = []
+hooks = ["commit-msg", "pre-push"]

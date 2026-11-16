@@ -475,6 +475,15 @@ plugin = "traefik"
 image = true
 
 [[repo]]
+name = "plugin-configarr"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "Configarr as quality sync, which the bundle offers and does not ship: an adapter image in front of the upstream's, which runs on a schedule and is pinned by revision, so the train tags it"
+plugin = "configarr"
+image = true
+
+[[repo]]
 name = "adapter-kit-servarr"
 node = "servarrkit"
 group = "impl"

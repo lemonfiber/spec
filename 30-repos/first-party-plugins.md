@@ -79,6 +79,11 @@ image, so the train tags it, and its repository is held to everything below as a
 Traefik's own image, pinned by tag and digest, and builds an adapter image, so the train tags
 it, and its repository is held to everything below as a part's is.
 
+`plugin-configarr` is offered the same way, Configarr in Recyclarr's place as quality sync. It
+runs Configarr's own image as a scheduled service, which runs to completion at the times its
+schedule names, and builds an adapter image, so the train tags it, and its repository is held
+to everything below as a part's is.
+
 ## What each holds
 
 | Path | What it is |
