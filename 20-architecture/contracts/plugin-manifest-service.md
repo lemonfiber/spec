@@ -793,7 +793,9 @@ service runs in, holding the opposite rules (`ARCH-R435`):
   lemonfiber hands it, and answers every other refused without passing it on. Nothing in
   the namespace but the fence reaches the engine's resolver: the fence's own questions
   leave from sockets carrying a mark, which only a holder of `NET_ADMIN` or `NET_RAW` can
-  set, so a service held inside the stack never takes a shape granting either.
+  set, so no container sharing the namespace but the fence holds either: the service
+  never takes a shape granting one, and never provides a capability another service runs
+  inside the network of.
 - **Names resolve as written.** The fence's only DNS search domain is `.`, so a name the
   service asks for is never tried under the host's search domains, where a single label
   could resolve to something on the network the host is on.
