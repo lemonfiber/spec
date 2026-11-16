@@ -34,7 +34,14 @@ def condition(workflow: str, job: str) -> str:
     return read["jobs"][job]["if"]
 
 
-def run(conclusion="success", head=REPO, actor="User", event="pull_request") -> dict:
+def run(
+    conclusion="success",
+    head=REPO,
+    actor="User",
+    event="pull_request",
+    path=".github/workflows/pin-only.yml",
+    title="#7 synchronize ",
+) -> dict:
     """A `workflow_run` event, as the caller's run receives it."""
     return {
         "github": {
@@ -46,6 +53,8 @@ def run(conclusion="success", head=REPO, actor="User", event="pull_request") -> 
                     "event": event,
                     "head_repository": {"full_name": head},
                     "actor": {"type": actor},
+                    "path": path,
+                    "display_title": title,
                 },
             },
         },
@@ -84,10 +93,10 @@ class AwaitingMaintainer(unittest.TestCase):
             self.assertFalse(self.starts(run(conclusion=conclusion, actor="Bot")), conclusion)
 
     def test_a_close_clears_a_label_it_carries(self):
-        self.assertTrue(self.starts(labelled("pull_request_target", ["awaiting-maintainer"])))
+        self.assertTrue(self.starts(labelled("pull_request", ["awaiting-maintainer"])))
 
     def test_a_close_with_no_label_starts_nothing(self):
-        self.assertFalse(self.starts(labelled("pull_request_target", ["ci"])))
+        self.assertFalse(self.starts(labelled("pull_request", ["ci"])))
 
     def test_a_review_that_decides_clears_a_label_it_carries(self):
         for state in ("approved", "changes_requested", "APPROVED"):
@@ -100,6 +109,66 @@ class AwaitingMaintainer(unittest.TestCase):
 
     def test_a_review_on_a_pull_request_with_no_label_starts_nothing(self):
         self.assertFalse(self.starts(labelled("pull_request_review", [], "approved")))
+
+
+class PinOnlyVerdict(unittest.TestCase):
+    """Which runs the verdict judges: the relay's, on a pull request, and no other (Q-R83, Q-R84)."""
+
+    def setUp(self):
+        self.held = condition("pin-only.yml", "pin-only")
+
+    def judges(self, context: dict, relay: str = ".github/workflows/pin-only.yml") -> bool:
+        return decides(self.held, {**context, "inputs": {"relay": relay}})
+
+    def test_every_run_of_the_relay_on_a_pull_request_is_judged_whatever_it_concluded(self):
+        for conclusion in ("success", "failure", "cancelled", "skipped"):
+            self.assertTrue(self.judges(run(conclusion=conclusion)), conclusion)
+            self.assertTrue(self.judges(run(conclusion=conclusion, head="someone/core")), conclusion)
+
+    def test_a_workflow_of_the_same_name_elsewhere_in_the_tree_is_not(self):
+        self.assertFalse(self.judges(run(path=".github/workflows/also-pin-only.yml")))
+
+    def test_the_relay_s_path_is_the_caller_s_to_name(self):
+        spec = ".github/workflows/pin-only-check.yml"
+        self.assertTrue(self.judges(run(path=spec), relay=spec))
+        self.assertFalse(self.judges(run(), relay=spec))
+
+    def test_a_run_not_started_by_a_pull_request_is_not(self):
+        for event in ("push", "workflow_dispatch", "schedule", "pull_request_target"):
+            self.assertFalse(self.judges(run(event=event)), event)
+
+    def test_an_event_other_than_workflow_run_is_not(self):
+        self.assertFalse(self.judges({"github": {"event_name": "pull_request", "event": {}}}))
+
+
+class ProposalApprove(unittest.TestCase):
+    """Which relay runs start an approval: a label named `proposal:approved`, and the forge decides the rest (GOV-R41)."""
+
+    def setUp(self):
+        self.held = condition("proposal-approve.yml", "approve")
+
+    def starts(self, context: dict) -> bool:
+        return decides(self.held, context)
+
+    def spec(self, title: str, **given) -> dict:
+        return run(path=".github/workflows/pin-only-check.yml", title=title, **given)
+
+    def test_the_approval_label_starts_it(self):
+        self.assertTrue(self.starts(self.spec("#7 labeled proposal:approved")))
+        self.assertTrue(self.starts(self.spec("#7 labeled proposal:approved", head="someone/spec")))
+
+    def test_any_other_event_or_label_starts_nothing(self):
+        for title in (
+            "#7 labeled workflows-approved",
+            "#7 unlabeled proposal:approved",
+            "#7 synchronize ",
+            "#7 labeled proposal:approved-not",
+        ):
+            self.assertFalse(self.starts(self.spec(title)), title)
+
+    def test_a_run_of_another_workflow_or_event_starts_nothing(self):
+        self.assertFalse(self.starts(run(title="#7 labeled proposal:approved")))
+        self.assertFalse(self.starts(self.spec("#7 labeled proposal:approved", event="push")))
 
 
 class BuildLog(unittest.TestCase):
@@ -121,9 +190,8 @@ class BuildLog(unittest.TestCase):
             self.assertTrue(self.posts(run(conclusion=conclusion)), conclusion)
 
     def test_a_pull_requests_run_that_did_not_fail_starts_nothing(self):
-        for event in ("pull_request", "pull_request_target"):
-            for conclusion in ("success", "cancelled", "skipped", "neutral"):
-                self.assertFalse(self.posts(run(conclusion=conclusion, event=event)), (event, conclusion))
+        for conclusion in ("success", "cancelled", "skipped", "neutral"):
+            self.assertFalse(self.posts(run(conclusion=conclusion)), conclusion)
 
     def test_a_message_that_is_not_for_the_build_log_is_always_posted(self):
         self.assertTrue(self.posts(run(conclusion="success"), build_log=False))

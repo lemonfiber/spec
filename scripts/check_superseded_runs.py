@@ -16,16 +16,13 @@ What it refuses, file by file under ``.github/workflows/``:
 - a group that cancels and is not that one. Keyed on the ref alone, a push to
   ``main`` cancels the one before it. A workflow that only a dispatch or a
   schedule starts is let through: no push and no tag reaches it, and a bump bot
-  is asked to cancel its stale run there (Q-R78). So is one that only
-  ``pull_request_target`` starts, grouped by its pull request's number
-  (``TARGET_GROUP``), since under that event the ref is the base branch,
-  cancelling on every event or, the way ``pin-only`` is grouped, only on a
-  push's first attempt (``PUSH_CANCELS``, Q-R83);
-- a workflow that calls ``pin-only.yml`` without that group and
-  ``PUSH_CANCELS``, or with a condition on the job that calls it. A run whose
-  job is skipped is the newest of its workflow on the head, and branch
-  protection reads the check from that run alone, so a skip would hide the
-  verdict of the run before it (Q-R83);
+  is asked to cancel its stale run there (Q-R78);
+- a workflow ``pull_request_target`` starts at all. It runs the base branch's
+  copy with a token that can write on a pull request's event, and a privileged
+  follow-up is a ``workflow_run`` from the default branch instead (Q-R84);
+- a workflow that calls ``pin-only.yml`` without ``VERDICT_BLOCK``. One verdict
+  runs at a time for a branch, so an older verdict is never posted over a
+  newer, and a newer waiting replaces the one waiting before it (Q-R83);
 - a job's own group that cancels, and any job's own group in a workflow a pull
   request runs. A job waiting in a group is replaced by the next to arrive
   whatever ``cancel-in-progress`` says, so a push's job can be cancelled by one;
@@ -59,22 +56,18 @@ CANCELLER = "cancel-superseded.yml"
 #: branch's run or a release's from a workflow started only by these.
 DISPATCHED = frozenset({"workflow_dispatch", "repository_dispatch", "schedule"})
 
-#: The group a workflow only `pull_request_target` starts cancels by. Under that
-#: event `github.ref` is the base branch every pull request shares, so the block
-#: would group each run by itself and cancel nothing. Keyed on the pull request's
-#: number, a push cancels the run for the head it replaced and nothing else, and
-#: no push to a branch or a tag starts such a workflow at all.
-TARGET_GROUP = "${{ github.workflow }}-${{ github.event.pull_request.number }}"
+#: The event no workflow may be started by (Q-R84).
+TARGET = "pull_request_target"
 
-#: `pin-only`'s cancel-in-progress: only a push, on its first attempt, cancels the run in
-#: progress; a label event, a reopening and a re-run wait behind it (Q-R83).
-PUSH_CANCELS = "${{ github.event.action == 'synchronize' && github.run_attempt == 1 }}"
-
-#: `pin-only`'s block, as (group, cancel-in-progress).
-PIN_ONLY_BLOCK = (TARGET_GROUP, PUSH_CANCELS)
-
-#: The two blocks a workflow only `pull_request_target` starts may carry, as (group, cancel-in-progress).
-TARGET_BLOCKS = ((TARGET_GROUP, "true"), PIN_ONLY_BLOCK)
+#: `pin-only`'s verdict block, as (group, cancel-in-progress): one verdict at a time for a branch
+#: of a repository, never cancelled, so the newest posted is the newest read (Q-R83).
+VERDICT_BLOCK = (
+    (
+        "${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name }}"
+        "-${{ github.event.workflow_run.head_branch }}"
+    ),
+    "false",
+)
 
 #: A job's `uses` naming `pin-only.yml`, spec's own copy or one pinned from spec.
 PIN_ONLY_CALL = re.compile(r"\A(?:lemonfiber/spec|\.)/\.github/workflows/pin-only\.yml(?:@\S+)?\Z")
@@ -194,11 +187,6 @@ def dispatched_only(named: list[str]) -> bool:
     return bool(named) and set(named) <= DISPATCHED
 
 
-def target_only(one: dict) -> bool:
-    """Whether a workflow only `pull_request_target` starts, carrying one of `TARGET_BLOCKS`."""
-    return set(one["events"]) == {"pull_request_target"} and (one["group"] or ("", None)) in TARGET_BLOCKS
-
-
 def home(canonical: pathlib.Path) -> tuple[str, list[str]]:
     """The one group, read from its home, or why it could not be."""
     path = canonical / HOME
@@ -279,19 +267,26 @@ def refused(where: str, one: dict, group: str, wanted: str) -> list[str]:
             f"in lemonfiber/spec {HOME}, which cancels the run a push to it "
             f"supersedes and nothing else. Give it that block:\n{wanted}"
         )
-    elif cancels(cancel) and own != group and not dispatched_only(one["events"]) and not target_only(one):
+    elif cancels(cancel) and own != group and not dispatched_only(one["events"]):
         said.append(
             f"{where} cancels by the group {own!r}, which can cancel a run for a push "
             f"to a protected branch or a tag. Use the block in lemonfiber/spec "
             f"{HOME}, which cancels only a pull request's run:\n{wanted}"
         )
+    if TARGET in one["events"]:
+        said.append(
+            f"{where} runs on {TARGET}, which runs the base branch's copy with a token that "
+            f"can write on a pull request's event. Run the pull request's half on "
+            f"pull_request with no token, and what needs one on workflow_run from the "
+            f"default branch, reading only what the forge set on the run (Q-R84)"
+        )
     said += [
-        f"{where} job {job!r} calls pin-only, and pin-only runs on every event it is started by, "
-        f"cancelled only by a push (Q-R83). Give it the block spec's pin-only.yml documents, and "
-        f"no condition on the job:\n"
-        f"concurrency:\n  group: {PIN_ONLY_BLOCK[0]}\n  cancel-in-progress: {PIN_ONLY_BLOCK[1]}"
-        for job, (uses, condition) in one["calls"].items()
-        if PIN_ONLY_CALL.match(uses) and ((own, cancel) != PIN_ONLY_BLOCK or condition is not None)
+        f"{where} job {job!r} calls pin-only's verdict, which runs one at a time for a branch "
+        f"and is never cancelled, so an older verdict is never posted over a newer (Q-R83). "
+        f"Give it the block spec's pin-only.yml documents:\n"
+        f"concurrency:\n  group: {VERDICT_BLOCK[0]}\n  cancel-in-progress: {VERDICT_BLOCK[1]}"
+        for job, (uses, _) in one["calls"].items()
+        if PIN_ONLY_CALL.match(uses) and (own, (cancel or "").strip().lower()) != VERDICT_BLOCK
     ]
     said += [
         f"{where} job {job!r} has a group of its own. A job waiting in a group is "
@@ -309,7 +304,7 @@ def shared_names(read: dict, group: str) -> list[str]:
     named: dict[tuple[str, str], list[str]] = {}
     for where, one in read.items():
         own = (one["group"] or ("", None))[0]
-        if own in (group, TARGET_GROUP):
+        if own == group:
             named.setdefault((own, one["name"] or where), []).append(where)
     return [
         f"{' and '.join(files)} are both named {name!r}, and the group is keyed on "

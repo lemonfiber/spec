@@ -58,8 +58,7 @@ jobs:
     # other message this posts is unconditional.
     if: >-
       !inputs.build-log
-      || (github.event.workflow_run.event != 'pull_request'
-        && github.event.workflow_run.event != 'pull_request_target')
+      || github.event.workflow_run.event != 'pull_request'
       || github.event.workflow_run.conclusion == 'failure'
       || github.event.workflow_run.conclusion == 'timed_out'
       || github.event.workflow_run.conclusion == 'startup_failure'

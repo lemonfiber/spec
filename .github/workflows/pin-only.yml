@@ -1,68 +1,139 @@
 # Reusable check that a pull request leaves its checks as its base runs them,
 # moving spec's pins forward and nothing else, unless a maintainer approved the
-# change it makes with the `workflows-approved` label (Q-R83). A repository
-# calls it from `pull_request_target`, so the caller that runs is the base
-# branch's and the pull request cannot rewrite it:
+# change it makes with the `workflows-approved` label (Q-R83). It runs in two
+# halves, since no workflow runs on `pull_request_target` (Q-R84).
 #
+# The relay runs on `pull_request`, as the pull request's own copy, with no
+# token and no secrets, and does nothing. Its run is the forge's record of the
+# event, stamped with the head it was for:
+#
+#   name: pin-only
+#   run-name: "#${{ github.event.pull_request.number }} ${{ github.event.action }} ${{ github.event.label.name }}"
 #   on:
-#     pull_request_target:
+#     pull_request:
 #       types: [opened, synchronize, reopened, labeled, unlabeled]
+#   permissions: {}
 #   concurrency:
-#     group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-#     cancel-in-progress: ${{ github.event.action == 'synchronize' && github.run_attempt == 1 }}
+#     group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+#     cancel-in-progress: true
 #   jobs:
 #     pin-only:
+#       runs-on: ubuntu-latest
+#       timeout-minutes: 5
+#       steps:
+#         - run: "true"
+#
+# The verdict runs on `workflow_run` when the relay's run completes, from the
+# default branch, which the pull request cannot rewrite, and calls this:
+#
+#   name: pin-only verdict
+#   on:
+#     workflow_run:
+#       workflows: [pin-only]
+#       types: [completed]
+#   permissions: {}
+#   concurrency:
+#     group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+#     cancel-in-progress: false
+#   jobs:
+#     verdict:
 #       permissions:
+#         actions: read
+#         checks: write
 #         contents: read
 #         pull-requests: read
 #       uses: lemonfiber/spec/.github/workflows/pin-only.yml@<sha> # v1.0.0
 #
-# `labeled` and `unlabeled` run it again when the approval is given or taken
-# away, and for every other label too, the ones the gates and Dependabot add
-# included. Branch protection reads a check from the newest run of its workflow
-# on the head, so a run that skipped the job would hide the verdict of the run
-# before it. The approval is read from the forge's records, not from the event
-# that started the run.
+# A pull request rewriting its relay can only fail itself: a run the relay does
+# not start is a verdict never posted, and branch protection waits for it. The
+# verdict reads nothing the relay's run carries that the pull request wrote.
+# It takes the head commit and the branch and repository the head came from
+# from the run, which the forge sets, finds the open pull request through the
+# API, and posts the check `check` names on that head. One verdict runs at a
+# time for a branch, so a newer one is never overwritten by an older; a newer
+# waiting replaces the one waiting before it, since each reads the pull
+# request as it is when it starts.
 #
-# `synchronize` and `reopened` matter as much as `opened`. The verdict is a check
-# on the head commit the event names, and branch protection asks for the check on
-# the commit it would merge, so a pass on one head does not stand for the next:
-# a push starts a run for the new head, and the old pass is on a commit that is
-# no longer the head. The group is keyed on the pull request's number, because
-# under `pull_request_target` `github.ref` is the base branch every pull request
-# shares. Only a push, on its first attempt, cancels the run in progress: it is
-# for a head the push replaced. The approval being added, a reopening and a
-# re-run wait behind it instead, so none of them leaves a cancelled check on the
-# head being judged.
-#
+# `check-source: app` posts the check as the release App, passing
+# `secrets: { RELEASE_APP_KEY: ... }`, so branch protection can require the
+# check from that App alone: a fork's pull request, which gets no secrets,
+# cannot then answer it with a job of the same name. The job then runs behind
+# the repository's `release` environment, as every reader of the key does. The
+# default, `actions`, posts with this run's token, as every job's check is.
 name: pin-only
 
 on:
   workflow_call:
+    inputs:
+      relay:
+        description: The relay's path, whose runs alone start a verdict and record each head.
+        type: string
+        default: .github/workflows/pin-only.yml
+      check:
+        description: The check run the verdict is posted as, the name branch protection requires.
+        type: string
+        default: pin-only / pin-only
+      label:
+        description: The label a maintainer approves a change to the checks with.
+        type: string
+        default: workflows-approved
+      quiet:
+        description: Seconds the branch must have held a head before a label approves it.
+        type: number
+        default: 60
+      check-source:
+        description: >-
+          Who posts the check: `actions`, this run's token, or `app`, the release
+          App, whose check a repository can require by that App alone.
+        type: string
+        default: actions
+    secrets:
+      RELEASE_APP_KEY:
+        description: "The release App's key, which `check-source: app` posts with."
+        required: false
 
-permissions:
-  contents: read
-  pull-requests: read
+permissions: {}
 
 jobs:
   pin-only:
+    if: >-
+      github.event_name == 'workflow_run'
+      && github.event.workflow_run.event == 'pull_request'
+      && github.event.workflow_run.path == inputs.relay
     runs-on: ubuntu-latest
+    environment: ${{ inputs.check-source == 'app' && 'release' || '' }}
     timeout-minutes: 10
     permissions:
+      actions: read
+      checks: write
       contents: read
       pull-requests: read
     steps:
-      # Under `pull_request` the caller that runs is the pull request's own copy,
-      # which it can rewrite to call anything or nothing, so the answer would be
-      # the pull request's to give.
-      - name: Called from the base branch
+      - name: The check is posted by `actions` or `app`
         env:
-          EVENT: ${{ github.event_name }}
+          SOURCE: ${{ inputs.check-source }}
         run: |
-          if [ "$EVENT" != "pull_request_target" ]; then
-            echo "::error::pin-only is called from pull_request_target, so the caller that runs is the base branch's; this run came from ${EVENT}."
+          case "$SOURCE" in
+          actions | app) echo "The verdict is posted by ${SOURCE}." ;;
+          *)
+            echo "::error::check-source is ${SOURCE}, and only actions or app post a verdict."
             exit 1
-          fi
+            ;;
+          esac
+
+      - name: Mint the release App token
+        if: inputs.check-source == 'app'
+        id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-actions: read
+          permission-checks: write
+          permission-contents: read
+          permission-pull-requests: read
 
       - name: Check out spec's scripts at this workflow's commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -76,18 +147,22 @@ jobs:
         with:
           python-version: "3.12"
 
-      # The workflows are read as YAML by a loader that refuses what could make
-      # one text mean two things, so a pin is judged where Actions reads it.
       - name: Install the YAML reader
         run: pip install --disable-pip-version-check --only-binary ":all:" pyyaml==6.0.3
 
       - name: The checks are the base branch's, or spec's pins moved forward
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
           REPO: ${{ github.repository }}
-          PR: ${{ github.event.pull_request.number }}
-          # The commit the event was for, which every read names; never the branch.
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          # The calling workflow, whose runs record each head the branch had.
-          CALLING: ${{ github.workflow_ref }}
-        run: python3 .spec-tooling/scripts/pin_only.py --repo "$REPO" --number "$PR" --head "$HEAD_SHA" --workflow "$CALLING"
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE: ${{ github.event.workflow_run.head_repository.full_name }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RELAY: ${{ inputs.relay }}
+          CHECK: ${{ inputs.check }}
+          LABEL: ${{ inputs.label }}
+          QUIET: ${{ inputs.quiet }}
+          DETAILS: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: >-
+          python3 .spec-tooling/scripts/pin_only.py
+          --repo="$REPO" --head="$HEAD_SHA" --source="$SOURCE" --branch="$BRANCH"
+          --relay="$RELAY" --label="$LABEL" --quiet="$QUIET" --check="$CHECK" --details="$DETAILS"

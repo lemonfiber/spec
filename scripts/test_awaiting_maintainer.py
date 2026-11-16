@@ -54,7 +54,7 @@ on:
     types: [completed]
   pull_request_review:
     types: [submitted]
-  pull_request_target:
+  pull_request:
     types: [closed]
 jobs:
   awaiting:
@@ -103,6 +103,11 @@ def answer(var, default=""):
 
 if args[:2] == ["pr", "edit"]:
     sys.exit(int(os.environ.get("GH_EDIT_RC", "0")))
+
+if args[:2] == ["pr", "list"]:
+    for number in json.loads(os.environ.get("GH_CLOSED", "[]")):
+        sys.stdout.write(str(number) + "\\n")
+    sys.exit(0)
 
 if args[:2] == ["pr", "view"]:
     sys.stdout.write(os.environ.get("GH_MERGE", "CLEAN") + "\\n")
@@ -253,6 +258,7 @@ class Gate(unittest.TestCase):
         edit_rc=0,
         merge="CLEAN",
         workflows=("ci", "build", "codeql", "sonar", "release-workflow"),
+        closed=(),
     ):
         work = self.tmp / "work"
         work.mkdir(exist_ok=True)
@@ -277,6 +283,7 @@ class Gate(unittest.TestCase):
             "GH_ASSOC": assoc,
             "GH_APPROVED": approved,
             "GH_LABELS": json.dumps(list(labels)),
+            "GH_CLOSED": json.dumps(list(closed)),
             "GH_CALLER_RC": str(caller_rc),
             "GH_CHECKS_RC": str(checks_rc),
             "GH_CHECKS_ERR": checks_err,
@@ -613,9 +620,26 @@ class Gate(unittest.TestCase):
     # --- clearing the flag ---------------------------------------------------
 
     def test_a_closed_pull_request_clears_the_label(self):
-        code, out = self.run_step(event="pull_request_target", pr_number="41")
+        code, out = self.run_step(event="pull_request", pr_number="41")
         self.assertEqual(code, 0, out)
         self.assertIn(f"pr edit 41 --remove-label {LABEL}", self.asked())
+
+    def test_a_fork_s_close_says_the_next_run_takes_the_label_down(self):
+        code, out = self.run_step(event="pull_request", pr_number="41", edit_rc=1)
+        self.assertEqual(code, 0, out)
+        self.assertIn("the next run that can takes awaiting-maintainer down", out)
+
+    def test_a_finished_workflow_takes_the_label_off_closed_pull_requests(self):
+        code, out = self.run_step(closed=(12, 13))
+        self.assertEqual(code, 0, out)
+        self.assertIn(f"pr list --state closed --label {LABEL}", self.asked())
+        self.assertIn(f"pr edit 12 --remove-label {LABEL}", self.asked())
+        self.assertIn("#13 is closed; took awaiting-maintainer down.", out)
+
+    def test_a_closed_pull_request_this_token_cannot_edit_does_not_stop_the_run(self):
+        code, out = self.run_step(closed=(12,), edit_rc=1, labels=(LABEL,))
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("#12 is closed", out)
 
     def test_an_approving_review_clears_the_label(self):
         code, out = self.run_step(event="pull_request_review", review_state="approved", pr_number="41")

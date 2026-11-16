@@ -1,0 +1,28 @@
+# Spec's own pin-only verdict (Q-R83, Q-R84): from `main`, when the relay in
+# `pin-only-check.yml` completes, it judges the pull request through the API and
+# posts `pin-only / pin-only` on its head. One runs at a time for a branch.
+# Spec decides every other repository's checks, so its verdict is posted by the
+# release App, and branch protection takes the check from that App alone: a
+# pull request's own job of the same name does not answer it.
+name: pin-only verdict
+on:
+  workflow_run:
+    workflows: [pin-only]
+    types: [completed]
+permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+jobs:
+  verdict:
+    permissions:
+      actions: read
+      checks: write
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/pin-only.yml
+    with:
+      relay: .github/workflows/pin-only-check.yml
+      check-source: app
+    secrets:
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}

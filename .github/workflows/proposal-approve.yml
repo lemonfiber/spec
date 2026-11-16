@@ -5,62 +5,44 @@
 # is in this repository, otherwise onto a pull request of its own crediting the
 # author.
 #
-# `pull_request_target`, so the run has the token it needs on a pull request
-# from a fork, and is therefore the base branch's workflow and scripts: the pull
-# request's tree is never checked out or run. Its proposal is read through the
-# API as data (GOV-R43).
+# It runs on `workflow_run`, from `main`, when spec's pin-only relay completes
+# for a label (Q-R84): the pull request's tree is never checked out or run, and
+# its proposal is read through the API as data (GOV-R43). The relay's run name
+# says which label was added; the pull request can write that, so it only spares
+# a runner, and `run_pull.py` reads the rest from the forge: the open pull
+# request whose head is the commit the forge set on the run, carrying the label
+# now, last added by an account that may write, on that head, before this run
+# was created. A push after the label is a head nobody approved.
 name: proposal-approve
 
 on:
-  pull_request_target:
-    types: [labeled]
+  workflow_run:
+    workflows: [pin-only]
+    types: [completed]
 
 permissions:
   contents: read
 
-# One approval at a time per pull request, and never cancelled: a second label
-# event waits and then finds the proposal already moved, rather than allocating
-# the same identifiers twice.
+# One approval at a time per branch, and never cancelled: a second label event
+# waits and then finds the proposal already moved, rather than allocating the
+# same identifiers twice.
 concurrency:
-  group: proposal-approve-${{ github.event.pull_request.number }}
+  group: proposal-approve-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: false
 
 jobs:
   approve:
-    if: github.event.label.name == 'proposal:approved'
+    if: >-
+      github.event.workflow_run.event == 'pull_request'
+      && github.event.workflow_run.path == '.github/workflows/pin-only-check.yml'
+      && endsWith(github.event.workflow_run.display_title, ' labeled proposal:approved')
     runs-on: ubuntu-latest
     environment: release
     timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
-      - name: Verify the maintainer may write (GOV-R41)
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ACTOR: ${{ github.event.sender.login }}
-          REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          perm=$(gh api "repos/${REPO}/collaborators/${ACTOR}/permission" --jq '.permission')
-          case "$perm" in
-            admin|maintain|write)
-              echo "${ACTOR} has ${perm} access" ;;
-            *)
-              echo "::error::${ACTOR} lacks write access (${perm}); nothing is approved"
-              exit 1 ;;
-          esac
-
-      # A commit the forge signs, a pull request whose checks run, and a comment
-      # on a pull request from a fork: each takes a token other than this run's.
-      - name: Mint the release App token
-        id: token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          client-id: ${{ vars.RELEASE_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_APP_KEY }}
-          owner: ${{ github.repository_owner }}
-          permission-contents: write
-          permission-pull-requests: write
-          repositories: ${{ github.event.repository.name }}
-
       # The base branch, whole: `next_id.py` reads every remote branch, so an
       # identifier allocated on an open pull request is never handed out again.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -73,14 +55,44 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: The pull request carries the label, added by a maintainer who may write (GOV-R41)
+        id: pull
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE: ${{ github.event.workflow_run.head_repository.full_name }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RELAY: ${{ github.event.workflow_run.path }}
+          STARTED: ${{ github.event.workflow_run.created_at }}
+        run: >-
+          python3 scripts/run_pull.py --repo="$REPO" --source="$SOURCE" --branch="$BRANCH"
+          --head="$HEAD_SHA" --label=proposal:approved --roles=admin,write
+          --relay="$RELAY" --started="$STARTED"
+
+      # A commit the forge signs, a pull request whose checks run, and a comment
+      # on a pull request from a fork: each takes a token other than this run's.
+      - name: Mint the release App token
+        if: steps.pull.outputs.approved == 'true'
+        id: token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-contents: write
+          permission-pull-requests: write
+          repositories: ${{ github.event.repository.name }}
+
       - name: Allocate the identifiers and move the proposal in as Draft
+        if: steps.pull.outputs.approved == 'true'
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          PR_AUTHOR_ID: ${{ github.event.pull_request.user.id }}
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ steps.pull.outputs.number }}
+          PR_AUTHOR: ${{ steps.pull.outputs.author }}
+          PR_AUTHOR_ID: ${{ steps.pull.outputs.author_id }}
+          HEAD_REPO: ${{ steps.pull.outputs.head_repo }}
+          HEAD_REF: ${{ steps.pull.outputs.head_ref }}
+          HEAD_SHA: ${{ steps.pull.outputs.head_sha }}
         run: python3 scripts/proposal_approve.py
