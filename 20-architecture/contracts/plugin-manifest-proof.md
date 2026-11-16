@@ -23,7 +23,7 @@ why     = "The path the health probe asks for is one this image serves."
 |-------|------|----------|-------|
 | `id` | string | ✔ | Unique within the plugin. What a verdict is reported against. |
 | `title` | string | ✔ | What it establishes, in one line |
-| `request` | table | ✔ unless `run` | `method` and `path`. The same shape a `health` probe takes. |
+| `request` | table | ✔ unless `run` | `method` and `path`, the shape a `health` probe takes, and optionally `headers` — see [A proof may send a named header](#a-proof-may-send-a-named-header). |
 | `run` | table | ✔ unless `request` | Arguments to the service's own image, run with no network — see [A proof that runs the image's own program](#a-proof-that-runs-the-images-own-program). Exactly one of `request` and `run`. |
 | `expect` | table | ✔ | What the answer must be. A status alone is not sufficient — see below. |
 | `fixture` | string | | A recorded response to run against where no instance exists (`F10-R4`) |
@@ -224,6 +224,40 @@ mount and a read-only root, is held to the fence's memory limit, and is removed 
 ends. Nothing is published for it, so the service stays reachable only from the stack's
 network.
 
+### A proof may send a named header
+
+A proof sometimes has to show what a service does with a header its own clients send.
+Dashy's proxy reads the address it forwards to from `Target-URL`, so the proof that it
+refuses an address its configuration does not name has to send one:
+
+```toml
+[[proof]]
+id      = "dashy.proxy-refuses-unnamed"
+title   = "Dashy's proxy refuses an address its configuration does not name"
+request = { method = "GET", path = "/cors-proxy", headers = { "Target-URL" = "http://sonarr:8989/ping" } }
+expect  = { status = 403, json_has_keys = ["error"] }
+why     = "A proxy that forwarded anywhere would reach every service on the stack's network for any page."
+```
+
+`headers` is a table from a header name to its value, and each name is one of a closed
+list the core holds. The list holds `Target-URL` alone, and grows only by a change to the
+core. Any other name is refused at load, naming the proof and the header.
+
+**The list is closed for the reason `accept` is one field.** A service may call its
+credential header whatever it likes — `X-Plex-Token`, `X-Api-Key`, something nobody has
+seen — so no list of refused names is ever complete. A list of allowed names is: each
+entry is a header the core has read and named as carrying no credential, and a proof can
+send nothing else. A value is refused at load too where it is shaped like a secret, so a
+named header cannot carry one by accident: a value holding a URL's user information
+(`user:password@`), or a run of 20 or more letters, digits, `-`, `_`, `+`, `/` and `=`
+holding both a letter and a digit.
+
+Only a `[[proof]]` takes `headers`. A claim probe, a contributed check and a `health`
+probe carry none, so a probe asked with `credential = "none"` still presents nothing
+([capability vocabulary](capability-vocabulary.md#a-probe-asks-for-one-representation-and-can-present-nothing)).
+A proof's headers are sent as declared wherever it is asked, kept in its recording's
+`request`, and part of which call that recording is of (`ARCH-R440`).
+
 ### What an assertion is declared to fail on
 
 A `[[proof]]` and a `doctor.check` row may carry `expected`: the recordings it
@@ -301,6 +335,7 @@ wrote and only that tool reads (`F10-R4`, `F10-R5`).
 | `request.method` | string | ✔ | What was asked |
 | `request.path` | string | ✔ | Where it was asked |
 | `request.accept` | string | | What representation it asked for, where it asked for one |
+| `request.headers` | table | | The named headers it sent, where its proof declares any |
 | `response.status` | integer | ✔ | |
 | `response.headers` | table | | The headers an expectation may constrain; `content-type` is the one in use |
 | `response.json` | any | | The body as it parsed, or `null` where it did not parse as JSON |
@@ -317,7 +352,8 @@ negotiates answers two different things at one path, so a recording that did not
 say which it asked for would be evidence for whichever question somebody later
 pointed at it. A recording taken plainly is not evidence for a request that
 names an `accept`, and one that named an `accept` is not evidence for a request
-that does not.
+that does not. The same holds of a proof's `headers`: a recording is evidence only for
+a request sending exactly the headers it was taken with.
 
 **Every recording is taken by `lemonfiber plugin record <path>`,** from the manifest's
 pin, so moving the pin and recording again are one command (`ARCH-R285`). What it takes

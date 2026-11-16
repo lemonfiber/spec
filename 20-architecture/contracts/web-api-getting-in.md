@@ -55,10 +55,48 @@ show (`ARCH-R218`). No envelope carries a drawn code: a surface draws a QR code 
 address or link it was given, exactly as given (`ARCH-R220`,
 [G1-R15](../../10-functional/features/g-ux/g1-interface-tiers.md)).
 
-`401` is the door's alone. A wrong password is answered where it was offered, so a client
+`401` is the doors' alone. A wrong password is answered where it was offered, so a client
 reading `401` knows that the password it just sent is the thing to change. Every other
 refusal, including a session this run no longer admits, answers `403`, and what tells a
 client that signing in again would help is the refusal's code, not its status.
+
+### A member signs in by a code
+
+```
+POST /api/session/code
+```
+
+A household whose accounts an outside service holds, as plex.tv holds a Plex household's,
+signs a member in by a code that service shows them, never by a password (`ARCH-R377`).
+This path is that sign-in's. Like `/api/session` it answers a request carrying no token,
+and the request must still say it came from where this server is listening.
+
+`{}` asks for a code. The core draws a device id of its own, asks the identity source's
+`sign_in_by_code` for it, and answers `kind: "sign_in_code"` carrying `code`; `approve_at`,
+where the member approves it, which a surface shows as a link and draws as a QR code
+(`ARCH-R220`); `lapses_at`; and `waiting`, a handle of 128 random bits the core drew. The
+id the source answered never leaves the core. It is kept against the handle, the device and
+the session the request carried, where it carried one; it is logged nowhere, and let go
+after the exchange that answers a member or once the code lapses.
+
+`{ "waiting": … }` finishes. While the code waits, the answer is the same kind carrying
+`waiting` and `lapses_at` and no code. Once the member has approved it and the source
+answers a member of the household, the answer is the `admission` envelope `POST /api/session`
+answers a member, and the handle is spent. A handle that is unknown, lapsed or spent, or
+sent with a session other than the one that asked, is refused `401` under one code, so a
+guess learns nothing about which. With `LEMONFIBER_SIGN_IN_CODES_BY_ADDRESS` on, a handle
+sent from a network address other than the one that asked is refused the same way; it is
+off where none is recorded, so a phone that moves from Wi-Fi to mobile data while the member
+approves keeps its sign-in. The handle travels in the body, never in a URL the core
+receives. A household that holds its own accounts is refused an ask under a code of its own,
+saying its members sign in with a password.
+
+Asking is limited per source a caller cannot choose: the session the request carries, and
+the address it came from otherwise. A source may have `LEMONFIBER_SIGN_IN_CODES_WAITING`
+codes waiting at once, and ask for `LEMONFIBER_SIGN_IN_CODES_PER_PERIOD` in each
+`LEMONFIBER_SIGN_IN_CODES_PERIOD`. Past either it is answered `429`, saying how long is
+left in `Retry-After` as [wrong answers](#wrong-answers-are-counted) are, while every other
+source is still issued codes. Finishing is not counted (`ARCH-R441`).
 
 ### An integration key
 
