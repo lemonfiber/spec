@@ -100,6 +100,11 @@
 # networks and the resolver, which the dashboard declares; added by the maintainer's
 # decision of 2026-11-15 (OPS-R31).
 #
+# `ARCH-R439` has lemonfiber create every network of the project through the engine and
+# write each into the project as an existing one, so the fence of a service held inside the
+# stack reads its networks before it starts and one model of the networks serves every
+# engine; added by the maintainer's decision of 2026-11-16 (OPS-R31).
+#
 # `D11-R17`, `ARCH-R436` and `ARCH-R437` are the live TV guide: each channel's programmes
 # across a window the operator sets, 12 hours by default, as far as the media server's guide
 # holds them, each filtered to the member's limits, through a `guide` operation and read
@@ -121,7 +126,7 @@
 # with the core's sentence, and away from home declined as a title is. They follow the
 # guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
-# 161 goals, seeded from the roadmap milestone this version serves;
+# 162 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -181,6 +186,7 @@ goals   = [
     "ARCH-R433",
     "ARCH-R434",
     "ARCH-R435",
+    "ARCH-R439",
     "ARCH-R436",
     "ARCH-R437",
     "ARCH-R395",
