@@ -44,6 +44,10 @@
 #         pull-requests: read
 #       uses: lemonfiber/spec/.github/workflows/pin-only.yml@<sha> # v1.0.0
 #
+# Called from any other event, as a caller still on `pull_request_target`
+# would, it fails rather than skips: that caller's job would be the check
+# branch protection reads, and a skipped check passes.
+#
 # A pull request rewriting its relay can only fail itself: a run the relay does
 # not start is a verdict never posted, and branch protection waits for it. The
 # verdict reads nothing the relay's run carries that the pull request wrote.
@@ -97,9 +101,9 @@ permissions: {}
 jobs:
   pin-only:
     if: >-
-      github.event_name == 'workflow_run'
-      && github.event.workflow_run.event == 'pull_request'
-      && github.event.workflow_run.path == inputs.relay
+      github.event_name != 'workflow_run'
+      || (github.event.workflow_run.event == 'pull_request'
+        && github.event.workflow_run.path == inputs.relay)
     runs-on: ubuntu-latest
     environment: ${{ inputs.check-source == 'app' && 'release' || '' }}
     timeout-minutes: 10
@@ -109,6 +113,15 @@ jobs:
       contents: read
       pull-requests: read
     steps:
+      - name: Called as the verdict, on workflow_run
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != "workflow_run" ]; then
+            echo "::error::pin-only is the verdict a relay's run starts on workflow_run; this run came from ${EVENT}, whose caller would report this job as its check, so it fails rather than skips."
+            exit 1
+          fi
+
       - name: The check is posted by `actions` or `app`
         env:
           SOURCE: ${{ inputs.check-source }}

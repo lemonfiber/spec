@@ -137,8 +137,9 @@ class PinOnlyVerdict(unittest.TestCase):
         for event in ("push", "workflow_dispatch", "schedule", "pull_request_target"):
             self.assertFalse(self.judges(run(event=event)), event)
 
-    def test_an_event_other_than_workflow_run_is_not(self):
-        self.assertFalse(self.judges({"github": {"event_name": "pull_request", "event": {}}}))
+    def test_an_event_other_than_workflow_run_starts_it_so_it_fails_rather_than_skips(self):
+        for event in ("pull_request_target", "pull_request", "push"):
+            self.assertTrue(self.judges({"github": {"event_name": event, "event": {}}}), event)
 
 
 class ProposalApprove(unittest.TestCase):

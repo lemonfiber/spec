@@ -411,8 +411,17 @@ class WhoPosts(unittest.TestCase):
         self.assertEqual(written, ["permission-checks"])
         self.assertEqual(self.steps[-1]["env"]["GH_TOKEN"], "${{ steps.app.outputs.token || github.token }}")
 
-    def test_only_actions_or_app_is_a_source(self):
+    def test_any_caller_but_the_verdict_fails(self):
         script = self.steps[0]["run"]
+        for event, code in (("workflow_run", 0), ("pull_request_target", 1), ("pull_request", 1), ("push", 1)):
+            with self.subTest(event):
+                done = subprocess.run(
+                    ["bash", "-c", script], env={"EVENT": event, "PATH": "/usr/bin:/bin"}, capture_output=True
+                )
+                self.assertEqual(done.returncode, code, done.stdout)
+
+    def test_only_actions_or_app_is_a_source(self):
+        script = self.steps[1]["run"]
         for source, code in (("actions", 0), ("app", 0), ("", 1), ("App", 1), ("token", 1)):
             with self.subTest(source):
                 done = subprocess.run(
