@@ -57,6 +57,9 @@ An install is not done when the writes succeed. Two things must hold, in order:
 A warning about a service the plugin itself brings, such as the caveat that a firewall
 rule may not apply to a port it publishes, is the service's own and not something the
 install broke: it is reported, naming the check and the service, and the install stands.
+So is a warning about no service at all, about the machine rather than a part of the
+stack, such as the disk having become small for the chosen quality once the plugin's
+images are pulled: it is reported, naming the check, and the install stands.
 A warning about any other service, and any failure, fails the verification.
 
 The second is what a plugin cannot check for itself. A plugin can substitute a media
