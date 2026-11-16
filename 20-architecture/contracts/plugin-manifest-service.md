@@ -774,10 +774,10 @@ service runs in, holding the opposite rules (`ARCH-R435`):
 - **Its rules pass only what is inside the stack.** A new connection the service opens
   passes to an address inside one of the namespace's own networks, save that network's
   gateway and every address of the engine's host, out of the namespace's own loopback
-  interface to any address but `127.0.0.11`, and to the engine's resolver at
-  `127.0.0.11` on port 53, and every other is refused, so the service reaches the
-  services its asks join it to and resolves their names, and reaches neither the host,
-  the network the host is on nor anywhere beyond it. The answers to connections others
+  interface to any address but `127.0.0.11`, and to the fence's own answer on port 53,
+  and every other is refused, so the service reaches the services its asks join it to
+  and resolves their names, and reaches neither the host, the network the host is on nor
+  anywhere beyond it. The answers to connections others
   opened to it pass, so its published port and its proxy route answer.
 - **lemonfiber asks the engine for the stack's networks.** It creates each network the
   namespace holds before the fence, asks the engine for each one's subnet and gateway,
@@ -786,6 +786,12 @@ service runs in, holding the opposite rules (`ARCH-R435`):
   is created again with it. Where the engine names no subnet and gateway for one of them,
   or the answer cannot be read, the service does not start and the start names why; the
   fence refuses to start without them.
+- **Only the stack's own names resolve.** The engine's resolver forwards a name it does
+  not hold to the resolvers beyond the host, so a question it is asked is a way out of the
+  stack. The fence answers the namespace's questions itself: it passes to the engine's
+  resolver a question for the name of a service on one of the namespace's networks, which
+  lemonfiber hands it, and answers every other refused without passing it on. Nothing in
+  the namespace but the fence reaches the engine's resolver.
 - **Names resolve as written.** The fence's only DNS search domain is `.`, so a name the
   service asks for is never tried under the host's search domains, where a single label
   could resolve to something on the network the host is on.
