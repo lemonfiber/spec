@@ -72,7 +72,7 @@ This path is that sign-in's. Like `/api/session` it answers a request carrying n
 and the request must still say it came from where this server is listening.
 
 `{}` asks for a code. The core draws a device id of its own, asks the identity source's
-`sign_in_by_code` for it, and answers `kind: "sign_in_code"` carrying `code`; `approve_at`,
+`sign_in_by_code` for it, and answers `kind: "sign-in-code"` carrying `code`; `approve_at`,
 where the member approves it, which a surface shows as a link and draws as a QR code
 (`ARCH-R220`); `lapses_at`; and `waiting`, a handle of 128 random bits the core drew. The
 id the source answered never leaves the core. It is kept against the handle, the device and
@@ -92,7 +92,7 @@ receives. A household that holds its own accounts is refused an ask under a code
 saying its members sign in with a password.
 
 Asking is limited per source a caller cannot choose: the session the request carries, and
-the address it came from otherwise. A source may have `LEMONFIBER_SIGN_IN_CODES_WAITING`
+the address it came from otherwise, an IPv6 address counted by the `/64` network it is on. A source may have `LEMONFIBER_SIGN_IN_CODES_WAITING`
 codes waiting at once, and ask for `LEMONFIBER_SIGN_IN_CODES_PER_PERIOD` in each
 `LEMONFIBER_SIGN_IN_CODES_PERIOD`. Past either it is answered `429`, saying how long is
 left in `Retry-After` as [wrong answers](#wrong-answers-are-counted) are, while every other
