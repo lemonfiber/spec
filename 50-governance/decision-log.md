@@ -593,6 +593,7 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | An ask lemonfiber makes as the request service's owner for a member whose asks wait for approval is no longer refused: the core keeps it on the household's list of asks waiting for approval, as it keeps music and books asks, and files it as the owner once the operator approves it; declining or letting it expire files nothing. The user chose this over the request service holding a local account for each member, and it replaces the refusal decided on 2026-11-13 | [ARCH-R423](../20-architecture/contracts/capability-contracts.md), [D1-R28](../10-functional/features/d-content/d1-seed.md), [D7-R16](../10-functional/features/d-content/d7-approval-quotas.md) |
+| A sign-in id `sign_in_by_code` answers is kept by the core for the session or device that asked for the code, used for them alone, logged nowhere and let go after the exchange that answers a member or at the code's lapse; over Plex the code stays the short PIN `plex.tv/link` takes, and the adapter answers an id of its own drawing in place of plex.tv's PIN id | [ARCH-R377](../20-architecture/contracts/capability-contracts.md) |
 
 ## Related
 
