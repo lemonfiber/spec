@@ -363,6 +363,9 @@ hours, each with its title, certificate, start and end, and none past where the 
 from that member's account, as its maximum parental rating and blocked tags do on Jellyfin
 and Emby, and answers each channel's `until`: the end of the last programme the server's
 guide holds on it across those hours before any is left out, or none where it holds none.
+It is taken before anything is left out on purpose: it says no more than the gaps already
+show, and no title, certificate or time of a programme left out reaches the core beyond
+that.
 
 The core asks `channels` and `tune` for the member who asked, reads each programme's
 certificate against the member's limits, and leaves out a channel whose programme now is
