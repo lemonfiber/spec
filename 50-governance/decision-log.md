@@ -588,6 +588,12 @@ Decisions about a repository outside this organisation, such as
 | A member watches live TV from a Live TV shelf on Home, after their own shelves and absent where the core lists no channel, with a full guide over the window the core answers; a channel plays the tuner's stream where the phone decodes it and the transcoded one otherwise, on a pass renewed before it lapses; a refused renewal stops playback at the lapse with the core's sentence and a way back, and nothing retries; away from home it is declined as a title is. The rows join 0.19.0 with the core's guide window. The user chose a shelf with a full guide over a tab, direct play first, and following the guide window's version | [N3-R37](../10-functional/features/n-companion/n3-household-companion.md), [N3-R38](../10-functional/features/n-companion/n3-household-companion.md), [N3-R39](../10-functional/features/n-companion/n3-household-companion.md), [N3-R40](../10-functional/features/n-companion/n3-household-companion.md), [N3-R41](../10-functional/features/n-companion/n3-household-companion.md) |
 | A request proof of a service that publishes no port on the host is asked from inside the service's own network namespace, by the pinned `fence` image's `fence ask` in a throwaway container with no capability, a read-only root and the fence's memory limit, removed after, so a challenge solver that publishes nothing is still proved at install. The user chose this over publishing the port on loopback for the length of the proofs, putting the host port back, and passing such a proof on its recording alone | [ARCH-R430](../20-architecture/contracts/plugin-manifest.md) |
 
+## 2026-11-16
+
+| Decision | Where it lives |
+|---|---|
+| An ask lemonfiber makes as the request service's owner for a member whose asks wait for approval is no longer refused: the core keeps it on the household's list of asks waiting for approval, as it keeps music and books asks, and files it as the owner once the operator approves it; declining or letting it expire files nothing. The user chose this over the request service holding a local account for each member, and it replaces the refusal decided on 2026-11-13 | [ARCH-R423](../20-architecture/contracts/capability-contracts.md), [D1-R28](../10-functional/features/d-content/d1-seed.md), [D7-R16](../10-functional/features/d-content/d7-approval-quotas.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
