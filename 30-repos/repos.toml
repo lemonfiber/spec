@@ -226,10 +226,10 @@ image = true
 name = "plugin-flaresolverr"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the solver that gets past an indexer's bot protection, FlareSolverr; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the solver that gets past an indexer's bot protection, FlareSolverr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "flaresolverr"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-nzbhydra2"
@@ -253,10 +253,10 @@ image = true
 name = "plugin-gluetun"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the egress guard, Gluetun, and the one part taking the egress-guard shape; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the egress guard, Gluetun, and the one part taking the egress-guard shape: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "gluetun"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-qbittorrent"
@@ -316,19 +316,19 @@ image = true
 name = "plugin-recyclarr"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for quality sync, Recyclarr; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for quality sync, Recyclarr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "recyclarr"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-unpackerr"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for archive extraction, Unpackerr; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for archive extraction, Unpackerr: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "unpackerr"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-seerr"
@@ -343,10 +343,10 @@ image = true
 name = "plugin-calibre-web-automated"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the book library, Calibre-Web Automated; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the book library, Calibre-Web Automated: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "calibre-web-automated"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-audiobookshelf"
@@ -361,19 +361,19 @@ image = true
 name = "plugin-navidrome"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the music server, Navidrome; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the music server, Navidrome: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "navidrome"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-homepage"
 group = "impl"
 spec = ["first-party-plugins.md"]
-lang = "TOML"
-note = "The bundle's part for the dashboard, Homepage; its image is the upstream's, pinned by revision"
+lang = "Rust"
+note = "The bundle's part for the dashboard, Homepage: an adapter image in front of the upstream's, which is pinned by revision, so the train tags it"
 plugin = "homepage"
-image = false
+image = true
 
 [[repo]]
 name = "plugin-door"

@@ -295,6 +295,13 @@ class PluginReposTests(Workspace):
             "byparr",
             "dashy",
             "traefik",
+            "flaresolverr",
+            "gluetun",
+            "recyclarr",
+            "unpackerr",
+            "calibre-web-automated",
+            "navidrome",
+            "homepage",
         ]
         self.assertEqual(
             manifest_repos.train_plugins(registry),
