@@ -20,6 +20,8 @@ KEY = "secrets.RELEASE_APP_KEY"
 RELEASE = "release"
 #: `tell` takes its environment from its caller, and is `release` where none is named.
 CALLED = "${{ inputs.environment || 'release' }}"
+#: `pin-only` reads the key only where its caller sets `check-source: app`, and is `release` there.
+WHERE_APP = "${{ inputs.check-source == 'app' && 'release' || '' }}"
 
 
 def readers() -> list[tuple[str, str, dict]]:
@@ -40,7 +42,14 @@ class Readers(unittest.TestCase):
     def test_every_reader_runs_behind_the_release_environment(self):
         for workflow, name, job in readers():
             with self.subTest(f"{workflow} / {name}"):
-                self.assertIn(job.get("environment"), (RELEASE, CALLED))
+                self.assertIn(job.get("environment"), (RELEASE, CALLED, WHERE_APP))
+
+    def test_pin_only_is_release_wherever_it_reads_the_key(self):
+        verdict = yaml.safe_load((WORKFLOWS / "pin-only.yml").read_text(encoding="utf-8"))
+        job = verdict["jobs"]["pin-only"]
+        self.assertEqual(job["environment"], WHERE_APP)
+        [mint] = [step for step in job["steps"] if KEY in yaml.safe_dump(step)]
+        self.assertEqual(mint["if"], "inputs.check-source == 'app'")
 
     def test_tell_is_release_where_its_caller_names_none(self):
         tell = yaml.safe_load((WORKFLOWS / "tell.yml").read_text(encoding="utf-8"))

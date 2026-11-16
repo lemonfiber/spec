@@ -40,7 +40,7 @@ why = "explains a squash-message refusal in a comment, in spec's own runs; the r
 
 [[exempt]]
 name = "pin-only"
-why = "pin-only reported skipped under its caller's job name, for a label event that is not the approval; `pin-only / pin-only` is the verdict (Q-R83)"
+why = "the relay's job, which runs on every pull request event so the verdict follows it and judges nothing; `pin-only / pin-only`, posted on the head by the verdict, is the check (Q-R83, Q-R84)"
 
 [[exempt]]
 name = "alerts"

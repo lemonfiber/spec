@@ -59,9 +59,9 @@ on:
     types: [completed]
   pull_request_review:
     types: [submitted]
-  # Fork PRs carry a read-only token under `pull_request`, so the close event has
-  # to run in the base repo's context to be able to edit a label at all.
-  pull_request_target:
+  # A fork's pull request hands the close event a token that cannot write, so
+  # there the label is taken down by the next run that can (Q-R84).
+  pull_request:
     types: [closed]
 permissions:
   contents: read
@@ -125,8 +125,9 @@ jobs:
           # --- the two events that clear the flag ---------------------------
           # Neither reads a check: a closed PR and a reviewed PR are done being
           # in the queue whatever CI thinks.
-          if [ "$EVENT" = "pull_request_target" ]; then
-            gh pr edit "$PR_NUMBER" --remove-label "$LABEL" 2>/dev/null || true
+          if [ "$EVENT" = "pull_request" ]; then
+            gh pr edit "$PR_NUMBER" --remove-label "$LABEL" 2>/dev/null \
+              || echo "::notice::This token cannot edit #${PR_NUMBER}'s labels, as on a fork's pull request; the next run that can takes ${LABEL} down."
             exit 0
           fi
           if [ "$EVENT" = "pull_request_review" ]; then
@@ -142,6 +143,15 @@ jobs:
             esac
             exit 0
           fi
+
+          # --- a closed pull request still flagged ---------------------------
+          # A fork's close event could not take the label down; this token can.
+          closed="$(gh pr list --state closed --label "$LABEL" --json number --jq '.[].number' 2>/dev/null || true)"
+          for number in $closed; do
+            if gh pr edit "$number" --remove-label "$LABEL"; then
+              echo "#${number} is closed; took ${LABEL} down."
+            fi
+          done
 
           # --- a workflow finished ------------------------------------------
           # Its own conclusion is not the question, but a failure is a cheap

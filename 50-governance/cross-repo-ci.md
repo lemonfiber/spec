@@ -493,17 +493,23 @@ approved; the check names that head in a notice, for the maintainer to confirm
 it is the one they read. Where the first cannot be read, nothing is approved. A
 label added by an account without the `admin` or `maintain` role on the
 repository, a bot's included, approves nothing. The check reads who added the
-label and when, and which head each of its own runs saw, from the forge's
+label and when, and which head each run of the relay saw, from the forge's
 records, never from a commit's dates, which the pusher writes.
 
-Every label event runs `pin-only`, the labels the gates' labeler and Dependabot
-add included. Branch protection reads a check from the newest run of its workflow
-on the head, so a run that skipped the job for a label would leave the check
-missing although the run before it passed. Only a push cancels a run in progress:
-a label event, a reopening and a re-run wait behind the run in progress rather
-than cancelling it, so adding the approval to a pull request whose check is
-running leaves that check to finish. The shared-files check refuses a workflow
-that calls `pin-only` without that group, or with a condition on the job.
+`pin-only` runs in two halves, since no workflow runs on `pull_request_target`
+(**Q-R84**, [ADR-0064](../00-overview/decisions/0064-no-workflow-runs-on-pull-request-target.md)).
+The relay, `pin-only.yml`, runs on `pull_request` for every new head and every
+label event, the labels the gates' labeler and Dependabot add included, with no
+token and no secrets, and does nothing: its run is the forge's record of the
+event and the head it was for. The verdict, `pin-only-verdict.yml`, runs from
+the default branch on `workflow_run` when the relay's run completes, finds the
+pull request from the head, branch and repository the forge set on that run,
+judges it through the API and posts `pin-only / pin-only` on the head. One
+verdict runs at a time for a branch and none is cancelled, so an older verdict
+is never posted over a newer. A repository sets `check-source: app` to have the
+release App post it, so branch protection can take the check from that App
+alone; spec does. The shared-files check refuses a workflow
+`pull_request_target` starts, and a verdict caller without its group.
 
 `workflow-pins` and the bot answer different questions and neither replaces the
 other. The bot keeps a pin at the newest tag whether or not it matters; the check

@@ -3,10 +3,11 @@
 
 A repository's checks are its workflows, and the workflows a pull request runs
 are the pull request's own: it can rewrite what its checks do, or which it runs,
-and still report each one green. So this runs from the base branch, on
-`pull_request_target`, reads the pull request through the API as data and
-checks nothing out of it. It fails a pull request that changes anything under
-`.github/workflows/` or `.github/actions/`, unless the only change in each such
+and still report each one green. So this runs from the default branch, on
+`workflow_run` after the repository's relay ran on `pull_request` (Q-R84),
+reads the pull request through the API as data, checks nothing out of it, and
+posts its verdict as a check run on the head. It fails a pull request that
+changes anything under `.github/workflows/` or `.github/actions/`, unless the only change in each such
 file is a pin of a lemonfiber/spec workflow moving forward along spec's `main`,
 with the version written beside it. Anything else is a change to the checks,
 which a maintainer approves by choice: such a pull request passes once it
@@ -18,11 +19,11 @@ account holding the admin or maintain role on the repository; and it is bound
 to the change the branch made when it was added. Nothing records that change:
 it is read again, from the forge, every time. A fast-forward push leaves no
 record of its time on a pull request, and a commit's dates are the pusher's to
-write, so the head the branch had then is read from this check's own runs, each
+write, so the head the branch had then is read from the relay's runs, each
 of which the forge creates with the head it was started for: the newest run at
 or before the label was added names it. The branch must have held that head
-for `QUIET` seconds before the label, and the first run at or after the label,
-the one the label started, must be for it, so a push racing the label is never
+for `--quiet` seconds, `QUIET` unless given, before the label, and the first
+run at or after the label, the one the label started, must be for it, so a push racing the label is never
 what was approved. What that head
 changed against its merge base, every path of the tree and not only the two
 directories, since an approved workflow may run a script anywhere in it, must be
@@ -42,32 +43,37 @@ the forge stops at 3,000 files. Those two directories are what decides which
 checks run and from where; everything else a workflow runs out of the tree is
 the change under review, run by checks the base branch chose.
 
-Usage:
-  pin_only.py --repo <owner/name> --number <pull request> --head <the event's head commit>
-              [--workflow <the calling workflow's ref, as `github.workflow_ref` gives it>]
+Usage, from a `workflow_run` the relay's run started:
+  pin_only.py --repo <owner/name> --head <the run's head commit>
+              (--number <pull request> | --source <owner/name> --branch <head branch>)
+              --relay <the relay's path> [--label <name>] [--quiet <seconds>]
+              [--check <name> [--details <address>]]
 
-`--workflow` defaults to `GITHUB_WORKFLOW_REF`, which Actions sets to the calling
-workflow in a reusable workflow's run, so a caller pinned at a workflow that does
-not pass it is still read.
+`--source` and `--branch` find the pull request from what the forge set on the
+run (`run_pull.py`). `--check` posts the verdict as a check run of that name on
+the head, which is what branch protection requires.
 
 Exit 0 when the head changes no workflow, moves only spec's pins forward, or
-carries the approval; 1 when it changes a workflow otherwise, or the pull
-request's head is no longer that commit; 2 when the forge could not be read,
-the head is not a commit, or the calling workflow is not named.
+carries the approval, when no open pull request has the head, and, with
+`--check`, once the verdict is posted whatever it is; 1 when it changes a
+workflow otherwise, or the pull request's head is no longer that commit; 2 when
+the forge could not be read, the head is not a commit, the relay is not a
+workflow's path, or the verdict could not be posted.
 """
 
 from __future__ import annotations
 
 import argparse
-import datetime
+import contextlib
+import io
 import json
-import os
 import re
 import subprocess
 import sys
 import urllib.parse
 from collections.abc import Callable
 
+import run_pull
 import yaml
 
 #: Where what a repository's checks run is written.
@@ -89,16 +95,19 @@ APPROVED = "workflows-approved"
 APPROVERS = ("admin", "maintain")
 
 #: The most pages of a list read before the list is called too long to judge.
-PAGES = 10
+PAGES = run_pull.PAGES
 
 #: Items in one page of a list.
-PER_PAGE = 100
+PER_PAGE = run_pull.PER_PAGE
 
-#: Where Actions names the calling workflow to a reusable workflow's steps.
-RUNNER_WORKFLOW_REF = "GITHUB_WORKFLOW_REF"
+#: The relay's path in the repository, as `--relay` and `github.event.workflow_run.path` give it.
+RELAY_PATH = run_pull.RELAY_PATH
 
-#: The calling workflow as `github.workflow_ref` names it: the repository, the file, the ref.
-WORKFLOW_REF = re.compile(r"\A(?P<repo>[\w.-]+/[\w.-]+)/\.github/workflows/(?P<file>[\w.-]+\.ya?ml)@\S+\Z")
+#: The verdict where no open pull request has the head, so there is nothing to judge or post.
+NO_PULL = 3
+
+#: The longest summary a check run's output holds.
+SUMMARY = 65535
 
 #: One call to the forge's REST API through `gh`: the arguments, and the answer
 #: as JSON, or as text where `raw` is asked for.
@@ -271,8 +280,7 @@ def judged(path: str, before: str, after: str, api: Api) -> list[str]:
     return problems
 
 
-class Incomplete(ValueError):
-    """An answer the forge gave only in part."""
+Incomplete = run_pull.Incomplete
 
 
 def guarded_tree(repo: str, commit: str, api: Api) -> dict[str, tuple[str, str]]:
@@ -304,9 +312,8 @@ def guarded_tree(repo: str, commit: str, api: Api) -> dict[str, tuple[str, str]]
 #: The modes of a file git checks out as a file, rather than a link or a submodule.
 FILE_MODES = ("100644", "100755")
 
-#: Seconds the branch must have held the approved head before the label was added. A
-#: push landing moments before the label is a head the maintainer may not have read.
-QUIET = 60
+#: Seconds the branch must have held the approved head before the label was added.
+QUIET = run_pull.QUIET
 
 #: An entry of git's tree: its mode and the object it names; None where the path is absent.
 Entry = tuple[str, str] | None
@@ -335,11 +342,6 @@ def made(repo: str, base: str, commit: str, api: Api) -> dict[str, tuple[Entry, 
         for path in sorted(set(before) | set(after))
         if before.get(path) != after.get(path)
     }
-
-
-def moment(stamp: str) -> datetime.datetime:
-    """A time the forge recorded."""
-    return datetime.datetime.fromisoformat(stamp)
 
 
 class Moved(ValueError):
@@ -393,15 +395,7 @@ def problems(repo: str, number: int, head: str, api: Api) -> tuple[list[str], in
 
 def listed(path: str, api: Api, key: str | None = None) -> list[dict]:
     """Every item of a list the forge pages, refused where it runs past `PAGES` pages."""
-    joined = "&" if "?" in path else "?"
-    items: list[dict] = []
-    for page in range(1, PAGES + 1):
-        answer = api([f"{path}{joined}per_page={PER_PAGE}&page={page}"], False)
-        got = answer[key] if key else answer
-        items += got
-        if len(got) < PER_PAGE:
-            return items
-    raise Incomplete(f"{path} runs past {PAGES * PER_PAGE} items")
+    return run_pull.listed(path, lambda one: api(one, False), key)
 
 
 def role(repo: str, login: str, api: Api) -> str:
@@ -409,84 +403,36 @@ def role(repo: str, login: str, api: Api) -> str:
     return answer.get("role_name") or "none"
 
 
-def labelled_head(runs: list[dict], events: list[dict], at: str) -> tuple[str, str] | str:
-    """The head `workflows-approved` was added on at `at` and the time the branch took it, or why it is unknown.
-
-    The head of the newest run at or before the label; held for `QUIET` seconds
-    before it; and the head of the first run at or after it, the run the label
-    started, so a push racing the label is never what is approved. A base changed
-    after the label leaves nothing approved.
-    """
-    before = [r for r in runs if r["created_at"] <= at]
-    if not before:
-        return f"no run of this check shows what its head was when `{APPROVED}` was added at {at}"
-    retargeted = sorted(
-        e["created_at"] for e in events if e["event"] == "base_ref_changed" and e["created_at"] >= at
-    )
-    if retargeted:
-        return f"its base was changed at {retargeted[-1]}, after `{APPROVED}` was added at {at}"
-    newest = max(r["created_at"] for r in before)
-    heads = sorted({r["head_sha"] for r in before if r["created_at"] == newest})
-    if len(heads) > 1:
-        return f"the runs at {newest} name {' and '.join(h[:8] for h in heads)}, so which head `{APPROVED}` was added on is unknown"
-    approved = heads[0]
-    held = [r["created_at"] for r in before if r["head_sha"] != approved]
-    since = min(
-        r["created_at"]
-        for r in before
-        if r["head_sha"] == approved and (not held or r["created_at"] > max(held))
-    )
-    if (moment(at) - moment(since)).total_seconds() < QUIET:
-        return (
-            f"its head became {approved[:8]} at {since}, less than {QUIET} seconds before `{APPROVED}` was "
-            f"added at {at}, so the head the maintainer read is unknown"
-        )
-    started = sorted((r for r in runs if r["created_at"] >= at), key=lambda r: r["created_at"])
-    if not started:
-        return f"no run of this check started when `{APPROVED}` was added at {at}, so what it was added on is unconfirmed"
-    if started[0]["head_sha"] != approved:
-        return (
-            f"the run `{APPROVED}` started at {at} is for {started[0]['head_sha'][:8]}, not {approved[:8]}, "
-            f"so a push landed as it was added"
-        )
-    return approved, since
-
-
-def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str | None:
+def approval(
+    repo: str, pull: dict, head: str, workflow: str, api: Api, label: str = APPROVED, quiet: int = QUIET
+) -> str | None:
     """Why the pull request carries no approval for what `head` changes, or None where it does.
 
-    `workflow` is the calling workflow's file. Its runs for the pull request's
-    branch are the forge's record of each head the branch had: a push starts
-    one, and so does every other event this check is called for.
+    `workflow` is the relay's file. Its runs for the pull request's branch are
+    the forge's record of each head the branch had: a push starts one, and so
+    does every label. The forge, not the pull request, stamps each run with its
+    head and time; a relay the branch rewrote to start no run leaves the
+    approval unconfirmed.
     """
-    if APPROVED not in [label["name"] for label in pull["labels"]]:
-        return f"it carries no `{APPROVED}` label"
+    if label not in [one["name"] for one in pull["labels"]]:
+        return f"it carries no `{label}` label"
     number = pull["number"]
     events = listed(f"repos/{repo}/issues/{number}/timeline", api)
-    moves = [e for e in events if e["event"] in ("labeled", "unlabeled") and e["label"]["name"] == APPROVED]
+    moves = [e for e in events if e["event"] in ("labeled", "unlabeled") and e["label"]["name"] == label]
     if not moves or moves[-1]["event"] != "labeled":
-        return f"no event on it says when `{APPROVED}` was added"
+        return f"no event on it says when `{label}` was added"
     who = (moves[-1].get("actor") or {}).get("login")
     if not who or role(repo, who, api) not in APPROVERS:
-        return f"`{APPROVED}` was added by {who or 'nobody the forge names'}, who does not maintain {repo}"
+        return f"`{label}` was added by {who or 'nobody the forge names'}, who does not maintain {repo}"
     at = moves[-1]["created_at"]
     source = pull["head"]["repo"]["full_name"]
-    branch = urllib.parse.quote(pull["head"]["ref"], safe="")
-    runs = [
-        r
-        for r in listed(
-            f"repos/{repo}/actions/workflows/{workflow}/runs?event=pull_request_target&branch={branch}",
-            api,
-            "workflow_runs",
-        )
-        if r["head_repository"]["full_name"] == source
-    ]
-    labelled = labelled_head(runs, events, at)
+    runs = run_pull.relay_runs(repo, workflow, source, pull["head"]["ref"], lambda one: api(one, False))
+    labelled = run_pull.labelled_head(runs, events, at, label, quiet)
     if isinstance(labelled, str):
         return labelled
     approved, since = labelled
     print(
-        f"::notice::`{APPROVED}` was added at {at} on {approved}, which held the branch from {since}; "
+        f"::notice::`{label}` was added at {at} on {approved}, which held the branch from {since}; "
         f"the approval is for the change that commit makes (Q-R83)."
     )
     if approved == head:
@@ -495,37 +441,26 @@ def approval(repo: str, pull: dict, head: str, workflow: str, api: Api) -> str |
     try:
         then = made(repo, base, approved, api)
     except subprocess.CalledProcessError:
-        return f"{approved[:8]}, its head when `{APPROVED}` was added at {at}, cannot be read, so what was approved is unknown"
+        return f"{approved[:8]}, its head when `{label}` was added at {at}, cannot be read, so what was approved is unknown"
     if then != made(repo, base, head, api):
-        return (
-            f"what {head[:8]} changes is not what {approved[:8]} changed when `{APPROVED}` was added at {at}"
-        )
+        return f"what {head[:8]} changes is not what {approved[:8]} changed when `{label}` was added at {at}"
     return None
 
 
-def calling_file(repo: str, given: str | None) -> str | None:
-    """The calling workflow's file, from `--workflow` or else the runner; None, said, where neither names one of `repo`'s."""
-    workflow = given if given is not None else os.environ.get(RUNNER_WORKFLOW_REF) or None
-    if workflow is None:
-        print(
-            f"::error::Neither --workflow nor {RUNNER_WORKFLOW_REF} names the calling workflow, "
-            f"so its runs cannot be read"
-        )
+def relay_file(given: str) -> str | None:
+    """The relay's file, from `--relay`; None, said, where it is not a workflow's path."""
+    relay = RELAY_PATH.fullmatch(given)
+    if not relay:
+        print(f"::error::--relay {given!r} is not a workflow's path, so the relay's runs cannot be read")
         return None
-    calling = WORKFLOW_REF.fullmatch(workflow)
-    if not calling or calling["repo"] != repo:
-        print(
-            f"::error::The calling workflow {workflow!r} is not a workflow of {repo}, so its runs cannot be read"
-        )
-        return None
-    return calling["file"]
+    return relay["file"]
 
 
-def said(found: list[str], moved: int, unapproved: str | None) -> int:
+def said(found: list[str], moved: int, unapproved: str | None, label: str = APPROVED) -> int:
     """The verdict on what the pull request changes, printed, and its exit code."""
     if found and unapproved is None:
         for change in found:
-            print(f"::notice::{change}, and a maintainer approved it with `{APPROVED}` (Q-R83).")
+            print(f"::notice::{change}, and a maintainer approved it with `{label}` (Q-R83).")
         return 0
     if found:
         for change in found:
@@ -534,7 +469,7 @@ def said(found: list[str], moved: int, unapproved: str | None) -> int:
                 f"not by this check (Q-R83)."
             )
         print(
-            f"::error::A maintainer approves it by adding `{APPROVED}` for the change it makes, and that has "
+            f"::error::A maintainer approves it by adding `{label}` for the change it makes, and that has "
             f"not happened: {unapproved}."
         )
         return 1
@@ -545,26 +480,28 @@ def said(found: list[str], moved: int, unapproved: str | None) -> int:
     return 0
 
 
-def main(argv: list[str] | None = None, api: Api = gh) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--repo", required=True)
-    parser.add_argument("--number", required=True, type=int)
-    parser.add_argument("--head", required=True, help="the head commit the event was for")
-    parser.add_argument(
-        "--workflow",
-        help=f"the calling workflow, as `github.workflow_ref` names it; {RUNNER_WORKFLOW_REF} when not given",
-    )
-    args = parser.parse_args(argv)
-    if not re.fullmatch(r"[0-9a-f]{40}", args.head):
-        print(f"::error::--head {args.head!r} is not a commit, so there is nothing to judge")
-        return 2
-    workflow = calling_file(args.repo, args.workflow)
-    if workflow is None:
-        return 2
+def verdict(args: argparse.Namespace, workflow: str, api: Api) -> int:
+    """The verdict on the pull request, printed, and its exit code."""
     try:
+        if args.number is None:
+            pull = run_pull.pull_of_run(
+                args.repo, args.source, args.branch, args.head, lambda one: api(one, False)
+            )
+            if pull is None:
+                print(f"No open pull request has the head {args.head[:8]} on {args.source} {args.branch}.")
+                return NO_PULL
+            args.number = pull["number"]
         found, moved = problems(args.repo, args.number, args.head, api)
         unapproved = (
-            approval(args.repo, current(args.repo, args.number, args.head, api), args.head, workflow, api)
+            approval(
+                args.repo,
+                current(args.repo, args.number, args.head, api),
+                args.head,
+                workflow,
+                api,
+                args.label,
+                args.quiet,
+            )
             if found
             else None
         )
@@ -572,6 +509,9 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
             current(args.repo, args.number, args.head, api)
     except Moved as moved_on:
         print(f"::error::{moved_on}.")
+        return 1
+    except run_pull.Ambiguous as ambiguous:
+        print(f"::error::{ambiguous}.")
         return 1
     except (
         subprocess.CalledProcessError,
@@ -586,7 +526,76 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
             f"::error::The pull request could not be read, so nothing says its checks are its base's: {detail}"
         )
         return 2
-    return said(found, moved, unapproved)
+    return said(found, moved, unapproved, args.label)
+
+
+def posted(args: argparse.Namespace, code: int, text: str, api: Api) -> int:
+    """The verdict posted as a check run named `--check` on the head; 0 once posted, 2 where it was not."""
+    lines = [line.split("::", 2)[-1] for line in text.splitlines() if line.strip()]
+    summary = "\n\n".join(lines)[:SUMMARY]
+    fields = {
+        "name": args.check,
+        "head_sha": args.head,
+        "status": "completed",
+        "conclusion": "success" if code == 0 else "failure",
+        "output[title]": "Only spec's pins move, or a maintainer approved the change"
+        if code == 0
+        else "A change to the checks, not approved",
+        "output[summary]": summary or "Nothing was said.",
+    }
+    if args.details:
+        fields["details_url"] = args.details
+    request = ["--method", "POST", f"repos/{args.repo}/check-runs"]
+    for key, value in fields.items():
+        request += ["-f", f"{key}={value}"]
+    try:
+        api(request, False)
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as broken:
+        print(
+            f"::error::The verdict could not be posted as `{args.check}` on {args.head[:8]}: {getattr(broken, 'stderr', '') or broken}"
+        )
+        return 2
+    print(f"Posted `{args.check}` as {fields['conclusion']} on {args.head}.")
+    return 0
+
+
+def main(argv: list[str] | None = None, api: Api = gh) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--repo", required=True)
+    parser.add_argument("--head", required=True, help="the head commit the run was started for")
+    which = parser.add_mutually_exclusive_group(required=True)
+    which.add_argument("--number", type=int, help="the pull request")
+    which.add_argument("--source", help="the repository the head came from; --branch names the branch")
+    parser.add_argument("--branch", help="the branch the head came from, with --source")
+    parser.add_argument("--relay", required=True, help="the relay's path, whose runs record each head")
+    parser.add_argument("--label", default=APPROVED, help="the label a maintainer approves a change with")
+    parser.add_argument(
+        "--quiet", type=int, default=QUIET, help="seconds a head is held before a label approves it"
+    )
+    parser.add_argument("--check", help="post the verdict as a check run of this name on the head")
+    parser.add_argument("--details", help="the address the posted check run links to")
+    args = parser.parse_args(argv)
+    if not re.fullmatch(r"[0-9a-f]{40}", args.head):
+        print(f"::error::--head {args.head!r} is not a commit, so there is nothing to judge")
+        return 2
+    if args.source is not None and (not run_pull.REPOSITORY.fullmatch(args.source) or not args.branch):
+        print(
+            f"::error::--source {args.source!r} with --branch {args.branch!r} names no branch, so there is nothing to judge"
+        )
+        return 2
+    workflow = relay_file(args.relay)
+    if workflow is None:
+        return 2
+    if not args.check:
+        code = verdict(args, workflow, api)
+        return 0 if code == NO_PULL else code
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        code = verdict(args, workflow, api)
+    sys.stdout.write(out.getvalue())
+    if code == NO_PULL:
+        return 0
+    return posted(args, code, out.getvalue(), api)
 
 
 if __name__ == "__main__":

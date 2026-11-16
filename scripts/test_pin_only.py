@@ -12,13 +12,11 @@ from __future__ import annotations
 
 import contextlib
 import io
-import os
 import pathlib
 import subprocess
 import sys
 import unittest
 import urllib.parse
-from unittest import mock
 
 import yaml
 
@@ -130,7 +128,7 @@ class Forge:
             login = urllib.parse.unquote(path.removeprefix(member).removesuffix("/permission"))
             assert "/" not in path.removeprefix(member).removesuffix("/permission")
             return {"permission": self.roles[login] or "none", "role_name": self.roles[login]}
-        runs = f"repos/{REPO}/actions/workflows/pin-only.yml/runs?event=pull_request_target&branch="
+        runs = f"repos/{REPO}/actions/workflows/pin-only.yml/runs?branch="
         if path.startswith(runs):
             branch = path.removeprefix(runs).split("&", 1)[0]
             wanted = [r for r in self.runs if urllib.parse.quote(self.branch, safe="") == branch]
@@ -179,8 +177,8 @@ def paged(items: list, path: str) -> list:
 #: Where the pull request's branch lives, and a repository holding a branch of the same name.
 FORK, ELSEWHERE = "someone/core", "another/core"
 
-#: The calling workflow, as `github.workflow_ref` names it.
-CALLING = f"{REPO}/.github/workflows/pin-only.yml@refs/heads/main"
+#: The relay, as `--relay` names it.
+RELAY = ".github/workflows/pin-only.yml"
 
 
 def at(minute: int) -> str:
@@ -188,9 +186,14 @@ def at(minute: int) -> str:
     return f"2026-10-09T21:{minute:02d}:00Z"
 
 
-def ran(minute: int, head: str = HEAD, source: str = FORK) -> dict:
-    """One run of the calling workflow, as the forge lists it."""
-    return {"created_at": at(minute), "head_sha": head, "head_repository": {"full_name": source}}
+def ran(minute: int, head: str = HEAD, source: str = FORK, event: str = "pull_request") -> dict:
+    """One run of the relay, as the forge lists it."""
+    return {
+        "created_at": at(minute),
+        "head_sha": head,
+        "head_repository": {"full_name": source},
+        "event": event,
+    }
 
 
 #: The account that holds the admin role on the repository.
@@ -201,17 +204,13 @@ def labeled(minute: int, name: str = pin_only.APPROVED, event: str = "labeled", 
     return {"event": event, "created_at": at(minute), "label": {"name": name}, "actor": {"login": by}}
 
 
-def run(
-    forge, head: str = HEAD, workflow: str | None = CALLING, runner: str | None = None
-) -> tuple[int, str]:
-    """The script's verdict and what it said, given `workflow` as `--workflow` and `runner` as the runner names it."""
-    given = ["--workflow", workflow] if workflow is not None else []
-    named = {pin_only.RUNNER_WORKFLOW_REF: runner} if runner is not None else {}
+def run(forge, head: str = HEAD, relay: str = RELAY, *extra: str) -> tuple[int, str]:
+    """The script's verdict and what it said, given `relay` as `--relay`."""
     out = io.StringIO()
-    with mock.patch.dict(os.environ, named), contextlib.redirect_stdout(out):
-        if runner is None:
-            os.environ.pop(pin_only.RUNNER_WORKFLOW_REF, None)
-        code = pin_only.main(["--repo", REPO, "--number", "7", "--head", head, *given], api=forge)
+    with contextlib.redirect_stdout(out):
+        code = pin_only.main(
+            ["--repo", REPO, "--number", "7", "--head", head, "--relay", relay, *extra], api=forge
+        )
     return code, out.getvalue()
 
 
@@ -507,7 +506,12 @@ class Approved(unittest.TestCase):
 
     def at_second(self, forge: Forge, *runs: tuple[str, str]) -> Forge:
         forge.runs = [
-            {"created_at": stamp, "head_sha": head, "head_repository": {"full_name": FORK}}
+            {
+                "created_at": stamp,
+                "head_sha": head,
+                "head_repository": {"full_name": FORK},
+                "event": "pull_request",
+            }
             for stamp, head in runs
         ]
         return forge
@@ -717,18 +721,18 @@ class Approved(unittest.TestCase):
         run(forge)
         self.assertFalse([a for a in forge.asked if "/timeline" in a[0] or "/runs" in a[0]])
 
-    def test_a_calling_workflow_that_is_not_one_of_this_repository_s(self):
-        for workflow in (
+    def test_a_relay_that_is_not_a_workflow_s_path(self):
+        for relay in (
             "",
             "pin-only.yml",
-            "other/repo/.github/workflows/pin-only.yml@refs/heads/main",
-            f"{REPO}/.github/workflows/../x.yml@main",
-            f"{REPO}/.github/workflows/pin-only.yml",
+            ".github/workflows/../x.yml",
+            ".github/workflows/sub/x.yml",
+            "a/.github/workflows/x.yml",
         ):
-            with self.subTest(workflow):
-                code, said = run(self.changed(), workflow=workflow)
+            with self.subTest(relay):
+                code, said = run(self.changed(), HEAD, relay)
                 self.assertEqual(code, 2, said)
-                self.assertIn("is not a workflow of", said)
+                self.assertIn("is not a workflow's path", said)
 
     def approved(self) -> Forge:
         forge = self.changed()
@@ -737,27 +741,32 @@ class Approved(unittest.TestCase):
         forge.runs.append(ran(8))
         return forge
 
-    def test_a_caller_that_does_not_name_itself_is_named_by_the_runner(self):
+    def test_the_relay_s_runs_are_read(self):
         forge = self.approved()
-        code, said = run(forge, workflow=None, runner=CALLING)
+        code, said = run(forge)
         self.assertEqual(code, 0, said)
-        self.assertTrue([a for a in forge.asked if "/actions/workflows/pin-only.yml/runs?" in a[0]])
+        self.assertTrue([a for a in forge.asked if "/actions/workflows/pin-only.yml/runs?branch=" in a[0]])
 
-    def test_the_workflow_given_is_read_over_the_runner_s(self):
-        code, said = run(self.approved(), runner="other/repo/.github/workflows/pin-only.yml@refs/heads/main")
+    def test_runs_from_before_the_relay_count_and_runs_of_other_events_do_not(self):
+        forge = self.approved()
+        forge.runs = [dict(r, event="pull_request_target") for r in forge.runs]
+        self.assertEqual(run(forge)[0], 0)
+        forge = self.approved()
+        forge.runs = [dict(r, event="push") for r in forge.runs]
+        code, said = run(forge)
+        self.assertEqual(code, 1, said)
+        self.assertIn("no run of this check shows what its head was", said)
+
+    def test_the_label_and_the_quiet_are_the_caller_s_to_name(self):
+        forge = self.approved()
+        forge.labels = ["checks-approved"]
+        forge.timeline = [labeled(8, "checks-approved")]
+        code, said = run(forge, HEAD, RELAY, "--label", "checks-approved")
         self.assertEqual(code, 0, said)
-        code, said = run(self.approved(), workflow="", runner=CALLING)
-        self.assertEqual(code, 2, said)
-        self.assertIn("is not a workflow of", said)
-
-    def test_a_caller_named_by_neither_is_refused(self):
-        for runner in (None, ""):
-            with self.subTest(runner=runner):
-                code, said = run(self.approved(), workflow=None, runner=runner)
-                self.assertEqual(code, 2, said)
-                self.assertIn(
-                    f"Neither --workflow nor {pin_only.RUNNER_WORKFLOW_REF} names the calling workflow", said
-                )
+        self.assertIn("`checks-approved` was added at", said)
+        code, said = run(self.approved(), HEAD, RELAY, "--quiet", "600")
+        self.assertEqual(code, 1, said)
+        self.assertIn("less than 600 seconds before `workflows-approved`", said)
 
 
 class Truncated(unittest.TestCase):
@@ -874,20 +883,40 @@ class Gh(unittest.TestCase):
         self.assertEqual(calls[1], ["gh", "api", "-H", "Accept: application/vnd.github.raw", "repos/x"])
 
 
+def documented() -> list[dict]:
+    """The callers the workflow's header shows, each block of `#   ` lines read as YAML."""
+    blocks: list[list[str]] = [[]]
+    for line in WORKFLOW.read_text(encoding="utf-8").splitlines():
+        if line.startswith("#   "):
+            blocks[-1].append(line[4:])
+        elif blocks[-1]:
+            blocks.append([])
+    return [yaml.safe_load("\n".join(block)) for block in blocks if block]
+
+
 class TheWorkflow(unittest.TestCase):
     def setUp(self):
         self.workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-        self.steps = self.workflow["jobs"]["pin-only"]["steps"]
+        self.job = self.workflow["jobs"]["pin-only"]
+        self.steps = self.job["steps"]
+        self.relay, self.verdict = documented()
 
-    def test_it_reads_and_writes_nothing(self):
-        held = {"contents": "read", "pull-requests": "read"}
-        self.assertEqual(self.workflow["permissions"], held)
-        self.assertEqual(self.workflow["jobs"]["pin-only"]["permissions"], held)
+    def test_it_reads_the_pull_request_and_writes_only_its_check(self):
+        self.assertEqual(self.workflow["permissions"], {})
+        self.assertEqual(
+            self.job["permissions"],
+            {"actions": "read", "checks": "write", "contents": "read", "pull-requests": "read"},
+        )
         self.assertEqual(list(self.workflow[True]), ["workflow_call"])
 
+    def test_what_it_posts_and_reads_is_the_caller_s_to_name(self):
+        inputs = self.workflow[True]["workflow_call"]["inputs"]
+        self.assertEqual(inputs["relay"]["default"], RELAY)
+        self.assertEqual(inputs["check"]["default"], "pin-only / pin-only")
+        self.assertEqual(inputs["label"]["default"], pin_only.APPROVED)
+        self.assertEqual(inputs["quiet"]["default"], pin_only.QUIET)
+
     def test_only_spec_is_checked_out_at_the_commit_this_workflow_was_called_at(self):
-        # A caller pinned at a revision runs that revision's script, with the
-        # arguments that revision's step passes it.
         checkouts = [s for s in self.steps if str(s.get("uses", "")).startswith("actions/checkout@")]
         self.assertEqual(len(checkouts), 1)
         self.assertEqual(checkouts[0]["with"]["repository"], "lemonfiber/spec")
@@ -895,55 +924,64 @@ class TheWorkflow(unittest.TestCase):
         self.assertEqual(checkouts[0]["with"]["path"], ".spec-tooling")
         self.assertIs(checkouts[0]["with"]["persist-credentials"], False)
 
-    def test_it_runs_spec_s_script_with_the_pull_request_through_env(self):
+    def test_it_reads_only_what_the_forge_set_on_the_relay_s_run(self):
         last = self.steps[-1]
         self.assertTrue(last["run"].startswith("python3 .spec-tooling/scripts/pin_only.py"))
         self.assertNotIn("${{", last["run"])
-        self.assertIn('--head "$HEAD_SHA"', last["run"])
-        self.assertEqual(last["env"]["HEAD_SHA"], "${{ github.event.pull_request.head.sha }}")
-        self.assertIn('--workflow "$CALLING"', last["run"])
-        self.assertEqual(last["env"]["CALLING"], "${{ github.workflow_ref }}")
+        run_fields = {
+            "HEAD_SHA": "head_sha",
+            "SOURCE": "head_repository.full_name",
+            "BRANCH": "head_branch",
+        }
+        for name, field in run_fields.items():
+            self.assertEqual(last["env"][name], f"${{{{ github.event.workflow_run.{field} }}}}")
+            self.assertIn(f'="${name}"', last["run"])
+        event_fields = [v for v in last["env"].values() if "github.event." in v]
+        self.assertEqual(len(event_fields), len(run_fields), event_fields)
 
-    def test_the_caller_it_documents_runs_on_every_new_head_and_cancels_only_on_a_push(self):
-        # GitHub attaches a pull_request_target run's checks to the pull request's head
-        # commit (on website-lemonfiber.app#133, run 37852167512's check suite named head
-        # 14c2666e, the pull request's head, while main was 577a86dd), and protection asks
-        # for the check on the commit it would merge. So each new head needs its own run.
-        documented = "\n".join(
-            line[4:] for line in WORKFLOW.read_text(encoding="utf-8").splitlines() if line.startswith("#   ")
-        )
-        shown = yaml.safe_load(documented[documented.index("on:") :])
+    def test_the_relay_it_documents_runs_on_every_new_head_and_every_label_with_nothing(self):
         self.assertEqual(
-            set(shown[True]["pull_request_target"]["types"]),
+            set(self.relay[True]["pull_request"]["types"]),
             {"opened", "synchronize", "reopened", "labeled", "unlabeled"},
         )
+        self.assertEqual(list(self.relay[True]), ["pull_request"])
+        self.assertEqual(self.relay["permissions"], {})
+        job = self.relay["jobs"]["pin-only"]
+        self.assertNotIn("if", job)
+        self.assertNotIn("permissions", job)
+        self.assertEqual([step.get("uses") for step in job["steps"]], [None])
+        shared = yaml.safe_load((HERE.parent / "shared" / "concurrency.yml").read_text(encoding="utf-8"))
+        self.assertEqual(self.relay["concurrency"], shared["concurrency"])
+
+    def test_the_verdict_it_documents_follows_the_relay_one_at_a_time_per_branch(self):
         import check_superseded_runs
 
-        block = shown["concurrency"]["group"], shown["concurrency"]["cancel-in-progress"]
-        self.assertEqual(block, check_superseded_runs.PIN_ONLY_BLOCK)
-        self.assertNotIn("if", shown["jobs"]["pin-only"])
+        self.assertEqual(self.verdict[True]["workflow_run"]["workflows"], [self.relay["name"]])
+        self.assertEqual(self.verdict[True]["workflow_run"]["types"], ["completed"])
+        block = (
+            self.verdict["concurrency"]["group"],
+            str(self.verdict["concurrency"]["cancel-in-progress"]).lower(),
+        )
+        self.assertEqual(block, check_superseded_runs.VERDICT_BLOCK)
+        self.assertEqual(self.verdict["permissions"], {})
+        self.assertEqual(self.verdict["jobs"]["verdict"]["permissions"], self.job["permissions"])
 
     def test_spec_calls_it_the_way_it_documents(self):
-        documented = "\n".join(
-            line[4:] for line in WORKFLOW.read_text(encoding="utf-8").splitlines() if line.startswith("#   ")
+        relay = yaml.safe_load((WORKFLOW.parent / "pin-only-check.yml").read_text(encoding="utf-8"))
+        verdict = yaml.safe_load((WORKFLOW.parent / "pin-only-verdict.yml").read_text(encoding="utf-8"))
+        for own, shown in ((relay, self.relay), (verdict, self.verdict)):
+            for key in ("name", True, "permissions", "concurrency"):
+                self.assertEqual(own[key], shown[key], key)
+        self.assertEqual(relay["run-name"], self.relay["run-name"])
+        self.assertEqual(relay["jobs"], self.relay["jobs"])
+        self.assertEqual(verdict["jobs"]["verdict"]["permissions"], self.job["permissions"])
+        self.assertEqual(
+            verdict["jobs"]["verdict"]["with"],
+            {"relay": ".github/workflows/pin-only-check.yml", "check-source": "app"},
         )
-        shown = yaml.safe_load(documented[documented.index("on:") :])
-        own = yaml.safe_load((WORKFLOW.parent / "pin-only-check.yml").read_text(encoding="utf-8"))
-        self.assertEqual(own[True], shown[True])
-        self.assertEqual(own["concurrency"], shown["concurrency"])
-        self.assertEqual(own["jobs"]["pin-only"].keys(), shown["jobs"]["pin-only"].keys())
-
-    def test_it_refuses_any_event_but_pull_request_target(self):
-        script = self.steps[0]["run"]
-        for event, code in (("pull_request_target", 0), ("pull_request", 1), ("push", 1)):
-            with self.subTest(event):
-                done = subprocess.run(
-                    ["bash", "-c", script],
-                    env={"EVENT": event, "PATH": "/usr/bin:/bin"},
-                    capture_output=True,
-                    text=True,
-                )
-                self.assertEqual(done.returncode, code, done.stdout)
+        self.assertEqual(
+            verdict["jobs"]["verdict"]["secrets"], {"RELEASE_APP_KEY": "${{ secrets.RELEASE_APP_KEY }}"}
+        )
 
 
 if __name__ == "__main__":
