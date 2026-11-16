@@ -599,6 +599,12 @@ Decisions about a repository outside this organisation, such as
 | A member whose ask for a title would wait for approval, where the core already keeps a waiting ask for that title as the request service's owner, joins that ask rather than being told the title is on its way: they are told it waits for approval and never who else asked, approving it files it once and fulfils every member on it, declining or expiry tells each of them, and the operator sees one ask naming every member on it. The user chose this because an ask read as on its way told the second member that somebody had asked, and left them with nothing where the first ask was declined | [ARCH-R423](../20-architecture/contracts/capability-contracts.md), [D1-R28](../10-functional/features/d-content/d1-seed.md) |
 | A member asking for a title another member's request waits for approval on at the request service is told it waits for approval, never that it is on its way: the core keeps the ask beside that request and counts it toward the member's allowance, approving that request fulfils the member too, and declining it has the core ask for the member's own, listing it declined with why where that cannot be asked. The request service refuses a second request for a film, or for seasons, another request still waits on, so the member's own is asked for only once that request is declined. The user chose this over patching the request service's image | [ARCH-R423](../20-architecture/contracts/capability-contracts.md), [D1-R28](../10-functional/features/d-content/d1-seed.md) |
 
+## 2026-11-17
+
+| Decision | Where it lives |
+|---|---|
+| A network the engine already holds for the project keeps its subnet while that subnet is still a free `/29` of the range, and only a network it does not hold searches on from the slot its name gives; a start also waits for every service whose container it created again to answer before it reports. The user chose both together, so installing a plugin creates no network the engine holds, or any container on one, again, and one created again for another reason is answering before anything asks it | [ARCH-R310](../20-architecture/contracts/plugin-manifest.md#the-networks), [ARCH-R439](../20-architecture/contracts/plugin-manifest.md#the-networks) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
