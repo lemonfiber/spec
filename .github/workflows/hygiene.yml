@@ -498,26 +498,30 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The escaped dots in INVITE mean this workflow does not match its own text.
+
+      - name: Check out spec's scripts at this workflow's commit
+        if: github.repository != 'lemonfiber/spec'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          repository: lemonfiber/spec
+          ref: ${{ job.workflow_sha }}
+          path: .spec-tooling
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+
       - name: The community is addressed by name, not by invite code
         env:
-          INVITE: 'discord\.gg/|discord(app)?\.com/invite/'
+          REPO: ${{ github.repository }}
         run: |
-          rc=0
-          git grep -nIE "$INVITE" -- . || rc=$?
-          case "$rc" in
-            0)
-              echo "::error::Address the community as https://discord.nightworks.io (OPS-R56). An invite code can be revoked, and every published link carrying it dies at once."
-              exit 1
-              ;;
-            1)
-              echo "no invite codes in tracked files"
-              ;;
-            *)
-              echo "::error::git grep failed with rc $rc"
-              exit 1
-              ;;
-          esac
+          if [ "$REPO" = "lemonfiber/spec" ]; then
+            reader=scripts/check_invite.py
+          else
+            reader=.spec-tooling/scripts/check_invite.py
+          fi
+          python3 -E -s "$reader" --root .
 
   shared-files:
     runs-on: ubuntu-latest

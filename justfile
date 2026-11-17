@@ -27,7 +27,7 @@ default:
 #   the redirect site                      `just docs`
 #
 # Everything the `integrity` job decides, plus the hooks — not CI.
-ci: hooks integrity shared services check-meta ordering generated lint typos links lines local
+ci: hooks integrity shared services check-meta ordering generated lint typos links lines invite local
 
 # A description claiming to be CI has to name what it leaves out, because CI is
 # mostly jobs no clone can run. A recipe nobody described is refused too — the
@@ -192,6 +192,10 @@ links:
 # No tracked file longer than the cap, read by the script the `lines` job runs.
 lines:
     python3 scripts/check_line_cap.py --root .
+
+# No tracked file carries a Discord invite code, read by the script the `invite` job runs.
+invite:
+    python3 scripts/check_invite.py --root .
 
 # Build the redirect site that stands where the book stood.
 docs:
