@@ -604,6 +604,7 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | A network the engine already holds for the project keeps its subnet while that subnet is still a free `/29` of the range, and only a network it does not hold searches on from the slot its name gives; a start also waits for every service whose container it created again to answer before it reports. The user chose both together, so installing a plugin creates no network the engine holds, or any container on one, again, and one created again for another reason is answering before anything asks it | [ARCH-R310](../20-architecture/contracts/plugin-manifest.md#the-networks), [ARCH-R439](../20-architecture/contracts/plugin-manifest.md#the-networks) |
+| lemonfiber decides which containers a start creates again: only one whose service's entry, apart from its networks, changed since it was created, as the digest it is labelled with says, or one that was on a network created again; the program running the project is told to create only what is missing, and every other running container is connected to and disconnected from networks where it runs. The user chose this because the program running the project creates a container again whenever its networks change, so installing a plugin that adds a network to a running service restarted it | [ARCH-R439](../20-architecture/contracts/plugin-manifest.md#the-networks) |
 
 ## Related
 

@@ -108,7 +108,10 @@
 # `ARCH-R439` has lemonfiber create every network of the project through the engine and
 # write each into the project as an existing one, so the fence of a service held inside the
 # stack reads its networks before it starts and one model of the networks serves every
-# engine; added by the maintainer's decision of 2026-11-16 (OPS-R31).
+# engine; added by the maintainer's decision of 2026-11-16 (OPS-R31). Amended in place by the
+# maintainer's decision of 2026-11-17: a start creates a container again only where its entry
+# apart from its networks changed or it was on a network created again, and connects every
+# other running container to its networks where it runs.
 #
 # `D11-R17`, `ARCH-R436` and `ARCH-R437` are the live TV guide: each channel's programmes
 # across a window the operator sets, 12 hours by default, as far as the media server's guide
