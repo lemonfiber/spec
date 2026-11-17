@@ -36,6 +36,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [contracts/capability-vocabulary.md](contracts/capability-vocabulary.md) | **`capability-vocabulary.json`** — what a service can do, what demonstrates it, and who may claim one |
 | [contracts/capability-contracts.md](contracts/capability-contracts.md) | **Capability contracts** — what the core asks of whatever fills a capability, and how an adapter answers |
 | [contracts/capability-contracts-request-gate.md](contracts/capability-contracts-request-gate.md) | **The request gate's routes** — what the filler of `request.gate` admits, what a curator and a member reach through it, and what a filler tells the core |
+| [contracts/capability-contracts-live-tv.md](contracts/capability-contracts-live-tv.md) | **Live TV** — the pass a live stream's bytes are served on, what the core asks of a media server's live TV, and how live TV is answered over Plex |
 | [contracts/extension-points.md](contracts/extension-points.md) | **`extension-points.json`** — where a plugin may add a row to a register lemonfiber already runs |
 | [contracts/download-client.md](contracts/download-client.md) | Registering SABnzbd/qBittorrent into a Servarr app — the `fields` schema and per-app category |
 | [contracts/prowlarr-application.md](contracts/prowlarr-application.md) | Registering a Servarr \*arr as a Prowlarr application — the `/api/v1` `fields` schema and per-media sync categories |

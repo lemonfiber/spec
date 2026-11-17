@@ -48,8 +48,28 @@ class Readers(unittest.TestCase):
         verdict = yaml.safe_load((WORKFLOWS / "pin-only.yml").read_text(encoding="utf-8"))
         job = verdict["jobs"]["pin-only"]
         self.assertEqual(job["environment"], WHERE_APP)
-        [mint] = [step for step in job["steps"] if KEY in yaml.safe_dump(step)]
-        self.assertEqual(mint["if"], "inputs.check-source == 'app'")
+        mints = [step for step in job["steps"] if KEY in yaml.safe_dump(step)]
+        self.assertEqual(len(mints), 2)
+        for mint in mints:
+            self.assertTrue(mint["if"].startswith("inputs.check-source == 'app'"), mint["if"])
+
+    def test_pin_only_posts_nothing_where_the_app_may_not_write_checks_and_fails_on_a_broken_key(self):
+        verdict = yaml.safe_load((WORKFLOWS / "pin-only.yml").read_text(encoding="utf-8"))
+        steps = verdict["jobs"]["pin-only"]["steps"]
+        named = {step.get("id"): step for step in steps if step.get("id")}
+        self.assertIs(named["app"]["continue-on-error"], True)
+        self.assertEqual(named["app"]["with"]["permission-checks"], "write")
+        fallback = named["unposted"]
+        self.assertEqual(fallback["if"], "inputs.check-source == 'app' && steps.app.outcome == 'failure'")
+        self.assertNotIn("continue-on-error", fallback)
+        self.assertNotIn("permission-checks", fallback["with"])
+        self.assertEqual(fallback["uses"], named["app"]["uses"])
+        [warned] = [step for step in steps if step.get("if") == "steps.unposted.outcome == 'success'"]
+        self.assertTrue(warned["run"].strip().startswith('echo "::warning::'))
+        after = steps[steps.index(warned) + 1 :]
+        self.assertTrue(after)
+        for step in after:
+            self.assertEqual(step.get("if"), "steps.app.outcome != 'failure'", step.get("name"))
 
     def test_tell_is_release_where_its_caller_names_none(self):
         tell = yaml.safe_load((WORKFLOWS / "tell.yml").read_text(encoding="utf-8"))

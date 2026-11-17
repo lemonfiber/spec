@@ -62,8 +62,11 @@
 # `secrets: { RELEASE_APP_KEY: ... }`, so branch protection can require the
 # check from that App alone: a fork's pull request, which gets no secrets,
 # cannot then answer it with a job of the same name. The job then runs behind
-# the repository's `release` environment, as every reader of the key does. The
-# default, `actions`, posts with this run's token, as every job's check is.
+# the repository's `release` environment, as every reader of the key does. Where
+# the App's installation is not granted Checks: write, the run posts nothing and
+# warns, and the pull request waits for its check; a key that mints no token at
+# all fails the run. The default, `actions`, posts with this run's token, as
+# every job's check is.
 name: pin-only
 
 on:
@@ -137,6 +140,7 @@ jobs:
       - name: Mint the release App token
         if: inputs.check-source == 'app'
         id: app
+        continue-on-error: true
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           client-id: ${{ vars.RELEASE_CLIENT_ID }}
@@ -148,7 +152,30 @@ jobs:
           permission-contents: read
           permission-pull-requests: read
 
+      - name: The release App reads here, without the checks it cannot write
+        if: inputs.check-source == 'app' && steps.app.outcome == 'failure'
+        id: unposted
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-actions: read
+          permission-contents: read
+          permission-pull-requests: read
+
+      - name: No verdict is posted where the release App may not write checks
+        if: steps.unposted.outcome == 'success'
+        env:
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          CHECK: ${{ inputs.check }}
+        run: |
+          echo "::warning::The release App's installation on ${REPO} is not granted Checks: write, so ${CHECK} is not posted on ${HEAD_SHA}. The pull request waits for that check until the grant is made."
+
       - name: Check out spec's scripts at this workflow's commit
+        if: steps.app.outcome != 'failure'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -157,13 +184,16 @@ jobs:
           path: .spec-tooling
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        if: steps.app.outcome != 'failure'
         with:
           python-version: "3.12"
 
       - name: Install the YAML reader
+        if: steps.app.outcome != 'failure'
         run: pip install --disable-pip-version-check --only-binary ":all:" pyyaml==6.0.3
 
       - name: The checks are the base branch's, or spec's pins moved forward
+        if: steps.app.outcome != 'failure'
         env:
           GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
           REPO: ${{ github.repository }}
