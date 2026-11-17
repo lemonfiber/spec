@@ -5,7 +5,7 @@ kind: feature
 area: D
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [seed, wiring]
 relates: [A7, C9, D2, E3]
 ---
