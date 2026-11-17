@@ -265,7 +265,7 @@ class WritesItsFields(unittest.TestCase):
 
 
 class Verdicts(Forge):
-    """test_pin_only's forge, answering the pulls list and taking the check run posted."""
+    """test_pin_only's forge, answering the pulls list and taking the verdict posted."""
 
     def __init__(self, *args, pulls=None, refuse_post=False, **named):
         super().__init__(*args, **named)
@@ -313,10 +313,39 @@ def pin_only_relay() -> str:
 
 class PostsTheVerdict(unittest.TestCase):
     CHECK = ("--check", "pin-only / pin-only", "--details", "https://example.test/run/1")
+    AS_RUN = ("--post", "check")
 
-    def test_a_pass_is_posted_as_a_success_on_the_head(self):
+    def test_a_pass_is_posted_as_a_success_status_on_the_head_by_default(self):
         forge = Verdicts({CI: (caller(), caller(gates=NEW))})
         code, said = judged(forge, *self.CHECK)
+        self.assertEqual(code, 0, said)
+        [posted] = forge.posted
+        self.assertEqual(posted["path"], f"repos/{REPO}/statuses/{HEAD}")
+        self.assertEqual(
+            (posted["context"], posted["state"], posted["target_url"]),
+            ("pin-only / pin-only", "success", "https://example.test/run/1"),
+        )
+        self.assertEqual(posted["description"], pin_only.TITLES[True])
+        self.assertLessEqual(len(posted["description"]), pin_only.DESCRIPTION)
+        self.assertIn(f"Posted `pin-only / pin-only` as a status, success, on {HEAD}.", said)
+
+    def test_a_refusal_is_posted_as_a_failure_status_and_the_run_still_passes(self):
+        forge = Verdicts({CI: (caller(), caller() + "  extra:\n    runs-on: x\n")})
+        code, said = judged(forge, "--check", "pin-only / pin-only")
+        self.assertEqual(code, 0, said)
+        [posted] = forge.posted
+        self.assertEqual((posted["state"], posted["description"]), ("failure", pin_only.TITLES[False]))
+        self.assertNotIn("target_url", posted)
+
+    def test_a_status_the_forge_will_not_take_fails_the_run(self):
+        forge = Verdicts({CI: (caller(), caller())}, refuse_post=True)
+        code, said = judged(forge, "--check", "pin-only / pin-only")
+        self.assertEqual(code, 2, said)
+        self.assertIn("could not be posted as `pin-only / pin-only`", said)
+
+    def test_a_pass_is_posted_as_a_success_check_run_on_the_head(self):
+        forge = Verdicts({CI: (caller(), caller(gates=NEW))})
+        code, said = judged(forge, *self.CHECK, *self.AS_RUN)
         self.assertEqual(code, 0, said)
         [posted] = forge.posted
         self.assertEqual(posted["path"], f"repos/{REPO}/check-runs")
@@ -326,11 +355,11 @@ class PostsTheVerdict(unittest.TestCase):
         )
         self.assertEqual(posted["details_url"], "https://example.test/run/1")
         self.assertIn("change only spec's pins", posted["output[summary]"])
-        self.assertIn(f"Posted `pin-only / pin-only` as success on {HEAD}.", said)
+        self.assertIn(f"Posted `pin-only / pin-only` as a check run, success, on {HEAD}.", said)
 
-    def test_a_refusal_is_posted_as_a_failure_and_the_run_still_passes(self):
+    def test_a_refusal_is_posted_as_a_failure_check_run_and_the_run_still_passes(self):
         forge = Verdicts({CI: (caller(), caller() + "  extra:\n    runs-on: x\n")})
-        code, said = judged(forge, "--check", "pin-only / pin-only")
+        code, said = judged(forge, "--check", "pin-only / pin-only", *self.AS_RUN)
         self.assertEqual(code, 0, said)
         [posted] = forge.posted
         self.assertEqual(posted["conclusion"], "failure")
@@ -343,11 +372,11 @@ class PostsTheVerdict(unittest.TestCase):
         forge = Verdicts({CI: (caller(), caller())})
         forge.truncated.add("root1")
         judged(forge, "--check", "pin-only / pin-only")
-        self.assertEqual(forge.posted[0]["conclusion"], "failure")
+        self.assertEqual(forge.posted[0]["state"], "failure")
 
     def test_two_open_pull_requests_with_the_head_are_posted_as_a_failure(self):
         forge = Verdicts({CI: (caller(), caller())}, pulls=[opened(7), opened(8)])
-        _code, _said = judged(forge, "--check", "pin-only / pin-only")
+        _code, _said = judged(forge, "--check", "pin-only / pin-only", *self.AS_RUN)
         self.assertEqual(forge.posted[0]["conclusion"], "failure")
         self.assertIn("#7 and #8 are open with the head", forge.posted[0]["output[summary]"])
 
@@ -364,9 +393,9 @@ class PostsTheVerdict(unittest.TestCase):
         code, said = judged(forge)
         self.assertEqual(code, 2, said)
 
-    def test_a_verdict_the_forge_will_not_take_fails_the_run(self):
+    def test_a_check_run_the_forge_will_not_take_fails_the_run(self):
         forge = Verdicts({CI: (caller(), caller())}, refuse_post=True)
-        code, said = judged(forge, "--check", "pin-only / pin-only")
+        code, said = judged(forge, "--check", "pin-only / pin-only", *self.AS_RUN)
         self.assertEqual(code, 2, said)
         self.assertIn("could not be posted as `pin-only / pin-only`", said)
         self.assertIn("HTTP 403", said)
@@ -377,7 +406,7 @@ class PostsTheVerdict(unittest.TestCase):
         forge.timeline = [labeled(8)]
         forge.runs = [ran(1), ran(8)]
         _code, said = judged(forge, "--check", "pin-only / pin-only")
-        self.assertEqual(forge.posted[0]["conclusion"], "success", said)
+        self.assertEqual(forge.posted[0]["state"], "success", said)
 
     def test_a_source_without_a_branch_or_not_a_repository_is_refused(self):
         for extra in (["--source", FORK], ["--source", "nope", "--branch", "b"]):

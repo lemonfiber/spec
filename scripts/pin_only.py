@@ -6,7 +6,7 @@ are the pull request's own: it can rewrite what its checks do, or which it runs,
 and still report each one green. So this runs from the default branch, on
 `workflow_run` after the repository's relay ran on `pull_request` (Q-R84),
 reads the pull request through the API as data, checks nothing out of it, and
-posts its verdict as a check run on the head. It fails a pull request that
+posts its verdict on the head. It fails a pull request that
 changes anything under `.github/workflows/` or `.github/actions/`, unless the only change in each such
 file is a pin of a lemonfiber/spec workflow moving forward along spec's `main`,
 with the version written beside it. Anything else is a change to the checks,
@@ -47,11 +47,20 @@ Usage, from a `workflow_run` the relay's run started:
   pin_only.py --repo <owner/name> --head <the run's head commit>
               (--number <pull request> | --source <owner/name> --branch <head branch>)
               --relay <the relay's path> [--label <name>] [--quiet <seconds>]
-              [--check <name> [--details <address>]]
+              [--check <name> [--post status|check] [--details <address>]]
 
 `--source` and `--branch` find the pull request from what the forge set on the
-run (`run_pull.py`). `--check` posts the verdict as a check run of that name on
-the head, which is what branch protection requires.
+run (`run_pull.py`). `--check` posts the verdict under that name on the head,
+which is what branch protection requires: as a commit status by default, or as
+a check run with `--post check`.
+
+A commit status is what this run's token posts, because a check run it posts is
+filed under the first of GitHub Actions' check suites on the head, which is
+often the relay's first run; once the relay has run again on the same head, the
+forge reads only the newest suite of that workflow, and the verdict filed in the
+older one is never counted. A status belongs to no suite. A check run is what an
+App posts, `--post check`: an App's check runs share one suite on a head, which
+nothing supersedes.
 
 Exit 0 when the head changes no workflow, moves only spec's pins forward, or
 carries the approval, when no open pull request has the head, and, with
@@ -108,6 +117,18 @@ NO_PULL = 3
 
 #: The longest summary a check run's output holds.
 SUMMARY = 65535
+
+#: The longest description a commit status holds.
+DESCRIPTION = 140
+
+#: How a verdict is posted: as a commit status, or as a check run.
+POSTS = ("status", "check")
+
+#: What a verdict's title says, by whether it passed.
+TITLES = {
+    True: "Only spec's pins move, or a maintainer approved the change",
+    False: "A change to the checks, not approved",
+}
 
 #: One call to the forge's REST API through `gh`: the arguments, and the answer
 #: as JSON, or as text where `raw` is asked for.
@@ -530,22 +551,32 @@ def verdict(args: argparse.Namespace, workflow: str, api: Api) -> int:
 
 
 def posted(args: argparse.Namespace, code: int, text: str, api: Api) -> int:
-    """The verdict posted as a check run named `--check` on the head; 0 once posted, 2 where it was not."""
-    lines = [line.split("::", 2)[-1] for line in text.splitlines() if line.strip()]
-    summary = "\n\n".join(lines)[:SUMMARY]
-    fields = {
-        "name": args.check,
-        "head_sha": args.head,
-        "status": "completed",
-        "conclusion": "success" if code == 0 else "failure",
-        "output[title]": "Only spec's pins move, or a maintainer approved the change"
-        if code == 0
-        else "A change to the checks, not approved",
-        "output[summary]": summary or "Nothing was said.",
-    }
-    if args.details:
-        fields["details_url"] = args.details
-    request = ["--method", "POST", f"repos/{args.repo}/check-runs"]
+    """The verdict posted under the name `--check` on the head; 0 once posted, 2 where it was not."""
+    passed = code == 0
+    if args.post == "status":
+        what = "status"
+        fields = {
+            "state": "success" if passed else "failure",
+            "context": args.check,
+            "description": TITLES[passed][:DESCRIPTION],
+        }
+        if args.details:
+            fields["target_url"] = args.details
+        request = ["--method", "POST", f"repos/{args.repo}/statuses/{args.head}"]
+    else:
+        what = "check run"
+        lines = [line.split("::", 2)[-1] for line in text.splitlines() if line.strip()]
+        fields = {
+            "name": args.check,
+            "head_sha": args.head,
+            "status": "completed",
+            "conclusion": "success" if passed else "failure",
+            "output[title]": TITLES[passed],
+            "output[summary]": "\n\n".join(lines)[:SUMMARY] or "Nothing was said.",
+        }
+        if args.details:
+            fields["details_url"] = args.details
+        request = ["--method", "POST", f"repos/{args.repo}/check-runs"]
     for key, value in fields.items():
         request += ["-f", f"{key}={value}"]
     try:
@@ -555,7 +586,7 @@ def posted(args: argparse.Namespace, code: int, text: str, api: Api) -> int:
             f"::error::The verdict could not be posted as `{args.check}` on {args.head[:8]}: {getattr(broken, 'stderr', '') or broken}"
         )
         return 2
-    print(f"Posted `{args.check}` as {fields['conclusion']} on {args.head}.")
+    print(f"Posted `{args.check}` as a {what}, {'success' if passed else 'failure'}, on {args.head}.")
     return 0
 
 
@@ -572,7 +603,10 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
     parser.add_argument(
         "--quiet", type=int, default=QUIET, help="seconds a head is held before a label approves it"
     )
-    parser.add_argument("--check", help="post the verdict as a check run of this name on the head")
+    parser.add_argument("--check", help="post the verdict under this name on the head")
+    parser.add_argument(
+        "--post", choices=POSTS, default=POSTS[0], help="post it as a commit status, or as a check run"
+    )
     parser.add_argument("--details", help="the address the posted check run links to")
     args = parser.parse_args(argv)
     if not re.fullmatch(r"[0-9a-f]{40}", args.head):

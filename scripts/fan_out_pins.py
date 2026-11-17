@@ -47,6 +47,13 @@ lists in the same commit, and touches nothing else in the caller (OPS-R92). What
 the gates know is read from `gates.yml` at the tag, its plan step's `KNOWN`,
 and from nowhere else.
 
+**A verdict caller is granted what the verdict asks for.** A reusable job holds
+no permission its caller's job does not grant, so a bump moving `pin-only.yml`
+to a revision whose job asks for another permission rewrites the `permissions`
+of each job calling it to exactly what that job asks for at the tag, in the same
+commit, and touches nothing else in the caller (Q-R83). What the job asks for is
+read from `pin-only.yml` at the tag and from nowhere else.
+
 Usage:
   fan_out_pins.py --repo <consumer checkout> --spec <spec checkout with tags> --tag vX.Y.Z
   fan_out_pins.py --consumers
@@ -136,6 +143,22 @@ UNREAD = ("'", '"', "|", ">")
 
 #: A job calling the shared gates at any revision.
 CALLS_GATES = re.compile(rf"^[ \t]*uses:[ \t]*lemonfiber/spec/\.github/workflows/{re.escape(GATES)}@")
+
+
+#: pin-only's verdict. A job calling it grants exactly what its own job asks for.
+PIN_ONLY = "pin-only.yml"
+
+#: The verdict's own job in `pin-only.yml`, whose permissions a caller grants.
+VERDICT_JOB = "pin-only"
+
+#: A job calling pin-only's verdict at any revision.
+CALLS_PIN_ONLY = re.compile(rf"^[ \t]*uses:[ \t]*lemonfiber/spec/\.github/workflows/{re.escape(PIN_ONLY)}@")
+
+#: One permission granted, as `scope: level`.
+GRANT = re.compile(r"^(?P<lead>[ \t]+)(?P<scope>[a-z-]+):[ \t]*(?P<level>read|write|none)[ \t]*(?:#.*)?$")
+
+#: How a job's permissions open, with each grant on a line of its own below.
+PERMISSIONS = "permissions:"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -327,6 +350,75 @@ def pruned(text: str, known: frozenset[str]) -> tuple[str, list[str]] | None:
     return "".join(lines), said
 
 
+def asked_at(spec: pathlib.Path, named: str) -> dict[str, str] | None:
+    """What the verdict's job asks for at the revision `named`, or `None` where
+    `pin-only.yml` or its job's permissions cannot be read there."""
+    shown = _git(spec, "show", f"{named}:.github/workflows/{PIN_ONLY}")
+
+    return asked_in(shown.stdout) if shown.returncode == 0 else None
+
+
+def asked_in(workflow: str) -> dict[str, str] | None:
+    """The permissions the verdict's job in a `pin-only.yml` asks for, each on a
+    line of its own under the job's `permissions:`, or `None` where it asks for
+    none that way."""
+    lines = workflow.splitlines()
+    heads = [n for n, line in enumerate(lines) if line == f"  {VERDICT_JOB}:"]
+    if len(heads) != 1:
+        return None
+    body = range(heads[0] + 1, len(lines))
+    opened = next((n for n in body if lines[n] == f"    {PERMISSIONS}"), None)
+    if opened is None or any(lines[n].strip() and _indent(lines[n]) <= 2 for n in range(heads[0] + 1, opened)):
+        return None
+    asked = _grants(lines, opened, 4)
+
+    return asked or None
+
+
+def granted(text: str, asked: dict[str, str]) -> tuple[str, bool] | None:
+    """`text` with the `permissions` of each job calling pin-only's verdict set
+    to exactly `asked`, and whether any changed.
+
+    Nothing else in the file is touched. `None` where such a job grants nothing,
+    or grants in a form this does not read, since a job granting less than the
+    verdict asks for fails every pull request in the repository.
+    """
+    lines = text.splitlines(keepends=True)
+    changed = False
+
+    for at, indent in [(n, _indent(line)) for n, line in enumerate(lines) if CALLS_PIN_ONLY.match(line)]:
+        opened = [
+            n for n in _job(lines, at, indent) if _indent(lines[n]) == indent and lines[n].strip() == PERMISSIONS
+        ]
+        if len(opened) != 1:
+            return None
+        has = _grants([line.rstrip("\n") for line in lines], opened[0], indent)
+        if not has:
+            return None
+        if has == asked:
+            continue
+        end = opened[0] + 1 + len(has)
+        lead = GRANT.match(lines[opened[0] + 1].rstrip("\n"))["lead"]
+        lines[opened[0] + 1 : end] = [f"{lead}{scope}: {level}\n" for scope, level in sorted(asked.items())]
+        changed = True
+
+    return "".join(lines), changed
+
+
+def _grants(lines: list[str], opened: int, indent: int) -> dict[str, str]:
+    """The grants on the lines below a `permissions:` at line `opened`, indented
+    past `indent`; empty where any line there is not one."""
+    found: dict[str, str] = {}
+    for line in lines[opened + 1 :]:
+        if not line.strip() or _indent(line) <= indent:
+            break
+        grant = GRANT.match(line)
+        if grant is None or grant["scope"] in found:
+            return {}
+        found[grant["scope"]] = grant["level"]
+    return found
+
+
 def _job(lines: list[str], at: int, indent: int) -> range:
     """The lines of the job whose `uses` is at line `at`, indented `indent`."""
     start, end = at, at + 1
@@ -447,6 +539,21 @@ def _gates_known(text: str, spec: pathlib.Path, named: str, tag: str) -> tuple[s
     return after, "".join(f"; {line}, which {GATES} at {tag} does not know" for line in dropped)
 
 
+def _verdict_granted(text: str, spec: pathlib.Path, named: str, tag: str) -> tuple[str, str] | None:
+    """A verdict caller moved to `named` granting what the verdict there asks
+    for (Q-R83), and what to say of it; `None` where either could not be read."""
+    asked = asked_at(spec, named)
+    set_to = granted(text, asked) if asked is not None else None
+
+    if set_to is None:
+        return None
+
+    after, changed = set_to
+    said = ", ".join(f"{scope}: {level}" for scope, level in sorted(asked.items()))
+
+    return after, f"; its job now grants {said}, as {PIN_ONLY} at {tag} asks" if changed else ""
+
+
 def _moved(
     path: pathlib.Path, workflow: str, sha: str, named: str, tag: str, spec: pathlib.Path
 ) -> str | None:
@@ -463,7 +570,12 @@ def _moved(
     if after == before:
         return None
 
-    cleared = _gates_known(after, spec, named, tag) if workflow == GATES else (after, "")
+    if workflow == GATES:
+        cleared = _gates_known(after, spec, named, tag)
+    elif workflow == PIN_ONLY:
+        cleared = _verdict_granted(after, spec, named, tag)
+    else:
+        cleared = (after, "")
 
     if cleared is None:
         return None

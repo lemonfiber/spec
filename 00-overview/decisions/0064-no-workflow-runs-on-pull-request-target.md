@@ -8,6 +8,9 @@ follow-up on `workflow_run` from the default branch; no Actions event policy all
 trigger back. `pin-only`'s verdict is posted as a check run by this run's token by default, or
 by the release App where a repository sets `check-source: app`, and spec posts its own by the
 App.
+**Amended:** 2026-11-17, by the maintainer, Wessel Verheij: the verdict is posted as a commit
+status by this run's token, and as a check run only by the release App; where the App may not
+write checks, it is posted as a status too.
 
 ## Context
 
@@ -48,8 +51,23 @@ Each repository's `pin-only.yml` is the relay, still named `pin-only`, run for `
 `synchronize`, `reopened`, `labeled` and `unlabeled`; its one job, `pin-only`, runs one
 step that does nothing. `pin-only-verdict.yml` runs on `workflow_run` for it and calls
 spec's reusable `pin-only.yml`, which refuses any run other than the relay's on a pull
-request, judges the head as before and posts `pin-only / pin-only` on it as a check run.
+request, judges the head as before and posts `pin-only / pin-only` on it as a commit status.
 The required check keeps its name, so branch protection is unchanged.
+
+The verdict is a status because a check run this run's token posts is filed under the first
+of GitHub Actions' check suites on the head, often the relay's first run on it. Once the
+relay runs again on the same head, for a label or a reopen, the forge counts only that
+workflow's newest suite, so the verdict filed in the older one is never counted and branch
+protection waits for a check that already passed. A status belongs to no suite, and the newest
+status of a name is the one counted. The release App posts a check run, `check-source: app`,
+since an App's check runs share one suite on a head that nothing supersedes; where its
+installation is not granted Checks: write, the verdict is posted as a status by this run's
+token instead, and a key that mints no token fails the run.
+
+A reusable job holds no permission its caller's job does not grant, so each caller grants
+`statuses: write` where it granted `checks: write`, and the fan-out that moves a caller's pin
+on `pin-only.yml` sets that job's permissions to exactly what the verdict's job asks for at
+the tag, in the same commit.
 
 The approval's head is read from the relay's runs, each stamped by the forge with its head
 and time. A label event starts a relay run, which starts a verdict, so adding or removing
@@ -114,8 +132,8 @@ A push after the label is a head nobody approved. Only then is the App's token m
 
 - Each pull request event takes two runners where it took one. The relay's run lasts
   seconds.
-- A check run posted by a `workflow_run` hangs under that app's check suite on the head,
-  not under the relay's run.
+- The verdict is a commit status on the head, not a check run under the relay's run or the
+  verdict's own; the release App's verdict is a check run in the App's suite.
 - Every repository carries two pin-only files: the relay and the verdict caller. The
   shared-files check refuses any workflow `pull_request_target` starts, and any verdict
   caller without its concurrency block.
