@@ -143,4 +143,7 @@ playlist it serves on a live-stream pass; an item transcode's segments, carrying
 are not covered by it. That path also holds the session id its route names, and a
 request whose path and `session` name different live streams is refused; where they
 name the same, the route names that live stream and no item, and where no byte path
-covers it no item question is asked (`ARCH-R417`).
+covers it no item question is asked (`ARCH-R417`). The declaration refuses `/livetv`
+whole: the live session's playlist and segments, matched end to end by their live-stream
+path, are decided by it on a pass, and any other path under `/livetv` is refused
+(`ARCH-R444`).

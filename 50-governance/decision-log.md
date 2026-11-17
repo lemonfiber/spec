@@ -615,6 +615,12 @@ Decisions about a repository outside this organisation, such as
 | On the companion's operator side, each run-and-exit service shows how its last run ended, when it started and ended, a failed run's exit code and last lines, whether a run is going, what was skipped and whether the scheduler holds its job, and runs one now on one confirmation; none of it reaches a member | [N2-R39](../10-functional/features/n-companion/n2-operator-companion.md), [N2-R41](../10-functional/features/n-companion/n2-operator-companion.md), [N2-R40](../10-functional/features/n-companion/n2-operator-companion.md) |
 | The companion never confirms a UnifiedPush wake: it never opens a push with the key pair it made for the stack and holds no plaintext of one, so it does not send `push-woken`, a delivery to the phone stays sent, and its endpoint is not proven by a wake. The user chose this over opening the sealed payload on the phone | [N4-R31](../10-functional/features/n-companion/n4-native-integration.md) |
 
+## 2026-11-18
+
+| Decision | Where it lives |
+|---|---|
+| A request a live-stream path of a media server's declaration covers is decided by that path, on a pass for the live stream it names, even where a refused path matches it too; any other request a refused path matches is refused. Plex's declaration refuses `/livetv` whole and leaves its live sessions to their live-stream paths. The user chose this over a plugin spelling out every path under `/livetv/sessions/` its live paths do not match, and over one live path covering everything under a live session | [ARCH-R444](../20-architecture/contracts/capability-contracts.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
