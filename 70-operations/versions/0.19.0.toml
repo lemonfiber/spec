@@ -85,6 +85,8 @@
 # `ARCH-R431` lets a service run to completion on a schedule rather than run for good: the
 # host's scheduler fires `lemonfiber run`, health is the last run's exit, and a failed run
 # reaches the operator alone; added by the maintainer's decision of 2026-11-15 (OPS-R31).
+# The dashboard it shows on is the command line's and the web's alike, so `lemonfiber-web`
+# is searched for it, by the maintainer's decision of 2026-11-17.
 #
 # `ARCH-R438` offers that run to the operator over the web as the action `run`, so a browser
 # reaches what the command line reaches and the `ran` kind has an action that answers with
