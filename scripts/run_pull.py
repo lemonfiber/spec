@@ -279,7 +279,6 @@ def main(argv: list[str] | None = None, api: Api = gh) -> int:
         why = unapproved(args.repo, pull, args.head, args, api) if args.label else "no label was asked about"
     except (
         subprocess.CalledProcessError,
-        json.JSONDecodeError,
         KeyError,
         TypeError,
         ValueError,
