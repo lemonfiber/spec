@@ -20,7 +20,8 @@
 # a floor for problems kept on the phone, and `N4-R25` to `N4-R27`, `N4-R29` and `N4-R30`,
 # waking without Apple's or Google's push and through UnifiedPush where Android has a
 # distributor, stack by stack; scheduled here beside the core's by the maintainer's decisions
-# of 2026-10-31 (OPS-R31).
+# of 2026-10-31 (OPS-R31). `N4-R31` keeps a wake a wake: the companion never opens a push, so
+# it never confirms one, by the maintainer's decision of 2026-11-17 (OPS-R31).
 #
 # `B5-R1`, released in 0.5.0, is amended in place: a new request and an answered invitation
 # reach the operator's phone as the `request` and `member` kinds, never a household member,
@@ -88,10 +89,18 @@
 # It shows on every operator dashboard, the command line's, the web's and the companion's
 # alike, so `lemonfiber-web` and `lemonfiber-companion` are searched for it, by the
 # maintainer's decisions of 2026-11-17.
+# `N2-R39` to `N2-R41` are the companion's side: each run-and-exit service's last run on the
+# operator's side, run now on one confirmation, and none of it to a member, by the
+# maintainer's decision of 2026-11-17.
 #
 # `ARCH-R438` offers that run to the operator over the web as the action `run`, so a browser
 # reaches what the command line reaches and the `ran` kind has an action that answers with
 # it; added by the maintainer's decision of 2026-11-16 (OPS-R31).
+#
+# `ARCH-R443` runs a run-and-exit service at once, on the command line as `--now` and over the
+# web as `run` with `now`, under the lock a fired run takes and recorded as one, so an
+# operator need not wait for its next time; added by the maintainer's decision of 2026-11-17
+# (OPS-R31).
 #
 # `ARCH-R432` writes down the statuses a service's health path reads up by, and `ARCH-R433`
 # hands them to the outside watcher's monitor of it, so a service that refuses a caller
@@ -137,7 +146,7 @@
 # with the core's sentence, and away from home declined as a title is. They follow the
 # guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
-# 164 goals, seeded from the roadmap milestone this version serves;
+# 169 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -193,6 +202,10 @@ goals   = [
     "ARCH-R430",
     "ARCH-R431",
     "ARCH-R438",
+    "ARCH-R443",
+    "N2-R39",
+    "N2-R40",
+    "N2-R41",
     "ARCH-R432",
     "ARCH-R433",
     "ARCH-R434",
@@ -287,6 +300,7 @@ goals   = [
     "N4-R27",
     "N4-R29",
     "N4-R30",
+    "N4-R31",
     "ARCH-R288",
     "ARCH-R289",
     "N30-R4",

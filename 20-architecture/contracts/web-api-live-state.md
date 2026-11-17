@@ -135,11 +135,12 @@ registered. `notify-choose` takes the ids this member receives on from now on, e
 to members, and refuses any other. A key is refused both. Each back-end's `chosen_by` in
 `/api/notify` names the operator, or the member who chose it.
 
-**A phone confirms its wake.** Every wake carries an id inside the sealed payload. The phone
-sends it back over its own pinned connection with `push-woken`, taking the endpoint's `name` and
-the `id`, and that delivery is then `confirmed`. A distributor's `404` or `410` is a failed
-delivery shown as such; the endpoint stays registered until the phone or the operator removes it
-(`N4-R30`).
+**A phone may confirm its wake.** Every wake carries an id inside the sealed payload. A phone
+that opens the payload sends it back over its own pinned connection with `push-woken`, taking
+the endpoint's `name` and the `id`, and that delivery is then `confirmed`. The companion never
+opens a push and sends none back (`N4-R31`), so a wake to it stays `sent`. A distributor's `404`
+or `410` is a failed delivery shown as such; the endpoint stays registered until the phone or
+the operator removes it (`N4-R30`).
 
 **What is playing rides the stream.** A `playing` event carries every session the media server
 is playing now, in the envelope `GET /api/playing` answers the same credential with, and it is
