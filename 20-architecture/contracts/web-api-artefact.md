@@ -151,8 +151,9 @@ The artefact is a directory, `contract/web-api/`, so that no file in it outgrows
   code as the list above shows.
 - `key-callable.json` and `reads.json` are the lists the index names.
 - `household-words.json` is what a member's surface may not show: the parts the bundle pins and
-  the services it pins none for, the terms and the size units, and examples of text a version,
-  an address or a rate makes unfit for a member, each with what it names. Every surface that
+  the services it pins none for, the terms, the size units, the marks that show an address or a
+  rate, each name lemonfiber declares (`G2-R14`) with what it names, and examples of text a
+  version, an address or a rate makes unfit for a member, each with what it names. Every surface that
   draws a member's screens holds its own words to it, so the list is written once (`ARCH-R442`).
 - `examples/kinds/<kind>.json` and `examples/actions/<action>.json` are the examples.
 

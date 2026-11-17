@@ -308,7 +308,9 @@ every search is a live question to the request service and to the catalogue behi
   search (`D4-R17`).
 - **What each title says.** Its id, kind, title, year where known, and where it stands: `here`,
   `partly-here`, `on-its-way` or `askable` (`D4-R5`, `D4-R10`). No title carries the location
-  of its artwork; the core serves that itself (`D11-R10`).
+  of its artwork; the core serves that itself (`D11-R10`). Each carries `found`, a token the core
+  signs binding the member, the kind, the id and an expiry an hour on, for the ask to hand back
+  (`D4-R27`).
 - **What the member may ask for.** Beside the titles, `asking`: what their period allows and has
   left of each kind and when it next frees up, as the household read says it, and `approval`, a
   household sentence saying whether what they ask for waits for whoever runs the house.
@@ -346,7 +348,8 @@ and reads only the covers of their own asks, the operator reads any, and a `read
 is not answered. A reference no kept ask goes by, or one another member made, is refused as
 `WISH-3`.
 
-`ask` takes `id` and `kind`, as a page of `/api/askable` named the title, `seasons` for a series
+`ask` takes `id` and `kind`, as a page of `/api/askable` named the title, `found` as that page
+gave it, `seasons` for a series
 (none names every season not already here or on its way, `D4-R11`), `name`, which the operator
 names and a member's own request has replaced with themselves, and `dry_run`. It answers now,
 never with a job, in the `asked` envelope `lemonfiber household ask --json` writes (`D4-R16`,
@@ -358,6 +361,10 @@ never with a job, in the `asked` envelope `lemonfiber household ask --json` writ
 - **The limits and the allowance are checked before the request service is asked.** An id the
   member's search could not have offered them, outside their limits or unknown, is refused as
   `WISH-3`, the same answer for both, so an ask reveals nothing a search would hide (`D8-R9`).
+- **A title just found is looked up again.** An ask handing back a valid `found` for the title it
+  names that then comes back unknown is looked up twice more, a short pause before each, and is
+  refused as `WISH-15` with `Retry-After` where it is still unknown, never as `WISH-3`; with no
+  `found`, or one invalid, lapsed or another member's, it is `WISH-3` (`D4-R27`).
 - **One ask per title.** A title already on its way is answered `on-its-way` and nothing is
   created (`D4-R10`); one already here is refused as `WISH-5` (`D4-R5`). A title not out yet is
   asked for and says it will arrive once it is (`D4-R6`).
@@ -385,6 +392,8 @@ service, size, address or state of the stack (`G4-R16`):
 | `WISH-11` | `400` | the operator named nobody |
 | `WISH-12` | `404` | nobody in the household goes by the member named |
 | `WISH-13` | `404` | the title has no picture to show |
+| `WISH-14` | `409` | the member's asks wait for a yes and go through whoever runs the house, so nothing was asked for |
+| `WISH-15` | `503` | a title the member's own search just found could not be looked up again, so they are asked to try again |
 
 ### When a request is refused
 
@@ -913,7 +922,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R218** | The `invitation` envelope MUST carry `join`, the join link, where `D6-R22` gives one, and `unjoinable`, the sentence `D6-R24` requires, where it gives none and the invitation is not a rehearsal. |
 | **ARCH-R219** | `POST /api/session` MUST accept `claim` beside a member's `name` and `password` (`D6-R25`). It MUST refuse a claim on an invitation that is not open with `401` under one code, whether the token is unknown, spent, lapsed or declined; MUST refuse a password shorter than the minimum under a code of its own naming the minimum (`D6-R26`); MUST count a claim against the attempts a sign-in is counted against; and MUST remain the one route that answers without a token. |
 | **ARCH-R441** | `POST /api/session/code` MUST answer a request carrying no token. Asked with `{}`, it MUST ask the identity source's `sign_in_by_code` for a device id the core draws and answer a `sign-in-code` envelope carrying the code, `approve_at`, `lapses_at` and `waiting`, a handle of 128 random bits the core draws, and MUST keep the id the source answered against that handle and the session the request carried, never answering or logging it. Asked with `{ "waiting": … }`, it MUST answer the same kind while the code waits and the `admission` envelope of a member's session once `signed_by_code` answers a member, spending the handle, and MUST refuse with `401` under one code a handle that is unknown, lapsed or spent, sent with a session other than the one that asked, or, with `LEMONFIBER_SIGN_IN_CODES_BY_ADDRESS` on, sent from another network address than the one that asked. It MUST refuse an ask with `429` and `Retry-After` from a source, the session the request carries and its network address otherwise (an IPv6 address by its `/64`), with `LEMONFIBER_SIGN_IN_CODES_WAITING` codes waiting or `LEMONFIBER_SIGN_IN_CODES_PER_PERIOD` asked within the last `LEMONFIBER_SIGN_IN_CODES_PERIOD`, while still issuing codes to every other source, and MUST NOT count finishing against either (`ARCH-R377`). |
-| **ARCH-R442** | The contract artefact MUST carry `household-words.json`, named in its index as `household_words`, holding what a member's surface may not show (`G2-R16`): the name of every part the bundle pins and of every service, engine and tunnel the stack could run that it pins none for, every term for how the stack is built and run, every unit a size is written in, and examples of text a version, an address or a rate makes unfit for a member, each with what it names. It MUST be generated from the one list the core's own tests hold a member's text to, and CI MUST refuse it when it differs from what that list generates. |
+| **ARCH-R442** | The contract artefact MUST carry `household-words.json`, named in its index as `household_words`, holding what a member's surface may not show (`G2-R16`): the name of every part the bundle pins and of every service, engine and tunnel the stack could run that it pins none for, every term for how the stack is built and run, every unit a size is written in, every mark that shows an address or a rate, every name lemonfiber declares under `G2-R14` with what it names, and examples of text a version, an address or a rate makes unfit for a member, each with what it names. It MUST be generated from the one list the core's own tests hold a member's text to, and CI MUST refuse it when it differs from what that list generates. |
 | **ARCH-R220** | An envelope MUST NOT carry a drawn QR code. A surface MUST draw each code from the address, link or text the envelope carries, exactly as given (`G1-R15`). |
 | **ARCH-R223** | Every sentence the core sends a client over the web API or a capability contract (a refusal's summary and remedy, a reason, a report, and each code's meaning and remedy in the registry) MUST be plain text carrying no markup, and CI MUST refuse a core sentence written with a code span or emphasis. |
 | **ARCH-R254** | The web API MUST answer `GET /api/settings` as `lemonfiber settings --json` answers, with every setting in the core's settings store: its name, whose it is, each service that reads it and the variable it is read into, the declared default, and the operator's value where one is recorded; only the operator MUST be answered, and a member, a key scoped to one, and a `read` or an `act` key MUST be refused. |

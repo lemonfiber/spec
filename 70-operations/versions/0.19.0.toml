@@ -134,7 +134,7 @@
 # with the core's sentence, and away from home declined as a title is. They follow the
 # guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
-# 163 goals, seeded from the roadmap milestone this version serves;
+# 164 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -204,6 +204,7 @@ goals   = [
     "D4-R24",
     "D4-R25",
     "D4-R26",
+    "D4-R27",
     "D4-R21",
     "F12-R14",
     "F13-R15",
@@ -347,3 +348,6 @@ goals   = [
 # `D4-R24`, `D4-R25` and `D4-R26` answer which kinds a member may ask for, serve music and book
 # covers, and report kept asks as arrived, so the companion's music and books pages can be
 # built, by the maintainer's decision of 2026-11-09.
+# `D4-R27` looks a title the member's own search just found up again before calling it
+# unknown, so a curator's slow lookup is a try-again rather than no such title, by the
+# maintainer's decision of 2026-11-17.
