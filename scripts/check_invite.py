@@ -4,6 +4,8 @@
 An invite code can be revoked, and every published link carrying it dies at once,
 so every tracked file addresses the community as https://discord.nightworks.io.
 Every tracked text file is searched, with `git grep`, for a Discord invite link.
+The root is the working directory rather than an argument, so no path given on the
+command line reaches git's own arguments.
 
 The pattern escapes its dots, so this file does not match its own text.
 
@@ -31,12 +33,16 @@ COMMUNITY = "https://discord.nightworks.io"
 
 def found(root: pathlib.Path) -> list[str] | None:
     """Every `path:line:text` an invite link is on, or None where git could not search."""
-    searched = subprocess.run(
-        ["git", "-C", str(root), "grep", "-nIE", INVITE, "--", "."],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    try:
+        searched = subprocess.run(
+            ["git", "grep", "-nIE", INVITE, "--", "."],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return None
     if searched.returncode == 1:
         return []
     if searched.returncode != 0:

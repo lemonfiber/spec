@@ -77,6 +77,9 @@ class ATree(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("::error::git grep could not search the tracked files", said)
 
+    def test_a_root_that_does_not_exist_is_refused_rather_than_passed(self):
+        self.assertIsNone(invite.found(self.root / "absent"))
+
     def test_this_check_does_not_match_its_own_text(self):
         spec = pathlib.Path(__file__).resolve().parent.parent
         self.assertEqual(invite.found(spec), [])
