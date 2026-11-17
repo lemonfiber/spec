@@ -438,7 +438,7 @@
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 666 goals, seeded from the roadmap milestone this version serves;
+# 667 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -620,7 +620,7 @@ goals   = [
     "ARCH-R355", "ARCH-R356", "ARCH-R357", "ARCH-R358", "ARCH-R359", "ARCH-R360",
     "ARCH-R361", "ARCH-R362", "ARCH-R363", "ARCH-R364", "ARCH-R365", "ARCH-R366",
     "ARCH-R367", "ARCH-R368", "ARCH-R369", "ARCH-R370", "ARCH-R371", "ARCH-R372", "ARCH-R373",
-    "ARCH-R374", "ARCH-R375", "ARCH-R376", "ARCH-R377", "ARCH-R378", "ARCH-R379", "ARCH-R441",
+    "ARCH-R374", "ARCH-R375", "ARCH-R376", "ARCH-R377", "ARCH-R378", "ARCH-R379", "ARCH-R441", "ARCH-R442",
     "ARCH-R380", "ARCH-R381", "ARCH-R382", "ARCH-R383", "ARCH-R384",
     "ARCH-R385", "ARCH-R386", "ARCH-R387", "ARCH-R388", "ARCH-R422", "ARCH-R423", "ARCH-R424", "ARCH-R425",
     "C6-R26", "C6-R27", "C6-R28", "C6-R29", "C6-R30", "D1-R27", "D1-R28",
