@@ -905,7 +905,7 @@ class TheWorkflow(unittest.TestCase):
         self.assertEqual(self.workflow["permissions"], {})
         self.assertEqual(
             self.job["permissions"],
-            {"actions": "read", "checks": "write", "contents": "read", "pull-requests": "read"},
+            {"actions": "read", "contents": "read", "pull-requests": "read", "statuses": "write"},
         )
         self.assertEqual(list(self.workflow[True]), ["workflow_call"])
 

@@ -53,7 +53,7 @@ class Readers(unittest.TestCase):
         for mint in mints:
             self.assertTrue(mint["if"].startswith("inputs.check-source == 'app'"), mint["if"])
 
-    def test_pin_only_posts_nothing_where_the_app_may_not_write_checks_and_fails_on_a_broken_key(self):
+    def test_pin_only_posts_a_status_where_the_app_may_not_write_checks_and_fails_on_a_broken_key(self):
         verdict = yaml.safe_load((WORKFLOWS / "pin-only.yml").read_text(encoding="utf-8"))
         steps = verdict["jobs"]["pin-only"]["steps"]
         named = {step.get("id"): step for step in steps if step.get("id")}
@@ -66,10 +66,11 @@ class Readers(unittest.TestCase):
         self.assertEqual(fallback["uses"], named["app"]["uses"])
         [warned] = [step for step in steps if step.get("if") == "steps.unposted.outcome == 'success'"]
         self.assertTrue(warned["run"].strip().startswith('echo "::warning::'))
-        after = steps[steps.index(warned) + 1 :]
-        self.assertTrue(after)
-        for step in after:
-            self.assertEqual(step.get("if"), "steps.app.outcome != 'failure'", step.get("name"))
+        last = steps[-1]
+        self.assertNotIn("if", last)
+        self.assertEqual(last["env"]["GH_TOKEN"], "${{ steps.app.outputs.token || github.token }}")
+        self.assertEqual(last["env"]["POST"], "${{ steps.app.outcome == 'success' && 'check' || 'status' }}")
+        self.assertIn('--post="$POST"', last["run"])
 
     def test_tell_is_release_where_its_caller_names_none(self):
         tell = yaml.safe_load((WORKFLOWS / "tell.yml").read_text(encoding="utf-8"))

@@ -17,9 +17,9 @@ jobs:
   verdict:
     permissions:
       actions: read
-      checks: write
       contents: read
       pull-requests: read
+      statuses: write
     uses: ./.github/workflows/pin-only.yml
     with:
       relay: .github/workflows/pin-only-check.yml
