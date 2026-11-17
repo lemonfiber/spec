@@ -133,3 +133,14 @@ that policy to live TV itself:
 | `guide` | Each of those channels' guide, read one day at a time from its DVR's guide provider, merged and held to the hours asked, a day that cannot be read refusing the guide. Read once with the owner's token for each channel's `until`, before anything is left out, and once with the member's for what it holds, leaving out each programme whose certificate the share's television filter does not admit or the Home account's restriction profile places above it, each carrying a label the filter refuses, and each with no certificate where unrated content is held back |
 | `tune` | The channel tuned on its DVR with the member's token, answering the live session's own playlist and a transcoded playlist of it whose `session` is the live session's id and whose `path` is that live session's playlist |
 | `untune` | The live session terminated; one the server no longer holds is closed already |
+
+Plex's declaration covers the live session's own playlist and segments by the live
+session's id in their path, and the transcoder's start by its `session` parameter with
+its `path` bound to the same live session. The transcoder's segments sit under a session
+id in their path, as an item transcode's do, so its live-stream path is covered only
+where the request carries `session`, which the guard writes into every address of a
+playlist it serves on a live-stream pass; an item transcode's segments, carrying none,
+are not covered by it. That path also holds the session id its route names, and a
+request whose path and `session` name different live streams is refused; where they
+name the same, the route names that live stream and no item, and where no byte path
+covers it no item question is asked (`ARCH-R417`).
