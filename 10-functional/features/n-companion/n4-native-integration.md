@@ -171,6 +171,7 @@ nothing that would override the reader's own type size or choice of light or dar
 | The device has no secure storage | The app refuses to store a session and says why, rather than writing it somewhere weaker. |
 | The stack cannot hand back everything raised while the app was away | The app notifies what it was handed and never calls it everything; where notifications are turned on, it says some may be missing. |
 | Notifications are declined after being granted | Honoured immediately; the app does not keep trying. |
+| A wake arrives with an id sealed inside it for the phone to send back | Not sent back. The app never opens a push and holds no plaintext of one, so the stack's record of that wake stays sent and its endpoint is never proven by a wake. |
 | A notification arrives for a stack that has since been removed | Not shown. A notification for a stack the person no longer has is confusing and leaks that it existed. |
 | The app is backgrounded mid-repair | The repair is the core's, and continues there. The app locks and reports the outcome when next opened. |
 | The OS screenshots the app for its task switcher | The locked screen is what is captured, not the last screen shown. |
@@ -210,6 +211,7 @@ nothing that would override the reader's own type size or choice of light or dar
 | **N4-R28** | Unless the stack says its replay holds every alert raised since the app last listened (`ARCH-R281`), the app MUST NOT present the alerts it notifies on waking as all of them, and MUST say to the operator, where notifications are turned on, that some may be missing; a household member MUST NOT be shown it. |
 | **N4-R29** | Waking through UnifiedPush MUST be turned on stack by stack, on that stack's settings, and MUST be registered under the name this phone's key carries on that stack (`N29`), with a WebPush key pair made on the phone for that stack alone and deleted with the stack or when waking is turned off; where more than one distributor is installed, the operator MUST choose which, once, and MUST be able to change it (`ARCH-R282`). |
 | **N4-R30** | Waking turned off while the stack cannot be reached MUST stop at once, the removal MUST be sent the next time the phone reaches that stack, and the app MUST say that the stack holds the endpoint until then. A stack removed from the phone while it cannot be reached MUST NOT have its removal kept (`N27-R11`), and the app MUST say, as it removes the stack, that the stack holds the endpoint until it is removed there. |
+| **N4-R31** | The app MUST NOT confirm a wake (`ARCH-R404`): it MUST NOT open a push with the key pair it made for the stack (`N4-R29`) or any other, MUST hold no plaintext of one, and MUST NOT send `push-woken`; a push MUST stay a wake only (`N4-R26`), so a delivery to this phone stays sent and its endpoint is not proven by a wake (`ARCH-R402`). |
 
 ## Related
 

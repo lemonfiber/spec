@@ -5,7 +5,7 @@ kind: feature
 area: N
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P1
 labels: [mobile, ux, verification]
 requires: [N1, C1, C3, G7]
@@ -205,6 +205,23 @@ the operator asking, says so plainly when nothing is playing, and says when it
 last heard where the stream has stopped. It is the operator's: a member is never
 shown it, nor anybody else's session.
 
+### A service that runs on a schedule
+
+Some services run to completion at the times their setting names, and stop until
+the next one ([ARCH-R431](../../../20-architecture/contracts/plugin-manifest.md)).
+Between runs such a service is not running, and that is neither stopped nor
+broken. The operator sees each one the stack reports: how its last run ended, when
+it started and ended, whether a run is going now, how many times fell due while a
+run was still going, and whether this machine's scheduler holds its job. A run
+that failed shows its exit code and the last lines it wrote, as the stack hands
+them with every credential withheld. One that has not run yet says so, and is
+neither a success nor a failure. None of it reaches a member.
+
+The operator can run one now rather than wait for its next time
+([ARCH-R443](../../../20-architecture/contracts/plugin-manifest.md)). The app asks
+once, naming the service, and then shows what the stack answered: how the run
+ended, or why nothing ran, such as a run of it still going.
+
 ### What it does not do
 
 Nothing here edits a credential's value. The app can report that a credential is
@@ -290,6 +307,9 @@ and a note beside it says a preview cannot ask.
 | **N2-R36** | A start's yes MUST carry back the offer its rehearsal named, and MUST NOT be offered where an install it names could not be read, the app saying why. Where the stack takes no offer for a start over the web API, the app MUST NOT offer a yes for a start whose rehearsal names an install, and MUST say it is agreed at the terminal. |
 | **N2-R37** | Where what a start came to names services taking `render` that it wrote without the host's render devices, the app MUST name each, say it runs without hardware transcoding, and give the stack's reason the group owning those devices was not asked or not kept, in the stack's words (`ARCH-R237`). |
 | **N2-R38** | The operator's list of what the household asked for and the news feed MUST name a request by the reference the core gives it, MUST send that reference unchanged to approve or decline it, and the news feed MUST list requests newest asked first, in the core's order. |
+| **N2-R39** | The operator MUST be able to see each run-and-exit service the stack reports (`ARCH-R431`) by its name, with its health as the stack answers it, as not run yet, succeeded or failed; when its last run started and ended; whether a run of it is going now; how many times fell due while a run was still going; and whether this machine's scheduler holds its job. A failed run MUST show its exit code, or say it ended without one where the stack gives none, and the last lines of its log as the stack gives them. A service not run yet MUST NOT be shown as succeeded or as failed, and a service between runs MUST NOT be shown as stopped or broken. |
+| **N2-R40** | A member MUST NOT be shown a run-and-exit service, any of its runs, its log or an offer to run it, and the operator's preview of the member's side (`N2-R25`) MUST NOT show them either. |
+| **N2-R41** | The operator MUST be able to run a run-and-exit service now (`ARCH-R443`). The app MUST ask for one explicit confirmation naming the service before it sends `run` with `now`, and MUST then show what the stack answered: how the run ended, with its exit code and last lines where it failed (`N2-R39`), or, where nothing ran, the stack's reason in its own words. It MUST NOT show the service as run, or its health as changed, before the stack answers. |
 
 ## Notes
 
