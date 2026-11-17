@@ -141,14 +141,19 @@ The artefact is a directory, `contract/web-api/`, so that no file in it outgrows
 
 - `index.json` carries `api_version` and names every other file: `kinds` maps each kind to
   its file, `refusals` maps each code family to its file, `key_callable` and `reads` each
-  name the file holding that list, `events` describes the event stream, and `examples` maps
-  each kind and each action to its example's file.
+  name the file holding that list, `events` describes the event stream, `examples` maps
+  each kind and each action to its example's file, and `household_words` names the file of
+  what a member's surface may not show.
 - `kinds/<kind>.json` is the schema of the envelope carrying that kind.
 - `defs/<Name>.json` is one definition. Every definition is here, whether one kind carries it
   or nine, so a definition several kinds share is written once.
 - `refusals/<FAMILY>.json` is the refusals of one code family, `ADMIT` or `LIFE`, keyed by
   code as the list above shows.
 - `key-callable.json` and `reads.json` are the lists the index names.
+- `household-words.json` is what a member's surface may not show: the parts the bundle pins and
+  the services it pins none for, the terms and the size units, and examples of text a version,
+  an address or a rate makes unfit for a member, each with what it names. Every surface that
+  draws a member's screens holds its own words to it, so the list is written once (`ARCH-R442`).
 - `examples/kinds/<kind>.json` and `examples/actions/<action>.json` are the examples.
 
 A `$ref` is a path to a definition's file, resolved against the file it appears in:
