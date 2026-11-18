@@ -107,9 +107,12 @@ a gap, so a programme is left out by the server's policy and by the core's limit
 Where the guide ends on a channel is its `until`, or the end of the last programme
 answered where the adapter speaks a minor below `6` (`D11-R17`). It issues a pass for each path `tune` answered, for the live stream a
 live-stream path places in it, and refuses a path no live-stream path covers, so no pass
-is issued for bytes the guard would not ask about. Asked to renew, it asks `channels`
-again for that member and refuses where the channel is gone or its programme now is
-outside their limits. It keeps, owner-only, each live stream it opened: the member, the
+is issued for bytes the guard would not ask about. The pass lapses when the programme
+`channels` admitted on the channel ends, where that is before five minutes are up, and
+after one minute where a limit holds the member back and `channels` gave that programme
+no end, so the programme that follows is asked about before it is served. Asked to
+renew, it asks `channels` again for that member, refuses where the channel is gone or its
+programme now is outside their limits, and holds the pass good to the same bound again. It keeps, owner-only, each live stream it opened: the member, the
 channel, the id it is closed by, the live streams its paths name and when its last pass
 lapses, and no pass. It asks `untune` for each whose pass lapsed unrenewed, every minute
 while it serves the web API and whenever the household is read, for one the client says
