@@ -37,6 +37,7 @@ header** to read and a client has one thing to hold rather than two.
 |---|---|
 | The password was wrong, or none is configured | `401` |
 | Too many wrong answers lately | `429`, saying how long is left |
+| The password was right and this machine would not supply the bytes a session's secret is drawn from | `500`, under a code of its own, and no session begun |
 
 **An invitation is claimed at the same door.** The body
 `{ "name": …, "password": …, "claim": … }` is a claim
