@@ -59,6 +59,10 @@
 # programme has no known end, so the next programme is asked about before it is served.
 # It is the core's, by the maintainer's decision of 2026-11-18 (OPS-R31).
 #
+# `C2-R21` runs torrents chosen without a VPN without one: the download client on its own
+# network, no VPN service installed or started, and no tunnel check applying. It is the
+# core's, by the maintainer's decision of 2026-11-18 (OPS-R31).
+#
 # `ARCH-R444` has a live-stream path decide a request a refused path matches too, so a
 # declaration refuses a whole route, as Plex's refuses `/livetv`, and leaves the live
 # streams under it to their live-stream paths alone. It is the door's and the media servers'
@@ -157,7 +161,7 @@
 # with the core's sentence, and away from home declined as a title is. They follow the
 # guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
-# 170 goals, seeded from the roadmap milestone this version serves;
+# 171 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -334,6 +338,7 @@ goals   = [
     "ARCH-R420",
     "ARCH-R421",
     "ARCH-R444",
+    "C2-R21",
     "A5-R15",
     "F14-R31",
     "ARCH-R416",
