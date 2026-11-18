@@ -69,6 +69,13 @@
 # adapters', by the maintainer's decision of 2026-11-18 (OPS-R31). `lemonfiber-door` is
 # searched for it.
 #
+# `ARCH-R445` has the seed take back a download client lemonfiber added to a curator once
+# no service filling that curator's download ask answers where it pointed, through
+# `library.curate@1`'s `forget_download_client` from minor `5`, so a substitute for a
+# download client stands in without the curator still trying the old one. It is the core's
+# and the curators' adapters', by the maintainer's decision of 2026-11-18 (OPS-R31).
+# `lemonfiber-plugins` is searched for it.
+#
 # `F12-R14` and `F13-R15` let Home Assistant's and the MCP server's setup take a key link
 # in place of the address, key and pin; they are `integration-home-assistant`'s and
 # `integration-mcp`'s, so both are searched, and neither is tagged.
@@ -161,7 +168,7 @@
 # with the core's sentence, and away from home declined as a title is. They follow the
 # guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
-# 171 goals, seeded from the roadmap milestone this version serves;
+# 172 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -170,7 +177,7 @@ milestone = "M16"   # The household's library
 delivers  = "The household's library: find, ask for and play, under the member's own limits"
 status  = "planned"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr", "plugin-dashy", "plugin-traefik", "plugin-flaresolverr", "plugin-gluetun", "plugin-recyclarr", "plugin-unpackerr", "plugin-calibre-web-automated", "plugin-navidrome", "plugin-homepage", "plugin-configarr"]
-satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion", "lemonfiber-door", "integration-home-assistant", "integration-mcp"]
+satisfied_in = ["lemonfiber", "lemonfiber-plugins", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion", "lemonfiber-door", "integration-home-assistant", "integration-mcp"]
 goals   = [
     "B8-R15",
     "B8-R16",
@@ -338,6 +345,7 @@ goals   = [
     "ARCH-R420",
     "ARCH-R421",
     "ARCH-R444",
+    "ARCH-R445",
     "C2-R21",
     "A5-R15",
     "F14-R31",

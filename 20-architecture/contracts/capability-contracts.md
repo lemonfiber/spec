@@ -136,7 +136,7 @@ asks for them. Their shapes are the generated documents' alone.
 |---|---|
 | `identity.source` | First-run state; create the administrator; the household's accounts; one account by name; an account's standing and limits; invite; take an invitation back; withdraw; when an invitation was sent; libraries; ratings; the country its ratings are named for; replace the administrator's password; allow; claimable; suspend; sessions for an account; whether devices sign in by code; sign a member in by a code an outside service shows, and who that code signed in |
 | `media.serve` | The guard and the locations (below); holdings for an account; what is playing; a title; a title's poster or backdrop for an account; part-way; record progress; open a device's session for an account; sign a device out; has an item; rescan; how many seasons and episodes each series holds; refresh one item; trust a proxy; allow origins; mint, list, date and revoke a key for an app, and list what it holds under an app's name that is no key it made; an app's account and the server itself as the outside service holding its accounts knows them; serve the internal TLS port with the core's certificate; `events`: tell the core what the server did (below); live TV: the channels an account may watch, tune a channel for an account and untune it (below); `allow_origins`: every origin a browser may read it from (below) |
-| `library.curate` | Identity; download clients (register, update, set a field, test, list); root folders (register, list); quality profiles; run a command; whether anything is wanted, read without searching; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck); requests (a title by its catalogue reference, the titles held, one title held, request, search, remove, what is downloading); what it holds below its cutoff; `events`: tell the core what its upstream did (below) |
+| `library.curate` | Identity; download clients (register, update, set a field, test, list, forget); root folders (register, list); quality profiles; run a command; whether anything is wanted, read without searching; hardlinks (read, set); records and carry; catalogue lookup, plan, add and indexer count; releases for a quality; apply a music format; queue; pipeline (library, find, history, queue, parts, stuck); requests (a title by its catalogue reference, the titles held, one title held, request, search, remove, what is downloading); what it holds below its cutoff; `events`: tell the core what its upstream did (below) |
 | `download.usenet`, `download.torrent` | Transfers; pulling, stop, resume; throttled, restrain, moving; moved; `file_under`: each category and its completed folder; `filed`: every category and the completed folder it holds for it (below); seeding and letting a completed download go, and the port it takes peers on (read, set) (`download.torrent`); usenet accounts (`download.usenet`) |
 | `indexer.search` | Register, list, test and re-key an application; indexers; aggregators (list, add); challenge solvers (list, add) |
 | `indexer.proxy` | Solve a challenge; whether it answers |
@@ -311,6 +311,33 @@ and reads each back with `filed`. A client holding a folder for a category other
 there holds the operator's choice, and the seed keeps it and reports it drifted, as it does
 every seeded value (`D1-R3`). The extractor is handed the folder `filed` reads back, not
 the one lemonfiber wrote (`ARCH-R306`, `ARCH-R311`).
+
+## A download client taken back
+
+A curator keeps every download client it was told about until something removes it. Once
+another service fills the download ask a client filled, the curator still holds the old
+one, tries it on every pass and reports that it cannot reach it. So the seed takes back
+each download client lemonfiber added once no service filling a download ask of that
+curator answers where it pointed.
+
+`forget_download_client`, of `library.curate@1` from minor `5`, takes the id the curator
+gave a client, as `download_clients` answers it, and answers `204` once the curator holds
+no client by that id, where it held none already too.
+
+The seed asks it only for a client the journal records lemonfiber created in that curator,
+by that id, that the curator still holds, and whose host and port are no longer where any
+service filling a download ask of that curator answers, as its filler declares. A client
+the operator added, or one the operator held before lemonfiber came and an adopt pass took
+on, was never created by lemonfiber, so it is never taken back. A filler whose credential is
+not in hand yet still declares where it answers, so it is not taken back either. A curator
+that does not answer `download_clients` has nothing taken back that run.
+
+Each client taken back is journalled and reported `taken-back`; a rehearsed seed reports it
+`would-take-back` and takes nothing back. A curator answering `unsupported` keeps the client,
+and the seed reports it `skipped` with a warning naming the client left behind. Any other
+refusal, such as a curator that will not let a client go while an indexer is pinned to it,
+fails that one wiring with what the curator said. Neither stops the rest of the seed
+(`ARCH-R445`).
 
 ## The forwarded port
 
@@ -839,6 +866,7 @@ the first stays spoken until it is deprecated by announcement and then removed, 
 | **ARCH-R319** | `request.intake@1` MUST declare `establish`, taking the identity source `configure_identity` takes and answering `204` once the upstream holds an owner and answers the adapter's upstream credential, `204` where it already did, and a refusal as `configure_identity` is refused otherwise; the core MUST ask it each time it sets up the request service's identity, before any other operation of the contract, and `lemonfiber plugin record` MUST ask it as the contract's first case. |
 | **ARCH-R320** | An operation of `library.curate@1` that takes a kind of media MUST publish one conformance case per media type it takes, named `<operation>-answers-<media type>`, and an adapter MUST be asked and judged on exactly the cases of the media types its upstream's `media_types` names. |
 | **ARCH-R321** | `register_download_client` MUST save the client it is handed, and its conformance case MUST name the client's protocol as the native API of the download filler the bundle ships, `sabnzbd`; while it records a curator, `lemonfiber plugin record` MUST answer at the host the case names, reachable from the upstream's container alone, the queries a curator tests a SABnzbd client with, and nothing more. |
+| **ARCH-R445** | `library.curate@1` MUST declare `forget_download_client` from minor `5`, taking the id a curator gave a download client as `download_clients` answers it and answering `204` once the curator holds no client by that id, where it held none already too; its conformance case MUST ask it for an id the curator holds no client by. On every seed that is not a rehearsal, the core MUST ask it of a curator for each download client the journal records lemonfiber created in that curator, by that id, that the curator still answers in `download_clients`, and whose host and port are those of no service filling a download ask of that curator as its filler declares where it answers, and for no other client; it MUST journal each one taken back and report it `taken-back`, MUST report one a rehearsal would take back `would-take-back` and take none back, MUST take nothing back from a curator that does not answer `download_clients`, MUST report a curator answering `unsupported` as `skipped` with a warning naming the client left in it, MUST report any other refusal as that wiring failed with what the curator said, and MUST NOT stop the seed for any refusal of it. |
 | **ARCH-R326** | A conformance case that hands the upstream an identity source MUST name its protocol as `jellyfin`, and one that hands it a curator MUST name the curator of series; while it records, `lemonfiber plugin record` MUST answer at each host and port the cases name, each party on a port of its own, reachable from the upstream's container alone, in that party's native API: for the identity source, the sign-in of the owner the case names, a key made and listed under the name it was asked to make one for, what server it is, and a list of accounts holding that owner and the member the cases link; for the curator, the queries an upstream tests a curator with before it saves one, its release in every answer; and nothing more. |
 | **ARCH-R327** | Each operation whose answer holds a credential the upstream issues MUST name every place its answer holds one as a JSON pointer, `""` where the whole answer is one, its contract document MUST publish them as `x-lemonfiber-secret`, and `lemonfiber plugin record` MUST scrub the value at each as a credential its run read (`ARCH-R297`). |
 | **ARCH-R328** | `owner.claim@1` MUST declare `owner`, answering `Open`, `Settling`, `Ours` or `Theirs`, and `claim`, which claims an `Open` part with the credential in the adapter's `upstream.json` and answers what the part then is, and MUST NOT change a part that is `Ours` or `Theirs`; `claim` MAY answer `205` where the upstream takes the claim only once it restarts, and the core MUST then restart the service the adapter `fronts` as [ARCH-R341](capability-contracts.md) says, ask `owner` again, and count the part claimed only once it answers `Ours`; the credential MUST be the plugin's minted secret, or, for a part claimed against an account outside the house, the secret declaring `lapses_s` the operator entered for it (`ARCH-R364`), and MUST NOT cross a call. |
