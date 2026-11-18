@@ -285,14 +285,37 @@ class PinsOnly(InDirectory):
             self.asked("plugin.toml", "recordings/x/a.json", "proofs.json", "targets.toml"), "yes"
         )
 
+    def test_a_conformance_case_the_pin_takes_again_is_only_a_pin(self):
+        self.assertEqual(self.asked("plugin.toml", "conformance/invite.decline@1/held-answers.json"), "yes")
+
     def test_anything_else_beside_them_is_not(self):
-        for path in ("src/main.rs", "README.md", "conformance/x@1/a.json", "nested/plugin.toml"):
+        for path in (
+            "src/main.rs",
+            "README.md",
+            "nested/plugin.toml",
+            "conformance/x@1/nested/a.json",
+            "conformance/x@1/a.json/b.json",
+            "conformance/x@1/README.md",
+            "conformance/x@1/.a.json",
+            "conformance/x/a.json",
+            "conformance/a.json",
+            "nested/conformance/x@1/a.json",
+        ):
             with self.subTest(path=path):
-                self.assertEqual(self.asked("plugin.toml", path), "no")
+                self.assertEqual(self.asked("plugin.toml", path, before=self.commit()), "no")
 
     def test_a_plugin_in_a_directory_is_read_there(self):
-        self.assertEqual(self.asked("door/plugin.toml", "door/recordings/a.json", directory="door/"), "yes")
+        self.assertEqual(
+            self.asked(
+                "door/plugin.toml", "door/recordings/a.json", "door/conformance/x@1/a.json", directory="door/"
+            ),
+            "yes",
+        )
         self.assertEqual(self.asked("plugin.toml", directory="door"), "no")
+        self.assertEqual(
+            self.asked("door/plugin.toml", "conformance/x@1/a.json", directory="door", before=self.commit()),
+            "no",
+        )
 
     def test_nothing_changed_or_no_commit_before_publishes(self):
         self.assertEqual(self.asked(), "no")

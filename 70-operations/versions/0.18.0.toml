@@ -182,6 +182,10 @@
 # rolling pull request, so `plugin-jellyfin` pins a real build of its adapter before any
 # release carries it. A commit image is not a release and never moves the bundle.
 # Added after staging by the maintainer's decision of 2026-10-11 (OPS-R31).
+# `OPS-R90` is amended in place: a commit that changes the conformance cases a pin takes
+# again, beside the manifest, its proofs, its targets and its recordings, publishes no
+# image either, so merging a pin's pull request that took them again never starts
+# another. Amended by the maintainer's decision of 2026-11-18 (OPS-R31).
 # `C10-R1` to `C10-R14` give a program that runs beside the stack its own credential: a
 # named key with one scope, minted at the command line or over the web API with the
 # password given again, shown once beside the stack's address and pin, and revoked by name

@@ -7,9 +7,10 @@
 # commit `main` holds, publishes under that tag. Every commit on `main` publishes under
 # `main-<first 12 of the commit>`; that is a pinned build of `main`, not a release, and
 # nothing announces it. A push to `main` whose change from the commit before it is only
-# a pin's, at most `plugin.toml`, `proofs.json`, `targets.toml` and what is under
-# `recordings/`, publishes nothing, so merging a pin's pull request never starts the
-# next one (OPS-R90). Either way each platform is built on a runner of its own
+# a pin's, at most `plugin.toml`, `proofs.json`, `targets.toml`, what is under
+# `recordings/` and each conformance case under `conformance/<contract>@<major>/`,
+# publishes nothing, so merging a pin's pull request never starts the next one
+# (OPS-R90). Either way each platform is built on a runner of its own
 # architecture and pushed by digest; the two are joined under one multi-architecture
 # index at the image the manifest's adapter service names,
 # `ghcr.io/lemonfiber/<crate>:<tag>`, which carries BuildKit's SBOM and provenance, and

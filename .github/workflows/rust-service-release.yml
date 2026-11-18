@@ -4,10 +4,11 @@
 # A push to `main` publishes the commit as `main-<12 hex>`, and a tag `vX.Y.Z`, or
 # `vX.Y.Z-<identifier>` for a pre-release, on a commit `main` holds publishes that
 # tag. A push to `main` whose change from the commit before it is only a pin's, at
-# most `plugin.toml`, `proofs.json`, `targets.toml` and what is under `recordings/`,
-# publishes nothing, so merging a pin's pull request never starts the next one
-# (OPS-R90). The push's commits before and after are compared here, so a caller
-# needs no path filter of its own.
+# most `plugin.toml`, `proofs.json`, `targets.toml`, what is under `recordings/` and
+# each conformance case under `conformance/<contract>@<major>/`, publishes nothing,
+# so merging a pin's pull request never starts the next one (OPS-R90). The push's
+# commits before and after are compared here, so a caller needs no path filter of its
+# own.
 #
 # Each platform is built on a runner of its own architecture and pushed by digest;
 # the two are joined under one multi-architecture index at
