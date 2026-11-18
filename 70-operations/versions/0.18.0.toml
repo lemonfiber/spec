@@ -508,6 +508,10 @@
 # could read as a number, because the engine's own name for a container is drawn from its id
 # and a program reading its hostname as a value takes `77e670703184` for one; added by the
 # maintainer's decision of 2026-11-14 (OPS-R31).
+#
+# `ARCH-R42` is amended in place: the session or key a web API request carries is checked
+# through dispatch and answered with the `caller` kind, while a sign-in keeps answering
+# `admission`. It is the core's, by the maintainer's decision of 2026-11-18 (OPS-R31).
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
