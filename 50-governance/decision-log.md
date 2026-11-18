@@ -627,6 +627,12 @@ Decisions about a repository outside this organisation, such as
 | The seed takes back a download client lemonfiber added to a curator once no service filling a download ask of that curator answers where it pointed, through `library.curate@1`'s `forget_download_client` from minor `5`. A client is lemonfiber's when the seed kept it as one it created in that curator, by the id the curator gave it and the host and port it was made for; one the operator added, held before lemonfiber came or pointed elsewhere is never taken back. The user chose this over disabling the old client, and over proving the substitutes only where they are chosen at setup; matching by the id the seed kept was preferred over matching by the name lemonfiber gave the client, which an operator can change or reuse | [ARCH-R445](../20-architecture/contracts/capability-contracts.md) |
 | A commit on a first-party plugin's `main` that changes nothing but what a pin moves publishes no image, and what a pin moves includes each conformance case under `conformance/<contract>@<major>/` it takes again, so merging a pin's pull request that took them again never starts another | [OPS-R90](../70-operations/releasing.md) |
 
+## 2026-11-19
+
+| Decision | Where it lives |
+|---|---|
+| A service whose image is built on an upstream's names that upstream image and the release it was built from as `built_on = { image, release }` in `plugin.toml`; an adapter in front of it supports that release, and `lemonfiber plugin provenance` refuses a `built_on` the image's build provenance does not record as a base it started from. The user chose the check in the core over one in the plugin CI's reader. | [ARCH-R446](../20-architecture/contracts/plugin-manifest.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

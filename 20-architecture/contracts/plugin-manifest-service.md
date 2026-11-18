@@ -98,6 +98,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `image` | string | ✔ | Registry path, without tag or digest |
 | `digest` | string | ✔ | `sha256:…`. What actually runs. |
 | `tag` | string | ✔ | The human-readable version the digest corresponds to. Recorded and shown; never resolved. |
+| `built_on` | table | | Only on a service whose image is built on an upstream's: `image` (✔), that upstream image's registry path as its build names it, and `release` (✔), the upstream's release it was built from, as that image tags it. Refused where the image's build provenance records no such base (`ARCH-R446`). |
 | `port` | integer | | The port it is published at on the host: its primary UI/API port. Omitted for a service that publishes nothing. |
 | `bind` | enum | ✔ if `port` | `loopback` \| `lan` \| `proxied`. A **tier**, not an address, and every port the service publishes is published on it — see [ports](#ports--the-tier-is-lemonfibers-the-numbers-are-the-manifests). |
 | `publish` | array of tables | | Each further port it publishes on its tier: `port`, on the host (✔), and `listens`, inside the container (default `port`). Only where `port` is declared. |
@@ -148,6 +149,14 @@ carried beside it as the readable name. A manifest with a tag and no digest is
 refused. Declaring a digest that does not correspond to the tag is not
 detectable without reaching the registry and is not treated as though it were:
 the digest is what runs, and the tag is a label on it.
+
+A service whose image is built on an upstream's, such as a patched upstream image,
+carries the tag of that build, which names the commit it was built from rather than
+the upstream's release. `built_on` names the upstream image it is built on and the
+release of it, which is the release an adapter in front of it supports. It is not
+taken on trust: the build's provenance records each image the build started from by
+name, tag and digest, and `lemonfiber plugin provenance` refuses a `built_on` that
+names none of them (`ARCH-R446`).
 
 ### Ports — the tier is lemonfiber's, the numbers are the manifest's
 

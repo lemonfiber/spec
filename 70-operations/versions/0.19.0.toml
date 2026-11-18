@@ -76,6 +76,11 @@
 # and the curators' adapters', by the maintainer's decision of 2026-11-18 (OPS-R31).
 # `lemonfiber-plugins` is searched for it.
 #
+# `ARCH-R446` has a service whose image is built on an upstream's name that image and the
+# release it was built from as `built_on`, the release its adapter supports, and has
+# `lemonfiber plugin provenance` refuse one its build provenance does not record. It is
+# the core's and `plugin-caddy`'s, by the maintainer's decision of 2026-11-19 (OPS-R31).
+#
 # `F12-R14` and `F13-R15` let Home Assistant's and the MCP server's setup take a key link
 # in place of the address, key and pin; they are `integration-home-assistant`'s and
 # `integration-mcp`'s, so both are searched, and neither is tagged.
@@ -168,7 +173,7 @@
 # with the core's sentence, and away from home declined as a title is. They follow the
 # guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
-# 172 goals, seeded from the roadmap milestone this version serves;
+# 173 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -346,6 +351,7 @@ goals   = [
     "ARCH-R421",
     "ARCH-R444",
     "ARCH-R445",
+    "ARCH-R446",
     "C2-R21",
     "A5-R15",
     "F14-R31",
