@@ -512,6 +512,11 @@
 # `ARCH-R42` is amended in place: the session or key a web API request carries is checked
 # through dispatch and answered with the `caller` kind, while a sign-in keeps answering
 # `admission`. It is the core's, by the maintainer's decision of 2026-11-18 (OPS-R31).
+#
+# `ARCH-R138` and `ARCH-R441` are amended in place: a refusal that says how long to wait carries
+# it as the problem's `retry_after` as well as in `Retry-After`, the time left where the refusal
+# knows it and its code's declared wait otherwise. It is the core's, by the maintainer's decision
+# of 2026-11-18 (OPS-R31).
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"

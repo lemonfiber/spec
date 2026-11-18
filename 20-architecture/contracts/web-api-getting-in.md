@@ -266,5 +266,6 @@ somebody guessing which one to keep guessing at.
 
 Failed answers are rate-limited, and the limit is on the surface rather than on the caller's
 address: there is one password, and choosing a new source address per attempt is the
-ordinary shape of the attack. The refusal says how long is left, so a client waits rather
-than retrying into the limit and extending it.
+ordinary shape of the attack. The refusal says how long is left, in whole seconds, in
+`Retry-After` and in its problem's `retry_after` alike (`ARCH-R138`), so a client waits
+rather than retrying into the limit and extending it.
