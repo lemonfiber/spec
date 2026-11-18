@@ -285,7 +285,10 @@ jobs:
           work=$(mktemp -d)
 
           # Written to files rather than from here-documents: the step is indented
-          # inside YAML, and a here-document keeps that indentation.
+          # inside YAML, and a here-document keeps that indentation. The commit and
+          # the body sign off with one line, the same in both and within the 72
+          # columns GitHub wraps a squash message to, so the squash keeps it whole
+          # and adds the commit's as no second one.
           printf '%s\n' \
             "${title}" \
             "" \
@@ -300,7 +303,7 @@ jobs:
             "" \
             "Spec: OPS-R48, OPS-R85, OPS-R92" \
             "" \
-            "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
+            "Signed-off-by: lemonfiber release <release@lemonfiber.app>" \
             >"${work}/message"
 
           printf '%s\n' \
@@ -318,7 +321,7 @@ jobs:
             "" \
             "Spec: OPS-R48, OPS-R85, OPS-R92" \
             "" \
-            "Signed-off-by: lemonfiber-release-train[bot] <lemonfiber-release-train[bot]@users.noreply.github.com>" \
+            "Signed-off-by: lemonfiber release <release@lemonfiber.app>" \
             >"${work}/body"
 
           # The runs of a branch being closed that have not finished, cancelled:
