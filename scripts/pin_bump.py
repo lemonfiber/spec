@@ -35,10 +35,11 @@ exactly the move that job worked out itself, and every other file is `proofs.jso
 recording the manifest names taken from exactly that pin.
 
 `pins-only` prints `yes` where every path the push changed is one a pin moves, at the
-plugin's root: `plugin.toml`, `proofs.json`, `targets.toml` and anything under
-`recordings/`. Otherwise it prints `no`, and so it does where nothing changed or the
-commit before cannot be read. A push that moves only a pin publishes no image, so
-merging a pin's pull request never starts the next one (`OPS-R90`).
+plugin's root: `plugin.toml`, `proofs.json`, `targets.toml`, anything under
+`recordings/`, and a conformance case, `conformance/<contract>@<major>/<case>.json`.
+Otherwise it prints `no`, and so it does where nothing changed or the commit before
+cannot be read. A push that moves only a pin publishes no image, so merging a pin's pull
+request never starts the next one (`OPS-R90`).
 
 Every path named on the command line must lie inside the working directory, and no file
 is read or written through a link (`paths.plain_read`, `paths.plain_write`).
@@ -86,8 +87,9 @@ READER_REVISION = re.compile(r"\A[0-9a-f]{40}\Z")
 READER_REPOSITORY = re.compile(r"\A[A-Za-z0-9-]+/[A-Za-z0-9._-]+\Z")
 #: Where the reader sits in a plugin, and where the lemonfiber it fetches or builds is kept.
 READER_HOME, READER_FILE, CACHE = ".github/reader", "reader.py", ".lemonfiber"
-#: The files at a plugin's root a pin moves, and the directory its recordings sit under.
-PIN_FILES, RECORDINGS = (MANIFEST_FILE, PROOFS_FILE, TARGETS), "recordings/"
+#: The files at a plugin's root a pin moves, the directory its recordings sit under, and
+#: the one its conformance cases sit under.
+PIN_FILES, RECORDINGS, CONFORMANCE = (MANIFEST_FILE, PROOFS_FILE, TARGETS), "recordings/", "conformance"
 #: A commit git has not got, as a push from nothing names its commit before.
 NO_COMMIT = re.compile(r"\A0*\Z")
 
@@ -141,7 +143,7 @@ def conformance_of(manifest: dict, image: str) -> set[str]:
         if one.get("fronts", one.get("id")) in running
         for contract in one.get("speaks", [])
     }
-    return {f"conformance/{contract}" for contract in spoken if CONTRACT.match(contract)}
+    return {f"{CONFORMANCE}/{contract}" for contract in spoken if CONTRACT.match(contract)}
 
 
 def recordings_named(manifest: dict, image: str, relative: str) -> bool:
@@ -328,7 +330,23 @@ def pins_only(changed: list[str], directory: str) -> bool:
     moves in the plugin at `directory`."""
     at = "" if directory in ("", ".") else f"{directory.strip('/')}/"
     moved = {f"{at}{name}" for name in PIN_FILES}
-    return bool(changed) and all(path in moved or path.startswith(f"{at}{RECORDINGS}") for path in changed)
+    return bool(changed) and all(
+        path in moved
+        or path.startswith(f"{at}{RECORDINGS}")
+        or (path.startswith(at) and conformance_case(path.removeprefix(at)))
+        for path in changed
+    )
+
+
+def conformance_case(relative: str) -> bool:
+    """Whether `relative`, from a plugin's root, is a conformance case a pin takes again."""
+    parts = relative.split("/")
+    return (
+        len(parts) == 3
+        and parts[0] == CONFORMANCE
+        and CONTRACT.match(parts[1]) is not None
+        and CASE.match(parts[2]) is not None
+    )
 
 
 def changed_between(before: str, after: str) -> list[str] | None:

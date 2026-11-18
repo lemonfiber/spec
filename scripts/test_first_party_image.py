@@ -99,13 +99,17 @@ class Settle(workflow_steps.Scratch):
         )
 
     def test_main_publishes_nothing_from_a_push_changing_nothing_but_a_pin(self):
-        for path, mode in (("recordings/door/a.json", "none"), ("Dockerfile", "publish")):
+        for path, mode in (
+            ("recordings/door/a.json", "none"),
+            ("conformance/x@1/a.json", "none"),
+            ("Dockerfile", "publish"),
+        ):
             with self.subTest(path=path):
                 self.before = self.head()
                 (self.root / path).parent.mkdir(parents=True, exist_ok=True)
                 (self.root / path).write_text(path)
                 (self.root / "plugin.toml").write_text((self.root / "plugin.toml").read_text() + "# moved\n")
-                subprocess.run(["git", "add", "--all"], cwd=self.root, check=True)
+                subprocess.run(["git", "add", "--", path, "plugin.toml"], cwd=self.root, check=True)
                 subprocess.run([*GIT, "commit", "--quiet", "-m", "after"], cwd=self.root, check=True)
                 self.sha = self.head()
                 code, said = self.settled("push", "branch", "refs/heads/main", "main")
