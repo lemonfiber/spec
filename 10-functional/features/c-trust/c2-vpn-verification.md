@@ -5,8 +5,7 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-maturity: shipped
-shipped: 0.6.0
+maturity: building
 labels: [vpn, network, verification]
 requires: [B5]
 relates: [A3, B8, C1]
@@ -164,7 +163,7 @@ bought a product without that feature.
 | Port granted but client not updated | `degraded` — re-push the port and report that it had drifted. |
 | Port changed after reconnect | Detect, re-push, and record. Do not wait for the operator. |
 | VPN configured but torrents not in the active form | `skipped`, not a failure. |
-| Operator declined a VPN | `not-configured`. Report their acknowledged exposure without repeating the warning every run. |
+| Operator declined a VPN | `not-configured`. The torrent client runs on its own network; no VPN service is installed or started, and no check of a tunnel applies (`C2-R21`). Report their acknowledged exposure without repeating the warning every run. |
 | Exit country differs from the configured preference | Report; not a failure. |
 | Killswitch test requested with active transfers | Warn, state the duration, require confirmation. |
 | Killswitch test leaves the tunnel down | Restore the previous state and verify restoration before reporting. |
@@ -195,6 +194,7 @@ bought a product without that feature.
 | **C2-R12** | A download client not sharing the VPN's network namespace MUST be reported as `leaking`, naming the network mode. |
 | **C2-R13** | Where the VPN is unconfigured by acknowledged choice, lemonfiber MUST NOT repeat the warning on every run. |
 | **C2-R14** | Disagreement between IP-echo sources MUST be reported rather than resolved arbitrarily. |
+| **C2-R21** | Where the operator chose torrents without a VPN, the torrent download client MUST run on its own network, no VPN service MUST be installed or started for it, and the tunnel, egress, killswitch and port-forwarding checks MUST NOT apply: the VPN reports `not-configured`. |
 
 ## Related
 

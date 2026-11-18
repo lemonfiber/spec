@@ -32,15 +32,16 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "shipped",
-      "shipped": "0.6.0",
-      "milestones": ["M5"],
+      "maturity": "building",
+      "shipped": null,
+      "milestones": ["M5", "M16"],
       "milestone": "M5",
       "priority": null,
       "labels": ["vpn", "network", "verification"],
       "requires": ["B5"],
       "relates": ["A3", "B8", "C1"],
       "versions": [
+        {"version": "0.19.0", "status": "planned"},
         {"version": "0.6.0", "status": "released"}
       ],
       "path": "c-trust/c2-vpn-verification.md"

@@ -5,11 +5,11 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**116 features** in areas A–N, **1916 requirements**.
+**116 features** in areas A–N, **1917 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 21 shipped, 61 built, 17 building, 16 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 20 shipped, 61 built, 18 building, 16 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -24,7 +24,6 @@ code, and the two move independently.
 | [B5](b-running/b5-notifications.md) | Notifications & alerting | B | both | accepted | `0.5.0` |
 | [B6](b-running/b6-remote-stack.md) | Controlling a stack on another machine | B | operator | accepted | `0.15.0` |
 | [B10](b-running/b10-hosting.md) | Hosting long-running commands | B | operator | accepted | `0.15.0` |
-| [C2](c-trust/c2-vpn-verification.md) | VPN verification | C | operator | accepted | `0.6.0` |
 | [C5](c-trust/c5-storage.md) | Storage & hardlink management | C | operator | accepted | `0.6.0` |
 | [C8](c-trust/c8-provider-health.md) | Provider health & quota tracking | C | operator | accepted | `0.7.0` |
 | [D5](d-content/d5-disk-space.md) | Disk space management | D | operator | accepted | `0.12.0` |
@@ -113,6 +112,7 @@ code, and the two move independently.
 | [B3](b-running/b3-dashboard.md) | Live dashboard | B | operator | accepted | `0.18.0`, `0.5.0`, `1.0.0` |
 | [B8](b-running/b8-autostart.md) | Autostart & boot persistence | B | operator | accepted | `0.15.0`, `0.19.0` |
 | [B9](b-running/b9-notification-backends.md) | Open notification back-ends | B | both | accepted | `0.23.0` |
+| [C2](c-trust/c2-vpn-verification.md) | VPN verification | C | operator | accepted | `0.19.0`, `0.6.0` |
 | [C6](c-trust/c6-web-security.md) | Web UI security & binding policy | C | operator | accepted | `0.10.0`, `0.17.0`, `0.18.0`, `0.9.0` |
 | [F1](f-extensibility/f1-customisation.md) | Customisation & escape hatches | F | operator | accepted | `0.15.0`, `0.19.0` |
 | [F3](f-extensibility/f3-stack-manifests.md) | Plugin manifests | F | operator | accepted | `0.16.0` |
