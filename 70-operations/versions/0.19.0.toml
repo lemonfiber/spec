@@ -54,6 +54,11 @@
 # `lemonfiber-door` is searched for `D11-R13`, `D11-R15`, `D11-R16`, `ARCH-R292`,
 # `ARCH-R417` and `ARCH-R418`.
 #
+# `D11-R12` is amended in place: a live-stream pass lapses when the programme admitted on
+# the channel ends, and after one minute where a limit holds the member back and that
+# programme has no known end, so the next programme is asked about before it is served.
+# It is the core's, by the maintainer's decision of 2026-11-18 (OPS-R31).
+#
 # `ARCH-R444` has a live-stream path decide a request a refused path matches too, so a
 # declaration refuses a whole route, as Plex's refuses `/livetv`, and leaves the live
 # streams under it to their live-stream paths alone. It is the door's and the media servers'
