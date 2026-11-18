@@ -35,6 +35,7 @@ import pathlib
 import shutil
 import subprocess
 import tempfile
+import textwrap
 import unittest
 
 import fan_out_pins
@@ -47,6 +48,30 @@ STEP = "Open the bump wherever one is owed"
 REACH = "Who holds a pin, and which of them the app can reach"
 #: The `id` of the mint whose token opens the bumps; the other mint only lists.
 WRITER = "token"
+#: The one sign-off a bump's commit and its body carry.
+SIGN_OFF = "Signed-off-by: lemonfiber release <release@lemonfiber.app>"
+#: The column GitHub wraps a squash message's body to.
+SQUASH_WIDTH = 72
+#: The trailers GitHub carries from a squashed commit into its squash.
+TRAILERS = ("Signed-off-by:", "Co-authored-by:")
+
+
+def signed_off(text: str) -> list[str]:
+    """Every line of `text` that starts a sign-off."""
+    return [line for line in text.splitlines() if line.startswith("Signed-off-by:")]
+
+
+def squashed(body: str, message: str) -> str:
+    """The squash GitHub writes from `body` for a commit with `message`: the body
+    wrapped to its width, then each of the commit's trailers it does not hold whole."""
+    wrapped = "\n".join(
+        textwrap.fill(line, SQUASH_WIDTH, break_long_words=False, break_on_hyphens=False) if line else ""
+        for line in body.splitlines()
+    )
+    held = set(wrapped.splitlines())
+    added = [line for line in message.splitlines() if line.startswith(TRAILERS) and line not in held]
+    return "\n".join([wrapped, *added])
+
 
 #: Stands in for `gh`, answered by what was asked:
 #:
@@ -456,12 +481,24 @@ class TheLoop(unittest.TestCase):
         )
         body = self.bodies.read_text(encoding="utf-8").rstrip()
         self.assertIn("\n\nSpec: OPS-R48, OPS-R85, OPS-R92\n\n", body)
-        self.assertTrue(
-            body.endswith(
-                "Signed-off-by: lemonfiber-release-train[bot] "
-                "<lemonfiber-release-train[bot]@users.noreply.github.com>"
-            )
-        )
+        self.assertTrue(body.endswith(SIGN_OFF))
+
+    def test_the_squash_github_writes_keeps_exactly_one_sign_off(self):
+        # GitHub writes an auto-merged squash from the body wrapped to 72 columns,
+        # then adds each trailer of the squashed commit the message does not hold
+        # whole. A sign-off longer than that is split, and the commit's is added
+        # as a second one, which is what landed on `main` before.
+        self.pinning(a_pin("dco.yml", self.first))
+
+        ran = self.run_step()
+
+        self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+        body = self.bodies.read_text(encoding="utf-8").rstrip()
+        made = [json.loads(line) for line in self.commits.read_text(encoding="utf-8").splitlines() if line]
+        message = made[0]["variables"]["input"]["message"]["body"]
+        self.assertEqual(signed_off(body), [SIGN_OFF])
+        self.assertEqual(signed_off(message), [SIGN_OFF])
+        self.assertEqual(signed_off(squashed(body, message)), [SIGN_OFF])
 
     def test_only_the_app_s_own_pull_requests_from_this_repository_are_its(self):
         # A fork's pull request whose branch is named like the bump must not be
