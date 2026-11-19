@@ -43,7 +43,7 @@ A question is asked only if all three hold:
 2. The answer changes behaviour.
 3. The operator can plausibly answer it.
 
-This is why timezone is *detected and confirmed* rather than asked, why
+This is why timezone and the house's locale are *detected and confirmed* rather than asked, why
 PUID/PGID is asked **only on native Linux** (elsewhere it's meaningless), and
 why native-mode Jellyfin is offered only on platforms where it buys something.
 A question the operator can't answer is not thoroughness; it's abdication.
@@ -53,7 +53,7 @@ A question the operator can't answer is not thoroughness; it's abdication.
 | # | Step | Asks or detects |
 |---|------|-----------------|
 | 1 | Welcome | Nothing. States what's about to happen and roughly how long. |
-| 2 | Environment preflight | Detects OS, Docker presence, Compose version, daemon reachability |
+| 2 | Environment preflight | Detects OS, Docker presence, Compose version, daemon reachability; the time zone and the house's locale, each detected from the host and confirmed ([below](#the-houses-locale-is-the-hosts-confirmed)) |
 | 3 | Protocols | Usenet, torrents, or neither |
 | 4 | Prerequisites | [A1](a1-prerequisites.md) — the account checklist, derived from the protocol choice |
 | 5 | VPN | Whether a VPN carries the torrents, asked only where torrents were chosen; where one does, the egress guard's settings and secrets ([below](#the-vpn-is-asked-for-from-what-the-egress-guard-accepts)) |
@@ -108,6 +108,19 @@ It wires the services exactly as [`seed`](../d-content/d1-seed.md) does, and it 
 what it did with each connection, made, skipped or failed, before Finish prints
 anything (`A2-R17`). A stack that did not start is not wired, because there is
 nothing yet to answer the calls.
+
+### The house's locale is the host's, confirmed
+
+The house's locale is its language and region, written as a `language-REGION` tag such as
+`nl-NL`. Services that present the house to the outside, such as a challenge solver's
+browser, read it, so they say what the time zone already says about where the house is.
+Setup proposes the host's own, read from `LANG` (`nl_NL.UTF-8` proposes `nl-NL`), or
+`en-US` where the host names none that is such a tag, and the operator confirms it or
+gives another. A value that is not a `language-REGION` tag is refused, naming the shape. A
+non-interactive setup takes `--locale`, or the proposal where it is absent. lemonfiber
+records it as `LEMONFIBER_LOCALE`, the operator changes it later with `lemonfiber settings
+set` and in the console's settings, and the core publishes it to every manifest as the
+setting `locale` (`A2-R19`, `ARCH-R231`).
 
 ### On the companion
 
@@ -189,6 +202,7 @@ resume, roll back, or start over.
 | **A2-R16** | The web API MUST serve what setup settled — the data root, the protocols and the service user — read from the configuration as it stands, together with whether this stack is set up, on a read that offers no setup and changes nothing (`N15-R1`, `N15-R2`). |
 | **A2-R17** | After the start step, setup MUST wire the stack as `seed` does ([D1](../d-content/d1-seed.md)), and report each connection made, skipped or failed before it finishes; a stack that did not start is not wired. |
 | **A2-R18** | Where a VPN carries the torrents, setup MUST ask for each setting of the filler of `network.egress-guard` that declares `one_of`, each after every setting its choices' `needs` name, offering only the values that are choices under the answers before it, and then for each setting and secret that declares `recorded_with` whose `needs` those answers meet, and MUST NOT ask for one whose `needs` they leave unmet (`ARCH-R348` to `ARCH-R351`). |
+| **A2-R19** | Setup MUST ask for the house's locale as a `language-REGION` tag, proposing the host's own from `LANG`, or `en-US` where the host names none, and MUST refuse any other shape, naming it; a non-interactive setup MUST take `--locale` or the proposal. lemonfiber MUST record the answer as `LEMONFIBER_LOCALE`, which the operator MUST be able to change with `lemonfiber settings set` and in the console's settings, and the core MUST publish it to manifests as the setting `locale` (`ARCH-R231`). |
 
 ## Related
 

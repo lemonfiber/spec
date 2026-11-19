@@ -442,7 +442,7 @@
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 667 goals, seeded from the roadmap milestone this version serves;
+# 668 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -517,6 +517,12 @@
 # it as the problem's `retry_after` as well as in `Retry-After`, the time left where the refusal
 # knows it and its code's declared wait otherwise. It is the core's, by the maintainer's decision
 # of 2026-11-18 (OPS-R31).
+#
+# `A2-R19` has setup ask for the house's locale, proposing the host's own, and records it
+# as `LEMONFIBER_LOCALE`; `ARCH-R231` is amended in place so the core publishes `timezone`
+# and `locale` to manifests beside `domain` and `lan-host`, and a challenge solver's browser
+# takes the house's zone and language without looking its address up. Added by the
+# maintainer's decision of 2026-11-19 (OPS-R31).
 version = "0.18.0"
 milestone = "M14"   # The platform
 delivers  = "Plugins — the calls that configure what one installed, and what they may carry where"
@@ -563,7 +569,7 @@ goals   = [
     "E3-R16",
     "G7-R14",
     "G8-R15", "G8-R16", "G8-R17", "G8-R18",
-    "A2-R16", "A2-R17", "A2-R18",
+    "A2-R16", "A2-R17", "A2-R18", "A2-R19",
     "ARCH-R173", "ARCH-R174", "ARCH-R175", "ARCH-R176", "ARCH-R177",
     "F8-R19",
     "ARCH-R178", "ARCH-R179",
