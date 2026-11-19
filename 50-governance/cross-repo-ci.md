@@ -550,9 +550,10 @@ anyone touching it, and an author who changed none of it pays the bump. What
 makes that bearable is **OPS-R48** — `fan-out-pins.yml`, which opens the bump in
 every consumer rather than leaving it owed by all of them. It keeps one pull
 request per repository, on `ci/take-the-shared-workflows`, rebuilt and retitled
-for each number rather than opened beside the last (**OPS-R85**), and arms that
-pull request to merge itself at the commit it made once its required checks pass
-(**OPS-R48**, **OPS-R87**). Nobody presses the button: `pin-only` has already
+for each number rather than opened beside the last (**OPS-R85**), and marks that
+pull request for the release train to merge at the commit it made once every
+check on it has settled green, required or not (**OPS-R48**, **OPS-R87**,
+**OPS-R96**). Nobody presses the button: `pin-only` has already
 held the change to spec's pins moving forward along `main`, which is everything
 a person merging it would have checked. A repository that does not allow
 auto-merge refuses the arming, and the bump there waits for a person, so the
