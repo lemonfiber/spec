@@ -102,6 +102,11 @@ certificate as the command that does it, and any other surface in its own way. A
 sentence naming the command would have the app telling the operator to type
 something into a phone that has nowhere to type it.
 
+The app does not replace the certificate itself (`N1-R79`). The phone that asked
+would refuse the machine the moment the new certificate is served, and the
+material every phone pairs again with is read at the machine, so the app says it
+is done there.
+
 Whatever the route, the app exchanges the credential **once** at `/api/session`
 for a session, and carries that session in `X-Lemonfiber-Token` afterwards. The
 credential is not kept to be re-sent: a secret held for one exchange is a smaller
@@ -400,6 +405,7 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R76** | What the stack says beside pairing material MUST be in words every surface can show, and MUST NOT name a command of one surface; how the certificate is replaced (`C6-R19`) MUST be said by each surface in its own way. |
 | **N1-R77** | An answer the stack gave that this version of the app cannot read MUST be reported as neither a stack that did not answer nor a refused credential (`N1-R10`): the operator MUST be told the stack answered in a way this app cannot read, with updating the app or the stack as the remedy, and a member MUST be told the house cannot be reached right now. |
 | **N1-R78** | A join link (`D6-R22`) MUST NOT be treated as pairing material: it MUST NOT admit an operator session or replace a pin, and the only credential it can lead to is the one member account it names. |
+| **N1-R79** | The app MUST NOT offer replacing the certificate paired phones pin (`C6-R19`): the phone that asked would refuse the machine once it is replaced, and the material to pair again is read at the machine. Where the app says how the certificate is replaced (`N1-R76`), it MUST say that it is done at the machine. |
 
 ## Related
 

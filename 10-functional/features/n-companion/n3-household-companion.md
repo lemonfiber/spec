@@ -48,6 +48,30 @@ machine's own password. The app does not ask which of the two somebody is: the
 stack decides from what was offered. A refusal does not say which of the two was
 not recognised, because the stack does not say either (`N3-R18`).
 
+### Signing in by a code
+
+Some houses keep their members' accounts with an outside service, as a Plex
+household's are kept by plex.tv. A member of such a house has no password the house
+knows, and signs in by a code that service approves instead (`ARCH-R377`). Nothing
+the phone can read before signing in says which kind of house it is, so the
+sign-in screen offers both ways to a member: a name and password, and a code
+(`N3-R42`). Once one of them lets the member in, the phone remembers it for that
+house and leads with it next time.
+
+A first-time member of a code house who types a password is refused as a wrong
+password would be, since the house says no more than that. So a refused password
+is shown with the code way right beside it, saying that some houses sign in with a
+code instead (`N3-R43`). The other way round, a house that signs in with a password
+says so when asked for a code, and the screen goes back to the password.
+
+Asking for a code shows the code, a button that opens the page where the member
+approves it, the same page as a QR code for approving it on another device, and
+when the code lapses. While that screen is in front of them, the app asks the
+house every three seconds whether the code was approved, and lands on Home once it
+was (`N3-R44`). A code that lapsed, or one the house no longer waits on, is shown
+in the house's words with a way to ask for a new one. None of it names the
+outside service.
+
 ### Entitlement is the core's answer, never a hidden button
 
 What a member may do is decided by the core and rendered here. The app does not
@@ -225,6 +249,10 @@ does not hold a second copy of them.
 | **N3-R39** | A channel MUST play the tuner's stream where the phone's player can decode it and the transcoded playlist otherwise, the player deciding, and the app MUST renew the pass it plays on before it lapses (`D11`). |
 | **N3-R40** | Where the core refuses to renew a pass, or cannot be reached to renew it, playback MUST stop when the pass lapses, the app MUST show why in the core's household sentence, or in one of its own where nothing arrives from the house, and MUST offer a way back to the channels. It MUST NOT retry on its own. |
 | **N3-R41** | Away from home, playing a channel MUST be declined in the same words as playing a title. |
+| **N3-R42** | Wherever a member signs in to an account rather than choosing a password for one (`N3-R28`), the app MUST offer both signing in with a name and password and signing in by a code (`ARCH-R441`). It MUST lead with the way that last let a member in on that house, kept on the phone for that house as `N3-R25` keeps a member's languages, and with the password until either has. |
+| **N3-R43** | A refused password MUST be shown with the way to sign in by a code beside it, saying that some houses sign in with a code instead. A code asked of a house that signs in with a password MUST be answered with the house's sentence and the password way. Neither MUST name a service. |
+| **N3-R44** | Signing in by a code MUST show the code as the core answers it, with a way to copy it; the place to approve it as a button that opens it and as a QR code drawn from it (`ARCH-R220`); and when it lapses. While that screen is shown, and only then, the app MUST ask the core every three seconds whether the code was approved, and MUST land on Home once the core answers a session. A lapsed code, or a code the core no longer waits on, MUST be shown in the core's household sentence with a way to ask for a new code, and asking too soon MUST say how long to wait (`ARCH-R138`). The handle the core answers MUST be kept in memory only, never stored, logged or put in an address, and nothing on the screen MUST name a service. |
+| **N3-R45** | A title MUST play through the grant the core gave this device, at the location the core states for it ([ADR-0027](../../../00-overview/decisions/0027-a-member-plays-what-the-core-authorised.md)), and MUST NOT play on a pass carried in an address: the app MUST NOT send `play`, which answers a browser such a pass (`ARCH-R420`). |
 
 ## Related
 

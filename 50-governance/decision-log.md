@@ -632,6 +632,9 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | A service whose image is built on an upstream's names that upstream image and the release it was built from as `built_on = { image, release }` in `plugin.toml`; an adapter in front of it supports that release, and `lemonfiber plugin provenance` refuses a `built_on` the image's build provenance does not record as a base it started from. The user chose the check in the core over one in the plugin CI's reader. | [ARCH-R446](../20-architecture/contracts/plugin-manifest.md) |
+| A member's sign-in in the companion offers both a name and password and a code, leads with the way that last let a member in on that house, and shows a refused password with the code way beside it; the code screen shows the code, the place to approve it as a button and a QR code and when it lapses, and asks every three seconds while it is shown. The user chose offering both ways and remembering the last over a core field naming the household's way | [N3-R42](../10-functional/features/n-companion/n3-household-companion.md), [N3-R43](../10-functional/features/n-companion/n3-household-companion.md), [N3-R44](../10-functional/features/n-companion/n3-household-companion.md) |
+| The companion plays a title through the grant the core gave the device and never sends `play`, the browser's way to a pass in an address. The user chose this over playing titles on that pass | [N3-R45](../10-functional/features/n-companion/n3-household-companion.md) |
+| The companion does not replace the certificate paired phones pin, and says it is done at the machine: the phone that asked would refuse the machine at once, and the material to pair again is read there. The user chose this over the core serving the replacement to the companion | [N1-R79](../10-functional/features/n-companion/n1-companion-app.md) |
 
 ## Related
 
