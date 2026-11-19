@@ -53,7 +53,7 @@ A question the operator can't answer is not thoroughness; it's abdication.
 | # | Step | Asks or detects |
 |---|------|-----------------|
 | 1 | Welcome | Nothing. States what's about to happen and roughly how long. |
-| 2 | Environment preflight | Detects OS, Docker presence, Compose version, daemon reachability; the time zone and the house's locale, each detected from the host and confirmed ([below](#the-houses-locale-is-the-hosts-confirmed)) |
+| 2 | Environment preflight | Detects OS, Docker presence, Compose version, daemon reachability; the time zone and the house's locale, each detected from the host and confirmed ([below](#the-houses-zone-and-locale-are-the-hosts-confirmed)) |
 | 3 | Protocols | Usenet, torrents, or neither |
 | 4 | Prerequisites | [A1](a1-prerequisites.md) — the account checklist, derived from the protocol choice |
 | 5 | VPN | Whether a VPN carries the torrents, asked only where torrents were chosen; where one does, the egress guard's settings and secrets ([below](#the-vpn-is-asked-for-from-what-the-egress-guard-accepts)) |
@@ -109,7 +109,15 @@ what it did with each connection, made, skipped or failed, before Finish prints
 anything (`A2-R17`). A stack that did not start is not wired, because there is
 nothing yet to answer the calls.
 
-### The house's locale is the host's, confirmed
+### The house's zone and locale are the host's, confirmed
+
+The zone the stack runs in is the one its services keep their clocks in, which lemonfiber
+writes into every container as `TZ`. Setup proposes the host's own, the zone the host's
+clock keeps, or `Europe/Amsterdam` where the host names none the time zone database
+holds, and the operator confirms it or gives another. A name the database does not hold
+is refused, naming the setting. A non-interactive setup takes the proposal. lemonfiber
+records it as `TZ`, and the core publishes it to every manifest as the setting `timezone`
+(`A2-R20`, `ARCH-R231`).
 
 The house's locale is its language and region, written as a `language-REGION` tag such as
 `nl-NL`. Services that present the house to the outside, such as a challenge solver's
@@ -203,6 +211,7 @@ resume, roll back, or start over.
 | **A2-R17** | After the start step, setup MUST wire the stack as `seed` does ([D1](../d-content/d1-seed.md)), and report each connection made, skipped or failed before it finishes; a stack that did not start is not wired. |
 | **A2-R18** | Where a VPN carries the torrents, setup MUST ask for each setting of the filler of `network.egress-guard` that declares `one_of`, each after every setting its choices' `needs` name, offering only the values that are choices under the answers before it, and then for each setting and secret that declares `recorded_with` whose `needs` those answers meet, and MUST NOT ask for one whose `needs` they leave unmet (`ARCH-R348` to `ARCH-R351`). |
 | **A2-R19** | Setup MUST ask for the house's locale as a `language-REGION` tag, proposing the host's own from `LANG`, or `en-US` where the host names none, and MUST refuse any other shape, naming it; a non-interactive setup MUST take `--locale` or the proposal. lemonfiber MUST record the answer as `LEMONFIBER_LOCALE`, which the operator MUST be able to change with `lemonfiber settings set` and in the console's settings, and the core MUST publish it to manifests as the setting `locale` (`ARCH-R231`). |
+| **A2-R20** | Setup MUST ask for the zone the stack runs in, proposing the zone the host's clock keeps, or `Europe/Amsterdam` where the host names none the time zone database holds, and MUST refuse a name the database does not hold, naming the setting; a non-interactive setup MUST take the proposal. lemonfiber MUST record the answer as `TZ`, and the core MUST publish it to manifests as the setting `timezone` (`ARCH-R231`). |
 
 ## Related
 
