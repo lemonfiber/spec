@@ -454,9 +454,11 @@ that could name a variable there would be a field for reading whatever the file 
 
 **A setting is the plugin's own, or one the core publishes.** A plugin's own is
 namespaced with its id, as its own capabilities are (`gluetun:countries`), and a stack
-service's with the service's id. The core publishes two, the same for every service:
-`domain`, the operator's domain, and `lan-host`, the address the household reaches the
-machine at. A setting in any other namespace is refused, naming it (`ARCH-R231`).
+service's with the service's id. The core publishes four, the same for every service:
+`domain`, the operator's domain; `lan-host`, the address the household reaches the
+machine at; `timezone`, the zone the stack runs in, which it also writes as `TZ`; and
+`locale`, the house's language and region as a `language-REGION` tag, which setup asks for
+(`A2-R19`). A setting in any other namespace is refused, naming it (`ARCH-R231`).
 
 **A value only the operator holds is stood in for when recorded.** A setting or secret a
 service needs to start or pass its health check, which lemonfiber cannot mint and only
