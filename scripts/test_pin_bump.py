@@ -361,6 +361,10 @@ class PinsOnly(InDirectory):
         readable = self.commit()
         self.put("plugin.toml", "[[service]\n")
         self.assertEqual(self.answered(before=readable), "no")
+        self.put("plugin.toml", "schema_version = 1\n# read again\n")
+        again = self.commit()
+        (self.root / "plugin.toml").write_bytes(b"schema_version = 1\n# \xff\n")
+        self.assertEqual(self.answered(before=again), "no")
 
     def test_nothing_changed_or_no_commit_before_publishes(self):
         self.assertEqual(self.asked(), "no")
