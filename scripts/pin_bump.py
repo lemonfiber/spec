@@ -36,10 +36,14 @@ recording the manifest names taken from exactly that pin.
 
 `pins-only` prints `yes` where every path the push changed is one a pin moves, at the
 plugin's root: `plugin.toml`, `proofs.json`, `targets.toml`, anything under
-`recordings/`, and a conformance case, `conformance/<contract>@<major>/<case>.json`.
-Otherwise it prints `no`, and so it does where nothing changed or the commit before
-cannot be read. A push that moves only a pin publishes no image, so merging a pin's pull
-request never starts the next one (`OPS-R90`).
+`recordings/`, and a conformance case, `conformance/<contract>@<major>/<case>.json`,
+and the `tag` and `digest` of every service another one `fronts` are the same before
+and after it. An adapter's build reads the release and digest of the service it fronts
+from `plugin.toml`, so a push moving those changes the adapter and publishes it.
+Otherwise it prints `no`, and so it does where nothing changed, the commit before
+cannot be read, or the manifest on either side cannot be. A push that moves only a pin
+publishes no image, so merging a pin's pull request never starts the next one
+(`OPS-R90`).
 
 Every path named on the command line must lie inside the working directory, and no file
 is read or written through a link (`paths.plain_read`, `paths.plain_write`).
@@ -325,17 +329,63 @@ def recorded(root: pathlib.Path, taken: pathlib.Path) -> None:
         shutil.rmtree(root / CACHE, ignore_errors=True)
 
 
-def pins_only(changed: list[str], directory: str) -> bool:
+def rooted(directory: str) -> str:
+    """The prefix every path of the plugin at `directory` carries in its repository."""
+    return "" if directory in ("", ".") else f"{directory.strip('/')}/"
+
+
+def pins_only(changed: list[str], directory: str, before: str | None, after: str | None) -> bool:
     """Whether a push that changed `changed`, at least one path, changed only what a pin
-    moves in the plugin at `directory`."""
-    at = "" if directory in ("", ".") else f"{directory.strip('/')}/"
+    moves in the plugin at `directory`, whose manifest read `before` and reads `after`.
+
+    A manifest that changed moves only a pin where the services another one fronts are
+    pinned alike on both sides, since an adapter's build reads their tag and digest."""
+    at = rooted(directory)
     moved = {f"{at}{name}" for name in PIN_FILES}
+    if f"{at}{MANIFEST_FILE}" in changed:
+        held = fronted(before)
+        if held is None or held != fronted(after):
+            return False
     return bool(changed) and all(
         path in moved
         or path.startswith(f"{at}{RECORDINGS}")
         or (path.startswith(at) and conformance_case(path.removeprefix(at)))
         for path in changed
     )
+
+
+def fronted(text: str | None) -> dict[str, tuple[str, str]] | None:
+    """The `tag` and `digest` of every service another service of the manifest `text`
+    fronts, by id, or None where `text` is no manifest that can be read."""
+    if text is None:
+        return None
+    try:
+        manifest = tomllib.loads(text)
+    except tomllib.TOMLDecodeError:
+        return None
+    listed = manifest.get("service", [])
+    services = [service for service in listed if isinstance(service, dict)] if isinstance(listed, list) else []
+    named = {service["fronts"] for service in services if isinstance(service.get("fronts"), str)}
+    return {
+        str(service["id"]): (str(service.get("tag", "")), str(service.get("digest", "")))
+        for service in services
+        if service.get("id") in named
+    }
+
+
+def manifest_at(commit: str, directory: str) -> str | None:
+    """The manifest of the plugin at `directory` as `commit` holds it, or None where it
+    holds none or one larger than a manifest is read."""
+    at = rooted(directory)
+    shown = subprocess.run(
+        ["git", "show", f"{commit}:{at}{MANIFEST_FILE}"], capture_output=True, check=False
+    )
+    if shown.returncode != 0 or len(shown.stdout) > MANIFEST_LIMIT:
+        return None
+    try:
+        return shown.stdout.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
 
 
 def conformance_case(relative: str) -> bool:
@@ -445,7 +495,10 @@ def asked_stage(args: argparse.Namespace) -> int:
 
 def asked_pins_only(args: argparse.Namespace) -> int:
     changed = changed_between(args.before, args.after)
-    print("yes" if changed is not None and pins_only(changed, args.directory) else "no")
+    only = changed is not None and pins_only(
+        changed, args.directory, manifest_at(args.before, args.directory), manifest_at(args.after, args.directory)
+    )
+    print("yes" if only else "no")
     return 0
 
 
