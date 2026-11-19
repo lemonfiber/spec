@@ -5,7 +5,7 @@
 Generated from feature frontmatter and the version manifests by
 `scripts/gen_board.py` — do not edit by hand; `just board` regenerates it.
 
-**116 features** in areas A–N, **1919 requirements**.
+**116 features** in areas A–N, **1924 requirements**.
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
@@ -80,7 +80,7 @@ code, and the two move independently.
 | [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `0.19.0` |
 | [L3](l-release/l3-nas-image.md) | The image for a NAS | L | operator | accepted | `0.18.0` |
 | [N2](n-companion/n2-operator-companion.md) | The operator's companion | N | operator | accepted | `0.18.0`, `0.19.0`, `0.20.0` |
-| [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0`, `0.19.0` |
+| [N3](n-companion/n3-household-companion.md) | The household's companion | N | household | accepted | `0.18.0`, `0.19.0`, `1.0.0` |
 | [N5](n-companion/n5-connecting-the-stack.md) | What connects to what | N | operator | accepted | `0.18.0` |
 | [N7](n-companion/n7-moving-in.md) | Moving in beside what is already there | N | operator | accepted | — |
 | [N8](n-companion/n8-what-comes-in.md) | What comes in, and where it got to | N | operator | accepted | — |
