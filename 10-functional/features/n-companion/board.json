@@ -54,7 +54,7 @@
       "audience": "household",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "built",
+      "maturity": "building",
       "shipped": null,
       "milestones": ["M14", "M16", "M6"],
       "milestone": "M14",
