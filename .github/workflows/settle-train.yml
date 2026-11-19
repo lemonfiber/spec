@@ -7,6 +7,13 @@
 # every check run and commit status has settled green and holding, with one comment
 # saying why, the ones that will not settle. `scripts/settle_train.py` is the rule.
 #
+# Which pull requests it looks at comes from a search for the train's own, and
+# each is read again from the API and held unless it is the train's own: no event a
+# contributor can raise starts this, and nothing from one reaches the script. The
+# workflow's own token is given no permission beyond reading this repository for its
+# checkout; merging is the App's, through a token minted for the one repository the
+# pull request is in.
+#
 # The runner pool is shared, so a look that finds nothing marked costs one search on
 # `github.token` in one short job: the App's key, its environment and the checkout
 # are reached only where something is marked.
@@ -17,8 +24,7 @@ on:
   schedule:
     - cron: "*/10 * * * *"
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: settle-train
@@ -34,6 +40,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       marked: ${{ steps.search.outputs.marked }}
+      count: ${{ steps.search.outputs.count }}
     steps:
       - name: Anything marked for the train
         id: search
@@ -41,19 +48,41 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          marked="$(gh api -X GET search/issues \
+          marked="$(gh api -X GET search/issues -f per_page=100 \
             -f q="is:pr is:open org:${OWNER} author:app/${TRAIN} label:train-merges" \
-            --jq '.total_count')"
-          echo "marked=${marked}" >> "$GITHUB_OUTPUT"
-          echo "${marked} pull request(s) marked for the train." >> "$GITHUB_STEP_SUMMARY"
+            --jq '[.items[] | {repo: (.repository_url | sub("^https://api.github.com/repos/"; "")), number: (.number | tostring)}]')"
+          count="$(jq 'length' <<< "$marked")"
+          {
+            echo "marked=${marked}"
+            echo "count=${count}"
+          } >> "$GITHUB_OUTPUT"
+          echo "${count} pull request(s) marked for the train." >> "$GITHUB_STEP_SUMMARY"
 
+  # One job per marked pull request, so the App's token is minted for its
+  # repository alone.
   settle:
     needs: look
-    if: needs.look.outputs.marked != '0'
+    if: needs.look.outputs.count != '0'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        pull: ${{ fromJSON(needs.look.outputs.marked) }}
     runs-on: ubuntu-latest
     environment: release
     timeout-minutes: 15
     steps:
+      - name: The repository, by its name alone
+        id: target
+        env:
+          REPO: ${{ matrix.pull.repo }}
+        run: |
+          set -euo pipefail
+          [[ "$REPO" =~ ^${OWNER}/[A-Za-z0-9._-]+$ ]] || { echo "::error::${REPO} is not a repository of ${OWNER}"; exit 1; }
+          echo "name=${REPO#*/}" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -66,13 +95,18 @@ jobs:
           client-id: ${{ vars.RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_KEY }}
           owner: ${{ github.repository_owner }}
+          repositories: ${{ steps.target.outputs.name }}
+          permission-administration: read
           permission-contents: write
           permission-pull-requests: write
           permission-checks: read
 
-      - name: Merge what settled green, hold what will not
+      - name: Merge it if it settled green, hold it if it will not
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
+          REPO: ${{ matrix.pull.repo }}
+          NUMBER: ${{ matrix.pull.number }}
         run: |
           set -o pipefail
-          python3 scripts/settle_train.py --owner "$OWNER" --author "$TRAIN" | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 scripts/settle_train.py --owner "$OWNER" --author "$TRAIN" --repo "$REPO" --number "$NUMBER" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
