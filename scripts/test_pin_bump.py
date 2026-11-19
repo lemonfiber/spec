@@ -272,7 +272,10 @@ class PinsOnly(InDirectory):
 
     def asked(self, *changed: str, directory: str = ".", before: str = "") -> str:
         for path in changed:
-            self.put(path, f"changed {path}\n")
+            self.put(path, f"# changed {path}\nschema_version = 1\n" if path.endswith(".toml") else f"changed {path}\n")
+        return self.answered(directory=directory, before=before)
+
+    def answered(self, directory: str = ".", before: str = "") -> str:
         after = self.commit()
         code, out, _ = self.ran(
             "pins-only", "--before", before or self.before, "--after", after, "--directory", directory
@@ -305,9 +308,15 @@ class PinsOnly(InDirectory):
                 self.assertEqual(self.asked("plugin.toml", path, before=self.commit()), "no")
 
     def test_a_plugin_in_a_directory_is_read_there(self):
+        self.put("door/plugin.toml", "schema_version = 1\n")
+        held = self.commit()
         self.assertEqual(
             self.asked(
-                "door/plugin.toml", "door/recordings/a.json", "door/conformance/x@1/a.json", directory="door/"
+                "door/plugin.toml",
+                "door/recordings/a.json",
+                "door/conformance/x@1/a.json",
+                directory="door/",
+                before=held,
             ),
             "yes",
         )
@@ -316,6 +325,42 @@ class PinsOnly(InDirectory):
             self.asked("door/plugin.toml", "conformance/x@1/a.json", directory="door", before=self.commit()),
             "no",
         )
+
+    def pinned(self, upstream: tuple[str, str], adapter: tuple[str, str], sidecar: str = "sha256:" + "c" * 64) -> None:
+        self.put(
+            "plugin.toml",
+            "schema_version = 1\n\n"
+            f'[[service]]\nid = "traefik"\nimage = "docker.io/library/traefik"\ntag = "{upstream[0]}"\ndigest = "{upstream[1]}"\n\n'
+            f'[[service]]\nid = "traefik-adapter"\nfronts = "traefik"\nimage = "ghcr.io/lemonfiber/traefik-adapter"\ntag = "{adapter[0]}"\ndigest = "{adapter[1]}"\n\n'
+            f'[[service]]\nid = "sidecar"\nimage = "docker.io/library/busybox"\ntag = "1"\ndigest = "{sidecar}"\n',
+        )
+
+    def test_the_adapter_s_own_pin_and_a_service_nobody_fronts_are_only_a_pin(self):
+        upstream = ("v3.7.19", "sha256:" + "a" * 64)
+        self.pinned(upstream, ("main-111111111111", "sha256:" + "b" * 64))
+        before = self.commit()
+        self.pinned(upstream, ("main-222222222222", "sha256:" + "d" * 64), sidecar="sha256:" + "e" * 64)
+        self.put("recordings/traefik/ping.json", "{}\n")
+        self.assertEqual(self.answered(before=before), "yes")
+
+    def test_moving_what_an_adapter_fronts_publishes_it(self):
+        adapter = ("main-111111111111", "sha256:" + "b" * 64)
+        for moved in (("v3.7.19", "sha256:" + "f" * 64), ("v3.7.20", "sha256:" + "a" * 64)):
+            with self.subTest(moved=moved):
+                self.pinned(("v3.7.19", "sha256:" + "a" * 64), adapter)
+                before = self.commit()
+                self.pinned(moved, adapter)
+                self.put("recordings/traefik/ping.json", f"{moved}\n")
+                self.assertEqual(self.answered(before=before), "no")
+
+    def test_a_manifest_that_cannot_be_read_on_either_side_publishes(self):
+        self.put("plugin.toml", "schema_version = \n")
+        broken = self.commit()
+        self.assertEqual(self.asked("plugin.toml", before=broken), "no")
+        self.put("plugin.toml", "schema_version = 1\n# read\n")
+        readable = self.commit()
+        self.put("plugin.toml", "[[service]\n")
+        self.assertEqual(self.answered(before=readable), "no")
 
     def test_nothing_changed_or_no_commit_before_publishes(self):
         self.assertEqual(self.asked(), "no")

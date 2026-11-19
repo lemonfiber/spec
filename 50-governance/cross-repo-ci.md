@@ -374,7 +374,9 @@ publishes it, runs what it published under that posture, and moves the
 manifest's pin on one rolling pull request through `manifest-pin` (**OPS-R90**,
 **OPS-R91**). Neither it nor `rust-service-release` publishes from a commit that
 changes nothing but a pin, its recordings, its proofs and its `targets.toml`, so
-merging a pin's pull request opens no other. A first-party plugin with an adapter
+merging a pin's pull request opens no other. A commit moving the `tag` or `digest` of
+a service an adapter fronts changes more than a pin, since the adapter's build reads
+both from the manifest, so it publishes the adapter. A first-party plugin with an adapter
 calls `adapter-release`, which publishes the adapter's image from main and from a train
 tag and writes its digest and tag into the manifest on one rolling pull request, and
 pins nothing from the merge of a pin (**OPS-R90**, **OPS-R91**). Each plugin whose
