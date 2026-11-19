@@ -9,9 +9,14 @@ own and whose head has settled green.
 
 The train's own, read from the pull request itself and never from the search
 that found it: opened by the train's bot, from a branch of the repository it
-merges into, not a draft, into that repository's default branch, its head a
-verified commit the train's bot authored, and `LABEL` put on it by the train's
-bot. A pull request that is not is held, whatever its checks say.
+merges into, not a draft, into that repository's default branch; every commit
+between that branch and the head verified, authored by the bot and committed by
+it or by GitHub signing for it; the head carrying `RECORD`, the check run only
+the train's App can create, which it creates on each head it pushes, with no
+push to the branch by anyone else since; and `LABEL` put on it by the bot. A
+commit's author and committer are claims anyone can write, so it is the record
+that ties the head to the train. A pull request that is not the train's own is
+held, whatever its checks say.
 
 Settled green:
 
@@ -51,6 +56,7 @@ import json
 import re
 import subprocess
 import sys
+import urllib.parse
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -74,6 +80,13 @@ BOUND = datetime.timedelta(hours=6)
 #: The committer GitHub records on a commit it signed for an API call, which is
 #: how the train's commits are made.
 SIGNED_BY_GITHUB = "web-flow"
+
+#: The check run the train creates on each head it pushes, which only its App can
+#: put its name to, so a head it did not push is never taken for one it did.
+RECORD = "train / pushed"
+
+#: The timeline events that move a pull request's branch other than by a commit.
+PUSHES = frozenset({"head_ref_force_pushed", "head_ref_deleted", "head_ref_restored"})
 
 #: The first line of the comment that says why a pull request is held, by which
 #: a later look finds it again.
@@ -121,6 +134,11 @@ def gh(method: str, path: str, payload: dict | None = None) -> object:
     return json.loads(done.stdout) if done.stdout.strip() else {}
 
 
+def quote(branch: str) -> str:
+    """A branch as it sits in a URL: its slashes kept, everything else escaped."""
+    return urllib.parse.quote(branch, safe="/")
+
+
 def moment(text: str) -> datetime.datetime:
     """A timestamp as the API writes it."""
     return datetime.datetime.fromisoformat(text)
@@ -147,7 +165,7 @@ def judged(
     verdict = Verdict()
     ran = latest(runs, "name", lambda run: (run.get("started_at") or "", run["id"]))
     set_ = latest(statuses, "context", lambda status: (status["updated_at"], status["id"]))
-    if not ran and not set_:
+    if not ran.keys() - {RECORD} and not set_:
         verdict.unsettled.append("no check has reported on it")
     for context in sorted(required - ran.keys() - set_.keys()):
         verdict.unsettled.append(f"{context}, which the branch requires, has not reported")
@@ -182,9 +200,10 @@ def paged(api: Api, path: str, key: str | None) -> list[dict]:
         page += 1
 
 
-def strangers(api: Api, repo: str, pull: dict, bot: str) -> list[str]:
+def strangers(api: Api, repo: str, pull: dict, bot: str, slug: str, runs: list[dict]) -> list[str]:
     """Every way the pull request is not the train's own, read from the forge."""
     found = []
+    head = pull["head"]["sha"]
     if pull["user"]["login"] != bot or pull["user"].get("type") != "Bot":
         found.append(f"it was opened by {pull['user']['login']}, not {bot}")
     if pull["state"] != "open" or pull.get("merged_at"):
@@ -193,29 +212,68 @@ def strangers(api: Api, repo: str, pull: dict, bot: str) -> list[str]:
         found.append("it is a draft")
     if (pull["head"].get("repo") or {}).get("full_name") != repo:
         found.append("its branch is not this repository's own")
-    if (
-        pull["base"]["repo"]["full_name"] != repo
-        or pull["base"]["ref"] != pull["base"]["repo"]["default_branch"]
-    ):
+    base = pull["base"]
+    if base["repo"]["full_name"] != repo or base["ref"] != base["repo"]["default_branch"]:
         found.append(f"it is not into {repo}'s default branch")
     if LABEL not in {label["name"] for label in pull.get("labels", [])}:
         found.append(f"it does not carry {LABEL}")
-    commit = api("GET", f"repos/{repo}/commits/{pull['head']['sha']}", None)
-    if (commit.get("author") or {}).get("login") != bot:
-        found.append(f"its head was not authored by {bot}")
-    if (commit.get("committer") or {}).get("login") not in {bot, SIGNED_BY_GITHUB}:
-        found.append(f"its head was not committed by {bot}")
-    if not commit["commit"]["verification"]["verified"]:
-        found.append("its head is not a verified commit")
+    found += foreign_commits(api, repo, base["ref"], head, bot)
+    records = [
+        run
+        for run in runs
+        if run["name"] == RECORD
+        and (run.get("app") or {}).get("slug") == slug
+        and run["conclusion"] == "success"
+    ]
+    if not records:
+        found.append(f"{slug} recorded no push of this head as {RECORD}")
+    recorded = min((moment(run["started_at"]) for run in records), default=None)
+    timeline = paged(api, f"repos/{repo}/issues/{pull['number']}/timeline", None)
+    for event in timeline:
+        actor = (event.get("actor") or {}).get("login")
+        if (
+            event.get("event") in PUSHES
+            and actor != bot
+            and (recorded is None or moment(event["created_at"]) >= recorded)
+        ):
+            found.append(f"{actor} moved its branch ({event['event']}) after the train pushed it")
     labelled_by = [
-        event["actor"]["login"]
-        for event in paged(api, f"repos/{repo}/issues/{pull['number']}/events", None)
-        if event["event"] == "labeled" and event.get("label", {}).get("name") == LABEL
+        (event.get("actor") or {}).get("login")
+        for event in timeline
+        if event.get("event") == "labeled" and (event.get("label") or {}).get("name") == LABEL
     ]
     if not labelled_by or labelled_by[-1] != bot:
         found.append(
             f"{LABEL} was put on it by {labelled_by[-1] if labelled_by else 'nobody it could see'}, not {bot}"
         )
+    return found
+
+
+def foreign_commits(api: Api, repo: str, branch: str, head: str, bot: str) -> list[str]:
+    """Every commit between the base branch and the head that the train did not make."""
+    found = []
+    commits: list[dict] = []
+    total = None
+    page = 1
+    while True:
+        compared = api(
+            "GET", f"repos/{repo}/compare/{quote(branch)}...{head}?per_page={PER_PAGE}&page={page}", None
+        )
+        total = compared["total_commits"]
+        commits += compared["commits"]
+        if len(compared["commits"]) < PER_PAGE:
+            break
+        page += 1
+    if not commits or len(commits) != total:
+        found.append(f"its {total} commit(s) past {branch} could not all be read")
+    for commit in commits:
+        sha = commit["sha"][:12]
+        if (commit.get("author") or {}).get("login") != bot:
+            found.append(f"{sha} was not authored by {bot}")
+        if (commit.get("committer") or {}).get("login") not in {bot, SIGNED_BY_GITHUB}:
+            found.append(f"{sha} was not committed by {bot}")
+        if not commit["commit"]["verification"]["verified"]:
+            found.append(f"{sha} is not a verified commit")
     return found
 
 
@@ -250,16 +308,11 @@ def held(api: Api, repo: str, number: int, head: str, lines: list[str]) -> Held:
     return Held(f"{repo}#{number} held at {head}: {'; '.join(lines)}")
 
 
-def settled(api: Api, repo: str, number: int, bot: str, now: datetime.datetime) -> str:
+def settled(api: Api, repo: str, number: int, slug: str, now: datetime.datetime) -> str:
     """Judge one pull request and merge or hold it; what it came to, said in one line."""
+    bot = f"{slug}[bot]"
     pull = api("GET", f"repos/{repo}/pulls/{number}", None)
     head = pull["head"]["sha"]
-    try:
-        found = strangers(api, repo, pull, bot)
-    except subprocess.CalledProcessError as failed:
-        found = [f"whose it is could not be read: {(failed.stderr or '').strip()}"]
-    if found:
-        raise held(api, repo, number, head, found)
     try:
         required = required_contexts(api, repo, pull["base"]["ref"])
         runs = paged(api, f"repos/{repo}/commits/{head}/check-runs?filter=all", "check_runs")
@@ -273,6 +326,12 @@ def settled(api: Api, repo: str, number: int, bot: str, now: datetime.datetime) 
             head,
             [f"its protection, checks or statuses could not be read: {(failed.stderr or '').strip()}"],
         ) from failed
+    try:
+        found = strangers(api, repo, pull, bot, slug, runs)
+    except subprocess.CalledProcessError as failed:
+        found = [f"whose it is could not be read: {(failed.stderr or '').strip()}"]
+    if found:
+        raise held(api, repo, number, head, found)
     verdict = judged(runs, statuses, required, pushed, now)
     if verdict.merges():
         api(
@@ -314,7 +373,7 @@ def main(argv: list[str], api: Api = gh, now: datetime.datetime | None = None) -
         return 2
     at = now or datetime.datetime.now(datetime.UTC)
     try:
-        print(settled(api, args.repo, int(args.number), f"{args.author}[bot]", at))
+        print(settled(api, args.repo, int(args.number), args.author, at))
     except Held as why:
         print(f"::error::{why}", file=sys.stderr)
         return 1

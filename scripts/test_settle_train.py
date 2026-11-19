@@ -33,15 +33,39 @@ ARGS = ["--owner", "lemonfiber", "--author", "lemonfiber-release-train", "--repo
 DENIED = subprocess.CalledProcessError(1, "gh", stderr="HTTP 403: Resource not accessible by integration")
 
 
-def run(name, status="completed", conclusion="success", started="2026-11-20T11:10:00Z", ident=1):
+TRAIN = "lemonfiber-release-train"
+
+
+def run(
+    name,
+    status="completed",
+    conclusion="success",
+    started="2026-11-20T11:10:00Z",
+    ident=1,
+    app="github-actions",
+):
     done = "2026-11-20T11:20:00Z" if status == "completed" else None
     return {
+        "app": {"slug": app},
         "name": name,
         "status": status,
         "conclusion": conclusion,
         "started_at": started,
         "completed_at": done,
         "id": ident,
+    }
+
+
+def recorded(started="2026-11-20T11:01:00Z", app=TRAIN):
+    return run(train.RECORD, started=started, ident=99, app=app)
+
+
+def commit(sha=HEAD, author=BOT, committer="web-flow", verified=True):
+    return {
+        "sha": sha,
+        "author": {"login": author},
+        "committer": {"login": committer},
+        "commit": {"verification": {"verified": verified}},
     }
 
 
@@ -78,22 +102,21 @@ class Forge:
         pushed=PUSHED,
         comments=(),
         the_pull=None,
-        author=BOT,
-        committer="web-flow",
-        verified=True,
+        commits=None,
+        record=True,
         labeller=BOT,
+        moved=(),
         unreadable=(),
     ):
-        self.runs = list(runs)
+        self.runs = list(runs) + ([recorded()] if record is True else [record] if record else [])
         self.statuses = list(statuses)
         self.required = list(required)
         self.pushed = pushed
         self.comments = [dict(one) for one in comments]
         self.pull = the_pull or pull()
-        self.author = author
-        self.committer = committer
-        self.verified = verified
+        self.commits = [commit()] if commits is None else list(commits)
         self.labeller = labeller
+        self.moved = list(moved)
         self.unreadable = set(unreadable)
         self.calls: list[tuple[str, str, dict | None]] = []
 
@@ -112,13 +135,14 @@ class Forge:
         if bare.endswith("/statuses"):
             return self.statuses
         if bare == f"repos/{REPO}/commits/{HEAD}":
-            return {
-                "author": {"login": self.author},
-                "committer": {"login": self.committer},
-                "commit": {"committer": {"date": self.pushed}, "verification": {"verified": self.verified}},
-            }
-        if bare.endswith("/events"):
-            return [{"event": "labeled", "label": {"name": train.LABEL}, "actor": {"login": self.labeller}}]
+            return {"commit": {"committer": {"date": self.pushed}}}
+        if bare.startswith(f"repos/{REPO}/compare/"):
+            return {"total_commits": len(self.commits), "commits": self.commits}
+        if bare.endswith("/timeline"):
+            return [
+                {"event": "labeled", "label": {"name": train.LABEL}, "actor": {"login": self.labeller}},
+                *self.moved,
+            ]
         if bare.endswith("/comments") and method == "GET":
             return self.comments
         return {}
@@ -296,14 +320,41 @@ class NotTheTrains(unittest.TestCase):
             "default branch",
         )
 
-    def test_a_head_a_person_authored(self):
-        self.assert_held(self.green(author="someone"), "not authored")
+    def test_a_foreign_commit_under_the_train_s_own(self):
+        self.assert_held(self.green(commits=[commit("b" * 40, author="someone"), commit()]), "not authored")
 
-    def test_a_head_a_person_committed(self):
-        self.assert_held(self.green(committer="someone"), "not committed")
+    def test_a_commit_a_person_committed(self):
+        self.assert_held(self.green(commits=[commit(committer="someone")]), "not committed")
 
-    def test_an_unverified_head(self):
-        self.assert_held(self.green(verified=False), "not a verified commit")
+    def test_an_unverified_commit(self):
+        self.assert_held(self.green(commits=[commit(verified=False)]), "not a verified commit")
+
+    def test_a_range_it_cannot_read_whole(self):
+        self.assert_held(self.green(commits=[]), "could not all be read")
+
+    def test_a_browser_commit_claiming_the_bot_as_author_with_no_record_of_the_train_pushing_it(self):
+        self.assert_held(self.green(record=None), "recorded no push")
+
+    def test_a_record_another_app_put_on_the_head(self):
+        self.assert_held(self.green(record=recorded(app="github-actions")), "recorded no push")
+
+    def test_a_push_by_somebody_else_after_the_train_s(self):
+        moved = {
+            "event": "head_ref_force_pushed",
+            "actor": {"login": "someone"},
+            "created_at": "2026-11-20T11:30:00Z",
+        }
+        self.assert_held(self.green(moved=[moved]), "someone moved its branch")
+
+    def test_a_push_by_somebody_else_before_the_train_s_own_does_not_hold(self):
+        moved = {
+            "event": "head_ref_force_pushed",
+            "actor": {"login": "someone"},
+            "created_at": "2026-11-20T10:00:00Z",
+        }
+        forge = self.green(moved=[moved])
+        self.assertEqual(settle(forge), 0)
+        self.assertEqual(len(forge.merged()), 1)
 
     def test_a_label_a_person_put_on(self):
         self.assert_held(self.green(labeller="someone"), "put on it by someone")
