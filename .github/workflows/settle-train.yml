@@ -1,0 +1,78 @@
+# The release train merges its own bumps once every check on the head is green — OPS-R96.
+#
+# GitHub's auto-merge waits for the checks branch protection requires and nothing
+# else, so a bump it merged could land with a check nobody requires still running.
+# A bump the train means to merge carries the label `train-merges` instead, and
+# this looks at every such pull request in the organisation, merging the ones whose
+# every check run and commit status has settled green and holding, with one comment
+# saying why, the ones that will not settle. `scripts/settle_train.py` is the rule.
+#
+# The runner pool is shared, so a look that finds nothing marked costs one search on
+# `github.token` in one short job: the App's key, its environment and the checkout
+# are reached only where something is marked.
+name: settle-train
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: settle-train
+  cancel-in-progress: false
+
+env:
+  OWNER: ${{ github.repository_owner }}
+  TRAIN: lemonfiber-release-train
+
+jobs:
+  look:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      marked: ${{ steps.search.outputs.marked }}
+    steps:
+      - name: Anything marked for the train
+        id: search
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          marked="$(gh api -X GET search/issues \
+            -f q="is:pr is:open org:${OWNER} author:app/${TRAIN} label:train-merges" \
+            --jq '.total_count')"
+          echo "marked=${marked}" >> "$GITHUB_OUTPUT"
+          echo "${marked} pull request(s) marked for the train." >> "$GITHUB_STEP_SUMMARY"
+
+  settle:
+    needs: look
+    if: needs.look.outputs.marked != '0'
+    runs-on: ubuntu-latest
+    environment: release
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/settle_train.py
+          sparse-checkout-cone-mode: false
+
+      - id: token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-checks: read
+
+      - name: Merge what settled green, hold what will not
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          set -o pipefail
+          python3 scripts/settle_train.py --owner "$OWNER" --author "$TRAIN" | tee -a "$GITHUB_STEP_SUMMARY"
