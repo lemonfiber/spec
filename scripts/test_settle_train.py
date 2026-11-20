@@ -279,6 +279,14 @@ class Holding(unittest.TestCase):
         [(_, body)] = forge.written()
         self.assertIn("sonar / gate is failure", body)
 
+    def test_a_marker_comment_somebody_else_wrote_is_neither_edited_nor_taken_for_the_train_s(self):
+        planted = {"id": 5, "user": {"login": "someone"}, "body": f"{train.MARKER}\nplanted"}
+        forge = Forge([run("gates / gates", conclusion="failure")], comments=[planted])
+        settle(forge)
+        [(method, body)] = forge.written()
+        self.assertEqual(method, "POST")
+        self.assertIn("gates / gates ended failure", body)
+
     def test_a_head_unsettled_past_the_bound_is_held_and_says_why(self):
         forge = Forge([run("plugin / live", status="queued", conclusion=None)], pushed=OLD)
         settle(forge)
@@ -288,7 +296,7 @@ class Holding(unittest.TestCase):
         self.assertIn("older than", body)
 
     def test_the_reason_is_edited_in_place_not_said_again(self):
-        old = {"id": 9, "body": f"{train.MARKER}\nsomething earlier"}
+        old = {"id": 9, "user": {"login": BOT}, "body": f"{train.MARKER}\nsomething earlier"}
         forge = Forge([run("gates / gates", conclusion="failure")], comments=[old])
         settle(forge)
         self.assertEqual([method for method, _ in forge.written()], ["PATCH"])
@@ -297,7 +305,10 @@ class Holding(unittest.TestCase):
         forge = Forge([run("gates / gates", conclusion="failure")])
         settle(forge)
         [(_, body)] = forge.written()
-        again = Forge([run("gates / gates", conclusion="failure")], comments=[{"id": 9, "body": body}])
+        again = Forge(
+            [run("gates / gates", conclusion="failure")],
+            comments=[{"id": 9, "user": {"login": BOT}, "body": body}],
+        )
         settle(again)
         self.assertEqual(again.written(), [])
 
@@ -417,6 +428,13 @@ class OneCheckAtATime(unittest.TestCase):
         )
         settle(forge)
         self.assertEqual(len(forge.merged()), 1)
+
+    def test_a_rerun_queued_with_no_start_yet_is_waited_for_over_the_green_run_before_it(self):
+        queued = run("gates / gates", status="queued", conclusion=None, started=None, ident=4)
+        forge = Forge([run("gates / gates"), queued])
+        settle(forge)
+        self.assertEqual(forge.merged(), [])
+        self.assertEqual(forge.written(), [])
 
     def test_a_cancelled_run_nothing_later_superseded_is_red(self):
         forge = Forge([run("gates / gates", conclusion="cancelled")])

@@ -58,7 +58,8 @@ jobs:
           set -euo pipefail
           marked="$(gh api -X GET search/issues -f per_page=100 \
             -f q="is:pr is:open org:${OWNER} author:app/${TRAIN} label:train-merges" \
-            --jq '[.items[] | {repo: (.repository_url | sub("^https://api.github.com/repos/"; "")), number: (.number | tostring)}]')"
+            --jq '[.items[] | {repo: (.repository_url | sub("^https://api.github.com/repos/"; "")), number: (.number | tostring)}]' \
+            | jq -c .)"
           count="$(jq 'length' <<< "$marked")"
           {
             echo "marked=${marked}"

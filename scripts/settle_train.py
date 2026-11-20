@@ -20,7 +20,9 @@ held, whatever its checks say.
 
 Settled green:
 
-- every context the base branch's protection requires has reported on the head;
+- every context the base branch requires, by its protection or its rulesets, has
+  reported on the head, by a check of that name from any app: a branch may pin a
+  context to one app, and only apps trusted to write checks here can write one;
 - the latest check run of each name has completed as one of `PASSING`;
 - the latest commit status of each context is `success`;
 - nothing has moved on the head for `QUIET`: no push and no check run started,
@@ -186,7 +188,9 @@ def judged(
 
     verdict = Verdict()
     ran = latest(
-        runs, lambda run: (owner(run), run["name"]), lambda run: (run.get("started_at") or "", run["id"])
+        runs,
+        lambda run: (owner(run), run["name"]),
+        lambda run: (run.get("started_at") is None, run.get("started_at") or "", run["id"]),
     )
     set_ = latest(
         statuses, lambda status: (status["context"],), lambda status: (status["updated_at"], status["id"])
@@ -363,24 +367,31 @@ def reason(lines: list[str], head: str) -> str:
     )
 
 
-def said(api: Api, repo: str, number: int, body: str) -> None:
-    """Put `body` in the train's one comment on the pull request, editing it where it is there."""
+def said(api: Api, repo: str, number: int, bot: str, body: str) -> None:
+    """Put `body` in the train's one comment on the pull request, editing it where it is there.
+
+    The train's comment is one its bot wrote: a comment anybody else wrote starting the
+    same way is never edited, and never stands in for the train's own.
+    """
     comments = paged(api, f"repos/{repo}/issues/{number}/comments", None)
-    mine = next((one for one in comments if one["body"].startswith(MARKER)), None)
+    mine = next(
+        (one for one in comments if one["user"]["login"] == bot and one["body"].startswith(MARKER)), None
+    )
     if mine is None:
         api("POST", f"repos/{repo}/issues/{number}/comments", {"body": body})
     elif mine["body"] != body:
         api("PATCH", f"repos/{repo}/issues/comments/{mine['id']}", {"body": body})
 
 
-def held(api: Api, repo: str, number: int, head: str, lines: list[str]) -> Held:
+def held(api: Api, repo: str, number: int, bot: str, head: str, lines: list[str]) -> Held:
     """Say why on the pull request, and the exception that fails the look for it."""
-    said(api, repo, number, reason(lines, head))
+    said(api, repo, number, bot, reason(lines, head))
     return Held(f"{repo}#{number} held at {head}: {'; '.join(lines)}")
 
 
 def settled(api: Api, repo: str, number: int, slug: str, now: datetime.datetime) -> str:
     """Judge one pull request and merge or hold it; what it came to, said in one line."""
+    bot = f"{slug}[bot]"
     pull = api("GET", f"repos/{repo}/pulls/{number}", None)
     head = pull["head"]["sha"]
     try:
@@ -394,6 +405,7 @@ def settled(api: Api, repo: str, number: int, slug: str, now: datetime.datetime)
             api,
             repo,
             number,
+            bot,
             head,
             [f"its protection, checks or statuses could not be read: {(failed.stderr or '').strip()}"],
         ) from failed
@@ -402,7 +414,7 @@ def settled(api: Api, repo: str, number: int, slug: str, now: datetime.datetime)
     except subprocess.CalledProcessError as failed:
         found = [f"whose it is could not be read: {(failed.stderr or '').strip()}"]
     if found:
-        raise held(api, repo, number, head, found)
+        raise held(api, repo, number, bot, head, found)
     verdict = judged(runs, statuses, required, owners, (pushed, now))
     if verdict.merges():
         api(
@@ -421,7 +433,7 @@ def settled(api: Api, repo: str, number: int, slug: str, now: datetime.datetime)
         lines = verdict.red + (
             [f"{one}, and the head is older than {BOUND}" for one in verdict.unsettled] if stale else []
         )
-        said(api, repo, number, reason(lines, head))
+        said(api, repo, number, bot, reason(lines, head))
         return f"{repo}#{number} held at {head}: {'; '.join(lines)}"
     return f"{repo}#{number} waits at {head}: {'; '.join(verdict.unsettled)}"
 
