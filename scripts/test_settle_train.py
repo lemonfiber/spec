@@ -18,6 +18,7 @@ import pathlib
 import subprocess
 import sys
 import unittest
+from unittest import mock
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -43,10 +44,12 @@ def run(
     started="2026-11-20T11:10:00Z",
     ident=1,
     app="github-actions",
+    suite=1,
 ):
     done = "2026-11-20T11:20:00Z" if status == "completed" else None
     return {
         "app": {"slug": app},
+        "check_suite": {"id": suite},
         "name": name,
         "status": status,
         "conclusion": conclusion,
@@ -57,7 +60,7 @@ def run(
 
 
 def recorded(started="2026-11-20T11:01:00Z", app=TRAIN):
-    return run(train.RECORD, started=started, ident=99, app=app)
+    return run(train.RECORD, started=started, ident=99, app=app, suite=99)
 
 
 def commit(sha=HEAD, author=BOT, committer="web-flow", verified=True):
@@ -107,7 +110,11 @@ class Forge:
         labeller=BOT,
         moved=(),
         unreadable=(),
+        rules=(),
+        workflows=None,
     ):
+        self.rules = list(rules)
+        self.workflows = {1: 7} if workflows is None else dict(workflows)
         self.runs = list(runs) + ([recorded()] if record is True else [record] if record else [])
         self.statuses = list(statuses)
         self.required = list(required)
@@ -128,6 +135,21 @@ class Forge:
                 raise DENIED
         if bare == f"repos/{REPO}/pulls/45":
             return self.pull
+        if bare == f"repos/{REPO}/actions/runs":
+            suite = int(path.split("check_suite_id=", 1)[1].split("&", 1)[0])
+            known = self.workflows.get(suite)
+            return {"workflow_runs": [{"workflow_id": known}] if known else []}
+        if bare.startswith(f"repos/{REPO}/rules/branches/"):
+            return [
+                {"type": "pull_request", "parameters": {}},
+                *(
+                    {
+                        "type": "required_status_checks",
+                        "parameters": {"required_status_checks": [{"context": one}]},
+                    }
+                    for one in self.rules
+                ),
+            ]
         if bare.endswith("/required_status_checks"):
             return {"contexts": self.required, "checks": [{"context": one} for one in self.required]}
         if bare.endswith("/check-runs"):
@@ -250,6 +272,13 @@ class Holding(unittest.TestCase):
         self.assertTrue(body.startswith(train.MARKER))
         self.assertIn("download-torrent ended failure", body)
 
+    def test_a_red_status_holds_it_and_says_which(self):
+        forge = Forge([run("gates / gates")], [status("sonar / gate", state="failure")])
+        settle(forge)
+        self.assertEqual(forge.merged(), [])
+        [(_, body)] = forge.written()
+        self.assertIn("sonar / gate is failure", body)
+
     def test_a_head_unsettled_past_the_bound_is_held_and_says_why(self):
         forge = Forge([run("plugin / live", status="queued", conclusion=None)], pushed=OLD)
         settle(forge)
@@ -283,9 +312,10 @@ class Unreadable(unittest.TestCase):
     def test_a_head_whose_statuses_cannot_be_read_is_held_and_the_look_fails(self):
         self.assert_held_and_red(Forge([run("gates / gates")], unreadable={"/statuses"}), "403")
 
-    def test_a_branch_whose_protection_cannot_be_read_is_held_and_the_look_fails(self):
+    def test_a_branch_whose_protection_and_rulesets_both_cannot_be_read_is_held_and_the_look_fails(self):
         self.assert_held_and_red(
-            Forge([run("gates / gates")], unreadable={"/required_status_checks"}), "protection"
+            Forge([run("gates / gates")], unreadable={"/required_status_checks", "/rules/branches/main"}),
+            "protection",
         )
 
 
@@ -358,6 +388,139 @@ class NotTheTrains(unittest.TestCase):
 
     def test_a_label_a_person_put_on(self):
         self.assert_held(self.green(labeller="someone"), "put on it by someone")
+
+
+class OneCheckAtATime(unittest.TestCase):
+    def test_a_red_job_is_not_hidden_by_a_green_one_of_the_same_name_in_another_workflow(self):
+        forge = Forge(
+            [
+                run("gates / gates"),
+                run("build", conclusion="failure", started="2026-11-20T11:02:00Z", ident=2, suite=2),
+                run("build", started="2026-11-20T11:03:00Z", ident=3, suite=3),
+            ],
+            workflows={1: 7, 2: 20, 3: 30},
+        )
+        settle(forge)
+        self.assertEqual(forge.merged(), [])
+        [(_, body)] = forge.written()
+        self.assertIn("build ended failure", body)
+
+    def test_a_later_run_of_the_same_workflow_supersedes_an_earlier_one(self):
+        forge = Forge(
+            [
+                run(
+                    "gates / gates", conclusion="cancelled", started="2026-11-20T11:02:00Z", ident=2, suite=2
+                ),
+                run("gates / gates", started="2026-11-20T11:03:00Z", ident=3, suite=3),
+            ],
+            workflows={2: 7, 3: 7},
+        )
+        settle(forge)
+        self.assertEqual(len(forge.merged()), 1)
+
+    def test_a_cancelled_run_nothing_later_superseded_is_red(self):
+        forge = Forge([run("gates / gates", conclusion="cancelled")])
+        settle(forge)
+        self.assertEqual(forge.merged(), [])
+        [(_, body)] = forge.written()
+        self.assertIn("gates / gates ended cancelled", body)
+
+    def test_a_suite_whose_workflow_cannot_be_found_is_a_check_of_its_own(self):
+        forge = Forge(
+            [
+                run("build", conclusion="failure", started="2026-11-20T11:02:00Z", ident=2, suite=2),
+                run("build", started="2026-11-20T11:03:00Z", ident=3, suite=3),
+                run("gates / gates"),
+            ],
+            workflows={1: 7, 3: 30},
+        )
+        settle(forge)
+        self.assertEqual(forge.merged(), [])
+
+    def test_another_app_s_check_of_the_same_name_is_its_own_check(self):
+        forge = Forge(
+            [
+                run(
+                    "scan",
+                    conclusion="failure",
+                    started="2026-11-20T11:02:00Z",
+                    ident=2,
+                    app="sonarcloud",
+                    suite=5,
+                ),
+                run("scan", started="2026-11-20T11:03:00Z", ident=3, suite=1),
+                run("gates / gates"),
+            ]
+        )
+        settle(forge)
+        self.assertEqual(forge.merged(), [])
+
+
+class Required(unittest.TestCase):
+    def test_a_context_only_a_ruleset_requires_is_waited_for(self):
+        forge = Forge([run("gates / gates")], rules=["lint"])
+        settle(forge)
+        self.assertEqual(forge.merged(), [])
+        self.assertEqual(forge.written(), [])
+
+    def test_a_branch_with_no_classic_protection_is_read_from_its_rulesets(self):
+        forge = Forge([run("lint")], rules=["lint"], unreadable={"/required_status_checks"})
+        settle(forge)
+        self.assertEqual(len(forge.merged()), 1)
+
+    def test_a_branch_whose_rulesets_cannot_be_read_is_read_from_its_protection(self):
+        forge = Forge([run("gates / gates")], unreadable={"/rules/branches/main"})
+        settle(forge)
+        self.assertEqual(len(forge.merged()), 1)
+
+
+class Paging(unittest.TestCase):
+    def test_a_range_longer_than_a_page_is_read_to_its_end(self):
+        many = [commit(f"{n:040x}") for n in range(train.PER_PAGE)]
+
+        class Long(Forge):
+            def __call__(self, method, path, payload):
+                if "/compare/" in path:
+                    self.calls.append((method, path, payload))
+                    first = path.endswith("&page=1")
+                    return {"total_commits": train.PER_PAGE + 1, "commits": many if first else [commit()]}
+                return super().__call__(method, path, payload)
+
+        forge = Long([run("gates / gates")])
+        settle(forge)
+        self.assertEqual(len(forge.merged()), 1)
+
+    def test_a_listing_longer_than_a_page_is_read_to_its_end(self):
+        pages = {1: [{"n": n} for n in range(train.PER_PAGE)], 2: [{"n": "last"}]}
+        read = train.paged(lambda method, path, payload: pages[int(path.rsplit("page=", 1)[1])], "x", None)
+        self.assertEqual(len(read), train.PER_PAGE + 1)
+
+
+class TheForge(unittest.TestCase):
+    def test_gh_sends_the_payload_on_its_input_and_reads_the_answer(self):
+        answered = subprocess.CompletedProcess([], 0, stdout='{"merged": true}', stderr="")
+        with mock.patch.object(train.subprocess, "run", return_value=answered) as ran:
+            self.assertEqual(train.gh("PUT", "repos/x/y/pulls/1/merge", {"sha": HEAD}), {"merged": True})
+        self.assertEqual(ran.call_args.args[0][-2:], ["--input", "-"])
+        self.assertEqual(ran.call_args.kwargs["input"], '{"sha": "' + HEAD + '"}')
+        quiet = subprocess.CompletedProcess([], 0, stdout="", stderr="")
+        with mock.patch.object(train.subprocess, "run", return_value=quiet) as ran:
+            self.assertEqual(train.gh("GET", "repos/x/y"), {})
+        self.assertIsNone(ran.call_args.kwargs["input"])
+
+    def test_a_merge_the_forge_refuses_fails_the_look(self):
+        class Refusing(Forge):
+            def __call__(self, method, path, payload):
+                if method == "PUT":
+                    raise DENIED
+                return super().__call__(method, path, payload)
+
+        self.assertEqual(settle(Refusing([run("gates / gates")])), 1)
+
+    def test_a_pull_request_whose_ownership_cannot_be_read_is_held(self):
+        forge = Forge([run("gates / gates")], unreadable={"/timeline"})
+        self.assertEqual(settle(forge), 1)
+        self.assertEqual(forge.merged(), [])
 
 
 class Arguments(unittest.TestCase):

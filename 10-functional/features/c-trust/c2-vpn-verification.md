@@ -5,7 +5,7 @@ kind: feature
 area: C
 audience: operator
 status: accepted
-maturity: building
+maturity: built
 labels: [vpn, network, verification]
 requires: [B5]
 relates: [A3, B8, C1]

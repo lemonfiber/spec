@@ -85,6 +85,9 @@ SIGNED_BY_GITHUB = "web-flow"
 #: put its name to, so a head it did not push is never taken for one it did.
 RECORD = "train / pushed"
 
+#: The app GitHub Actions reports its jobs' check runs as.
+ACTIONS = "github-actions"
+
 #: The timeline events that move a pull request's branch other than by a commit.
 PUSHES = frozenset({"head_ref_force_pushed", "head_ref_deleted", "head_ref_restored"})
 
@@ -98,7 +101,7 @@ PER_PAGE = 100
 OWNER = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9-]*\Z")
 SLUG = re.compile(r"\A[a-z0-9][a-z0-9-]*\Z")
 REPO = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._][A-Za-z0-9._-]*\Z")
-NUMBER = re.compile(r"\A[1-9][0-9]{0,9}\Z")
+NUMBER = re.compile(r"\A[1-9]\d{0,9}\Z")
 
 #: One call to the forge: the method, the path and the JSON payload, if any.
 Api = Callable[[str, str, dict | None], object]
@@ -144,37 +147,62 @@ def moment(text: str) -> datetime.datetime:
     return datetime.datetime.fromisoformat(text)
 
 
-def latest(items: list[dict], name: str, at: Callable[[dict], tuple]) -> dict[str, dict]:
-    """The latest of each name, so a run superseded by its rerun no longer counts."""
-    kept: dict[str, dict] = {}
+def latest(items: list[dict], key: Callable[[dict], tuple], at: Callable[[dict], tuple]) -> dict[tuple, dict]:
+    """The latest of each check, so a run superseded by a later one of the same check no longer counts."""
+    kept: dict[tuple, dict] = {}
     for item in items:
-        held = kept.get(item[name])
+        held = kept.get(key(item))
         if held is None or at(item) > at(held):
-            kept[item[name]] = item
+            kept[key(item)] = item
     return kept
+
+
+def workflows(api: Api, repo: str, runs: list[dict]) -> dict[int, str]:
+    """Which workflow each Actions check suite on the head belongs to.
+
+    Two workflows can each have a job of the same name, and those are two checks: a
+    run supersedes another only within the same workflow. A suite whose workflow
+    cannot be found is a check of its own.
+    """
+    found: dict[int, str] = {}
+    for suite in sorted({run["check_suite"]["id"] for run in runs if run["app"]["slug"] == ACTIONS}):
+        listed = api("GET", f"repos/{repo}/actions/runs?check_suite_id={suite}", None)["workflow_runs"]
+        found[suite] = f"workflow {listed[0]['workflow_id']}" if listed else f"suite {suite}"
+    return found
 
 
 def judged(
     runs: list[dict],
     statuses: list[dict],
     required: set[str],
-    pushed: datetime.datetime,
-    now: datetime.datetime,
+    owners: dict[int, str],
+    times: tuple[datetime.datetime, datetime.datetime],
 ) -> Verdict:
-    """What every check run and commit status on one head comes to."""
+    """What every check run and commit status on one head comes to, `times` being its push and now."""
+    pushed, now = times
+
+    def owner(run: dict) -> str:
+        return owners.get(run["check_suite"]["id"], run["app"]["slug"])
+
     verdict = Verdict()
-    ran = latest(runs, "name", lambda run: (run.get("started_at") or "", run["id"]))
-    set_ = latest(statuses, "context", lambda status: (status["updated_at"], status["id"]))
-    if not ran.keys() - {RECORD} and not set_:
+    ran = latest(
+        runs, lambda run: (owner(run), run["name"]), lambda run: (run.get("started_at") or "", run["id"])
+    )
+    set_ = latest(
+        statuses, lambda status: (status["context"],), lambda status: (status["updated_at"], status["id"])
+    )
+    reported = {name for _, name in ran} | {context for (context,) in set_}
+    if not reported - {RECORD}:
         verdict.unsettled.append("no check has reported on it")
-    for context in sorted(required - ran.keys() - set_.keys()):
-        verdict.unsettled.append(f"{context}, which the branch requires, has not reported")
-    for name, run in sorted(ran.items()):
+    verdict.unsettled += [
+        f"{context}, which the branch requires, has not reported" for context in sorted(required - reported)
+    ]
+    for (_, name), run in sorted(ran.items()):
         if run["status"] != "completed":
             verdict.unsettled.append(f"{name} is {run['status']}")
         elif run["conclusion"] not in PASSING:
             verdict.red.append(f"{name} ended {run['conclusion']}")
-    for context, status in sorted(set_.items()):
+    for (context,), status in sorted(set_.items()):
         if status["state"] == "pending":
             verdict.unsettled.append(f"{context} is pending")
         elif status["state"] != "success":
@@ -200,53 +228,73 @@ def paged(api: Api, path: str, key: str | None) -> list[dict]:
         page += 1
 
 
-def strangers(api: Api, repo: str, pull: dict, bot: str, slug: str, runs: list[dict]) -> list[str]:
+def strangers(api: Api, repo: str, pull: dict, slug: str, runs: list[dict]) -> list[str]:
     """Every way the pull request is not the train's own, read from the forge."""
-    found = []
-    head = pull["head"]["sha"]
-    if pull["user"]["login"] != bot or pull["user"].get("type") != "Bot":
-        found.append(f"it was opened by {pull['user']['login']}, not {bot}")
-    if pull["state"] != "open" or pull.get("merged_at"):
-        found.append("it is not open")
-    if pull.get("draft"):
-        found.append("it is a draft")
-    if (pull["head"].get("repo") or {}).get("full_name") != repo:
-        found.append("its branch is not this repository's own")
+    bot = f"{slug}[bot]"
+    timeline = paged(api, f"repos/{repo}/issues/{pull['number']}/timeline", None)
+    return (
+        unlike(pull, repo, bot)
+        + foreign_commits(api, repo, pull["base"]["ref"], pull["head"]["sha"], bot)
+        + unrecorded(runs, timeline, slug)
+        + unlabelled(timeline, bot)
+    )
+
+
+def unlike(pull: dict, repo: str, bot: str) -> list[str]:
+    """Every way the pull request itself is not one the train opened into the default branch."""
     base = pull["base"]
-    if base["repo"]["full_name"] != repo or base["ref"] != base["repo"]["default_branch"]:
-        found.append(f"it is not into {repo}'s default branch")
-    if LABEL not in {label["name"] for label in pull.get("labels", [])}:
-        found.append(f"it does not carry {LABEL}")
-    found += foreign_commits(api, repo, base["ref"], head, bot)
+    checks = [
+        (
+            pull["user"]["login"] == bot and pull["user"].get("type") == "Bot",
+            f"it was opened by {pull['user']['login']}, not {bot}",
+        ),
+        (pull["state"] == "open" and not pull.get("merged_at"), "it is not open"),
+        (not pull.get("draft"), "it is a draft"),
+        (
+            (pull["head"].get("repo") or {}).get("full_name") == repo,
+            "its branch is not this repository's own",
+        ),
+        (
+            base["repo"]["full_name"] == repo and base["ref"] == base["repo"]["default_branch"],
+            f"it is not into {repo}'s default branch",
+        ),
+        (LABEL in {label["name"] for label in pull.get("labels", [])}, f"it does not carry {LABEL}"),
+    ]
+    return [why for holds, why in checks if not holds]
+
+
+def unrecorded(runs: list[dict], timeline: list[dict], slug: str) -> list[str]:
+    """Whether the head is not one the train recorded pushing, or was moved by somebody else since."""
+    bot = f"{slug}[bot]"
     records = [
         run
         for run in runs
-        if run["name"] == RECORD
-        and (run.get("app") or {}).get("slug") == slug
-        and run["conclusion"] == "success"
+        if run["name"] == RECORD and run["app"]["slug"] == slug and run["conclusion"] == "success"
     ]
     if not records:
-        found.append(f"{slug} recorded no push of this head as {RECORD}")
-    recorded = min((moment(run["started_at"]) for run in records), default=None)
-    timeline = paged(api, f"repos/{repo}/issues/{pull['number']}/timeline", None)
-    for event in timeline:
-        actor = (event.get("actor") or {}).get("login")
-        if (
-            event.get("event") in PUSHES
-            and actor != bot
-            and (recorded is None or moment(event["created_at"]) >= recorded)
-        ):
-            found.append(f"{actor} moved its branch ({event['event']}) after the train pushed it")
+        return [f"{slug} recorded no push of this head as {RECORD}"]
+    recorded = min(moment(run["started_at"]) for run in records)
+    return [
+        f"{(event.get('actor') or {}).get('login')} moved its branch ({event['event']}) after the train pushed it"
+        for event in timeline
+        if event.get("event") in PUSHES
+        and (event.get("actor") or {}).get("login") != bot
+        and moment(event["created_at"]) >= recorded
+    ]
+
+
+def unlabelled(timeline: list[dict], bot: str) -> list[str]:
+    """Whether the mark was last put on by somebody other than the train."""
     labelled_by = [
         (event.get("actor") or {}).get("login")
         for event in timeline
         if event.get("event") == "labeled" and (event.get("label") or {}).get("name") == LABEL
     ]
-    if not labelled_by or labelled_by[-1] != bot:
-        found.append(
-            f"{LABEL} was put on it by {labelled_by[-1] if labelled_by else 'nobody it could see'}, not {bot}"
-        )
-    return found
+    if labelled_by and labelled_by[-1] == bot:
+        return []
+    return [
+        f"{LABEL} was put on it by {labelled_by[-1] if labelled_by else 'nobody it could see'}, not {bot}"
+    ]
 
 
 def foreign_commits(api: Api, repo: str, branch: str, head: str, bot: str) -> list[str]:
@@ -278,9 +326,32 @@ def foreign_commits(api: Api, repo: str, branch: str, head: str, bot: str) -> li
 
 
 def required_contexts(api: Api, repo: str, branch: str) -> set[str]:
-    """Every context the branch's protection will refuse a merge over."""
-    held = api("GET", f"repos/{repo}/branches/{branch}/protection/required_status_checks", None)
-    return set(held.get("contexts", [])) | {check["context"] for check in held.get("checks", [])}
+    """Every context the branch's protection and its rulesets will refuse a merge over.
+
+    Either may be where a repository states them, and one may hold some and the other
+    the rest, so both are read and the union taken. Only where neither can be read is
+    the pull request held.
+    """
+    contexts: set[str] = set()
+    failures: list[subprocess.CalledProcessError] = []
+    try:
+        held = api("GET", f"repos/{repo}/branches/{quote(branch)}/protection/required_status_checks", None)
+        contexts |= set(held.get("contexts", [])) | {check["context"] for check in held.get("checks", [])}
+    except subprocess.CalledProcessError as failed:
+        failures.append(failed)
+    try:
+        rules = paged(api, f"repos/{repo}/rules/branches/{quote(branch)}", None)
+        contexts |= {
+            check["context"]
+            for rule in rules
+            if rule["type"] == "required_status_checks"
+            for check in rule["parameters"]["required_status_checks"]
+        }
+    except subprocess.CalledProcessError as failed:
+        failures.append(failed)
+    if len(failures) == 2:
+        raise failures[0]
+    return contexts
 
 
 def reason(lines: list[str], head: str) -> str:
@@ -310,7 +381,6 @@ def held(api: Api, repo: str, number: int, head: str, lines: list[str]) -> Held:
 
 def settled(api: Api, repo: str, number: int, slug: str, now: datetime.datetime) -> str:
     """Judge one pull request and merge or hold it; what it came to, said in one line."""
-    bot = f"{slug}[bot]"
     pull = api("GET", f"repos/{repo}/pulls/{number}", None)
     head = pull["head"]["sha"]
     try:
@@ -318,6 +388,7 @@ def settled(api: Api, repo: str, number: int, slug: str, now: datetime.datetime)
         runs = paged(api, f"repos/{repo}/commits/{head}/check-runs?filter=all", "check_runs")
         statuses = paged(api, f"repos/{repo}/commits/{head}/statuses", None)
         pushed = moment(api("GET", f"repos/{repo}/commits/{head}", None)["commit"]["committer"]["date"])
+        owners = workflows(api, repo, runs)
     except subprocess.CalledProcessError as failed:
         raise held(
             api,
@@ -327,12 +398,12 @@ def settled(api: Api, repo: str, number: int, slug: str, now: datetime.datetime)
             [f"its protection, checks or statuses could not be read: {(failed.stderr or '').strip()}"],
         ) from failed
     try:
-        found = strangers(api, repo, pull, bot, slug, runs)
+        found = strangers(api, repo, pull, slug, runs)
     except subprocess.CalledProcessError as failed:
         found = [f"whose it is could not be read: {(failed.stderr or '').strip()}"]
     if found:
         raise held(api, repo, number, head, found)
-    verdict = judged(runs, statuses, required, pushed, now)
+    verdict = judged(runs, statuses, required, owners, (pushed, now))
     if verdict.merges():
         api(
             "PUT",
