@@ -636,6 +636,16 @@ Decisions about a repository outside this organisation, such as
 | The companion plays a title through the grant the core gave the device and never sends `play`, the browser's way to a pass in an address. The user chose this over playing titles on that pass | [N3-R45](../10-functional/features/n-companion/n3-household-companion.md) |
 | The companion does not replace the certificate paired phones pin, and says it is done at the machine: the phone that asked would refuse the machine at once, and the material to pair again is read there. The user chose this over the core serving the replacement to the companion | [N1-R79](../10-functional/features/n-companion/n1-companion-app.md) |
 
+## 2026-11-20
+
+| Decision | Where it lives |
+|---|---|
+| The web API serves what a stop would interrupt as `GET /api/in-flight`, taking the forms and services `down` takes, to an operator session and a key that reaches reads, and `lemonfiber down` asks it of a service as of a form. The user chose the core serving it to the companion over leaving the kind to the command line, and forms and services over forms alone | [ARCH-R447](../20-architecture/contracts/web-api.md) |
+| The web API serves how the surface is served as `GET /api/served`, the one `served` envelope `lemonfiber ui` settles, with the certificate's fingerprint, subject, issuer, names, validity and whether it signed itself nested under `certificate`, and never its key, its encoding, a path or the token. The user chose the core serving it and the full comparable details; the maintainer's session chose one envelope for both surfaces | [ARCH-R448](../20-architecture/contracts/web-api.md) |
+| A kind the core answers only to its command line or only to the web surface itself is not the companion's to offer, and the companion's parity check fails once the core serves one to a remote caller. The user chose this for the nine such kinds, and the core serving `in-flight` and `served` | [N1-R80](../10-functional/features/n-companion/n1-companion-app.md) |
+| The companion's operator sees how the stack serves its surface on a screen reached from stack settings, with the certificate's fingerprint folded beside the pin the phone holds, and never its key | [N1-R81](../10-functional/features/n-companion/n1-companion-app.md) |
+| Before a stop, an update or a configuration change is agreed to in the companion, it names each download still coming down with how far along it is and its client's kind, and offers letting them finish beside going ahead now. The user chose this for every action that takes `wait`, over stop alone | [N2-R42](../10-functional/features/n-companion/n2-operator-companion.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

@@ -69,6 +69,16 @@ knows and the app does not, wrong in exactly the cases an operator most needs it
 and wrong silently, because nothing on either side would ever compare it to what
 happened.
 
+**What a stop would interrupt is said before it is agreed to.** Stopping a form or
+a service takes its download clients with it, and a download at ninety-four per
+cent does not always resume where it left off. So before a stop, an update or a
+configuration change is agreed to, the app asks the stack what is still coming
+down inside what it would stop (`ARCH-R447`). It names each download with how far
+along it is and which kind of client holds it, and it offers letting them finish
+first beside going ahead now (`N2-R42`). Where nothing is coming down, it adds
+nothing. The waiting is the stack's: the app sends the action with `wait` and
+follows it to its end.
+
 ### A start says what it is waiting for, in the stack's words
 
 A start is not waited for by the request that asked for it: the stack answers
@@ -310,6 +320,7 @@ and a note beside it says a preview cannot ask.
 | **N2-R39** | The operator MUST be able to see each run-and-exit service the stack reports (`ARCH-R431`) by its name, with its health as the stack answers it, as not run yet, succeeded or failed; when its last run started and ended; whether a run of it is going now; how many times fell due while a run was still going; and whether this machine's scheduler holds its job. A failed run MUST show its exit code, or say it ended without one where the stack gives none, and the last lines of its log as the stack gives them. A service not run yet MUST NOT be shown as succeeded or as failed, and a service between runs MUST NOT be shown as stopped or broken. |
 | **N2-R40** | A member MUST NOT be shown a run-and-exit service, any of its runs, its log or an offer to run it, and the operator's preview of the member's side (`N2-R25`) MUST NOT show them either. |
 | **N2-R41** | The operator MUST be able to run a run-and-exit service now (`ARCH-R443`). The app MUST ask for one explicit confirmation naming the service before it sends `run` with `now`, and MUST then show what the stack answered: how the run ended, with its exit code and last lines where it failed (`N2-R39`), or, where nothing ran, the stack's reason in its own words. It MUST NOT show the service as run, or its health as changed, before the stack answers. |
+| **N2-R42** | Before an action that takes `wait` is agreed to, the app MUST name each download still coming down inside what that action would stop, with how far along it is and the kind of client holding it, as the stack answers (`ARCH-R447`). These actions are a stop, by form or by service; an update; and a configuration change. The app MUST offer letting the downloads finish first, beside going ahead now, and going ahead MUST say that they will be interrupted (`A6-R11`). Where the stack names nothing, the app MUST add nothing. Where the stack cannot be asked, the app MUST say it could not find out and MUST still offer the action. |
 
 ## Notes
 
