@@ -80,8 +80,9 @@ returns to them (`N28-R13`). The preview's mark carries a way back as well, beca
 member's screens offer nothing else that leads to the operator's (`N28-R14`).
 
 A screen that is one step of something begun elsewhere is reached from where it
-begins, not from the menu: taking a copy, putting the configuration back, and
-guarding where the data is kept while the operator watches.
+begins, not from the menu: taking a copy, putting the configuration back,
+guarding where the data is kept while the operator watches, and signing in by a
+code, which the sign-in screen offers beside the password (`N3-R42`).
 
 A screen that details one thing another screen shows is reached from that screen:
 *Versions*, which is what *About* says is running, told release by release. Put in
