@@ -262,6 +262,12 @@ item's three acts as each came out. A record that cannot be read is refused, nev
 as a healthy queue. It takes no parameter, and running a pass is not served: `lemonfiber
 queue heal` is asked for at a terminal.
 
+### What a stop would interrupt, and how the surface is served
+
+Two reads answer the operator about the machine itself rather than about the media: what
+stopping would interrupt (`ARCH-R447`) and how the surface is served, certificate included
+(`ARCH-R448`). Both are on [their own page](web-api-the-machine.md).
+
 ### What is playing
 
 ```
@@ -959,6 +965,8 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R405** | `lemonfiber notify set <id> --members <name>` MUST offer a back-end to the household under that name and `--no-members` withdraw it; `GET /api/notify/mine` MUST answer a member session with the back-ends offered to members, each by its household name and whether this member receives on it, and whether their own push endpoint is registered, and nothing technical; `POST /api/actions/notify-choose` MUST set which offered back-ends that member receives `ready` alerts on and refuse an id not offered; a key MUST be refused both, and a back-end withdrawn MUST stop reaching every member who chose it. |
 | **ARCH-R416** | The web API MUST answer `GET /api/front-door` with `reaches` on the door and on each service beside it, `here`, `not-here` or `unknown`, judged by the core from the request's source as the section on the front door says, and with why a service has no address where it has none. A member, and a key scoped to one, MUST be answered with the services facing `asking`, `watching` or a `shelf` alone, narrowed by the command that runs rather than filtered from every service, in the household's words and without how the door was chosen, and MUST NOT be handed an address that reaches `not-here` ([G10-R12](../../10-functional/features/g-ux/g10-household-web.md), [G10-R13](../../10-functional/features/g-ux/g10-household-web.md), [N9-R10](../../10-functional/features/n-companion/n9-who-gets-in.md)). |
 | **ARCH-R426** | Each request in the household document `GET /api/requests` and `lemonfiber household --json` answer with, and each request `GET /api/news` and `lemonfiber news --json` list, MUST carry `kind`, the kind of title it asks for (`tv`, `movies`, `music` or `books`), and an ask for music or books MUST carry `unit`, what it asks for (`album`, `artist`, `book`, `author` or `series`), so that a client tells a whole artist, author or series from one album or book without reading the household's words; either MUST be absent where the core cannot say, never present as null, and adding them leaves `api_version` as it is ([D7-R16](../../10-functional/features/d-content/d7-approval-quotas.md)). |
+| **ARCH-R447** | `GET /api/in-flight` MUST answer the `in-flight` envelope. It lists each download still coming down inside what stopping the forms and services named by its repeatable `forms` and `services` would stop, or inside the whole stack where neither is named, with its `protocol`, its `name` and its `progress` from 0 to 100. It MUST ask only the download clients that stop would stop, MUST leave out a client that does not answer and a finished download, and MUST change nothing. It MUST be answered to an operator session and to a key whose scope reaches reads, and refused to a member session and to a key scoped to a member. `lemonfiber down` MUST ask the same question of the services it is given as of the forms. |
+| **ARCH-R448** | `GET /api/served` MUST answer the `served` envelope for the run answering, the one `lemonfiber ui` settles (`G1-R2`). The envelope carries `port`, `encrypted`, `network`, `named` and `unrecorded`, and, where the run is encrypted, a `certificate` with `fingerprint` (`N1-R18`), `subject`, `issuer`, `self_signed`, `names`, `valid_from` and `valid_until`. It MUST be read from what the run settled, and MUST NOT make, replace or write anything. It MUST NOT carry the private key in any form, the certificate's DER or PEM encoding, a file path or the per-run token. It MUST be answered and refused as `ARCH-R447` is. |
 
 ## The artefact
 
@@ -970,6 +978,7 @@ SDK are on [their own page](web-api-artefact.md).
 
 - [web-api-artefact](web-api-artefact.md) — the generated artefact, and how it reaches an SDK
 - [web-api-getting-in](web-api-getting-in.md) — how a caller is admitted
+- [web-api-the-machine](web-api-the-machine.md) — what a stop would interrupt, and how the surface is served
 - [web-api-wire](web-api-wire.md) — the particulars two clients must agree on, instants included
 - [sdk-ts](../../30-repos/sdk-ts.md) — the TypeScript client implementing this contract
 - [versioning.md](versioning.md) — `api_version` and the envelope it belongs to

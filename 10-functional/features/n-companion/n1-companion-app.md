@@ -44,8 +44,24 @@ app then shows is [N2](n2-operator-companion.md) and
 
 The app renders the core's answers and decides nothing the core does not already
 decide ([ADR-0017](../../../00-overview/decisions/0017-the-companion-app-as-a-fourth-surface.md)).
-Every action reachable from a terminal is reachable here, with one stated
-exception below.
+Every action reachable from a terminal is reachable here, except where a
+requirement below says otherwise and why.
+
+Parity is with what the core answers a remote caller. A few kinds of answer the
+core gives only to its own command line, or only to the web surface itself, and
+none of them reaches a phone (`N1-R80`):
+
+- the surface asks who a request proves to be (`caller`) and what to compose its
+  routes from (`standing`);
+- the web password is typed at the machine (`password`);
+- setup there asks whether a first walkthrough is worth offering
+  (`walkthrough-offer`);
+- the command line sums up a read of the logs (`logs`), whose lines the app reads
+  through `GET /api/logs`;
+- a plugin's author checks the plugin's claims, conformance, provenance and
+  recordings at their own checkout.
+
+The day the core serves one of them to a remote caller, it is parity again.
 
 ### The app has one identity, and the build does not choose it
 
@@ -106,6 +122,13 @@ The app does not replace the certificate itself (`N1-R79`). The phone that asked
 would refuse the machine the moment the new certificate is served, and the
 material every phone pairs again with is read at the machine, so the app says it
 is done there.
+
+How the stack serves its surface is the operator's to read, all the same
+(`N1-R81`): the name and port it answers on, and the certificate it presents,
+with that certificate's fingerprint folded the way pairing folds it beside the
+pin this phone holds. An operator holding two phones, or a phone and a browser,
+compares the same short code on each. What the stack keeps of the certificate
+beyond what identifies it, its key above all, never leaves the machine.
 
 Whatever the route, the app exchanges the credential **once** at `/api/session`
 for a session, and carries that session in `X-Lemonfiber-Token` afterwards. The
@@ -406,6 +429,8 @@ session travels the overlay instead. The app's conversation does not change.
 | **N1-R77** | An answer the stack gave that this version of the app cannot read MUST be reported as neither a stack that did not answer nor a refused credential (`N1-R10`): the operator MUST be told the stack answered in a way this app cannot read, with updating the app or the stack as the remedy, and a member MUST be told the house cannot be reached right now. |
 | **N1-R78** | A join link (`D6-R22`) MUST NOT be treated as pairing material: it MUST NOT admit an operator session or replace a pin, and the only credential it can lead to is the one member account it names. |
 | **N1-R79** | The app MUST NOT offer replacing the certificate paired phones pin (`C6-R19`): the phone that asked would refuse the machine once it is replaced, and the material to pair again is read at the machine. Where the app says how the certificate is replaced (`N1-R76`), it MUST say that it is done at the machine. |
+| **N1-R80** | A kind of answer the core gives only to its own command line or only to the web surface itself MUST NOT be offered by the app, which has no way to ask for one (`N1-R17`). These kinds are `caller` and `standing`, which the surface reads to admit a request and compose its routes; `password`, typed at the machine; `walkthrough-offer`, which setup at the machine asks (`N1-R4`); `logs`, the command line's account of a read whose lines the app takes from `GET /api/logs`; and `plugin-claims`, `plugin-conformance`, `plugin-provenance` and `plugin-recording`, a plugin author's checks at their own checkout. The app's check of `N1-R2` MUST list each such kind under this requirement rather than as waiting, and MUST fail once the core serves one of them to a remote caller. |
+| **N1-R81** | The operator MUST be able to see how the stack serves its web surface, as the stack answers it (`ARCH-R448`). The app MUST show the name it answers to and its port; whether it is encrypted and offered to the network; why where it is served could not be recorded, where the stack says so; and the certificate it presents. For the certificate, the app MUST show its names, its issuer and subject or that it signed itself, when it is valid from and until, and its fingerprint in the comparable form (`N1-R73`) beside the comparable form of the pin this phone holds for the stack, saying whether the two are the same. It MUST be shown to the operator alone, MUST NOT offer replacing the certificate (`N1-R79`), and MUST NOT ask for, carry or show the certificate's key. |
 
 ## Related
 

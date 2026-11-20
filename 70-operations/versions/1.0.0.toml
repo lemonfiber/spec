@@ -1,6 +1,6 @@
 # **The dashboard.** `lemonfiber` with no subcommand opens a live view of the stack — the capability the whole of v1 has been building toward, and the reason this is 1.0.0 rather than another minor. Released through the signed, multi-platform pipeline on all three platforms.
 #
-# 37 goals, seeded from the roadmap milestone this version serves;
+# 42 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `N1-R2` and `N1-R5` are the companion's parity with every other surface, in what it
 # offers and in what it lets an operator set; `N25-R15` is that parity for proving a
@@ -11,6 +11,10 @@
 # `N3-R42` to `N3-R44` are that parity for a member signing in by a code, `N3-R45` and
 # `N1-R79` the requirements that excuse the app from `play` and from replacing the
 # pairing certificate, by the maintainer's decisions of 2026-11-19.
+# `ARCH-R447` and `ARCH-R448` serve what a stop would interrupt and how the surface is
+# served to a remote caller, `N1-R81` and `N2-R42` are the companion's operator screens
+# for them, and `N1-R80` excuses it from the kinds the core answers only to its command
+# line or to the web surface itself, by the maintainer's decisions of 2026-11-20.
 version = "1.0.0"
 milestone = "M6"   # Live TUI
 delivers  = "The dashboard — a bare `lemonfiber` opens it. Everything specced is built, and the interfaces stop moving."
@@ -38,6 +42,11 @@ goals   = [
     "N1-R2",
     "N1-R5",
     "N1-R79",
+    "N1-R80",
+    "N1-R81",
+    "N2-R42",
+    "ARCH-R447",
+    "ARCH-R448",
     "N3-R42",
     "N3-R43",
     "N3-R44",
