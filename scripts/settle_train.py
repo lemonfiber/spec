@@ -191,7 +191,7 @@ def judged(
     set_ = latest(
         statuses, lambda status: (status["context"],), lambda status: (status["updated_at"], status["id"])
     )
-    reported = {name for _, name in ran} | {context for (context,) in set_}
+    reported = {check[1] for check in ran} | {status[0] for status in set_}
     if not reported - {RECORD}:
         verdict.unsettled.append("no check has reported on it")
     verdict.unsettled += [
