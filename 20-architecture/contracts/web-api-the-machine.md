@@ -45,7 +45,7 @@ serving, for the run answering (`ARCH-R448`). The envelope carries:
     saying whether each was cut short;
   - whether it is `self_signed`;
   - the `names` it is made out to, its subject alternative names, with `names_more`
-    counting the names left out;
+    counting the names left out for being too many, too long to show, or not written as text;
   - `valid_from` and `valid_until`, as instants, in whole seconds since the epoch
     (`ARCH-R274`).
 
@@ -58,7 +58,8 @@ it is shown:
 - A subject or issuer longer than 512 characters as written is its first 512, with its
   `_cut` field `true`.
 - `names` holds at most 64 names, each whole. A name longer than 512 characters as written,
-  and every name past the sixty-fourth, is left out and counted in `names_more`.
+  a name not written as text, and every name past the sixty-fourth are left out and counted
+  in `names_more`.
 - No string carries a remark about what was left out. The `_cut` fields and `names_more`
   say it, so a caller never mistakes a remark for a name.
 
