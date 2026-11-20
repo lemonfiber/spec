@@ -9,6 +9,10 @@ requirements it describes are listed with the rest of the contract's, under
 
 ## What a stop would interrupt
 
+```
+GET /api/in-flight?…
+```
+
 `GET /api/in-flight` answers the `in-flight` envelope: each download still coming down inside
 what stopping the named forms and services would stop, with the kind of client holding it
 (`protocol`), its `name` as that client gives it, and how far along it is (`progress`, from 0
@@ -22,6 +26,10 @@ reaches reads are answered. A member session and a key scoped to a member are re
 
 ## How the surface is served
 
+```
+GET /api/served
+```
+
 `GET /api/served` answers the `served` envelope that `lemonfiber ui` settles when it begins
 serving, for the run answering (`ARCH-R448`). The envelope carries:
 
@@ -33,10 +41,26 @@ serving, for the run answering (`ARCH-R448`). The envelope carries:
 - `certificate`, where the run is encrypted, which is the certificate the run presents:
   - its `fingerprint`, SHA-256 over its DER encoding in lower-case hex, which is the value a
     phone pins (`N1-R18`);
-  - its `subject` and `issuer`, as RFC 4514 strings;
+  - its `subject` and `issuer`, as RFC 4514 strings, with `subject_cut` and `issuer_cut`
+    saying whether each was cut short;
   - whether it is `self_signed`;
-  - the `names` it is made out to;
-  - `valid_from` and `valid_until`, in RFC 3339.
+  - the `names` it is made out to, its subject alternative names, with `names_more`
+    counting the names left out;
+  - `valid_from` and `valid_until`, as instants, in whole seconds since the epoch
+    (`ARCH-R274`).
+
+What a certificate says is the certificate's, and anybody who made one could have written
+anything in it, so what is read from it is bounded and written so that it cannot change how
+it is shown:
+
+- A control or layout character in a subject, an issuer or a name is written as `\xx`,
+  the RFC 4514 hex pair for that byte.
+- A subject or issuer longer than 512 characters as written is its first 512, with its
+  `_cut` field `true`.
+- `names` holds at most 64 names, each whole. A name longer than 512 characters as written,
+  and every name past the sixty-fourth, is left out and counted in `names_more`.
+- No string carries a remark about what was left out. The `_cut` fields and `names_more`
+  say it, so a caller never mistakes a remark for a name.
 
 It is read off what the run settled when it began, and it makes, replaces and writes nothing.
 It never carries the private key in any form, the certificate's DER or PEM encoding, a file
