@@ -2,9 +2,9 @@
 
 **Status:** Accepted
 
-Part of the [web API contract](web-api.md): two reads that answer the operator about the
-machine itself, namely what a stop would interrupt and how the surface is served. The
-requirements it describes are listed with the rest of the contract's, under
+Part of the [web API contract](web-api.md): what answers the operator about the machine
+itself, namely what a stop would interrupt, how the surface is served, and what setup
+decided. The requirements it describes are listed with the rest of the contract's, under
 [Requirements](web-api.md#requirements).
 
 ## What a stop would interrupt
@@ -69,6 +69,43 @@ path or the per-run token. A certificate is recognised by its fingerprint, and n
 does with this answer needs the rest. It takes no parameter, and it is answered and refused as
 the in-flight read is.
 
+## What setup decided
+
+```
+GET /api/config?…
+```
+
+Setup writes its answers as settings, and every one of them can be changed again
+afterwards ([A4](../../10-functional/features/a-getting-started/a4-reconfiguration.md)). A
+setup that skipped a step left that step's settings unwritten: the provider of a protocol
+nobody chose, the user the containers run as on a platform that does not ask, and how the
+media server runs where only one way is offered. Listing only the settings the configuration holds would therefore leave a caller no
+way to learn that such a decision exists, let alone change it.
+
+So the `config` read that `GET /api/config` and `lemonfiber config --json` answer carries
+`decisions` beside `settings`: one entry for each answer setup writes, in the core's order,
+whether or not the configuration holds it (`ARCH-R449`). Each entry has:
+
+- `key`, the setting the answer is kept in;
+- `cost`, `cheap` for a change applied with a restart of what it affects, or
+  `consequential` for one stated and confirmed before it is applied (`A4-R3`);
+- `affects`, what changing it affects, in the core's words;
+- `held`, whether it is held, in the configuration or the settings store;
+- `credential`, whether its value is withheld as a credential;
+- `setting`, the name `settings-set` takes, where the answer is kept in the settings store
+  rather than the configuration, such as the house's locale and the VPN's provider, and
+  absent where `config-set` takes it.
+
+An entry never carries the value. A value is read where it is held, in this read's
+`settings` or in the `settings` read, withheld there as it always is. The keys are a closed
+set the contract declares, so a decision the core adds is a change to the contract that
+every client sees, rather than a setting that appears without anyone deciding how a client
+offers it. A change to one of them is still asked as every change is, through `config-set`
+or, for an answer that names its `setting`, through `settings-set`, and each is rehearsed
+before it is written: `config-set` unconfirmed answers the review, and `settings-set` its
+rehearsal and offer. Where the change turns a way of downloading on, the review's `opens`
+names, in order, the accounts to obtain and then each setting the protocol needs.
+
 ## Related
 
 - [web-api](web-api.md) — the contract this page is part of, and its requirements
@@ -76,3 +113,5 @@ the in-flight read is.
 - [N1](../../10-functional/features/n-companion/n1-companion-app.md) — the companion's screen for how the surface is served (`N1-R81`)
 - [N2](../../10-functional/features/n-companion/n2-operator-companion.md) — what a stop would interrupt, before it is agreed to (`N2-R42`)
 - [C6](../../10-functional/features/c-trust/c6-web-security.md) — the certificate a phone pins
+- [A4](../../10-functional/features/a-getting-started/a4-reconfiguration.md) — what changing a decision setup made costs, and how it is reviewed
+- [N1](../../10-functional/features/n-companion/n1-companion-app.md) — the companion's screen for what setup decided (`N1-R82`, `N1-R83`)

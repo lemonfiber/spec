@@ -646,6 +646,14 @@ Decisions about a repository outside this organisation, such as
 | The companion's operator sees how the stack serves its surface on a screen reached from stack settings, with the certificate's fingerprint folded beside the pin the phone holds, and never its key | [N1-R81](../10-functional/features/n-companion/n1-companion-app.md) |
 | Before a stop, an update or a configuration change is agreed to in the companion, it names each download still coming down with how far along it is and its client's kind, and offers letting them finish beside going ahead now. The user chose this for every action that takes `wait`, over stop alone | [N2-R42](../10-functional/features/n-companion/n2-operator-companion.md) |
 
+## 2026-11-21
+
+| Decision | Where it lives |
+|---|---|
+| The `config` read lists every decision setup makes, held or not, with its cost, what changing it affects, whether the configuration holds it, whether it is a credential and the settings-store name where `settings-set` takes it, under a closed set of keys the contract declares, and never with a value. The user chose this over a read of its own and over the companion keeping its own list | [ARCH-R449](../20-architecture/contracts/web-api.md) |
+| The companion lists every decision setup made on a screen of its own, offers changing each through the stack's review, follows a protocol turned on through the settings it opens and shows it unproven until its login is proven, and offers any other setting by its name under a fold, refusing a credential's name. The user chose a screen of its own over a section of the settings screen and over making the settled screen editable | [N1-R82](../10-functional/features/n-companion/n1-companion-app.md) |
+| The companion does not change a credential's value or autostart; it shows where each stands and names the command at the machine, and its check of `N1-R5` fails on a decision it does not classify. The user chose this over typing a credential into the phone and over the core serving autostart to the companion | [N1-R83](../10-functional/features/n-companion/n1-companion-app.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)
