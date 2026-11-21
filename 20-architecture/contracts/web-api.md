@@ -271,7 +271,7 @@ GET /api/in-flight?…    GET /api/served
 
 Two reads answer the operator about the machine itself rather than about the media: what
 stopping would interrupt (`ARCH-R447`) and how the surface is served, certificate included
-(`ARCH-R448`). Both are on [their own page](web-api-the-machine.md).
+(`ARCH-R448`). Both are on [their own page](web-api-the-machine.md), with the decisions setup made that the `config` read lists (`ARCH-R449`).
 
 ### What is playing
 
@@ -972,6 +972,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R426** | Each request in the household document `GET /api/requests` and `lemonfiber household --json` answer with, and each request `GET /api/news` and `lemonfiber news --json` list, MUST carry `kind`, the kind of title it asks for (`tv`, `movies`, `music` or `books`), and an ask for music or books MUST carry `unit`, what it asks for (`album`, `artist`, `book`, `author` or `series`), so that a client tells a whole artist, author or series from one album or book without reading the household's words; either MUST be absent where the core cannot say, never present as null, and adding them leaves `api_version` as it is ([D7-R16](../../10-functional/features/d-content/d7-approval-quotas.md)). |
 | **ARCH-R447** | `GET /api/in-flight` MUST answer the `in-flight` envelope. It lists each download still coming down inside what stopping the forms and services named by its repeatable `forms` and `services` would stop, or inside the whole stack where neither is named, with its `protocol`, its `name` and its `progress` from 0 to 100. It MUST ask only the download clients that stop would stop, MUST leave out a client that does not answer and a finished download, and MUST change nothing. It MUST be answered to an operator session and to a key whose scope reaches reads, and refused to a member session and to a key scoped to a member. `lemonfiber down` MUST ask the same question of the services it is given as of the forms. |
 | **ARCH-R448** | `GET /api/served` MUST answer the `served` envelope for the run answering, the one `lemonfiber ui` settles (`G1-R2`). The envelope carries `port`, `encrypted`, `network`, `named` and `unrecorded`, and, where the run is encrypted, a `certificate` with `fingerprint` (`N1-R18`), `subject`, `subject_cut`, `issuer`, `issuer_cut`, `self_signed`, `names`, `names_more`, and `valid_from` and `valid_until` in whole seconds (`ARCH-R274`). A control or layout character in a subject, an issuer or a name MUST be written as its RFC 4514 hex pair. A subject or issuer MUST be at most 512 characters as written, cut there with its `_cut` field `true`. `names` MUST hold at most 64 whole names, each at most 512 characters as written, with every name left out, for being too many, too long to show or not written as text, counted in `names_more`. A string MUST NOT carry a remark about what was left out. It MUST be read from what the run settled, and MUST NOT make, replace or write anything. It MUST NOT carry the private key in any form, the certificate's DER or PEM encoding, a file path or the per-run token. It MUST be answered and refused as `ARCH-R447` is. |
+| **ARCH-R449** | The `config` read that `GET /api/config` and `lemonfiber config --json` answer MUST carry `decisions`: one entry for each answer setup writes, in the core's order and whether or not the configuration holds it, with its `key`, its `cost` (`cheap` or `consequential`, `A4-R3`), `affects`, what changing it affects in the core's words, `held`, whether it is held, in the configuration or the settings store, `credential`, whether its value is withheld as a credential, and `setting`, the name `settings-set` takes where the answer is kept in the settings store, absent where `config-set` takes it. An entry MUST NOT carry the value, which is read where it is held, withheld there as it is. The keys MUST be a closed set the contract declares. The read MUST be answered and refused as it is without them. |
 
 ## The artefact
 
@@ -983,7 +984,7 @@ SDK are on [their own page](web-api-artefact.md).
 
 - [web-api-artefact](web-api-artefact.md) — the generated artefact, and how it reaches an SDK
 - [web-api-getting-in](web-api-getting-in.md) — how a caller is admitted
-- [web-api-the-machine](web-api-the-machine.md) — what a stop would interrupt, and how the surface is served
+- [web-api-the-machine](web-api-the-machine.md) — what a stop would interrupt, how the surface is served, and what setup decided
 - [web-api-wire](web-api-wire.md) — the particulars two clients must agree on, instants included
 - [sdk-ts](../../30-repos/sdk-ts.md) — the TypeScript client implementing this contract
 - [versioning.md](versioning.md) — `api_version` and the envelope it belongs to
