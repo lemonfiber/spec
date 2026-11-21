@@ -47,6 +47,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [contracts/web-api-artefact.md](contracts/web-api-artefact.md) | **The web API artefact** — the generated contract, the refusals it lists, and how it reaches an SDK |
 | [contracts/web-api-getting-in.md](contracts/web-api-getting-in.md) | **Getting in to the web API** — the per-run token, sessions, integration keys and the limit wrong answers meet |
 | [contracts/web-api-live-state.md](contracts/web-api-live-state.md) | **The web API's live state** — the event stream, what reaches the operator and a member, and where a message goes |
+| [contracts/web-api-the-catalogue.md](contracts/web-api-the-catalogue.md) | **The web API's view of the plugin catalogue** — what can be installed, and whether the catalogue was read, switched off or failed |
 | [contracts/web-api-the-machine.md](contracts/web-api-the-machine.md) | **The web API's view of the machine** — what a stop would interrupt, how the surface is served, certificate included, and what setup decided |
 | [contracts/web-api-wire.md](contracts/web-api-wire.md) | **The web API on the wire** — the token's header, the address, the heartbeat, resumption, a job's outcome, an action sent again, the payload's type and how an instant is written |
 | [contracts/design-tokens.md](contracts/design-tokens.md) | The `brand` → `lemonfiber-web` interface — the visual language as data the app consumes |

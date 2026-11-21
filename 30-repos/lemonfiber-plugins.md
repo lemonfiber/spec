@@ -123,7 +123,11 @@ artefacts — one capability, two consumers, and the earlier consumer sets the d
 
 What is reviewed is the register, so what a release signs is an index of it: each
 plugin id with its origin, the revision reviewed and the digest of its manifest there,
-and a serial each release raises above the one before.
+and a serial each release raises above the one before. Each entry also carries what an
+operator choosing a plugin reads before installing it, taken from the manifest at the
+reviewed revision: its `name`, `description`, `version` and `without_it`. The index
+carries the date it was `published`, the committer date of the commit the release is
+cut from, so two runs over one commit write the same bytes (`REPO-R108`).
 A release workflow here writes `index.json`, signs it with cosign using the key held as
 the `CATALOGUE_SIGNING_KEY` secret, and publishes both on the tag, and it fails rather
 than publish an index it could not sign
@@ -191,6 +195,7 @@ project has said it does not build.
 | **REPO-R61** | Its CI MUST fetch each registered revision and, from the data in that revision alone, validate the manifest against the published schema, run every declared proof against the plugin's recorded fixtures, and check its declared reach statically; a registration failing any of these MUST be refused before human review. |
 | **REPO-R62** | The catalogue MUST NOT execute anything from a registered repository, and MUST read that repository as data only. |
 | **REPO-R63** | Every catalogue release's index MUST carry a serial higher than every earlier release's, inside what the signature covers. |
+| **REPO-R108** | Every catalogue release's index MUST carry, inside what the signature covers, the date it was published and, for each plugin, the `name`, `description`, `version` and `without_it` its manifest declares at the reviewed revision. |
 | **REPO-R91** | The default bundle MUST be `bundle/bundle.toml` at `schema = 2`, as the bundle contract states it ([ARCH-R265](../20-architecture/contracts/bundle.md), [ARCH-R266](../20-architecture/contracts/bundle.md)); and the catalogue MUST hold each pinned plugin's tree, copied byte for byte from the pinned revision, at `bundle/plugins/<id>/` ([ARCH-R267](../20-architecture/contracts/bundle.md)). |
 | **REPO-R92** | The catalogue's CI MUST refuse a bundle in which a copy differs from the tree fetched from its origin at the pinned revision, a pinned manifest or tree digest is not its copy's, a pin naming a release has a built image not tagged at it, the bundle fails the bundle contract's validation, or a pinned plugin fails a check `REPO-R61` holds a registration to. |
 
