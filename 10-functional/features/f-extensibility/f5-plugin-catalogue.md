@@ -53,8 +53,9 @@ mechanical before it is human. A human then reads
 the diff, which is possible precisely because a plugin is data.
 
 Releases from the catalogue are signed. A release is a tag whose assets are an index —
-each plugin id with its origin, the revision that was reviewed and the digest of its
-manifest there — and a signature over exactly that index, made with a key pair whose
+each plugin id with its origin, the revision that was reviewed, the digest of its
+manifest there and what that manifest says the plugin is and what the household is
+without it — and a signature over exactly that index, made with a key pair whose
 public half lemonfiber carries and checks offline
 ([ADR-0034](../../../00-overview/decisions/0034-a-catalogue-release-is-signed-with-a-key-the-binary-carries.md)).
 An operator installing from the catalogue is relying on: a schema that was checked,
@@ -101,6 +102,17 @@ Nothing about the design requires the catalogue to exist for lemonfiber to work,
 plugin already installed to keep working. If the catalogue is unreachable, installed
 plugins are unaffected and installing from a named source still works. The catalogue is a
 convenience and a review mechanism, not a runtime dependency.
+
+### What can be installed is browsed, not typed
+
+An operator lists what the catalogue offers with `lemonfiber plugin catalogue`, and a
+client reads the same list from the web API
+([ARCH-R153](../../../20-architecture/contracts/web-api-the-catalogue.md)). The list is the verified
+index and nothing else: each plugin's name, what it does, what the household is without
+it, its version, and whether it is installed here, with whether the catalogue holds a
+newer version. What it would be granted and which credentials it asks for stay in the
+install's rehearsal. Where reaching the catalogue is switched off, or the index could not
+be fetched or verified, the list says which, and never answers as an empty catalogue.
 
 ### On the companion
 

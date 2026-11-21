@@ -623,7 +623,8 @@ changes, an install that leaves a capability contested included (`ARCH-R151`).
 
 Browsing what the catalogue offers is `GET /api/plugins/catalogue`, answered from the
 verified index as `lemonfiber plugin catalogue --json` answers it, and listing nothing
-the index's signature does not cover (`ARCH-R153`).
+the index's signature does not cover (`ARCH-R153`). What it answers, and to whom, is on
+[its own page](web-api-the-catalogue.md) (`ARCH-R450`, `ARCH-R451`, `ARCH-R452`).
 
 ### Settings
 
@@ -907,6 +908,9 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R151** | The event stream MUST carry a `plugins` event and a `wiring` event, each with its envelope, sent when a client connects and whenever the installed record or the wiring changes. |
 | **ARCH-R152** | A git source named to `plugin-install` or `plugin-update` MUST be fetched over https from a host none of whose addresses is one the plugin manifest contract classes as not out on the internet, every address checked when the fetch is made, the fetch connecting only to those and following no redirect, and a source refused so MUST end with a listed problem code. |
 | **ARCH-R153** | The web API MUST answer `GET /api/plugins/catalogue` with the plugins the verified catalogue index lists, as `lemonfiber plugin catalogue --json` answers, and MUST NOT list an entry the index's signature does not cover. |
+| **ARCH-R450** | The `plugin-catalogue` read MUST answer one of three states as a normal answer: `listed`, with the verified index's `published` date, its `serial`, its entries and how many entries it holds that could not be listed; `off`, with the `key` that is switched off, the `value` that turns reaching the catalogue on and the `action` that writes it; or `failed`, with the problem code and summary an install by name would be refused with. It MUST NOT answer an empty list for `off` or `failed`. |
+| **ARCH-R451** | Each `plugin-catalogue` entry MUST carry the plugin's `id`, `name`, `description`, `version` and `without_it` as the verified index signs them, and, for a plugin installed on this machine, the `version` installed and whether the catalogue's version is newer by semver; it MUST NOT carry an origin, a revision, a digest, a grant or a credential. An index entry lacking any of those facts MUST be counted as unreadable rather than listed or failing the read. |
+| **ARCH-R452** | The `plugin-catalogue` read MUST be answered to an operator only, as `plugin-install` is; MUST NOT reach the catalogue where reaching it is switched off; MUST refuse a verified index older than the newest this machine has verified, as `failed`; and MUST NOT write what it read, the newest serial included. |
 | **ARCH-R215** | The web API MUST answer `POST /api/actions/plugin-prove`, taking `plugin`, `dry_run` and `offer`, with a job and then the `plugins` envelope, running the live proof `lemonfiber plugin prove` runs, and a passing proof MUST clear the plugin's nonconforming records while a failing one MUST keep them and name each failed case. |
 | **ARCH-R156** | The web API MUST answer `GET /api/playing` with every session the media server is playing now, each naming the member watching and what they are watching, as `lemonfiber playing --json` answers. A member, and a key scoped to one, MUST be answered with their own sessions only, narrowed by the command that runs rather than filtered from every session. |
 | **ARCH-R157** | A member, and a key scoped to one, MUST be admitted to the event stream narrowed to them: it MUST carry their own household row, their held shelf and what they are playing, each as the read answering it answers that member, and MUST NOT carry anything gathered for the operator. |
@@ -984,6 +988,7 @@ SDK are on [their own page](web-api-artefact.md).
 
 - [web-api-artefact](web-api-artefact.md) — the generated artefact, and how it reaches an SDK
 - [web-api-getting-in](web-api-getting-in.md) — how a caller is admitted
+- [web-api-the-catalogue](web-api-the-catalogue.md) — what can be installed from the plugin catalogue, as the operator browses it
 - [web-api-the-machine](web-api-the-machine.md) — what a stop would interrupt, how the surface is served, and what setup decided
 - [web-api-wire](web-api-wire.md) — the particulars two clients must agree on, instants included
 - [sdk-ts](../../30-repos/sdk-ts.md) — the TypeScript client implementing this contract
