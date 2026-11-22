@@ -3,8 +3,8 @@
 **Status:** Accepted
 
 Part of the [web API contract](web-api.md): what answers the operator about the machine
-itself, namely what a stop would interrupt, how the surface is served, and what setup
-decided. The requirements it describes are listed with the rest of the contract's, under
+itself, namely what a stop would interrupt, how the surface is served, what setup
+decided, and what the operator said to leave alone. The requirements it describes are listed with the rest of the contract's, under
 [Requirements](web-api.md#requirements).
 
 ## What a stop would interrupt
@@ -106,6 +106,52 @@ before it is written: `config-set` unconfirmed answers the review, and `settings
 rehearsal and offer. Where the change turns a way of downloading on, the review's `opens`
 names, in order, the accounts to obtain and then each setting the protocol needs.
 
+## What the operator said to leave alone
+
+An operator can declare any area unmanaged, after which lemonfiber observes it and never
+writes it (`F1-R7`). The declarations are one setting, `LEMONFIBER_UNMANAGED`, written as
+`area=reason` pairs separated by commas, and the `settings` of the `config` read carry that
+line as it is written. A line tells a caller what was written, not what it stops: an entry
+with a blank half declares nothing, and a misspelt area covers nothing while the operator
+believes it does.
+
+So the same read carries `unmanaged` beside `settings` and `decisions`: one entry for each
+area the declaration's parser keeps, in the order written (`ARCH-R453`). Each entry has:
+
+- `area`, the name as written, and `area_cut`, whether it was cut short;
+- `why`, the reason the operator gave, and `why_cut`, whether it was cut short;
+- `covers`, each thing the area covers now by the core's own rule, which is the thing it
+  names and anything beneath it after a `/`. Each has its `kind` and its `name`:
+  - `service`, a service the stack's manifest declares, which is not seeded and is
+    observed rather than wired;
+  - `path`, a file lemonfiber writes, a carried stack's file by where it sits beneath the
+    stack's directory and the project's own files by name, which is not written on any run;
+  - `setting`, a setting the configuration holds or a decision names, which `config-set`
+    refuses with the operator's reason;
+- `covers_more`, the number of covered things left out.
+
+The kind is taken from what is covered, never from the shape of the name, since a stack may
+name a service `config`, and one area can cover things of several kinds. An empty `covers`
+says the area covers nothing in this stack. `unmanaged` is always present: an empty list
+means nothing is declared, and a caller tells an older core by the field being absent.
+
+Each area and reason is the operator's own text, so what is read from it is bounded and
+written so that it cannot change how it is shown:
+
+- A control or layout character in an `area` or a `why` is written as `\xx`, each byte of
+  its UTF-8 in hex.
+- An `area` or a `why` longer than 512 characters as written is its first 512, with its
+  `_cut` field `true`.
+- At most 64 entries are listed, and those left out are counted in `unmanaged_more`. At most
+  64 covered things are listed for an entry, and those left out are counted in its
+  `covers_more`.
+- A client renders `area`, `why` and `name` as plain text, never as markup, an address or a
+  command it runs.
+
+The field is read off the configuration as it stands and changes nothing. It is answered and
+refused as the read is without it, and a change to the setting is asked through `config-set`
+as every change is, whose answer carries the list as it would stand.
+
 ## Related
 
 - [web-api](web-api.md) — the contract this page is part of, and its requirements
@@ -115,3 +161,5 @@ names, in order, the accounts to obtain and then each setting the protocol needs
 - [C6](../../10-functional/features/c-trust/c6-web-security.md) — the certificate a phone pins
 - [A4](../../10-functional/features/a-getting-started/a4-reconfiguration.md) — what changing a decision setup made costs, and how it is reviewed
 - [N1](../../10-functional/features/n-companion/n1-companion-app.md) — the companion's screen for what setup decided (`N1-R82`, `N1-R83`)
+- [F1](../../10-functional/features/f-extensibility/f1-customisation.md) — declaring an area unmanaged (`F1-R7`)
+- [N19](../../10-functional/features/n-companion/n19-getting-underneath-it.md) — the companion shows each area declared unmanaged (`N19-R5`)

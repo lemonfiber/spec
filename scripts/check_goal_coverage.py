@@ -130,8 +130,8 @@ AWAITING_A_VERSION = {
         [f"N17-R{n}" for n in range(1, 12)],
     ),
     "N19": (
-        "N19 requires N1, whose app side 1.0.0 completes, and F1, locked by 0.15.0, released",
-        [f"N19-R{n}" for n in range(1, 11)],
+        "N19 requires N1, whose app side 1.0.0 completes, and F1, locked by 0.15.0, released; N19-R5 is locked by 1.0.0",
+        [f"N19-R{n}" for n in range(1, 11) if n != 5],
     ),
     "N22": (
         "N22 requires N1, whose app side 1.0.0 completes, and C4, locked by 0.7.0, released",

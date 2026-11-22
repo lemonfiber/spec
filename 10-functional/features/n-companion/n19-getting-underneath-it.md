@@ -108,3 +108,9 @@ wrong while trying to be helpful, and they fail the same way: a surface that
 reads only a checksum, or only a count of what is configured, cannot tell a
 decision from a defect. Both render as something to fix, and both offers ask the
 operator to undo something they chose on purpose.
+
+The stack lists each area declared unmanaged on its `config` read, with the reason
+given and what the area covers now by the core's own rule (`ARCH-R453`). The app
+draws that answer rather than reading the setting's notation itself, so an area
+that covers nothing, such as a misspelt one, is shown as covering nothing rather
+than as protecting what the operator meant.
