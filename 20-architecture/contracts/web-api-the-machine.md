@@ -122,8 +122,8 @@ area the declaration's parser keeps, in the order written (`ARCH-R453`). Each en
 - `why`, the reason the operator gave, and `why_cut`, whether it was cut short;
 - `covers`, each thing the area covers now by the core's own rule, which is the thing it
   names and anything beneath it after a `/`. Each has its `kind` and its `name`:
-  - `service`, a service the stack's manifest declares, which is not seeded and is
-    observed rather than wired;
+  - `service`, a service the stack runs, its manifest's and those its installed plugins
+    brought, which is not seeded and is observed rather than wired;
   - `path`, a file lemonfiber writes, a carried stack's file by where it sits beneath the
     stack's directory and the project's own files by name, which is not written on any run;
   - `setting`, a setting the configuration holds or a decision names, which `config-set`
