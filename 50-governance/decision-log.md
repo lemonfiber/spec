@@ -654,6 +654,13 @@ Decisions about a repository outside this organisation, such as
 | The companion lists every decision setup made on a screen of its own, offers changing each through the stack's review, follows a protocol turned on through the settings it opens and shows it unproven until its login is proven, and offers any other setting by its name under a fold, refusing a credential's name. The user chose a screen of its own over a section of the settings screen and over making the settled screen editable | [N1-R82](../10-functional/features/n-companion/n1-companion-app.md) |
 | The companion does not change a credential's value or autostart; it shows where each stands and names the command at the machine, and its check of `N1-R5` fails on a decision it does not classify. The user chose this over typing a credential into the phone and over the core serving autostart to the companion | [N1-R83](../10-functional/features/n-companion/n1-companion-app.md) |
 
+## 2026-11-22
+
+| Decision | Where it lives |
+|---|---|
+| The `config` read lists each area the operator declared unmanaged, in the order written, with its reason and what it covers now by the core's own rule, each covered thing with its kind (`service`, `path` or `setting`) taken from what is covered rather than the shape of the name. Area and reason are bounded at 512 characters with control and layout characters escaped, at most 64 entries and 64 covered things per entry are listed with the rest counted, and clients render them as plain text. The user chose a field on the existing operator read over a read of its own and over the `stack` read, and showing over changing one declaration at a time | [ARCH-R453](../20-architecture/contracts/web-api.md) |
+| The companion shows each area declared unmanaged from the core's answer, and the row is a 1.0.0 goal | [N19-R5](../10-functional/features/n-companion/n19-getting-underneath-it.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

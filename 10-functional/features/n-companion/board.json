@@ -356,13 +356,15 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": [],
-      "milestone": null,
+      "milestones": ["M6"],
+      "milestone": "M6",
       "priority": "P3",
       "labels": ["mobile", "ux", "extensibility", "cli"],
       "requires": ["N1", "F1"],
       "relates": ["C9", "B2", "N2", "N14", "N18"],
-      "versions": [],
+      "versions": [
+        {"version": "1.0.0", "status": "planned"}
+      ],
       "path": "n-companion/n19-getting-underneath-it.md"
     },
     {

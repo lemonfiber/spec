@@ -125,7 +125,7 @@ code, and the two move independently.
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.19.0`, `0.23.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | `0.19.0` |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
-| [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | — |
+| [N19](n-companion/n19-getting-underneath-it.md) | Getting underneath it | N | operator | accepted | `1.0.0` |
 
 ## Planned — specified, not yet built
 
