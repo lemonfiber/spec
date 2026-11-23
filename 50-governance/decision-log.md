@@ -661,6 +661,13 @@ Decisions about a repository outside this organisation, such as
 | The `config` read lists each area the operator declared unmanaged, in the order written, with its reason and what it covers now by the core's own rule, each covered thing with its kind (`service`, `path` or `setting`) taken from what is covered rather than the shape of the name. Area and reason are bounded at 512 characters with control and layout characters escaped, at most 64 entries and 64 covered things per entry are listed with the rest counted, and clients render them as plain text. The user chose a field on the existing operator read over a read of its own and over the `stack` read, and showing over changing one declaration at a time | [ARCH-R453](../20-architecture/contracts/web-api.md) |
 | The companion shows each area declared unmanaged from the core's answer, and the row is a 1.0.0 goal | [N19-R5](../10-functional/features/n-companion/n19-getting-underneath-it.md) |
 
+## 2026-11-23
+
+| Decision | Where it lives |
+|---|---|
+| Every SDK hands its caller every field an envelope carries beside `data`, `job` and `host` among them, and each SDK's CI compares the top-level properties of every kind in its vendored artefact with the fields its envelope carries. The user chose this over sdk-php alone gaining `job` and over sdk-php alone gaining the check | [ARCH-R454](../20-architecture/contracts/web-api.md#requirements) |
+| A screen the companion shows while a job it started runs shows the newest line that job said, and a "show what it said" control opens every line heard from that job so far, kept to a stated bound. The user chose this over the newest line alone and over every line as a running list. Lines no job names stay on the start screen, and the lines are shown on operator screens only | [N15-R5](../10-functional/features/n-companion/n15-the-words.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

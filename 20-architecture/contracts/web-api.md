@@ -279,15 +279,7 @@ Both are on [their own page](web-api-the-machine.md), with what the `config` rea
 GET /api/playing       GET /api/watching?…
 ```
 
-The `playing` envelope `lemonfiber playing --json` prints: every session the media server is
-playing now, each naming the member watching and what they are watching, so how many are
-playing is read off the list rather than kept beside it. The operator, and a `read` or `act`
-key, are answered with every session. A member, and a key scoped to one, are answered with
-their own sessions and nobody else's (`ARCH-R156`).
-
-The narrowing is the command's, not the reply's. What runs names the member who asked,
-whatever the request named, as it does for the household row and the held shelf, so there is
-no path on which another member's session is read and then left out.
+What the media server is playing now, and how each member is answered with their own sessions alone (`ARCH-R156`), are on [the live state's page](web-api-live-state.md#what-is-playing), beside the `playing` event that carries the same envelope.
 
 ### What a member may ask for
 
@@ -978,6 +970,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R448** | `GET /api/served` MUST answer the `served` envelope for the run answering, the one `lemonfiber ui` settles (`G1-R2`). The envelope carries `port`, `encrypted`, `network`, `named` and `unrecorded`, and, where the run is encrypted, a `certificate` with `fingerprint` (`N1-R18`), `subject`, `subject_cut`, `issuer`, `issuer_cut`, `self_signed`, `names`, `names_more`, and `valid_from` and `valid_until` in whole seconds (`ARCH-R274`). A control or layout character in a subject, an issuer or a name MUST be written as its RFC 4514 hex pair. A subject or issuer MUST be at most 512 characters as written, cut there with its `_cut` field `true`. `names` MUST hold at most 64 whole names, each at most 512 characters as written, with every name left out, for being too many, too long to show or not written as text, counted in `names_more`. A string MUST NOT carry a remark about what was left out. It MUST be read from what the run settled, and MUST NOT make, replace or write anything. It MUST NOT carry the private key in any form, the certificate's DER or PEM encoding, a file path or the per-run token. It MUST be answered and refused as `ARCH-R447` is. |
 | **ARCH-R449** | The `config` read that `GET /api/config` and `lemonfiber config --json` answer MUST carry `decisions`: one entry for each answer setup writes, in the core's order and whether or not the configuration holds it, with its `key`, its `cost` (`cheap` or `consequential`, `A4-R3`), `affects`, what changing it affects in the core's words, `held`, whether it is held, in the configuration or the settings store, `credential`, whether its value is withheld as a credential, and `setting`, the name `settings-set` takes where the answer is kept in the settings store, absent where `config-set` takes it. An entry MUST NOT carry the value, which is read where it is held, withheld there as it is. The keys MUST be a closed set the contract declares. The read MUST be answered and refused as it is without them. |
 | **ARCH-R453** | The `config` read that `GET /api/config` and `lemonfiber config --json` answer MUST carry `unmanaged`: one entry for each area the operator declared unmanaged that the declaration's parser keeps, in the order written, with its `area` and its reason `why` as written, and `covers`, each thing the area covers now by the core's own rule, as its `kind`, `service`, `path` or `setting`, taken from what is covered and never from the shape of the name, and its `name`, and empty where the area covers nothing. A control or layout character in an `area` or a `why` MUST be written as `\xx`, each byte of its UTF-8 in hex; an `area` or a `why` longer than 512 characters as written MUST be its first 512, with `area_cut` or `why_cut` `true`; at most 64 entries and 64 covered things per entry MUST be listed, those left out counted in `unmanaged_more` and `covers_more`. A client MUST render `area`, `why` and `name` as plain text. The read MUST be answered and refused as it is without the field. |
+| **ARCH-R454** | Every SDK MUST hand its caller every field an envelope carries beside `data`: each top-level property any kind's schema in the artefact declares, `host` and `job` among them. CI in each SDK MUST fail where a top-level property of any `kinds/<kind>.json` in its vendored copy is not one its envelope carries ([the envelope's own fields](web-api-artefact.md#the-envelopes-own-fields)). |
 
 ## The artefact
 

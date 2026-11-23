@@ -221,6 +221,23 @@ file it appears in, and writes nothing. A copy taken half-read, a definition mis
 or a reference in a form the generator does not follow all stop the build where they are,
 rather than surfacing later as a field nothing checks (`ARCH-R170`).
 
+## The envelope's own fields
+
+A kind's schema describes the envelope as a whole: `api_version`, `kind` and `data`, and beside
+them `host`, the machine an answer is about where it is not the one lemonfiber runs on, and
+`job`, the work that said a line ([live state](web-api-live-state.md)). The generated types
+describe `data`. The envelope around it is read by each SDK's own code, generated in one SDK
+and written by hand in another, and a field that code does not name is dropped without a sound:
+the document parses, the types check, and the caller never learns what the server sent. A
+client tying a line to the job it started cannot do it through an SDK that dropped `job`, and
+nothing it can see says why.
+
+So an SDK hands its caller every top-level property any kind's schema declares, and its CI
+compares the two: every property of every `kinds/<kind>.json` in the vendored copy against the
+fields its envelope carries, failing on any the envelope lacks (`ARCH-R454`). A field the
+server adds to the envelope then reaches each SDK as a red build on the pin that carries it,
+rather than as a gap a client finds by going without it.
+
 ## Related
 
 - [web-api](web-api.md) — the contract the artefact describes, and its requirements
