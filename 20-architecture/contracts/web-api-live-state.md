@@ -180,3 +180,19 @@ It is the same stream in every other respect. It beats at the same interval, it 
 the same event id, and a value gathered before a gap is stale on it as on the operator's. It
 ends when the member is removed or their key is revoked, as the operator's ends when the
 operator's credential does (`ARCH-R158`).
+
+### What is playing
+
+```
+GET /api/playing       GET /api/watching?…
+```
+
+The `playing` envelope `lemonfiber playing --json` prints: every session the media server is
+playing now, each naming the member watching and what they are watching, so how many are
+playing is read off the list rather than kept beside it. The operator, and a `read` or `act`
+key, are answered with every session. A member, and a key scoped to one, are answered with
+their own sessions and nobody else's (`ARCH-R156`).
+
+The narrowing is the command's, not the reply's. What runs names the member who asked,
+whatever the request named, as it does for the household row and the held shelf, so there is
+no path on which another member's session is read and then left out.
