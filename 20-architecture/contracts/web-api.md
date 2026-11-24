@@ -76,6 +76,7 @@ GET /api/askable/kinds?…                      GET /api/stack
 GET /api/requests/{reference}/poster?…        GET /api/notify
 GET /api/notify/mine    GET /api/settled
 GET /api/in-flight?…    GET /api/served
+GET /api/copying
 ```
 
 Query parameters mirror what the command takes, flag or argument. A command that gains one
