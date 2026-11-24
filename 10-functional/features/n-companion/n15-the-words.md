@@ -139,7 +139,7 @@ behind is the one on the phone (`N1-R1`).
 | **N15-R2** | Where an operator reaches first-run setup, it MUST be declined with the reason (`N1-R4`) rather than being absent. |
 | **N15-R3** | A word the glossary carries MUST be explainable where it is used, with the short form in place and the longer one available without leading. |
 | **N15-R4** | What a word is also called MUST be shown, and MUST be searchable. |
-| **N15-R5** | Where the contract gives a job's stage, the stage MUST be shown, and a progress indicator MUST NOT stand in for it. |
+| **N15-R5** | Where the contract gives a job's stage, the stage MUST be shown, and a progress indicator MUST NOT stand in for it. On the companion, the screen watching a first title arrive and the screen choosing what to do with one thing a stack runs are the named deviation from the job's lines: they hear none, and what their own stream says, a walk's stages or a start's lines, is their only progress. |
 | **N15-R6** | A walkthrough's lines MUST be carried as given and MUST NOT be reconstructed or reordered. |
 | **N15-R7** | Where a walkthrough names what to do next, that MUST be shown. |
 | **N15-R8** | *Already here* MUST be reported as its own outcome and MUST NOT be rendered as a search that found nothing. |
