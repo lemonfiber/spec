@@ -201,3 +201,37 @@ their own sessions and nobody else's (`ARCH-R156`).
 The narrowing is the command's, not the reply's. What runs names the member who asked,
 whatever the request named, as it does for the household row and the held shelf, so there is
 no path on which another member's session is read and then left out.
+
+### A running copy
+
+```
+GET /api/copying
+```
+
+The `copying` envelope `lemonfiber copying --json` prints: the backup or restore running on
+this machine now, or none. It is one reading the core keeps for the copy, whichever process
+runs it and whoever started it — a terminal, a browser, a phone, or the capture taken before
+an update — so the stream and the read cannot say two things about it (`E3-R17`):
+
+```json
+{ "api_version": 1, "kind": "copying", "data": { "running": {
+  "what": "backup", "scope": "whole_stack", "job": "9f2c1a7e04b3d815", "started": 1795563600,
+  "written": 734003200, "whole": 2147483648, "part": "sonarr database",
+  "state": "paced", "limit": 52428800 } } }
+```
+
+`whole` is what the room check measured before a backup started, or what the archive's
+verification listed before a restore. `state` is `working`; `paced`, held to the operator's
+`LEMONFIBER_BACKUP_LIMIT`, carried as `limit` in bytes per second; or `stalled`, nothing
+written for the minutes `LEMONFIBER_COPY_STALLED_MINUTES` holds, carrying `wrote`, the
+instant it last wrote. Stalled outranks paced, and a restore is never paced (`E3-R18`,
+`E3-R19`). `job` is the name an accepting reply gave the work, and is absent where none
+did (`ARCH-R456`).
+
+**A running copy rides the stream.** A `copying` event carries the same envelope, sent when
+a client connects, when a copy starts and ends, when its state or its part changes, and every
+5 seconds while it runs, so a client that connects mid-copy learns of it at once and one
+watching it sees a stall said rather than having to read one into a quiet stream. It is
+state, as `playing` is: the next event says where the copy has got, so none is handed back
+to a client resuming. It reaches the operator and a `read` or `act` key, and never a
+member's stream, as the read is refused to a member (`ARCH-R457`).

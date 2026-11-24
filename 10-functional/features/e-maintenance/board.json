@@ -52,7 +52,7 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": ["M4", "M9", "M14"],
+      "milestones": ["M4", "M9", "M14", "M6"],
       "milestone": "M4",
       "priority": null,
       "labels": ["storage", "updates"],
@@ -61,7 +61,8 @@
       "versions": [
         {"version": "0.14.0", "status": "released"},
         {"version": "0.18.0", "status": "staged"},
-        {"version": "0.3.0", "status": "released"}
+        {"version": "0.3.0", "status": "released"},
+        {"version": "1.0.0", "status": "planned"}
       ],
       "path": "e-maintenance/e3-backup-restore.md"
     },

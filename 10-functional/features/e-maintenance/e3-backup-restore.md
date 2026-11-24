@@ -102,6 +102,29 @@ than one that refuses to start.
 A stated number of backups is kept, oldest pruned. Backups are useless if they
 silently fill the disk they were protecting.
 
+### A running copy says how far it has got
+
+A backup or a restore that is running says how far it has got in one reading the
+core keeps, whichever started it: a terminal, a browser, a phone, or the capture
+taken before a risky operation. It says how much has been written of how much will
+be, and which part is being written now. A backup's whole is what the room check
+measured before it started; a restore's is what the archive's verification listed.
+
+It also says how it is going, and the stack says it rather than leaving a reader to
+guess from a quiet screen. It is `working`; `paced`, slowed on purpose, with the
+limit it is held to; or `stalled`, nothing written for the minutes the operator set,
+with when something last was. Stalled outranks paced: a limit slows a copy and
+never stops it, so a copy that has stopped is stuck whatever it was held to.
+
+Slowing backups down is the operator's setting, and it is off until they set a
+limit. A machine that serves the household while it backs up can keep a capture
+from taking the whole disk, and a backup held to a limit is not held to the time a
+backup is meant to take. A restore is never slowed: it runs when something is
+already wrong, and nobody is served by it taking longer.
+
+The reading is served twice from that one source: as an event on the stream, and as
+a read for whoever arrives while the copy runs ([live state](../../../20-architecture/contracts/web-api-live-state.md#a-running-copy)).
+
 ### On the companion
 
 Backups are what an operator thinks about at the worst possible moment, and the
@@ -117,9 +140,9 @@ else's directories is not the same undertaking as a copy of ours.
 Retention prunes. `N6-R3` requires what a new copy removed to be reported with
 that copy, because it is housekeeping the operator did not ask for individually
 and would otherwise meet as an archive that is simply absent. Capture can also be
-paced deliberately, and `N6-R4` requires a paced copy told apart from a stalled
-one — on a progress view watched from somewhere else, that difference is the
-entire reason to look. And a restore may land data somewhere other than where it
+paced deliberately (`E3-R18`), and `N6-R4` requires a paced copy told apart from a
+stalled one, each as the stack says it — on a progress view watched from somewhere
+else, that difference is the entire reason to look. And a restore may land data somewhere other than where it
 came from, which `N6-R5` requires the app to say: a restore that silently
 relocated a library is a restore its operator will believe failed.
 
@@ -183,8 +206,11 @@ stated before that decision is agreed to rather than mentioned after it.
 | **E3-R12** | Insufficient disk space MUST be detected before capture begins. |
 | **E3-R13** | Restore MUST report which restored credentials subsequently fail validation. |
 | **E3-R14** | After restore, inter-service wiring MUST be reconciled by re-running seed. |
-| **E3-R15** | A full backup of a typical configuration SHOULD complete within 60 seconds. |
+| **E3-R15** | A full backup of a typical configuration SHOULD complete within 60 seconds, where the operator has set no limit on its speed (`E3-R18`). |
 | **E3-R16** | lemonfiber MUST NOT restore a captured tree it does not manage. An archive of an existing setup MUST record the host path each tree was taken from, so putting it back is an ordinary extraction the operator performs deliberately. Writing into a tree lemonfiber does not manage is the one step in a restore nobody can sanction on the operator's behalf. |
+| **E3-R17** | A running backup or restore MUST be read from one reading the core keeps, whichever started it, carrying the bytes written, the bytes it will write — for a backup what the room check measured, for a restore what the archive's verification listed — the part being written now, named, and whether it is `working`, `paced` or `stalled`. The stream and the read MUST serve that one reading (`ARCH-R456`, `ARCH-R457`). |
+| **E3-R18** | Slowing backups down MUST be an operator setting, off where none is recorded. With a limit set, a backup MUST write no faster than it, and its reading MUST say `paced` with that limit. A restore MUST NOT be slowed. |
+| **E3-R19** | A running backup or restore that has written nothing for the minutes the operator's setting holds MUST read `stalled`, with when it last wrote, whether or not it is paced, and MUST NOT read `working` or `paced`. |
 
 ## Related
 

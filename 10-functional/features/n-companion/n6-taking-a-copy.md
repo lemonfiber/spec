@@ -62,9 +62,21 @@ copy rather than discovered later by an archive being missing.
 
 ### A copy that is running is not a copy that is stuck
 
-The contract says how a copy is progressing and whether it is being paced
-deliberately. An operator watching a long copy on a phone needs those apart: one
-is working, the other is not, and the difference is the whole reason to look.
+The stack says how far a running copy or restore has got: how much it has copied
+of how much it will, and the part it is copying now. It also says whether it is
+slowed on purpose, with the limit the operator set, or stuck, with how long nothing
+has moved (`E3-R17`). An operator watching a long copy on a phone needs those apart:
+one is working, the other is not, and the difference is the whole reason to look.
+
+So the app shows what the stack says, and never works it out for itself. A phone
+that heard nothing for a while has learned something about its connection, not
+about the copy, and a stall it inferred would be a claim about a stack it cannot
+see. Where the stack does not say how far a copy has got, the app says it cannot
+tell.
+
+Whether backups are slowed, and after how many minutes a copy with nothing moving
+is stuck, are the stack's two settings (`E3-R18`, `E3-R19`). The operator changes
+them here, beside the copies they govern, and sees whether each is theirs or the default.
 
 ### A restore says where it put things
 
@@ -104,8 +116,10 @@ line: a stack must exist and be paired before any of this is reachable.
 |-------|---------|
 | Idle | No copy or restore is running. What exists is listed. |
 | Rehearsing | A run is in progress that will change nothing, and is labelled so throughout. |
-| Working | A copy or restore is running, with how far it has got. |
-| Paced | Running, deliberately slowed. Distinguished from stalled. |
+| Working | A copy or restore is running, with how much it has copied of how much it will and the part it is copying now. |
+| Paced | Running, slowed on purpose, with the limit the operator set. Distinguished from stalled. |
+| Stalled | Running, and nothing has moved for the minutes the stack's setting holds, with how long it has been. |
+| Can't tell | Running, and the stack does not say how far it has got. Never shown as working. |
 | Partial | An undo or restore finished with things it could not do, each named with why. |
 | Unknown | The archives or the stored list could not be read. Never shown as empty. |
 
@@ -129,7 +143,7 @@ line: a stack must exist and be paired before any of this is reachable.
 | **N6-R1** | A rehearsed run MUST be labelled as a rehearsal wherever its result is shown, and MUST NOT be described in the past tense as though it had happened. |
 | **N6-R2** | The scope of a copy or a restore MUST be stated before it starts and again on its result, naming whether it is the whole stack, one service, or an existing project. |
 | **N6-R3** | Copies removed by taking a new one MUST be reported with that copy, and MUST NOT be left to be discovered by an archive being absent. |
-| **N6-R4** | A running copy MUST show how far it has got, and a deliberately paced one MUST be distinguishable from a stalled one. |
+| **N6-R4** | A running copy or restore MUST show how much it has copied of how much it will and the part it is copying now, and MUST say, as the stack says it, whether it is slowed on purpose, with the operator's limit, or stalled, with how long nothing has moved, telling the two apart (`E3-R17`). |
 | **N6-R5** | Where a restore put data somewhere other than where it came from, the app MUST say so. |
 | **N6-R6** | An undo MUST name what it could not reverse and why, and MUST NOT present a partial reversal as a complete one. |
 | **N6-R7** | The app MUST show what the stack is holding and why, and MUST NOT render the value of anything the contract marks secret. |
@@ -137,6 +151,8 @@ line: a stack must exist and be paired before any of this is reachable.
 | **N6-R9** | An empty list of archives MUST be told apart from a list that could not be read. |
 | **N6-R10** | Where the stack offers neither a rollback nor a restore, the app MUST offer neither, and MUST NOT present one as the other (`N2`). |
 | **N6-R11** | Nothing on this surface MUST offer first-run setup (`N1-R4`). |
+| **N6-R12** | The app MUST take how far a running copy or restore has got, and whether it is paced or stalled, from the stack's reading alone. Where the stack gives none, the app MUST say it cannot tell, and MUST NOT show the copy as working or stalled on its own reckoning. |
+| **N6-R13** | The app MUST offer the operator the stack's two settings for a running copy — slowing backups down, off until a limit is set (`E3-R18`), and the minutes with nothing moving after which a copy is stalled (`E3-R19`) — each with its value and whether the operator set it or it is the default (`ARCH-R254`). |
 
 ## Related
 

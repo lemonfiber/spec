@@ -93,8 +93,8 @@ AWAITING_A_VERSION = {
         [f"N4-R{n}" for n in range(1, 29) if n not in (25, 26, 27)],
     ),
     "N6": (
-        "N6 requires N1, whose app side 1.0.0 completes, and E3, locked by 0.14.0 at the latest, released",
-        [f"N6-R{n}" for n in range(1, 12)],
+        "N6 requires N1, whose app side 1.0.0 completes, and E3, locked by 0.14.0 at the latest, released, but for the reading of a running copy, which 1.0.0 locks",
+        [f"N6-R{n}" for n in range(1, 14)],
     ),
     "N8": (
         "N8 requires N1, whose app side 1.0.0 completes, and D2, locked by 0.4.0, released",
