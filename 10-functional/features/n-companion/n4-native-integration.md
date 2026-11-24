@@ -100,7 +100,9 @@ lemonfiber already decides what is worth telling somebody about
 read by whoever is holding the phone, so it carries what happened and never a
 credential, a household member's name, or a title somebody requested.
 
-The app does not invent alerts of its own.
+The app does not invent alerts of its own. Its one notification of its own says
+that some alerts from a stack may be missing, after a wake that could not vouch
+for all of them.
 
 ### Notifications reach the phone without a vendor's push service
 
@@ -200,7 +202,7 @@ nothing that would override the reader's own type size or choice of light or dar
 | **N4-R8** | Biometric failure MUST fall back to the device passcode and MUST NOT fall back to unlocked. |
 | **N4-R9** | The task-switcher representation of the app MUST NOT show application content. |
 | **N4-R10** | A notification MUST NOT contain a credential, a household member's name, or the title of a requested item. |
-| **N4-R11** | The app MUST NOT raise alerts of its own; every notification MUST originate in the core's notification decisions. |
+| **N4-R11** | The app MUST NOT raise alerts of its own; every notification of an alert MUST originate in the core's notification decisions, and the one notification of the app's own is the one `N4-R32` requires. |
 | **N4-R12** | The app MUST NOT send analytics, telemetry or crash reports to any third party. |
 | **N4-R13** | A diagnostic report MUST be assembled for the operator to send, and MUST NOT be transmitted by the app. |
 | **N4-R14** | The app MUST honour the platform's text scaling, screen reader, contrast and reduced-motion settings, and MUST NOT implement a parallel accessibility layer. |
