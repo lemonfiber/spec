@@ -56,10 +56,25 @@ available until it is turned on, and does not present a truncated history as com
 
 Watch history is personal. Whose statistics a viewer may see is governed by the
 privacy stance ([G8](../g-ux/g8-privacy.md)) and household identity
-([D6](../d-content/d6-household-identity.md)): a member sees their own history, an
-operator's visibility into others' viewing follows the household's rules rather than a
-blanket exposure, and children's data is handled with the same care as elsewhere in
-the stack. Statistics are never shipped off the box to a third party to be computed.
+([D6](../d-content/d6-household-identity.md)), and children's data is handled with
+the same care as elsewhere in the stack. Statistics are never shipped off the box to a
+third party to be computed.
+
+**A member sees their own history, and nobody else's.** It is told in the household's
+words: what they watched, when, and how far through. Another member is never answered
+it, and neither is the operator. Running the stack is not a reason to read what
+somebody watched, so what the operator is answered is whether the statistics work —
+ingestion, backfill and the query-back proof — and no title anybody watched. Where
+cleanup gives the household's watching of a title as its evidence, it names nobody.
+
+Two people can turn it off. The operator can turn members' history off for the whole
+household, a setting that is on until they do. While it is off, nothing is kept per
+member: each play is counted only into totals that name nobody, and cleanup and the
+statistics work from those. Each member is told it is off, and no member is answered
+a history. What was kept per member before it was turned off is answered to nobody,
+and goes when the statistics' records of its age go. A member can hide their own;
+hidden, it is answered to nobody, them included, until they show it again, so a phone
+or a screen in a shared room shows none of it.
 
 ### It presents figures the media server does not
 
@@ -76,9 +91,9 @@ misbehaving client does not corrupt the totals.
 
 ### Every step has a non-interactive equivalent
 
-Ingestion status, the backfill, the query-back proof, and the statistics themselves
-are each reachable as plain subcommands, so stats can be wired into reporting without
-a prompt.
+Ingestion status, the backfill and the query-back proof are each reachable as plain
+subcommands, and so is a member's own history, to that member, so stats can be wired
+into reporting without a prompt.
 
 ### On the companion
 
@@ -137,7 +152,10 @@ wrong figure this feature is able to produce.
 | **H8-R11** | Backfill of a large history MUST proceed incrementally and MUST NOT block or exhaust the host. |
 | **H8-R12** | When the media server is unreachable, last-known statistics MUST be shown marked as such and MUST NOT be presented as current. |
 | **H8-R13** | Statistics for a member with no recorded playback MUST be stated explicitly, not rendered as an empty chart implying zero activity. |
-| **H8-R14** | Ingestion status, backfill, the query-back proof, and the statistics MUST each be reachable non-interactively. |
+| **H8-R14** | Ingestion status, backfill and the query-back proof MUST each be reachable non-interactively, and so MUST a member's own history, to that member (`H8-R15`). |
+| **H8-R15** | A member MUST be answered their own viewing history alone — each title, when they watched it and how far through, in the household's words — and MUST NOT be answered another's. The operator MUST be answered whether the statistics work, ingestion, backfill and the query-back proof among it, and MUST NOT be answered what any member watched; the household's watching of a title, where cleanup gives it as evidence (`H6-R2`), MUST name no member. |
+| **H8-R16** | The operator MUST be able to turn members' viewing history off, as a core setting that is on where none is recorded. While it is off, nothing MUST be kept per member: a play MUST be counted only into totals that name no member, and cleanup and the statistics MUST work from those; no member MUST be answered a history, and each MUST be told it is off. What was kept per member before MUST be answered to nobody, and MUST go when the statistics' records of its age go. |
+| **H8-R17** | A member MUST be able to hide their own viewing history and show it again; while it is hidden, it MUST be answered to nobody, that member included. |
 
 ## Related
 

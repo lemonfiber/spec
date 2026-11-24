@@ -7,11 +7,14 @@
 # release target: the core's `Cargo.toml` names the four it builds. This version is
 # where Windows becomes one, and the three ship with it.
 #
-# 90 goals, seeded from the roadmap milestone this version serves;
+# 92 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R153` is browsing the catalogue over the web API, answered from the verified
 # index, so the companion lists what can be installed rather than taking a typed name;
 # `ARCH-R450` to `ARCH-R452` are what that read answers.
+# `ARCH-R458` gives every automation's read one answer to whether it works, and
+# `ARCH-R459` lists the automations a stack runs with that answer, by the maintainer's
+# decision of 2026-11-24; the first automations they serve ship here.
 #
 version = "0.20.0"
 milestone = "M11"   # Ecosystem glue
@@ -110,6 +113,8 @@ goals   = [
     "N2-R25",
     "N2-R26",
     "N2-R27",
+    "ARCH-R458",
+    "ARCH-R459",
 ]
 
 # `N2-R1` to `N2-R27` are the rest of N2, which 0.19.0 touches and no version locked.

@@ -24,14 +24,14 @@ Area H is the automation people bolt onto a media stack by hand — cross-seedin
 announce-driven grabbing, quality-profile sync, library cleanup, playback
 statistics — and [K1](../k-observability/k1-metrics.md) is the metrics pipeline
 beside it. Five of the six share one rule: **they prove the wiring rather than
-trusting it**, and a configuration that has not proven itself is *unproven*,
-never *ready*. Cleanup has a gate in its place — a dry run, then a confirmation.
+trusting it**, and a configuration that has not proven itself is *not yet
+proven*, never *working*. Cleanup has a gate in its place — a dry run, then a confirmation.
 
 That rule is the one a small screen loses first. An automation that is running
 looks, from a phone, exactly like one that is working, and every one of these
 fails by looking fine. So what this page asks of the app is mostly the same
-thing each time: show the proof, keep *unproven* apart from *ready*, and offer the
-acts each feature makes reachable without a terminal.
+thing each time: show the proof, keep *not yet proven* apart from *working*, and
+offer the acts each feature makes reachable without a terminal.
 
 Queue self-healing ([H5](../h-glue/h5-queue-selfheal.md)) is not here:
 [N16](n16-nobody-was-looking.md) already shows what it would do and did
@@ -39,13 +39,24 @@ Queue self-healing ([H5](../h-glue/h5-queue-selfheal.md)) is not here:
 
 ## Behaviour
 
-### Unproven is its own answer, everywhere on this page
+### One answer to whether it works, everywhere on this page
 
 Five of these end their wiring with a proof against real data — a match for a
 real local item, a real announce line through a test filter, a read-back of the
 scores that were written, a known recent play queried back, a series present in
-the store. Where the proof has not held, the feature is unproven, and the app
-shows that as its own state. *Running* is never shown in its place.
+the store. The stack gives every one of them in one shape (`ARCH-R458`), and the
+app words it the same way each time: *working*, *not yet proven*, or *can't tell*,
+with when it was last checked and against what. *Running* is never shown in its
+place, and *can't tell* is never shown as working.
+
+### What the automation is doing
+
+The operator has one screen for all of it, *What the automation is doing*. It
+lists the automations this stack runs, as the stack lists them (`ARCH-R459`), each
+with its answer to whether it works, and each opens its own detail: the matches, the
+channels, the sync, the candidates, the statistics pipeline, the metrics. An
+automation the stack does not run is not on it, not even as off: the screen is
+about what this stack is doing, not a catalogue of what it could.
 
 ### Cross-seeding: a match is the data, not the name
 
@@ -101,7 +112,14 @@ or acting on a threshold (`N12-R4`, `N12-R9`).
 What was watched, by whom and how far through is the household's most personal
 record ([H8](../h-glue/h8-stats.md)). Whose statistics a person may see is the
 core's answer for the identity signed in, and the app holds no rule of its own
-about it (`N3-R2`). A device that reports no progress gives *unknown*, not
+about it (`N3-R2`).
+
+A member sees their own viewing history, in plain words: what they watched, when,
+and how far through, with nothing about how it was gathered. They can hide it, and
+show it again. The operator sees whether the statistics work — the pipeline's
+answer on *What the automation is doing* — and never what anybody watched, and can
+turn members' history off for the whole household, which stops it being kept as well
+as shown; a member is then told, in plain words, that it is off. A device that reports no progress gives *unknown*, not
 *watched* and not *unwatched*. Somebody with no recorded playback is said to have
 none rather than shown an empty chart, and a history that begins where backfill
 could not reach says where it begins (`N11-R1`).
@@ -134,14 +152,14 @@ one.
 
 | State | Meaning |
 |-------|---------|
-| Unproven | Wired, and the proof has not held. Never shown as ready or running. |
-| Ready | The proof held against real data. |
+| Not yet proven | Wired, and the proof has not held or has not run. Never shown as working or running. |
+| Working | The proof held against real data, with when and against what. |
 | Holding | A cap or an unreachable destination is holding matches. Not failing. |
 | Near-miss | A cross-seed candidate that differs in layout. Not a match. |
 | Previewed | A sync or cleanup plan shown. Nothing applied. |
 | Conflict | Another tool wrote the same instance. Not re-applied. |
 | Unmonitored | A service with no exporter. Not covered. |
-| Unknown | The state could not be read. Never shown as ready. |
+| Can't tell | The stack could not tell whether it works, or the state could not be read. Never shown as working. |
 
 ## Edge cases
 
@@ -161,7 +179,7 @@ one.
 
 | ID | Requirement |
 |----|-------------|
-| **N26-R1** | Where one of these features reports a proof that has not held, the app MUST show it as unproven, and MUST NOT show it as ready or as running (`H1-R8`, `H2-R6`, `H3-R5`, `H8-R2`, `K1-R14`). |
+| **N26-R1** | Each automation MUST be shown with its proof as the stack gives it (`ARCH-R458`) — working, not yet proven, or can't tell, with when it was last checked and against what — and MUST NOT be shown as working, or as running, where the proof has not held (`H1-R8`, `H2-R6`, `H3-R5`, `H8-R2`, `K1-R14`). |
 | **N26-R2** | The app MUST offer starting a cross-seed search, listing its matches and running its wiring proof (`H1-R14`). |
 | **N26-R3** | A cross-seed near-miss and a partial match MUST each be shown as such, the partial one with its missing pieces, and neither MUST be counted as a match (`H1-R9`, `H1-R10`). |
 | **N26-R4** | An indexer that failed during a pass MUST be named as failed for that pass, and a failed client credential MUST be shown as halting additions (`H1-R11`, `H1-R13`). |
@@ -180,13 +198,17 @@ one.
 | **N26-R17** | The metrics store's retention bound and projected growth MUST be shown (`K1-R9`). |
 | **N26-R18** | The app MUST offer regenerating scrape targets and dashboards, and running the pipeline proof (`K1-R13`). |
 | **N26-R19** | The app MUST NOT draw the metrics dashboards or their series, and MUST say that they are the renderer's own screens; it MUST offer the renderer's address only where the stack gives one, and MUST NOT construct one. Drawing them would hold a second copy of every provisioned query (`K1-R4`), and the app renders the core's answers rather than copies of them (`N1-R1`). |
+| **N26-R20** | The operator MUST have one screen, *What the automation is doing*, listing the automations the stack runs (`ARCH-R459`) and no other, each with its proof and each opening its own detail; an automation the stack does not run MUST NOT be shown, not even as off. |
+| **N26-R21** | A member MUST be shown their own viewing history in plain words — what they watched, when, and how far through — with nothing technical, and MUST be offered hiding it and showing it again (`H8-R15`, `H8-R17`, `ARCH-R460`). |
+| **N26-R22** | The operator MUST be shown whether the playback statistics work and MUST NOT be shown what any member watched (`H8-R15`), and MUST be offered turning members' viewing history off, saying that while it is off no member's history is kept or shown (`H8-R16`); where it is off, a member MUST be told so in plain words. |
 
 ## Notes
 
-**The contract carries none of this.** Every feature on this page is planned, and
+**The contract serves none of this.** Every feature on this page is planned, and
 no envelope the stack publishes is about any of them: nothing names a cross-seed
 match, an announce channel, a profile sync, a cleanup candidate, a playback or a
-metric. Every row here waits on the contract, and `N1-R17` stops the work until
+metric. `ARCH-R458` to `ARCH-R460` give the proof's one shape, the list of what a
+stack runs and a member's own history, and no read serves them. Every row here waits on the contract, and `N1-R17` stops the work until
 it carries what the row needs. Nearby envelopes are not substitutes:
 
 | Feature | Nearest envelope | Why it does not answer |
@@ -214,3 +236,4 @@ surface draws.
 - [N24](n24-choosing-and-trying.md) — choosing a quality preset
 - [H1](../h-glue/h1-cross-seed.md), [H2](../h-glue/h2-autobrr.md), [H3](../h-glue/h3-quality-sync.md), [H6](../h-glue/h6-library-cleanup.md), [H8](../h-glue/h8-stats.md) — the glue
 - [K1](../k-observability/k1-metrics.md) — metrics and dashboards
+- [The automations' contract](../../../20-architecture/contracts/web-api-the-automations.md) — the proof's one shape, and what a member watched

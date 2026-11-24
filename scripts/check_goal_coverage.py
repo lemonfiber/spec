@@ -90,7 +90,7 @@ AWAITING_A_VERSION = {
     ),
     "N4": (
         "N4 requires N1, whose app side 1.0.0 completes, and G3, locked by 0.10.0 at the latest, released; N4-R25 to N4-R27 are locked by 0.19.0",
-        [f"N4-R{n}" for n in range(1, 29) if n not in (25, 26, 27)],
+        [f"N4-R{n}" for n in (*range(1, 29), 32) if n not in (25, 26, 27)],
     ),
     "N6": (
         "N6 requires N1, whose app side 1.0.0 completes, and E3, locked by 0.14.0 at the latest, released, but for the reading of a running copy, which 1.0.0 locks",
@@ -147,7 +147,7 @@ AWAITING_A_VERSION = {
     ),
     "N26": (
         "N26 requires N1, whose app side 1.0.0 completes, H1, H2 and H3, locked by 0.20.0, H6 and H8, locked by 0.21.0, and K1, locked by 0.23.0",
-        [f"N26-R{n}" for n in range(1, 20)],
+        [f"N26-R{n}" for n in range(1, 23)],
     ),
     "N27": (
         "N27 requires N1, whose app side 1.0.0 completes, and N4, whose app side no version schedules; what they require is locked by 0.11.0 at the latest, released; N27-R17 is locked by 0.19.0",
