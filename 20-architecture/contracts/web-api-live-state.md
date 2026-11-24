@@ -54,8 +54,10 @@ client offers a switch for each of those and for nothing else (`ARCH-R279`, `ARC
 every `alert` event raised after that id from the last 24 hours and at most the last 200,
 before anything said after it connected and in the order said among the rest of the replay
 (`ARCH-R455`), so a phone the platform woke an hour later hears what was said
-while it slept. An id older than that is answered from the oldest kept, and the replay says
-`partial` so the client knows it missed some (`ARCH-R281`).
+while it slept. Before them it is sent a `replay` event saying whether they are all of
+them: `whole`, or `partial` where an alert raised since is no longer kept or the id is
+not one of this run's, so the client knows it missed some. The alerts are kept for the
+run, so a client resuming after a restart is answered `partial` (`ARCH-R281`).
 
 **A phone can ask to be woken.** A phone that cannot hold the stream while it is closed
 registers a UnifiedPush endpoint, and the core sends it a WebPush message, encrypted to the

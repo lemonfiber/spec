@@ -56,7 +56,7 @@ quiet one.
 
 ### Resumption
 
-Every event carries an `id`. A client resuming sends the last one it saw as
+Every event the run says carries an `id`. A client resuming sends the last one it saw as
 `Last-Event-ID`, and the server replays from after it where it can, or restarts the
 stream where it cannot. Either way everything the client still holds from before the
 gap is stale until replaced — the resumption mechanism does not change what is
@@ -64,8 +64,8 @@ current, only what is retransmitted.
 
 An id is the server run's own name followed by a count: every event the run says, of
 any kind, takes the next number, so ids rise in the order things were said. What a run
-can hand back is two things, each kept to its own bound so that neither pushes the
-other out:
+can hand back is three things, each kept to its own bound so that none pushes another
+out:
 
 - **Records**, every one: the last 256 `step`, `log` and `alert` events said.
 - **Lines, the newest of each item**: for each thing a `start` or a `pull` line is
@@ -74,6 +74,9 @@ other out:
   the image or layer its first word names, within the work its job names. A line
   replaces the one its item said before, so a fetch that says hundreds of lines about
   one layer holds one; past 256 items, the item whose newest line is oldest goes.
+- **Alerts**: every `alert` raised in the last 24 hours, at most the last 200, kept
+  apart from the records, so an alert is handed back where the rest of the record no
+  longer can be. They are kept for the run: a run that has ended hands back none.
 
 A client resuming is sent, before anything said after it connected, every record said
 after its id and the newest line of each item whose newest line was said after its id,
@@ -86,6 +89,21 @@ answered the same way: the stream restarts and hands back nothing but the alerts
 (`ARCH-R455`). No other kind is ever handed
 back: a `dashboard` or any other gathered figure is current only as the next gather
 says it (`ARCH-R51`).
+
+Before anything else, a client resuming is told whether what follows holds every alert
+raised after its id, in one `replay` event whose `alerts` is `whole` or `partial`:
+
+```
+event: replay
+data: {"api_version":1,"kind":"replay","data":{"alerts":"partial"}}
+```
+
+It is `partial` where an alert raised after the id is no longer kept, and where the
+id is from another run, one this run has not reached, or one that cannot be read; then
+the alerts kept are what follows. The `replay` event is said to that client alone and
+is not said in the run: it carries no `id`, so the client's own stays where it was,
+and it is never handed back. A client connecting without an id is told nothing of
+alerts, because it is handed none (`ARCH-R281`).
 
 ### A job's outcome
 
