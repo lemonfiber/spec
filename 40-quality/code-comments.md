@@ -3,8 +3,9 @@
 **Status:** Accepted
 
 Code should be readable on its own. Architecture belongs in `lemonfiber/.docs/`.
-Comments are the exception, not the norm — reserved for the few places where
-genuinely non-obvious code needs a *why* the code itself cannot carry.
+A comment never explains the code. Three kinds stay, and only they: a guard
+against a plausible rewrite, a named tool or platform constraint, and the only
+content of a block.
 
 This is the Rust counterpart of a convention proven in PHP and TypeScript. The
 mechanical rules port directly; **M4 does not**, and the reasoning is recorded
@@ -19,9 +20,11 @@ below rather than silently dropped.
 2. **Architecture lives in `.docs/`.** System shape, data flow, cross-module
    contracts and "how the pieces fit" are documented in Markdown and linked from
    the code, never re-explained inline.
-3. **Comments explain *why*, never *what*.** A comment restating what the next
-   line does is noise. A comment capturing a non-obvious reason, constraint or
-   trap earns its place — and if it does, it is never a throwaway one-liner.
+3. **No explanatory comments.** A comment restating what the next lines do is
+   noise, and so is one narrating why they are written the way they are. What
+   stays is a comment the next editor needs before touching the code: a guard
+   against a rewrite that looks better and breaks it, a constraint a named tool or
+   platform imposes, or the only content of a block that is empty on purpose.
 4. **Production-ready always.** Shipped code is finished. No deferral notes, no
    tickets, no "come back to this." If work remains, the work is not done.
 
@@ -34,7 +37,7 @@ lemonfiber/spec/          canonical · cross-repo · WHAT and WHY
 lemonfiber/.docs/                repo-local · Rust-specific HOW
   architecture/ adr/ conventions/ runbooks/
         ▲ linked from
-src/**/*.rs               why only · 2–4 line blocks · no IDs
+src/**/*.rs               guards and constraints only · no IDs
 ```
 
 Each layer points **one step outward**. Nothing is duplicated, and each has a
@@ -52,7 +55,9 @@ code. So: `lemonfiber` and `brand` have `.docs/`; `homebrew-tap` doesn't.
 
 ## Scope
 
-Applies to **Rust production source**: `crates/**/src/**/*.rs`.
+Applies to **Rust production source**: `crates/**/src/**/*.rs`. `Q-R1` and
+`Q-R10` bind the production source of every repository, in any language; the
+mechanics below are Rust's.
 
 Explicitly **excluded**:
 
@@ -77,25 +82,29 @@ toothless or tyrannical.
 
 | # | Rule |
 |---|------|
-| **M1** | No lone single-line `//` comment. An informative `//` must be part of a contiguous block of **2–4 lines**. A one-line note means the code should say it instead — delete it, or if the *why* is real, expand it into a proper block. |
-| **M2** | A contiguous `//` block is **2 lines minimum, 4 lines maximum**. Anything needing more than 4 lines of prose belongs in `.docs/`, linked. |
 | **M3** | No informative `/* … */` block comments. |
 | **M5** | No deferral or provenance tokens anywhere in a comment: `TODO`, `FIXME`, `HACK`, `XXX`, `SAFETY:`-adjacent placeholders, ticket keys, **requirement IDs**, ADR numbers, phase numbers. |
 | **M6** | Every Markdown link in a doc comment pointing at a `.md` file MUST resolve to a real file under `.docs/`. Broken doc links fail the build. |
 | **M7** | Every public item MUST carry a doc comment (`missing_docs` denied at crate level). |
 
-### Why M1 is the load-bearing rule
+### What may stay
 
-M1 is the mechanism that kills the specific failure this policy exists to
-prevent: comments explaining obvious behaviour.
+A comment is judged by its kind, never by its length. Three kinds stay:
 
-`// Increment the counter` cannot be expanded into two lines of genuine *why*,
-because there isn't any. A real reason — an invariant, an ordering constraint, a
-defended-against edge case — naturally occupies two to four lines. **The length
-floor is a relevance filter.**
+| Kind | What it says | Example |
+|------|--------------|---------|
+| A guard | Why a plausible rewrite breaks the code | a `try` kept around one call, an order that is the meaning, a value compared rather than mapped |
+| A constraint | What a named tool, platform or standard imposes | a NativePHP or Android behaviour, an RFC's grammar, a rector rule |
+| A block's only content | That a block is empty on purpose | an arm or a callback that does nothing |
 
-It is also the rule that resists AI-generated narration most effectively, since
-that style is characteristically one line per statement.
+Everything else goes: a comment narrating what the code does, one restating a
+rule the spec or `.docs/` already holds, one telling the history of a line. If
+the code cannot say it, a name, an extracted function or a named constant can;
+if none of those can, the page in `.docs/` can.
+
+There is no length rule, and no M1 or M2: a one-line guard is a whole guard, a
+platform constraint can take a paragraph, and a narration padded to two lines is
+still a narration.
 
 ### M4 is deliberately absent
 
@@ -138,7 +147,7 @@ Citations go in commit trailers and PR bodies, which is where provenance belongs
 ### The directive allow-list
 
 A small set of comments are not informative comments — they are machine
-directives. Only these are exempt from M1–M3:
+directives. Only these are exempt from M3:
 
 - `// SAFETY: …` preceding an `unsafe` block, where the crate permits `unsafe` at
   all. lemonfiber denies `unsafe_code` crate-wide, so in practice this is
@@ -156,7 +165,7 @@ the one place the comment gate has been told not to look.
 | # | Rule |
 |---|------|
 | **J1** | Prefer self-documenting code. Exhaust rename / extract / named-constant before writing any comment. |
-| **J2** | Write an inline `//` block only when the code is genuinely complex or the *why* is non-obvious — a constraint, an ordering trap, a defended-against edge case. Never to narrate *what* the code does. |
+| **J2** | Write an inline `//` comment only when it is one of the three kinds in [What may stay](#what-may-stay). Never to explain or narrate the code. |
 | **J3** | Architecture, data flow and cross-module contracts go in `.docs/`, never inline. |
 | **J4** | Doc comments are a **one-line summary plus a link** where a documented home exists. Multi-paragraph rustdoc essays are a J4 violation even though M4 does not mechanically forbid them. |
 | **J5** | Nothing is deferred in a comment. If it isn't done, it isn't production-ready — finish it or cut it. |
@@ -164,11 +173,11 @@ the one place the comment gate has been told not to look.
 ## Worked examples
 
 ```rust
-// ✗ M1 — lone one-liner, and narrates WHAT
+// ✗ J2 — narrates WHAT
 // Increment the retry counter
 retries += 1;
 
-// ✗ M1/J2 — AI narration; one line per statement
+// ✗ J2 — AI narration; one line per statement
 // First check if the port is available, then bind to it
 if port_available(p) { bind(p)?; }
 
@@ -176,7 +185,7 @@ if port_available(p) { bind(p)?; }
 // Required by C2-R5: re-push the port after reconnect
 push_port(port).await?;
 
-// ✓ M1, M2, J2 — two lines, explains WHY, no ID
+// ✓ J2 — guards against caching the port, no ID
 // The forwarded port is reassigned on every reconnect and the
 // client silently keeps the stale one, so re-read rather than cache.
 let port = tunnel.forwarded_port().await?;
@@ -221,7 +230,7 @@ classifies tokens natively:
 | Token | Rule applied |
 |-------|--------------|
 | `LineComment` with `///` or `//!` | Doc comment → M5, M6, M7 |
-| `LineComment` otherwise | Inline → M1, M2, M5, unless allow-listed |
+| `LineComment` otherwise | Inline → M5, unless allow-listed |
 | `BlockComment` with `/**` or `/*!` | Doc comment → M5, M6 |
 | `BlockComment` otherwise | **M3 violation** |
 | String, raw string, char literals | Skipped — the reason a lexer is required |
@@ -255,7 +264,7 @@ view. Any gate grepping tracked source for banned tokens must scope itself to
 
 | ID | Requirement |
 |----|-------------|
-| **Q-R1** | An informative `//` comment MUST be part of a contiguous 2–4 line block. |
+| **Q-R1** | A `//` comment MUST NOT explain the code. A `//` comment MAY stay only as a guard against a plausible rewrite, a named tool or platform constraint, or the only content of a block. |
 | **Q-R2** | Informative `/* … */` block comments MUST NOT be used. |
 | **Q-R3** | Comments MUST NOT contain deferral tokens, ticket keys, requirement IDs, ADR numbers or phase numbers. |
 | **Q-R4** | Every public item MUST carry a doc comment; `missing_docs` MUST be denied at crate level. |
