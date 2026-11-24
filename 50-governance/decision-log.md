@@ -673,6 +673,7 @@ Decisions about a repository outside this organisation, such as
 | Decision | Where it lives |
 |---|---|
 | The companion's screen watching a first title arrive and its screen choosing what to do with one thing a stack runs follow their job the way every other screen does, and hear none of its lines: their own stream stays their only progress, with no extra read per wake and no second stream. The user chose this over hearing the job's lines too, at one more stream read per wake, and over keeping them as exceptions to the rule that every screen awaiting an outcome follows its job | [N15-R5](../10-functional/features/n-companion/n15-the-words.md) |
+| A resumed event stream hands back `start` and `pull` lines too, only the newest line of each item a line is about, kept to a bound of their own so that a fetch's progress never pushes a `step`, `log` or `alert` record out of the 256 the stream keeps. A `start` line's item is the job that said it, the replay is whole or nothing, it is sent in the order said, and a client with no id is sent none. The user chose this over leaving both lines unreplayed, over a larger or a shared bound, over a partial replay and over sending alerts first | [ARCH-R455](../20-architecture/contracts/web-api.md#requirements) |
 
 ## Related
 

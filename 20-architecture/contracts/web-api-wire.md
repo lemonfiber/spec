@@ -62,6 +62,31 @@ stream where it cannot. Either way everything the client still holds from before
 gap is stale until replaced — the resumption mechanism does not change what is
 current, only what is retransmitted.
 
+An id is the server run's own name followed by a count: every event the run says, of
+any kind, takes the next number, so ids rise in the order things were said. What a run
+can hand back is two things, each kept to its own bound so that neither pushes the
+other out:
+
+- **Records**, every one: the last 256 `step`, `log` and `alert` events said.
+- **Lines, the newest of each item**: for each thing a `start` or a `pull` line is
+  about, only its newest line, for the last 256 such items. A `start` line is about the
+  work its job names, and the lines no job names are one item. A `pull` line is about
+  the image or layer its first word names, within the work its job names. A line
+  replaces the one its item said before, so a fetch that says hundreds of lines about
+  one layer holds one; past 256 items, the item whose newest line is oldest goes.
+
+A client resuming is sent, before anything said after it connected, every record said
+after its id and the newest line of each item whose newest line was said after its id,
+together in the order they were said, so the ids it is handed still rise and a client
+cut off half way through a replay resumes from where the replay got to. An id from
+another run, one this run has not reached, one that cannot be read, and one from before
+something the run no longer holds — a record pushed out or an item gone — are all
+answered the same way: the stream restarts and hands back nothing but the alerts
+`ARCH-R281` keeps, because a replay with a hole in it would be presented as whole
+(`ARCH-R455`). No other kind is ever handed
+back: a `dashboard` or any other gathered figure is current only as the next gather
+says it (`ARCH-R51`).
+
 ### A job's outcome
 
 ```

@@ -1,6 +1,6 @@
 # **The dashboard.** `lemonfiber` with no subcommand opens a live view of the stack — the capability the whole of v1 has been building toward, and the reason this is 1.0.0 rather than another minor. Released through the signed, multi-platform pipeline on all three platforms.
 #
-# 48 goals, seeded from the roadmap milestone this version serves;
+# 49 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `N1-R2` and `N1-R5` are the companion's parity with every other surface, in what it
 # offers and in what it lets an operator set; `N25-R15` is that parity for proving a
@@ -24,6 +24,8 @@
 # `ARCH-R454` has every SDK hand its caller every field an envelope carries beside `data`,
 # checked in each SDK's CI, by the maintainer's decision of 2026-11-23. The four SDKs are
 # searched for it.
+# `ARCH-R455` has a resumed stream hand back the newest `start` and `pull` line of each item
+# beside the records it keeps, by the maintainer's decision of 2026-11-24.
 version = "1.0.0"
 milestone = "M6"   # Live TUI
 delivers  = "The dashboard — a bare `lemonfiber` opens it. Everything specced is built, and the interfaces stop moving."
@@ -62,6 +64,7 @@ goals   = [
     "ARCH-R453",
     "N19-R5",
     "ARCH-R454",
+    "ARCH-R455",
     "N3-R42",
     "N3-R43",
     "N3-R44",

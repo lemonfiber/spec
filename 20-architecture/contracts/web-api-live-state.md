@@ -51,8 +51,9 @@ client offers a switch for each of those and for nothing else (`ARCH-R279`, `ARC
 [ADR-0047](../../00-overview/decisions/0047-a-phone-hears-its-stacks-without-a-vendors-push-service.md)).
 
 **A resumed stream replays the alerts it missed.** A stream opened with `Last-Event-ID` is sent
-every `alert` event raised after that id, oldest first, from the last 24 hours and at most the
-last 200, before anything else, so a phone the platform woke an hour later hears what was said
+every `alert` event raised after that id from the last 24 hours and at most the last 200,
+before anything said after it connected and in the order said among the rest of the replay
+(`ARCH-R455`), so a phone the platform woke an hour later hears what was said
 while it slept. An id older than that is answered from the oldest kept, and the replay says
 `partial` so the client knows it missed some (`ARCH-R281`).
 
@@ -164,9 +165,11 @@ command line's `--json` says them under the same kind (`B2-R18`, `ARCH-R48`). A 
 the images it lacks before it starts anything and then starts with nothing left to fetch, so
 its `pull` lines all come before its `start` lines and a fetch that failed is said before
 anything was started. A `pull` line is
-state, as a `start` line is: a client connecting is given the newest, because the line says
-where the work has got to and a fetch says hundreds of them. A `step` is a record, because a
-step missed is a hole in the walk.
+state, as a `start` line is: a newer line about the same image, layer or work says where it
+has got to, and a fetch says hundreds of them. So a client that resumes is handed the newest
+line of each item said while it was away rather than every one of them, beside the records
+it missed, and a client connecting without an id is handed none (`ARCH-R455`). A `step` is a
+record, because a step missed is a hole in the walk.
 
 ### A member's stream
 
