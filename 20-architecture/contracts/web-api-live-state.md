@@ -179,12 +179,21 @@ The stream above is the operator's view: the dashboard, the log lines, what setu
 None of it is narrowed to anybody, so it is never handed to a member. A member, and a key
 scoped to one, are admitted to a stream of their own instead. It carries their household row,
 their held shelf and what they are playing, each as the read that answers it answers that
-member, and nothing gathered for the operator (`ARCH-R157`).
+member, and nothing gathered for the operator (`ARCH-R157`). It also carries the `ready`
+alert raised for them when something they asked for arrives, naming the title, and no
+other alert (`ARCH-R279`).
 
 It is the same stream in every other respect. It beats at the same interval, it resumes from
 the same event id, and a value gathered before a gap is stale on it as on the operator's. It
 ends when the member is removed or their key is revoked, as the operator's ends when the
 operator's credential does (`ARCH-R158`).
+
+A member's stream is kept for the run rather than opened for each connection. A `ready` alert
+is said on it the moment the ask arrives, whether or not they are listening, and every
+connection of theirs listens to it. So a member coming back is handed the alerts they missed,
+as the operator is (`ARCH-R281`), and never another member's. The run keeps the streams of
+the last 64 members asked for, letting the one asked for least lately go, and lets a member's
+go when they are removed.
 
 ### What is playing
 
