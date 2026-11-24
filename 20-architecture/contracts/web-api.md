@@ -624,76 +624,8 @@ the index's signature does not cover (`ARCH-R153`). What it answers, and to whom
 POST /api/actions/settings-set      POST /api/actions/settings-clear
 ```
 
-A setting is a value a service's environment reads from the operator rather than from its
-manifest: one the core publishes for every service, such as the operator's domain, or one
-in a plugin's own namespace, such as the countries an egress guard may exit from
-([plugin-manifest](plugin-manifest-service.md#environment--four-kinds-of-value)). The settings live in
-the core's settings store, and `GET /api/settings` reads them as `lemonfiber settings --json`
-does. Each setting carries its name; whose it is, the core's or a plugin's; each service that
-reads it and the variable it is read into; the default its manifest declares; and the
-operator's value where one is recorded, so a value still at its default is told apart from one
-somebody set to the same text (`ARCH-R254`). A setting that declares choices carries each
-value with the `needs` it is a choice under and whether it is one now; each reference
-carries its `needs` and whether they are met; and each service waiting for a setting or a
-secret is named with what it waits for, as status names it (`ARCH-R351`, `ARCH-R352`).
-
-The same read lists each secret a service's environment names, with whose it is, the services
-that read it, where its value came from (the operator, a recipe or a granted credential) and
-whether one is held. It never carries the value: the shape it is built from has no field one
-could go in, as the credentials read has none (`ARCH-R256`).
-
-Only the operator is answered. A member, a key scoped to one, and a `read` or an `act` key are
-refused, because a setting is how the machine is run and the household never sees it.
-
-**The core's own settings are a closed list, and this is it.** Beside the settings a
-service's environment reads, the settings store holds the ones the core itself reads,
-each read back as the core's:
-
-| Core setting | What it holds |
-|--------------|---------------|
-| `LEMONFIBER_DEVICE_KEY_APPS` | The identities of the operator's own builds a device key may come from (`ARCH-R262`) |
-| `LEMONFIBER_DASHBOARD_SEARCH` | The address the dashboard's web search box sends a search to, the terms appended to it: an absolute `https` or `http` address, `https://duckduckgo.com/?q=` where none is recorded (`ARCH-R308`) |
-| `LEMONFIBER_GUIDE_HOURS` | How many hours from now the live TV guide answers each channel's programmes across: a whole number from 1 to 168, 12 where none is recorded (`D11-R17`) |
-| `LEMONFIBER_SIGN_IN_CODES_WAITING` | How many codes to sign a member in by one source may have waiting at once: a whole number from 1 to 100, 3 where none is recorded (`ARCH-R441`) |
-| `LEMONFIBER_SIGN_IN_CODES_PER_PERIOD` | How many codes to sign a member in by one source may ask for in each period: a whole number from 1 to 1000, 10 where none is recorded (`ARCH-R441`) |
-| `LEMONFIBER_SIGN_IN_CODES_PERIOD` | That period, in whole minutes from 1 to 1440, 15 where none is recorded (`ARCH-R441`) |
-| `LEMONFIBER_SIGN_IN_CODES_BY_ADDRESS` | `on` to refuse finishing a sign-in by a code from a network address other than the one that asked for it, `off` where none is recorded (`ARCH-R441`) |
-| `LEMONFIBER_BACKUP_LIMIT` | How fast a backup writes at most: a whole number of MiB per second from 1 to 100000, or `off`, `off` where none is recorded. A restore is never held to it (`E3-R18`) |
-| `LEMONFIBER_COPY_STALLED_MINUTES` | How many minutes a running backup or restore may write nothing before it reads `stalled`: a whole number from 1 to 1440, 5 where none is recorded (`E3-R19`) |
-
-Every other `LEMONFIBER_*` key is `lemonfiber config`'s, read by `GET /api/config`. Each
-command refuses the other's names, naming the command that takes the name, so one name
-has one writer (`ARCH-R278`).
-
-The two writes take what `lemonfiber settings set` and `lemonfiber settings clear` take:
-
-| Action | Arguments | Answers |
-|--------|-----------|---------|
-| `settings-set` | `values`, `dry_run`, `offer` | `settings` |
-| `settings-clear` | `settings`, `dry_run`, `offer` | `settings` |
-
-`values` is a table of one or more settings to the value each is set to, and `settings`
-a list of one or more settings. Each act checks them together, so the settings whose
-choices depend on each other move at once, and a value outside its setting's choices, or
-an act that leaves another setting's value outside its own, is refused naming the
-setting, the value and the choices it has (`ARCH-R350`).
-
-`settings-clear` takes the operator's value away, so the declared default is written again.
-Each rehearsal names every entry the change regenerates and every service it restarts, and
-answers an offer; the write takes that offer and refuses where what it would change moved since,
-naming what moved, as the plugin writes do (`ARCH-R146`). Each write is journalled (`ARCH-R255`).
-A value is written as exactly itself: nothing in it is substituted (`ARCH-R230`).
-
-**A secret is not written here.** A secret a manifest names is entered as an input of the
-install or update that first needs it, never repeated back, and is replaced afterwards at the
-terminal, as every credential is
-([ADR-0031](../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)).
-Naming a secret to either write is refused, naming it (`ARCH-R256`).
-
-The settings ride the operator's event stream as their envelope, a `settings` event, sent when
-a client connects and whenever one changes, and only to the operator, by the per-run token or
-an operator session: never on a member's stream and never to a key of any scope, so the stream
-tells nobody what the read refuses them (`ARCH-R257`).
+What the operator sets for the services and for the core, the closed list of the core's own
+settings, and the two writes that change them are on [their own page](web-api-settings.md).
 
 ### Setting up
 
@@ -947,7 +879,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R294** | The `version` envelope MUST carry `attestation_status`, the instant the build's snapshot of Google's attestation status list was taken, and the refusal of an attestation whose chain that snapshot lists as revoked or suspended MUST carry a code of its own listed among the artefact's refusals (`C10-R34`). |
 | **ARCH-R262** | The identities of the operator's own builds MUST be the core setting `LEMONFIBER_DEVICE_KEY_APPS`, read by `GET /api/settings` and written by `settings-set` and `settings-clear` as every setting is: a comma-separated list of `android:<package>@<SHA-256 of the signing certificate, in hex>` and `ios:<Team ID>.<bundle ID>`. A value naming an identity in neither form MUST be refused, naming it; the official identities the build ships MUST be read alongside and MUST NOT be part of the value (`C10-R30`). |
 | **ARCH-R274** | Every instant the web API reads or writes, in a request, a response, an event or a link the core builds, MUST be a whole number of seconds since the Unix epoch: a JSON integer in a body, and its decimal digits in a link's query. It MUST NOT be written as a string, with a fraction, or with a zone or an offset; a command's `--json` output MUST write instants alike; and a stamp lemonfiber passes on verbatim from a service's own output MUST NOT be presented as one of its instants. |
-| **ARCH-R278** | A core setting MUST be one the list under [Settings](#settings) names; `lemonfiber settings` and the settings writes MUST take a core setting and no other `LEMONFIBER_*` key, and `lemonfiber config` MUST take every other `LEMONFIBER_*` key and no core setting; a name either command takes, given to the other, MUST be refused naming the command and the name that take it. |
+| **ARCH-R278** | A core setting MUST be one the list under [the core's own settings](web-api-settings.md#the-cores-own-settings) names; `lemonfiber settings` and the settings writes MUST take a core setting and no other `LEMONFIBER_*` key, and `lemonfiber config` MUST take every other `LEMONFIBER_*` key and no core setting; a name either command takes, given to the other, MUST be refused naming the command and the name that take it. |
 | **ARCH-R279** | The artefact MUST publish the notification kinds as a closed union, `problem`, `completion`, `update`, `backup`, `request`, `member` and `ready`, and every `alert` event MUST carry exactly one as `notification` beside its event kind: `problem` for every condition at warning or worse, at onset and resolution; `completion` for work the operator asked for finishing; `update` for an update to the stack or lemonfiber being available; `backup` for a backup that succeeded; `request` for a household member's request newly waiting on the operator; `member` for an invitation accepted, declined or lapsed; and `ready` for something a household member asked for arriving. `request` and `member` alerts MUST ride the operator's stream and wake only endpoints an operator session registered, and MUST NOT reach a member. A `ready` alert MUST be addressed to the one member whose ask arrived, MUST be raised once per ask, when the house first holds any of it, and MUST ride that member's stream and reach only that member's own push endpoints and the back-ends that member chose; its words MUST be the household's ("Something you asked for is ready"), naming the title on the member's own stream and naming no title, service or state of the stack on a push endpoint or a back-end; it MUST NOT be raised for an ask whose request service already tells that member it is available (`B5-R1`). The core MUST raise no other alert addressed to a household member. |
 | **ARCH-R280** | `GET /api/alerts` MUST carry `kinds`, the notification kinds this stack raises as it is configured, each from the union `ARCH-R279` publishes. |
 | **ARCH-R281** | A stream opened with `Last-Event-ID` MUST be sent, before anything said after it opened and in the order said among what `ARCH-R455` sends again, every `alert` event raised after that id, from the last 24 hours and at most the last 200, these being kept for the run alone; where the id is from another run, one the run has not reached or cannot be read, it MUST be sent every one kept. Before all of it, it MUST be sent one `replay` event carrying no id, whose `alerts` is `partial` where an alert raised after that id is no longer kept or the id is one of those, and `whole` otherwise; a `replay` event MUST NOT take a place in the run or be sent again. A stream opened without one MUST be sent no past alert and no `replay` event (`ARCH-R162`). |
@@ -976,6 +908,9 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R455** | A stream opened with `Last-Event-ID` MUST be sent, before anything said after it opened, every `step` and `log` event said after that id while it is among the last 256 `step`, `log` and `alert` events said, and, for each item a `start` or `pull` line is about, that item's newest line where it was said after the id, the newest line being kept for the last 256 items and no older line for any; a `start` line's item MUST be the job that said it, the lines no job said being one item, and a `pull` line's item the first word of the line within the job that said it. What is sent again, the alerts `ARCH-R281` sends among it, MUST be sent in the order it was said. Where the id is from another run, one the run has not reached or cannot be read, or where a `step`, `log`, `alert`, `start` or `pull` event said after it is no longer kept, the stream MUST be sent no `step`, `log`, `start` or `pull` event said before it opened. An event of any other kind MUST NOT be sent again (`ARCH-R51`, `ARCH-R62`). |
 | **ARCH-R456** | `GET /api/copying` MUST answer the `copying` envelope, which `lemonfiber copying --json` writes too: the backup or restore running on this machine now, whichever process runs it and whoever started it, or none. A running one carries `what` (`backup` or `restore`), its `scope` (`N6-R2`), `job` where an accepting reply named it, `started`, `written` and `whole` in bytes, `part`, the area being written now, named, and `state`: `working`, `paced` with `limit` in bytes per second, or `stalled` with `wrote`, the instant it last wrote (`E3-R17`, `E3-R18`, `E3-R19`). It MUST be answered to an operator session and to a key whose scope reaches reads, and refused to a member session and to a key scoped to a member. |
 | **ARCH-R457** | The event stream MUST carry, to the operator and to a `read` or `act` key, a `copying` event in the envelope `GET /api/copying` answers that credential with, built from the same reading: sent when a client connects, when a backup or restore starts and ends, when its `state` or `part` changes, and every 5 seconds while it runs. It MUST NOT be sent on a member's stream, and MUST NOT be handed back to a client resuming. |
+| **ARCH-R458** | Every read of an automation — cross-seeding, announce-driven grabbing, quality-profile sync, library cleanup, playback statistics and the metrics pipeline — MUST carry its proof as `proof`, one type in the artefact for all of them: `state`, which is `working` where the proof held against real data, `unproven` where it has not held or has not run, and `unknown` where it could not be told; `checked`, the instant it last ran, absent where it never has; `against`, what it ran against, named; and `why`, where it is not `working`, in the operator's words (`H1-R8`, `H2-R6`, `H3-R5`, `H8-R2`, `K1-R14`). |
+| **ARCH-R459** | `GET /api/automations` MUST answer the `automations` envelope, which `lemonfiber automations --json` writes too: each automation this stack runs, with its `kind` (`cross-seed`, `announce`, `quality-sync`, `cleanup`, `playback-stats` or `metrics`), its `name` and its `proof` (`ARCH-R458`), and none it does not run. It MUST be answered to an operator session and to a key whose scope reaches reads, and refused to a member session and to a key scoped to a member. |
+| **ARCH-R460** | `GET /api/watched` MUST answer a member session and a key scoped to a member with that member's own viewing history alone, and MUST be refused to an operator session and to a `read` or `act` key (`H8-R15`). It MUST answer that history is off, listing nothing, what was kept before included, where `LEMONFIBER_MEMBER_HISTORY` is `off`, and while it is off the core MUST keep nothing per member (`H8-R16`), and that it is hidden, listing nothing, while the member has hidden it. The action `watched-hide` MUST take `hidden`, `true` or `false`, from a member session alone, and MUST be refused to anybody else (`H8-R17`). |
 
 ## The artefact
 
@@ -989,6 +924,8 @@ SDK are on [their own page](web-api-artefact.md).
 - [web-api-getting-in](web-api-getting-in.md) — how a caller is admitted
 - [web-api-the-catalogue](web-api-the-catalogue.md) — what can be installed from the plugin catalogue, as the operator browses it
 - [web-api-the-machine](web-api-the-machine.md) — what a stop would interrupt, how the surface is served, and what setup decided
+- [web-api-settings](web-api-settings.md) — what the operator sets, and the closed list of the core's own settings
+- [web-api-the-automations](web-api-the-automations.md) — the automations, the one answer each gives to whether it works, and what a member watched
 - [web-api-wire](web-api-wire.md) — the particulars two clients must agree on, instants included
 - [sdk-ts](../../30-repos/sdk-ts.md) — the TypeScript client implementing this contract
 - [versioning.md](versioning.md) — `api_version` and the envelope it belongs to
