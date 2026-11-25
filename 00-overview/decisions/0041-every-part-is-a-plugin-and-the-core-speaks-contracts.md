@@ -97,7 +97,7 @@ be swapped for a counterpart that functions as the part it replaced, in this ver
    - Installing, updating, removing and validating a first-party plugin is the path an
      outsider's takes. First-party differs only in being reviewed and being the default
      filler.
-   - The media stack becomes the bundle: the forms, and which first-party plugin fills
+   - The stack becomes the bundle: the forms, and which first-party plugin fills
      each capability by default, pinned by release and embedded in the binary.
 5. **lemonfiber's own guards are capabilities.**
    - The stream guard (`stream.guard`), decline (`invite.decline`) and the request gate

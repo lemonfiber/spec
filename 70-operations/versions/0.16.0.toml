@@ -104,7 +104,7 @@ repos   = ["lemonfiber"]
 # so searching those repositories would mark an unbuilt requirement cited. F10-R7 is
 # where that bites: the template is the obvious place to satisfy it, so whatever ends up
 # satisfying it has to be citable from a repository this list may name.
-satisfied_in = ["lemonfiber", "lemonfiber-media-stack", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-plugins"]
+satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-plugins"]
 goals   = [
     "F3-R1",
     "F3-R2",
@@ -222,5 +222,4 @@ goals   = [
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 
 [pins]
-lemonfiber-media-stack = "72395ca4ed585fe692ed3bc650fa626af3b17e44"
 lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"

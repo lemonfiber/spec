@@ -18,12 +18,12 @@ binary, the stack it operates, and the manifest format between them.
 | Version | Owns | Scheme |
 |---------|------|--------|
 | `lemonfiber` binary | The tool | Semver |
-| Stack content | The service set and forms | The `lemonfiber-media-stack` commit the binary's `assets/media-stack` submodule pins |
+| Stack content | The service set and forms | The `lemonfiber-plugins` commit the binary's `assets/plugins` submodule pins: the default bundle |
 | `schema_version` | The manifest **format** | Monotonic integer |
 
 They are separate because they change for different reasons. An image pin changes
-the stack, which reaches a binary when its `assets/media-stack` submodule is moved
-to the commit carrying it. A manifest field changes the format, which [before the
+the stack, which reaches a binary when its `assets/plugins` submodule is moved to
+the commit of the bundle carrying it. A manifest field changes the format, which [before the
 first release candidate](#before-the-first-release-candidate) changes in place at
 `schema_version = 1`. A TUI fix changes only the binary. The stack's own
 `stack_version` is read and reported, and stays at `0.1.0` through every pin change.
@@ -242,7 +242,7 @@ binary that arrives carries its own stack and reads it at build-proven parity.
 
 | ID | Requirement |
 |----|-------------|
-| **ARCH-R1** | The binary, the stack content and the manifest format MUST version independently: the binary by its semver version, the stack content by the `lemonfiber-media-stack` commit the binary's `assets/media-stack` submodule pins, and the format by its integer `schema_version`. |
+| **ARCH-R1** | The binary, the stack content and the manifest format MUST version independently: the binary by its semver version, the stack content by the `lemonfiber-plugins` commit the binary's `assets/plugins` submodule pins, and the format by its integer `schema_version`. |
 | **ARCH-R2** | `schema_version` MUST be a monotonic integer, not semver. |
 | **ARCH-R3** | An unsupported `schema_version` MUST be refused with both the found and supported versions named. |
 | **ARCH-R4** | A stack declaring a `min_cli_version` above the running binary MUST be refused, naming the required version. |

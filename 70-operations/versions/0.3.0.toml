@@ -38,6 +38,3 @@ goals   = [
     "E3-R1", "E3-R2", "E3-R3", "E3-R4", "E3-R6", "E3-R7",
     "E3-R8", "E3-R9", "E3-R10", "E3-R11", "E3-R12", "E3-R13", "E3-R14",
 ]
-
-[pins]
-lemonfiber-media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"

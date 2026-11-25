@@ -36,7 +36,7 @@ lemonfiber/
 │   ├── lemonfiber-fixtures/    lib — the fakes for those traits
 │   ├── lemonfiber-manifest/    lib — stack.toml
 │   └── lemonfiber-plugin/      lib — plugin.toml, and the vocabularies a plugin names things from
-├── assets/media-stack/         git submodule, embedded at build
+├── assets/plugins/             git submodule — lemonfiber-plugins, whose default bundle is embedded at build
 ├── assets/web/                 git submodule — the built web surface, embedded at build
 ├── contract/                   generated contracts: the web API, the plugin schema and vocabularies
 ├── reference/                  the generated command reference, error codes and release record
@@ -103,12 +103,14 @@ opens the TUI at a terminal and prints help when piped, never blocking on stdin.
 
 ## The submodule
 
-`assets/media-stack` is a git submodule pinned to a `lemonfiber-media-stack` commit.
-`crates/lemonfiber/build.rs`:
+`assets/plugins` is a git submodule pinned to a `lemonfiber-plugins` commit, which
+holds the default bundle ([bundle.toml](../20-architecture/contracts/bundle.md)).
+`crates/lemonfiber-bundled/build.rs`:
 
-1. Fails clearly if the submodule is empty (`git submodule update --init`).
-2. Parses `stack.toml` and fails the build if `schema_version` is unsupported
-   (`ARCH-R6`).
+1. Fails clearly if the submodule is empty (`git submodule update --init --recursive`).
+2. Holds every pinned copy to its pin and to its own recordings.
+3. Assembles the stack the bundle declares into one manifest text and fails the
+   build where the manifest reader refuses it (`ARCH-R6`).
 
 So an incompatible stack/binary pairing cannot compile, let alone ship.
 

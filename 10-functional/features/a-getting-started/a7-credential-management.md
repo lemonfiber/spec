@@ -178,8 +178,7 @@ Credentials that could not be read are told apart from there being none
 | **A7-R15** | Where an installed plugin consumes a credential lemonfiber rotates, that plugin MUST be among the consumers rotation propagates to, and one that could not be updated MUST be named in the report like any other. |
 
 **Affected repos** (`GOV-R7`): `lemonfiber` generates and propagates the
-credential; `lemonfiber-media-stack` consumes it from the environment so that the
-forwarded-port push keeps working without lemonfiber present.
+credential.
 
 ## Related
 

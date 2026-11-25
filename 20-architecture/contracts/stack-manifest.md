@@ -533,9 +533,8 @@ its definition from the plugin manifest's rather than restating it (`ARCH-R172`)
 
 ## Worked example
 
-The real stack, abridged to one service per profile. The root comes first and each
-service file follows it, headed by its path. The full stack lives in
-`lemonfiber-media-stack`.
+A stack, abridged to one service per profile. The root comes first and each service
+file follows it, headed by its path.
 
 ```toml
 schema_version  = 1

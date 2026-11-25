@@ -25,8 +25,8 @@ Compose itself.
 **Docker Compose v2 is the execution engine.** lemonfiber generates the correct
 `docker compose` invocation (file list, profile flags, env) and shells out to it.
 
-`compose.yml` is a real, human-readable file in `lemonfiber-media-stack` that
-users can read, fork, and run **without lemonfiber at all**.
+The Compose project lemonfiber writes is a real, human-readable file that users can
+read and run **without lemonfiber at all** (`F1-R1`).
 
 ## Alternatives considered
 
@@ -43,8 +43,8 @@ users can read, fork, and run **without lemonfiber at all**.
 ### Positive
 
 - Profiles come free, and they're exactly the primitive [P2](../vision.md#p2--partial-stacks-are-first-class-not-degraded) needs.
-- `lemonfiber-media-stack` is independently useful. Someone can clone it and run
-  `docker compose --profile tv up` with no Rust toolchain involved. This is a
+- The Compose project lemonfiber writes is independently useful. Someone can run
+  `docker compose up` in its directory with no lemonfiber binary running. This is a
   real hedge against lemonfiber being abandoned.
 - The compose file is reviewable by anyone who knows Compose — a far larger
   group than those who'd read our Rust.

@@ -33,7 +33,7 @@
 - the model ships in 0.18.0;
 - an operator's own overlay, merged last and shown as unvetted, is the escape hatch.
 
-**Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): the stack's own services are the parts the bundle assembles from their first-party plugins, and each part's image is run under its posture by its own repository's CI rather than the media stack's.
+**Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): the stack's own services are the parts the bundle assembles from their first-party plugins, and each part's image is run under its posture by its own repository's CI.
 
 **Superseded in part** by [ADR-0046](0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md): the last sentence of §7. The stack's environment file is read once, at the first run of the release that stops reading the static Compose files, rather than at each part's move in place.
 
@@ -56,7 +56,7 @@ ADR-0021 fixed a plugin's Compose entry to one shape: an image, a profile, a pub
 port under a tier, the data mount and one configuration directory. ADR-0041 made every
 bundled part a first-party plugin, and ADR-0042 installs the stack through the plugin
 path. A part can only move if its plugin's entry can say what the part's entry says
-today, and measured against the media stack on 2026-10-11, it cannot:
+today, and measured against the stack on 2026-10-11, it cannot:
 
 - **Ports.** A host port that is not the container's (8085 to 8080, 8095 to 8096, 13378
   to 80, 5056 to 8080), and a second published port (the guarded door's 8920, the
@@ -119,9 +119,7 @@ hand, and that list already misses one.
      every service, the stack's own included: no privilege gained after start, six kernel
      capabilities and what a shape adds, and a bounded process count. `confined` adds a
      read-only root, no capability at all and the operator's uid, and takes no shape.
-     Every plugin's CI runs each image under the posture its manifest declares, and the
-     media stack's CI runs the stack's own under `standard` before the version that writes
-     them ships. Nothing is refused at run time on account of posture.
+     Every plugin's CI runs each image under the posture its manifest declares. Nothing is refused at run time on account of posture.
    - A service that runs inside another's network names the capability that service
      fills. Its filler starts first and is waited on until healthy, whatever its profile.
    - No field reaches the engine's socket, runs a container privileged, joins a host
@@ -192,8 +190,8 @@ hand, and that list already misses one.
   golden-tested as command construction is (`Q-R23`).
 - **Every service is held as a plugin's service is.** The stack's own services take
   `standard`, as every plugin's service already does, and lemonfiber's own images keep
-  `confined`. Each image is proved under its posture before it ships: a plugin's by its
-  own CI, and the stack's by the media stack's (`REPO-R93`).
+  `confined`. Each image is proved under its posture before it ships, by its plugin's
+  own CI (`REPO-R93`).
 - **The torrent client's link to the tunnel is an ask.** It names `network.egress-guard`,
   so a substitute egress guard takes the client inside its own network, and the stack's
   by-name wiring for that link goes.

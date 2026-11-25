@@ -17,7 +17,7 @@ artefacts are 3.0–3.5 MB compressed per platform, and what an operator downloa
 file that then works.
 
 **There is already a precedent for exactly this shape.**
-[ADR-0005](0005-embedded-stack-assets.md) makes the media stack a git submodule pinned to a
+[ADR-0005](0005-embedded-stack-assets.md) makes the stack a git submodule pinned to a
 tag, embedded with `include_dir!`, with `build.rs` validating `schema_version` **at compile
 time**. It costs 396 KB today and has caused no trouble.
 
@@ -42,7 +42,7 @@ submodule and embeds them with `include_dir!`, exactly as it already does for th
 
 ```
 lemonfiber/
-├── assets/media-stack/     # submodule, pinned      (ADR-0005)
+├── assets/plugins/         # submodule, pinned      (ADR-0042)
 ├── assets/web/             # submodule, pinned      (this ADR)
 ├── build.rs                # validates schema_version AND api_version, at COMPILE TIME
 └── lemonfiber-core/src/frontend.rs   # include_dir!("assets/web"), as stack.rs does

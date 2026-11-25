@@ -10,16 +10,15 @@
 ## The journey
 
 ```
-$ git clone https://github.com/lemonfiber/lemonfiber-media-stack ~/dev/media-stack
-$ vim ~/dev/media-stack/services/x.toml    # declare a service
-$ vim ~/dev/media-stack/stack.toml         # name its file in `include`
-$ lemonfiber up tv --stack-dir ~/dev/media-stack
+$ vim ~/dev/my-stack/services/x.toml    # declare a service
+$ vim ~/dev/my-stack/stack.toml         # name its file in `include`
+$ lemonfiber up tv --stack-dir ~/dev/my-stack
 
   ✓ manifest valid    schema_version 1 · 20 services · 10 forms
   ✓ 8 services healthy
 ```
 
-lemonfiber validates the fork's manifest contract and operates it. It has no
+lemonfiber validates the stack directory's manifest contract and operates it. It has no
 opinion about the contents beyond the contract.
 
 ## Who this is for, and why they matter disproportionately

@@ -539,7 +539,7 @@ delivers  = "Plugins — the calls that configure what one installed, and what t
 
 status  = "staged"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr", "plugin-dashy", "plugin-traefik", "plugin-flaresolverr", "plugin-gluetun", "plugin-recyclarr", "plugin-unpackerr", "plugin-calibre-web-automated", "plugin-navidrome", "plugin-homepage", "plugin-configarr", "plugin-uptime-kuma"]
-satisfied_in = ["lemonfiber", "plugin-plex", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp", "lemonfiber-door"]
+satisfied_in = ["lemonfiber", "plugin-plex", "lemonfiber-decline", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp", "lemonfiber-door"]
 goals   = [
     "D6-R21", "D6-R22", "D6-R23", "D6-R24", "D6-R25", "D6-R26",
     "N21-R12",
@@ -788,8 +788,8 @@ goals   = [
 # (ADR-0049): `lemonfiber plugin record` asks one fresh container per service after the
 # first run its adapter performs, records an adapter's conformance cases in front of it,
 # scrubs every credential, and writes a service whole or not at all. `ARCH-R285` is
-# amended in place to name them. A first-party plugin's upstream pins cannot move once
-# the media stack is frozen without them. Added after staging by the maintainer's
+# amended in place to name them. A first-party plugin's upstream pins cannot move
+# without them. Added after staging by the maintainer's
 # decision of 2026-10-13 (OPS-R31).
 #
 # `ARCH-R303` to `ARCH-R309` say what the seven contracts `F14-R8` names carry (ADR-0050):
@@ -816,8 +816,8 @@ goals   = [
 # `ARCH-R283` to `ARCH-R287` prove a part with no network surface live (ADR-0048): a
 # `[[proof]]` may run its image's own program in a container of its own, with no network,
 # bounded and recorded by the same run, judged wherever a proof is and by the doctor on
-# its own cadence. Quality sync is such a part, and the media stack's move to its plugins
-# needs every part proved. Added after staging by the maintainer's decision of 2026-10-12
+# its own cadence. Quality sync is such a part, and every part the bundle
+# pins is proved. Added after staging by the maintainer's decision of 2026-10-12
 # (OPS-R31).
 #
 # `ARCH-R275` to `ARCH-R278` settle what the settings and secret stores hold (ADR-0046): an
