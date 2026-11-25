@@ -235,7 +235,7 @@ verification listed before a restore. `state` is `working`; `paced`, held to the
 written for the minutes `LEMONFIBER_COPY_STALLED_MINUTES` holds, carrying `wrote`, the
 instant it last wrote. Stalled outranks paced, and a restore is never paced (`E3-R18`,
 `E3-R19`). `job` is the name an accepting reply gave the work, and is absent where none
-did (`ARCH-R456`).
+did (`ARCH-R456`). A key is answered no `job`, which only the operator can redeem, and for a copy of an existing setup a `scope` of `existing` with no project or trees and a `part` that names no host path, as the reads that name them are the operator's alone (`ARCH-R456`).
 
 **A running copy rides the stream.** A `copying` event carries the same envelope, sent when
 a client connects, when a copy starts and ends, when its state or its part changes, and every
