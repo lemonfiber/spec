@@ -1,6 +1,6 @@
 # **The dashboard.** `lemonfiber` with no subcommand opens a live view of the stack — the capability the whole of v1 has been building toward, and the reason this is 1.0.0 rather than another minor. Released through the signed, multi-platform pipeline on all three platforms.
 #
-# 54 goals, seeded from the roadmap milestone this version serves;
+# 58 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `N1-R2` and `N1-R5` are the companion's parity with every other surface, in what it
 # offers and in what it lets an operator set; `N25-R15` is that parity for proving a
@@ -29,12 +29,16 @@
 # `E3-R17` to `E3-R19` have a running backup or restore say how far it has got, slowed on
 # purpose or stalled, from one reading the core keeps, and `ARCH-R456` and `ARCH-R457` serve
 # that reading as a read and on the stream, by the maintainer's decision of 2026-11-24.
+# `G11-R6` to `G11-R9` are the web console's side of that reading and of `ARCH-R281`: a running
+# copy drawn on the disk screen, and a note on the overview's alerts panel where a resumed
+# stream's replay says `partial`, shown to the operator alone, by the maintainer's decisions
+# of 2026-11-25. They are the web surface's, so `lemonfiber-web` is searched; it is not tagged.
 version = "1.0.0"
 milestone = "M6"   # Live TUI
 delivers  = "The dashboard — a bare `lemonfiber` opens it. Everything specced is built, and the interfaces stop moving."
 status  = "planned"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr", "plugin-dashy", "plugin-traefik", "plugin-flaresolverr", "plugin-gluetun", "plugin-recyclarr", "plugin-unpackerr", "plugin-calibre-web-automated", "plugin-navidrome", "plugin-homepage", "plugin-configarr", "plugin-uptime-kuma"]
-satisfied_in = ["lemonfiber", "lemonfiber-companion", "sdk-php", "sdk-ts", "sdk-python", "sdk-rust"]
+satisfied_in = ["lemonfiber", "lemonfiber-companion", "lemonfiber-web", "sdk-php", "sdk-ts", "sdk-python", "sdk-rust"]
 goals   = [
     "B3-R1",
     "B3-R4",
@@ -90,6 +94,10 @@ goals   = [
     "N9-R12",
     "N30-R10",
     "N30-R11",
+    "G11-R6",
+    "G11-R7",
+    "G11-R8",
+    "G11-R9",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
