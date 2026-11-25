@@ -514,6 +514,11 @@
 # through dispatch and answered with the `caller` kind, while a sign-in keeps answering
 # `admission`. It is the core's, by the maintainer's decision of 2026-11-18 (OPS-R31).
 #
+# `ARCH-R42` is amended in place again: a surface names from the core only `dispatch`, types,
+# constants and the functions of types, never the context's `seams`, and a read answering bytes
+# or a published authoring document is dispatched and answered by a carried outcome of bytes and
+# their media type. It is the core's, by the maintainer's decision of 2026-11-25 (OPS-R31).
+#
 # `ARCH-R138` and `ARCH-R441` are amended in place: a refusal that says how long to wait carries
 # it as the problem's `retry_after` as well as in `Retry-After`, the time left where the refusal
 # knows it and its code's declared wait otherwise. It is the core's, by the maintainer's decision
