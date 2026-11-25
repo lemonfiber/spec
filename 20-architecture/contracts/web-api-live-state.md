@@ -242,5 +242,6 @@ a client connects, when a copy starts and ends, when its state or its part chang
 5 seconds while it runs, so a client that connects mid-copy learns of it at once and one
 watching it sees a stall said rather than having to read one into a quiet stream. It is
 state, as `playing` is: the next event says where the copy has got, so none is handed back
-to a client resuming. It reaches the operator and a `read` or `act` key, and never a
-member's stream, as the read is refused to a member (`ARCH-R457`).
+to a client resuming. It reaches the operator whole and a `read` or `act` key as the read answers a key, and
+never a member's stream or a client that proves no credential, as the read is refused to
+both (`ARCH-R457`).
