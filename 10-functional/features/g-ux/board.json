@@ -224,14 +224,15 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": ["M14"],
+      "milestones": ["M14", "M6"],
       "milestone": "M14",
       "priority": "P2",
       "labels": ["web", "ux", "extensibility", "security"],
       "requires": ["G1", "F14"],
-      "relates": ["G10", "F6", "A7", "N25", "N9"],
+      "relates": ["G10", "F6", "A7", "N25", "N9", "E3", "N6", "N4"],
       "versions": [
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "1.0.0", "status": "planned"}
       ],
       "path": "g-ux/g11-operator-web-console.md"
     }
