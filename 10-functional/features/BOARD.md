@@ -9,7 +9,7 @@ Generated from feature frontmatter and the version manifests by
 Counted here rather than restated: prose that quotes a number goes stale
 silently, and this file is regenerated from the features themselves.
 
-Grouped by **maturity**, which says how far the implementation has got — 20 shipped, 66 built, 13 building, 16 planned, 1 withdrawn.
+Grouped by **maturity**, which says how far the implementation has got — 20 shipped, 65 built, 14 building, 16 planned, 1 withdrawn.
 **Status** is the other question, about the specification rather than the
 code, and the two move independently.
 
@@ -77,7 +77,6 @@ code, and the two move independently.
 | [G5](g-ux/g5-front-door.md) | The front door | G | both | accepted | `0.10.0`, `0.11.0`, `0.17.0`, `0.18.0` |
 | [G7](g-ux/g7-health-summary.md) | Overall health summary | G | operator | accepted | `0.18.0`, `0.5.0` |
 | [G8](g-ux/g8-privacy.md) | Privacy stance | G | both | accepted | `0.10.0`, `0.11.0`, `0.14.0`, `0.18.0` |
-| [G11](g-ux/g11-operator-web-console.md) | The operator's web console | G | operator | accepted | `0.18.0`, `1.0.0` |
 | [H5](h-glue/h5-queue-selfheal.md) | Queue self-healing | H | operator | accepted | `0.19.0` |
 | [L3](l-release/l3-nas-image.md) | The image for a NAS | L | operator | accepted | `0.18.0` |
 | [N1](n-companion/n1-companion-app.md) | The companion app | N | both | accepted | `0.17.0`, `0.18.0`, `0.19.0`, `1.0.0` |
@@ -123,6 +122,7 @@ code, and the two move independently.
 | [F14](f-extensibility/f14-every-part-is-a-plugin.md) | Every part is a plugin | F | operator | accepted | `0.18.0`, `0.19.0` |
 | [G3](g-ux/g3-accessibility.md) | Accessibility | G | both | accepted | `0.10.0`, `0.9.0` |
 | [G10](g-ux/g10-household-web.md) | The household's web surface | G | household | accepted | `0.18.0`, `0.19.0` |
+| [G11](g-ux/g11-operator-web-console.md) | The operator's web console | G | operator | accepted | `0.18.0`, `1.0.0` |
 | [K2](k-observability/k2-uptime.md) | Uptime monitoring | K | operator | accepted | `0.19.0`, `0.23.0` |
 | [N4](n-companion/n4-native-integration.md) | What the app uses of the device | N | both | accepted | `0.19.0` |
 | [N6](n-companion/n6-taking-a-copy.md) | Taking a copy, and putting it back | N | operator | accepted | — |
