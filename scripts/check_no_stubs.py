@@ -249,13 +249,15 @@ def main() -> int:
             "every requirement would be called unbuilt for want of looking"
         )
         return 2
-    done = tracked_done(trackers(parse_repos(args.repo))) if args.repo else set()
+    rows = trackers(parse_repos(args.repo)) if args.repo else []
+    legacy: set[str] = set()
     if args.status:
         status = within_cwd(args.status)
         if not status.is_file():
             print(f"::error::no tracker at {status}")
             return 2
-        done |= done_ids(status)
+        legacy = done_ids(status)
+    done = tracked_done(rows, legacy)
 
     features = catalogue.features()
     if not features:

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import pathlib
 import subprocess
 import sys
@@ -55,6 +56,51 @@ class PerRepositoryTrackers(Workspace):
         self.assertIn("lf: no tracker", said)
         self.assertIn("✓ C1-R3", said)
         self.assertIn("✗ C1-R4", said)
+
+    def test_a_row_in_another_state_in_any_searched_repository_holds_it_open(self):
+        self.repo("checkouts/lf", trailer="Spec: C1-R1, C1-R2, C1-R3")
+        self.repo("checkouts/web", trailer="Spec: C1-R4")
+        self.tracker(
+            "checkouts/lf",
+            '[[requirement]]\nid = "C1-R1"\nstate = "done"\nevidence = ["f"]\n'
+            '[[requirement]]\nid = "C1-R2"\nstate = "done"\nevidence = ["f"]\n'
+            '[[requirement]]\nid = "C1-R3"\nstate = "done"\nevidence = ["f"]\n',
+        )
+        self.tracker(
+            "checkouts/web",
+            '[[requirement]]\nid = "C1-R1"\nstate = "done"\nevidence = ["f"]\n'
+            '[[requirement]]\nid = "C1-R2"\nstate = "partial"\n'
+            '[[requirement]]\nid = "C1-R3"\nstate = "open"\n',
+        )
+        self.manifest("0.1.0", goals=("C1-R1", "C1-R2", "C1-R3"))
+        args = ["--manifest", "70-operations/versions/0.1.0.toml", "--repo", "lf=checkouts/lf"]
+        args += ["--repo", "web=checkouts/web"]
+        code, said = run_main(gate, args)
+        self.assertEqual(code, 1)
+        self.assertRegex(said, r"✓ C1-R1 .*tracked-done=yes\n")
+        self.assertRegex(said, r"✗ C1-R2 .*tracked-done=NO +held open by web\n")
+        self.assertRegex(said, r"✗ C1-R3 .*tracked-done=NO +held open by web\n")
+        self.assertIn("2 goal(s) unmet: C1-R2, C1-R3", said)
+        code, said = run_main(gate, [*args, "--format", "json"])
+        verdict = json.loads(said)
+        self.assertEqual(code, 1)
+        self.assertFalse(verdict["releasable"])
+        self.assertEqual(
+            [(g["id"], g["done"], g["held_in"]) for g in verdict["goals"]],
+            [("C1-R1", True, []), ("C1-R2", False, ["web"]), ("C1-R3", False, ["web"])],
+        )
+
+    def test_a_markdown_tick_is_held_open_by_a_repository_tracker_too(self):
+        self.repo("checkouts/web")
+        self.tracker("checkouts/web", '[[requirement]]\nid = "B1-R4"\nstate = "partial"\n')
+        with contextlib.redirect_stdout(io.StringIO()):
+            rows = gate.trackers(gate.parse_repos(["web=checkouts/web"]))
+        legacy = gate.done_ids(gate.within_cwd(self.status_file()))
+        self.assertIn("B1-R4", legacy)
+        done = gate.tracked_done(rows, legacy)
+        self.assertNotIn("B1-R4", done)
+        self.assertIn("C1-R3", done)
+        self.assertEqual(gate.holders(rows), {"B1-R4": ["web"]})
 
     def test_a_row_naming_its_commit_is_checked_in_its_own_repository(self):
         self.repo("checkouts/lf", trailer="Spec: GOV-R12")

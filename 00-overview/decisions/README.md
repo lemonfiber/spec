@@ -83,6 +83,7 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0062](0062-a-job-checks-in-to-the-outside-watcher-over-its-contract.md) | A job checks in to the outside watcher over its contract | Accepted |
 | [0063](0063-the-queue-heals-by-strikes-over-the-curator-and-the-client.md) | The queue heals by strikes, over the curator and the client | Accepted |
 | [0064](0064-no-workflow-runs-on-pull-request-target.md) | No workflow runs on `pull_request_target` | Accepted |
+| [0065](0065-a-partial-share-holds-a-requirement-open.md) | A partial share holds a requirement open | Accepted |
 
 > **Not here:** licensing. It's a project-governance choice, not an
 > architectural one — no component's design depends on it. See

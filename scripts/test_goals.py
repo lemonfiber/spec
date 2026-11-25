@@ -4,7 +4,8 @@
 Each verdict is driven from the state that earns it: a goal cited and recorded
 done is met, cited and recorded nowhere is unmarked, recorded and cited nowhere
 is uncited, cited by an open pull request is claimed — a draft one included —
-and touched by nothing is open. Then the reading that makes the report safe to
+and touched by nothing is open; a row recording it `partial` or `open` in any
+searched repository holds it open, and names that repository. Then the reading that makes the report safe to
 run against sibling checkouts: it reads a revision, never a working tree, so a
 tracker edited and not committed changes nothing. Then what it cannot read: a
 repository with no tracker, an unreadable one, a shallow clone, no checkout given
@@ -182,6 +183,44 @@ class EachVerdictFromTheStateThatEarnsIt(Train):
             [("0.1.0", "released"), ("0.2.0", "planned")],
             "a released version is on the report, with its goals",
         )
+
+    def test_a_row_in_another_state_in_any_searched_repository_holds_it_open(self):
+        landing = self.git("core", "rev-parse", "HEAD")
+        self.commit(
+            "core",
+            "status.toml",
+            '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n'
+            '[[requirement]]\nid = "A1-R2"\nstate = "done"\nevidence = ["README"]\n'
+            f'[[requirement]]\nid = "A1-R3"\nstate = "done"\nevidence = ["README"]\nlanded = "{landing}"\n'
+            '[[requirement]]\nid = "A1-R5"\nstate = "partial"\n',
+        )
+        self.commit(
+            "app",
+            "status.toml",
+            '[[requirement]]\nid = "A1-R1"\nstate = "done"\nevidence = ["README"]\n'
+            '[[requirement]]\nid = "A1-R2"\nstate = "partial"\n'
+            '[[requirement]]\nid = "A1-R3"\nstate = "open"\n'
+            '[[requirement]]\nid = "A1-R4"\nstate = "partial"\n'
+            '[[requirement]]\nid = "A1-R5"\nstate = "done"\nevidence = ["README"]\n',
+        )
+        found, _ = self.report()
+        said = {ident: (g["verdict"], g["done_in"], g["held_in"]) for ident, g in found.items() if ident != "A1-R9"}
+        self.assertEqual(
+            said,
+            {
+                "A1-R1": ("met", ["core", "app"], []),
+                "A1-R2": ("unmarked", ["core"], ["app"]),
+                "A1-R3": ("unmarked", ["core"], ["app"]),
+                "A1-R4": ("unmarked", [], ["app"]),
+                "A1-R5": ("uncited", ["app"], ["core"]),
+            },
+        )
+        self.assertEqual(found["A1-R2"]["partial_in"], ["app"])
+        self.assertEqual(found["A1-R3"]["partial_in"], [], "an open row holds it and is not partial")
+        run_main([*self.checkouts(), "--markdown", "STATE.md"])
+        page = pathlib.Path("STATE.md").read_text(encoding="utf-8")
+        self.assertIn("| Goal | Done in | Held open by |", page)
+        self.assertIn("| A1-R2 | core | app |", page)
 
     def test_a_row_naming_where_it_landed_stands_for_a_citation(self):
         sha = self.git("core", "rev-parse", "HEAD")
