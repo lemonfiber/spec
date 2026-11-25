@@ -84,6 +84,12 @@ runs Configarr's own image as a scheduled service, which runs to completion at t
 schedule names, and builds an adapter image, so the train tags it, and its repository is held
 to everything below as a part's is.
 
+`plugin-uptime-kuma` puts Uptime Kuma in the outside watcher's place, filling `status.watch`
+([ADR-0061](../00-overview/decisions/0061-the-outside-watcher-is-a-capability-the-core-provisions.md)),
+and is neither shipped nor offered, as Plex is: the operator installs it from its repository.
+It builds an adapter image, so the train tags it, and its repository is held to everything
+below as a part's is.
+
 ## What each holds
 
 | Path | What it is |
