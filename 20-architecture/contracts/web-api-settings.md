@@ -19,7 +19,8 @@ in a plugin's own namespace, such as the countries an egress guard may exit from
 ([plugin-manifest](plugin-manifest-service.md#environment--four-kinds-of-value)). The settings live in
 the core's settings store, and `GET /api/settings` reads them as `lemonfiber settings --json`
 does. Each setting carries its name; whose it is, the core's or a plugin's; each service that
-reads it and the variable it is read into; the default its manifest declares; and the
+reads it and the variable it is read into; the default its manifest declares, or for one of
+the core's own settings the value the core reads while none is recorded; and the
 operator's value where one is recorded, so a value still at its default is told apart from one
 somebody set to the same text (`ARCH-R254`). A setting that declares choices carries each
 value with the `needs` it is a choice under and whether it is one now; each reference
@@ -42,7 +43,7 @@ each read back as the core's:
 
 | Core setting | What it holds |
 |--------------|---------------|
-| `LEMONFIBER_DEVICE_KEY_APPS` | The identities of the operator's own builds a device key may come from (`ARCH-R262`) |
+| `LEMONFIBER_DEVICE_KEY_APPS` | The identities of the operator's own builds a device key may come from, none where none is recorded (`ARCH-R262`) |
 | `LEMONFIBER_DASHBOARD_SEARCH` | The address the dashboard's web search box sends a search to, the terms appended to it: an absolute `https` or `http` address, `https://duckduckgo.com/?q=` where none is recorded (`ARCH-R308`) |
 | `LEMONFIBER_GUIDE_HOURS` | How many hours from now the live TV guide answers each channel's programmes across: a whole number from 1 to 168, 12 where none is recorded (`D11-R17`) |
 | `LEMONFIBER_SIGN_IN_CODES_WAITING` | How many codes to sign a member in by one source may have waiting at once: a whole number from 1 to 100, 3 where none is recorded (`ARCH-R441`) |
@@ -51,6 +52,9 @@ each read back as the core's:
 | `LEMONFIBER_SIGN_IN_CODES_BY_ADDRESS` | `on` to refuse finishing a sign-in by a code from a network address other than the one that asked for it, `off` where none is recorded (`ARCH-R441`) |
 | `LEMONFIBER_BACKUP_LIMIT` | How fast a backup writes at most: a whole number of MiB per second from 1 to 100000, or `off`, `off` where none is recorded. A restore is never held to it (`E3-R18`) |
 | `LEMONFIBER_COPY_STALLED_MINUTES` | How many minutes a running backup or restore may write nothing before it reads `stalled`: a whole number from 1 to 1440, 5 where none is recorded (`E3-R19`) |
+| `domain` | The domain the household's names are under: labels of letters, digits and hyphens joined by dots, `home.local` where none is recorded (`ARCH-R231`) |
+| `LEMONFIBER_LOCALE` | The house's language and region as one `language-REGION` tag, published to every service as `locale`, `en-US` where none is recorded (`A2-R19`) |
+| `PLEX_LINK_MODE` | How the request service is linked to Plex: `managed`, `owner` or `fronted`, `managed` where none is recorded (`C6-R26`) |
 | `LEMONFIBER_MEMBER_HISTORY` | `off` to keep no viewing history per member and answer none, `on` where none is recorded (`H8-R16`) |
 
 Every other `LEMONFIBER_*` key is `lemonfiber config`'s, read by `GET /api/config`. Each
