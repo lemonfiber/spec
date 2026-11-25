@@ -224,8 +224,8 @@ an update — so the stream and the read cannot say two things about it (`E3-R17
 
 ```json
 { "api_version": 1, "kind": "copying", "data": { "running": {
-  "what": "backup", "scope": "whole_stack", "job": "9f2c1a7e04b3d815", "started": 1795563600,
-  "written": 734003200, "whole": 2147483648, "part": "sonarr database",
+  "what": "backup", "scope": { "scope": "whole_stack" }, "job": "9f2c1a7e04b3d815",
+  "started": 1795563600, "written": 734003200, "whole": 2147483648, "part": "sonarr database",
   "state": "paced", "limit": 52428800 } } }
 ```
 

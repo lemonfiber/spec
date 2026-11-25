@@ -86,7 +86,8 @@ its payload, and the interval the heartbeat keeps (`ARCH-R61`), so a client gene
 events it handles as it generates the kinds it reads (`ARCH-R173`). The index carries them as
 `events`: `heartbeat_seconds`, and `kinds`, each event kind to the file of its envelope's
 schema, whether a newer one replaces an older one (`state`) or each one is kept (`record`), and
-who hears it (`anyone`, or the `operator` alone). The core declares the stream's kinds as one
+who hears it: `anyone` the stream admits, the `operator` alone, a `read` or `act` key alone
+(`key`), or the operator and such a key (`operator-and-keys`). The core declares the stream's kinds as one
 closed list, and the stream can say nothing that list does not name, so the description comes
 from the types the stream sends rather than from a second list kept beside them.
 
@@ -191,6 +192,12 @@ clean, which is why neither side said so.
 So the artefact is held to one reading, and a generator meeting a shape that has two refuses it
 rather than choosing. An annotation is not a constraint — a described reference means one thing
 to every reader, and stays ordinary company.
+
+The artefact keeps, too, to the JSON Schema keywords every generator reads. Two structures
+flattened into one object are described with `allOf`: a generator that refuses the keyword stops
+taking releases, and one that reads only part of it writes a type that compiles without the
+fields it left out. So the core's build fails on a keyword outside that set, before a release
+carries it, and such a structure is carried as a field of its own.
 
 The fourth guard is the same failure one step along: an artefact every reader agrees about, in
 which two authorities have chosen one name. A generator writes names of its own beside the ones
