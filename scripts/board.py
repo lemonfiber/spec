@@ -51,7 +51,6 @@ from catalogue import features as load_features
 from claims import STALE_AFTER, is_bot
 from integrity import elsewhere
 from manifest_repos import CORE
-from manifest_repos import RETIRED as RETIRED_REPOS
 from paths import within_cwd
 from patterns import CITE, REQ_DEF_ROW, SPEC_TRAILER, ordered
 
@@ -63,7 +62,7 @@ CHANGELOG = "reference/changelog"
 #: The developer command line, and the file at its root listing every command.
 TOOL = "tool-lfdev"
 COMMANDS = "commands.json"
-#: Every repository in the organisation, the map's, the ungoverned and the retired ones.
+#: Every repository in the organisation, the map's and the ungoverned ones.
 REPOS = "30-repos/repos.toml"
 #: The group a repository outside the map is listed under.
 UNGOVERNED = "ungoverned"
@@ -286,17 +285,13 @@ def tracker_state(name: str, present: dict[str, bool], unread: dict[str, str]) -
 
 
 def repos(listed: list[dict], read: set[str], trackers_: list[dict], unread: dict[str, str]) -> list[dict]:
-    """Every repository in the organisation, the map's, the ungoverned and the
-    retired ones, with how many open pull requests it holds and its tracker. The
-    count is null for a repository whose pull requests were not read, since
-    nought would say that it holds none."""
+    """Every repository in the organisation, the map's and the ungoverned ones,
+    with how many open pull requests it holds and its tracker. The count is null
+    for a repository whose pull requests were not read, since nought would say
+    that it holds none."""
     data = tomllib.loads(pathlib.Path(REPOS).read_text(encoding="utf-8"))
     present = {t["repo"]: t["present"] for t in trackers_}
-    rows = (
-        data.get("repo", [])
-        + [{**r, "group": UNGOVERNED} for r in data.get("ungoverned", [])]
-        + [{**r, "group": RETIRED_REPOS} for r in data.get(RETIRED_REPOS, [])]
-    )
+    rows = data.get("repo", []) + [{**r, "group": UNGOVERNED} for r in data.get("ungoverned", [])]
     out = []
     for repo in rows:
         own = [p for p in listed if p["repo"] == repo["name"]]

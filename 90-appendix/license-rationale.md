@@ -12,7 +12,6 @@ ADR. No component's design depends on the licence choice.
 | Repo | Licence |
 |------|---------|
 | `lemonfiber` | Hippocratic License 3.0 |
-| `lemonfiber-media-stack` | Hippocratic License 3.0 |
 | `homebrew-tap` | Hippocratic License 3.0 |
 | `spec` | CC BY-SA 4.0 |
 | `brand` — marks (`assets/logo/*`, `scripts/logo.py`) | **Proprietary, all rights reserved** |
@@ -109,8 +108,8 @@ using the same SPDX identifiers.
 | Hippocratic-3.0 | The request gate, the decline service — lemonfiber's own ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)) |
 
 **Our licence choice has no effect on theirs, and theirs has none on ours.**
-`lemonfiber-media-stack` distributes configuration that *references* public
-container images; it does not link against, embed, or redistribute their code.
+A first-party plugin's manifest *references* public container images; it does not
+link against, embed, or redistribute their code.
 No copyleft obligation propagates in either direction.
 
 ## Documentation licence

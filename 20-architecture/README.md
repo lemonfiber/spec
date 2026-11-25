@@ -26,7 +26,7 @@ requirement is missing, or the decision is unnecessary. Both are worth finding.
 | [component-model.md](component-model.md) | Crate layout, the core/UI boundary, Docker access split, async model |
 | [data-flow.md](data-flow.md) | Content pipeline, control flow, observation, seeding |
 | [platform-matrix.md](platform-matrix.md) | The five cross-platform differences that actually bite |
-| [contracts/stack-manifest.md](contracts/stack-manifest.md) | **`stack.toml`** — the lemonfiber ↔ lemonfiber-media-stack interface, full schema |
+| [contracts/stack-manifest.md](contracts/stack-manifest.md) | **`stack.toml`** — the stack lemonfiber assembles from the bundle, and a `--stack-dir` stack, full schema |
 | [contracts/plugin-manifest.md](contracts/plugin-manifest.md) | **`plugin.toml`** — the lemonfiber ↔ plugin interface, and the Compose entry lemonfiber writes from it |
 | [contracts/plugin-manifest-service.md](contracts/plugin-manifest-service.md) | **`plugin.toml` `[[service]]`** — each service a plugin runs, field by field |
 | [contracts/plugin-manifest-proof.md](contracts/plugin-manifest-proof.md) | **`plugin.toml` `[[proof]]`** — what must hold before a plugin is installed |

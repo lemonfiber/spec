@@ -100,8 +100,8 @@ below as a part's is.
 | `conformance/` | Where the plugin speaks a contract, the cases it is held to |
 | `targets.toml` | The core release, or the core commit on `main`, it is validated and proved against (`OPS-R89`) |
 
-The paths are the ones the media stack held these files at, so the catalogue's copy of
-a part reproduces them and every materialised file keeps its path (`ARCH-R267`). A part
+The catalogue's copy of a part reproduces these paths, so every materialised file
+keeps its path (`ARCH-R267`). A part
 with no adapter declares one service, the bundle assembles it into the stack the core
 ships, and its in-process adapter is the core's; the release whose bundle installs the
 part deletes that adapter (`ARCH-R266`).
@@ -162,8 +162,7 @@ lemonfiber's own images move when their repository publishes one (`OPS-R90`).
 | Its pull request | One rolling branch per image, `upstream-pin/<the first service running it>`, opened or edited through `rolling-pull-request` (`OPS-R87`) |
 | When it merges | Armed where no recording still names the image it replaces, and merged once the required checks pass on its commit; otherwise disarmed, naming each recording left behind |
 
-The callers and the media stack's own `pins` workflow never run together: the change
-that turns the callers on stops it, so one mover holds each upstream's pin.
+One mover holds each upstream's pin: the plugin's own call of `upstream-pins`.
 
 ## Releasing
 

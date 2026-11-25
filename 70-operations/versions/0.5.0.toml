@@ -60,8 +60,3 @@ goals   = [
     "B3-R11",
     "B3-R15",
 ]
-
-# [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
-
-[pins]
-lemonfiber-media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"

@@ -151,7 +151,7 @@ address to every peer is not one a stranger installs on their behalf.
 which one it joins is a question this ADR does not answer. It belongs to the
 manifest contract, along with how a plugin's service reaches the compose model
 without breaking the parity check that holds the manifest and the Compose file
-to each other (`REPO-R36`).
+to each other.
 
 **The generator joins the set of things that must be kept honest.** Command
 construction is golden-tested for every form on every platform (`Q-R23`) because

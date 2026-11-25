@@ -53,7 +53,7 @@ repos   = ["lemonfiber"]
 # advancing them are the stack's, and searching only what this version *tags* calls
 # them unmet for a reason that is not about the work. Naming the repository here
 # tags nothing.
-satisfied_in = ["lemonfiber", "lemonfiber-media-stack"]
+satisfied_in = ["lemonfiber"]
 goals   = [
     "B2-R16",
     "B6-R1",
@@ -131,5 +131,4 @@ goals   = [
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 
 [pins]
-lemonfiber-media-stack = "d7a16ae419819506bbda9a28cd39bdacbade7a97"
 lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"

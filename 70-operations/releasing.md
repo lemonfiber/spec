@@ -98,7 +98,7 @@ What moves, and when:
 | A bug fix, no behaviour change | binary **patch** |
 | New behaviour, backward-compatible CLI/flags | binary **minor** |
 | A removed/renamed flag, changed default, dropped `schema_version` support | binary **major** |
-| A service image tag, a new service or form | `lemonfiber-media-stack` **minor** (or major if a form's meaning changes) |
+| A service image tag, a new service or form | Nothing of its own: the first-party plugin's `plugin.toml` or the bundle changes, the bundle's pin moves, and the train tags the plugin at the core's next version (`OPS-R86`) |
 | A manifest field added-optional | `schema_version` unchanged, `stack_version` minor |
 | A manifest field required/removed/retyped, or a new enum value | **`schema_version` +1** ([why](../20-architecture/contracts/versioning.md#changing-the-schema)) |
 | A token value (recolour) | `brand` **minor** |

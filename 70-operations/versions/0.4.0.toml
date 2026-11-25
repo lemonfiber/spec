@@ -85,7 +85,3 @@ goals   = [
     # shipped in 0.3.0 as a bounded operation over a small configuration, so it
     # is not carried as a 0.4.0 goal.
 ]
-
-# The stack this release embedded, recorded at publish (OPS-R35).
-[pins]
-lemonfiber-media-stack = "aaabfbbbfd77bbbbcfd74c3cc171ae9a83fdbe9b"

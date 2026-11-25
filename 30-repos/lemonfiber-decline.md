@@ -24,7 +24,7 @@ or, under the guards ADR-0029 §2a states, removes it.
 
 | Holds | Does not hold |
 |---|---|
-| One Rust binary crate, with the core's lints, deny policy and coverage floor, depending on the core's crates at a pinned core commit | The compose entry, which is `lemonfiber-media-stack`'s |
+| One Rust binary crate, with the core's lints, deny policy and coverage floor, depending on the core's crates at a pinned core commit | The compose entry, which lemonfiber writes from the repository's `plugin.toml` (`ARCH-R224`) |
 | One Dockerfile, ending on a distroless static base as a non-root user | Any credential: the key and the invitation table arrive as files the core writes |
 | Recordings of its Jellyfin calls on every supported line (ADR-0028) | Code shared with `lemonfiber-request-gate` |
 | The containment ADR-0029 §6 requires, stated as what it needs from the stack | |

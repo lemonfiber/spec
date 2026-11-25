@@ -681,26 +681,6 @@ class ManifestRepositories(Spec):
         self.assertEqual(len(said), 1)
         self.assertIn("cuts lemonfiber and not plugin-jellyfin", said[0])
 
-    def retired_registry(self):
-        self.doc("30-repos/repos.toml", '[[repo]]\nname = "lemonfiber"\n\n[[retired]]\nname = "old-stack"\n')
-
-    def test_a_retired_repository_resolves_wherever_a_released_manifest_names_it(self):
-        self.retired_registry()
-        self.manifest(
-            "0.1.0",
-            'status = "released"\nrepos = ["lemonfiber", "old-stack"]\n'
-            'satisfied_in = ["old-stack"]\n\n[pins]\nold-stack = "abc123"\n',
-        )
-        self.manifest("0.2.0", 'status = "planned"\nrepos = ["lemonfiber"]\nsatisfied_in = ["old-stack"]\n')
-        self.assertEqual(integrity.check_manifest_repos(), [])
-
-    def test_a_version_not_yet_released_cutting_a_retired_repository_is_refused(self):
-        self.retired_registry()
-        self.manifest("0.2.0", 'status = "staged"\nrepos = ["lemonfiber", "old-stack"]\n')
-        said = integrity.check_manifest_repos()
-        self.assertEqual(len(said), 1)
-        self.assertIn("cuts old-stack, which 30-repos/repos.toml lists as retired", said[0])
-
     def test_a_released_version_or_one_carrying_the_plugin_passes(self):
         self.plugin_registry()
         self.manifest("0.1.0", 'status = "released"\nrepos = ["lemonfiber"]\n')

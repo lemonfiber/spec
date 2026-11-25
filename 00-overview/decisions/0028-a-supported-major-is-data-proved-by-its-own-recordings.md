@@ -7,7 +7,7 @@
 ## Context
 
 The stack runs one version of the media server, and the core is written against
-that one. `lemonfiber-media-stack` pins `jellyfin/jellyfin` at tag `10.10.3`, in
+that one. The stack pins `jellyfin/jellyfin` at tag `10.10.3`, in
 `stack.toml` and in `compose/media.yml`, with no digest. `E1-R1` and the
 [stack manifest](../../20-architecture/contracts/stack-manifest.md) require a
 digest, and the pin does not carry one yet. The
@@ -122,7 +122,7 @@ A major carries no breaking change by definition, and the newest release of a ma
 is the one upstream still fixes. So each line's pin always moves to the newest
 release of its major, and never across a major. Moving it is automatic:
 
-1. **A scheduled workflow in `lemonfiber-media-stack`** reads the registry's tags
+1. **A scheduled workflow** reads the registry's tags
    for each line, keeps those whose version is in the line's major and is not a
    pre-release, and resolves the newest to the digest of its multi-architecture
    index. It is a workflow of the stack's own rather than a Dependabot update:
@@ -148,7 +148,7 @@ server: applying it is an E1 update the operator chooses.
 
 ### 2. A profile is what the client reads, and it is data
 
-A profile lives in `lemonfiber-media-stack` beside the pin and reviews as a diff. It
+A profile lives beside the pin and reviews as a diff. It
 may declare:
 
 | Field | What it says | Example, line 12 |
@@ -232,7 +232,7 @@ once per line:
 - The recordings are readable data (`F10-R5`) and are reported as proofs against
   recordings (`F10-R6`).
 
-The recordings live beside the profiles in `lemonfiber-media-stack`, and the core
+The recordings live beside the profiles, and the core
 embeds them with the stack. The core's CI runs its client, every claim and every
 operation against the recordings of every line the manifest declares. A version does not ship while any line's
 claim or operation is refused. That is `F9-R2`, applied per line. Moving a line's

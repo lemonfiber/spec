@@ -218,16 +218,16 @@ listening, not what was intended.
 | **C6-R29** | The request gate MUST answer the request service's Sonarr- and Radarr-shaped calls on a route named by the media type a curator files, `/tv` or `/movies`, by asking that curator's adapter the `library.curate` request operations (`ARCH-R385`) under its request key, as [ADR-0060](../../../00-overview/decisions/0060-the-request-gate-asks-a-curator-over-its-contract.md) maps each call: it MUST answer the system status, the tags, the episode list and the refresh of download tracking itself, MUST refuse a language profile read and an episode monitor write, MUST answer `404` for a title the curator does not hold, and MUST answer `503` naming the media type where the adapter answers a request operation `unsupported`. |
 | **C6-R30** | Where the media server declares `native = "emby"`, the request gate MUST answer an Emby route under `/emby` in Emby's own API, on the call list and terms ADR-0032 sets for the Jellyfin route, with its key on Emby minted over `media.serve`, forwarding only to the majors of Emby the stack supports ([ADR-0060](../../../00-overview/decisions/0060-the-request-gate-asks-a-curator-over-its-contract.md)). |
 
-**Affected repos** (`GOV-R7`): `lemonfiber-media-stack` publishes the household
-tier on a configurable address; `lemonfiber` reports the observed binding under
-`C6-R13`, and announces a certificate replacement under `C6-R19` since it is the
-side that produces pairing material. Under `C6-R20`, the decline service's own
-repository builds a confined image, `lemonfiber-media-stack` runs it and stops
-giving Homepage the Jellyfin key, and `lemonfiber` mints the service's key and no
-longer publishes `JELLYFIN_API_KEY`. Under `C6-R21`, `lemonfiber` writes and checks
-Jellyfin's allow-list. Under `C6-R22`–`C6-R25`, the request gate's own repository
-builds its confined image, `lemonfiber-media-stack` runs it and moves Seerr off the
-default network, and `lemonfiber` mints the gate's tokens and writes its files.
+**Affected repos** (`GOV-R7`): `lemonfiber` writes every Compose entry
+(`ARCH-R224`), so it publishes the household tier on a configurable address; it
+reports the observed binding under `C6-R13`, and announces a certificate replacement
+under `C6-R19` since it is the side that produces pairing material. Under `C6-R20`,
+`lemonfiber-decline` builds a confined image, and `lemonfiber` runs it as its manifest
+declares, gives Homepage no Jellyfin key, mints the service's key and does not publish
+`JELLYFIN_API_KEY`. Under `C6-R21`, `lemonfiber` writes and checks Jellyfin's
+allow-list. Under `C6-R22`–`C6-R25`, `lemonfiber-request-gate` builds its confined
+image, and `lemonfiber` runs it as its manifest declares with Seerr off the default
+network, mints the gate's tokens and writes its files.
 
 ## Related
 

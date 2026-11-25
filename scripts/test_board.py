@@ -94,10 +94,6 @@ note = "the binary"
 [[ungoverned]]
 name = "plugin-x"
 note = "a plugin"
-
-[[retired]]
-name = "old-stack"
-note = "archived"
 """
 
 RELEASE = {
@@ -292,7 +288,6 @@ class TheShape(Board):
                 ("spec", "root", None),
                 ("core", "impl", "present"),
                 ("plugin-x", "ungoverned", None),
-                ("old-stack", "retired", None),
             ],
         )
         self.assertEqual(data["repos"][1]["pages"], ["core.md"])
@@ -354,7 +349,7 @@ class PullsAndProposals(Board):
         data, _ = self.snapshot("--prs", "prs.json")
         self.assertEqual(
             [r["open_pulls"] for r in data["repos"]],
-            [None, 1, None, None],
+            [None, 1, None],
             "a repository whose pull requests were not read counts none",
         )
         self.assertIsNone(data["pulls"][0]["author"])
@@ -370,7 +365,7 @@ class PullsAndProposals(Board):
         held = {r["name"]: r["open_pulls"] for r in data["repos"]}
         self.assertEqual(
             held,
-            {"spec": 0, "core": 2, "plugin-x": None, "old-stack": None},
+            {"spec": 0, "core": 2, "plugin-x": None},
             "read and holding none is nought; not read is null",
         )
         self.assertEqual(

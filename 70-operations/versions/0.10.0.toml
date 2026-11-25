@@ -30,7 +30,7 @@ repos   = ["lemonfiber"]
 # are rules about generation that only an SDK can be held to; `C6-R2` and
 # `C6-R17` are about which interface the stack publishes on, and are cited
 # where that is declared.
-satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-media-stack"]
+satisfied_in = ["lemonfiber", "lemonfiber-web", "sdk-ts", "sdk-php"]
 goals   = [
     "C6-R2",
     "C6-R4",
@@ -98,5 +98,4 @@ goals   = [
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 
 [pins]
-lemonfiber-media-stack = "61db2fd8df06917fa20cfe653b982c1128a114a0"
 lemonfiber-web = "ed49b4224f91d4e53055910e27db5d1b697a2de3"

@@ -82,13 +82,13 @@ gives them name their operations and not what the operations carry. Measured on
     curator's address and key so that it tells the curator itself.
   - `invite.decline`'s "hold a key for the request service" names a key the request
     service never holds, and the row has no way for the invitations to arrive.
-  - `dashboard.show`'s "widgets the core names" names none, where the media stack's
+  - `dashboard.show`'s "widgets the core names" names none, where the stack's
     `widgets.yaml` (`0d99145`) shows the machine's resources and a web search box, and
     its `services.yaml` holds groups of entries, each with an icon, a link, a
     description and a keyless reachability check.
 - **The forwarded port has no way to be reported.** The section on it has the core read
   the port "whenever the guard's filler reports a change", and the contract has no
-  operation by which a filler reports anything. The media stack pushes it from Gluetun's
+  operation by which a filler reports anything. The stack pushes it from Gluetun's
   up command (`0d99145`), with a script mounted into the guard and qBittorrent's username
   and password in the guard's environment, which `ARCH-R251` refuses.
 

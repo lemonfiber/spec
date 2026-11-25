@@ -34,7 +34,7 @@ the host.
 
 | Holds | Does not hold |
 |---|---|
-| One Rust binary crate, with the core's lints, deny policy and coverage floor, depending on the core's crates at a pinned core commit | The compose entry or its networks, which are `lemonfiber-media-stack`'s |
+| One Rust binary crate, with the core's lints, deny policy and coverage floor, depending on the core's crates at a pinned core commit | The compose entry or its networks, which lemonfiber writes from the repository's `plugin.toml` (`ARCH-R224`) |
 | One Dockerfile, ending on a distroless static base as a non-root user | Any credential: keys and token hashes arrive as files the core writes |
 | The call list, and recordings proving it against the pinned Seerr and every supported line | Code shared with `lemonfiber-decline` |
 | The containment ADR-0032 requires, stated as what it needs from the stack | |
