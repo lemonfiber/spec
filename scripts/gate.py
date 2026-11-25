@@ -8,7 +8,9 @@ satisfied only when BOTH hold:
      or the row recording it names the commit it landed in, and
   2. a searched repository's tracker records it done: a `[[requirement]]` row in
      the `status.toml` at that repository's root whose state is `done`
-     (`status_check.py` has the format).
+     (`status_check.py` has the format), and no searched repository's tracker
+     records it in another state. A `partial` or `open` row in any of them holds
+     the goal open, and the verdict names the repository holding it.
 
 Citation without a tick is work in flight; a tick without a citation is an
 unauditable claim. Requiring both is the defence in depth OPS-R34 specifies.
@@ -144,9 +146,21 @@ def trackers(repo_paths: dict[str, pathlib.Path]) -> list[status_check.Row]:
     return rows
 
 
-def tracked_done(rows: list[status_check.Row]) -> set[str]:
-    """Requirements a per-requirement tracker records done."""
-    return {row.id for row in rows if row.done}
+def holders(rows: list[status_check.Row]) -> dict[str, list[str]]:
+    """Each requirement a searched tracker records in a state other than done, and
+    the repositories recording it so."""
+    held: dict[str, list[str]] = {}
+    for row in rows:
+        if not row.done:
+            held.setdefault(row.id, []).append(row.repo)
+    return held
+
+
+def tracked_done(rows: list[status_check.Row], legacy: set[str] | None = None) -> set[str]:
+    """Requirements recorded done, by a per-requirement tracker or on the Markdown
+    tracker's done rows (`legacy`), and recorded in no other state by any searched
+    tracker: one repository's `partial` holds open what another records done."""
+    return ({row.id for row in rows if row.done} | (legacy or set())) - holders(rows).keys()
 
 
 def tracked_landed(
@@ -252,20 +266,29 @@ def parse_repos(specs: list[str]) -> dict[str, pathlib.Path]:
     return repos
 
 
-def evaluate(goals: list[str], cited: set[str], done: set[str], landed: set[str] | None = None) -> list[dict]:
-    """Each goal's two arms, and which way the first of them was satisfied.
+def evaluate(
+    goals: list[str],
+    cited: set[str],
+    done: set[str],
+    landed: set[str] | None = None,
+    held: dict[str, list[str]] | None = None,
+) -> list[dict]:
+    """Each goal's two arms, which way the first of them was satisfied, and the
+    repositories whose tracker holds it open.
 
     `landed` is kept apart from `cited` in the result rather than folded into it, so
     a reader can see which goals rest on the exception. An exception nobody can count
     is one that spreads.
     """
     landed = landed or set()
+    held = held or {}
     return [
         {
             "id": g,
             "cited": g in cited or g in landed,
             "by": "trailer" if g in cited else ("landed" if g in landed else None),
             "done": g in done,
+            "held_in": held.get(g, []),
         }
         for g in goals
     ]
@@ -276,8 +299,9 @@ def render_human(name: str, repos: list[str], results: list[dict]) -> None:
     for r in results:
         ok = r["cited"] and r["done"]
         how = {"trailer": "yes    ", "landed": "landed ", None: "NO     "}[r.get("by")]
+        held = f"  held open by {', '.join(r['held_in'])}" if r.get("held_in") else ""
         print(
-            f"  {'✓' if ok else '✗'} {r['id']:12}  cited={how} tracked-done={'yes' if r['done'] else 'NO '}"
+            f"  {'✓' if ok else '✗'} {r['id']:12}  cited={how} tracked-done={'yes' if r['done'] else 'NO '}{held}"
         )
 
 
@@ -287,15 +311,16 @@ def judge(a: argparse.Namespace) -> tuple[pathlib.Path, list[str], list[dict], l
     manifest = within_cwd(a.manifest)
     repos = parse_repos(a.repo)
     rows = trackers(repos)
-    done = tracked_done(rows)
+    legacy: set[str] = set()
     landed, faults = tracked_landed(rows, repos)
     if a.status:
         status = within_cwd(a.status)
-        done |= done_ids(status)
+        legacy = done_ids(status)
         more, wrong = landed_ids(status, repos)
         landed |= more
         faults += wrong
-    results = evaluate(load_goals(manifest), cited_ids(repos), done, landed)
+    done = tracked_done(rows, legacy)
+    results = evaluate(load_goals(manifest), cited_ids(repos), done, landed, holders(rows))
     return manifest, list(repos), results, faults
 
 

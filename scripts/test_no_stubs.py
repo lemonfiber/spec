@@ -372,6 +372,21 @@ class BadInput(Catalogue):
         self.assertIn("not built: B6-R2", said)
         self.assertNotIn("B6-R1,", said)
 
+    def test_a_requirement_one_tracker_records_partial_is_not_built(self):
+        self.feature("B6", "building")
+        self.manifest("0.15.0", ["B6-R1"])
+        self.tracker("B6-R1")
+        for name, state in (("web", 'state = "done"\nevidence = ["f"]'), ("app", 'state = "partial"')):
+            repo = pathlib.Path(f"checkouts/{name}")
+            repo.mkdir(parents=True)
+            (repo / "f").write_text("x")
+            (repo / "status.toml").write_text(f'[[requirement]]\nid = "B6-R1"\n{state}\n', encoding="utf-8")
+        code, said = run_main(
+            ["--version", "0.15.0", "--repo", "web=checkouts/web", "--repo", "app=checkouts/app", "--status", TRACKER]
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("not built: B6-R1", said)
+
     def test_a_version_that_is_not_a_version_is_refused(self):
         code, _ = self.act("../../etc/passwd")
         self.assertEqual(code, 1)

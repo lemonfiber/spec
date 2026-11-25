@@ -4,6 +4,8 @@
 **Date:** 2026-10-07
 **Decided:** 2026-10-07, by the maintainer, Wessel Verheij: a `status.toml` in every repository a version is satisfied in, in one shape, read by the release gate and the no-stubs gate together; one short row per requirement naming its state, its evidence by path and test, and optionally the commit it landed in; the binary's deliverable rows migrated to that shape; no Markdown copy of a tracker committed, the generated report being the page a person reads; and each tracker under a thousand lines, split into one file per feature where it would not be.
 
+**Amended** by [ADR-0065](0065-a-partial-share-holds-a-requirement-open.md): a requirement is done only where at least one searched tracker records it done and none records it `partial` or `open`; a row in another state holds it open, and the gate names the repository holding it.
+
 ## Context
 
 The release gate counts a goal met when a merged commit cites it and the

@@ -9,10 +9,12 @@ for every version on the train, released ones included, from the same sources th
 gate reads, so its
 verdicts and the gate's cannot differ (OPS-R76):
 
-  met        cited by a merged commit, or landed where a row names it, and
-             recorded done in a searched repository's tracker
-  unmarked   cited by a merged commit and recorded done in no tracker: built,
-             or at least worked on, and nobody has checked and ticked it
+  met        cited by a merged commit, or landed where a row names it,
+             recorded done in a searched repository's tracker, and recorded
+             in no other state in any searched repository's tracker
+  unmarked   cited, and not met: recorded done in no tracker, or held open by
+             a searched repository recording it `partial` or `open` — built,
+             or at least worked on, and not checked and ticked everywhere
   uncited    recorded done, and no merged commit cites it and no row names
              where it landed
   unknown    not met in the repositories that could be read, and searched in
@@ -27,7 +29,8 @@ still written. The release gate refuses a version it cannot judge; this answers
 more questions than the gate, and one absent tracker would otherwise hide every
 fact the others hold.
 
-A goal recorded `partial` somewhere says where, whichever of these it is.
+A goal recorded `partial` or `open` in a searched repository is held open
+there, and says where (`held_in`), whichever of these it is.
 
 Everything is read from git at one revision of each checkout (`--ref`), never from
 a working tree, so a sibling checkout sitting on a feature branch reports its
@@ -80,7 +83,7 @@ FINISHED = ("released", "yanked")
 VERDICTS = ("claimed", "unmarked", "uncited", "unknown", "open", "met")
 HEADINGS = {
     "claimed": "In flight — an open pull request cites it",
-    "unmarked": "Cited and recorded done nowhere — check it and record it",
+    "unmarked": "Cited, and recorded done nowhere or held open — check it and record it",
     "uncited": "Recorded done and cited by no merged commit",
     "unknown": "Unknown — searched in a repository that could not be read",
     "open": "Open — nobody has started",
@@ -100,6 +103,8 @@ class Standing:
     cited_in: list[str] = field(default_factory=list)
     done_in: list[str] = field(default_factory=list)
     partial_in: list[str] = field(default_factory=list)
+    #: The repositories whose tracker records it in a state other than done.
+    held_in: list[str] = field(default_factory=list)
     landed_in: list[str] = field(default_factory=list)
     claims: list[dict] = field(default_factory=list)
     #: Whether a repository it is searched in could not be read.
@@ -108,13 +113,13 @@ class Standing:
     @property
     def verdict(self) -> str:
         cited = bool(self.cited_in or self.landed_in)
-        if cited and self.done_in:
+        if cited and self.done_in and not self.held_in:
             return "met"
         if self.unread:
             return "unknown"
         if self.claims:
             return "claimed"
-        if self.cited_in:
+        if cited:
             return "unmarked"
         if self.done_in:
             return "uncited"
@@ -125,6 +130,7 @@ class Standing:
         if row.state == "partial":
             self.partial_in.append(name)
         if not row.done:
+            self.held_in.append(name)
             return
         if name not in self.done_in:
             self.done_in.append(name)
@@ -138,6 +144,7 @@ class Standing:
             "cited_in": self.cited_in,
             "done_in": self.done_in,
             "partial_in": self.partial_in,
+            "held_in": self.held_in,
             "landed_in": self.landed_in,
             "claims": self.claims,
         }
@@ -403,7 +410,7 @@ def standing_page(manifest: dict, goals: list[Standing]) -> list[str]:
             continue
         fold = verdict == "met"
         out += ["<details><summary>Met</summary>", ""] if fold else [f"### {HEADINGS[verdict]}", ""]
-        out += ["| Goal | Done in | Partial in | Cited in | Claimed by |", "|---|---|---|---|---|"]
+        out += ["| Goal | Done in | Held open by | Cited in | Claimed by |", "|---|---|---|---|---|"]
         for g in rows:
             claimed = ", ".join(
                 f"[{c['repo']}#{c['number']}]({c['url']}){' (draft)' if c['draft'] else ''}" for c in g.claims
@@ -412,7 +419,7 @@ def standing_page(manifest: dict, goals: list[Standing]) -> list[str]:
             if len(g.cited_in) > 3:
                 cited += f" and {len(g.cited_in) - 3} more"
             out.append(
-                f"| {g.id} | {', '.join(g.done_in)} | {', '.join(g.partial_in)} | {cited} | {claimed} |"
+                f"| {g.id} | {', '.join(g.done_in)} | {', '.join(g.held_in)} | {cited} | {claimed} |"
             )
         out += ["", "</details>", ""] if fold else [""]
     return out
