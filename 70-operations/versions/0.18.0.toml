@@ -376,7 +376,8 @@
 # stack its libraries, link the request service to Plex in the mode the operator chooses
 # through the request gate, and read a Plex household, so Plex serves the household
 # without handing out its owner's token (ADR-0057). Added by the maintainer's decision
-# of 2026-10-31 (OPS-R31).
+# of 2026-10-31 (OPS-R31). The Plex
+# adapter is `plugin-plex`'s, so `plugin-plex` is searched.
 # `ARCH-R372` lets a service name the variables its image reads the operator's ids from,
 # `PUID` and `PGID` being one such pair, so Plex runs as the operator beside the adapter
 # that reads its files. Added by the maintainer's decision of 2026-11-01 (OPS-R31).
@@ -533,7 +534,7 @@ delivers  = "Plugins — the calls that configure what one installed, and what t
 
 status  = "staged"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr", "plugin-dashy", "plugin-traefik", "plugin-flaresolverr", "plugin-gluetun", "plugin-recyclarr", "plugin-unpackerr", "plugin-calibre-web-automated", "plugin-navidrome", "plugin-homepage", "plugin-configarr"]
-satisfied_in = ["lemonfiber", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp", "lemonfiber-door"]
+satisfied_in = ["lemonfiber", "plugin-plex", "lemonfiber-decline", "lemonfiber-media-stack", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp", "lemonfiber-door"]
 goals   = [
     "D6-R21", "D6-R22", "D6-R23", "D6-R24", "D6-R25", "D6-R26",
     "N21-R12",
