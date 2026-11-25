@@ -133,7 +133,8 @@
 # hands them to the outside watcher's monitor of it, so a service that refuses a caller
 # presenting nothing reads up at install and to the watcher alike; `ARCH-R434` names the
 # hosts the dashboard may ask for a status, so its checks reach nothing off the stack's
-# network; added by the maintainer's decisions of 2026-11-15 (OPS-R31).
+# network; added by the maintainer's decisions of 2026-11-15 (OPS-R31). The outside
+# watcher's adapter is `plugin-uptime-kuma`'s, so `plugin-uptime-kuma` is searched.
 #
 # `ARCH-R440` lets a plugin's own proof send a header from a closed list of named
 # non-credential headers the core holds, `Target-URL` alone, so the dashboard's proxy can be
@@ -181,8 +182,8 @@ version = "0.19.0"
 milestone = "M16"   # The household's library
 delivers  = "The household's library: find, ask for and play, under the member's own limits"
 status  = "planned"
-repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr", "plugin-dashy", "plugin-traefik", "plugin-flaresolverr", "plugin-gluetun", "plugin-recyclarr", "plugin-unpackerr", "plugin-calibre-web-automated", "plugin-navidrome", "plugin-homepage", "plugin-configarr"]
-satisfied_in = ["lemonfiber", "lemonfiber-plugins", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion", "lemonfiber-door", "integration-home-assistant", "integration-mcp"]
+repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr", "plugin-dashy", "plugin-traefik", "plugin-flaresolverr", "plugin-gluetun", "plugin-recyclarr", "plugin-unpackerr", "plugin-calibre-web-automated", "plugin-navidrome", "plugin-homepage", "plugin-configarr", "plugin-uptime-kuma"]
+satisfied_in = ["lemonfiber", "plugin-uptime-kuma", "lemonfiber-plugins", "lemonfiber-web", "sdk-ts", "sdk-php", "lemonfiber-companion", "lemonfiber-door", "integration-home-assistant", "integration-mcp"]
 goals   = [
     "B8-R15",
     "B8-R16",

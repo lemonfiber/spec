@@ -484,6 +484,15 @@ plugin = "configarr"
 image = true
 
 [[repo]]
+name = "plugin-uptime-kuma"
+group = "impl"
+spec = ["first-party-plugins.md"]
+lang = "Rust"
+note = "Uptime Kuma as the outside watcher, which the bundle neither ships nor offers: an adapter image in front of the upstream's, so the train tags it"
+plugin = "uptime-kuma"
+image = true
+
+[[repo]]
 name = "adapter-kit-servarr"
 node = "servarrkit"
 group = "impl"
@@ -747,10 +756,6 @@ note = "The plugin an author copies; the catalogue lists it, this map does not"
 
 [[ungoverned]]
 name = "plugin-komga"
-note = "A plugin, and the catalogue is where a plugin is found"
-
-[[ungoverned]]
-name = "plugin-uptime-kuma"
 note = "A plugin, and the catalogue is where a plugin is found"
 
 # ── Retired ──────────────────────────────────────────────────────────────────
