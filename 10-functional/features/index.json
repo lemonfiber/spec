@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/gen_board.py",
-  "counts": {"features": 116, "requirements": 1945, "areas": "A–N"},
+  "counts": {"features": 116, "requirements": 1959, "areas": "A–N"},
   "versions": [
     {"version": "0.1.0", "status": "released", "milestone": "M2", "goals": 9},
     {"version": "0.2.0", "status": "released", "milestone": "M3", "goals": 38},
@@ -20,13 +20,13 @@
     {"version": "0.16.0", "status": "released", "milestone": "M14", "goals": 111},
     {"version": "0.17.0", "status": "released", "milestone": "M14", "goals": 76},
     {"version": "0.18.0", "status": "staged", "milestone": "M14", "goals": 687},
-    {"version": "0.19.0", "status": "planned", "milestone": "M16", "goals": 173},
+    {"version": "0.19.0", "status": "planned", "milestone": "M16", "goals": 181},
     {"version": "0.20.0", "status": "planned", "milestone": "M11", "goals": 92},
     {"version": "0.21.0", "status": "planned", "milestone": "M11", "goals": 48},
     {"version": "0.22.0", "status": "planned", "milestone": "M12", "goals": 29},
-    {"version": "0.23.0", "status": "planned", "milestone": "M13", "goals": 50},
+    {"version": "0.23.0", "status": "planned", "milestone": "M13", "goals": 51},
     {"version": "0.24.0", "status": "planned", "milestone": "M15", "goals": 42},
-    {"version": "1.0.0", "status": "planned", "milestone": "M6", "goals": 58}
+    {"version": "1.0.0", "status": "planned", "milestone": "M6", "goals": 63}
   ],
   "areas": {"A": "a-getting-started/board.json", "B": "b-running/board.json", "C": "c-trust/board.json", "D": "d-content/board.json", "E": "e-maintenance/board.json", "F": "f-extensibility/board.json", "G": "g-ux/board.json", "H": "h-glue/board.json", "I": "i-remote-access/board.json", "J": "j-runtime/board.json", "K": "k-observability/board.json", "L": "l-release/board.json", "N": "n-companion/board.json"}
 }
