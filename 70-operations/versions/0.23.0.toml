@@ -1,15 +1,17 @@
 # Watching the watcher — metrics, dashboards and uptime monitoring.
 #
-# 50 goals, seeded from the roadmap milestone this version serves;
+# 51 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `K2-R3`, `K2-R4`, `K2-R5`, `K2-R7`, `K2-R8`, `K2-R10` and `K2-R12` moved to 0.19.0 with
 # the outside watcher (ADR-0061), by the maintainer's decision of 2026-11-08.
+# `G11-R20` is the web console's side of `ARCH-R400`, where alerts go, so `lemonfiber-web` is
+# searched, by the maintainer's decision of 2026-11-26.
 version = "0.23.0"
 milestone = "M13"   # See everything
 delivers  = "See everything — metrics, dashboards, uptime"
 status  = "planned"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-navidrome", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr", "plugin-dashy", "plugin-traefik", "plugin-flaresolverr", "plugin-gluetun", "plugin-recyclarr", "plugin-unpackerr", "plugin-calibre-web-automated", "plugin-homepage", "plugin-configarr", "plugin-uptime-kuma"]
-satisfied_in = ["lemonfiber", "plugin-jellyfin"]
+satisfied_in = ["lemonfiber", "plugin-jellyfin", "lemonfiber-web"]
 goals   = [
     "B9-R1",
     "B9-R2",
@@ -61,6 +63,7 @@ goals   = [
     "K2-R11",
     "K2-R13",
     "K2-R14",
+    "G11-R20",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.

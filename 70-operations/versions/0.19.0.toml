@@ -174,7 +174,12 @@
 # with the core's sentence, and away from home declined as a title is. They follow the
 # guide window into this version, by the maintainer's decision of 2026-11-15 (OPS-R31).
 #
-# 173 goals, seeded from the roadmap milestone this version serves;
+# `G11-R14`, `G11-R15`, `G11-R17` to `G11-R19` and `G11-R21` to `G11-R23` are the web console's
+# side of `F1-R15`, `A2-R16`, `B8-R16`, `K2-R16`, `H5-R16` and `D2-R13`, and of putting the
+# recorded preset back (`D2-R8`), shown to the operator alone; the rows whose core rows went
+# out in 0.18.0 or earlier follow into this version, by the maintainer's decisions of 2026-11-26.
+#
+# 181 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -358,6 +363,14 @@ goals   = [
     "F14-R31",
     "ARCH-R416",
     "ARCH-R426",
+    "G11-R14",
+    "G11-R15",
+    "G11-R17",
+    "G11-R18",
+    "G11-R19",
+    "G11-R21",
+    "G11-R22",
+    "G11-R23",
 ]
 
 # `N21-R1` to `N21-R11`, `N3-R1` to `N3-R26` but for the three earlier versions lock,

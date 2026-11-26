@@ -1,6 +1,6 @@
 # **The dashboard.** `lemonfiber` with no subcommand opens a live view of the stack — the capability the whole of v1 has been building toward, and the reason this is 1.0.0 rather than another minor. Released through the signed, multi-platform pipeline on all three platforms.
 #
-# 58 goals, seeded from the roadmap milestone this version serves;
+# 63 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `N1-R2` and `N1-R5` are the companion's parity with every other surface, in what it
 # offers and in what it lets an operator set; `N25-R15` is that parity for proving a
@@ -33,6 +33,11 @@
 # copy drawn on the disk screen, and a note on the overview's alerts panel where a resumed
 # stream's replay says `partial`, shown to the operator alone, by the maintainer's decisions
 # of 2026-11-25. They are the web surface's, so `lemonfiber-web` is searched; it is not tagged.
+# `G11-R10` to `G11-R13` and `G11-R16` are the web console's side of `ARCH-R447`, `ARCH-R448`,
+# `ARCH-R449` and `ARCH-R453`: what a stop, an update, an uninstall, a configuration change, a
+# restart or a switch would interrupt, named before the yes; how the console itself is served,
+# with an alarm on the settings while it is served unencrypted to the network; and the choices
+# setup made with the areas left unmanaged, by the maintainer's decisions of 2026-11-26.
 version = "1.0.0"
 milestone = "M6"   # Live TUI
 delivers  = "The dashboard — a bare `lemonfiber` opens it. Everything specced is built, and the interfaces stop moving."
@@ -98,6 +103,11 @@ goals   = [
     "G11-R7",
     "G11-R8",
     "G11-R9",
+    "G11-R10",
+    "G11-R11",
+    "G11-R12",
+    "G11-R13",
+    "G11-R16",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
