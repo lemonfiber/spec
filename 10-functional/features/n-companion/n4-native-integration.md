@@ -139,9 +139,16 @@ told as everything: the stack's health screen shows *Some alerts raised while yo
 away may be missing* until the operator opens that screen. A stream the app opened with
 no place kept from before is handed no past alerts, and makes no claim about them.
 
+A stream also resumes while the app is open: after the phone lost its network, or after
+the stack restarted, as it does on an update. What it hands back is read the same way,
+and a `partial` replay marks the stack the same way. Where the stack's health screen is
+open when that replay arrives, the line shows there at once and stays while the screen
+is open.
+
 Where notifications are turned on, the app also raises one notification of its own,
 naming the stack — *Some alerts from Home may be missing. Open it to see how it stands
-now.* — once for each such wake. It is a setting on each stack, on until the operator turns it off, and
+now.* — once for each such wake. A stream that resumes while the app is open raises
+none: the operator is already looking at the app. It is a setting on each stack, on until the operator turns it off, and
 it reaches the operator alone; a household member is shown neither it nor the line.
 
 ### Nothing is sent anywhere else
@@ -219,7 +226,7 @@ nothing that would override the reader's own type size or choice of light or dar
 | **N4-R25** | The app MUST NOT use Apple's or Google's push service, or any service able to read a notification; it MUST raise each notification locally, from its own pinned connection to the stack, while it runs and when the platform wakes it for background refresh, and on waking MUST notify what the stack raised since it last listened (`ARCH-R281`). |
 | **N4-R26** | On Android, where a UnifiedPush distributor is installed, the app MUST offer waking through it, MUST register the endpoint the distributor gives with each stack the operator turns it on for and remove it when turned off or the stack is removed (`ARCH-R282`), and MUST treat a push as a wake only, reading what to notify over its own connection. |
 | **N4-R27** | Where the operator turns notifications on, the app MUST say that while it is closed it hears a stack only when the platform wakes it, and so may notify late or not at all, on iOS and on Android without a UnifiedPush distributor. |
-| **N4-R28** | After a wake whose resumed stream says its replay is `partial` (`ARCH-R281`), or says nothing of it, the app MUST NOT present the alerts it notifies as all of them, and the stack's health screen MUST show that some alerts raised while the app was away may be missing, until the operator opens that screen. A replay that says `whole`, and a stream opened with no place kept, MUST add nothing. A household member MUST NOT be shown it. |
+| **N4-R28** | After a wake, or a stream that resumes while the app is open, whose resumed stream says its replay is `partial` (`ARCH-R281`), or says nothing of it, the app MUST NOT present the alerts it notifies as all of them, and the stack's health screen MUST show that some alerts raised while the app was away may be missing, until the operator opens that screen; where that screen is open when the replay arrives, it MUST show it at once and while it stays open. A stream that resumes while the app is open MUST NOT raise the notification `N4-R32` raises after a wake. A replay that says `whole`, and a stream opened with no place kept, MUST add nothing. A household member MUST NOT be shown it. |
 | **N4-R29** | Waking through UnifiedPush MUST be turned on stack by stack, on that stack's settings, and MUST be registered under the name this phone's key carries on that stack (`N29`), with a WebPush key pair made on the phone for that stack alone and deleted with the stack or when waking is turned off; where more than one distributor is installed, the operator MUST choose which, once, and MUST be able to change it (`ARCH-R282`). |
 | **N4-R30** | Waking turned off while the stack cannot be reached MUST stop at once, the removal MUST be sent the next time the phone reaches that stack, and the app MUST say that the stack holds the endpoint until then. A stack removed from the phone while it cannot be reached MUST NOT have its removal kept (`N27-R11`), and the app MUST say, as it removes the stack, that the stack holds the endpoint until it is removed there. |
 | **N4-R31** | The app MUST NOT confirm a wake (`ARCH-R404`): it MUST NOT open a push with the key pair it made for the stack (`N4-R29`) or any other, MUST hold no plaintext of one, and MUST NOT send `push-woken`; a push MUST stay a wake only (`N4-R26`), so a delivery to this phone stays sent and its endpoint is not proven by a wake (`ARCH-R402`). |
