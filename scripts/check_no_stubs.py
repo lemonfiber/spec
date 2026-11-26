@@ -50,7 +50,12 @@ requirement, not a warning beside a pass.
 
 Usage:
   check_no_stubs.py --version X.Y.Z --repo <name>=<path> [...]
-                    [--status <IMPLEMENTATION-STATUS.md>]
+                    [--status <IMPLEMENTATION-STATUS.md>] [--spec <dir>]
+
+Every path is resolved against the working directory and has to lie inside it, as
+`gate.py`'s are. `--spec` names the specification's checkout the catalogue and the
+version manifests are read from, `.` where it is not given, so a release gate can
+run this from the tree it tags with the same `--repo` list it hands `gate.py`.
 
 Exit 0 = every requirement the version locks is built, and every requirement of the
 features it touches is locked by some version; 1 = named ones are not; 2 = the
@@ -60,6 +65,7 @@ question could not be answered.
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 import tomllib
@@ -232,7 +238,18 @@ def main() -> int:
     ap.add_argument("--version", required=True)
     ap.add_argument("--repo", action="append", default=[], metavar="name=path")
     ap.add_argument("--status")
+    ap.add_argument("--spec", default=".")
     args = ap.parse_args()
+
+    if not (args.repo or args.status):
+        print(
+            "::error::no --repo and no --status, so there is no tracker to read and "
+            "every requirement would be called unbuilt for want of looking"
+        )
+        return 2
+    repos = parse_repos(args.repo) if args.repo else {}
+    status = within_cwd(args.status) if args.status else None
+    os.chdir(within_cwd(args.spec))
 
     path = manifest_for(args.version)
     if not path.is_file():
@@ -243,16 +260,9 @@ def main() -> int:
         print(f"::error::{path.name} locks no goals")
         return 2
 
-    if not (args.repo or args.status):
-        print(
-            "::error::no --repo and no --status, so there is no tracker to read and "
-            "every requirement would be called unbuilt for want of looking"
-        )
-        return 2
-    rows = trackers(parse_repos(args.repo)) if args.repo else []
+    rows = trackers(repos)
     legacy: set[str] = set()
-    if args.status:
-        status = within_cwd(args.status)
+    if status is not None:
         if not status.is_file():
             print(f"::error::no tracker at {status}")
             return 2

@@ -119,6 +119,50 @@ class Catalogue(unittest.TestCase):
         return run_main(["--version", version, "--status", TRACKER])
 
 
+class ItRunsFromTheTreeBeingTagged(Catalogue):
+    """`--spec` names the specification's checkout, and every other path is the working
+    directory's, as a release gate run from the tree it tags hands them to `gate.py`."""
+
+    def moved_under(self, spec):
+        pathlib.Path(spec).mkdir()
+        for top in ("10-functional", "70-operations"):
+            shutil.move(top, f"{spec}/{top}")
+
+    def test_the_spec_is_read_from_spec_and_the_trackers_from_where_it_runs(self):
+        self.feature("E1", "built", area="e-maintenance")
+        self.tracker("E1-R1", "E1-R2")
+        self.manifest("0.14.0", ["E1-R1", "E1-R2"])
+        self.manifest("0.15.0", ["E1-R3"])
+        repo = pathlib.Path("checkouts/web")
+        repo.mkdir(parents=True)
+        (repo / "f").write_text("x")
+        (repo / "status.toml").write_text(
+            '[[requirement]]\nid = "E1-R1"\nstate = "done"\nevidence = ["f"]\n', encoding="utf-8"
+        )
+        self.moved_under(".spec-canonical")
+        code, said = run_main(
+            [
+                "--version",
+                "0.14.0",
+                "--status",
+                TRACKER,
+                "--repo",
+                "web=checkouts/web",
+                "--spec",
+                ".spec-canonical",
+            ]
+        )
+        self.assertEqual(code, 0, said)
+        self.assertIn("2 of them built", said)
+
+    def test_a_spec_outside_the_working_directory_is_refused(self):
+        self.feature("E1", "built", area="e-maintenance")
+        self.manifest("0.14.0", ["E1-R1"])
+        code, said = run_main(["--version", "0.14.0", "--status", TRACKER, "--spec", ".."])
+        self.assertEqual(code, 2)
+        self.assertIn("escapes the working directory", said)
+
+
 class TheGateRefusesAnUnbuiltRequirement(Catalogue):
     def test_it_refuses_the_shape_that_shipped_over_it(self):
         """0.14.0's shape: goals locked, the features still `building`, and the
@@ -382,7 +426,16 @@ class BadInput(Catalogue):
             (repo / "f").write_text("x")
             (repo / "status.toml").write_text(f'[[requirement]]\nid = "B6-R1"\n{state}\n', encoding="utf-8")
         code, said = run_main(
-            ["--version", "0.15.0", "--repo", "web=checkouts/web", "--repo", "app=checkouts/app", "--status", TRACKER]
+            [
+                "--version",
+                "0.15.0",
+                "--repo",
+                "web=checkouts/web",
+                "--repo",
+                "app=checkouts/app",
+                "--status",
+                TRACKER,
+            ]
         )
         self.assertEqual(code, 1)
         self.assertIn("not built: B6-R1", said)
