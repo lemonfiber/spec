@@ -78,6 +78,15 @@ setting, the value and the choices it has (`ARCH-R350`).
 Each rehearsal names every entry the change regenerates and every service it restarts, and
 answers an offer; the write takes that offer and refuses where what it would change moved since,
 naming what moved, as the plugin writes do (`ARCH-R146`). Each write is journalled (`ARCH-R255`).
+
+Each setting an answer moves carries `default`, what it falls back to while it holds no operator
+value: the core's own value for one of the core's settings, the one default every reader whose
+`needs` are met declares, each such reader's own where they differ, or none where nothing
+declares one. A cleared setting is read with the value written again, a setting set to its
+default with that said, and a reader whose `needs` are unmet is listed with `met: false`. The
+default is part of what the offer answers, so a yes given before it moved is refused naming it,
+and the journal keeps the default as it was at the act (`ARCH-R461`). The command line says the
+same beside each setting it moves (`ARCH-R462`).
 A value is written as exactly itself: nothing in it is substituted (`ARCH-R230`).
 
 **A secret is not written here.** A secret a manifest names is entered as an input of the
