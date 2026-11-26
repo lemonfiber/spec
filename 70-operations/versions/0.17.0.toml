@@ -99,7 +99,7 @@
 # fixed list of calls it builds itself, forwards a removal one id at a time and records
 # it, and refuses the rest. The decline service and the gate are the two confined
 # services the household tier reaches the stack through, so they ship together
-# (OPS-R31). Each is its own repository building its own image (ADR-0033), so both are
+# (OPS-R31). Each is its own repository building its own image (OPS-R86), so both are
 # streams this version cuts: they are tagged first, the stack pins the images those tags
 # publish, and the core that embeds the stack is tagged after.
 #

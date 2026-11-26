@@ -120,4 +120,4 @@ aesthetics are requirements.
 - [60-brand/](../60-brand/) — the brand section
 - [design-tokens contract](../20-architecture/contracts/design-tokens.md)
 - [licence rationale](../90-appendix/license-rationale.md)
-- [ADR-0004 Four-repo split](../00-overview/decisions/0004-four-repo-split.md) — why brand is its own repo
+- [Why each artefact has a repository of its own](README.md#why-each-artefact-has-a-repository-of-its-own) — why brand is its own repo

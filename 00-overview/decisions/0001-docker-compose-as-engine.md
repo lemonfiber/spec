@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-07-24
 
-**Superseded in part** by [ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md): the stack is no longer a Compose file usable without lemonfiber. Compose as the engine stands.
+**Superseded in part** by [bundle.toml](../../20-architecture/contracts/bundle.md#why-it-is-shaped-this-way): the stack is no longer a Compose file usable without lemonfiber. Compose as the engine stands.
 
 ## Context
 

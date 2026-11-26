@@ -95,7 +95,7 @@ opens the TUI at a terminal and prints help when piped, never blocking on stdin.
 | `reqwest` | Service HTTP | Seed clients |
 | `serde` + `toml` | Manifest, config | |
 | `etcetera` | Platform paths | XDG / `AppData` / `~/Library`; permissive dependencies throughout |
-| `include_dir` | Embed stack + web assets | [ADR-0005](../00-overview/decisions/0005-embedded-stack-assets.md) |
+| `include_dir` | Embed stack + web assets | [The submodule](#the-submodule) |
 | `thiserror` | Library errors | `lemonfiber-core` |
 | `color-eyre` | Binary errors | The `lemonfiber` crate only |
 
@@ -113,6 +113,35 @@ holds the default bundle ([bundle.toml](../20-architecture/contracts/bundle.md))
    build where the manifest reader refuses it (`ARCH-R6`).
 
 So an incompatible stack/binary pairing cannot compile, let alone ship.
+
+**The binary carries everything the stack is built from.** The bundle and every pinned
+plugin's tree are compiled in, and what lemonfiber writes from them is materialised under
+the platform's directories on first run ([configuration on disk](#configuration-on-disk)).
+The set of plugins the core trusts as first-party is generated from the bundle's pins,
+by id, manifest digest and tree digest, and never written by hand (`ARCH-R300`).
+`--stack-dir <path>` points lemonfiber at a stack directory of the operator's own instead,
+for development or customisation (`F1-R3`).
+
+- **A first run needs no network and no git.** Download one binary, run it, and the
+  stack comes up.
+- **Version skew is a compile error.** The build refuses a stack the binary cannot read,
+  so an incompatible pairing never reaches a user
+  ([versioning](../20-architecture/contracts/versioning.md#where-skew-is-caught)).
+- **It is reproducible.** A given release materialises byte-identical files, which makes
+  a bug report about them meaningful.
+- **What it writes stays the operator's.** Each materialised file is recorded by content,
+  and one the operator changed is never overwritten without a diff and confirmation
+  (`F1-R4`).
+
+The cost is that a fix to the stack reaches an operator only with a lemonfiber release;
+`--stack-dir` lets an urgent case be worked around at once, and the binary grows by the
+size of the trees it carries. Fetching the stack on first run would need the network at
+the worst moment, before the operator has anything working, add TLS, proxy and
+rate-limit failures, and make skew a runtime error. Cloning it would need git as well,
+which many Windows machines lack. Shipping the files beside the binary would break the
+single-file download every installer relies on, and reading only a path the operator
+names would make a zero-configuration first run impossible. This is decided again if
+stack changes become frequent enough that tying them to a release hurts.
 
 ## Build-time work
 

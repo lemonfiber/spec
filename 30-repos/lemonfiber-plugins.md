@@ -19,7 +19,7 @@ read out of that revision when CI asks.
 
 ## Why this is a separate repo
 
-It meets [ADR-0004](../00-overview/decisions/0004-four-repo-split.md)'s test on every
+It meets [the test for a repository of its own](README.md#why-each-artefact-has-a-repository-of-its-own) on every
 count: its change rate is other people's rather than ours, its review style is reading a
 stranger's data rather than reviewing our own code, and its release clock belongs to
 whoever contributed last. Holding it inside `lemonfiber` would mean a binary release every
@@ -136,7 +136,7 @@ than publish an index it could not sign
 ## The bundle
 
 The default bundle is the set of first-party plugins every stack is built from
-([ADR-0042](../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md)).
+([bundle.toml](../20-architecture/contracts/bundle.md#why-it-is-shaped-this-way)).
 It lives here, in `bundle/`, and the core embeds it by pinning this repository as a
 submodule.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The train's two steps, shown in the workflows that run them — ADR-0033 §4, OPS-R68,
+"""The train's two steps, shown in the workflows that run them — OPS-R86, OPS-R68,
 Q-R66. Its plugin gate is shown in `test_train_plugin_gate.py`.
 
 `check_image_pins.py` and `check_bundle_pins.py` are measured in `test_release_images.py`
@@ -49,7 +49,7 @@ LANES = {
     "prerelease-version.yml": ("prerelease", "v0.2.0-pre.1"),
 }
 
-STEP = "Which step of the train this run is (ADR-0033 §4)"
+STEP = "Which step of the train this run is (OPS-R86)"
 #: The pre-release's one run, which tags no first-party plugin.
 PRE_STEP = "What the pre-release tags (OPS-R86)"
 #: The step in each lane that settles what it tags.

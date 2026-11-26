@@ -81,8 +81,8 @@ than offering an action that cannot work.
 ### The stack definition updates too
 
 New lemonfiber versions carry a new pinned bundle, each part's image pinned in its own
-plugin manifest ([ADR-0005](../../../00-overview/decisions/0005-embedded-stack-assets.md),
-[ADR-0045](../../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)).
+plugin manifest ([the submodule](../../../30-repos/lemonfiber.md#the-submodule),
+[bundle](../../../20-architecture/contracts/bundle.md)).
 Locally modified stack files are never silently overwritten — the operator is
 shown a diff ([C9](../c-trust/c9-drift.md)).
 

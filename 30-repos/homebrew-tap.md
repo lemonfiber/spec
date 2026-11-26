@@ -16,7 +16,7 @@ touch it.
 Not a choice — a Homebrew requirement. `brew tap lemonfiber/tap` resolves to a
 repository named `homebrew-tap`. This is the floor that made the org multi-repo
 regardless of other considerations
-([ADR-0004](../00-overview/decisions/0004-four-repo-split.md)).
+([why each artefact has a repository of its own](README.md#why-each-artefact-has-a-repository-of-its-own)).
 
 ## What's in it
 
@@ -116,7 +116,7 @@ a change to the *generator* is a `lemonfiber` change and follows the normal life
 
 ## Related
 
-- [ADR-0004 Four-repo split](../00-overview/decisions/0004-four-repo-split.md)
+- [Why each artefact has a repository of its own](README.md#why-each-artefact-has-a-repository-of-its-own)
 - [E2 Self-update](../10-functional/features/e-maintenance/e2-self-update.md)
 - [licence rationale](../90-appendix/license-rationale.md)
 - [roadmap M10](../00-overview/roadmap.md#m10--release-engineering)

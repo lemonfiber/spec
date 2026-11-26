@@ -27,7 +27,7 @@ that tags, a "version" is a number it carries.)
 | `sdk-ts` | git tag `vX.Y.Z` | `@lemonfiber/sdk-ts` published to npm. Not yet tagged; consumers pin a commit |
 | `sdk-php` | git tag `vX.Y.Z` | The PHP client, published to Packagist. Not yet tagged |
 | `brand` | git tag `vX.Y.Z` | `@lemonfiber/brand` published to npm. Not yet tagged; consumers pin a commit |
-| `lemonfiber-decline`, `lemonfiber-request-gate` | git tag `vX.Y.Z`, made by the train before the core's release tag and never at a pre-release ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md), `OPS-R86`); and every commit on `main`, which is not a release (`OPS-R90`) | The service's image, by digest: under the tag, with a pull request pinning it in the repository's own `plugin.toml`, which the bundle pins at that release ([ADR-0045](../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)); under `main-<commit>` for a commit, with that manifest's pin moved and the bundle left alone |
+| `lemonfiber-decline`, `lemonfiber-request-gate` | git tag `vX.Y.Z`, made by the train before the core's release tag and never at a pre-release ([the train's two steps](#the-trains-two-steps), `OPS-R86`); and every commit on `main`, which is not a release (`OPS-R90`) | The service's image, by digest: under the tag, with a pull request pinning it in the repository's own `plugin.toml`, which the bundle pins at that release (`REPO-R94`); under `main-<commit>` for a commit, with that manifest's pin moved and the bundle left alone |
 | `plugin-<id>`, first-party, building an image | git tag `vX.Y.Z`, made by the train before the core's release tag and never at a pre-release (`OPS-R86`); and every commit on `main`, which is not a release (`OPS-R90`) | Each image the plugin builds, by digest: under `vX.Y.Z` for a tag, with its manifest pinned in the bundle after its pin pull request merges; under `main-<commit>` for a commit, with its manifest's pin moved and the bundle left alone |
 | `plugin-<id>`, first-party, building no image | — | Never tagged. The bundle pins a revision of it and the digest of its tree (`OPS-R86`) |
 | `lemonfiber-caddy`, `lemonfiber-door`, `lemonfiber-dashy` | — | Never tagged (`OPS-R93`). Every commit on `main` publishes the image `plugin-caddy`, `plugin-door` or `plugin-dashy` runs as its upstream, under `main-<commit>`, with a pull request in that plugin's repository moving its pin |
@@ -240,6 +240,43 @@ plugin is a stream the train tags; one whose image is the upstream's is pinned b
 revision and tree digest, with no release, because a tag adds nothing to a commit pin
 that is already content-addressed (`OPS-R86`).
 
+### The train's two steps
+
+A version that cuts a repository building one of the stack's own images
+([an image lemonfiber builds](../30-repos/README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own)),
+or a first-party plugin's repository, is cut by `execute-version` in two runs of the
+same lane (`OPS-R86`):
+
+1. The lane runs every check it runs before tagging, then tags each of those
+   repositories the version lists at the version's tag, and stops.
+2. Each tag publishes its image, and the catalogue's bundle comes to pin the image each
+   tag published and each plugin at the version. Once the core's submodule embeds that
+   bundle, the lane runs again with the same version. It checks that the embedded
+   bundle pins each listed image at that tag and at the digest that tag published, and
+   only then tags the core and every other stream.
+
+The lane does not take the step as an input; it reads it from the repositories. A run in
+which a listed image or plugin repository lacks the tag is the first step, and tags each
+one that lacks it; a run in which every one carries it, or in which the version cuts
+none, is the second. So a first step that stopped part-way is finished by running it
+again, and the second step is never reached while an image is untagged. A pre-release
+tags none of them, so it is always the second step.
+
+The core is never tagged over a bundle that pins one of those images from another tag,
+so what a release states is what it embeds. A tag publishes only on a commit `main`
+holds, and no tag is ever moved; each repository declares the version it is tagged at
+before it is tagged. An image is signed with the organisation's artefact-signing
+mechanism once one exists
+([ADR-0023](../00-overview/decisions/0023-a-pin-is-a-digest.md) §6); until then it is
+published unsigned, and everything that reads it reports the signature as unproven,
+never as verified (ADR-0023 §4).
+
+Such an image is released on the train rather than on a clock of its own because it and
+the core share types through the core's crates, and the core embeds the bundle that pins
+it: released apart, a core version could embed an image built against another core, and
+the release would state a stack nobody released together. The cost is that a version
+listing one runs `execute-version` twice.
+
 A first-party plugin written against what the core had on `main` before any release
 carried it names that commit in its `targets.toml` rather than a release
 ([F10](../10-functional/features/f-extensibility/f10-authoring.md)). The bundle may
@@ -258,7 +295,7 @@ manifest's pin to it through one rolling pull request (`OPS-R91`), so the manife
 pins a real build before any release carries it. That pull request carries every
 recording the manifest names taken again from the new image, and the `proofs.json`
 written from them, so the plugin's own check judges the pin it proposes
-([ADR-0049](../00-overview/decisions/0049-a-moved-pin-is-recorded-again-by-the-core.md)).
+([recording again](../30-repos/first-party-plugins.md#how-its-upstream-pins-move), `ARCH-R285`).
 A commit that changes nothing but a pin, its recordings, its proofs and its
 `targets.toml` publishes no image, so merging the pull request does not open the next.
 A commit moving the `tag` or `digest` of a service an adapter fronts is not one of

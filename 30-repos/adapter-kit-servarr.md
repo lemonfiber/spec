@@ -6,9 +6,9 @@ The client the adapters in front of Sonarr, Radarr, Lidarr and Prowlarr share, w
 once: a Rust library none of them publishes and each takes at an exact commit. Rust,
 Hippocratic 3.0. It serves no contract, builds no image and has no binary of its own.
 
-**Implements:** the Servarr half of
-[ADR-0045](../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)'s
-moves, for [F14-R15](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md);
+**Implements:** the Servarr half of the parts'
+[moves in place](../20-architecture/contracts/bundle.md#stage--assembled-or-installed),
+for [F14-R15](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md);
 consumes `lemonfiber-ports` and `lemonfiber-error` from [`lemonfiber`](lemonfiber.md).
 
 ---
@@ -80,5 +80,5 @@ reuses the shared workflows exactly as every other repository does (`Q-R56`).
 ## Related
 
 - [first-party plugins](first-party-plugins.md) — the four repositories that take it
-- [ADR-0045](../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md) — every bundled part has its repository now, and its adapter later
+- [bundle](../20-architecture/contracts/bundle.md) — how a part is assembled, then moved in place once its adapter ships
 - [website-kit](website-kit.md) — the same shape for what the sites share

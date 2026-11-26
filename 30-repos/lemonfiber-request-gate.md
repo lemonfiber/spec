@@ -11,7 +11,7 @@ for `C6-R20` to `C6-R25` and `D1-R19` to `D1-R21`, and
 for `C6-R27`, `C6-R28`, `ARCH-R380` and `ARCH-R383`, and
 [ADR-0060](../00-overview/decisions/0060-the-request-gate-asks-a-curator-over-its-contract.md),
 for `C6-R29`, `C6-R30`, `ARCH-R386` and `ARCH-R387`. Its place in the organisation is
-[ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md).
+[an image lemonfiber builds](README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own).
 
 ---
 
@@ -41,7 +41,7 @@ the host.
 
 ## Releasing
 
-On the train ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md) §3–§4).
+On the train ([the train's two steps](../70-operations/releasing.md#the-trains-two-steps), `OPS-R86`).
 Its entry in `repos.toml` carries `service = "request-gate"`, which is how the train
 knows it. Every version that cuts the core cuts this repository and tags it at
 `v<version>` before the core, and no pre-release tags it (`OPS-R86`). Each signed tag

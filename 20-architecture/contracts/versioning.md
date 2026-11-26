@@ -60,7 +60,7 @@ with nothing, so the middle refusal, which `ARCH-R4` requires, is never made.
 
 ## Where skew is caught
 
-The embedded stack ([ADR-0005](../../00-overview/decisions/0005-embedded-stack-assets.md))
+The embedded stack ([the submodule](../../30-repos/lemonfiber.md#the-submodule))
 means the common case never reaches a user:
 
 | Path | Caught |
@@ -70,7 +70,7 @@ means the common case never reaches a user:
 | Manifest edited in place | Load time |
 
 Turning version skew into a build failure is the strongest available mitigation
-for the main cost of the [four-repo split](../../00-overview/decisions/0004-four-repo-split.md).
+for the main cost of the [repository split](../../30-repos/README.md#why-each-artefact-has-a-repository-of-its-own).
 An incompatible pairing cannot ship.
 
 ## Changing the schema
@@ -108,7 +108,7 @@ plus a compatibility window to test, for a generation nobody ran.
 So until the first release candidate, **the schema changes in place**. Fields are
 added, removed and given new meanings at `schema_version = 1`, and the pairing
 stays honest because the build refuses a stack it cannot read
-([ADR-0005](../../00-overview/decisions/0005-embedded-stack-assets.md)) rather
+([the submodule](../../30-repos/lemonfiber.md#the-submodule)) rather
 than because a number moved.
 
 From the first release candidate the table above binds, and the first breaking
@@ -258,6 +258,6 @@ binary that arrives carries its own stack and reads it at build-proven parity.
 ## Related
 
 - [stack-manifest.md](stack-manifest.md) — the format being versioned
-- [ADR-0004 Four-repo split](../../00-overview/decisions/0004-four-repo-split.md) — the skew risk this mitigates
-- [ADR-0005 Embedded stack assets](../../00-overview/decisions/0005-embedded-stack-assets.md)
+- [Why each artefact has a repository of its own](../../30-repos/README.md#why-each-artefact-has-a-repository-of-its-own) — the skew risk this mitigates
+- [The submodule](../../30-repos/lemonfiber.md#the-submodule) — why the binary embeds the stack it ships
 - [E1](../../10-functional/features/e-maintenance/e1-stack-updates.md) · [E2](../../10-functional/features/e-maintenance/e2-self-update.md)

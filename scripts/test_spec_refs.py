@@ -113,8 +113,8 @@ class WhatItFinds(unittest.TestCase):
     def test_a_decision_with_no_heading_is_listed_with_nothing_said_about_it(self):
         # Listed rather than skipped: the citation is valid and the link works, and
         # a decision nobody gave a title is a thing to see in the comment.
-        found = refs.index(spec(adrs={"0042-untitled.md": "No heading here.\n"}))
-        self.assertEqual(found["ADR-0042"][1], "")
+        found = refs.index(spec(adrs={"0047-untitled.md": "No heading here.\n"}))
+        self.assertEqual(found["ADR-0047"][1], "")
 
     def test_markdown_inside_a_git_directory_is_not_the_spec(self):
         # A checkout carries `.md` under `.git`, and a requirement row in one of

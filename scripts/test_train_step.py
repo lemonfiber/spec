@@ -23,7 +23,7 @@ from test_release_train import Workspace, run_main  # noqa: E402
 
 
 class TrainStepTests(TrainImages):
-    """Which step a run is on, read from the repositories — ADR-0033 §4."""
+    """Which step a run is on, read from the repositories — OPS-R86."""
 
     def stream(self, name, tagged=()):
         """A remote for `name`, holding `tagged`, and its clone under checkouts/."""

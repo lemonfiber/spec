@@ -6,7 +6,7 @@ The image of the proxy: Caddy, rebuilt without the file capability its own image
 on its binary, so it starts under `standard`. One Dockerfile and its configuration.
 
 **Implements:** `OPS-R93`. Its place in the organisation is
-[ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md).
+[an image lemonfiber builds](README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own).
 
 ---
 

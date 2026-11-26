@@ -21,7 +21,7 @@ REGISTRY = pathlib.Path("30-repos/repos.toml")
 README = pathlib.Path("30-repos/README.md")
 
 #: Counting words, for a sentence that says "Those twelve" rather than "Those 12".
-#: Every bundled part is a repository of its own (ADR-0045), so the count runs past
+#: Every bundled part is a repository of its own (REPO-R94), so the count runs past
 #: forty. It stops at ninety-nine: a wrong word is better than a silently unwritten
 #: one, and `word` raises rather than falling back to a digit nobody reviewed.
 ONES = (

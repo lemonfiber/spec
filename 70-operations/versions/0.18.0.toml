@@ -269,7 +269,7 @@
 # with typed ports, mounts, environment and secrets, settings in the core's store, user
 # mode, posture, shapes, storage, networks derived from asks with no shared default, the
 # forwarded port passed contract to contract, and the operator's own overlay. A part moves
-# into its first-party plugin (F14, ADR-0042) only where the plugin's entry says what the
+# into its first-party plugin (F14, ARCH-R299) only where the plugin's entry says what the
 # part's says, so the model ships with the plugins rather than after them. It takes the
 # place of the single shape: `ARCH-R86`, `ARCH-R87`, `ARCH-R88` and `ARCH-R101` are
 # superseded and are not goals, a change to a staged version's goals made under
@@ -453,7 +453,7 @@
 # `D6-R21` has the decline service take back an invitation whose window closes: it removes
 # an account nobody was seen in, under guards read just before the call, and switches off
 # a reset. Without it a lapsed invitation stays claimable at Jellyfin until a lemonfiber
-# process next reads the household. The decline service is its own repository (ADR-0033),
+# process next reads the household. The decline service is its own repository (OPS-R86),
 # so this version cuts it, before the core.
 # `F13-R12` to `F13-R14` and `ARCH-R185` to `ARCH-R198` give the MCP server's HTTP mode its
 # certificate, and the assistant's reading of a tool result its boundary. An assistant whose
@@ -480,7 +480,7 @@
 # core. `G1-R15` offers every address, link and key a surface shows as a QR code beside its
 # text. Added after staging by the maintainer's decision of 2026-10-10 (OPS-R31).
 # `plugin-caddy` is cut by every version that cuts the core, because it builds the image
-# of the adapter in front of the proxy (ADR-0045, OPS-R86). Added after staging by the
+# of the adapter in front of the proxy (OPS-R86). Added after staging by the
 # maintainer's decision of 2026-10-11 (OPS-R31). `plugin-door` builds no image, the guarded
 # door's coming from `lemonfiber-door` (ADR-0056, OPS-R93), so no version cuts it and the
 # bundle pins its revision. `plugin-prowlarr`,
@@ -764,7 +764,7 @@ goals   = [
 # file, handed to the adapter through the `upstream.json` fields its `upstream` names, and
 # replaced in every place it was written. A bundled part's manifest names `api` until its
 # move, and the move needs a credential the core holds without reading the service's
-# configuration, so they ship with ADR-0045 §9's goal that no manifest names `api`.
+# configuration, so they ship with F14-R3's goal that no manifest names `api`.
 # `ARCH-R302` is amended in place. Added by the maintainer's decision of 2026-10-23
 # (OPS-R31).
 
@@ -797,7 +797,7 @@ goals   = [
 # it. Added by the maintainer's decision of 2026-10-21 (OPS-R31).
 
 # `ARCH-R295` to `ARCH-R297` record every recording a manifest names again from its pin
-# (ADR-0049): `lemonfiber plugin record` asks one fresh container per service after the
+# (REPO-R98): `lemonfiber plugin record` asks one fresh container per service after the
 # first run its adapter performs, records an adapter's conformance cases in front of it,
 # scrubs every credential, and writes a service whole or not at all. `ARCH-R285` is
 # amended in place to name them. A first-party plugin's upstream pins cannot move
@@ -817,7 +817,7 @@ goals   = [
 # record: lemonfiber holds only the adapter's key there. Added by the maintainer's decision of 2026-10-20
 # (OPS-R31).
 #
-# `ARCH-R298` to `ARCH-R301` install a part the bundle pins `installed` (ADR-0045 §3):
+# `ARCH-R298` to `ARCH-R301` install a part the bundle pins `installed` (ARCH-R299):
 # the `up` of a form holding its profile offers installing it from the embedded tree,
 # `lemonfiber update` offers a stack running it as its own service the move in place,
 # a declined move keeps the stack's service with what its adapter filled unfilled,
@@ -848,7 +848,7 @@ goals   = [
 # 2026-10-11 (OPS-R31).
 
 # `ARCH-R263` to `ARCH-R273` give every bundled part its repository before its adapter
-# (ADR-0045): the stack the core ships is assembled from the bundle at `schema = 2`, which
+# (REPO-R94): the stack the core ships is assembled from the bundle at `schema = 2`, which
 # declares the profiles, forms, removed services, choices of filler and links by name and
 # pins each first-party plugin by revision and tree digest, assembled or installed, with
 # the profile it sits in; the register of reserved ids reads the whole bundle; and the

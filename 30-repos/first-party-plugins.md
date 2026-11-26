@@ -6,7 +6,8 @@ One page for every bundled part's repository, and for each first-party plugin th
 offers rather than ships. Each is a first-party plugin, written in the same manifest as
 anybody's, pinned by the default bundle and embedded in the binary.
 
-**Implements:** [ADR-0045](../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md),
+**Implements:** [ADR-0041](../00-overview/decisions/0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md)
+and [the bundle's shape](../20-architecture/contracts/bundle.md#why-it-is-shaped-this-way),
 for [F14-R7](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md)
 and [F14-R15](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md).
 The manifest is [plugin.toml](../20-architecture/contracts/plugin-manifest.md) and the
@@ -141,15 +142,14 @@ A repository that builds an image also builds and publishes it from every commit
 manifest's pin to each, with every recording taken again from the new image as an
 upstream's pin is below, and a commit that changes nothing but the pin, its recordings,
 its proofs and its `targets.toml` publishes no image. The proxy's image is Caddy's,
-rebuilt with the file capability removed, so it starts under `standard` (ADR-0045), and
+rebuilt with the file capability removed, so it starts under `standard` ([lemonfiber-caddy](lemonfiber-caddy.md)), and
 the guarded door's is a Rust service of its own (ADR-0056); each is built in a
 repository of its own and pinned in its plugin's (`OPS-R93`).
 
 ## How its upstream pins move
 
 A plugin whose manifest runs an image not under `ghcr.io/lemonfiber/` calls `spec`'s
-reusable `upstream-pins` workflow on a weekly schedule
-([ADR-0049](../00-overview/decisions/0049-a-moved-pin-is-recorded-again-by-the-core.md)).
+reusable `upstream-pins` workflow on a weekly schedule (`REPO-R98`).
 lemonfiber's own images move when their repository publishes one (`OPS-R90`).
 
 | Step | What happens |
@@ -163,6 +163,16 @@ lemonfiber's own images move when their repository publishes one (`OPS-R90`).
 | When it merges | Armed where no recording still names the image it replaces, and merged once the required checks pass on its commit; otherwise disarmed, naming each recording left behind |
 
 One mover holds each upstream's pin: the plugin's own call of `upstream-pins`.
+
+Recording again is part of moving a pin, because a recording naming any digest but the
+manifest's pin is refused (`ARCH-R121`, `ARCH-R217`). Moving the pin and listing the
+stale recordings would leave every bump red until somebody recorded by hand, and the
+bot's next rebuild of the branch would discard what they pushed. Dependabot's docker
+manager edits no `plugin.toml`, records nothing and rebuilds its own branches. A recorder
+in `spec`, or in the plugin template's reader, would hold a first-run recipe for every
+part, written a second time beside the adapters that already perform each first run, so
+the recordings are taken by `lemonfiber plugin record`
+([what a recording is](../20-architecture/contracts/plugin-manifest-proof.md#what-a-recording-is)).
 
 ## Releasing
 
@@ -188,9 +198,9 @@ and the pin moves by a reviewed pull request on the catalogue
 
 ## Related
 
-- [ADR-0045](../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md) — every bundled part has its repository now, and its adapter later
+- [ADR-0041](../00-overview/decisions/0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md) — every part is a plugin, and the core speaks contracts
 - [bundle.md](../20-architecture/contracts/bundle.md) — how the bundle pins each of these
 - [adapter-kit-servarr](adapter-kit-servarr.md) — the client the Servarr adapters share
 - [lemonfiber-plugins](lemonfiber-plugins.md) — where the bundle lives, and the CI that holds each copy to its origin
 - [releasing](../70-operations/releasing.md) — `OPS-R86`, `OPS-R90`, `OPS-R91`
-- [ADR-0049](../00-overview/decisions/0049-a-moved-pin-is-recorded-again-by-the-core.md) — a moved pin is recorded again by the core
+- [plugin-manifest-proof](../20-architecture/contracts/plugin-manifest-proof.md#what-a-recording-is) — how `lemonfiber plugin record` takes every recording again when a pin moves

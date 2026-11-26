@@ -16,7 +16,7 @@
 
 **Amended** by [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md): the egress guard's shape is one of a closed set of named shapes.
 
-**Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): a part's repository and manifest exist before its adapter does, and the bundle assembles a part without one into the stack lemonfiber ships (§4); decline and the request gate declare themselves in `lemonfiber-decline` and `lemonfiber-request-gate`.
+**Amended** by [bundle.toml](../../20-architecture/contracts/bundle.md#why-it-is-shaped-this-way) and `REPO-R94`: a part's repository and manifest exist before its adapter does, and the bundle assembles a part without one into the stack lemonfiber ships (§4); decline and the request gate declare themselves in `lemonfiber-decline` and `lemonfiber-request-gate`.
 
 **Amended** by [ADR-0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): §5. The stream guard is applied the media server filler's declaration verbatim inside an envelope that also holds the one proxy address it trusts and where it asks the core about a live-stream pass, and the declaration names the paths it refuses and the query parameters that name another item.
 
@@ -36,7 +36,7 @@ adapter set closed: behaviour no longer lives in lemonfiber's process at all.
   media server's filler declares;
 - [ADR-0028](0028-a-supported-major-is-data-proved-by-its-own-recordings.md): a
   supported release is declared and proved by the adapter that speaks it;
-- [ADR-0033](0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md):
+- [the train's two steps](../../70-operations/releasing.md#the-trains-two-steps):
   first-party plugin images ride the release train.
 
 ## Context

@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-07-24
 
-**Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): profiles and forms are declared in the bundle, `bundle/bundle.toml`, rather than in `stack.toml`, and a part's one profile is the one the bundle assigns its first-party plugin.
+**Amended** by [bundle.toml](../../20-architecture/contracts/bundle.md#why-it-is-shaped-this-way) (`ARCH-R265`): profiles and forms are declared in the bundle, `bundle/bundle.toml`, rather than in `stack.toml`, and a part's one profile is the one the bundle assigns its first-party plugin.
 
 ## Context
 

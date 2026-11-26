@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The embedded bundle pins each image the train tagged, at that tag — ADR-0033 §4.
+"""The embedded bundle pins each image the train tagged, at that tag — OPS-R86.
 
 A version that cuts a repository building one of the stack's own images tags it
 first. The tag publishes the image, the repository's own `plugin.toml` pins it, the

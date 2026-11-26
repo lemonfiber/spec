@@ -219,11 +219,11 @@ class Refusals(Spec):
         self.assertIn("cites undefined ADR-0001", out)
 
     def test_only_the_first_stray_adr_in_a_file_is_named(self):
-        self.doc("00-overview/vision.md", "ADR-0004 and ADR-0005\n")
+        self.doc("00-overview/vision.md", "ADR-0006 and ADR-0007\n")
         code, out = run_main()
         self.assertEqual(code, 1)
-        self.assertIn("cites undefined ADR-0004", out)
-        self.assertNotIn("ADR-0005", out)
+        self.assertIn("cites undefined ADR-0006", out)
+        self.assertNotIn("ADR-0007", out)
 
     def test_a_link_to_a_file_that_is_not_there(self):
         self.doc("00-overview/vision.md", "see [the plan](./plan.md)\n")

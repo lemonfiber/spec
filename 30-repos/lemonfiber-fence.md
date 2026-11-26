@@ -7,7 +7,7 @@ and refuses every connection that service opens to a private address. One Docker
 the program that installs the rules.
 
 **Implements:** `ARCH-R363`, and the reading of the render group `ARCH-R237` asks for. Its place in the organisation is
-[ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md).
+[an image lemonfiber builds](README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own).
 
 ---
 
@@ -51,7 +51,7 @@ with every capability dropped and a read-only root, to ask that service's reques
 ## Releasing
 
 It is on the release train, as every image lemonfiber builds for the stack is
-([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)).
+([the train's two steps](../70-operations/releasing.md#the-trains-two-steps), `OPS-R94`).
 Its `release` workflow calls spec's `rust-service-release` with `pins: bundle`, because no
 plugin's manifest declares the fence. Every commit on `main` publishes a commit image under
 `main-<commit>`, and `bundle-image-pin` moves the bundle's `[fence]` table to it, writing

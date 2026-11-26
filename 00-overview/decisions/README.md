@@ -22,8 +22,6 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0001](0001-docker-compose-as-engine.md) | Docker Compose as the execution engine | Accepted |
 | [0002](0002-profiles-and-forms.md) | Profiles are facts; forms are intent | Accepted |
 | [0003](0003-rust-ratatui-for-cli.md) | Rust + Ratatui for the CLI/TUI | Accepted |
-| [0004](0004-four-repo-split.md) | Four repos rather than a monorepo | Accepted |
-| [0005](0005-embedded-stack-assets.md) | lemonfiber embeds the stack at build time | Accepted |
 | [0006](0006-single-data-mount.md) | One `/data` mount, subdirectories beneath | Accepted |
 | [0007](0007-dual-mode-jellyfin.md) | Jellyfin supports both Docker and native | Accepted |
 | [0008](0008-hybrid-docker-access.md) | Compose CLI for writes, Docker API for reads | Accepted |
@@ -51,7 +49,6 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0030](0030-a-declared-failure-is-its-own-verdict.md) | An assertion declared to fail on a recording is reported as failing as declared | Accepted |
 | [0031](0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md) | Installing a plugin and choosing a filler are web API writes; replacing a credential is not | Accepted |
 | [0032](0032-the-request-service-reaches-the-arrs-through-a-gate.md) | The request service reaches the \*arrs and the media server through a gate, holding only the gate's tokens | Accepted |
-| [0033](0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md) | Each image lemonfiber builds for the stack has its own repository, named for the service it runs | Accepted |
 | [0034](0034-a-catalogue-release-is-signed-with-a-key-the-binary-carries.md) | A catalogue release is signed with a key pair, and lemonfiber carries the public half | Accepted |
 | [0035](0035-what-the-phone-keeps-and-how.md) | What the phone keeps, and how | Accepted |
 | [0036](0036-a-plugin-may-come-from-any-source-the-command-takes.md) | A plugin may come from any source the command takes, over the web API too | Accepted |
@@ -60,14 +57,11 @@ that revisiting the decision later starts from evidence rather than from scratch
 | [0039](0039-each-repository-records-what-it-built.md) | Each repository records what it built, one row per requirement | Accepted |
 | [0040](0040-three-sites-each-with-one-reader.md) | Three sites, each for one reader, and the specification on the frontpage | Accepted |
 | [0041](0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md) | Every part is a plugin, and the core speaks contracts | Accepted |
-| [0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) | The bundle is first-party plugins, pinned and embedded | Accepted |
 | [0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md) | The core writes every Compose entry from one typed service model | Accepted |
 | [0044](0044-a-phone-proves-the-operator-with-a-device-key.md) | A phone proves the operator with a device key, so it never holds the password | Accepted |
-| [0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md) | Every bundled part has its repository now, and its adapter later | Accepted |
 | [0046](0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) | The stores are filled once, at the cutover, and a secret never enters the journal | Accepted |
 | [0047](0047-a-phone-hears-its-stacks-without-a-vendors-push-service.md) | A phone hears its stacks without a vendor's push service, in the kinds the core declares | Accepted |
 | [0048](0048-a-part-without-a-port-is-proved-by-running-its-own-program.md) | A part without a port is proved by running its own program | Accepted |
-| [0049](0049-a-moved-pin-is-recorded-again-by-the-core.md) | A moved pin is recorded again by the core | Accepted |
 | [0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md) | A contract hands its filler all it enforces, and reads back no secret | Accepted |
 | [0051](0051-a-fresh-claimant-answers-its-probe-and-the-core-asks-what-nothing-else-does.md) | A fresh claimant answers its probe, and the core asks what nothing else does | Accepted |
 | [0052](0052-a-curators-downloads-complete-into-one-folder-and-the-core-tells-each-part-what-it-holds.md) | A curator's downloads complete into one folder, and the core tells each part what it holds | Accepted |

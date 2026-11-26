@@ -179,7 +179,7 @@ jobs:
       # Not a coverage suite: it runs the release lanes' own steps out of the
       # committed workflows against a stubbed registry and local remotes, and
       # checks that a core is never tagged over a stack pinning another tag's
-      # image (ADR-0033 §4, Q-R66). The scripts it calls are measured above.
+      # image (OPS-R86, Q-R66). The scripts it calls are measured above.
       - name: The train is shown tagging images before the core (Q-R66)
         run: python3 scripts/test_train_workflows.py
       # Not a coverage suite: it runs the plugin gate's steps out of the committed

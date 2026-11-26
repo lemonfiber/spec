@@ -26,20 +26,20 @@ own behalf.
 Every bundled part is a first-party plugin in a repository of its own
 ([ADR-0041](../../00-overview/decisions/0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md)),
 and the bundle is what pins them and what the binary embeds
-([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md)).
+([the submodule](../../30-repos/lemonfiber.md#the-submodule)).
 A plugin manifest describes one part, in the vocabulary every author shares
 ([ADR-0043](../../00-overview/decisions/0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md)
 §2). What is about the whole stack has no place in any one part: the profiles, the
 forms, the services the catalogue no longer carries, which of two claimants the stack
 chooses, and the links that are genuinely about one service. The bundle declares those,
 and pins each part by the tree it was reviewed at
-([ADR-0045](../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)).
+([why it is shaped this way](#why-it-is-shaped-this-way)).
 
 A part enters the bundle before its adapter exists. Such a part is **assembled**:
 lemonfiber builds the stack it ships from the bundle and the parts' copies, and an
 assembled part's one service is a stack service in every respect, its in-process
 adapter included. A part whose adapter has shipped is **installed** through the plugin
-path, moving in place of the stack service it replaces (ADR-0042 §4). The bundle says
+path, moving in place of the stack service it replaces (`ARCH-R299`). The bundle says
 which, per part.
 
 ## File location
@@ -305,7 +305,7 @@ last_release = "2026-10-02"
 
 A plugin **builds an image** where one of its services runs an image under
 `ghcr.io/lemonfiber/`, where lemonfiber publishes the images it builds and nothing
-else ([ADR-0033](../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)).
+else ([an image lemonfiber builds](../../30-repos/README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own)).
 Only such a plugin is tagged by the train, and where `release` is named every image it
 builds is tagged at that release (`REPO-R92`).
 
@@ -319,7 +319,7 @@ renames none of them.
 | Stage | What lemonfiber does with it |
 |-------|-------------------------------|
 | `assembled` | Writes its one service into the stack it ships, as a stack service: the stack's origin, its setting names and the credential names of what it provides (`ARCH-R342`), every `[[secret]]` its plugin declares, one the operator enters held in the service id's namespace and one whose `of` names another service read from its holder (`ARCH-R275`), and its claims judged as a bundled service's (`F9-R2`). The plugin declares exactly one service, which speaks no contract, and every fixture its claims name lies under `recordings/<id>/`. |
-| `installed` | Installs it through the plugin path offline from the embedded tree and settles it as its capabilities' default filler (ADR-0042 §3), offered by the `up` or `switch` that starts a form holding its profile (`ARCH-R298`); a stack running the part as its own service is moved in place by `lemonfiber update stack --confirm`, through the plugin path (§4, `ARCH-R299`). The service whose id is the plugin's declares `replaces` naming it, and keeps the stack's setting and secret names for it and the credential names of what it provides (`ARCH-R273`, `ARCH-R342`), and every link by name and choice of filler naming that id reaches it (`ARCH-R301`). |
+| `installed` | Installs it through the plugin path offline from the embedded tree and settles it as its capabilities' default filler ([as an outsider's](#why-it-is-shaped-this-way)), offered by the `up` or `switch` that starts a form holding its profile (`ARCH-R298`); a stack running the part as its own service is moved in place by `lemonfiber update stack --confirm`, through the plugin path (§4, `ARCH-R299`). The service whose id is the plugin's declares `replaces` naming it, and keeps the stack's setting and secret names for it and the credential names of what it provides (`ARCH-R273`, `ARCH-R342`), and every link by name and choice of filler naming that id reaches it (`ARCH-R301`). |
 
 The release whose bundle moves a part from `assembled` to `installed` is the release that
 deletes its in-process adapter from the core. The move is one of the steps `lemonfiber
@@ -465,6 +465,38 @@ Each release of lemonfiber carries a JSON schema of `bundle.toml`,
 `contract/bundle.schema.json`, generated from the types lemonfiber reads it into
 (`ARCH-R172`).
 
+## Why it is shaped this way
+
+- **A first-party plugin is installed as an outsider's is.** Bringing up a form installs
+  its first-party plugins through the plugin path, offline from the embedded trees, and
+  settles each as its capability's default filler. Nothing about a first-party plugin
+  bypasses validation, conformance or the trust gate.
+- **The stack is not a Compose file someone runs without lemonfiber.** Each part's
+  description, starting files and recordings live in its plugin's repository, which is
+  what stands on its own (`REPO-R95`). A fork of the stack is a fork of
+  `lemonfiber-plugins` and of the plugins it pins.
+- **Every part has its repository before its adapter.** A part's repository is the one
+  description of it from the start: waiting for each adapter would keep a second
+  description of every adapterless part, maintained twice until the last adapter
+  shipped. The assembled stage is decided again if assembled parts outlive 0.18.0's
+  release.
+- **An install moves in place, on update.** A part moves in place of the stack's own
+  service by the update that brings its pin, rehearsed and shown before it is made
+  (`ARCH-R299`). Asking the operator to opt in to each move would keep
+  two code paths until every install had switched, and a stack that never switched would
+  keep an adapter the core deletes; moving fresh installs alone would keep every bundled
+  adapter in the core until a later major. This is decided again if an update cannot
+  move a part in place without losing data or a credential the part holds.
+- **A part keeps every name it had.** Its plugin id is its service id, and a first-party
+  service replacing a reserved id keeps the stack's setting, secret and credential names
+  (`ARCH-R273`, `ARCH-R342`), so a move migrates nothing. Renaming credentials into the
+  plugin's namespace would migrate every stored credential and its consumers for a
+  rename that carries no meaning.
+- **What is about the whole stack is the bundle's.** A profile, a form or a link by name
+  declared in a plugin manifest would be a field only first-party manifests could use,
+  trust deciding what a manifest may say, and a substitute could not stand in a part's
+  profile without naming it (`ARCH-R265`).
+
 ## Requirements
 
 | ID | Requirement |
@@ -487,9 +519,8 @@ Each release of lemonfiber carries a JSON schema of `bundle.toml`,
 
 ## Related
 
-- [ADR-0045](../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md) — the decision this contract implements
 - [ADR-0046](../../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) — an assembled part's secrets, and when the environment file is filed
-- [ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) — the bundle, pinned and embedded
+- [lemonfiber](../../30-repos/lemonfiber.md#the-submodule) — the submodule the core embeds the bundle through, and why it is embedded
 - [ADR-0002 Profiles and forms](../../00-overview/decisions/0002-profiles-and-forms.md)
 - [plugin-manifest](plugin-manifest.md) — what each pinned plugin declares
 - [stack-manifest](stack-manifest.md) — the form the bundle is assembled into, and a `--stack-dir` stack's format

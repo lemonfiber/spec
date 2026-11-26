@@ -401,6 +401,18 @@ write. Each
 recording keeps the request as declared, the status, the `content-type`, the body as
 parsed JSON or its first 1 KiB, and the `note` already there.
 
+**The recorder holds no first run of its own.** A service's first run is the one the
+stack performs through its adapter, so no part's first run is written twice, and a part
+the core cannot first-run is a part whose pin cannot move clean. One container serves
+every recording of its service, since a container per recording would repeat each first
+run for nothing a second container shows. The service's own network still has a route
+out, because some upstreams finish their first run only once they reach the internet,
+and Docker publishes no port from a network without one. A recording is never rewritten
+without running anything: one naming an image it never came out of is the drift
+`ARCH-R121` refuses. This is decided again if a part's first run cannot be performed by
+its adapter without an operator, or if an upstream's answers differ from one fresh
+container to the next in a way scrubbing cannot name.
+
 **What a recording holds is scrubbed.** Every credential the run made or read, in each
 encoding an answer could echo it in, each container's id, hostname and addresses, and
 the recording machine's name, kernel version and operating system as the engine reports

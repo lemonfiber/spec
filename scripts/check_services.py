@@ -2,7 +2,7 @@
 """The bundled-service count this repository states, against the bundle that pins them.
 
 The default bundle in `lemonfiber-plugins` pins one first-party plugin per bundled
-part (ADR-0042), so the number of its `[[plugin]]` tables is the number of bundled
+part (ARCH-R263), so the number of its `[[plugin]]` tables is the number of bundled
 services. The prose that states it is held to one shape — `<word> bundled services`
 — which is the whole of what this reads. A sentence that says it differently is not
 governed here: a pattern loose enough to catch every phrasing catches sentences

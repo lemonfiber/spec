@@ -18,8 +18,9 @@ CLI does not have, and then two answers to the same question.
 not a daemon. An operator runs `lemonfiber web`, a browser opens, and the process
 ends when they are done.
 
-Against that, [ADR-0004](0004-four-repo-split.md) fixed a four-repo split and named
-`lemonfiber` as "Rust CLI/TUI". A web surface has to live somewhere, and none of the
+Against that, the four-repo split, made because
+[an artefact with its own change rate, review style and release clock earns a repository of its own](../../30-repos/README.md#why-each-artefact-has-a-repository-of-its-own),
+named `lemonfiber` as "Rust CLI/TUI". A web surface has to live somewhere, and none of the
 four existing repos is obviously it.
 
 The contested part is not *whether* to build it. It is where the boundary goes — and
@@ -75,8 +76,8 @@ lints and coverage rules all assume Rust — and because component review and
 Storybook want a cadence of their own. The contract we would be avoiding is one we
 already ship and version for scripts.
 
-**A submodule, as the stack already is under
-[ADR-0005](0005-embedded-stack-assets.md).**
+**A submodule, as the stack already is
+([the submodule](../../30-repos/lemonfiber.md#the-submodule)).**
 Independent design, one shipped artefact, no runtime contract. Genuinely close, and
 the pattern is proven here. Rejected because the stack is *data* — it has no
 runtime relationship with the binary — whereas the SPA and the API talk to each
