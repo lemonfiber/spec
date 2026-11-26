@@ -443,7 +443,7 @@
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 669 goals, seeded from the roadmap milestone this version serves;
+# 671 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -678,6 +678,7 @@ goals   = [
     "G5-R15",
     "ARCH-R143", "F8-R13",
     "ARCH-R427",
+    "ARCH-R461", "ARCH-R462",
 ]
 
 # `ARCH-R143` and `F8-R13` say a recipe step's call reaches a service in the API that
@@ -857,4 +858,8 @@ goals   = [
 # `ARCH-R78`'s, served in this version. `N1-R2` and `N1-R5` are parity, every action and
 # every setting another surface offers, which is claimed when the interfaces stop moving:
 # 1.0.0.
+# `ARCH-R461` and `ARCH-R462` put a setting's default on each line that changes it: on the web
+# API's settings answer, as part of the offer and in the journal, and in what `settings set` and
+# `settings clear` print, so a cleared setting says what it goes back to. The SDKs, the web
+# console and the companion's operator side read the field.
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
