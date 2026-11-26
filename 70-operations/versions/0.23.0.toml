@@ -1,6 +1,9 @@
 # Watching the watcher — metrics, dashboards and uptime monitoring.
 #
-# 51 goals, seeded from the roadmap milestone this version serves;
+# `G10-R17` is the household surface's side of `ARCH-R405`, "Tell me when…" from the
+# member's own read, by the maintainer's decision of 2026-11-26.
+#
+# 52 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `K2-R3`, `K2-R4`, `K2-R5`, `K2-R7`, `K2-R8`, `K2-R10` and `K2-R12` moved to 0.19.0 with
 # the outside watcher (ADR-0061), by the maintainer's decision of 2026-11-08.
@@ -64,6 +67,7 @@ goals   = [
     "K2-R13",
     "K2-R14",
     "G11-R20",
+    "G10-R17",
 ]
 
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
