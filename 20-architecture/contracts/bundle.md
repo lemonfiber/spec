@@ -480,8 +480,9 @@ Each release of lemonfiber carries a JSON schema of `bundle.toml`,
   description of every adapterless part, maintained twice until the last adapter
   shipped. The assembled stage is decided again if assembled parts outlive 0.18.0's
   release.
-- **An install moves in place, on update.** A part's move is one step of the update the
-  operator confirms (`ARCH-R299`). Asking the operator to opt in to each move would keep
+- **An install moves in place, on update.** A part moves in place of the stack's own
+  service by the update that brings its pin, rehearsed and shown before it is made
+  (`ARCH-R299`). Asking the operator to opt in to each move would keep
   two code paths until every install had switched, and a stack that never switched would
   keep an adapter the core deletes; moving fresh installs alone would keep every bundled
   adapter in the core until a later major. This is decided again if an update cannot
