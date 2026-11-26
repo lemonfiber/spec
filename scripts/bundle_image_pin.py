@@ -15,8 +15,8 @@ pull request takes.
 
 Prints `moved=yes` or `moved=no`. Refuses, naming what:
 
-- a repository other than `lemonfiber/lemonfiber-<service>`, the one ADR-0033 builds the
-  image in, so no other repository moves its pin;
+- a repository other than `lemonfiber/lemonfiber-<service>`, the one repository
+  that builds the image (30-repos/README.md), so no other repository moves its pin;
 - an image other than `ghcr.io/lemonfiber/<service>`, a tag that is neither one the train
   cuts nor `main-` and twelve lowercase hexadecimal digits, or a digest that is not one;
 - a digest other than the one the registry answers for the image at that tag, read with
@@ -42,7 +42,7 @@ import imagetools
 import paths
 from patterns import COMMIT_IMAGE, DIGEST
 
-#: Where lemonfiber publishes the images it builds, and nothing else (ADR-0033).
+#: Where lemonfiber publishes the images it builds, and nothing else (30-repos/README.md).
 REGISTRY = "ghcr.io/lemonfiber"
 
 SERVICE = re.compile(r"\A[a-z0-9]+(-[a-z0-9]+)*\Z")

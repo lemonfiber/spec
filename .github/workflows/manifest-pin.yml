@@ -18,7 +18,7 @@
 # plugin-template's reader builds it, records every recording the manifest
 # names again from a fresh container of the new image, and the reader then
 # writes `proofs.json` from them, as the plugin's own check does (ARCH-R285,
-# ADR-0049).
+# OPS-R91).
 #
 # Two jobs, as `upstream-pin` has, through the same `pin_bump.py`. `record`
 # builds lemonfiber and runs the image holding no secret and reading the

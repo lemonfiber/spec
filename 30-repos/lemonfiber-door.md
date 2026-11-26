@@ -10,7 +10,7 @@ image.
 `ARCH-R304`) as its own upstream (`ARCH-R344`), as
 [ADR-0056](../00-overview/decisions/0056-the-guarded-door-is-a-rust-service-that-checks-the-request-it-forwards.md)
 decides. Its place in the organisation is
-[ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md).
+[an image lemonfiber builds](README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own).
 
 ---
 

@@ -1,5 +1,5 @@
 # Reusable: publish a first-party adapter's image from a tag the release train cut, and
-# from every commit on main (ADR-0033 §3, ADR-0042 §7, OPS-R90), and propose the digest
+# from every commit on main (OPS-R86, OPS-R90), and propose the digest
 # it published to the plugin's manifest, with every recording taken again from it
 # (OPS-R91).
 #

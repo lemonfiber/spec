@@ -33,7 +33,7 @@ The answer is not a fourth renderer. It is **one**: authorship and checking stay
 publication moves to the site whose whole job is publication.
 
 **The org has settled this shape once already, in both directions.**
-[ADR-0005](0005-embedded-stack-assets.md) pins the stack as a submodule at a tag.
+The core pins the stack as a submodule ([the submodule](../../30-repos/lemonfiber.md#the-submodule)).
 [ADR-0012](0012-web-assets-embedded-at-build-time.md) then chose the same shape over
 copying the files in, and said why:
 

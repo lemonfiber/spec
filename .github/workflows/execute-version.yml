@@ -9,7 +9,7 @@
 # released before it is. Maintainer-only; dry_run defaults on.
 #
 # A version that cuts a repository building one of the stack's own images, or a
-# first-party plugin's repository, is executed twice (ADR-0033 §4, OPS-R86). The
+# first-party plugin's repository, is executed twice (OPS-R86, releasing.md). The
 # first run tags those repositories and stops. Once the catalogue's bundle pins the
 # image each tag published and each plugin at the version, and the core's submodule
 # embeds that bundle, the second run checks those pins and tags everything else.
@@ -141,7 +141,7 @@ jobs:
           fi
           git -C checkouts/lemonfiber checkout --quiet --detach "$CORE"
           echo "lemonfiber held at ${CORE:0:8}, the commit its plugins were proved with."
-      - name: Which step of the train this run is (ADR-0033 §4)
+      - name: Which step of the train this run is (OPS-R86)
         id: step
         env:
           VERSION: ${{ inputs.version }}
@@ -180,7 +180,7 @@ jobs:
           python3 scripts/check_no_stubs.py --version "$VERSION" "${args[@]}"
       - name: Cross-stream compatibility (OPS-R35)
         run: python3 scripts/embedded_bundle.py --core checkouts/lemonfiber
-      - name: The embedded bundle pins each image at this tag (ADR-0033 §4)
+      - name: The embedded bundle pins each image at this tag (OPS-R86)
         if: ${{ steps.step.outputs.step == 'streams' }}
         env:
           VERSION: ${{ inputs.version }}

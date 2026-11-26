@@ -110,4 +110,4 @@ Taken to its limit, this is a stack lemonfiber only observes.
 
 - [F1 Customisation](../features/f-extensibility/f1-customisation.md)
 - [C9 Drift detection](../features/c-trust/c9-drift.md)
-- [ADR-0001](../../00-overview/decisions/0001-docker-compose-as-engine.md) · [ADR-0002](../../00-overview/decisions/0002-profiles-and-forms.md) · [ADR-0005](../../00-overview/decisions/0005-embedded-stack-assets.md)
+- [ADR-0001](../../00-overview/decisions/0001-docker-compose-as-engine.md) · [ADR-0002](../../00-overview/decisions/0002-profiles-and-forms.md) · [the submodule](../../30-repos/lemonfiber.md#the-submodule)

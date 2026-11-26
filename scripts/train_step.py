@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Which of the train's two steps a run is on, and what it tags — ADR-0033 §4.
+"""Which of the train's two steps a run is on, and what it tags — OPS-R86, releasing.md.
 
 A version that cuts a repository building one of the stack's own images, or a
 first-party plugin's repository (OPS-R86), is cut in two runs of the same lane.

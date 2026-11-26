@@ -92,7 +92,7 @@ nonexistent path.
 The same logic applies to the compose file and stack configuration lemonfiber
 writes to disk. Local modifications are detected by content hash and are never
 silently overwritten on upgrade
-([ADR-0005](../../../00-overview/decisions/0005-embedded-stack-assets.md)); the
+([the submodule](../../../30-repos/lemonfiber.md#the-submodule)); the
 operator is shown a diff.
 
 ### A full reset agrees to what it showed

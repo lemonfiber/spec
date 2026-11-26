@@ -33,7 +33,7 @@ guarantee quietly stops being true.
 ## Its place beside the bundle
 
 The stack lemonfiber ships is assembled from the bundle
-([ADR-0045](../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)):
+([bundle](bundle.md#why-it-is-shaped-this-way)):
 the profiles, forms, wiring and removed services are the bundle's, and each service is
 the one service of a first-party plugin the bundle pins as `assembled`, declared in that
 plugin's own manifest. lemonfiber assembles them into this format and materialises none
@@ -130,7 +130,7 @@ breaking structural change.
 lemonfiber refuses a manifest whose `schema_version` it does not implement, with
 both versions named (`F1-R9`). This turns version skew into a clear error rather
 than an obscure Compose failure — and because the stack is embedded at build time
-([ADR-0005](../../00-overview/decisions/0005-embedded-stack-assets.md)), it is
+([the submodule](../../30-repos/lemonfiber.md#the-submodule)), it is
 usually caught at **compile time** rather than reaching a user at all.
 
 `stack_version` is the *content* version and is semver; it moves when services or
@@ -181,7 +181,7 @@ media_types = ["tv"]
 | `health` | table | | See below. Absent means lifecycle waits on container state only. |
 | `listens` | integer | ✔ where it answers on a port other than `port` | The port it answers on inside the container, where `port` is published to. Default `port`. See [No `api`](#no-api). |
 | `criticality` | enum | ✔ | `critical` \| `core` \| `important` \| `enhancing` \| `optional` (`F2-R3`) |
-| `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`), except on a service whose image lemonfiber builds from its own code, which carries `Hippocratic-3.0` and nothing else. Such a service is told by its `image`, under `ghcr.io/lemonfiber/`, where lemonfiber publishes the images it builds and nothing else ([ADR-0033](../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)), together with its `upstream`, under `https://github.com/lemonfiber/`. An upstream's image lemonfiber rebuilds is under `ghcr.io/lemonfiber/` too, and keeps its upstream's licence. |
+| `license` | string | ✔ | SPDX identifier. A non-OSI value fails validation (`F2-R5`, `F2-R12`), except on a service whose image lemonfiber builds from its own code, which carries `Hippocratic-3.0` and nothing else. Such a service is told by its `image`, under `ghcr.io/lemonfiber/`, where lemonfiber publishes the images it builds and nothing else ([an image lemonfiber builds](../../30-repos/README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own)), together with its `upstream`, under `https://github.com/lemonfiber/`. An upstream's image lemonfiber rebuilds is under `ghcr.io/lemonfiber/` too, and keeps its upstream's licence. |
 | `upstream` | string | ✔ | Project URL, for maintenance review (`F2-R14`) |
 | `last_release` | string | ✔ | `YYYY-MM-DD`. The **latest upstream release**, not the pinned one — an abandonment signal, refreshed when the pin is reviewed (`F2-R14`). Assembled, the one its `[[plugin]]` names. |
 | `describes` | string | ✔ | What it does *for the operator* (`F2-R1`) |
@@ -748,7 +748,7 @@ See [versioning](versioning.md).
 
 - [bundle](bundle.md) — what the stack lemonfiber ships is assembled from: the profiles, forms, wiring and each part, pinned
 - [ADR-0002 Profiles and forms](../../00-overview/decisions/0002-profiles-and-forms.md)
-- [ADR-0005 Embedded stack assets](../../00-overview/decisions/0005-embedded-stack-assets.md)
+- [The submodule](../../30-repos/lemonfiber.md#the-submodule) — why the binary embeds the stack it ships
 - [B1 Forms](../../10-functional/features/b-running/b1-forms.md) · [F2 Service catalogue](../../10-functional/features/f-extensibility/f2-service-catalogue.md)
 - [F4 The capability vocabulary](../../10-functional/features/f-extensibility/f4-capabilities.md) · [F9 Capabilities of the bundled services](../../10-functional/features/f-extensibility/f9-bundled-capabilities.md) — what `provides` and `[[wiring]]` are for
 - [capability-vocabulary.md](capability-vocabulary.md) — the names a wiring may ask for

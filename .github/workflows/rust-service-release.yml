@@ -1,5 +1,5 @@
 # Publish a Rust service's image from every commit on main and from each tag the
-# release train cuts (ADR-0033 §3, §4; OPS-R90, OPS-R91).
+# release train cuts (OPS-R86, OPS-R90, OPS-R91).
 #
 # A push to `main` publishes the commit as `main-<12 hex>`, and a tag `vX.Y.Z`, or
 # `vX.Y.Z-<identifier>` for a pre-release, on a commit `main` holds publishes that
@@ -16,7 +16,7 @@
 # provenance, and gets a build-provenance attestation and an SBOM attestation per
 # platform from GitHub. The index digest is recorded in the run summary.
 #
-# The repository declares its service in a `plugin.toml` of its own (ADR-0045 §1),
+# The repository declares its service in a `plugin.toml` of its own (REPO-R94),
 # which is what pins the image and what the bundle takes, and one without it
 # publishes nothing, unless it says `pins: bundle`: an image no plugin declares, such
 # as the fence's, holds no plugin.toml, and the bundle's own table for its service
@@ -35,7 +35,7 @@
 # that hold it, which run nothing of the repository's.
 #
 # The service id is the calling repository's name without `lemonfiber-`
-# (ADR-0033 §1), so every image repository calls this with nothing to say:
+# (30-repos/README.md), so every image repository calls this with nothing to say:
 #
 #   on:
 #     push:
@@ -122,13 +122,13 @@ jobs:
           set -euo pipefail
           service="${REPO#lemonfiber-}"
           if [ "$service" = "$REPO" ] || [[ ! "$service" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
-            echo "::error::'${REPO}' is not named lemonfiber-<service> (ADR-0033 §1)"
+            echo "::error::'${REPO}' is not named lemonfiber-<service> (30-repos/README.md)"
             exit 1
           fi
           case "$PINS" in
             manifest)
               if [ ! -f plugin.toml ]; then
-                echo "::error::'${REPO}' holds no plugin.toml, which is what pins its image (ADR-0045 §1)"
+                echo "::error::'${REPO}' holds no plugin.toml, which is what pins its image (REPO-R94)"
                 exit 1
               fi
               ;;
@@ -368,7 +368,7 @@ jobs:
           push-to-registry: true
           create-storage-record: false
 
-  # The manifest is the bundle's source for this image (ADR-0045 §1, §5).
+  # The manifest is the bundle's source for this image (REPO-R94, ARCH-R266).
   # `manifest-pin` puts a commit image on the commit branch and a train tag on the
   # tag branch, with every recording taken again from it.
   manifest:

@@ -96,4 +96,4 @@ recording. The live pass at start still runs after that.
 
 - [F14](../../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md) — `F14-R6`
 - [ADR-0028](0028-a-supported-major-is-data-proved-by-its-own-recordings.md) — a supported major is proved by its own recordings
-- [ADR-0005](0005-embedded-stack-assets.md) — lemonfiber embeds the stack at build time
+- [the submodule](../../30-repos/lemonfiber.md#the-submodule) — lemonfiber embeds the stack at build time

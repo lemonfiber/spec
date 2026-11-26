@@ -105,7 +105,7 @@ using the same SPDX identifiers.
 | GPL-2.0-only | Jellyfin, SABnzbd, qBittorrent |
 | MIT | Bindery, Seerr, Gluetun, FlareSolverr, Recyclarr, Unpackerr |
 | Apache-2.0 | NZBHydra2, Caddy |
-| Hippocratic-3.0 | The request gate, the decline service — lemonfiber's own ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md)) |
+| Hippocratic-3.0 | The request gate, the decline service — lemonfiber's own ([an image lemonfiber builds](../30-repos/README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own)) |
 
 **Our licence choice has no effect on theirs, and theirs has none on ours.**
 A first-party plugin's manifest *references* public container images; it does not

@@ -61,7 +61,7 @@ system.
 ### Compatibility is checked before, not after
 
 A new lemonfiber carries a new pinned stack, and the manifest contract has a
-schema version ([ADR-0005](../../../00-overview/decisions/0005-embedded-stack-assets.md)).
+schema version ([the submodule](../../../30-repos/lemonfiber.md#the-submodule)).
 Where an update would require materialising a newer stack, that's stated up front,
 along with whether any service update is implied.
 
@@ -149,6 +149,6 @@ both render as *up to date*, and one of them is a guess.
 ## Related
 
 - [E1 Stack updates](e1-stack-updates.md) — updating the services
-- [ADR-0005 Embedded stack assets](../../../00-overview/decisions/0005-embedded-stack-assets.md)
+- [The submodule](../../../30-repos/lemonfiber.md#the-submodule) — why the binary embeds the stack it ships
 - [G8 Privacy stance](../g-ux/g8-privacy.md) — what an update check transmits
 - [C4 Support bundle](../c-trust/c4-support-bundle.md) — version provenance in reports

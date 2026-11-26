@@ -7,7 +7,7 @@ Rust, one crate, one image.
 
 **Implements:** [ADR-0029](../00-overview/decisions/0029-a-household-service-declines-an-invitation-with-one-key.md),
 for `D6-R15`, `D6-R16`, `D6-R21` and `G5-R14`. Its place in the organisation is
-[ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md).
+[an image lemonfiber builds](README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own).
 
 ---
 
@@ -31,7 +31,7 @@ or, under the guards ADR-0029 §2a states, removes it.
 
 ## Releasing
 
-On the train ([ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md) §3–§4).
+On the train ([the train's two steps](../70-operations/releasing.md#the-trains-two-steps), `OPS-R86`).
 Its entry in `repos.toml` carries `service = "decline"`, which is how the train knows
 it. Every version that cuts the core cuts this repository and tags it at `v<version>`
 before the core, and no pre-release tags it (`OPS-R86`). Each signed tag builds

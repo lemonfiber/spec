@@ -52,7 +52,7 @@ is generated that the operator cannot read.
 
 ### A local stack can be substituted wholesale
 
-`--stack-dir` points at a fork ([ADR-0005](../../../00-overview/decisions/0005-embedded-stack-assets.md)).
+`--stack-dir` points at a fork ([the submodule](../../../30-repos/lemonfiber.md#the-submodule)).
 The operator maintains their own compose file and manifest; lemonfiber operates
 it, validating only the manifest contract.
 
@@ -160,6 +160,6 @@ Per managed area:
 
 - [ADR-0001 Compose as engine](../../../00-overview/decisions/0001-docker-compose-as-engine.md)
 - [ADR-0002 Profiles and forms](../../../00-overview/decisions/0002-profiles-and-forms.md)
-- [ADR-0005 Embedded stack assets](../../../00-overview/decisions/0005-embedded-stack-assets.md)
+- [The submodule](../../../30-repos/lemonfiber.md#the-submodule) — why the binary embeds the stack it ships
 - [C9 Drift detection](../c-trust/c9-drift.md) — how edits are protected
 - [F2 Service catalogue](f2-service-catalogue.md) · [J8 Customising](../../journeys/j8-customising.md)

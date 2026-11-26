@@ -17,7 +17,7 @@ of [governance](../50-governance/); consumes [`brand`](brand.md)
 ## Why this is a separate repo
 
 The same floor that made the org multi-repo
-([ADR-0004](../00-overview/decisions/0004-four-repo-split.md)): the site is a
+([why each artefact has a repository of its own](README.md#why-each-artefact-has-a-repository-of-its-own)): the site is a
 distinct artifact with its own toolchain (a Node/Astro build) and its own release
 cadence (it redeploys when *any* repo changes, not when a binary ships). Folding
 it into `lemonfiber` or `spec` would couple an unrelated build to theirs and blur
@@ -115,7 +115,7 @@ CI reuses the shared workflows (`spec-check`, `hygiene`, `security`, `dco`,
 
 ## Related
 
-- [ADR-0004 Four-repo split](../00-overview/decisions/0004-four-repo-split.md)
+- [Why each artefact has a repository of its own](README.md#why-each-artefact-has-a-repository-of-its-own)
 - [brand](brand.md) — the tokens the site consumes
 - [roadmap](../00-overview/roadmap.md) — the milestones the versions serve
 - [where every version stands](../70-operations/staging.md#where-every-version-stands) — the report whose snapshot it renders

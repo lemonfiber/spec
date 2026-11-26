@@ -131,7 +131,7 @@ TRANSMISSION_WEB_HOME = "/usr/share/transmission/public_html"
 | `outside` | table | | Only where it `fronts`: each conformance case it is asked that reaches a host outside the stack, written `<capability>@<major>/<case>`, to that host, as `{ "owner.claim@1/claim-answers" = "plex.tv" }` where claiming exchanges the operator's code at plex.tv. `lemonfiber plugin record --check` leaves such a case as recorded rather than reaching that host from CI, names it with its host, and still requires its recording, which the author takes with `lemonfiber plugin record` (`ARCH-R367`). |
 | `native` | string | | The API this service answers the stack's other services in, by the name those services know it by (`jellyfin`, `plex`, `emby`). Declared on the upstream an adapter `fronts`, where other services reach that upstream directly rather than through the adapter: a request service is set up against a media server in the media server's native API (`F14-R26`, `ARCH-R221`). |
 | `certificate` | table | | A self-signed certificate lemonfiber makes for the service and writes beneath its configuration directory before it first starts: `key` (✔) and `certificate` (✔), relative paths, and `names` (✔), the host names it is made out to — see [`certificate`](#certificate--one-lemonfiber-makes-for-it) (`ARCH-R356`). Not on a service that provides `stream.guard`, which the core makes one for already. |
-| `replaces` | string | | An id the [bundle reserves](bundle.md#the-reserved-register), of the service this service moves in place of: the same container name, configuration directory and data, so an install moves the bundled service rather than running beside it ([ADR-0042](../../00-overview/decisions/0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md) §4). It names the service's own id, and only that service may take the reserved id, port and hostname (`ARCH-R222`). Only a first-party plugin's install honours it (`F14-R29`), and the service keeps the stack's setting, secret and credential names for that id, so the move migrates none (`ARCH-R273`). |
+| `replaces` | string | | An id the [bundle reserves](bundle.md#the-reserved-register), of the service this service moves in place of: the same container name, configuration directory and data, so an install moves the bundled service rather than running beside it (`ARCH-R299`). It names the service's own id, and only that service may take the reserved id, port and hostname (`ARCH-R222`). Only a first-party plugin's install honours it (`F14-R29`), and the service keeps the stack's setting, secret and credential names for that id, so the move migrates none (`ARCH-R273`). |
 | `shape` | enum | | `egress-guard` \| `render`. The one privileged shape lemonfiber writes for this service, from a closed set; each names who may declare it, and the operator approves it apart from the offer — see [shapes](#shapes--the-only-route-to-a-device-or-a-privilege) (`F14-R12`, `F14-R21`, `ARCH-R237`, `ARCH-R238`). |
 
 ### The image is named by digest
@@ -386,7 +386,8 @@ plugin-sabnzbd/
   the plugin and followed on the operator's machine.
 
 Any plugin may ship them, first-party or not: a substitute that needs a starting file
-stands in for a part that has one on the same terms.
+stands in for a part that has one on the same terms. They live in the plugin, not in the
+core, because a second home for what describes a part drifts from its manifest.
 
 #### A secret in a starting file
 
@@ -668,7 +669,10 @@ publishes the low port to it. The proxy listens on 8080 and 8443 and publishes 8
 binary carries a file capability `standard` does not hold cannot start under it at any
 port, and Caddy's image carries `NET_BIND_SERVICE` on its binary, so the proxy runs an
 image its own repository rebuilds from Caddy's with that capability removed
-([ADR-0045](../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)).
+([lemonfiber-caddy](../../30-repos/lemonfiber-caddy.md), `OPS-R93`). Adding
+`NET_BIND_SERVICE` to `standard`, or a shape for low ports, would widen every service's
+entry or add a privilege a reviewer has to judge, for a port number a published mapping
+already gives.
 
 `mem_limit_mib` is a ceiling and `memory_mib` an estimate, and they are two fields
 because they answer two questions (`ARCH-R235`). The estimate is summed into what a form
@@ -918,7 +922,8 @@ the home address. It is not a severity a contributor assigns to their own work: 
 classification drives how failures are reported and how hard lemonfiber tries to stop
 the operator proceeding. So it is allowed with `shape = "egress-guard"` and nowhere
 else, whoever wrote the plugin, and a substitute egress guard is as critical as the
-guard it replaces. A service declaring it without that shape is refused, naming the
+guard it replaces. No `critical` at all would take from the egress guard the one
+classification that reports its failure as leaving the machine. A service declaring it without that shape is refused, naming the
 value, the shape it needs and the four available without it (`ARCH-R97`).
 
 ### The fields that are absent, and why

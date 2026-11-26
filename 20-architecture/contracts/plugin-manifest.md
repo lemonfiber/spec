@@ -943,7 +943,7 @@ unreadable.
 
 - [ADR-0021](../../00-overview/decisions/0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md) — the decision this contract implements
 - [ADR-0048](../../00-overview/decisions/0048-a-part-without-a-port-is-proved-by-running-its-own-program.md) — a proof that runs the image's own program
-- [ADR-0049](../../00-overview/decisions/0049-a-moved-pin-is-recorded-again-by-the-core.md) — every recording taken again by the core when a pin moves
+- [plugin-manifest-proof](plugin-manifest-proof.md#what-a-recording-is) — every recording taken again by the core when a pin moves
 - [ADR-0046](../../00-overview/decisions/0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md) — when the environment file is filed, and what the journal keeps of a secret
 - [plugin-manifest-service](plugin-manifest-service.md) — what a plugin runs, field by field
 - [stack-manifest](stack-manifest.md) — the vocabulary a plugin's service is declared in, and the whole-stack manifest this is not

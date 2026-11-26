@@ -71,7 +71,7 @@ class ManifestReposTests(Workspace):
 
 
 class ImageReposTests(Workspace):
-    """Which streams a version tags before the core, read from the registry — ADR-0033 §4."""
+    """Which streams a version tags before the core, read from the registry — OPS-R86."""
 
     def setUp(self):
         super().setUp()
@@ -212,7 +212,7 @@ class PluginReposTests(Workspace):
             self.assertIn(said, str(caught.exception))
 
     def test_a_plugin_that_builds_no_image_is_never_tagged_nor_owed(self):
-        """Pinned by revision and tree digest, it is no stream the train cuts (ADR-0045)."""
+        """Pinned by revision and tree digest, it is no stream the train cuts (REPO-R97)."""
         registry = {
             "repo": [*self.registry["repo"], {"name": "plugin-sonarr", "plugin": "sonarr", "image": False}]
         }
@@ -777,7 +777,7 @@ class EmbeddedTests(TrainImages):
 
 
 class CheckImagePinsTests(EmbeddedTests):
-    """The embedded bundle pins each tagged image at its tag and digest — ADR-0033 §4."""
+    """The embedded bundle pins each tagged image at its tag and digest — OPS-R86."""
 
     def copy(self, tag="0.2.0", digest=TrainImages.DIGEST, image="ghcr.io/lemonfiber/decline"):
         return {"service": [{"id": "decline", "image": image, "tag": tag, "digest": digest}]}

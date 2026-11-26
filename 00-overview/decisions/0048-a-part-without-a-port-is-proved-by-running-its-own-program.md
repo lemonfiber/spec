@@ -21,7 +21,7 @@
 - the core starts the proof's container through the engine API, as an exception to
   ADR-0008's split.
 
-**Amended** by [ADR-0049](0049-a-moved-pin-is-recorded-again-by-the-core.md): §3. The record mode records
+**Amended** by `ARCH-R285` ([what a recording is](../../20-architecture/contracts/plugin-manifest-proof.md#what-a-recording-is)): §3. The record mode records
 request proofs, claim probes, contributed checks and conformance cases as well as runs.
 
 **Amended** by [ADR-0050](0050-a-contract-hands-its-filler-all-it-enforces-and-reads-back-no-secret.md): §1. A capability whose contract says its fillers listen on nothing may declare a probe that is a run of the filler image's own program, judged on `exit` and `stdout_starts_with`; `quality.sync` is that capability, and a claim binds its probe with `run`.

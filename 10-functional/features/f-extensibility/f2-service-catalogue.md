@@ -85,7 +85,7 @@ Recyclarr, Unpackerr, Bindery, Audiobookshelf), Apache-2.0 (NZBHydra2, Caddy).
 
 The services whose images lemonfiber builds from its own code — the request gate
 and the decline service
-([ADR-0033](../../../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md))
+([an image lemonfiber builds](../../../30-repos/README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own))
 — carry lemonfiber's own licence, `Hippocratic-3.0`, as the rest of its code
 does ([licence rationale](../../../90-appendix/license-rationale.md)). Their
 source is public, so their licence is verified the same way, and it is

@@ -22,8 +22,8 @@
 #       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
 #
 # The job that commits runs only for a push to `main` or a pushed train tag of
-# `lemonfiber-<service>` in this organisation, the one repository ADR-0033 builds the
-# image in, judged in its `if:` before any step runs; so no other repository, and no
+# `lemonfiber-<service>` in this organisation, the one repository that builds the
+# image (30-repos/README.md), judged in its `if:` before any step runs; so no other repository, and no
 # other branch, moves the pin. The digest handed in is
 # held to what the registry answers for the tag, read with the run's own token, which
 # can read packages and nothing else, before anything is written. The App's token is

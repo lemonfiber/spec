@@ -76,8 +76,7 @@ A part has its repository before it has its adapter. A part without one is assem
 the bundle into the stack lemonfiber ships, as a stack service reached through its
 in-process adapter and filling its capabilities through its claims; the release whose
 bundle installs it moves it in place and deletes that adapter
-([ADR-0045](../../../00-overview/decisions/0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md),
-[bundle](../../../20-architecture/contracts/bundle.md)).
+([bundle](../../../20-architecture/contracts/bundle.md#why-it-is-shaped-this-way)).
 
 ### Every part has a capability, and something asks for it
 

@@ -19,7 +19,7 @@
 
 **Amends**:
 
-- [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md):
+- [the first-party plugins](../../30-repos/first-party-plugins.md):
   the guarded door's image is no longer Caddy's rebuilt; `plugin-door` builds no image
   and is pinned by revision.
 

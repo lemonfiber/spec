@@ -33,28 +33,27 @@
 - the model ships in 0.18.0;
 - an operator's own overlay, merged last and shown as unvetted, is the escape hatch.
 
-**Amended** by [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md): the stack's own services are the parts the bundle assembles from their first-party plugins, and each part's image is run under its posture by its own repository's CI.
+**Amended** by [bundle.toml](../../20-architecture/contracts/bundle.md#stage--assembled-or-installed) and `REPO-R93`: the stack's own services are the parts the bundle assembles from their first-party plugins, and each part's image is run under its posture by its own repository's CI.
 
 **Superseded in part** by [ADR-0046](0046-the-stores-are-filled-once-at-the-cutover-and-a-secret-never-enters-the-journal.md): the last sentence of §7. The stack's environment file is read once, at the first run of the release that stops reading the static Compose files, rather than at each part's move in place.
 
 **Amends**:
 
-- [ADR-0005](0005-embedded-stack-assets.md): what is materialised is the manifests, and the
+- [the submodule](../../30-repos/lemonfiber.md#the-submodule): what is materialised is the manifests, and the
   Compose project is generated from them;
 - [ADR-0021](0021-a-plugin-is-data-and-lemonfiber-writes-its-container.md): the vocabulary
   widens and stays closed and typed, the entry extends no template, and the escape hatch
   of §6 is an operator's overlay rather than a fork;
 - [ADR-0041](0041-every-part-is-a-plugin-and-the-core-speaks-contracts.md): the egress
   guard's is one of a closed set of named shapes;
-- [ADR-0042](0042-the-bundle-is-first-party-plugins-pinned-and-embedded.md): the stack's
-  own services and the bundle's plugins are written by one generator, and the media
-  stack's Compose files retire before the repository does.
+- [bundle.toml](../../20-architecture/contracts/bundle.md): the stack's
+  own services and the bundle's plugins are written by one generator.
 
 ## Context
 
 ADR-0021 fixed a plugin's Compose entry to one shape: an image, a profile, a published
 port under a tier, the data mount and one configuration directory. ADR-0041 made every
-bundled part a first-party plugin, and ADR-0042 installs the stack through the plugin
+bundled part a first-party plugin, and [the bundle](../../20-architecture/contracts/bundle.md#why-it-is-shaped-this-way) installs the stack through the plugin
 path. A part can only move if its plugin's entry can say what the part's entry says
 today, and measured against the stack on 2026-10-11, it cannot:
 
@@ -162,7 +161,7 @@ hand, and that list already misses one.
 | Option | Why it lost |
 |--------|-------------|
 | **A wider vocabulary for first-party plugins** | Trust would decide what a manifest may say, so there would be two schemas, two generators and two sets of golden files. A third-party substitute could not stand in for a part whose entry it cannot express, which is the substitution ADR-0041 exists for. |
-| **The stack keeps its own Compose format** | Two descriptions of every part for as long as the moves take (ADR-0042 §5), drifting. The core keeps reading YAML in every place it reads it today, and an in-place move compares an entry somebody wrote against one the core generated. |
+| **The stack keeps its own Compose format** | Two descriptions of every part for as long as the moves take (`ARCH-R299`), drifting. The core keeps reading YAML in every place it reads it today, and an in-place move compares an entry somebody wrote against one the core generated. |
 | **Networks declared by the bundle or by a manifest** | A named network is reach a reviewer judges manifest by manifest. A substitute would have to name the networks of the part it replaces, which is naming that part. Derived from asks, reach follows from what the wiring already says. |
 | **A shared default network, with some services held off it** | Two links the stack relies on, the indexer manager to the bot-protection solver and the book curator to the download clients, worked over it and were never written down. A default network is reach nobody asked for, and the rule for who is held off it had to be invented case by case. |
 | **An ask reaches the upstream by default** | The core speaks contracts, and an upstream reached directly is a product's own API on the wiring. Opting in with `native` keeps that visible where it happens. |

@@ -6,7 +6,7 @@ The image of the offered dashboard: Dashy, with a patch so that its server reach
 the addresses its page names, and pings nothing. One Dockerfile and the patch.
 
 **Implements:** `OPS-R93`. Its place in the organisation is
-[ADR-0033](../00-overview/decisions/0033-each-image-lemonfiber-builds-for-the-stack-has-its-own-repository.md).
+[an image lemonfiber builds](README.md#an-image-lemonfiber-builds-has-a-repository-of-its-own).
 
 ---
 

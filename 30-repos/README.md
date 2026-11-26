@@ -157,6 +157,127 @@ not define its own — the code of conduct, the security policy, the issue templ
 and the org profile — so a sibling repo inherits them rather than copying them
 ([tooling](../40-quality/tooling.md)).
 
+## Why each artefact has a repository of its own
+
+An artefact with its own change rate, review style and release clock earns a repository
+of its own, and the project is not a monorepo. The specification changes when a
+decision is made and is reviewed as prose. The core changes with feature work and is
+reviewed as Rust, with tests and a CI matrix. The catalogue changes when somebody
+contributes a plugin and is reviewed as a stranger's data. Each repository above is
+there because it passes that test.
+
+`homebrew-tap` is the floor: `brew tap lemonfiber/tap` resolves only to a repository
+named `homebrew-tap`, so the organisation is more than one repository whatever else is
+decided ([homebrew-tap](homebrew-tap.md)).
+
+What the split gives:
+
+- each repository's CI is proportionate to its risk, where one repository would make
+  every change pay for the most expensive pipeline and ship on one clock;
+- an issue lands in the repository it is about, without triage;
+- the specification is citable and versioned apart from any implementation.
+
+What it costs, accepted:
+
+- **Version skew.** A change spanning two repositories takes two pull requests, and a
+  user could pair incompatible versions. The core embeds the stack it ships at build
+  time and the build refuses a pairing it cannot read, so the common case is a compile
+  error rather than a runtime one ([the submodule](lemonfiber.md#the-submodule),
+  [versioning](../20-architecture/contracts/versioning.md#where-skew-is-caught)).
+- Cross-repository changes need coordination.
+- Each repository carries its own CI configuration, licence files and issue templates,
+  to keep aligned.
+
+This is decided again if cross-repository coordination visibly slows development.
+
+## An image lemonfiber builds has a repository of its own
+
+Each image lemonfiber builds for the stack has a repository of its own, named
+`lemonfiber-` followed by the id of the service it runs, and the image carries that id
+as its name: `lemonfiber-decline` builds `ghcr.io/lemonfiber/decline`, and
+`lemonfiber-request-gate` builds `ghcr.io/lemonfiber/request-gate`. One name, three
+places: an operator who reads `decline` in `lemonfiber status`, in `docker ps` or in the
+stack finds the repository by prefixing it, and the reverse holds for a contributor. A
+later lemonfiber-built service follows the same rule, and its id is chosen with that in
+mind. A first-party plugin's adapter image is built in the plugin's own repository
+instead (`REPO-R94`).
+
+`repos.toml` names the service in the repository's `service` field, which is how the
+release train knows it (`OPS-R86`); a version manifest lists it in `repos` like any
+other stream and marks it no further. A repository building an image that a first-party
+plugin runs as its upstream is named for that plugin's id and carries `pinned_in`
+instead (`OPS-R93`).
+
+**What such a repository holds.** It builds exactly one image and publishes it by
+digest, from commits on its `main` (`OPS-R90`, `OPS-R93`) and, where the train cuts it,
+from the train's tags
+([the train's two steps](../70-operations/releasing.md#the-trains-two-steps)).
+
+- Where the service is lemonfiber's own code, **one Rust binary crate**, under the
+  core's toolchain, lints, `cargo-deny` policy and coverage floor, through the same
+  shared workflows, so the `Q-R` rows apply to it as they do to `lemonfiber`. It may
+  depend on the core's library crates, such as `lemonfiber-error` and
+  `lemonfiber-ports`, through a git dependency pinned to one core commit. The pin moves
+  to the commit the train is releasing, so the image and the core it ships with agree
+  on every type they share.
+- **One Dockerfile.** For lemonfiber's own code, a multi-stage build ending on a
+  distroless static base as a non-root user, with no shell and no package manager. An
+  image lemonfiber builds may also be an upstream's, rebuilt, as the proxy's is from
+  Caddy's with the file capability removed, under the upstream's licence.
+- **Its recordings.** The upstream calls it makes are proved against every supported
+  line by recordings, and CI runs them against the pinned upstream images
+  ([ADR-0028](../00-overview/decisions/0028-a-supported-major-is-data-proved-by-its-own-recordings.md)).
+- **What it needs from the stack, stated.** Its documentation names the networks,
+  mounts, capabilities and limits its decision requires, and its Compose entry is the
+  service its `plugin.toml` declares, which lemonfiber writes (`REPO-R94`).
+
+**The core's crates are shared; nothing else is.** Two such repositories never depend on
+each other, and there is no shared crate between them: a change made for the gate never
+ships in the decline service's build. A third lemonfiber-built service reopens a library
+of their own.
+
+**Governed as every other repository.** Each is listed in `repos.toml` with a page here,
+adopts the shared hooks and gates through `shared/adoption.toml`, carries the
+organisation's rulesets and required checks, and takes updates through Dependabot
+([ADR-0016](../00-overview/decisions/0016-dependabot-over-renovate.md)) with every action
+pinned to a SHA ([ADR-0009](../00-overview/decisions/0009-action-pinning.md)). Where the
+train cuts it, its version is the train's, and the bundle records which version of each
+it pins.
+
+Why a repository per image:
+
+- **Each image is a trust boundary of its own.** The decline service faces the household
+  and holds one media-server key; the request gate publishes no port and holds the
+  \*arr keys. A compromise of either is bounded by what that one holds, and keeping their
+  source apart keeps that boundary where an auditor can see it: each credential's code
+  lives in one repository, and a review, an audit or a CVE response reads exactly that.
+- **They change for different reasons.** A request service's release that changes its
+  \*arr calls changes the gate and nothing else; a media server line that changes how a
+  policy is written changes the decline service; a vulnerability in one is patched,
+  released and re-pinned without touching the other.
+- **One repository building both** would couple them: a workspace-wide dependency bump
+  rebuilds and re-releases both, and a review of the gate's call list sits beside the
+  household-facing page.
+- **Crates in `lemonfiber`** would put container publishing and more trust boundaries in
+  the core's CI, and each service's review beside the core's.
+- **A shared service kit from the start** serves two consumers with a few hundred lines
+  of scaffolding, and becomes another repository and a coupling point before anything
+  has shown what is genuinely shared.
+- **Bare names** such as `request-gate` read, in the organisation's listing, as
+  third-party projects beside `plugin-*`, and drop the link to the service id; **longer
+  names** break the one-name rule, or name a current upstream in something meant to
+  outlive it.
+- **A repository of their own for decline and the request gate as plugins**
+  (`plugin-decline`, `plugin-request-gate`) would add two repositories and their CI for
+  two images that already have repositories, release lanes and recordings, so each
+  declares its service in a `plugin.toml` of its own (`REPO-R94`).
+
+The cost: more repositories to govern, small scaffolding written more than once, and a
+fix to one of these images reaching operators only with a version of the train. This is
+decided again if the organisation adopts a registry other than GHCR, or if the signing
+mechanism of [ADR-0023](../00-overview/decisions/0023-a-pin-is-a-digest.md) §6 changes
+what a publish must attach.
+
 ## The `REPO-R` namespace
 
 Per-repo requirements use `REPO-R##` — obligations specific to one repository's

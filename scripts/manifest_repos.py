@@ -20,7 +20,7 @@ are searched: the two coincide for every version so far, and a default that keep
 them coinciding is the one that needs no migration.
 
 A version that cuts a repository building one of the stack's own images is cut
-in two steps (ADR-0033 §4): those repositories are tagged first, and the rest once
+in two steps (OPS-R86): those repositories are tagged first, and the rest once
 the bundle the core embeds pins what those tags published. The registry, not the
 manifest, says which repositories those are: a `[[repo]]` entry in
 `30-repos/repos.toml` carrying `service` builds the image of that stack service.
@@ -30,7 +30,7 @@ version that cuts it reads the same answer.
 A first-party plugin's repository is tagged in that first step too, where it
 builds an image (OPS-R86): a `[[repo]]` entry carrying `plugin` is `plugin-<id>`,
 and says with `image` whether it builds one. One that builds none is never tagged:
-the bundle pins it by revision and tree digest (ADR-0045). A repository carrying
+the bundle pins it by revision and tree digest (REPO-R97). A repository carrying
 `service` is a first-party plugin that builds an image too, its id the service's.
 A tag on any of them publishes the images the bundle pins at that release, and
 every version that cuts the core cuts each of them, so a manifest not yet released
@@ -41,7 +41,7 @@ Usage:
 Prints one repository per line; `images` prints `<repo>\t<service>\t<image>`,
 `plugins` prints `<repo>\t<id>`. `images`, `plugins` and `others` together are
 `cut`, and any of them may be empty. Exit 0 = printed, 1 = no such manifest, a
-registry entry that breaks ADR-0033 §1 or OPS-R86, or a manifest that cuts the
+registry entry that breaks 30-repos/README.md or OPS-R86, or a manifest that cuts the
 core without a first-party plugin, 2 = usage.
 """
 
@@ -66,9 +66,9 @@ SEARCHED = "satisfied_in"
 
 #: The registry field naming the stack service a repository builds the image of.
 SERVICE = "service"
-#: Where every image lemonfiber builds is published (ADR-0033 §1).
+#: Where every image lemonfiber builds is published (30-repos/README.md).
 IMAGE_HOME = "ghcr.io/lemonfiber"
-#: What a repository building a service's image is called (ADR-0033 §1).
+#: What a repository building a service's image is called (30-repos/README.md).
 REPO_PREFIX = "lemonfiber-"
 #: A stack service id. It becomes part of an image reference handed to docker,
 #: so it is held to lowercase words joined by single dashes.
@@ -119,7 +119,7 @@ def image_repos(registry: dict) -> dict[str, str]:
 
     An entry whose name is not `lemonfiber-<service>`, or whose service is not a
     service id, is refused rather than skipped: skipped, it would be cut with the
-    core in one step, which is the release ADR-0033 §4 rules out.
+    core in one step, which is the release OPS-R86 rules out.
     """
     found = {}
     for entry in registry.get("repo", []):
@@ -130,7 +130,7 @@ def image_repos(registry: dict) -> dict[str, str]:
             sys.exit(f"::error::{REGISTRY}: {name}'s {SERVICE} {service!r} is not a service id")
         if name != f"{REPO_PREFIX}{service}":
             sys.exit(
-                f"::error::{REGISTRY}: {name} builds {service!r}, so ADR-0033 §1 names it "
+                f"::error::{REGISTRY}: {name} builds {service!r}, so 30-repos/README.md names it "
                 f"{REPO_PREFIX}{service}"
             )
         found[name] = service

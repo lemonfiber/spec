@@ -32,8 +32,8 @@
 the last sentence of §7, when the stack's environment file is read: once, at the first run
 of the release that stops reading the static Compose files, rather than at each part's move
 in place.
-**Amends** [ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md):
-§2, an assembled part keeps its plugin's `[[secret]]` as well as the stack's setting and
+**Amends** [bundle.toml](../../20-architecture/contracts/bundle.md#stage--assembled-or-installed) (`ARCH-R275`):
+an assembled part keeps its plugin's `[[secret]]` as well as the stack's setting and
 credential names.
 
 ## Context
@@ -41,7 +41,7 @@ credential names.
 [ADR-0043](0043-the-core-writes-every-compose-entry-from-one-typed-service-model.md) §7
 gives settings and secrets one home each, and has the move in place that brings a part's
 first-party plugin read the stack's environment file once.
-[ADR-0045](0045-every-bundled-part-has-its-repository-now-and-its-adapter-later.md)
+[The bundle](../../20-architecture/contracts/bundle.md#stage--assembled-or-installed)
 separated the two events that sentence joined. A part moves in place when its adapter
 ships, part by part, some of them after 0.18.0. The stack stops reading its static
 Compose files at the compose cutover, which ships in 0.18.0. Read as written, the

@@ -3,7 +3,7 @@
 
 The core embeds the catalogue, `lemonfiber-plugins`, as a submodule, and builds the
 stack it ships from the catalogue's `bundle/bundle.toml` and the copy of each plugin
-pinned beside it (ADR-0042). The catalogue is found as the submodule of the core
+pinned beside it (ARCH-R263). The catalogue is found as the submodule of the core
 whose URL names `lemonfiber-plugins`, read from the core's own `.gitmodules`, so no
 path is assumed, and is checked out at the commit the core pins.
 
@@ -31,7 +31,7 @@ import tomllib
 import submodule_pins
 from manifest_repos import REPO_PREFIX, SERVICE_ID
 
-#: The catalogue the core embeds the bundle from (ADR-0042).
+#: The catalogue the core embeds the bundle from (ARCH-R263).
 CATALOGUE = "lemonfiber-plugins"
 #: Where the bundle sits inside the catalogue (REPO-R91).
 BUNDLE = pathlib.Path("bundle/bundle.toml")
