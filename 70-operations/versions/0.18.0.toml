@@ -443,7 +443,7 @@
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 687 goals, seeded from the roadmap milestone this version serves;
+# 688 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -679,6 +679,7 @@ goals   = [
     "ARCH-R143", "F8-R13",
     "ARCH-R427",
     "ARCH-R461", "ARCH-R462",
+    "ARCH-R463",
     "N2-R29", "N2-R30", "N2-R31", "N2-R32", "N2-R33",
     "N9-R1", "N9-R2", "N9-R3", "N9-R4", "N9-R5", "N9-R6", "N9-R7", "N9-R8", "N9-R9",
     "N9-R10", "N9-R11",
@@ -873,4 +874,6 @@ goals   = [
 # API's settings answer, as part of the offer and in the journal, and in what `settings set` and
 # `settings clear` print, so a cleared setting says what it goes back to. The SDKs, the web
 # console and the companion's operator side read the field.
+# `ARCH-R463` furnishes a media server the media types it declares itself as well as those the
+# curators file, so the audiobooks substitute `F14-R14` runs is handed a library.
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
