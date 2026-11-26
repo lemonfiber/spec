@@ -15,9 +15,11 @@ finds the newest tag its registry publishes that
   - has the same first number as the pinned tag, which is its major. A major carries
     breaking changes and is the operator's decision (`E1-R10`), so a pin never crosses
     one here;
+  - has a multi-architecture index publishing both `linux/amd64` and `linux/arm64`
+    (`E1-R1`, `F2-R6`). The tags are read newest first, and each newer one whose index
+    lacks a platform is passed over and named as a warning;
 
-and resolves it to the digest of its multi-architecture index, which must publish both
-`linux/amd64` and `linux/arm64` (`E1-R1`, `F2-R6`). A tag that stays where it is can
+and resolves it to the digest of that index. A tag that stays where it is can
 still move: publishers rebuild a release on a patched base under the same tag, and the
 digest follows that rebuild too.
 
@@ -122,19 +124,25 @@ def ordered(tag: str) -> tuple[str, int, str, tuple[int, ...]] | None:
     return prefix, len(numbers), re.sub(r"\d+", "0", suffix), numbers + counted
 
 
-def newest_in_major(current: str, tags: list[str]) -> str:
-    """The newest tag spelled like `current` and in its major; `current` if none is newer."""
+def in_major(current: str, tags: list[str]) -> list[str]:
+    """Each tag spelled like `current`, in its major and newer than it, newest first, then
+    `current` itself."""
     mine = ordered(current)
     if mine is None:
-        return current
-    spelling, best, best_key = mine[:3], current, mine[3]
+        return [current]
+    spelling, key = mine[:3], mine[3]
+    newer = []
     for tag in tags:
         theirs = ordered(tag)
-        if theirs is None or theirs[:3] != spelling or theirs[3][0] != best_key[0]:
-            continue
-        if theirs[3] > best_key:
-            best, best_key = tag, theirs[3]
-    return best
+        if theirs is not None and theirs[:3] == spelling and theirs[3][0] == key[0] and theirs[3] > key:
+            newer.append((theirs[3], tag))
+    newer.sort(key=lambda found: found[0], reverse=True)
+    return [tag for _, tag in newer] + [current]
+
+
+def newest_in_major(current: str, tags: list[str]) -> str:
+    """The newest tag spelled like `current` and in its major; `current` if none is newer."""
+    return in_major(current, tags)[0]
 
 
 def pins(manifest: dict) -> tuple[dict[str, dict], list[str]]:
@@ -160,50 +168,65 @@ def pins(manifest: dict) -> tuple[dict[str, dict], list[str]]:
     return found, apart
 
 
-def move_of(image: str, held: dict) -> tuple[dict | None, str]:
-    """Where an image's pin would move, None where it stays, or why it cannot be read."""
+def move_of(image: str, held: dict) -> tuple[dict | None, str, list[str]]:
+    """Where an image's pin would move, None where it stays, or why it cannot be read, and
+    each newer tag passed over for publishing too few platforms.
+
+    The tags are read newest first, and the first whose index publishes every platform
+    in `REQUIRED` is taken (`REPO-R98`, `E1-R1`).
+    """
     first = held["services"][0]
     if not SERVICE_ID.match(first):
-        return None, f"{image}: {first!r} is not a service id to name a branch after"
+        return None, f"{image}: {first!r} is not a service id to name a branch after", []
     published, problem = registry.tags(image)
     if problem:
-        return None, f"{image}: its tags could not be listed: {problem}"
-    tag = newest_in_major(held["tag"], published)
-    digest, platforms, problem = registry.resolve(image, tag)
-    if problem:
-        return None, f"{image}: {tag} could not be resolved: {problem}"
-    if missing := REQUIRED - platforms:
-        listed = ", ".join(f"{os_}/{arch}" for os_, arch in sorted(missing))
-        return None, f"{image}: {tag} does not publish {listed}, so it is not taken (F2-R6)"
-    if (tag, digest) == (held["tag"], held["digest"]):
-        return None, ""
-    return {
-        "image": image,
-        "services": held["services"],
-        "branch": f"{BRANCH}{first}",
-        "from": {"tag": held["tag"], "digest": held["digest"]},
-        "to": {"tag": tag, "digest": digest},
-    }, ""
+        return None, f"{image}: its tags could not be listed: {problem}", []
+    skipped: list[str] = []
+    for tag in in_major(held["tag"], published):
+        digest, platforms, problem = registry.resolve(image, tag)
+        if problem:
+            return None, f"{image}: {tag} could not be resolved: {problem}", skipped
+        if missing := REQUIRED - platforms:
+            listed = ", ".join(f"{os_}/{arch}" for os_, arch in sorted(missing))
+            skipped.append(f"{image}: {tag} does not publish {listed}, so it is not taken (F2-R6)")
+            continue
+        if (tag, digest) == (held["tag"], held["digest"]):
+            return None, "", skipped
+        return (
+            {
+                "image": image,
+                "services": held["services"],
+                "branch": f"{BRANCH}{first}",
+                "from": {"tag": held["tag"], "digest": held["digest"]},
+                "to": {"tag": tag, "digest": digest},
+            },
+            "",
+            skipped,
+        )
+    return None, f"{image}: no tag from {held['tag']} on publishes every platform, so it stays", skipped
 
 
-def plan(manifest: dict, only: str = "") -> tuple[list[dict], list[str]]:
-    """Every upstream pin that would move, and every image that could not be read."""
+def plan(manifest: dict, only: str = "") -> tuple[list[dict], list[str], list[str]]:
+    """Every upstream pin that would move, every image that could not be read, and every
+    newer tag passed over for publishing too few platforms."""
     found, apart = pins(manifest)
     problems = [
         f"{image}: its services are pinned apart, so it is moved by hand"
         for image in apart
         if not only or image == only
     ]
-    moves = []
+    moves: list[dict] = []
+    skipped: list[str] = []
     for image, held in found.items():
         if only and image != only:
             continue
-        move, problem = move_of(image, held)
+        move, problem, passed = move_of(image, held)
+        skipped += passed
         if problem:
             problems.append(problem)
         if move:
             moves.append(move)
-    return moves, problems
+    return moves, problems, skipped
 
 
 def artifact_of(main_text: str, image: str) -> str:
@@ -222,7 +245,7 @@ def admitted(main_text: str, image: str, bump: pathlib.Path) -> tuple[dict, dict
     manifest and the registry alone, by the rules the plan used, and the files are then
     held to it by `pin_bump.admitted_files`.
     """
-    moves, problems = plan(tomllib.loads(main_text), image)
+    moves, problems, _ = plan(tomllib.loads(main_text), image)
     if not moves:
         raise Refused(
             f"the registry moves {image} nowhere now: {'; '.join(problems) or 'its pin is the newest'}"
@@ -268,11 +291,11 @@ def asked_admit(args: argparse.Namespace) -> int:
 
 def asked_plan(args: argparse.Namespace) -> int:
     root, text = pin_bump.manifest_text(args.manifest)
-    moves, problems = plan(tomllib.loads(text), getattr(args, "image", ""))
-    for problem in problems:
+    moves, problems, skipped = plan(tomllib.loads(text), getattr(args, "image", ""))
+    for problem in skipped + problems:
         print(f"::warning::{problem}", file=sys.stderr)
     if args.asked == "plan":
-        print(json.dumps({"moves": moves, "problems": problems}, indent=2))
+        print(json.dumps({"moves": moves, "problems": problems, "skipped": skipped}, indent=2))
         return 0
     if not moves:
         print("null")

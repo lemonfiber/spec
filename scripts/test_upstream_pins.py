@@ -34,6 +34,7 @@ WORKFLOWS = SCRIPTS.parent / ".github/workflows"
 DIGEST, LATER = "sha256:" + "a" * 64, "sha256:" + "b" * 64
 OLD = "sha256:" + "0" * 64
 BOTH = {("linux", "amd64"), ("linux", "arm64")}
+AMD64 = {("linux", "amd64")}
 UNPACKERR_NEXT = "release-0.15.2"
 SONARR_BUILD, SONARR_NEXT_BUILD = "4.0.20.3014-ls326", "4.0.21.3020-ls327"
 IMAGE = "lscr.io/linuxserver/sonarr"
@@ -111,6 +112,13 @@ class Choice(unittest.TestCase):
             with self.subTest(current=current):
                 self.assertEqual(upstream_pins.newest_in_major(current, list(self.PUBLISHED)), wanted)
 
+    def test_the_tags_of_the_spelling_and_major_are_read_newest_first_ending_with_the_pin(self):
+        self.assertEqual(
+            upstream_pins.in_major("4.0.15", ["4.0.16", "4.0.20", "5.0.0", "4.0.14", "4.0.15", "4.0"]),
+            ["4.0.20", "4.0.16", "4.0.15"],
+        )
+        self.assertEqual(upstream_pins.in_major("nightly", ["4.0.20"]), ["nightly"])
+
     def test_a_later_build_of_the_same_release_is_taken(self):
         self.assertEqual(
             upstream_pins.newest_in_major("4.0.20.3014-ls300", [SONARR_BUILD, "4.0.20.3014"]), SONARR_BUILD
@@ -170,8 +178,8 @@ class Planning(unittest.TestCase):
         self.registry(
             tags={image: ([SONARR_NEXT_BUILD], "")}, resolved={(image, SONARR_NEXT_BUILD): (DIGEST, BOTH, "")}
         )
-        moves, problems = upstream_pins.plan(self.manifest())
-        self.assertEqual(problems, [])
+        moves, problems, skipped = upstream_pins.plan(self.manifest())
+        self.assertEqual((problems, skipped), ([], []))
         self.assertEqual(
             moves,
             [
@@ -188,10 +196,10 @@ class Planning(unittest.TestCase):
     def test_a_rebuild_under_the_same_tag_moves_and_an_unchanged_pin_does_not(self):
         image = "lscr.io/linuxserver/sonarr"
         self.registry(tags={image: ([SONARR_BUILD], "")}, resolved={(image, SONARR_BUILD): (LATER, BOTH, "")})
-        moves, _ = upstream_pins.plan(self.manifest())
+        moves, _, _ = upstream_pins.plan(self.manifest())
         self.assertEqual(moves[0]["to"], {"tag": SONARR_BUILD, "digest": LATER})
         self.registry(tags={image: ([SONARR_BUILD], "")}, resolved={(image, SONARR_BUILD): (OLD, BOTH, "")})
-        self.assertEqual(upstream_pins.plan(self.manifest()), ([], []))
+        self.assertEqual(upstream_pins.plan(self.manifest()), ([], [], []))
 
     def test_what_could_not_be_read_or_taken_is_named_and_not_moved(self):
         image = "lscr.io/linuxserver/sonarr"
@@ -201,16 +209,51 @@ class Planning(unittest.TestCase):
             (
                 {
                     "tags": {image: ([SONARR_NEXT_BUILD], "")},
-                    "resolved": {(image, SONARR_NEXT_BUILD): (DIGEST, {("linux", "amd64")}, "")},
+                    "resolved": {
+                        (image, SONARR_NEXT_BUILD): (DIGEST, AMD64, ""),
+                        (image, SONARR_BUILD): (OLD, AMD64, ""),
+                    },
                 },
-                "does not publish linux/arm64, so it is not taken (F2-R6)",
+                f"no tag from {SONARR_BUILD} on publishes every platform, so it stays",
             ),
         ):
             with self.subTest(said=said):
                 self.registry(**answers)
-                moves, problems = upstream_pins.plan(self.manifest())
+                moves, problems, _ = upstream_pins.plan(self.manifest())
                 self.assertEqual(moves, [])
                 self.assertIn(said, problems[0])
+
+    def test_a_newer_tag_publishing_too_few_platforms_is_passed_over_and_named(self):
+        image = "lscr.io/linuxserver/sonarr"
+        between = "4.0.20.3020-ls327"
+        self.registry(
+            tags={image: ([SONARR_BUILD, between, SONARR_NEXT_BUILD], "")},
+            resolved={
+                (image, SONARR_NEXT_BUILD): (DIGEST, AMD64, ""),
+                (image, between): (LATER, BOTH, ""),
+            },
+        )
+        moves, problems, skipped = upstream_pins.plan(self.manifest())
+        self.assertEqual(problems, [])
+        self.assertEqual(moves[0]["to"], {"tag": between, "digest": LATER})
+        self.assertEqual(
+            skipped,
+            [f"{image}: {SONARR_NEXT_BUILD} does not publish linux/arm64, so it is not taken (F2-R6)"],
+        )
+
+    def test_a_pin_stays_where_only_newer_tags_publish_too_few_platforms(self):
+        image = "lscr.io/linuxserver/sonarr"
+        self.registry(
+            tags={image: ([SONARR_NEXT_BUILD], "")},
+            resolved={
+                (image, SONARR_NEXT_BUILD): (DIGEST, AMD64, ""),
+                (image, SONARR_BUILD): (OLD, BOTH, ""),
+            },
+        )
+        moves, problems, skipped = upstream_pins.plan(self.manifest())
+        self.assertEqual((moves, problems), ([], []))
+        self.assertEqual(len(skipped), 1)
+        self.assertIn(SONARR_NEXT_BUILD, skipped[0])
 
     def test_services_pinned_apart_or_a_service_id_that_names_no_branch_are_not_moved(self):
         apart = (
@@ -224,9 +267,9 @@ class Planning(unittest.TestCase):
         )
         self.assertEqual(
             upstream_pins.plan(self.manifest(twice)),
-            ([], ["lscr.io/linuxserver/sonarr: its services are pinned apart, so it is moved by hand"]),
+            ([], ["lscr.io/linuxserver/sonarr: its services are pinned apart, so it is moved by hand"], []),
         )
-        moves, problems = upstream_pins.plan(
+        moves, problems, _ = upstream_pins.plan(
             self.manifest(MANIFEST.replace('id     = "sonarr"', 'id     = "Sonarr!"'))
         )
         self.assertEqual(moves, [])
@@ -239,7 +282,7 @@ class Planning(unittest.TestCase):
             + f'\n[[service]]\nid = "again"\nimage = "lscr.io/linuxserver/sonarr"\ndigest = "{LATER}"\ntag = "4"\n'
         )
         for text in (MANIFEST, apart):
-            moves, problems = upstream_pins.plan(self.manifest(text), "elsewhere")
+            moves, problems, _ = upstream_pins.plan(self.manifest(text), "elsewhere")
             self.assertEqual((moves, problems, fake.listed), ([], [], {}))
 
 
