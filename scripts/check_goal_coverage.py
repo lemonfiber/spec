@@ -100,10 +100,6 @@ AWAITING_A_VERSION = {
         "N8 requires N1, whose app side 1.0.0 completes, and D2, locked by 0.4.0, released",
         [f"N8-R{n}" for n in range(1, 10)],
     ),
-    "N9": (
-        "N9 requires N1, whose app side 1.0.0 completes, and D6, locked by 0.11.0, released",
-        [f"N9-R{n}" for n in range(1, 12)],
-    ),
     "N10": (
         "N10 requires N1, whose app side 1.0.0 completes, and G8, locked by 0.14.0 at the latest, released; what N10-R13 renders, G8-R15, is locked by 0.18.0",
         [f"N10-R{n}" for n in range(1, 14)],
@@ -152,12 +148,6 @@ AWAITING_A_VERSION = {
     "N27": (
         "N27 requires N1, whose app side 1.0.0 completes, and N4, whose app side no version schedules; what they require is locked by 0.11.0 at the latest, released; N27-R17 is locked by 0.19.0",
         [f"N27-R{n}" for n in range(1, 26) if n != 17],
-    ),
-    # N2-R29 and N2-R30 are N1-R2's parity for `household-allow` and `accept`;
-    # N2-R31 to N2-R33 render the moves in place `ARCH-R299` reports.
-    "N2": (
-        "N2 requires N1, whose app side 1.0.0 completes; what N2-R29 and N2-R30 rest on is D7, locked by 0.12.0, released, and C2 and G7, locked by 0.6.0 and 0.18.0; what N2-R31 to N2-R33 rest on is ARCH-R299, locked by 0.18.0",
-        ["N2-R29", "N2-R30", "N2-R31", "N2-R32", "N2-R33"],
     ),
     "N28": (
         "N28 requires N1, whose app side 1.0.0 completes, N2, whose app side no version schedules, and N27; what N1 and N2 require is locked by 0.11.0 at the latest, released",

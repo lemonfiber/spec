@@ -443,7 +443,7 @@
 # the train tags it, so the bundle can pin it, and a fenced part be installed, before the
 # release that first tags it; the core's release tag is refused while the pin names a
 # commit. Added by the maintainer's decision of 2026-10-31 (OPS-R31).
-# 671 goals, seeded from the roadmap milestone this version serves;
+# 687 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R145` to `ARCH-R152` are those routes and actions as the web API states them:
 # the two reads, the five writes taking the offer, a recipe's pairs and steps agreed to as
@@ -539,7 +539,7 @@ delivers  = "Plugins — the calls that configure what one installed, and what t
 
 status  = "staged"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr", "plugin-dashy", "plugin-traefik", "plugin-flaresolverr", "plugin-gluetun", "plugin-recyclarr", "plugin-unpackerr", "plugin-calibre-web-automated", "plugin-navidrome", "plugin-homepage", "plugin-configarr", "plugin-uptime-kuma"]
-satisfied_in = ["lemonfiber", "plugin-plex", "lemonfiber-decline", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp", "lemonfiber-door"]
+satisfied_in = ["lemonfiber", "plugin-plex", "lemonfiber-decline", "lemonfiber-plugins", "lemonfiber-web", "brand", "sdk-ts", "sdk-php", "lemonfiber-companion", "sdk-python", "integration-home-assistant", "integration-mcp", "lemonfiber-door", "sdk-rust"]
 goals   = [
     "D6-R21", "D6-R22", "D6-R23", "D6-R24", "D6-R25", "D6-R26",
     "N21-R12",
@@ -679,7 +679,18 @@ goals   = [
     "ARCH-R143", "F8-R13",
     "ARCH-R427",
     "ARCH-R461", "ARCH-R462",
+    "N2-R29", "N2-R30", "N2-R31", "N2-R32", "N2-R33",
+    "N9-R1", "N9-R2", "N9-R3", "N9-R4", "N9-R5", "N9-R6", "N9-R7", "N9-R8", "N9-R9",
+    "N9-R10", "N9-R11",
 ]
+
+# `N2-R29` to `N2-R33` and `N9-R1` to `N9-R11` are the companion's operator screens for
+# what this version serves: the household's policy and limit, accepting a warning, the
+# moves an update takes in place, the credentials the stack holds and where each came from,
+# an invitation that states what it grants and when it lapses, the client recommended for
+# each device, and the front door. `N9-R5` is the core's as well, since the invitation's
+# rehearsal is where what it grants is answered. `sdk-rust` is searched, not tagged, as the
+# other SDKs are. Added by the maintainer's decision of 2026-11-26 (OPS-R31).
 
 # `ARCH-R143` and `F8-R13` say a recipe step's call reaches a service in the API that
 # service declares as its `native`, and retire `contract/adapters.json`, which `0.17.0`
