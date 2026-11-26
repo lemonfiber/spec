@@ -203,7 +203,7 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": ["M14", "M16"],
+      "milestones": ["M14", "M16", "M13"],
       "milestone": "M14",
       "priority": "P2",
       "labels": ["web", "household", "ux"],
@@ -211,7 +211,8 @@
       "relates": ["D7", "D8", "G5", "G6", "N3"],
       "versions": [
         {"version": "0.18.0", "status": "staged"},
-        {"version": "0.19.0", "status": "planned"}
+        {"version": "0.19.0", "status": "planned"},
+        {"version": "0.23.0", "status": "planned"}
       ],
       "path": "g-ux/g10-household-web.md"
     },
@@ -224,15 +225,16 @@
       "status": "accepted",
       "maturity": "building",
       "shipped": null,
-      "milestones": ["M14", "M16", "M13", "M6"],
+      "milestones": ["M14", "M16", "M11", "M13", "M6"],
       "milestone": "M14",
       "priority": "P2",
       "labels": ["web", "ux", "extensibility", "security"],
       "requires": ["G1", "F14"],
-      "relates": ["G10", "F6", "A7", "N25", "N9", "E3", "N6", "N4", "N2", "A2", "A4", "A6", "B8", "B9", "D2", "D9", "F1", "H5", "K2"],
+      "relates": ["G10", "F6", "A7", "N25", "N9", "E3", "N6", "N4", "N2", "A2", "A4", "A6", "B8", "B9", "D2", "D9", "F1", "H5", "K2", "F5", "F7", "F8", "C10", "E1"],
       "versions": [
         {"version": "0.18.0", "status": "staged"},
         {"version": "0.19.0", "status": "planned"},
+        {"version": "0.20.0", "status": "planned"},
         {"version": "0.23.0", "status": "planned"},
         {"version": "1.0.0", "status": "planned"}
       ],

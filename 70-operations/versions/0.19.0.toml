@@ -179,7 +179,16 @@
 # recorded preset back (`D2-R8`), shown to the operator alone; the rows whose core rows went
 # out in 0.18.0 or earlier follow into this version, by the maintainer's decisions of 2026-11-26.
 #
-# 181 goals, seeded from the roadmap milestone this version serves;
+# `G11-R24` to `G11-R26` and `G11-R28` to `G11-R36` are the web console's side of
+# `ARCH-R286`, `ARCH-R146`, `F8-R19`, `C10-R20`, `ARCH-R259`, `ARCH-R282`, `E1-R13`, `G1-R1`,
+# `ARCH-R438`, `ARCH-R132` and `ARCH-R78`: proving a plugin again and running its recipes with
+# their inputs, a key handed to a program as a claim, phones' hardware keys and wake addresses,
+# one service's update, backup and run, work that ended, and what the credential can do, shown
+# to the operator alone. `G10-R15`, `G10-R16` and `G10-R18` are the household surface's side of
+# `ARCH-R426`, `ARCH-R416` and `ARCH-R140`. The rows whose core rows went out in 0.18.0 or
+# earlier follow into this version, by the maintainer's decisions of 2026-11-26.
+#
+# 196 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -371,6 +380,21 @@ goals   = [
     "G11-R21",
     "G11-R22",
     "G11-R23",
+    "G11-R24",
+    "G11-R25",
+    "G11-R26",
+    "G11-R28",
+    "G11-R29",
+    "G11-R30",
+    "G11-R31",
+    "G11-R32",
+    "G11-R33",
+    "G11-R34",
+    "G11-R35",
+    "G11-R36",
+    "G10-R15",
+    "G10-R16",
+    "G10-R18",
 ]
 
 # `N21-R1` to `N21-R11`, `N3-R1` to `N3-R26` but for the three earlier versions lock,

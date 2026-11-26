@@ -9,7 +9,7 @@ maturity: building
 priority: P2
 labels: [web, ux, extensibility, security]
 requires: [G1, F14]
-relates: [G10, F6, A7, N25, N9, E3, N6, N4, N2, A2, A4, A6, B8, B9, D2, D9, F1, H5, K2]
+relates: [G10, F6, A7, N25, N9, E3, N6, N4, N2, A2, A4, A6, B8, B9, D2, D9, F1, H5, K2, F5, F7, F8, C10, E1]
 ---
 
 # G11 — The operator's web console
@@ -172,10 +172,46 @@ Putting the recorded preset back over a hand-edited configuration is rehearsed
 first too: the console shows each file it would replace, with the lines that go and
 the lines that land, before the yes.
 
+### Plugins, complete
+
+Under each installed plugin the console offers proving it again and running one of
+its recipes. Each is rehearsed first and done on a yes carrying the offer the
+rehearsal made; a recipe's approvals are asked as an install's are. Every input a
+recipe asks the operator for is asked inside the install, update or run reading
+before the yes, and a secret input is typed hidden and never shown back. The
+Plugins panel also lists what the verified catalogue offers, with what is installed
+of each; installing one goes through the install reading the console already has.
+
+### Keys and phones
+
+Minting a key can hand it to a program as a claim: the console shows the claim link
+once, as text and as a scannable code, with when it lapses, and never the key's
+secret, which the program collects itself. The console lists each phone's hardware
+key and each phone that can be woken, and revokes or removes one on a yes naming
+it. A wake address is shown by its host alone, because the whole address lets
+anyone holding it wake the phone.
+
+### One service at a time
+
+An update can move one service alone, reading first what stopping it would
+interrupt; a backup can take one service alone; and a service that runs and exits
+can be run now, rehearsed first. Work that ended before it finished says whether
+its name was released or the work was let go, told apart from work that finished
+or failed, and putting away the record of work still running releases it: the
+console stops following it, and the work runs on and stays in the journal.
+
+### What this credential can do
+
+The console reads what the stack and the credential it holds can do once per
+session. A panel the credential cannot use is drawn silenced, with one sentence
+saying why; a single control it cannot use is not drawn. No version number decides
+it.
+
 ### The operator alone
 
 Grants, and revoking them, a running copy, the note, what a stop would interrupt,
-how this machine stands, its health and its quality are drawn for the operator. A
+how this machine stands, its health and its quality, plugins, keys and phones, one
+service's controls and what the credential can do are drawn for the operator. A
 member signed in to the same surface is shown none of it
 ([G10](g10-household-web.md)).
 
@@ -206,6 +242,19 @@ member signed in to the same surface is shown none of it
 | **G11-R21** | The console's quality panel MUST offer choosing a preset for everything or for one kind of media, or a format for music, from what the `quality` reading offers and from nothing else (`D2-R13`). The choice MUST be rehearsed first, showing what it means, roughly how much disk an hour of it takes and what playback costs, and the stack's sentence that it shapes future downloads only (`D2-R2`, `D2-R14`). Where the rehearsal holds the choice because this machine would have to transcode it in software, the console MUST show the warning and its yes MUST say that it is chosen anyway (`D2-R4`). |
 | **G11-R22** | Putting the recorded preset back over a hand-edited configuration MUST be rehearsed first, showing each file it would replace with the lines that go and the lines that land in their place, or that nothing edited would be replaced, and MUST be done only on a yes given after that reading (`D2-R8`). |
 | **G11-R23** | What `G11-R10` to `G11-R22` show MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown (`G10-R9`). |
+| **G11-R24** | Under each installed plugin the console MUST offer proving it again (`plugin-prove`, `ARCH-R286`), rehearsed first and run only on a yes carrying the offer the rehearsal made (`ARCH-R146`), and MUST show what each proof came to in the stack's words, a pass saying the recorded failure is cleared; where the offer has moved, it MUST show the stack's refusal and MUST NOT run it. |
+| **G11-R25** | Under each installed plugin the console MUST offer running one of its recipes by name (`plugin-run`), rehearsed first, showing what it would do and each approval it asks, approved one by one as an install's are (`G11-R1`), and run only on a yes carrying the offer and those approvals (`ARCH-R146`). |
+| **G11-R26** | The install, update and run readings MUST ask each input the plugin reading lists for the recipe (`F8-R19`) by its question before the yes, and MUST send them as `inputs`; an input marked secret MUST be typed hidden and MUST NOT be shown back, put in an address or kept by the page once sent. |
+| **G11-R27** | The Plugins panel MUST list what `GET /api/plugins/catalogue` returns (`ARCH-R153`), each entry by name, description, version, what is installed of it and what the stack does without it, and installing one MUST go through the install reading of `G11-R1` and `G11-R26`. Where reaching the catalogue is switched off it MUST say so with the setting that switches it on; where the read is `failed` it MUST show the stack's sentence and no entry (`ARCH-R452`). |
+| **G11-R28** | Minting a key MUST offer handing it to a program as a claim (`C10-R20`): the console MUST show the claim link once, as text and as a scannable code, with when it lapses, and MUST NOT show the key's secret. |
+| **G11-R29** | The console MUST list each phone's hardware key from `GET /api/device-keys` (`ARCH-R259`) by name, app, fingerprint, backing, when it was registered and when it was last used, and MUST revoke one with `DELETE /api/device-keys/{name}` only on a yes naming the phone. |
+| **G11-R30** | The console MUST list each phone that can be woken from `GET /api/push-endpoints` (`ARCH-R282`) by name, the host of its address alone and when it was registered, and MUST remove one with `DELETE /api/push-endpoints/{name}` only on a yes naming it. It MUST NOT show the whole address. |
+| **G11-R31** | The update reading MUST offer moving one service alone (`update` with `service`, `E1-R13`), read before the yes as the whole update is, with what stopping that service would interrupt as `G11-R10` reads it for `services` naming it. |
+| **G11-R32** | The backups panel MUST offer backing up one service alone (`backup` with `service`, `G1-R1`). |
+| **G11-R33** | Beside each service that runs and exits, the console MUST offer running it now (`run`, `ARCH-R438`), rehearsed first, showing whether a run was due and what held it back, and run only on a yes. |
+| **G11-R34** | A record whose work ended before it finished MUST say whether its name was released or the work was let go, told apart from work that finished, failed or is still running (`ARCH-R132`). Putting away the record of work still running MUST release its name with `DELETE /api/jobs/{job}`, and the record MUST say that the work runs on. |
+| **G11-R35** | The console MUST read `GET /api/capabilities` once per session (`ARCH-R78`). A panel whose read the credential cannot use MUST be drawn silenced with one sentence saying why, and a single control it cannot use MUST NOT be drawn. The console MUST NOT decide either from a version number. |
+| **G11-R36** | What `G11-R24` to `G11-R35` show MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown (`G10-R9`). |
 
 ## Notes
 
@@ -239,6 +288,18 @@ says for the app, and G11-R11 extends it to the restart and the switch, which th
 | `G11-R20` | `notify`: `state`, `backends[]`, `unread[]` | — |
 | `G11-R21` | `quality.offered`: `presets`, `formats`, `media_types`; `quality-set` with `preset`, `media_type`, `confirm` and `dry_run`; `disposition` `held` | — |
 | `G11-R22` | `quality-reapply` with `dry_run`; `quality.overwritten`: `path`, `diff` | — |
+| `G11-R24` | `plugin-prove` with `plugin`, `dry_run` and `offer` | — |
+| `G11-R25` | `plugin-run` with `plugin`, `recipe`, `inputs`, `dry_run`, `offer` and `approved` | — |
+| `G11-R26` | `inputs` on `plugin-install`, `plugin-update` and `plugin-run` | — |
+| `G11-R27` | `plugin-catalogue`: `state` (`listed`, `off`, `failed`), `entries[]`: `id`, `name`, `description`, `version`, `installed`, `without_it`; `setting`, `failure` | — |
+| `G11-R28` | `POST /api/keys` with `claim`; `key-claim`: `name`, `scope`, `purpose`, `link`, `lapses` | — |
+| `G11-R29` | `device-keys.keys[]`: `name`, `app`, `fingerprint`, `backing`, `registered`, `used`, `revoked` | — |
+| `G11-R30` | `push-endpoints.endpoints[]`: `name`, `endpoint`, `registered` | the whole `endpoint` |
+| `G11-R31` | `update` with `service` | — |
+| `G11-R32` | `backup` with `service` | — |
+| `G11-R33` | `run` with `service` and `dry_run`; `ran`: `service`, `due`, `held`, `ran`, `skipped` | — |
+| `G11-R34` | `ended`: `job`, `action`, `ended` (`released`, `let-go`, `quiet`) | — |
+| `G11-R35` | `capabilities`: each path with `available`, `unconfigured` or `unpermitted`; `scope` | — |
 
 ## Related
 
@@ -254,3 +315,6 @@ says for the app, and G11-R11 extends it to the restart and the switch, which th
 - [F1](../f-extensibility/f1-customisation.md), [A2](../a-getting-started/a2-setup-wizard.md) and [A4](../a-getting-started/a4-reconfiguration.md) — running without lemonfiber, what setup settled, the choices it made
 - [B8](../b-running/b8-autostart.md), [K2](../k-observability/k2-uptime.md), [H5](../h-glue/h5-queue-selfheal.md), [D9](../d-content/d9-pipeline-trace.md) and [B9](../b-running/b9-notification-backends.md) — the machine's health
 - [D2](../d-content/d2-quality-presets.md) — quality presets
+- [F5](../f-extensibility/f5-plugin-catalogue.md), [F7](../f-extensibility/f7-plugin-provenance.md) and [F8](../f-extensibility/f8-recipes.md) — the catalogue, proving a plugin and its recipes
+- [C10](../c-trust/c10-integration-keys.md) — keys, their claims and phones' hardware keys
+- [E1](../e-maintenance/e1-stack-updates.md) — updating one service

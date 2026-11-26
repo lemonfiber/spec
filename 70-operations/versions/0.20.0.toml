@@ -7,7 +7,11 @@
 # release target: the core's `Cargo.toml` names the four it builds. This version is
 # where Windows becomes one, and the three ship with it.
 #
-# 92 goals, seeded from the roadmap milestone this version serves;
+# `G11-R27` is the web console's side of `ARCH-R153` and `ARCH-R452`, the verified plugin
+# catalogue browsed from the Plugins panel, so `lemonfiber-web` is searched, by the
+# maintainer's decision of 2026-11-26.
+#
+# 93 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # `ARCH-R153` is browsing the catalogue over the web API, answered from the verified
 # index, so the companion lists what can be installed rather than taking a typed name;
@@ -21,7 +25,7 @@ milestone = "M11"   # Ecosystem glue
 delivers  = "Ecosystem glue: cross-seed, autobrr, quality-sync, subtitles"
 status  = "planned"
 repos   = ["lemonfiber", "lemonfiber-decline", "lemonfiber-request-gate", "lemonfiber-fence", "plugin-jellyfin", "plugin-caddy", "plugin-prowlarr", "plugin-sabnzbd", "plugin-qbittorrent", "plugin-sonarr", "plugin-radarr", "plugin-lidarr", "plugin-bazarr", "plugin-seerr", "plugin-nzbhydra2", "plugin-bindery", "plugin-audiobookshelf", "plugin-emby", "plugin-medusa", "plugin-plex", "plugin-transmission", "plugin-nzbget", "plugin-byparr", "plugin-dashy", "plugin-traefik", "plugin-flaresolverr", "plugin-gluetun", "plugin-recyclarr", "plugin-unpackerr", "plugin-calibre-web-automated", "plugin-navidrome", "plugin-homepage", "plugin-configarr", "plugin-uptime-kuma"]
-satisfied_in = ["lemonfiber", "plugin-jellyfin", "lemonfiber-companion"]
+satisfied_in = ["lemonfiber", "plugin-jellyfin", "lemonfiber-companion", "lemonfiber-web"]
 goals   = [
     "H1-R1",
     "H1-R2",
@@ -115,6 +119,7 @@ goals   = [
     "N2-R27",
     "ARCH-R458",
     "ARCH-R459",
+    "G11-R27",
 ]
 
 # `N2-R1` to `N2-R27` are the rest of N2, which 0.19.0 touches and no version locked.

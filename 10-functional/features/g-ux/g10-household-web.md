@@ -60,6 +60,14 @@ received is one the core narrowed away before answering.
 Their own requests, in household words. What they may ask for, with approval and
 allowance stated before they ask. What the household holds. And playing it.
 
+Find asks for every kind of title the member may ask for, music and books among
+them, in the units each is asked in. Where to watch is the front door in household
+words, each address also a scannable code, and an address that will not answer from
+where they are is left out. "Tell me when…" lists the ways the operator offers by
+their household names, for the member to tick. Their own requests that changed
+since they last looked are marked new, and what they looked at is kept in their
+browser alone, never on the stack.
+
 ### Playing it
 
 The stream comes from the media server over the local network. Away from that
@@ -162,6 +170,10 @@ and the household member is the one who finds out.
 | **G10-R9** | A member MUST NOT be shown lifecycle controls, logs, credentials, diagnostics, or another member's requests. |
 | **G10-R10** | A refusal MUST be shown as a refusal, and MUST NOT be rendered as an empty result. |
 | **G10-R11** | An identity removed from the household MUST result in a signed-out surface at the next refused call, and MUST NOT continue to render what was already loaded. |
+| **G10-R15** | Find MUST offer asking for each kind of title `GET /api/askable/kinds` lists for the member, with the units each is asked in, and MUST send the kind and unit chosen (`ARCH-R426`); it MUST NOT offer a kind the read does not list. |
+| **G10-R16** | The surface MUST show the member where to watch from `GET /api/front-door` (`ARCH-R416`) in household words, each address as a link and as a scannable code (`G1-R15`), and MUST leave out an address the read says is `not-here`. |
+| **G10-R17** | The surface MUST offer "Tell me when…" from `GET /api/notify/mine` (`ARCH-R405`): each way the operator offers by its household name, whether this member receives on it, ticked or unticked with `notify-choose`, and whether this member's phone is registered. |
+| **G10-R18** | The surface MUST mark as new each of the member's own requests that changed since this browser last showed it, and MUST keep what was shown in this browser alone; nothing about what a member looked at MAY be sent to or kept on the stack (`ARCH-R140`). |
 
 ## Related
 
