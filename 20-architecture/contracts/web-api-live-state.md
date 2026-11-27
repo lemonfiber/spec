@@ -64,7 +64,10 @@ registers a UnifiedPush endpoint, and the core sends it a WebPush message, encry
 phone, on every alert's onset and resolution, carrying nothing but that the stack has something
 to say. The phone then reads the stream over its own connection, so the distributor learns when
 a stack spoke and never what it said. The endpoints are the operator's to see and remove, at the
-command line as here (`ARCH-R282`):
+command line as here. Once registered, an address is named in every answer by its host and a
+fingerprint, the first 16 hexadecimal digits of its SHA-256, and never in whole: the whole
+address lets anyone holding it wake the phone, and the fingerprint is enough to tell two phones
+woken through one distributor apart (`ARCH-R282`):
 
 ```
 POST /api/push-endpoints        GET /api/push-endpoints        DELETE /api/push-endpoints/{name}

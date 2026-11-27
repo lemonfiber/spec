@@ -688,6 +688,14 @@ Decisions about a repository outside this organisation, such as
 |---|---|
 | A request whose `Authorization` header names the bearer scheme with anything but a token of the declared shape after it is answered `403` by the guard on every path, the byte paths asked of the media server, those asked of the adapter and every path that goes on unasked alike, and nothing of it is asked or forwarded, so a client never hands the media server text of its own through the door. The user chose this over leaving such a value as it came where the question goes to the media server or no question is asked. Other schemes, and the places the declaration names besides the bearer header, keep their rules | [ARCH-R368](../20-architecture/contracts/capability-contracts.md), [D11-R2](../10-functional/features/d-content/d11-watching-what-the-house-holds.md) |
 
+## 2026-11-27
+
+| Decision | Where it lives |
+|---|---|
+| Putting away the record of a running job lets its name go without ending the work, by a route of its own beside the release that ends it; the console uses it, never the release | [ARCH-R464](../20-architecture/contracts/web-api.md), [G11-R34](../10-functional/features/g-ux/g11-operator-web-console.md) |
+| Each job is bound to the credential that started it: that credential and the operator may ask about, release or forget it, and everybody else is answered as for a name never issued, so a job's existence is not revealed | [ARCH-R465](../20-architecture/contracts/web-api.md) |
+| A push endpoint's wake address is redacted: every answer carries the push service's host and a short fingerprint only, and the whole address never leaves the core once it is registered | [ARCH-R282](../20-architecture/contracts/web-api.md), [G11-R30](../10-functional/features/g-ux/g11-operator-web-console.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

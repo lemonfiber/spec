@@ -110,6 +110,7 @@ alerts, because it is handed none (`ARCH-R281`).
 ```
 GET    /api/jobs/<job>
 DELETE /api/jobs/<job>
+POST   /api/jobs/<job>/forget
 ```
 
 The other end of the accepting reply. It is not named for a command, because it answers no
@@ -121,6 +122,24 @@ data location is lost — a browser has no interruption to send, so letting the 
 Ctrl-C, and what the container engine was already asked to do goes on exactly as it does when
 a terminal is closed.
 
+`POST /api/jobs/<job>/forget` lets the name go and leaves the work running. A browser that
+stops watching work it did not mean to end forgets its name rather than releasing it. It is
+answered with what asking would have answered at that moment, and from then on the name is
+one this run never issued: asking about it, releasing it and forgetting it again are refused
+as absent, while the work runs on to its end. What it says on the stream on the way still
+arrives under its name, and what it ends with is kept nowhere a client can ask for it
+(`ARCH-R464`). Forgetting does not keep work with no ending of its own alive: nothing can ask
+about it any more, so a guard or a follow whose name was forgotten is let go once it has gone
+unasked for between thirty minutes and an hour, as any other is (`N23-R12`).
+
+**A name is answered to whoever started its work, and to the operator.** Each name is bound
+to the caller whose request started the work: the operator, a household member by their id,
+or a key by its name. The three routes answer that caller, and the operator, by the per-run
+token or an operator session alike, whoever started the work. To anybody else each of them
+answers exactly as it answers a name this run never issued, `404` under the same code, so a
+caller is not told that work it did not start exists. A member's own session and a key scoped
+to that member are two callers (`ARCH-R465`).
+
 The standing is carried by the **status**, and the body is a document the client already
 parses either way:
 
@@ -130,7 +149,7 @@ parses either way:
 | Finished | `200` | the equivalent command's machine-readable output |
 | Stopped on a failure | the status the failure warrants — `404` for something named that the stack does not have, `400` for a request asked wrongly, `409` for work that found other work holding the stack, `500` otherwise | the error envelope the failure renders |
 | Ended before it finished | `200` | the `ended` envelope: the name, the action, and `ended`, which is `released`, `let-go` or `quiet` |
-| Not a name this run issued | `404` | a refusal, not the name repeated back |
+| Not a name this run issued, a name forgotten, or another caller's | `404` | a refusal, not the name repeated back, the same for all three |
 
 Status rather than a field, because the alternative is a shape only this endpoint has — and a
 second serialisation of an outcome the contract already describes is the drift `ARCH-R47`
