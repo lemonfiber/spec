@@ -237,6 +237,10 @@ library and never its front door ([`G5-R15`](../../10-functional/features/g-ux/g
 So a listening server declares `audiobooks` and `podcasts`, which it serves and no
 other type names.
 
+Every type but `comics` is a kind of title too, the `TitleKind` a media server is asked
+`has_item` for, and the library-only walkthrough asks a media server for the kinds it
+declares and no other ([`ARCH-R466`](capability-contracts.md), [`D3-R15`](../../10-functional/features/d-content/d3-first-content.md)).
+
 ### `provides` — what it can do, so wiring can ask rather than name
 
 [`F9-R1`](../../10-functional/features/f-extensibility/f9-bundled-capabilities.md)
