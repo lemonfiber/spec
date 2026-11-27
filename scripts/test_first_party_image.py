@@ -421,6 +421,20 @@ class Address(unittest.TestCase):
                 self.assertEqual(self.address({"NetworkSettings": settings}), "")
 
 
+class Base(unittest.TestCase):
+    """The pin is told what the image is built on, as its Dockerfile says."""
+
+    def test_the_dockerfile_s_base_reaches_the_pin(self):
+        import yaml
+
+        jobs = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
+        base = next(step for step in jobs["settle"]["steps"] if step.get("id") == "base")
+        self.assertIn('first_pin.py" base', base["run"])
+        self.assertIn('--directory "${DIRECTORY%/}"', base["run"])
+        self.assertEqual(jobs["settle"]["outputs"]["base"], "${{ steps.base.outputs.base }}")
+        self.assertEqual(jobs["pin"]["with"]["built_on"], "${{ needs.settle.outputs.base }}")
+
+
 class Pinned(unittest.TestCase):
     """An image another plugin runs is proved and pinned against that plugin's manifest."""
 

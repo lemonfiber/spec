@@ -26,14 +26,12 @@ digest follows that rebuild too.
 A proof that runs the image's own program, or asks its service, may expect it to name
 its release. The release a tag names is its dotted numbers, without the prefix and the
 suffix it is spelled with, so `v3.8.0` names `3.8.0` and `4.0.21.3020-ls327` names
-`4.0.21.3020`. Where the move names another release, each `stdout_starts_with` and
-`body_starts_with` of a proof asking a service that runs the image, and naming the old
-release once as a whole release, names the new one instead, so the proof goes on
-proving exactly the release that is pinned. Nothing else in the manifest changes: each
-place the old release is written is tried on its own, and only one whose change is
-exactly that expectation's is taken. A proof whose expectation names it more than
-once, or in no one place whose change is that expectation's alone, is left as it was and
-named on the pull request, and the bump is not armed to merge.
+`4.0.21.3020`. Where the move names another release, every place a proof asking a
+service that runs the image expects the old one, written whole, expects the new one
+instead, as `plugin_pin.release_targets` and `plugin_pin.moved_text` write it, so the
+proof goes on proving exactly the release that is pinned. Nothing else in the manifest
+changes, and a proof left as written is named on the pull request, which is then not
+armed to merge.
 
     upstream_pins.py plan     --manifest plugin.toml                JSON: each pin that would move, each problem
     upstream_pins.py apply    --manifest plugin.toml --image <i>    move it; JSON: the move, or null
@@ -60,7 +58,6 @@ Exit 0 = done, 1 = an image could not be read or moved (named on standard error)
 from __future__ import annotations
 
 import argparse
-import copy
 import json
 import pathlib
 import re
@@ -88,8 +85,6 @@ ARTIFACT = "upstream-pin-"
 Refused = plugin_pin.Refused
 #: What the commit and the pull request cite.
 CITED = "Spec: REPO-R98, E1-R1, E1-R10, ARCH-R121"
-#: Where a proof's expectation writes what the program or service it asks says first.
-RELEASE_TEXT = ("stdout_starts_with", "body_starts_with")
 
 
 def upstream(image: str) -> bool:
@@ -130,12 +125,6 @@ def release_of(tag: str) -> str:
         return ""
     prefix, _, suffix = read
     return tag[len(prefix) : len(tag) - len(suffix)]
-
-
-def written_as_release(release: str) -> re.Pattern[str]:
-    """Where `release` is written whole: neither a digit nor a digit and a dot before it,
-    nor a digit or a dot and a digit after it, so `1.2` is not read inside `11.2.0`."""
-    return re.compile(rf"(?<!\d)(?<!\d\.){re.escape(release)}(?!\.?\d)")
 
 
 def ordered(tag: str) -> tuple[str, int, str, tuple[int, ...]] | None:
@@ -260,78 +249,15 @@ def plan(manifest: dict, only: str = "") -> tuple[list[dict], list[str], list[st
     return moves, problems, skipped
 
 
-def release_texts(manifest: dict, move: dict) -> tuple[dict[tuple[int, str], str], list[str]]:
-    """Each expectation `RELEASE_TEXT` names, of a proof asking a service `move` moves,
-    that names the release the move leaves once, by the proof's place and the key, with
-    what it reads at the release the move takes; and the id of each such proof naming it
-    more than once in one."""
-    was, now = release_of(move["from"]["tag"]), release_of(move["to"]["tag"])
-    if not was or not now or was == now:
-        return {}, []
-    services = manifest.get("service", [])
-    only = services[0].get("id") if len(services) == 1 else None
-    found: dict[tuple[int, str], str] = {}
-    held: list[str] = []
-    release = written_as_release(was)
-    for at, proof in enumerate(manifest.get("proof", [])):
-        if proof.get("service", only) not in move["services"]:
-            continue
-        for key, value in expectations(proof):
-            named = len(release.findall(value))
-            if named == 1:
-                found[(at, key)] = release.sub(lambda _: now, value)
-            elif named > 1:
-                held.append(str(proof.get("id")))
-    return found, list(dict.fromkeys(held))
-
-
-def expectations(proof: dict) -> list[tuple[str, str]]:
-    """Each key of `RELEASE_TEXT` a proof's expectation holds a string under, with it."""
-    expect = proof.get("expect")
-    if not isinstance(expect, dict):
-        return []
-    return [(key, expect[key]) for key in RELEASE_TEXT if isinstance(expect.get(key), str)]
-
-
-def with_release(manifest: dict, texts: dict[tuple[int, str], str]) -> dict:
-    """A parsed manifest with each proof expectation in `texts` reading as it says."""
-    moved = copy.deepcopy(manifest)
-    for (at, key), value in texts.items():
-        moved["proof"][at]["expect"][key] = value
-    return moved
-
-
 def released(text: str, move: dict) -> tuple[str, dict[str, list[str]]]:
     """`text`, a manifest the move's pin is already written in, with the release the move
-    leaves replaced by the one it takes in each expectation `release_texts` finds, and
-    no other byte changed; and the ids of the proofs moved and of those left as they were.
-
-    Each place the old release is written whole is tried on its own and kept only where
-    the manifest it makes is exactly this one with one of those expectations moved. One
-    found in no place, or in more than one, is left as it was.
-    """
-    before = tomllib.loads(text)
-    texts, held = release_texts(before, move)
-    if not texts:
-        return text, {"moved": [], "held": held}
-    now = release_of(move["to"]["tag"])
-    places: dict[tuple[int, str], list[re.Match[str]]] = {spot: [] for spot in texts}
-    for place in written_as_release(release_of(move["from"]["tag"])).finditer(text):
-        try:
-            read = tomllib.loads(f"{text[: place.start()]}{now}{text[place.end() :]}")
-        except tomllib.TOMLDecodeError:
-            continue
-        for spot, value in texts.items():
-            if read == with_release(before, {spot: value}):
-                places[spot].append(place)
-    taken = {spot: found[0] for spot, found in places.items() if len(found) == 1}
-    for spot in sorted(places.keys() - taken.keys()):
-        held.append(str(before["proof"][spot[0]].get("id")))
-    written = text
-    for place in sorted(taken.values(), key=lambda one: one.start(), reverse=True):
-        written = f"{written[: place.start()]}{now}{written[place.end() :]}"
-    moved = [str(before["proof"][at].get("id")) for at, _ in sorted(taken)]
-    return written, {"moved": list(dict.fromkeys(moved)), "held": list(dict.fromkeys(held))}
+    leaves replaced by the one it takes in each expectation of a proof asking a service
+    the move moves, as `plugin_pin.moved_text` writes it; and the ids of the proofs moved
+    and of those left as written."""
+    was, now = release_of(move["from"]["tag"]), release_of(move["to"]["tag"])
+    targets = plugin_pin.release_targets(tomllib.loads(text), move["services"], was, now)
+    written, taken, left = plugin_pin.moved_text(text, targets, was, now)
+    return written, {"moved": plugin_pin.named(text, taken), "held": plugin_pin.named(text, left)}
 
 
 def moved_manifest(main_text: str, move: dict) -> tuple[str, dict]:
@@ -383,34 +309,11 @@ def described(move: dict, left: list[str], log: str) -> tuple[str, str, bool]:
             f"{move['image']}:{now['tag']} is the newest release in the major {was['tag']} belongs to, "
             f"and its index is {now['digest']}."
         )
-    said += proofs_said(move, release_of(was["tag"]), release_of(now["tag"]))
+    said += pin_bump.releases_said(
+        move["proofs"], release_of(was["tag"]), release_of(now["tag"]), move["image"]
+    )
     body, clean = pin_bump.body_of(said, left, log, CITED)
     return title, body, clean and not move["proofs"]["held"]
-
-
-def proofs_said(move: dict, was: str, now: str) -> str:
-    """What the pull request says of the proofs whose expected release moved, and of
-    those left as they were."""
-    said = ""
-    if moved := move["proofs"]["moved"]:
-        said += (
-            f"\n\n{listed(moved)} expect{'s' if len(moved) == 1 else ''} the release {now} where "
-            f"{'it' if len(moved) == 1 else 'they'} expected {was}."
-        )
-    if held := move["proofs"]["held"]:
-        said += (
-            f"\n\n{listed(held)} name{'s' if len(held) == 1 else ''} the release {was} where this does not "
-            "move it: more than once in one expectation, or in no one place of the manifest whose change "
-            f"moves that expectation alone. {'It is' if len(held) == 1 else 'They are'} left as written, "
-            "and this is not armed to merge until that is put right on this branch."
-        )
-    return said
-
-
-def listed(ids: list[str]) -> str:
-    """Proof ids as a pull request names them."""
-    named = [f"`{one}`" for one in ids]
-    return named[0] if len(named) == 1 else f"{', '.join(named[:-1])} and {named[-1]}"
 
 
 def asked_message(args: argparse.Namespace) -> int:

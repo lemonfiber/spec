@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-"""What a first-party plugin's Dockerfile stands in for, and whether a built part's
-revision may ship: only once its own image is pinned — ARCH-R285.
+"""What a first-party plugin's Dockerfile stands in for, whether a built part's
+revision may ship: only once its own image is pinned — ARCH-R285; and what its image is
+built on — ARCH-R446, OPS-R91.
 
     first_pin.py ships --owner <organisation> [--directory .]
     first_pin.py stands-in --owner <organisation> [--directory .]
+    first_pin.py base --owner <organisation> [--directory .]
+
+`base` prints `base=<image>:<tag>` for `$GITHUB_OUTPUT`, the image and tag the
+`Dockerfile`'s last `FROM` names, or `base=` where it names no tag or there is no
+`Dockerfile`. It reads no manifest, since an image built apart from the plugin that
+runs it has none beside it. It is the release a published image is built on, which
+`manifest-pin` moves `built_on.release` and the proofs expecting it to.
 
 `stands-in` prints what the image the `Dockerfile` builds stands in for when the live
 pass records: `adapter` where a service fronts one; `built` where no service speaks a
@@ -38,20 +46,35 @@ import re
 import sys
 import tomllib
 
-REFERENCE = re.compile(r"((?:[^@/:]+(?::\d+)?/)?[^@:]+)(?::[^@/]+)?(?:@(sha256:[0-9a-f]{64}))?")
+REFERENCE = re.compile(
+    r"(?P<image>(?:[^@/:]+(?::\d+)?/)?[^@:]+)(?::(?P<tag>[^@/]+))?(?:@(?P<digest>sha256:[0-9a-f]{64}))?"
+)
 
 
-def built_on(dockerfile: str) -> tuple[str, str | None] | None:
-    """The image and digest the last `FROM` of `dockerfile` names, or none where it names
-    no image reference, flags and a stage name aside."""
+def last_from(dockerfile: str) -> re.Match[str] | None:
+    """The image reference the last `FROM` of `dockerfile` names, flags and a stage name
+    aside, or none where it names none."""
     stages = [
         line.split()[1:]
         for line in dockerfile.splitlines()
         if line.split()[:1] and line.split()[0].upper() == "FROM"
     ]
     words = [word for word in (stages[-1] if stages else []) if not word.startswith("--")]
-    found = REFERENCE.fullmatch(words[0]) if words else None
-    return (found.group(1), found.group(2)) if found else None
+    return REFERENCE.fullmatch(words[0]) if words else None
+
+
+def built_on(dockerfile: str) -> tuple[str, str | None] | None:
+    """The image and digest the last `FROM` of `dockerfile` names, or none where it names
+    no image reference."""
+    found = last_from(dockerfile)
+    return (found["image"], found["digest"]) if found else None
+
+
+def base_of(dockerfile: str | None) -> str:
+    """`<image>:<tag>` as the last `FROM` of `dockerfile` names them; empty where it names
+    no tag or there is no `Dockerfile`."""
+    found = last_from(dockerfile) if dockerfile is not None else None
+    return f"{found['image']}:{found['tag']}" if found and found["tag"] else ""
 
 
 def unshipped(manifest: dict, dockerfile: str | None, owner: str) -> str | None:
@@ -106,7 +129,7 @@ def beneath(root: pathlib.Path, raw: str) -> pathlib.Path | None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("asked", choices=("ships", "stands-in"))
+    parser.add_argument("asked", choices=("ships", "stands-in", "base"))
     parser.add_argument("--owner", required=True)
     parser.add_argument("--directory", default=".")
     asked = parser.parse_args(argv)
@@ -116,12 +139,15 @@ def main(argv: list[str] | None = None) -> int:
     if not found or not dockerfile:
         print(f"{asked.directory} leads out of the working directory", file=sys.stderr)
         return 2
+    text = dockerfile.read_text(encoding="utf-8") if dockerfile.is_file() else None
+    if asked.asked == "base":
+        print(f"base={base_of(text)}")
+        return 0
     try:
         manifest = tomllib.loads(found.read_text(encoding="utf-8"))
     except (OSError, tomllib.TOMLDecodeError) as unread:
         print(f"plugin.toml could not be read: {unread}", file=sys.stderr)
         return 2
-    text = dockerfile.read_text(encoding="utf-8") if dockerfile.is_file() else None
     if asked.asked == "stands-in":
         print(stands_in(manifest, text, asked.owner))
         return 0

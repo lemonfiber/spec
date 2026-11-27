@@ -8,9 +8,12 @@
 # `release/adapter-pin` and `release/adapter-commit-pin`, the branches
 # `first-party-bundle` follows with `pin: adapter`.
 # The branch is main with every service running the image moved to its digest
-# and tag and nothing else of the manifest touched, and the change is opened as
-# that branch's one pull request (OPS-R85, OPS-R87). A manifest with no service
-# running the image pins nothing.
+# and tag, and the change is opened as that branch's one pull request (OPS-R85,
+# OPS-R87). Where `built_on` names the image and tag the published image is built
+# on, the `built_on.release` of each such service built on that image, and the
+# release each proof asking one expects, move to that tag too (OPS-R91); nothing
+# else of the manifest is touched. A manifest with no service running the image
+# pins nothing.
 #
 # A moved digest leaves every recording that names the old one refused
 # (ARCH-R121), so the recordings move in the same commit. `lemonfiber plugin
@@ -27,13 +30,14 @@
 # nor anything `record` says of itself. `manifest_pin.py admit` works the move
 # out again from main's manifest and this workflow's inputs, and refuses the
 # artifact unless every entry is a plain file, the manifest is main's with
-# exactly that move and nothing else, and every other file is `proofs.json` or a
+# exactly that move, byte for byte, and every other file is `proofs.json` or a
 # recording the manifest names, taken from exactly the new pin. No file is read
 # or written through a link, and the plugin is checked out beside the job's own
 # scratch space rather than around it.
 #
 # Nothing here arms the pull request to merge. One that left a recording naming
-# the image it replaces is disarmed, naming each such recording (OPS-R87).
+# the image it replaces, or a release it could not move with certainty, is
+# disarmed, naming each (OPS-R87).
 #
 # Called after the image is published, by `first-party-image` and by
 # `rust-service-release` where the repository declares itself in a plugin.toml.
@@ -84,6 +88,11 @@ on:
         type: string
         required: false
         default: image
+      built_on:
+        description: "The image and tag the published image is built on, as `<image>:<tag>`, as its Dockerfile's last FROM names them. Empty where it names none."
+        type: string
+        required: false
+        default: ""
     secrets:
       RELEASE_APP_KEY:
         description: "The release App's private key, which writes the rolling pin pull request."
@@ -140,13 +149,15 @@ jobs:
           DIGEST: ${{ inputs.digest }}
           DIRECTORY: ${{ inputs.directory }}
           PIN: ${{ inputs.pin }}
+          BUILT_ON: ${{ inputs.built_on }}
         run: |
           set -euo pipefail
           mkdir "$SCRATCH"
           manifest="$PLUGIN/$DIRECTORY/plugin.toml"
           cp -- "$manifest" "$SCRATCH/main.toml"
           python3 .spec-tooling/scripts/manifest_pin.py apply --manifest "$manifest" --image "$IMAGE" \
-            --tag "$TAG" --digest "$DIGEST" --ref-type "$GITHUB_REF_TYPE" --pin "$PIN" > "$SCRATCH/move.json"
+            --tag "$TAG" --digest "$DIGEST" --ref-type "$GITHUB_REF_TYPE" --pin "$PIN" \
+            --built-on "$BUILT_ON" > "$SCRATCH/move.json"
           cat "$SCRATCH/move.json"
           if git -C "$PLUGIN" diff --quiet; then
             echo "::notice::no service of the manifest runs ${IMAGE}, so there is nothing to pin"
@@ -245,11 +256,12 @@ jobs:
           DIGEST: ${{ inputs.digest }}
           DIRECTORY: ${{ inputs.directory }}
           PIN: ${{ inputs.pin }}
+          BUILT_ON: ${{ inputs.built_on }}
         run: |
           set -euo pipefail
           python3 .spec-tooling/scripts/manifest_pin.py admit --manifest "$PLUGIN/$DIRECTORY/plugin.toml" \
             --image "$IMAGE" --tag "$TAG" --digest "$DIGEST" --ref-type "$GITHUB_REF_TYPE" --pin "$PIN" \
-            --bump "$SCRATCH/bump" --move-out "$SCRATCH/move.json" > "$SCRATCH/written"
+            --built-on "$BUILT_ON" --bump "$SCRATCH/bump" --move-out "$SCRATCH/move.json" > "$SCRATCH/written"
           # A recording new to the tree is marked so the commit below carries it.
           while IFS= read -r path; do
             git -C "$PLUGIN" add --intent-to-add -- "$DIRECTORY/$path"
