@@ -30,6 +30,16 @@ than once, and the kind it answers with, or that it answers with a file. They ar
 from the tables the surface routes and refuses by, so a read the surface gains is a read every
 client generates.
 
+Nor do the reads and the actions make up every route. A key is revoked, a phone's hardware key and
+its wake address are removed, a job is released and forgotten, and setup is walked at routes
+that are neither, and the reads a module serves of its own, such as the keys and the
+capabilities, are not in the table. `ARCH-R467` puts every route in the artefact as `routes`:
+each by its method and its path as the surface routes it, `{name}` and `{job}` left as they
+are, with the body it takes where it takes one and the kinds it answers with, `DELETE` routes
+included. The list is generated from what the surface routes by, and a route the surface serves
+that the list does not name fails CI, so a route the surface gains is one every client finds
+there rather than in the server's source.
+
 Everything in the contract that a schema cannot express stays there, in prose, and every SDK
 implements it and tests it: the heartbeat, resumption that does not present pre-gap values as
 current, the token's placement, and the refusal on mismatch. **The

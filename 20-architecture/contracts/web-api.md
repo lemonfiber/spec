@@ -515,6 +515,12 @@ answers it as its command does. A rehearsal writes nothing and answers with the 
 the command's rehearsal renders, and that envelope says it was a rehearsal; an action
 whose command refuses the flag refuses the argument with the same reason (`ARCH-R131`).
 
+A revocation rehearses as an action does. `DELETE /api/keys/{name}`,
+`DELETE /api/device-keys/{name}` and `DELETE /api/push-endpoints/{name}` take
+`{ "dry_run": true }` as their body, and given it remove nothing and answer with the envelope
+the command's `--dry-run` renders, which says it was a rehearsal. Sent without a body, or with
+`dry_run` false, each removes what it names, as it always has (`ARCH-R469`).
+
 The statement is required because nothing else on the wire can stand in for it. Several
 actions answer an unconfirmed request with a reading of what they would do, and that
 reading carries `confirmed: false`. So does a rehearsal of the same action. A client that
@@ -735,6 +741,13 @@ it and paint from it
 ([ADR-0019](../../00-overview/decisions/0019-a-screen-paints-before-it-reaches-the-stack.md)), and a client
 that has not re-read it lately is holding an opinion rather than a fact.
 
+**A revocation is a capability too.** Revoking an integration key, removing a phone's hardware
+key and removing a wake address are each named by the path the surface serves them at,
+`/api/keys/{name}`, `/api/device-keys/{name}` and `/api/push-endpoints/{name}`, with `{name}`
+left as it is, and each is `available` or `unpermitted` exactly as the route itself decides for
+this credential. A client draws no revoke control the credential cannot use, and reads which it
+can rather than trying one (`ARCH-R468`).
+
 **A capability is not a promise the action will succeed.** It says the action is offerable.
 A repair may still be refused on its own terms, and that refusal is `G4`'s business, not
 this endpoint's.
@@ -917,6 +930,9 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R460** | `GET /api/watched` MUST answer a member session and a key scoped to a member with that member's own viewing history alone, and MUST be refused to an operator session and to a `read` or `act` key (`H8-R15`). It MUST answer that history is off, listing nothing, what was kept before included, where `LEMONFIBER_MEMBER_HISTORY` is `off`, and while it is off the core MUST keep nothing per member (`H8-R16`), and that it is hidden, listing nothing, while the member has hidden it. The action `watched-hide` MUST take `hidden`, `true` or `false`, from a member session alone, and MUST be refused to anybody else (`H8-R17`). |
 | **ARCH-R464** | `POST /api/jobs/{job}/forget` MUST let a job's name go without ending the work it names: it MUST be answered as redeeming the name would be answered at that moment, and from then on `GET`, `DELETE` and `forget` on that name MUST refuse it as absent (`ARCH-R72`) while the work runs on to its end. What forgotten work ends with MUST NOT be kept, and work with no ending of its own MUST still be let go once nothing has asked about it for the lease (`N23-R12`). |
 | **ARCH-R465** | A job MUST be bound to the caller whose request started it. `GET`, `DELETE` and `POST /api/jobs/{job}/forget` MUST answer that caller and the operator, by the per-run token or an operator session, and MUST answer every other caller exactly as they answer a name the run never issued (`ARCH-R72`). A member's session and a key scoped to that member MUST be two callers. |
+| **ARCH-R467** | The contract artefact MUST list every route the web API serves as `routes`, each by its method and its path as the surface routes it, with the body it takes where it takes one (`ARCH-R133`) and the kinds it answers with, `DELETE` routes and the routes that are neither a read nor an action included, generated from what the surface routes by rather than written beside it. CI MUST fail where the surface serves a route the list does not name, and each SDK's CI MUST fail where the SDK calls a route at a method or a path the list does not give. |
+| **ARCH-R468** | `GET /api/capabilities` MUST name `/api/keys/{name}`, `/api/device-keys/{name}` and `/api/push-endpoints/{name}`, the revocations the surface serves, each with the state its route answers this credential with (`ARCH-R79`), decided where that route decides it. |
+| **ARCH-R469** | `DELETE /api/keys/{name}`, `DELETE /api/device-keys/{name}` and `DELETE /api/push-endpoints/{name}` MUST take an optional body `{ "dry_run": … }`; given `true`, each MUST remove nothing and MUST answer with the envelope the command's rehearsal renders, which says it was a rehearsal (`ARCH-R131`), and without a body or given `false` each MUST remove what it names. |
 
 ## The artefact
 

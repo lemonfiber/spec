@@ -197,7 +197,13 @@
 # `F8-R20` is the trigger that runs a claim recipe once its part answers `Ours`, by the
 # maintainer's decision of 2026-11-27 (OPS-R31).
 #
-# 199 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R467` to `ARCH-R469` close what the artefact left out: every route the web API serves,
+# `DELETE` routes included, listed in it; the revocations named among the capabilities, so the
+# console draws no revoke control the credential cannot use (`G11-R35`); and a revocation
+# rehearsed as an action is. They are the core's and the SDKs', by the maintainer's decisions of
+# 2026-11-27 (OPS-R31).
+#
+# 202 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -402,6 +408,9 @@ goals   = [
     "G11-R34",
     "ARCH-R464",
     "ARCH-R465",
+    "ARCH-R467",
+    "ARCH-R468",
+    "ARCH-R469",
     "G11-R35",
     "G11-R36",
     "G10-R15",
