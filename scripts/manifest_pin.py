@@ -76,10 +76,10 @@ def moved(
 
 def admitted(main_text: str, args: argparse.Namespace, bump: pathlib.Path) -> tuple[dict, dict[str, bytes]]:
     """The move and the files a staged bump may commit, or `Refused` naming why."""
-    _, move = moved(main_text, args.image, args.tag, args.digest, args.ref_type, args.pin)
+    written, move = moved(main_text, args.image, args.tag, args.digest, args.ref_type, args.pin)
     if move is None:
         raise Refused(f"main's manifest runs no service of {args.image}")
-    return move, pin_bump.admitted_files(main_text, move, bump)
+    return move, pin_bump.admitted_files(written, main_text, move, bump)
 
 
 def described(move: dict, left: list[str], log: str) -> tuple[str, str, bool]:
