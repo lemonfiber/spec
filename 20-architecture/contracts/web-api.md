@@ -580,9 +580,11 @@ every address it answers with checked when the fetch is made, the fetch connecti
 to those, and no redirect followed (`ARCH-R152`). The rehearsal names the revision it fetched, and the offer is
 built from it.
 
-**A recipe runs on install or on demand**, as its manifest says. An install recipe
-runs inside `plugin-install` and `plugin-update`; a demand recipe runs only through
-`plugin-run`, which names the plugin and the recipe. `inputs` carries each value a
+**A recipe runs on install, on demand or on claim**, as its manifest says. An install
+recipe runs inside `plugin-install` and `plugin-update`; a demand recipe runs only
+through `plugin-run`, which names the plugin and the recipe; a claim recipe runs once
+the part its plugin claims answers `Ours`, after the install or update, or at the seed,
+whose claim made it so (`F8-R20`). `inputs` carries each value a
 recipe asks the operator for, as `name=value`, on `plugin-install`, `plugin-update`
 and `plugin-run` alike. Until every one is given the act is refused as `PLUGIN-34`,
 naming each input missing, so a client can ask the operator for exactly those; one no

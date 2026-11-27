@@ -81,7 +81,16 @@ only when the operator asks for that recipe by name, with a rehearsal, an offer 
 approvals of its own: what was agreed to at install covers the install, and a
 demand recipe that carries a value out of the machine is agreed to again, each time
 it is run. One that fails changes nothing about what is installed, and says what
-landed. A recipe that says neither runs on install, which is what a recipe is for.
+landed. A recipe that says none of these runs on install, which is what a recipe is for.
+
+Some first-run flows can only run once a part is claimed, and a part claimed against an
+account outside the house may be installed long before the operator enters its code. A
+recipe that runs **on claim** waits for that: it runs once the part answers `Ours`,
+right after an install whose claim made it so, or at the seed whose claim did, under
+the approvals the install carried, and once it has held it does not run again until the
+plugin is installed or updated again. It asks the operator for nothing, since a seed
+takes no inputs. One that fails leaves the claim and the install as they are, says what
+landed, and runs again at the next seed.
 
 ### An input is asked for before the yes
 
@@ -242,6 +251,7 @@ every step in the order given, and is not summarised into an outcome.
 | A pair carries a release where it frees nothing: a credential-store value, an operator's input, an external answer, or a capture going back to its own service | Refuse at validation, naming the pair. A release the operator would weigh for nothing teaches them to stop weighing releases. |
 | A call would carry a value somewhere reading the manifest allowed nothing to go, or outside without the approval of its pair | Refuse at the call, before anything is sent, naming the value, the destination and the step, and end the recipe. Reading the manifest is the first check and the call is the second, so a gap in the first is not a leak. |
 | A demand recipe carries a pair the operator approved at install | It is asked for again. An approval belongs to the act that carried it. |
+| A claim recipe's part is still open when the plugin is installed | It does not run then. It runs at the seed whose claim makes the part `Ours`, under the approvals the install carried. |
 | An install recipe fails after a call to an external host landed | The install goes back, and the account names that call as one that cannot be undone from here. |
 
 ## Acceptance criteria
@@ -261,12 +271,13 @@ every step in the order given, and is not summarised into an outcome.
 | **F8-R11** | *Superseded by [ARCH-R272](../../../20-architecture/contracts/plugin-manifest.md): a plugin's service names no adapter; the core speaks it over contracts. The number is not reused.* |
 | **F8-R12** | *Superseded by [ARCH-R272](../../../20-architecture/contracts/plugin-manifest.md): a plugin's service names no adapter; the core speaks it over contracts. The number is not reused.* |
 | **F8-R13** | The API a recipe's call reaches a service in MUST be read from what that service declares rather than discovered. |
-| **F8-R14** | A recipe MUST declare whether it runs on install or on demand, and a recipe declaring neither MUST run on install; an install recipe MUST run during an install and an update, after the plugin's proofs and the stack's checks hold and before the install is recorded, and a failure MUST put the install back and name each call that had already reached somewhere. |
+| **F8-R14** | A recipe MUST declare whether it runs on install, on demand or on claim, and a recipe declaring none of them MUST run on install; an install recipe MUST run during an install and an update, after the plugin's proofs and the stack's checks hold and before the install is recorded, and a failure MUST put the install back and name each call that had already reached somewhere. |
 | **F8-R15** | A demand recipe MUST run only when asked for by name, with its own rehearsal, offer and approvals, and an approval MUST NOT carry over from another act or another run; a demand recipe that fails MUST change no install record and MUST name each call that had already reached somewhere. |
 | **F8-R16** | A value a recipe takes from the credential store for a service MUST be held to that service, and so MUST every value a recipe captures from a call that carried or read such a value, which no release frees; every other value a recipe captures from the answer of a service in this stack MUST be held to that service by its origin, whatever it holds; a pair, a call or a guard carrying or reading a held value for any other destination MUST fail validation, except a capture of that other kind carried there by a pair carrying a release, and a release on a pair that frees nothing — a credential-store value, a value captured from a call that carried or read one, an operator's input, an external host's answer, or a capture going back to its own service — MUST fail validation. |
 | **F8-R17** | While a recipe runs, each value it holds MUST carry the destinations it may be sent to: a credential-store value and every value captured from a call that carried or read one its own service alone, any other capture from a service in this stack that service and each destination of a released pair the operator approved in this act, and any other value the destinations its pairs name; a call carrying a value to any other destination, or to a host outside the stack without the approval of its pair, MUST be refused before it is sent, under a code of its own, ending the recipe. |
 | **F8-R18** | A release MUST be written on its `[[recipe.pair]]` as `release`, the sentence saying why the value is carried, and each released pair MUST be shown at install consent, and at every other act that carries it, as the value, the service it was read from, the destination and that sentence, and approved by the operator as itself; it MUST NOT be approved by approving the installation or another pair, and an act with a released pair not approved MUST NOT proceed. |
 | **F8-R19** | The plugin reading MUST list, for each recipe of a plugin, every input it asks the operator for, with its name, the question it asks and whether it is a secret, so that a surface can collect each before the operator agrees; a value given for a secret input MUST NOT be shown back by any reading or answer. |
+| **F8-R20** | A claim recipe MUST run once the part its plugin claims over `owner.claim@1` answers `Ours`: after an install or an update whose claim makes it `Ours`, once that act is recorded, and otherwise at the first seed that finds it `Ours`; it MUST run under the approvals the yes of the plugin's last install or update carried and no others, MUST NOT run again once a run of it has held until the plugin is installed or updated again, and MUST NOT ask the operator for an input, a manifest whose claim recipe does failing validation; one that fails MUST change no install record, MUST leave the claim in place, MUST be reported naming each call that had already reached somewhere, and MUST run again at the next seed. |
 
 ## Related
 

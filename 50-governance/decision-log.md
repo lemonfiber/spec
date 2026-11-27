@@ -695,6 +695,8 @@ Decisions about a repository outside this organisation, such as
 | Putting away the record of a running job lets its name go without ending the work, by a route of its own beside the release that ends it; the console uses it, never the release | [ARCH-R464](../20-architecture/contracts/web-api.md), [G11-R34](../10-functional/features/g-ux/g11-operator-web-console.md) |
 | Each job is bound to the credential that started it: that credential and the operator may ask about, release or forget it, and everybody else is answered as for a name never issued, so a job's existence is not revealed | [ARCH-R465](../20-architecture/contracts/web-api.md) |
 | A push endpoint's wake address is redacted: every answer carries the push service's host and a short fingerprint only, and the whole address never leaves the core once it is registered | [ARCH-R282](../20-architecture/contracts/web-api.md), [G11-R30](../10-functional/features/g-ux/g11-operator-web-console.md) |
+| Where an indexer answers `unsupported` to its app sync, the core tells a curator that pulls its indexers about it instead, and no plugin holds another service's credentials for it. The user chose telling the curator | [ARCH-R333](../20-architecture/contracts/capability-contracts.md) |
+| A recipe may run on claim: the core runs it once the part its plugin claims answers `Ours`, after the install or at the seed whose claim made it so, under the approvals the install carried, and the operator does nothing more for it. The user chose a trigger in the core | [F8-R20](../10-functional/features/f-extensibility/f8-recipes.md) |
 
 ## Related
 
