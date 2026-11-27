@@ -301,7 +301,7 @@ says for the app, and G11-R11 extends it to the restart and the switch, which th
 | `G11-R32` | `backup` with `service` | — |
 | `G11-R33` | `run` with `service` and `dry_run`; `ran`: `service`, `due`, `held`, `ran`, `skipped` | — |
 | `G11-R34` | `ended`: `job`, `action`, `ended` (`released`, `let-go`, `quiet`); `POST /api/jobs/{job}/forget` | — |
-| `G11-R35` | `capabilities`: each path with `available`, `unconfigured` or `unpermitted`; `scope` | — |
+| `G11-R35` | `capabilities`: each path with `available`, `unconfigured` or `unpermitted`, the revocations `/api/keys/{name}`, `/api/device-keys/{name}` and `/api/push-endpoints/{name}` among them; `scope` | — |
 
 ## Related
 
