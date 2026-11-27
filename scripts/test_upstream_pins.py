@@ -45,6 +45,7 @@ MOVE = {
     "branch": "upstream-pin/sonarr",
     "from": {"tag": SONARR_BUILD, "digest": OLD},
     "to": {"tag": SONARR_NEXT_BUILD, "digest": DIGEST},
+    "proofs": {"moved": [], "held": []},
 }
 MANIFEST = f'''schema_version = 1
 
@@ -651,6 +652,235 @@ class Main(InDirectory):
         code, _, err = self.ran("plan", "--manifest", "plugin.toml")
         self.assertEqual(code, 1)
         self.assertIn("::error::", err)
+
+
+CONFIGARR_IMAGE = "ghcr.io/raydak-labs/configarr"
+CONFIGARR = f"""schema_version = 1
+
+[[service]]
+id     = "configarr"
+image  = "{CONFIGARR_IMAGE}"
+digest = "{OLD}"
+tag    = "1.39.2"
+
+# Configarr 1.39.2 prints its release first.
+[[proof]]
+id      = "configarr.version"
+run     = {{ args = ["sh", "-c", "node index.js | grep -o 'Configarr Version: v[0-9.]*'"] }}
+expect  = {{ exit = 0, stdout_starts_with = "Configarr Version: v1.39.2\\n" }}
+fixture = "recordings/configarr/version.json"
+why     = "1.39.2 is the release pinned, and 11.39.2 and 1.39.20 are not it."
+
+[[proof]]
+id      = "configarr.reads-its-configuration"
+run     = {{ args = ["sh", "-c", "node index.js"] }}
+expect  = {{ exit = 0, stdout_starts_with = "Configarr Version: v1.39.2\\nChecking Recyclarr repo\\n" }}
+fixture = "recordings/configarr/reads-its-configuration.json"
+why     = "It reads the file it is given."
+"""
+CONFIGARR_MOVE = {
+    "image": CONFIGARR_IMAGE,
+    "services": ["configarr"],
+    "branch": "upstream-pin/configarr",
+    "from": {"tag": "1.39.2", "digest": OLD},
+    "to": {"tag": "1.40.0", "digest": DIGEST},
+}
+TRAEFIK_IMAGE = "docker.io/library/traefik"
+TRAEFIK = f"""schema_version = 1
+
+[[service]]
+id     = "traefik"
+image  = "{TRAEFIK_IMAGE}"
+digest = "{OLD}"
+tag    = "v3.7.19"
+
+[[service]]
+id     = "traefik-adapter"
+image  = "ghcr.io/lemonfiber/traefik-adapter"
+digest = "{OLD}"
+tag    = "main-000000000000"
+fronts = "traefik"
+
+[[proof]]
+id      = "traefik.version"
+service = "traefik"
+run     = {{ args = ["traefik", "version"] }}
+expect  = {{ exit = 0, stdout_starts_with = "Version:      3.7.19\\n" }}
+
+[[proof]]
+id      = "traefik-adapter.serves"
+service = "traefik-adapter"
+request = {{ method = "GET", path = "/" }}
+expect  = {{ status = 200, body_starts_with = "fronting 3.7.19" }}
+
+[[proof]]
+id      = "traefik.longer"
+service = "traefik"
+request = {{ method = "GET", path = "/" }}
+expect  = {{ status = 200, body_starts_with = "13.7.19 and 1.3.7.19 and 3.7.190 and 3.7.19.1" }}
+"""
+TRAEFIK_MOVE = {
+    "image": TRAEFIK_IMAGE,
+    "services": ["traefik"],
+    "branch": "upstream-pin/traefik",
+    "from": {"tag": "v3.7.19", "digest": OLD},
+    "to": {"tag": "v3.8.0", "digest": DIGEST},
+}
+
+
+class ReleaseText(unittest.TestCase):
+    """The release a proof expects moves with the pin, in its expectation and nowhere else."""
+
+    def moved(self, manifest: str, move: dict) -> tuple[str, dict]:
+        return upstream_pins.moved_manifest(manifest, move)
+
+    def changed_lines(self, before: str, after: str) -> list[tuple[str, str]]:
+        return [
+            (one, two) for one, two in zip(before.splitlines(), after.splitlines(), strict=True) if one != two
+        ]
+
+    def test_a_tag_names_its_dotted_numbers_as_written(self):
+        for tag, release in (
+            ("1.39.2", "1.39.2"),
+            ("v3.8.0", "3.8.0"),
+            ("4.0.21.3020-ls327", "4.0.21.3020"),
+            ("release-0.15.2", "0.15.2"),
+            ("2024.01.05", "2024.01.05"),
+            ("latest", ""),
+        ):
+            with self.subTest(tag=tag):
+                self.assertEqual(upstream_pins.release_of(tag), release)
+
+    def test_the_expected_release_moves_with_the_pin_whether_the_tag_or_the_output_writes_a_v(self):
+        for manifest, move, lines in (
+            (
+                CONFIGARR,
+                CONFIGARR_MOVE,
+                [
+                    'expect  = { exit = 0, stdout_starts_with = "Configarr Version: v1.40.0\\n" }',
+                    'expect  = { exit = 0, stdout_starts_with = "Configarr Version: v1.40.0\\nChecking Recyclarr repo\\n" }',
+                ],
+            ),
+            (
+                TRAEFIK,
+                TRAEFIK_MOVE,
+                ['expect  = { exit = 0, stdout_starts_with = "Version:      3.8.0\\n" }'],
+            ),
+        ):
+            with self.subTest(image=move["image"]):
+                pinned, _ = upstream_pins.plugin_pin.pinned(
+                    manifest, move["image"], move["to"]["tag"], DIGEST
+                )
+                written, moved = self.moved(manifest, move)
+                self.assertEqual([after for _, after in self.changed_lines(pinned, written)], lines)
+                self.assertEqual(moved["proofs"]["held"], [])
+                self.assertEqual(len(moved["proofs"]["moved"]), len(lines))
+
+    def test_a_comment_prose_a_longer_number_and_another_service_s_proof_keep_the_old_release(self):
+        written, moved = self.moved(CONFIGARR, CONFIGARR_MOVE)
+        self.assertIn("# Configarr 1.39.2 prints its release first.", written)
+        self.assertIn(
+            'why     = "1.39.2 is the release pinned, and 11.39.2 and 1.39.20 are not it."', written
+        )
+        self.assertEqual(moved["proofs"]["moved"], ["configarr.version", "configarr.reads-its-configuration"])
+        written, moved = self.moved(TRAEFIK, TRAEFIK_MOVE)
+        self.assertIn('body_starts_with = "fronting 3.7.19"', written)
+        self.assertIn('body_starts_with = "13.7.19 and 1.3.7.19 and 3.7.190 and 3.7.19.1"', written)
+        self.assertEqual(moved["proofs"], {"moved": ["traefik.version"], "held": []})
+
+    def test_a_rebuild_or_a_tag_naming_no_release_moves_no_expectation(self):
+        for to in ("1.39.2", "latest"):
+            with self.subTest(to=to):
+                move = {**CONFIGARR_MOVE, "to": {"tag": to, "digest": DIGEST}}
+                pinned, _ = upstream_pins.plugin_pin.pinned(CONFIGARR, CONFIGARR_IMAGE, to, DIGEST)
+                self.assertEqual(
+                    self.moved(CONFIGARR, move), (pinned, {**move, "proofs": {"moved": [], "held": []}})
+                )
+
+    def test_an_expectation_naming_the_release_twice_or_only_through_an_escape_is_left_and_named(self):
+        for old, new in (
+            ('"Configarr Version: v1.39.2\\n" }', '"Configarr Version: v1.39.2 (1.39.2)\\n" }'),
+            ('"Configarr Version: v1.39.2\\n" }', '"Configarr Version: v\\u0031.39.2\\n" }'),
+        ):
+            with self.subTest(new=new):
+                manifest = CONFIGARR.replace(old, new)
+                pinned, _ = upstream_pins.plugin_pin.pinned(manifest, CONFIGARR_IMAGE, "1.40.0", DIGEST)
+                written, moved = self.moved(manifest, CONFIGARR_MOVE)
+                self.assertIn(new, written)
+                self.assertEqual(len(self.changed_lines(pinned, written)), 1)
+                self.assertEqual(
+                    moved["proofs"],
+                    {"moved": ["configarr.reads-its-configuration"], "held": ["configarr.version"]},
+                )
+
+    def test_a_place_whose_change_leaves_no_manifest_is_passed_over(self):
+        manifest = f"{CONFIGARR}\n[extra]\nat.1.39.2 = 1\nat.1.40.0 = 2\n"
+        written, moved = self.moved(manifest, CONFIGARR_MOVE)
+        self.assertIn("at.1.39.2 = 1\nat.1.40.0 = 2", written)
+        self.assertEqual(moved["proofs"]["moved"], ["configarr.version", "configarr.reads-its-configuration"])
+
+    def test_the_pull_request_names_what_moved_and_is_not_armed_where_one_was_left(self):
+        moved = {
+            **CONFIGARR_MOVE,
+            "proofs": {"moved": ["configarr.version", "configarr.reads-its-configuration"], "held": []},
+        }
+        _, body, clean = upstream_pins.described(moved, [], "https://x.test/run")
+        self.assertTrue(clean)
+        self.assertIn(
+            "`configarr.version` and `configarr.reads-its-configuration` expect the release 1.40.0 where they "
+            "expected 1.39.2.",
+            body,
+        )
+        held = {**CONFIGARR_MOVE, "proofs": {"moved": [], "held": ["configarr.version"]}}
+        _, body, clean = upstream_pins.described(held, [], "https://x.test/run")
+        self.assertFalse(clean)
+        self.assertIn("`configarr.version` names the release 1.39.2 where this does not move it", body)
+        self.assertIn("It is left as written, and this is not armed to merge", body)
+
+
+class StagedRelease(InDirectory):
+    """A bump moving the release a proof expects, admitted only as the token job writes it."""
+
+    def setUp(self):
+        super().setUp()
+        fake = Registry(
+            tags={CONFIGARR_IMAGE: (["1.40.0"], "")},
+            resolved={(CONFIGARR_IMAGE, "1.40.0"): (DIGEST, BOTH, "")},
+        )
+        patched = mock.patch.multiple(upstream_pins.registry, tags=fake.tags, resolve=fake.resolve)
+        patched.start()
+        self.addCleanup(patched.stop)
+        self.put("plugin/plugin.toml", CONFIGARR)
+        self.put("main.toml", CONFIGARR)
+        with contextlib.redirect_stdout(io.StringIO()) as out, contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(
+                upstream_pins.main(["apply", "--manifest", "plugin/plugin.toml", "--image", CONFIGARR_IMAGE]),
+                0,
+            )
+        self.move = json.loads(out.getvalue())
+        self.put("plugin/proofs.json", {"proofs": []})
+        pin_bump.stage(self.root / "plugin", CONFIGARR, self.move, self.root / "bump")
+
+    def test_apply_writes_the_release_the_proofs_expect_and_admit_takes_exactly_that(self):
+        self.assertEqual(
+            self.move["proofs"]["moved"], ["configarr.version", "configarr.reads-its-configuration"]
+        )
+        move, files = upstream_pins.admitted(CONFIGARR, CONFIGARR_IMAGE, self.root / "bump")
+        self.assertEqual(move["proofs"], self.move["proofs"])
+        self.assertIn(b'stdout_starts_with = "Configarr Version: v1.40.0\\n"', files["plugin.toml"])
+
+    def test_a_bump_moving_the_release_anywhere_else_or_not_at_all_is_refused(self):
+        staged = (self.root / "bump/plugin.toml").read_text()
+        pinned, _ = upstream_pins.plugin_pin.pinned(CONFIGARR, CONFIGARR_IMAGE, "1.40.0", DIGEST)
+        for written in (
+            staged.replace("# Configarr 1.39.2", "# Configarr 1.40.0"),
+            staged.replace('why     = "1.39.2 is', 'why     = "1.40.0 is'),
+            pinned,
+        ):
+            with self.subTest(written=written):
+                self.put("bump/plugin.toml", written)
+                with self.assertRaisesRegex(upstream_pins.Refused, "is not main's with .* and nothing else"):
+                    upstream_pins.admitted(CONFIGARR, CONFIGARR_IMAGE, self.root / "bump")
 
 
 def steps(workflow: str, job: str) -> list[dict]:

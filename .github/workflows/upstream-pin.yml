@@ -18,14 +18,18 @@
 # `upstream_pins.py admit` works the move out again from main's manifest and the
 # registry, and refuses the artifact unless every entry is a plain file, the manifest
 # is main's with exactly that move and nothing else, and every other file is
-# `proofs.json` or a recording the manifest names, taken from exactly that pin. No file
+# `proofs.json` or a recording the manifest names, taken from exactly that pin. The move
+# is the pin, and the release a proof of the image's services expects where the tag's
+# release moves (REPO-R98); `upstream_pins.py apply` writes it the same way before the
+# recordings are taken, so `proofs.json` judges the proofs at the new release. No file
 # is read or written through a link, and the plugin is checked out beside the job's own
 # scratch space rather than around it.
 #
-# A bump that leaves no recording naming the image it replaces is armed to merge at its
-# commit, and the required checks judge that commit as they judge any. One that left a
-# recording behind is committed all the same, so the pull request shows what moved and
-# what did not, and is disarmed, naming each such recording (OPS-R87).
+# A bump that leaves no recording naming the image it replaces, and no proof expecting
+# the release it leaves, is armed to merge at its commit, and the required checks judge
+# that commit as they judge any. One that left either behind is committed all the same,
+# so the pull request shows what moved and what did not, and is disarmed, naming each
+# (OPS-R87).
 name: upstream-pin
 on:
   workflow_call:

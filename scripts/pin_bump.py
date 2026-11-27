@@ -30,9 +30,11 @@ are removed after.
 
 `stage` copies the manifest, `proofs.json` and every recording of the new pin into a
 directory that travels to the committing job as an artifact. There, `admitted_files`
-refuses the bump unless every entry is a plain file, the manifest is main's with
-exactly the move that job worked out itself, and every other file is `proofs.json` or a
-recording the manifest names taken from exactly that pin.
+refuses the bump unless every entry is a plain file, the manifest is byte for byte main's
+with the move that job worked out and wrote itself, and every other file is
+`proofs.json` or a recording the manifest names taken from exactly that pin. What a move
+writes is the caller's: `manifest_pin.py` writes the pin alone, and `upstream_pins.py`
+the pin and the release the proofs of the image's services expect (`REPO-R98`).
 
 `pins-only` prints `yes` where every path the push changed is one a pin moves, at the
 plugin's root: `plugin.toml`, `proofs.json`, `targets.toml`, anything under
@@ -182,13 +184,14 @@ def stage(root: pathlib.Path, main_text: str, move: dict, out: pathlib.Path) -> 
     return staged
 
 
-def admitted_files(main_text: str, move: dict, bump: pathlib.Path) -> dict[str, bytes]:
+def admitted_files(written: str, main_text: str, move: dict, bump: pathlib.Path) -> dict[str, bytes]:
     """The files a staged bump may commit for `move`, or `Refused` naming why.
 
-    `move` is the committing job's own, worked out without reading `bump`. Every entry
-    of `bump` must be a plain file, its manifest must be main's with exactly that move
-    and nothing else, and every other file must be `proofs.json` or a recording the
-    manifest names, taken from exactly the new pin.
+    `move` and `written`, main's manifest `main_text` with that move written, are the
+    committing job's own, worked out without reading `bump`. Every entry of `bump` must
+    be a plain file, its manifest must be `written` byte for byte, and every other file
+    must be `proofs.json` or a recording the manifest names, taken from exactly the new
+    pin.
     """
     files, other = paths.plain_files(bump)
     if other:
@@ -196,7 +199,6 @@ def admitted_files(main_text: str, move: dict, bump: pathlib.Path) -> dict[str, 
     if MANIFEST_FILE not in files:
         raise Refused(f"the bump holds no {MANIFEST_FILE}")
     image, to = move["image"], move["to"]
-    written, _ = plugin_pin.pinned(main_text, image, to["tag"], to["digest"])
     admitted = {MANIFEST_FILE: paths.plain_read(bump, MANIFEST_FILE, MANIFEST_LIMIT)}
     if admitted[MANIFEST_FILE] != written.encode():
         raise Refused(
@@ -364,7 +366,9 @@ def fronted(text: str | None) -> dict[str, tuple[str, str]] | None:
     except tomllib.TOMLDecodeError:
         return None
     listed = manifest.get("service", [])
-    services = [service for service in listed if isinstance(service, dict)] if isinstance(listed, list) else []
+    services = (
+        [service for service in listed if isinstance(service, dict)] if isinstance(listed, list) else []
+    )
     named = {service["fronts"] for service in services if isinstance(service.get("fronts"), str)}
     return {
         str(service["id"]): (str(service.get("tag", "")), str(service.get("digest", "")))
@@ -377,9 +381,7 @@ def manifest_at(commit: str, directory: str) -> str | None:
     """The manifest of the plugin at `directory` as `commit` holds it, or None where it
     holds none or one larger than a manifest is read."""
     at = rooted(directory)
-    shown = subprocess.run(
-        ["git", "show", f"{commit}:{at}{MANIFEST_FILE}"], capture_output=True, check=False
-    )
+    shown = subprocess.run(["git", "show", f"{commit}:{at}{MANIFEST_FILE}"], capture_output=True, check=False)
     if shown.returncode != 0 or len(shown.stdout) > MANIFEST_LIMIT:
         return None
     try:
@@ -496,7 +498,10 @@ def asked_stage(args: argparse.Namespace) -> int:
 def asked_pins_only(args: argparse.Namespace) -> int:
     changed = changed_between(args.before, args.after)
     only = changed is not None and pins_only(
-        changed, args.directory, manifest_at(args.before, args.directory), manifest_at(args.after, args.directory)
+        changed,
+        args.directory,
+        manifest_at(args.before, args.directory),
+        manifest_at(args.after, args.directory),
     )
     print("yes" if only else "no")
     return 0
