@@ -188,8 +188,9 @@ Minting a key can hand it to a program as a claim: the console shows the claim l
 once, as text and as a scannable code, with when it lapses, and never the key's
 secret, which the program collects itself. The console lists each phone's hardware
 key and each phone that can be woken, and revokes or removes one on a yes naming
-it. A wake address is shown by its host alone, because the whole address lets
-anyone holding it wake the phone.
+it. A wake address is shown by its host and a short fingerprint, the only two
+things the stack answers about it, because the whole address lets anyone holding
+it wake the phone.
 
 ### One service at a time
 
@@ -197,8 +198,9 @@ An update can move one service alone, reading first what stopping it would
 interrupt; a backup can take one service alone; and a service that runs and exits
 can be run now, rehearsed first. Work that ended before it finished says whether
 its name was released or the work was let go, told apart from work that finished
-or failed, and putting away the record of work still running releases it: the
-console stops following it, and the work runs on and stays in the journal.
+or failed, and putting away the record of work still running forgets its name
+without ending it: the console stops following it, and the work runs on and stays
+in the journal.
 
 ### What this credential can do
 
@@ -248,11 +250,11 @@ member signed in to the same surface is shown none of it
 | **G11-R27** | The Plugins panel MUST list what `GET /api/plugins/catalogue` returns (`ARCH-R153`), each entry by name, description, version, what is installed of it and what the stack does without it, and installing one MUST go through the install reading of `G11-R1` and `G11-R26`. Where reaching the catalogue is switched off it MUST say so with the setting that switches it on; where the read is `failed` it MUST show the stack's sentence and no entry (`ARCH-R452`). |
 | **G11-R28** | Minting a key MUST offer handing it to a program as a claim (`C10-R20`): the console MUST show the claim link once, as text and as a scannable code, with when it lapses, and MUST NOT show the key's secret. |
 | **G11-R29** | The console MUST list each phone's hardware key from `GET /api/device-keys` (`ARCH-R259`) by name, app, fingerprint, backing, when it was registered and when it was last used, and MUST revoke one with `DELETE /api/device-keys/{name}` only on a yes naming the phone. |
-| **G11-R30** | The console MUST list each phone that can be woken from `GET /api/push-endpoints` (`ARCH-R282`) by name, the host of its address alone and when it was registered, and MUST remove one with `DELETE /api/push-endpoints/{name}` only on a yes naming it. It MUST NOT show the whole address. |
+| **G11-R30** | The console MUST list each phone that can be woken from `GET /api/push-endpoints` (`ARCH-R282`) by name, the `host` and `fingerprint` the listing carries for its address and when it was registered, and MUST remove one with `DELETE /api/push-endpoints/{name}` only on a yes naming it. It MUST NOT show the whole address. |
 | **G11-R31** | The update reading MUST offer moving one service alone (`update` with `service`, `E1-R13`), read before the yes as the whole update is, with what stopping that service would interrupt as `G11-R10` reads it for `services` naming it. |
 | **G11-R32** | The backups panel MUST offer backing up one service alone (`backup` with `service`, `G1-R1`). |
 | **G11-R33** | Beside each service that runs and exits, the console MUST offer running it now (`run`, `ARCH-R438`), rehearsed first, showing whether a run was due and what held it back, and run only on a yes. |
-| **G11-R34** | A record whose work ended before it finished MUST say whether its name was released or the work was let go, told apart from work that finished, failed or is still running (`ARCH-R132`). Putting away the record of work still running MUST release its name with `DELETE /api/jobs/{job}`, and the record MUST say that the work runs on. |
+| **G11-R34** | A record whose work ended before it finished MUST say whether its name was released or the work was let go, told apart from work that finished, failed or is still running (`ARCH-R132`). Putting away the record of work still running MUST forget its name with `POST /api/jobs/{job}/forget` (`ARCH-R464`), never release it, and the record MUST say that the work runs on. |
 | **G11-R35** | The console MUST read `GET /api/capabilities` once per session (`ARCH-R78`). A panel whose read the credential cannot use MUST be drawn silenced with one sentence saying why, and a single control it cannot use MUST NOT be drawn. The console MUST NOT decide either from a version number. |
 | **G11-R36** | What `G11-R24` to `G11-R35` show MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown (`G10-R9`). |
 
@@ -294,11 +296,11 @@ says for the app, and G11-R11 extends it to the restart and the switch, which th
 | `G11-R27` | `plugin-catalogue`: `state` (`listed`, `off`, `failed`), `entries[]`: `id`, `name`, `description`, `version`, `installed`, `without_it`; `setting`, `failure` | — |
 | `G11-R28` | `POST /api/keys` with `claim`; `key-claim`: `name`, `scope`, `purpose`, `link`, `lapses` | — |
 | `G11-R29` | `device-keys.keys[]`: `name`, `app`, `fingerprint`, `backing`, `registered`, `used`, `revoked` | — |
-| `G11-R30` | `push-endpoints.endpoints[]`: `name`, `endpoint`, `registered` | the whole `endpoint` |
+| `G11-R30` | `push-endpoints.endpoints[]`: `name`, `host`, `fingerprint`, `registered` | the whole address |
 | `G11-R31` | `update` with `service` | — |
 | `G11-R32` | `backup` with `service` | — |
 | `G11-R33` | `run` with `service` and `dry_run`; `ran`: `service`, `due`, `held`, `ran`, `skipped` | — |
-| `G11-R34` | `ended`: `job`, `action`, `ended` (`released`, `let-go`, `quiet`) | — |
+| `G11-R34` | `ended`: `job`, `action`, `ended` (`released`, `let-go`, `quiet`); `POST /api/jobs/{job}/forget` | — |
 | `G11-R35` | `capabilities`: each path with `available`, `unconfigured` or `unpermitted`; `scope` | — |
 
 ## Related

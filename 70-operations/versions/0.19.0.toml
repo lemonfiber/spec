@@ -188,7 +188,13 @@
 # `ARCH-R426`, `ARCH-R416` and `ARCH-R140`. The rows whose core rows went out in 0.18.0 or
 # earlier follow into this version, by the maintainer's decisions of 2026-11-26.
 #
-# 196 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R464` and `ARCH-R465` are the job routes `G11-R34` puts work away through: a name
+# forgotten without ending the work it names, and each name answered to the caller that
+# started its work and to the operator alone. `ARCH-R282` is amended in place: every answer
+# names a wake address by its host and a fingerprint, never in whole. They are the core's and
+# the SDKs', by the maintainer's decisions of 2026-11-27 (OPS-R31).
+#
+# 198 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -390,6 +396,8 @@ goals   = [
     "G11-R32",
     "G11-R33",
     "G11-R34",
+    "ARCH-R464",
+    "ARCH-R465",
     "G11-R35",
     "G11-R36",
     "G10-R15",
