@@ -63,7 +63,7 @@ to    = "komga"
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | `id` | string | ✔ | One word of ASCII letters, digits, `-` and `_`, unique within the plugin. |
-| `on` | string | | `install` or `demand`. Absent means `install`. |
+| `on` | string | | `install`, `demand` or `claim`. Absent means `install`. |
 | `input[].name` | string | ✔ | One word, unique among the recipe's inputs and captures. |
 | `input[].origin` | string | ✔ | `credential-store` or `operator`. |
 | `input[].of` | string | for `credential-store` | The service of the stack's whose credential lemonfiber already holds. Never one of this plugin's own: lemonfiber holds no key for those. |
@@ -274,7 +274,7 @@ status is branched on by `when`, never captured.
 
 ### When a recipe runs
 
-A recipe runs **on install** or **on demand**, as `on` says.
+A recipe runs **on install**, **on demand** or **on claim**, as `on` says.
 
 An install recipe runs during an install and an update, in the order declared,
 after the plugin's proofs and the stack's checks hold and before the record is
@@ -306,6 +306,17 @@ them, and its approvals are given to that act and to no other: approving a pair
 at install is not approving it for a demand recipe, and approving it for one run
 is not approving it for the next (`ARCH-R147`). A demand recipe that fails
 changes no install record, and ends with the same problem, saying what landed.
+
+A claim recipe runs once the part its plugin claims over `owner.claim@1` answers `Ours`:
+after an install or an update whose claim made it `Ours`, once that act is recorded, and
+otherwise at the first seed that finds it `Ours`. It runs under the approvals the yes of
+the plugin's last install or update carried, which lists its pairs as it lists an
+install recipe's, and once a run of it has held it does not run again until the plugin
+is installed or updated again. It asks the operator for no input, and a manifest whose
+claim recipe does fails validation. One that fails changes no install record and leaves
+the claim in place; the act that ran it reports it as `PLUGIN-36`, `PLUGIN-35` or
+`PLUGIN-38` reports an install recipe's failure, and the next seed runs it again
+(`F8-R20`).
 
 A pair carrying a value to a host outside the stack is approved as itself, as
 `<value>@<destination>`, and so is a pair carrying a release. The consent names

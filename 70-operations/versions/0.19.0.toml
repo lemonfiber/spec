@@ -194,7 +194,10 @@
 # names a wake address by its host and a fingerprint, never in whole. They are the core's and
 # the SDKs', by the maintainer's decisions of 2026-11-27 (OPS-R31).
 #
-# 198 goals, seeded from the roadmap milestone this version serves;
+# `F8-R20` is the trigger that runs a claim recipe once its part answers `Ours`, by the
+# maintainer's decision of 2026-11-27 (OPS-R31).
+#
+# 199 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -376,6 +379,7 @@ goals   = [
     "C2-R21",
     "A5-R15",
     "F14-R31",
+    "F8-R20",
     "ARCH-R416",
     "ARCH-R426",
     "G11-R14",

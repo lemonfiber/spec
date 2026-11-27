@@ -155,7 +155,7 @@
       "status": "accepted",
       "maturity": "built",
       "shipped": null,
-      "milestones": ["M14"],
+      "milestones": ["M14", "M16"],
       "milestone": "M14",
       "priority": "P1",
       "labels": ["extensibility", "verification", "security"],
@@ -163,7 +163,8 @@
       "relates": ["F5", "F6", "F7", "G8", "C1"],
       "versions": [
         {"version": "0.17.0", "status": "released"},
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"}
       ],
       "path": "f-extensibility/f8-recipes.md"
     },
