@@ -61,6 +61,8 @@ class Moved(unittest.TestCase):
                 "branch": "release/image-commit-pin",
                 "published": "main-0123456789ab",
                 "to": {"tag": "main-0123456789ab", "digest": DIGEST},
+                "built_on": None,
+                "proofs": {"moved": [], "held": []},
             },
         )
         services = {one["id"]: one for one in tomllib.loads(written)["service"]}
@@ -113,6 +115,8 @@ class Described(unittest.TestCase):
         "branch": "release/image-pin",
         "published": "v0.18.0",
         "to": {"tag": "0.18.0", "digest": DIGEST},
+        "built_on": None,
+        "proofs": {"moved": [], "held": []},
     }
 
     def test_a_pin_leaving_no_recording_behind_names_the_image_and_is_clean(self):
@@ -132,6 +136,109 @@ class Described(unittest.TestCase):
         self.assertFalse(clean)
         self.assertIn(f"- `{RECORDING}`", body)
         self.assertIn(LOG, body)
+
+
+CADDY_IMAGE = "ghcr.io/lemonfiber/caddy"
+CADDY = f"""schema_version = 1
+
+[[service]]
+id       = "caddy"
+image    = "{CADDY_IMAGE}"
+digest   = "{OLD}"
+tag      = "main-000000000000"
+built_on = {{ image = "caddy", release = "2.11.7" }}
+
+[[service]]
+id     = "caddy-adapter"
+image  = "ghcr.io/lemonfiber/caddy-adapter"
+digest = "{OLD}"
+tag    = "main-000000000000"
+fronts = "caddy"
+
+# Built on caddy 2.11.7.
+[[proof]]
+id      = "caddy.version"
+service = "caddy"
+run     = {{ args = ["caddy", "version"] }}
+expect  = {{ exit = 0, stdout_starts_with = "v2.11.7 " }}
+why     = "2.11.7 is the release lemonfiber-caddy's Dockerfile pins."
+
+[[proof]]
+id      = "caddy-adapter.supports"
+service = "caddy-adapter"
+request = {{ method = "GET", path = "/" }}
+expect  = {{ status = 200, json = {{ supports = "2.11.7" }} }}
+"""
+
+
+class Rebased(unittest.TestCase):
+    """The release an own image is built on moves with its pin, in `built_on` and in the
+    proofs of the service built on it, and nowhere else."""
+
+    def moved(self, built_on: str, manifest: str = CADDY) -> tuple[str, dict]:
+        written, move = manifest_pin.moved(
+            manifest, CADDY_IMAGE, "main-0123456789ab", DIGEST, "branch", built_on=built_on
+        )
+        return written, move
+
+    def test_the_release_built_on_moves_in_built_on_and_the_proofs_of_that_service(self):
+        written, move = self.moved("caddy:2.11.8")
+        pinned, _ = manifest_pin.plugin_pin.pinned(CADDY, CADDY_IMAGE, "main-0123456789ab", DIGEST)
+        changed = [
+            after
+            for before, after in zip(pinned.splitlines(), written.splitlines(), strict=True)
+            if before != after
+        ]
+        self.assertEqual(
+            changed,
+            [
+                'built_on = { image = "caddy", release = "2.11.8" }',
+                'expect  = { exit = 0, stdout_starts_with = "v2.11.8 " }',
+            ],
+        )
+        self.assertEqual(move["built_on"], {"image": "caddy", "from": "2.11.7", "to": "2.11.8"})
+        self.assertEqual(move["proofs"], {"moved": ["caddy.built_on", "caddy.version"], "held": []})
+        _, body, clean = manifest_pin.described(move, [], LOG)
+        self.assertTrue(clean)
+        self.assertIn(
+            "`caddy.built_on` and `caddy.version` name the release 2.11.8 of caddy where they named 2.11.7.",
+            body,
+        )
+
+    def test_nothing_moves_for_another_base_no_tag_the_same_release_or_releases_apart(self):
+        apart = (
+            CADDY.replace(
+                'tag      = "main-000000000000"\nbuilt_on', 'tag      = "main-000000000000"\nbuilt_on', 1
+            )
+            .replace(
+                'fronts = "caddy"', 'fronts = "caddy"\nbuilt_on = { image = "caddy", release = "2.11.6" }'
+            )
+            .replace('image  = "ghcr.io/lemonfiber/caddy-adapter"', f'image  = "{CADDY_IMAGE}"')
+        )
+        for built_on, manifest in (
+            ("", CADDY),
+            ("node:22.1.0", CADDY),
+            ("caddy", CADDY),
+            ("caddy:${VERSION}", CADDY),
+            ("caddy:2.11.7", CADDY),
+            ("caddy:2.11.8", apart),
+        ):
+            with self.subTest(built_on=built_on, apart=manifest is apart):
+                written, move = self.moved(built_on, manifest)
+                pinned, _ = manifest_pin.plugin_pin.pinned(manifest, CADDY_IMAGE, "main-0123456789ab", DIGEST)
+                self.assertEqual(written, pinned)
+                self.assertEqual(move["proofs"], {"moved": [], "held": []})
+
+    def test_a_release_written_through_an_escape_is_left_named_and_not_clean(self):
+        escaped = CADDY.replace('stdout_starts_with = "v2.11.7 "', 'stdout_starts_with = "v2.11.\\u0037 "')
+        written, move = self.moved("caddy:2.11.8", escaped)
+        self.assertIn('stdout_starts_with = "v2.11.\\u0037 "', written)
+        self.assertEqual(move["proofs"], {"moved": ["caddy.built_on"], "held": ["caddy.version"]})
+        _, body, clean = manifest_pin.described(move, [], LOG)
+        self.assertFalse(clean)
+        self.assertIn(
+            "`caddy.version` names the release 2.11.7 where this cannot replace it with certainty", body
+        )
 
 
 class Command(unittest.TestCase):
@@ -296,6 +403,13 @@ class Workflow(unittest.TestCase):
                 named = next(one for one in self.JOBS[job]["steps"] if one.get("name") == step)
                 self.assertEqual(named["env"]["PIN"], "${{ inputs.pin }}")
                 self.assertIn('--pin "$PIN"', named["run"])
+
+    def test_both_jobs_move_the_release_the_caller_says_the_image_is_built_on(self):
+        for job, step in (("record", "Move the pin"), ("commit", "Only the move, admitted")):
+            with self.subTest(job=job):
+                named = next(one for one in self.JOBS[job]["steps"] if one.get("name") == step)
+                self.assertEqual(named["env"]["BUILT_ON"], "${{ inputs.built_on }}")
+                self.assertIn('--built-on "$BUILT_ON"', named["run"])
 
     def test_one_run_at_a_time_moves_each_rolling_branch(self):
         self.assertEqual(

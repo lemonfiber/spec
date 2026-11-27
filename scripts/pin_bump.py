@@ -33,8 +33,10 @@ directory that travels to the committing job as an artifact. There, `admitted_fi
 refuses the bump unless every entry is a plain file, the manifest is byte for byte main's
 with the move that job worked out and wrote itself, and every other file is
 `proofs.json` or a recording the manifest names taken from exactly that pin. What a move
-writes is the caller's: `manifest_pin.py` writes the pin alone, and `upstream_pins.py`
-the pin and the release the proofs of the image's services expect (`REPO-R98`).
+writes is the caller's: `upstream_pins.py` writes the pin and the release the proofs of
+the image's services expect (`REPO-R98`), and `manifest_pin.py` the pin and, where the
+image is built on an upstream's, the release it is built on in `built_on` and in those
+proofs (`OPS-R91`).
 
 `pins-only` prints `yes` where every path the push changed is one a pin moves, at the
 plugin's root: `plugin.toml`, `proofs.json`, `targets.toml`, anything under
@@ -248,6 +250,31 @@ def body_of(said: str, left: list[str], log: str, cited: str) -> tuple[str, bool
         lines += ["", "It stays open and is not armed to merge until that is put right on this branch."]
     lines += ["", cited, SIGNED]
     return "\n".join(lines), not left
+
+
+def releases_said(proofs: dict[str, list[str]], was: str, now: str, of: str) -> str:
+    """What a pull request says of what moved from the release `was` of `of` to `now`, and
+    of what was left as written, which keeps it from being armed."""
+    said = ""
+    if moved := proofs["moved"]:
+        said += (
+            f"\n\n{listed(moved)} {'names' if len(moved) == 1 else 'name'} the release {now} of {of} "
+            f"where {'it' if len(moved) == 1 else 'they'} named {was}."
+        )
+    if held := proofs["held"]:
+        said += (
+            f"\n\n{listed(held)} {'names' if len(held) == 1 else 'name'} the release {was} where this cannot "
+            "replace it with certainty: through an escape, or where replacing it changes more than that "
+            f"value. {'It is' if len(held) == 1 else 'They are'} left as written, and this is not armed to "
+            "merge until that is put right on this branch."
+        )
+    return said
+
+
+def listed(names: list[str]) -> str:
+    """Names as a pull request lists them."""
+    quoted = [f"`{one}`" for one in names]
+    return quoted[0] if len(quoted) == 1 else f"{', '.join(quoted[:-1])} and {quoted[-1]}"
 
 
 def reader_of(workflow: str) -> dict[str, str]:

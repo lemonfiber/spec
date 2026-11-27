@@ -41,6 +41,17 @@ class BuiltOn(unittest.TestCase):
             with self.subTest(dockerfile=dockerfile):
                 self.assertEqual(first_pin.built_on(dockerfile), base)
 
+    def test_the_base_is_the_last_from_s_image_and_tag(self):
+        for dockerfile, base in (
+            (DOCKERFILE, "caddy:2.11.6"),
+            (f"FROM rust@{OTHER} AS build\nFROM localhost:5000/x/y:1@{DIGEST}\n", "localhost:5000/x/y:1"),
+            (f"FROM caddy@{DIGEST}\n", ""),
+            ("RUN true\n", ""),
+            (None, ""),
+        ):
+            with self.subTest(dockerfile=dockerfile):
+                self.assertEqual(first_pin.base_of(dockerfile), base)
+
 
 class Ships(unittest.TestCase):
     def test_a_part_still_running_what_its_dockerfile_builds_on_ships_nothing_at_any_digest(self):
@@ -134,6 +145,11 @@ class Command(unittest.TestCase):
         )
         (self.root / "Dockerfile").write_text(DOCKERFILE, encoding="utf-8")
         self.assertEqual(self.ran("ships"), (0, "", ""))
+
+    def test_base_reads_the_dockerfile_alone(self):
+        self.assertEqual(self.ran("base"), (0, "base=\n", ""))
+        (self.root / "Dockerfile").write_text(DOCKERFILE, encoding="utf-8")
+        self.assertEqual(self.ran("base"), (0, "base=caddy:2.11.6\n", ""))
 
     def test_a_manifest_that_cannot_be_read_is_a_usage_failure(self):
         code, _, said = self.ran("ships")

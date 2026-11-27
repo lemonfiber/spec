@@ -797,13 +797,33 @@ class ReleaseText(unittest.TestCase):
                     self.moved(CONFIGARR, move), (pinned, {**move, "proofs": {"moved": [], "held": []}})
                 )
 
-    def test_an_expectation_naming_the_release_twice_or_only_through_an_escape_is_left_and_named(self):
-        for old, new in (
-            ('"Configarr Version: v1.39.2\\n" }', '"Configarr Version: v1.39.2 (1.39.2)\\n" }'),
-            ('"Configarr Version: v1.39.2\\n" }', '"Configarr Version: v\\u0031.39.2\\n" }'),
+    def test_every_whole_naming_in_one_expectation_moves_and_the_bump_may_merge(self):
+        twice = CONFIGARR.replace(
+            '"Configarr Version: v1.39.2\\n" }', '"Configarr Version: v1.39.2 (1.39.2, not 1.39.20)\\n" }'
+        )
+        written, moved = self.moved(twice, CONFIGARR_MOVE)
+        self.assertIn('"Configarr Version: v1.40.0 (1.40.0, not 1.39.20)\\n" }', written)
+        self.assertEqual(moved["proofs"]["held"], [])
+
+    def test_a_string_value_of_a_json_expectation_moves_and_its_member_name_does_not(self):
+        manifest = CONFIGARR.replace(
+            'expect  = { exit = 0, stdout_starts_with = "Configarr Version: v1.39.2\\nChecking Recyclarr repo\\n" }',
+            'expect  = { status = 200, json = { "1.39.2" = "1.39.2", release = "v1.39.2", count = 1 } }',
+        )
+        written, moved = self.moved(manifest, CONFIGARR_MOVE)
+        self.assertIn('json = { "1.39.2" = "1.40.0", release = "v1.40.0", count = 1 }', written)
+        self.assertEqual(
+            moved["proofs"], {"moved": ["configarr.version", "configarr.reads-its-configuration"], "held": []}
+        )
+
+    def test_a_naming_reached_only_through_an_escape_leaves_its_expectation_and_names_it(self):
+        for new in (
+            '"Configarr Version: v\\u0031.39.2\\n" }',
+            '"Configarr Version: v1.39.2 and \\u0031.39.2\\n" }',
+            '"Configarr Version: v5\\u002e1.39.2 and \\u0031.39.2\\n" }',
         ):
             with self.subTest(new=new):
-                manifest = CONFIGARR.replace(old, new)
+                manifest = CONFIGARR.replace('"Configarr Version: v1.39.2\\n" }', new)
                 pinned, _ = upstream_pins.plugin_pin.pinned(manifest, CONFIGARR_IMAGE, "1.40.0", DIGEST)
                 written, moved = self.moved(manifest, CONFIGARR_MOVE)
                 self.assertIn(new, written)
@@ -827,14 +847,16 @@ class ReleaseText(unittest.TestCase):
         _, body, clean = upstream_pins.described(moved, [], "https://x.test/run")
         self.assertTrue(clean)
         self.assertIn(
-            "`configarr.version` and `configarr.reads-its-configuration` expect the release 1.40.0 where they "
-            "expected 1.39.2.",
+            "`configarr.version` and `configarr.reads-its-configuration` name the release 1.40.0 of "
+            f"{CONFIGARR_IMAGE} where they named 1.39.2.",
             body,
         )
         held = {**CONFIGARR_MOVE, "proofs": {"moved": [], "held": ["configarr.version"]}}
         _, body, clean = upstream_pins.described(held, [], "https://x.test/run")
         self.assertFalse(clean)
-        self.assertIn("`configarr.version` names the release 1.39.2 where this does not move it", body)
+        self.assertIn(
+            "`configarr.version` names the release 1.39.2 where this cannot replace it with certainty", body
+        )
         self.assertIn("It is left as written, and this is not armed to merge", body)
 
 

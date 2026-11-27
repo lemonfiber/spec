@@ -15,7 +15,9 @@
 # under one index carrying BuildKit's SBOM and provenance, with a build-provenance
 # attestation and an SBOM attestation per platform. The published index is then run
 # under its posture, and one rolling pull request through `manifest-pin` sets the
-# `digest` and `tag` of each service of the manifest that runs it and takes every
+# `digest` and `tag` of each service of the manifest that runs it, moves the release it
+# is built on, the tag the Dockerfile's last FROM names, into the `built_on` of each
+# such service built on that image and the proofs expecting it, and takes every
 # recording again from it.
 #
 # The service whose `image` is `ghcr.io/lemonfiber/<image>` says how it is run: its
@@ -92,6 +94,7 @@ jobs:
       image: ${{ steps.what.outputs.image }}
       name: ${{ steps.what.outputs.name }}
       tag: ${{ steps.what.outputs.tag }}
+      base: ${{ steps.base.outputs.base }}
       code: ${{ steps.diff.outputs.code }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -228,6 +231,16 @@ jobs:
             echo "tag=${tag}"
           } >> "$GITHUB_OUTPUT"
           echo "${mode}: ${image}${tag:+:${tag}}"
+      # What the image is built on, which `manifest-pin` moves `built_on` and the proofs
+      # expecting it to (OPS-R91).
+      - name: The image and tag the Dockerfile builds on
+        id: base
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+          TOOLING: ${{ github.workspace }}/.spec-tooling
+        run: |
+          python3 -I "$TOOLING/scripts/first_pin.py" base --owner "$GITHUB_REPOSITORY_OWNER" \
+            --directory "${DIRECTORY%/}" >> "$GITHUB_OUTPUT"
 
   build:
     needs: settle
@@ -663,5 +676,6 @@ jobs:
       digest: ${{ needs.publish.outputs.digest }}
       directory: ${{ inputs.pinned_in != '' && '.' || inputs.directory }}
       repository: ${{ inputs.pinned_in }}
+      built_on: ${{ needs.settle.outputs.base }}
     secrets:
       RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
