@@ -813,6 +813,12 @@ class ReleaseText(unittest.TestCase):
                     {"moved": ["configarr.reads-its-configuration"], "held": ["configarr.version"]},
                 )
 
+    def test_a_place_whose_change_leaves_no_manifest_is_passed_over(self):
+        manifest = f"{CONFIGARR}\n[extra]\nat.1.39.2 = 1\nat.1.40.0 = 2\n"
+        written, moved = self.moved(manifest, CONFIGARR_MOVE)
+        self.assertIn("at.1.39.2 = 1\nat.1.40.0 = 2", written)
+        self.assertEqual(moved["proofs"]["moved"], ["configarr.version", "configarr.reads-its-configuration"])
+
     def test_the_pull_request_names_what_moved_and_is_not_armed_where_one_was_left(self):
         moved = {
             **CONFIGARR_MOVE,

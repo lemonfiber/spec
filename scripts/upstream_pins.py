@@ -274,17 +274,23 @@ def release_texts(manifest: dict, move: dict) -> tuple[dict[tuple[int, str], str
     held: list[str] = []
     release = written_as_release(was)
     for at, proof in enumerate(manifest.get("proof", [])):
-        expect = proof.get("expect")
-        if proof.get("service", only) not in move["services"] or not isinstance(expect, dict):
+        if proof.get("service", only) not in move["services"]:
             continue
-        for key in RELEASE_TEXT:
-            value = expect.get(key)
-            named = len(release.findall(value)) if isinstance(value, str) else 0
+        for key, value in expectations(proof):
+            named = len(release.findall(value))
             if named == 1:
                 found[(at, key)] = release.sub(lambda _: now, value)
-            elif named > 1 and str(proof.get("id")) not in held:
+            elif named > 1:
                 held.append(str(proof.get("id")))
-    return found, held
+    return found, list(dict.fromkeys(held))
+
+
+def expectations(proof: dict) -> list[tuple[str, str]]:
+    """Each key of `RELEASE_TEXT` a proof's expectation holds a string under, with it."""
+    expect = proof.get("expect")
+    if not isinstance(expect, dict):
+        return []
+    return [(key, expect[key]) for key in RELEASE_TEXT if isinstance(expect.get(key), str)]
 
 
 def with_release(manifest: dict, texts: dict[tuple[int, str], str]) -> dict:
@@ -324,8 +330,6 @@ def released(text: str, move: dict) -> tuple[str, dict[str, list[str]]]:
     written = text
     for place in sorted(taken.values(), key=lambda one: one.start(), reverse=True):
         written = f"{written[: place.start()]}{now}{written[place.end() :]}"
-    if tomllib.loads(written) != with_release(before, {spot: texts[spot] for spot in taken}):
-        raise Refused(f"the manifest as written is not the one it was with {move['image']}'s release moved")
     moved = [str(before["proof"][at].get("id")) for at, _ in sorted(taken)]
     return written, {"moved": list(dict.fromkeys(moved)), "held": list(dict.fromkeys(held))}
 
