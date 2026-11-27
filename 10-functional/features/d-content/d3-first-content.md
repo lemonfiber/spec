@@ -123,7 +123,7 @@ the operator was in another room.
 | Situation | Behaviour |
 |-----------|-----------|
 | No indexers configured | Don't offer the walkthrough. Point at prerequisites instead. |
-| Library-only configuration | Offer a different walkthrough: point at existing media and confirm Jellyfin can see it. |
+| Library-only configuration | Offer a different walkthrough: point at existing media and confirm the media server can see it, asking it only for the kinds of title it declares it serves. |
 | Search returns nothing | Distinguish "indexers working, nothing matched" from "indexers not working". Entirely different problems. |
 | Download very large | Estimate the time and offer to continue in the background rather than holding the operator at a progress bar. |
 | Download stalls | Surface it as [C7](../c-trust/c7-queue-health.md) would, with the same remedies. |
@@ -153,6 +153,7 @@ the operator was in another room.
 | **D3-R12** | A library scan MUST be triggered so imported content is immediately visible. |
 | **D3-R13** | The walkthrough MUST be runnable at any time, not only at end of setup. |
 | **D3-R14** | A `step` event on the web API's event stream said by a walk a job names MUST carry that job's name, as the walk's accepting reply carried it, so that a surface can tie each step to the walk it started (`D3-R3`, `N15-R5`). |
+| **D3-R15** | A library-only configuration's walkthrough MUST ask the service filling `media.serve` whether its library holds what was named only for each kind of title that service declares in its `media_types`, and MUST NOT ask it for a kind it does not declare (`ARCH-R466`). |
 
 ## Related
 
